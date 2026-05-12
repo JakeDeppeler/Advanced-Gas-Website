@@ -77,7 +77,7 @@
 .page-rebates .btn--ghost-on-dark {
   background: transparent;
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.4);
+  border-color: #fff;
 }
 .page-rebates .btn--ghost-on-dark:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -151,7 +151,7 @@
   font-family: var(--f-mono);
   font-size: 12.5px;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
 }
 .page-rebates .rb-hero h1 {
   font-family: var(--f-display);
@@ -169,7 +169,7 @@
 }
 .page-rebates .rb-hero__sub {
   font-size: 19px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
   max-width: 640px;
   margin: 0 0 32px;
 }
@@ -200,7 +200,7 @@
   font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
+  color: #fff;
 }
 .page-rebates .rb-stat--sky strong { color: var(--sky); }
 
@@ -312,7 +312,7 @@
   font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
+  color: #fff;
 }
 .page-rebates .rb-calc__result-big {
   font-family: var(--f-display);
@@ -326,7 +326,7 @@
 .page-rebates .rb-calc__result p {
   margin: 0;
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
 }
 .page-rebates .rb-calc__cta {
   display: flex;
@@ -592,7 +592,7 @@
 }
 .page-rebates .bigcta p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.85);
+  color: #fff;
   font-size: 17px;
 }
 .page-rebates .bigcta__btns {
@@ -608,7 +608,7 @@
 }
 .page-rebates .bigcta__btns .btn--orange:hover { background: var(--navy-2); }
 .page-rebates .bigcta__phone {
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   text-decoration: none;
   font-size: 15px;
 }

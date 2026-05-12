@@ -157,7 +157,7 @@ export default function BlogPage() {
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Get the heads-up</span>
             <h2>Be the first to know when the VEU rules change.</h2>
             <p>The government tweaks rebate values every year. We send a short email when it happens — plus seasonal tips for keeping your gear running.</p>
-            <p style={{ marginTop: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+            <p style={{ marginTop: 0, fontSize: 13, color: "#fff" }}>
               One email a month, max. Local stuff only. Unsubscribe anytime.
             </p>
           </div>

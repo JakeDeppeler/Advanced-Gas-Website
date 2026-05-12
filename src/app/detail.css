@@ -20,11 +20,11 @@
   font-family: var(--f-mono);
   font-size: 12px;
   letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.55);
+  color: #fff;
   margin-bottom: 18px;
 }
 .page-detail .dp-crumbs a {
-  color: rgba(255,255,255,0.7);
+  color: #fff;
   text-decoration: none;
 }
 .page-detail .dp-crumbs a:hover { color: var(--sky-2); }
@@ -39,7 +39,7 @@
   font-family: var(--f-mono);
   font-size: 12.5px;
   letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.9);
+  color: #fff;
 }
 .page-detail .dp-hero h1 {
   font-family: var(--f-display); font-weight: 900;
@@ -56,11 +56,11 @@
   -webkit-text-fill-color: transparent;
 }
 .page-detail .dp-hero__sub {
-  font-size: 18px; color: rgba(255,255,255,0.8);
+  font-size: 18px; color: #fff;
   max-width: 660px; margin: 0 0 28px;
 }
 .page-detail .dp-hero__ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-.page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: rgba(255,255,255,0.3); }
+.page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: #fff; }
 .page-detail .dp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
 /* ============== BENEFITS / KEY POINTS GRID ============== */

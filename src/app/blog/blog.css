@@ -44,9 +44,9 @@
   font-size: clamp(28px, 3.4vw, 42px); line-height: 1.05; letter-spacing: -0.02em;
   margin: 0 0 14px; text-wrap: balance;
 }
-.page-blog .bl-feat__copy p { font-size: 17px; color: rgba(255,255,255,0.78); margin: 0 0 22px; }
+.page-blog .bl-feat__copy p { font-size: 17px; color: #fff; margin: 0 0 22px; }
 .page-blog .bl-feat__meta {
-  font-family: var(--f-mono); font-size: 12px; color: rgba(255,255,255,0.55);
+  font-family: var(--f-mono); font-size: 12px; color: #fff;
   letter-spacing: 0.04em;
 }
 
@@ -101,7 +101,7 @@
   font-size: clamp(28px, 3.4vw, 40px); letter-spacing: -0.02em; line-height: 1.05;
   margin: 14px 0 14px; text-wrap: balance;
 }
-.page-blog .bl-news p { font-size: 16px; color: rgba(255,255,255,0.78); margin: 0 0 14px; }
+.page-blog .bl-news p { font-size: 16px; color: #fff; margin: 0 0 14px; }
 .page-blog .bl-news__form {
   display: flex; gap: 10px; padding: 12px;
   background: rgba(255,255,255,0.06);

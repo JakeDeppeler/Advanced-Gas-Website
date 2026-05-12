@@ -32,7 +32,7 @@ export default function ContactPage() {
             </div>
 
             <div className="ct-card ct-card--red" id="emergency">
-              <span className="ct-card__sub" style={{ color: "rgba(255,255,255,0.7)" }}>24/7 Emergency</span>
+              <span className="ct-card__sub" style={{ color: "#fff" }}>24/7 Emergency</span>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
               <p style={{ marginTop: 8 }}>
                 Gas leak, no hot water, CO alarm — we answer after hours for locals only. $220 flat after-hours fee.
