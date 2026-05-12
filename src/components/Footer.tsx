@@ -1,34 +1,32 @@
 import Link from "next/link";
 import { site, services, suburbs } from "@/lib/site";
+import { Logo } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="mt-20 bg-brand-900 text-slate-200">
-      <div className="container grid gap-10 py-14 md:grid-cols-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white font-black text-brand-700">
-              AG
-            </span>
-            <span className="text-lg font-bold text-white">{site.name}</span>
+    <footer className="relative mt-24 overflow-hidden bg-navy-900 text-navy-100">
+      <div className="absolute inset-0 bg-hero-glow opacity-50" aria-hidden />
+      <div className="relative container grid gap-12 py-16 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <Logo variant="white" />
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-navy-200">
+            Licensed aircon, heat pump and gas plumbing specialists serving
+            South-East Victoria and Gippsland. Same-week installs with a 6-year
+            workmanship warranty.
+          </p>
+          <div className="mt-6 space-y-1 text-xs text-navy-300">
+            <p>ABN {site.abn}</p>
+            <p>{site.licences.plumbing}</p>
+            <p>{site.licences.refrigeration}</p>
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-slate-300">
-            Licensed Melbourne aircon, heat pump and gas plumbing specialists.
-            Same-week installs across Victoria with a 6-year workmanship warranty.
-          </p>
-          <p className="mt-4 text-xs text-slate-400">
-            ABN {site.abn}<br />
-            {site.licences.plumbing}<br />
-            {site.licences.refrigeration}
-          </p>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Services</h3>
-          <ul className="mt-3 space-y-2 text-sm">
+        <div className="md:col-span-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Services</h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
             {services.map((s) => (
               <li key={s.slug}>
-                <Link href={`/services/${s.slug}`} className="hover:text-white">
+                <Link href={`/services/${s.slug}`} className="text-navy-200 hover:text-cyan-300 transition">
                   {s.short}
                 </Link>
               </li>
@@ -36,51 +34,51 @@ export function Footer() {
           </ul>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Service Areas</h3>
-          <ul className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
+        <div className="md:col-span-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Service Areas</h3>
+          <ul className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
             {suburbs.slice(0, 10).map((sub) => (
               <li key={sub.slug}>
-                <Link href={`/melbourne/${sub.slug}`} className="hover:text-white">
+                <Link href={`/areas/${sub.slug}`} className="text-navy-200 hover:text-cyan-300 transition">
                   {sub.name}
                 </Link>
               </li>
             ))}
           </ul>
-          <Link href="/service-areas" className="mt-3 inline-block text-sm font-semibold text-accent-500">
-            View all areas →
+          <Link href="/service-areas" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-400 hover:text-cyan-300">
+            View all areas <span aria-hidden>→</span>
           </Link>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Contact</h3>
-          <ul className="mt-3 space-y-2 text-sm">
+        <div className="md:col-span-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Contact</h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
             <li>
-              <a href={`tel:${site.phoneE164}`} className="hover:text-white">
-                📞 {site.phone}
+              <a href={`tel:${site.phoneE164}`} className="font-display text-2xl font-bold text-white hover:text-cyan-300 transition">
+                {site.phone}
               </a>
             </li>
             <li>
-              <a href={`mailto:${site.email}`} className="hover:text-white">
-                ✉ {site.email}
+              <a href={`mailto:${site.email}`} className="text-navy-200 hover:text-cyan-300 transition break-all">
+                {site.email}
               </a>
             </li>
-            <li className="text-slate-300">
-              {site.address.suburb}, {site.address.state} {site.address.postcode}
+            <li className="pt-1 text-navy-200">
+              {site.primaryRegion}
             </li>
-            <li className="pt-2">
+            <li className="pt-3">
               <Link href="/quote" className="btn-accent">Get a Free Quote</Link>
             </li>
           </ul>
         </div>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="container flex flex-col sm:flex-row items-center justify-between gap-2 py-5 text-xs text-slate-400">
+      <div className="relative border-t border-white/10">
+        <div className="container flex flex-col gap-2 py-5 text-xs text-navy-300 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {site.legalName}. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
+          <div className="flex gap-5">
+            <Link href="/privacy" className="hover:text-white transition">Privacy</Link>
+            <Link href="/terms" className="hover:text-white transition">Terms</Link>
           </div>
         </div>
       </div>

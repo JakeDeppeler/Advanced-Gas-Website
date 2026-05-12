@@ -19,8 +19,8 @@ type FormState = {
 };
 
 const SERVICES = [
-  { id: "aircon-install", label: "Air conditioning installation", icon: "❄" },
-  { id: "heat-pump-install", label: "Heat pump hot water install", icon: "🔥" },
+  { id: "aircon-install", label: "Air conditioning install", icon: "❄" },
+  { id: "heat-pump-install", label: "Heat pump hot water", icon: "♨" },
   { id: "aircon-service", label: "Aircon service or repair", icon: "🔧" },
   { id: "gas-plumbing", label: "Gas / plumbing work", icon: "🔥" },
 ];
@@ -81,14 +81,14 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
   const progress = (step / 4) * 100;
 
   return (
-    <div className="card">
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+    <div className="card !p-7 md:!p-9">
+      <div className="mb-7">
+        <div className="flex items-center justify-between text-xs font-semibold text-navy-500">
           <span>Step {step} of 4</span>
           <span>{Math.round(progress)}% complete</span>
         </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full bg-accent-500 transition-all" style={{ width: `${progress}%` }} />
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-navy-50">
+          <div className="h-full bg-gradient-to-r from-cyan-400 to-flame-500 transition-all duration-500" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
@@ -107,14 +107,14 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
 
         {step === 1 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">What do you need installed?</legend>
-            <p className="mt-1 text-sm text-slate-500">Takes under 60 seconds. No obligation.</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <legend className="font-display text-2xl font-bold text-navy-900">What do you need installed?</legend>
+            <p className="mt-1 text-sm text-navy-500">Takes under 60 seconds. No obligation.</p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {SERVICES.map((s) => (
                 <label
                   key={s.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                    form.service === s.id ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"
+                  className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-4 transition ${
+                    form.service === s.id ? "border-cyan-400 bg-cyan-50/50" : "border-navy-100 hover:border-cyan-300 hover:bg-cyan-50/30"
                   }`}
                 >
                   <input
@@ -125,7 +125,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
                     onChange={() => update("service", s.id)}
                   />
                   <span className="text-2xl" aria-hidden>{s.icon}</span>
-                  <span className="font-medium text-slate-900">{s.label}</span>
+                  <span className="font-medium text-navy-900">{s.label}</span>
                 </label>
               ))}
             </div>
@@ -133,12 +133,12 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         )}
 
         {step === 2 && (
-          <div className="space-y-6">
+          <div className="space-y-7">
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900">Property type</legend>
+              <legend className="font-display text-2xl font-bold text-navy-900">Property type</legend>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {PROPERTY.map((p) => (
-                  <label key={p} className={`cursor-pointer rounded-xl border p-3 text-sm font-medium ${form.propertyType === p ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"}`}>
+                  <label key={p} className={`cursor-pointer rounded-xl border-2 p-3 text-sm font-medium transition ${form.propertyType === p ? "border-cyan-400 bg-cyan-50/50" : "border-navy-100 hover:border-cyan-300"}`}>
                     <input type="radio" name="property" className="sr-only" checked={form.propertyType === p} onChange={() => update("propertyType", p)} />
                     {p}
                   </label>
@@ -146,10 +146,10 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
               </div>
             </fieldset>
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900">When do you need this done?</legend>
+              <legend className="font-display text-2xl font-bold text-navy-900">When do you need this done?</legend>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 {TIMING.map((t) => (
-                  <label key={t} className={`cursor-pointer rounded-xl border p-3 text-sm font-medium ${form.timing === t ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"}`}>
+                  <label key={t} className={`cursor-pointer rounded-xl border-2 p-3 text-sm font-medium transition ${form.timing === t ? "border-cyan-400 bg-cyan-50/50" : "border-navy-100 hover:border-cyan-300"}`}>
                     <input type="radio" name="timing" className="sr-only" checked={form.timing === t} onChange={() => update("timing", t)} />
                     {t}
                   </label>
@@ -161,11 +161,11 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
 
         {step === 3 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">Where's the job?</legend>
-            <p className="mt-1 text-sm text-slate-500">We service all of Melbourne and regional Victoria.</p>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <Field label="Suburb" value={form.suburb} onChange={(v) => update("suburb", v)} placeholder="e.g. Richmond" />
-              <Field label="Postcode" value={form.postcode} onChange={(v) => update("postcode", v)} placeholder="e.g. 3121" inputMode="numeric" />
+            <legend className="font-display text-2xl font-bold text-navy-900">Where's the job?</legend>
+            <p className="mt-1 text-sm text-navy-500">We service South-East Victoria and Gippsland.</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <Field label="Suburb" value={form.suburb} onChange={(v) => update("suburb", v)} placeholder="e.g. Pakenham" />
+              <Field label="Postcode" value={form.postcode} onChange={(v) => update("postcode", v)} placeholder="e.g. 3810" inputMode="numeric" />
             </div>
             <Field label="Notes (optional)" value={form.notes} onChange={(v) => update("notes", v)} placeholder="Brand preference, number of rooms, etc." textarea />
           </fieldset>
@@ -173,26 +173,26 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
 
         {step === 4 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">Where do we send your quote?</legend>
-            <p className="mt-1 text-sm text-slate-500">We'll text or call within 1 business hour.</p>
-            <div className="mt-5 grid gap-4">
+            <legend className="font-display text-2xl font-bold text-navy-900">Where do we send your quote?</legend>
+            <p className="mt-1 text-sm text-navy-500">We'll text or call within 1 business hour.</p>
+            <div className="mt-6 grid gap-4">
               <Field label="Full name" value={form.name} onChange={(v) => update("name", v)} required autoComplete="name" />
               <Field label="Phone" value={form.phone} onChange={(v) => update("phone", v)} required type="tel" autoComplete="tel" inputMode="tel" />
               <Field label="Email (optional)" value={form.email} onChange={(v) => update("email", v)} type="email" autoComplete="email" />
             </div>
-            <p className="mt-4 text-xs text-slate-500">
+            <p className="mt-5 text-xs text-navy-500">
               By submitting you agree to be contacted about your quote. We never share your details.
             </p>
           </fieldset>
         )}
 
         {error && (
-          <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div role="alert" className="mt-5 rounded-lg bg-flame-50 px-4 py-3 text-sm font-medium text-flame-700 ring-1 ring-flame-100">
             {error}
           </div>
         )}
 
-        <div className="mt-6 flex items-center justify-between gap-3">
+        <div className="mt-7 flex items-center justify-between gap-3">
           {step > 1 ? (
             <button type="button" onClick={back} className="btn-ghost">← Back</button>
           ) : <span />}
@@ -223,10 +223,10 @@ function Field(props: {
   const { label, value, onChange, textarea, ...rest } = props;
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-navy-700">{label}</span>
       {textarea ? (
         <textarea
-          className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="mt-1.5 block w-full rounded-xl border-2 border-navy-100 bg-white px-3.5 py-2.5 text-sm focus:border-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-50"
           rows={3}
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -234,7 +234,7 @@ function Field(props: {
         />
       ) : (
         <input
-          className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="mt-1.5 block w-full rounded-xl border-2 border-navy-100 bg-white px-3.5 py-2.5 text-sm focus:border-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-50"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           {...rest}

@@ -22,13 +22,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const suburbUrls: MetadataRoute.Sitemap = suburbs.flatMap((sub) => [
     {
-      url: `${base}/melbourne/${sub.slug}`,
+      url: `${base}/areas/${sub.slug}`,
       lastModified: now,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     ...services.slice(0, 2).map((s) => ({
-      url: `${base}/melbourne/${sub.slug}/${s.slug}`,
+      url: `${base}/areas/${sub.slug}/${s.slug}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: 0.8,

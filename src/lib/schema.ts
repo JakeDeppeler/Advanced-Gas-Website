@@ -59,7 +59,7 @@ export function serviceSchema(serviceSlug: string, location?: string) {
   if (!svc) return null;
   const name = location ? `${svc.name} in ${location}` : svc.name;
   const url = location
-    ? `${site.url}/melbourne/${location.toLowerCase().replace(/\s+/g, "-")}/${svc.slug}`
+    ? `${site.url}/areas/${location.toLowerCase().replace(/\s+/g, "-")}/${svc.slug}`
     : `${site.url}/services/${svc.slug}`;
   return {
     "@context": "https://schema.org",

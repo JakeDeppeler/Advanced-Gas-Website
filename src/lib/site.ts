@@ -2,26 +2,27 @@
 // Replace placeholders marked with TODO before going live.
 
 export const site = {
-  name: "Advanced Gas",
-  legalName: "Advanced Gas Pty Ltd",
-  // TODO: replace with real domain
+  name: "Advanced Gas & Aircon",
+  shortName: "Advanced Gas",
+  legalName: "Advanced Gas & Aircon Pty Ltd",
+  // TODO: confirm domain
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.advancedgas.com.au",
   phone: "(03) 5947 8000",
   phoneE164: "+61359478000",
-  email: "admin@advancedgas.com",
+  email: "admin@advancedgas.com.au",
   abn: "35 607 575 280",
   licences: {
     plumbing: "VBA Plumbing Licence #46828",
-    refrigeration: "ARCtick Refrigerant Handling Licence AU59557",
+    refrigeration: "ARCtick AU59557",
   },
   address: {
     street: "TODO Street",
-    suburb: "Melbourne",
+    suburb: "Pakenham",
     state: "VIC",
-    postcode: "3000",
+    postcode: "3810",
     country: "AU",
   },
-  geo: { lat: -37.8136, lng: 144.9631 },
+  geo: { lat: -38.0703, lng: 145.4842 }, // Pakenham
   hours: [
     { day: "Mon-Fri", open: "07:00", close: "18:00" },
     { day: "Sat", open: "08:00", close: "14:00" },
@@ -31,7 +32,8 @@ export const site = {
     instagram: "",
     google: "",
   },
-  primaryRegion: "Melbourne",
+  primaryRegion: "South-East Victoria & Gippsland",
+  primaryRegionShort: "South-East Vic",
   primaryState: "Victoria",
 } as const;
 
@@ -41,7 +43,7 @@ export const services = [
     name: "Air Conditioning Installation",
     short: "Aircon Installation",
     blurb:
-      "Split system, multi-head and ducted aircon installed by licensed refrigeration technicians. Same-week installs across Melbourne.",
+      "Split system, multi-head and ducted aircon installed by ARCtick-licensed refrigeration technicians across South-East Vic and Gippsland.",
     icon: "snowflake",
   },
   {
@@ -72,21 +74,22 @@ export const services = [
 
 export type ServiceSlug = (typeof services)[number]["slug"];
 
-// Melbourne suburbs — each becomes a local landing page for SEO.
+// South-East Victoria & Gippsland service area — each becomes a local landing page.
 // Add/remove freely; sitemap + nav update automatically.
 export const suburbs = [
-  { slug: "melbourne-cbd", name: "Melbourne CBD", postcode: "3000" },
-  { slug: "south-yarra", name: "South Yarra", postcode: "3141" },
-  { slug: "richmond", name: "Richmond", postcode: "3121" },
-  { slug: "brunswick", name: "Brunswick", postcode: "3056" },
-  { slug: "footscray", name: "Footscray", postcode: "3011" },
-  { slug: "st-kilda", name: "St Kilda", postcode: "3182" },
-  { slug: "box-hill", name: "Box Hill", postcode: "3128" },
-  { slug: "glen-waverley", name: "Glen Waverley", postcode: "3150" },
-  { slug: "dandenong", name: "Dandenong", postcode: "3175" },
-  { slug: "frankston", name: "Frankston", postcode: "3199" },
-  { slug: "geelong", name: "Geelong", postcode: "3220" },
-  { slug: "ballarat", name: "Ballarat", postcode: "3350" },
+  { slug: "pakenham", name: "Pakenham", postcode: "3810" },
+  { slug: "berwick", name: "Berwick", postcode: "3806" },
+  { slug: "officer", name: "Officer", postcode: "3809" },
+  { slug: "cranbourne", name: "Cranbourne", postcode: "3977" },
+  { slug: "warragul", name: "Warragul", postcode: "3820" },
+  { slug: "drouin", name: "Drouin", postcode: "3818" },
+  { slug: "garfield", name: "Garfield", postcode: "3814" },
+  { slug: "bunyip", name: "Bunyip", postcode: "3815" },
+  { slug: "korumburra", name: "Korumburra", postcode: "3950" },
+  { slug: "leongatha", name: "Leongatha", postcode: "3953" },
+  { slug: "wonthaggi", name: "Wonthaggi", postcode: "3995" },
+  { slug: "phillip-island", name: "Phillip Island", postcode: "3922" },
+  { slug: "inverloch", name: "Inverloch", postcode: "3996" },
 ] as const;
 
 export type SuburbSlug = (typeof suburbs)[number]["slug"];
