@@ -78,7 +78,7 @@ export default function HomePage() {
             </ul>
 
             <div className="hero__ctas">
-              <a href="#quote" className="ds-btn ds-btn--primary ds-btn--lg">Check my rebate →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate →</a>
               <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
                 Or call {site.phone}
               </a>
@@ -184,20 +184,20 @@ export default function HomePage() {
           <div className="veu__right">
             <div className="veu-card">
               <div className="veu-card__head">
-                <span>Sample VEU quote — Pakenham 3810</span>
+                <span>Sample VEU quote — Thermann 270L · Pakenham 3810</span>
                 <span className="veu-card__badge">VEU certified</span>
               </div>
               <table className="veu-card__table">
                 <tbody>
-                  <tr><td>Reclaim 270L CO₂ heat pump</td><td className="num">$4,290</td></tr>
-                  <tr><td>Standard installation &amp; commissioning</td><td className="num">$1,150</td></tr>
-                  <tr><td>Removal of old gas unit</td><td className="num">$280</td></tr>
+                  <tr><td>Thermann 270L heat pump</td><td className="num">$2,200</td></tr>
+                  <tr><td>Installation &amp; commissioning</td><td className="num">$700</td></tr>
+                  <tr><td>Electrical</td><td className="num">$350</td></tr>
+                  <tr><td>Parts &amp; fittings</td><td className="num">$350</td></tr>
                   <tr><td>Compliance certificate &amp; VEU paperwork</td><td className="num">incl.</td></tr>
-                  <tr className="row-sub"><td><strong>Sub-total</strong></td><td className="num"><strong>$5,720</strong></td></tr>
-                  <tr className="row-rebate"><td>VEU rebate — up to $2,600 (applied at quote)</td><td className="num">−$2,600</td></tr>
-                  <tr className="row-rebate"><td>STC creation &amp; trade-in credit</td><td className="num">−$680</td></tr>
-                  <tr className="row-total"><td><strong>You pay</strong></td><td className="num"><strong>$2,440</strong></td></tr>
-                  <tr className="row-finance"><td colSpan={2}>or <strong>$33/week</strong> via interest-free finance — 24 months</td></tr>
+                  <tr className="row-sub"><td><strong>Sub-total</strong></td><td className="num"><strong>$3,600</strong></td></tr>
+                  <tr className="row-rebate"><td>VEU rebate (applied at quote)</td><td className="num">−$1,820</td></tr>
+                  <tr className="row-total"><td><strong>You pay (ex&nbsp;GST)</strong></td><td className="num"><strong>$1,780</strong></td></tr>
+                  <tr className="row-finance"><td colSpan={2}>or <strong>$17/week</strong> via interest-free finance — 24 months</td></tr>
                 </tbody>
               </table>
               <p className="veu-card__fp">Illustrative only — every home is different. Real quote after a free 20-minute site visit.</p>

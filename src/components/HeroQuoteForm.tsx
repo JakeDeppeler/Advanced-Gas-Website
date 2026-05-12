@@ -212,7 +212,7 @@ export function HeroQuoteForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="ds-btn ds-btn--primary ds-btn--lg qform__next"
+            className="ds-btn ds-btn--orange ds-btn--lg qform__next"
           >
             {step === TOTAL ? (submitting ? "Sending…" : "Send my quote request →") : "Next →"}
           </button>
