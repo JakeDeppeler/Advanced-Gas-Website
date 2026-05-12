@@ -31,6 +31,12 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link href="/rebates" className="inline-flex items-center gap-1.5 font-semibold text-flame-400 hover:text-flame-300 transition">
+                VEU Rebates
+                <span className="rounded bg-flame-500 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-white">$$$</span>
+              </Link>
+            </li>
           </ul>
         </div>
 

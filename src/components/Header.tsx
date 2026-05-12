@@ -68,6 +68,13 @@ export function Header() {
               </div>
             </div>
             <Link href="/service-areas" className="hover:text-cyan-600 transition">Service Areas</Link>
+            <Link
+              href="/rebates"
+              className="flex items-center gap-1.5 font-semibold text-flame-500 hover:text-flame-600 transition"
+            >
+              VEU Rebates
+              <span className="rounded bg-flame-500 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-white">$$$</span>
+            </Link>
             <Link href="/about" className="hover:text-cyan-600 transition">About</Link>
             <Link href="/contact" className="hover:text-cyan-600 transition">Contact</Link>
           </nav>
@@ -99,6 +106,10 @@ export function Header() {
               </Link>
             ))}
             <Link href="/service-areas" className="rounded-lg px-2 py-2.5 font-medium hover:bg-cyan-50" onClick={() => setOpen(false)}>Service Areas</Link>
+            <Link href="/rebates" className="flex items-center gap-1.5 rounded-lg px-2 py-2.5 font-semibold text-flame-500" onClick={() => setOpen(false)}>
+              VEU Rebates
+              <span className="rounded bg-flame-500 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-white">$$$</span>
+            </Link>
             <Link href="/about" className="rounded-lg px-2 py-2.5 font-medium hover:bg-cyan-50" onClick={() => setOpen(false)}>About</Link>
             <Link href="/contact" className="rounded-lg px-2 py-2.5 font-medium hover:bg-cyan-50" onClick={() => setOpen(false)}>Contact</Link>
             <Link href="/quote" className="btn-accent mt-2 w-full" onClick={() => setOpen(false)}>Get Free Quote</Link>

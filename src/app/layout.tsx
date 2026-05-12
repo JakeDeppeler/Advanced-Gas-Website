@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { site } from "@/lib/site";
@@ -8,35 +8,42 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const display = Plus_Jakarta_Sans({
+const archivo = Archivo({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700", "800", "900"],
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Aircon & Heat Pump Installation South-East Vic & Gippsland | Advanced Gas & Aircon",
+    default: "Aircon & Heat Pump Installation Pakenham | VEU Rebates | Advanced Gas & Aircon",
     template: "%s | Advanced Gas & Aircon",
   },
   description:
-    "Licensed aircon and heat pump installation across South-East Victoria and Gippsland. Same-week installs, fixed-price quotes, VEU rebates from $33, 6-year workmanship warranty.",
+    "Pakenham aircon and heat pump specialists. VEU rebates up to $5,000 off aircon and $2,600 off heat pumps. Same-week installs, fixed quotes, 6-year warranty.",
   keywords: [
     "aircon installation Pakenham",
-    "air conditioning installation Warragul",
-    "heat pump installation Gippsland",
-    "heat pump hot water Pakenham",
+    "heat pump installation Pakenham",
+    "VEU rebate Pakenham",
+    "VEU heat pump Victoria",
     "split system installation Berwick",
-    "ducted aircon South-East Victoria",
-    "VEU heat pump rebate",
+    "ducted aircon Pakenham",
+    "Reclaim heat pump installer",
   ],
   alternates: { canonical: "/" },
   openGraph: {
@@ -44,15 +51,15 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: site.url,
     siteName: site.name,
-    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon",
+    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
     description:
-      "Licensed aircon and heat pump specialists across South-East Vic & Gippsland. Free same-day quotes, VEU heat pump rebates from $33, 6-year warranty.",
+      "Family-run Pakenham aircon and heat pump specialists. VEU rebates up to $5,000 — we do the paperwork.",
     images: [{ url: "/og.jpg", width: 1200, height: 630, alt: site.name }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon",
-    description: "Licensed aircon and heat pump specialists across South-East Vic & Gippsland.",
+    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
+    description: "VEU rebates up to $5,000 — we do the paperwork.",
     images: ["/og.jpg"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
@@ -63,14 +70,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0E1638",
+  themeColor: "#050a30",
   width: "device-width",
   initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-AU" className={`${inter.variable} ${display.variable}`}>
+    <html lang="en-AU" className={`${manrope.variable} ${archivo.variable} ${mono.variable}`}>
       <body className="min-h-screen flex flex-col font-sans">
         <a
           href="#main"
