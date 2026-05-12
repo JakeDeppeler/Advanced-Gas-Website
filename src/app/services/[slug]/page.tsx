@@ -5,9 +5,8 @@ import Script from "next/script";
 import { services, suburbs, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
-import { FAQ } from "@/components/FAQ";
-import { CTASection } from "@/components/CTASection";
 import { QuoteForm } from "@/components/QuoteForm";
+import "../../detail.css";
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -35,127 +34,108 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   ]);
 
   return (
-    <>
-      {/* Hero */}
-      <section className="relative isolate overflow-hidden bg-navy-900 text-white">
-        <div className="absolute inset-0 bg-hero-glow" aria-hidden />
-        <div className="container relative py-20 md:py-28">
-          <nav className="text-sm text-navy-200" aria-label="Breadcrumb">
-            <Link href="/" className="hover:text-cyan-300">Home</Link>
-            <span className="mx-2 text-navy-400">/</span>
-            <Link href="/#services" className="hover:text-cyan-300">Services</Link>
-            <span className="mx-2 text-navy-400">/</span>
-            <span className="text-white">{svc.short}</span>
+    <div className="page-detail">
+      {/* HERO */}
+      <section className="dp-hero">
+        <div className="wrap">
+          <nav className="dp-crumbs" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <span className="sep">/</span>
+            <Link href="/services">Services</Link>
+            <span className="sep">/</span>
+            <span className="cur">{svc.short}</span>
           </nav>
-          <h1 className="mt-6 font-display text-balance text-4xl font-extrabold leading-[1.05] md:text-6xl">
-            {content.h1}
-          </h1>
-          <p className="mt-5 max-w-3xl text-lg text-navy-100">{content.intro}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/quote" className="btn-accent">
-              Get my free quote
-              <span aria-hidden>→</span>
-            </Link>
-            <a href={`tel:${site.phoneE164}`} className="btn-outline">☎ {site.phone}</a>
+          <div className="dp-hero__eyebrow">
+            <span className="ds-dot" />
+            {svc.short} · Pakenham &amp; within 50 km
           </div>
-        </div>
-        <div className="relative -mb-px">
-          <svg viewBox="0 0 1440 80" preserveAspectRatio="none" className="block h-12 w-full text-white" aria-hidden>
-            <path d="M0 80V40c240 30 480 30 720 0s480-30 720 0v40H0z" fill="currentColor" />
-          </svg>
+          <h1>{content.h1}</h1>
+          <p className="dp-hero__sub">{content.intro}</p>
+          <div className="dp-hero__ctas">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+              Or call {site.phone}
+            </a>
+          </div>
         </div>
       </section>
 
-      {/* Benefits */}
-      <section className="section">
-        <div className="container">
-          <span className="eyebrow">What's included</span>
-          <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.1] md:text-5xl">
-            Every {svc.short.toLowerCase()} we do, done properly.
-          </h2>
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* BENEFITS */}
+      <section className="dp-benefits">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> What&apos;s included</span>
+            <h2>Every {svc.short.toLowerCase()} we do, done properly.</h2>
+          </div>
+          <div className="dp-benefits__grid">
             {content.benefits.map((b) => (
-              <div key={b.t} className="card card-hover">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-cyan-400/15 to-navy-900/5 text-cyan-600 ring-1 ring-cyan-100">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                </div>
-                <h3 className="mt-4 text-lg font-bold">{b.t}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-navy-600">{b.d}</p>
+              <div key={b.t} className="dp-benefit">
+                <span className="dp-benefit__icon">✓</span>
+                <h3>{b.t}</h3>
+                <p>{b.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section className="section bg-gradient-to-b from-cyan-50/30 to-white">
-        <div className="container">
-          <span className="eyebrow">Indicative pricing</span>
-          <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.1] md:text-5xl">
-            Transparent fixed-price options.
-          </h2>
-          <p className="mt-4 max-w-2xl text-lg text-navy-600">
-            Real prices, not "from $X" bait. Your final quote depends on site specifics —
-            we confirm in writing before any work starts.
-          </p>
-          <div className="mt-10 overflow-hidden rounded-2xl bg-white shadow-card ring-1 ring-navy-50">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-navy-50 text-navy-900">
+      {/* PRICING */}
+      <section className="dp-pricing">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
+            <h2>Transparent fixed-price options.</h2>
+            <p>Real numbers — not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics — we confirm in writing before any work starts.</p>
+          </div>
+          <div className="dp-pricing__table">
+            <table>
+              <thead>
                 <tr>
-                  <th className="px-5 py-4 font-semibold">System</th>
-                  <th className="px-5 py-4 font-semibold">Price</th>
-                  <th className="hidden px-5 py-4 font-semibold md:table-cell">Includes</th>
+                  <th>System</th>
+                  <th>Price</th>
+                  <th>Includes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-navy-50">
+              <tbody>
                 {content.pricing.map((p) => (
-                  <tr key={p.tier} className="hover:bg-cyan-50/40 transition">
-                    <td className="px-5 py-4 font-medium">{p.tier}</td>
-                    <td className="px-5 py-4 font-display text-lg font-extrabold text-cyan-700">{p.price}</td>
-                    <td className="hidden px-5 py-4 text-navy-600 md:table-cell">{p.includes}</td>
+                  <tr key={p.tier}>
+                    <td><span className="dp-pricing__tier">{p.tier}</span></td>
+                    <td><span className="dp-pricing__price">{p.price}</span></td>
+                    <td>{p.includes}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="mt-4 text-xs text-navy-500">
+          <p className="dp-pricing__fp">
             *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.
           </p>
         </div>
       </section>
 
-      {/* Brands */}
-      <section className="section">
-        <div className="container">
-          <span className="eyebrow">Brands we install</span>
-          <h2 className="mt-4 text-balance text-3xl font-extrabold md:text-4xl">Top-tier brands only.</h2>
-          <div className="mt-8 flex flex-wrap gap-3">
-            {content.brands.map((b) => (
-              <span key={b} className="rounded-full bg-navy-50 px-5 py-2.5 font-display text-sm font-bold text-navy-700 ring-1 ring-navy-100">
-                {b}
-              </span>
-            ))}
+      {/* BRANDS */}
+      <section className="dp-brands">
+        <div className="wrap">
+          <h3>Brands we install</h3>
+          <div className="dp-brands__row">
+            {content.brands.map((b) => <span key={b}>{b}</span>)}
           </div>
         </div>
       </section>
 
-      {/* Quote form inline */}
-      <section className="section bg-gradient-to-b from-cyan-50/30 to-white">
-        <div className="container grid gap-12 lg:grid-cols-2">
-          <div>
-            <span className="eyebrow">Free quote</span>
-            <h2 className="mt-4 text-balance text-4xl font-extrabold leading-[1.1] md:text-5xl">
-              Quote for {svc.short.toLowerCase()}.
-            </h2>
-            <p className="mt-4 text-navy-600">
-              60 seconds. No obligation. Replied within 1 business hour.
-            </p>
-            <h3 className="mt-10 text-sm font-semibold uppercase tracking-wider text-navy-500">Service areas</h3>
-            <div className="mt-3 flex flex-wrap gap-2">
+      {/* QUOTE */}
+      <section className="dp-quote">
+        <div className="wrap dp-quote__grid">
+          <div className="dp-quote__copy">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Free quote</span>
+            <h2>Quote for {svc.short.toLowerCase()}.</h2>
+            <p>60 seconds. No obligation. Replied within 2 business hours.</p>
+            <h3 style={{ marginTop: 24, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
+              Service areas
+            </h3>
+            <div className="dp-quote__chips">
               {suburbs.slice(0, 8).map((s) => (
-                <Link key={s.slug} href={`/areas/${s.slug}/${svc.slug}`} className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-navy-700 ring-1 ring-navy-100 transition hover:bg-cyan-50 hover:text-cyan-700 hover:ring-cyan-200">
-                  {s.name}
-                </Link>
+                <Link key={s.slug} href={`/areas/${s.slug}/${svc.slug}`}>{s.name}</Link>
               ))}
             </div>
           </div>
@@ -163,12 +143,44 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         </div>
       </section>
 
-      <FAQ items={content.faqs} id={`faq-${svc.slug}`} />
-      <CTASection title={`Ready for your ${svc.short.toLowerCase()} quote?`} />
+      {/* FAQ */}
+      <section className="dp-faq">
+        <div className="wrap dp-faq__grid">
+          <div className="dp-faq__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
+            <h2>Quick honest answers.</h2>
+            <p>If your question isn&apos;t here, call us on <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)" }}>{site.phone}</a>.</p>
+          </div>
+          <div className="dp-faq__right">
+            {content.faqs.map((f, i) => (
+              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* BIG CTA */}
+      <section className="bigcta">
+        <div className="wrap bigcta__row">
+          <div>
+            <h2>Ready for your {svc.short.toLowerCase()} quote?</h2>
+            <p>Free, no-obligation, replied within 2 business hours.</p>
+          </div>
+          <div className="bigcta__btns">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
+            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
+              or call <strong>{site.phone}</strong>
+            </a>
+          </div>
+        </div>
+      </section>
 
       <Script id={`ld-svc-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema(svc.slug)) }} />
       <Script id={`ld-crumbs-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
       <Script id={`ld-faq-svc-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(content.faqs)) }} />
-    </>
+    </div>
   );
 }

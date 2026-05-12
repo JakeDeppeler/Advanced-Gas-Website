@@ -1,0 +1,240 @@
+/* Detail page (service slug, suburb hub, suburb+service combo, quote, thanks)
+   — shared layout primitives in design language. Use with .page-detail wrapper. */
+
+.page-detail { background: var(--bg); }
+
+/* ============== HERO (navy with glows + breadcrumb + wave) ============== */
+.page-detail .dp-hero {
+  background: var(--navy); color: #fff;
+  padding: 70px 0 90px;
+  position: relative; overflow: hidden;
+}
+.page-detail .dp-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(800px 500px at 90% 10%, rgba(0,176,237,0.16), transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, rgba(243,103,34,0.14), transparent 60%);
+}
+.page-detail .dp-hero > .wrap { position: relative; }
+.page-detail .dp-crumbs {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 18px;
+}
+.page-detail .dp-crumbs a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+}
+.page-detail .dp-crumbs a:hover { color: var(--sky-2); }
+.page-detail .dp-crumbs span.sep { margin: 0 8px; opacity: 0.5; }
+.page-detail .dp-crumbs span.cur { color: #fff; }
+.page-detail .dp-hero__eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.9);
+}
+.page-detail .dp-hero h1 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(40px, 5.2vw, 72px);
+  line-height: 0.98; letter-spacing: -0.025em;
+  margin: 22px 0 18px;
+  text-wrap: balance; max-width: 980px;
+}
+.page-detail .dp-hero h1 em { font-style: italic; color: var(--orange); }
+.page-detail .dp-hero h1 .accent {
+  background: linear-gradient(135deg, var(--sky-2), var(--sky));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.page-detail .dp-hero__sub {
+  font-size: 18px; color: rgba(255,255,255,0.8);
+  max-width: 660px; margin: 0 0 28px;
+}
+.page-detail .dp-hero__ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+.page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: rgba(255,255,255,0.3); }
+.page-detail .dp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
+
+/* ============== BENEFITS / KEY POINTS GRID ============== */
+.page-detail .dp-benefits { padding: 90px 0; background: var(--bg); }
+.page-detail .dp-benefits__intro p {
+  font-size: 17px; color: var(--ink-2);
+  max-width: 720px; margin: 0; line-height: 1.65;
+}
+.page-detail .dp-benefits__grid {
+  margin-top: 48px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+}
+.page-detail .dp-benefit {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--rad);
+  padding: 28px;
+}
+.page-detail .dp-benefit__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(0,176,237,0.1); color: var(--sky);
+  margin-bottom: 14px;
+  font-weight: 800;
+}
+.page-detail .dp-benefit h3 {
+  font-family: var(--f-display); font-weight: 700; font-size: 18px;
+  letter-spacing: -0.01em; color: var(--navy); margin: 0 0 8px;
+}
+.page-detail .dp-benefit p {
+  margin: 0; color: var(--ink-2); font-size: 14.5px; line-height: 1.55;
+}
+
+/* ============== PRICING TABLE ============== */
+.page-detail .dp-pricing { padding: 90px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-detail .dp-pricing__table {
+  margin-top: 36px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.page-detail .dp-pricing__table table { width: 100%; border-collapse: collapse; }
+.page-detail .dp-pricing__table thead th {
+  font-family: var(--f-mono); font-size: 11.5px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600;
+  text-align: left; padding: 16px 20px;
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .dp-pricing__table tbody td {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px; color: var(--ink-2);
+  vertical-align: top;
+}
+.page-detail .dp-pricing__table tbody tr:last-child td { border-bottom: none; }
+.page-detail .dp-pricing__table tbody tr:hover { background: rgba(0,176,237,0.04); }
+.page-detail .dp-pricing__tier {
+  font-family: var(--f-display); font-weight: 700; font-size: 16px;
+  color: var(--navy); display: block;
+}
+.page-detail .dp-pricing__price {
+  font-family: var(--f-display); font-weight: 800; font-size: 18px;
+  color: var(--orange); white-space: nowrap;
+}
+.page-detail .dp-pricing__fp {
+  margin-top: 14px; font-family: var(--f-mono); font-size: 11.5px;
+  color: var(--ink-3); letter-spacing: 0.02em;
+}
+
+/* ============== BRANDS STRIP ============== */
+.page-detail .dp-brands { padding: 70px 0; background: var(--bg); }
+.page-detail .dp-brands h3 {
+  font-family: var(--f-mono); font-size: 12px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3); margin: 0 0 24px; font-weight: 500;
+}
+.page-detail .dp-brands__row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.page-detail .dp-brands__row span {
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  letter-spacing: -0.005em;
+  background: #fff; color: var(--navy);
+  padding: 10px 16px; border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+/* ============== FAQ (reuses homepage style) ============== */
+.page-detail .dp-faq { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); }
+.page-detail .dp-faq__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+.page-detail .dp-faq__left h2 {
+  font-family: var(--f-display);
+  font-size: clamp(30px, 3.6vw, 46px); font-weight: 800;
+  letter-spacing: -0.02em; line-height: 1.05;
+  margin: 14px 0 14px;
+  color: var(--navy); text-wrap: balance;
+}
+.page-detail .dp-faq__left p { font-size: 17px; color: var(--ink-2); margin: 0; }
+.page-detail .dp-faq__right details {
+  border-top: 1px solid var(--line);
+  padding: 22px 0;
+}
+.page-detail .dp-faq__right details:last-child { border-bottom: 1px solid var(--line); }
+.page-detail .dp-faq__right summary {
+  list-style: none;
+  font-family: var(--f-display);
+  font-size: 19px; font-weight: 700;
+  color: var(--navy); cursor: pointer;
+  letter-spacing: -0.005em;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px;
+}
+.page-detail .dp-faq__right summary::-webkit-details-marker { display: none; }
+.page-detail .dp-faq__right summary::after {
+  content: "+";
+  font-family: var(--f-display);
+  font-weight: 400; color: var(--orange);
+  font-size: 24px; transition: transform 0.2s;
+}
+.page-detail .dp-faq__right details[open] summary::after { content: "−"; }
+.page-detail .dp-faq__right p {
+  margin: 14px 0 0;
+  color: var(--ink-2); font-size: 15.5px; line-height: 1.6;
+  max-width: 580px;
+}
+
+/* ============== INLINE QUOTE BLOCK ============== */
+.page-detail .dp-quote { padding: 90px 0; background: var(--bg); }
+.page-detail .dp-quote__grid {
+  display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 56px; align-items: start;
+}
+.page-detail .dp-quote__copy h2 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(30px, 3.8vw, 46px);
+  letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--navy); margin: 14px 0 14px; text-wrap: balance;
+}
+.page-detail .dp-quote__copy p { font-size: 17px; color: var(--ink-2); margin: 0 0 18px; max-width: 460px; }
+.page-detail .dp-quote__chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px;
+}
+.page-detail .dp-quote__chips a {
+  font-family: var(--f-mono); font-size: 12px;
+  background: #fff; color: var(--navy);
+  padding: 6px 12px; border-radius: 6px;
+  border: 1px solid var(--line);
+  text-decoration: none; transition: all 0.15s;
+}
+.page-detail .dp-quote__chips a:hover {
+  background: var(--navy); color: #fff; border-color: var(--navy);
+}
+
+/* ============== SIMPLE BODY PROSE ============== */
+.page-detail .dp-prose {
+  font-size: 17px; color: var(--ink-2); line-height: 1.65;
+}
+.page-detail .dp-prose h2 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(28px, 3.4vw, 40px);
+  letter-spacing: -0.02em; line-height: 1.1;
+  margin: 0 0 16px; color: var(--navy); text-wrap: balance;
+}
+.page-detail .dp-prose p { margin: 0 0 16px; max-width: 680px; }
+.page-detail .dp-prose strong { color: var(--navy); }
+
+/* ============== RESPONSIVE ============== */
+@media (max-width: 1100px) {
+  .page-detail .dp-benefits__grid { grid-template-columns: repeat(2, 1fr); }
+  .page-detail .dp-faq__grid { grid-template-columns: 1fr; gap: 32px; }
+  .page-detail .dp-quote__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 760px) {
+  .page-detail .dp-benefits__grid { grid-template-columns: 1fr; }
+  .page-detail .dp-pricing__table thead th:nth-child(3),
+  .page-detail .dp-pricing__table tbody td:nth-child(3) { display: none; }
+}
