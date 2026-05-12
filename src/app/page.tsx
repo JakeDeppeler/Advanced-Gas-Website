@@ -99,7 +99,7 @@ export default function HomePage() {
             </div>
 
             <p className="hero__finep">
-              *Indicative example: 270L heat pump installed for an eligible VEU household after rebate application. Final price subject to site assessment.
+              *Rebate amounts subject to eligibility, certificate prices and site assessment. We confirm your exact figure in writing before any work starts.
             </p>
           </div>
 
@@ -171,7 +171,7 @@ export default function HomePage() {
             <ul className="veu__check">
               <li>Eligibility check &amp; rebate paperwork done by us</li>
               <li>Old gas / electric tank removed &amp; disposed</li>
-              <li>10-year tank warranty, 6-year workmanship on labour</li>
+              <li>5–10 year tank warranty (brand dependent), 6-year workmanship</li>
               <li>Same-week install slots most weeks</li>
             </ul>
 
@@ -223,7 +223,7 @@ export default function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
-                <p>Reclaim, iStore, Thermann. VEU rebate handled. Most homes installed for under $500 out of pocket.</p>
+                <p>Reclaim, iStore, Thermann. VEU rebate handled — most homes installed for around $1,780–$3,500 after rebate.</p>
                 <span className="bcard__cta">See heat pump options →</span>
               </div>
             </Link>

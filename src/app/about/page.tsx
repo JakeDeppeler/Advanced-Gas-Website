@@ -46,7 +46,7 @@ export default function AboutPage() {
       <section className="ab-frame">
         <div className="wrap">
           <div className="ab-frame__big">
-            <span className="ph-tag">photo: team shot in front of vans · Henry Road workshop</span>
+            <span className="ph-tag">photo: team shot in front of vans · Pakenham workshop</span>
           </div>
         </div>
       </section>
@@ -129,8 +129,7 @@ export default function AboutPage() {
             <p>Every install gets a compliance certificate from a licensed tradie. No subcontracted-out-the-back jobs.</p>
           </div>
           <div className="acc-list">
-            <div className="acc"><span className="acc__name">Licensed Plumber (VIC)</span><span className="acc__num">{site.licences.plumbing}</span></div>
-            <div className="acc"><span className="acc__name">Licensed Gasfitter</span><span className="acc__num">VBA reg. 46828</span></div>
+            <div className="acc"><span className="acc__name">Licensed Plumber & Gasfitter (VIC)</span><span className="acc__num">{site.licences.plumbing}</span></div>
             <div className="acc"><span className="acc__name">ARC Refrigeration</span><span className="acc__num">{site.licences.refrigeration}</span></div>
             <div className="acc"><span className="acc__name">VEU Accredited Installer</span><span className="acc__num">VEET program</span></div>
             <div className="acc"><span className="acc__name">Reece Trade Partner</span><span className="acc__num">since 2019</span></div>

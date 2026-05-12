@@ -19,9 +19,9 @@ type FormState = {
 };
 
 const SERVICES = [
-  { id: "aircon-install", t: "❄ Aircon install", s: "Split / multi-head / ducted" },
-  { id: "heat-pump-install", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
-  { id: "aircon-service", t: "🔧 Service / repair", s: "All major brands" },
+  { id: "air-conditioning-installation", t: "❄ Aircon install", s: "Split / multi-head / ducted" },
+  { id: "heat-pump-installation", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
+  { id: "aircon-servicing-repairs", t: "🔧 Service / repair", s: "All major brands" },
   { id: "gas-plumbing", t: "🔥 Gas / plumbing", s: "Heating, hot water, leaks" },
 ];
 

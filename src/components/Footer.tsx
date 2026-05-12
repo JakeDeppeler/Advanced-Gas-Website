@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { site, suburbs } from "@/lib/site";
 import { LogoMark } from "./Logo";
 
 export function Footer() {
@@ -67,9 +67,7 @@ export function Footer() {
         <div className="ftr__col">
           <h4>Service area</h4>
           <p className="ftr__suburbs">
-            Pakenham · Officer · Beaconsfield · Berwick · Narre Warren · Cranbourne · Clyde ·
-            Hampton Park · Hallam · Dandenong · Endeavour Hills · Lynbrook · Bunyip · Garfield ·
-            Tynong · Drouin · Warragul · Emerald · Gembrook · Tooradin — within 50 km of Pakenham.
+            {suburbs.map((s) => s.name).join(" · ")} — within 50 km of Pakenham.
           </p>
         </div>
       </div>

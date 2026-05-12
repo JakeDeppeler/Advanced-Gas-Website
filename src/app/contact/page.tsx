@@ -43,7 +43,7 @@ export default function ContactPage() {
               <h3>Email</h3>
               <p><a href={`mailto:${site.email}`} style={{ color: "var(--navy)", fontWeight: 600 }}>{site.email}</a></p>
               <h3 style={{ marginTop: 12 }}>Workshop</h3>
-              <p>Henry Road, Pakenham VIC 3810<br />By appointment only.</p>
+              <p>1 Sierra Cct, Pakenham VIC 3810<br />By appointment only.</p>
             </div>
 
             <div className="ct-card">

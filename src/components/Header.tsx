@@ -76,7 +76,7 @@ export function Header() {
           aria-label="Toggle menu"
           aria-expanded={open}
           style={{
-            display: "none",
+            alignItems: "center",
             background: "transparent",
             border: "1px solid var(--line)",
             borderRadius: 10,

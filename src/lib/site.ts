@@ -1,11 +1,9 @@
 // Single source of truth for business info, services, suburbs.
-// Replace placeholders marked with TODO before going live.
 
 export const site = {
   name: "Advanced Gas & Aircon",
   shortName: "Advanced Gas",
   legalName: "Advanced Gas & Aircon Pty Ltd",
-  // TODO: confirm domain
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.advancedgas.com.au",
   phone: "(03) 5947 8000",
   phoneE164: "+61359478000",
@@ -16,7 +14,7 @@ export const site = {
     refrigeration: "ARCtick AU59557",
   },
   address: {
-    street: "TODO Street",
+    street: "1 Sierra Cct",
     suburb: "Pakenham",
     state: "VIC",
     postcode: "3810",
@@ -51,7 +49,7 @@ export const services = [
     name: "Heat Pump Hot Water Installation",
     short: "Heat Pump Installation",
     blurb:
-      "Energy-efficient heat pump hot water systems installed from as little as $33* with VEU rebates. Cut hot water energy use by up to 75%.",
+      "Energy-efficient heat pump hot water systems installed from around $1,780 after VEU rebates. Cut hot water energy use by up to 75%.",
     icon: "thermometer",
   },
   {

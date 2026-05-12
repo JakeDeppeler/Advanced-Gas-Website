@@ -38,7 +38,7 @@ export default function QuotePage() {
             <h2>No tricks. Just a real price.</h2>
             <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 14 }}>
               {[
-                ["VEU rebate handled for you", "Eligible Victorian homes — heat pump installs from $33."],
+                ["VEU rebate handled for you", "Eligible Victorian homes — heat pump installs from around $1,780 after rebate."],
                 ["Licensed plumbing & refrigeration", "Compliance certificate provided on completion."],
                 ["6-year workmanship warranty", "Triple the industry standard."],
                 ["Same-week installation", "Most jobs scheduled within 5–7 days of approval."],

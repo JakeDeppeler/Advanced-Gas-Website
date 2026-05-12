@@ -23,13 +23,13 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across South-East Victoria and Gippsland. Fixed-price quotes, same-week installs, and a 6-year workmanship warranty on every job. Whether you're cooling a single bedroom or zoning a whole home, we'll match the right system to your space and budget.",
     benefits: [
       { t: "ARCtick-licensed refrigeration", d: "All refrigerant work performed by ARC-certified technicians — required by Australian law." },
-      { t: "All major brands supplied", d: "Daikin, Mitsubishi Electric, Fujitsu, Panasonic, Samsung, Hisense — we source the right unit for the room." },
+      { t: "Mitsubishi Electric & Kaden", d: "We install the brands we've proven across 1,200+ South-East Vic jobs — supplied through our Reece trade partnership." },
       { t: "Honest sizing advice", d: "Properly sized kW capacity for your room. Undersized units cost more to run and wear out fast." },
       { t: "Energy-rebate eligible", d: "VEU rebates available on eligible high-efficiency reverse-cycle systems." },
       { t: "Tidy install, every time", d: "Drop sheets, dust extraction and a full clean-up before we leave. Conduit colour-matched to your home." },
       { t: "Compliance certificate provided", d: "Electrical and refrigeration compliance docs handed over on completion." },
     ],
-    brands: ["Daikin", "Mitsubishi Electric", "Fujitsu", "Panasonic", "Samsung", "Hisense"],
+    brands: ["Mitsubishi Electric", "Kaden"],
     pricing: [
       { tier: "Single split system (2.5kW)", price: "from $1,899", includes: "Supply, install, up to 3m pipe run, compliance cert" },
       { tier: "Single split system (7.0kW)", price: "from $2,899", includes: "Supply, install, up to 5m pipe run, compliance cert" },
@@ -46,28 +46,28 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "heat-pump-installation": {
-    metaTitle: "Heat Pump Hot Water Installation South-East Vic & Gippsland | From $33 with VEU",
+    metaTitle: "Heat Pump Hot Water Installation South-East Vic & Gippsland | VEU Rebate Applied",
     metaDescription:
-      "Heat pump hot water systems installed across South-East Vic and Gippsland from $33 with VEU rebates. Cut your hot water bill by up to 75%. Licensed install + 6-year warranty.",
+      "Heat pump hot water systems installed across South-East Vic and Gippsland from around $1,780 after VEU rebates. Cut your hot water bill by up to 75%. Licensed install + 6-year warranty.",
     h1: "Heat Pump Hot Water Installation across South-East Vic & Gippsland",
     intro:
-      "Cut your hot water energy use by up to 75% with a heat pump hot water system — installed across South-East Vic and Gippsland by licensed plumbers from as little as $33 after Victorian Energy Upgrades (VEU) rebates. We handle the rebate paperwork, supply the unit, install it and lodge it with the regulator. You get a more efficient system and a lower power bill, with no fuss.",
+      "Cut your hot water energy use by up to 75% with a heat pump hot water system — installed across South-East Vic and Gippsland by licensed plumbers from around $1,780 after Victorian Energy Upgrades (VEU) rebates. We handle the rebate paperwork, supply the unit, install it and lodge it with the regulator. You get a more efficient system and a lower power bill, with no fuss.",
     benefits: [
-      { t: "VEU rebate from $33", d: "Eligible Victorian homes qualify for VEU rebates that cover most of the install cost. We do all the paperwork." },
+      { t: "VEU rebate applied at quote", d: "Eligible Victorian homes qualify for VEU rebates worth up to $2,600 — we deduct it from your quote so there's no chase or reimbursement wait." },
       { t: "Up to 75% less energy use", d: "Heat pump systems extract heat from the air — they use a quarter of the energy of an old electric storage tank." },
       { t: "Federal STC rebate too", d: "On top of VEU, eligible installs receive Small-scale Technology Certificates (STCs). We factor these into your price upfront." },
-      { t: "Tier-1 brands only", d: "Reclaim Energy, iStore, Sanden, Rheem Ambiheat, Stiebel Eltron — proven units, long warranty, parts available in Australia." },
+      { t: "Reclaim, iStore & Thermann", d: "Three brands we've installed enough of to know which suits which home. Proven units, parts available in Australia, real warranty." },
       { t: "Licensed plumbing install", d: "Drainage, tempering valve, isolation valves, electrical connection — all done to AS/NZS 3500 by a licensed plumber." },
       { t: "Old tank removed", d: "We take your old electric or gas storage tank away and dispose of it responsibly. No mess left behind." },
     ],
-    brands: ["Reclaim Energy", "iStore", "Sanden", "Rheem Ambiheat", "Stiebel Eltron"],
+    brands: ["Reclaim Energy", "iStore", "Thermann"],
     pricing: [
-      { tier: "270L heat pump (VEU eligible)", price: "from $33*", includes: "Supply, install, old tank removal, VEU paperwork" },
-      { tier: "315L heat pump (VEU eligible)", price: "from $299*", includes: "Supply, install, old tank removal, VEU paperwork" },
-      { tier: "Premium 250L (Reclaim/Sanden)", price: "from $2,499", includes: "Supply, install, old tank removal, 6yr workmanship" },
+      { tier: "Thermann 270L (value)", price: "around $1,780*", includes: "Supply, install, old tank removal, VEU paperwork" },
+      { tier: "iStore 270L (mid-range)", price: "around $2,400*", includes: "Supply, install, old tank removal, VEU paperwork" },
+      { tier: "Reclaim CO₂ (premium)", price: "around $3,500*", includes: "Supply, install, old tank removal, VEU paperwork, 6yr workmanship" },
     ],
     faqs: [
-      { q: "Am I eligible for the VEU $33 deal?", a: "Most Victorian owner-occupied and rental properties with an existing electric storage hot water system are eligible. We confirm eligibility in your free quote — takes 60 seconds." },
+      { q: "Am I eligible for the VEU rebate?", a: "Most Victorian owner-occupied and rental properties with an existing electric or gas storage hot water system are eligible. We confirm eligibility in your free quote — takes 60 seconds." },
       { q: "How much will I save on my power bill?", a: "Typical Victorian homes save $400-$900 per year switching from an electric storage tank to a heat pump. Payback after rebate is usually under 2 years." },
       { q: "Will it work in cold weather?", a: "Yes. Modern heat pumps operate efficiently down to -5°C and below. Premium units like Reclaim CO2 maintain efficiency in sub-zero temperatures." },
       { q: "How loud is a heat pump?", a: "About as loud as an outdoor fridge — typically 37-48 dB at 1m. Quieter than a split-system condenser. We can position it away from bedrooms." },
@@ -84,12 +84,12 @@ export const serviceContent: Record<string, ServiceContent> = {
     intro:
       "Keep your aircon running efficiently and your warranty valid with annual servicing from licensed refrigeration technicians. We service all major brands across South-East Vic and Gippsland — split systems, multi-heads and ducted — with same-day repairs when something breaks.",
     benefits: [
-      { t: "All major brands serviced", d: "Daikin, Mitsubishi, Fujitsu, Panasonic, Samsung, Hisense, LG and more." },
+      { t: "All major brands serviced", d: "Mitsubishi Electric, Kaden, Daikin, Fujitsu, Panasonic, Samsung, Hisense, LG and more — service work isn't limited to brands we install." },
       { t: "Keeps warranty valid", d: "Most manufacturer warranties require annual service. We provide a service record." },
       { t: "Same-day breakdown calls", d: "Aircon down? We aim to be on-site same-day across our service area." },
       { t: "Fixed pricing", d: "Quoted before work starts. No hourly creep, no surprises." },
     ],
-    brands: ["Daikin", "Mitsubishi Electric", "Fujitsu", "Panasonic", "Samsung", "Hisense", "LG"],
+    brands: ["Mitsubishi Electric", "Kaden", "Daikin", "Fujitsu", "Panasonic", "Samsung", "Hisense", "LG"],
     pricing: [
       { tier: "Annual service (split system)", price: "from $189", includes: "Clean filters & coils, refrigerant check, electrical check, service report" },
       { tier: "Annual service (ducted)", price: "from $329", includes: "Filter clean, coil clean, refrigerant check, zone check, service report" },
@@ -115,7 +115,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Leak detection", d: "Electronic gas leak detection and pressure testing. Safe-to-stay verification provided." },
       { t: "Emergency call-outs", d: "Same-day across our service area for no hot water, leaks and gas emergencies." },
     ],
-    brands: ["Rinnai", "Rheem", "Bosch", "Dux", "Vulcan", "Reclaim Energy"],
+    brands: ["Rinnai", "Brivis", "Braemar", "Thermann", "Rheem"],
     pricing: [
       { tier: "Continuous flow hot water (gas)", price: "from $2,299", includes: "Supply, install, compliance cert, old unit removal" },
       { tier: "Gas appliance installation", price: "from $349", includes: "Connection, pressure test, compliance cert" },
