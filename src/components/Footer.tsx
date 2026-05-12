@@ -1,92 +1,89 @@
 import Link from "next/link";
-import { site, services, suburbs } from "@/lib/site";
-import { Logo } from "./Logo";
+import { site } from "@/lib/site";
+import { LogoMark } from "./Logo";
 
 export function Footer() {
   return (
-    <footer className="relative mt-24 overflow-hidden bg-navy-900 text-navy-100">
-      <div className="absolute inset-0 bg-hero-glow opacity-50" aria-hidden />
-      <div className="relative container grid gap-12 py-16 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <Logo variant="white" />
-          <p className="mt-5 max-w-sm text-sm leading-relaxed text-navy-200">
-            Licensed aircon, heat pump and gas plumbing specialists serving
-            South-East Victoria and Gippsland. Same-week installs with a 6-year
-            workmanship warranty.
-          </p>
-          <div className="mt-6 space-y-1 text-xs text-navy-300">
-            <p>ABN {site.abn}</p>
-            <p>{site.licences.plumbing}</p>
-            <p>{site.licences.refrigeration}</p>
+    <footer className="ftr">
+      <div className="wrap ftr__grid">
+        <div className="ftr__brand">
+          <div
+            className="ftr__logo"
+            style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#fff" }}
+          >
+            <LogoMark className="h-10 w-10" />
+            <span style={{ lineHeight: 0.95 }}>
+              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 800, fontSize: 16, color: "var(--navy)" }}>Advanced</span>
+              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 600, fontSize: 11, color: "var(--sky)" }}>Gas &amp; Aircon</span>
+            </span>
           </div>
+          <p className="ftr__tag">
+            Family-run gas, hot water &amp; aircon specialists.
+            Pakenham locals since 2014.
+          </p>
+          <p className="ftr__nap">
+            <strong>{site.name}</strong>
+            <br />
+            Pakenham, VIC 3810
+            <br />
+            <a href={`tel:${site.phoneE164}`}>{site.phone}</a> ·{" "}
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+          </p>
+          <p className="ftr__hours">
+            <strong>Hours.</strong> Mon–Fri 7am–6pm · Sat 8am–2pm · 24/7 emergency
+          </p>
         </div>
 
-        <div className="md:col-span-2">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Services</h3>
-          <ul className="mt-4 space-y-2.5 text-sm">
-            {services.map((s) => (
-              <li key={s.slug}>
-                <Link href={`/services/${s.slug}`} className="text-navy-200 hover:text-cyan-300 transition">
-                  {s.short}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <Link href="/rebates" className="inline-flex items-center gap-1.5 font-semibold text-flame-400 hover:text-flame-300 transition">
-                VEU Rebates
-                <span className="rounded bg-flame-500 px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wider text-white">$$$</span>
-              </Link>
-            </li>
+        <div className="ftr__col">
+          <h4>Services</h4>
+          <ul>
+            <li><Link href="/services#heatpump">Heat pump hot water</Link></li>
+            <li><Link href="/services#split">Split systems</Link></li>
+            <li><Link href="/services#ducted">Ducted aircon</Link></li>
+            <li><Link href="/services#gas-heating">Gas heating</Link></li>
+            <li><Link href="/services#hotwater">Hot water</Link></li>
+            <li><Link href="/services#service">Service &amp; safety</Link></li>
+            <li><Link href="/services#commercial">Commercial</Link></li>
+            <li><Link href="/contact#emergency">24/7 emergency</Link></li>
           </ul>
         </div>
 
-        <div className="md:col-span-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Service Areas</h3>
-          <ul className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-            {suburbs.slice(0, 10).map((sub) => (
-              <li key={sub.slug}>
-                <Link href={`/areas/${sub.slug}`} className="text-navy-200 hover:text-cyan-300 transition">
-                  {sub.name}
-                </Link>
-              </li>
-            ))}
+        <div className="ftr__col">
+          <h4>Rebates</h4>
+          <ul>
+            <li><Link href="/rebates">VEU explained</Link></li>
+            <li><Link href="/rebates#calc">Eligibility check</Link></li>
+            <li><Link href="/rebates#calc">Rebate calculator</Link></li>
+            <li><Link href="/rebates#faq">Rebate FAQ</Link></li>
           </ul>
-          <Link href="/service-areas" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-cyan-400 hover:text-cyan-300">
-            View all areas <span aria-hidden>→</span>
-          </Link>
+          <h4 style={{ marginTop: 24 }}>Company</h4>
+          <ul>
+            <li><Link href="/about">About</Link></li>
+            <li><Link href="/blog">Blog &amp; guides</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
+          </ul>
         </div>
 
-        <div className="md:col-span-3">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-white">Contact</h3>
-          <ul className="mt-4 space-y-2.5 text-sm">
-            <li>
-              <a href={`tel:${site.phoneE164}`} className="font-display text-2xl font-bold text-white hover:text-cyan-300 transition">
-                {site.phone}
-              </a>
-            </li>
-            <li>
-              <a href={`mailto:${site.email}`} className="text-navy-200 hover:text-cyan-300 transition break-all">
-                {site.email}
-              </a>
-            </li>
-            <li className="pt-1 text-navy-200">
-              {site.primaryRegion}
-            </li>
-            <li className="pt-3">
-              <Link href="/quote" className="btn-accent">Get a Free Quote</Link>
-            </li>
-          </ul>
+        <div className="ftr__col">
+          <h4>Service area</h4>
+          <p className="ftr__suburbs">
+            Pakenham · Officer · Beaconsfield · Berwick · Narre Warren · Cranbourne · Clyde ·
+            Hampton Park · Hallam · Dandenong · Endeavour Hills · Lynbrook · Bunyip · Garfield ·
+            Tynong · Drouin · Warragul · Emerald · Gembrook · Tooradin — within 50 km of Pakenham.
+          </p>
         </div>
       </div>
 
-      <div className="relative border-t border-white/10">
-        <div className="container flex flex-col gap-2 py-5 text-xs text-navy-300 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} {site.legalName}. All rights reserved.</p>
-          <div className="flex gap-5">
-            <Link href="/privacy" className="hover:text-white transition">Privacy</Link>
-            <Link href="/terms" className="hover:text-white transition">Terms</Link>
-          </div>
-        </div>
+      <div className="wrap ftr__bottom">
+        <span>
+          © {new Date().getFullYear()} {site.name} · ABN {site.abn} ·{" "}
+          {site.licences.plumbing} · {site.licences.refrigeration}
+        </span>
+        <span className="ftr__partners">
+          <span className="ftr-partner">VEU accredited</span>
+          <span className="ftr-partner">Reece trade partner</span>
+          <span className="ftr-partner">ARC authorised</span>
+        </span>
       </div>
     </footer>
   );

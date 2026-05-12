@@ -2,11 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
+import "./design-system.css";
 import { site } from "@/lib/site";
 import { localBusinessSchema } from "@/lib/schema";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
+import { UtilityBar } from "@/components/UtilityBar";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -78,13 +80,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-AU" className={`${manrope.variable} ${archivo.variable} ${mono.variable}`}>
-      <body className="min-h-screen flex flex-col font-sans">
+      <body className="min-h-screen flex flex-col font-sans" style={{ background: "var(--bg)" }}>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-lg focus:bg-navy-900 focus:px-4 focus:py-2 focus:text-white"
         >
           Skip to content
         </a>
+        <UtilityBar />
         <Header />
         <main id="main" className="flex-1">{children}</main>
         <Footer />

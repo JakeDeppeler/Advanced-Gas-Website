@@ -1,0 +1,131 @@
+/* About page — scoped to .page-about */
+
+.page-about { background: var(--bg); }
+
+.page-about .ab-hero { background: var(--bg); padding: 70px 0 60px; }
+.page-about .ab-hero h1 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(42px, 5.2vw, 76px); line-height: 0.98;
+  letter-spacing: -0.025em; margin: 20px 0 20px;
+  color: var(--navy); text-wrap: balance; max-width: 1000px;
+}
+.page-about .ab-hero h1 em { font-style: italic; color: var(--orange); }
+.page-about .ab-hero p { font-size: 19px; color: var(--ink-2); max-width: 680px; margin: 0; }
+
+.page-about .ab-frame { padding: 0 0 80px; background: var(--bg); }
+.page-about .ab-frame__big {
+  aspect-ratio: 16/7; border-radius: var(--rad); overflow: hidden;
+  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 8px, transparent 8px 18px), #e8eef5;
+  display: flex; align-items: flex-end; padding: 22px;
+  border: 1px solid var(--line);
+}
+
+.page-about .ab-stats { padding: 64px 0; background: var(--navy); color: #fff; }
+.page-about .ab-stats__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.page-about .ab-stats__item {
+  display: flex; flex-direction: column; gap: 4px;
+  border-left: 2px solid var(--orange); padding-left: 18px;
+}
+.page-about .ab-stats__item strong {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: 52px; line-height: 0.95;
+  color: var(--orange); letter-spacing: -0.03em;
+}
+.page-about .ab-stats__item span {
+  font-family: var(--f-mono); font-size: 12px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+
+.page-about .ab-story { padding: 100px 0; background: var(--bg); }
+.page-about .ab-story__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; }
+.page-about .ab-story__copy h2 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--navy); margin: 14px 0 16px; text-wrap: balance;
+}
+.page-about .ab-story__copy p {
+  font-size: 16.5px; color: var(--ink-2); margin: 0 0 16px;
+  max-width: 540px; line-height: 1.65;
+}
+.page-about .ab-story__copy p strong { color: var(--navy); }
+
+.page-about .ab-timeline { padding: 0; margin: 0; list-style: none; position: relative; }
+.page-about .ab-timeline::before {
+  content: ""; position: absolute; left: 18px; top: 4px; bottom: 4px;
+  width: 2px; background: linear-gradient(180deg, var(--orange), var(--sky));
+}
+.page-about .ab-timeline li { position: relative; padding-left: 56px; margin-bottom: 28px; }
+.page-about .ab-timeline li::before {
+  content: ""; position: absolute; left: 12px; top: 6px;
+  width: 14px; height: 14px; border-radius: 50%; background: var(--orange);
+  border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--orange);
+}
+.page-about .ab-timeline__year {
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em;
+  color: var(--orange); font-weight: 600; text-transform: uppercase;
+}
+.page-about .ab-timeline h3 {
+  font-family: var(--f-display); font-weight: 700; font-size: 20px;
+  margin: 4px 0 6px; color: var(--navy); letter-spacing: -0.01em;
+}
+.page-about .ab-timeline p { font-size: 15px; color: var(--ink-2); margin: 0; max-width: 480px; }
+
+.page-about .ab-team { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-about .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 48px; }
+.page-about .team { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.page-about .team__photo {
+  aspect-ratio: 4/5;
+  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 6px, transparent 6px 14px), #f0ece2;
+  display: flex; align-items: flex-end; padding: 12px;
+}
+.page-about .team__body { padding: 18px; }
+.page-about .team__name {
+  font-family: var(--f-display); font-weight: 800; font-size: 17px;
+  color: var(--navy); margin: 0; letter-spacing: -0.01em;
+}
+.page-about .team__role {
+  font-family: var(--f-mono); font-size: 11.5px; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--orange); margin: 2px 0 8px;
+}
+.page-about .team__bio { font-size: 13.5px; color: var(--ink-2); margin: 0; line-height: 1.5; }
+
+.page-about .ab-values { padding: 100px 0; background: var(--bg); }
+.page-about .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
+.page-about .val { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+.page-about .val__n { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--orange); }
+.page-about .val h3 {
+  font-family: var(--f-display); font-weight: 700; font-size: 22px;
+  margin: 10px 0 8px; color: var(--navy); letter-spacing: -0.01em;
+}
+.page-about .val p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.55; }
+
+.page-about .ab-acc { padding: 100px 0; background: var(--navy); color: #fff; }
+.page-about .ab-acc__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+.page-about .ab-acc h2 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.02em;
+  margin: 14px 0 14px; text-wrap: balance;
+}
+.page-about .ab-acc p { font-size: 17px; color: rgba(255,255,255,0.78); margin: 0 0 18px; max-width: 480px; }
+.page-about .acc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.page-about .acc {
+  display: flex; flex-direction: column; gap: 4px; padding: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+}
+.page-about .acc__name { font-family: var(--f-display); font-weight: 700; font-size: 15px; }
+.page-about .acc__num { font-family: var(--f-mono); font-size: 11.5px; color: rgba(255,255,255,0.55); letter-spacing: 0.04em; }
+
+@media (max-width: 1100px) {
+  .page-about .ab-story__grid { grid-template-columns: 1fr; gap: 40px; }
+  .page-about .ab-stats__grid { grid-template-columns: repeat(2, 1fr); }
+  .page-about .team-grid { grid-template-columns: repeat(2, 1fr); }
+  .page-about .values-grid { grid-template-columns: 1fr; }
+  .page-about .ab-acc__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+@media (max-width: 760px) {
+  .page-about .ab-stats__grid { grid-template-columns: 1fr; }
+  .page-about .team-grid { grid-template-columns: 1fr; }
+  .page-about .acc-list { grid-template-columns: 1fr; }
+}
