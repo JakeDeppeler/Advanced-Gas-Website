@@ -6,14 +6,13 @@ export const site = {
   legalName: "Advanced Gas Pty Ltd",
   // TODO: replace with real domain
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.advancedgas.com.au",
-  // TODO: replace placeholders
-  phone: "1300 000 000",
-  phoneE164: "+611300000000",
-  email: "info@advancedgas.com.au",
-  abn: "00 000 000 000",
+  phone: "(03) 5947 8000",
+  phoneE164: "+61359478000",
+  email: "admin@advancedgas.com",
+  abn: "35 607 575 280",
   licences: {
-    plumbing: "VIC Plumbing Licence #TODO",
-    refrigeration: "ARCtick Refrigerant Handling Licence #TODO",
+    plumbing: "VBA Plumbing Licence #46828",
+    refrigeration: "ARCtick Refrigerant Handling Licence AU59557",
   },
   address: {
     street: "TODO Street",

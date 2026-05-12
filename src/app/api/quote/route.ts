@@ -41,7 +41,7 @@ export async function POST(req: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Advanced Gas Website <leads@advancedgas.com.au>",
+          from: "Advanced Gas Website <admin@advancedgas.com>",
           to: [to],
           subject: `New quote request — ${data.service} (${data.suburb || "Melbourne"})`,
           text: format(data),

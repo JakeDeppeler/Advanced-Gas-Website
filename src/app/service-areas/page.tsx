@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { suburbs, services } from "@/lib/site";
+import { site, suburbs, services } from "@/lib/site";
 import { CTASection } from "@/components/CTASection";
 
 export const metadata: Metadata = {
@@ -18,7 +18,7 @@ export default function ServiceAreasPage() {
           <h1 className="text-4xl font-extrabold md:text-5xl">Melbourne Service Areas</h1>
           <p className="mt-4 max-w-3xl text-lg text-brand-50">
             Licensed aircon, heat pump and gas plumbing installation across Melbourne metro and regional Victoria.
-            Choose your suburb below or call <a className="font-semibold underline" href="tel:+611300000000">1300 000 000</a> for a fast quote.
+            Choose your suburb below or call <a className="font-semibold underline" href={`tel:${site.phoneE164}`}>{site.phone}</a> for a fast quote.
           </p>
         </div>
       </section>
