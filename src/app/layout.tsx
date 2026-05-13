@@ -56,13 +56,13 @@ export const metadata: Metadata = {
     title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
     description:
       "Family-run Pakenham aircon and heat pump specialists. VEU rebates up to $5,000 — we do the paperwork.",
-    images: [{ url: "/logo-mark.svg", alt: site.name }],
+    images: [{ url: "/logo-full.jpg", alt: site.name }],
   },
   twitter: {
     card: "summary",
     title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
     description: "VEU rebates up to $5,000 — we do the paperwork.",
-    images: ["/logo-mark.svg"],
+    images: ["/logo-full.jpg"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   icons: {

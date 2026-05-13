@@ -88,16 +88,12 @@
 
 .page-services .sv__media { position: relative; }
 .page-services .sv__photo {
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.05) 0 6px, transparent 6px 16px), #e8eef5;
+  background-color: var(--bg-2);
+  background-size: cover;
+  background-position: center;
   aspect-ratio: 4 / 5; border-radius: var(--rad); overflow: hidden;
   border: 1px solid var(--line);
   display: flex; align-items: flex-end; padding: 16px;
-}
-.page-services .sv:nth-of-type(odd) .sv__photo {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.08) 0 6px, transparent 6px 16px), #ede7d4;
-}
-.page-services .sv:nth-of-type(even) .sv__photo {
-  background: repeating-linear-gradient(135deg, rgba(0,176,237,0.08) 0 6px, transparent 6px 16px), #e8eef5;
 }
 
 .page-services .sv__brands { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }

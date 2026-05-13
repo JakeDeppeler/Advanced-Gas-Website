@@ -20,7 +20,8 @@ type Service = {
   specs: [string, string][];
   bullets: string[];
   brands?: string[];
-  photoTag: string;
+  photo: string;
+  photoAlt: string;
   primaryCta: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 };
@@ -41,7 +42,8 @@ const services: Service[] = [
       "Compliance certificate emailed within 24 hours",
     ],
     brands: ["Reclaim", "iStore", "Thermann"],
-    photoTag: "photo: Reclaim CO₂ heat pump · Officer install",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Thermann heat pump installed on a residential exterior wall",
     primaryCta: { label: "Get heat pump quote →", href: "/quote" },
     secondaryCta: { label: "Check rebate first", href: "/rebates" },
   },
@@ -59,7 +61,8 @@ const services: Service[] = [
       "Full ARC refrigeration licence — no dodgy shortcuts",
     ],
     brands: ["Mitsubishi Electric", "Kaden"],
-    photoTag: "photo: Mitsubishi MSZ-AP · Berwick bedroom",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split-system indoor head freshly mounted on a wall",
     primaryCta: { label: "Get split quote →", href: "/quote" },
     secondaryCta: { label: "Or chat to us", href: "tel:+61359478000" },
   },
@@ -78,7 +81,8 @@ const services: Service[] = [
       "5–7 year warranty depending on system",
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Daikin"],
-    photoTag: "photo: ducted vent install · Pakenham new build",
+    photo: "/duct-work.jpg",
+    photoAlt: "Ducted aircon flex-duct run inside a roof cavity",
     primaryCta: { label: "Book a roof survey →", href: "/quote" },
   },
   {
@@ -95,7 +99,8 @@ const services: Service[] = [
       "Compliance certificate within 24 hours",
     ],
     brands: ["Brivis", "Braemar", "Rinnai"],
-    photoTag: "photo: Brivis ducted heater swap · Cranbourne",
+    photo: "/gas-ducted-install.jpg",
+    photoAlt: "Gas ducted heater install in progress",
     primaryCta: { label: "Quote my heating →", href: "/quote" },
   },
   {
@@ -112,7 +117,8 @@ const services: Service[] = [
       "Carbon monoxide (CO) atmospheric test",
       "Written report with photos for insurance / rental",
     ],
-    photoTag: "photo: CO meter on ducted heater",
+    photo: "/evap-cooler-service.jpg",
+    photoAlt: "Service technician on a rooftop evap cooler",
     primaryCta: { label: "Book a service →", href: "/quote" },
   },
   {
@@ -129,7 +135,8 @@ const services: Service[] = [
       "Plumbing compliance certificate included",
     ],
     brands: ["Rinnai", "Thermann", "Rheem"],
-    photoTag: "photo: Rinnai continuous flow · Beaconsfield",
+    photo: "/thermann-continuous-flow-close.jpg",
+    photoAlt: "Thermann continuous-flow gas hot water unit close-up",
     primaryCta: { label: "Call for same-day →", href: `tel:${site.phoneE164}` },
   },
   {
@@ -146,7 +153,8 @@ const services: Service[] = [
       "Single line of accountability through the trade",
       "Annual service contracts available post-handover",
     ],
-    photoTag: "photo: cafe ducted install · Officer",
+    photo: "/ducted-condenser.jpg",
+    photoAlt: "Commercial ducted condenser unit",
     primaryCta: { label: "Get a tender →", href: "/contact" },
   },
   {
@@ -161,7 +169,8 @@ const services: Service[] = [
       "Hot water failure with kids in the house — priority",
       "Carbon monoxide alarm triggered — immediate response",
     ],
-    photoTag: "photo: van on call-out",
+    photo: "/kaden-team-with-chaz.jpg",
+    photoAlt: "Advanced Gas team on a Kaden install",
     primaryCta: { label: `Call ${site.phone} →`, href: `tel:${site.phoneE164}` },
   },
 ];
@@ -229,9 +238,12 @@ export default function ServicesHubPage() {
               </div>
             </div>
             <div className="sv__media">
-              <div className="sv__photo">
-                <span className="ph-tag">{s.photoTag}</span>
-              </div>
+              <div
+                className="sv__photo"
+                role="img"
+                aria-label={s.photoAlt}
+                style={{ backgroundImage: `url(${s.photo})` }}
+              />
             </div>
           </div>
         </section>

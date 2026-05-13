@@ -64,7 +64,8 @@ const products = [
     ],
     rebate: "up to $2,600",
     pill: "flagship",
-    photoTag: "photo: Reclaim CO₂ heat pump · 270L",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Heat pump hot water unit",
   },
   {
     brand: "iStore",
@@ -77,7 +78,8 @@ const products = [
     ],
     rebate: "up to $2,400",
     pill: "mid-range",
-    photoTag: "photo: iStore heat pump · 270L",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "iStore-class heat pump hot water",
   },
   {
     brand: "Thermann",
@@ -90,7 +92,8 @@ const products = [
     ],
     rebate: "up to $2,200",
     pill: "value",
-    photoTag: "photo: Thermann heat pump · 270L",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Thermann 270L heat pump installed",
   },
   {
     brand: "Mitsubishi Electric",
@@ -103,7 +106,8 @@ const products = [
     ],
     rebate: "up to $1,800",
     pill: "flagship",
-    photoTag: "photo: Mitsubishi Electric split system",
+    photo: "/reclaim-and-mitsubishi.jpg",
+    photoAlt: "Mitsubishi split system",
   },
   {
     brand: "Kaden",
@@ -116,7 +120,8 @@ const products = [
     ],
     rebate: "up to $1,500",
     pill: "value",
-    photoTag: "photo: Kaden split system install",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split system indoor head",
   },
   {
     brand: "Mitsubishi / Kaden",
@@ -129,7 +134,8 @@ const products = [
     ],
     rebate: "up to $5,000",
     pill: "whole home",
-    photoTag: "photo: ducted aircon install",
+    photo: "/ducted-condenser.jpg",
+    photoAlt: "Ducted aircon condenser",
   },
 ];
 
@@ -271,9 +277,12 @@ export default function RebatesPage() {
           <div className="rb-prodgrid">
             {products.map((p) => (
               <article key={p.name} className="rb-prod">
-                <div className="rb-prod__photo">
-                  <span className="ph-tag">{p.photoTag}</span>
-                </div>
+                <div
+                  className="rb-prod__photo"
+                  role="img"
+                  aria-label={p.photoAlt}
+                  style={{ backgroundImage: `url(${p.photo})` }}
+                />
                 <div className="rb-prod__body">
                   <span className="rb-prod__brand">{p.brand}</span>
                   <h3>{p.name}</h3>

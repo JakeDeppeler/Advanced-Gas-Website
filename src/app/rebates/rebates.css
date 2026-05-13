@@ -397,13 +397,10 @@
   flex-direction: column;
 }
 .page-rebates .rb-prod__photo {
-  background:
-    repeating-linear-gradient(135deg, rgba(0, 176, 237, 0.06) 0 6px, transparent 6px 16px),
-    var(--bg-2);
+  background-color: var(--bg-2);
+  background-size: cover;
+  background-position: center;
   aspect-ratio: 5 / 3;
-  display: flex;
-  align-items: flex-end;
-  padding: 14px;
   border-bottom: 1px solid var(--line);
 }
 .page-rebates .ph-tag {

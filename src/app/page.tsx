@@ -220,9 +220,7 @@ export default function HomePage() {
 
           <div className="bento">
             <Link href="/services#heatpump" className="bcard bcard--xl bcard--feature">
-              <div className="bcard__photo bcard__photo--heatpump">
-                <span className="ph-tag">photo: Reclaim heat pump install · Officer</span>
-              </div>
+              <div className="bcard__photo bcard__photo--heatpump" aria-label="Thermann heat pump install" />
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
@@ -232,9 +230,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#split" className="bcard">
-              <div className="bcard__photo bcard__photo--split">
-                <span className="ph-tag">photo: Mitsubishi split install · Berwick</span>
-              </div>
+              <div className="bcard__photo bcard__photo--split" aria-label="Kaden split-system indoor unit" />
               <div className="bcard__body">
                 <span className="bcard__num">02</span>
                 <h3>Split systems</h3>
@@ -243,9 +239,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#ducted" className="bcard">
-              <div className="bcard__photo bcard__photo--ducted">
-                <span className="ph-tag">photo: ducted vent · Pakenham</span>
-              </div>
+              <div className="bcard__photo bcard__photo--ducted" aria-label="Ducted aircon duct-work install" />
               <div className="bcard__body">
                 <span className="bcard__num">03</span>
                 <h3>Ducted aircon</h3>

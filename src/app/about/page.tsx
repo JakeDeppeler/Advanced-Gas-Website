@@ -45,9 +45,12 @@ export default function AboutPage() {
 
       <section className="ab-frame">
         <div className="wrap">
-          <div className="ab-frame__big">
-            <span className="ph-tag">photo: team shot in front of vans · Pakenham workshop</span>
-          </div>
+          <div
+            className="ab-frame__big"
+            role="img"
+            aria-label="Advanced Gas team at Reece"
+            style={{ backgroundImage: "url(/reece-photoshoot-1.jpg)" }}
+          />
         </div>
       </section>
 

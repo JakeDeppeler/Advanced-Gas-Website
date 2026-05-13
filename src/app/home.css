@@ -435,22 +435,22 @@
 .page-home .bcard--xl { grid-column: span 2; grid-row: span 2; }
 .page-home .bcard__photo {
   position: relative;
-  background:
-    repeating-linear-gradient(135deg, rgba(11,20,80,0.05) 0 8px, transparent 8px 16px),
-    var(--bg-2);
+  background-color: var(--bg-2);
+  background-size: cover;
+  background-position: center;
   border-bottom: 1px solid var(--line);
   min-height: 200px;
   display: flex; align-items: flex-end; padding: 14px;
 }
 .page-home .bcard--xl .bcard__photo { min-height: 320px; }
 .page-home .bcard__photo--heatpump {
-  background: repeating-linear-gradient(135deg, rgba(0,176,237,0.08) 0 8px, transparent 8px 18px), #e8eef5;
+  background-image: url("/thermann-heat-pump.jpg");
 }
 .page-home .bcard__photo--split {
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 6px, transparent 6px 14px), #f0ece2;
+  background-image: url("/kaden-indoor.jpg");
 }
 .page-home .bcard__photo--ducted {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.08) 0 8px, transparent 8px 18px), #ede7d4;
+  background-image: url("/duct-work.jpg");
 }
 
 .page-home .bcard__body { padding: 22px 22px 22px; flex: 1; display: flex; flex-direction: column; }
