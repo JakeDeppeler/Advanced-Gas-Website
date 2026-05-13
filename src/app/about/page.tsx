@@ -20,10 +20,10 @@ const timeline = [
 ];
 
 const team = [
-  { name: "[Founder Name]", role: "Director · Lic. plumber", bio: "Started the business in 2014 after 10 years in the trade. Still on most quotes.", photo: "photo: founder portrait" },
-  { name: "[Lead Installer Name]", role: "Lead installer · ARC", bio: "8 years installing splits and ducted. Cleanest pipework in the south-east.", photo: "photo: lead installer" },
-  { name: "[Service Tech Name]", role: "Gas service tech", bio: "CO testing specialist. Calmly explains everything to landlords and tenants.", photo: "photo: service tech" },
-  { name: "[Office Name]", role: "Bookings · VEU paperwork", bio: "The reason your rebate forms get filed properly. Lives and breathes spreadsheets.", photo: "photo: office" },
+  { name: "Jake", role: "Director", bio: "Runs the show. The bloke on the phone is the bloke on the quote.", photo: "/jake.png" },
+  { name: "Dean", role: "Lead installer", bio: "Cleanest pipework in the south-east. Splits, multi-heads and ducted retrofits.", photo: "/dean.png" },
+  { name: "Jye", role: "Service & install tech", bio: "Gas servicing, CO testing and same-day callouts. Calmly explains everything to landlords and tenants.", photo: "/jye.png" },
+  { name: "Kellie", role: "Bookings & VEU paperwork", bio: "The reason your rebate forms get filed properly. Lives and breathes spreadsheets.", photo: "/kellie.png" },
 ];
 
 const values = [
@@ -48,8 +48,8 @@ export default function AboutPage() {
           <div
             className="ab-frame__big"
             role="img"
-            aria-label="Advanced Gas team at Reece"
-            style={{ backgroundImage: "url(/reece-photoshoot-1.jpg)" }}
+            aria-label="Advanced Gas team photo"
+            style={{ backgroundImage: "url(/team-photo.png)" }}
           />
         </div>
       </section>
@@ -94,7 +94,12 @@ export default function AboutPage() {
           <div className="team-grid">
             {team.map((m) => (
               <article key={m.name} className="team">
-                <div className="team__photo"><span className="ph-tag">{m.photo}</span></div>
+                <div
+                  className="team__photo"
+                  role="img"
+                  aria-label={`${m.name} — ${m.role}`}
+                  style={{ backgroundImage: `url(${m.photo})` }}
+                />
                 <div className="team__body">
                   <h3 className="team__name">{m.name}</h3>
                   <p className="team__role">{m.role}</p>

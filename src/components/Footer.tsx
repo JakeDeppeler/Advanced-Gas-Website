@@ -30,7 +30,7 @@ export function Footer() {
             <a href={`mailto:${site.email}`}>{site.email}</a>
           </p>
           <p className="ftr__hours">
-            <strong>Hours.</strong> Mon–Fri 7am–6pm · Sat 8am–2pm · 24/7 emergency
+            <strong>Hours.</strong> Mon–Fri 7am–5pm · Sat 8am–2pm · 24/7 emergency
           </p>
         </div>
 

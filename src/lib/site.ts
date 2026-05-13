@@ -22,7 +22,7 @@ export const site = {
   },
   geo: { lat: -38.0703, lng: 145.4842 }, // Pakenham
   hours: [
-    { day: "Mon-Fri", open: "07:00", close: "18:00" },
+    { day: "Mon-Fri", open: "07:00", close: "17:00" },
     { day: "Sat", open: "08:00", close: "14:00" },
   ],
   social: {

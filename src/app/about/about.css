@@ -77,8 +77,9 @@
 .page-about .team { background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
 .page-about .team__photo {
   aspect-ratio: 4/5;
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 6px, transparent 6px 14px), #f0ece2;
-  display: flex; align-items: flex-end; padding: 12px;
+  background-color: #f0ece2;
+  background-size: cover;
+  background-position: center top;
 }
 .page-about .team__body { padding: 18px; }
 .page-about .team__name {
