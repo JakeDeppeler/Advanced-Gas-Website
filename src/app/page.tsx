@@ -41,11 +41,14 @@ const faqs = [
 ];
 
 const SUBURBS = [
-  "Pakenham","Pakenham Upper","Officer","Beaconsfield","Berwick","Narre Warren",
-  "Cranbourne","Cranbourne East","Clyde","Clyde North","Hampton Park","Hallam",
-  "Endeavour Hills","Doveton","Dandenong","Keysborough","Lynbrook","Lyndhurst",
-  "Bunyip","Garfield","Nar Nar Goon","Tynong","Drouin","Warragul",
-  "Cockatoo","Emerald","Gembrook","Tooradin",
+  "Pakenham","Officer","Beaconsfield","Berwick","Narre Warren","Cranbourne",
+  "Clyde North","Hampton Park","Hallam","Endeavour Hills","Dandenong","Keysborough",
+  "Bunyip","Garfield","Nar Nar Goon","Emerald","Gembrook","Cockatoo",
+  "Drouin","Warragul","Trafalgar","Moe",
+  "Frankston","Carrum Downs","Seaford","Mt Eliza","Mornington",
+  "Mentone","Mordialloc","Cheltenham","Sandringham","Brighton","Bentleigh",
+  "Glen Waverley","Mt Waverley","Box Hill","Doncaster","Doncaster East",
+  "Ringwood","Croydon","Lilydale","Mt Evelyn","Monbulk","Belgrave",
 ];
 
 export default function HomePage() {
@@ -67,7 +70,7 @@ export default function HomePage() {
             </h1>
 
             <p className="hero__sub">
-              Family-run, Reece-partnered tradies covering Pakenham, Berwick, Cranbourne, Officer and everywhere within 50&nbsp;km. We&apos;re VEU accredited — you get the rebate at quote, no chase, no paperwork.
+              Family-run, Reece-partnered tradies covering Pakenham, Berwick, Cranbourne, Officer and everywhere within 75&nbsp;km. We&apos;re VEU accredited — you get the rebate at quote, no chase, no paperwork.
             </p>
 
             <ul className="hero__bullets">
@@ -263,7 +266,7 @@ export default function HomePage() {
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
                 <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
-                <span className="bcard__pill">$169 flat</span>
+                <span className="bcard__pill">$280 / $250 members</span>
               </div>
             </Link>
 
@@ -384,8 +387,8 @@ export default function HomePage() {
         <div className="wrap area__grid">
           <div className="area__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>Based in Pakenham. On-site within 50 km.</h2>
-            <p>If you&apos;re south-east of Melbourne and your suburb&apos;s on this list, we cover you with no travel surcharge.</p>
+            <h2>Based in Pakenham. On-site within 75 km.</h2>
+            <p>Pakenham&apos;s home base — we cover the SE Melbourne corridor, Mornington Peninsula, bayside out to Brighton, east through Box Hill and Doncaster East, up to Lilydale and Monbulk, and the Warragul–Moe stretch with no travel surcharge.</p>
             <div className="suburbs">
               {SUBURBS.map((s) => (
                 <span key={s}>{s}</span>
@@ -395,7 +398,7 @@ export default function HomePage() {
           </div>
           <div className="area__right">
             <div className="map">
-              <span className="ph-tag ph-tag--dark">map placeholder · 50km radius around Pakenham 3810</span>
+              <span className="ph-tag ph-tag--dark">map placeholder · 75km radius around Pakenham 3810</span>
               <svg className="map__svg" viewBox="0 0 400 400" aria-hidden="true">
                 <defs>
                   <pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -428,7 +431,7 @@ export default function HomePage() {
           </div>
           <div className="faq__right">
             {faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="home-faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

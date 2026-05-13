@@ -67,7 +67,7 @@ export default function AboutPage() {
             <h2>From one ute to seven, with the same handshake.</h2>
             <p>We started in 2014 — one ute, one phone, one promise: if I quote it, I install it, and I stand behind it. Twelve years on the workshop&apos;s bigger, the team&apos;s grown to seven, and the trucks are newer.</p>
             <p>What hasn&apos;t changed: <strong>family-owned, locally run, no call-centres, no quote-pumping middlemen.</strong> When you ring {site.phone} you get a tradie or a family member — same as day one.</p>
-            <p>We picked Pakenham because it&apos;s home. We service within 50 km because beyond that we can&apos;t promise the same turnaround. We chose Reece as our trade partner because their stock is real and their warranties are honoured. We chose Reclaim, Mitsubishi, Kaden and Rinnai because we&apos;ve installed enough of each to know which house suits which model.</p>
+            <p>We picked Pakenham because it&apos;s home. We service within 75 km because beyond that we can&apos;t promise the same turnaround. We chose Reece as our trade partner because their stock is real and their warranties are honoured. We chose Reclaim, Mitsubishi, Kaden and Rinnai because we&apos;ve installed enough of each to know which house suits which model.</p>
           </div>
           <ol className="ab-timeline">
             {timeline.map((t) => (

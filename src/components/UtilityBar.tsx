@@ -10,7 +10,7 @@ export function UtilityBar() {
               <path d="M12 2v3M4.93 4.93l2.12 2.12M2 12h3M4.93 19.07l2.12-2.12M12 19v3M16.95 16.95l2.12 2.12M19 12h3M16.95 7.05l2.12-2.12" />
               <circle cx="12" cy="12" r="4" />
             </svg>
-            Pakenham, VIC — servicing within 50 km
+            Pakenham, VIC — servicing within 75 km
           </span>
           <span className="util-pill util-pill--quiet">Open Mon–Sat · 7:00 am – 6:00 pm</span>
           <span className="util-pill util-pill--quiet">ABN {site.abn} · Plumbing Lic. 46828</span>

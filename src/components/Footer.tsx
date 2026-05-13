@@ -59,6 +59,7 @@ export function Footer() {
           <h4 style={{ marginTop: 24 }}>Company</h4>
           <ul>
             <li><Link href="/about">About</Link></li>
+            <li><Link href="/membership">Membership</Link></li>
             <li><Link href="/blog">Blog &amp; guides</Link></li>
             <li><Link href="/contact">Contact</Link></li>
           </ul>
@@ -67,7 +68,7 @@ export function Footer() {
         <div className="ftr__col">
           <h4>Service area</h4>
           <p className="ftr__suburbs">
-            {suburbs.map((s) => s.name).join(" · ")} — within 50 km of Pakenham.
+            {suburbs.map((s) => s.name).join(" · ")} — within 75 km of Pakenham.
           </p>
         </div>
       </div>

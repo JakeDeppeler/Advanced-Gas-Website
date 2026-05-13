@@ -10,6 +10,19 @@ const SERVICES = [
 ];
 
 const TOTAL = 4;
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+
+async function fileToBase64(file: File) {
+  return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve({ name: file.name, type: file.type, base64: result.split(",")[1] ?? "" });
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function HeroQuoteForm() {
   const [step, setStep] = useState(1);
@@ -21,6 +34,7 @@ export function HeroQuoteForm() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [hp, setHp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +54,13 @@ export function HeroQuoteForm() {
       setError("First name and mobile are required.");
       return;
     }
+    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
+      setError("Photo is over 4 MB — please pick a smaller image or send it later.");
+      return;
+    }
     setSubmitting(true);
     try {
+      const photo = photoFile ? await fileToBase64(photoFile) : null;
       await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,6 +74,7 @@ export function HeroQuoteForm() {
           phone,
           email,
           notes,
+          photo,
           hp,
         }),
       });
@@ -210,6 +230,19 @@ export function HeroQuoteForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
+          </label>
+          <label className="qf-field">
+            <span>Photo of the existing unit (optional)</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+            />
+            {photoFile && (
+              <span style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}>
+                {photoFile.name} ({(photoFile.size / 1024 / 1024).toFixed(1)} MB)
+              </span>
+            )}
           </label>
         </fieldset>
 

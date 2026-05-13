@@ -1,0 +1,116 @@
+/* Membership page — scoped to .page-membership */
+
+.page-membership { background: var(--bg); }
+
+.page-membership .mb-hero {
+  background: var(--navy); color: #fff;
+  padding: 80px 0 90px; position: relative; overflow: hidden;
+}
+.page-membership .mb-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(800px 500px at 85% 10%, rgba(243,103,34,0.18), transparent 60%),
+    radial-gradient(700px 500px at 5% 90%, rgba(0,176,237,0.15), transparent 60%);
+}
+.page-membership .mb-hero > .wrap { position: relative; }
+.page-membership .mb-hero h1 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(40px, 5vw, 68px); line-height: 1; letter-spacing: -0.025em;
+  margin: 22px 0 20px; max-width: 960px; text-wrap: balance;
+}
+.page-membership .mb-hero h1 em { font-style: italic; color: var(--orange); }
+.page-membership .mb-hero p {
+  font-size: 18px; color: #fff; max-width: 640px; margin: 0;
+}
+
+.page-membership .mb-tiers { padding: 80px 0 60px; background: var(--bg); }
+.page-membership .mb-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+}
+.page-membership .mb-tier {
+  background: #fff; border: 1px solid var(--line); border-radius: 18px;
+  padding: 32px 28px 28px; display: flex; flex-direction: column;
+  position: relative;
+}
+.page-membership .mb-tier--feature {
+  border-color: var(--orange);
+  box-shadow: 0 18px 40px -22px rgba(243,103,34,0.4);
+}
+.page-membership .mb-tier__flag {
+  position: absolute; top: -14px; left: 28px;
+  background: var(--orange); color: #fff;
+  font-family: var(--f-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 6px 12px; border-radius: 999px;
+}
+.page-membership .mb-tier__name {
+  font-family: var(--f-display); font-weight: 800; font-size: 28px;
+  letter-spacing: -0.01em; margin: 0 0 14px; color: var(--navy);
+}
+.page-membership .mb-tier__price {
+  display: flex; align-items: baseline; gap: 8px; margin-bottom: 14px;
+  padding-bottom: 18px; border-bottom: 1px solid var(--line);
+}
+.page-membership .mb-tier__price strong {
+  font-family: var(--f-display); font-weight: 900; font-size: 36px;
+  color: var(--navy); letter-spacing: -0.02em;
+}
+.page-membership .mb-tier__price span {
+  font-family: var(--f-mono); font-size: 12.5px; color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.page-membership .mb-tier__blurb {
+  font-size: 15px; color: var(--ink-2); line-height: 1.55; margin: 0 0 18px;
+}
+.page-membership .mb-tier__features {
+  list-style: none; padding: 0; margin: 0 0 22px;
+  display: flex; flex-direction: column; gap: 10px; flex: 1;
+}
+.page-membership .mb-tier__features li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 14.5px; color: var(--ink); line-height: 1.45;
+}
+.page-membership .mb-tier__tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: 0 0 20px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--orange); color: #fff; font-size: 11px; font-weight: 800;
+  margin-top: 2px;
+}
+.page-membership .mb-tier__detail {
+  color: var(--ink-3); font-size: 13px;
+}
+.page-membership .mb-tier__cta { width: 100%; }
+.page-membership .mb-finep {
+  margin: 32px auto 0; text-align: center; font-size: 13px;
+  font-family: var(--f-mono); color: var(--ink-3); max-width: 600px;
+}
+.page-membership .mb-finep a { color: var(--navy); font-weight: 700; }
+
+.page-membership .mb-faq { padding: 80px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-membership .mb-faq__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+.page-membership .mb-faq__left h2 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.02em; line-height: 1.05;
+  color: var(--navy); margin: 14px 0; text-wrap: balance;
+}
+.page-membership .mb-faq__left p { font-size: 17px; color: var(--ink-2); margin: 0; }
+.page-membership .mb-faq__right details { border-top: 1px solid var(--line); padding: 22px 0; }
+.page-membership .mb-faq__right details:last-child { border-bottom: 1px solid var(--line); }
+.page-membership .mb-faq__right summary {
+  list-style: none;
+  font-family: var(--f-display); font-size: 19px; font-weight: 700;
+  color: var(--navy); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.page-membership .mb-faq__right summary::-webkit-details-marker { display: none; }
+.page-membership .mb-faq__right summary::after {
+  content: "+";
+  color: var(--orange); font-size: 24px;
+}
+.page-membership .mb-faq__right details[open] summary::after { content: "−"; }
+.page-membership .mb-faq__right p { margin: 14px 0 0; color: var(--ink-2); font-size: 15.5px; line-height: 1.6; max-width: 580px; }
+
+@media (max-width: 1100px) {
+  .page-membership .mb-grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-membership .mb-faq__grid { grid-template-columns: 1fr; gap: 32px; }
+}

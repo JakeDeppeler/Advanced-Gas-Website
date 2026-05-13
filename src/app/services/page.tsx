@@ -6,7 +6,7 @@ import "./services-hub.css";
 export const metadata: Metadata = {
   title: "Services — Heat Pumps, Aircon, Gas & Hot Water",
   description:
-    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 50 km. Free quote.",
+    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 75 km. Free quote.",
   alternates: { canonical: "/services" },
 };
 
@@ -33,7 +33,7 @@ const services: Service[] = [
     eyebrowOrange: true,
     h2: "Save up to 73% on hot water bills with the VEU rebate applied.",
     lede: "Replace your gas or electric storage tank with a high-efficiency heat pump — we handle the VEU paperwork so the rebate is already on your quote.",
-    specs: [["VEU Rebate", "up to $2,600"], ["Install time", "1 day"], ["Tank warranty", "5–10 yrs"], ["Workmanship", "6 yrs"]],
+    specs: [["VEU Rebate", "up to $2,600"], ["Install time", "2–3 hrs"], ["Tank warranty", "5–10 yrs"], ["Workmanship", "6 yrs"]],
     bullets: [
       "Old gas / electric unit removed & disposed responsibly",
       "Eligibility, certificates and STCs handled by us",
@@ -51,7 +51,7 @@ const services: Service[] = [
     eyebrow: "02 · Split system aircon",
     h2: "Whisper-quiet cooling in a single room — installed clean.",
     lede: "From bedrooms to granny flats, we size and install single-head split systems with neat, hidden pipework and tidy condensate drains.",
-    specs: [["Sizes", "2.5 – 9 kW"], ["Install time", "½ day"], ["Warranty", "5 yrs"], ["Refrigerant", "R32 inverter"]],
+    specs: [["Sizes", "2.5 – 9 kW"], ["Install time", "~4 hrs"], ["Warranty", "5 yrs"], ["Refrigerant", "R32 inverter"]],
     bullets: [
       "Mitsubishi Electric or Kaden — supplied & installed",
       "Indoor unit positioning checked for airflow",
@@ -87,7 +87,7 @@ const services: Service[] = [
     eyebrow: "04 · Gas & ducted gas heating",
     h2: "Install, replace, service — Brivis, Braemar, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
-    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service flat", "$169"], ["CO test", "included"]],
+    specs: [["Type", "Ducted / wall"], ["Install time", "~4 hrs"], ["Service", "$280 / $250 members"], ["CO test", "included"]],
     bullets: [
       "Licensed gas fitter on every job",
       "Carbon monoxide testing on every service",
@@ -103,9 +103,9 @@ const services: Service[] = [
     num: "05",
     eyebrow: "05 · Service & safety",
     eyebrowOrange: true,
-    h2: "Annual gas appliance servicing + CO testing — $169 flat.",
-    lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
-    specs: [["Flat rate", "$169"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
+    h2: "Annual gas appliance servicing + CO testing — all major brands.",
+    lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. Flat $280 + GST — or $250 + GST for members across all major brands.",
+    specs: [["Standard", "$280 + GST"], ["Members", "$250 + GST"], ["Time on site", "~60 min"], ["Best every", "2 yrs"]],
     bullets: [
       "Visual inspection & safety check",
       "Burner clean, flue check, gas pressure test",
@@ -119,14 +119,14 @@ const services: Service[] = [
     id: "hotwater",
     num: "06",
     eyebrow: "06 · Hot water — gas & electric",
-    h2: "Same-day swaps on most common units.",
-    lede: "Burst tank? Continuous flow on the blink? We carry the common Rinnai, Thermann and Rheem units on the truck for most call-outs.",
-    specs: [["Tank sizes", "25L – 400L"], ["Continuous", "16 – 32 L/min"], ["Call-out", "same day"], ["Warranty", "5–12 yrs"]],
+    h2: "Same-day swaps on the sizes we carry on the truck.",
+    lede: "Burst tank? Continuous flow on the blink? Most calls are sorted same-day — gas storage 135L and 175L, heat pump 200L / 285L / 300L, plus continuous flow from 16L to 32L per minute.",
+    specs: [["Gas storage", "135L / 175L"], ["Heat pump", "200 / 285 / 300L"], ["Continuous flow", "16 – 32 L/min"], ["Call-out", "same day"]],
     bullets: [
-      "Storage gas, instantaneous gas, electric storage",
-      "Heat pump alternative quoted alongside if eligible",
+      "Storage gas, continuous flow gas, electric storage and heat pump",
+      "Heat pump alternative quoted alongside if VEU eligible",
       "Old unit removed and disposed",
-      "Plumbing compliance cert included",
+      "Plumbing compliance certificate included",
     ],
     brands: ["Rinnai", "Thermann", "Rheem"],
     photoTag: "photo: Rinnai continuous flow · Beaconsfield",
@@ -155,7 +155,7 @@ const services: Service[] = [
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only — sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours fee", "$220 flat"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 2 hrs"], ["Make-safe call-out", "$500 + GST"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house — priority",

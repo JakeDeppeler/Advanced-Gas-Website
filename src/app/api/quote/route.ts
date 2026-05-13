@@ -3,6 +3,8 @@ import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
 
+type Photo = { name: string; type: string; base64: string };
+
 type Lead = {
   service: string;
   propertyType: string;
@@ -13,6 +15,7 @@ type Lead = {
   phone: string;
   email: string;
   notes: string;
+  photo?: Photo | null;
   hp: string;
 };
 
@@ -35,24 +38,36 @@ export async function POST(req: Request) {
   // Otherwise log to server console — Vercel logs are tail-able and you'll never lose a lead.
   if (to && key) {
     try {
+      const body: Record<string, unknown> = {
+        from: `Advanced Gas Website <${site.email}>`,
+        to: [to],
+        subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
+        text: format(data),
+      };
+      if (data.photo?.base64) {
+        body.attachments = [
+          {
+            filename: data.photo.name || "photo.jpg",
+            content: data.photo.base64,
+          },
+        ];
+      }
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${key}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          from: `Advanced Gas Website <${site.email}>`,
-          to: [to],
-          subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
-          text: format(data),
-        }),
+        body: JSON.stringify(body),
       });
     } catch (e) {
       console.error("Failed to email lead", e);
     }
   } else {
     console.log("NEW LEAD →\n" + format(data));
+    if (data.photo?.base64) {
+      console.log(`  (photo attached: ${data.photo.name}, ${Math.round(data.photo.base64.length / 1024)} KB base64)`);
+    }
   }
 
   return NextResponse.json({ ok: true });
