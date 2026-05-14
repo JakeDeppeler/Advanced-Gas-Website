@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     q: "What brands do you install — and why those?",
-    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Braemar. We've installed enough of each to know which model suits which house — we'll recommend, not upsell.",
+    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Kaden. We've installed enough of each to know which model suits which house — we'll recommend, not upsell.",
   },
   {
     q: "Do you do emergencies on weekends?",
@@ -251,16 +251,16 @@ export default function HomePage() {
               <div className="bcard__body bcard__body--bare">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
-                <p>Install, replace, service. Brivis, Braemar, Rinnai. Carbon monoxide tested.</p>
+                <p>Install, replace, service. Brivis, Kaden, Rinnai. Carbon monoxide tested.</p>
               </div>
             </Link>
 
             <Link href="/services#service" className="bcard bcard--accent">
               <div className="bcard__body bcard__body--bare">
                 <span className="bcard__num">05</span>
-                <h3>Service &amp; safety check</h3>
-                <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
-                <span className="bcard__pill">$280 / $250 members</span>
+                <h3>Evap cooler service</h3>
+                <p>Pre-summer evap tune — pads, pump, float, distribution and ductwork checked.</p>
+                <span className="bcard__pill">$300 / $270 members</span>
               </div>
             </Link>
 

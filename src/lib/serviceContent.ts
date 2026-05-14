@@ -115,7 +115,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Leak detection", d: "Electronic gas leak detection and pressure testing. Safe-to-stay verification provided." },
       { t: "Emergency call-outs", d: "Same-day across our service area for no hot water, leaks and gas emergencies." },
     ],
-    brands: ["Rinnai", "Brivis", "Braemar", "Thermann", "Rheem"],
+    brands: ["Rinnai", "Brivis", "Kaden", "Thermann", "Rheem"],
     pricing: [
       { tier: "Continuous flow hot water (gas)", price: "from $2,299", includes: "Supply, install, compliance cert, old unit removal" },
       { tier: "Gas appliance installation", price: "from $349", includes: "Connection, pressure test, compliance cert" },
