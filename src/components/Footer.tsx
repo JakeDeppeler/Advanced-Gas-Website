@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { site, suburbs } from "@/lib/site";
-import { LogoMark } from "./Logo";
 
 export function Footer() {
   return (
@@ -9,13 +8,14 @@ export function Footer() {
         <div className="ftr__brand">
           <div
             className="ftr__logo"
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#fff" }}
+            style={{ display: "inline-flex", padding: 10, background: "#fff", borderRadius: 8 }}
           >
-            <LogoMark className="h-10 w-10" />
-            <span style={{ lineHeight: 0.95 }}>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 800, fontSize: 16, color: "var(--navy)" }}>Advanced</span>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 600, fontSize: 11, color: "var(--sky)" }}>Gas &amp; Aircon</span>
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-full.jpg"
+              alt={site.name}
+              style={{ height: 48, width: "auto", display: "block" }}
+            />
           </div>
           <p className="ftr__tag">
             Family-run gas, hot water &amp; aircon specialists.
