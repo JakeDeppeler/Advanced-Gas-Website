@@ -15,10 +15,13 @@ export async function POST(req: Request) {
     return new NextResponse("Invalid email", { status: 400 });
   }
 
-  const to = process.env.LEAD_NOTIFICATION_EMAIL;
+  const recipients = (process.env.LEAD_NOTIFICATION_EMAIL ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const key = process.env.RESEND_API_KEY;
 
-  if (to && key) {
+  if (recipients.length > 0 && key) {
     try {
       await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -28,7 +31,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           from: `Advanced Gas Website <${site.email}>`,
-          to: [to],
+          to: recipients,
           subject: "Newsletter signup",
           text: `New newsletter signup: ${data.email}`,
         }),

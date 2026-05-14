@@ -31,16 +31,22 @@ export async function POST(req: Request) {
     return new NextResponse("Missing required fields", { status: 400 });
   }
 
-  const to = process.env.LEAD_NOTIFICATION_EMAIL;
+  // LEAD_NOTIFICATION_EMAIL can be a comma-separated list — e.g.
+  //   "admin@advancedgas.com.au, jake@advancedgas.com.au"
+  // Resend accepts up to 50 recipients in a single send.
+  const recipients = (process.env.LEAD_NOTIFICATION_EMAIL ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const key = process.env.RESEND_API_KEY;
 
   // If Resend is configured, send the lead by email.
   // Otherwise log to server console — Vercel logs are tail-able and you'll never lose a lead.
-  if (to && key) {
+  if (recipients.length > 0 && key) {
     try {
       const body: Record<string, unknown> = {
         from: `Advanced Gas Website <${site.email}>`,
-        to: [to],
+        to: recipients,
         subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
         text: format(data),
       };
