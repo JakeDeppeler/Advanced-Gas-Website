@@ -96,7 +96,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="trust-divider" />
-              <div className="trust-stat"><strong>1,200+</strong><span>installs done</span></div>
+              <div className="trust-stat"><strong>8-strong</strong><span>family crew</span></div>
               <div className="trust-divider" />
               <div className="trust-stat"><strong>12 yrs</strong><span>local trading</span></div>
             </div>

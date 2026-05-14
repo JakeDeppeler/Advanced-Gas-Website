@@ -268,9 +268,9 @@ export default function RebatesPage() {
             <span className="eyebrow"><span className="eyebrow-dot" /> Eligible products</span>
             <h2>Heat pumps &amp; aircon we install under the VEU program.</h2>
             <p>
-              Each of these is VEU-listed, in stock through our Reece partnership, and proven in
-              1,200+ Pakenham-area installs. Pricing shown is the indicative VEU rebate range — your
-              actual figure depends on your old unit and home.
+              Each of these is VEU-listed, in stock through our Reece partnership, and proven across
+              Pakenham-area homes by our family-run install crew. Pricing shown is the indicative
+              VEU rebate range — your actual figure depends on your old unit and home.
             </p>
           </div>
 
