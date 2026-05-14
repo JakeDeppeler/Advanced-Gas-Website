@@ -404,6 +404,15 @@
   aspect-ratio: 5 / 3;
   border-bottom: 1px solid var(--line);
 }
+.page-rebates .rb-prods__finep {
+  margin: 28px auto 0;
+  max-width: 760px;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  text-align: center;
+}
 .page-rebates .ph-tag {
   font-family: var(--f-mono);
   font-size: 10.5px;

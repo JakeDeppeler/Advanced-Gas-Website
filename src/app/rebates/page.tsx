@@ -57,12 +57,13 @@ const products = [
     brand: "Reclaim · CO₂",
     name: "Reclaim 270L heat pump",
     bullets: [
+      "🇦🇺 Proudly Australian made",
       "Natural CO₂ refrigerant (R744)",
       "10-year tank warranty",
       "Quietest in class — 37 dB",
       "Best for: 3–5 person households",
     ],
-    rebate: "up to $2,600",
+    rebate: "up to $2,600*",
     pill: "flagship",
     photo: "/reclaim-product.png",
     photoAlt: "Reclaim Energy heat pump hot water unit",
@@ -76,7 +77,7 @@ const products = [
       "6-year tank warranty",
       "Best for: solar-paired households",
     ],
-    rebate: "up to $2,400",
+    rebate: "up to $2,200*",
     pill: "mid-range",
     photo: "/istore-product.png",
     photoAlt: "iStore 270L heat pump hot water unit",
@@ -85,13 +86,13 @@ const products = [
     brand: "Thermann",
     name: "Thermann 270L heat pump",
     bullets: [
-      "Budget-friendly entry point",
+      "🇦🇺 Proudly Australian made",
       "Stainless steel tank",
       "5-year tank warranty",
       "Best for: smaller homes / rentals",
     ],
-    rebate: "up to $2,200",
-    pill: "value",
+    rebate: "up to $2,600*",
+    pill: "Aussie value",
     photo: "/thermann-product.jpg",
     photoAlt: "Thermann 270L heat pump hot water unit",
   },
@@ -302,6 +303,9 @@ export default function RebatesPage() {
               </article>
             ))}
           </div>
+          <p className="rb-prods__finep">
+            * Rebate amounts vary based on VEU certificate market price at the time of install. We lock the rebate value into your written quote so the price you see is the price you pay — any market movement after sign-off is on us, not you.
+          </p>
         </div>
       </section>
 
