@@ -6,10 +6,7 @@ export function Footer() {
     <footer className="ftr">
       <div className="wrap ftr__grid">
         <div className="ftr__brand">
-          <div
-            className="ftr__logo"
-            style={{ display: "inline-flex", padding: 10, background: "#fff", borderRadius: 8 }}
-          >
+          <div className="ftr__logo">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo-full.jpg"
