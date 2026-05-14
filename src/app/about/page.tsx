@@ -20,10 +20,10 @@ const timeline = [
 ];
 
 const team = [
-  { name: "Jake", role: "Director", bio: "Runs the show. The bloke on the phone is the bloke on the quote.", photo: "/jake.png" },
-  { name: "Dean", role: "Lead installer", bio: "Cleanest pipework in the south-east. Splits, multi-heads and ducted retrofits.", photo: "/dean.png" },
-  { name: "Jye", role: "Service & install tech", bio: "Gas servicing, CO testing and same-day callouts. Calmly explains everything to landlords and tenants.", photo: "/jye.png" },
-  { name: "Kellie", role: "Bookings & VEU paperwork", bio: "The reason your rebate forms get filed properly. Lives and breathes spreadsheets.", photo: "/kellie.png" },
+  { name: "Dean", role: "Director", bio: "Started Advanced Gas in 2014. Still on most quotes, still answers his own phone.", photo: "/dean.png" },
+  { name: "Jake", role: "Commercial & Operations", bio: "Runs the commercial book and the day-to-day. Cafés, gyms, offices, fit-outs — one PM, one invoice.", photo: "/jake.png" },
+  { name: "Jye", role: "Lead installer", bio: "Cleanest pipework in the south-east. Splits, multi-heads and ducted retrofits.", photo: "/jye.png" },
+  { name: "Kellie", role: "General Manager", bio: "Keeps the wheels on. Bookings, VEU paperwork and the reason your compliance certs land in 24 hours.", photo: "/kellie.png" },
 ];
 
 const values = [

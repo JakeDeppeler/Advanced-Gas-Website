@@ -10,8 +10,9 @@
 }
 .page-blog .bl-hero h1 em { font-style: italic; color: var(--orange); }
 .page-blog .bl-hero p { font-size: 18px; color: var(--ink-2); max-width: 620px; margin: 0 0 28px; }
-.page-blog .bl-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.page-blog .bl-cats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 32px; }
 .page-blog .bl-cat {
+  appearance: none;
   display: inline-block; font-family: var(--f-mono); font-size: 12px;
   letter-spacing: 0.04em; padding: 7px 14px; border-radius: 999px;
   background: #fff; color: var(--navy); border: 1px solid var(--line);
@@ -19,6 +20,14 @@
 }
 .page-blog .bl-cat:hover { border-color: var(--navy); }
 .page-blog .bl-cat.is-active { background: var(--navy); color: #fff; border-color: var(--navy); }
+.page-blog .bl-grid__empty {
+  grid-column: 1 / -1;
+  font-family: var(--f-mono);
+  font-size: 14px;
+  color: var(--ink-2);
+  padding: 32px 0;
+  text-align: center;
+}
 
 .page-blog .bl-feat { padding: 56px 0 64px; background: var(--bg); }
 .page-blog .bl-feat__card {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { site } from "@/lib/site";
 import { blogPosts, blogCategories } from "@/lib/blogPosts";
 import { NewsletterForm } from "@/components/NewsletterForm";
+import { BlogFilterGrid } from "@/components/BlogFilterGrid";
 import "./blog.css";
 
 export const metadata: Metadata = {
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPage() {
-  const [featured, ...rest] = blogPosts;
+  const featured = blogPosts[0];
 
   return (
     <div className="page-blog">
@@ -22,11 +23,6 @@ export default function BlogPage() {
           <span className="ds-eyebrow"><span className="ds-dot" /> Guides &amp; articles</span>
           <h1>Plain-English answers, <em>written by tradies.</em></h1>
           <p>Real questions we get on jobs, written up properly. No fluff, no SEO slop — actual answers from people who&apos;ve fitted the unit on your neighbour&apos;s roof.</p>
-          <div className="bl-cats">
-            {blogCategories.map((c, i) => (
-              <span key={c} className={`bl-cat${i === 0 ? " is-active" : ""}`}>{c}</span>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -52,33 +48,7 @@ export default function BlogPage() {
 
       <section className="bl-grid-wrap">
         <div className="wrap">
-          <div className="bl-grid">
-            {rest.map((p, i) => (
-              <Link
-                key={p.slug}
-                href={`/blog/${p.slug}`}
-                className={`bl-card${i % 2 === 1 ? " bl-card--alt" : ""}`}
-              >
-                <div
-                  className="bl-card__photo"
-                  role="img"
-                  aria-label={p.photoAlt}
-                  style={{ backgroundImage: `url(${p.photo})` }}
-                >
-                  <span className="bl-card__photo-tag">{p.category}</span>
-                </div>
-                <div className="bl-card__body">
-                  <span className="bl-card__meta">{p.readingMinutes} min · {p.date}</span>
-                  <h3>{p.title}</h3>
-                  <p>{p.excerpt}</p>
-                  <div className="bl-card__foot">
-                    <span className="bl-card__read">Read article →</span>
-                    <span>{p.categoryShort}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <BlogFilterGrid posts={blogPosts} categories={blogCategories} hideOnAll={featured.slug} />
         </div>
       </section>
 
