@@ -12,8 +12,8 @@ export function localBusinessSchema() {
     url: site.url,
     telephone: site.phoneE164,
     email: site.email,
-    image: `${site.url}/og.jpg`,
-    logo: `${site.url}/logo.png`,
+    image: `${site.url}/logo-full.jpg`,
+    logo: `${site.url}/logo-full.jpg`,
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",
@@ -59,7 +59,7 @@ export function serviceSchema(serviceSlug: string, location?: string) {
   if (!svc) return null;
   const name = location ? `${svc.name} in ${location}` : svc.name;
   const url = location
-    ? `${site.url}/melbourne/${location.toLowerCase().replace(/\s+/g, "-")}/${svc.slug}`
+    ? `${site.url}/areas/${location.toLowerCase().replace(/\s+/g, "-")}/${svc.slug}`
     : `${site.url}/services/${svc.slug}`;
   return {
     "@context": "https://schema.org",

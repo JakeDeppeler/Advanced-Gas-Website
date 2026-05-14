@@ -15,24 +15,39 @@ type FormState = {
   phone: string;
   email: string;
   notes: string;
-  hp: string; // honeypot
+  hp: string;
 };
 
 const SERVICES = [
-  { id: "aircon-install", label: "Air conditioning installation", icon: "❄" },
-  { id: "heat-pump-install", label: "Heat pump hot water install", icon: "🔥" },
-  { id: "aircon-service", label: "Aircon service or repair", icon: "🔧" },
-  { id: "gas-plumbing", label: "Gas / plumbing work", icon: "🔥" },
+  { id: "air-conditioning-installation", t: "❄ Aircon install", s: "Split / multi-head / ducted" },
+  { id: "heat-pump-installation", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
+  { id: "aircon-servicing-repairs", t: "🔧 Service / repair", s: "All major brands" },
+  { id: "gas-plumbing", t: "🔥 Gas / plumbing", s: "Heating, hot water, leaks" },
 ];
 
 const PROPERTY = ["Single-storey home", "Double-storey home", "Apartment", "Commercial / office"];
 const TIMING = ["ASAP (within 2 weeks)", "This month", "1-3 months", "Just researching"];
+
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+
+async function fileToBase64(file: File) {
+  return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve({ name: file.name, type: file.type, base64: result.split(",")[1] ?? "" });
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function QuoteForm({ presetService }: { presetService?: string }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [form, setForm] = useState<FormState>({
     service: presetService ?? "",
     propertyType: "",
@@ -63,12 +78,16 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     e.preventDefault();
     setError(null);
     if (!form.name || !form.phone) return setError("Name and phone are required.");
+    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
+      return setError("Photo is over 4 MB — please pick a smaller image or send it later.");
+    }
     setSubmitting(true);
     try {
+      const photo = photoFile ? await fileToBase64(photoFile) : null;
       const res = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, photo }),
       });
       if (!res.ok) throw new Error(await res.text());
       router.push("/thanks");
@@ -78,22 +97,17 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     }
   }
 
-  const progress = (step / 4) * 100;
-
   return (
-    <div className="card">
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-          <span>Step {step} of 4</span>
-          <span>{Math.round(progress)}% complete</span>
-        </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-          <div className="h-full bg-accent-500 transition-all" style={{ width: `${progress}%` }} />
-        </div>
+    <div className="qf-card">
+      <div className="qf-ribbon">
+        <span className="qf-ribbon-dot" />
+        Step {step} of 4 · {Math.round((step / 4) * 100)}% complete
+      </div>
+      <div className="qf-progress">
+        <div className="qf-progress__bar" style={{ width: `${(step / 4) * 100}%` }} />
       </div>
 
       <form onSubmit={submit} noValidate>
-        {/* Honeypot — bots fill it, humans don't see it */}
         <input
           type="text"
           name="company"
@@ -101,31 +115,25 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
           onChange={(e) => update("hp", e.target.value)}
           tabIndex={-1}
           autoComplete="off"
-          className="hidden"
           aria-hidden="true"
+          style={{ position: "absolute", left: "-9999px" }}
         />
 
         {step === 1 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">What do you need installed?</legend>
-            <p className="mt-1 text-sm text-slate-500">Takes under 60 seconds. No obligation.</p>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <legend className="qf-legend">What do you need installed?</legend>
+            <p className="qf-sub">Takes under 60 seconds. No obligation.</p>
+            <div className="qf-grid">
               {SERVICES.map((s) => (
-                <label
-                  key={s.id}
-                  className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${
-                    form.service === s.id ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"
-                  }`}
-                >
+                <label key={s.id} className="qf-opt">
                   <input
                     type="radio"
                     name="service"
-                    className="sr-only"
                     checked={form.service === s.id}
                     onChange={() => update("service", s.id)}
                   />
-                  <span className="text-2xl" aria-hidden>{s.icon}</span>
-                  <span className="font-medium text-slate-900">{s.label}</span>
+                  <span className="qf-opt__t">{s.t}</span>
+                  <span className="qf-opt__s">{s.s}</span>
                 </label>
               ))}
             </div>
@@ -133,113 +141,149 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         )}
 
         {step === 2 && (
-          <div className="space-y-6">
+          <>
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900">Property type</legend>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <legend className="qf-legend">Property type</legend>
+              <div className="qf-grid">
                 {PROPERTY.map((p) => (
-                  <label key={p} className={`cursor-pointer rounded-xl border p-3 text-sm font-medium ${form.propertyType === p ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"}`}>
-                    <input type="radio" name="property" className="sr-only" checked={form.propertyType === p} onChange={() => update("propertyType", p)} />
-                    {p}
+                  <label key={p} className="qf-opt">
+                    <input
+                      type="radio"
+                      name="property"
+                      checked={form.propertyType === p}
+                      onChange={() => update("propertyType", p)}
+                    />
+                    <span className="qf-opt__t" style={{ fontSize: 13 }}>{p}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
-            <fieldset>
-              <legend className="text-xl font-semibold text-slate-900">When do you need this done?</legend>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <fieldset style={{ marginTop: 20 }}>
+              <legend className="qf-legend">When do you need this done?</legend>
+              <div className="qf-grid">
                 {TIMING.map((t) => (
-                  <label key={t} className={`cursor-pointer rounded-xl border p-3 text-sm font-medium ${form.timing === t ? "border-brand-600 bg-brand-50" : "border-slate-200 hover:border-brand-400"}`}>
-                    <input type="radio" name="timing" className="sr-only" checked={form.timing === t} onChange={() => update("timing", t)} />
-                    {t}
+                  <label key={t} className="qf-opt">
+                    <input
+                      type="radio"
+                      name="timing"
+                      checked={form.timing === t}
+                      onChange={() => update("timing", t)}
+                    />
+                    <span className="qf-opt__t" style={{ fontSize: 13 }}>{t}</span>
                   </label>
                 ))}
               </div>
             </fieldset>
-          </div>
+          </>
         )}
 
         {step === 3 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">Where's the job?</legend>
-            <p className="mt-1 text-sm text-slate-500">We service all of Melbourne and regional Victoria.</p>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <Field label="Suburb" value={form.suburb} onChange={(v) => update("suburb", v)} placeholder="e.g. Richmond" />
-              <Field label="Postcode" value={form.postcode} onChange={(v) => update("postcode", v)} placeholder="e.g. 3121" inputMode="numeric" />
+            <legend className="qf-legend">Where&apos;s the job?</legend>
+            <p className="qf-sub">We service Pakenham and within 75 km.</p>
+            <div className="qf-row">
+              <label className="qf-field">
+                <span>Suburb</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Pakenham"
+                  value={form.suburb}
+                  onChange={(e) => update("suburb", e.target.value)}
+                />
+              </label>
+              <label className="qf-field">
+                <span>Postcode</span>
+                <input
+                  type="text"
+                  placeholder="e.g. 3810"
+                  inputMode="numeric"
+                  value={form.postcode}
+                  onChange={(e) => update("postcode", e.target.value)}
+                />
+              </label>
             </div>
-            <Field label="Notes (optional)" value={form.notes} onChange={(v) => update("notes", v)} placeholder="Brand preference, number of rooms, etc." textarea />
+            <label className="qf-field" style={{ marginTop: 10 }}>
+              <span>Notes (optional)</span>
+              <textarea
+                rows={3}
+                placeholder="Brand preference, number of rooms, etc."
+                value={form.notes}
+                onChange={(e) => update("notes", e.target.value)}
+              />
+            </label>
           </fieldset>
         )}
 
         {step === 4 && (
           <fieldset>
-            <legend className="text-xl font-semibold text-slate-900">Where do we send your quote?</legend>
-            <p className="mt-1 text-sm text-slate-500">We'll text or call within 1 business hour.</p>
-            <div className="mt-5 grid gap-4">
-              <Field label="Full name" value={form.name} onChange={(v) => update("name", v)} required autoComplete="name" />
-              <Field label="Phone" value={form.phone} onChange={(v) => update("phone", v)} required type="tel" autoComplete="tel" inputMode="tel" />
-              <Field label="Email (optional)" value={form.email} onChange={(v) => update("email", v)} type="email" autoComplete="email" />
-            </div>
-            <p className="mt-4 text-xs text-slate-500">
+            <legend className="qf-legend">Where do we send your quote?</legend>
+            <p className="qf-sub">We&apos;ll text or call within 2 business hours.</p>
+            <label className="qf-field">
+              <span>Full name</span>
+              <input
+                type="text"
+                autoComplete="name"
+                value={form.name}
+                onChange={(e) => update("name", e.target.value)}
+                required
+              />
+            </label>
+            <label className="qf-field">
+              <span>Phone</span>
+              <input
+                type="tel"
+                autoComplete="tel"
+                inputMode="tel"
+                value={form.phone}
+                onChange={(e) => update("phone", e.target.value)}
+                required
+              />
+            </label>
+            <label className="qf-field">
+              <span>Email (optional)</span>
+              <input
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={(e) => update("email", e.target.value)}
+              />
+            </label>
+            <label className="qf-field">
+              <span>Photo of the existing unit (optional)</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+              />
+              {photoFile && (
+                <span style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}>
+                  {photoFile.name} ({(photoFile.size / 1024 / 1024).toFixed(1)} MB)
+                </span>
+              )}
+            </label>
+            <p className="qf-finep">
               By submitting you agree to be contacted about your quote. We never share your details.
             </p>
           </fieldset>
         )}
 
         {error && (
-          <div role="alert" className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+          <div className="qf-error" role="alert">{error}</div>
         )}
 
-        <div className="mt-6 flex items-center justify-between gap-3">
+        <div className="qf-foot">
           {step > 1 ? (
-            <button type="button" onClick={back} className="btn-ghost">← Back</button>
+            <button type="button" onClick={back} className="ds-btn ds-btn--ghost">← Back</button>
           ) : <span />}
           {step < 4 ? (
-            <button type="button" onClick={next} className="btn-accent">Continue →</button>
+            <button type="button" onClick={next} className="ds-btn ds-btn--orange ds-btn--lg">Continue →</button>
           ) : (
-            <button type="submit" disabled={submitting} className="btn-accent disabled:opacity-60">
-              {submitting ? "Sending..." : "Get my free quote"}
+            <button type="submit" disabled={submitting} className="ds-btn ds-btn--orange ds-btn--lg">
+              {submitting ? "Sending…" : "Get my free quote"}
             </button>
           )}
         </div>
       </form>
     </div>
-  );
-}
-
-function Field(props: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  autoComplete?: string;
-  inputMode?: "text" | "numeric" | "tel" | "email";
-  textarea?: boolean;
-}) {
-  const { label, value, onChange, textarea, ...rest } = props;
-  return (
-    <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      {textarea ? (
-        <textarea
-          className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-          rows={3}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={rest.placeholder}
-        />
-      ) : (
-        <input
-          className="mt-1 block w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          {...rest}
-        />
-      )}
-    </label>
   );
 }

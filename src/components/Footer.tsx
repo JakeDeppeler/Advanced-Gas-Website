@@ -1,88 +1,85 @@
 import Link from "next/link";
-import { site, services, suburbs } from "@/lib/site";
+import { site, suburbs } from "@/lib/site";
 
 export function Footer() {
   return (
-    <footer className="mt-20 bg-brand-900 text-slate-200">
-      <div className="container grid gap-10 py-14 md:grid-cols-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-white font-black text-brand-700">
-              AG
-            </span>
-            <span className="text-lg font-bold text-white">{site.name}</span>
+    <footer className="ftr">
+      <div className="wrap ftr__grid">
+        <div className="ftr__brand">
+          <div className="ftr__logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-full.jpg"
+              alt={site.name}
+              style={{ height: 48, width: "auto", display: "block" }}
+            />
           </div>
-          <p className="mt-4 text-sm leading-relaxed text-slate-300">
-            Licensed Melbourne aircon, heat pump and gas plumbing specialists.
-            Same-week installs across Victoria with a 6-year workmanship warranty.
+          <p className="ftr__tag">
+            Family-run gas, hot water &amp; aircon specialists.
+            Pakenham locals since 2014.
           </p>
-          <p className="mt-4 text-xs text-slate-400">
-            ABN {site.abn}<br />
-            {site.licences.plumbing}<br />
-            {site.licences.refrigeration}
+          <p className="ftr__nap">
+            <strong>{site.name}</strong>
+            <br />
+            Pakenham, VIC 3810
+            <br />
+            <a href={`tel:${site.phoneE164}`}>{site.phone}</a> ·{" "}
+            <a href={`mailto:${site.email}`}>{site.email}</a>
+          </p>
+          <p className="ftr__hours">
+            <strong>Hours.</strong> Mon–Fri 7am–5pm · Sat 8am–2pm · 24/7 emergency
           </p>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Services</h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            {services.map((s) => (
-              <li key={s.slug}>
-                <Link href={`/services/${s.slug}`} className="hover:text-white">
-                  {s.short}
-                </Link>
-              </li>
-            ))}
+        <div className="ftr__col">
+          <h4>Services</h4>
+          <ul>
+            <li><Link href="/services#heatpump">Heat pump hot water</Link></li>
+            <li><Link href="/services#split">Split systems</Link></li>
+            <li><Link href="/services#ducted">Ducted aircon</Link></li>
+            <li><Link href="/services#gas-heating">Gas heating</Link></li>
+            <li><Link href="/services#hotwater">Hot water</Link></li>
+            <li><Link href="/services#service">Service &amp; safety</Link></li>
+            <li><Link href="/services#commercial">Commercial</Link></li>
+            <li><Link href="/contact#emergency">24/7 emergency</Link></li>
           </ul>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Service Areas</h3>
-          <ul className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
-            {suburbs.slice(0, 10).map((sub) => (
-              <li key={sub.slug}>
-                <Link href={`/melbourne/${sub.slug}`} className="hover:text-white">
-                  {sub.name}
-                </Link>
-              </li>
-            ))}
+        <div className="ftr__col">
+          <h4>Rebates</h4>
+          <ul>
+            <li><Link href="/rebates">VEU explained</Link></li>
+            <li><Link href="/rebates#calc">Eligibility check</Link></li>
+            <li><Link href="/rebates#calc">Rebate calculator</Link></li>
+            <li><Link href="/rebates#faq">Rebate FAQ</Link></li>
           </ul>
-          <Link href="/service-areas" className="mt-3 inline-block text-sm font-semibold text-accent-500">
-            View all areas →
-          </Link>
+          <h4 style={{ marginTop: 24 }}>Company</h4>
+          <ul>
+            <li><Link href="/about">About</Link></li>
+            <li><Link href="/membership">Membership</Link></li>
+            <li><Link href="/blog">Blog &amp; guides</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
+          </ul>
         </div>
 
-        <div>
-          <h3 className="text-white font-semibold">Contact</h3>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <a href={`tel:${site.phoneE164}`} className="hover:text-white">
-                📞 {site.phone}
-              </a>
-            </li>
-            <li>
-              <a href={`mailto:${site.email}`} className="hover:text-white">
-                ✉ {site.email}
-              </a>
-            </li>
-            <li className="text-slate-300">
-              {site.address.suburb}, {site.address.state} {site.address.postcode}
-            </li>
-            <li className="pt-2">
-              <Link href="/quote" className="btn-accent">Get a Free Quote</Link>
-            </li>
-          </ul>
+        <div className="ftr__col">
+          <h4>Service area</h4>
+          <p className="ftr__suburbs">
+            {suburbs.map((s) => s.name).join(" · ")} — within 75 km of Pakenham.
+          </p>
         </div>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="container flex flex-col sm:flex-row items-center justify-between gap-2 py-5 text-xs text-slate-400">
-          <p>© {new Date().getFullYear()} {site.legalName}. All rights reserved.</p>
-          <div className="flex gap-4">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-          </div>
-        </div>
+      <div className="wrap ftr__bottom">
+        <span>
+          © {new Date().getFullYear()} {site.name} · ABN {site.abn} ·{" "}
+          {site.licences.plumbing} · {site.licences.refrigeration}
+        </span>
+        <span className="ftr__partners">
+          <span className="ftr-partner">VEU accredited</span>
+          <span className="ftr-partner">Reece trade partner</span>
+          <span className="ftr-partner">ARC authorised</span>
+        </span>
       </div>
     </footer>
   );
