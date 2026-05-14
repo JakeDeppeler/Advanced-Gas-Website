@@ -13,9 +13,9 @@ export const metadata: Metadata = {
 const timeline = [
   { year: "2014", h: "Dean leaves the union", p: "After years on the tools under the union ticket, Dean strikes out on his own. One ute, one phone, one mobile number he still answers." },
   { year: "2016", h: "Jye comes on board", p: "First hire — Jye starts as an installer and is still on the trucks today as lead installer. Most installs that go out get his hands on them." },
-  { year: "2019", h: "Reece trade partnership", p: "Joined the Reece trade program — direct supply, real warranties, no inflated middleman pricing." },
-  { year: "2021", h: "VEU accreditation", p: "Became an accredited installer under the Victorian Energy Upgrades program. Started doing the rebate paperwork in-house." },
-  { year: "2023", h: "Kellie & Tash in the office", p: "Kellie (Dean's wife) steps in to run the office and keep the install crew moving. Mate Tash is alongside her most days." },
+  { year: "2019", h: "Kellie & Tash in the office", p: "Kellie (Dean's wife) steps in to run the books and keep the install crew moving. Mate Tash is alongside her most days." },
+  { year: "2021", h: "Reece trade partnership", p: "Joined the Reece trade program — direct supply, real warranties, no inflated middleman pricing." },
+  { year: "2023", h: "VEU accreditation", p: "Became an accredited installer under the Victorian Energy Upgrades program. Started doing the rebate paperwork in-house." },
   { year: "2024", h: "Our own factory in Pakenham", p: "Moved out of the rented garage and into our own Pakenham factory. Stock, trucks, and customer meetings all under one roof." },
 ];
 
