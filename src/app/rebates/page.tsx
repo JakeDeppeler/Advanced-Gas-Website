@@ -64,8 +64,8 @@ const products = [
     ],
     rebate: "up to $2,600",
     pill: "flagship",
-    photo: "/thermann-heat-pump.jpg",
-    photoAlt: "Heat pump hot water unit",
+    photo: "/reclaim-product.png",
+    photoAlt: "Reclaim Energy heat pump hot water unit",
   },
   {
     brand: "iStore",
@@ -78,8 +78,8 @@ const products = [
     ],
     rebate: "up to $2,400",
     pill: "mid-range",
-    photo: "/thermann-heat-pump.jpg",
-    photoAlt: "iStore-class heat pump hot water",
+    photo: "/istore-product.png",
+    photoAlt: "iStore 270L heat pump hot water unit",
   },
   {
     brand: "Thermann",
@@ -92,8 +92,8 @@ const products = [
     ],
     rebate: "up to $2,200",
     pill: "value",
-    photo: "/thermann-heat-pump.jpg",
-    photoAlt: "Thermann 270L heat pump installed",
+    photo: "/thermann-product.jpg",
+    photoAlt: "Thermann 270L heat pump hot water unit",
   },
   {
     brand: "Mitsubishi Electric",

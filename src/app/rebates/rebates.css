@@ -397,8 +397,9 @@
   flex-direction: column;
 }
 .page-rebates .rb-prod__photo {
-  background-color: var(--bg-2);
-  background-size: cover;
+  background-color: #fff;
+  background-size: contain;
+  background-repeat: no-repeat;
   background-position: center;
   aspect-ratio: 5 / 3;
   border-bottom: 1px solid var(--line);
