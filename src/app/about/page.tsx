@@ -58,7 +58,7 @@ export default function AboutPage() {
         <div className="wrap ab-stats__grid">
           <div className="ab-stats__item"><strong>12</strong><span>years local trading</span></div>
           <div className="ab-stats__item"><strong>75 km</strong><span>service radius from Pakenham</span></div>
-          <div className="ab-stats__item"><strong>4.9★</strong><span>Google · 280 reviews</span></div>
+          <div className="ab-stats__item"><strong>4.9★</strong><span>Google reviews</span></div>
           <div className="ab-stats__item"><strong>8</strong><span>family-run team</span></div>
         </div>
       </section>

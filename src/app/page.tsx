@@ -353,7 +353,7 @@ export default function HomePage() {
             </div>
             <div className="reviews__badge">
               <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google · 280+ reviews</div>
+              <div><strong>4.9 / 5</strong> on Google</div>
             </div>
           </div>
 
