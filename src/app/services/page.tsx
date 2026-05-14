@@ -153,8 +153,8 @@ const services: Service[] = [
       "Single line of accountability through the trade",
       "Annual service contracts available post-handover",
     ],
-    photo: "/ducted-condenser.jpg",
-    photoAlt: "Commercial ducted condenser unit",
+    photo: "/commercial.png",
+    photoAlt: "Crane lifting a commercial rooftop AC unit during a fit-out",
     primaryCta: { label: "Get a tender →", href: "/contact" },
   },
   {
@@ -169,8 +169,8 @@ const services: Service[] = [
       "Hot water failure with kids in the house — priority",
       "Carbon monoxide alarm triggered — immediate response",
     ],
-    photo: "/kaden-team-with-chaz.jpg",
-    photoAlt: "Advanced Gas team on a Kaden install",
+    photo: "/gas-line.png",
+    photoAlt: "Natural gas meter and copper supply line at a residential property",
     primaryCta: { label: `Call ${site.phone} →`, href: `tel:${site.phoneE164}` },
   },
 ];
