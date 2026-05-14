@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { site } from "@/lib/site";
+import { Resend } from "resend";
 
 export const runtime = "nodejs";
 
@@ -19,22 +19,17 @@ export async function POST(req: Request) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  const key = process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL ?? `Advanced Gas Website <onboarding@resend.dev>`;
 
-  if (recipients.length > 0 && key) {
+  if (apiKey && recipients.length > 0) {
     try {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: `Advanced Gas Website <${site.email}>`,
-          to: recipients,
-          subject: "Newsletter signup",
-          text: `New newsletter signup: ${data.email}`,
-        }),
+      const resend = new Resend(apiKey);
+      await resend.emails.send({
+        from,
+        to: recipients,
+        subject: "Newsletter signup",
+        text: `New newsletter signup: ${data.email}`,
       });
     } catch (e) {
       console.error("Failed to email newsletter signup", e);

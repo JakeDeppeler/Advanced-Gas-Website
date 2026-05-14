@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -31,40 +32,30 @@ export async function POST(req: Request) {
     return new NextResponse("Missing required fields", { status: 400 });
   }
 
-  // LEAD_NOTIFICATION_EMAIL can be a comma-separated list — e.g.
+  // LEAD_NOTIFICATION_EMAIL is a comma-separated list — e.g.
   //   "admin@advancedgas.com.au, jake@advancedgas.com.au"
   // Resend accepts up to 50 recipients in a single send.
   const recipients = (process.env.LEAD_NOTIFICATION_EMAIL ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  const key = process.env.RESEND_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
+  // Default to Resend's sandbox sender until the user has verified
+  // advancedgas.com.au and switched RESEND_FROM_EMAIL to admin@advancedgas.com.au.
+  const from = process.env.RESEND_FROM_EMAIL ?? `Advanced Gas Website <onboarding@resend.dev>`;
 
-  // If Resend is configured, send the lead by email.
-  // Otherwise log to server console — Vercel logs are tail-able and you'll never lose a lead.
-  if (recipients.length > 0 && key) {
+  if (apiKey && recipients.length > 0) {
     try {
-      const body: Record<string, unknown> = {
-        from: `Advanced Gas Website <${site.email}>`,
+      const resend = new Resend(apiKey);
+      await resend.emails.send({
+        from,
         to: recipients,
         subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
+        replyTo: data.email || undefined,
         text: format(data),
-      };
-      if (data.photo?.base64) {
-        body.attachments = [
-          {
-            filename: data.photo.name || "photo.jpg",
-            content: data.photo.base64,
-          },
-        ];
-      }
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${key}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
+        attachments: data.photo?.base64
+          ? [{ filename: data.photo.name || "photo.jpg", content: data.photo.base64 }]
+          : undefined,
       });
     } catch (e) {
       console.error("Failed to email lead", e);
@@ -72,7 +63,11 @@ export async function POST(req: Request) {
   } else {
     console.log("NEW LEAD →\n" + format(data));
     if (data.photo?.base64) {
-      console.log(`  (photo attached: ${data.photo.name}, ${Math.round(data.photo.base64.length / 1024)} KB base64)`);
+      console.log(
+        `  (photo attached: ${data.photo.name}, ${Math.round(
+          data.photo.base64.length / 1024,
+        )} KB base64)`,
+      );
     }
   }
 
@@ -91,5 +86,7 @@ function format(d: Lead) {
     `Email:     ${d.email || "—"}`,
     "",
     `Notes:     ${d.notes || "—"}`,
+    "",
+    `— Sent from ${site.url}`,
   ].join("\n");
 }
