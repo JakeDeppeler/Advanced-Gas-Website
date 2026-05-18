@@ -54,11 +54,11 @@ export async function POST(req: Request) {
   const from = process.env.RESEND_FROM_EMAIL ?? `Advanced Gas Website <onboarding@resend.dev>`;
 
   if (apiKey && recipients.length > 0) {
-    try {
-      const resend = new Resend(apiKey);
+    const resend = new Resend(apiKey);
 
-      // 1) Internal notification — to Jake / admin / etc.
-      await resend.emails.send({
+    // 1) Internal notification — to Jake / admin / etc.
+    try {
+      const result = await resend.emails.send({
         from,
         to: recipients,
         subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
@@ -68,11 +68,21 @@ export async function POST(req: Request) {
           ? [{ filename: data.photo.name || "photo.jpg", content: data.photo.base64 }]
           : undefined,
       });
+      if (result.error) {
+        console.error("Resend rejected lead notification:", result.error);
+      }
+    } catch (e) {
+      console.error("Failed to send lead notification", e);
+    }
 
-      // 2) Auto-reply to the customer — only when they supplied an email.
-      if (data.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    // 2) Auto-reply to the customer — only when they supplied an email.
+    // Wrapped in its own try/catch so a rejected auto-reply (e.g. Resend
+    // sandbox refusing addresses other than the account owner) never takes
+    // down the internal lead notification above.
+    if (data.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      try {
         const firstName = data.name.split(" ")[0] || data.name;
-        await resend.emails.send({
+        const result = await resend.emails.send({
           from,
           to: [data.email],
           replyTo: recipients[0],
@@ -80,9 +90,12 @@ export async function POST(req: Request) {
           html: customerAutoReply(data, firstName),
           text: customerAutoReplyText(data, firstName),
         });
+        if (result.error) {
+          console.error("Resend rejected customer auto-reply:", result.error);
+        }
+      } catch (e) {
+        console.error("Failed to send customer auto-reply", e);
       }
-    } catch (e) {
-      console.error("Failed to email lead", e);
     }
   } else {
     console.log("NEW LEAD →\n" + formatInternal(data));
