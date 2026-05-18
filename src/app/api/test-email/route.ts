@@ -40,7 +40,13 @@ export async function GET() {
         <p>Quote form submissions and newsletter signups will arrive the same way.</p>
       `,
     });
-    return NextResponse.json({ ok: true, recipients, id: result.data?.id });
+    if (result.error) {
+      return NextResponse.json(
+        { ok: false, from, recipients, resendError: result.error },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ ok: true, from, recipients, id: result.data?.id });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: e instanceof Error ? e.message : String(e) },
