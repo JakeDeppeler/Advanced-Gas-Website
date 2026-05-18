@@ -9,9 +9,32 @@ const SERVICES = [
   { id: "gas-plumbing", t: "🔥 Gas / hot water", s: "Heating, hot water, leaks" },
 ];
 
-const TOTAL = 4;
-const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+const CURRENT_HOT_WATER = [
+  "Electric",
+  "Gas storage",
+  "Gas instantaneous",
+  "Solar (boosted)",
+  "Not sure",
+];
+const CURRENT_AIRCON = [
+  "None / first install",
+  "Split system",
+  "Ducted",
+  "Evaporative",
+  "Window / wall unit",
+];
 
+function currentSystemOptions(service: string) {
+  if (service === "heat-pump-installation") {
+    return { label: "Current hot water system", options: CURRENT_HOT_WATER };
+  }
+  if (service === "air-conditioning-installation") {
+    return { label: "Current aircon", options: CURRENT_AIRCON };
+  }
+  return null;
+}
+
+const TOTAL = 4;
 async function fileToBase64(file: File) {
   return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
     const reader = new FileReader();
@@ -34,6 +57,7 @@ export function HeroQuoteForm() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
+  const [currentSystem, setCurrentSystem] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [hp, setHp] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -47,15 +71,15 @@ export function HeroQuoteForm() {
         setError("Add your suburb or postcode so we know we cover you.");
         return;
       }
+      if (step === 3 && currentSystemOptions(service) && !currentSystem) {
+        setError("Please tell us what system you currently have.");
+        return;
+      }
       setStep((s) => s + 1);
       return;
     }
     if (!name.trim() || !phone.trim()) {
       setError("First name and mobile are required.");
-      return;
-    }
-    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
-      setError("Photo is over 4 MB — please pick a smaller image or send it later.");
       return;
     }
     setSubmitting(true);
@@ -70,6 +94,7 @@ export function HeroQuoteForm() {
           timing: "",
           suburb,
           postcode: "",
+          currentSystem,
           name,
           phone,
           email,
@@ -180,10 +205,25 @@ export function HeroQuoteForm() {
 
         <fieldset className={`qform__step ${step === 3 ? "is-active" : ""}`}>
           <legend className="qform__legend">
-            <span>Step 3 / 4</span> Anything else? <em style={{ color: "var(--ink-3)", fontStyle: "normal", fontFamily: "var(--f-body)", fontWeight: 500, fontSize: "12.5px", marginLeft: 6 }}>(optional)</em>
+            <span>Step 3 / 4</span> {currentSystemOptions(service) ? "Your current setup" : (<>Anything else? <em style={{ color: "var(--ink-3)", fontStyle: "normal", fontFamily: "var(--f-body)", fontWeight: 500, fontSize: "12.5px", marginLeft: 6 }}>(optional)</em></>)}
           </legend>
+          {(() => {
+            const cs = currentSystemOptions(service);
+            if (!cs) return null;
+            return (
+              <label className="qf-field">
+                <span>{cs.label}</span>
+                <select value={currentSystem} onChange={(e) => setCurrentSystem(e.target.value)}>
+                  <option value="">Select one…</option>
+                  {cs.options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </label>
+            );
+          })()}
           <label className="qf-field">
-            <span>Notes</span>
+            <span>Notes {currentSystemOptions(service) ? "(optional)" : ""}</span>
             <input
               type="text"
               placeholder="e.g. 4 bed house, replace ducted gas"

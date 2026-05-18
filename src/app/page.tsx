@@ -66,7 +66,7 @@ export default function HomePage() {
 
             <h1 className="hero__h1">
               Up to <span className="hero__h1-accent">$2,600 off</span> heat pumps,<br />
-              <span className="hero__h1-accent">$5,000 off</span> aircon — rebates done <em>for</em> you.
+              <span className="hero__h1-accent">$5,000 off</span> aircon. Rebates done <em>for</em> you.
             </h1>
 
             <p className="hero__sub">

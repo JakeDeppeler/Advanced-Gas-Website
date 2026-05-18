@@ -12,6 +12,7 @@ type Lead = {
   timing: string;
   suburb: string;
   postcode: string;
+  currentSystem?: string;
   name: string;
   phone: string;
   email: string;
@@ -103,6 +104,7 @@ function formatInternal(d: Lead) {
     `Property:  ${d.propertyType}`,
     `Timing:    ${d.timing}`,
     `Suburb:    ${d.suburb} ${d.postcode}`,
+    d.currentSystem ? `Current:   ${d.currentSystem}` : null,
     "",
     `Name:      ${d.name}`,
     `Phone:     ${d.phone}`,
@@ -111,7 +113,9 @@ function formatInternal(d: Lead) {
     `Notes:     ${d.notes || "—"}`,
     "",
     `— Sent from ${site.url}`,
-  ].join("\n");
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 }
 
 function serviceLabel(slug: string) {
@@ -130,6 +134,7 @@ function customerAutoReply(d: Lead, firstName: string) {
           <tr><td style="padding:6px 0;color:#5b6680;width:120px;">Service</td><td style="padding:6px 0;"><strong>${escapeHtml(serviceLabel(d.service))}</strong></td></tr>
           ${d.suburb ? `<tr><td style="padding:6px 0;color:#5b6680;">Suburb</td><td style="padding:6px 0;">${escapeHtml(d.suburb)} ${escapeHtml(d.postcode || "")}</td></tr>` : ""}
           ${d.propertyType ? `<tr><td style="padding:6px 0;color:#5b6680;">Property</td><td style="padding:6px 0;">${escapeHtml(d.propertyType)}</td></tr>` : ""}
+          ${d.currentSystem ? `<tr><td style="padding:6px 0;color:#5b6680;">Current</td><td style="padding:6px 0;">${escapeHtml(d.currentSystem)}</td></tr>` : ""}
           ${d.timing ? `<tr><td style="padding:6px 0;color:#5b6680;">Timing</td><td style="padding:6px 0;">${escapeHtml(d.timing)}</td></tr>` : ""}
           ${d.notes ? `<tr><td style="padding:6px 0;color:#5b6680;vertical-align:top;">Notes</td><td style="padding:6px 0;">${escapeHtml(d.notes)}</td></tr>` : ""}
           <tr><td style="padding:6px 0;color:#5b6680;">Phone</td><td style="padding:6px 0;">${escapeHtml(d.phone)}</td></tr>
@@ -152,6 +157,7 @@ function customerAutoReplyText(d: Lead, firstName: string) {
     `  Service:  ${serviceLabel(d.service)}`,
     d.suburb ? `  Suburb:   ${d.suburb} ${d.postcode || ""}` : "",
     d.propertyType ? `  Property: ${d.propertyType}` : "",
+    d.currentSystem ? `  Current:  ${d.currentSystem}` : "",
     d.timing ? `  Timing:   ${d.timing}` : "",
     d.notes ? `  Notes:    ${d.notes}` : "",
     `  Phone:    ${d.phone}`,
