@@ -4,13 +4,29 @@ import { useMemo, useState } from "react";
 import { site } from "@/lib/site";
 
 type Upgrade = "hp" | "ac";
-type Current = "gas" | "elec" | "aircon";
+type HpCurrent = "gas-storage" | "elec-storage" | "continuous" | "none";
+type AcCurrent = "ducted-gas" | "wall-furnace" | "old-aircon" | "no-aircon";
 type Prop = "own" | "rent";
 type Conc = "no" | "yes";
 
+const HP_OPTIONS: { value: HpCurrent; label: string }[] = [
+  { value: "gas-storage", label: "Gas storage hot water tank" },
+  { value: "elec-storage", label: "Electric storage hot water tank" },
+  { value: "continuous", label: "Continuous-flow gas (instantaneous)" },
+  { value: "none", label: "No working hot water / new build" },
+];
+
+const AC_OPTIONS: { value: AcCurrent; label: string }[] = [
+  { value: "ducted-gas", label: "Ducted gas heating" },
+  { value: "wall-furnace", label: "Wall furnace / space heater" },
+  { value: "old-aircon", label: "Old split / ducted aircon" },
+  { value: "no-aircon", label: "No heating or cooling" },
+];
+
 export function RebateCalculator() {
   const [upgrade, setUpgrade] = useState<Upgrade>("hp");
-  const [current, setCurrent] = useState<Current>("gas");
+  const [hpCurrent, setHpCurrent] = useState<HpCurrent>("gas-storage");
+  const [acCurrent, setAcCurrent] = useState<AcCurrent>("ducted-gas");
   const [prop, setProp] = useState<Prop>("own");
   const [conc, setConc] = useState<Conc>("no");
 
@@ -18,26 +34,29 @@ export function RebateCalculator() {
     let base: number;
     let msg: string;
     if (upgrade === "hp") {
-      base = current === "gas" ? 2400 : current === "elec" ? 2600 : 1200;
-      msg =
-        current === "gas"
-          ? "Replacing a gas storage tank — typical Pakenham heat pump rebate."
-          : current === "elec"
-            ? "Electric to heat pump = highest rebate band under VEU."
-            : "Heat pump install — rebate may be limited if existing system isn't eligible.";
+      const map: Record<HpCurrent, [number, string]> = {
+        "gas-storage": [2400, "Replacing a gas storage tank with a heat pump — typical Pakenham VEU rebate."],
+        "elec-storage": [2600, "Electric storage to heat pump = highest rebate band under VEU."],
+        "continuous": [1800, "Replacing continuous-flow gas with a heat pump — moderate rebate band."],
+        "none": [1200, "No existing eligible unit — rebate limited but STCs may still apply."],
+      };
+      [base, msg] = map[hpCurrent];
     } else {
-      base = current === "aircon" ? 4500 : current === "gas" ? 5000 : 2800;
-      msg =
-        current === "gas"
-          ? "Replacing inefficient gas heating with split/ducted — full $5k bracket applies."
-          : current === "aircon"
-            ? "Upgrading an older aircon — strong VEU rebate available."
-            : "Aircon-related VEU rebate — exact amount depends on house specs.";
+      const map: Record<AcCurrent, [number, string]> = {
+        "ducted-gas": [5000, "Replacing ducted gas heating with reverse-cycle — full VEU bracket applies."],
+        "wall-furnace": [3800, "Wall furnace to reverse-cycle split — strong rebate available."],
+        "old-aircon": [4500, "Upgrading an older aircon to high-efficiency reverse-cycle — strong rebate."],
+        "no-aircon": [2800, "New reverse-cycle install — rebate depends on certificate count for your home."],
+      };
+      [base, msg] = map[acCurrent];
     }
     if (prop === "rent") base = Math.round(base * 0.92);
     if (conc === "yes") base += upgrade === "hp" ? 200 : 400;
     return { amount: base, blurb: msg };
-  }, [upgrade, current, prop, conc]);
+  }, [upgrade, hpCurrent, acCurrent, prop, conc]);
+
+  const q2Title = upgrade === "hp" ? "Current hot water system?" : "Current heating / cooling?";
+  const q2Options = upgrade === "hp" ? HP_OPTIONS : AC_OPTIONS;
 
   return (
     <div className="rb-calc">
@@ -69,35 +88,26 @@ export function RebateCalculator() {
       </div>
 
       <div className="rb-calc__q">
-        <span className="rb-calc__qlabel">2. Current system?</span>
+        <span className="rb-calc__qlabel">2. {q2Title}</span>
         <div className="rb-calc__opts">
-          <label className="rb-calc__opt">
-            <input
-              type="radio"
-              name="current"
-              checked={current === "gas"}
-              onChange={() => setCurrent("gas")}
-            />
-            Gas storage hot water (or old gas heater)
-          </label>
-          <label className="rb-calc__opt">
-            <input
-              type="radio"
-              name="current"
-              checked={current === "elec"}
-              onChange={() => setCurrent("elec")}
-            />
-            Electric storage hot water
-          </label>
-          <label className="rb-calc__opt">
-            <input
-              type="radio"
-              name="current"
-              checked={current === "aircon"}
-              onChange={() => setCurrent("aircon")}
-            />
-            Old / no aircon
-          </label>
+          {q2Options.map((opt) => {
+            const checked =
+              upgrade === "hp" ? hpCurrent === opt.value : acCurrent === opt.value;
+            return (
+              <label key={opt.value} className="rb-calc__opt">
+                <input
+                  type="radio"
+                  name="current"
+                  checked={checked}
+                  onChange={() => {
+                    if (upgrade === "hp") setHpCurrent(opt.value as HpCurrent);
+                    else setAcCurrent(opt.value as AcCurrent);
+                  }}
+                />
+                {opt.label}
+              </label>
+            );
+          })}
         </div>
       </div>
 

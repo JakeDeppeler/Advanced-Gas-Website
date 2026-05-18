@@ -53,7 +53,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </h1>
           <p className="dp-hero__sub">
             Licensed plumbing and refrigeration team serving {sub.name} ({sub.postcode}) and surrounding areas.
-            Same-week installs, fixed pricing, and VEU rebates that drop heat pump hot water installs to as little as $33.
+            Same-week installs, fixed pricing, and VEU rebates that drop heat pump hot water installs to around $1,780 after rebate.
           </p>
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my {sub.name} quote →</Link>

@@ -28,7 +28,7 @@ export function generateMetadata({
   const title = `${svc.short} ${sub.name} | Fixed-Price Quote | Advanced Gas & Aircon`;
   const description =
     svc.slug === "heat-pump-installation"
-      ? `Heat pump hot water installation in ${sub.name} from $33 with VEU rebate. Licensed plumbers, same-week install, 6-year warranty.`
+      ? `Heat pump hot water installation in ${sub.name} from around $1,780 after VEU rebate. Licensed plumbers, same-week install, 6-year warranty.`
       : `${svc.short} in ${sub.name} ${sub.postcode}. Licensed refrigeration techs, fixed quotes, same-week installs, 6-year workmanship warranty.`;
 
   return {
@@ -51,7 +51,7 @@ export default function SuburbServicePage({
   const localFaqs = [
     {
       q: `Do you service ${sub.name} ${sub.postcode}?`,
-      a: `Yes — we service ${sub.name} and surrounding areas as part of our Pakenham + 50 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
+      a: `Yes — we service ${sub.name} and surrounding areas as part of our Pakenham + 75 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
     },
     ...content.faqs.slice(0, 4),
   ];
@@ -83,7 +83,7 @@ export default function SuburbServicePage({
           </h1>
           <p className="dp-hero__sub">
             {svc.slug === "heat-pump-installation"
-              ? `Cut your hot water bill by up to 75% with a heat pump installed in your ${sub.name} home from as little as $33 after VEU rebates. Licensed plumbers, paperwork handled, 6-year workmanship warranty.`
+              ? `Cut your hot water bill by up to 75% with a heat pump installed in your ${sub.name} home from around $1,780 after VEU rebates. Licensed plumbers, paperwork handled, 6-year workmanship warranty.`
               : `Licensed refrigeration technicians installing split system, multi-head and ducted air conditioning in ${sub.name}. Fixed-price quotes, same-week installs, 6-year warranty.`}
           </p>
           <div className="dp-hero__ctas">
@@ -142,7 +142,7 @@ export default function SuburbServicePage({
           </div>
           <div className="dp-faq__right">
             {localFaqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name={`area-faq-${sub.slug}-${svc.slug}`} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

@@ -28,7 +28,7 @@ const faqs = [
   },
   {
     q: "What brands do you install — and why those?",
-    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Braemar. We've installed enough of each to know which model suits which house — we'll recommend, not upsell.",
+    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Kaden. We've installed enough of each to know which model suits which house — we'll recommend, not upsell.",
   },
   {
     q: "Do you do emergencies on weekends?",
@@ -41,11 +41,14 @@ const faqs = [
 ];
 
 const SUBURBS = [
-  "Pakenham","Pakenham Upper","Officer","Beaconsfield","Berwick","Narre Warren",
-  "Cranbourne","Cranbourne East","Clyde","Clyde North","Hampton Park","Hallam",
-  "Endeavour Hills","Doveton","Dandenong","Keysborough","Lynbrook","Lyndhurst",
-  "Bunyip","Garfield","Nar Nar Goon","Tynong","Drouin","Warragul",
-  "Cockatoo","Emerald","Gembrook","Tooradin",
+  "Pakenham","Officer","Beaconsfield","Berwick","Narre Warren","Cranbourne",
+  "Clyde North","Hampton Park","Hallam","Endeavour Hills","Dandenong","Keysborough",
+  "Bunyip","Garfield","Nar Nar Goon","Emerald","Gembrook","Cockatoo",
+  "Drouin","Warragul","Trafalgar","Moe",
+  "Frankston","Carrum Downs","Seaford","Mt Eliza","Mornington",
+  "Mentone","Mordialloc","Cheltenham","Sandringham","Brighton","Bentleigh",
+  "Glen Waverley","Mt Waverley","Box Hill","Doncaster","Doncaster East",
+  "Ringwood","Croydon","Lilydale","Mt Evelyn","Monbulk","Belgrave",
 ];
 
 export default function HomePage() {
@@ -67,7 +70,7 @@ export default function HomePage() {
             </h1>
 
             <p className="hero__sub">
-              Family-run, Reece-partnered tradies covering Pakenham, Berwick, Cranbourne, Officer and everywhere within 50&nbsp;km. We&apos;re VEU accredited — you get the rebate at quote, no chase, no paperwork.
+              Family-run, Reece-partnered tradies covering Pakenham, Berwick, Cranbourne, Officer and everywhere within 75&nbsp;km. We&apos;re VEU accredited — you get the rebate at quote, no chase, no paperwork.
             </p>
 
             <ul className="hero__bullets">
@@ -93,13 +96,13 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="trust-divider" />
-              <div className="trust-stat"><strong>1,200+</strong><span>installs done</span></div>
+              <div className="trust-stat"><strong>8-strong</strong><span>family crew</span></div>
               <div className="trust-divider" />
               <div className="trust-stat"><strong>12 yrs</strong><span>local trading</span></div>
             </div>
 
             <p className="hero__finep">
-              *Indicative example: 270L heat pump installed for an eligible VEU household after rebate application. Final price subject to site assessment.
+              *Rebate amounts subject to eligibility, certificate prices and site assessment. We confirm your exact figure in writing before any work starts.
             </p>
           </div>
 
@@ -171,7 +174,7 @@ export default function HomePage() {
             <ul className="veu__check">
               <li>Eligibility check &amp; rebate paperwork done by us</li>
               <li>Old gas / electric tank removed &amp; disposed</li>
-              <li>10-year tank warranty, 6-year workmanship on labour</li>
+              <li>5–10 year tank warranty (brand dependent), 6-year workmanship</li>
               <li>Same-week install slots most weeks</li>
             </ul>
 
@@ -217,21 +220,17 @@ export default function HomePage() {
 
           <div className="bento">
             <Link href="/services#heatpump" className="bcard bcard--xl bcard--feature">
-              <div className="bcard__photo bcard__photo--heatpump">
-                <span className="ph-tag">photo: Reclaim heat pump install · Officer</span>
-              </div>
+              <div className="bcard__photo bcard__photo--heatpump" aria-label="Thermann heat pump install" />
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
-                <p>Reclaim, iStore, Thermann. VEU rebate handled. Most homes installed for under $500 out of pocket.</p>
+                <p>Reclaim, iStore, Thermann. VEU rebate handled — most homes installed for around $1,780–$3,500 after rebate.</p>
                 <span className="bcard__cta">See heat pump options →</span>
               </div>
             </Link>
 
             <Link href="/services#split" className="bcard">
-              <div className="bcard__photo bcard__photo--split">
-                <span className="ph-tag">photo: Mitsubishi split install · Berwick</span>
-              </div>
+              <div className="bcard__photo bcard__photo--split" aria-label="Kaden split-system indoor unit" />
               <div className="bcard__body">
                 <span className="bcard__num">02</span>
                 <h3>Split systems</h3>
@@ -240,9 +239,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#ducted" className="bcard">
-              <div className="bcard__photo bcard__photo--ducted">
-                <span className="ph-tag">photo: ducted vent · Pakenham</span>
-              </div>
+              <div className="bcard__photo bcard__photo--ducted" aria-label="Ducted aircon duct-work install" />
               <div className="bcard__body">
                 <span className="bcard__num">03</span>
                 <h3>Ducted aircon</h3>
@@ -254,16 +251,16 @@ export default function HomePage() {
               <div className="bcard__body bcard__body--bare">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
-                <p>Install, replace, service. Brivis, Braemar, Rinnai. Carbon monoxide tested.</p>
+                <p>Install, replace, service. Brivis, Kaden, Rinnai. Carbon monoxide tested.</p>
               </div>
             </Link>
 
             <Link href="/services#service" className="bcard bcard--accent">
               <div className="bcard__body bcard__body--bare">
                 <span className="bcard__num">05</span>
-                <h3>Service &amp; safety check</h3>
-                <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
-                <span className="bcard__pill">$169 flat</span>
+                <h3>Evap cooler service</h3>
+                <p>Pre-summer evap tune — pads, pump, float, distribution and ductwork checked.</p>
+                <span className="bcard__pill">$300 / $270 members</span>
               </div>
             </Link>
 
@@ -356,7 +353,7 @@ export default function HomePage() {
             </div>
             <div className="reviews__badge">
               <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google · 280+ reviews</div>
+              <div><strong>4.9 / 5</strong> on Google</div>
             </div>
           </div>
 
@@ -384,8 +381,8 @@ export default function HomePage() {
         <div className="wrap area__grid">
           <div className="area__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>Based in Pakenham. On-site within 50 km.</h2>
-            <p>If you&apos;re south-east of Melbourne and your suburb&apos;s on this list, we cover you with no travel surcharge.</p>
+            <h2>Based in Pakenham. On-site within 75 km.</h2>
+            <p>Pakenham&apos;s home base — we cover the SE Melbourne corridor, Mornington Peninsula, bayside out to Brighton, east through Box Hill and Doncaster East, up to Lilydale and Monbulk, and the Warragul–Moe stretch with no travel surcharge.</p>
             <div className="suburbs">
               {SUBURBS.map((s) => (
                 <span key={s}>{s}</span>
@@ -395,7 +392,7 @@ export default function HomePage() {
           </div>
           <div className="area__right">
             <div className="map">
-              <span className="ph-tag ph-tag--dark">map placeholder · 50km radius around Pakenham 3810</span>
+              <span className="ph-tag ph-tag--dark">map placeholder · 75km radius around Pakenham 3810</span>
               <svg className="map__svg" viewBox="0 0 400 400" aria-hidden="true">
                 <defs>
                   <pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -428,7 +425,7 @@ export default function HomePage() {
           </div>
           <div className="faq__right">
             {faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="home-faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

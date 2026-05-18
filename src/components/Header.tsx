@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { site } from "@/lib/site";
-import { LogoMark } from "./Logo";
 
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
-  { href: "/rebates", label: "VEU Rebates", rebate: true },
+  { href: "/rebates", label: "Rebates", rebate: true },
+  { href: "/membership", label: "Membership" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
@@ -28,17 +28,12 @@ export function Header() {
     <header className="hdr">
       <div className="wrap hdr__row">
         <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <LogoMark className="h-12 w-12" />
-            <span style={{ lineHeight: 0.95 }}>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 800, fontSize: 20, letterSpacing: "-0.01em", color: "var(--navy)" }}>
-                Advanced
-              </span>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 600, fontSize: 13, color: "var(--sky)" }}>
-                Gas &amp; Aircon
-              </span>
-            </span>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logo-full.jpg"
+            alt={site.name}
+            style={{ height: 56, width: "auto", display: "block" }}
+          />
         </Link>
 
         <nav className="hdr__nav" aria-label="Primary">
@@ -76,7 +71,7 @@ export function Header() {
           aria-label="Toggle menu"
           aria-expanded={open}
           style={{
-            display: "none",
+            alignItems: "center",
             background: "transparent",
             border: "1px solid var(--line)",
             borderRadius: 10,

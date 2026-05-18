@@ -47,7 +47,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </nav>
           <div className="dp-hero__eyebrow">
             <span className="ds-dot" />
-            {svc.short} · Pakenham &amp; within 50 km
+            {svc.short} · Pakenham &amp; within 75 km
           </div>
           <h1>{content.h1}</h1>
           <p className="dp-hero__sub">{content.intro}</p>
@@ -153,7 +153,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </div>
           <div className="dp-faq__right">
             {content.faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name={`service-faq-${svc.slug}`} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

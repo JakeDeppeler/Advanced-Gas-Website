@@ -57,14 +57,16 @@ const products = [
     brand: "Reclaim · CO₂",
     name: "Reclaim 270L heat pump",
     bullets: [
+      "🇦🇺 Proudly Australian made",
       "Natural CO₂ refrigerant (R744)",
       "10-year tank warranty",
       "Quietest in class — 37 dB",
       "Best for: 3–5 person households",
     ],
-    rebate: "up to $2,600",
+    rebate: "up to $2,600*",
     pill: "flagship",
-    photoTag: "photo: Reclaim CO₂ heat pump · 270L",
+    photo: "/reclaim-product.png",
+    photoAlt: "Reclaim Energy heat pump hot water unit",
   },
   {
     brand: "iStore",
@@ -75,22 +77,24 @@ const products = [
       "6-year tank warranty",
       "Best for: solar-paired households",
     ],
-    rebate: "up to $2,400",
+    rebate: "up to $2,200*",
     pill: "mid-range",
-    photoTag: "photo: iStore heat pump · 270L",
+    photo: "/istore-product.png",
+    photoAlt: "iStore 270L heat pump hot water unit",
   },
   {
     brand: "Thermann",
     name: "Thermann 270L heat pump",
     bullets: [
-      "Budget-friendly entry point",
+      "🇦🇺 Proudly Australian made",
       "Stainless steel tank",
       "5-year tank warranty",
       "Best for: smaller homes / rentals",
     ],
-    rebate: "up to $2,200",
-    pill: "value",
-    photoTag: "photo: Thermann heat pump · 270L",
+    rebate: "up to $2,600*",
+    pill: "Aussie value",
+    photo: "/thermann-product.jpg",
+    photoAlt: "Thermann 270L heat pump hot water unit",
   },
   {
     brand: "Mitsubishi Electric",
@@ -103,7 +107,8 @@ const products = [
     ],
     rebate: "up to $1,800",
     pill: "flagship",
-    photoTag: "photo: Mitsubishi Electric split system",
+    photo: "/reclaim-and-mitsubishi.jpg",
+    photoAlt: "Mitsubishi split system",
   },
   {
     brand: "Kaden",
@@ -116,7 +121,8 @@ const products = [
     ],
     rebate: "up to $1,500",
     pill: "value",
-    photoTag: "photo: Kaden split system install",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split system indoor head",
   },
   {
     brand: "Mitsubishi / Kaden",
@@ -129,7 +135,8 @@ const products = [
     ],
     rebate: "up to $5,000",
     pill: "whole home",
-    photoTag: "photo: ducted aircon install",
+    photo: "/ducted-condenser.jpg",
+    photoAlt: "Ducted aircon condenser",
   },
 ];
 
@@ -262,18 +269,21 @@ export default function RebatesPage() {
             <span className="eyebrow"><span className="eyebrow-dot" /> Eligible products</span>
             <h2>Heat pumps &amp; aircon we install under the VEU program.</h2>
             <p>
-              Each of these is VEU-listed, in stock through our Reece partnership, and proven in
-              1,200+ Pakenham-area installs. Pricing shown is the indicative VEU rebate range — your
-              actual figure depends on your old unit and home.
+              Each of these is VEU-listed, in stock through our Reece partnership, and proven across
+              Pakenham-area homes by our family-run install crew. Pricing shown is the indicative
+              VEU rebate range — your actual figure depends on your old unit and home.
             </p>
           </div>
 
           <div className="rb-prodgrid">
             {products.map((p) => (
               <article key={p.name} className="rb-prod">
-                <div className="rb-prod__photo">
-                  <span className="ph-tag">{p.photoTag}</span>
-                </div>
+                <div
+                  className="rb-prod__photo"
+                  role="img"
+                  aria-label={p.photoAlt}
+                  style={{ backgroundImage: `url(${p.photo})` }}
+                />
                 <div className="rb-prod__body">
                   <span className="rb-prod__brand">{p.brand}</span>
                   <h3>{p.name}</h3>
@@ -293,6 +303,9 @@ export default function RebatesPage() {
               </article>
             ))}
           </div>
+          <p className="rb-prods__finep">
+            * Rebate amounts vary based on VEU certificate market price at the time of install. We lock the rebate value into your written quote so the price you see is the price you pay — any market movement after sign-off is on us, not you.
+          </p>
         </div>
       </section>
 
@@ -306,7 +319,7 @@ export default function RebatesPage() {
           </div>
           <div className="rb-faq__right">
             {faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="rebates-faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

@@ -6,7 +6,7 @@ import "./services-hub.css";
 export const metadata: Metadata = {
   title: "Services — Heat Pumps, Aircon, Gas & Hot Water",
   description:
-    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 50 km. Free quote.",
+    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 75 km. Free quote.",
   alternates: { canonical: "/services" },
 };
 
@@ -20,7 +20,8 @@ type Service = {
   specs: [string, string][];
   bullets: string[];
   brands?: string[];
-  photoTag: string;
+  photo: string;
+  photoAlt: string;
   primaryCta: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 };
@@ -33,7 +34,7 @@ const services: Service[] = [
     eyebrowOrange: true,
     h2: "Save up to 73% on hot water bills with the VEU rebate applied.",
     lede: "Replace your gas or electric storage tank with a high-efficiency heat pump — we handle the VEU paperwork so the rebate is already on your quote.",
-    specs: [["VEU Rebate", "up to $2,600"], ["Install time", "1 day"], ["Tank warranty", "5–10 yrs"], ["Workmanship", "6 yrs"]],
+    specs: [["VEU Rebate", "up to $2,600"], ["Install time", "2–3 hrs"], ["Tank warranty", "5–10 yrs"], ["Workmanship", "6 yrs"]],
     bullets: [
       "Old gas / electric unit removed & disposed responsibly",
       "Eligibility, certificates and STCs handled by us",
@@ -41,7 +42,8 @@ const services: Service[] = [
       "Compliance certificate emailed within 24 hours",
     ],
     brands: ["Reclaim", "iStore", "Thermann"],
-    photoTag: "photo: Reclaim CO₂ heat pump · Officer install",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Thermann heat pump installed on a residential exterior wall",
     primaryCta: { label: "Get heat pump quote →", href: "/quote" },
     secondaryCta: { label: "Check rebate first", href: "/rebates" },
   },
@@ -51,7 +53,7 @@ const services: Service[] = [
     eyebrow: "02 · Split system aircon",
     h2: "Whisper-quiet cooling in a single room — installed clean.",
     lede: "From bedrooms to granny flats, we size and install single-head split systems with neat, hidden pipework and tidy condensate drains.",
-    specs: [["Sizes", "2.5 – 9 kW"], ["Install time", "½ day"], ["Warranty", "5 yrs"], ["Refrigerant", "R32 inverter"]],
+    specs: [["Sizes", "2.5 – 9 kW"], ["Install time", "~4 hrs"], ["Warranty", "5 yrs"], ["Refrigerant", "R32 inverter"]],
     bullets: [
       "Mitsubishi Electric or Kaden — supplied & installed",
       "Indoor unit positioning checked for airflow",
@@ -59,7 +61,8 @@ const services: Service[] = [
       "Full ARC refrigeration licence — no dodgy shortcuts",
     ],
     brands: ["Mitsubishi Electric", "Kaden"],
-    photoTag: "photo: Mitsubishi MSZ-AP · Berwick bedroom",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split-system indoor head freshly mounted on a wall",
     primaryCta: { label: "Get split quote →", href: "/quote" },
     secondaryCta: { label: "Or chat to us", href: "tel:+61359478000" },
   },
@@ -78,58 +81,63 @@ const services: Service[] = [
       "5–7 year warranty depending on system",
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Daikin"],
-    photoTag: "photo: ducted vent install · Pakenham new build",
+    photo: "/duct-work.jpg",
+    photoAlt: "Ducted aircon flex-duct run inside a roof cavity",
     primaryCta: { label: "Book a roof survey →", href: "/quote" },
   },
   {
     id: "gas-heating",
     num: "04",
     eyebrow: "04 · Gas & ducted gas heating",
-    h2: "Install, replace, service — Brivis, Braemar, Rinnai.",
+    h2: "Install, replace, service — Brivis, Kaden, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
-    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service flat", "$169"], ["CO test", "included"]],
+    specs: [["Type", "Ducted / wall"], ["Install time", "~4 hrs"], ["Service", "$280 / $250 members"], ["CO test", "included"]],
     bullets: [
       "Licensed gas fitter on every job",
       "Carbon monoxide testing on every service",
       "Flue inspection, return-air checks, thermostat tune",
       "Compliance certificate within 24 hours",
     ],
-    brands: ["Brivis", "Braemar", "Rinnai"],
-    photoTag: "photo: Brivis ducted heater swap · Cranbourne",
+    brands: ["Brivis", "Kaden", "Rinnai"],
+    photo: "/gas-ducted-install.jpg",
+    photoAlt: "Gas ducted heater install in progress",
     primaryCta: { label: "Quote my heating →", href: "/quote" },
   },
   {
     id: "service",
     num: "05",
-    eyebrow: "05 · Service & safety",
+    eyebrow: "05 · Evap cooler service",
     eyebrowOrange: true,
-    h2: "Annual gas appliance servicing + CO testing — $169 flat.",
-    lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
-    specs: [["Flat rate", "$169"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
+    h2: "Evaporative cooler service & pre-summer tune — all brands.",
+    lede: "Get your evap running clean before the first 35-degree day. Pads cleaned or replaced, water-distribution checked, pump and float tested, ductwork inspected. Flat $300 + GST — or $270 + GST for members.",
+    specs: [["Standard", "$300 + GST"], ["Members", "$270 + GST"], ["Time on site", "~60 min"], ["Best every", "12 months"]],
     bullets: [
-      "Visual inspection & safety check",
-      "Burner clean, flue check, gas pressure test",
-      "Carbon monoxide (CO) atmospheric test",
-      "Written report with photos for insurance / rental",
+      "Pad inspection — clean or replace as required",
+      "Water-distribution and bleed-off check",
+      "Pump, float and solenoid test under load",
+      "Ductwork and roof-deck visual inspection",
+      "Written service report for insurance / rental records",
     ],
-    photoTag: "photo: CO meter on ducted heater",
+    photo: "/evap-cooler-service.jpg",
+    photoAlt: "Service technician working on a rooftop evaporative cooler",
     primaryCta: { label: "Book a service →", href: "/quote" },
   },
   {
     id: "hotwater",
     num: "06",
     eyebrow: "06 · Hot water — gas & electric",
-    h2: "Same-day swaps on most common units.",
-    lede: "Burst tank? Continuous flow on the blink? We carry the common Rinnai, Thermann and Rheem units on the truck for most call-outs.",
-    specs: [["Tank sizes", "25L – 400L"], ["Continuous", "16 – 32 L/min"], ["Call-out", "same day"], ["Warranty", "5–12 yrs"]],
+    h2: "Same-day swaps on the sizes we carry on the truck.",
+    lede: "Burst tank? Continuous flow on the blink? Most calls are sorted same-day — gas storage 135L and 175L, heat pump 200L / 285L / 300L, plus continuous flow from 16L to 32L per minute.",
+    specs: [["Gas storage", "135L / 175L"], ["Heat pump", "200 / 285 / 300L"], ["Continuous flow", "16 – 32 L/min"], ["Call-out", "same day"]],
     bullets: [
-      "Storage gas, instantaneous gas, electric storage",
-      "Heat pump alternative quoted alongside if eligible",
+      "Storage gas, continuous flow gas, electric storage and heat pump",
+      "Heat pump alternative quoted alongside if VEU eligible",
       "Old unit removed and disposed",
-      "Plumbing compliance cert included",
+      "Plumbing compliance certificate included",
     ],
     brands: ["Rinnai", "Thermann", "Rheem"],
-    photoTag: "photo: Rinnai continuous flow · Beaconsfield",
+    photo: "/thermann-continuous-flow-close.jpg",
+    photoAlt: "Thermann continuous-flow gas hot water unit close-up",
     primaryCta: { label: "Call for same-day →", href: `tel:${site.phoneE164}` },
   },
   {
@@ -146,7 +154,8 @@ const services: Service[] = [
       "Single line of accountability through the trade",
       "Annual service contracts available post-handover",
     ],
-    photoTag: "photo: cafe ducted install · Officer",
+    photo: "/commercial.png",
+    photoAlt: "Crane lifting a commercial rooftop AC unit during a fit-out",
     primaryCta: { label: "Get a tender →", href: "/contact" },
   },
   {
@@ -155,13 +164,14 @@ const services: Service[] = [
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only — sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours fee", "$220 flat"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 2 hrs"], ["Make-safe call-out", "$500 + GST"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house — priority",
       "Carbon monoxide alarm triggered — immediate response",
     ],
-    photoTag: "photo: van on call-out",
+    photo: "/gas-line.png",
+    photoAlt: "Natural gas meter and copper supply line at a residential property",
     primaryCta: { label: `Call ${site.phone} →`, href: `tel:${site.phoneE164}` },
   },
 ];
@@ -229,9 +239,12 @@ export default function ServicesHubPage() {
               </div>
             </div>
             <div className="sv__media">
-              <div className="sv__photo">
-                <span className="ph-tag">{s.photoTag}</span>
-              </div>
+              <div
+                className="sv__photo"
+                role="img"
+                aria-label={s.photoAlt}
+                style={{ backgroundImage: `url(${s.photo})` }}
+              />
             </div>
           </div>
         </section>

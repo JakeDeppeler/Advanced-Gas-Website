@@ -41,7 +41,7 @@
 /* ============== UTILITY BAR ============== */
 .utilbar {
   background: var(--navy);
-  color: rgba(255,255,255,0.85);
+  color: #fff;
   font-size: 13px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -52,10 +52,10 @@
 .utilbar__left, .utilbar__right { display: flex; align-items: center; gap: 18px; }
 .util-pill { display: inline-flex; align-items: center; gap: 6px; }
 .util-pill svg { color: var(--sky); }
-.util-pill--quiet { color: rgba(255,255,255,0.55); font-size: 12.5px; }
+.util-pill--quiet { color: #fff; font-size: 12.5px; }
 .util-link {
   display: inline-flex; align-items: center; gap: 6px;
-  text-decoration: none; color: rgba(255,255,255,0.85);
+  text-decoration: none; color: #fff;
 }
 .util-dot { width: 8px; height: 8px; border-radius: 50%; display:inline-block; }
 .util-dot--red {
@@ -153,7 +153,7 @@
 }
 .ds-btn--ghost:hover { background: var(--navy); color: #fff; }
 .ds-btn--ghost-on-dark {
-  background: transparent; color: #fff; border-color: rgba(255,255,255,0.4);
+  background: transparent; color: #fff; border-color: #fff;
 }
 .ds-btn--ghost-on-dark:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
@@ -167,7 +167,7 @@
   color: var(--navy);
   font-weight: 500;
 }
-.ds-eyebrow--on-dark { color: rgba(255,255,255,0.85); }
+.ds-eyebrow--on-dark { color: #fff; }
 .ds-dot {
   width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
   box-shadow: 0 0 0 4px rgba(0,176,237,0.18);
@@ -236,19 +236,19 @@
   color: #fff;
   text-wrap: balance;
 }
-.bigcta p { margin: 0; color: rgba(255,255,255,0.85); font-size: 17px; }
+.bigcta p { margin: 0; color: #fff; font-size: 17px; }
 .bigcta__btns { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .bigcta__btns .ds-btn--orange {
   background: var(--navy); color: #fff; box-shadow: 0 4px 0 #000;
 }
 .bigcta__btns .ds-btn--orange:hover { background: var(--navy-2); }
-.bigcta__phone { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 15px; }
+.bigcta__phone { color: #fff; text-decoration: none; font-size: 15px; }
 .bigcta__phone strong { font-family: var(--f-display); }
 
 /* ============== FOOTER ============== */
 .ftr {
   background: var(--navy);
-  color: rgba(255,255,255,0.78);
+  color: #fff;
   padding: 80px 0 30px;
 }
 .ftr__grid {
@@ -257,11 +257,11 @@
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 .ftr__logo { height: 56px; background: #fff; padding: 8px 14px; border-radius: 10px; display: inline-block; width: auto; max-width: 240px; }
-.ftr__tag { margin: 18px 0 24px; font-size: 14.5px; color: rgba(255,255,255,0.75); max-width: 340px; }
-.ftr__nap { margin: 0 0 16px; font-size: 14.5px; line-height: 1.7; color: rgba(255,255,255,0.85); }
+.ftr__tag { margin: 18px 0 24px; font-size: 14.5px; color: #fff; max-width: 340px; }
+.ftr__nap { margin: 0 0 16px; font-size: 14.5px; line-height: 1.7; color: #fff; }
 .ftr__nap a { color: var(--sky-2); text-decoration: none; }
-.ftr__hours { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; }
-.ftr__hours strong { color: rgba(255,255,255,0.9); }
+.ftr__hours { font-size: 13px; color: #fff; margin: 0; }
+.ftr__hours strong { color: #fff; }
 
 .ftr__col h4 {
   font-family: var(--f-display);
@@ -274,15 +274,15 @@
 }
 .ftr__col ul { list-style: none; padding: 0; margin: 0; }
 .ftr__col li { margin-bottom: 8px; }
-.ftr__col a { color: rgba(255,255,255,0.78); text-decoration: none; font-size: 14.5px; }
+.ftr__col a { color: #fff; text-decoration: none; font-size: 14.5px; }
 .ftr__col a:hover { color: var(--sky-2); }
 
-.ftr__suburbs { font-size: 13.5px; line-height: 1.7; color: rgba(255,255,255,0.65); margin: 0; }
+.ftr__suburbs { font-size: 13.5px; line-height: 1.7; color: #fff; margin: 0; }
 
 .ftr__bottom {
   margin-top: 24px;
   display: flex; justify-content: space-between; align-items: center;
-  font-size: 12.5px; color: rgba(255,255,255,0.55);
+  font-size: 12.5px; color: #fff;
   flex-wrap: wrap; gap: 18px;
 }
 .ftr__partners { display: flex; gap: 12px; flex-wrap: wrap; }
@@ -295,7 +295,7 @@
   border: 1px solid rgba(255,255,255,0.12);
   padding: 5px 10px;
   border-radius: 6px;
-  color: rgba(255,255,255,0.8);
+  color: #fff;
 }
 
 /* ============== SHARED QUOTE FORM (used on /quote, suburb, service pages) ============== */
@@ -352,7 +352,7 @@
   background: var(--navy);
   color: #fff;
 }
-.qf-opt:has(input:checked) .qf-opt__s { color: rgba(255,255,255,0.65); }
+.qf-opt:has(input:checked) .qf-opt__s { color: #fff; }
 .qf-opt__t { font-weight: 700; font-size: 14px; }
 .qf-opt__s { font-size: 12px; color: var(--ink-3); }
 .qf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

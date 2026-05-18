@@ -3,35 +3,64 @@
 import { useState } from "react";
 
 const SERVICES = [
-  { id: "hp", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
-  { id: "split", t: "❄ Split system aircon", s: "Mitsubishi · Kaden" },
-  { id: "ducted", t: "🌬 Ducted aircon", s: "Whole-home cooling" },
-  { id: "service", t: "⚙ Service / repair", s: "Gas, hot water, aircon" },
+  { id: "heat-pump-installation", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
+  { id: "air-conditioning-installation", t: "❄ Split / ducted aircon", s: "Mitsubishi · Kaden" },
+  { id: "aircon-servicing-repairs", t: "⚙ Service / repair", s: "All major brands" },
+  { id: "gas-plumbing", t: "🔥 Gas / hot water", s: "Heating, hot water, leaks" },
 ];
 
 const TOTAL = 4;
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+
+async function fileToBase64(file: File) {
+  return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve({ name: file.name, type: file.type, base64: result.split(",")[1] ?? "" });
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 export function HeroQuoteForm() {
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
-  const [service, setService] = useState("hp");
+  const [service, setService] = useState("heat-pump-installation");
   const [suburb, setSuburb] = useState("");
   const [propType, setPropType] = useState("House — owner occupied");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [notes, setNotes] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [hp, setHp] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     if (step < TOTAL) {
+      if (step === 2 && !suburb.trim()) {
+        setError("Add your suburb or postcode so we know we cover you.");
+        return;
+      }
       setStep((s) => s + 1);
       return;
     }
-    if (!name || !phone) return;
+    if (!name.trim() || !phone.trim()) {
+      setError("First name and mobile are required.");
+      return;
+    }
+    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
+      setError("Photo is over 4 MB — please pick a smaller image or send it later.");
+      return;
+    }
     setSubmitting(true);
     try {
+      const photo = photoFile ? await fileToBase64(photoFile) : null;
       await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +73,8 @@ export function HeroQuoteForm() {
           name,
           phone,
           email,
-          notes: "",
+          notes,
+          photo,
           hp,
         }),
       });
@@ -157,8 +187,8 @@ export function HeroQuoteForm() {
             <input
               type="text"
               placeholder="e.g. 4 bed house, replace ducted gas"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
             />
           </label>
           <p className="qform__finep">
@@ -201,7 +231,24 @@ export function HeroQuoteForm() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
+          <label className="qf-field">
+            <span>Photo of the existing unit (optional)</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+            />
+            {photoFile && (
+              <span style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}>
+                {photoFile.name} ({(photoFile.size / 1024 / 1024).toFixed(1)} MB)
+              </span>
+            )}
+          </label>
         </fieldset>
+
+        {error && (
+          <div className="qf-error" role="alert" style={{ marginTop: 12 }}>{error}</div>
+        )}
 
         <div className="qform__foot">
           <div className="qform__dots" aria-hidden="true">

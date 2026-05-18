@@ -1,21 +1,18 @@
 import Link from "next/link";
-import { site } from "@/lib/site";
-import { LogoMark } from "./Logo";
+import { site, suburbs } from "@/lib/site";
 
 export function Footer() {
   return (
     <footer className="ftr">
       <div className="wrap ftr__grid">
         <div className="ftr__brand">
-          <div
-            className="ftr__logo"
-            style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "#fff" }}
-          >
-            <LogoMark className="h-10 w-10" />
-            <span style={{ lineHeight: 0.95 }}>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 800, fontSize: 16, color: "var(--navy)" }}>Advanced</span>
-              <span style={{ display: "block", fontFamily: "var(--f-display)", fontWeight: 600, fontSize: 11, color: "var(--sky)" }}>Gas &amp; Aircon</span>
-            </span>
+          <div className="ftr__logo">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-full.jpg"
+              alt={site.name}
+              style={{ height: 48, width: "auto", display: "block" }}
+            />
           </div>
           <p className="ftr__tag">
             Family-run gas, hot water &amp; aircon specialists.
@@ -30,7 +27,7 @@ export function Footer() {
             <a href={`mailto:${site.email}`}>{site.email}</a>
           </p>
           <p className="ftr__hours">
-            <strong>Hours.</strong> Mon–Fri 7am–6pm · Sat 8am–2pm · 24/7 emergency
+            <strong>Hours.</strong> Mon–Fri 7am–5pm · Sat 8am–2pm · 24/7 emergency
           </p>
         </div>
 
@@ -59,6 +56,7 @@ export function Footer() {
           <h4 style={{ marginTop: 24 }}>Company</h4>
           <ul>
             <li><Link href="/about">About</Link></li>
+            <li><Link href="/membership">Membership</Link></li>
             <li><Link href="/blog">Blog &amp; guides</Link></li>
             <li><Link href="/contact">Contact</Link></li>
           </ul>
@@ -67,9 +65,7 @@ export function Footer() {
         <div className="ftr__col">
           <h4>Service area</h4>
           <p className="ftr__suburbs">
-            Pakenham · Officer · Beaconsfield · Berwick · Narre Warren · Cranbourne · Clyde ·
-            Hampton Park · Hallam · Dandenong · Endeavour Hills · Lynbrook · Bunyip · Garfield ·
-            Tynong · Drouin · Warragul · Emerald · Gembrook · Tooradin — within 50 km of Pakenham.
+            {suburbs.map((s) => s.name).join(" · ")} — within 75 km of Pakenham.
           </p>
         </div>
       </div>

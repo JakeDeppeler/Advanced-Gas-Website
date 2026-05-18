@@ -25,6 +25,7 @@ export function ContactForm() {
   const [hp, setHp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function toggle(id: string) {
     setSvcs((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
@@ -32,7 +33,11 @@ export function ContactForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name || !phone) return;
+    setError(null);
+    if (!name.trim() || !phone.trim() || !suburb.trim()) {
+      setError("Name, phone and suburb are required so we can get back to you.");
+      return;
+    }
     setSubmitting(true);
     try {
       await fetch("/api/quote", {
@@ -140,6 +145,10 @@ export function ContactForm() {
           onChange={(e) => setNotes(e.target.value)}
         />
       </div>
+
+      {error && (
+        <div className="qf-error" role="alert" style={{ marginTop: 14 }}>{error}</div>
+      )}
 
       <div className="ct-submit">
         <p>We&apos;ll reply within 2 business hours. No call centres, no marketing emails.</p>

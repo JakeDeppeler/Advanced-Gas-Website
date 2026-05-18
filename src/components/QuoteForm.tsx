@@ -19,20 +19,35 @@ type FormState = {
 };
 
 const SERVICES = [
-  { id: "aircon-install", t: "❄ Aircon install", s: "Split / multi-head / ducted" },
-  { id: "heat-pump-install", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
-  { id: "aircon-service", t: "🔧 Service / repair", s: "All major brands" },
+  { id: "air-conditioning-installation", t: "❄ Aircon install", s: "Split / multi-head / ducted" },
+  { id: "heat-pump-installation", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
+  { id: "aircon-servicing-repairs", t: "🔧 Service / repair", s: "All major brands" },
   { id: "gas-plumbing", t: "🔥 Gas / plumbing", s: "Heating, hot water, leaks" },
 ];
 
 const PROPERTY = ["Single-storey home", "Double-storey home", "Apartment", "Commercial / office"];
 const TIMING = ["ASAP (within 2 weeks)", "This month", "1-3 months", "Just researching"];
 
+const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+
+async function fileToBase64(file: File) {
+  return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      resolve({ name: file.name, type: file.type, base64: result.split(",")[1] ?? "" });
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
 export function QuoteForm({ presetService }: { presetService?: string }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [form, setForm] = useState<FormState>({
     service: presetService ?? "",
     propertyType: "",
@@ -63,12 +78,16 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     e.preventDefault();
     setError(null);
     if (!form.name || !form.phone) return setError("Name and phone are required.");
+    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
+      return setError("Photo is over 4 MB — please pick a smaller image or send it later.");
+    }
     setSubmitting(true);
     try {
+      const photo = photoFile ? await fileToBase64(photoFile) : null;
       const res = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, photo }),
       });
       if (!res.ok) throw new Error(await res.text());
       router.push("/thanks");
@@ -161,7 +180,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         {step === 3 && (
           <fieldset>
             <legend className="qf-legend">Where&apos;s the job?</legend>
-            <p className="qf-sub">We service Pakenham and within 50 km.</p>
+            <p className="qf-sub">We service Pakenham and within 75 km.</p>
             <div className="qf-row">
               <label className="qf-field">
                 <span>Suburb</span>
@@ -228,6 +247,19 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
               />
+            </label>
+            <label className="qf-field">
+              <span>Photo of the existing unit (optional)</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+              />
+              {photoFile && (
+                <span style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 4 }}>
+                  {photoFile.name} ({(photoFile.size / 1024 / 1024).toFixed(1)} MB)
+                </span>
+              )}
             </label>
             <p className="qf-finep">
               By submitting you agree to be contacted about your quote. We never share your details.
