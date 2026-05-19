@@ -29,11 +29,7 @@ export function Header() {
       <div className="wrap hdr__row">
         <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-full.jpg"
-            alt={site.name}
-            style={{ height: 56, width: "auto", display: "block" }}
-          />
+          <img src="/logo-full.jpg" alt={site.name} />
         </Link>
 
         <nav className="hdr__nav" aria-label="Primary">

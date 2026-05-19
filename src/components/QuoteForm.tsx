@@ -11,6 +11,7 @@ type FormState = {
   timing: string;
   suburb: string;
   postcode: string;
+  currentSystem: string;
   name: string;
   phone: string;
   email: string;
@@ -28,7 +29,30 @@ const SERVICES = [
 const PROPERTY = ["Single-storey home", "Double-storey home", "Apartment", "Commercial / office"];
 const TIMING = ["ASAP (within 2 weeks)", "This month", "1-3 months", "Just researching"];
 
-const MAX_PHOTO_BYTES = 4 * 1024 * 1024; // 4 MB raw cap (~5.3 MB after base64)
+const CURRENT_HOT_WATER = [
+  "Electric",
+  "Gas storage",
+  "Gas instantaneous",
+  "Solar (boosted)",
+  "Not sure",
+];
+const CURRENT_AIRCON = [
+  "None / first install",
+  "Split system",
+  "Ducted",
+  "Evaporative",
+  "Window / wall unit",
+];
+
+function currentSystemOptions(service: string) {
+  if (service === "heat-pump-installation") {
+    return { label: "What hot water system do you currently have?", options: CURRENT_HOT_WATER };
+  }
+  if (service === "air-conditioning-installation") {
+    return { label: "What aircon do you currently have?", options: CURRENT_AIRCON };
+  }
+  return null;
+}
 
 async function fileToBase64(file: File) {
   return new Promise<{ name: string; type: string; base64: string }>((resolve, reject) => {
@@ -54,6 +78,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     timing: "",
     suburb: "",
     postcode: "",
+    currentSystem: "",
     name: "",
     phone: "",
     email: "",
@@ -69,7 +94,12 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     setError(null);
     if (step === 1 && !form.service) return setError("Please choose a service.");
     if (step === 2 && (!form.propertyType || !form.timing)) return setError("Please answer both questions.");
-    if (step === 3 && (!form.suburb || !form.postcode)) return setError("Please add your suburb and postcode.");
+    if (step === 3) {
+      if (!form.suburb || !form.postcode) return setError("Please add your suburb and postcode.");
+      if (currentSystemOptions(form.service) && !form.currentSystem) {
+        return setError("Please tell us what system you currently have.");
+      }
+    }
     setStep((s) => Math.min(4, s + 1) as Step);
   }
   function back() { setStep((s) => Math.max(1, s - 1) as Step); }
@@ -78,9 +108,6 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     e.preventDefault();
     setError(null);
     if (!form.name || !form.phone) return setError("Name and phone are required.");
-    if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
-      return setError("Photo is over 4 MB — please pick a smaller image or send it later.");
-    }
     setSubmitting(true);
     try {
       const photo = photoFile ? await fileToBase64(photoFile) : null;
@@ -178,6 +205,29 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         )}
 
         {step === 3 && (
+          <>
+            {(() => {
+              const cs = currentSystemOptions(form.service);
+              if (!cs) return null;
+              return (
+                <fieldset style={{ marginBottom: 20 }}>
+                  <legend className="qf-legend">{cs.label}</legend>
+                  <div className="qf-grid">
+                    {cs.options.map((opt) => (
+                      <label key={opt} className="qf-opt">
+                        <input
+                          type="radio"
+                          name="currentSystem"
+                          checked={form.currentSystem === opt}
+                          onChange={() => update("currentSystem", opt)}
+                        />
+                        <span className="qf-opt__t" style={{ fontSize: 13 }}>{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              );
+            })()}
           <fieldset>
             <legend className="qf-legend">Where&apos;s the job?</legend>
             <p className="qf-sub">We service Pakenham and within 75 km.</p>
@@ -212,6 +262,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
               />
             </label>
           </fieldset>
+          </>
         )}
 
         {step === 4 && (

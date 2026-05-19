@@ -12,6 +12,7 @@ type Lead = {
   timing: string;
   suburb: string;
   postcode: string;
+  currentSystem?: string;
   name: string;
   phone: string;
   email: string;
@@ -53,11 +54,11 @@ export async function POST(req: Request) {
   const from = process.env.RESEND_FROM_EMAIL ?? `Advanced Gas Website <onboarding@resend.dev>`;
 
   if (apiKey && recipients.length > 0) {
-    try {
-      const resend = new Resend(apiKey);
+    const resend = new Resend(apiKey);
 
-      // 1) Internal notification — to Jake / admin / etc.
-      await resend.emails.send({
+    // 1) Internal notification — to Jake / admin / etc.
+    try {
+      const result = await resend.emails.send({
         from,
         to: recipients,
         subject: `New quote request — ${data.service} (${data.suburb || "South-East Vic"})`,
@@ -67,11 +68,21 @@ export async function POST(req: Request) {
           ? [{ filename: data.photo.name || "photo.jpg", content: data.photo.base64 }]
           : undefined,
       });
+      if (result.error) {
+        console.error("Resend rejected lead notification:", result.error);
+      }
+    } catch (e) {
+      console.error("Failed to send lead notification", e);
+    }
 
-      // 2) Auto-reply to the customer — only when they supplied an email.
-      if (data.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+    // 2) Auto-reply to the customer — only when they supplied an email.
+    // Wrapped in its own try/catch so a rejected auto-reply (e.g. Resend
+    // sandbox refusing addresses other than the account owner) never takes
+    // down the internal lead notification above.
+    if (data.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      try {
         const firstName = data.name.split(" ")[0] || data.name;
-        await resend.emails.send({
+        const result = await resend.emails.send({
           from,
           to: [data.email],
           replyTo: recipients[0],
@@ -79,9 +90,12 @@ export async function POST(req: Request) {
           html: customerAutoReply(data, firstName),
           text: customerAutoReplyText(data, firstName),
         });
+        if (result.error) {
+          console.error("Resend rejected customer auto-reply:", result.error);
+        }
+      } catch (e) {
+        console.error("Failed to send customer auto-reply", e);
       }
-    } catch (e) {
-      console.error("Failed to email lead", e);
     }
   } else {
     console.log("NEW LEAD →\n" + formatInternal(data));
@@ -103,6 +117,7 @@ function formatInternal(d: Lead) {
     `Property:  ${d.propertyType}`,
     `Timing:    ${d.timing}`,
     `Suburb:    ${d.suburb} ${d.postcode}`,
+    d.currentSystem ? `Current:   ${d.currentSystem}` : null,
     "",
     `Name:      ${d.name}`,
     `Phone:     ${d.phone}`,
@@ -111,7 +126,9 @@ function formatInternal(d: Lead) {
     `Notes:     ${d.notes || "—"}`,
     "",
     `— Sent from ${site.url}`,
-  ].join("\n");
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 }
 
 function serviceLabel(slug: string) {
@@ -130,6 +147,7 @@ function customerAutoReply(d: Lead, firstName: string) {
           <tr><td style="padding:6px 0;color:#5b6680;width:120px;">Service</td><td style="padding:6px 0;"><strong>${escapeHtml(serviceLabel(d.service))}</strong></td></tr>
           ${d.suburb ? `<tr><td style="padding:6px 0;color:#5b6680;">Suburb</td><td style="padding:6px 0;">${escapeHtml(d.suburb)} ${escapeHtml(d.postcode || "")}</td></tr>` : ""}
           ${d.propertyType ? `<tr><td style="padding:6px 0;color:#5b6680;">Property</td><td style="padding:6px 0;">${escapeHtml(d.propertyType)}</td></tr>` : ""}
+          ${d.currentSystem ? `<tr><td style="padding:6px 0;color:#5b6680;">Current</td><td style="padding:6px 0;">${escapeHtml(d.currentSystem)}</td></tr>` : ""}
           ${d.timing ? `<tr><td style="padding:6px 0;color:#5b6680;">Timing</td><td style="padding:6px 0;">${escapeHtml(d.timing)}</td></tr>` : ""}
           ${d.notes ? `<tr><td style="padding:6px 0;color:#5b6680;vertical-align:top;">Notes</td><td style="padding:6px 0;">${escapeHtml(d.notes)}</td></tr>` : ""}
           <tr><td style="padding:6px 0;color:#5b6680;">Phone</td><td style="padding:6px 0;">${escapeHtml(d.phone)}</td></tr>
@@ -152,6 +170,7 @@ function customerAutoReplyText(d: Lead, firstName: string) {
     `  Service:  ${serviceLabel(d.service)}`,
     d.suburb ? `  Suburb:   ${d.suburb} ${d.postcode || ""}` : "",
     d.propertyType ? `  Property: ${d.propertyType}` : "",
+    d.currentSystem ? `  Current:  ${d.currentSystem}` : "",
     d.timing ? `  Timing:   ${d.timing}` : "",
     d.notes ? `  Notes:    ${d.notes}` : "",
     `  Phone:    ${d.phone}`,
