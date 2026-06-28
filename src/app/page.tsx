@@ -63,7 +63,7 @@ export default function HomePage() {
 
             <h1 className="hero__h1">
               Up to <span className="hero__h1-accent">$2,600 off</span> heat pumps,<br />
-              <span className="hero__h1-accent">$5,000 off</span> aircon — rebates done <em>for</em> you.
+              <span className="hero__h1-accent">$5,000 off</span> aircon — rebates done <em>for</em>{" "}you.
             </h1>
 
             <p className="hero__sub">
@@ -147,7 +147,7 @@ export default function HomePage() {
             </div>
             <h2 className="veu__h">
               The VEU rebate is real,<br />
-              and we apply it <em>for</em> you.
+              and we apply it <em>for</em>{" "}you.
             </h2>
             <p className="veu__sub">
               If your home runs on a gas or electric storage hot water system, the Victorian Government will pay you to upgrade to a heat pump — and there are aircon rebates too. We handle the paperwork; you enjoy the savings.
