@@ -62,23 +62,22 @@ export default function HomePage() {
             </div>
 
             <h1 className="hero__h1">
-              Up to <span className="hero__h1-accent">$2,600 off</span> heat pumps,<br />
-              <span className="hero__h1-accent">$5,000 off</span> aircon — rebates done <em>for</em>{" "}you.
+              Pakenham&rsquo;s family-run heating, cooling &amp; hot water team.
             </h1>
 
             <p className="hero__sub">
-              Family-run, Reece-partnered tradies covering Pakenham, Berwick, Cranbourne, Officer and everywhere within 50&nbsp;km. We&apos;re VEU accredited — you get the rebate at quote, no chase, no paperwork.
+              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration &mdash; VEU-accredited so the rebate&rsquo;s already in the price we quote you.
             </p>
 
             <ul className="hero__bullets">
-              <li><span className="tick">✓</span> VEU rebate applied at quote — no upfront chase</li>
-              <li><span className="tick">✓</span> Reclaim · iStore · Thermann · Mitsubishi · Rinnai · Kaden</li>
-              <li><span className="tick">✓</span> Licensed gas fitter + ARC refrigeration ticket</li>
-              <li><span className="tick">✓</span> Free, no-obligation on-site quote in 24–48&nbsp;hrs</li>
+              <li><span className="tick">✓</span> Family-owned, based in Pakenham since 2014</li>
+              <li><span className="tick">✓</span> Reece trade partner &mdash; genuine stock &amp; warranties</li>
+              <li><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
+              <li><span className="tick">✓</span> Fixed prices, VEU rebate applied at the quote</li>
             </ul>
 
             <div className="hero__ctas">
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</a>
               <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
                 Or call {site.phone}
               </a>
@@ -99,7 +98,7 @@ export default function HomePage() {
             </div>
 
             <p className="hero__finep">
-              *Indicative example: 270L heat pump installed for an eligible VEU household after rebate application. Final price subject to site assessment.
+              Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
             </p>
           </div>
 
@@ -137,72 +136,67 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* VEU REBATE FEATURE */}
+      {/* FIXED-PRICE INSTALLS */}
       <section className="veu" id="rebates">
-        <div className="wrap veu__grid">
-          <div className="veu__left">
-            <div className="ds-eyebrow ds-eyebrow--on-dark">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow ds-eyebrow--on-dark">
               <span className="ds-dot ds-dot--orange" />
-              Victorian Energy Upgrades program
-            </div>
-            <h2 className="veu__h">
-              The VEU rebate is real,<br />
-              and we apply it <em>for</em>{" "}you.
-            </h2>
-            <p className="veu__sub">
-              If your home runs on a gas or electric storage hot water system, the Victorian Government will pay you to upgrade to a heat pump — and there are aircon rebates too. We handle the paperwork; you enjoy the savings.
+              Fixed-price installs
+            </span>
+            <h2 className="ds-h--on-dark">Two of our most popular jobs &mdash; locked-in prices.</h2>
+            <p className="veu__sub veu__sub--center">
+              What you see is what you pay. VEU rebate already applied, GST included, compliance certificate and warranty pack emailed within 24&nbsp;hrs of install.
             </p>
-
-            <div className="veu__numbers">
-              <div className="veu-num">
-                <span className="veu-num__big">up to $2,600</span>
-                <span className="veu-num__lbl">heat pump hot water rebate</span>
-              </div>
-              <div className="veu-num">
-                <span className="veu-num__big">up to $5,000</span>
-                <span className="veu-num__lbl">aircon rebate (eligible homes)</span>
-              </div>
-              <div className="veu-num">
-                <span className="veu-num__big">~73%</span>
-                <span className="veu-num__lbl">cut to hot water running cost</span>
-              </div>
-            </div>
-
-            <ul className="veu__check">
-              <li>Eligibility check &amp; rebate paperwork done by us</li>
-              <li>Old gas / electric tank removed &amp; disposed</li>
-              <li>10-year tank warranty, 6-year workmanship on labour</li>
-              <li>Same-week install slots most weeks</li>
-            </ul>
-
-            <div className="veu__ctas">
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Check eligibility →</a>
-              <Link href="/rebates" className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">How VEU works</Link>
-            </div>
           </div>
 
-          <div className="veu__right">
-            <div className="veu-card">
-              <div className="veu-card__head">
-                <span>Sample VEU quote — Thermann 270L · Pakenham 3810</span>
-                <span className="veu-card__badge">VEU certified</span>
+          <div className="fixprice__grid">
+            <article className="fixprice">
+              <div className="fixprice__photo fixprice__photo--reclaim">
+                <span className="ph-tag">photo: Reclaim heat pump install</span>
               </div>
-              <table className="veu-card__table">
-                <tbody>
-                  <tr><td>Thermann 270L heat pump</td><td className="num">$2,200</td></tr>
-                  <tr><td>Installation &amp; commissioning</td><td className="num">$700</td></tr>
-                  <tr><td>Electrical</td><td className="num">$350</td></tr>
-                  <tr><td>Parts &amp; fittings</td><td className="num">$350</td></tr>
-                  <tr><td>Compliance certificate &amp; VEU paperwork</td><td className="num">incl.</td></tr>
-                  <tr className="row-sub"><td><strong>Sub-total</strong></td><td className="num"><strong>$3,600</strong></td></tr>
-                  <tr className="row-rebate"><td>VEU rebate (applied at quote)</td><td className="num">−$1,820</td></tr>
-                  <tr className="row-total"><td><strong>You pay (ex&nbsp;GST)</strong></td><td className="num"><strong>$1,780</strong></td></tr>
-                  <tr className="row-finance"><td colSpan={2}>or <strong>$17/week</strong> via interest-free finance — 24 months</td></tr>
-                </tbody>
-              </table>
-              <p className="veu-card__fp">Illustrative only — every home is different. Real quote after a free 20-minute site visit.</p>
-            </div>
+              <div className="fixprice__body">
+                <span className="fixprice__eyebrow">Heat pump hot water</span>
+                <h3>Reclaim CO&#8322; heat pump &mdash; fully installed</h3>
+                <ul className="fixprice__feat">
+                  <li>Premium 250L stainless tank &amp; Reclaim compressor</li>
+                  <li>Old gas / electric unit removed &amp; disposed</li>
+                  <li>Standard electrical, plumbing &amp; commissioning</li>
+                  <li>VEU rebate applied, compliance cert included</li>
+                </ul>
+                <div className="fixprice__price">
+                  <span className="fixprice__price-num">$2,730</span>
+                  <span className="fixprice__price-lbl">fully installed, inc GST</span>
+                </div>
+                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the Reclaim &rarr;</a>
+              </div>
+            </article>
+
+            <article className="fixprice">
+              <div className="fixprice__photo fixprice__photo--ducted">
+                <span className="ph-tag">photo: Mitsubishi Electric ducted install</span>
+              </div>
+              <div className="fixprice__body">
+                <span className="fixprice__eyebrow">Ducted aircon</span>
+                <h3>18&nbsp;kW Mitsubishi Electric ducted system</h3>
+                <ul className="fixprice__feat">
+                  <li>18&nbsp;kW inverter head unit &mdash; whole-home cooling &amp; heating</li>
+                  <li>Milieu Lab zone controller</li>
+                  <li>Up to <strong>12 zones</strong> with individual control</li>
+                  <li>Design, ducting, install, commission &amp; certify</li>
+                </ul>
+                <div className="fixprice__price">
+                  <span className="fixprice__price-num">from&nbsp;$11,000</span>
+                  <span className="fixprice__price-lbl">inc GST</span>
+                </div>
+                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the ducted &rarr;</a>
+              </div>
+            </article>
           </div>
+
+          <p className="fixprice__foot">
+            After something different? We install every major brand &mdash; <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
+          </p>
         </div>
       </section>
 
@@ -251,7 +245,10 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#gas-heating" className="bcard">
-              <div className="bcard__body bcard__body--bare">
+              <div className="bcard__photo bcard__photo--gas">
+                <span className="ph-tag">photo: Brivis ducted gas heater</span>
+              </div>
+              <div className="bcard__body">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
                 <p>Install, replace, service. Brivis, Braemar, Rinnai. Carbon monoxide tested.</p>
@@ -259,7 +256,10 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#service" className="bcard bcard--accent">
-              <div className="bcard__body bcard__body--bare">
+              <div className="bcard__photo bcard__photo--service">
+                <span className="ph-tag">photo: gas safety check</span>
+              </div>
+              <div className="bcard__body">
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
                 <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
@@ -268,7 +268,10 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#hotwater" className="bcard">
-              <div className="bcard__body bcard__body--bare">
+              <div className="bcard__photo bcard__photo--hotwater">
+                <span className="ph-tag">photo: Rinnai continuous hot water</span>
+              </div>
+              <div className="bcard__body">
                 <span className="bcard__num">06</span>
                 <h3>Hot water — gas &amp; electric</h3>
                 <p>Tank or continuous. Same-day swaps on most common models.</p>
@@ -276,7 +279,10 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#commercial" className="bcard bcard--dark">
-              <div className="bcard__body bcard__body--bare">
+              <div className="bcard__photo bcard__photo--commercial">
+                <span className="ph-tag ph-tag--dark">photo: café fit-out</span>
+              </div>
+              <div className="bcard__body">
                 <span className="bcard__num">07</span>
                 <h3>Commercial fit-out</h3>
                 <p>Cafés, offices, gyms. Aircon, hot water and gas — one PM, one invoice.</p>
@@ -284,7 +290,10 @@ export default function HomePage() {
             </Link>
 
             <Link href="/contact#emergency" className="bcard bcard--emergency" id="emergency">
-              <div className="bcard__body bcard__body--bare">
+              <div className="bcard__photo bcard__photo--emergency">
+                <span className="ph-tag ph-tag--dark">photo: after-hours callout</span>
+              </div>
+              <div className="bcard__body">
                 <span className="bcard__num">08</span>
                 <h3>Emergency call-outs</h3>
                 <p>Gas leak, no hot water, smoking flue. Phones answered after hours.</p>
