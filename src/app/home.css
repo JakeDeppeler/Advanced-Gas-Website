@@ -4,6 +4,31 @@
 
 .page-home { background: var(--bg); }
 
+/* Force white headings inside all dark-background sections.
+   globals.css applies text-navy-900 to h1-h4 in @layer base — without
+   these overrides the step titles, VEU headings and bigcta headings
+   render as navy on navy (invisible). */
+.page-home .hero h1,
+.page-home .hero h2,
+.page-home .hero h3,
+.page-home .hero h4,
+.page-home .veu h1,
+.page-home .veu h2,
+.page-home .veu h3,
+.page-home .veu h4,
+.page-home .process h1,
+.page-home .process h2,
+.page-home .process h3,
+.page-home .process h4,
+.page-home .bigcta h1,
+.page-home .bigcta h2,
+.page-home .bigcta h3,
+.page-home .bigcta h4,
+.page-home .bcard--dark h3,
+.page-home .bcard--dark h4,
+.page-home .bcard--emergency h3,
+.page-home .bcard--emergency h4 { color: #fff; }
+
 /* ============== HERO ============== */
 .page-home .hero {
   position: relative;
@@ -15,8 +40,9 @@
 .page-home .hero__bg {
   position: absolute; inset: 0;
   background:
-    linear-gradient(180deg, rgba(5,10,48,0.86) 0%, rgba(11,20,80,0.90) 60%, rgba(5,10,48,0.95) 100%),
-    url("/team-photo.png") center 30% / cover no-repeat,
+    linear-gradient(90deg, rgba(5,10,48,0.82) 0%, rgba(5,10,48,0.55) 55%, rgba(5,10,48,0.35) 100%),
+    linear-gradient(180deg, rgba(5,10,48,0.35) 0%, rgba(5,10,48,0.55) 100%),
+    url("/team-photo.png") center 40% / cover no-repeat,
     linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   z-index: 0;
 }
@@ -24,9 +50,9 @@
   content: "";
   position: absolute; inset: 0;
   background:
-    radial-gradient(900px 500px at 90% -10%, rgba(0,176,237,0.14), transparent 60%),
-    radial-gradient(700px 500px at -10% 90%, rgba(243,103,34,0.14), transparent 60%);
-  opacity: 0.9;
+    radial-gradient(900px 500px at 90% -10%, rgba(0,176,237,0.08), transparent 60%),
+    radial-gradient(700px 500px at -10% 90%, rgba(243,103,34,0.08), transparent 60%);
+  opacity: 0.7;
 }
 .page-home .hero__divider { position: absolute; bottom: -1px; left: 0; right: 0; width: 100%; height: 80px; }
 
@@ -266,7 +292,7 @@
 
 .page-home .brands__grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 12px;
 }
 .page-home .brand-chip {
@@ -871,35 +897,59 @@
 .page-home .map__svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .page-home .map .ph-tag { position: relative; z-index: 1; }
 
-.page-home .map--placeholder {
-  background:
-    repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0 14px, transparent 14px 28px),
-    linear-gradient(160deg, #1f1f22 0%, #2d2d33 50%, #1a1a1d 100%);
-  border-color: #2a2a2f;
-  align-items: center; justify-content: center;
-  padding: 24px;
+.page-home .map--live {
+  padding: 0;
+  align-items: stretch;
+  justify-content: stretch;
+  background: #f4f2ec;
 }
-.page-home .map__label {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  color: rgba(255,255,255,0.85);
-  text-align: center;
+.page-home .map--live iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0;
+  filter: saturate(0.85) contrast(1.02);
 }
-.page-home .map__label-eyebrow {
-  font-family: var(--f-mono); font-size: 11px;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
+.page-home .map__overlay {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 1;
 }
-.page-home .map__label-txt {
+.page-home .map__radius {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 62%; height: 62%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px dashed var(--orange);
+  background: rgba(243,103,34,0.08);
+  box-shadow: 0 0 0 100vmax rgba(11,20,80,0.10);
+}
+.page-home .map__badge {
+  position: absolute;
+  left: 14px; bottom: 14px; z-index: 2;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px -12px rgba(11,20,80,0.25);
+  display: flex; flex-direction: column; gap: 2px;
+  max-width: 210px;
+}
+.page-home .map__badge-eye {
+  font-family: var(--f-mono); font-size: 10.5px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.page-home .map__badge-num {
   font-family: var(--f-display);
-  font-size: clamp(28px, 3.4vw, 44px);
-  font-weight: 800;
+  font-size: 22px; font-weight: 800;
   letter-spacing: -0.02em;
-  color: rgba(255,255,255,0.85);
+  color: var(--navy);
+  line-height: 1;
 }
-.page-home .map__label-note {
-  font-family: var(--f-mono); font-size: 11.5px;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.45);
+.page-home .map__badge-note {
+  font-size: 11.5px; color: var(--ink-2);
+  line-height: 1.35;
 }
 
 /* ============== FAQ ============== */

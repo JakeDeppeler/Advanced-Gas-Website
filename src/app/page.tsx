@@ -151,6 +151,7 @@ export default function HomePage() {
               ["Thermann", "hot water"],
               ["Mitsubishi", "electric aircon"],
               ["Kaden", "aircon"],
+              ["Milieu Lab", "smart controls"],
               ["Rinnai", "gas & hw"],
             ].map(([name, type]) => (
               <div key={name} className="brand-chip">
@@ -439,11 +440,21 @@ export default function HomePage() {
             <p className="area__finep">Outside this list? Give us a call — we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">
-            <div className="map map--placeholder" aria-label="Service area map placeholder">
-              <div className="map__label">
-                <span className="map__label-eyebrow">Map</span>
-                <span className="map__label-txt">Placeholder</span>
-                <span className="map__label-note">50 km radius around Pakenham 3810</span>
+            <div className="map map--live" aria-label="Service area map — 75 km radius from Pakenham 3810">
+              <iframe
+                title="Advanced Gas & Aircon service area map"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=144.63%2C-38.75%2C146.35%2C-37.40&layer=mapnik&marker=-38.078%2C145.487"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                aria-hidden="false"
+              />
+              <div className="map__overlay">
+                <div className="map__radius" aria-hidden="true" />
+              </div>
+              <div className="map__badge">
+                <span className="map__badge-eye">Service radius</span>
+                <span className="map__badge-num">75&nbsp;km</span>
+                <span className="map__badge-note">Melbourne&rsquo;s south-east from Pakenham 3810</span>
               </div>
             </div>
           </div>

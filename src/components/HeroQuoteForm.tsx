@@ -43,43 +43,26 @@ const HP_STYLES = [
   },
 ];
 
-// Sizes by [brand][style]. All-in-one sizes per customer:
-// Reclaim AIO: 200L, 300L · Thermann AIO: 200L, 285L · iStore AIO: 180L, 275L
-const HP_SIZES: Record<string, Record<string, { id: string; t: string; s: string }[]>> = {
-  reclaim: {
-    aio: [
-      { id: "200", t: "200 L", s: "1–2 people" },
-      { id: "300", t: "300 L", s: "3–4 people" },
-    ],
-    split: [
-      { id: "160", t: "160 L", s: "1–2 people" },
-      { id: "250", t: "250 L", s: "2–3 people" },
-      { id: "315", t: "315 L", s: "4–5 people" },
-      { id: "400", t: "400 L", s: "large households" },
-    ],
+// Two range buckets. Whichever brand the customer picks, we install the
+// closest tank size within the range. Range labels quote each brand's
+// specific size so nobody's guessing.
+const HP_SIZE_RANGES: { id: string; t: string; s: string }[] = [
+  {
+    id: "small",
+    t: "180 L – 200 L",
+    s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L",
   },
-  thermann: {
-    aio: [
-      { id: "200", t: "200 L", s: "1–2 people" },
-      { id: "285", t: "285 L", s: "3–4 people" },
-    ],
-    split: [
-      { id: "170", t: "170 L", s: "1–2 people" },
-      { id: "270", t: "270 L", s: "3–4 people" },
-      { id: "300", t: "300 L", s: "4–5 people" },
-    ],
+  {
+    id: "large",
+    t: "275 L – 300 L",
+    s: "3+ people · Reclaim 300 L · Thermann 285 L · iStore 275 L",
   },
-  istore: {
-    aio: [
-      { id: "180", t: "180 L", s: "1–3 people" },
-      { id: "275", t: "275 L", s: "3–5 people" },
-    ],
-    split: [
-      { id: "180", t: "180 L", s: "1–3 people" },
-      { id: "270", t: "270 L", s: "3–5 people" },
-    ],
+  {
+    id: "xl",
+    t: "315 L – 400 L",
+    s: "Large households · Reclaim split only (315 L or 400 L)",
   },
-};
+];
 
 const HP_MATERIALS = [
   { id: "stainless", t: "Stainless steel", s: "15-year warranty · ~$1,000 premium · will outlast the warranty" },
@@ -246,26 +229,6 @@ export function HeroQuoteForm() {
   const currentStep = flow[Math.min(step, flow.length - 1)];
   const isLast = step === flow.length - 1;
 
-  // Composite size options across the union of selected brands × styles.
-  const hpSizeOptions = useMemo(() => {
-    const out: { id: string; t: string; s: string; tag: string }[] = [];
-    hpBrand.forEach(b => {
-      hpStyle.forEach(st => {
-        const list = HP_SIZES[b]?.[st] ?? [];
-        const brandName = HP_BRANDS.find(x => x.id === b)?.t ?? b;
-        const styleName = HP_STYLES.find(x => x.id === st)?.t.toLowerCase() ?? st;
-        list.forEach(sz => {
-          out.push({
-            id: `${b}-${st}-${sz.id}`,
-            t: sz.t,
-            s: sz.s,
-            tag: `${brandName} · ${styleName}`,
-          });
-        });
-      });
-    });
-    return out;
-  }, [hpBrand, hpStyle]);
 
   const canNext = useMemo(() => {
     switch (currentStep) {
@@ -327,11 +290,7 @@ export function HeroQuoteForm() {
     if (service === "hp") {
       const b = labels(HP_BRANDS, hpBrand);
       const st = labels(HP_STYLES, hpStyle);
-      const sz = hpSize
-        .map(id => hpSizeOptions.find(o => o.id === id))
-        .filter(Boolean)
-        .map(o => `${o!.t} (${o!.tag})`)
-        .join(", ");
+      const sz = labels(HP_SIZE_RANGES, hpSize);
       const m = labels(HP_MATERIALS, hpMaterial);
       return `Heat pump — brand: ${b}; style: ${st}; size: ${sz}; material: ${m}; WiFi: ${hpWifi}`;
     }
@@ -450,7 +409,7 @@ export function HeroQuoteForm() {
             <div className="qgrid qgrid--3">
               {HP_BRANDS.map(b => (
                 <OptCard key={b.id} multi checked={hpBrand.includes(b.id)}
-                  onClick={() => { setHpBrand(a => toggle(a, b.id)); setHpSize([]); }}
+                  onClick={() => setHpBrand(a => toggle(a, b.id))}
                   t={b.t} s={b.s} />
               ))}
             </div>
@@ -464,7 +423,7 @@ export function HeroQuoteForm() {
                 <button
                   type="button"
                   key={x.id}
-                  onClick={() => { setHpStyle(a => toggle(a, x.id)); setHpSize([]); }}
+                  onClick={() => setHpStyle(a => toggle(a, x.id))}
                   className={`optbig ${hpStyle.includes(x.id) ? "is-on" : ""}`}
                 >
                   <div className="optbig__head">
@@ -489,17 +448,14 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-size" && (
-          <StepBlock title="Tank size(s)" hint="Multiple selections OK — sizes shown for the brands and styles you picked.">
+          <StepBlock title="Tank size range" hint="Multiple selections OK. Exact size within the range depends on the brand we install for you.">
             <div className="qgrid qgrid--3">
-              {hpSizeOptions.map(sz => (
+              {HP_SIZE_RANGES.map(sz => (
                 <OptCard key={sz.id} multi checked={hpSize.includes(sz.id)}
                   onClick={() => setHpSize(a => toggle(a, sz.id))}
-                  t={sz.t} s={`${sz.s} · ${sz.tag}`} />
+                  t={sz.t} s={sz.s} />
               ))}
             </div>
-            {hpSizeOptions.length === 0 && (
-              <p className="qhint">Pick a brand and style first — sizes will appear here.</p>
-            )}
           </StepBlock>
         )}
 
