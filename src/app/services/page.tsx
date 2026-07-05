@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./services-hub.css";
@@ -20,7 +21,8 @@ type Service = {
   specs: [string, string][];
   bullets: string[];
   brands?: string[];
-  photoTag: string;
+  photo: string;
+  photoAlt: string;
   primaryCta: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 };
@@ -41,7 +43,8 @@ const services: Service[] = [
       "Compliance certificate emailed within 24 hours",
     ],
     brands: ["Reclaim", "iStore", "Thermann"],
-    photoTag: "photo: Reclaim CO₂ heat pump · Officer install",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Thermann heat pump hot water install in Pakenham",
     primaryCta: { label: "Get heat pump quote →", href: "/quote" },
     secondaryCta: { label: "Check rebate first", href: "/rebates" },
   },
@@ -59,7 +62,8 @@ const services: Service[] = [
       "Full ARC refrigeration licence — no dodgy shortcuts",
     ],
     brands: ["Mitsubishi Electric", "Kaden"],
-    photoTag: "photo: Mitsubishi MSZ-AP · Berwick bedroom",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split system indoor head install",
     primaryCta: { label: "Get split quote →", href: "/quote" },
     secondaryCta: { label: "Or chat to us", href: "tel:+61359478000" },
   },
@@ -78,7 +82,8 @@ const services: Service[] = [
       "5–7 year warranty depending on system",
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Daikin"],
-    photoTag: "photo: ducted vent install · Pakenham new build",
+    photo: "/duct-work.jpg",
+    photoAlt: "Ducted aircon ductwork install in a Pakenham home",
     primaryCta: { label: "Book a roof survey →", href: "/quote" },
   },
   {
@@ -87,7 +92,7 @@ const services: Service[] = [
     eyebrow: "04 · Gas & ducted gas heating",
     h2: "Install, replace, service — Brivis, Braemar, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
-    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service flat", "$169"], ["CO test", "included"]],
+    specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$280 + GST"], ["CO test", "included"]],
     bullets: [
       "Licensed gas fitter on every job",
       "Carbon monoxide testing on every service",
@@ -95,7 +100,8 @@ const services: Service[] = [
       "Compliance certificate within 24 hours",
     ],
     brands: ["Brivis", "Braemar", "Rinnai"],
-    photoTag: "photo: Brivis ducted heater swap · Cranbourne",
+    photo: "/gas-ducted-install.jpg",
+    photoAlt: "Ducted gas heating install by Advanced Gas",
     primaryCta: { label: "Quote my heating →", href: "/quote" },
   },
   {
@@ -103,16 +109,17 @@ const services: Service[] = [
     num: "05",
     eyebrow: "05 · Service & safety",
     eyebrowOrange: true,
-    h2: "Annual gas appliance servicing + CO testing — $169 flat.",
+    h2: "Annual gas appliance servicing + CO testing — $280 + GST.",
     lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
-    specs: [["Flat rate", "$169"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
+    specs: [["Price", "$280 + GST"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
     bullets: [
       "Visual inspection & safety check",
       "Burner clean, flue check, gas pressure test",
       "Carbon monoxide (CO) atmospheric test",
       "Written report with photos for insurance / rental",
     ],
-    photoTag: "photo: CO meter on ducted heater",
+    photo: "/evap-cooler-service.jpg",
+    photoAlt: "Evaporative cooler service and CO testing",
     primaryCta: { label: "Book a service →", href: "/quote" },
   },
   {
@@ -129,7 +136,8 @@ const services: Service[] = [
       "Plumbing compliance cert included",
     ],
     brands: ["Rinnai", "Thermann", "Rheem"],
-    photoTag: "photo: Rinnai continuous flow · Beaconsfield",
+    photo: "/gas-hot-water-changeover.png",
+    photoAlt: "Gas hot water changeover — same day service",
     primaryCta: { label: "Call for same-day →", href: `tel:${site.phoneE164}` },
   },
   {
@@ -146,7 +154,8 @@ const services: Service[] = [
       "Single line of accountability through the trade",
       "Annual service contracts available post-handover",
     ],
-    photoTag: "photo: cafe ducted install · Officer",
+    photo: "/commercial.png",
+    photoAlt: "Commercial fit-out mechanical services",
     primaryCta: { label: "Get a tender →", href: "/contact" },
   },
   {
@@ -161,7 +170,8 @@ const services: Service[] = [
       "Hot water failure with kids in the house — priority",
       "Carbon monoxide alarm triggered — immediate response",
     ],
-    photoTag: "photo: van on call-out",
+    photo: "/reclaim-mitsubishi.jpg",
+    photoAlt: "Advanced Gas team on an emergency callout",
     primaryCta: { label: `Call ${site.phone} →`, href: `tel:${site.phoneE164}` },
   },
 ];
@@ -230,7 +240,13 @@ export default function ServicesHubPage() {
             </div>
             <div className="sv__media">
               <div className="sv__photo">
-                <span className="ph-tag">{s.photoTag}</span>
+                <Image
+                  src={s.photo}
+                  alt={s.photoAlt}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 50vw"
+                  style={{ objectFit: "cover" }}
+                />
               </div>
             </div>
           </div>

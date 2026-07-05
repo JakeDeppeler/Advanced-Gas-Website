@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import { QuoteForm } from "@/components/QuoteForm";
+import { HeroQuoteForm } from "@/components/HeroQuoteForm";
 import { site } from "@/lib/site";
 import "../detail.css";
+import "../home.css";
 
 export const metadata: Metadata = {
   title: "Get a Free Quote — Pakenham VEU-applied",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function QuotePage() {
   return (
-    <div className="page-detail">
+    <div className="page-detail page-home">
       <section className="dp-hero">
         <div className="wrap">
           <div className="dp-hero__eyebrow">
@@ -62,7 +63,7 @@ export default function QuotePage() {
             </p>
           </div>
 
-          <QuoteForm />
+          <HeroQuoteForm />
         </div>
       </section>
     </div>

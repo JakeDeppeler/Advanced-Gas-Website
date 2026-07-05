@@ -357,7 +357,7 @@
 }
 .page-home .fixprice__photo {
   position: relative;
-  min-height: 220px;
+  min-height: 380px;
   display: flex; align-items: flex-end; padding: 14px;
   border-bottom: 1px solid var(--line);
 }
@@ -587,13 +587,13 @@
 .page-home .bcard__photo--hotwater  { background-image: url("/gas-hot-water-changeover.png"); }
 .page-home .bcard__photo--commercial {
   background-image:
-    linear-gradient(180deg, rgba(11,20,80,0.55), rgba(11,20,80,0.75)),
+    linear-gradient(180deg, rgba(11,20,80,0.15), rgba(11,20,80,0.35)),
     url("/duct-work.jpg");
   border-bottom-color: rgba(255,255,255,0.1);
 }
 .page-home .bcard__photo--emergency {
   background-image:
-    linear-gradient(180deg, rgba(193,54,42,0.60), rgba(225,74,58,0.80)),
+    linear-gradient(180deg, rgba(193,54,42,0.10), rgba(225,74,58,0.25)),
     url("/gas-line-safe.png");
   border-bottom-color: rgba(255,255,255,0.15);
 }

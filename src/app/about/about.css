@@ -15,8 +15,7 @@
 .page-about .ab-frame { padding: 0 0 80px; background: var(--bg); }
 .page-about .ab-frame__big {
   aspect-ratio: 16/7; border-radius: var(--rad); overflow: hidden;
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 8px, transparent 8px 18px), #e8eef5;
-  display: flex; align-items: flex-end; padding: 22px;
+  background: #e8eef5;
   border: 1px solid var(--line);
 }
 
@@ -90,9 +89,69 @@
 }
 .page-about .team__bio { font-size: 13.5px; color: var(--ink-2); margin: 0; line-height: 1.5; }
 
+/* Story side-panel: specialisations card next to the story copy */
+.page-about .ab-story__side { display: flex; flex-direction: column; gap: 20px; }
+.page-about .ab-spec-card {
+  background: #fff; border: 1px solid var(--line);
+  border-radius: 18px; padding: 24px 26px;
+}
+.page-about .ab-spec-card h3 {
+  font-family: var(--f-display); font-weight: 800; font-size: 20px;
+  color: var(--navy); margin: 0 0 14px; letter-spacing: -0.01em;
+}
+.page-about .ab-spec-card ul {
+  list-style: none; padding: 0; margin: 0 0 16px;
+  display: grid; gap: 10px;
+}
+.page-about .ab-spec-card li {
+  font-size: 14.5px; color: var(--ink-2); line-height: 1.55;
+  padding-left: 20px; position: relative;
+}
+.page-about .ab-spec-card li::before {
+  content: "→"; position: absolute; left: 0; top: 0;
+  color: var(--orange); font-weight: 800;
+}
+.page-about .ab-spec-card li strong { color: var(--navy); }
+.page-about .ab-spec-card__arc {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: 10px;
+  background: var(--navy); color: rgba(255,255,255,0.85);
+  font-size: 13px; margin: 0;
+}
+.page-about .ab-spec-card__arc span {
+  font-family: var(--f-mono); font-size: 11.5px;
+  background: var(--orange); color: #fff;
+  padding: 4px 8px; border-radius: 6px;
+  letter-spacing: 0.04em; font-weight: 700;
+}
+
 .page-about .ab-values { padding: 100px 0; background: var(--bg); }
 .page-about .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
 .page-about .val { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+
+/* Track record — key clients */
+.page-about .ab-clients { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-about .clients-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 40px;
+}
+.page-about .client {
+  background: #fff; border: 1px solid var(--line);
+  border-left: 3px solid var(--sky);
+  border-radius: 12px; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.page-about .client:nth-child(3n+1) { border-left-color: var(--orange); }
+.page-about .client:nth-child(3n+2) { border-left-color: var(--navy); }
+.page-about .client__name {
+  font-family: var(--f-display); font-weight: 800; font-size: 17px;
+  color: var(--navy); letter-spacing: -0.01em;
+}
+.page-about .client__tag {
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-3);
+}
 .page-about .val__n { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--orange); }
 .page-about .val h3 {
   font-family: var(--f-display); font-weight: 700; font-size: 22px;
@@ -121,11 +180,14 @@
   .page-about .ab-story__grid { grid-template-columns: 1fr; gap: 40px; }
   .page-about .ab-stats__grid { grid-template-columns: repeat(2, 1fr); }
   .page-about .team-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-about .values-grid { grid-template-columns: 1fr; }
+  .page-about .values-grid { grid-template-columns: 1fr 1fr; }
+  .page-about .clients-grid { grid-template-columns: repeat(2, 1fr); }
   .page-about .ab-acc__grid { grid-template-columns: 1fr; gap: 32px; }
 }
 @media (max-width: 760px) {
   .page-about .ab-stats__grid { grid-template-columns: 1fr; }
   .page-about .team-grid { grid-template-columns: 1fr; }
+  .page-about .values-grid { grid-template-columns: 1fr; }
+  .page-about .clients-grid { grid-template-columns: 1fr; }
   .page-about .acc-list { grid-template-columns: 1fr; }
 }

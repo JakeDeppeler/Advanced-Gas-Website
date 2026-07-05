@@ -4,19 +4,19 @@
 export const site = {
   name: "Advanced Gas & Aircon",
   shortName: "Advanced Gas",
-  legalName: "Advanced Gas & Aircon Pty Ltd",
-  // TODO: confirm domain
+  legalName: "Advanced Gas & Airconditioning Services Pty Ltd",
+  acn: "607 575 280",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.advancedgas.com.au",
   phone: "(03) 5947 8000",
   phoneE164: "+61359478000",
   email: "admin@advancedgas.com.au",
   abn: "35 607 575 280",
   licences: {
-    plumbing: "VBA Plumbing Licence #46828",
-    refrigeration: "ARCtick AU59557",
+    plumbing: "Plumbing Licence 46828",
+    refrigeration: "ARC AU59557",
   },
   address: {
-    street: "TODO Street",
+    street: "1 Sierra Circuit",
     suburb: "Pakenham",
     state: "VIC",
     postcode: "3810",

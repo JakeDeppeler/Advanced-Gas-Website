@@ -277,7 +277,7 @@ export default function HomePage() {
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
                 <p>Annual gas appliance servicing &amp; CO testing. Stay safe, stay covered.</p>
-                <span className="bcard__pill">$169 flat</span>
+                <span className="bcard__pill">$280 + GST</span>
               </div>
             </Link>
 
@@ -421,11 +421,11 @@ export default function HomePage() {
             <p className="area__finep">Outside this list? Give us a call — we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">
-            <div className="map map--live" aria-label="Service area map — 75 km radius from Pakenham 3810">
+            <div className="map map--live" aria-label="Service area map — 50 km radius from Pakenham 3810">
               <ServiceAreaMap />
               <div className="map__badge">
                 <span className="map__badge-eye">Service radius</span>
-                <span className="map__badge-num">75&nbsp;km</span>
+                <span className="map__badge-num">50&nbsp;km</span>
                 <span className="map__badge-note">Melbourne&rsquo;s south-east from Pakenham 3810</span>
               </div>
             </div>
