@@ -73,16 +73,16 @@
 
 /* ============== HEADER (design-system) ============== */
 .hdr {
-  background: rgba(250,248,243,0.92);
+  background: #ffffff;
   border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 50;
-  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: 0 1px 0 rgba(11,20,80,0.04), 0 8px 24px -12px rgba(11,20,80,0.12);
 }
 .hdr__row {
   height: 84px; display: flex; align-items: center; gap: 32px;
 }
 .hdr__logo { display:flex; align-items:center; }
-.hdr__logo svg, .hdr__logo img { height: 48px; width: auto; }
+.hdr__logo svg, .hdr__logo img { height: 56px; width: auto; }
 
 .hdr__nav { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
 .hdr__nav a {
