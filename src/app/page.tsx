@@ -4,6 +4,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { HeroQuoteForm } from "@/components/HeroQuoteForm";
+import { ServiceAreaMap } from "@/components/ServiceAreaMap";
 import "./home.css";
 
 export const metadata: Metadata = {
@@ -179,9 +180,7 @@ export default function HomePage() {
 
           <div className="fixprice__grid">
             <article className="fixprice">
-              <div className="fixprice__photo fixprice__photo--reclaim">
-                <span className="ph-tag">photo: Reclaim heat pump install</span>
-              </div>
+              <div className="fixprice__photo fixprice__photo--reclaim" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water</span>
                 <h3>Reclaim CO&#8322; heat pump &mdash; fully installed</h3>
@@ -200,9 +199,7 @@ export default function HomePage() {
             </article>
 
             <article className="fixprice">
-              <div className="fixprice__photo fixprice__photo--ducted">
-                <span className="ph-tag">photo: Mitsubishi Electric ducted install</span>
-              </div>
+              <div className="fixprice__photo fixprice__photo--ducted" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Ducted aircon</span>
                 <h3>18&nbsp;kW Mitsubishi Electric ducted system</h3>
@@ -238,9 +235,7 @@ export default function HomePage() {
 
           <div className="bento">
             <Link href="/services#heatpump" className="bcard bcard--xl bcard--feature">
-              <div className="bcard__photo bcard__photo--heatpump">
-                <span className="ph-tag">photo: Reclaim heat pump install · Officer</span>
-              </div>
+              <div className="bcard__photo bcard__photo--heatpump" />
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
@@ -250,9 +245,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#split" className="bcard">
-              <div className="bcard__photo bcard__photo--split">
-                <span className="ph-tag">photo: Mitsubishi split install · Berwick</span>
-              </div>
+              <div className="bcard__photo bcard__photo--split" />
               <div className="bcard__body">
                 <span className="bcard__num">02</span>
                 <h3>Split systems</h3>
@@ -261,9 +254,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#ducted" className="bcard">
-              <div className="bcard__photo bcard__photo--ducted">
-                <span className="ph-tag">photo: ducted vent · Pakenham</span>
-              </div>
+              <div className="bcard__photo bcard__photo--ducted" />
               <div className="bcard__body">
                 <span className="bcard__num">03</span>
                 <h3>Ducted aircon</h3>
@@ -272,9 +263,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#gas-heating" className="bcard">
-              <div className="bcard__photo bcard__photo--gas">
-                <span className="ph-tag">photo: Brivis ducted gas heater</span>
-              </div>
+              <div className="bcard__photo bcard__photo--gas" />
               <div className="bcard__body">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
@@ -283,9 +272,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#service" className="bcard bcard--accent">
-              <div className="bcard__photo bcard__photo--service">
-                <span className="ph-tag">photo: gas safety check</span>
-              </div>
+              <div className="bcard__photo bcard__photo--service" />
               <div className="bcard__body">
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
@@ -295,9 +282,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#hotwater" className="bcard">
-              <div className="bcard__photo bcard__photo--hotwater">
-                <span className="ph-tag">photo: Rinnai continuous hot water</span>
-              </div>
+              <div className="bcard__photo bcard__photo--hotwater" />
               <div className="bcard__body">
                 <span className="bcard__num">06</span>
                 <h3>Hot water — gas &amp; electric</h3>
@@ -306,9 +291,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/services#commercial" className="bcard bcard--dark">
-              <div className="bcard__photo bcard__photo--commercial">
-                <span className="ph-tag ph-tag--dark">photo: café fit-out</span>
-              </div>
+              <div className="bcard__photo bcard__photo--commercial" />
               <div className="bcard__body">
                 <span className="bcard__num">07</span>
                 <h3>Commercial fit-out</h3>
@@ -317,9 +300,7 @@ export default function HomePage() {
             </Link>
 
             <Link href="/contact#emergency" className="bcard bcard--emergency" id="emergency">
-              <div className="bcard__photo bcard__photo--emergency">
-                <span className="ph-tag ph-tag--dark">photo: after-hours callout</span>
-              </div>
+              <div className="bcard__photo bcard__photo--emergency" />
               <div className="bcard__body">
                 <span className="bcard__num">08</span>
                 <h3>Emergency call-outs</h3>
@@ -441,16 +422,7 @@ export default function HomePage() {
           </div>
           <div className="area__right">
             <div className="map map--live" aria-label="Service area map — 75 km radius from Pakenham 3810">
-              <iframe
-                title="Advanced Gas & Aircon service area map"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=144.63%2C-38.75%2C146.35%2C-37.40&layer=mapnik&marker=-38.078%2C145.487"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                aria-hidden="false"
-              />
-              <div className="map__overlay">
-                <div className="map__radius" aria-hidden="true" />
-              </div>
+              <ServiceAreaMap />
               <div className="map__badge">
                 <span className="map__badge-eye">Service radius</span>
                 <span className="map__badge-num">75&nbsp;km</span>

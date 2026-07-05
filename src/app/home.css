@@ -361,12 +361,14 @@
   display: flex; align-items: flex-end; padding: 14px;
   border-bottom: 1px solid var(--line);
 }
-.page-home .fixprice__photo--reclaim {
-  background: repeating-linear-gradient(135deg, rgba(0,176,237,0.10) 0 8px, transparent 8px 18px), #e8eef5;
+.page-home .fixprice__photo {
+  background-color: #e8eef5;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.page-home .fixprice__photo--ducted {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.10) 0 8px, transparent 8px 18px), #ede7d4;
-}
+.page-home .fixprice__photo--reclaim { background-image: url("/reclaim-split-back.jpg"); }
+.page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.jpg"); }
 .page-home .fixprice__body { padding: 26px 26px 28px; display: flex; flex-direction: column; gap: 14px; }
 .page-home .fixprice__eyebrow {
   font-family: var(--f-mono);
@@ -571,34 +573,28 @@
   display: flex; align-items: flex-end; padding: 14px;
 }
 .page-home .bcard--xl .bcard__photo { min-height: 320px; }
-.page-home .bcard__photo--heatpump {
-  background: repeating-linear-gradient(135deg, rgba(0,176,237,0.08) 0 8px, transparent 8px 18px), #e8eef5;
+.page-home .bcard__photo {
+  background-color: #e8eef5;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
-.page-home .bcard__photo--split {
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 6px, transparent 6px 14px), #f0ece2;
-}
-.page-home .bcard__photo--ducted {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.08) 0 8px, transparent 8px 18px), #ede7d4;
-}
-.page-home .bcard__photo--gas {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.10) 0 6px, transparent 6px 14px), #f2ebdc;
-}
-.page-home .bcard__photo--service {
-  background: repeating-linear-gradient(135deg, rgba(0,176,237,0.08) 0 6px, transparent 6px 14px), #fff2e4;
-}
-.page-home .bcard__photo--hotwater {
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.06) 0 8px, transparent 8px 16px), #e5edf4;
-}
+.page-home .bcard__photo--heatpump  { background-image: url("/thermann-heat-pump.jpg"); }
+.page-home .bcard__photo--split     { background-image: url("/kaden-indoor.jpg"); }
+.page-home .bcard__photo--ducted    { background-image: url("/ducted-condenser.jpg"); }
+.page-home .bcard__photo--gas       { background-image: url("/gas-ducted-install.jpg"); }
+.page-home .bcard__photo--service   { background-image: url("/evap-cooler-service.jpg"); }
+.page-home .bcard__photo--hotwater  { background-image: url("/gas-hot-water-changeover.png"); }
 .page-home .bcard__photo--commercial {
-  background:
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0 8px, transparent 8px 18px),
-    linear-gradient(160deg, #0b1450, #1a2470);
+  background-image:
+    linear-gradient(180deg, rgba(11,20,80,0.55), rgba(11,20,80,0.75)),
+    url("/duct-work.jpg");
   border-bottom-color: rgba(255,255,255,0.1);
 }
 .page-home .bcard__photo--emergency {
-  background:
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 6px, transparent 6px 14px),
-    linear-gradient(160deg, #c1362a, #e14a3a);
+  background-image:
+    linear-gradient(180deg, rgba(193,54,42,0.60), rgba(225,74,58,0.80)),
+    url("/gas-line-safe.png");
   border-bottom-color: rgba(255,255,255,0.15);
 }
 
@@ -697,7 +693,7 @@
 }
 .page-home .process > .wrap { position: relative; }
 .page-home .steps {
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 18px; padding: 0; margin: 0; list-style: none;
 }
 .page-home .step {
@@ -715,6 +711,7 @@
   z-index: 1;
 }
 .page-home .step:last-child::after { display: none; }
+.page-home .step:nth-child(3n)::after { display: none; }
 .page-home .step__num {
   font-family: var(--f-display);
   font-size: 56px; font-weight: 900;
@@ -903,26 +900,14 @@
   justify-content: stretch;
   background: #f4f2ec;
 }
-.page-home .map--live iframe {
+.page-home .map__leaflet {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
-  border: 0;
-  filter: saturate(0.85) contrast(1.02);
 }
-.page-home .map__overlay {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-.page-home .map__radius {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 62%; height: 62%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 2px dashed var(--orange);
-  background: rgba(243,103,34,0.08);
-  box-shadow: 0 0 0 100vmax rgba(11,20,80,0.10);
+/* Leaflet's default panel positioning */
+.page-home .map__leaflet .leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255,255,255,0.85) !important;
 }
 .page-home .map__badge {
   position: absolute;
