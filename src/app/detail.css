@@ -80,7 +80,7 @@
 .page-detail .dp-benefit__icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(0,176,237,0.1); color: var(--sky);
+  background: var(--navy); color: #fff;
   margin-bottom: 14px;
   font-weight: 800;
 }

@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 
 /* ============================================================
-   Multi-branch quote form.
-   Each service has its own ordered step list; state.step indexes into it.
+   Multi-step, multi-select branching quote form.
+   Service (top step) is single-select — it drives the flow.
+   Everything else is multi-select so a customer can be quoted
+   across e.g. Reclaim + Thermann, 200L + 285L, etc.
    ============================================================ */
 
 type ServiceId = "hp" | "split" | "ducted" | "service";
@@ -16,7 +18,7 @@ const SERVICES: { id: ServiceId; t: string; s: string }[] = [
   { id: "service", t: "Service or repair",    s: "Gas, hot water, aircon" },
 ];
 
-/* ---- Per-brand option lists ---- */
+/* ---- Heat pump options ---- */
 
 const HP_BRANDS = [
   { id: "reclaim",  t: "Reclaim",  s: "CO₂ heat pump — premium, quietest" },
@@ -41,30 +43,50 @@ const HP_STYLES = [
   },
 ];
 
-const HP_SIZES: Record<string, { id: string; t: string; s: string }[]> = {
-  reclaim: [
-    { id: "160", t: "160 L", s: "1–2 people" },
-    { id: "250", t: "250 L", s: "2–3 people" },
-    { id: "315", t: "315 L", s: "4–5 people" },
-    { id: "400", t: "400 L", s: "large households" },
-  ],
-  thermann: [
-    { id: "170", t: "170 L", s: "1–2 people" },
-    { id: "270", t: "270 L", s: "3–4 people" },
-    { id: "300", t: "300 L", s: "4–5 people" },
-  ],
-  istore: [
-    { id: "180", t: "180 L", s: "1–3 people" },
-    { id: "270", t: "270 L", s: "3–5 people" },
-  ],
+// Sizes by [brand][style]. All-in-one sizes per customer:
+// Reclaim AIO: 200L, 300L · Thermann AIO: 200L, 285L · iStore AIO: 180L, 275L
+const HP_SIZES: Record<string, Record<string, { id: string; t: string; s: string }[]>> = {
+  reclaim: {
+    aio: [
+      { id: "200", t: "200 L", s: "1–2 people" },
+      { id: "300", t: "300 L", s: "3–4 people" },
+    ],
+    split: [
+      { id: "160", t: "160 L", s: "1–2 people" },
+      { id: "250", t: "250 L", s: "2–3 people" },
+      { id: "315", t: "315 L", s: "4–5 people" },
+      { id: "400", t: "400 L", s: "large households" },
+    ],
+  },
+  thermann: {
+    aio: [
+      { id: "200", t: "200 L", s: "1–2 people" },
+      { id: "285", t: "285 L", s: "3–4 people" },
+    ],
+    split: [
+      { id: "170", t: "170 L", s: "1–2 people" },
+      { id: "270", t: "270 L", s: "3–4 people" },
+      { id: "300", t: "300 L", s: "4–5 people" },
+    ],
+  },
+  istore: {
+    aio: [
+      { id: "180", t: "180 L", s: "1–3 people" },
+      { id: "275", t: "275 L", s: "3–5 people" },
+    ],
+    split: [
+      { id: "180", t: "180 L", s: "1–3 people" },
+      { id: "270", t: "270 L", s: "3–5 people" },
+    ],
+  },
 };
 
 const HP_MATERIALS = [
-  { id: "stainless", t: "Stainless steel", s: "Longer life, no anode swaps, ~$300 more" },
-  { id: "glass",     t: "Glass lined",     s: "Standard, more affordable, anode replaced at service" },
+  { id: "stainless", t: "Stainless steel", s: "15-year warranty · ~$1,000 premium · will outlast the warranty" },
+  { id: "glass",     t: "Glass lined",     s: "Standard build · more affordable · anode swapped at annual service" },
 ];
 
-/* ---- Split-system option lists ---- */
+/* ---- Split-system options ---- */
 
 const SPLIT_BRANDS = [
   { id: "mitsu", t: "Mitsubishi Electric", s: "Premium quiet inverter" },
@@ -76,30 +98,65 @@ const SPLIT_STYLES = [
   { id: "multi",  t: "Multi-head",   s: "Multiple indoor units, one outdoor" },
 ];
 
-const HEAD_COUNTS = ["2", "3", "4", "5"] as const;
+const HEAD_COUNTS = [
+  { id: "2", t: "2", s: "heads" },
+  { id: "3", t: "3", s: "heads" },
+  { id: "4", t: "4", s: "heads" },
+  { id: "5", t: "5", s: "heads" },
+];
 
 const SPLIT_SIZES = [
-  { id: "2.5",  t: "2.5 kW", s: "Bedroom / small room" },
-  { id: "3.5",  t: "3.5 kW", s: "Small living / large bedroom" },
-  { id: "5.0",  t: "5.0 kW", s: "Standard living" },
-  { id: "7.1",  t: "7.1 kW", s: "Open-plan living" },
-  { id: "9.0",  t: "9.0 kW", s: "Large open-plan" },
-  { id: "not-sure", t: "Not sure",  s: "We'll size it on-site" },
+  { id: "2.5",     t: "2.5 kW",   s: "Bedroom / small room" },
+  { id: "3.5",     t: "3.5 kW",   s: "Small living / large bedroom" },
+  { id: "5.0",     t: "5.0 kW",   s: "Standard living" },
+  { id: "7.1",     t: "7.1 kW",   s: "Open-plan living" },
+  { id: "9.0",     t: "9.0 kW",   s: "Large open-plan" },
+  { id: "unsure",  t: "Not sure — floor plan", s: "Send us a floor plan, we'll size it" },
 ];
 
-/* ---- Ducted option lists ---- */
+// Multi-head configs: N × size combinations. Composite id: `${count}x${size}`.
+const MULTI_HEAD_CONFIGS: { id: string; t: string; s: string }[] = (() => {
+  const rows: { id: string; t: string; s: string }[] = [];
+  const counts = ["2", "3", "4", "5"];
+  const sizes = ["2.5", "3.5", "5.0", "7.1"];
+  counts.forEach(c => sizes.forEach(sz => rows.push({
+    id: `${c}x${sz}`,
+    t: `${c} × ${sz} kW`,
+    s: sizeCaption(sz),
+  })));
+  rows.push({ id: "unsure", t: "Not sure — floor plan", s: "Send a floor plan, we'll design it" });
+  return rows;
+})();
+function sizeCaption(sz: string) {
+  if (sz === "2.5") return "Bedrooms";
+  if (sz === "3.5") return "Bedrooms / small living";
+  if (sz === "5.0") return "Standard living";
+  if (sz === "7.1") return "Open-plan living";
+  return "";
+}
+
+/* ---- Ducted options ---- */
 
 const DUCTED_SIZES = [
-  { id: "10",  t: "10 kW",  s: "Small home / 2–3 zones" },
-  { id: "14",  t: "14 kW",  s: "Average home / 3–5 zones" },
-  { id: "18",  t: "18 kW",  s: "Large home / 5–8 zones" },
-  { id: "22",  t: "22 kW",  s: "Very large home / 8+ zones" },
-  { id: "not-sure", t: "Not sure", s: "We'll size it on-site" },
+  { id: "10",     t: "10 kW",    s: "Small home" },
+  { id: "14",     t: "14 kW",    s: "Average home" },
+  { id: "18",     t: "18 kW",    s: "Large home" },
+  { id: "20",     t: "20 kW",    s: "Largest we offer · requires 3-phase power" },
+  { id: "unsure", t: "Not sure", s: "We'll size it on-site" },
 ];
 
-const ZONE_COUNTS = ["2", "3", "4", "5", "6", "8", "10", "12"] as const;
+const ZONE_COUNTS = [
+  { id: "2", t: "2", s: "zones" },
+  { id: "3", t: "3", s: "zones" },
+  { id: "4", t: "4", s: "zones" },
+  { id: "5", t: "5", s: "zones" },
+  { id: "6", t: "6", s: "zones" },
+  { id: "8", t: "8", s: "zones" },
+  { id: "10", t: "10", s: "zones" },
+  { id: "12", t: "12", s: "zones" },
+];
 
-/* ---- Service (repair / maintenance) option lists ---- */
+/* ---- Service (repair / maintenance) options ---- */
 
 const SERVICE_TYPES = [
   { id: "gas-heater",  t: "Gas heater",         s: "Ducted / wall / space" },
@@ -131,6 +188,12 @@ const FLOWS: Record<ServiceId, StepId[]> = {
   service: ["service", "svc-type", "svc-stories", "details"],
 };
 
+/* ---- helpers ---- */
+
+function toggle<T>(arr: T[], v: T): T[] {
+  return arr.includes(v) ? arr.filter(x => x !== v) : [...arr, v];
+}
+
 /* ============================================================ */
 
 export function HeroQuoteForm() {
@@ -140,22 +203,23 @@ export function HeroQuoteForm() {
 
   const [service, setService] = useState<ServiceId>("hp");
 
-  const [hpBrand, setHpBrand] = useState("reclaim");
-  const [hpStyle, setHpStyle] = useState("aio");
-  const [hpSize, setHpSize] = useState("");
-  const [hpMaterial, setHpMaterial] = useState("stainless");
-  const [hpWifi, setHpWifi] = useState<"yes" | "no">("no");
+  // Multi-select fields (arrays).
+  const [hpBrand, setHpBrand] = useState<string[]>([]);
+  const [hpStyle, setHpStyle] = useState<string[]>([]);
+  const [hpSize, setHpSize] = useState<string[]>([]);       // stored as `${brand}-${style}-${size}` composite ids
+  const [hpMaterial, setHpMaterial] = useState<string[]>([]);
+  const [hpWifi, setHpWifi] = useState<"yes" | "no">("no"); // binary, stays single
 
-  const [splitBrand, setSplitBrand] = useState("mitsu");
-  const [splitStyle, setSplitStyle] = useState<"single" | "multi">("single");
-  const [splitHeads, setSplitHeads] = useState("2");
-  const [splitSize, setSplitSize] = useState("");
+  const [splitBrand, setSplitBrand] = useState<string[]>([]);
+  const [splitStyle, setSplitStyle] = useState<string[]>([]);
+  const [splitHeads, setSplitHeads] = useState<string[]>([]);
+  const [splitSize, setSplitSize] = useState<string[]>([]);
 
-  const [ductedSize, setDuctedSize] = useState("");
-  const [ductedZones, setDuctedZones] = useState("4");
+  const [ductedSize, setDuctedSize] = useState<string[]>([]);
+  const [ductedZones, setDuctedZones] = useState<string[]>([]);
   const [ductedTablet, setDuctedTablet] = useState<"yes" | "no">("yes");
 
-  const [svcType, setSvcType] = useState("");
+  const [svcType, setSvcType] = useState<string[]>([]);
   const [svcStories, setSvcStories] = useState<"single" | "double">("single");
 
   const [name, setName] = useState("");
@@ -167,26 +231,60 @@ export function HeroQuoteForm() {
   const [photo, setPhoto] = useState<{ name: string; type: string; data: string } | null>(null);
   const [hp, setHp] = useState("");
 
-  const flow = FLOWS[service];
-  const currentStep = flow[step];
+  // For split, the flow depends on which styles are picked.
+  const flow = useMemo(() => {
+    if (service === "split") {
+      const steps: StepId[] = ["service", "split-brand", "split-style"];
+      if (splitStyle.includes("multi"))  steps.push("split-heads");
+      if (splitStyle.includes("single")) steps.push("split-size");
+      steps.push("details");
+      return steps;
+    }
+    return FLOWS[service];
+  }, [service, splitStyle]);
+
+  const currentStep = flow[Math.min(step, flow.length - 1)];
   const isLast = step === flow.length - 1;
+
+  // Composite size options across the union of selected brands × styles.
+  const hpSizeOptions = useMemo(() => {
+    const out: { id: string; t: string; s: string; tag: string }[] = [];
+    hpBrand.forEach(b => {
+      hpStyle.forEach(st => {
+        const list = HP_SIZES[b]?.[st] ?? [];
+        const brandName = HP_BRANDS.find(x => x.id === b)?.t ?? b;
+        const styleName = HP_STYLES.find(x => x.id === st)?.t.toLowerCase() ?? st;
+        list.forEach(sz => {
+          out.push({
+            id: `${b}-${st}-${sz.id}`,
+            t: sz.t,
+            s: sz.s,
+            tag: `${brandName} · ${styleName}`,
+          });
+        });
+      });
+    });
+    return out;
+  }, [hpBrand, hpStyle]);
 
   const canNext = useMemo(() => {
     switch (currentStep) {
       case "service": return !!service;
-      case "hp-brand": return !!hpBrand;
-      case "hp-style": return !!hpStyle;
-      case "hp-size": return !!hpSize;
-      case "hp-material": return !!hpMaterial;
+      case "hp-brand": return hpBrand.length > 0;
+      case "hp-style": return hpStyle.length > 0;
+      case "hp-size": return hpSize.length > 0;
+      case "hp-material": return hpMaterial.length > 0;
       case "hp-wifi": return !!hpWifi;
-      case "split-brand": return !!splitBrand;
-      case "split-style": return !!splitStyle;
-      case "split-heads": return splitStyle === "single" ? true : !!splitHeads;
-      case "split-size": return !!splitSize;
-      case "ducted-size": return !!ductedSize;
-      case "ducted-zones": return !!ductedZones;
+      case "split-brand": return splitBrand.length > 0;
+      case "split-style": return splitStyle.length > 0;
+      case "split-heads":
+        // heads only required if any multi-head is selected
+        return splitStyle.includes("multi") ? splitHeads.length > 0 : true;
+      case "split-size": return splitSize.length > 0;
+      case "ducted-size": return ductedSize.length > 0;
+      case "ducted-zones": return ductedZones.length > 0;
       case "ducted-tablet": return !!ductedTablet;
-      case "svc-type": return !!svcType;
+      case "svc-type": return svcType.length > 0;
       case "svc-stories": return !!svcStories;
       case "details": return !!(name && phone && email && postcode);
       default: return false;
@@ -199,10 +297,13 @@ export function HeroQuoteForm() {
   ]);
 
   function handleService(id: ServiceId) {
+    if (id === service) return;
     setService(id);
-    if (id !== "hp") setHpSize("");
-    if (id !== "split") setSplitSize("");
-    if (id !== "ducted") setDuctedSize("");
+    // Reset downstream to avoid stale selections crossing flows.
+    setHpBrand([]); setHpStyle([]); setHpSize([]); setHpMaterial([]);
+    setSplitBrand([]); setSplitStyle([]); setSplitHeads([]); setSplitSize([]);
+    setDuctedSize([]); setDuctedZones([]);
+    setSvcType([]);
   }
 
   async function onPhoto(file: File | null) {
@@ -218,27 +319,41 @@ export function HeroQuoteForm() {
     setPhoto({ name: file.name, type: file.type, data: btoa(bin) });
   }
 
+  function labels(list: { id: string; t: string }[], ids: string[]) {
+    return ids.map(id => list.find(x => x.id === id)?.t ?? id).join(", ");
+  }
+
   function summary() {
     if (service === "hp") {
-      const b = HP_BRANDS.find(x => x.id === hpBrand)?.t ?? hpBrand;
-      const st = HP_STYLES.find(x => x.id === hpStyle)?.t ?? hpStyle;
-      const sz = HP_SIZES[hpBrand]?.find(x => x.id === hpSize)?.t ?? hpSize;
-      const m = HP_MATERIALS.find(x => x.id === hpMaterial)?.t ?? hpMaterial;
-      return `Heat pump — ${b} ${st}, ${sz}, ${m}, WiFi: ${hpWifi}`;
+      const b = labels(HP_BRANDS, hpBrand);
+      const st = labels(HP_STYLES, hpStyle);
+      const sz = hpSize
+        .map(id => hpSizeOptions.find(o => o.id === id))
+        .filter(Boolean)
+        .map(o => `${o!.t} (${o!.tag})`)
+        .join(", ");
+      const m = labels(HP_MATERIALS, hpMaterial);
+      return `Heat pump — brand: ${b}; style: ${st}; size: ${sz}; material: ${m}; WiFi: ${hpWifi}`;
     }
     if (service === "split") {
-      const b = SPLIT_BRANDS.find(x => x.id === splitBrand)?.t ?? splitBrand;
-      const st = SPLIT_STYLES.find(x => x.id === splitStyle)?.t ?? splitStyle;
-      const heads = splitStyle === "multi" ? `${splitHeads} heads` : "1 head";
-      const sz = SPLIT_SIZES.find(x => x.id === splitSize)?.t ?? splitSize;
-      return `Split system — ${b}, ${st} (${heads}), ${sz}`;
+      const b = labels(SPLIT_BRANDS, splitBrand);
+      const st = labels(SPLIT_STYLES, splitStyle);
+      const parts: string[] = [];
+      if (splitStyle.includes("multi") && splitHeads.length) {
+        parts.push(`multi-head: ${labels(MULTI_HEAD_CONFIGS, splitHeads)}`);
+      }
+      if (splitStyle.includes("single") && splitSize.length) {
+        parts.push(`single-head sizes: ${labels(SPLIT_SIZES, splitSize)}`);
+      }
+      return `Split — brand: ${b}; style: ${st}; ${parts.join("; ") || "(config to confirm)"}`;
     }
     if (service === "ducted") {
-      const sz = DUCTED_SIZES.find(x => x.id === ductedSize)?.t ?? ductedSize;
-      return `Ducted aircon — ${sz}, ${ductedZones} zones, Milieu tablet: ${ductedTablet}`;
+      const sz = labels(DUCTED_SIZES, ductedSize);
+      const z = labels(ZONE_COUNTS, ductedZones);
+      return `Ducted — size: ${sz}; zones: ${z}; Milieu tablet: ${ductedTablet}`;
     }
-    const st = SERVICE_TYPES.find(x => x.id === svcType)?.t ?? svcType;
-    return `Service — ${st}, ${svcStories} storey`;
+    const st = labels(SERVICE_TYPES, svcType);
+    return `Service — appliance: ${st}; ${svcStories} storey`;
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -293,11 +408,11 @@ export function HeroQuoteForm() {
     <aside className="qcard" id="quote">
       <div className="qcard__ribbon">
         <span className="qcard__ribbon-dot" />
-        Free quote · usually replied within 2 hrs
+        Free quote · usually replied within 12 hrs
       </div>
 
       <h2 className="qcard__h">Get a fixed-price quote</h2>
-      <p className="qcard__sub">Pick your service and answer a few quick questions.</p>
+      <p className="qcard__sub">Tick every option you&rsquo;d consider — we&rsquo;ll price the lot.</p>
 
       {/* progress */}
       <div className="qcard__progress" aria-hidden="true">
@@ -320,50 +435,42 @@ export function HeroQuoteForm() {
         />
 
         {currentStep === "service" && (
-          <StepBlock title="What do you need?">
+          <StepBlock title="What do you need?" hint="Choose one — this sets your quote path.">
             <div className="qgrid qgrid--2">
               {SERVICES.map(s => (
-                <OptCard
-                  key={s.id}
-                  checked={service === s.id}
-                  onClick={() => handleService(s.id)}
-                  t={s.t}
-                  s={s.s}
-                />
+                <OptCard key={s.id} multi={false} checked={service === s.id}
+                  onClick={() => handleService(s.id)} t={s.t} s={s.s} />
               ))}
             </div>
           </StepBlock>
         )}
 
         {currentStep === "hp-brand" && (
-          <StepBlock title="Which brand of heat pump?">
+          <StepBlock title="Which brand(s) of heat pump?" hint="Pick any you'd consider — we'll quote all.">
             <div className="qgrid qgrid--3">
               {HP_BRANDS.map(b => (
-                <OptCard
-                  key={b.id}
-                  checked={hpBrand === b.id}
-                  onClick={() => { setHpBrand(b.id); setHpSize(""); }}
-                  t={b.t}
-                  s={b.s}
-                />
+                <OptCard key={b.id} multi checked={hpBrand.includes(b.id)}
+                  onClick={() => { setHpBrand(a => toggle(a, b.id)); setHpSize([]); }}
+                  t={b.t} s={b.s} />
               ))}
             </div>
           </StepBlock>
         )}
 
         {currentStep === "hp-style" && (
-          <StepBlock title="All-in-one or split?">
+          <StepBlock title="All-in-one or split — or quote both?" hint="Tick either or both.">
             <div className="qgrid qgrid--2">
               {HP_STYLES.map(x => (
                 <button
                   type="button"
                   key={x.id}
-                  onClick={() => setHpStyle(x.id)}
-                  className={`optbig ${hpStyle === x.id ? "is-on" : ""}`}
+                  onClick={() => { setHpStyle(a => toggle(a, x.id)); setHpSize([]); }}
+                  className={`optbig ${hpStyle.includes(x.id) ? "is-on" : ""}`}
                 >
                   <div className="optbig__head">
                     <span className="optbig__t">{x.t}</span>
                     <span className="optbig__s">{x.s}</span>
+                    <span className="optcheck">{hpStyle.includes(x.id) ? "✓" : ""}</span>
                   </div>
                   <div className="pxc">
                     <div>
@@ -382,33 +489,27 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-size" && (
-          <StepBlock title={`What size ${HP_BRANDS.find(b => b.id === hpBrand)?.t}?`}>
+          <StepBlock title="Tank size(s)" hint="Multiple selections OK — sizes shown for the brands and styles you picked.">
             <div className="qgrid qgrid--3">
-              {(HP_SIZES[hpBrand] ?? []).map(sz => (
-                <OptCard
-                  key={sz.id}
-                  checked={hpSize === sz.id}
-                  onClick={() => setHpSize(sz.id)}
-                  t={sz.t}
-                  s={sz.s}
-                />
+              {hpSizeOptions.map(sz => (
+                <OptCard key={sz.id} multi checked={hpSize.includes(sz.id)}
+                  onClick={() => setHpSize(a => toggle(a, sz.id))}
+                  t={sz.t} s={`${sz.s} · ${sz.tag}`} />
               ))}
             </div>
-            <p className="qhint">Not sure? Pick the closest — we&rsquo;ll sanity-check at the site visit.</p>
+            {hpSizeOptions.length === 0 && (
+              <p className="qhint">Pick a brand and style first — sizes will appear here.</p>
+            )}
           </StepBlock>
         )}
 
         {currentStep === "hp-material" && (
-          <StepBlock title="Tank material">
+          <StepBlock title="Tank material" hint="Happy with either? Tick both — we'll quote both.">
             <div className="qgrid qgrid--2">
               {HP_MATERIALS.map(m => (
-                <OptCard
-                  key={m.id}
-                  checked={hpMaterial === m.id}
-                  onClick={() => setHpMaterial(m.id)}
-                  t={m.t}
-                  s={m.s}
-                />
+                <OptCard key={m.id} multi checked={hpMaterial.includes(m.id)}
+                  onClick={() => setHpMaterial(a => toggle(a, m.id))}
+                  t={m.t} s={m.s} />
               ))}
             </div>
           </StepBlock>
@@ -417,85 +518,93 @@ export function HeroQuoteForm() {
         {currentStep === "hp-wifi" && (
           <StepBlock title="Add WiFi / app control?">
             <div className="qgrid qgrid--2">
-              <OptCard checked={hpWifi === "yes"} onClick={() => setHpWifi("yes")}
+              <OptCard multi={false} checked={hpWifi === "yes"} onClick={() => setHpWifi("yes")}
                 t="Yes — WiFi" s="Set schedules & watch running cost from your phone" />
-              <OptCard checked={hpWifi === "no"} onClick={() => setHpWifi("no")}
+              <OptCard multi={false} checked={hpWifi === "no"} onClick={() => setHpWifi("no")}
                 t="No — standard" s="Just the unit, no app" />
             </div>
           </StepBlock>
         )}
 
         {currentStep === "split-brand" && (
-          <StepBlock title="Which brand?">
+          <StepBlock title="Which brand(s)?" hint="Multiple selections OK.">
             <div className="qgrid qgrid--2">
               {SPLIT_BRANDS.map(b => (
-                <OptCard key={b.id} checked={splitBrand === b.id}
-                  onClick={() => setSplitBrand(b.id)} t={b.t} s={b.s} />
+                <OptCard key={b.id} multi checked={splitBrand.includes(b.id)}
+                  onClick={() => setSplitBrand(a => toggle(a, b.id))}
+                  t={b.t} s={b.s} />
               ))}
             </div>
           </StepBlock>
         )}
 
         {currentStep === "split-style" && (
-          <StepBlock title="Single head or multi-head?">
+          <StepBlock title="Single head, multi-head, or both?">
             <div className="qgrid qgrid--2">
               {SPLIT_STYLES.map(x => (
-                <OptCard key={x.id} checked={splitStyle === x.id}
-                  onClick={() => setSplitStyle(x.id as "single" | "multi")}
+                <OptCard key={x.id} multi checked={splitStyle.includes(x.id)}
+                  onClick={() => setSplitStyle(a => toggle(a, x.id))}
                   t={x.t} s={x.s} />
               ))}
             </div>
           </StepBlock>
         )}
 
-        {currentStep === "split-heads" && splitStyle === "multi" && (
-          <StepBlock title="How many indoor heads?">
-            <div className="qgrid qgrid--4">
-              {HEAD_COUNTS.map(n => (
-                <OptCard key={n} checked={splitHeads === n}
-                  onClick={() => setSplitHeads(n)} t={n} s="heads" small />
+        {currentStep === "split-heads" && (
+          <StepBlock
+            title="Multi-head configuration"
+            hint="Pick every count × size combo you'd consider. Not sure? Pick the last option and send us a floor plan."
+          >
+            <div className="qgrid qgrid--3">
+              {MULTI_HEAD_CONFIGS.map(c => (
+                <OptCard key={c.id} multi checked={splitHeads.includes(c.id)}
+                  onClick={() => setSplitHeads(a => toggle(a, c.id))}
+                  t={c.t} s={c.s} />
               ))}
             </div>
-          </StepBlock>
-        )}
-
-        {currentStep === "split-heads" && splitStyle === "single" && (
-          <StepBlock title="One indoor head — moving on">
-            <p className="qhint">Single-head selected, so we&rsquo;ll skip head-count. Next up: size.</p>
+            {splitHeads.includes("unsure") && (
+              <p className="qhint">Great — attach your floor plan on the details step and we&rsquo;ll design the layout for you.</p>
+            )}
           </StepBlock>
         )}
 
         {currentStep === "split-size" && (
-          <StepBlock title={splitStyle === "multi" ? "Rough size of each head" : "What size head?"}>
+          <StepBlock title="Single-head size" hint="Multiple selections OK.">
             <div className="qgrid qgrid--3">
               {SPLIT_SIZES.map(sz => (
-                <OptCard key={sz.id} checked={splitSize === sz.id}
-                  onClick={() => setSplitSize(sz.id)} t={sz.t} s={sz.s} />
+                <OptCard key={sz.id} multi checked={splitSize.includes(sz.id)}
+                  onClick={() => setSplitSize(a => toggle(a, sz.id))}
+                  t={sz.t} s={sz.s} />
               ))}
             </div>
+            {splitSize.includes("unsure") && (
+              <p className="qhint">No worries — attach your floor plan on the details step so we can size the heads.</p>
+            )}
           </StepBlock>
         )}
 
         {currentStep === "ducted-size" && (
-          <StepBlock title="Rough system size?">
+          <StepBlock title="Rough system size?" hint="Multiple selections OK.">
             <div className="qgrid qgrid--3">
               {DUCTED_SIZES.map(sz => (
-                <OptCard key={sz.id} checked={ductedSize === sz.id}
-                  onClick={() => setDuctedSize(sz.id)} t={sz.t} s={sz.s} />
+                <OptCard key={sz.id} multi checked={ductedSize.includes(sz.id)}
+                  onClick={() => setDuctedSize(a => toggle(a, sz.id))}
+                  t={sz.t} s={sz.s} />
               ))}
             </div>
           </StepBlock>
         )}
 
         {currentStep === "ducted-zones" && (
-          <StepBlock title="How many zones?">
+          <StepBlock title="How many zones?" hint="Pick every count you'd be open to.">
             <div className="qgrid qgrid--4">
               {ZONE_COUNTS.map(n => (
-                <OptCard key={n} checked={ductedZones === n}
-                  onClick={() => setDuctedZones(n)} t={n} s="zones" small />
+                <OptCard key={n.id} multi checked={ductedZones.includes(n.id)}
+                  onClick={() => setDuctedZones(a => toggle(a, n.id))}
+                  t={n.t} s={n.s} small />
               ))}
             </div>
-            <p className="qhint">Zones = individually controlled areas. A typical 4-bed home uses 5–6.</p>
+            <p className="qhint">Zones = individually controlled areas. A typical 4-bed home uses 5–6, but there&rsquo;s no fixed rule — we custom-design every floor plan to your needs (we&rsquo;ve fitted 9 zones onto an 18 kW system).</p>
           </StepBlock>
         )}
 
@@ -511,7 +620,7 @@ export function HeroQuoteForm() {
                 </div>
                 <ul className="qbullets">
                   <li>Individual room temperatures, timers &amp; schedules</li>
-                  <li>Live power draw &amp; running-cost tracking</li>
+                  <li>Set-and-forget temperatures per zone</li>
                   <li>Smart-home &amp; iZone (ITC) compatible</li>
                   <li>Premium finish — fits luxury builds &amp; renos</li>
                 </ul>
@@ -525,7 +634,6 @@ export function HeroQuoteForm() {
                 </div>
                 <ul className="qbullets qbullets--muted">
                   <li>Zone on/off from the wall</li>
-                  <li>Set-and-forget temperature</li>
                   <li>Lower up-front cost</li>
                 </ul>
               </button>
@@ -534,11 +642,12 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "svc-type" && (
-          <StepBlock title="What needs looking at?">
+          <StepBlock title="What needs looking at?" hint="Tick everything that applies.">
             <div className="qgrid qgrid--3">
               {SERVICE_TYPES.map(s => (
-                <OptCard key={s.id} checked={svcType === s.id}
-                  onClick={() => setSvcType(s.id)} t={s.t} s={s.s} />
+                <OptCard key={s.id} multi checked={svcType.includes(s.id)}
+                  onClick={() => setSvcType(a => toggle(a, s.id))}
+                  t={s.t} s={s.s} />
               ))}
             </div>
           </StepBlock>
@@ -548,7 +657,7 @@ export function HeroQuoteForm() {
           <StepBlock title="Single or double storey?">
             <div className="qgrid qgrid--2">
               {STORIES.map(s => (
-                <OptCard key={s.id} checked={svcStories === s.id}
+                <OptCard key={s.id} multi={false} checked={svcStories === s.id}
                   onClick={() => setSvcStories(s.id as "single" | "double")}
                   t={s.t} s={s.s} />
               ))}
@@ -599,7 +708,7 @@ export function HeroQuoteForm() {
               {photo && <span className="qphoto__hint">✓ {photo.name}</span>}
             </label>
             <p className="qcard__finep">
-              We&rsquo;ll come back within 2 business hours. No spam, no shared data.
+              We&rsquo;ll come back within 12 hours. No spam, no shared data.
             </p>
           </StepBlock>
         )}
@@ -628,26 +737,37 @@ export function HeroQuoteForm() {
 
 /* --- small presentational subcomponents --- */
 
-function StepBlock({ title, children }: { title: string; children: React.ReactNode }) {
+function StepBlock({
+  title, hint, children,
+}: {
+  title: string; hint?: string; children: React.ReactNode;
+}) {
   return (
     <div className="qstep">
       <h3 className="qstep__h">{title}</h3>
+      {hint && <p className="qstep__hint">{hint}</p>}
       {children}
     </div>
   );
 }
 
 function OptCard({
-  checked, onClick, t, s, small = false,
+  checked, onClick, t, s, small = false, multi = false,
 }: {
-  checked: boolean; onClick: () => void; t: string; s?: string; small?: boolean;
+  checked: boolean; onClick: () => void; t: string; s?: string; small?: boolean; multi?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`opt ${checked ? "is-on" : ""} ${small ? "opt--small" : ""}`}
+      className={`opt ${checked ? "is-on" : ""} ${small ? "opt--small" : ""} ${multi ? "opt--multi" : ""}`}
+      aria-pressed={multi ? checked : undefined}
     >
+      {multi && (
+        <span className="opt__check" aria-hidden="true">
+          {checked ? "✓" : ""}
+        </span>
+      )}
       <span className="opt__t">{t}</span>
       {s && <span className="opt__s">{s}</span>}
     </button>

@@ -48,6 +48,32 @@ const SUBURBS = [
   "Cockatoo","Emerald","Gembrook","Tooradin",
 ];
 
+type Review = { title: string; txt: string; who: string; what: string; a: string };
+
+const REVIEW_COLUMNS: Review[][] = [
+  [
+    { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. Bloke on the phone is the bloke on the tools — refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" },
+    { title: "Actually got up in the roof", txt: "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.", who: "Dean R.", what: "Officer · ducted retrofit", a: "DR" },
+    { title: "Emergency sorted Sunday", txt: "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.", who: "Sam K.", what: "Berwick · emergency hot water", a: "SK" },
+    { title: "No surprises on the invoice", txt: "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.", who: "Priya S.", what: "Cranbourne · split install", a: "PS" },
+    { title: "Explained everything", txt: "Walked me through the Milieu tablet, showed the wife how to use it, showed us the compliance cert. Ten minutes of teaching that other installers just skip.", who: "Marcus T.", what: "Officer · ducted aircon", a: "MT" },
+  ],
+  [
+    { title: "Family business, feels it", txt: "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.", who: "Tom H.", what: "Narre Warren · heat pump", a: "TH" },
+    { title: "Rebate handled — didn't lift a finger", txt: "The VEU paperwork looked scary online. They filled it all in, I signed once at the quote and once on the day. Rebate was already in the price. Painless.", who: "Lauren M.", what: "Pakenham · heat pump swap", a: "LM" },
+    { title: "Cleaned up like nothing happened", txt: "Full ducted retrofit over two days. When they left the roof cavity was tidier than they found it and the driveway had been swept. Small thing but it matters.", who: "Bianca R.", what: "Berwick · ducted install", a: "BR" },
+    { title: "Follow-up call was a surprise", txt: "A week after install they rang to check the heat pump was running quiet and the app was set up. First tradie who's ever followed up after payment cleared.", who: "Nick D.", what: "Beaconsfield · heat pump", a: "ND" },
+    { title: "Split install in half a day", txt: "Bedroom Mitsubishi went in before lunch. Neat pipework, brackets straight, temp checked before they left. Would use again for the lounge.", who: "Alex P.", what: "Cranbourne East · split", a: "AP" },
+  ],
+  [
+    { title: "Talked me OUT of a big spend", txt: "I was ready to spend on a 22kW ducted system, they measured the house and said 14 would do it. Saved me $4k and it still cools like a dream.", who: "Dave K.", what: "Pakenham · ducted aircon", a: "DK" },
+    { title: "Best price on the Reclaim", txt: "Rang three installers. These guys came in $600 cheaper on the same Reclaim heat pump AND handled the rebate. No brainer.", who: "Chelsea O.", what: "Officer · heat pump", a: "CO" },
+    { title: "Fixed a botched install", txt: "Someone else had put in a ducted system that never really cooled the back rooms. They rebalanced the zones, sealed a duct, and now it's night and day.", who: "Ravi P.", what: "Berwick · ducted repair", a: "RP" },
+    { title: "Service visit was thorough", txt: "Booked the annual gas heater service. Actual CO test, actual clean, actual report. Not the 10-minute rip-off I was expecting.", who: "Karen W.", what: "Hallam · gas heater service", a: "KW" },
+    { title: "Straight-shooters", txt: "Told me the old Rinnai had two years left and to hold off replacing it. Didn't try to upsell. That's why I'll call them when the time comes.", who: "Ben S.", what: "Endeavour Hills · consult", a: "BS" },
+  ],
+];
+
 export default function HomePage() {
   return (
     <div className="page-home">
@@ -335,14 +361,16 @@ export default function HomePage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How it works</span>
-            <h2 className="ds-h--on-dark">From &ldquo;thinking about it&rdquo; to hot showers in about a week.</h2>
+            <h2 className="ds-h--on-dark">Simple, honest, no runaround.</h2>
           </div>
           <ol className="steps">
             {[
-              [1, "You ask for a quote", "3-question form (60 seconds) or a phone call. Tell us what you've got and what you want.", "~ 60 sec"],
-              [2, "We do a site check", "Free 20-minute visit. Measure, photograph, check rebate eligibility, confirm exact gear.", "within 48 hrs"],
-              [3, "Fixed quote + rebate maths", "Emailed PDF with the rebate already deducted. Optional 24-month interest-free finance.", "same day"],
-              [4, "We install & certify", "Usually 1 day on site. Old unit removed, area cleaned, compliance cert + warranty pack emailed.", "day of install"],
+              [1, "You get in touch", "Fill out the quote form or give us a call — tell us what you’re after.", "~ 5 min"],
+              [2, "Quote back within 12 hrs", "We send a fixed-price quote back within 12 hours. Straight to your inbox.", "within 12 hrs"],
+              [3, "Site visit if needed", "For bigger jobs (ducted, tricky retrofits) we’ll pop out for a proper look.", "when required"],
+              [4, "Any questions? Ask away", "We’ll walk you through the gear, timing and paperwork before you commit.", "before install"],
+              [5, "We install & show you how", "Clean install, old unit gone, and we walk you through operating your new system.", "install day"],
+              [6, "Follow-up next week", "Quick call the following week to make sure everything’s running the way it should.", "week after"],
             ].map(([n, t, d, time]) => (
               <li key={n as number} className="step">
                 <span className="step__num">{n}</span>
@@ -355,7 +383,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* REVIEWS */}
+      {/* REVIEWS — scrolling columns */}
       <section className="reviews">
         <div className="wrap">
           <div className="reviews__head">
@@ -369,21 +397,29 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="reviews__grid">
-            {[
-              { txt: "Quoted Monday, installed Friday. Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. Bloke on the phone is the bloke on the tools — refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" },
-              { txt: "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Came in middle of the pack on price but installed cleaner than the others would have. Worth the call.", who: "Dean R.", what: "Officer · ducted retrofit", a: "DR" },
-              { txt: "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service. Will be calling them for the split next summer.", who: "Sam K.", what: "Berwick · emergency hot water", a: "SK" },
-            ].map((r) => (
-              <article key={r.who} className="review">
-                <div className="review__stars">★★★★★</div>
-                <p>&ldquo;{r.txt}&rdquo;</p>
-                <div className="review__by">
-                  <span className="review__avatar">{r.a}</span>
-                  <div><strong>{r.who}</strong><span>{r.what}</span></div>
+          <div className="reviews__marquee" aria-label="Recent Google reviews">
+            {REVIEW_COLUMNS.map((col, ci) => (
+              <div key={ci} className={`revcol revcol--${ci + 1}`}>
+                <div className="revcol__track">
+                  {[...col, ...col].map((r, ri) => (
+                    <article key={`${ci}-${ri}`} className="revcard">
+                      <div className="revcard__stars">★★★★★</div>
+                      <h4 className="revcard__title">{r.title}</h4>
+                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                      <div className="revcard__by">
+                        <span className="revcard__avatar">{r.a}</span>
+                        <div>
+                          <strong>{r.who}</strong>
+                          <span>{r.what}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-              </article>
+              </div>
             ))}
+            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
+            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
           </div>
         </div>
       </section>
@@ -403,25 +439,12 @@ export default function HomePage() {
             <p className="area__finep">Outside this list? Give us a call — we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">
-            <div className="map">
-              <span className="ph-tag ph-tag--dark">map placeholder · 50km radius around Pakenham 3810</span>
-              <svg className="map__svg" viewBox="0 0 400 400" aria-hidden="true">
-                <defs>
-                  <pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M0 20 L20 0" stroke="#0b1450" strokeOpacity="0.07" strokeWidth="1" />
-                  </pattern>
-                </defs>
-                <rect width="400" height="400" fill="url(#g)" />
-                <circle cx="200" cy="200" r="150" fill="#00b0ed" fillOpacity="0.10" stroke="#00b0ed" strokeWidth="1.5" strokeDasharray="4 6" />
-                <circle cx="200" cy="200" r="90" fill="#f36722" fillOpacity="0.10" stroke="#f36722" strokeWidth="1.5" />
-                <circle cx="200" cy="200" r="6" fill="#f36722" />
-                <text x="208" y="195" fontFamily="JetBrains Mono, monospace" fontSize="11" fill="#0b1450" fontWeight="600">PAKENHAM</text>
-                <text x="208" y="208" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#0b1450" opacity="0.6">3810 · HQ</text>
-                <text x="120" y="80" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#0b1450" opacity="0.7">Dandenong</text>
-                <text x="240" y="320" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#0b1450" opacity="0.7">Warragul</text>
-                <text x="60" y="220" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#0b1450" opacity="0.7">Cranbourne</text>
-                <text x="290" y="160" fontFamily="JetBrains Mono, monospace" fontSize="9" fill="#0b1450" opacity="0.7">Emerald</text>
-              </svg>
+            <div className="map map--placeholder" aria-label="Service area map placeholder">
+              <div className="map__label">
+                <span className="map__label-eyebrow">Map</span>
+                <span className="map__label-txt">Placeholder</span>
+                <span className="map__label-note">50 km radius around Pakenham 3810</span>
+              </div>
             </div>
           </div>
         </div>
