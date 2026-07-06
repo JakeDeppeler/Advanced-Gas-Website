@@ -27,8 +27,10 @@
   box-shadow: var(--shadow-md); color: #fff;
 }
 .page-blog .bl-feat__photo {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.18) 0 8px, transparent 8px 18px), #1a2455;
-  min-height: 360px; display: flex; align-items: flex-end; padding: 18px;
+  position: relative;
+  background: #1a2455;
+  min-height: 360px;
+  overflow: hidden;
 }
 .page-blog .bl-feat__copy {
   padding: 48px; display: flex; flex-direction: column; justify-content: center;
@@ -61,12 +63,10 @@
 .page-blog .bl-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .page-blog .bl-card__photo {
   aspect-ratio: 5/3;
-  background: repeating-linear-gradient(135deg, rgba(11,20,80,0.05) 0 6px, transparent 6px 14px), #e8eef5;
-  display: flex; align-items: flex-end; padding: 12px;
-  border-bottom: 1px solid var(--line); position: relative;
-}
-.page-blog .bl-card--alt .bl-card__photo {
-  background: repeating-linear-gradient(135deg, rgba(243,103,34,0.07) 0 6px, transparent 6px 14px), #f4e9d8;
+  background: #e8eef5;
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
 }
 .page-blog .bl-card__photo-tag {
   position: absolute; top: 12px; left: 12px;

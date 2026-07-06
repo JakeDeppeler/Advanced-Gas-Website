@@ -165,6 +165,7 @@
   font-family: var(--f-display); font-weight: 800;
   font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.02em;
   margin: 14px 0 14px; text-wrap: balance;
+  color: #fff;
 }
 .page-about .ab-acc p { font-size: 17px; color: rgba(255,255,255,0.78); margin: 0 0 18px; max-width: 480px; }
 .page-about .acc-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }

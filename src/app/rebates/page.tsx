@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
@@ -64,7 +65,8 @@ const products = [
     ],
     rebate: "up to $2,600",
     pill: "flagship",
-    photoTag: "photo: Reclaim CO₂ heat pump · 270L",
+    photo: "/reclaim-split-back.jpg",
+    photoAlt: "Reclaim CO₂ heat pump install",
   },
   {
     brand: "iStore",
@@ -77,7 +79,8 @@ const products = [
     ],
     rebate: "up to $2,400",
     pill: "mid-range",
-    photoTag: "photo: iStore heat pump · 270L",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "iStore heat pump install",
   },
   {
     brand: "Thermann",
@@ -90,7 +93,8 @@ const products = [
     ],
     rebate: "up to $2,200",
     pill: "value",
-    photoTag: "photo: Thermann heat pump · 270L",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Thermann heat pump install",
   },
   {
     brand: "Mitsubishi Electric",
@@ -103,7 +107,8 @@ const products = [
     ],
     rebate: "up to $1,800",
     pill: "flagship",
-    photoTag: "photo: Mitsubishi Electric split system",
+    photo: "/reclaim-mitsubishi.jpg",
+    photoAlt: "Mitsubishi Electric split system install",
   },
   {
     brand: "Kaden",
@@ -116,7 +121,8 @@ const products = [
     ],
     rebate: "up to $1,500",
     pill: "value",
-    photoTag: "photo: Kaden split system install",
+    photo: "/kaden-indoor.jpg",
+    photoAlt: "Kaden split system indoor head install",
   },
   {
     brand: "Mitsubishi / Kaden",
@@ -129,7 +135,8 @@ const products = [
     ],
     rebate: "up to $5,000",
     pill: "whole home",
-    photoTag: "photo: ducted aircon install",
+    photo: "/ducted-condenser.jpg",
+    photoAlt: "Ducted aircon condenser install",
   },
 ];
 
@@ -271,8 +278,14 @@ export default function RebatesPage() {
           <div className="rb-prodgrid">
             {products.map((p) => (
               <article key={p.name} className="rb-prod">
-                <div className="rb-prod__photo">
-                  <span className="ph-tag">{p.photoTag}</span>
+                <div className="rb-prod__photo" style={{ position: "relative" }}>
+                  <Image
+                    src={p.photo}
+                    alt={p.photoAlt}
+                    fill
+                    sizes="(max-width: 900px) 100vw, 33vw"
+                    style={{ objectFit: "cover" }}
+                  />
                 </div>
                 <div className="rb-prod__body">
                   <span className="rb-prod__brand">{p.brand}</span>

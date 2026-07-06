@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220" role="img" aria-label="Advanced Gas and Aircon">
+  <title>Advanced Gas &amp; Aircon</title>
+  <!-- Navy background -->
+  <rect width="220" height="220" fill="#1F2C7A"/>
+  <!-- Orange flame top -->
+  <path d="M110 42 L64 132 L156 132 Z" fill="#ED5C25"/>
+  <!-- Blue droplet body -->
+  <path d="M64 132 a46 46 0 1 0 92 0 Z" fill="#1AAEE6"/>
+  <!-- White interior negative space forming G -->
+  <path d="M110 92 a30 30 0 1 0 0 60 h20 v-30 h-20 v8 h11 v14 h-11 a22 22 0 1 1 0 -44 a22 22 0 0 1 20 13 l8 -4 a30 30 0 0 0 -28 -17 z" fill="#FFFFFF"/>
+  <!-- Red dot -->
+  <circle cx="132" cy="162" r="8" fill="#E1373F"/>
+</svg>

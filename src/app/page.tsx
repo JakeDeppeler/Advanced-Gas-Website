@@ -180,26 +180,33 @@ export default function HomePage() {
 
           <div className="fixprice__grid fixprice__grid--3">
             <article className="fixprice">
+              <div className="fixprice__badges">
+                <span className="fixprice__badge fixprice__badge--value">Best value</span>
+                <span className="fixprice__badge fixprice__badge--aus">Australian made</span>
+              </div>
               <div className="fixprice__photo fixprice__photo--aio" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
-                <h3>Reclaim CO&#8322; all-in-one &mdash; fully installed</h3>
+                <h3>Reclaim R290 all-in-one &mdash; fully installed</h3>
                 <ul className="fixprice__feat">
                   <li>All-in-one: tank &amp; compressor in one unit</li>
-                  <li>200 L or 300 L available (Reclaim / Thermann / iStore)</li>
+                  <li>R290 refrigerant &mdash; low GWP, efficient in cold</li>
                   <li>Old gas / electric unit removed &amp; disposed</li>
                   <li>VEU rebate applied, compliance cert included</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">$2,730</span>
+                  <span className="fixprice__price-num">$2,610</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
-                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the all-in-one &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the R290 &rarr;</a>
               </div>
             </article>
 
             <article className="fixprice fixprice--feature">
-              <span className="fixprice__badge">Highest quality</span>
+              <div className="fixprice__badges">
+                <span className="fixprice__badge fixprice__badge--top">Highest quality</span>
+                <span className="fixprice__badge fixprice__badge--aus">Australian made</span>
+              </div>
               <div className="fixprice__photo fixprice__photo--split" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
@@ -219,6 +226,10 @@ export default function HomePage() {
             </article>
 
             <article className="fixprice">
+              <div className="fixprice__badges">
+                <span className="fixprice__badge fixprice__badge--quality">High quality</span>
+                <span className="fixprice__badge fixprice__badge--best">Best product</span>
+              </div>
               <div className="fixprice__photo fixprice__photo--ducted" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Ducted aircon</span>
@@ -231,7 +242,7 @@ export default function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">from&nbsp;$11,000</span>
-                  <span className="fixprice__price-lbl">inc GST</span>
+                  <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the ducted &rarr;</a>
               </div>

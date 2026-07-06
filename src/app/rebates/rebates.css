@@ -162,7 +162,12 @@
   margin: 22px 0 22px;
   text-wrap: balance;
   max-width: 980px;
+  color: #fff;
 }
+/* Any h2/h3 sitting inside a dark rebates section stays white too */
+.page-rebates .rb-hero h2,
+.page-rebates .rb-hero h3,
+.page-rebates .rb-hero h4 { color: #fff; }
 .page-rebates .rb-hero h1 em {
   font-style: italic;
   color: var(--orange);
@@ -335,6 +340,114 @@
   flex-wrap: wrap;
 }
 
+/* ============== REBATE CALCULATOR — v2 (brand + product) ============== */
+.page-rebates .rb-calc--v2 { padding: 28px 26px 26px; }
+.page-rebates .rb-calc__head { margin-bottom: 12px; }
+.page-rebates .rb-calc__progress {
+  display: flex; align-items: center; gap: 4px;
+  margin-bottom: 22px;
+}
+.page-rebates .rb-calc__progress i {
+  height: 4px; flex: 1; border-radius: 2px; background: var(--line-2);
+  transition: background 0.2s;
+}
+.page-rebates .rb-calc__progress i.is-on { background: var(--orange); }
+.page-rebates .rb-calc__progress span {
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ink-3); margin-left: 10px; white-space: nowrap;
+}
+.page-rebates .rb-calc__block { margin-bottom: 20px; }
+.page-rebates .rb-calc__block--modifiers {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.page-rebates .rb-calc__mod { display: flex; flex-direction: column; gap: 8px; }
+.page-rebates .rb-calc__grid { display: grid; gap: 8px; }
+.page-rebates .rb-calc__grid--2 { grid-template-columns: 1fr 1fr; }
+.page-rebates .rb-calc__grid--3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) {
+  .page-rebates .rb-calc__grid--3 { grid-template-columns: 1fr 1fr; }
+  .page-rebates .rb-calc__block--modifiers { grid-template-columns: 1fr; }
+}
+.page-rebates .rb-calc__card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: border-color 0.15s, background 0.15s, transform 0.08s;
+}
+.page-rebates .rb-calc__card:hover { border-color: var(--sky); background: rgba(0,176,237,0.04); }
+.page-rebates .rb-calc__card.is-on {
+  border-color: var(--navy); background: var(--navy); color: #fff;
+}
+.page-rebates .rb-calc__card-t {
+  font-weight: 700; font-size: 14px; color: var(--navy);
+  font-family: var(--f-display); letter-spacing: -0.005em;
+}
+.page-rebates .rb-calc__card.is-on .rb-calc__card-t { color: #fff; }
+.page-rebates .rb-calc__card-s {
+  font-size: 12.5px; color: var(--ink-3); line-height: 1.35;
+}
+.page-rebates .rb-calc__card.is-on .rb-calc__card-s { color: rgba(255,255,255,0.72); }
+.page-rebates .rb-calc__card-rebate {
+  margin-top: 4px;
+  font-family: var(--f-mono); font-size: 11px;
+  font-weight: 600; letter-spacing: 0.04em;
+  color: var(--orange);
+}
+.page-rebates .rb-calc__card.is-on .rb-calc__card-rebate { color: #ff9d5c; }
+
+.page-rebates .rb-calc__pill {
+  padding: 10px 12px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--navy);
+  text-align: center;
+  transition: all 0.15s;
+}
+.page-rebates .rb-calc__pill:hover { border-color: var(--sky); }
+.page-rebates .rb-calc__pill.is-on {
+  border-color: var(--navy); background: var(--navy); color: #fff;
+}
+
+.page-rebates .rb-calc--v2 .rb-calc__result {
+  margin-top: 22px;
+  padding: 26px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+}
+.page-rebates .rb-calc__result-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.page-rebates .rb-calc__result-row:last-of-type { border-bottom: none; }
+.page-rebates .rb-calc__result-num {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: 30px; color: var(--orange);
+  letter-spacing: -0.02em; line-height: 1;
+}
+.page-rebates .rb-calc__result-num--net { color: #fff; }
+.page-rebates .rb-calc__result-num small {
+  font-family: var(--f-mono); font-weight: 500; font-size: 11px;
+  color: rgba(255,255,255,0.55); letter-spacing: 0.04em;
+  margin-left: 6px;
+}
+.page-rebates .rb-calc__result-blurb {
+  font-size: 13.5px; color: rgba(255,255,255,0.78);
+  margin: 14px 0 16px; line-height: 1.5;
+}
+.page-rebates .rb-calc__result-blurb strong { color: #fff; }
+
 /* ============== HOW IT WORKS ============== */
 .page-rebates .rb-how {
   padding: 100px 0;
@@ -397,13 +510,10 @@
   flex-direction: column;
 }
 .page-rebates .rb-prod__photo {
-  background:
-    repeating-linear-gradient(135deg, rgba(0, 176, 237, 0.06) 0 6px, transparent 6px 16px),
-    var(--bg-2);
+  position: relative;
+  background: #e8eef5;
   aspect-ratio: 5 / 3;
-  display: flex;
-  align-items: flex-end;
-  padding: 14px;
+  overflow: hidden;
   border-bottom: 1px solid var(--line);
 }
 .page-rebates .ph-tag {
