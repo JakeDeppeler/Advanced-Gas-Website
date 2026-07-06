@@ -24,16 +24,18 @@ import { site } from "@/lib/site";
 /* ------- constants ------- */
 const RRP_DISCOUNT   = 100;
 const GST_RATE       = 1.1;
-const VEEC           = 490;
-const STC            = 560;
+const VEEC           = 576;   // per Reclaim 400 SS V2 FieldPulse quote (8 × $72)
+const STC            = 629;   // per Reclaim 400 SS V2 FieldPulse quote (17 × $37)
 const AUS_MADE       = 400;
 const VIC_SOLAR      = 1_000;
-const POWER_ADDON    = 450; // new power point + electrical when AIO doesn't have one
+const POWER_ADDON    = 450;   // new power point + electrical when AIO doesn't have one
 
 // Install cost packs (ex GST). AIO is plug-in, no electrical needed.
+// Split labour bumped to $1,000, materials $500, electrical $400 per the
+// latest FieldPulse quote — same $1,950 ex GST total, redistributed.
 const INSTALL_EXGST = {
-  aio:   700 + 350 + 50,            // labour + materials + BPC          = 1,100
-  split: 900 + 650 + 350 + 50,      // labour + materials + electrical + BPC = 1,950
+  aio:   700   + 350 +   0 + 50,    // labour + materials + BPC              = 1,100
+  split: 1_000 + 500 + 400 + 50,    // labour + materials + electrical + BPC = 1,950
 };
 
 /* ------- data ------- */
@@ -92,7 +94,7 @@ const HP_BRANDS: Brand[] = [
     ausMade: false,
     products: [
       { id: "istore-180", name: "iStore 180 L", desc: "1–3 person homes", rrp: 2800, install: "split" },
-      { id: "istore-270", name: "iStore 270 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
+      { id: "istore-275", name: "iStore 275 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
     ],
   },
   {

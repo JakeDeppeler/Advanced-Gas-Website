@@ -55,46 +55,60 @@ const faqs = [
 
 const products = [
   {
-    brand: "Reclaim · CO₂",
-    name: "Reclaim 270L heat pump",
+    brand: "Reclaim · CO₂ Split",
+    name: "Reclaim CO₂ split heat pump",
     bullets: [
-      "Natural CO₂ refrigerant (R744)",
-      "10-year tank warranty",
-      "Quietest in class — 37 dB",
-      "Best for: 3–5 person households",
+      "Compressor split from tank — quieter, longer life",
+      "Stainless steel 15-year warranty option",
+      "315 L or 400 L, Wi-Fi smart control",
+      "Best for: premium installs & solar pairing",
     ],
-    rebate: "up to $2,600",
-    pill: "flagship",
+    rebate: "up to $2,605",
+    pill: "premium",
     photo: "/reclaim-split-back.jpg",
-    photoAlt: "Reclaim CO₂ heat pump install",
+    photoAlt: "Reclaim CO₂ split heat pump install",
+  },
+  {
+    brand: "Reclaim · R290 AIO",
+    name: "Reclaim R290 all-in-one 300 L",
+    bullets: [
+      "Plug-in all-in-one — tank + compressor in one unit",
+      "R290 refrigerant, low GWP",
+      "Compact footprint — fast, simple installs",
+      "Best for: 3–4 person homes",
+    ],
+    rebate: "up to $2,605",
+    pill: "value",
+    photo: "/thermann-heat-pump.jpg",
+    photoAlt: "Reclaim R290 all-in-one heat pump",
   },
   {
     brand: "iStore",
-    name: "iStore 270L heat pump",
+    name: "iStore 275 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
       "6-year tank warranty",
       "Best for: solar-paired households",
     ],
-    rebate: "up to $2,400",
+    rebate: "up to $2,205",
     pill: "mid-range",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "iStore heat pump install",
   },
   {
-    brand: "Thermann",
-    name: "Thermann 270L heat pump",
+    brand: "Thermann · R290",
+    name: "Thermann 285 L R290 all-in-one",
     bullets: [
-      "Budget-friendly entry point",
-      "Stainless steel tank",
+      "Australian made — extra $400 rebate",
+      "R290 refrigerant, low GWP",
       "5-year tank warranty",
-      "Best for: smaller homes / rentals",
+      "Best for: 3–4 person homes",
     ],
-    rebate: "up to $2,200",
+    rebate: "up to $2,605",
     pill: "value",
     photo: "/thermann-heat-pump.jpg",
-    photoAlt: "Thermann heat pump install",
+    photoAlt: "Thermann 285 L R290 heat pump",
   },
   {
     brand: "Mitsubishi Electric",
@@ -284,7 +298,7 @@ export default function RebatesPage() {
                     alt={p.photoAlt}
                     fill
                     sizes="(max-width: 900px) 100vw, 33vw"
-                    style={{ objectFit: "cover" }}
+                    style={{ objectFit: "contain", padding: "16px" }}
                   />
                 </div>
                 <div className="rb-prod__body">

@@ -219,10 +219,10 @@ export default function HomePage() {
                   <li>15-year warranty on stainless tank option</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">from&nbsp;$5,100</span>
+                  <span className="fixprice__price-num">from&nbsp;$5,340</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
-                <p className="fixprice__note">315&nbsp;L glass-lined Wi-Fi from $5,100. 400&nbsp;L stainless steel Wi-Fi $6,480 inc GST.</p>
+                <p className="fixprice__note">315&nbsp;L glass-lined Wi-Fi from $5,340. 400&nbsp;L stainless steel Wi-Fi $6,745 inc GST.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
               </div>
             </article>

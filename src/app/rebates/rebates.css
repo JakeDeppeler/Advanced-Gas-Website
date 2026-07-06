@@ -599,8 +599,8 @@
 }
 .page-rebates .rb-prod__photo {
   position: relative;
-  background: #e8eef5;
-  aspect-ratio: 5 / 3;
+  background: #f4f0e6;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
 }
