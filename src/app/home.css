@@ -40,8 +40,8 @@
 .page-home .hero__bg {
   position: absolute; inset: 0;
   background:
-    linear-gradient(90deg, rgba(5,10,48,0.82) 0%, rgba(5,10,48,0.55) 55%, rgba(5,10,48,0.35) 100%),
-    linear-gradient(180deg, rgba(5,10,48,0.35) 0%, rgba(5,10,48,0.55) 100%),
+    linear-gradient(90deg, rgba(5,10,48,0.65) 0%, rgba(5,10,48,0.35) 55%, rgba(5,10,48,0.15) 100%),
+    linear-gradient(180deg, rgba(5,10,48,0.25) 0%, rgba(5,10,48,0.35) 100%),
     url("/team-photo.png") center 40% / cover no-repeat,
     linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   z-index: 0;
@@ -357,13 +357,11 @@
 }
 .page-home .fixprice__photo {
   position: relative;
-  min-height: 380px;
-  display: flex; align-items: flex-end; padding: 14px;
+  min-height: 460px;
+  padding: 14px;
   border-bottom: 1px solid var(--line);
-}
-.page-home .fixprice__photo {
-  background-color: #e8eef5;
-  background-size: cover;
+  background-color: #f4f0e6;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
 }
@@ -565,19 +563,18 @@
 .page-home .bcard--xl { grid-column: span 2; grid-row: span 2; }
 .page-home .bcard__photo {
   position: relative;
-  background:
-    repeating-linear-gradient(135deg, rgba(11,20,80,0.05) 0 8px, transparent 8px 16px),
-    var(--bg-2);
+  background-color: var(--bg-2);
   border-bottom: 1px solid var(--line);
   min-height: 200px;
-  display: flex; align-items: flex-end; padding: 14px;
-}
-.page-home .bcard--xl .bcard__photo { min-height: 320px; }
-.page-home .bcard__photo {
-  background-color: #e8eef5;
+  padding: 14px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+.page-home .bcard--xl .bcard__photo {
+  min-height: 520px;
+  background-size: contain;
+  background-color: #f4f0e6;
 }
 .page-home .bcard__photo--heatpump  { background-image: url("/thermann-heat-pump.jpg"); }
 .page-home .bcard__photo--split     { background-image: url("/kaden-indoor.jpg"); }

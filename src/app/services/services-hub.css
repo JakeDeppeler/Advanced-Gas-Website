@@ -3,47 +3,48 @@
 .page-services { background: var(--bg); }
 
 .page-services .sv-hero {
-  background: var(--navy); color: #fff;
+  background: #ffffff; color: var(--ink);
   padding: 80px 0 90px; position: relative; overflow: hidden;
+  border-bottom: 1px solid var(--line);
 }
 .page-services .sv-hero::before {
   content: ""; position: absolute; inset: 0;
   background:
-    radial-gradient(800px 500px at 90% 10%, rgba(0,176,237,0.16), transparent 60%),
-    radial-gradient(700px 500px at 0% 100%, rgba(243,103,34,0.14), transparent 60%);
+    radial-gradient(800px 500px at 90% 10%, rgba(0,176,237,0.06), transparent 60%),
+    radial-gradient(700px 500px at 0% 100%, rgba(243,103,34,0.05), transparent 60%);
 }
 .page-services .sv-hero > .wrap { position: relative; }
 .page-services .sv-hero__eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
   padding: 8px 14px; border-radius: 999px;
   font-family: var(--f-mono); font-size: 12.5px;
-  letter-spacing: 0.04em; color: rgba(255,255,255,0.9);
+  letter-spacing: 0.04em; color: var(--navy);
 }
 .page-services .sv-hero h1 {
   font-family: var(--f-display); font-weight: 900;
   font-size: clamp(42px, 5.2vw, 72px); line-height: 0.98;
   letter-spacing: -0.025em; margin: 18px 0 20px;
-  max-width: 940px; text-wrap: balance;
+  color: var(--navy); max-width: 940px; text-wrap: balance;
 }
 .page-services .sv-hero > .wrap > p {
-  font-size: 19px; color: rgba(255,255,255,0.8);
+  font-size: 19px; color: var(--ink-2);
   max-width: 620px; margin: 0 0 32px;
 }
 .page-services .sv-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .page-services .sv-tab {
   display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--f-mono); font-size: 12.5px; letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.85); text-decoration: none;
-  padding: 8px 14px; background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+  color: var(--navy); text-decoration: none;
+  padding: 8px 14px; background: var(--bg-2);
+  border: 1px solid var(--line); border-radius: 999px;
   transition: all 0.15s;
 }
 .page-services .sv-tab:hover {
-  background: rgba(243,103,34,0.18); border-color: var(--orange); color: #fff;
+  background: rgba(243,103,34,0.10); border-color: var(--orange); color: var(--orange);
 }
-.page-services .sv-tab span { color: var(--orange); }
+.page-services .sv-tab span { color: var(--orange); font-weight: 700; }
 
 .page-services .sv { padding: 90px 0; border-bottom: 1px solid var(--line); }
 .page-services .sv:nth-of-type(odd) { background: var(--bg); }

@@ -164,7 +164,7 @@ const services: Service[] = [
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only — sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours fee", "$220 flat"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours", "$400 first hr · $150/hr after"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house — priority",
