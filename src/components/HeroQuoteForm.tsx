@@ -210,7 +210,9 @@ export function HeroQuoteForm() {
       if (hasReclaim) steps.push("hp-style");
       steps.push("hp-size");
       if (wantsSplit) steps.push("hp-material");
-      steps.push("hp-wifi", "details");
+      // Wi-Fi step only for split — AIO units all have Wi-Fi built in.
+      if (wantsSplit) steps.push("hp-wifi");
+      steps.push("details");
       return steps;
     }
     if (service === "split") {
@@ -550,12 +552,15 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-wifi" && (
-          <StepBlock title="Add WiFi / app control?">
+          <StepBlock
+            title="Wi-Fi controller on the split?"
+            hint="Only asked for split systems — all-in-one units come with Wi-Fi built in."
+          >
             <div className="qgrid qgrid--2">
               <OptCard multi={false} checked={hpWifi === "yes"} onClick={() => setHpWifi("yes")}
-                t="Yes — WiFi" s="Set schedules & watch running cost from your phone" />
+                t="Yes — Wi-Fi" s="Set schedules & watch running cost from your phone" />
               <OptCard multi={false} checked={hpWifi === "no"} onClick={() => setHpWifi("no")}
-                t="No — standard" s="Just the unit, no app" />
+                t="No — standard" s="Manual wall controller only, lower cost" />
             </div>
           </StepBlock>
         )}

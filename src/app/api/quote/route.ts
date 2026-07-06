@@ -39,10 +39,14 @@ export async function POST(req: Request) {
   }
 
   // Recipients — support comma-separated list.
-  const to = (process.env.LEAD_NOTIFICATION_EMAIL || "")
+  // Falls back to jake@advancedgas.com.au if LEAD_NOTIFICATION_EMAIL isn't
+  // set on Vercel, so leads never go silently missing while env vars are
+  // being sorted out.
+  const envRecipients = (process.env.LEAD_NOTIFICATION_EMAIL || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
+  const to = envRecipients.length ? envRecipients : ["jake@advancedgas.com.au"];
   const key = process.env.RESEND_API_KEY;
   // Resend requires a verified sender. Default falls back to Resend's
   // sandbox address which always works — override once your domain is
@@ -64,7 +68,7 @@ export async function POST(req: Request) {
     }
   });
 
-  if (to.length && key) {
+  if (key) {
     try {
       const body: Record<string, unknown> = {
         from,
@@ -94,9 +98,8 @@ export async function POST(req: Request) {
       console.log("NEW LEAD →\n" + format(data, allPhotos.length));
     }
   } else {
-    // No Resend configured — log to Vercel logs so leads aren't lost.
-    if (!key) console.warn("RESEND_API_KEY missing — logging lead only.");
-    if (!to.length) console.warn("LEAD_NOTIFICATION_EMAIL missing — logging lead only.");
+    // No RESEND_API_KEY — log to Vercel logs so leads aren't lost.
+    console.warn("RESEND_API_KEY missing — logging lead only.");
     console.log("NEW LEAD →\n" + format(data, allPhotos.length));
   }
 
