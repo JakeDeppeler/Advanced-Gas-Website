@@ -43,25 +43,14 @@ const HP_STYLES = [
   },
 ];
 
-// Two range buckets. Whichever brand the customer picks, we install the
-// closest tank size within the range. Range labels quote each brand's
-// specific size so nobody's guessing.
-const HP_SIZE_RANGES: { id: string; t: string; s: string }[] = [
-  {
-    id: "small",
-    t: "180 L – 200 L",
-    s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L",
-  },
-  {
-    id: "large",
-    t: "275 L – 300 L",
-    s: "3+ people · Reclaim 300 L · Thermann 285 L · iStore 275 L",
-  },
-  {
-    id: "xl",
-    t: "315 L – 400 L",
-    s: "Large households · Reclaim split only (315 L or 400 L)",
-  },
+// Size ranges — availability depends on the style the customer picks:
+//   AIO   : small (180–200 L) and large (275–300 L) — every brand does AIO
+//   Split : large (250–300 L) and xl (315–400 L) — Reclaim only
+type SizeRange = { id: string; t: string; s: string; aio: boolean; split: boolean };
+const HP_SIZE_RANGES: SizeRange[] = [
+  { id: "small", t: "180 L – 200 L", s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L", aio: true,  split: false },
+  { id: "large", t: "275 L – 300 L", s: "3+ people · Reclaim 300 L · Thermann 285 L · iStore 275 L",  aio: true,  split: true  },
+  { id: "xl",    t: "315 L – 400 L", s: "Reclaim split only · 315 L or 400 L",                        aio: false, split: true  },
 ];
 
 const HP_MATERIALS = [
@@ -72,9 +61,11 @@ const HP_MATERIALS = [
 /* ---- Split-system options ---- */
 
 const SPLIT_BRANDS = [
-  { id: "mitsu", t: "Mitsubishi Electric", s: "Premium quiet inverter" },
-  { id: "kaden", t: "Kaden",               s: "Great value, 5-yr warranty" },
+  { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium · max 12 kW multi-head condenser" },
+  { id: "kaden",  t: "Kaden",               s: "Great value · max 18 kW multi-head" },
+  { id: "rinnai", t: "Rinnai",              s: "Reliable · max 18 kW multi-head" },
 ];
+const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 12, kaden: 18, rinnai: 18 };
 
 const SPLIT_STYLES = [
   { id: "single", t: "Single head",  s: "One indoor unit, one room" },
@@ -97,26 +88,14 @@ const SPLIT_SIZES = [
   { id: "unsure",  t: "Not sure — floor plan", s: "Send us a floor plan, we'll size it" },
 ];
 
-// Multi-head configs: N × size combinations. Composite id: `${count}x${size}`.
-const MULTI_HEAD_CONFIGS: { id: string; t: string; s: string }[] = (() => {
-  const rows: { id: string; t: string; s: string }[] = [];
-  const counts = ["2", "3", "4", "5"];
-  const sizes = ["2.5", "3.5", "5.0", "7.1"];
-  counts.forEach(c => sizes.forEach(sz => rows.push({
-    id: `${c}x${sz}`,
-    t: `${c} × ${sz} kW`,
-    s: sizeCaption(sz),
-  })));
-  rows.push({ id: "unsure", t: "Not sure — floor plan", s: "Send a floor plan, we'll design it" });
-  return rows;
-})();
-function sizeCaption(sz: string) {
-  if (sz === "2.5") return "Bedrooms";
-  if (sz === "3.5") return "Bedrooms / small living";
-  if (sz === "5.0") return "Standard living";
-  if (sz === "7.1") return "Open-plan living";
-  return "";
-}
+// Multi-head sizes for the stepper picker. Customer clicks +/- on each
+// row to build a config like "3 × 2.5 kW + 1 × 5.0 kW + 1 × 7.1 kW".
+const MULTI_HEAD_SIZES = [
+  { id: "2.5", kw: 2.5, t: "2.5 kW", s: "Bedroom / small room" },
+  { id: "3.5", kw: 3.5, t: "3.5 kW", s: "Bedroom / small living" },
+  { id: "5.0", kw: 5.0, t: "5.0 kW", s: "Standard living" },
+  { id: "7.1", kw: 7.1, t: "7.1 kW", s: "Open-plan living" },
+];
 
 /* ---- Ducted options ---- */
 
@@ -195,7 +174,7 @@ export function HeroQuoteForm() {
 
   const [splitBrand, setSplitBrand] = useState<string[]>([]);
   const [splitStyle, setSplitStyle] = useState<string[]>([]);
-  const [splitHeads, setSplitHeads] = useState<string[]>([]);
+  const [splitHeadConfig, setSplitHeadConfig] = useState<Record<string, number>>({}); // size id → count
   const [splitSize, setSplitSize] = useState<string[]>([]);
 
   const [ductedSize, setDuctedSize] = useState<string[]>([]);
@@ -214,8 +193,21 @@ export function HeroQuoteForm() {
   const [photo, setPhoto] = useState<{ name: string; type: string; data: string } | null>(null);
   const [hp, setHp] = useState("");
 
-  // For split, the flow depends on which styles are picked.
+  // Brand-aware flow. HP: style/material steps only appear when Reclaim
+  // is in play (Reclaim is the only brand we split-install; Thermann and
+  // iStore are AIO-only, always glass-lined). Split: multi-head and
+  // single-head steps only appear when their style is selected.
   const flow = useMemo(() => {
+    if (service === "hp") {
+      const hasReclaim = hpBrand.includes("reclaim");
+      const wantsSplit = hasReclaim && hpStyle.includes("split");
+      const steps: StepId[] = ["service", "hp-brand"];
+      if (hasReclaim) steps.push("hp-style");
+      steps.push("hp-size");
+      if (wantsSplit) steps.push("hp-material");
+      steps.push("hp-wifi", "details");
+      return steps;
+    }
     if (service === "split") {
       const steps: StepId[] = ["service", "split-brand", "split-style"];
       if (splitStyle.includes("multi"))  steps.push("split-heads");
@@ -224,7 +216,33 @@ export function HeroQuoteForm() {
       return steps;
     }
     return FLOWS[service];
-  }, [service, splitStyle]);
+  }, [service, hpBrand, hpStyle, splitStyle]);
+
+  // Multi-head totals
+  const multiHeadTotal = useMemo(() => Object.entries(splitHeadConfig)
+    .reduce((sum, [size, count]) => sum + parseFloat(size) * count, 0),
+    [splitHeadConfig]);
+  const multiHeadCount = useMemo(() => Object.values(splitHeadConfig)
+    .reduce((sum, count) => sum + count, 0),
+    [splitHeadConfig]);
+  const brandMaxKw = useMemo(() => {
+    if (splitBrand.length === 0) return 18;
+    return Math.min(...splitBrand.map(b => SPLIT_BRAND_MAX_KW[b] ?? 18));
+  }, [splitBrand]);
+  const multiHeadOverCap = multiHeadTotal > brandMaxKw;
+
+  function updateHeadCount(sizeId: string, delta: number) {
+    setSplitHeadConfig(prev => {
+      const current = prev[sizeId] ?? 0;
+      const next = Math.max(0, Math.min(6, current + delta));
+      if (next === 0) {
+        const copy = { ...prev };
+        delete copy[sizeId];
+        return copy;
+      }
+      return { ...prev, [sizeId]: next };
+    });
+  }
 
   const currentStep = flow[Math.min(step, flow.length - 1)];
   const isLast = step === flow.length - 1;
@@ -241,8 +259,7 @@ export function HeroQuoteForm() {
       case "split-brand": return splitBrand.length > 0;
       case "split-style": return splitStyle.length > 0;
       case "split-heads":
-        // heads only required if any multi-head is selected
-        return splitStyle.includes("multi") ? splitHeads.length > 0 : true;
+        return splitStyle.includes("multi") ? multiHeadCount > 0 && !multiHeadOverCap : true;
       case "split-size": return splitSize.length > 0;
       case "ducted-size": return ductedSize.length > 0;
       case "ducted-zones": return ductedZones.length > 0;
@@ -254,7 +271,7 @@ export function HeroQuoteForm() {
     }
   }, [
     currentStep, service, hpBrand, hpStyle, hpSize, hpMaterial, hpWifi,
-    splitBrand, splitStyle, splitHeads, splitSize,
+    splitBrand, splitStyle, multiHeadCount, multiHeadOverCap, splitSize,
     ductedSize, ductedZones, ductedTablet, svcType, svcStories,
     name, phone, email, postcode,
   ]);
@@ -264,7 +281,7 @@ export function HeroQuoteForm() {
     setService(id);
     // Reset downstream to avoid stale selections crossing flows.
     setHpBrand([]); setHpStyle([]); setHpSize([]); setHpMaterial([]);
-    setSplitBrand([]); setSplitStyle([]); setSplitHeads([]); setSplitSize([]);
+    setSplitBrand([]); setSplitStyle([]); setSplitHeadConfig({}); setSplitSize([]);
     setDuctedSize([]); setDuctedZones([]);
     setSvcType([]);
   }
@@ -298,8 +315,10 @@ export function HeroQuoteForm() {
       const b = labels(SPLIT_BRANDS, splitBrand);
       const st = labels(SPLIT_STYLES, splitStyle);
       const parts: string[] = [];
-      if (splitStyle.includes("multi") && splitHeads.length) {
-        parts.push(`multi-head: ${labels(MULTI_HEAD_CONFIGS, splitHeads)}`);
+      if (splitStyle.includes("multi") && multiHeadCount > 0) {
+        const layout = Object.entries(splitHeadConfig)
+          .map(([size, count]) => `${count} × ${size} kW`).join(" + ");
+        parts.push(`multi-head: ${layout} (${multiHeadTotal.toFixed(1)} kW total)`);
       }
       if (splitStyle.includes("single") && splitSize.length) {
         parts.push(`single-head sizes: ${labels(SPLIT_SIZES, splitSize)}`);
@@ -331,7 +350,7 @@ export function HeroQuoteForm() {
           service, summary: summary(),
           details: {
             hpBrand, hpStyle, hpSize, hpMaterial, hpWifi,
-            splitBrand, splitStyle, splitHeads, splitSize,
+            splitBrand, splitStyle, splitHeadConfig, splitSize,
             ductedSize, ductedZones, ductedTablet,
             svcType, svcStories,
           },
@@ -417,7 +436,7 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-style" && (
-          <StepBlock title="All-in-one or split — or quote both?" hint="Tick either or both.">
+          <StepBlock title="All-in-one or split — or quote both?" hint="Split is Reclaim only, and about $2,500 more than an all-in-one. If budget is tight, stick with all-in-one.">
             <div className="qgrid qgrid--2">
               {HP_STYLES.map(x => (
                 <button
@@ -427,7 +446,10 @@ export function HeroQuoteForm() {
                   className={`optbig ${hpStyle.includes(x.id) ? "is-on" : ""}`}
                 >
                   <div className="optbig__head">
-                    <span className="optbig__t">{x.t}</span>
+                    <span className="optbig__t">
+                      {x.t}
+                      {x.id === "split" && <span className="pxc__pill"> premium · Reclaim only</span>}
+                    </span>
                     <span className="optbig__s">{x.s}</span>
                     <span className="optcheck">{hpStyle.includes(x.id) ? "✓" : ""}</span>
                   </div>
@@ -447,17 +469,25 @@ export function HeroQuoteForm() {
           </StepBlock>
         )}
 
-        {currentStep === "hp-size" && (
-          <StepBlock title="Tank size range" hint="Multiple selections OK. Exact size within the range depends on the brand we install for you.">
-            <div className="qgrid qgrid--3">
-              {HP_SIZE_RANGES.map(sz => (
-                <OptCard key={sz.id} multi checked={hpSize.includes(sz.id)}
-                  onClick={() => setHpSize(a => toggle(a, sz.id))}
-                  t={sz.t} s={sz.s} />
-              ))}
-            </div>
-          </StepBlock>
-        )}
+        {currentStep === "hp-size" && (() => {
+          const hasReclaim = hpBrand.includes("reclaim");
+          const wantsAio   = !hasReclaim || hpStyle.length === 0 || hpStyle.includes("aio");
+          const wantsSplit = hasReclaim && hpStyle.includes("split");
+          const filtered = HP_SIZE_RANGES.filter(sz =>
+            (wantsAio && sz.aio) || (wantsSplit && sz.split)
+          );
+          return (
+            <StepBlock title="Tank size range" hint="Multiple selections OK. Exact size within the range depends on the brand we install for you.">
+              <div className={`qgrid qgrid--${filtered.length >= 3 ? 3 : 2}`}>
+                {filtered.map(sz => (
+                  <OptCard key={sz.id} multi checked={hpSize.includes(sz.id)}
+                    onClick={() => setHpSize(a => toggle(a, sz.id))}
+                    t={sz.t} s={sz.s} />
+                ))}
+              </div>
+            </StepBlock>
+          );
+        })()}
 
         {currentStep === "hp-material" && (
           <StepBlock title="Tank material" hint="Happy with either? Tick both — we'll quote both.">
@@ -509,18 +539,48 @@ export function HeroQuoteForm() {
         {currentStep === "split-heads" && (
           <StepBlock
             title="Multi-head configuration"
-            hint="Pick every count × size combo you'd consider. Not sure? Pick the last option and send us a floor plan."
+            hint="Pick a size, then use + / − to set how many heads. Repeat for each size."
           >
-            <div className="qgrid qgrid--3">
-              {MULTI_HEAD_CONFIGS.map(c => (
-                <OptCard key={c.id} multi checked={splitHeads.includes(c.id)}
-                  onClick={() => setSplitHeads(a => toggle(a, c.id))}
-                  t={c.t} s={c.s} />
-              ))}
+            <div className="mhead">
+              {MULTI_HEAD_SIZES.map(sz => {
+                const count = splitHeadConfig[sz.id] ?? 0;
+                return (
+                  <div key={sz.id} className={`mhead__row ${count > 0 ? "is-on" : ""}`}>
+                    <div className="mhead__label">
+                      <span className="mhead__t">{sz.t}</span>
+                      <span className="mhead__s">{sz.s}</span>
+                    </div>
+                    <div className="mhead__step">
+                      <button type="button" className="mhead__btn"
+                        onClick={() => updateHeadCount(sz.id, -1)}
+                        aria-label={`Remove one ${sz.t} head`}>−</button>
+                      <span className="mhead__count" aria-live="polite">{count}</span>
+                      <button type="button" className="mhead__btn"
+                        onClick={() => updateHeadCount(sz.id, +1)}
+                        aria-label={`Add one ${sz.t} head`}>+</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            {splitHeads.includes("unsure") && (
-              <p className="qhint">Great — attach your floor plan on the details step and we&rsquo;ll design the layout for you.</p>
+
+            <div className={`mhead__total ${multiHeadOverCap ? "is-over" : ""}`}>
+              <span>Total: <strong>{multiHeadCount} head{multiHeadCount === 1 ? "" : "s"} · {multiHeadTotal.toFixed(1)} kW</strong></span>
+              <span>Brand cap: {brandMaxKw} kW</span>
+            </div>
+            {multiHeadOverCap && (
+              <p className="qhint qhint--warn">
+                That&rsquo;s over the {brandMaxKw} kW cap for {labels(SPLIT_BRANDS, splitBrand)}. Either drop a head, downsize, or add Kaden/Rinnai to the brand list (18 kW cap).
+              </p>
             )}
+            <details className="mhead__example">
+              <summary>Rough sizing guide for a 4-bedroom home</summary>
+              <div>
+                <p><strong>Kaden or Rinnai (18 kW cap):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 17.6 kW.</p>
+                <p><strong>Mitsubishi (12 kW cap):</strong> 1 × 5.0 kW living + 1 × 3.5 kW master + 1 × 2.5 kW bedroom = 11 kW.</p>
+                <p>Not sure? Skip this and note &ldquo;floor plan coming&rdquo; on the details step — we&rsquo;ll design it.</p>
+              </div>
+            </details>
           </StepBlock>
         )}
 

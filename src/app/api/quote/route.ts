@@ -6,7 +6,7 @@ type Photo = { name: string; type: string; data: string };
 
 type Details = {
   hpBrand?: string; hpStyle?: string; hpSize?: string; hpMaterial?: string; hpWifi?: string;
-  splitBrand?: string; splitStyle?: string; splitHeads?: string; splitSize?: string;
+  splitBrand?: string; splitStyle?: string; splitHeadConfig?: Record<string, number> | string; splitSize?: string;
   ductedSize?: string; ductedZones?: string; ductedTablet?: string;
   svcType?: string; svcStories?: string;
 };
