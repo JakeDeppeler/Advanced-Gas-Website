@@ -347,6 +347,7 @@
   gap: 24px;
   margin-top: 48px;
 }
+.page-home .fixprice__grid--3 { grid-template-columns: repeat(3, 1fr); }
 .page-home .fixprice {
   background: #fff;
   border-radius: 18px;
@@ -366,7 +367,33 @@
   background-repeat: no-repeat;
 }
 .page-home .fixprice__photo--reclaim { background-image: url("/reclaim-split-back.jpg"); }
+.page-home .fixprice__photo--aio     { background-image: url("/thermann-heat-pump.jpg"); }
+.page-home .fixprice__photo--split   { background-image: url("/reclaim-split-back.jpg"); }
 .page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.jpg"); }
+
+/* Featured "highest quality" card in the middle of the fixed-price row */
+.page-home .fixprice--feature {
+  position: relative;
+  transform: translateY(-8px);
+  box-shadow: 0 40px 80px -30px rgba(5,10,48,0.55), 0 0 0 2px var(--orange);
+  z-index: 1;
+}
+.page-home .fixprice__badge {
+  position: absolute;
+  top: 14px; right: 14px;
+  z-index: 2;
+  background: var(--orange); color: #fff;
+  font-family: var(--f-mono); font-size: 11px;
+  font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 12px; border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(243,103,34,0.35);
+}
+
+@media (max-width: 1100px) {
+  .page-home .fixprice__grid--3 { grid-template-columns: 1fr; }
+  .page-home .fixprice--feature { transform: none; }
+}
 .page-home .fixprice__body { padding: 26px 26px 28px; display: flex; flex-direction: column; gap: 14px; }
 .page-home .fixprice__eyebrow {
   font-family: var(--f-mono);

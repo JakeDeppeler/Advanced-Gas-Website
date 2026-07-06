@@ -172,29 +172,49 @@ export default function HomePage() {
               <span className="ds-dot ds-dot--orange" />
               Fixed-price installs
             </span>
-            <h2 className="ds-h--on-dark">Two of our most popular jobs &mdash; locked-in prices.</h2>
+            <h2 className="ds-h--on-dark">Three of our most popular jobs &mdash; locked-in prices.</h2>
             <p className="veu__sub veu__sub--center">
               What you see is what you pay. VEU rebate already applied, GST included, compliance certificate and warranty pack emailed within 24&nbsp;hrs of install.
             </p>
           </div>
 
-          <div className="fixprice__grid">
+          <div className="fixprice__grid fixprice__grid--3">
             <article className="fixprice">
-              <div className="fixprice__photo fixprice__photo--reclaim" />
+              <div className="fixprice__photo fixprice__photo--aio" />
               <div className="fixprice__body">
-                <span className="fixprice__eyebrow">Heat pump hot water</span>
-                <h3>Reclaim CO&#8322; heat pump &mdash; fully installed</h3>
+                <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
+                <h3>Reclaim CO&#8322; all-in-one &mdash; fully installed</h3>
                 <ul className="fixprice__feat">
-                  <li>Premium 250L stainless tank &amp; Reclaim compressor</li>
+                  <li>All-in-one: tank &amp; compressor in one unit</li>
+                  <li>200 L or 300 L available (Reclaim / Thermann / iStore)</li>
                   <li>Old gas / electric unit removed &amp; disposed</li>
-                  <li>Standard electrical, plumbing &amp; commissioning</li>
                   <li>VEU rebate applied, compliance cert included</li>
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">$2,730</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
-                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the Reclaim &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the all-in-one &rarr;</a>
+              </div>
+            </article>
+
+            <article className="fixprice fixprice--feature">
+              <span className="fixprice__badge">Highest quality</span>
+              <div className="fixprice__photo fixprice__photo--split" />
+              <div className="fixprice__body">
+                <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
+                <h3>Reclaim CO&#8322; split heat pump &mdash; fully installed</h3>
+                <ul className="fixprice__feat">
+                  <li>Premium 250 L stainless tank &mdash; 15-year warranty option</li>
+                  <li>Compressor split from tank &mdash; quieter, longer life</li>
+                  <li>Better cold-weather performance vs all-in-one</li>
+                  <li>VEU rebate applied, compliance cert included</li>
+                </ul>
+                <div className="fixprice__price">
+                  <span className="fixprice__price-num">from&nbsp;$3,730</span>
+                  <span className="fixprice__price-lbl">fully installed, inc GST</span>
+                </div>
+                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
               </div>
             </article>
 
