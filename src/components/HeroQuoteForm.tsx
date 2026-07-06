@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 /* ============================================================
    Multi-step, multi-select branching quote form.
@@ -61,11 +61,14 @@ const HP_MATERIALS = [
 /* ---- Split-system options ---- */
 
 const SPLIT_BRANDS = [
-  { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium · max 12 kW multi-head condenser" },
-  { id: "kaden",  t: "Kaden",               s: "Great value · max 18 kW multi-head" },
-  { id: "rinnai", t: "Rinnai",              s: "Reliable · max 18 kW multi-head" },
+  { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium · up to 15 kW total heads on a 12 kW multi condenser" },
+  { id: "kaden",  t: "Kaden",               s: "Great value · up to 23 kW total heads on an 18 kW multi" },
+  { id: "rinnai", t: "Rinnai",              s: "Reliable · up to 23 kW total heads on an 18 kW multi" },
 ];
-const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 12, kaden: 18, rinnai: 18 };
+// Multi-head condensers can be diversity-oversized (typical ~130%).
+// e.g. 21 kW of heads on an 18 kW condenser is fine, and Mitsubishi's
+// MXZ range covers ~12 kW condensers with up to ~15 kW of heads.
+const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 15, kaden: 23, rinnai: 23 };
 
 const SPLIT_STYLES = [
   { id: "single", t: "Single head",  s: "One indoor unit, one room" },
@@ -189,8 +192,10 @@ export function HeroQuoteForm() {
   const [email, setEmail] = useState("");
   const [postcode, setPostcode] = useState("");
   const [address, setAddress] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string; address?: { postcode?: string } }>>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [notes, setNotes] = useState("");
-  const [photo, setPhoto] = useState<{ name: string; type: string; data: string } | null>(null);
+  const [photos, setPhotos] = useState<Array<{ name: string; type: string; data: string }>>([]);
   const [hp, setHp] = useState("");
 
   // Brand-aware flow. HP: style/material steps only appear when Reclaim
@@ -259,7 +264,8 @@ export function HeroQuoteForm() {
       case "split-brand": return splitBrand.length > 0;
       case "split-style": return splitStyle.length > 0;
       case "split-heads":
-        return splitStyle.includes("multi") ? multiHeadCount > 0 && !multiHeadOverCap : true;
+        // Over-cap is a soft advisory, not a hard block — customer can still proceed.
+        return splitStyle.includes("multi") ? multiHeadCount > 0 : true;
       case "split-size": return splitSize.length > 0;
       case "ducted-size": return ductedSize.length > 0;
       case "ducted-zones": return ductedZones.length > 0;
@@ -286,17 +292,59 @@ export function HeroQuoteForm() {
     setSvcType([]);
   }
 
-  async function onPhoto(file: File | null) {
-    if (!file) { setPhoto(null); return; }
-    if (file.size > 8 * 1024 * 1024) {
-      alert("Please pick a photo under 8 MB. You can send more by email after.");
+  async function addPhotos(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const remaining = 6 - photos.length;
+    if (remaining <= 0) {
+      alert("Six photos is the max — remove one before adding more, or email extras after.");
       return;
     }
-    const buf = await file.arrayBuffer();
-    const bytes = new Uint8Array(buf);
-    let bin = "";
-    for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
-    setPhoto({ name: file.name, type: file.type, data: btoa(bin) });
+    const toAdd = Array.from(files).slice(0, remaining);
+    const results: Array<{ name: string; type: string; data: string }> = [];
+    for (const file of toAdd) {
+      if (file.size > 8 * 1024 * 1024) {
+        alert(`"${file.name}" is over 8 MB — skipped. Try a smaller photo or email it after.`);
+        continue;
+      }
+      const buf = await file.arrayBuffer();
+      const bytes = new Uint8Array(buf);
+      let bin = "";
+      for (let i = 0; i < bytes.byteLength; i++) bin += String.fromCharCode(bytes[i]);
+      results.push({ name: file.name, type: file.type, data: btoa(bin) });
+    }
+    if (results.length) setPhotos((prev) => [...prev, ...results].slice(0, 6));
+  }
+  function removePhoto(idx: number) {
+    setPhotos((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // Debounced OpenStreetMap Nominatim address lookup (no API key needed).
+  useEffect(() => {
+    if (!address || address.length < 3) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const controller = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=au&addressdetails=1&limit=5`,
+          { signal: controller.signal, headers: { "Accept": "application/json" } },
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch {
+        /* network / abort — ignore */
+      }
+    }, 400);
+    return () => { clearTimeout(t); controller.abort(); };
+  }, [address]);
+
+  function pickAddressSuggestion(s: { display_name: string; address?: { postcode?: string } }) {
+    setAddress(s.display_name);
+    if (s.address?.postcode && !postcode) setPostcode(s.address.postcode);
+    setShowAddressSuggestions(false);
   }
 
   function labels(list: { id: string; t: string }[], ids: string[]) {
@@ -355,7 +403,7 @@ export function HeroQuoteForm() {
             svcType, svcStories,
           },
           name, phone, email, postcode, address, notes,
-          photo, hp,
+          photos, hp,
         }),
       });
     } catch { /* server may still have logged it */ }
@@ -566,18 +614,19 @@ export function HeroQuoteForm() {
 
             <div className={`mhead__total ${multiHeadOverCap ? "is-over" : ""}`}>
               <span>Total: <strong>{multiHeadCount} head{multiHeadCount === 1 ? "" : "s"} · {multiHeadTotal.toFixed(1)} kW</strong></span>
-              <span>Brand cap: {brandMaxKw} kW</span>
+              <span>Typical max: {brandMaxKw} kW</span>
             </div>
             {multiHeadOverCap && (
               <p className="qhint qhint--warn">
-                That&rsquo;s over the {brandMaxKw} kW cap for {labels(SPLIT_BRANDS, splitBrand)}. Either drop a head, downsize, or add Kaden/Rinnai to the brand list (18 kW cap).
+                That&rsquo;s past the typical diversity max ({brandMaxKw} kW) for {labels(SPLIT_BRANDS, splitBrand)}. We can still design around it — or drop a head / add Kaden or Rinnai (23 kW).
               </p>
             )}
             <details className="mhead__example">
               <summary>Rough sizing guide for a 4-bedroom home</summary>
               <div>
-                <p><strong>Kaden or Rinnai (18 kW cap):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 17.6 kW.</p>
-                <p><strong>Mitsubishi (12 kW cap):</strong> 1 × 5.0 kW living + 1 × 3.5 kW master + 1 × 2.5 kW bedroom = 11 kW.</p>
+                <p><strong>Kaden or Rinnai (18 kW condenser, ~23 kW heads):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 18.1 kW.</p>
+                <p><strong>Mitsubishi (12 kW condenser, ~15 kW heads):</strong> 1 × 5.0 kW living + 1 × 3.5 kW master + 1 × 2.5 kW bedroom + 1 × 2.5 kW bedroom = 13.5 kW.</p>
+                <p>Multi-head systems accept diversity oversizing (heads total more than the condenser rating) because not every room runs at full load at once.</p>
                 <p>Not sure? Skip this and note &ldquo;floor plan coming&rdquo; on the details step — we&rsquo;ll design it.</p>
               </div>
             </details>
@@ -707,22 +756,58 @@ export function HeroQuoteForm() {
                   onChange={(e) => setPostcode(e.target.value)} required />
               </label>
             </div>
-            <label className="qfield">
-              <span>Full address <em>(optional)</em></span>
-              <input type="text" placeholder="12 Main Rd, Pakenham VIC 3810"
-                value={address} onChange={(e) => setAddress(e.target.value)} />
-            </label>
+            <div className="qfield qaddress">
+              <span>Full address <em>(optional — starts autofilling after 3 letters)</em></span>
+              <input
+                type="text"
+                placeholder="12 Main Rd, Pakenham VIC 3810"
+                value={address}
+                onChange={(e) => { setAddress(e.target.value); setShowAddressSuggestions(true); }}
+                onFocus={() => setShowAddressSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowAddressSuggestions(false), 150)}
+                autoComplete="off"
+              />
+              {showAddressSuggestions && addressSuggestions.length > 0 && (
+                <ul className="qaddress__list" role="listbox">
+                  {addressSuggestions.map((s, i) => (
+                    <li key={i}>
+                      <button
+                        type="button"
+                        className="qaddress__opt"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => pickAddressSuggestion(s)}
+                      >
+                        {s.display_name}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             <label className="qfield">
               <span>Anything else? <em>(optional)</em></span>
               <input type="text" placeholder="e.g. 4 bed house, easy roof access"
                 value={notes} onChange={(e) => setNotes(e.target.value)} />
             </label>
-            <label className="qfield qphoto">
-              <span>Photo of your current system <em>(optional — helps us quote sharper)</em></span>
-              <input type="file" accept="image/*"
-                onChange={(e) => onPhoto(e.target.files?.[0] ?? null)} />
-              {photo && <span className="qphoto__hint">✓ {photo.name}</span>}
-            </label>
+            <div className="qfield qphoto">
+              <span>Photos of your current system <em>(optional — up to 6, helps us quote sharper)</em></span>
+              <input type="file" accept="image/*" multiple
+                disabled={photos.length >= 6}
+                onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
+              {photos.length > 0 && (
+                <ul className="qphoto__list">
+                  {photos.map((p, i) => (
+                    <li key={i}>
+                      <span>✓ {p.name}</span>
+                      <button type="button" onClick={() => removePhoto(i)} aria-label={`Remove ${p.name}`}>×</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {photos.length > 0 && (
+                <span className="qphoto__hint">{photos.length} / 6 attached</span>
+              )}
+            </div>
             <p className="qcard__finep">
               We&rsquo;ll come back within 12 hours. No spam, no shared data.
             </p>

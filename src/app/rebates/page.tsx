@@ -63,7 +63,8 @@ const products = [
       "315 L or 400 L, Wi-Fi smart control",
       "Best for: premium installs & solar pairing",
     ],
-    rebate: "up to $2,605",
+    price: "from $5,340",
+    rebate: "$2,605 rebate applied",
     pill: "premium",
     photo: "/reclaim-split-back.jpg",
     photoAlt: "Reclaim CO₂ split heat pump install",
@@ -77,7 +78,8 @@ const products = [
       "Compact footprint — fast, simple installs",
       "Best for: 3–4 person homes",
     ],
-    rebate: "up to $2,605",
+    price: "$2,610",
+    rebate: "$2,605 rebate applied",
     pill: "value",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "Reclaim R290 all-in-one heat pump",
@@ -91,7 +93,8 @@ const products = [
       "6-year tank warranty",
       "Best for: solar-paired households",
     ],
-    rebate: "up to $2,205",
+    price: "$2,910",
+    rebate: "$2,205 rebate applied",
     pill: "mid-range",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "iStore heat pump install",
@@ -105,7 +108,8 @@ const products = [
       "5-year tank warranty",
       "Best for: 3–4 person homes",
     ],
-    rebate: "up to $2,605",
+    price: "$2,610",
+    rebate: "$2,605 rebate applied",
     pill: "value",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "Thermann 285 L R290 heat pump",
@@ -119,7 +123,8 @@ const products = [
       "5-year warranty",
       "2.5kW / 3.5kW / 5kW / 7kW",
     ],
-    rebate: "up to $1,800",
+    price: "custom quote",
+    rebate: "up to $1,800 rebate",
     pill: "flagship",
     photo: "/reclaim-mitsubishi.jpg",
     photoAlt: "Mitsubishi Electric split system install",
@@ -133,7 +138,8 @@ const products = [
       "Australian designed",
       "Strong mid-range value",
     ],
-    rebate: "up to $1,500",
+    price: "custom quote",
+    rebate: "up to $1,500 rebate",
     pill: "value",
     photo: "/kaden-indoor.jpg",
     photoAlt: "Kaden split system indoor head install",
@@ -147,7 +153,8 @@ const products = [
       "Best for: 3+ bedroom homes",
       "5–7 year warranty",
     ],
-    rebate: "up to $5,000",
+    price: "from $11,000",
+    rebate: "up to $5,000 rebate",
     pill: "whole home",
     photo: "/ducted-condenser.jpg",
     photoAlt: "Ducted aircon condenser install",
@@ -310,9 +317,10 @@ export default function RebatesPage() {
                     ))}
                   </ul>
                   <div className="rb-prod__foot">
-                    <div className="rb-prod__rebate">
-                      <strong>{p.rebate}</strong>
-                      <span>VEU rebate</span>
+                    <div className="rb-prod__price">
+                      <strong>{p.price}</strong>
+                      <span>fully installed, inc GST</span>
+                      <span className="rb-prod__price-rebate">{p.rebate}</span>
                     </div>
                     <span className="rb-prod__pill">{p.pill}</span>
                   </div>

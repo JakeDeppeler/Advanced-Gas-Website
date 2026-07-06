@@ -682,6 +682,36 @@
   text-transform: uppercase;
   color: var(--ink-3);
 }
+.page-rebates .rb-prod__price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.05;
+}
+.page-rebates .rb-prod__price strong {
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--navy);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.page-rebates .rb-prod__price > span {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.page-rebates .rb-prod__price-rebate {
+  font-family: var(--f-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.04em !important;
+  color: var(--orange) !important;
+  text-transform: none !important;
+  font-weight: 600;
+  margin-top: 3px;
+}
 .page-rebates .rb-prod__pill {
   font-family: var(--f-mono);
   font-size: 10.5px;
