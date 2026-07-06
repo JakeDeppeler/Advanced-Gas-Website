@@ -320,7 +320,10 @@ export function HeroQuoteForm() {
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  // Debounced OpenStreetMap Nominatim address lookup (no API key needed).
+  // Debounced Photon (OSM-based, no API key) address lookup — better at
+  // Australian street-level addresses than raw Nominatim, and biased
+  // toward Pakenham / SE Victoria so home addresses rank ahead of
+  // similarly-named places overseas.
   useEffect(() => {
     if (!address || address.length < 3) {
       setAddressSuggestions([]);
@@ -330,16 +333,35 @@ export function HeroQuoteForm() {
     const t = setTimeout(async () => {
       try {
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&countrycodes=au&addressdetails=1&limit=5`,
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=6&lat=-38.078&lon=145.487&location_bias_scale=0.6&layer=address,street,house`,
           { signal: controller.signal, headers: { "Accept": "application/json" } },
         );
         if (!res.ok) return;
         const data = await res.json();
-        setAddressSuggestions(Array.isArray(data) ? data : []);
+        const suggestions = (data.features || [])
+          .filter((f: { properties?: { countrycode?: string } }) => f.properties?.countrycode === "AU")
+          .map((f: {
+            properties?: {
+              housenumber?: string; street?: string; name?: string;
+              city?: string; district?: string; state?: string;
+              postcode?: string;
+            };
+          }) => {
+            const p = f.properties || {};
+            const line = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
+            const parts = [line, p.city || p.district, p.state, p.postcode].filter(Boolean);
+            return {
+              display_name: parts.join(", "),
+              lat: "", lon: "",
+              address: { postcode: p.postcode },
+            };
+          })
+          .filter((s: { display_name: string }) => s.display_name.length > 0);
+        setAddressSuggestions(suggestions);
       } catch {
         /* network / abort — ignore */
       }
-    }, 400);
+    }, 350);
     return () => { clearTimeout(t); controller.abort(); };
   }, [address]);
 
