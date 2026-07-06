@@ -189,7 +189,7 @@ export default function HomePage() {
                 <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
                 <h3>Reclaim R290 all-in-one &mdash; fully installed</h3>
                 <ul className="fixprice__feat">
-                  <li>All-in-one: tank &amp; compressor in one unit</li>
+                  <li>Plug-in: tank &amp; compressor in one unit</li>
                   <li>R290 refrigerant &mdash; low GWP, efficient in cold</li>
                   <li>Old gas / electric unit removed &amp; disposed</li>
                   <li>VEU rebate applied, compliance cert included</li>
@@ -198,6 +198,7 @@ export default function HomePage() {
                   <span className="fixprice__price-num">$2,610</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
+                <p className="fixprice__note">Price assumes a power point within 50&nbsp;cm of the current hot water system. New power point quoted separately.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the R290 &rarr;</a>
               </div>
             </article>
@@ -212,15 +213,16 @@ export default function HomePage() {
                 <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
                 <h3>Reclaim CO&#8322; split heat pump &mdash; fully installed</h3>
                 <ul className="fixprice__feat">
-                  <li>Premium 250 L stainless tank &mdash; 15-year warranty option</li>
                   <li>Compressor split from tank &mdash; quieter, longer life</li>
-                  <li>Better cold-weather performance vs all-in-one</li>
-                  <li>VEU rebate applied, compliance cert included</li>
+                  <li>315&nbsp;L or 400&nbsp;L, glass-lined or stainless steel</li>
+                  <li>Wi-Fi smart control &mdash; schedule off-peak / solar hours</li>
+                  <li>15-year warranty on stainless tank option</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">from&nbsp;$3,730</span>
+                  <span className="fixprice__price-num">from&nbsp;$5,100</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
+                <p className="fixprice__note">315&nbsp;L glass-lined Wi-Fi from $5,100. 400&nbsp;L stainless steel Wi-Fi $6,480 inc GST.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
               </div>
             </article>

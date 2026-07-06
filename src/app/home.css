@@ -464,6 +464,14 @@
   color: var(--ink-3);
 }
 .page-home .fixprice .ds-btn { align-self: flex-start; margin-top: 4px; }
+.page-home .fixprice__note {
+  margin: -4px 0 4px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+}
 
 .page-home .fixprice__foot {
   margin: 32px auto 0;

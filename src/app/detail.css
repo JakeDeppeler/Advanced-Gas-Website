@@ -47,7 +47,11 @@
   line-height: 0.98; letter-spacing: -0.025em;
   margin: 22px 0 18px;
   text-wrap: balance; max-width: 980px;
+  color: #fff;
 }
+.page-detail .dp-hero h2,
+.page-detail .dp-hero h3,
+.page-detail .dp-hero h4 { color: #fff; }
 .page-detail .dp-hero h1 em { font-style: italic; color: var(--orange); }
 .page-detail .dp-hero h1 .accent {
   background: linear-gradient(135deg, var(--sky-2), var(--sky));
