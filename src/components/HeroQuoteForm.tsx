@@ -173,7 +173,9 @@ export function HeroQuoteForm() {
   const [hpStyle, setHpStyle] = useState<string[]>([]);
   const [hpSize, setHpSize] = useState<string[]>([]);       // stored as `${brand}-${style}-${size}` composite ids
   const [hpMaterial, setHpMaterial] = useState<string[]>([]);
-  const [hpWifi, setHpWifi] = useState<"yes" | "no">("no"); // binary, stays single
+  // AIO units all ship with Wi-Fi built in, so default is yes. The Wi-Fi
+  // step only surfaces when the customer opts into a Reclaim split.
+  const [hpWifi, setHpWifi] = useState<"yes" | "no">("yes");
 
   const [splitBrand, setSplitBrand] = useState<string[]>([]);
   const [splitStyle, setSplitStyle] = useState<string[]>([]);
@@ -434,6 +436,22 @@ export function HeroQuoteForm() {
     setDone(true);
   }
 
+  function resetForm() {
+    setDone(false);
+    setSubmitting(false);
+    setStep(0);
+    setService("hp");
+    setHpBrand([]); setHpStyle([]); setHpSize([]); setHpMaterial([]);
+    setHpWifi("yes");
+    setSplitBrand([]); setSplitStyle([]); setSplitHeadConfig({}); setSplitSize([]);
+    setDuctedSize([]); setDuctedZones([]); setDuctedTablet("yes");
+    setSvcType([]); setSvcStories("single");
+    setName(""); setPhone(""); setEmail(""); setPostcode("");
+    setAddress(""); setNotes(""); setPhotos([]);
+    setAddressSuggestions([]); setShowAddressSuggestions(false);
+    setHp("");
+  }
+
   if (done) {
     return (
       <aside className="qcard" id="quote">
@@ -441,13 +459,18 @@ export function HeroQuoteForm() {
           <div className="qcard__done-tick">✓</div>
           <h2 className="qcard__h">Got it. We&apos;ll be in touch.</h2>
           <p className="qcard__sub">
-            A real human will call or SMS you within 2 business hours with your fixed number and next step.
+            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox &mdash; we&rsquo;ve sent a confirmation.
           </p>
-          <p className="qcard__finep" style={{ marginTop: 20 }}>
-            Urgent right now? Call{" "}
-            <a href="tel:+61359478000" style={{ color: "var(--navy)" }}>
-              <strong>(03) 5947 8000</strong>
-            </a>.
+          <div className="qcard__done-ctas">
+            <button type="button" className="ds-btn ds-btn--orange ds-btn--lg" onClick={resetForm}>
+              Submit another request →
+            </button>
+            <a href="tel:+61359478000" className="ds-btn ds-btn--ghost ds-btn--lg">
+              Or call (03) 5947 8000
+            </a>
+          </div>
+          <p className="qcard__finep" style={{ marginTop: 18 }}>
+            Different address, different job, or something you forgot &mdash; hit &ldquo;Submit another request&rdquo; and we&rsquo;ll quote it too.
           </p>
         </div>
       </aside>

@@ -1502,6 +1502,11 @@
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 32px; font-weight: 800; margin-bottom: 20px;
 }
+.page-home .qcard__done-ctas {
+  display: flex; flex-direction: column; gap: 10px;
+  margin: 24px 0 4px;
+}
+.page-home .qcard__done-ctas .ds-btn { justify-content: center; }
 
 @media (max-width: 720px) {
   .page-home .qgrid--3, .page-home .qgrid--4 { grid-template-columns: 1fr 1fr; }
