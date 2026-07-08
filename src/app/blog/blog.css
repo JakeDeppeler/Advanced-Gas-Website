@@ -126,6 +126,9 @@
 
 /* ============== BLOG POST — individual article ============== */
 .page-blog .bl-post { background: var(--bg); padding-bottom: 100px; }
+/* Every wrap inside a blog post shares the same max width so hero
+   copy, hero photo, body copy and related-posts row line up. */
+.page-blog .bl-post .wrap { max-width: 920px; }
 .page-blog .bl-post__hero { padding: 70px 0 40px; background: var(--bg); }
 .page-blog .bl-post__back {
   display: inline-block;
@@ -168,15 +171,18 @@
 .page-blog .bl-post__frame { padding-bottom: 40px; }
 .page-blog .bl-post__hero-photo {
   position: relative;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 3 / 2;
   border-radius: var(--rad);
   overflow: hidden;
-  background: #e8eef5;
+  background: #f4f0e6;
   border: 1px solid var(--line);
+}
+.page-blog .bl-post__hero-photo img {
+  object-fit: contain !important;
+  padding: 8px;
 }
 
 .page-blog .bl-post__body {
-  max-width: 760px !important;
   font-size: 17px; line-height: 1.75;
   color: var(--ink);
 }

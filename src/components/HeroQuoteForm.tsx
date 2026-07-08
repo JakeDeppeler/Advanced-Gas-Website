@@ -322,10 +322,10 @@ export function HeroQuoteForm() {
     setPhotos((prev) => prev.filter((_, i) => i !== idx));
   }
 
-  // Debounced Photon (OSM-based, no API key) address lookup — better at
-  // Australian street-level addresses than raw Nominatim, and biased
-  // toward Pakenham / SE Victoria so home addresses rank ahead of
-  // similarly-named places overseas.
+  // Debounced address lookup via our /api/geocode proxy. That route uses
+  // Mapbox if MAPBOX_ACCESS_TOKEN is set, otherwise Nominatim with a
+  // proper User-Agent header (browser fetches can't set User-Agent, so
+  // proxying via the server is the only reliable way for suburban AU).
   useEffect(() => {
     if (!address || address.length < 3) {
       setAddressSuggestions([]);
@@ -335,35 +335,23 @@ export function HeroQuoteForm() {
     const t = setTimeout(async () => {
       try {
         const res = await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(address)}&limit=6&lat=-38.078&lon=145.487&location_bias_scale=0.6&layer=address,street,house`,
+          `/api/geocode?q=${encodeURIComponent(address)}`,
           { signal: controller.signal, headers: { "Accept": "application/json" } },
         );
         if (!res.ok) return;
         const data = await res.json();
-        const suggestions = (data.features || [])
-          .filter((f: { properties?: { countrycode?: string } }) => f.properties?.countrycode === "AU")
-          .map((f: {
-            properties?: {
-              housenumber?: string; street?: string; name?: string;
-              city?: string; district?: string; state?: string;
-              postcode?: string;
-            };
-          }) => {
-            const p = f.properties || {};
-            const line = [p.housenumber, p.street || p.name].filter(Boolean).join(" ");
-            const parts = [line, p.city || p.district, p.state, p.postcode].filter(Boolean);
-            return {
-              display_name: parts.join(", "),
-              lat: "", lon: "",
-              address: { postcode: p.postcode },
-            };
-          })
-          .filter((s: { display_name: string }) => s.display_name.length > 0);
-        setAddressSuggestions(suggestions);
+        const list: Array<{ display_name: string; postcode?: string }> = data.suggestions || [];
+        setAddressSuggestions(
+          list.map((s) => ({
+            display_name: s.display_name,
+            lat: "", lon: "",
+            address: { postcode: s.postcode },
+          })),
+        );
       } catch {
         /* network / abort — ignore */
       }
-    }, 350);
+    }, 300);
     return () => { clearTimeout(t); controller.abort(); };
   }, [address]);
 
