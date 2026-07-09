@@ -1,4 +1,4 @@
-/* Blog page — scoped to .page-blog */
+/* Blog page, scoped to .page-blog */
 
 .page-blog { background: var(--bg); }
 
@@ -124,7 +124,7 @@
   .page-blog .bl-grid { grid-template-columns: 1fr; }
 }
 
-/* ============== BLOG POST — individual article ============== */
+/* ============== BLOG POST, individual article ============== */
 .page-blog .bl-post { background: var(--bg); padding-bottom: 100px; }
 /* Every wrap inside a blog post shares the same max width so hero
    copy, hero photo, body copy and related-posts row line up. */

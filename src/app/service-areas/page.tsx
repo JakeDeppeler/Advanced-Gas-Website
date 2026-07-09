@@ -4,7 +4,7 @@ import { site, suburbs, services } from "@/lib/site";
 import "../detail.css";
 
 export const metadata: Metadata = {
-  title: "Service Areas — Pakenham + 50 km",
+  title: "Service Areas, Pakenham + 50 km",
   description:
     "Aircon, heat pump and gas plumbing installation across Pakenham and within 50 km. Berwick, Officer, Cranbourne, Warragul, Drouin, Phillip Island and more.",
   alternates: { canonical: "/service-areas" },

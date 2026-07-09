@@ -1,5 +1,5 @@
 /* ===================================================================
-   Rebates page — ported from Claude Design handoff bundle.
+   Rebates page, ported from Claude Design handoff bundle.
    Scoped to .page-rebates to avoid leaking warm-cream styles
    to other routes (which still use the white default surface).
    =================================================================== */
@@ -340,7 +340,7 @@
   flex-wrap: wrap;
 }
 
-/* ============== REBATE CALCULATOR — v2 (brand + product) ============== */
+/* ============== REBATE CALCULATOR, v2 (brand + product) ============== */
 .page-rebates .rb-calc--v2 { padding: 28px 26px 26px; }
 .page-rebates .rb-calc__head { margin-bottom: 12px; }
 .page-rebates .rb-calc__progress {

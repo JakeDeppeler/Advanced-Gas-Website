@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import "./contact.css";
 
 export const metadata: Metadata = {
-  title: "Contact — Free quote in 2 hours",
+  title: "Contact, Free quote in 2 hours",
   description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 50 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
   alternates: { canonical: "/contact" },
 };
@@ -16,7 +16,7 @@ export default function ContactPage() {
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Contact us</span>
           <h1>Tell us what you need. <em>We&apos;ll come back within 2 hours.</em></h1>
-          <p>Free, no-obligation quote — VEU rebate already worked into the number. Pakenham &amp; within 50 km. The bloke who quotes is the bloke who installs.</p>
+          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 50 km. The bloke who quotes is the bloke who installs.</p>
         </div>
       </section>
 
@@ -35,7 +35,7 @@ export default function ContactPage() {
               <span className="ct-card__sub" style={{ color: "rgba(255,255,255,0.7)" }}>24/7 Emergency</span>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
               <p style={{ marginTop: 8 }}>
-                Gas leak, no hot water, CO alarm — we answer after hours for locals only. $220 flat after-hours fee.
+                Gas leak, no hot water, CO alarm, we answer after hours for locals only. $220 flat after-hours fee.
               </p>
             </div>
 
@@ -58,7 +58,7 @@ export default function ContactPage() {
 
             <div className="ct-card">
               <h3>Service area</h3>
-              <p>Pakenham &amp; within 50 km. We don&apos;t quote outside that radius — keeps our response times honest.</p>
+              <p>Pakenham &amp; within 50 km. We don&apos;t quote outside that radius, keeps our response times honest.</p>
               <div className="ct-map">
                 <div className="ct-map__pin">
                   <div className="ct-map__pin-ring" />

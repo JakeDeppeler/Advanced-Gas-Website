@@ -17,27 +17,27 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "How much is the VEU rebate, really?",
-    a: "It depends on your existing hot water unit, your home and the new unit going in. Most Pakenham households we install for see between $2,400 and $3,200 off — and we apply it at the quote stage so you don't pay it then claim it back. We'll give you the exact number after a 20-minute site check.",
+    a: "It depends on your existing hot water unit, your home and the new unit going in. Most Pakenham households we install for see between $2,400 and $3,200 off, and we apply it at the quote stage so you don't pay it then claim it back. We'll give you the exact number after a 20-minute site check.",
   },
   {
     q: "Am I eligible if I'm a renter or in a unit?",
-    a: "Owner-occupiers and landlords are both eligible under VEU. Renters can ask their landlord to upgrade — we'll talk to them directly if that's easier. Some unit complexes need owners' corporation sign-off; we'll guide you through it.",
+    a: "Owner-occupiers and landlords are both eligible under VEU. Renters can ask their landlord to upgrade, we'll talk to them directly if that's easier. Some unit complexes need owners' corporation sign-off; we'll guide you through it.",
   },
   {
     q: "How long does an install actually take?",
     a: "A like-for-like heat pump swap is usually one day. A new split is half a day. Full ducted retrofit is 2–3 days. We give you a firm window when you accept the quote and we don't leave the job half done.",
   },
   {
-    q: "What brands do you install — and why those?",
-    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Braemar. We've installed enough of each to know which model suits which house — we'll recommend, not upsell.",
+    q: "What brands do you install, and why those?",
+    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Braemar. We've installed enough of each to know which model suits which house, we'll recommend, not upsell.",
   },
   {
     q: "Do you do emergencies on weekends?",
-    a: "Yes. Gas leak, no hot water, smoking flue — call the main number any time. After hours goes to a real on-call tradie, not an overseas call centre.",
+    a: "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to a real on-call tradie, not an overseas call centre.",
   },
   {
     q: "What's the warranty?",
-    a: "Manufacturer warranty on the unit (typically 6–10 years on the tank). 6 years on our workmanship. Compliance certificate emailed within 24 hours of install — keep it for insurance.",
+    a: "Manufacturer warranty on the unit (typically 6–10 years on the tank). 6 years on our workmanship. Compliance certificate emailed within 24 hours of install, keep it for insurance.",
   },
 ];
 
@@ -53,7 +53,7 @@ type Review = { title: string; txt: string; who: string; what: string; a: string
 
 const REVIEW_COLUMNS: Review[][] = [
   [
-    { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. Bloke on the phone is the bloke on the tools — refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" },
+    { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. Bloke on the phone is the bloke on the tools, refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" },
     { title: "Actually got up in the roof", txt: "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.", who: "Dean R.", what: "Officer · ducted retrofit", a: "DR" },
     { title: "Emergency sorted Sunday", txt: "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.", who: "Sam K.", what: "Berwick · emergency hot water", a: "SK" },
     { title: "No surprises on the invoice", txt: "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.", who: "Priya S.", what: "Cranbourne · split install", a: "PS" },
@@ -61,7 +61,7 @@ const REVIEW_COLUMNS: Review[][] = [
   ],
   [
     { title: "Family business, feels it", txt: "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.", who: "Tom H.", what: "Narre Warren · heat pump", a: "TH" },
-    { title: "Rebate handled — didn't lift a finger", txt: "The VEU paperwork looked scary online. They filled it all in, I signed once at the quote and once on the day. Rebate was already in the price. Painless.", who: "Lauren M.", what: "Pakenham · heat pump swap", a: "LM" },
+    { title: "Rebate handled, didn't lift a finger", txt: "The VEU paperwork looked scary online. They filled it all in, I signed once at the quote and once on the day. Rebate was already in the price. Painless.", who: "Lauren M.", what: "Pakenham · heat pump swap", a: "LM" },
     { title: "Cleaned up like nothing happened", txt: "Full ducted retrofit over two days. When they left the roof cavity was tidier than they found it and the driveway had been swept. Small thing but it matters.", who: "Bianca R.", what: "Berwick · ducted install", a: "BR" },
     { title: "Follow-up call was a surprise", txt: "A week after install they rang to check the heat pump was running quiet and the app was set up. First tradie who's ever followed up after payment cleared.", who: "Nick D.", what: "Beaconsfield · heat pump", a: "ND" },
     { title: "Split install in half a day", txt: "Bedroom Mitsubishi went in before lunch. Neat pipework, brackets straight, temp checked before they left. Would use again for the lounge.", who: "Alex P.", what: "Cranbourne East · split", a: "AP" },
@@ -93,12 +93,12 @@ export default function HomePage() {
             </h1>
 
             <p className="hero__sub">
-              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration &mdash; VEU-accredited so the rebate&rsquo;s already in the price we quote you.
+              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration , VEU-accredited so the rebate&rsquo;s already in the price we quote you.
             </p>
 
             <ul className="hero__bullets">
               <li><span className="tick">✓</span> Family-owned, based in Pakenham since 2014</li>
-              <li><span className="tick">✓</span> Reece trade partner &mdash; genuine stock &amp; warranties</li>
+              <li><span className="tick">✓</span> Reece trade partner , genuine stock &amp; warranties</li>
               <li><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
               <li><span className="tick">✓</span> Fixed prices, VEU rebate applied at the quote</li>
             </ul>
@@ -172,7 +172,7 @@ export default function HomePage() {
               <span className="ds-dot ds-dot--orange" />
               Fixed-price installs
             </span>
-            <h2 className="ds-h--on-dark">Three of our most popular jobs &mdash; locked-in prices.</h2>
+            <h2 className="ds-h--on-dark">Three of our most popular jobs , locked-in prices.</h2>
             <p className="veu__sub veu__sub--center">
               What you see is what you pay. VEU rebate already applied, GST included, compliance certificate and warranty pack emailed within 24&nbsp;hrs of install.
             </p>
@@ -187,10 +187,10 @@ export default function HomePage() {
               <div className="fixprice__photo fixprice__photo--aio" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
-                <h3>Reclaim R290 all-in-one &mdash; fully installed</h3>
+                <h3>Reclaim R290 all-in-one , fully installed</h3>
                 <ul className="fixprice__feat">
                   <li>Plug-in: tank &amp; compressor in one unit</li>
-                  <li>R290 refrigerant &mdash; low GWP, efficient in cold</li>
+                  <li>R290 refrigerant , low GWP, efficient in cold</li>
                   <li>Old gas / electric unit removed &amp; disposed</li>
                   <li>VEU rebate applied, compliance cert included</li>
                 </ul>
@@ -211,11 +211,11 @@ export default function HomePage() {
               <div className="fixprice__photo fixprice__photo--split" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
-                <h3>Reclaim CO&#8322; split heat pump &mdash; fully installed</h3>
+                <h3>Reclaim CO&#8322; split heat pump , fully installed</h3>
                 <ul className="fixprice__feat">
-                  <li>Compressor split from tank &mdash; quieter, longer life</li>
+                  <li>Compressor split from tank , quieter, longer life</li>
                   <li>315&nbsp;L or 400&nbsp;L, glass-lined or stainless steel</li>
-                  <li>Wi-Fi smart control &mdash; schedule off-peak / solar hours</li>
+                  <li>Wi-Fi smart control , schedule off-peak / solar hours</li>
                   <li>15-year warranty on stainless tank option</li>
                 </ul>
                 <div className="fixprice__price">
@@ -237,7 +237,7 @@ export default function HomePage() {
                 <span className="fixprice__eyebrow">Ducted aircon</span>
                 <h3>18&nbsp;kW Mitsubishi Electric ducted system</h3>
                 <ul className="fixprice__feat">
-                  <li>18&nbsp;kW inverter head unit &mdash; whole-home cooling &amp; heating</li>
+                  <li>18&nbsp;kW inverter head unit , whole-home cooling &amp; heating</li>
                   <li>Milieu Lab zone controller</li>
                   <li>Up to <strong>12 zones</strong> with individual control</li>
                   <li>Design, ducting, install, commission &amp; certify</li>
@@ -252,7 +252,7 @@ export default function HomePage() {
           </div>
 
           <p className="fixprice__foot">
-            After something different? We install every major brand &mdash; <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
+            After something different? We install every major brand , <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
           </p>
         </div>
       </section>
@@ -263,7 +263,7 @@ export default function HomePage() {
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> What we do</span>
             <h2>Everything gas, hot water &amp; air, under one local team.</h2>
-            <p>From a new split system in the bedroom to a full ducted retrofit and emergency gas leak callouts — same crew, same paperwork, same warranty.</p>
+            <p>From a new split system in the bedroom to a full ducted retrofit and emergency gas leak callouts, same crew, same paperwork, same warranty.</p>
           </div>
 
           <div className="bento">
@@ -282,7 +282,7 @@ export default function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">02</span>
                 <h3>Split systems</h3>
-                <p>Bedroom, living, granny flat. Mitsubishi Electric &amp; Kaden — supplied &amp; installed.</p>
+                <p>Bedroom, living, granny flat. Mitsubishi Electric &amp; Kaden, supplied &amp; installed.</p>
               </div>
             </Link>
 
@@ -318,7 +318,7 @@ export default function HomePage() {
               <div className="bcard__photo bcard__photo--hotwater" />
               <div className="bcard__body">
                 <span className="bcard__num">06</span>
-                <h3>Hot water — gas &amp; electric</h3>
+                <h3>Hot water, gas &amp; electric</h3>
                 <p>Tank or continuous. Same-day swaps on most common models.</p>
               </div>
             </Link>
@@ -328,7 +328,7 @@ export default function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">07</span>
                 <h3>Commercial fit-out</h3>
-                <p>Cafés, offices, gyms. Aircon, hot water and gas — one PM, one invoice.</p>
+                <p>Cafés, offices, gyms. Aircon, hot water and gas, one PM, one invoice.</p>
               </div>
             </Link>
 
@@ -356,7 +356,7 @@ export default function HomePage() {
             {[
               ["01", "Family-owned, locally run", "Started in a Pakenham garage in 2014. Same family answering the phone, doing the quote and standing behind the work today."],
               ["02", "Reece trade partner", "Direct supply means real stock, real warranties and no margin-stacking middlemen between you and the gear."],
-              ["03", "Rebate paperwork — sorted", "We're VEU accredited. Eligibility, certificates, STCs — all handled inside the quote. You sign once and it's done."],
+              ["03", "Rebate paperwork, sorted", "We're VEU accredited. Eligibility, certificates, STCs, all handled inside the quote. You sign once and it's done."],
               ["04", "Tickets & licences current", "Licensed gasfitter + ARC refrigeration handling licence. Every install gets a compliance certificate emailed within 24 hrs."],
               ["05", "Fixed quotes, no surprises", "What we quote on day one is what you pay on install day. Variations only with your written OK first."],
               ["06", "Same-week install slots", "Most heat pump and split jobs go in within 5–7 days of accepting the quote. Emergencies same day."],
@@ -380,7 +380,7 @@ export default function HomePage() {
           </div>
           <ol className="steps">
             {[
-              [1, "You get in touch", "Fill out the quote form or give us a call — tell us what you’re after.", "~ 5 min"],
+              [1, "You get in touch", "Fill out the quote form or give us a call, tell us what you’re after.", "~ 5 min"],
               [2, "Quote back within 12 hrs", "We send a fixed-price quote back within 12 hours. Straight to your inbox.", "within 12 hrs"],
               [3, "Site visit if needed", "For bigger jobs (ducted, tricky retrofits) we’ll pop out for a proper look.", "when required"],
               [4, "Any questions? Ask away", "We’ll walk you through the gear, timing and paperwork before you commit.", "before install"],
@@ -398,7 +398,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* REVIEWS — scrolling columns */}
+      {/* REVIEWS, scrolling columns */}
       <section className="reviews">
         <div className="wrap">
           <div className="reviews__head">
@@ -451,10 +451,10 @@ export default function HomePage() {
                 <span key={s}>{s}</span>
               ))}
             </div>
-            <p className="area__finep">Outside this list? Give us a call — we sometimes travel further for bigger jobs and commercial work.</p>
+            <p className="area__finep">Outside this list? Give us a call, we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">
-            <div className="map map--live" aria-label="Service area map — 50 km radius from Pakenham 3810">
+            <div className="map map--live" aria-label="Service area map, 50 km radius from Pakenham 3810">
               <ServiceAreaMap />
               <div className="map__badge">
                 <span className="map__badge-eye">Service radius</span>

@@ -59,7 +59,7 @@ export const services = [
     name: "Air Conditioning Service & Repairs",
     short: "Aircon Service & Repairs",
     blurb:
-      "Annual servicing, fault diagnosis and repairs for all major brands — keep your system efficient and under warranty.",
+      "Annual servicing, fault diagnosis and repairs for all major brands, keep your system efficient and under warranty.",
     icon: "wrench",
   },
   {
@@ -74,7 +74,7 @@ export const services = [
 
 export type ServiceSlug = (typeof services)[number]["slug"];
 
-// South-East Victoria & Gippsland service area — each becomes a local landing page.
+// South-East Victoria & Gippsland service area, each becomes a local landing page.
 // Add/remove freely; sitemap + nav update automatically.
 export const suburbs = [
   { slug: "pakenham", name: "Pakenham", postcode: "3810" },

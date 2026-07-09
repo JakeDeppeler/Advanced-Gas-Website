@@ -85,7 +85,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
             <h2>Transparent fixed-price options.</h2>
-            <p>Real numbers — not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics — we confirm in writing before any work starts.</p>
+            <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics, we confirm in writing before any work starts.</p>
           </div>
           <div className="dp-pricing__table">
             <table>

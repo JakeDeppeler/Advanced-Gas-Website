@@ -47,11 +47,11 @@ const LABELS: Record<string, Record<string, string>> = {
   splitStyle: { single: "Single head", multi: "Multi-head" },
   splitSize: {
     "2.5": "2.5 kW", "3.5": "3.5 kW", "5.0": "5.0 kW", "7.1": "7.1 kW", "9.0": "9.0 kW",
-    unsure: "Not sure — floor plan",
+    unsure: "Not sure, floor plan",
   },
   ductedSize: { "10": "10 kW", "14": "14 kW", "18": "18 kW", "20": "20 kW", unsure: "Not sure" },
   ductedZones: { "2": "2 zones", "3": "3 zones", "4": "4 zones", "5": "5 zones", "6": "6 zones", "8": "8 zones", "10": "10 zones", "12": "12 zones" },
-  ductedTablet: { yes: "Yes — Milieu Lab tablet", no: "No — standard controller" },
+  ductedTablet: { yes: "Yes, Milieu Lab tablet", no: "No, standard controller" },
   svcType: {
     "gas-heater": "Gas heater", "hot-water": "Hot water", "split": "Split system",
     "ducted-air": "Ducted aircon", "evap": "Evaporative cooler",
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     return new NextResponse("Missing required fields", { status: 400 });
   }
 
-  // Recipients — support comma-separated list, fall back to Jake so leads
+  // Recipients, support comma-separated list, fall back to Jake so leads
   // aren't lost if LEAD_NOTIFICATION_EMAIL isn't set on Vercel.
   const envRecipients = (process.env.LEAD_NOTIFICATION_EMAIL || "")
     .split(",")
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
   const summaryLine = friendlySummary(data);
 
   if (!key) {
-    console.warn("RESEND_API_KEY missing — logging lead only.");
+    console.warn("RESEND_API_KEY missing, logging lead only.");
     console.log("NEW LEAD →\n" + fallbackText(data, summaryLine, allPhotos.length));
     return NextResponse.json({ ok: true });
   }
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     from,
     to,
     replyTo,
-    subject: `New quote — ${data.name} · ${data.postcode || data.suburb || "SE Vic"} · ${headline(data)}`,
+    subject: `New quote, ${data.name} · ${data.postcode || data.suburb || "SE Vic"} · ${headline(data)}`,
     html: internalHtml,
     text: internalText,
     attachments,
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       from,
       to: [data.email],
       replyTo: to[0],
-      subject: `Thanks ${data.name.split(" ")[0]}, we've got your quote request — Advanced Gas & Aircon`,
+      subject: `Thanks ${data.name.split(" ")[0]}, we've got your quote request, Advanced Gas & Aircon`,
       html: custHtml,
       text: custText,
     });
@@ -242,11 +242,11 @@ function fallbackText(d: Lead, summary: string, photoCount: number) {
     ``,
     `Name:      ${d.name}`,
     `Phone:     ${d.phone}`,
-    `Email:     ${d.email || "—"}`,
-    `Postcode:  ${d.postcode || d.suburb || "—"}`,
+    `Email:     ${d.email || ","}`,
+    `Postcode:  ${d.postcode || d.suburb || ","}`,
     d.address ? `Address:   ${d.address}` : null,
     ``,
-    `Notes:     ${d.notes || "—"}`,
+    `Notes:     ${d.notes || ","}`,
     photoCount ? `Photos:    ${photoCount} attached` : null,
   ].filter(Boolean).join("\n");
 }
@@ -255,7 +255,7 @@ function fallbackCustomerText(d: Lead, summary: string) {
   return [
     `Hi ${d.name.split(" ")[0]},`,
     ``,
-    `Thanks for the quote request — we've got everything and one of the team will be back to you within 12 business hours.`,
+    `Thanks for the quote request, we've got everything and one of the team will be back to you within 12 business hours.`,
     ``,
     `What you asked for:`,
     `  Service:   ${headline(d)}`,
@@ -266,7 +266,7 @@ function fallbackCustomerText(d: Lead, summary: string) {
     `  2. For bigger jobs (ducted, tricky retrofits) we'll pop out for a site check.`,
     `  3. Any questions before you commit? Just reply to this email.`,
     ``,
-    `If it's urgent, call (03) 5947 8000 — you'll speak to a real tradie.`,
+    `If it's urgent, call (03) 5947 8000, you'll speak to a real tradie.`,
     ``,
     `Cheers,`,
     `The Advanced Gas & Aircon team`,
@@ -359,11 +359,11 @@ function renderInternalEmail(d: Lead, summary: string, photoCount: number): stri
           </tr>
           <tr>
             <td style="padding:6px 0;color:${INK_3};text-transform:uppercase;font-size:12px;letter-spacing:0.06em;">Email</td>
-            <td style="padding:6px 0;color:${INK};font-weight:600;"><a href="mailto:${escapeHtml(d.email)}" style="color:${NAVY};text-decoration:none;">${escapeHtml(d.email || "—")}</a></td>
+            <td style="padding:6px 0;color:${INK};font-weight:600;"><a href="mailto:${escapeHtml(d.email)}" style="color:${NAVY};text-decoration:none;">${escapeHtml(d.email || ",")}</a></td>
           </tr>
           <tr>
             <td style="padding:6px 0;color:${INK_3};text-transform:uppercase;font-size:12px;letter-spacing:0.06em;">Postcode</td>
-            <td style="padding:6px 0;color:${INK};font-weight:600;">${escapeHtml(d.postcode || d.suburb || "—")}</td>
+            <td style="padding:6px 0;color:${INK};font-weight:600;">${escapeHtml(d.postcode || d.suburb || ",")}</td>
           </tr>
           ${d.address ? `
           <tr>
@@ -402,7 +402,7 @@ function renderInternalEmail(d: Lead, summary: string, photoCount: number): stri
         <table role="presentation" cellpadding="0" cellspacing="0">
           <tr>
             <td style="border-radius:10px;background:${ORANGE};">
-              <a href="mailto:${escapeHtml(d.email)}?subject=${encodeURIComponent(`Your Advanced Gas quote — ${headline(d)}`)}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;">Reply to ${escapeHtml(d.name.split(" ")[0])} →</a>
+              <a href="mailto:${escapeHtml(d.email)}?subject=${encodeURIComponent(`Your Advanced Gas quote, ${headline(d)}`)}" style="display:inline-block;padding:12px 22px;color:#ffffff;font-weight:700;font-size:15px;text-decoration:none;">Reply to ${escapeHtml(d.name.split(" ")[0])} →</a>
             </td>
             <td style="width:12px;"></td>
             <td style="border-radius:10px;background:${NAVY};">
@@ -422,7 +422,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
     <tr>
       <td style="background:${NAVY};padding:32px 32px 26px;color:#ffffff;">
         <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.55);font-family:'Courier New',monospace;">Advanced Gas &amp; Aircon</div>
-        <div style="font-size:26px;font-weight:800;margin-top:8px;line-height:1.15;">Thanks ${escapeHtml(first)} — we've got your quote request.</div>
+        <div style="font-size:26px;font-weight:800;margin-top:8px;line-height:1.15;">Thanks ${escapeHtml(first)}, we've got your quote request.</div>
         <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-top:12px;line-height:1.55;">One of the team will be back to you within <strong style="color:#ffffff;">12 business hours</strong> with a fixed-price quote. If it's urgent, ring us on <a href="tel:+61359478000" style="color:${ORANGE};text-decoration:none;font-weight:700;">(03) 5947 8000</a>.</div>
       </td>
     </tr>
@@ -440,7 +440,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
         <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${INK_3};margin-bottom:12px;">What happens next</div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           ${[
-            ["01", "Quote back in 12 hrs", "Fixed price emailed to you — VEU rebate already applied."],
+            ["01", "Quote back in 12 hrs", "Fixed price emailed to you, VEU rebate already applied."],
             ["02", "Site visit if needed", "For bigger jobs we'll pop out for a proper look before we quote."],
             ["03", "Install &amp; walkthrough", "Clean install, old unit gone, we show you how the new one runs."],
           ].map(([n, t, d]) => `
@@ -469,7 +469,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
         <div style="font-size:14px;color:${INK_2};margin-top:8px;">Cheers,<br /><strong style="color:${NAVY};">The Advanced Gas &amp; Aircon team</strong></div>
       </td>
     </tr>`;
-  return shell("Thanks — quote request received", body);
+  return shell("Thanks, quote request received", body);
 }
 
 /* ------------ util ------------ */

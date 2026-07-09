@@ -8,9 +8,9 @@ import "./rebates.css";
 
 export const metadata: Metadata = {
   title:
-    "VEU Rebates Pakenham — Up to $2,600 off heat pumps, $5,000 off aircon",
+    "VEU Rebates Pakenham, Up to $2,600 off heat pumps, $5,000 off aircon",
   description:
-    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate — up to $2,600 off heat pump hot water and $5,000 off split system aircon. Free 60-second check.",
+    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate, up to $2,600 off heat pump hot water and $5,000 off split system aircon. Free 60-second check.",
   keywords: [
     "VEU rebate Pakenham",
     "Victorian energy upgrades",
@@ -25,27 +25,27 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "Who actually pays for the VEU rebate?",
-    a: "Energy retailers in Victoria are required by law to fund energy-efficiency upgrades — that's the VEU program. We claim and apply the certificates on your behalf, which is why you don't pay then chase.",
+    a: "Energy retailers in Victoria are required by law to fund energy-efficiency upgrades, that's the VEU program. We claim and apply the certificates on your behalf, which is why you don't pay then chase.",
   },
   {
     q: "Is the rebate guaranteed at the amount you quote?",
-    a: "The rebate value can fluctuate slightly based on certificate prices, but we lock in the quoted figure once you sign — so the price you see is the price you pay. We carry any market movement, not you.",
+    a: "The rebate value can fluctuate slightly based on certificate prices, but we lock in the quoted figure once you sign, so the price you see is the price you pay. We carry any market movement, not you.",
   },
   {
     q: "Can I use VEU with solar?",
-    a: "Absolutely — heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
+    a: "Absolutely, heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
   },
   {
-    q: "I rent — can my landlord do this?",
-    a: "Yes. VEU is open to rental properties — many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
+    q: "I rent, can my landlord do this?",
+    a: "Yes. VEU is open to rental properties, many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
   },
   {
     q: "What if my old unit still works?",
-    a: "Still eligible. VEU doesn't require failure — it rewards the energy-efficiency improvement. Swapping a working but inefficient gas tank or old aircon is exactly what the program is designed for.",
+    a: "Still eligible. VEU doesn't require failure, it rewards the energy-efficiency improvement. Swapping a working but inefficient gas tank or old aircon is exactly what the program is designed for.",
   },
   {
     q: "Are concession card holders eligible for more?",
-    a: "Yes — concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
+    a: "Yes, concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
   },
   {
     q: "Does VEU cover servicing or just installation?",
@@ -58,7 +58,7 @@ const products = [
     brand: "Reclaim · CO₂ Split",
     name: "Reclaim CO₂ split heat pump",
     bullets: [
-      "Compressor split from tank — quieter, longer life",
+      "Compressor split from tank, quieter, longer life",
       "Stainless steel 15-year warranty option",
       "315 L or 400 L, Wi-Fi smart control",
       "Best for: premium installs & solar pairing",
@@ -73,9 +73,9 @@ const products = [
     brand: "Reclaim · R290 AIO",
     name: "Reclaim R290 all-in-one 300 L",
     bullets: [
-      "Plug-in all-in-one — tank + compressor in one unit",
+      "Plug-in all-in-one, tank + compressor in one unit",
       "R290 refrigerant, low GWP",
-      "Compact footprint — fast, simple installs",
+      "Compact footprint, fast, simple installs",
       "Best for: 3–4 person homes",
     ],
     price: "$2,610",
@@ -103,7 +103,7 @@ const products = [
     brand: "Thermann · R290",
     name: "Thermann 285 L R290 all-in-one",
     bullets: [
-      "Australian made — extra $400 rebate",
+      "Australian made, extra $400 rebate",
       "R290 refrigerant, low GWP",
       "5-year tank warranty",
       "Best for: 3–4 person homes",
@@ -165,7 +165,7 @@ const steps = [
   {
     n: 1,
     t: "You request a quote",
-    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can — speeds things up.",
+    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can, speeds things up.",
   },
   {
     n: 2,
@@ -175,7 +175,7 @@ const steps = [
   {
     n: 3,
     t: "We apply the rebate",
-    d: "Your quote arrives with the rebate already deducted. You sign off — no separate claim, no waiting weeks for refund.",
+    d: "Your quote arrives with the rebate already deducted. You sign off, no separate claim, no waiting weeks for refund.",
   },
   {
     n: 4,
@@ -204,7 +204,7 @@ export default function RebatesPage() {
           </h1>
           <p className="rb-hero__sub">
             The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean,
-            efficient gear. We're a VEU-accredited installer in Pakenham — we apply the rebate at quote
+            efficient gear. We're a VEU-accredited installer in Pakenham, we apply the rebate at quote
             stage so there's no chase, no claim form, no waiting.
           </p>
 
@@ -247,7 +247,7 @@ export default function RebatesPage() {
             <span className="eyebrow"><span className="eyebrow-dot" /> Eligibility check</span>
             <h2>Am I eligible? Answer 4 things, find out in 30 seconds.</h2>
             <p>
-              The VEU program is open to most Victorian households — owner-occupied, rental, and units.
+              The VEU program is open to most Victorian households, owner-occupied, rental, and units.
               We've designed this rough calculator to give you a real ballpark before you commit to a
               site visit.
             </p>
@@ -291,7 +291,7 @@ export default function RebatesPage() {
             <h2>Heat pumps &amp; aircon we install under the VEU program.</h2>
             <p>
               Each of these is VEU-listed, in stock through our Reece partnership, and proven in
-              1,200+ Pakenham-area installs. Pricing shown is the indicative VEU rebate range — your
+              1,200+ Pakenham-area installs. Pricing shown is the indicative VEU rebate range, your
               actual figure depends on your old unit and home.
             </p>
           </div>
@@ -355,7 +355,7 @@ export default function RebatesPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>One free site visit. One quote with the rebate already applied. One handshake.</h2>
-            <p>Pakenham locals — usually replied within 2 business hours.</p>
+            <p>Pakenham locals, usually replied within 2 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <a href="/quote" className="btn btn--orange btn--xl">Start my free quote →</a>

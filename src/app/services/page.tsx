@@ -5,7 +5,7 @@ import { site } from "@/lib/site";
 import "./services-hub.css";
 
 export const metadata: Metadata = {
-  title: "Services — Heat Pumps, Aircon, Gas & Hot Water",
+  title: "Services, Heat Pumps, Aircon, Gas & Hot Water",
   description:
     "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 50 km. Free quote.",
   alternates: { canonical: "/services" },
@@ -34,12 +34,12 @@ const services: Service[] = [
     eyebrow: "01 · Heat pump hot water",
     eyebrowOrange: true,
     h2: "Save up to 73% on hot water bills with the VEU rebate applied.",
-    lede: "Replace your gas or electric storage tank with a high-efficiency heat pump — we handle the VEU paperwork so the rebate is already on your quote.",
+    lede: "Replace your gas or electric storage tank with a high-efficiency heat pump, we handle the VEU paperwork so the rebate is already on your quote.",
     specs: [["VEU Rebate", "up to $2,600"], ["Install time", "1 day"], ["Tank warranty", "5–10 yrs"], ["Workmanship", "6 yrs"]],
     bullets: [
       "Old gas / electric unit removed & disposed responsibly",
       "Eligibility, certificates and STCs handled by us",
-      "Sizing matched to your household — no upsell",
+      "Sizing matched to your household, no upsell",
       "Compliance certificate emailed within 24 hours",
     ],
     brands: ["Reclaim", "iStore", "Thermann"],
@@ -52,14 +52,14 @@ const services: Service[] = [
     id: "split",
     num: "02",
     eyebrow: "02 · Split system aircon",
-    h2: "Whisper-quiet cooling in a single room — installed clean.",
+    h2: "Whisper-quiet cooling in a single room, installed clean.",
     lede: "From bedrooms to granny flats, we size and install single-head split systems with neat, hidden pipework and tidy condensate drains.",
     specs: [["Sizes", "2.5 – 9 kW"], ["Install time", "½ day"], ["Warranty", "5 yrs"], ["Refrigerant", "R32 inverter"]],
     bullets: [
-      "Mitsubishi Electric or Kaden — supplied & installed",
+      "Mitsubishi Electric or Kaden, supplied & installed",
       "Indoor unit positioning checked for airflow",
       "Up to $1,800 VEU rebate on eligible installs",
-      "Full ARC refrigeration licence — no dodgy shortcuts",
+      "Full ARC refrigeration licence, no dodgy shortcuts",
     ],
     brands: ["Mitsubishi Electric", "Kaden"],
     photo: "/kaden-indoor.jpg",
@@ -72,11 +72,11 @@ const services: Service[] = [
     num: "03",
     eyebrow: "03 · Ducted aircon",
     eyebrowOrange: true,
-    h2: "Whole-home zoned cooling — design, supply, install.",
-    lede: "Replace inefficient ducted gas heating with a modern reverse-cycle ducted system. Zone controllers, app control, evaporator design — done properly the first time.",
+    h2: "Whole-home zoned cooling, design, supply, install.",
+    lede: "Replace inefficient ducted gas heating with a modern reverse-cycle ducted system. Zone controllers, app control, evaporator design, done properly the first time.",
     specs: [["Capacity", "10 – 20 kW"], ["Install time", "2–3 days"], ["Zones", "3 – 8"], ["VEU rebate", "up to $5,000"]],
     bullets: [
-      "Roof-cavity survey done before quote — no surprises",
+      "Roof-cavity survey done before quote, no surprises",
       "Modular zones, app control on most models",
       "Old ducted gas heater removed and disposed",
       "5–7 year warranty depending on system",
@@ -90,7 +90,7 @@ const services: Service[] = [
     id: "gas-heating",
     num: "04",
     eyebrow: "04 · Gas & ducted gas heating",
-    h2: "Install, replace, service — Brivis, Braemar, Rinnai.",
+    h2: "Install, replace, service, Brivis, Braemar, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
     specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$280 + GST"], ["CO test", "included"]],
     bullets: [
@@ -109,7 +109,7 @@ const services: Service[] = [
     num: "05",
     eyebrow: "05 · Service & safety",
     eyebrowOrange: true,
-    h2: "Annual gas appliance servicing + CO testing — $280 + GST.",
+    h2: "Annual gas appliance servicing + CO testing, $280 + GST.",
     lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
     specs: [["Price", "$280 + GST"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
     bullets: [
@@ -125,7 +125,7 @@ const services: Service[] = [
   {
     id: "hotwater",
     num: "06",
-    eyebrow: "06 · Hot water — gas & electric",
+    eyebrow: "06 · Hot water, gas & electric",
     h2: "Same-day swaps on most common units.",
     lede: "Burst tank? Continuous flow on the blink? We carry the common Rinnai, Thermann and Rheem units on the truck for most call-outs.",
     specs: [["Tank sizes", "25L – 400L"], ["Continuous", "16 – 32 L/min"], ["Call-out", "same day"], ["Warranty", "5–12 yrs"]],
@@ -137,7 +137,7 @@ const services: Service[] = [
     ],
     brands: ["Rinnai", "Thermann", "Rheem"],
     photo: "/gas-hot-water-changeover.png",
-    photoAlt: "Gas hot water changeover — same day service",
+    photoAlt: "Gas hot water changeover, same day service",
     primaryCta: { label: "Call for same-day →", href: `tel:${site.phoneE164}` },
   },
   {
@@ -145,8 +145,8 @@ const services: Service[] = [
     num: "07",
     eyebrow: "07 · Commercial fit-outs",
     eyebrowOrange: true,
-    h2: "Cafés, gyms, offices, fit-outs — one PM, one invoice.",
-    lede: "Aircon, hot water, gas. We handle the lot for SE Melbourne commercial fits — coordinated with your builder, inspected, certified, signed off.",
+    h2: "Cafés, gyms, offices, fit-outs, one PM, one invoice.",
+    lede: "Aircon, hot water, gas. We handle the lot for SE Melbourne commercial fits, coordinated with your builder, inspected, certified, signed off.",
     specs: [["Scopes", "HVAC / gas / HW"], ["PM", "single contact"], ["Insurance", "$20M PL"], ["SWMS", "supplied"]],
     bullets: [
       "Site induction-ready paperwork in 24 hrs",
@@ -163,12 +163,12 @@ const services: Service[] = [
     num: "08",
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
-    lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only — sorry, we can't cover all of Melbourne overnight.",
+    lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
     specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours", "$400 first hr · $150/hr after"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
-      "Hot water failure with kids in the house — priority",
-      "Carbon monoxide alarm triggered — immediate response",
+      "Hot water failure with kids in the house, priority",
+      "Carbon monoxide alarm triggered, immediate response",
     ],
     photo: "/reclaim-mitsubishi.jpg",
     photoAlt: "Advanced Gas team on an emergency callout",
@@ -185,7 +185,7 @@ export default function ServicesHubPage() {
             <span className="ds-dot" />
             Eight services · one trusted local crew
           </div>
-          <h1>Everything gas, aircon &amp; hot water — installed, serviced, certified.</h1>
+          <h1>Everything gas, aircon &amp; hot water, installed, serviced, certified.</h1>
           <p>One family-run team for the whole job. Same tradies, same paperwork trail, same warranty whether you&apos;re swapping a hot water unit or fitting out a café from scratch.</p>
           <div className="sv-tabs">
             {services.map((s) => (
@@ -257,7 +257,7 @@ export default function ServicesHubPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>One quote. One crew. One handshake.</h2>
-            <p>Free quote, VEU rebate already applied — usually back within 2 hours.</p>
+            <p>Free quote, VEU rebate already applied, usually back within 2 hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

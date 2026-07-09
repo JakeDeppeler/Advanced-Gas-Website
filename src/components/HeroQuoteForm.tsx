@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 /* ============================================================
    Multi-step, multi-select branching quote form.
-   Service (top step) is single-select — it drives the flow.
+   Service (top step) is single-select, it drives the flow.
    Everything else is multi-select so a customer can be quoted
    across e.g. Reclaim + Thermann, 200L + 285L, etc.
    ============================================================ */
@@ -21,7 +21,7 @@ const SERVICES: { id: ServiceId; t: string; s: string }[] = [
 /* ---- Heat pump options ---- */
 
 const HP_BRANDS = [
-  { id: "reclaim",  t: "Reclaim",  s: "CO₂ heat pump — premium, quietest" },
+  { id: "reclaim",  t: "Reclaim",  s: "CO₂ heat pump, premium, quietest" },
   { id: "thermann", t: "Thermann", s: "Great value, reliable" },
   { id: "istore",   t: "iStore",   s: "Best mid-range, smart-app ready" },
 ];
@@ -43,9 +43,9 @@ const HP_STYLES = [
   },
 ];
 
-// Size ranges — availability depends on the style the customer picks:
-//   AIO   : small (180–200 L) and large (275–300 L) — every brand does AIO
-//   Split : large (250–300 L) and xl (315–400 L) — Reclaim only
+// Size ranges, availability depends on the style the customer picks:
+//   AIO   : small (180–200 L) and large (275–300 L), every brand does AIO
+//   Split : large (250–300 L) and xl (315–400 L), Reclaim only
 type SizeRange = { id: string; t: string; s: string; aio: boolean; split: boolean };
 const HP_SIZE_RANGES: SizeRange[] = [
   { id: "small", t: "180 L – 200 L", s: "1–2 people · Reclaim 200 L · Thermann 200 L · iStore 180 L", aio: true,  split: false },
@@ -88,7 +88,7 @@ const SPLIT_SIZES = [
   { id: "5.0",     t: "5.0 kW",   s: "Standard living" },
   { id: "7.1",     t: "7.1 kW",   s: "Open-plan living" },
   { id: "9.0",     t: "9.0 kW",   s: "Large open-plan" },
-  { id: "unsure",  t: "Not sure — floor plan", s: "Send us a floor plan, we'll size it" },
+  { id: "unsure",  t: "Not sure, floor plan", s: "Send us a floor plan, we'll size it" },
 ];
 
 // Multi-head sizes for the stepper picker. Customer clicks +/- on each
@@ -212,7 +212,7 @@ export function HeroQuoteForm() {
       if (hasReclaim) steps.push("hp-style");
       steps.push("hp-size");
       if (wantsSplit) steps.push("hp-material");
-      // Wi-Fi step only for split — AIO units all have Wi-Fi built in.
+      // Wi-Fi step only for split, AIO units all have Wi-Fi built in.
       if (wantsSplit) steps.push("hp-wifi");
       steps.push("details");
       return steps;
@@ -268,7 +268,7 @@ export function HeroQuoteForm() {
       case "split-brand": return splitBrand.length > 0;
       case "split-style": return splitStyle.length > 0;
       case "split-heads":
-        // Over-cap is a soft advisory, not a hard block — customer can still proceed.
+        // Over-cap is a soft advisory, not a hard block, customer can still proceed.
         return splitStyle.includes("multi") ? multiHeadCount > 0 : true;
       case "split-size": return splitSize.length > 0;
       case "ducted-size": return ductedSize.length > 0;
@@ -300,14 +300,14 @@ export function HeroQuoteForm() {
     if (!files || files.length === 0) return;
     const remaining = 6 - photos.length;
     if (remaining <= 0) {
-      alert("Six photos is the max — remove one before adding more, or email extras after.");
+      alert("Six photos is the max, remove one before adding more, or email extras after.");
       return;
     }
     const toAdd = Array.from(files).slice(0, remaining);
     const results: Array<{ name: string; type: string; data: string }> = [];
     for (const file of toAdd) {
       if (file.size > 8 * 1024 * 1024) {
-        alert(`"${file.name}" is over 8 MB — skipped. Try a smaller photo or email it after.`);
+        alert(`"${file.name}" is over 8 MB, skipped. Try a smaller photo or email it after.`);
         continue;
       }
       const buf = await file.arrayBuffer();
@@ -349,7 +349,7 @@ export function HeroQuoteForm() {
           })),
         );
       } catch {
-        /* network / abort — ignore */
+        /* network / abort, ignore */
       }
     }, 300);
     return () => { clearTimeout(t); controller.abort(); };
@@ -371,7 +371,7 @@ export function HeroQuoteForm() {
       const st = labels(HP_STYLES, hpStyle);
       const sz = labels(HP_SIZE_RANGES, hpSize);
       const m = labels(HP_MATERIALS, hpMaterial);
-      return `Heat pump — brand: ${b}; style: ${st}; size: ${sz}; material: ${m}; WiFi: ${hpWifi}`;
+      return `Heat pump, brand: ${b}; style: ${st}; size: ${sz}; material: ${m}; WiFi: ${hpWifi}`;
     }
     if (service === "split") {
       const b = labels(SPLIT_BRANDS, splitBrand);
@@ -385,15 +385,15 @@ export function HeroQuoteForm() {
       if (splitStyle.includes("single") && splitSize.length) {
         parts.push(`single-head sizes: ${labels(SPLIT_SIZES, splitSize)}`);
       }
-      return `Split — brand: ${b}; style: ${st}; ${parts.join("; ") || "(config to confirm)"}`;
+      return `Split, brand: ${b}; style: ${st}; ${parts.join("; ") || "(config to confirm)"}`;
     }
     if (service === "ducted") {
       const sz = labels(DUCTED_SIZES, ductedSize);
       const z = labels(ZONE_COUNTS, ductedZones);
-      return `Ducted — size: ${sz}; zones: ${z}; Milieu tablet: ${ductedTablet}`;
+      return `Ducted, size: ${sz}; zones: ${z}; Milieu tablet: ${ductedTablet}`;
     }
     const st = labels(SERVICE_TYPES, svcType);
-    return `Service — appliance: ${st}; ${svcStories} storey`;
+    return `Service, appliance: ${st}; ${svcStories} storey`;
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -447,7 +447,7 @@ export function HeroQuoteForm() {
           <div className="qcard__done-tick">✓</div>
           <h2 className="qcard__h">Got it. We&apos;ll be in touch.</h2>
           <p className="qcard__sub">
-            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox &mdash; we&rsquo;ve sent a confirmation.
+            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox , we&rsquo;ve sent a confirmation.
           </p>
           <div className="qcard__done-ctas">
             <button type="button" className="ds-btn ds-btn--orange ds-btn--lg" onClick={resetForm}>
@@ -458,7 +458,7 @@ export function HeroQuoteForm() {
             </a>
           </div>
           <p className="qcard__finep" style={{ marginTop: 18 }}>
-            Different address, different job, or something you forgot &mdash; hit &ldquo;Submit another request&rdquo; and we&rsquo;ll quote it too.
+            Different address, different job, or something you forgot , hit &ldquo;Submit another request&rdquo; and we&rsquo;ll quote it too.
           </p>
         </div>
       </aside>
@@ -473,7 +473,7 @@ export function HeroQuoteForm() {
       </div>
 
       <h2 className="qcard__h">Get a fixed-price quote</h2>
-      <p className="qcard__sub">Tick every option you&rsquo;d consider — we&rsquo;ll price the lot.</p>
+      <p className="qcard__sub">Tick every option you&rsquo;d consider, we&rsquo;ll price the lot.</p>
 
       {/* progress */}
       <div className="qcard__progress" aria-hidden="true">
@@ -496,7 +496,7 @@ export function HeroQuoteForm() {
         />
 
         {currentStep === "service" && (
-          <StepBlock title="What do you need?" hint="Choose one — this sets your quote path.">
+          <StepBlock title="What do you need?" hint="Choose one, this sets your quote path.">
             <div className="qgrid qgrid--2">
               {SERVICES.map(s => (
                 <OptCard key={s.id} multi={false} checked={service === s.id}
@@ -507,7 +507,7 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-brand" && (
-          <StepBlock title="Which brand(s) of heat pump?" hint="Pick any you'd consider — we'll quote all.">
+          <StepBlock title="Which brand(s) of heat pump?" hint="Pick any you'd consider, we'll quote all.">
             <div className="qgrid qgrid--3">
               {HP_BRANDS.map(b => (
                 <OptCard key={b.id} multi checked={hpBrand.includes(b.id)}
@@ -519,7 +519,7 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-style" && (
-          <StepBlock title="All-in-one or split — or quote both?" hint="Split is Reclaim only, and about $2,500 more than an all-in-one. If budget is tight, stick with all-in-one.">
+          <StepBlock title="All-in-one or split, or quote both?" hint="Split is Reclaim only, and about $2,500 more than an all-in-one. If budget is tight, stick with all-in-one.">
             <div className="qgrid qgrid--2">
               {HP_STYLES.map(x => (
                 <button
@@ -573,7 +573,7 @@ export function HeroQuoteForm() {
         })()}
 
         {currentStep === "hp-material" && (
-          <StepBlock title="Tank material" hint="Happy with either? Tick both — we'll quote both.">
+          <StepBlock title="Tank material" hint="Happy with either? Tick both, we'll quote both.">
             <div className="qgrid qgrid--2">
               {HP_MATERIALS.map(m => (
                 <OptCard key={m.id} multi checked={hpMaterial.includes(m.id)}
@@ -587,13 +587,13 @@ export function HeroQuoteForm() {
         {currentStep === "hp-wifi" && (
           <StepBlock
             title="Wi-Fi controller on the split?"
-            hint="Only asked for split systems — all-in-one units come with Wi-Fi built in."
+            hint="Only asked for split systems, all-in-one units come with Wi-Fi built in."
           >
             <div className="qgrid qgrid--2">
               <OptCard multi={false} checked={hpWifi === "yes"} onClick={() => setHpWifi("yes")}
-                t="Yes — Wi-Fi" s="Set schedules & watch running cost from your phone" />
+                t="Yes, Wi-Fi" s="Set schedules & watch running cost from your phone" />
               <OptCard multi={false} checked={hpWifi === "no"} onClick={() => setHpWifi("no")}
-                t="No — standard" s="Manual wall controller only, lower cost" />
+                t="No, standard" s="Manual wall controller only, lower cost" />
             </div>
           </StepBlock>
         )}
@@ -656,7 +656,7 @@ export function HeroQuoteForm() {
             </div>
             {multiHeadOverCap && (
               <p className="qhint qhint--warn">
-                That&rsquo;s past the typical diversity max ({brandMaxKw} kW) for {labels(SPLIT_BRANDS, splitBrand)}. We can still design around it — or drop a head / add Kaden or Rinnai (23 kW).
+                That&rsquo;s past the typical diversity max ({brandMaxKw} kW) for {labels(SPLIT_BRANDS, splitBrand)}. We can still design around it, or drop a head / add Kaden or Rinnai (23 kW).
               </p>
             )}
             <details className="mhead__example">
@@ -665,7 +665,7 @@ export function HeroQuoteForm() {
                 <p><strong>Kaden or Rinnai (18 kW condenser, ~23 kW heads):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 18.1 kW.</p>
                 <p><strong>Mitsubishi (12 kW condenser, ~15 kW heads):</strong> 1 × 5.0 kW living + 1 × 3.5 kW master + 1 × 2.5 kW bedroom + 1 × 2.5 kW bedroom = 13.5 kW.</p>
                 <p>Multi-head systems accept diversity oversizing (heads total more than the condenser rating) because not every room runs at full load at once.</p>
-                <p>Not sure? Skip this and note &ldquo;floor plan coming&rdquo; on the details step — we&rsquo;ll design it.</p>
+                <p>Not sure? Skip this and note &ldquo;floor plan coming&rdquo; on the details step, we&rsquo;ll design it.</p>
               </div>
             </details>
           </StepBlock>
@@ -681,7 +681,7 @@ export function HeroQuoteForm() {
               ))}
             </div>
             {splitSize.includes("unsure") && (
-              <p className="qhint">No worries — attach your floor plan on the details step so we can size the heads.</p>
+              <p className="qhint">No worries, attach your floor plan on the details step so we can size the heads.</p>
             )}
           </StepBlock>
         )}
@@ -707,7 +707,7 @@ export function HeroQuoteForm() {
                   t={n.t} s={n.s} small />
               ))}
             </div>
-            <p className="qhint">Zones = individually controlled areas. A typical 4-bed home uses 5–6, but there&rsquo;s no fixed rule — we custom-design every floor plan to your needs (we&rsquo;ve fitted 9 zones onto an 18 kW system).</p>
+            <p className="qhint">Zones = individually controlled areas. A typical 4-bed home uses 5–6, but there&rsquo;s no fixed rule, we custom-design every floor plan to your needs (we&rsquo;ve fitted 9 zones onto an 18 kW system).</p>
           </StepBlock>
         )}
 
@@ -718,21 +718,21 @@ export function HeroQuoteForm() {
                 onClick={() => setDuctedTablet("yes")}
                 className={`optbig ${ductedTablet === "yes" ? "is-on" : ""}`}>
                 <div className="optbig__head">
-                  <span className="optbig__t">Yes — Milieu Lab tablet</span>
+                  <span className="optbig__t">Yes, Milieu Lab tablet</span>
                   <span className="optbig__s">Wall-mounted 7&Prime; smart controller</span>
                 </div>
                 <ul className="qbullets">
                   <li>Individual room temperatures, timers &amp; schedules</li>
                   <li>Set-and-forget temperatures per zone</li>
                   <li>Smart-home &amp; iZone (ITC) compatible</li>
-                  <li>Premium finish — fits luxury builds &amp; renos</li>
+                  <li>Premium finish, fits luxury builds &amp; renos</li>
                 </ul>
               </button>
               <button type="button"
                 onClick={() => setDuctedTablet("no")}
                 className={`optbig ${ductedTablet === "no" ? "is-on" : ""}`}>
                 <div className="optbig__head">
-                  <span className="optbig__t">No — standard controller</span>
+                  <span className="optbig__t">No, standard controller</span>
                   <span className="optbig__s">Basic wall thermostat</span>
                 </div>
                 <ul className="qbullets qbullets--muted">
@@ -795,7 +795,7 @@ export function HeroQuoteForm() {
               </label>
             </div>
             <div className="qfield qaddress">
-              <span>Full address <em>(optional — starts autofilling after 3 letters)</em></span>
+              <span>Full address <em>(optional, starts autofilling after 3 letters)</em></span>
               <input
                 type="text"
                 placeholder="12 Main Rd, Pakenham VIC 3810"
@@ -828,7 +828,7 @@ export function HeroQuoteForm() {
                 value={notes} onChange={(e) => setNotes(e.target.value)} />
             </label>
             <div className="qfield qphoto">
-              <span>Photos of your current system <em>(optional — up to 6, helps us quote sharper)</em></span>
+              <span>Photos of your current system <em>(optional, up to 6, helps us quote sharper)</em></span>
               <input type="file" accept="image/*" multiple
                 disabled={photos.length >= 6}
                 onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />

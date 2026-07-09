@@ -51,7 +51,7 @@ export default function SuburbServicePage({
   const localFaqs = [
     {
       q: `Do you service ${sub.name} ${sub.postcode}?`,
-      a: `Yes — we service ${sub.name} and surrounding areas as part of our Pakenham + 50 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
+      a: `Yes, we service ${sub.name} and surrounding areas as part of our Pakenham + 50 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
     },
     ...content.faqs.slice(0, 4),
   ];
@@ -99,7 +99,7 @@ export default function SuburbServicePage({
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> What you get</span>
-            <h2>{svc.short} {sub.name} — done properly.</h2>
+            <h2>{svc.short} {sub.name}, done properly.</h2>
             <p>{content.intro}</p>
           </div>
           <div className="dp-benefits__grid">
@@ -137,7 +137,7 @@ export default function SuburbServicePage({
         <div className="wrap dp-faq__grid">
           <div className="dp-faq__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
-            <h2>{sub.name} {svc.short.toLowerCase()} — answered.</h2>
+            <h2>{sub.name} {svc.short.toLowerCase()}, answered.</h2>
             <p>If your question isn&apos;t here, call us on <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)" }}>{site.phone}</a>.</p>
           </div>
           <div className="dp-faq__right">

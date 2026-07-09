@@ -7,7 +7,7 @@ import { posts } from "@/lib/blog";
 import "./blog.css";
 
 export const metadata: Metadata = {
-  title: "Guides & Articles — VEU rebates, heat pumps & aircon",
+  title: "Guides & Articles, VEU rebates, heat pumps & aircon",
   description:
     "Plain-English guides on VEU rebates, heat pump sizing, aircon selection, gas safety and saving on energy bills. Written by Pakenham tradies, not marketers.",
   alternates: { canonical: "/blog" },
@@ -25,7 +25,7 @@ export default function BlogPage() {
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Guides &amp; articles</span>
           <h1>Plain-English answers, <em>written by tradies.</em></h1>
-          <p>Real questions we get on jobs, written up properly. No fluff, no SEO slop — actual answers from people who&apos;ve fitted the unit on your neighbour&apos;s roof.</p>
+          <p>Real questions we get on jobs, written up properly. No fluff, no SEO slop, actual answers from people who&apos;ve fitted the unit on your neighbour&apos;s roof.</p>
           <div className="bl-cats">
             {cats.map((c, i) => (
               <span key={c} className={`bl-cat${i === 0 ? " is-active" : ""}`}>{c}</span>
@@ -94,7 +94,7 @@ export default function BlogPage() {
           <div>
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Get the heads-up</span>
             <h2>Be the first to know when the VEU rules change.</h2>
-            <p>The government tweaks rebate values every year. We send a short email when it happens — plus seasonal tips for keeping your gear running.</p>
+            <p>The government tweaks rebate values every year. We send a short email when it happens, plus seasonal tips for keeping your gear running.</p>
             <p style={{ marginTop: 0, fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
               One email a month, max. Local stuff only. Unsubscribe anytime.
             </p>

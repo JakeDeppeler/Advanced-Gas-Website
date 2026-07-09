@@ -1,11 +1,11 @@
 /* ===================================================================
-   Homepage — ported from design index.html. Scoped to .page-home.
+   Homepage, ported from design index.html. Scoped to .page-home.
    =================================================================== */
 
 .page-home { background: var(--bg); }
 
 /* Force white headings inside all dark-background sections.
-   globals.css applies text-navy-900 to h1-h4 in @layer base — without
+   globals.css applies text-navy-900 to h1-h4 in @layer base, without
    these overrides the step titles, VEU headings and bigcta headings
    render as navy on navy (invisible). */
 .page-home .hero h1,
@@ -784,7 +784,7 @@
   text-transform: uppercase;
 }
 
-/* ============== REVIEWS — scrolling columns ============== */
+/* ============== REVIEWS, scrolling columns ============== */
 .page-home .reviews { padding: 110px 0; background: var(--bg); }
 .page-home .reviews__head {
   display: flex; justify-content: space-between; align-items: flex-end;
@@ -1060,7 +1060,7 @@
 }
 
 /* ==================================================================
-   Quote form v2 — cleaner card, branching flow, back button.
+   Quote form v2, cleaner card, branching flow, back button.
    Scoped under .page-home; class prefix `qcard`, `qstep`, `opt`, etc.
    ================================================================== */
 .page-home .qcard {

@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { HeatPumpComparator } from "@/components/HeatPumpComparator";
 import "../detail.css";
 import "./heat-pumps.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Guide — Compare Reclaim, Thermann, iStore, Dux & Rinnai",
+  title: "Heat Pump Guide, Compare Reclaim, Thermann, iStore, Dux & Rinnai",
   description:
     "The honest guide to heat pump hot water in Pakenham. Compare the five brands we install, what a real installed price looks like after the VEU rebate, and the warning signs of no-name importer brands that ghost you after purchase.",
   alternates: { canonical: "/heat-pumps" },
@@ -32,9 +33,9 @@ const brands: BrandRow[] = [
     ausMade: "yes",
     wifi: "Standard on R290, optional on CO₂ split",
     refrigerant: "R290 (AIO) or CO₂ / R744 (split)",
-    parts: "Genuine parts in stock via Reece — same-day",
+    parts: "Genuine parts in stock via Reece, same-day",
     installed: "$2,610 (R290 300 L) · from $5,340 (CO₂ split)",
-    ourPick: "Premium pick — quiet, long life, best cold-weather performance.",
+    ourPick: "Premium pick, quiet, long life, best cold-weather performance.",
   },
   {
     brand: "Thermann",
@@ -45,7 +46,7 @@ const brands: BrandRow[] = [
     refrigerant: "R290",
     parts: "Common through plumbing wholesalers · 24-hour turnaround",
     installed: "$2,610 (285 L R290 AIO)",
-    ourPick: "Best value — same install price as Reclaim, lighter warranty.",
+    ourPick: "Best value, same install price as Reclaim, lighter warranty.",
   },
   {
     brand: "Dux",
@@ -56,7 +57,7 @@ const brands: BrandRow[] = [
     refrigerant: "R134a",
     parts: "Genuine parts via Reece · 1–2 day turnaround",
     installed: "from $3,200 (Airoheat 250 L)",
-    ourPick: "Solid Aussie brand — long track record, older refrigerant tech.",
+    ourPick: "Solid Aussie brand, long track record, older refrigerant tech.",
   },
   {
     brand: "iStore",
@@ -67,7 +68,7 @@ const brands: BrandRow[] = [
     refrigerant: "R32",
     parts: "OK availability · 3–5 day turnaround",
     installed: "$2,910 (275 L)",
-    ourPick: "Best for solar-paired households — Wi-Fi + app scheduling built in.",
+    ourPick: "Best for solar-paired households, Wi-Fi + app scheduling built in.",
   },
   {
     brand: "Rinnai",
@@ -76,9 +77,9 @@ const brands: BrandRow[] = [
     ausMade: "no",
     wifi: "Not standard",
     refrigerant: "R134a",
-    parts: "Excellent — Rinnai spares in every plumbing van in Victoria",
+    parts: "Excellent, Rinnai spares in every plumbing van in Victoria",
     installed: "from $3,300 (250 L)",
-    ourPick: "Best parts availability — you'll never be stuck for a spare.",
+    ourPick: "Best parts availability, you'll never be stuck for a spare.",
   },
 ];
 
@@ -86,17 +87,17 @@ const warningSigns = [
   {
     n: "01",
     t: "Brand you've never heard of on a marketplace listing",
-    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad — walk away. Reclaim, Thermann, iStore, Dux and Rinnai all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
+    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad, walk away. Reclaim, Thermann, iStore, Dux and Rinnai all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
   },
   {
     n: "02",
     t: "Warranty length under 5 years on the tank",
-    d: "Any serious brand backs the tank for at least 5 years (7–10 for premium). A 2-year or 3-year tank warranty is a red flag — the manufacturer doesn't expect the unit to last.",
+    d: "Any serious brand backs the tank for at least 5 years (7–10 for premium). A 2-year or 3-year tank warranty is a red flag, the manufacturer doesn't expect the unit to last.",
   },
   {
     n: "03",
     t: "No VEU listing / not accredited",
-    d: "If the unit isn't on the Victorian Essential Services Commission's approved product list, you can't claim the VEU rebate. That's a $1,205 straight-up loss — plus you're stuck with an untested unit. Check the ESC register before you buy.",
+    d: "If the unit isn't on the Victorian Essential Services Commission's approved product list, you can't claim the VEU rebate. That's a $1,205 straight-up loss, plus you're stuck with an untested unit. Check the ESC register before you buy.",
   },
   {
     n: "04",
@@ -106,12 +107,12 @@ const warningSigns = [
   {
     n: "05",
     t: "Installer isn't a proper tradesperson",
-    d: "Cheap deals often come with cheaper installs — an unlicensed 'handyman' plugging in the unit and pocketing the difference. VEU requires an accredited installer with plumbing and electrical licences, and a compliance certificate at handover. No certificate = no protection when something goes wrong.",
+    d: "Cheap deals often come with cheaper installs, an unlicensed 'handyman' plugging in the unit and pocketing the difference. VEU requires an accredited installer with plumbing and electrical licences, and a compliance certificate at handover. No certificate = no protection when something goes wrong.",
   },
   {
     n: "06",
     t: "Pricing that seems 'too good to be true'",
-    d: "A $999 heat pump ad is a $2,000 heat pump plus $800 of hidden installation extras. Legitimate installers show the fully-installed inc-GST price with the VEU rebate already applied — no surprises. If the ad only says 'from $X' it's marketing, not a real quote.",
+    d: "A $999 heat pump ad is a $2,000 heat pump plus $800 of hidden installation extras. Legitimate installers show the fully-installed inc-GST price with the VEU rebate already applied, no surprises. If the ad only says 'from $X' it's marketing, not a real quote.",
   },
 ];
 
@@ -125,7 +126,7 @@ export default function HeatPumpsPage() {
             <span className="ds-dot" /> The honest heat pump guide · Pakenham locals
           </div>
           <h1>
-            Every heat pump we install, <span className="accent">compared honestly</span> — plus what to avoid.
+            Every heat pump we install, <span className="accent">compared honestly</span>, plus what to avoid.
           </h1>
           <p className="dp-hero__sub">
             Five brands, real installed prices, warranty length, refrigerant type and where the parts actually come from. Plus six red flags for the fly-by-night importer brands that sell you a &ldquo;bargain&rdquo; on Facebook Marketplace and disappear before the warranty kicks in.
@@ -144,7 +145,7 @@ export default function HeatPumpsPage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> The short version</span>
-            <h2>Heat pumps beat gas storage tanks on running cost — by a factor of 4.</h2>
+            <h2>Heat pumps beat gas storage tanks on running cost, by a factor of 4.</h2>
             <p>A modern heat pump moves heat instead of making it. It uses ~500 W of power to deliver ~2 kW of hot-water heating: a coefficient of performance around 4:1. A gas storage tank burns gas at 70&ndash;85% efficiency. That&rsquo;s the whole story.</p>
           </div>
           <div className="hp-why__grid">
@@ -173,7 +174,7 @@ export default function HeatPumpsPage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> First fork in the road</span>
-            <h2>All-in-one or split — what&rsquo;s the difference?</h2>
+            <h2>All-in-one or split, what&rsquo;s the difference?</h2>
             <p>Every heat pump comes in one of two configurations. Your house layout, your budget and the noise you can tolerate at the tank end are the deciding factors.</p>
           </div>
           <div className="hp-styles__grid">
@@ -183,13 +184,13 @@ export default function HeatPumpsPage() {
                 <h3>Tank + compressor in one unit</h3>
               </div>
               <ul className="hp-style__pros">
-                <li>Smallest footprint — fits where the old tank was</li>
-                <li>Simplest install — plug into an existing power point</li>
+                <li>Smallest footprint, fits where the old tank was</li>
+                <li>Simplest install, plug into an existing power point</li>
                 <li>Lowest up-front cost ($2,610 fully installed)</li>
                 <li>Every AIO we install comes with Wi-Fi built in</li>
               </ul>
               <ul className="hp-style__cons">
-                <li>Compressor sits on top of the tank — slightly noisier close-up</li>
+                <li>Compressor sits on top of the tank, slightly noisier close-up</li>
                 <li>Fewer size options (200 L or 300 L for most brands)</li>
                 <li>R290 refrigerant, works well but derates below 5&nbsp;°C</li>
               </ul>
@@ -206,15 +207,15 @@ export default function HeatPumpsPage() {
                 <h3>Compressor separated from the tank</h3>
               </div>
               <ul className="hp-style__pros">
-                <li>Compressor sits outside — the tank end is silent</li>
+                <li>Compressor sits outside, the tank end is silent</li>
                 <li>CO₂ refrigerant runs hot even in Melbourne winters</li>
                 <li>Stainless steel tank option carries a 15-year warranty</li>
                 <li>Sizes from 250 L up to 400 L, Wi-Fi standard</li>
-                <li>Reclaim CO₂ split is the quietest heat pump we sell — 37 dB</li>
+                <li>Reclaim CO₂ split is the quietest heat pump we sell, 37 dB</li>
               </ul>
               <ul className="hp-style__cons">
                 <li>~$2,500 more expensive up front vs AIO</li>
-                <li>Two units to place — needs an outdoor spot for the compressor</li>
+                <li>Two units to place, needs an outdoor spot for the compressor</li>
                 <li>Only Reclaim offers this style in the brands we install</li>
               </ul>
               <div className="hp-style__foot">
@@ -284,7 +285,19 @@ export default function HeatPumpsPage() {
         </div>
       </section>
 
-      {/* WARNING - shit brands */}
+      {/* INTERACTIVE COMPARATOR */}
+      <section className="hp-compare hp-compare--interactive">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Line them up</span>
+            <h2>Compare units side by side.</h2>
+            <p>Pick two or three units below and we&rsquo;ll show you the specs stacked next to each other. Cheapest price and longest warranty get highlighted automatically.</p>
+          </div>
+          <HeatPumpComparator />
+        </div>
+      </section>
+
+      {/* WARNING */}
       <section className="hp-warn">
         <div className="wrap">
           <div className="ds-section-head">
@@ -309,7 +322,7 @@ export default function HeatPumpsPage() {
 
           <div className="hp-warn__foot">
             <p>
-              We&rsquo;re not saying every unfamiliar brand is bad. But if any two of the six above apply, it&rsquo;s <strong>not worth the $500 saving</strong> — you&rsquo;ll pay it back three times over when the unit fails and the importer is unreachable.
+              We&rsquo;re not saying every unfamiliar brand is bad. But if any two of the six above apply, it&rsquo;s <strong>not worth the $500 saving</strong>, you&rsquo;ll pay it back three times over when the unit fails and the importer is unreachable.
             </p>
           </div>
         </div>

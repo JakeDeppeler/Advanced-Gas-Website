@@ -285,3 +285,261 @@
   .page-heatpumps .hp-warn__grid { grid-template-columns: 1fr; }
   .page-heatpumps .hp-sizing__grid { grid-template-columns: 1fr; }
 }
+
+/* ============== Comparator ============== */
+.page-heatpumps .hpc { margin-top: 30px; }
+.page-heatpumps .hpc__intro { margin-bottom: 22px; }
+.page-heatpumps .hpc__intro h3 {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: 22px; letter-spacing: -0.015em;
+  color: var(--navy); margin: 0 0 6px;
+}
+.page-heatpumps .hpc__intro p {
+  margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.55;
+}
+
+.page-heatpumps .hpc__picker {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 14px; margin-bottom: 16px;
+}
+.page-heatpumps .hpc__tile {
+  position: relative;
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: transform 0.12s, border-color 0.15s, box-shadow 0.15s;
+}
+.page-heatpumps .hpc__tile:hover { border-color: var(--sky); transform: translateY(-2px); }
+.page-heatpumps .hpc__tile.is-on {
+  border-color: var(--orange);
+  background: rgba(243,103,34,0.05);
+  box-shadow: 0 10px 24px -12px rgba(243,103,34,0.35);
+}
+.page-heatpumps .hpc__tile-badges {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.page-heatpumps .hpc__badge {
+  display: inline-block;
+  font-family: var(--f-mono); font-size: 9.5px;
+  padding: 2px 6px; border-radius: 4px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  font-weight: 700;
+}
+.page-heatpumps .hpc__badge--aus { background: var(--orange); color: #fff; }
+.page-heatpumps .hpc__badge--style { background: var(--bg-2); color: var(--navy); border: 1px solid var(--line); }
+.page-heatpumps .hpc__badge--split { background: var(--sky); color: #fff; border-color: var(--sky); }
+.page-heatpumps .hpc__tile-brand {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: 18px; color: var(--navy);
+  letter-spacing: -0.01em;
+}
+.page-heatpumps .hpc__tile-model {
+  font-size: 12.5px; color: var(--ink-2);
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+.page-heatpumps .hpc__tile-price {
+  font-family: var(--f-mono); font-weight: 700;
+  font-size: 14px; color: var(--navy);
+}
+.page-heatpumps .hpc__tile-tick {
+  margin-top: 10px;
+  font-family: var(--f-mono); font-size: 11px;
+  font-weight: 700; letter-spacing: 0.08em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  transition: color 0.15s;
+}
+.page-heatpumps .hpc__tile.is-on .hpc__tile-tick { color: var(--orange); }
+
+.page-heatpumps .hpc__more {
+  background: transparent;
+  border: 1px solid var(--line);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font: inherit; cursor: pointer;
+  font-family: var(--f-mono); font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--navy);
+  margin: 4px auto 22px; display: block;
+}
+.page-heatpumps .hpc__more:hover { background: var(--bg-2); }
+
+.page-heatpumps .hpc__empty {
+  margin: 30px 0 10px;
+  padding: 40px 24px;
+  background: var(--bg-2);
+  border: 2px dashed var(--line-2);
+  border-radius: 14px;
+  text-align: center;
+}
+.page-heatpumps .hpc__empty span {
+  display: block;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+.page-heatpumps .hpc__empty p {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+}
+
+.page-heatpumps .hpc__rail {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns: 200px repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  overflow-x: auto;
+}
+.page-heatpumps .hpc__labels {
+  display: flex; flex-direction: column;
+  gap: 12px;
+  padding-top: 76px; /* aligns with column header */
+}
+.page-heatpumps .hpc__labels span {
+  font-family: var(--f-mono); font-size: 11px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-3);
+  height: 44px;
+  display: flex; align-items: center;
+}
+.page-heatpumps .hpc__col {
+  display: flex; flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  min-width: 220px;
+}
+.page-heatpumps .hpc__col-head {
+  position: relative;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--orange);
+  margin-bottom: 4px;
+}
+.page-heatpumps .hpc__col-brand {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: 20px; color: var(--navy);
+  letter-spacing: -0.01em;
+}
+.page-heatpumps .hpc__col-model {
+  font-size: 12.5px; color: var(--ink-2);
+  line-height: 1.35;
+  margin-top: 3px;
+}
+.page-heatpumps .hpc__col-remove {
+  position: absolute; top: -4px; right: -4px;
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 16px; line-height: 1;
+  font: inherit; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.page-heatpumps .hpc__col-remove:hover { color: var(--red); border-color: var(--red); }
+.page-heatpumps .hpc__cell {
+  font-size: 14px;
+  color: var(--ink);
+  height: 44px;
+  display: flex; align-items: center;
+  padding: 0 8px;
+  border-radius: 6px;
+  line-height: 1.3;
+  transition: background 0.2s;
+}
+.page-heatpumps .hpc__cell--price {
+  font-family: var(--f-mono);
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 15px;
+}
+.page-heatpumps .hpc__cell.is-best {
+  background: rgba(243,103,34,0.10);
+  color: var(--orange);
+  font-weight: 700;
+}
+.page-heatpumps .hpc__win {
+  margin-left: 8px;
+  font-family: var(--f-mono); font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  font-weight: 700;
+}
+.page-heatpumps .hpc__inline-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px; border-radius: 3px;
+  background: var(--orange); color: #fff;
+  font-family: var(--f-mono); font-size: 9.5px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  font-weight: 700;
+}
+.page-heatpumps .hpc__cta {
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.page-heatpumps .hpc__foot {
+  margin-top: 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px;
+  padding: 16px 22px;
+  background: var(--bg-2);
+  border-radius: 10px;
+}
+.page-heatpumps .hpc__reset {
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  font-family: var(--f-mono); font-size: 12px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  font: inherit;
+  padding: 4px 8px;
+}
+.page-heatpumps .hpc__reset:hover { color: var(--navy); }
+.page-heatpumps .hpc__disclaimer {
+  margin: 0;
+  font-family: var(--f-mono); font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+  flex: 1;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .page-heatpumps .hpc__picker { grid-template-columns: 1fr 1fr; }
+  .page-heatpumps .hpc__rail {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .page-heatpumps .hpc__labels { display: none; }
+  .page-heatpumps .hpc__col { min-width: 0; }
+  .page-heatpumps .hpc__cell::before {
+    content: attr(data-label);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-right: auto;
+  }
+  .page-heatpumps .hpc__foot { flex-direction: column; align-items: flex-start; }
+  .page-heatpumps .hpc__disclaimer { text-align: left; }
+}

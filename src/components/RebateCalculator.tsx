@@ -32,7 +32,7 @@ const POWER_ADDON    = 450;   // new power point + electrical when AIO doesn't h
 
 // Install cost packs (ex GST). AIO is plug-in, no electrical needed.
 // Split labour bumped to $1,000, materials $500, electrical $400 per the
-// latest FieldPulse quote — same $1,950 ex GST total, redistributed.
+// latest FieldPulse quote, same $1,950 ex GST total, redistributed.
 const INSTALL_EXGST = {
   aio:   700   + 350 +   0 + 50,    // labour + materials + BPC              = 1,100
   split: 1_000 + 500 + 400 + 50,    // labour + materials + electrical + BPC = 1,950
@@ -169,7 +169,7 @@ export function RebateCalculator() {
     <div className="rb-calc rb-calc--v2">
       <div className="rb-calc__head">
         <h3>Quick rebate + price estimator</h3>
-        <p className="rb-calc__sub">Indicative — final price and eligibility confirmed at the site check.</p>
+        <p className="rb-calc__sub">Indicative, final price and eligibility confirmed at the site check.</p>
       </div>
 
       {/* Progress */}
@@ -180,7 +180,7 @@ export function RebateCalculator() {
         <span>Step {Math.min(step, 3)} / 3</span>
       </div>
 
-      {/* Step 1 — category */}
+      {/* Step 1, category */}
       <div className="rb-calc__block">
         <span className="rb-calc__qlabel">1. What are you upgrading?</span>
         <div className="rb-calc__grid rb-calc__grid--2">
@@ -206,7 +206,7 @@ export function RebateCalculator() {
       {/* Heat pump path */}
       {category === "hp" && (
         <>
-          {/* Step 2 — brand */}
+          {/* Step 2, brand */}
           <div className="rb-calc__block">
             <span className="rb-calc__qlabel">2. Which brand?</span>
             <div className="rb-calc__grid rb-calc__grid--3">
@@ -227,7 +227,7 @@ export function RebateCalculator() {
             </div>
           </div>
 
-          {/* Step 3 — product */}
+          {/* Step 3, product */}
           {brand && (
             <div className="rb-calc__block">
               <span className="rb-calc__qlabel">3. Which model / size?</span>
@@ -257,10 +257,10 @@ export function RebateCalculator() {
                     <div className="rb-calc__grid rb-calc__grid--2">
                       <button type="button"
                         className={`rb-calc__pill ${power === "yes" ? "is-on" : ""}`}
-                        onClick={() => setPower("yes")}>Yes — existing</button>
+                        onClick={() => setPower("yes")}>Yes, existing</button>
                       <button type="button"
                         className={`rb-calc__pill ${power === "no" ? "is-on" : ""}`}
-                        onClick={() => setPower("no")}>No — need a new one</button>
+                        onClick={() => setPower("no")}>No, need a new one</button>
                     </div>
                     <p className="rb-calc__note">
                       If &ldquo;no&rdquo; we add ~${POWER_ADDON.toLocaleString()} for a new power point (electrical + compliance).
@@ -342,7 +342,7 @@ export function RebateCalculator() {
         </>
       )}
 
-      {/* Cooling path — custom quote */}
+      {/* Cooling path, custom quote */}
       {category === "ac" && (
         <>
           <div className="rb-calc__block">
@@ -369,7 +369,7 @@ export function RebateCalculator() {
                 <span className="rb-calc__result-num rb-calc__result-num--net">Custom quote</span>
               </div>
               <p className="rb-calc__result-blurb">
-                Splits, multi-heads and ducted systems vary a lot with kW, zones and layout &mdash; we quote every cooling job individually after a quick site check so the price is honest.
+                Splits, multi-heads and ducted systems vary a lot with kW, zones and layout , we quote every cooling job individually after a quick site check so the price is honest.
               </p>
               <div className="rb-calc__cta">
                 <a href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a cooling quote →</a>

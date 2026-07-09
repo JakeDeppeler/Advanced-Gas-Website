@@ -6,7 +6,7 @@ import "leaflet/dist/leaflet.css";
 /**
  * Leaflet map centred on Pakenham (-38.078, 145.487) with a fixed 50 km
  * service radius. Position is locked (no drag, no keyboard pan, no touch
- * drag) but scroll-wheel zoom and the +/- buttons work — the radius circle
+ * drag) but scroll-wheel zoom and the +/- buttons work, the radius circle
  * is drawn in Earth metres so it stays at 50 km at every zoom level.
  */
 const PAKENHAM: [number, number] = [-38.078, 145.487];
@@ -31,7 +31,7 @@ export function ServiceAreaMap() {
         zoom: 9,
         minZoom: 8,
         maxZoom: 13,
-        // Lock the pan — user can still zoom.
+        // Lock the pan, user can still zoom.
         dragging: false,
         touchZoom: true,
         scrollWheelZoom: true,
@@ -82,6 +82,6 @@ export function ServiceAreaMap() {
   }, []);
 
   return (
-    <div className="map__leaflet" ref={ref} role="img" aria-label="Service area map — 50 km radius from Pakenham" />
+    <div className="map__leaflet" ref={ref} role="img" aria-label="Service area map, 50 km radius from Pakenham" />
   );
 }

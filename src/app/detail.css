@@ -1,5 +1,5 @@
 /* Detail page (service slug, suburb hub, suburb+service combo, quote, thanks)
-   — shared layout primitives in design language. Use with .page-detail wrapper. */
+  , shared layout primitives in design language. Use with .page-detail wrapper. */
 
 .page-detail { background: var(--bg); }
 

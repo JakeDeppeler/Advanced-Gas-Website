@@ -5,21 +5,21 @@ import { site } from "@/lib/site";
 import "./about.css";
 
 export const metadata: Metadata = {
-  title: "About — Family-owned Pakenham HVAC & gas specialists",
+  title: "About, Family-owned Pakenham HVAC & gas specialists",
   description:
-    "Advanced Gas & Airconditioning Services — Pakenham-based, family-owned. HVAC, Type A gas, mechanical services and refrigeration across residential, commercial and industrial Victoria. 20+ years' director experience, $20M PL, ARC AU59557.",
+    "Advanced Gas & Airconditioning Services, Pakenham-based, family-owned. HVAC, Type A gas, mechanical services and refrigeration across residential, commercial and industrial Victoria. 20+ years' director experience, $20M PL, ARC AU59557.",
   alternates: { canonical: "/about" },
 };
 
 const team = [
-  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against — and signs off the works.", photo: "/dean.png" },
-  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing — detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.png" },
-  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving — so nothing slips and you're never left chasing.", photo: "/kellie.png" },
-  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer — same face on every job, same standard on every visit.", photo: "/jye.png" },
+  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.png" },
+  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.png" },
+  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.png" },
+  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.png" },
 ];
 
 const values = [
-  { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices — not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
+  { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices, not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
   { n: "02", h: "Fully licensed & insured", p: "$20M public liability, workers' compensation and comprehensive motor cover. Certificates of currency provided on request." },
   { n: "03", h: "Compliance built in", p: "Type A gas, mechanical services and refrigerant handling (ARC AU59557). Compliance certificates issued on completion of every job." },
   { n: "04", h: "Backed by warranty", p: "12-month defects liability on our workmanship, plus the full manufacturer warranties on all equipment we supply and install." },
@@ -44,7 +44,7 @@ export default function AboutPage() {
       <section className="ab-hero">
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Family owned · Pakenham · Victoria</span>
-          <h1>HVAC, gas &amp; mechanical services — <em>one licensed roof.</em></h1>
+          <h1>HVAC, gas &amp; mechanical services, <em>one licensed roof.</em></h1>
           <p>Advanced Gas &amp; Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne&rsquo;s South-East and West Gippsland. Design, installation and maintenance across residential, commercial and industrial Victoria.</p>
         </div>
       </section>
@@ -78,19 +78,19 @@ export default function AboutPage() {
           <div className="ab-story__copy">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Our story</span>
             <h2>Family-owned. Traditional values. Compliance-first.</h2>
-            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us &mdash; and our clients are an extension of that ethos.</p>
+            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us , and our clients are an extension of that ethos.</p>
             <p>We value quality working relationships and build them on trust and experience over time. We genuinely care about our clients and their stakeholders, and we operate from traditional values: <strong>under-promise, over-deliver</strong>, and complete work on time, within schedule and within budget.</p>
-            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services &mdash; across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
-            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work &mdash; as though our director had completed your works personally.</p>
+            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services , across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
+            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work , as though our director had completed your works personally.</p>
           </div>
           <div className="ab-story__side">
             <div className="ab-spec-card">
               <h3>Specialisations &amp; licensing</h3>
               <ul>
-                <li><strong>Mechanical Services</strong> &mdash; HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps &mdash; design, installation and commissioning.</li>
-                <li><strong>Type A Gas Services</strong> &mdash; installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
-                <li><strong>Air Balancing &amp; BMS Controls</strong> &mdash; airflow testing and balancing, BMS integration and full commissioning &mdash; measured, efficient performance across commercial sites.</li>
-                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong> &mdash; split and multi-head systems, high-efficiency heat-pump hot water &mdash; including rebate-eligible upgrades under Victorian energy programs.</li>
+                <li><strong>Mechanical Services</strong> , HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps , design, installation and commissioning.</li>
+                <li><strong>Type A Gas Services</strong> , installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
+                <li><strong>Air Balancing &amp; BMS Controls</strong> , airflow testing and balancing, BMS integration and full commissioning , measured, efficient performance across commercial sites.</li>
+                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong> , split and multi-head systems, high-efficiency heat-pump hot water , including rebate-eligible upgrades under Victorian energy programs.</li>
               </ul>
               <p className="ab-spec-card__arc">
                 <span>ARC AU59557</span> Authorised ARC trading authority for the handling of refrigerant gases.
@@ -104,7 +104,7 @@ export default function AboutPage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> Leadership</span>
-            <h2>A small, hands-on team — the people who quote it, run it and stand behind it.</h2>
+            <h2>A small, hands-on team, the people who quote it, run it and stand behind it.</h2>
             <p>Headed up by Director Dean Winbanks, with over 20 years&rsquo; experience across industrial, commercial and domestic work.</p>
           </div>
           <div className="team-grid">
@@ -113,7 +113,7 @@ export default function AboutPage() {
                 <div className="team__photo" style={{ position: "relative", overflow: "hidden" }}>
                   <Image
                     src={m.photo}
-                    alt={`${m.name} — ${m.role}`}
+                    alt={`${m.name}, ${m.role}`}
                     fill
                     sizes="(max-width: 900px) 50vw, 25vw"
                     style={{ objectFit: "cover", objectPosition: "top" }}

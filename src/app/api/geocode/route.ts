@@ -6,9 +6,9 @@ export const runtime = "nodejs";
  * Server-side address autocomplete for Australian addresses.
  *
  * Order of preference:
- *   1. Mapbox Geocoding — best AU street-level coverage. Requires
+ *   1. Mapbox Geocoding, best AU street-level coverage. Requires
  *      MAPBOX_ACCESS_TOKEN env var (paid tier, but 100k/month free).
- *   2. Nominatim (OpenStreetMap) — free, no key required, but coverage
+ *   2. Nominatim (OpenStreetMap), free, no key required, but coverage
  *      of suburban AU addresses is patchy and their usage policy
  *      requires a valid User-Agent identifying the app. We proxy from
  *      the server so we can set the header correctly.

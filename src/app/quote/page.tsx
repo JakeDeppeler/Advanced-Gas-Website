@@ -5,7 +5,7 @@ import "../detail.css";
 import "../home.css";
 
 export const metadata: Metadata = {
-  title: "Get a Free Quote — Pakenham VEU-applied",
+  title: "Get a Free Quote, Pakenham VEU-applied",
   description:
     "Free, no-obligation quote in 60 seconds. Licensed Pakenham aircon and heat pump specialists. We apply the VEU rebate at quote stage.",
   alternates: { canonical: "/quote" },
@@ -26,7 +26,7 @@ export default function QuotePage() {
           </h1>
           <p className="dp-hero__sub">
             60 seconds, no obligation, no spam. We reply with a written quote within
-            <strong style={{ color: "#fff" }}> 2 business hours</strong> — or call us now on{" "}
+            <strong style={{ color: "#fff" }}> 2 business hours</strong>, or call us now on{" "}
             <a href={`tel:${site.phoneE164}`} style={{ color: "var(--sky-2)", fontWeight: 700 }}>{site.phone}</a>.
           </p>
         </div>
@@ -39,7 +39,7 @@ export default function QuotePage() {
             <h2>No tricks. Just a real price.</h2>
             <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 14 }}>
               {[
-                ["VEU rebate handled for you", "Eligible Victorian homes — heat pump installs from $33."],
+                ["VEU rebate handled for you", "Eligible Victorian homes, heat pump installs from $33."],
                 ["Licensed plumbing & refrigeration", "Compliance certificate provided on completion."],
                 ["6-year workmanship warranty", "Triple the industry standard."],
                 ["Same-week installation", "Most jobs scheduled within 5–7 days of approval."],
@@ -59,7 +59,7 @@ export default function QuotePage() {
             </ul>
             <p style={{ marginTop: 24, fontSize: 14, color: "var(--ink-3)" }}>
               Prefer to talk? Call{" "}
-              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a> — Mon–Sat.
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a>, Mon–Sat.
             </p>
           </div>
 

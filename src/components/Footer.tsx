@@ -71,7 +71,7 @@ export function Footer() {
           <p className="ftr__suburbs">
             Pakenham · Officer · Beaconsfield · Berwick · Narre Warren · Cranbourne · Clyde ·
             Hampton Park · Hallam · Dandenong · Endeavour Hills · Lynbrook · Bunyip · Garfield ·
-            Tynong · Drouin · Warragul · Emerald · Gembrook · Tooradin — within 50 km of Pakenham.
+            Tynong · Drouin · Warragul · Emerald · Gembrook · Tooradin, within 50 km of Pakenham.
           </p>
         </div>
       </div>

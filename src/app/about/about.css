@@ -1,4 +1,4 @@
-/* About page — scoped to .page-about */
+/* About page, scoped to .page-about */
 
 .page-about { background: var(--bg); }
 
@@ -129,7 +129,7 @@
 .page-about .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
 .page-about .val { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
 
-/* Track record — key clients */
+/* Track record, key clients */
 .page-about .ab-clients { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .page-about .clients-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
