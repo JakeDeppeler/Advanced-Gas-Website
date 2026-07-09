@@ -9,6 +9,7 @@ import { site } from "@/lib/site";
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
+  { href: "/heat-pumps", label: "Heat Pumps" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
