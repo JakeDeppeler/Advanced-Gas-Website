@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { HeatPumpComparator } from "@/components/HeatPumpComparator";
@@ -12,76 +11,6 @@ export const metadata: Metadata = {
     "The honest guide to heat pump hot water in Pakenham. Compare the five brands we install, what a real installed price looks like after the VEU rebate, and the warning signs of no-name importer brands that ghost you after purchase.",
   alternates: { canonical: "/heat-pumps" },
 };
-
-type BrandRow = {
-  brand: string;
-  origin: string;
-  warranty: string;
-  ausMade: "yes" | "no";
-  wifi: string;
-  refrigerant: string;
-  parts: string;
-  installed: string;
-  ourPick: string;
-};
-
-const brands: BrandRow[] = [
-  {
-    brand: "Reclaim",
-    origin: "Australian made",
-    warranty: "10-year tank (15 yr on stainless split)",
-    ausMade: "yes",
-    wifi: "Standard on R290, optional on CO₂ split",
-    refrigerant: "R290 (AIO) or CO₂ / R744 (split)",
-    parts: "Genuine parts in stock via Reece, same-day",
-    installed: "$2,610 (R290 300 L) · from $5,340 (CO₂ split)",
-    ourPick: "Premium pick, quiet, long life, best cold-weather performance.",
-  },
-  {
-    brand: "Thermann",
-    origin: "Australian made",
-    warranty: "5-year tank, 3-year compressor",
-    ausMade: "yes",
-    wifi: "Not standard (add mechanical timer)",
-    refrigerant: "R290",
-    parts: "Common through plumbing wholesalers · 24-hour turnaround",
-    installed: "$2,610 (285 L R290 AIO)",
-    ourPick: "Best value, same install price as Reclaim, lighter warranty.",
-  },
-  {
-    brand: "Dux",
-    origin: "Australian made (assembled in Vic)",
-    warranty: "7-year tank, 5-year compressor",
-    ausMade: "yes",
-    wifi: "Optional add-on",
-    refrigerant: "R134a",
-    parts: "Genuine parts via Reece · 1–2 day turnaround",
-    installed: "from $3,200 (Airoheat 250 L)",
-    ourPick: "Solid Aussie brand, long track record, older refrigerant tech.",
-  },
-  {
-    brand: "iStore",
-    origin: "Australian designed · Chinese built",
-    warranty: "6-year tank, 3-year compressor",
-    ausMade: "no",
-    wifi: "Standard on every model",
-    refrigerant: "R32",
-    parts: "OK availability · 3–5 day turnaround",
-    installed: "$2,910 (275 L)",
-    ourPick: "Best for solar-paired households, Wi-Fi + app scheduling built in.",
-  },
-  {
-    brand: "Rinnai",
-    origin: "Japanese engineering · Australian support",
-    warranty: "5-year tank, 3-year compressor",
-    ausMade: "no",
-    wifi: "Not standard",
-    refrigerant: "R134a",
-    parts: "Excellent, Rinnai spares in every plumbing van in Victoria",
-    installed: "from $3,300 (250 L)",
-    ourPick: "Best parts availability, you'll never be stuck for a spare.",
-  },
-];
 
 const warningSigns = [
   {
@@ -227,71 +156,13 @@ export default function HeatPumpsPage() {
         </div>
       </section>
 
-      {/* BRAND COMPARISON */}
-      <section className="hp-compare">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> The brands we install</span>
-            <h2>Five brands, side by side.</h2>
-            <p>Every one of these is on the VEU approved product list, has a real Australian support network, and lands parts in a plumber&rsquo;s van in Victoria within days. Prices shown are fully installed inc GST after all applicable rebates.</p>
-          </div>
-
-          <div className="hp-table__scroller">
-            <table className="hp-table">
-              <thead>
-                <tr>
-                  <th>Brand</th>
-                  <th>Made where</th>
-                  <th>Warranty</th>
-                  <th>Aus-Made rebate</th>
-                  <th>Wi-Fi</th>
-                  <th>Refrigerant</th>
-                  <th>Parts</th>
-                  <th>Installed inc GST</th>
-                </tr>
-              </thead>
-              <tbody>
-                {brands.map((b) => (
-                  <tr key={b.brand}>
-                    <td className="hp-table__brand">{b.brand}</td>
-                    <td>{b.origin}</td>
-                    <td>{b.warranty}</td>
-                    <td>
-                      <span className={`hp-table__tick hp-table__tick--${b.ausMade}`}>
-                        {b.ausMade === "yes" ? "✓ Yes ($400)" : "✗ No"}
-                      </span>
-                    </td>
-                    <td>{b.wifi}</td>
-                    <td>{b.refrigerant}</td>
-                    <td>{b.parts}</td>
-                    <td className="hp-table__price">{b.installed}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="hp-picks">
-            <h3>Our short list of &ldquo;which one for you&rdquo;</h3>
-            <div className="hp-picks__grid">
-              {brands.map((b) => (
-                <div key={b.brand} className="hp-pick">
-                  <div className="hp-pick__brand">{b.brand}</div>
-                  <p>{b.ourPick}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* INTERACTIVE COMPARATOR */}
       <section className="hp-compare hp-compare--interactive">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Line them up</span>
-            <h2>Compare units side by side.</h2>
-            <p>Pick two or three units below and we&rsquo;ll show you the specs stacked next to each other. Cheapest price and longest warranty get highlighted automatically.</p>
+            <span className="ds-eyebrow"><span className="ds-dot" /> The brands we install</span>
+            <h2>Line them up side by side.</h2>
+            <p>Every unit here is on the VEU approved product list with a real Australian support network. Pick any two or three below to see the specs stacked next to each other, cheapest price and longest warranty get highlighted automatically.</p>
           </div>
           <HeatPumpComparator />
         </div>

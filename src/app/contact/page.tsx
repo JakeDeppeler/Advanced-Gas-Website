@@ -28,7 +28,7 @@ export default function ContactPage() {
             <div className="ct-card">
               <h3>Call us</h3>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <span className="ct-card__sub">Mon–Fri · 7am – 6pm</span>
+              <span className="ct-card__sub">Mon–Fri · 8am – 4pm</span>
             </div>
 
             <div className="ct-card ct-card--red" id="emergency">
@@ -49,9 +49,8 @@ export default function ContactPage() {
             <div className="ct-card">
               <h3>Hours</h3>
               <div className="ct-hours">
-                <div className="ct-hours__row"><strong>Mon – Fri</strong><span>7:00 am – 6:00 pm</span></div>
-                <div className="ct-hours__row"><strong>Saturday</strong><span>8:00 am – 2:00 pm</span></div>
-                <div className="ct-hours__row"><strong>Sunday</strong><span>Emergencies only</span></div>
+                <div className="ct-hours__row"><strong>Mon – Fri</strong><span>8:00 am – 4:00 pm</span></div>
+                <div className="ct-hours__row"><strong>Sat &amp; Sun</strong><span>Emergencies only</span></div>
                 <div className="ct-hours__row"><strong>Public hols</strong><span>Closed (except emergency)</span></div>
               </div>
             </div>

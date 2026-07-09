@@ -1,11 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useMemo } from "react";
 
 /* ============================================================
-   Fun side-by-side heat pump comparator.
-   Pick up to 3 units, see them lined up with the best value
-   in each column highlighted. Click a card again to deselect.
+   Side-by-side heat pump comparator.
+   Pick up to 3 units and see them lined up as clean product
+   cards with a photo, key specs and the cheapest / longest
+   warranty auto-highlighted.
    ============================================================ */
 
 type Unit = {
@@ -18,11 +20,11 @@ type Unit = {
   origin: string;
   ausMade: boolean;
   warrantyLabel: string;
-  warrantyYears: number;   // for "longest warranty" highlight
+  warrantyYears: number;
   refrigerant: string;
   wifi: string;
   photo: string;
-  price: number;           // for "cheapest" highlight
+  price: number;
   priceLabel: string;
 };
 
@@ -119,7 +121,7 @@ const UNITS: Unit[] = [
     style: "AIO",
     tank: "275 L",
     people: "3 to 5",
-    origin: "Australian designed, Chinese built",
+    origin: "Australian designed",
     ausMade: false,
     warrantyLabel: "6 yr tank",
     warrantyYears: 6,
@@ -153,7 +155,7 @@ const UNITS: Unit[] = [
     style: "AIO",
     tank: "315 L",
     people: "4 to 5",
-    origin: "Japanese, Aus support",
+    origin: "Japanese engineered",
     ausMade: false,
     warrantyLabel: "5 yr tank",
     warrantyYears: 5,
@@ -199,11 +201,11 @@ export function HeatPumpComparator() {
   return (
     <div className="hpc">
       <div className="hpc__intro">
-        <h3>Pick up to {MAX} units to compare side by side.</h3>
-        <p>Tap a card to add. Tap it again to remove. Best price and longest warranty are highlighted in orange automatically.</p>
+        <h3>Pick up to {MAX} units, tap a card to add or remove.</h3>
+        <p>Best price and longest warranty are highlighted in orange automatically.</p>
       </div>
 
-      {/* Picker grid */}
+      {/* Picker grid — clean product tiles with photo + specs */}
       <div className="hpc__picker">
         {visibleUnits.map((u) => {
           const isOn = selected.includes(u.id);
@@ -215,15 +217,24 @@ export function HeatPumpComparator() {
               onClick={() => toggle(u.id)}
               aria-pressed={isOn}
             >
-              <div className="hpc__tile-badges">
+              <div className="hpc__tile-photo">
+                <Image
+                  src={u.photo}
+                  alt={`${u.brand} ${u.model}`}
+                  fill
+                  sizes="(max-width: 900px) 50vw, 260px"
+                  style={{ objectFit: "contain" }}
+                />
                 {u.ausMade && <span className="hpc__badge hpc__badge--aus">AU-made</span>}
                 <span className={`hpc__badge hpc__badge--style hpc__badge--${u.style.toLowerCase()}`}>{u.style}</span>
               </div>
-              <div className="hpc__tile-brand">{u.brand}</div>
-              <div className="hpc__tile-model">{u.model}</div>
-              <div className="hpc__tile-price">{u.priceLabel}</div>
+              <div className="hpc__tile-body">
+                <div className="hpc__tile-brand">{u.brand}</div>
+                <div className="hpc__tile-model">{u.model}</div>
+                <div className="hpc__tile-price">{u.priceLabel} <small>inc GST</small></div>
+              </div>
               <div className="hpc__tile-tick" aria-hidden="true">
-                {isOn ? "✓ Selected" : "+ Add"}
+                {isOn ? "✓ Selected" : "+ Add to compare"}
               </div>
             </button>
           );
@@ -240,57 +251,83 @@ export function HeatPumpComparator() {
         </button>
       )}
 
-      {/* Comparison rail */}
+      {/* Comparison */}
       {selectedUnits.length === 0 ? (
         <div className="hpc__empty">
-          <span aria-hidden="true">👆</span>
+          <span aria-hidden="true">↑</span>
           <p>Pick at least two units above to see them lined up.</p>
         </div>
       ) : (
         <div className="hpc__rail">
-          <div className="hpc__labels">
-            <span></span>
-            <span>Tank</span>
-            <span>Best for</span>
-            <span>Made</span>
-            <span>Warranty</span>
-            <span>Refrigerant</span>
-            <span>Wi-Fi</span>
-            <span>Fully installed</span>
-            <span></span>
-          </div>
           {selectedUnits.map((u) => (
-            <div key={u.id} className="hpc__col">
-              <div className="hpc__col-head">
-                <div className="hpc__col-brand">{u.brand}</div>
-                <div className="hpc__col-model">{u.model}</div>
-                <button
-                  type="button"
-                  className="hpc__col-remove"
-                  onClick={() => toggle(u.id)}
-                  aria-label={`Remove ${u.model}`}
-                >×</button>
+            <article key={u.id} className="hpc__card">
+              <button
+                type="button"
+                className="hpc__card-remove"
+                onClick={() => toggle(u.id)}
+                aria-label={`Remove ${u.model}`}
+              >×</button>
+
+              <div className="hpc__card-photo">
+                <Image
+                  src={u.photo}
+                  alt={`${u.brand} ${u.model}`}
+                  fill
+                  sizes="(max-width: 900px) 90vw, 300px"
+                  style={{ objectFit: "contain" }}
+                />
+                {u.ausMade && <span className="hpc__badge hpc__badge--aus">AU-made</span>}
               </div>
-              <div className="hpc__cell">{u.tank}</div>
-              <div className="hpc__cell">{u.people} people</div>
-              <div className="hpc__cell">
-                {u.origin}
-                {u.ausMade && <span className="hpc__inline-badge"> AU-made</span>}
+
+              <div className="hpc__card-head">
+                <div className="hpc__card-brand">{u.brand}</div>
+                <div className="hpc__card-model">{u.model}</div>
               </div>
-              <div className={`hpc__cell ${u.warrantyYears === bestWarranty ? "is-best" : ""}`}>
-                {u.warrantyLabel}
-                {u.warrantyYears === bestWarranty && <span className="hpc__win"> ★ longest</span>}
+
+              <div className={`hpc__price ${u.price === bestPrice ? "is-best" : ""}`}>
+                <span className="hpc__price-num">{u.priceLabel}</span>
+                <span className="hpc__price-lbl">fully installed, inc GST</span>
+                {u.price === bestPrice && <span className="hpc__win">★ Cheapest</span>}
               </div>
-              <div className="hpc__cell">{u.refrigerant}</div>
-              <div className="hpc__cell">{u.wifi}</div>
-              <div className={`hpc__cell hpc__cell--price ${u.price === bestPrice ? "is-best" : ""}`}>
-                {u.priceLabel}
-                {u.price === bestPrice && <span className="hpc__win"> ★ cheapest</span>}
+
+              <div className="hpc__specs">
+                <div className="hpc__spec">
+                  <span>Tank</span>
+                  <strong>{u.tank}</strong>
+                </div>
+                <div className="hpc__spec">
+                  <span>Best for</span>
+                  <strong>{u.people} people</strong>
+                </div>
+                <div className={`hpc__spec ${u.warrantyYears === bestWarranty ? "is-best" : ""}`}>
+                  <span>Warranty</span>
+                  <strong>
+                    {u.warrantyLabel}
+                    {u.warrantyYears === bestWarranty && <span className="hpc__win-inline"> ★</span>}
+                  </strong>
+                </div>
+                <div className="hpc__spec">
+                  <span>Style</span>
+                  <strong>{u.style}</strong>
+                </div>
+                <div className="hpc__spec">
+                  <span>Refrigerant</span>
+                  <strong>{u.refrigerant}</strong>
+                </div>
+                <div className="hpc__spec">
+                  <span>Wi-Fi</span>
+                  <strong>{u.wifi}</strong>
+                </div>
+                <div className="hpc__spec">
+                  <span>Made</span>
+                  <strong>{u.origin}</strong>
+                </div>
               </div>
+
               <a href="/quote" className="ds-btn ds-btn--orange hpc__cta">
                 Quote this one →
               </a>
-            </div>
+            </article>
           ))}
         </div>
       )}
@@ -305,7 +342,7 @@ export function HeatPumpComparator() {
             ← Start over
           </button>
           <p className="hpc__disclaimer">
-            Prices are indicative and assume Solar Homes rebate eligibility (owner-occupier, income under $150k, property under $3M, HW system 3+ years old). Real number confirmed at quote.
+            Prices assume Solar Homes rebate eligibility (owner-occupier, income under $150k, property under $3M, HW system 3+ years old). Real number confirmed at quote.
           </p>
         </div>
       )}
