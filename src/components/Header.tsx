@@ -95,18 +95,41 @@ export function Header() {
             background: "var(--bg)",
           }}
         >
-          <div className="wrap" style={{ display: "flex", flexDirection: "column", padding: "12px 32px 16px", gap: 2 }}>
+          <div className="wrap" style={{ display: "flex", flexDirection: "column", padding: "14px 20px 20px", gap: 4 }}>
+            <a
+              href={`tel:${site.phoneE164}`}
+              onClick={() => setOpen(false)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "12px 12px",
+                borderRadius: 10,
+                background: "var(--bg-2)",
+                textDecoration: "none",
+                color: "var(--navy)",
+                fontWeight: 700,
+                fontSize: 16,
+                marginBottom: 8,
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />
+              </svg>
+              Call {site.phone}
+            </a>
             {NAV.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}
                 onClick={() => setOpen(false)}
                 style={{
-                  padding: "10px 8px",
-                  borderRadius: 8,
+                  padding: "14px 12px",
+                  borderRadius: 10,
                   textDecoration: "none",
                   color: "rebate" in n && n.rebate ? "var(--orange)" : "var(--ink)",
                   fontWeight: 600,
+                  fontSize: 16,
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
@@ -116,8 +139,13 @@ export function Header() {
                 {"rebate" in n && n.rebate && <span className="hdr__nav-tag">$$$</span>}
               </Link>
             ))}
-            <Link href="/quote" className="ds-btn ds-btn--primary" onClick={() => setOpen(false)} style={{ marginTop: 8 }}>
-              Get free quote →
+            <Link
+              href="/quote"
+              className="ds-btn ds-btn--orange ds-btn--lg"
+              onClick={() => setOpen(false)}
+              style={{ marginTop: 10, justifyContent: "center" }}
+            >
+              Get a free quote →
             </Link>
           </div>
         </div>

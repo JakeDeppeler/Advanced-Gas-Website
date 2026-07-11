@@ -12,7 +12,7 @@ export function UtilityBar() {
             </svg>
             Pakenham, VIC, servicing within 50 km
           </span>
-          <span className="util-pill util-pill--quiet">Open Mon–Sat · 7:00 am – 6:00 pm</span>
+          <span className="util-pill util-pill--quiet">Open Mon–Fri · 8:00 am – 4:00 pm</span>
           <span className="util-pill util-pill--quiet">ABN {site.abn} · Plumbing Lic. 46828</span>
         </div>
         <div className="utilbar__right">

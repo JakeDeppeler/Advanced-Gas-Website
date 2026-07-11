@@ -425,3 +425,207 @@
   .ftr__grid { grid-template-columns: 1fr; gap: 32px; }
   .bigcta__btns { align-items: flex-start; }
 }
+
+/* ==================================================================
+   iPhone & mobile polish. Applied on top of the existing responsive
+   breakpoints. Kept in one block so it's easy to find and tune.
+   ================================================================== */
+
+/* Prevent iOS Safari from auto-inflating text after orientation change
+   and stop it zooming inputs (font-size < 16px triggers zoom). */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+input, select, textarea {
+  font-size: 16px; /* iOS won't zoom the viewport on focus if >= 16 */
+}
+
+/* --- Small tablet + phone (<= 900px) --- */
+@media (max-width: 900px) {
+  /* Section padding was 100-110px everywhere. Way too much on phones. */
+  .page-home .hero { padding: 40px 0 70px; }
+  .page-home .veu,
+  .page-home .services,
+  .page-home .whyus,
+  .page-home .process,
+  .page-home .reviews,
+  .page-home .area,
+  .page-home .faq { padding: 64px 0; }
+  .page-home .bigcta,
+  .page-detail .bigcta,
+  .page-blog .bigcta { padding: 56px 0; }
+
+  /* Section headings drop a size on tight screens */
+  .ds-section-head { margin-bottom: 36px; }
+
+  /* Big-CTA row stacks with proper spacing */
+  .bigcta__row {
+    flex-direction: column; align-items: flex-start; gap: 20px;
+  }
+  .bigcta__btns { flex-direction: column; align-items: stretch !important; gap: 12px; width: 100%; }
+  .bigcta__btns .ds-btn { justify-content: center; }
+
+  /* Buttons: min tap target for iOS Human Interface Guidelines (44 x 44) */
+  .ds-btn { min-height: 44px; }
+  .ds-btn--lg { min-height: 48px; }
+  .ds-btn--xl { min-height: 54px; padding: 14px 24px; font-size: 16px; }
+}
+
+/* --- Phone (<= 640px, effectively iPhone SE through Pro Max) --- */
+@media (max-width: 640px) {
+  /* Tighter page gutter */
+  .wrap { padding: 0 16px; }
+
+  /* Header: hide the phone-pill and the primary CTA on mobile — those
+     live in the burger drawer. Keep the logo and burger only. */
+  .hdr__row { height: 64px; gap: 12px; }
+  .hdr__cta .hdr__phone { display: none; }
+  .hdr__cta .ds-btn--primary { display: none; }
+  .hdr__logo svg,
+  .hdr__logo img { height: 44px; }
+
+  /* Hero: reposition team photo to focus on faces, thin the overlay
+     further so the hero doesn't feel like a wall of navy on small screens. */
+  .page-home .hero__bg {
+    background:
+      linear-gradient(180deg, rgba(5,10,48,0.72) 0%, rgba(5,10,48,0.85) 100%),
+      url("/team-photo.png") center 30% / cover no-repeat,
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  }
+  .page-home .hero { padding: 32px 0 60px; }
+  .page-home .hero__h1 { font-size: 30px; line-height: 1.1; margin: 18px 0 16px; }
+  .page-home .hero__sub { font-size: 15px; margin: 0 0 20px; }
+  .page-home .hero__eyebrow { font-size: 11px; padding: 6px 12px; }
+  .page-home .hero__ctas { flex-direction: column; align-items: stretch; }
+  .page-home .hero__ctas .ds-btn { justify-content: center; width: 100%; }
+  .page-home .hero__trust {
+    flex-wrap: wrap; gap: 12px; padding: 14px 0;
+  }
+  .page-home .trust-divider { display: none; }
+
+  /* Quote card: reduce padding, no glow shadow that eats into edges */
+  .page-home .qcard { padding: 22px 20px 20px; border-radius: 16px; }
+  .page-home .qcard::before { display: none; }
+  .page-home .qcard__h { font-size: 22px; }
+
+  /* Progress bar */
+  .page-home .qcard__progress { flex-wrap: wrap; }
+  .page-home .qcard__progress-lbl {
+    width: 100%; margin-left: 0; margin-top: 6px;
+    text-align: right;
+  }
+
+  /* Option grids: 2 cols max on phone */
+  .page-home .qgrid--3,
+  .page-home .qgrid--4 { grid-template-columns: 1fr 1fr; }
+  .page-home .qrow { grid-template-columns: 1fr; }
+
+  /* Fixed-price install cards: keep it tight */
+  .page-home .fixprice__photo { min-height: 260px; aspect-ratio: 4 / 3; }
+  .page-home .fixprice__body { padding: 20px 22px 22px; }
+  .page-home .fixprice__badges { top: 8px; left: 8px; right: 8px; }
+
+  /* Services bento: single column with reasonable card height */
+  .page-home .bcard__photo { min-height: 170px; }
+  .page-home .bcard--xl .bcard__photo { min-height: 300px; }
+
+  /* Process step card */
+  .page-home .step { padding: 24px 20px; }
+  .page-home .step__num { font-size: 44px; }
+
+  /* Brand chips: keep two per row, prevent squish */
+  .page-home .brands__grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Reviews scrolling marquee: shorter height on phones */
+  .page-home .reviews__marquee { height: 500px; grid-template-columns: 1fr; }
+  .page-home .revcol--2, .page-home .revcol--3 { display: none; }
+
+  /* Area map: aspect-ratio unchanged (1/1) but shrink badge */
+  .page-home .map__badge { max-width: 170px; padding: 10px 12px; }
+  .page-home .map__badge-num { font-size: 18px; }
+
+  /* FAQ */
+  .page-home .faq__grid { grid-template-columns: 1fr; }
+
+  /* Footer: pull columns to 1 nicely */
+  .ftr__grid { grid-template-columns: 1fr; gap: 28px; }
+  .ftr__bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Utility bar (top strip): hide the middle bits */
+  .utilbar__center { display: none !important; }
+
+  /* Big CTA text sizes */
+  .bigcta h2 { font-size: 24px !important; }
+  .bigcta__phone { font-size: 14px; }
+
+  /* Contact page tightening */
+  .page-detail .dp-hero { padding: 40px 0 50px; }
+  .page-detail .dp-hero h1 { font-size: 32px !important; }
+  .page-detail .dp-hero__sub { font-size: 15px; }
+
+  /* VEU rebate cards */
+  .page-rebates .rb-hero { padding: 40px 0 60px; }
+  .page-rebates .rb-hero h1 { font-size: 34px !important; }
+  .page-rebates .rb-stats { grid-template-columns: 1fr 1fr !important; gap: 14px; margin-top: 30px; padding-top: 20px; }
+  .page-rebates .rb-stat strong { font-size: 28px !important; }
+
+  /* Heat pumps page tightening */
+  .page-heatpumps .hp-why,
+  .page-heatpumps .hp-styles,
+  .page-heatpumps .hp-compare,
+  .page-heatpumps .hp-warn,
+  .page-heatpumps .hp-sizing { padding: 64px 0; }
+  .page-heatpumps .hp-why__grid { gap: 12px; }
+  .page-heatpumps .hp-why__stat { padding: 20px 18px; }
+  .page-heatpumps .hp-why__stat strong { font-size: 30px; }
+
+  /* Blog listing cards */
+  .page-blog .bl-feat__card { grid-template-columns: 1fr; }
+  .page-blog .bl-feat__photo { min-height: 240px; }
+  .page-blog .bl-feat__copy { padding: 28px; }
+  .page-blog .bl-feat__copy h2 { font-size: 26px; }
+  .page-blog .bl-hero { padding: 40px 0 30px; }
+
+  /* Blog post reading view */
+  .page-blog .bl-post__hero { padding: 40px 0 24px; }
+  .page-blog .bl-post h1 { font-size: 28px; }
+  .page-blog .bl-post__lede { font-size: 16px; }
+  .page-blog .bl-post__body h2 { font-size: 22px; margin: 28px 0 10px; }
+  .page-blog .bl-post__body p { font-size: 16px; line-height: 1.7; }
+  .page-blog .bl-post__cta { padding: 24px; grid-template-columns: 1fr; }
+
+  /* About page */
+  .page-about .ab-hero { padding: 40px 0 30px; }
+  .page-about .ab-hero h1 { font-size: clamp(30px, 8vw, 42px); }
+  .page-about .ab-story,
+  .page-about .ab-team,
+  .page-about .ab-values,
+  .page-about .ab-clients,
+  .page-about .ab-acc { padding: 60px 0; }
+
+  /* Services page */
+  .page-services .sv-hero { padding: 40px 0 50px; }
+  .page-services .sv-hero h1 { font-size: 32px !important; }
+  .page-services .sv { padding: 56px 0; }
+  .page-services .sv__grid { grid-template-columns: 1fr; gap: 30px; }
+}
+
+/* --- Small phone (<= 380px, iPhone SE) --- */
+@media (max-width: 380px) {
+  .wrap { padding: 0 14px; }
+  .page-home .qcard { padding: 18px 16px 18px; }
+  .page-home .hero__h1 { font-size: 27px; }
+  .page-home .brands__grid { grid-template-columns: 1fr; }
+  .hdr__row { height: 60px; }
+  .hdr__logo svg,
+  .hdr__logo img { height: 40px; }
+}
+
+/* Give every card an active-tap feedback state on iOS (mobile only) */
+@media (hover: none) and (pointer: coarse) {
+  .ds-btn:active { transform: scale(0.98); }
+  .bcard:active,
+  .fixprice:active,
+  .hpc__tile:active { transform: scale(0.995); }
+}
