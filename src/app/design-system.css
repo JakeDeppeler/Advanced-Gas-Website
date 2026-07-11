@@ -493,16 +493,44 @@ input, select, textarea {
       url("/team-photo.png") center 30% / cover no-repeat,
       linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   }
-  .page-home .hero { padding: 32px 0 60px; }
-  .page-home .hero__h1 { font-size: 30px; line-height: 1.1; margin: 18px 0 16px; }
-  .page-home .hero__sub { font-size: 15px; margin: 0 0 20px; }
-  .page-home .hero__eyebrow { font-size: 11px; padding: 6px 12px; }
-  .page-home .hero__ctas { flex-direction: column; align-items: stretch; }
+  .page-home .hero { padding: 24px 0 56px; }
+  .page-home .hero__left { padding-top: 4px; }
+  .page-home .hero__h1 {
+    font-size: 26px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 14px 0 14px;
+    text-wrap: balance;
+    font-weight: 900;
+    max-width: 100%;
+  }
+  .page-home .hero__sub {
+    font-size: 14.5px;
+    line-height: 1.55;
+    margin: 0 0 18px;
+    color: rgba(255,255,255,0.82);
+  }
+  .page-home .hero__eyebrow {
+    font-size: 11px;
+    padding: 5px 10px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .page-home .hero__bullets {
+    gap: 6px 16px;
+    margin-bottom: 20px;
+  }
+  .page-home .hero__bullets li {
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .page-home .hero__ctas { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 24px; }
   .page-home .hero__ctas .ds-btn { justify-content: center; width: 100%; }
   .page-home .hero__trust {
-    flex-wrap: wrap; gap: 12px; padding: 14px 0;
+    flex-wrap: wrap; gap: 12px; padding: 12px 0;
   }
   .page-home .trust-divider { display: none; }
+  .page-home .hero__finep { font-size: 10.5px; line-height: 1.5; }
 
   /* Quote card: reduce padding, no glow shadow that eats into edges */
   .page-home .qcard { padding: 22px 20px 20px; border-radius: 16px; }

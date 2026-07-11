@@ -77,6 +77,11 @@
   color: rgba(255,255,255,0.9);
 }
 .page-home .hero__eyebrow .ds-dot { background: var(--sky); }
+.page-home .hero__eyebrow-short { display: none; }
+@media (max-width: 500px) {
+  .page-home .hero__eyebrow-full { display: none; }
+  .page-home .hero__eyebrow-short { display: inline; }
+}
 
 .page-home .hero__h1 {
   font-family: var(--f-display);

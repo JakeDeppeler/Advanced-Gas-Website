@@ -78,19 +78,19 @@ export default function AboutPage() {
           <div className="ab-story__copy">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Our story</span>
             <h2>Family-owned. Traditional values. Compliance-first.</h2>
-            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us , and our clients are an extension of that ethos.</p>
+            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.</p>
             <p>We value quality working relationships and build them on trust and experience over time. We genuinely care about our clients and their stakeholders, and we operate from traditional values: <strong>under-promise, over-deliver</strong>, and complete work on time, within schedule and within budget.</p>
-            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services , across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
-            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work , as though our director had completed your works personally.</p>
+            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services, across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
+            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work, as though our director had completed your works personally.</p>
           </div>
           <div className="ab-story__side">
             <div className="ab-spec-card">
               <h3>Specialisations &amp; licensing</h3>
               <ul>
-                <li><strong>Mechanical Services</strong> , HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps , design, installation and commissioning.</li>
-                <li><strong>Type A Gas Services</strong> , installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
-                <li><strong>Air Balancing &amp; BMS Controls</strong> , airflow testing and balancing, BMS integration and full commissioning , measured, efficient performance across commercial sites.</li>
-                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong> , split and multi-head systems, high-efficiency heat-pump hot water , including rebate-eligible upgrades under Victorian energy programs.</li>
+                <li><strong>Mechanical Services</strong>, HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps, design, installation and commissioning.</li>
+                <li><strong>Type A Gas Services</strong>, installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
+                <li><strong>Air Balancing &amp; BMS Controls</strong>, airflow testing and balancing, BMS integration and full commissioning, measured, efficient performance across commercial sites.</li>
+                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong>, split and multi-head systems, high-efficiency heat-pump hot water, including rebate-eligible upgrades under Victorian energy programs.</li>
               </ul>
               <p className="ab-spec-card__arc">
                 <span>ARC AU59557</span> Authorised ARC trading authority for the handling of refrigerant gases.

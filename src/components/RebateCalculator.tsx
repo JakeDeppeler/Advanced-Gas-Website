@@ -369,7 +369,7 @@ export function RebateCalculator() {
                 <span className="rb-calc__result-num rb-calc__result-num--net">Custom quote</span>
               </div>
               <p className="rb-calc__result-blurb">
-                Splits, multi-heads and ducted systems vary a lot with kW, zones and layout , we quote every cooling job individually after a quick site check so the price is honest.
+                Splits, multi-heads and ducted systems vary a lot with kW, zones and layout, we quote every cooling job individually after a quick site check so the price is honest.
               </p>
               <div className="rb-calc__cta">
                 <a href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a cooling quote →</a>

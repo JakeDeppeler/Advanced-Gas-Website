@@ -447,7 +447,7 @@ export function HeroQuoteForm() {
           <div className="qcard__done-tick">✓</div>
           <h2 className="qcard__h">Got it. We&apos;ll be in touch.</h2>
           <p className="qcard__sub">
-            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox , we&rsquo;ve sent a confirmation.
+            A real human will call or SMS you within 12 business hours with your fixed number and next step. Check your inbox, we&rsquo;ve sent a confirmation.
           </p>
           <div className="qcard__done-ctas">
             <button type="button" className="ds-btn ds-btn--orange ds-btn--lg" onClick={resetForm}>
@@ -458,7 +458,7 @@ export function HeroQuoteForm() {
             </a>
           </div>
           <p className="qcard__finep" style={{ marginTop: 18 }}>
-            Different address, different job, or something you forgot , hit &ldquo;Submit another request&rdquo; and we&rsquo;ll quote it too.
+            Different address, different job, or something you forgot, hit &ldquo;Submit another request&rdquo; and we&rsquo;ll quote it too.
           </p>
         </div>
       </aside>

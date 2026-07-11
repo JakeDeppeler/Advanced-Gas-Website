@@ -85,20 +85,21 @@ export default function HomePage() {
           <div className="hero__left">
             <div className="hero__eyebrow">
               <span className="ds-dot" />
-              VEU-accredited installer · Pakenham &amp; surrounds
+              <span className="hero__eyebrow-full">VEU-accredited installer · Pakenham &amp; surrounds</span>
+              <span className="hero__eyebrow-short">VEU-accredited · Pakenham</span>
             </div>
 
             <h1 className="hero__h1">
-              Pakenham&rsquo;s family-run heating, cooling &amp; hot water team.
+              Pakenham&rsquo;s family&#8209;run heating, cooling &amp; hot water team.
             </h1>
 
             <p className="hero__sub">
-              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration , VEU-accredited so the rebate&rsquo;s already in the price we quote you.
+              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration, VEU-accredited so the rebate&rsquo;s already in the price we quote you.
             </p>
 
             <ul className="hero__bullets">
               <li><span className="tick">✓</span> Family-owned, based in Pakenham since 2014</li>
-              <li><span className="tick">✓</span> Reece trade partner , genuine stock &amp; warranties</li>
+              <li><span className="tick">✓</span> Reece trade partner, genuine stock &amp; warranties</li>
               <li><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
               <li><span className="tick">✓</span> Fixed prices, VEU rebate applied at the quote</li>
             </ul>
@@ -172,7 +173,7 @@ export default function HomePage() {
               <span className="ds-dot ds-dot--orange" />
               Fixed-price installs
             </span>
-            <h2 className="ds-h--on-dark">Three of our most popular jobs , locked-in prices.</h2>
+            <h2 className="ds-h--on-dark">Three of our most popular jobs, locked-in prices.</h2>
             <p className="veu__sub veu__sub--center">
               What you see is what you pay. VEU rebate already applied, GST included, compliance certificate and warranty pack emailed within 24&nbsp;hrs of install.
             </p>
@@ -187,10 +188,10 @@ export default function HomePage() {
               <div className="fixprice__photo fixprice__photo--aio" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
-                <h3>Reclaim R290 all-in-one , fully installed</h3>
+                <h3>Reclaim R290 all-in-one, fully installed</h3>
                 <ul className="fixprice__feat">
                   <li>Plug-in: tank &amp; compressor in one unit</li>
-                  <li>R290 refrigerant , low GWP, efficient in cold</li>
+                  <li>R290 refrigerant, low GWP, efficient in cold</li>
                   <li>Old gas / electric unit removed &amp; disposed</li>
                   <li>VEU rebate applied, compliance cert included</li>
                 </ul>
@@ -211,11 +212,11 @@ export default function HomePage() {
               <div className="fixprice__photo fixprice__photo--split" />
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
-                <h3>Reclaim CO&#8322; split heat pump , fully installed</h3>
+                <h3>Reclaim CO&#8322; split heat pump, fully installed</h3>
                 <ul className="fixprice__feat">
-                  <li>Compressor split from tank , quieter, longer life</li>
+                  <li>Compressor split from tank, quieter, longer life</li>
                   <li>315&nbsp;L or 400&nbsp;L, glass-lined or stainless steel</li>
-                  <li>Wi-Fi smart control , schedule off-peak / solar hours</li>
+                  <li>Wi-Fi smart control, schedule off-peak / solar hours</li>
                   <li>15-year warranty on stainless tank option</li>
                 </ul>
                 <div className="fixprice__price">
@@ -237,7 +238,7 @@ export default function HomePage() {
                 <span className="fixprice__eyebrow">Ducted aircon</span>
                 <h3>18&nbsp;kW Mitsubishi Electric ducted system</h3>
                 <ul className="fixprice__feat">
-                  <li>18&nbsp;kW inverter head unit , whole-home cooling &amp; heating</li>
+                  <li>18&nbsp;kW inverter head unit, whole-home cooling &amp; heating</li>
                   <li>Milieu Lab zone controller</li>
                   <li>Up to <strong>12 zones</strong> with individual control</li>
                   <li>Design, ducting, install, commission &amp; certify</li>
@@ -252,7 +253,7 @@ export default function HomePage() {
           </div>
 
           <p className="fixprice__foot">
-            After something different? We install every major brand , <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
+            After something different? We install every major brand, <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
           </p>
         </div>
       </section>
