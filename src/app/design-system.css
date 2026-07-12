@@ -657,3 +657,96 @@ input, select, textarea {
   .fixprice:active,
   .hpc__tile:active { transform: scale(0.995); }
 }
+
+/* ==================================================================
+   Sticky mobile CTA bar. Two big thumb targets, safe-area inset for
+   iPhone notch / gesture area. Hidden on tablet+.
+   ================================================================== */
+.stickycta {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  display: none; /* only shown on phone via media query below */
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
+  background: rgba(255,255,255,0.96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -8px 24px -8px rgba(11,20,80,0.14);
+}
+.stickycta__call,
+.stickycta__quote {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  text-decoration: none;
+  min-height: 52px;
+  border: 1.5px solid transparent;
+  transition: transform 0.08s;
+}
+.stickycta__call {
+  background: var(--navy); color: #fff;
+  padding: 8px 12px;
+}
+.stickycta__call svg { color: var(--orange); flex-shrink: 0; }
+.stickycta__call span {
+  display: flex; flex-direction: column; align-items: flex-start;
+  line-height: 1.1;
+}
+.stickycta__call em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  font-family: var(--f-mono); font-weight: 500;
+}
+.stickycta__call strong {
+  font-size: 15px;
+  font-weight: 800;
+  font-family: var(--f-display);
+}
+.stickycta__quote {
+  background: var(--orange); color: #fff;
+  box-shadow: 0 3px 0 #c14a13;
+}
+.stickycta:active { }
+.stickycta__quote:active { transform: translateY(1px); box-shadow: 0 2px 0 #c14a13; }
+
+@media (max-width: 900px) {
+  .stickycta { display: flex; }
+  /* Give the page room so the sticky bar doesn't cover the last bit
+     of any section's content (especially the footer). */
+  body { padding-bottom: 74px; }
+}
+/* iPhones */
+@media (max-width: 640px) {
+  body { padding-bottom: 80px; }
+}
+
+/* ==================================================================
+   Mobile hero simplification (phone). Hide the two secondary bullets
+   and the tiny compliance fine-print on phones, and pull the trust
+   badges into a tighter single line.
+   ================================================================== */
+@media (max-width: 640px) {
+  .page-home .hero__bullet--wide { display: none; }
+  .page-home .hero__finep { display: none; }
+  .page-home .hero__trust {
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-top: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    justify-content: space-between;
+  }
+  .page-home .trust-rating__txt strong,
+  .page-home .trust-stat strong { font-size: 15px; }
+  .page-home .trust-rating__txt span,
+  .page-home .trust-stat span { font-size: 11px; }
+  /* Hide the third stat on very small phones so trust bar fits on one row */
+  .page-home .hero__trust > .trust-stat:nth-of-type(2) { display: none; }
+}

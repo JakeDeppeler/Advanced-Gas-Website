@@ -99,9 +99,9 @@ export default function HomePage() {
 
             <ul className="hero__bullets">
               <li><span className="tick">✓</span> Family-owned, based in Pakenham since 2014</li>
-              <li><span className="tick">✓</span> Reece trade partner, genuine stock &amp; warranties</li>
-              <li><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
               <li><span className="tick">✓</span> Fixed prices, VEU rebate applied at the quote</li>
+              <li className="hero__bullet--wide"><span className="tick">✓</span> Reece trade partner, genuine stock &amp; warranties</li>
+              <li className="hero__bullet--wide"><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
             </ul>
 
             <div className="hero__ctas">
