@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Advanced Gas & Aircon — phone home page directions</title>
+<style>
+  :root {
+    /* Brand tokens (from live site) */
+    --navy: #050a30;
+    --navy-2: #0b1450;
+    --navy-3: #1b234e;
+    --orange: #f36722;
+    --orange-2: #ff7a36;
+    --sky: #00b0ed;
+    --cream: #faf8f3;
+    --cream-2: #f3efe5;
+    --ink: #1a1a1d;
+    --ink-2: #4a4a52;
+    --ink-3: #7a7a82;
+    --line: #ebe6d8;
+
+    /* Artboard */
+    --board-bg: #eeeae0;
+    --board-ink: #2a2530;
+    --board-mute: #7c7683;
+    --board-line: rgba(20, 15, 30, 0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--board-bg);
+    color: var(--board-ink);
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+  a { color: inherit; }
+
+  .page-head {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 56px 40px 24px;
+  }
+  .page-head__eye {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--board-mute);
+    margin-bottom: 14px;
+  }
+  .page-head h1 {
+    font-family: "SF Pro Display", -apple-system, "Helvetica Neue", sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 46px);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-wrap: balance;
+    max-width: 900px;
+    color: var(--board-ink);
+  }
+  .page-head p {
+    margin-top: 12px;
+    font-size: 17px;
+    color: var(--board-mute);
+    max-width: 640px;
+  }
+
+  .board {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px 40px 64px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 1180px) {
+    .board { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 780px) {
+    .page-head, .board { padding-left: 20px; padding-right: 20px; }
+    .board { grid-template-columns: 1fr; }
+  }
+
+  .mock {
+    display: flex; flex-direction: column; align-items: stretch;
+    gap: 18px;
+  }
+  .mock__head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--board-line);
+  }
+  .mock__label {
+    font-family: "SF Pro Display", sans-serif;
+    font-weight: 800; font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--board-ink);
+  }
+  .mock__num {
+    font-family: "SF Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--board-mute);
+  }
+  .mock__note {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--board-ink);
+    opacity: 0.75;
+    padding-top: 4px;
+  }
+  .mock__tags {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .mock__tag {
+    display: inline-block;
+    font-family: "SF Mono", monospace; font-size: 10.5px;
+    padding: 4px 8px; border-radius: 4px;
+    background: rgba(20,15,30,0.06);
+    color: var(--board-ink);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* iPhone frame */
+  .phone {
+    width: 100%;
+    max-width: 375px;
+    margin: 0 auto;
+    background: #101015;
+    border-radius: 44px;
+    padding: 10px 10px;
+    box-shadow:
+      0 30px 80px -30px rgba(11,20,80,0.55),
+      0 2px 0 rgba(255,255,255,0.05) inset;
+    position: relative;
+  }
+  .phone__screen {
+    position: relative;
+    width: 100%;
+    height: 720px;
+    border-radius: 34px;
+    overflow: hidden;
+    background: var(--cream);
+  }
+  .phone__notch {
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 110px; height: 26px;
+    background: #101015;
+    border-radius: 999px;
+    z-index: 20;
+  }
+  .phone__statusbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    font-family: "SF Pro Text", sans-serif;
+    font-size: 15px; font-weight: 600;
+    z-index: 15;
+    pointer-events: none;
+    color: currentColor;
+  }
+  .phone__statusbar-right {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px;
+  }
+  .phone__home-indicator {
+    position: absolute;
+    bottom: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 134px; height: 4px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 2px;
+    z-index: 15;
+  }
+  .phone__body {
+    position: absolute;
+    inset: 0;
+    padding-top: 44px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .phone__body::-webkit-scrollbar { display: none; }
+
+  /* Shared bits inside mocks */
+  .mnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px 12px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .mnav__logo {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mnav__logo-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--navy);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 16px;
+    position: relative;
+  }
+  .mnav__logo-mark::before {
+    content: ""; position: absolute; top: 4px; left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid var(--orange);
+  }
+  .mnav__logo-name {
+    display: flex; flex-direction: column; line-height: 1;
+  }
+  .mnav__logo-name b {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 13px; color: var(--navy); letter-spacing: -0.01em;
+  }
+  .mnav__logo-name span {
+    font-family: "SF Pro Display"; font-weight: 600;
+    font-size: 10px; color: var(--sky); margin-top: 1px;
+  }
+  .mnav__burger {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--navy);
+  }
+
+  .mstickybar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    display: flex; gap: 6px;
+    padding: 8px 10px 22px;
+    background: rgba(255,255,255,0.94);
+    border-top: 1px solid var(--line);
+    backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  .mstickybar__call, .mstickybar__quote {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13px;
+    text-decoration: none;
+    min-height: 42px;
+  }
+  .mstickybar__call {
+    background: var(--navy); color: #fff;
+  }
+  .mstickybar__call svg { color: var(--orange); }
+  .mstickybar__quote {
+    background: var(--orange); color: #fff;
+    box-shadow: 0 3px 0 #c14a13;
+  }
+
+  /* ============================================================
+     MOCK A — Action-first (feels like a booking app)
+     ============================================================ */
+  .a__hero {
+    padding: 20px 16px 22px;
+    background:
+      radial-gradient(600px 300px at 100% -20%, rgba(0,176,237,0.12), transparent 60%),
+      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    color: #fff;
+  }
+  .a__chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.10);
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(255,255,255,0.85);
+  }
+  .a__chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+  .a__hero h1 {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 26px; letter-spacing: -0.025em;
+    line-height: 1.1;
+    margin: 14px 0 10px;
+    text-wrap: balance;
+  }
+  .a__hero h1 em {
+    font-style: normal; color: var(--orange);
+  }
+  .a__hero p {
+    font-size: 14px; color: rgba(255,255,255,0.75);
+    line-height: 1.5;
+  }
+  .a__ctas {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 18px;
+  }
+  .a__btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 13px 16px; border-radius: 12px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 15px;
+    text-decoration: none;
+  }
+  .a__btn--orange {
+    background: var(--orange); color: #fff;
+    box-shadow: 0 3px 0 #c14a13;
+  }
+  .a__btn--ghost {
+    background: transparent; color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.3);
+  }
+  .a__trust {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 16px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  .a__trust strong { color: #fff; }
+  .a__trust span { color: rgba(255,255,255,0.6); }
+  .a__stars { color: #ffd44d; letter-spacing: 1px; }
+
+  .a__picker {
+    padding: 22px 16px 24px;
+  }
+  .a__picker-lbl {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .a__picker-h {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 20px; color: var(--navy);
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+  .a__grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .a__tile {
+    padding: 14px 12px;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    display: flex; flex-direction: column; gap: 4px;
+    text-decoration: none; color: var(--ink);
+  }
+  .a__tile-ico {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(0,176,237,0.10);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--sky); margin-bottom: 4px;
+  }
+  .a__tile-ico--orange { background: rgba(243,103,34,0.10); color: var(--orange); }
+  .a__tile-ico--red    { background: rgba(236,28,34,0.10); color: var(--red); }
+  .a__tile-ico--navy   { background: rgba(11,20,80,0.08); color: var(--navy); }
+  .a__tile-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
+    color: var(--navy); letter-spacing: -0.005em;
+  }
+  .a__tile-s { font-size: 11.5px; color: var(--ink-3); }
+
+  .a__price {
+    margin: 18px 16px 100px;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--orange) 0%, var(--orange-2) 100%);
+    border-radius: 14px;
+    color: #fff;
+  }
+  .a__price-eye {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 6px;
+  }
+  .a__price-num {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 36px; letter-spacing: -0.03em; line-height: 1;
+  }
+  .a__price-lbl { font-size: 12px; margin-top: 4px; }
+
+  /* ============================================================
+     MOCK B — Photo / trust-first
+     ============================================================ */
+  .b__hero {
+    position: relative;
+    height: 380px;
+    color: #fff;
+  }
+  .b__hero-photo {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(5,10,48,0.15) 0%, rgba(5,10,48,0.85) 75%, rgba(5,10,48,1) 100%),
+      linear-gradient(45deg, #2a3555 0%, #1a2050 45%, #0f1738 100%);
+  }
+  .b__hero-photo::before {
+    /* mock "team photo" placeholder pattern */
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,0.06) 0%, transparent 30%),
+      radial-gradient(circle at 60% 40%, rgba(255,255,255,0.05) 0%, transparent 25%),
+      radial-gradient(circle at 85% 35%, rgba(255,255,255,0.06) 0%, transparent 22%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 12px, transparent 12px 24px);
+  }
+  .b__hero-icon {
+    position: absolute;
+    top: 60px; left: 50%; transform: translateX(-50%);
+    width: 70px; height: 70px; border-radius: 20px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+    z-index: 2;
+  }
+  .b__hero-icon svg { color: #fff; }
+  .b__hero-copy {
+    position: absolute;
+    left: 0; right: 0; bottom: 24px;
+    padding: 0 20px;
+    z-index: 3;
+  }
+  .b__hero-eye {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "SF Mono"; font-size: 10.5px;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .b__hero-copy h1 {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 30px; letter-spacing: -0.03em;
+    line-height: 1.05;
+    margin-bottom: 8px;
+    text-wrap: balance;
+  }
+  .b__hero-copy p {
+    font-size: 14px; color: rgba(255,255,255,0.82);
+    line-height: 1.45;
+  }
+
+  .b__reviews {
+    padding: 22px 0 4px;
+    background: var(--cream);
+  }
+  .b__reviews-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+  .b__reviews-stars {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .b__reviews-stars-str { color: #ffb800; letter-spacing: 1px; }
+  .b__reviews-stars strong { color: var(--navy); font-weight: 800; }
+  .b__reviews-stars span { color: var(--ink-3); }
+  .b__reviews-rail {
+    display: flex; gap: 10px;
+    padding: 0 20px 20px;
+    overflow-x: auto;
+  }
+  .b__review {
+    flex: 0 0 240px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .b__review-stars { color: #ffb800; font-size: 11px; letter-spacing: 1px; }
+  .b__review-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
+    color: var(--navy); margin: 4px 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .b__review-txt {
+    font-size: 12px; color: var(--ink-2); line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .b__review-by {
+    font-family: "SF Mono"; font-size: 10px;
+    color: var(--ink-3); letter-spacing: 0.04em;
+  }
+
+  .b__cta {
+    padding: 20px 20px 100px;
+    background: var(--cream);
+  }
+  .b__cta-h {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 20px; color: var(--navy);
+    letter-spacing: -0.015em;
+    margin-bottom: 6px;
+  }
+  .b__cta-p {
+    font-size: 13.5px; color: var(--ink-2);
+    margin-bottom: 14px; line-height: 1.5;
+  }
+  .b__cta-btns { display: flex; flex-direction: column; gap: 8px; }
+  .b__btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 13px 16px; border-radius: 12px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 15px;
+    text-decoration: none;
+  }
+  .b__btn--orange {
+    background: var(--orange); color: #fff;
+    box-shadow: 0 3px 0 #c14a13;
+  }
+  .b__btn--ghost {
+    background: transparent; color: var(--navy);
+    border: 1.5px solid var(--navy);
+  }
+
+  /* ============================================================
+     MOCK C — Product-forward / magazine
+     ============================================================ */
+  .c__hero {
+    position: relative;
+    background: #f4f0e6;
+    padding: 24px 20px 28px;
+    text-align: center;
+  }
+  .c__hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px;
+    background: var(--orange); color: #fff;
+    font-family: "SF Mono"; font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .c__hero-brand {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 13px; color: var(--navy);
+    letter-spacing: 0.24em;
+    margin-bottom: 6px;
+  }
+  .c__hero-model {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 22px; color: var(--navy);
+    letter-spacing: -0.02em; line-height: 1.15;
+    text-wrap: balance;
+    max-width: 240px; margin: 0 auto;
+  }
+  .c__hero-photo {
+    position: relative;
+    height: 200px; margin: 20px auto 0;
+    max-width: 200px;
+  }
+  .c__hero-photo::before {
+    /* Mock heat pump silhouette */
+    content: "";
+    position: absolute;
+    left: 50%; top: 0; transform: translateX(-50%);
+    width: 110px; height: 190px;
+    background: linear-gradient(180deg, #d0d5dc 0%, #f5f6f8 40%, #dfe3e8 100%);
+    border-radius: 12px;
+    box-shadow: 0 20px 30px -20px rgba(11,20,80,0.35);
+  }
+  .c__hero-photo::after {
+    /* Compressor top */
+    content: "";
+    position: absolute;
+    left: 50%; top: 0; transform: translateX(-50%);
+    width: 108px; height: 44px;
+    background: linear-gradient(180deg, #202028 0%, #35353f 100%);
+    border-radius: 12px 12px 4px 4px;
+    z-index: 1;
+  }
+  .c__price {
+    padding: 22px 20px 20px;
+    background: var(--navy);
+    color: #fff;
+    text-align: center;
+  }
+  .c__price-eye {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 8px;
+  }
+  .c__price-row {
+    display: flex; align-items: baseline; justify-content: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  .c__price-num {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 48px; color: var(--orange);
+    letter-spacing: -0.03em; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .c__price-strike {
+    font-family: "SF Pro Display"; font-weight: 700;
+    font-size: 15px; color: rgba(255,255,255,0.5);
+    text-decoration: line-through;
+  }
+  .c__price-lbl {
+    font-family: "SF Mono"; font-size: 11px;
+    letter-spacing: 0.06em; color: rgba(255,255,255,0.7);
+  }
+  .c__price-cta {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px 16px; border-radius: 12px;
+    background: var(--orange); color: #fff;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 15px;
+    text-decoration: none;
+    box-shadow: 0 3px 0 #c14a13;
+  }
+
+  .c__feats {
+    padding: 22px 20px 18px;
+    background: var(--cream);
+  }
+  .c__feat {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .c__feat:last-child { border-bottom: none; }
+  .c__feat-ico {
+    flex-shrink: 0;
+    width: 30px; height: 30px; border-radius: 8px;
+    background: rgba(243,103,34,0.10);
+    color: var(--orange);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 15px;
+  }
+  .c__feat-body {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .c__feat-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13.5px;
+    color: var(--navy); letter-spacing: -0.01em;
+  }
+  .c__feat-s {
+    font-size: 12px; color: var(--ink-2); line-height: 1.4;
+  }
+
+  .c__swipe {
+    padding: 20px 0 100px;
+    background: var(--cream);
+  }
+  .c__swipe-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 0 20px;
+    margin-bottom: 12px;
+  }
+  .c__swipe-h {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 16px;
+    color: var(--navy); letter-spacing: -0.01em;
+  }
+  .c__swipe-dots {
+    display: flex; gap: 4px;
+  }
+  .c__swipe-dots i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--line);
+  }
+  .c__swipe-dots i.on { background: var(--orange); width: 18px; border-radius: 3px; }
+  .c__swipe-rail {
+    display: flex; gap: 10px;
+    padding: 4px 20px;
+    overflow-x: auto;
+  }
+  .c__swipe-card {
+    flex: 0 0 200px;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .c__swipe-card-eye {
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--orange); font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .c__swipe-card-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
+    color: var(--navy); letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+  .c__swipe-card-p {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 16px;
+    color: var(--navy); letter-spacing: -0.02em;
+  }
+
+  /* Dark theme (viewer toggle) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --board-bg: #17141c;
+      --board-ink: #e8e4ed;
+      --board-mute: #7c7686;
+      --board-line: rgba(255,255,255,0.08);
+    }
+  }
+  :root[data-theme="light"] {
+    --board-bg: #eeeae0;
+    --board-ink: #2a2530;
+    --board-mute: #7c7683;
+    --board-line: rgba(20, 15, 30, 0.08);
+  }
+  :root[data-theme="dark"] {
+    --board-bg: #17141c;
+    --board-ink: #e8e4ed;
+    --board-mute: #7c7686;
+    --board-line: rgba(255,255,255,0.08);
+  }
+</style>
+
+<header class="page-head">
+  <div class="page-head__eye">Advanced Gas &amp; Aircon · Phone home page directions</div>
+  <h1>Three phone-first takes on the same hero.</h1>
+  <p>Same brand, same content available. What changes is the emotion the first three seconds trigger, and what the visitor's thumb reaches for first.</p>
+</header>
+
+<main class="board">
+
+  <!-- =============== MOCK A =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">A · Booking app</div>
+      <div class="mock__num">Mock A</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Fast</span>
+      <span class="mock__tag">Action-first</span>
+      <span class="mock__tag">Service picker</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar" style="color: #fff;">
+          <span>9:41</span>
+          <span class="phone__statusbar-right">
+            <span>●●●</span>
+            <span style="font-family: 'SF Mono';">100%</span>
+          </span>
+        </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name">
+                <b>Advanced</b>
+                <span>Gas &amp; Aircon</span>
+              </div>
+            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+          </div>
+
+          <div class="a__hero">
+            <span class="a__chip">
+              <span class="a__chip-dot"></span>
+              VEU-accredited · Pakenham
+            </span>
+            <h1>Fixed-price heat pump. <em>$2,610 installed.</em></h1>
+            <p>Rebate applied, no chasing. Quote back within 12&nbsp;hours.</p>
+            <div class="a__ctas">
+              <a href="#" class="a__btn a__btn--orange">Get my fixed quote →</a>
+              <a href="#" class="a__btn a__btn--ghost">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+                Or call (03) 5947 8000
+              </a>
+            </div>
+            <div class="a__trust">
+              <span class="a__stars">★★★★★</span>
+              <div><strong>4.9 / 5</strong> <span>· 1,200+ installs · Pakenham</span></div>
+            </div>
+          </div>
+
+          <div class="a__picker">
+            <div class="a__picker-lbl">Start a quote</div>
+            <div class="a__picker-h">What do you need?</div>
+            <div class="a__grid">
+              <a href="#" class="a__tile">
+                <span class="a__tile-ico a__tile-ico--orange">🔥</span>
+                <span class="a__tile-t">Heat pump</span>
+                <span class="a__tile-s">Reclaim, Thermann, iStore</span>
+              </a>
+              <a href="#" class="a__tile">
+                <span class="a__tile-ico">❄</span>
+                <span class="a__tile-t">Split system</span>
+                <span class="a__tile-s">Mitsubishi, Kaden</span>
+              </a>
+              <a href="#" class="a__tile">
+                <span class="a__tile-ico a__tile-ico--navy">🌬</span>
+                <span class="a__tile-t">Ducted aircon</span>
+                <span class="a__tile-s">Whole home</span>
+              </a>
+              <a href="#" class="a__tile">
+                <span class="a__tile-ico a__tile-ico--red">🛠</span>
+                <span class="a__tile-t">Service</span>
+                <span class="a__tile-s">$280 + GST</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="a__price">
+            <div class="a__price-eye">Rebate this week</div>
+            <div class="a__price-num">$2,605</div>
+            <div class="a__price-lbl">off a Reclaim R290 for Solar Homes eligible households</div>
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Feels like a booking app. Big price up-front, single obvious action, service tiles right below the fold. Best for cold traffic that already knows what they want, and for making the site feel less &ldquo;marketing brochure&rdquo; and more &ldquo;tap here to get a number.&rdquo;
+    </p>
+  </div>
+
+  <!-- =============== MOCK B =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">B · Local trust</div>
+      <div class="mock__num">Mock B</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Photo-forward</span>
+      <span class="mock__tag">Reviews lead</span>
+      <span class="mock__tag">Family voice</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar" style="color: #fff;">
+          <span>9:41</span>
+          <span class="phone__statusbar-right">
+            <span>●●●</span>
+            <span style="font-family: 'SF Mono';">100%</span>
+          </span>
+        </div>
+        <div class="phone__body" style="padding-top: 0;">
+          <div class="b__hero">
+            <div class="b__hero-photo"></div>
+            <div class="b__hero-icon" aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="8" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M14 16h.5a4 4 0 0 1 4 4v1"/></svg>
+            </div>
+            <div class="b__hero-copy">
+              <span class="b__hero-eye">Pakenham locals since 2014</span>
+              <h1>The team you'd want in your house.</h1>
+              <p>Family owned. Same face on the quote as on the tools. 12 years, 1,200+ installs across the south-east.</p>
+            </div>
+          </div>
+
+          <div class="b__reviews">
+            <div class="b__reviews-head">
+              <div class="b__reviews-stars">
+                <span class="b__reviews-stars-str">★★★★★</span>
+                <strong>4.9 / 5</strong>
+                <span>· 284 Google reviews</span>
+              </div>
+            </div>
+            <div class="b__reviews-rail">
+              <div class="b__review">
+                <div class="b__review-stars">★★★★★</div>
+                <div class="b__review-t">Quoted Mon, installed Fri</div>
+                <p class="b__review-txt">Bloke on the phone is the bloke on the tools. Rebate handled, paid less than $400.</p>
+                <div class="b__review-by">Jess M · Pakenham</div>
+              </div>
+              <div class="b__review">
+                <div class="b__review-stars">★★★★★</div>
+                <div class="b__review-t">Actually got up in the roof</div>
+                <p class="b__review-txt">Three quotes for ducted. Only ones who crawled in. Middle price, cleanest install.</p>
+                <div class="b__review-by">Dean R · Officer</div>
+              </div>
+              <div class="b__review">
+                <div class="b__review-stars">★★★★★</div>
+                <div class="b__review-t">Sunday emergency</div>
+                <p class="b__review-txt">Hot water died with three kids. Loaner running by lunch, iStore Tuesday.</p>
+                <div class="b__review-by">Sam K · Berwick</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="b__cta">
+            <div class="b__cta-h">Book us for a look.</div>
+            <div class="b__cta-p">Free 20-minute site check for the bigger jobs. Fixed-price quote back within 12 hours. No pressure, no upsell.</div>
+            <div class="b__cta-btns">
+              <a href="#" class="b__btn b__btn--orange">Get a fixed quote →</a>
+              <a href="#" class="b__btn b__btn--ghost">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+                Or call (03) 5947 8000
+              </a>
+            </div>
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Team photo does the heavy lifting. Reviews front-and-centre so the customer sees other Pakenham names before they see specs. Warmer, slower open, better for referral traffic and word-of-mouth clicks who&rsquo;ve heard the name but haven&rsquo;t decided yet.
+    </p>
+  </div>
+
+  <!-- =============== MOCK C =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">C · Product page</div>
+      <div class="mock__num">Mock C</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Price-forward</span>
+      <span class="mock__tag">Magazine</span>
+      <span class="mock__tag">Reclaim spotlight</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar" style="color: var(--navy);">
+          <span>9:41</span>
+          <span class="phone__statusbar-right">
+            <span>●●●</span>
+            <span style="font-family: 'SF Mono';">100%</span>
+          </span>
+        </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name">
+                <b>Advanced</b>
+                <span>Gas &amp; Aircon</span>
+              </div>
+            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+          </div>
+
+          <div class="c__hero">
+            <span class="c__hero-badge">Best value · this week</span>
+            <div class="c__hero-brand">RECLAIM · AUSTRALIAN MADE</div>
+            <div class="c__hero-model">R290 all-in-one 300 L heat pump</div>
+            <div class="c__hero-photo"></div>
+          </div>
+
+          <div class="c__price">
+            <div class="c__price-eye">Fully installed, inc GST</div>
+            <div class="c__price-row">
+              <span class="c__price-num">$2,610</span>
+              <span class="c__price-strike">$5,215</span>
+            </div>
+            <div class="c__price-lbl">$2,605 rebate applied at quote — no chasing</div>
+            <a href="#" class="c__price-cta">Get this heat pump →</a>
+          </div>
+
+          <div class="c__feats">
+            <div class="c__feat">
+              <span class="c__feat-ico">✓</span>
+              <div class="c__feat-body">
+                <span class="c__feat-t">Plug-in install</span>
+                <span class="c__feat-s">If there's a power point within 50 cm of your tank</span>
+              </div>
+            </div>
+            <div class="c__feat">
+              <span class="c__feat-ico">✓</span>
+              <div class="c__feat-body">
+                <span class="c__feat-t">10-year tank warranty</span>
+                <span class="c__feat-s">Australian made, R290 refrigerant</span>
+              </div>
+            </div>
+            <div class="c__feat">
+              <span class="c__feat-ico">✓</span>
+              <div class="c__feat-body">
+                <span class="c__feat-t">Old unit removed</span>
+                <span class="c__feat-s">Gas / electric tank disposed, compliance cert emailed</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="c__swipe">
+            <div class="c__swipe-head">
+              <div class="c__swipe-h">Other options</div>
+              <div class="c__swipe-dots">
+                <i class="on"></i><i></i><i></i>
+              </div>
+            </div>
+            <div class="c__swipe-rail">
+              <div class="c__swipe-card">
+                <div class="c__swipe-card-eye">Highest quality</div>
+                <div class="c__swipe-card-t">Reclaim CO₂ split</div>
+                <div class="c__swipe-card-p">from $5,340</div>
+              </div>
+              <div class="c__swipe-card">
+                <div class="c__swipe-card-eye">Whole home</div>
+                <div class="c__swipe-card-t">18 kW Mitsubishi ducted</div>
+                <div class="c__swipe-card-p">from $11,000</div>
+              </div>
+              <div class="c__swipe-card">
+                <div class="c__swipe-card-eye">Smart controls</div>
+                <div class="c__swipe-card-t">iStore 275 L Wi-Fi</div>
+                <div class="c__swipe-card-p">$2,910</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Like an Apple product page for a heat pump. Big hero product, real installed price (with the pre-rebate strike-through), features, then a horizontal rail of the other options. Best for paid traffic landing from a specific &ldquo;Reclaim heat pump Pakenham&rdquo; ad, and for buyers who&rsquo;ve done their homework.
+    </p>
+  </div>
+
+</main>
