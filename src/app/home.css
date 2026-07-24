@@ -2,7 +2,7 @@
    Homepage, ported from design index.html. Scoped to .page-home.
    =================================================================== */
 
-.page-home { background: var(--bg); }
+.page-home { background: var(--bg); overflow-x: clip; }
 
 /* Force white headings inside all dark-background sections.
    globals.css applies text-navy-900 to h1-h4 in @layer base, without
@@ -881,7 +881,7 @@
 }
 
 /* ============== REVIEWS, scrolling columns ============== */
-.page-home .reviews { padding: 110px 0; background: var(--bg); }
+.page-home .reviews { padding: 110px 0; background: var(--bg); overflow: hidden; }
 .page-home .reviews__head {
   display: flex; justify-content: space-between; align-items: flex-end;
   gap: 30px; margin-bottom: 40px; flex-wrap: wrap;
