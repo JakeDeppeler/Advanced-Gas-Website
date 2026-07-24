@@ -78,31 +78,26 @@ const REVIEW_COLUMNS: Review[][] = [
 export default function HomePage() {
   return (
     <div className="page-home">
-      {/* HERO */}
-      <section className="hero">
+      {/* HERO — full-bleed team photo, cinematic overlay */}
+      <section className="hero hero--photo">
         <div className="hero__bg" aria-hidden="true" />
-        <div className="wrap hero__grid">
-          <div className="hero__left">
-            <div className="hero__eyebrow">
+        <div className="hero__scrim" aria-hidden="true" />
+
+        <div className="wrap hero__wrap">
+          <div className="hero__meta">
+            <span className="hero__badge">
               <span className="ds-dot" />
-              <span className="hero__eyebrow-full">VEU-accredited installer · Pakenham &amp; surrounds</span>
-              <span className="hero__eyebrow-short">VEU-accredited · Pakenham</span>
-            </div>
+              Pakenham locals since 2014
+            </span>
+          </div>
 
+          <div className="hero__copy">
             <h1 className="hero__h1">
-              Pakenham&rsquo;s family&#8209;run heating, cooling &amp; hot water team.
+              The team you&rsquo;d want in your house.
             </h1>
-
             <p className="hero__sub">
-              Twelve years installing heat pumps, split systems, ducted aircon and gas across Pakenham, Berwick, Cranbourne and Officer. Licensed gasfitters, ARC-ticketed refrigeration, VEU-accredited so the rebate&rsquo;s already in the price we quote you.
+              Family owned. Same face on the quote as on the tools. Twelve years and 1,200+ installs across Pakenham, Berwick, Cranbourne &amp; Officer.
             </p>
-
-            <ul className="hero__bullets">
-              <li><span className="tick">✓</span> Family-owned, based in Pakenham since 2014</li>
-              <li><span className="tick">✓</span> Fixed prices, VEU rebate applied at the quote</li>
-              <li className="hero__bullet--wide"><span className="tick">✓</span> Reece trade partner, genuine stock &amp; warranties</li>
-              <li className="hero__bullet--wide"><span className="tick">✓</span> Licensed gasfitter + ARC refrigeration ticket</li>
-            </ul>
 
             <div className="hero__ctas">
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</a>
@@ -116,7 +111,7 @@ export default function HomePage() {
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>
                 <div className="trust-rating__txt">
                   <strong>4.9 / 5</strong>
-                  <span>Google reviews · Pakenham locals</span>
+                  <span>Google reviews · 280+ locals</span>
                 </div>
               </div>
               <div className="trust-divider" />
@@ -124,13 +119,7 @@ export default function HomePage() {
               <div className="trust-divider" />
               <div className="trust-stat"><strong>12 yrs</strong><span>local trading</span></div>
             </div>
-
-            <p className="hero__finep">
-              Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
-            </p>
           </div>
-
-          <HeroQuoteForm />
         </div>
 
         <svg className="hero__divider" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
@@ -160,6 +149,88 @@ export default function HomePage() {
                 <span className="brand-chip__name">{name}</span>
                 <span className="brand-chip__type">{type}</span>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* QUOTE FORM — dedicated section (moved out of hero for direction B) */}
+      <section className="quotesec" id="quote">
+        <div className="wrap quotesec__grid">
+          <div className="quotesec__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> 60-second quote</span>
+            <h2>Fixed-price quote back within 12&nbsp;hours.</h2>
+            <p className="quotesec__lede">
+              Tell us what you need, we&rsquo;ll quote it straight. Rebates applied, GST included, no chasing.
+            </p>
+            <ul className="quotesec__points">
+              <li><span className="tick tick--dark">✓</span> No obligation, no pushy call-back</li>
+              <li><span className="tick tick--dark">✓</span> Same person quotes as installs</li>
+              <li><span className="tick tick--dark">✓</span> VEU rebate handled in the quote</li>
+              <li><span className="tick tick--dark">✓</span> Emergency? Call {site.phone} instead</li>
+            </ul>
+            <p className="quotesec__finep">
+              Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
+            </p>
+          </div>
+          <HeroQuoteForm />
+        </div>
+      </section>
+
+      {/* REVIEWS, front-and-centre (moved up from lower on the page) */}
+      <section className="reviews">
+        <div className="wrap">
+          <div className="reviews__head">
+            <div>
+              <span className="ds-eyebrow"><span className="ds-dot" /> What locals say</span>
+              <h2>Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
+            </div>
+            <div className="reviews__badge">
+              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
+              <div><strong>4.9 / 5</strong> on Google · 280+ reviews</div>
+            </div>
+          </div>
+
+          <div className="reviews__marquee" aria-label="Recent Google reviews">
+            {REVIEW_COLUMNS.map((col, ci) => (
+              <div key={ci} className={`revcol revcol--${ci + 1}`}>
+                <div className="revcol__track">
+                  {[...col, ...col].map((r, ri) => (
+                    <article key={`${ci}-${ri}`} className="revcard">
+                      <div className="revcard__stars">★★★★★</div>
+                      <h4 className="revcard__title">{r.title}</h4>
+                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                      <div className="revcard__by">
+                        <span className="revcard__avatar">{r.a}</span>
+                        <div>
+                          <strong>{r.who}</strong>
+                          <span>{r.what}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
+            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
+          </div>
+
+          {/* Mobile-only horizontal rail (mock B) */}
+          <div className="reviews__rail" aria-hidden="true">
+            {REVIEW_COLUMNS[0].slice(0, 4).map((r, i) => (
+              <article key={`m-${i}`} className="revcard revcard--mobile">
+                <div className="revcard__stars">★★★★★</div>
+                <h4 className="revcard__title">{r.title}</h4>
+                <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                <div className="revcard__by">
+                  <span className="revcard__avatar">{r.a}</span>
+                  <div>
+                    <strong>{r.who}</strong>
+                    <span>{r.what}</span>
+                  </div>
+                </div>
+              </article>
             ))}
           </div>
         </div>
@@ -396,47 +467,6 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
-        </div>
-      </section>
-
-      {/* REVIEWS, scrolling columns */}
-      <section className="reviews">
-        <div className="wrap">
-          <div className="reviews__head">
-            <div>
-              <span className="ds-eyebrow"><span className="ds-dot" /> What locals say</span>
-              <h2>Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
-            </div>
-            <div className="reviews__badge">
-              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google · 280+ reviews</div>
-            </div>
-          </div>
-
-          <div className="reviews__marquee" aria-label="Recent Google reviews">
-            {REVIEW_COLUMNS.map((col, ci) => (
-              <div key={ci} className={`revcol revcol--${ci + 1}`}>
-                <div className="revcol__track">
-                  {[...col, ...col].map((r, ri) => (
-                    <article key={`${ci}-${ri}`} className="revcard">
-                      <div className="revcard__stars">★★★★★</div>
-                      <h4 className="revcard__title">{r.title}</h4>
-                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                      <div className="revcard__by">
-                        <span className="revcard__avatar">{r.a}</span>
-                        <div>
-                          <strong>{r.who}</strong>
-                          <span>{r.what}</span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
-            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
-          </div>
         </div>
       </section>
 

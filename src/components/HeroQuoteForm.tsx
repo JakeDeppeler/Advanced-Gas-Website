@@ -442,7 +442,7 @@ export function HeroQuoteForm() {
 
   if (done) {
     return (
-      <aside className="qcard" id="quote">
+      <aside className="qcard">
         <div className="qcard__done">
           <div className="qcard__done-tick">✓</div>
           <h2 className="qcard__h">Got it. We&apos;ll be in touch.</h2>
@@ -466,7 +466,7 @@ export function HeroQuoteForm() {
   }
 
   return (
-    <aside className="qcard" id="quote">
+    <aside className="qcard">
       <div className="qcard__ribbon">
         <span className="qcard__ribbon-dot" />
         Free quote · usually replied within 12 hrs
