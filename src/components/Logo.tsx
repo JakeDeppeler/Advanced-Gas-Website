@@ -41,16 +41,19 @@ export function LogoMark({ className = "" }: { className?: string }) {
     <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden>
       <defs>
         <mask id={maskId}>
-          <rect width="220" height="220" fill="#fff" />
-          <circle cx="110" cy="124" r="25" fill="#000" />
-          <rect x="110" y="107" width="60" height="34" fill="#000" />
-          <rect x="128" y="120" width="42" height="12" fill="#fff" />
+          <rect width="220" height="220" fill="#000" />
+          <path d="M110 44 L68 124 L152 124 Z" fill="#fff" />
+          <path d="M68 124 A42 42 0 1 0 152 124 Z" fill="#fff" />
+          <path d="M110 68 L90 118 L130 118 Z" fill="#000" />
+          <path d="M90 118 A20 20 0 1 0 130 118 Z" fill="#000" />
+          <rect x="110" y="102" width="52" height="30" fill="#000" />
+          <rect x="128" y="114" width="28" height="8" fill="#fff" />
         </mask>
       </defs>
-      <path d="M110 20 L58 124 L162 124 Z" fill="#ED5C25" />
-      <path d="M58 124 A52 52 0 1 0 162 124 Z" fill="#1AAEE6" />
-      <circle cx="110" cy="124" r="42" fill="#fff" mask={`url(#${maskId})`} />
-      <circle cx="141" cy="151" r="8" fill="#E1373F" />
+      <path d="M110 22 L52 128 L168 128 Z" fill="#ED5C25" />
+      <path d="M52 128 A58 58 0 1 0 168 128 Z" fill="#1AAEE6" />
+      <rect width="220" height="220" fill="#fff" mask={`url(#${maskId})`} />
+      <circle cx="140" cy="146" r="7.5" fill="#E1373F" />
     </svg>
   );
 }
