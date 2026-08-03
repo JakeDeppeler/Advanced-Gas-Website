@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useId } from "react";
 import { site } from "@/lib/site";
 
 type Variant = "default" | "white" | "mark";
@@ -35,15 +36,21 @@ export function Logo({
 }
 
 export function LogoMark({ className = "" }: { className?: string }) {
+  const maskId = `aga-g-${useId().replace(/:/g, "")}`;
   return (
     <svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden>
-      <path d="M110 18 L60 122 L160 122 Z" fill="#ED5C25" />
-      <path d="M60 122 a50 50 0 1 0 100 0 Z" fill="#1AAEE6" />
-      <path
-        d="M110 80 a32 32 0 1 0 0 64 h22 v-32 h-22 v8 h12 v16 h-12 a24 24 0 1 1 0 -48 a24 24 0 0 1 22 14 l8 -4 a32 32 0 0 0 -30 -18 z"
-        fill="#FFFFFF"
-      />
-      <circle cx="138" cy="158" r="9" fill="#E1373F" />
+      <defs>
+        <mask id={maskId}>
+          <rect width="220" height="220" fill="#fff" />
+          <circle cx="110" cy="124" r="25" fill="#000" />
+          <rect x="110" y="107" width="60" height="34" fill="#000" />
+          <rect x="128" y="120" width="42" height="12" fill="#fff" />
+        </mask>
+      </defs>
+      <path d="M110 20 L58 124 L162 124 Z" fill="#ED5C25" />
+      <path d="M58 124 A52 52 0 1 0 162 124 Z" fill="#1AAEE6" />
+      <circle cx="110" cy="124" r="42" fill="#fff" mask={`url(#${maskId})`} />
+      <circle cx="141" cy="151" r="8" fill="#E1373F" />
     </svg>
   );
 }
