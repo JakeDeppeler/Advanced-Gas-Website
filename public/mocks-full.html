@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Advanced Gas & Aircon — full phone mock</title>
+<title>Advanced Gas & Aircon — phone mock v2 (breathing room)</title>
 <style>
   :root {
     --navy: #050a30;
@@ -16,13 +16,17 @@
     --ink: #1a1a1d;
     --ink-2: #4a4a52;
     --ink-3: #7a7a82;
-    --line: #ebe6d8;
+    --line: #ece7d8;
     --red: #ec1c22;
 
     --board-bg: #eeeae0;
     --board-ink: #2a2530;
     --board-mute: #7c7683;
     --board-line: rgba(20,15,30,0.08);
+
+    --pad: 16px;         /* uniform horizontal margin from phone edges */
+    --sec-gap: 14px;     /* vertical space between section cards */
+    --card-rad: 18px;    /* uniform rounded corner on section cards */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
@@ -52,7 +56,7 @@
   .page-head h1 {
     font-family: "SF Pro Display", -apple-system, "Helvetica Neue", sans-serif;
     font-weight: 800;
-    font-size: clamp(30px, 3.6vw, 44px);
+    font-size: clamp(28px, 3.4vw, 40px);
     letter-spacing: -0.02em;
     line-height: 1.05;
     text-wrap: balance;
@@ -61,7 +65,7 @@
   }
   .page-head p {
     margin-top: 12px;
-    font-size: 16px;
+    font-size: 15.5px;
     color: var(--board-mute);
     max-width: 720px;
   }
@@ -80,19 +84,17 @@
   }
   @media (max-width: 780px) {
     .page-head, .board { padding-left: 20px; padding-right: 20px; }
-    .board { grid-template-columns: 1fr; gap: 32px; }
+    .board { grid-template-columns: 1fr; gap: 28px; }
   }
 
-  .mock {
-    display: flex; flex-direction: column; gap: 14px;
-  }
+  .mock { display: flex; flex-direction: column; gap: 14px; }
   .mock__head {
     display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
     padding-bottom: 12px;
     border-bottom: 1px solid var(--board-line);
   }
   .mock__label {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 20px;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 19px;
     letter-spacing: -0.01em; color: var(--board-ink);
   }
   .mock__num {
@@ -102,14 +104,14 @@
   }
   .mock__tags { display: flex; gap: 6px; flex-wrap: wrap; }
   .mock__tag {
-    display: inline-block; font-family: "SF Mono"; font-size: 10.5px;
+    display: inline-block; font-family: "SF Mono"; font-size: 10px;
     padding: 4px 8px; border-radius: 4px;
     background: rgba(20,15,30,0.06);
     color: var(--board-ink); letter-spacing: 0.04em;
     text-transform: uppercase; font-weight: 600;
   }
   .mock__note {
-    font-size: 13.5px; line-height: 1.55; color: var(--board-ink);
+    font-size: 13px; line-height: 1.55; color: var(--board-ink);
     opacity: 0.75; padding-top: 4px;
   }
 
@@ -125,7 +127,7 @@
     position: relative;
   }
   .phone__screen {
-    position: relative; width: 100%; height: 1900px;
+    position: relative; width: 100%; height: 1940px;
     border-radius: 34px; overflow: hidden;
     background: var(--cream);
   }
@@ -141,12 +143,9 @@
     padding: 12px 24px;
     font-size: 15px; font-weight: 600;
     z-index: 15; pointer-events: none;
-    color: currentColor;
+    color: var(--navy);
   }
-  .phone__statusbar-right {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 11px;
-  }
+  .phone__statusbar-right { display: flex; align-items: center; gap: 6px; font-size: 11px; }
   .phone__home-indicator {
     position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
     width: 134px; height: 4px;
@@ -156,46 +155,47 @@
   .phone__body {
     position: absolute; inset: 0;
     padding-top: 44px;
+    background: var(--cream);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
   .phone__body::-webkit-scrollbar { display: none; }
 
-  /* Sticky nav bar */
+  /* Sticky top bar */
   .mnav {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px;
-    background: rgba(255,255,255,0.94);
+    padding: 10px 14px;
+    background: rgba(250,248,243,0.94);
     backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--line);
     position: sticky; top: 0; z-index: 5;
   }
   .mnav__logo { display: flex; align-items: center; gap: 8px; }
   .mnav__logo-mark {
-    width: 32px; height: 32px; border-radius: 8px;
+    width: 28px; height: 28px; border-radius: 7px;
     background: var(--navy);
     display: inline-flex; align-items: center; justify-content: center;
     color: #fff; font-family: "SF Pro Display"; font-weight: 900;
-    font-size: 16px; position: relative;
+    font-size: 14px; position: relative;
   }
   .mnav__logo-mark::before {
-    content: ""; position: absolute; top: 4px; left: 50%;
+    content: ""; position: absolute; top: 3px; left: 50%;
     transform: translateX(-50%); width: 0; height: 0;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-bottom: 8px solid var(--orange);
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 7px solid var(--orange);
   }
   .mnav__logo-name { display: flex; flex-direction: column; line-height: 1; }
   .mnav__logo-name b {
     font-family: "SF Pro Display"; font-weight: 800;
-    font-size: 13px; color: var(--navy); letter-spacing: -0.01em;
+    font-size: 12.5px; color: var(--navy); letter-spacing: -0.01em;
   }
   .mnav__logo-name span {
     font-family: "SF Pro Display"; font-weight: 600;
-    font-size: 10px; color: var(--sky); margin-top: 1px;
+    font-size: 9.5px; color: var(--sky); margin-top: 1px;
   }
   .mnav__burger {
-    width: 34px; height: 34px; border-radius: 8px;
+    width: 32px; height: 32px; border-radius: 8px;
     background: transparent; border: 1px solid var(--line);
     display: inline-flex; align-items: center; justify-content: center;
     color: var(--navy);
@@ -206,7 +206,7 @@
     position: absolute; bottom: 0; left: 0; right: 0;
     display: flex; gap: 6px;
     padding: 8px 10px 22px;
-    background: rgba(255,255,255,0.94);
+    background: rgba(250,248,243,0.94);
     backdrop-filter: blur(10px);
     border-top: 1px solid var(--line);
     z-index: 10;
@@ -215,782 +215,590 @@
     flex: 1;
     display: inline-flex; align-items: center; justify-content: center;
     gap: 6px;
-    padding: 10px 12px;
+    padding: 9px 12px;
     border-radius: 10px;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 13px;
-    text-decoration: none; min-height: 44px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 12.5px;
+    text-decoration: none; min-height: 42px;
   }
   .mstickybar__call { background: var(--navy); color: #fff; }
   .mstickybar__call svg { color: var(--orange); }
   .mstickybar__quote { background: var(--orange); color: #fff; box-shadow: 0 3px 0 #c14a13; }
 
-  /* ============================================================
-     HERO — direction B, photo-forward
-     ============================================================ */
-  .hero {
-    position: relative; height: 520px;
-    color: #fff; overflow: hidden;
+  /* Wrapping stack — everything sits with breathing room */
+  .stack {
+    padding: var(--sec-gap) var(--pad) 80px;
+    display: flex; flex-direction: column; gap: var(--sec-gap);
   }
-  .hero__bg {
+
+  /* Base card look — every section sits inside this */
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--card-rad);
+    padding: 18px 16px;
+    box-shadow: 0 2px 6px -3px rgba(11,20,80,0.08);
+  }
+  .card--dark {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .card--dark h2, .card--dark h3, .card--dark h4 { color: #fff; }
+
+  /* Small section eyebrow */
+  .eye {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .eye-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sky); }
+  .eye--orange { color: var(--orange); }
+  .eye--orange .eye-dot { background: var(--orange); }
+  .card--dark .eye { color: rgba(255,255,255,0.65); }
+
+  /* Section heading */
+  .h {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 18px; letter-spacing: -0.018em;
+    line-height: 1.2; color: var(--navy);
+    text-wrap: balance;
+  }
+  .card--dark .h { color: #fff; }
+  .lede {
+    margin-top: 6px;
+    font-size: 12.5px; color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .card--dark .lede { color: rgba(255,255,255,0.75); }
+
+  /* ============================================================
+     HERO CARD — team photo inside a rounded card, not full-bleed
+     ============================================================ */
+  .hero-card {
+    position: relative;
+    border-radius: var(--card-rad);
+    overflow: hidden;
+    height: 380px;
+    color: #fff;
+    box-shadow: 0 12px 30px -18px rgba(11,20,80,0.35);
+  }
+  .hero-bg {
     position: absolute; inset: 0;
     background:
       radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06) 0%, transparent 30%),
       radial-gradient(circle at 70% 40%, rgba(255,255,255,0.05) 0%, transparent 25%),
       linear-gradient(135deg, #2a3555 0%, #1a2050 55%, #0f1738 100%);
   }
-  .hero__scrim {
+  .hero-scrim {
     position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.82) 68%, rgba(5,10,48,0.98) 100%);
+    background: linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.80) 68%, rgba(5,10,48,0.96) 100%);
   }
-  .hero__team-icon {
-    position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
-    width: 74px; height: 74px; border-radius: 20px;
+  .hero-team-icon {
+    position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
+    width: 58px; height: 58px; border-radius: 16px;
     background: rgba(255,255,255,0.1);
     border: 1px solid rgba(255,255,255,0.15);
     display: inline-flex; align-items: center; justify-content: center;
     backdrop-filter: blur(10px); z-index: 2;
   }
-  .hero__team-icon svg { color: #fff; }
-  .hero__wrap {
+  .hero-team-icon svg { color: #fff; }
+  .hero-wrap {
     position: absolute; left: 0; right: 0; bottom: 0;
-    padding: 0 20px 24px;
+    padding: 0 16px 18px;
     z-index: 3;
   }
-  .hero__badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 11px; border-radius: 999px;
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.18);
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 9px; border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.2);
     color: rgba(255,255,255,0.95);
-    font-family: "SF Mono"; font-size: 10.5px;
+    font-family: "SF Mono"; font-size: 9.5px;
     letter-spacing: 0.06em; text-transform: uppercase;
     backdrop-filter: blur(6px);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
-  .hero__badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .hero__h1 {
+  .hero-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sky); }
+  .hero-h {
     font-family: "SF Pro Display"; font-weight: 900;
-    font-size: 30px; letter-spacing: -0.028em;
-    line-height: 1.05; margin-bottom: 10px;
+    font-size: 24px; letter-spacing: -0.025em;
+    line-height: 1.08; margin-bottom: 8px;
     text-wrap: balance;
   }
-  .hero__sub {
-    font-size: 14px; color: rgba(255,255,255,0.85);
-    line-height: 1.5; margin-bottom: 16px;
+  .hero-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.85);
+    line-height: 1.5; margin-bottom: 14px;
   }
-  .hero__ctas {
-    display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;
-  }
-  .hero__btn {
+  .hero-ctas { display: flex; flex-direction: column; gap: 6px; }
+  .hero-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 13px 16px; border-radius: 12px;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 15px;
+    padding: 11px 14px; border-radius: 10px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13.5px;
     text-decoration: none;
   }
-  .hero__btn--orange { background: var(--orange); color: #fff; box-shadow: 0 3px 0 #c14a13; }
-  .hero__btn--ghost {
-    background: rgba(255,255,255,0.06); color: #fff;
-    border: 1.5px solid rgba(255,255,255,0.35);
+  .hero-btn--orange { background: var(--orange); color: #fff; box-shadow: 0 2px 0 #c14a13; }
+  .hero-btn--ghost {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
     backdrop-filter: blur(6px);
   }
-  .hero__trust {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 14px;
-    background: rgba(5,10,48,0.4);
-    border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
+
+  /* Trust card — separate card below hero */
+  .trust-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--card-rad);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 6px -3px rgba(11,20,80,0.08);
   }
-  .hero__stars { color: #ffd44d; font-size: 14px; letter-spacing: 1px; }
-  .hero__trust-txt { display: flex; flex-direction: column; line-height: 1.15; }
-  .hero__trust-txt strong { font-family: "SF Pro Display"; font-size: 14px; }
-  .hero__trust-txt span { font-size: 11px; color: rgba(255,255,255,0.7); }
-  .hero__trust-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); }
+  .trust-card__stars { color: #ffb800; font-size: 13px; letter-spacing: 1px; }
+  .trust-card__txt { display: flex; flex-direction: column; line-height: 1.15; }
+  .trust-card__txt strong { font-family: "SF Pro Display"; font-size: 12.5px; color: var(--navy); }
+  .trust-card__txt span { font-size: 10.5px; color: var(--ink-3); }
+  .trust-card__divider { width: 1px; height: 22px; background: var(--line); }
 
   /* ============================================================
-     BRANDS — horizontal chip rail
+     BRANDS — horizontal chip rail inside a card
      ============================================================ */
-  .brands {
-    background: #fff;
-    padding: 16px 0 20px;
-    border-bottom: 1px solid var(--line);
-  }
-  .brands__lbl {
-    padding: 0 20px;
-    font-family: "SF Mono"; font-size: 10px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 8px;
-  }
-  .brands__rail {
-    display: flex; gap: 8px;
-    padding: 4px 20px 4px;
+  .brand-rail {
+    display: flex; gap: 6px;
     overflow-x: auto;
     scrollbar-width: none;
+    margin: 8px -16px 0;
+    padding: 2px 16px 4px;
   }
-  .brands__rail::-webkit-scrollbar { display: none; }
-  .brands__chip {
+  .brand-rail::-webkit-scrollbar { display: none; }
+  .brand-chip {
     flex-shrink: 0;
-    padding: 8px 14px;
+    padding: 6px 12px;
     background: var(--cream);
     border: 1px solid var(--line);
     border-radius: 999px;
     display: flex; flex-direction: column; align-items: center; gap: 1px;
-    min-width: 96px;
+    min-width: 84px;
   }
-  .brands__chip strong {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
+  .brand-chip strong {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 11.5px;
     color: var(--navy); letter-spacing: -0.01em;
   }
-  .brands__chip span {
-    font-family: "SF Mono"; font-size: 9px;
+  .brand-chip span {
+    font-family: "SF Mono"; font-size: 8.5px;
     letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--ink-3);
   }
 
   /* ============================================================
-     QUOTE PANEL — compact button-forward on phone
+     QUOTE CARD
      ============================================================ */
-  .qsec {
-    background: var(--cream);
-    padding: 24px 20px 28px;
-  }
-  .qsec__eye {
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 8px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .qsec__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .qsec__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    margin-bottom: 8px;
-    text-wrap: balance;
-  }
-  .qsec__lede {
-    font-size: 14px; color: var(--ink-2); line-height: 1.5;
-    margin-bottom: 14px;
-  }
-  .qsec__card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 12px 32px -16px rgba(5,10,48,0.15);
-  }
-  .qsec__card-ribbon {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(0,176,237,0.10); color: var(--navy);
-    padding: 4px 10px; border-radius: 999px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.02em;
-    margin-bottom: 10px;
-  }
-  .qsec__card-ribbon-dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--sky);
-  }
-  .qsec__card-h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 18px;
+  .qcard-h {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 15.5px;
     color: var(--navy); letter-spacing: -0.015em;
+    margin-top: 8px;
     margin-bottom: 4px;
   }
-  .qsec__card-p {
-    font-size: 13px; color: var(--ink-2); margin-bottom: 12px;
-  }
-  .qsec__progress {
-    display: flex; gap: 3px; margin-bottom: 14px;
-  }
-  .qsec__progress i {
+  .qcard-p { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+  .qcard-progress { display: flex; gap: 3px; margin-bottom: 10px; }
+  .qcard-progress i {
     flex: 1; height: 3px; border-radius: 2px; background: var(--line);
   }
-  .qsec__progress i.on { background: var(--orange); }
-  .qsec__step-lbl {
-    font-family: "SF Mono"; font-size: 10px;
+  .qcard-progress i.on { background: var(--orange); }
+  .qcard-step-lbl {
+    font-family: "SF Mono"; font-size: 9.5px;
     letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--ink-3);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
-  .qsec__step-h {
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 15px;
-    color: var(--navy); margin-bottom: 10px;
+  .qcard-step-h {
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13.5px;
+    color: var(--navy); margin-bottom: 8px;
   }
-  .qsec__grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+  .qcard-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
   }
-  .qsec__opt {
-    padding: 10px;
+  .qcard-opt {
+    padding: 9px 10px;
     background: #fff;
     border: 1.5px solid var(--line);
-    border-radius: 10px;
+    border-radius: 9px;
     text-align: left;
   }
-  .qsec__opt.on {
-    border-color: var(--navy);
-    background: var(--navy); color: #fff;
-  }
-  .qsec__opt strong {
+  .qcard-opt.on { border-color: var(--navy); background: var(--navy); color: #fff; }
+  .qcard-opt strong {
     display: block;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 13px;
-    color: var(--navy); margin-bottom: 2px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 12px;
+    color: var(--navy); margin-bottom: 1px;
   }
-  .qsec__opt.on strong { color: #fff; }
-  .qsec__opt em {
+  .qcard-opt.on strong { color: #fff; }
+  .qcard-opt em {
     font-style: normal;
-    font-size: 11px; color: var(--ink-3);
+    font-size: 10px; color: var(--ink-3);
   }
-  .qsec__opt.on em { color: rgba(255,255,255,0.7); }
-  .qsec__next {
+  .qcard-opt.on em { color: rgba(255,255,255,0.7); }
+  .qcard-next {
     display: inline-flex; align-items: center; justify-content: center;
-    gap: 6px;
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px 14px; border-radius: 10px;
+    gap: 6px; width: 100%;
+    margin-top: 10px;
+    padding: 11px 14px; border-radius: 10px;
     background: var(--orange); color: #fff;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 14px;
-    box-shadow: 0 3px 0 #c14a13;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13px;
+    box-shadow: 0 2px 0 #c14a13;
   }
 
   /* ============================================================
-     REVIEWS — horizontal swipe + rating strip
+     REVIEWS — swipe rail inside a card
      ============================================================ */
-  .rev {
-    background: #fff;
-    padding: 24px 0 20px;
-  }
-  .rev__head {
-    padding: 0 20px;
-    margin-bottom: 12px;
-  }
-  .rev__eye {
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 6px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .rev__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .rev__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 20px;
-    color: var(--navy); letter-spacing: -0.018em;
-    line-height: 1.15;
-    margin-bottom: 10px;
-    text-wrap: balance;
-  }
-  .rev__rating {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 12px;
+  .rev-rating {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
     background: var(--cream);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    font-size: 12.5px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    margin-top: 6px;
   }
-  .rev__rating-str { color: #ffb800; letter-spacing: 1px; font-size: 13px; }
-  .rev__rating strong { color: var(--navy); font-weight: 800; }
-  .rev__rating span { color: var(--ink-3); }
-  .rev__rail {
-    display: flex; gap: 10px;
-    padding: 12px 20px 20px;
+  .rev-rating-str { color: #ffb800; letter-spacing: 1px; font-size: 12px; }
+  .rev-rating strong { color: var(--navy); font-weight: 800; }
+  .rev-rating span { color: var(--ink-3); }
+  .rev-rail {
+    display: flex; gap: 8px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
+    margin: 12px -16px 0;
+    padding: 2px 16px 6px;
+    scrollbar-width: none;
   }
-  .rev__card {
-    flex: 0 0 240px;
+  .rev-rail::-webkit-scrollbar { display: none; }
+  .rev-card {
+    flex: 0 0 210px;
     scroll-snap-align: start;
-    padding: 14px;
+    padding: 12px;
     background: var(--cream);
     border: 1px solid var(--line);
     border-radius: 12px;
   }
-  .rev__card-stars { color: var(--orange); font-size: 12px; letter-spacing: 1.5px; }
-  .rev__card-t {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
-    color: var(--navy); margin: 4px 0 6px;
+  .rev-card-stars { color: var(--orange); font-size: 11px; letter-spacing: 1.5px; }
+  .rev-card-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12px;
+    color: var(--navy); margin: 3px 0 4px;
     letter-spacing: -0.005em;
   }
-  .rev__card-txt {
-    font-size: 12px; color: var(--ink-2); line-height: 1.5;
-    margin-bottom: 10px;
+  .rev-card-txt {
+    font-size: 11px; color: var(--ink-2); line-height: 1.5;
+    margin-bottom: 8px;
   }
-  .rev__card-by {
-    display: flex; align-items: center; gap: 8px;
-    padding-top: 8px;
+  .rev-card-by {
+    display: flex; align-items: center; gap: 6px;
+    padding-top: 6px;
     border-top: 1px solid var(--line);
   }
-  .rev__avatar {
-    width: 28px; height: 28px; border-radius: 50%;
+  .rev-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
     background: var(--navy); color: #fff;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 10.5px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 9.5px;
   }
-  .rev__card-by div { display: flex; flex-direction: column; line-height: 1.1; }
-  .rev__card-by strong {
-    font-family: "SF Pro Display"; font-size: 11.5px; color: var(--navy);
-  }
-  .rev__card-by span { font-size: 10px; color: var(--ink-3); }
+  .rev-card-by div { display: flex; flex-direction: column; line-height: 1.1; }
+  .rev-card-by strong { font-family: "SF Pro Display"; font-size: 10.5px; color: var(--navy); }
+  .rev-card-by span { font-size: 9.5px; color: var(--ink-3); }
 
   /* ============================================================
-     FIXED-PRICE CARDS — vertical stack, compact
+     FIXED-PRICE — 3 compact cards inside a card
      ============================================================ */
-  .fp {
+  .fp-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .fp-item {
+    display: flex; align-items: stretch; gap: 12px;
+    padding: 12px;
     background: var(--cream);
-    padding: 26px 20px 24px;
-  }
-  .fp__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--orange);
-    margin-bottom: 6px;
-    justify-content: center;
-  }
-  .fp__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
-  .fp__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-align: center;
-    text-wrap: balance;
-    margin-bottom: 4px;
-  }
-  .fp__lede {
-    font-size: 13px; color: var(--ink-2);
-    text-align: center;
-    max-width: 300px; margin: 0 auto 18px;
-    line-height: 1.5;
-  }
-  .fp__list {
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  .fp__card {
-    background: #fff;
     border: 1px solid var(--line);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px -12px rgba(5,10,48,0.1);
+    border-radius: 12px;
     position: relative;
   }
-  .fp__card--feature {
-    box-shadow: 0 24px 48px -20px rgba(5,10,48,0.35);
-    border-color: var(--orange);
-  }
-  .fp__card-photo {
-    height: 140px;
+  .fp-item--feature { border-color: var(--orange); background: #fff; }
+  .fp-thumb {
+    flex-shrink: 0;
+    width: 68px;
     background: linear-gradient(135deg, #d0d5dc 0%, #f5f6f8 50%, #dfe3e8 100%);
+    border-radius: 8px;
     position: relative;
   }
-  .fp__card-photo::after {
+  .fp-thumb::after {
     content: "";
     position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -50%);
-    width: 60px; height: 100px;
-    background: linear-gradient(180deg, #262630 0%, #46464f 40%, #d5d8dc 40%, #f0f2f5 100%);
-    border-radius: 8px;
-    box-shadow: 0 10px 20px -8px rgba(11,20,80,0.35);
+    width: 34px; height: 54px;
+    background: linear-gradient(180deg, #262630 0%, #46464f 30%, #d5d8dc 30%, #f0f2f5 100%);
+    border-radius: 5px;
+    box-shadow: 0 4px 8px -2px rgba(11,20,80,0.25);
   }
-  .fp__card-badges {
-    position: absolute; top: 10px; left: 10px; right: 10px;
-    z-index: 2;
-    display: flex; gap: 5px; flex-wrap: wrap;
-  }
-  .fp__card-badge {
-    font-family: "SF Mono"; font-size: 9.5px;
-    padding: 4px 8px; border-radius: 999px;
-    background: rgba(255,255,255,0.95);
-    color: var(--navy);
+  .fp-body { flex: 1; display: flex; flex-direction: column; }
+  .fp-eye {
+    font-family: "SF Mono"; font-size: 9px;
     letter-spacing: 0.06em; text-transform: uppercase;
-    font-weight: 700;
-  }
-  .fp__card-badge--value { background: var(--sky); color: #fff; }
-  .fp__card-badge--top { background: var(--orange); color: #fff; }
-  .fp__card-body { padding: 16px; }
-  .fp__card-eye {
-    font-family: "SF Mono"; font-size: 10px;
-    letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--orange); font-weight: 700;
-    margin-bottom: 6px;
+    margin-bottom: 2px;
   }
-  .fp__card-h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 16px;
+  .fp-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
     color: var(--navy); letter-spacing: -0.01em;
     line-height: 1.2;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
-  .fp__card-price {
-    display: flex; align-items: baseline; gap: 8px;
-    padding: 10px 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    margin-bottom: 12px;
+  .fp-price {
+    display: flex; align-items: baseline; gap: 6px;
+    margin-top: auto;
   }
-  .fp__card-num {
-    font-family: "SF Pro Display"; font-weight: 900; font-size: 28px;
+  .fp-num {
+    font-family: "SF Pro Display"; font-weight: 900; font-size: 17px;
     color: var(--navy); letter-spacing: -0.02em; line-height: 1;
   }
-  .fp__card-lbl {
-    font-family: "SF Mono"; font-size: 10px;
+  .fp-lbl {
+    font-family: "SF Mono"; font-size: 9px;
     letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--ink-3);
   }
-  .fp__card-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 100%;
-    padding: 11px 14px; border-radius: 10px;
+  .fp-flag {
+    position: absolute; top: -8px; left: 12px;
+    padding: 3px 8px; border-radius: 999px;
     background: var(--orange); color: #fff;
-    font-family: "SF Pro Display"; font-weight: 700; font-size: 14px;
-    text-decoration: none;
-    box-shadow: 0 3px 0 #c14a13;
+    font-family: "SF Mono"; font-size: 8.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 700;
   }
 
   /* ============================================================
-     SERVICES — 2-column bento
+     SERVICES — compact 2-col
      ============================================================ */
-  .sv {
-    background: #fff;
-    padding: 26px 20px 24px;
+  .sv-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    margin-top: 10px;
   }
-  .sv__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 6px;
-  }
-  .sv__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .sv__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-wrap: balance;
-    margin-bottom: 16px;
-  }
-  .sv__grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  }
-  .sv__tile {
-    padding: 14px 12px;
+  .sv-tile {
+    padding: 10px;
     background: var(--cream);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex; flex-direction: column; gap: 4px;
+    border-radius: 10px;
+    display: flex; flex-direction: column; gap: 3px;
     text-decoration: none; color: var(--ink);
   }
-  .sv__tile--wide { grid-column: span 2; }
-  .sv__tile--dark { background: var(--navy); color: #fff; border-color: var(--navy); }
-  .sv__tile--dark .sv__tile-t { color: #fff; }
-  .sv__tile--dark .sv__tile-s { color: rgba(255,255,255,0.7); }
-  .sv__tile--red { background: var(--red); color: #fff; border-color: var(--red); }
-  .sv__tile--red .sv__tile-t { color: #fff; }
-  .sv__tile--red .sv__tile-s { color: rgba(255,255,255,0.85); }
-  .sv__tile-ico {
-    width: 34px; height: 34px; border-radius: 8px;
+  .sv-tile--wide { grid-column: span 2; }
+  .sv-tile--dark { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .sv-tile--red { background: var(--red); color: #fff; border-color: var(--red); }
+  .sv-tile-ico {
+    width: 26px; height: 26px; border-radius: 6px;
     background: rgba(0,176,237,0.10);
     display: inline-flex; align-items: center; justify-content: center;
     color: var(--sky);
-    font-size: 16px; margin-bottom: 4px;
+    font-size: 13px; margin-bottom: 2px;
   }
-  .sv__tile--dark .sv__tile-ico { background: rgba(255,255,255,0.1); color: #fff; }
-  .sv__tile--red .sv__tile-ico { background: rgba(255,255,255,0.2); color: #fff; }
-  .sv__tile-t {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
+  .sv-tile--dark .sv-tile-ico { background: rgba(255,255,255,0.1); color: #fff; }
+  .sv-tile--red .sv-tile-ico { background: rgba(255,255,255,0.2); color: #fff; }
+  .sv-tile-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
     color: var(--navy); letter-spacing: -0.005em;
   }
-  .sv__tile-s { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
-  .sv__tile-pill {
-    align-self: flex-start;
-    margin-top: 4px;
-    padding: 3px 8px; border-radius: 999px;
-    background: #fff; color: var(--red);
-    font-family: "SF Mono"; font-size: 9.5px;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    font-weight: 700;
-  }
+  .sv-tile--dark .sv-tile-t, .sv-tile--red .sv-tile-t { color: #fff; }
+  .sv-tile-s { font-size: 10.5px; color: var(--ink-3); line-height: 1.4; }
+  .sv-tile--dark .sv-tile-s, .sv-tile--red .sv-tile-s { color: rgba(255,255,255,0.75); }
 
   /* ============================================================
-     WHY US — numbered stack
+     WHY US — compact numbered rows
      ============================================================ */
-  .why {
+  .why-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .why-row {
+    padding: 11px;
     background: var(--cream);
-    padding: 26px 20px 24px;
-  }
-  .why__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 6px;
-  }
-  .why__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .why__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-wrap: balance;
-    margin-bottom: 18px;
-  }
-  .why__list { display: flex; flex-direction: column; gap: 10px; }
-  .why__row {
-    padding: 14px;
-    background: #fff;
     border: 1px solid var(--line);
-    border-radius: 12px;
-    display: flex; gap: 12px; align-items: flex-start;
+    border-radius: 10px;
+    display: flex; gap: 10px; align-items: flex-start;
   }
-  .why__num {
+  .why-num {
     flex-shrink: 0;
-    width: 32px; height: 32px; border-radius: 8px;
+    width: 26px; height: 26px; border-radius: 7px;
     background: rgba(243,103,34,0.10);
     color: var(--orange);
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: "SF Mono"; font-size: 11px; font-weight: 700;
+    font-family: "SF Mono"; font-size: 10px; font-weight: 700;
   }
-  .why__body { flex: 1; }
-  .why__t {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
-    color: var(--navy); letter-spacing: -0.01em;
-    margin-bottom: 2px;
+  .why-body { flex: 1; }
+  .why-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    color: var(--navy); letter-spacing: -0.005em;
+    margin-bottom: 1px;
   }
-  .why__s { font-size: 12px; color: var(--ink-2); line-height: 1.45; }
+  .why-s { font-size: 11px; color: var(--ink-2); line-height: 1.45; }
 
   /* ============================================================
-     PROCESS — vertical timeline
+     PROCESS — vertical timeline inside dark card
      ============================================================ */
-  .proc {
-    background: var(--navy);
-    padding: 30px 20px 30px;
-    color: #fff;
-    position: relative;
-  }
-  .proc__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: rgba(255,255,255,0.7);
-    margin-bottom: 6px;
-  }
-  .proc__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
-  .proc__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-wrap: balance;
-    margin-bottom: 18px;
-  }
-  .proc__list { position: relative; padding-left: 30px; }
-  .proc__list::before {
+  .proc-list { position: relative; padding-left: 26px; margin-top: 10px; }
+  .proc-list::before {
     content: "";
-    position: absolute; top: 12px; bottom: 12px; left: 12px;
+    position: absolute; top: 10px; bottom: 10px; left: 11px;
     width: 2px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.14);
   }
-  .proc__step { position: relative; padding: 6px 0 18px; }
-  .proc__step:last-child { padding-bottom: 0; }
-  .proc__step-num {
-    position: absolute; left: -30px; top: 4px;
-    width: 26px; height: 26px; border-radius: 50%;
+  .proc-step { position: relative; padding: 4px 0 14px; }
+  .proc-step:last-child { padding-bottom: 0; }
+  .proc-step-num {
+    position: absolute; left: -26px; top: 2px;
+    width: 22px; height: 22px; border-radius: 50%;
     background: var(--orange); color: #fff;
     display: inline-flex; align-items: center; justify-content: center;
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 12px;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 11px;
   }
-  .proc__step-t {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
+  .proc-step-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
     letter-spacing: -0.005em;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
   }
-  .proc__step-s {
-    font-size: 12px; color: rgba(255,255,255,0.7);
-    line-height: 1.45;
-    margin-bottom: 4px;
-  }
-  .proc__step-time {
-    font-family: "SF Mono"; font-size: 10px;
+  .proc-step-s { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.45; margin-bottom: 3px; }
+  .proc-step-time {
+    font-family: "SF Mono"; font-size: 9.5px;
     letter-spacing: 0.04em; text-transform: uppercase;
     color: var(--sky);
   }
 
   /* ============================================================
-     SERVICE AREA — map + chip cloud
+     AREA — map + chip cloud
      ============================================================ */
-  .area {
-    background: #fff;
-    padding: 26px 20px 24px;
-  }
-  .area__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 6px;
-  }
-  .area__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .area__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-wrap: balance;
-    margin-bottom: 6px;
-  }
-  .area__p {
-    font-size: 13.5px; color: var(--ink-2);
-    line-height: 1.5;
-    margin-bottom: 14px;
-  }
-  .area__map {
+  .area-map {
     position: relative;
-    height: 180px; border-radius: 14px;
+    height: 150px; border-radius: 12px;
     background:
-      radial-gradient(circle at 50% 50%, rgba(0,176,237,0.20) 0%, rgba(0,176,237,0.10) 30%, transparent 60%),
+      radial-gradient(circle at 50% 50%, rgba(0,176,237,0.22) 0%, rgba(0,176,237,0.10) 30%, transparent 60%),
       linear-gradient(180deg, #d8e4ea 0%, #cfd9de 50%, #c9d3d8 100%);
     overflow: hidden;
-    margin-bottom: 14px;
+    margin: 10px 0 12px;
     border: 1px solid var(--line);
   }
-  .area__pin {
+  .area-pin {
     position: absolute; left: 50%; top: 50%;
     transform: translate(-50%, -100%);
-    width: 30px; height: 40px;
+    width: 26px; height: 34px;
     filter: drop-shadow(0 4px 8px rgba(11,20,80,0.3));
   }
-  .area__pin::after {
+  .area-pin::after {
     content: "";
     position: absolute; left: 50%; top: 0;
     transform: translateX(-50%);
-    width: 24px; height: 24px; border-radius: 50%;
+    width: 20px; height: 20px; border-radius: 50%;
     background: var(--orange);
     border: 3px solid #fff;
   }
-  .area__pin::before {
+  .area-pin::before {
     content: "";
-    position: absolute; left: 50%; top: 20px;
+    position: absolute; left: 50%; top: 16px;
     transform: translateX(-50%) rotate(45deg);
-    width: 12px; height: 12px;
+    width: 10px; height: 10px;
     background: var(--orange);
   }
-  .area__badge {
-    position: absolute; left: 12px; bottom: 12px;
+  .area-badge {
+    position: absolute; left: 10px; bottom: 10px;
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 8px 10px;
+    border-radius: 8px;
+    padding: 6px 10px;
     display: flex; flex-direction: column;
-    box-shadow: 0 6px 16px -6px rgba(5,10,48,0.2);
+    box-shadow: 0 4px 12px -6px rgba(5,10,48,0.2);
   }
-  .area__badge-eye {
-    font-family: "SF Mono"; font-size: 9px;
+  .area-badge-eye {
+    font-family: "SF Mono"; font-size: 8.5px;
     letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--ink-3);
   }
-  .area__badge-num {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 16px;
+  .area-badge-num {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
     color: var(--navy); letter-spacing: -0.02em;
   }
-  .area__chips { display: flex; flex-wrap: wrap; gap: 5px; }
-  .area__chip {
-    padding: 5px 10px; border-radius: 6px;
+  .area-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .area-chip {
+    padding: 4px 9px; border-radius: 6px;
     background: var(--cream);
     border: 1px solid var(--line);
     color: var(--navy);
-    font-family: "SF Mono"; font-size: 11px;
+    font-family: "SF Mono"; font-size: 10px;
     font-weight: 500;
   }
 
   /* ============================================================
-     FAQ — accordion
+     FAQ — nested small cards
      ============================================================ */
-  .faq {
+  .faq-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .faq-item {
     background: var(--cream);
-    padding: 26px 20px 24px;
-  }
-  .faq__eye {
-    display: flex; align-items: center; gap: 8px;
-    font-family: "SF Mono"; font-size: 10.5px;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink-3);
-    margin-bottom: 6px;
-  }
-  .faq__eye-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
-  .faq__h {
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 22px;
-    color: var(--navy); letter-spacing: -0.02em;
-    line-height: 1.15;
-    text-wrap: balance;
-    margin-bottom: 14px;
-  }
-  .faq__item {
-    background: #fff;
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 8px;
+    border-radius: 10px;
+    padding: 11px;
   }
-  .faq__q {
+  .faq-q {
     display: flex; justify-content: space-between; align-items: flex-start;
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
-    color: var(--navy); letter-spacing: -0.01em;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    color: var(--navy); letter-spacing: -0.005em;
     line-height: 1.3;
-    gap: 12px;
+    gap: 10px;
   }
-  .faq__q-plus {
+  .faq-q-plus {
     flex-shrink: 0;
     font-family: "SF Pro Display"; font-weight: 400;
-    color: var(--orange); font-size: 20px; line-height: 1;
+    color: var(--orange); font-size: 16px; line-height: 1;
   }
-  .faq__a {
-    margin-top: 10px;
-    font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+  .faq-a {
+    margin-top: 8px;
+    font-size: 11px; color: var(--ink-2); line-height: 1.5;
   }
 
   /* ============================================================
-     BIG CTA
+     BIG CTA — orange card
      ============================================================ */
-  .bcta {
+  .bcta-card {
     background: var(--orange);
-    padding: 30px 20px 34px;
     color: #fff;
     text-align: center;
+    padding: 20px 16px;
   }
-  .bcta__h {
-    font-family: "SF Pro Display"; font-weight: 900; font-size: 24px;
-    letter-spacing: -0.025em;
-    line-height: 1.1;
+  .bcta-h {
+    font-family: "SF Pro Display"; font-weight: 900; font-size: 18px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
     text-wrap: balance;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
   }
-  .bcta__p {
-    font-size: 13.5px;
+  .bcta-p {
+    font-size: 11.5px;
     color: rgba(255,255,255,0.9);
     line-height: 1.5;
-    margin-bottom: 18px;
+    margin-bottom: 12px;
   }
-  .bcta__btn {
+  .bcta-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     width: 100%;
-    padding: 14px 16px; border-radius: 12px;
+    padding: 11px 14px; border-radius: 10px;
     background: #fff; color: var(--orange);
-    font-family: "SF Pro Display"; font-weight: 800; font-size: 15px;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
     text-decoration: none;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-    margin-bottom: 8px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+    margin-bottom: 6px;
   }
-  .bcta__call {
-    font-family: "SF Pro Display"; font-weight: 600; font-size: 14px;
+  .bcta-call {
+    font-family: "SF Pro Display"; font-weight: 600; font-size: 12px;
     color: rgba(255,255,255,0.9);
   }
-  .bcta__call strong { color: #fff; }
+  .bcta-call strong { color: #fff; }
 
-  /* Footer inside phone */
+  /* Footer */
   .foot {
-    background: var(--navy);
-    padding: 22px 20px 90px;
-    color: rgba(255,255,255,0.8);
-    font-size: 12px;
+    padding: 4px 0 12px;
     text-align: center;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    line-height: 1.5;
   }
-  .foot strong { color: #fff; }
+  .foot strong { color: var(--navy); }
 
-  /* Dark theme (viewer toggle) */
+  /* Dark theme */
   @media (prefers-color-scheme: dark) {
     :root {
       --board-bg: #17141c;
@@ -1014,14 +822,14 @@
 </style>
 
 <header class="page-head">
-  <div class="page-head__eye">Advanced Gas &amp; Aircon · Full phone mock</div>
-  <h1>The whole home page, phone-first.</h1>
-  <p>Three iPhone frames covering top → middle → bottom of the same scroll. Every section rethought for one-thumb use: horizontal rails instead of grids, single-column cards, tap-sized buttons, sticky bottom bar always in reach.</p>
+  <div class="page-head__eye">Advanced Gas &amp; Aircon · Phone mock v2</div>
+  <h1>Same page, more breathing room.</h1>
+  <p>Everything now sits inside rounded cards with 16&nbsp;px inset from the phone edges — nothing edge-to-edge except the sticky top/bottom bars. Type dropped a size across the board so the hero doesn&rsquo;t shout and the content stops feeling like a squashed desktop.</p>
 </header>
 
 <main class="board">
 
-  <!-- =============== FRAME 1 — top of page =============== -->
+  <!-- =============== FRAME 1 =============== -->
   <div class="mock">
     <div class="mock__head">
       <div class="mock__label">Top of scroll</div>
@@ -1029,6 +837,7 @@
     </div>
     <div class="mock__tags">
       <span class="mock__tag">Hero</span>
+      <span class="mock__tag">Trust</span>
       <span class="mock__tag">Brands</span>
       <span class="mock__tag">Quote</span>
       <span class="mock__tag">Reviews</span>
@@ -1037,145 +846,131 @@
     <div class="phone">
       <div class="phone__screen">
         <div class="phone__notch"></div>
-        <div class="phone__statusbar" style="color: #fff;">
+        <div class="phone__statusbar">
           <span>9:41</span>
           <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
         </div>
-        <div class="phone__body" style="padding-top: 0;">
-
-          <!-- HERO -->
-          <div class="hero">
-            <div class="hero__bg"></div>
-            <div class="hero__scrim"></div>
-            <div class="hero__team-icon">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="8" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M14 16h.5a4 4 0 0 1 4 4v1"/></svg>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
             </div>
-            <div class="hero__wrap">
-              <span class="hero__badge">
-                <span class="hero__badge-dot"></span>
-                Pakenham locals since 2014
-              </span>
-              <h1 class="hero__h1">The team you'd want in your house.</h1>
-              <p class="hero__sub">Family owned. Same face on the quote as on the tools. 12 years, 1,200+ installs.</p>
-              <div class="hero__ctas">
-                <a href="#" class="hero__btn hero__btn--orange">Get a fixed quote →</a>
-                <a href="#" class="hero__btn hero__btn--ghost">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
-                  Call (03) 5947 8000
-                </a>
-              </div>
-              <div class="hero__trust">
-                <span class="hero__stars">★★★★★</span>
-                <div class="hero__trust-txt">
-                  <strong>4.9 / 5</strong>
-                  <span>280+ reviews</span>
-                </div>
-                <div class="hero__trust-divider"></div>
-                <div class="hero__trust-txt">
-                  <strong>1,200+</strong>
-                  <span>installs done</span>
-                </div>
-              </div>
-            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
           </div>
 
-          <!-- BRANDS RAIL -->
-          <div class="brands">
-            <div class="brands__lbl">Authorised installer of</div>
-            <div class="brands__rail">
-              <div class="brands__chip"><strong>RECLAIM</strong><span>Heat pumps</span></div>
-              <div class="brands__chip"><strong>iStore</strong><span>Heat pumps</span></div>
-              <div class="brands__chip"><strong>Thermann</strong><span>Hot water</span></div>
-              <div class="brands__chip"><strong>Mitsubishi</strong><span>Aircon</span></div>
-              <div class="brands__chip"><strong>Kaden</strong><span>Aircon</span></div>
-              <div class="brands__chip"><strong>Rinnai</strong><span>Gas &amp; hw</span></div>
-            </div>
-          </div>
+          <div class="stack">
 
-          <!-- QUOTE -->
-          <div class="qsec">
-            <div class="qsec__eye"><span class="qsec__eye-dot"></span> 60-second quote</div>
-            <div class="qsec__h">Fixed-price quote back within 12&nbsp;hours.</div>
-            <p class="qsec__lede">Tell us what you need, we'll quote it straight. Rebates in the price, no chasing.</p>
-            <div class="qsec__card">
-              <div class="qsec__card-ribbon">
-                <span class="qsec__card-ribbon-dot"></span>
-                Usually replied within 12 hrs
+            <!-- HERO card -->
+            <div class="hero-card">
+              <div class="hero-bg"></div>
+              <div class="hero-scrim"></div>
+              <div class="hero-team-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="8" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M14 16h.5a4 4 0 0 1 4 4v1"/></svg>
               </div>
-              <div class="qsec__card-h">What do you need?</div>
-              <p class="qsec__card-p">Tick every option, we'll price the lot.</p>
-              <div class="qsec__progress">
+              <div class="hero-wrap">
+                <span class="hero-badge">
+                  <span class="hero-badge-dot"></span>
+                  Pakenham locals since 2014
+                </span>
+                <div class="hero-h">The team you'd want in your house.</div>
+                <p class="hero-sub">Family owned. Same face on the quote as on the tools. 12 yrs, 1,200+ installs.</p>
+                <div class="hero-ctas">
+                  <a href="#" class="hero-btn hero-btn--orange">Get a fixed quote →</a>
+                  <a href="#" class="hero-btn hero-btn--ghost">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+                    Call (03) 5947 8000
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRUST card -->
+            <div class="trust-card">
+              <span class="trust-card__stars">★★★★★</span>
+              <div class="trust-card__txt">
+                <strong>4.9 / 5</strong>
+                <span>280+ Google reviews</span>
+              </div>
+              <div class="trust-card__divider"></div>
+              <div class="trust-card__txt">
+                <strong>1,200+</strong>
+                <span>installs done</span>
+              </div>
+            </div>
+
+            <!-- BRANDS card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Authorised installer of</div>
+              <div class="brand-rail">
+                <div class="brand-chip"><strong>RECLAIM</strong><span>Heat pumps</span></div>
+                <div class="brand-chip"><strong>iStore</strong><span>Heat pumps</span></div>
+                <div class="brand-chip"><strong>Thermann</strong><span>Hot water</span></div>
+                <div class="brand-chip"><strong>Mitsubishi</strong><span>Aircon</span></div>
+                <div class="brand-chip"><strong>Kaden</strong><span>Aircon</span></div>
+                <div class="brand-chip"><strong>Rinnai</strong><span>Gas &amp; hw</span></div>
+              </div>
+            </div>
+
+            <!-- QUOTE card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> 60-second quote</div>
+              <div class="h">Fixed price back within 12&nbsp;hrs.</div>
+              <p class="lede">Tell us what you need, we'll price the lot. Rebates already applied.</p>
+              <div class="qcard-h">What do you need?</div>
+              <p class="qcard-p">Tick every option, we'll quote it all.</p>
+              <div class="qcard-progress">
                 <i class="on"></i><i></i><i></i><i></i><i></i><i></i>
               </div>
-              <div class="qsec__step-lbl">Step 1 of 6</div>
-              <div class="qsec__step-h">Pick a service</div>
-              <div class="qsec__grid">
-                <div class="qsec__opt on">
-                  <strong>Heat pump</strong>
-                  <em>Hot water</em>
-                </div>
-                <div class="qsec__opt">
-                  <strong>Split system</strong>
-                  <em>Room aircon</em>
-                </div>
-                <div class="qsec__opt">
-                  <strong>Ducted</strong>
-                  <em>Whole home</em>
-                </div>
-                <div class="qsec__opt">
-                  <strong>Service</strong>
-                  <em>$280 + GST</em>
-                </div>
+              <div class="qcard-step-lbl">Step 1 of 6</div>
+              <div class="qcard-step-h">Pick a service</div>
+              <div class="qcard-grid">
+                <div class="qcard-opt on"><strong>Heat pump</strong><em>Hot water</em></div>
+                <div class="qcard-opt"><strong>Split system</strong><em>Room aircon</em></div>
+                <div class="qcard-opt"><strong>Ducted</strong><em>Whole home</em></div>
+                <div class="qcard-opt"><strong>Service</strong><em>$280 + GST</em></div>
               </div>
-              <a href="#" class="qsec__next">Next → tell us the specifics</a>
+              <a href="#" class="qcard-next">Next → the specifics</a>
             </div>
-          </div>
 
-          <!-- REVIEWS -->
-          <div class="rev">
-            <div class="rev__head">
-              <div class="rev__eye"><span class="rev__eye-dot"></span> What locals say</div>
-              <div class="rev__h">Reviews from real Pakenham households.</div>
-              <div class="rev__rating">
-                <span class="rev__rating-str">★★★★★</span>
+            <!-- REVIEWS card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> What locals say</div>
+              <div class="h">Reviews from real households.</div>
+              <div class="rev-rating">
+                <span class="rev-rating-str">★★★★★</span>
                 <strong>4.9 / 5</strong>
                 <span>· 280+ on Google</span>
               </div>
-            </div>
-            <div class="rev__rail">
-              <div class="rev__card">
-                <div class="rev__card-stars">★★★★★</div>
-                <div class="rev__card-t">Quoted Mon, installed Fri</div>
-                <p class="rev__card-txt">Bloke on the phone is the bloke on the tools. Rebate handled, paid less than $400.</p>
-                <div class="rev__card-by">
-                  <span class="rev__avatar">JM</span>
-                  <div><strong>Jess M.</strong><span>Pakenham</span></div>
+              <div class="rev-rail">
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Quoted Mon, installed Fri</div>
+                  <p class="rev-card-txt">Bloke on the phone is the bloke on the tools. Rebate handled, paid under $400.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">JM</span><div><strong>Jess M.</strong><span>Pakenham</span></div></div>
                 </div>
-              </div>
-              <div class="rev__card">
-                <div class="rev__card-stars">★★★★★</div>
-                <div class="rev__card-t">Actually got up in the roof</div>
-                <p class="rev__card-txt">Three quotes for ducted. Only ones who crawled in. Middle price, cleanest install.</p>
-                <div class="rev__card-by">
-                  <span class="rev__avatar">DR</span>
-                  <div><strong>Dean R.</strong><span>Officer</span></div>
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Actually got up in the roof</div>
+                  <p class="rev-card-txt">Only ones who crawled in. Middle price, cleanest install of the three.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">DR</span><div><strong>Dean R.</strong><span>Officer</span></div></div>
                 </div>
-              </div>
-              <div class="rev__card">
-                <div class="rev__card-stars">★★★★★</div>
-                <div class="rev__card-t">Sunday emergency sorted</div>
-                <p class="rev__card-txt">Hot water died with three kids. Loaner running by lunch, iStore Tuesday.</p>
-                <div class="rev__card-by">
-                  <span class="rev__avatar">SK</span>
-                  <div><strong>Sam K.</strong><span>Berwick</span></div>
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Sunday emergency</div>
+                  <p class="rev-card-txt">Hot water died with three kids. Loaner by lunch, iStore Tuesday.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">SK</span><div><strong>Sam K.</strong><span>Berwick</span></div></div>
                 </div>
               </div>
             </div>
+
           </div>
 
           <div class="mstickybar">
             <a href="#" class="mstickybar__call">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
               Call now
             </a>
             <a href="#" class="mstickybar__quote">Free quote →</a>
@@ -1186,11 +981,11 @@
     </div>
 
     <p class="mock__note">
-      Hero anchors trust with the team photo, then trust card + reviews below fold reinforce before the quote form loads full. Brands sit as a horizontal chip rail so the visitor can flick sideways to see we're not one-brand-cowboys. Quote-form step 1 fits the whole first tap.
+      Hero is now a rounded card, not a full-bleed banner — you can see the cream page behind it. Trust rating gets its own tiny card. Brands, quote and reviews each sit in their own card with 16&nbsp;px of cream showing on both sides.
     </p>
   </div>
 
-  <!-- =============== FRAME 2 — middle of page =============== -->
+  <!-- =============== FRAME 2 =============== -->
   <div class="mock">
     <div class="mock__head">
       <div class="mock__label">Middle of scroll</div>
@@ -1205,144 +1000,143 @@
     <div class="phone">
       <div class="phone__screen">
         <div class="phone__notch"></div>
-        <div class="phone__statusbar" style="color: var(--navy);">
+        <div class="phone__statusbar">
           <span>9:41</span>
           <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
         </div>
         <div class="phone__body">
-
-          <!-- FIXED PRICE -->
-          <div class="fp">
-            <div class="fp__eye"><span class="fp__eye-dot"></span> Fixed-price installs</div>
-            <div class="fp__h">Three popular jobs, locked-in prices.</div>
-            <p class="fp__lede">VEU rebate applied, GST included, warranty pack in 24 hrs.</p>
-            <div class="fp__list">
-              <div class="fp__card">
-                <div class="fp__card-badges">
-                  <span class="fp__card-badge fp__card-badge--value">Best value</span>
-                  <span class="fp__card-badge">AUS-made</span>
-                </div>
-                <div class="fp__card-photo"></div>
-                <div class="fp__card-body">
-                  <div class="fp__card-eye">Heat pump · All-in-one</div>
-                  <div class="fp__card-h">Reclaim R290, fully installed</div>
-                  <div class="fp__card-price">
-                    <span class="fp__card-num">$2,610</span>
-                    <span class="fp__card-lbl">inc GST</span>
-                  </div>
-                  <a href="#" class="fp__card-btn">Enquire →</a>
-                </div>
-              </div>
-              <div class="fp__card fp__card--feature">
-                <div class="fp__card-badges">
-                  <span class="fp__card-badge fp__card-badge--top">Highest quality</span>
-                  <span class="fp__card-badge">AUS-made</span>
-                </div>
-                <div class="fp__card-photo"></div>
-                <div class="fp__card-body">
-                  <div class="fp__card-eye">Heat pump · Split</div>
-                  <div class="fp__card-h">Reclaim CO₂ split, fully installed</div>
-                  <div class="fp__card-price">
-                    <span class="fp__card-num">from $5,340</span>
-                    <span class="fp__card-lbl">inc GST</span>
-                  </div>
-                  <a href="#" class="fp__card-btn">Enquire →</a>
-                </div>
-              </div>
-              <div class="fp__card">
-                <div class="fp__card-badges">
-                  <span class="fp__card-badge fp__card-badge--top">Best product</span>
-                </div>
-                <div class="fp__card-photo"></div>
-                <div class="fp__card-body">
-                  <div class="fp__card-eye">Ducted aircon</div>
-                  <div class="fp__card-h">18 kW Mitsubishi ducted</div>
-                  <div class="fp__card-price">
-                    <span class="fp__card-num">from $11,000</span>
-                    <span class="fp__card-lbl">inc GST</span>
-                  </div>
-                  <a href="#" class="fp__card-btn">Enquire →</a>
-                </div>
-              </div>
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
             </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
           </div>
 
-          <!-- SERVICES -->
-          <div class="sv">
-            <div class="sv__eye"><span class="sv__eye-dot"></span> What we do</div>
-            <div class="sv__h">Everything gas, hot water &amp; air.</div>
-            <div class="sv__grid">
-              <a href="#" class="sv__tile sv__tile--wide">
-                <span class="sv__tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🔥</span>
-                <span class="sv__tile-t">Heat pump hot water</span>
-                <span class="sv__tile-s">Reclaim, iStore, Thermann. Under $500 out of pocket with the VEU rebate.</span>
-              </a>
-              <a href="#" class="sv__tile">
-                <span class="sv__tile-ico">❄</span>
-                <span class="sv__tile-t">Split systems</span>
-                <span class="sv__tile-s">Bedroom, living, granny flat.</span>
-              </a>
-              <a href="#" class="sv__tile">
-                <span class="sv__tile-ico">🌬</span>
-                <span class="sv__tile-t">Ducted aircon</span>
-                <span class="sv__tile-s">Zoned whole-home.</span>
-              </a>
-              <a href="#" class="sv__tile">
-                <span class="sv__tile-ico" style="background: rgba(11,20,80,0.08); color: var(--navy);">🔧</span>
-                <span class="sv__tile-t">Gas heating</span>
-                <span class="sv__tile-s">Rinnai, Brivis, Braemar.</span>
-              </a>
-              <a href="#" class="sv__tile">
-                <span class="sv__tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🛠</span>
-                <span class="sv__tile-t">Service &amp; CO test</span>
-                <span class="sv__tile-s">$280 + GST annual.</span>
-              </a>
-              <a href="#" class="sv__tile sv__tile--dark">
-                <span class="sv__tile-ico">💧</span>
-                <span class="sv__tile-t">Hot water swaps</span>
-                <span class="sv__tile-s">Same-day on common models.</span>
-              </a>
-              <a href="#" class="sv__tile sv__tile--red sv__tile--wide">
-                <span class="sv__tile-ico">🚨</span>
-                <span class="sv__tile-t">Emergency call-outs</span>
-                <span class="sv__tile-s">Gas leak, no hot water, smoking flue. Phones answered after hours.</span>
-                <span class="sv__tile-pill">24 / 7</span>
-              </a>
-            </div>
-          </div>
+          <div class="stack">
 
-          <!-- WHY US -->
-          <div class="why">
-            <div class="why__eye"><span class="why__eye-dot"></span> Why Pakenham locals call us first</div>
-            <div class="why__h">Boring stuff done properly. Friendly stuff done genuinely.</div>
-            <div class="why__list">
-              <div class="why__row">
-                <span class="why__num">01</span>
-                <div class="why__body">
-                  <div class="why__t">Family-owned, locally run</div>
-                  <div class="why__s">Started in a Pakenham garage in 2014. Same family answering, quoting and standing behind the work today.</div>
+            <!-- FIXED PRICE card -->
+            <div class="card">
+              <div class="eye eye--orange"><span class="eye-dot"></span> Fixed-price installs</div>
+              <div class="h">Three popular jobs, locked-in.</div>
+              <p class="lede">VEU rebate applied, GST included, warranty pack in 24 hrs.</p>
+              <div class="fp-list">
+                <div class="fp-item">
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">All-in-one · Best value</div>
+                    <div class="fp-t">Reclaim R290, fully installed</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$2,610</span>
+                      <span class="fp-lbl">inc GST</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="why__row">
-                <span class="why__num">02</span>
-                <div class="why__body">
-                  <div class="why__t">Reece trade partner</div>
-                  <div class="why__s">Direct supply means real stock, real warranties, no margin-stacking middlemen.</div>
+                <div class="fp-item fp-item--feature">
+                  <span class="fp-flag">Highest quality</span>
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">Split · AUS-made</div>
+                    <div class="fp-t">Reclaim CO₂ split, fully installed</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$5,340</span>
+                      <span class="fp-lbl">from · inc GST</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="why__row">
-                <span class="why__num">03</span>
-                <div class="why__body">
-                  <div class="why__t">Rebate paperwork, sorted</div>
-                  <div class="why__s">VEU accredited. Eligibility, certificates, STCs, all inside the quote. Sign once and it's done.</div>
+                <div class="fp-item">
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">Ducted · Whole home</div>
+                    <div class="fp-t">18 kW Mitsubishi ducted</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$11,000</span>
+                      <span class="fp-lbl">from · inc GST</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            <!-- SERVICES card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> What we do</div>
+              <div class="h">Gas, hot water &amp; air.</div>
+              <div class="sv-grid">
+                <a href="#" class="sv-tile sv-tile--wide">
+                  <span class="sv-tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🔥</span>
+                  <span class="sv-tile-t">Heat pump hot water</span>
+                  <span class="sv-tile-s">Reclaim, iStore, Thermann. Under $500 out of pocket with VEU.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico">❄</span>
+                  <span class="sv-tile-t">Split systems</span>
+                  <span class="sv-tile-s">Bedroom, living, granny flat.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico">🌬</span>
+                  <span class="sv-tile-t">Ducted aircon</span>
+                  <span class="sv-tile-s">Zoned whole-home.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico" style="background: rgba(11,20,80,0.08); color: var(--navy);">🔧</span>
+                  <span class="sv-tile-t">Gas heating</span>
+                  <span class="sv-tile-s">Rinnai, Brivis, Braemar.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🛠</span>
+                  <span class="sv-tile-t">Service &amp; CO test</span>
+                  <span class="sv-tile-s">$280 + GST annual.</span>
+                </a>
+                <a href="#" class="sv-tile sv-tile--dark">
+                  <span class="sv-tile-ico">💧</span>
+                  <span class="sv-tile-t">Hot water swaps</span>
+                  <span class="sv-tile-s">Same-day on common models.</span>
+                </a>
+                <a href="#" class="sv-tile sv-tile--red sv-tile--wide">
+                  <span class="sv-tile-ico">🚨</span>
+                  <span class="sv-tile-t">Emergency call-outs · 24/7</span>
+                  <span class="sv-tile-s">Gas leak, no hot water, smoking flue. Phones answered after hours.</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- WHY US card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Why locals call us first</div>
+              <div class="h">Boring stuff done properly.</div>
+              <div class="why-list">
+                <div class="why-row">
+                  <span class="why-num">01</span>
+                  <div class="why-body">
+                    <div class="why-t">Family-owned since 2014</div>
+                    <div class="why-s">Same family answering, quoting and standing behind the work.</div>
+                  </div>
+                </div>
+                <div class="why-row">
+                  <span class="why-num">02</span>
+                  <div class="why-body">
+                    <div class="why-t">Reece trade partner</div>
+                    <div class="why-s">Direct supply, real stock, no middleman markup.</div>
+                  </div>
+                </div>
+                <div class="why-row">
+                  <span class="why-num">03</span>
+                  <div class="why-body">
+                    <div class="why-t">Rebate paperwork sorted</div>
+                    <div class="why-s">VEU accredited. Everything handled inside the quote.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           <div class="mstickybar">
             <a href="#" class="mstickybar__call">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
               Call now
             </a>
             <a href="#" class="mstickybar__quote">Free quote →</a>
@@ -1353,11 +1147,11 @@
     </div>
 
     <p class="mock__note">
-      Fixed-price cards stack vertically with a taller middle card (featured Reclaim CO₂) instead of the desktop 3-across grid. Services bento becomes 2-col with a wide hero tile at top and a wide red emergency tile at bottom. Why-us is a 3-row list, not a grid, so each point gets its own tap area.
+      Fixed-price cards go horizontal (thumbnail + copy side by side) so all three fit inside one section card. Feature card gets a flag tab. Services still 2-col but smaller. Why-us rows shrink so all three fit without scroll.
     </p>
   </div>
 
-  <!-- =============== FRAME 3 — bottom of page =============== -->
+  <!-- =============== FRAME 3 =============== -->
   <div class="mock">
     <div class="mock__head">
       <div class="mock__label">Bottom of scroll</div>
@@ -1373,140 +1167,133 @@
     <div class="phone">
       <div class="phone__screen">
         <div class="phone__notch"></div>
-        <div class="phone__statusbar" style="color: #fff;">
+        <div class="phone__statusbar">
           <span>9:41</span>
           <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
         </div>
-        <div class="phone__body" style="padding-top: 0;">
-
-          <!-- PROCESS -->
-          <div class="proc">
-            <div class="proc__eye"><span class="proc__eye-dot"></span> How it works</div>
-            <div class="proc__h">Simple, honest, no runaround.</div>
-            <div class="proc__list">
-              <div class="proc__step">
-                <span class="proc__step-num">1</span>
-                <div class="proc__step-t">You get in touch</div>
-                <div class="proc__step-s">Fill the form or call, tell us what you're after.</div>
-                <div class="proc__step-time">~ 5 min</div>
-              </div>
-              <div class="proc__step">
-                <span class="proc__step-num">2</span>
-                <div class="proc__step-t">Quote back within 12 hrs</div>
-                <div class="proc__step-s">Fixed-price quote straight to your inbox.</div>
-                <div class="proc__step-time">within 12 hrs</div>
-              </div>
-              <div class="proc__step">
-                <span class="proc__step-num">3</span>
-                <div class="proc__step-t">Site visit if needed</div>
-                <div class="proc__step-s">For ducted &amp; tricky retrofits we pop out for a proper look.</div>
-                <div class="proc__step-time">when required</div>
-              </div>
-              <div class="proc__step">
-                <span class="proc__step-num">4</span>
-                <div class="proc__step-t">We install &amp; show you how</div>
-                <div class="proc__step-s">Clean install, old unit gone, walk-through on the way out.</div>
-                <div class="proc__step-time">install day</div>
-              </div>
-              <div class="proc__step">
-                <span class="proc__step-num">5</span>
-                <div class="proc__step-t">Follow-up next week</div>
-                <div class="proc__step-s">Quick call to make sure everything's running the way it should.</div>
-                <div class="proc__step-time">week after</div>
-              </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
             </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
           </div>
 
-          <!-- SERVICE AREA -->
-          <div class="area">
-            <div class="area__eye"><span class="area__eye-dot"></span> Where we work</div>
-            <div class="area__h">Based in Pakenham. On-site within 50&nbsp;km.</div>
-            <p class="area__p">South-east of Melbourne, no travel surcharge inside the ring.</p>
-            <div class="area__map">
-              <div class="area__pin"></div>
-              <div class="area__badge">
-                <span class="area__badge-eye">Radius</span>
-                <span class="area__badge-num">50 km</span>
-              </div>
-            </div>
-            <div class="area__chips">
-              <span class="area__chip">Pakenham</span>
-              <span class="area__chip">Officer</span>
-              <span class="area__chip">Beaconsfield</span>
-              <span class="area__chip">Berwick</span>
-              <span class="area__chip">Narre Warren</span>
-              <span class="area__chip">Cranbourne</span>
-              <span class="area__chip">Clyde</span>
-              <span class="area__chip">Clyde North</span>
-              <span class="area__chip">Hampton Park</span>
-              <span class="area__chip">Hallam</span>
-              <span class="area__chip">Endeavour Hills</span>
-              <span class="area__chip">Doveton</span>
-              <span class="area__chip">Dandenong</span>
-              <span class="area__chip">Keysborough</span>
-              <span class="area__chip">Lynbrook</span>
-              <span class="area__chip">Bunyip</span>
-              <span class="area__chip">Garfield</span>
-              <span class="area__chip">Drouin</span>
-              <span class="area__chip">Warragul</span>
-              <span class="area__chip">Emerald</span>
-            </div>
-          </div>
+          <div class="stack">
 
-          <!-- FAQ -->
-          <div class="faq">
-            <div class="faq__eye"><span class="faq__eye-dot"></span> Questions we get a lot</div>
-            <div class="faq__h">Heat pumps, rebates &amp; the fine print.</div>
-            <div class="faq__item">
-              <div class="faq__q">
-                <span>How much is the VEU rebate, really?</span>
-                <span class="faq__q-plus">−</span>
+            <!-- PROCESS dark card -->
+            <div class="card card--dark">
+              <div class="eye eye--orange"><span class="eye-dot"></span> How it works</div>
+              <div class="h">Simple, honest, no runaround.</div>
+              <div class="proc-list">
+                <div class="proc-step">
+                  <span class="proc-step-num">1</span>
+                  <div class="proc-step-t">You get in touch</div>
+                  <div class="proc-step-s">Fill the form or call.</div>
+                  <div class="proc-step-time">~ 5 min</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">2</span>
+                  <div class="proc-step-t">Quote back within 12 hrs</div>
+                  <div class="proc-step-s">Fixed-price quote to your inbox.</div>
+                  <div class="proc-step-time">within 12 hrs</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">3</span>
+                  <div class="proc-step-t">Site visit if needed</div>
+                  <div class="proc-step-s">Ducted &amp; tricky retrofits.</div>
+                  <div class="proc-step-time">when required</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">4</span>
+                  <div class="proc-step-t">We install &amp; show you how</div>
+                  <div class="proc-step-s">Clean install, walk-through, gone.</div>
+                  <div class="proc-step-time">install day</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">5</span>
+                  <div class="proc-step-t">Follow-up next week</div>
+                  <div class="proc-step-s">Quick call to make sure all good.</div>
+                  <div class="proc-step-time">week after</div>
+                </div>
               </div>
-              <div class="faq__a">Most Pakenham households see $2,400–$3,200 off. We apply it at the quote stage so you don't pay it then claim it back.</div>
             </div>
-            <div class="faq__item">
-              <div class="faq__q">
-                <span>Am I eligible if I'm renting?</span>
-                <span class="faq__q-plus">+</span>
-              </div>
-            </div>
-            <div class="faq__item">
-              <div class="faq__q">
-                <span>How long does an install take?</span>
-                <span class="faq__q-plus">+</span>
-              </div>
-            </div>
-            <div class="faq__item">
-              <div class="faq__q">
-                <span>What brands do you install?</span>
-                <span class="faq__q-plus">+</span>
-              </div>
-            </div>
-            <div class="faq__item">
-              <div class="faq__q">
-                <span>Do you do emergencies on weekends?</span>
-                <span class="faq__q-plus">+</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- BIG CTA -->
-          <div class="bcta">
-            <div class="bcta__h">Get a fixed quote with the VEU rebate already applied.</div>
-            <p class="bcta__p">Free, no-obligation, usually back within 2 hrs during business hours.</p>
-            <a href="#" class="bcta__btn">Start my free quote →</a>
-            <div class="bcta__call">or call <strong>(03) 5947 8000</strong></div>
-          </div>
+            <!-- AREA card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Where we work</div>
+              <div class="h">Pakenham + 50&nbsp;km south-east.</div>
+              <div class="area-map">
+                <div class="area-pin"></div>
+                <div class="area-badge">
+                  <span class="area-badge-eye">Radius</span>
+                  <span class="area-badge-num">50 km</span>
+                </div>
+              </div>
+              <div class="area-chips">
+                <span class="area-chip">Pakenham</span>
+                <span class="area-chip">Officer</span>
+                <span class="area-chip">Beaconsfield</span>
+                <span class="area-chip">Berwick</span>
+                <span class="area-chip">Narre Warren</span>
+                <span class="area-chip">Cranbourne</span>
+                <span class="area-chip">Clyde</span>
+                <span class="area-chip">Hampton Park</span>
+                <span class="area-chip">Hallam</span>
+                <span class="area-chip">Endeavour Hills</span>
+                <span class="area-chip">Dandenong</span>
+                <span class="area-chip">Keysborough</span>
+                <span class="area-chip">Bunyip</span>
+                <span class="area-chip">Garfield</span>
+                <span class="area-chip">Drouin</span>
+              </div>
+            </div>
 
-          <!-- FOOTER TAG -->
-          <div class="foot">
-            <strong>Advanced Gas &amp; Airconditioning Services Pty&nbsp;Ltd</strong><br>
-            Pakenham VIC · Mon-Fri 8am-4pm
+            <!-- FAQ card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Questions we get a lot</div>
+              <div class="h">Rebates &amp; the fine print.</div>
+              <div class="faq-list">
+                <div class="faq-item">
+                  <div class="faq-q">
+                    <span>How much is the VEU rebate, really?</span>
+                    <span class="faq-q-plus">−</span>
+                  </div>
+                  <div class="faq-a">Most Pakenham households see $2,400–$3,200 off. We apply it at the quote stage so you don't pay it then claim it back.</div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>Am I eligible if I'm renting?</span><span class="faq-q-plus">+</span></div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>How long does an install take?</span><span class="faq-q-plus">+</span></div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>What brands do you install?</span><span class="faq-q-plus">+</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIG CTA card -->
+            <div class="card bcta-card">
+              <div class="bcta-h">VEU rebate already in the quote.</div>
+              <p class="bcta-p">Free, no-obligation. Usually back within 2 hrs.</p>
+              <a href="#" class="bcta-btn">Start my free quote →</a>
+              <div class="bcta-call">or call <strong>(03) 5947 8000</strong></div>
+            </div>
+
+            <div class="foot">
+              <strong>Advanced Gas &amp; Airconditioning Services Pty Ltd</strong><br>
+              Pakenham VIC · Mon-Fri 8am-4pm
+            </div>
+
           </div>
 
           <div class="mstickybar">
             <a href="#" class="mstickybar__call">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
               Call now
             </a>
             <a href="#" class="mstickybar__quote">Free quote →</a>
@@ -1517,7 +1304,7 @@
     </div>
 
     <p class="mock__note">
-      Process becomes a vertical timeline with a connector line instead of the desktop 3-across cards. Service area is one map with a chip-cloud of suburbs (chunky, tap-friendly). FAQ is a proper accordion (first item pre-opened). Big CTA is full-width orange and pushes hard toward the sticky bar that never left the screen.
+      Process becomes a dark navy card so it visually breaks up the stack. Area map shrinks and area chips wrap tighter. FAQ items are individual mini-cards so each has its own tap target. Big CTA is a proper card too, matching the section rhythm.
     </p>
   </div>
 

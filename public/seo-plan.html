@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Advanced Gas & Aircon — SEO plan (keywords · speed · backlinks)</title>
+<style>
+  :root {
+    --navy: #050a30;
+    --navy-2: #0b1450;
+    --orange: #f36722;
+    --sky: #00b0ed;
+    --cream: #faf8f3;
+    --ink: #1a1a1d;
+    --ink-2: #4a4a52;
+    --ink-3: #7a7a82;
+    --line: #ece7d8;
+    --green: #1a7a3f;
+    --red: #ec1c22;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--sky); text-decoration: underline; text-underline-offset: 3px; }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header {
+    background: var(--navy); color: #fff;
+    padding: 48px 24px;
+    text-align: center;
+  }
+  header .eye {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--orange);
+    margin-bottom: 14px;
+  }
+  header h1 {
+    font-family: "SF Pro Display", "Helvetica Neue", sans-serif;
+    font-weight: 900; font-size: clamp(28px, 4vw, 42px);
+    letter-spacing: -0.025em; line-height: 1.05;
+    max-width: 720px; margin: 0 auto;
+    text-wrap: balance;
+  }
+  header p {
+    margin: 12px auto 0;
+    color: rgba(255,255,255,0.75);
+    font-size: 15px; max-width: 640px;
+  }
+
+  nav {
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 5;
+    display: flex; justify-content: center; gap: 4px;
+    padding: 10px 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  nav a {
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--navy);
+    font-weight: 700; font-size: 13.5px;
+    font-family: "SF Pro Display";
+    background: var(--cream);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  nav a:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  section { margin: 48px 0 0; }
+  section > h2 {
+    font-family: "SF Pro Display", sans-serif;
+    font-weight: 900; font-size: 26px;
+    letter-spacing: -0.02em; line-height: 1.1;
+    color: var(--navy);
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--orange);
+    margin-bottom: 6px;
+    text-wrap: balance;
+  }
+  section > .lede {
+    font-size: 15.5px; color: var(--ink-2);
+    margin: 8px 0 24px;
+    max-width: 720px;
+    line-height: 1.55;
+  }
+
+  h3 {
+    font-family: "SF Pro Display", sans-serif;
+    font-weight: 800; font-size: 19px;
+    color: var(--navy);
+    letter-spacing: -0.015em;
+    margin: 28px 0 8px;
+    line-height: 1.15;
+  }
+  h4 {
+    font-family: "SF Pro Display", sans-serif;
+    font-weight: 800; font-size: 15px;
+    color: var(--navy);
+    letter-spacing: -0.005em;
+    margin: 20px 0 6px;
+  }
+  p { margin: 0 0 12px; }
+  ul, ol { padding-left: 22px; margin: 6px 0 14px; }
+  li { margin: 4px 0; }
+  code {
+    background: rgba(11,20,80,0.06);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: "SF Mono", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--navy);
+  }
+
+  /* Cluster cards */
+  .cluster {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 6px -3px rgba(11,20,80,0.08);
+  }
+  .cluster h3 {
+    margin-top: 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cluster h3 .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--orange); color: #fff;
+    font-family: "SF Mono"; font-size: 12px; font-weight: 800;
+  }
+  .cluster__meta {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .cluster__pill {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--cream); border: 1px solid var(--line);
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--navy); font-weight: 700;
+  }
+  .cluster__pill--hub { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .cluster__pill--live { background: rgba(26,122,63,0.10); color: var(--green); border-color: rgba(26,122,63,0.20); }
+  .cluster__pill--new { background: rgba(243,103,34,0.10); color: var(--orange); border-color: rgba(243,103,34,0.20); }
+
+  .cluster__row { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+  .cluster__row:first-of-type { border-top: none; padding-top: 0; }
+  .cluster__row-lbl {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: 2px;
+  }
+  .cluster__row-body {
+    font-size: 14px; color: var(--ink);
+    line-height: 1.55;
+  }
+  .cluster__row-body strong { color: var(--navy); }
+  .cluster__row-body em { font-style: normal; color: var(--ink-3); font-family: "SF Mono"; font-size: 12px; }
+  .cluster__kw {
+    display: inline-block;
+    background: var(--cream);
+    padding: 2px 8px; border-radius: 4px;
+    margin: 2px 4px 2px 0;
+    font-family: "SF Mono"; font-size: 12px;
+    color: var(--navy);
+    border: 1px solid var(--line);
+  }
+  .cluster__kw--primary {
+    background: var(--navy); color: #fff; border-color: var(--navy);
+    font-weight: 700;
+  }
+
+  /* Performance table */
+  .perf {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .perf__row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+  }
+  .perf__row:last-child { border-bottom: none; }
+  .perf__num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: var(--cream); border: 1px solid var(--line);
+    color: var(--navy);
+    font-family: "SF Mono"; font-size: 11px; font-weight: 700;
+  }
+  .perf__body strong {
+    display: block;
+    font-family: "SF Pro Display"; font-size: 15px;
+    color: var(--navy); font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .perf__body span { font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .perf__impact {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: #fff; font-weight: 700;
+    padding: 4px 8px; border-radius: 6px;
+    white-space: nowrap;
+    align-self: flex-start; margin-top: 2px;
+  }
+  .perf__impact--high { background: var(--orange); }
+  .perf__impact--med { background: var(--sky); }
+  .perf__impact--low { background: var(--ink-3); }
+  .perf__done { background: var(--green); }
+
+  /* Backlink tier table */
+  .tier {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .tier__head {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .tier__h {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 17px;
+    color: var(--navy);
+  }
+  .tier__badge {
+    padding: 4px 10px; border-radius: 999px;
+    font-family: "SF Mono"; font-size: 10px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 700;
+  }
+  .tier__badge--critical { background: var(--red); color: #fff; }
+  .tier__badge--high { background: var(--orange); color: #fff; }
+  .tier__badge--med { background: var(--sky); color: #fff; }
+  .tier__badge--long { background: var(--navy); color: #fff; }
+  .tier__list { list-style: none; padding: 0; margin: 0; }
+  .tier__list li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: baseline;
+  }
+  .tier__list li:first-child { border-top: none; padding-top: 0; }
+  .tier__list strong {
+    display: block;
+    font-family: "SF Pro Display"; font-size: 14px;
+    color: var(--navy); font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .tier__list span {
+    font-size: 12.5px; color: var(--ink-2); line-height: 1.5;
+  }
+  .tier__cost {
+    font-family: "SF Mono"; font-size: 10.5px;
+    letter-spacing: 0.02em;
+    color: var(--ink-3); white-space: nowrap;
+  }
+  .tier__cost--free { color: var(--green); font-weight: 700; }
+
+  .callout {
+    background: rgba(0,176,237,0.06);
+    border-left: 4px solid var(--sky);
+    padding: 14px 18px;
+    border-radius: 0 10px 10px 0;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .callout strong { color: var(--navy); }
+
+  footer {
+    padding: 40px 24px 60px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  footer strong { color: var(--navy); }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 24px 16px 60px; }
+    header { padding: 32px 20px; }
+    section > h2 { font-size: 22px; }
+    .cluster__row { grid-template-columns: 1fr; gap: 4px; }
+    .cluster__row-lbl { padding-top: 0; }
+    .perf__row { grid-template-columns: 28px 1fr; }
+    .perf__impact { grid-column: 2; margin-top: 6px; }
+  }
+</style>
+
+<header>
+  <div class="eye">Advanced Gas &amp; Aircon · SEO growth plan</div>
+  <h1>How to rank #1 for &ldquo;aircon Pakenham&rdquo; and every keyword next to it.</h1>
+  <p>Three concurrent workstreams: content clusters that own the topic, page speed that Google rewards, and backlinks that make you the trusted local answer.</p>
+</header>
+
+<nav>
+  <a href="#clusters">1 · Keyword clusters</a>
+  <a href="#speed">2 · Page speed</a>
+  <a href="#backlinks">3 · Backlinks</a>
+  <a href="#priorities">4 · Priorities</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- ================================================================
+       SECTION 1 — Keyword clusters
+       ================================================================ -->
+  <section id="clusters">
+    <h2>1 · Keyword clusters</h2>
+    <p class="lede">
+      Google ranks <strong>topical authority</strong>, not single pages. Build 8 clusters — one hub page + 4-8 supporting articles each — and you become the site Google trusts to answer anything in the aircon / hot water space around Pakenham.
+    </p>
+
+    <div class="callout">
+      <strong>How to read this:</strong> Primary keyword = the URL slug + H1. Supporting keywords should be naturally sprinkled through H2s and body text. Never keyword-stuff — write for a human who's paying money.
+    </div>
+
+    <!-- Cluster 1 -->
+    <div class="cluster">
+      <h3><span class="num">1</span> VEU rebate hub</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Money keyword</span>
+        <span class="cluster__pill cluster__pill--live">Partly live</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/rebates</strong> — <span class="cluster__kw cluster__kw--primary">VEU rebate Pakenham</span>
+          <span class="cluster__kw">VEU rebate calculator</span>
+          <span class="cluster__kw">Victorian energy upgrades program</span>
+          <span class="cluster__kw">Solar Homes rebate hot water</span>
+          <span class="cluster__kw">VEEC certificate value</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/veu-rebate-2026-pakenham-guide</em> — VEU rebate 2026, how much is the VEU rebate<br>
+          <em>/blog/solar-homes-vs-veu-hot-water</em> — Solar Homes vs VEU, $1,000 rebate eligibility<br>
+          <em>/blog/veu-eligibility-renters-landlords</em> — VEU rebate for renters, landlord eligibility<br>
+          <em>/blog/veec-vs-stc-explained</em> — VEEC vs STC, small-scale technology certificate<br>
+          <em>/blog/hot-water-rebate-victoria-2026</em> — hot water rebate Victoria, gas to electric switch
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 2 -->
+    <div class="cluster">
+      <h3><span class="num">2</span> Heat pump hot water hub</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">High intent</span>
+        <span class="cluster__pill cluster__pill--live">Live</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/heat-pumps</strong> — <span class="cluster__kw cluster__kw--primary">heat pump hot water Pakenham</span>
+          <span class="cluster__kw">heat pump installer Melbourne</span>
+          <span class="cluster__kw">heat pump vs electric hot water</span>
+          <span class="cluster__kw">CO2 heat pump</span>
+          <span class="cluster__kw">R290 heat pump</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/reclaim-vs-istore-vs-thermann</em> — Reclaim vs iStore vs Thermann comparison<br>
+          <em>/blog/heat-pump-real-cost-2026</em> — heat pump cost Australia 2026<br>
+          <em>/blog/co2-vs-r290-refrigerant</em> — CO2 vs R290 refrigerant, GWP explained<br>
+          <em>/blog/heat-pump-sizing-guide-au</em> — heat pump size chart, household hot water usage<br>
+          <em>/blog/split-vs-all-in-one-heat-pump</em> — split heat pump vs all-in-one, quiet outdoor units<br>
+          <em>/blog/heat-pump-warranty-comparison</em> — heat pump warranty comparison, tank warranty
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 3 -->
+    <div class="cluster">
+      <h3><span class="num">3</span> Split system aircon hub</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Big volume</span>
+        <span class="cluster__pill cluster__pill--new">Needs work</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/services/split-system-installation</strong> — <span class="cluster__kw cluster__kw--primary">split system installation Pakenham</span>
+          <span class="cluster__kw">air conditioning installation Berwick</span>
+          <span class="cluster__kw">Mitsubishi split system installer</span>
+          <span class="cluster__kw">Kaden split system</span>
+          <span class="cluster__kw">bedroom air conditioner install</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/split-system-size-guide-room-m2</em> — split system size guide, kW for room m²<br>
+          <em>/blog/mitsubishi-vs-kaden-vs-fujitsu</em> — best split system brands 2026<br>
+          <em>/blog/split-install-cost-pakenham</em> — cost to install a split system<br>
+          <em>/blog/split-system-multi-head-guide</em> — multi-head split system explained<br>
+          <em>/blog/quiet-split-system-bedroom</em> — quiet split systems, dB comparison
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 4 -->
+    <div class="cluster">
+      <h3><span class="num">4</span> Ducted aircon hub</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">High-ticket</span>
+        <span class="cluster__pill cluster__pill--new">Needs work</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/services/ducted-air-conditioning</strong> — <span class="cluster__kw cluster__kw--primary">ducted aircon Pakenham</span>
+          <span class="cluster__kw">ducted air conditioning cost Melbourne</span>
+          <span class="cluster__kw">zoned ducted system</span>
+          <span class="cluster__kw">Mitsubishi ducted install</span>
+          <span class="cluster__kw">ducted retrofit weatherboard</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/ducted-vs-multi-split</em> — ducted vs multi-split system<br>
+          <em>/blog/ducted-aircon-cost-guide</em> — ducted aircon cost, 3-4 bedroom estimates<br>
+          <em>/blog/milieu-lab-zone-controller</em> — Milieu Lab review, smart zone control<br>
+          <em>/blog/ducted-retrofit-single-storey</em> — retrofitting ducted in a single-storey house<br>
+          <em>/blog/how-many-zones-do-i-need</em> — how many zones ducted system
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 5 -->
+    <div class="cluster">
+      <h3><span class="num">5</span> Suburb landing pages</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Local intent</span>
+        <span class="cluster__pill cluster__pill--live">Partly live</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/service-areas</strong> — <span class="cluster__kw cluster__kw--primary">aircon installer south-east Melbourne</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Suburb pages</div>
+        <div class="cluster__row-body">
+          One page per suburb × service combination:<br>
+          <em>/areas/pakenham/heat-pump-installation</em>, <em>/areas/berwick/heat-pump-installation</em>,
+          <em>/areas/officer/heat-pump-installation</em>, <em>/areas/cranbourne/heat-pump-installation</em>,
+          <em>/areas/narre-warren/heat-pump-installation</em>, plus same for split, ducted, gas heating.<br>
+          Each ~800 words: local landmarks, common house types (weatherboard, brick-veneer, unit), suburb-specific rebate notes, 2-3 real customer names from that suburb, embedded Google map centered on suburb.
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Priority suburbs</div>
+        <div class="cluster__row-body">
+          Pakenham (home base), Officer, Berwick, Beaconsfield, Cranbourne, Narre Warren, Hampton Park, Clyde North, Endeavour Hills, Dandenong. Each in the top 100 south-east Melbourne postcodes by installs.
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 6 -->
+    <div class="cluster">
+      <h3><span class="num">6</span> Emergency / same-day hub</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Panic buyers</span>
+        <span class="cluster__pill cluster__pill--new">Needs work</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/emergency</strong> — <span class="cluster__kw cluster__kw--primary">emergency plumber Pakenham</span>
+          <span class="cluster__kw">no hot water emergency</span>
+          <span class="cluster__kw">gas leak Pakenham</span>
+          <span class="cluster__kw">24/7 aircon repair</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/no-hot-water-what-to-do</em> — no hot water troubleshooting<br>
+          <em>/blog/gas-smell-emergency-steps</em> — gas smell in house, what to do<br>
+          <em>/blog/aircon-not-cooling-check</em> — split system not cooling, common causes<br>
+          <em>/blog/pilot-light-out-rinnai</em> — pilot light won't stay on
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 7 -->
+    <div class="cluster">
+      <h3><span class="num">7</span> Cost / pricing content</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Bottom-of-funnel</span>
+        <span class="cluster__pill cluster__pill--new">Needs work</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Hub page</div>
+        <div class="cluster__row-body">
+          <strong>/pricing</strong> — <span class="cluster__kw cluster__kw--primary">aircon installation cost Melbourne</span>
+          <span class="cluster__kw">heat pump installation cost</span>
+          <span class="cluster__kw">split system install cost</span>
+        </div>
+      </div>
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Supporting</div>
+        <div class="cluster__row-body">
+          <em>/blog/heat-pump-cost-with-rebate</em> — heat pump cost after VEU rebate<br>
+          <em>/blog/split-install-cost-breakdown</em> — split install cost breakdown line items<br>
+          <em>/blog/ducted-cost-3-4-5-bedroom</em> — ducted aircon cost 3 vs 4 vs 5 bedroom<br>
+          <em>/blog/gas-heater-service-cost</em> — gas heater service &amp; CO test cost
+        </div>
+      </div>
+    </div>
+
+    <!-- Cluster 8 -->
+    <div class="cluster">
+      <h3><span class="num">8</span> Brand / product pages</h3>
+      <div class="cluster__meta">
+        <span class="cluster__pill cluster__pill--hub">Brand + intent</span>
+        <span class="cluster__pill cluster__pill--new">Needs work</span>
+      </div>
+
+      <div class="cluster__row">
+        <div class="cluster__row-lbl">Pages</div>
+        <div class="cluster__row-body">
+          One page per authorised brand you sell:<br>
+          <em>/brands/reclaim-heat-pump</em> — <span class="cluster__kw">Reclaim heat pump installer Victoria</span><br>
+          <em>/brands/istore-heat-pump</em> — <span class="cluster__kw">iStore installer Melbourne</span><br>
+          <em>/brands/thermann-hot-water</em> — <span class="cluster__kw">Thermann hot water Pakenham</span><br>
+          <em>/brands/mitsubishi-electric-aircon</em> — <span class="cluster__kw">Mitsubishi Electric authorised dealer</span><br>
+          <em>/brands/kaden-air-conditioning</em> — <span class="cluster__kw">Kaden aircon installer</span><br>
+          <em>/brands/rinnai-gas-heating</em> — <span class="cluster__kw">Rinnai gas heater installer</span><br>
+          Each page: models installed, warranty, honest pros/cons, real install photos, price bands, comparison table.
+        </div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Cadence:</strong> Publish 1 hub upgrade + 2 supporting blog posts per fortnight. All 8 clusters filled out in 6 months. Google needs 3-6 months to trust a new cluster's topical depth.
+    </div>
+  </section>
+
+
+  <!-- ================================================================
+       SECTION 2 — Page speed
+       ================================================================ -->
+  <section id="speed">
+    <h2>2 · Page speed for phone</h2>
+    <p class="lede">
+      Google mobile-first ranks on Core Web Vitals. Targets:
+      <strong>LCP &lt; 2.0s</strong>,
+      <strong>CLS &lt; 0.05</strong>,
+      <strong>INP &lt; 150ms</strong>.
+      For the aircon industry, hitting these puts you in the top 10% for speed and gives a ranking bump on top of everything else.
+    </p>
+
+    <h3>The 12 action items, ranked by impact</h3>
+
+    <div class="perf">
+
+      <div class="perf__row">
+        <div class="perf__num">1</div>
+        <div class="perf__body">
+          <strong>Compress and convert the hero team photo to AVIF</strong>
+          <span>Right now <code>/team-photo.png</code> is a raster PNG loading uncompressed. AVIF is 40-60% smaller than JPEG at the same quality. Save as AVIF + fallback WebP, both at ~85% quality. Serve via Next <code>&lt;Image&gt;</code> with <code>priority</code> so it preloads for LCP. Should cut hero LCP by ~1.2 seconds on 4G.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Huge</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">2</div>
+        <div class="perf__body">
+          <strong>Preload the hero image + preconnect Google Fonts</strong>
+          <span>Add <code>&lt;link rel="preload" as="image" href="/team-photo.avif" fetchpriority="high"&gt;</code> in the <code>&lt;head&gt;</code>. Add <code>&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;</code> so the font handshake starts before the CSS parses.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Huge</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">3</div>
+        <div class="perf__body">
+          <strong>Lazy-load every image below the fold</strong>
+          <span>Fixed-price card photos, service bento photos, review avatars, and the Leaflet map should all use <code>loading="lazy"</code>. Only the hero should load eagerly. Cuts initial payload by ~2-3 MB on mobile.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Huge</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">4</div>
+        <div class="perf__body">
+          <strong>Defer Leaflet to only load when the map scrolls into view</strong>
+          <span>Leaflet + tiles is ~150 KB gzipped. Wrap the <code>ServiceAreaMap</code> in a dynamic import with <code>ssr: false</code> and use an IntersectionObserver so it only loads when the user scrolls near the map section. Saves ~150 KB from initial JS.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Huge</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">5</div>
+        <div class="perf__body">
+          <strong>Remove dead CSS from home.css and design-system.css</strong>
+          <span>Old hero classes (<code>.hero__grid</code>, <code>.hero__bullets</code>, <code>.hero__eyebrow</code>, <code>.hero__finep</code>) are still in the stylesheets but not used by any component. Same for old quote form classes replaced by qcard. Kills ~4-6 KB of CSS.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Solid</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">6</div>
+        <div class="perf__body">
+          <strong>Inline critical CSS above the fold</strong>
+          <span>Next.js does this by default with the App Router — verify with Lighthouse that the render-blocking CSS is minimal (&lt; 15 KB). If any stylesheet larger than 20 KB is render-blocking, split it.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Solid</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">7</div>
+        <div class="perf__body">
+          <strong>Font subsetting — only load Latin characters</strong>
+          <span>Manrope, Archivo and JetBrains Mono are already loaded with <code>subsets: ["latin"]</code> — good. Verify only used weights are pulled (500/600/700/800/900 for Archivo — drop 500 if unused). Each weight is ~15 KB.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Solid</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">8</div>
+        <div class="perf__body">
+          <strong>Add explicit width + height to every image</strong>
+          <span>Prevents CLS (layout shift) as images load. Every <code>&lt;img&gt;</code> and Next <code>&lt;Image&gt;</code> should have explicit dimensions. CSS aspect-ratio on background-image divs.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Solid</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">9</div>
+        <div class="perf__body">
+          <strong>Vercel Edge caching + ISR on blog pages</strong>
+          <span>Blog posts should use ISR with a long revalidate (24 hrs). Vercel serves them from the edge globally — first byte drops to &lt; 100 ms in Australia.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Solid</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">10</div>
+        <div class="perf__body">
+          <strong>Serve Google Fonts self-hosted via next/font</strong>
+          <span>Already using next/font — this is done. Google Fonts CDN is not on the critical path. Confirmed in <code>src/app/layout.tsx</code>.</span>
+        </div>
+        <span class="perf__impact perf__done">Done</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">11</div>
+        <div class="perf__body">
+          <strong>Reduce animation on scroll-heavy sections</strong>
+          <span>The reviews marquee auto-scrolls with CSS animation — fine on desktop, wastes battery + CPU on phone. Already gated by <code>prefers-reduced-motion</code>, but should also pause the animation when the section is off-screen using IntersectionObserver.</span>
+        </div>
+        <span class="perf__impact perf__impact--low">Nice</span>
+      </div>
+
+      <div class="perf__row">
+        <div class="perf__num">12</div>
+        <div class="perf__body">
+          <strong>Cloudflare in front of Vercel for AU edge</strong>
+          <span>Vercel's edge is already fast in AU but Cloudflare's Sydney PoP is faster still. Adds a second cache layer and DDoS protection. Free tier is enough for this site's traffic.</span>
+        </div>
+        <span class="perf__impact perf__impact--low">Nice</span>
+      </div>
+
+    </div>
+
+    <div class="callout">
+      <strong>Verify with:</strong> Run <a href="https://pagespeed.web.dev/">PageSpeed Insights</a> on the mobile tab. Target 90+ Performance score. Run <a href="https://webpagetest.org/">WebPageTest</a> from Melbourne, Australia location for real 4G / cable timings.
+    </div>
+  </section>
+
+
+  <!-- ================================================================
+       SECTION 3 — Backlinks
+       ================================================================ -->
+  <section id="backlinks">
+    <h2>3 · Backlinks to be number one</h2>
+    <p class="lede">
+      For a Pakenham aircon installer, backlinks are 2/3 of the ranking game. Google needs to see other trusted local + industry sites pointing at you. This is a <strong>90-day sprint</strong> to hit tier 1 &amp; 2, then long-tail tier 3 &amp; 4 monthly.
+    </p>
+
+    <!-- Tier 1 -->
+    <div class="tier">
+      <div class="tier__head">
+        <div class="tier__h">Tier 1 · Foundational — do these first</div>
+        <span class="tier__badge tier__badge--critical">Critical</span>
+      </div>
+      <ul class="tier__list">
+        <li>
+          <div>
+            <strong>Google Business Profile — completed &amp; active</strong>
+            <span>The #1 ranking factor for &ldquo;aircon Pakenham&rdquo; local pack. Fill every field: services, service area (each suburb), photos (before/after installs, team, van), Q&amp;A, weekly Posts. Solicit 2 reviews per week from happy customers with a follow-up email template. <strong>Target: 300 reviews in 12 months.</strong></span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · 4 hrs setup</span>
+        </li>
+        <li>
+          <div>
+            <strong>Bing Places for Business</strong>
+            <span>Same as GBP but for Bing. 5 minutes. Bing sends ~5% of search traffic, disproportionately older/wealthier households (your target).</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · 5 min</span>
+        </li>
+        <li>
+          <div>
+            <strong>Apple Maps Business Connect</strong>
+            <span>Every iPhone user finds businesses through Apple Maps. Free listing. Adds a citation Google can verify.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · 15 min</span>
+        </li>
+        <li>
+          <div>
+            <strong>VEU accredited provider listing (Essential Services Commission)</strong>
+            <span>You're already accredited. Ensure your listing at <code>esc.vic.gov.au</code> links back to <code>advancedgas.com.au</code>. High-authority government domain, huge trust signal.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · verify</span>
+        </li>
+        <li>
+          <div>
+            <strong>Victorian Building Authority (VBA) directory</strong>
+            <span>Licensed plumbers &amp; gasfitters listed. Ensure your licence page links to the site.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · verify</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Tier 2 -->
+    <div class="tier">
+      <div class="tier__head">
+        <div class="tier__h">Tier 2 · Manufacturer partner pages</div>
+        <span class="tier__badge tier__badge--high">High-value</span>
+      </div>
+      <ul class="tier__list">
+        <li>
+          <div>
+            <strong>Reclaim Energy installer directory</strong>
+            <span>Get listed at <code>reclaimenergy.com.au/find-an-installer</code>. Reclaim's DR 60+ passes serious link juice for anyone Googling &ldquo;Reclaim installer Melbourne&rdquo;.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · call rep</span>
+        </li>
+        <li>
+          <div>
+            <strong>Mitsubishi Electric authorised dealer directory</strong>
+            <span>DR 80+. Massive brand authority. Contact your Mitsubishi rep to get the listing verified.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · call rep</span>
+        </li>
+        <li>
+          <div>
+            <strong>iStore installer directory</strong>
+            <span>Similar — get onto <code>istore.com.au/installers</code>. Also gets you referred leads.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · call rep</span>
+        </li>
+        <li>
+          <div>
+            <strong>Thermann / Rheem approved installer</strong>
+            <span>Same play. Their installer maps drive both SEO juice and warm leads.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · call rep</span>
+        </li>
+        <li>
+          <div>
+            <strong>Reece trade partner page mention</strong>
+            <span>You're a Reece trade partner. Ask your Reece BDM to include Advanced Gas on any trade partner directory or case study they publish. Reece has DR 70+.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · ask BDM</span>
+        </li>
+        <li>
+          <div>
+            <strong>Kaden authorised installer</strong>
+            <span>Smaller brand but strong direct-fit citation.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>Rinnai licensed technician</strong>
+            <span>Rinnai lists licensed servicing techs. High-trust for gas heater work.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Tier 3 -->
+    <div class="tier">
+      <div class="tier__head">
+        <div class="tier__h">Tier 3 · Local &amp; industry directories</div>
+        <span class="tier__badge tier__badge--med">Steady</span>
+      </div>
+      <ul class="tier__list">
+        <li>
+          <div>
+            <strong>hipages</strong>
+            <span>DR 70+. Get listed as a top-rated tradie. Bonus: leads flow from it too.</span>
+          </div>
+          <span class="tier__cost">Free basic · paid $$$/mo</span>
+        </li>
+        <li>
+          <div>
+            <strong>OneFlare</strong>
+            <span>DR 65+. Free profile, paid leads. Citation is worth it even without paid tier.</span>
+          </div>
+          <span class="tier__cost">Free basic · paid $/lead</span>
+        </li>
+        <li>
+          <div>
+            <strong>ServiceSeeking / Airtasker Business</strong>
+            <span>DR 55-60. Free listings. Same citation logic.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>True Local</strong>
+            <span>DR 60. Free listing. Good geo-signal for VIC.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>Yellow Pages Australia</strong>
+            <span>DR 65. Old-school but still crawled and trusted by Google.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free basic</span>
+        </li>
+        <li>
+          <div>
+            <strong>Yelp Australia</strong>
+            <span>Lower traffic but a citation Google cross-references.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>StartLocal, HotFrog, WhitePages, LocalSearch</strong>
+            <span>Batch of AU business directories. Consistent NAP (Name, Address, Phone) across all of them is critical — Google uses these to verify legitimacy.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · 2 hrs total</span>
+        </li>
+        <li>
+          <div>
+            <strong>Master Plumbers Association Victoria (MPAV)</strong>
+            <span>Industry body directory. High trust, licensed-only listings.</span>
+          </div>
+          <span class="tier__cost">Membership $</span>
+        </li>
+        <li>
+          <div>
+            <strong>Air Conditioning &amp; Mechanical Contractors Association (AMCA)</strong>
+            <span>Peak body for commercial HVAC. If chasing commercial work, essential.</span>
+          </div>
+          <span class="tier__cost">Membership $$</span>
+        </li>
+        <li>
+          <div>
+            <strong>RACV Approved Trader</strong>
+            <span>RACV members trust this list. Vetting is strict, DR 80+. Worth the vetting time.</span>
+          </div>
+          <span class="tier__cost">Application $</span>
+        </li>
+        <li>
+          <div>
+            <strong>Product Review Australia (productreview.com.au)</strong>
+            <span>Separate profile from Google Reviews. Users cross-check. Ranks for &ldquo;[brand] installer reviews&rdquo;.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Tier 4 -->
+    <div class="tier">
+      <div class="tier__head">
+        <div class="tier__h">Tier 4 · Local media + community + long-tail</div>
+        <span class="tier__badge tier__badge--long">Long game</span>
+      </div>
+      <ul class="tier__list">
+        <li>
+          <div>
+            <strong>Berwick Star News / Pakenham Gazette</strong>
+            <span>Pitch a story: &ldquo;Local family business helps Pakenham households save $3,000 on hot water bills through VEU rebates.&rdquo; Human interest angle + rebate news angle. Free local backlink.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · pitch</span>
+        </li>
+        <li>
+          <div>
+            <strong>Cardinia Shire Council business directory</strong>
+            <span>Free listing for Cardinia-based businesses. Local government domain.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>Casey / Cardinia small business chamber</strong>
+            <span>Membership includes directory listing + networking. Localised trust.</span>
+          </div>
+          <span class="tier__cost">Membership $</span>
+        </li>
+        <li>
+          <div>
+            <strong>Local sports club sponsorship</strong>
+            <span>Sponsor Pakenham FC, Berwick Cricket, local school events. Sponsor logo on their website with a link. Community goodwill + backlink.</span>
+          </div>
+          <span class="tier__cost">Sponsorship $-$$</span>
+        </li>
+        <li>
+          <div>
+            <strong>SourceBottle / MediaConnect (Aus HARO equivalent)</strong>
+            <span>Journalists post &ldquo;need an expert on X&rdquo; requests. Reply with quotes about VEU, winter heating, aircon sizing. Get quoted in <em>The Age</em>, <em>news.com.au</em>, <em>The Conversation</em>. Massive DR backlinks.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free</span>
+        </li>
+        <li>
+          <div>
+            <strong>Guest posts on AU home/reno blogs</strong>
+            <span>Renew Magazine, Sustainability Matters, RenoFast, Better Homes &amp; Gardens AU. Pitch: &ldquo;What to know before you spend $6,000 on a heat pump&rdquo;. Genuine expert content, not spun content.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · content time</span>
+        </li>
+        <li>
+          <div>
+            <strong>Solar Homes Program listing</strong>
+            <span>Get on the Victorian government approved installer list for hot water rebates. Government domain, huge authority.</span>
+          </div>
+          <span class="tier__cost tier__cost--free">Free · verify</span>
+        </li>
+        <li>
+          <div>
+            <strong>Reviews.io / Trustpilot AU</strong>
+            <span>Extra review platforms. Not as important as GBP but Google indexes them and cross-references your rating consistency.</span>
+          </div>
+          <span class="tier__cost">Free basic · paid $$/mo</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="callout">
+      <strong>Cadence:</strong> Tier 1 in week 1. Tier 2 by end of week 4. Tier 3 rolling through months 2-3. Tier 4 is monthly forever — 2-4 new links per month is enough to keep growing.
+    </div>
+    <div class="callout">
+      <strong>Never buy links, never guest-post spam.</strong> Google's SpamBrain penalty is instant and severe. Every link above is earned through real relationships or real value.
+    </div>
+  </section>
+
+
+  <!-- ================================================================
+       SECTION 4 — Priorities
+       ================================================================ -->
+  <section id="priorities">
+    <h2>4 · What to do this week</h2>
+    <p class="lede">
+      Everything above is 6-12 months of work. Here&rsquo;s the priority stack — do these five things this week and you&rsquo;ll see movement in Search Console within 30 days.
+    </p>
+
+    <div class="perf">
+      <div class="perf__row">
+        <div class="perf__num">1</div>
+        <div class="perf__body">
+          <strong>Complete Google Business Profile 100%</strong>
+          <span>Every field. Every service. Every suburb in your service area. 30 photos minimum (van, team, before/after each service). First 3 review requests sent to recent customers.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Day 1</span>
+      </div>
+      <div class="perf__row">
+        <div class="perf__num">2</div>
+        <div class="perf__body">
+          <strong>Convert hero photo to AVIF + preload</strong>
+          <span>Single biggest speed win. 15 minutes with <code>squoosh.app</code> + one line in <code>layout.tsx</code>.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Day 1</span>
+      </div>
+      <div class="perf__row">
+        <div class="perf__num">3</div>
+        <div class="perf__body">
+          <strong>Ring Reclaim, iStore, Mitsubishi &amp; Reece</strong>
+          <span>Ask each rep to add your company to their installer directory. 4 phone calls = 4 high-DR backlinks. Do it in one afternoon.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Day 2</span>
+      </div>
+      <div class="perf__row">
+        <div class="perf__num">4</div>
+        <div class="perf__body">
+          <strong>Batch-submit to 10 AU business directories</strong>
+          <span>Yellow Pages, True Local, StartLocal, HotFrog, White Pages, hipages, OneFlare, ServiceSeeking, Yelp, LocalSearch. Same NAP each time. 2 hours total.</span>
+        </div>
+        <span class="perf__impact perf__impact--med">Day 3</span>
+      </div>
+      <div class="perf__row">
+        <div class="perf__num">5</div>
+        <div class="perf__body">
+          <strong>Write blog post #1 — the money keyword</strong>
+          <span><em>&ldquo;How much is the VEU rebate for a heat pump in Pakenham (2026)?&rdquo;</em> — direct answer to the question every prospect asks, 1,200+ words, real numbers, embedded rebate calculator, link out to the Essential Services Commission for authority.</span>
+        </div>
+        <span class="perf__impact perf__impact--high">Day 4-5</span>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Then measure:</strong> Install Google Search Console, Google Analytics 4 and Bing Webmaster Tools. Wait 30 days. You should see impressions on VEU rebate + brand keywords climb week over week. Position for &ldquo;heat pump Pakenham&rdquo; should move from page 3 → page 2 → page 1 over 3 months.
+    </div>
+
+    <div class="callout" style="border-left-color: var(--orange); background: rgba(243,103,34,0.06);">
+      <strong>Want me to build any of this now?</strong> I can convert the hero image, write the first blog post, set up Search Console, or start on the suburb landing pages. Just tell me which and it&rsquo;ll be live on the branch within the hour.
+    </div>
+
+  </section>
+
+</div>
+
+<footer>
+  <strong>Advanced Gas &amp; Airconditioning Services Pty Ltd</strong><br>
+  ACN 607 575 280 · Pakenham VIC 3810 · Mon-Fri 8am-4pm<br>
+  <em>SEO plan generated August 2026 · Review quarterly.</em>
+</footer>
+</html>
