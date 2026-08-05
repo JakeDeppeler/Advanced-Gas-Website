@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { site, services } from "@/lib/site";
 import { publishedSuburbs } from "@/lib/suburbs";
+import { brands } from "@/lib/brands";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -15,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/rebates`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
     { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/services`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/brands`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
   ];
 
   const serviceUrls: MetadataRoute.Sitemap = services.map((s) => ({
@@ -42,5 +44,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]);
 
-  return [...staticUrls, ...serviceUrls, ...suburbUrls];
+  // Brand hubs + individual product pages.
+  const brandUrls: MetadataRoute.Sitemap = brands.flatMap((b) => [
+    {
+      url: `${base}/brands/${b.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.75,
+    },
+    ...b.products.map((p) => ({
+      url: `${base}/brands/${b.slug}/${p.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+  ]);
+
+  return [...staticUrls, ...serviceUrls, ...suburbUrls, ...brandUrls];
 }

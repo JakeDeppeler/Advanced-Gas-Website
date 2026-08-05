@@ -9,10 +9,10 @@ import { LogoMark } from "@/components/Logo";
 const NAV = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
+  { href: "/brands", label: "Brands" },
   { href: "/heat-pumps", label: "Heat Pumps" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/about", label: "About" },
-  { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
 ] as const;
 

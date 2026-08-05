@@ -86,13 +86,15 @@ export function Footer() {
           </div>
 
           <div className="ftr__col">
-            <h4>Rebates &amp; guides</h4>
+            <h4>Brands &amp; guides</h4>
             <ul>
+              <li><Link href="/brands">All brands we install</Link></li>
+              <li><Link href="/brands/mitsubishi-electric">Mitsubishi Electric</Link></li>
+              <li><Link href="/brands/reclaim">Reclaim CO₂ heat pumps</Link></li>
+              <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
-              <li><Link href="/rebates#calc">Rebate calculator</Link></li>
               <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
               <li><Link href="/blog">Blog &amp; guides</Link></li>
-              <li><Link href="/rebates#faq">Rebate FAQ</Link></li>
             </ul>
           </div>
 
