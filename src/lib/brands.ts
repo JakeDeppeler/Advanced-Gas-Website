@@ -50,8 +50,36 @@ export type Brand = {
   ourTake: string;
   accreditation?: string;
   productLabel: string;
+  /** Hero photo for the brand hub + brand card. WebP only. */
+  photo: string;
+  photoAlt: string;
+  /** Accent hex for the brand's card treatment (subtle top border etc). */
+  accent: string;
   products: Product[];
 };
+
+/** Category → photo map, used as a fallback when a product doesn't have its
+ *  own asset. All images live in /public as WebP. */
+export const categoryPhoto: Record<ProductCategory, { src: string; alt: string }> = {
+  "split-system": { src: "/kaden-indoor.webp", alt: "Split system head unit" },
+  "multi-head": { src: "/reclaim-split-back.webp", alt: "Multi-head outdoor unit" },
+  "ducted": { src: "/duct-work.webp", alt: "Ducted aircon ductwork" },
+  "cassette": { src: "/ducted-condenser.webp", alt: "Cassette air conditioning unit" },
+  "floor-console": { src: "/kaden-indoor.webp", alt: "Floor console air conditioner" },
+  "heat-pump": { src: "/reclaim-spit-close-up.webp", alt: "Heat pump hot water system" },
+  "gas-continuous-flow": { src: "/gas-hot-water-changeover.webp", alt: "Gas continuous flow hot water" },
+  "gas-storage": { src: "/gas-hot-water-changeover.webp", alt: "Gas storage hot water tank" },
+  "electric-storage": { src: "/gas-hot-water-changeover.webp", alt: "Electric storage hot water tank" },
+  "solar-hot-water": { src: "/reclaim-mitsubishi.webp", alt: "Solar hot water" },
+  "controller": { src: "/gas-line.webp", alt: "Wall controller for air conditioner" },
+  "zoning": { src: "/duct-work.webp", alt: "Zoning controller for ducted system" },
+  "damper": { src: "/duct-work.webp", alt: "Ducted zone damper" },
+  "accessory": { src: "/gas-line.webp", alt: "Accessory kit" },
+};
+
+export function productPhoto(p: Product) {
+  return categoryPhoto[p.category] ?? categoryPhoto["accessory"];
+}
 
 export const brands: Brand[] = [
 
@@ -67,6 +95,9 @@ export const brands: Brand[] = [
       "We're pursuing Mitsubishi Electric Diamond Dealer accreditation. When it lands we can offer the extended 7-year manufacturer warranty on top of our own 6-year workmanship warranty. That's a 13-year backstop on a unit that's already the most reliable in the category.",
     accreditation: "Diamond Dealer (in progress)",
     productLabel: "22 SKUs — splits, multi-head, ducted, cassette, controllers",
+    photo: "/reclaim-mitsubishi.webp",
+    photoAlt: "Mitsubishi Electric split system installed in a Melbourne home",
+    accent: "#DA1A32",
     products: [
       {
         slug: "msz-ap25",
@@ -589,6 +620,9 @@ export const brands: Brand[] = [
       "For a customer who wants the best heat pump on the market and knows they'll be in the house another decade, Reclaim is our first recommendation. Stainless steel tank, 6-year warranty on the tank, 5-year on the compressor, made in Australia. It costs more up-front and it earns that back.",
     accreditation: "Reclaim installer locator listed",
     productLabel: "6 SKUs — CO₂ heat pumps, split PV kits, controllers",
+    photo: "/reclaim-split-back.webp",
+    photoAlt: "Reclaim CO2 heat pump hot water system installation",
+    accent: "#2E8459",
     products: [
       {
         slug: "co2-315-stainless",
@@ -716,6 +750,9 @@ export const brands: Brand[] = [
       "Thermann is what we quote first when the customer wants a proven, well-supported heat pump but doesn't want to pay Reclaim money. Rheem Pro accreditation means we get direct-line parts and warranty backing.",
     accreditation: "Rheem Pro accredited installer",
     productLabel: "14 SKUs — heat pump, gas continuous flow, gas storage, solar",
+    photo: "/thermann-heat-pump.webp",
+    photoAlt: "Thermann heat pump hot water tank installed outside a Melbourne home",
+    accent: "#0090C3",
     products: [
       {
         slug: "series-4-270",
@@ -983,6 +1020,9 @@ export const brands: Brand[] = [
       "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the VEU rebate customer who wants their out-of-pocket under $500, iStore hits the sweet spot every time.",
     accreditation: "iStore accredited installer",
     productLabel: "5 SKUs — heat pump storage, PV diverter",
+    photo: "/relcaim-split-close-up.webp",
+    photoAlt: "iStore heat pump hot water installation",
+    accent: "#F36722",
     products: [
       {
         slug: "istore-180",
@@ -1084,6 +1124,9 @@ export const brands: Brand[] = [
       "We install Kaden when a family needs cooling in three bedrooms plus living and the Mitsubishi quote comes in over budget. The gap has closed noticeably over the last 3-4 years — Kaden today is what mid-tier Panasonic was five years ago.",
     accreditation: "Kaden authorised dealer",
     productLabel: "15 SKUs — splits, multi-head, ducted",
+    photo: "/kaden-indoor.webp",
+    photoAlt: "Kaden split system installed in a Melbourne bedroom",
+    accent: "#12224E",
     products: [
       {
         slug: "kaden-bold-25",
@@ -1327,6 +1370,9 @@ export const brands: Brand[] = [
     ourTake:
       "Zoning is the single biggest efficiency win on a ducted system. Zonemate's touch controllers are the ones we specify because they're built for Australian installer wiring standards and the ranges of dampers they support cover every ducted brand we install.",
     productLabel: "6 SKUs — controllers, WiFi, dampers",
+    photo: "/duct-work.webp",
+    photoAlt: "Zonemate zoning controller and dampers in ceiling void",
+    accent: "#7A4CD8",
     products: [
       {
         slug: "zonemate-4",

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { allBrandProductPairs, findProduct, findBrand } from "@/lib/brands";
+import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/lib/brands";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
@@ -89,30 +89,32 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* At-a-glance */}
-      <section className="dp-local">
-        <div className="wrap">
-          <div className="dp-local__grid">
-            <div className="dp-local__cell">
-              <div className="dp-local__lbl">Model</div>
-              <p><strong>{product.model}</strong></p>
-            </div>
+      {/* Product photo + at-a-glance strip */}
+      <section className="product-hero">
+        <div className="wrap product-hero__grid">
+          <div className="product-hero__pic">
+            {product.veuEligible && (
+              <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate eligible</span>
+            )}
+            {(() => { const ph = productPhoto(product); return <img src={ph.src} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
+          </div>
+          <div className="product-hero__spec">
+            <div className="dp-local__lbl">Model</div>
+            <p><strong>{product.model}</strong></p>
             {product.capacity && (
-              <div className="dp-local__cell">
+              <>
                 <div className="dp-local__lbl">Capacity</div>
                 <p>{product.capacity}</p>
-              </div>
+              </>
             )}
             {product.installedPriceFrom && (
-              <div className="dp-local__cell">
+              <>
                 <div className="dp-local__lbl">Installed from</div>
                 <p><strong>{product.installedPriceFrom}</strong></p>
-              </div>
+              </>
             )}
-            <div className="dp-local__cell">
-              <div className="dp-local__lbl">VEU rebate</div>
-              <p>{product.veuEligible ? "Eligible — we handle the paperwork." : "Not applicable to this unit."}</p>
-            </div>
+            <div className="dp-local__lbl">VEU rebate</div>
+            <p>{product.veuEligible ? "Eligible — we handle the paperwork." : "Not applicable to this unit."}</p>
           </div>
         </div>
       </section>

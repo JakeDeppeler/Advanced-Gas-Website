@@ -3,6 +3,36 @@
    Applied on top of detail.css / design-system.css.
    ================================================================== */
 
+/* ---------- brand-specific hero image ---------- */
+.brand-hero { position: relative; overflow: hidden; }
+.brand-hero::before {
+  /* Accent line under the crumbs, brand-coloured. */
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--sky));
+  z-index: 5;
+}
+.brand-hero__pic {
+  position: absolute; inset: 0; z-index: 0;
+  display: block;
+}
+.brand-hero__pic img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+  filter: saturate(0.85);
+}
+.brand-hero__scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(5,10,48,0.62) 0%, rgba(5,10,48,0.78) 50%, rgba(5,10,48,0.92) 100%),
+    linear-gradient(90deg, rgba(5,10,48,0.55) 0%, rgba(5,10,48,0.15) 55%, rgba(5,10,48,0.05) 100%);
+}
+.page-brand .brand-hero > .wrap { position: relative; z-index: 2; }
+
 /* ---------- brand index (/brands) ---------- */
 .page-brand .brand-hub__grid {
   display: grid;
@@ -13,19 +43,48 @@
 .brand-hub-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 26px 28px;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: var(--rad);
   text-decoration: none;
   color: inherit;
-  transition: transform .15s, box-shadow .2s;
+  overflow: hidden;
+  transition: transform .18s, box-shadow .22s, border-color .15s;
+  position: relative;
+}
+.brand-hub-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--sky));
+  z-index: 2;
+  border-radius: var(--rad) var(--rad) 0 0;
 }
 .brand-hub-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: var(--sky);
+  border-color: var(--card-accent, var(--sky));
+}
+.brand-hub-card__photo {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.brand-hub-card__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.brand-hub-card:hover .brand-hub-card__photo img { transform: scale(1.04); }
+.brand-hub-card__inner {
+  padding: 22px 26px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
 }
 .brand-hub-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .brand-hub-card h2 {
@@ -109,19 +168,53 @@
 .brand-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 22px 20px;
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
   text-decoration: none;
   color: inherit;
+  overflow: hidden;
   transition: transform .15s, box-shadow .2s, border-color .15s;
 }
 .brand-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
   border-color: var(--sky);
+}
+.brand-card__photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.brand-card__photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.brand-card:hover .brand-card__photo img { transform: scale(1.05); }
+.brand-card__pill--rebate.brand-card__pill--overlay {
+  position: absolute;
+  top: 10px; left: 10px;
+  background: var(--orange);
+  color: #fff;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(243,103,34,0.35);
+  z-index: 2;
+}
+.brand-card__inner {
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 .brand-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .brand-card h4 {
@@ -183,6 +276,39 @@
   font-size: 12px;
   color: var(--navy);
   font-weight: 600;
+}
+
+/* ---------- individual product page: hero photo + at-a-glance ---------- */
+.page-product .product-hero {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 40px 0;
+}
+.page-product .product-hero__grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.page-product .product-hero__pic {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: var(--bg-2);
+  box-shadow: var(--shadow-sm);
+}
+.page-product .product-hero__pic img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.page-product .product-hero__spec { display: grid; gap: 6px; }
+.page-product .product-hero__spec p { margin: 0 0 14px; font-size: 15.5px; color: var(--ink-2); line-height: 1.4; }
+.page-product .product-hero__spec p strong { color: var(--navy); font-family: var(--f-display); font-weight: 700; }
+.page-product .product-hero__spec .dp-local__lbl { margin-bottom: 4px; }
+@media (max-width: 760px) {
+  .page-product .product-hero__grid { grid-template-columns: 1fr; gap: 24px; }
 }
 
 /* ---------- individual product page ---------- */

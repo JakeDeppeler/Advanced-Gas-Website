@@ -38,16 +38,26 @@ export default function BrandsIndex() {
         <div className="wrap">
           <div className="brand-hub__grid">
             {brands.map((b) => (
-              <Link key={b.slug} href={`/brands/${b.slug}`} className="brand-hub-card">
-                <div className="brand-hub-card__head">
-                  <h2>{b.name}</h2>
-                  <span>{b.origin}</span>
+              <Link
+                key={b.slug}
+                href={`/brands/${b.slug}`}
+                className="brand-hub-card"
+                style={{ ["--card-accent" as string]: b.accent }}
+              >
+                <div className="brand-hub-card__photo">
+                  <img src={b.photo} alt={b.photoAlt} loading="lazy" width="640" height="400" />
                 </div>
-                <p className="brand-hub-card__tagline">{b.tagline}</p>
-                <p className="brand-hub-card__intro">{b.intro}</p>
-                <div className="brand-hub-card__foot">
-                  <span className="brand-hub-card__count">{b.products.length} SKUs</span>
-                  <span className="brand-hub-card__cta">View range →</span>
+                <div className="brand-hub-card__inner">
+                  <div className="brand-hub-card__head">
+                    <h2>{b.name}</h2>
+                    <span>{b.origin}</span>
+                  </div>
+                  <p className="brand-hub-card__tagline">{b.tagline}</p>
+                  <p className="brand-hub-card__intro">{b.intro}</p>
+                  <div className="brand-hub-card__foot">
+                    <span className="brand-hub-card__count">{b.products.length} SKUs</span>
+                    <span className="brand-hub-card__cta">View range →</span>
+                  </div>
                 </div>
               </Link>
             ))}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, findBrand } from "@/lib/brands";
+import { brands, findBrand, productPhoto } from "@/lib/brands";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../../detail.css";
@@ -146,20 +146,30 @@ export default function BrandSuburbPage({
             </p>
           </div>
           <div className="brand-group__grid">
-            {featured.map((p) => (
-              <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
-                <div className="brand-card__head">
-                  <h3>{p.name}</h3>
-                  <span className="brand-card__model">{p.model}</span>
-                </div>
-                {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
-                <p className="brand-card__take">{p.ourTake}</p>
-                <div className="brand-card__foot">
-                  {p.veuEligible && <span className="brand-card__pill brand-card__pill--rebate">VEU rebate eligible</span>}
-                  {p.installedPriceFrom && <span className="brand-card__price">from {p.installedPriceFrom}</span>}
-                </div>
-              </Link>
-            ))}
+            {featured.map((p) => {
+              const photo = productPhoto(p);
+              return (
+                <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
+                  <div className="brand-card__photo">
+                    {p.veuEligible && (
+                      <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
+                    )}
+                    <img src={photo.src} alt={photo.alt} loading="lazy" width="480" height="360" />
+                  </div>
+                  <div className="brand-card__inner">
+                    <div className="brand-card__head">
+                      <h3>{p.name}</h3>
+                      <span className="brand-card__model">{p.model}</span>
+                    </div>
+                    {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
+                    <p className="brand-card__take">{p.ourTake}</p>
+                    <div className="brand-card__foot">
+                      {p.installedPriceFrom && <span className="brand-card__price">from {p.installedPriceFrom}</span>}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
           <div style={{ marginTop: 24 }}>
             <Link href={`/brands/${brand.slug}`} className="ds-btn ds-btn--ghost">

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, findBrand } from "@/lib/brands";
+import { brands, findBrand, productPhoto } from "@/lib/brands";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -50,8 +50,12 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
   const groupOrder = Object.keys(grouped);
 
   return (
-    <div className="page-detail page-brand">
-      <section className="dp-hero">
+    <div className="page-detail page-brand" style={{ ["--card-accent" as string]: brand.accent }}>
+      <section className="dp-hero brand-hero">
+        <picture className="brand-hero__pic" aria-hidden="true">
+          <img src={brand.photo} alt="" width="1600" height="900" fetchPriority="high" />
+        </picture>
+        <div className="brand-hero__scrim" aria-hidden="true" />
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
@@ -110,20 +114,30 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
             <div key={groupName} className="brand-group">
               <h3 className="brand-group__title">{groupName}</h3>
               <div className="brand-group__grid">
-                {grouped[groupName].map((p) => (
-                  <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
-                    <div className="brand-card__head">
-                      <h4>{p.name}</h4>
-                      <span className="brand-card__model">{p.model}</span>
-                    </div>
-                    {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
-                    <p className="brand-card__take">{p.ourTake}</p>
-                    <div className="brand-card__foot">
-                      {p.veuEligible && <span className="brand-card__pill brand-card__pill--rebate">VEU rebate eligible</span>}
-                      {p.installedPriceFrom && <span className="brand-card__price">from {p.installedPriceFrom}</span>}
-                    </div>
-                  </Link>
-                ))}
+                {grouped[groupName].map((p) => {
+                  const photo = productPhoto(p);
+                  return (
+                    <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
+                      <div className="brand-card__photo">
+                        {p.veuEligible && (
+                          <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
+                        )}
+                        <img src={photo.src} alt={photo.alt} loading="lazy" width="480" height="360" />
+                      </div>
+                      <div className="brand-card__inner">
+                        <div className="brand-card__head">
+                          <h4>{p.name}</h4>
+                          <span className="brand-card__model">{p.model}</span>
+                        </div>
+                        {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
+                        <p className="brand-card__take">{p.ourTake}</p>
+                        <div className="brand-card__foot">
+                          {p.installedPriceFrom && <span className="brand-card__price">from {p.installedPriceFrom}</span>}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
