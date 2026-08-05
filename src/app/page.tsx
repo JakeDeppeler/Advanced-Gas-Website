@@ -2,11 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import ReactDOM from "react-dom";
+import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { HeroQuoteForm } from "@/components/HeroQuoteForm";
-import { ServiceAreaMap } from "@/components/ServiceAreaMap";
 import "./home.css";
+
+// Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
+// fold on every viewport and only meaningful after the user scrolls past
+// several hero sections.
+const ServiceAreaMap = dynamic(
+  () => import("@/components/ServiceAreaMap").then((m) => m.ServiceAreaMap),
+  { ssr: false, loading: () => <div className="map__leaflet" aria-hidden="true" /> }
+);
 
 export const metadata: Metadata = {
   title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC",
@@ -86,6 +94,11 @@ export default function HomePage() {
     imageSrcSet: "/team-photo-mobile.webp 900w, /team-photo.webp 1800w",
     imageSizes: "100vw",
   });
+  // Warm up DNS for the OSM tile CDN so the below-the-fold service map's
+  // tiles resolve faster the moment its lazy chunk mounts. prefetchDNS is
+  // idle-friendly — a preconnect would open TCP+TLS speculatively and add
+  // overhead for a resource we don't need until the user scrolls.
+  ReactDOM.prefetchDNS("https://tile.openstreetmap.org");
 
   return (
     <div className="page-home">

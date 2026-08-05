@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import "leaflet/dist/leaflet.css";
 
 /**
  * Leaflet map centred on Pakenham (-38.078, 145.487) with a fixed 50 km
@@ -23,7 +22,12 @@ export function ServiceAreaMap() {
     let map: import("leaflet").Map | null = null;
 
     (async () => {
-      const L = (await import("leaflet")).default;
+      // Load Leaflet's JS and CSS lazily so neither sits in the home page's
+      // initial critical path — the map is below the fold.
+      const [L] = await Promise.all([
+        import("leaflet").then((m) => m.default),
+        import("leaflet/dist/leaflet.css" as string),
+      ]);
       if (cancelled || !el) return;
 
       map = L.map(el, {

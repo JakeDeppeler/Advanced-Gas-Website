@@ -81,8 +81,32 @@
 .hdr__row {
   height: 84px; display: flex; align-items: center; gap: 32px;
 }
-.hdr__logo { display:flex; align-items:center; }
-.hdr__logo svg, .hdr__logo img { height: 56px; width: auto; }
+.hdr__logo { display:flex; align-items:center; text-decoration: none; }
+.hdr__logo--lockup { gap: 12px; }
+.hdr__logo-mark { height: 48px; width: 48px; flex-shrink: 0; }
+.hdr__logo-name { display: flex; flex-direction: column; line-height: 1; }
+.hdr__logo-name b {
+  font-family: var(--f-display);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+}
+.hdr__logo-name > span {
+  font-family: var(--f-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sky);
+  margin-top: 3px;
+}
+@media (max-width: 640px) {
+  .hdr__logo-mark { height: 40px; width: 40px; }
+  .hdr__logo-name b { font-size: 17px; }
+  .hdr__logo-name > span { font-size: 12px; }
+}
+@media (max-width: 380px) {
+  .hdr__logo-name { display: none; }
+}
 
 .hdr__nav { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
 .hdr__nav a {

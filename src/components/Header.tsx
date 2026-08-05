@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { site } from "@/lib/site";
+import { LogoMark } from "@/components/Logo";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -28,15 +28,12 @@ export function Header() {
   return (
     <header className="hdr">
       <div className="wrap hdr__row">
-        <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
-          <Image
-            src="/advanced-gas-logo.webp"
-            alt={`${site.name} logo`}
-            width={280}
-            height={140}
-            priority
-            style={{ height: 56, width: "auto" }}
-          />
+        <Link href="/" className="hdr__logo hdr__logo--lockup" aria-label={`${site.name} home`}>
+          <LogoMark className="hdr__logo-mark" />
+          <span className="hdr__logo-name">
+            <b>Advanced</b>
+            <span>Gas &amp; Aircon</span>
+          </span>
         </Link>
 
         <nav className="hdr__nav" aria-label="Primary">
