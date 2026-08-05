@@ -4,24 +4,13 @@
 
 .page-home { background: var(--bg); overflow-x: clip; }
 
-/* Skip layout + paint work for below-the-fold sections until they scroll
-   near the viewport. content-visibility:auto tells Chromium/Safari to
-   treat the subtree as "you can defer this". contain-intrinsic-size is
-   the height the browser reserves so nothing jumps when the section
-   pops in (values chosen to match the rendered heights so CLS stays 0).
-   The hero + first-fold quote card are NOT deferred — they must paint
-   for LCP. Reviews container isn't deferred either because it's a
-   marquee that needs live layout to run. */
-.page-home .fixprice,
-.page-home .services-b,
-.page-home .whyus,
-.page-home .process,
-.page-home .area,
-.page-home .faq,
-.page-home .bigcta {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 800px;
-}
+/* Note: previous version applied `content-visibility: auto` to below-fold
+   sections with a fixed contain-intrinsic-size. Lighthouse penalised it
+   (CLS spike + slower Speed Index screenshot pass when the guessed height
+   didn't match actual layout). Reverted — the paint savings weren't
+   worth the metric regression on this content layout. Sections here have
+   variable heights driven by content-driven grids, so no fixed intrinsic
+   size is safe to assume. */
 
 /* Force white headings inside all dark-background sections.
    globals.css applies text-navy-900 to h1-h4 in @layer base, without
