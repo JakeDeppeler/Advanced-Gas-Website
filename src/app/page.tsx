@@ -85,15 +85,6 @@ const REVIEW_COLUMNS: Review[][] = [
 ];
 
 export default function HomePage() {
-  // Preload the LCP hero image so it starts downloading before the CSS
-  // parser reaches .hero__bg. Uses the small mobile crop on phones and
-  // the full one on desktop.
-  ReactDOM.preload("/team-photo.webp", {
-    as: "image",
-    fetchPriority: "high",
-    imageSrcSet: "/team-photo-mobile.webp 900w, /team-photo.webp 1800w",
-    imageSizes: "100vw",
-  });
   // Warm up DNS for the OSM tile CDN so the below-the-fold service map's
   // tiles resolve faster the moment its lazy chunk mounts. prefetchDNS is
   // idle-friendly — a preconnect would open TCP+TLS speculatively and add
@@ -102,6 +93,23 @@ export default function HomePage() {
 
   return (
     <div className="page-home">
+      {/*
+        Preload the LCP hero image so it starts downloading before the CSS
+        parser reaches .hero__bg. Written as a plain <link> (not
+        ReactDOM.preload) because that API drops the href attribute when
+        imageSrcSet is present, and Safari won't honour a preload without
+        a resolvable href fallback. Next hoists <link> tags into <head>.
+      */}
+      <link
+        rel="preload"
+        as="image"
+        href="/team-photo.webp"
+        // @ts-expect-error - React 18 types don't yet include imagesrcset/imagesizes
+        imagesrcset="/team-photo-mobile.webp 900w, /team-photo.webp 1800w"
+        imagesizes="100vw"
+        fetchPriority="high"
+      />
+
       {/* HERO — full-bleed team photo, cinematic overlay */}
       <section className="hero hero--photo">
         <div className="hero__bg" aria-hidden="true" />
