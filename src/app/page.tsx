@@ -5,7 +5,6 @@ import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
-import { HeroQuoteForm } from "@/components/HeroQuoteForm";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -15,6 +14,37 @@ const ServiceAreaMap = dynamic(
   () => import("@/components/ServiceAreaMap").then((m) => m.ServiceAreaMap),
   { ssr: false, loading: () => <div className="map__leaflet" aria-hidden="true" /> }
 );
+
+// Defer the 900-line multi-step HeroQuoteForm off the initial hydration
+// critical path. It has 35+ useState/useMemo/useEffect calls — on a
+// throttled mobile CPU that's ~400ms of TBT during initial hydration.
+// Loading it as a client-only lazy chunk drops it off the main-thread
+// blocking budget entirely; the skeleton keeps the layout stable so
+// there's no visible CLS when the real form swaps in.
+const HeroQuoteForm = dynamic(
+  () => import("@/components/HeroQuoteForm").then((m) => m.HeroQuoteForm),
+  { ssr: false, loading: () => <HeroQuoteFormSkeleton /> }
+);
+
+function HeroQuoteFormSkeleton() {
+  return (
+    <div className="qcard" aria-hidden="true">
+      <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> Fixed-price quote</div>
+      <h3 className="qcard__h">Get a fixed quote in 60&nbsp;seconds.</h3>
+      <p className="qcard__sub">Loading the quote form…</p>
+      <div className="qcard__progress" aria-hidden="true">
+        <i className="is-on" /><i /><i /><i />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
+        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
+        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
+        <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
+      </div>
+      <p className="qcard__finep">60s. No obligation. No spam. Response in 2 business hours.</p>
+    </div>
+  );
+}
 
 export const metadata: Metadata = {
   title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC",
