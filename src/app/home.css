@@ -43,7 +43,7 @@
 .page-home .hero__bg {
   position: absolute; inset: 0;
   background:
-    url("/team-photo.png") center 30% / cover no-repeat,
+    url("/team-photo.webp") center 30% / cover no-repeat,
     linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   z-index: 0;
 }
@@ -152,7 +152,7 @@
   .page-home .hero { min-height: 560px; }
   .page-home .hero__bg {
     background:
-      url("/team-photo.png") center 22% / cover no-repeat,
+      url("/team-photo-mobile.webp") center 22% / cover no-repeat,
       linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   }
   .page-home .hero__scrim {
@@ -461,10 +461,10 @@
   background-position: center;
   background-repeat: no-repeat;
 }
-.page-home .fixprice__photo--reclaim { background-image: url("/reclaim-split-back.jpg"); }
-.page-home .fixprice__photo--aio     { background-image: url("/thermann-heat-pump.jpg"); }
-.page-home .fixprice__photo--split   { background-image: url("/reclaim-split-back.jpg"); }
-.page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.jpg"); }
+.page-home .fixprice__photo--reclaim { background-image: url("/reclaim-split-back.webp"); }
+.page-home .fixprice__photo--aio     { background-image: url("/thermann-heat-pump.webp"); }
+.page-home .fixprice__photo--split   { background-image: url("/reclaim-split-back.webp"); }
+.page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.webp"); }
 
 /* Featured "highest quality" card in the middle of the fixed-price row */
 .page-home .fixprice--feature {
@@ -723,22 +723,22 @@
   background-size: contain;
   background-color: #f4f0e6;
 }
-.page-home .bcard__photo--heatpump  { background-image: url("/thermann-heat-pump.jpg"); }
-.page-home .bcard__photo--split     { background-image: url("/kaden-indoor.jpg"); }
-.page-home .bcard__photo--ducted    { background-image: url("/ducted-condenser.jpg"); }
-.page-home .bcard__photo--gas       { background-image: url("/gas-ducted-install.jpg"); }
-.page-home .bcard__photo--service   { background-image: url("/evap-cooler-service.jpg"); }
-.page-home .bcard__photo--hotwater  { background-image: url("/gas-hot-water-changeover.png"); }
+.page-home .bcard__photo--heatpump  { background-image: url("/thermann-heat-pump.webp"); }
+.page-home .bcard__photo--split     { background-image: url("/kaden-indoor.webp"); }
+.page-home .bcard__photo--ducted    { background-image: url("/ducted-condenser.webp"); }
+.page-home .bcard__photo--gas       { background-image: url("/gas-ducted-install.webp"); }
+.page-home .bcard__photo--service   { background-image: url("/evap-cooler-service.webp"); }
+.page-home .bcard__photo--hotwater  { background-image: url("/gas-hot-water-changeover.webp"); }
 .page-home .bcard__photo--commercial {
   background-image:
     linear-gradient(180deg, rgba(11,20,80,0.15), rgba(11,20,80,0.35)),
-    url("/duct-work.jpg");
+    url("/duct-work.webp");
   border-bottom-color: rgba(255,255,255,0.1);
 }
 .page-home .bcard__photo--emergency {
   background-image:
     linear-gradient(180deg, rgba(193,54,42,0.10), rgba(225,74,58,0.25)),
-    url("/gas-line-safe.png");
+    url("/gas-line-safe.webp");
   border-bottom-color: rgba(255,255,255,0.15);
 }
 

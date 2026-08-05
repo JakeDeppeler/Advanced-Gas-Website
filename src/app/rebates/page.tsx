@@ -66,7 +66,7 @@ const products = [
     price: "from $5,340",
     rebate: "$2,605 rebate applied",
     pill: "premium",
-    photo: "/reclaim-split-back.jpg",
+    photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim CO₂ split heat pump install",
   },
   {
@@ -81,7 +81,7 @@ const products = [
     price: "$2,610",
     rebate: "$2,605 rebate applied",
     pill: "value",
-    photo: "/thermann-heat-pump.jpg",
+    photo: "/thermann-heat-pump.webp",
     photoAlt: "Reclaim R290 all-in-one heat pump",
   },
   {
@@ -96,7 +96,7 @@ const products = [
     price: "$2,910",
     rebate: "$2,205 rebate applied",
     pill: "mid-range",
-    photo: "/thermann-heat-pump.jpg",
+    photo: "/thermann-heat-pump.webp",
     photoAlt: "iStore heat pump install",
   },
   {
@@ -111,7 +111,7 @@ const products = [
     price: "$2,610",
     rebate: "$2,605 rebate applied",
     pill: "value",
-    photo: "/thermann-heat-pump.jpg",
+    photo: "/thermann-heat-pump.webp",
     photoAlt: "Thermann 285 L R290 heat pump",
   },
   {
@@ -126,7 +126,7 @@ const products = [
     price: "custom quote",
     rebate: "up to $1,800 rebate",
     pill: "flagship",
-    photo: "/reclaim-mitsubishi.jpg",
+    photo: "/reclaim-mitsubishi.webp",
     photoAlt: "Mitsubishi Electric split system install",
   },
   {
@@ -141,7 +141,7 @@ const products = [
     price: "custom quote",
     rebate: "up to $1,500 rebate",
     pill: "value",
-    photo: "/kaden-indoor.jpg",
+    photo: "/kaden-indoor.webp",
     photoAlt: "Kaden split system indoor head install",
   },
   {
@@ -156,7 +156,7 @@ const products = [
     price: "from $11,000",
     rebate: "up to $5,000 rebate",
     pill: "whole home",
-    photo: "/ducted-condenser.jpg",
+    photo: "/ducted-condenser.webp",
     photoAlt: "Ducted aircon condenser install",
   },
 ];

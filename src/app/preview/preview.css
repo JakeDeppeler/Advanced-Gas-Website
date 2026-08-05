@@ -114,7 +114,7 @@
 .page-preview .pv-hero__bg {
   position: absolute; inset: 0;
   background:
-    url("/team-photo.png") center 22% / cover no-repeat,
+    url("/team-photo.webp") center 22% / cover no-repeat,
     linear-gradient(135deg, #2a3555 0%, #1a2050 55%, #0f1738 100%);
 }
 .page-preview .pv-hero__scrim {

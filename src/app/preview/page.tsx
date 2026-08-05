@@ -179,7 +179,7 @@ export default function PreviewPage() {
           <p className="pv-lede">VEU rebate applied, GST included, warranty pack in 24&nbsp;hrs.</p>
           <div className="pv-fp">
             <article className="pv-fp-item">
-              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/thermann-heat-pump.jpg')" }} />
+              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/thermann-heat-pump.webp')" }} />
               <div className="pv-fp-body">
                 <div className="pv-fp-eye">All-in-one · Best value</div>
                 <h3 className="pv-fp-t">Reclaim R290, fully installed</h3>
@@ -191,7 +191,7 @@ export default function PreviewPage() {
             </article>
             <article className="pv-fp-item pv-fp-item--feature">
               <span className="pv-fp-flag">Highest quality</span>
-              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/reclaim-split-back.jpg')" }} />
+              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/reclaim-split-back.webp')" }} />
               <div className="pv-fp-body">
                 <div className="pv-fp-eye">Split · AUS-made</div>
                 <h3 className="pv-fp-t">Reclaim CO₂ split, fully installed</h3>
@@ -202,7 +202,7 @@ export default function PreviewPage() {
               </div>
             </article>
             <article className="pv-fp-item">
-              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/ducted-condenser.jpg')" }} />
+              <div className="pv-fp-thumb" style={{ backgroundImage: "url('/ducted-condenser.webp')" }} />
               <div className="pv-fp-body">
                 <div className="pv-fp-eye">Ducted · Whole home</div>
                 <h3 className="pv-fp-t">18&nbsp;kW Mitsubishi ducted</h3>

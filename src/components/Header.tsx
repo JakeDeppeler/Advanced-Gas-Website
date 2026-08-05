@@ -30,7 +30,7 @@ export function Header() {
       <div className="wrap hdr__row">
         <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
           <Image
-            src="/advanced-gas-logo.jpg"
+            src="/advanced-gas-logo.webp"
             alt={`${site.name} logo`}
             width={280}
             height={140}

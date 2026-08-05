@@ -28,7 +28,7 @@ export const posts: BlogPost[] = [
     read: "14 min read",
     title: "The complete Pakenham guide to the VEU rebate in 2026",
     blurb: "What it is, what's actually changed in 2026, the real maximum you can claim on a heat pump or aircon, and the 3 mistakes most homeowners make on the application.",
-    photo: "/reclaim-split-back.jpg",
+    photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim heat pump install with VEU rebate applied",
     featured: true,
     content: [
@@ -61,7 +61,7 @@ export const posts: BlogPost[] = [
     read: "10 min read",
     title: "Reclaim vs iStore vs Thermann: which heat pump is right for your house?",
     blurb: "Honest comparison of the three brands we actually install, with sizing advice for 2 / 3 / 5-person households.",
-    photo: "/thermann-heat-pump.jpg",
+    photo: "/thermann-heat-pump.webp",
     photoAlt: "Thermann heat pump install",
     content: [
       { type: "p", text: "We install about 400 heat pumps a year across Pakenham, Berwick, Cranbourne and Officer. Three brands dominate that mix: Reclaim, iStore and Thermann. Here's the honest comparison, pros, cons, price and who each one suits." },
@@ -90,7 +90,7 @@ export const posts: BlogPost[] = [
     read: "7 min read",
     title: "What does a heat pump actually cost after the VEU rebate in 2026?",
     blurb: "Real numbers, not \"from $XXX\" marketing, for a 270L Reclaim install in Pakenham, with the rebate applied.",
-    photo: "/reclaim-split-back.jpg",
+    photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim heat pump install",
     alt: true,
     content: [
@@ -128,7 +128,7 @@ export const posts: BlogPost[] = [
     read: "9 min read",
     title: "How to size a split system for your bedroom (and not get oversold)",
     blurb: "The 2.5kW vs 3.5kW vs 5kW question, demystified. Includes a quick room-size table for SE Melbourne homes.",
-    photo: "/kaden-indoor.jpg",
+    photo: "/kaden-indoor.webp",
     photoAlt: "Kaden split system indoor head",
     content: [
       { type: "p", text: "Every second aircon quote we see for a Pakenham bedroom pitches a 5 kW unit. Almost none of them actually need it. Here's how to size it right." },
@@ -158,7 +158,7 @@ export const posts: BlogPost[] = [
     read: "6 min read",
     title: "Carbon monoxide testing on ducted heaters: why every 2 years matters",
     blurb: "What CO is, how it builds up in old units, what we test for on a service, and why this isn't a corner you can cut.",
-    photo: "/evap-cooler-service.jpg",
+    photo: "/evap-cooler-service.webp",
     photoAlt: "Gas safety service technician testing",
     alt: true,
     content: [
@@ -188,7 +188,7 @@ export const posts: BlogPost[] = [
     read: "11 min read",
     title: "Heat pumps + solar PV: the daytime-charge trick that drops bills to zero",
     blurb: "How to schedule a Reclaim or iStore unit to run during the day on excess solar, the cheapest hot water in the country.",
-    photo: "/reclaim-mitsubishi.jpg",
+    photo: "/reclaim-mitsubishi.webp",
     photoAlt: "Reclaim heat pump paired with solar",
     content: [
       { type: "p", text: "If you've got solar PV and a modern heat pump, you can run your hot water for free. Literally free. Here's how the daytime-charge trick works." },
@@ -214,7 +214,7 @@ export const posts: BlogPost[] = [
     read: "5 min read",
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     blurb: "When the gas tank goes you've got 48 hours to decide. Here's the maths, including the heat pump rebate question.",
-    photo: "/gas-hot-water-changeover.png",
+    photo: "/gas-hot-water-changeover.webp",
     photoAlt: "Gas hot water changeover install",
     alt: true,
     content: [
@@ -245,7 +245,7 @@ export const posts: BlogPost[] = [
     read: "12 min read",
     title: "Replacing ducted gas heating with reverse-cycle: the honest cost-benefit",
     blurb: "Most homes save $1,400+ a year. But not all of them. Here's how to work out if your house is one of the winners.",
-    photo: "/duct-work.jpg",
+    photo: "/duct-work.webp",
     photoAlt: "Ducted reverse-cycle install replacing gas",
     content: [
       { type: "p", text: "Ducted gas is heading the way of open fireplaces. Gas prices in Victoria are up 30% over five years and heading further. Reverse-cycle ducted (aka \"ducted heat pump\") is the modern replacement, same ductwork, better efficiency, cooling in summer too. But it doesn't make sense for every house. Here's the honest maths." },
@@ -270,7 +270,7 @@ export const posts: BlogPost[] = [
     read: "8 min read",
     title: "VEU eligibility for rentals: a checklist landlords can hand to their PM",
     blurb: "Landlords ask us this every week. Here's a one-page checklist your property manager can use to confirm eligibility in 5 minutes.",
-    photo: "/team-photo.png",
+    photo: "/team-photo.webp",
     photoAlt: "Advanced Gas team on a rental property install",
     alt: true,
     content: [
@@ -301,7 +301,7 @@ export const posts: BlogPost[] = [
     read: "4 min read",
     title: "5 things you should clean on your split system every quarter",
     blurb: "The DIY maintenance that doubles the life of your aircon and keeps your warranty intact. Five minutes of work.",
-    photo: "/ducted-condenser.jpg",
+    photo: "/ducted-condenser.webp",
     photoAlt: "Split system condenser clean",
     content: [
       { type: "p", text: "Manufacturer warranties on split systems require the owner to keep the unit clean. Most people don't. That's why splits die at 8-10 years when they should last 15+. Five minutes of quarterly maintenance doubles the life of your unit. Here's the drill." },

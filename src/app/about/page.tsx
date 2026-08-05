@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 };
 
 const team = [
-  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.png" },
-  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.png" },
-  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.png" },
-  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.png" },
+  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.webp" },
+  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.webp" },
+  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.webp" },
+  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.webp" },
 ];
 
 const values = [
@@ -53,7 +53,7 @@ export default function AboutPage() {
         <div className="wrap">
           <div className="ab-frame__big" style={{ position: "relative", padding: 0, overflow: "hidden" }}>
             <Image
-              src="/team-photo.png"
+              src="/team-photo.webp"
               alt="Advanced Gas & Airconditioning team at the Pakenham workshop"
               fill
               sizes="(max-width: 1200px) 100vw, 1200px"

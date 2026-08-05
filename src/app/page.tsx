@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import ReactDOM from "react-dom";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { HeroQuoteForm } from "@/components/HeroQuoteForm";
@@ -76,6 +77,16 @@ const REVIEW_COLUMNS: Review[][] = [
 ];
 
 export default function HomePage() {
+  // Preload the LCP hero image so it starts downloading before the CSS
+  // parser reaches .hero__bg. Uses the small mobile crop on phones and
+  // the full one on desktop.
+  ReactDOM.preload("/team-photo.webp", {
+    as: "image",
+    fetchPriority: "high",
+    imageSrcSet: "/team-photo-mobile.webp 900w, /team-photo.webp 1800w",
+    imageSizes: "100vw",
+  });
+
   return (
     <div className="page-home">
       {/* HERO — full-bleed team photo, cinematic overlay */}
@@ -198,7 +209,7 @@ export default function HomePage() {
                   {[...col, ...col].map((r, ri) => (
                     <article key={`${ci}-${ri}`} className="revcard">
                       <div className="revcard__stars">★★★★★</div>
-                      <h4 className="revcard__title">{r.title}</h4>
+                      <h3 className="revcard__title">{r.title}</h3>
                       <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
                       <div className="revcard__by">
                         <span className="revcard__avatar">{r.a}</span>
@@ -221,7 +232,7 @@ export default function HomePage() {
             {REVIEW_COLUMNS[0].slice(0, 4).map((r, i) => (
               <article key={`m-${i}`} className="revcard revcard--mobile">
                 <div className="revcard__stars">★★★★★</div>
-                <h4 className="revcard__title">{r.title}</h4>
+                <h3 className="revcard__title">{r.title}</h3>
                 <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
                 <div className="revcard__by">
                   <span className="revcard__avatar">{r.a}</span>
