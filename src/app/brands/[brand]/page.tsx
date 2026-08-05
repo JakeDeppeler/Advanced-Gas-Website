@@ -4,7 +4,14 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, findBrand } from "@/lib/brands";
+import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
+
+const INSTALLER_SUBURB_SLUGS = [
+  "pakenham", "officer", "beaconsfield", "berwick", "narre-warren",
+  "endeavour-hills", "hallam", "hampton-park", "cranbourne", "clyde-north",
+  "drouin", "warragul",
+];
 import "../../detail.css";
 import "./brand.css";
 
@@ -120,6 +127,30 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Where we install this brand — 12 suburb combo links */}
+      <section className="dp-quote" style={{ paddingTop: 60, paddingBottom: 60 }}>
+        <div className="wrap">
+          <div className="ds-section-head" style={{ marginBottom: 24 }}>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Local {brand.name} installer</span>
+            <h2 style={{ marginBottom: 6 }}>Where we install {brand.name}.</h2>
+            <p>
+              Every one of these suburbs has {brand.name} systems we&rsquo;ve installed and continue to service.
+              Tap through to see what we typically install in each area.
+            </p>
+          </div>
+          <div className="dp-quote__chips">
+            {INSTALLER_SUBURB_SLUGS
+              .map((slug) => publishedSuburbs.find((s) => s.slug === slug))
+              .filter((s): s is NonNullable<typeof s> => Boolean(s))
+              .map((s) => (
+                <Link key={s.slug} href={`/brands/${brand.slug}/installers/${s.slug}`}>
+                  {brand.name} · {s.name}
+                </Link>
+              ))}
+          </div>
         </div>
       </section>
 

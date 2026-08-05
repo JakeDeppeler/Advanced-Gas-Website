@@ -320,6 +320,314 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Book a service any time, we bundle multiple units at the same address if you've got splits in bedrooms plus a living-room unit." },
     ],
   },
+
+  // ============ Cluster hubs (SEO Wave 5) ============
+
+  {
+    slug: "heat-pump-hot-water-melbourne-complete-guide",
+    cat: "Heat pumps",
+    date: "August 2026",
+    read: "16 min read",
+    title: "Heat pump hot water Melbourne: the complete 2026 guide",
+    blurb: "How heat pumps work, what they actually cost in Melbourne after the VEU rebate, which brand suits which household, and the mistakes we see people make every week.",
+    photo: "/reclaim-spit-close-up.webp",
+    photoAlt: "Reclaim CO2 heat pump installed in a Melbourne home",
+    content: [
+      { type: "p", text: "Heat pump hot water is the biggest single upgrade a Melbourne household can make to their energy bill. Done right — with the VEU rebate applied at the quote — it drops your hot-water running cost by 60-75% versus gas or electric storage, and the payback period sits around 4-6 years instead of the 12-15 years people assume." },
+      { type: "p", text: "This is the article we wish every Melbourne homeowner read before ringing us. If you're on the fence, this walks you through what you actually need to know." },
+
+      { type: "h2", text: "How a heat pump hot water system actually works" },
+      { type: "p", text: "A heat pump is basically a reverse-cycle aircon in a tank. Instead of burning gas or heating an element, it uses electricity to compress a refrigerant, and that refrigerant grabs heat from the outside air and dumps it into the water tank. Because it's moving heat rather than making heat, it gets 3-5 kWh of hot water out of every 1 kWh of electricity — a COP (Coefficient of Performance) of 3 to 5. An electric element gets you 1-for-1. Gas gets you about 0.85-for-1 once you account for combustion losses and the tank standing loss." },
+      { type: "p", text: "In Melbourne winters (down to 3-5°C most mornings, occasionally below zero), the COP drops but still sits at 2.5-3.5 depending on the brand. Cold-climate variants like the Reclaim CO2 (R744 refrigerant) hold capacity down to -10°C — worth the premium if you're in Emerald, Gembrook, Cockatoo, or the hills-country postcodes." },
+
+      { type: "h2", text: "What it actually costs — installed, after rebate" },
+      { type: "p", text: "Melbourne installed prices for the units we install most often, after the full VEU rebate stack and Solar Homes bonus where eligible:" },
+      { type: "ul", items: [
+        "iStore 270L (R290): under $900 out-of-pocket for VEU-eligible households",
+        "Thermann Series 5 315L (R290): around $2,590 installed",
+        "Reclaim CO2 315L stainless: around $3,190 installed",
+        "Reclaim CO2 400L stainless: around $3,690 installed (for larger families)",
+      ] },
+      { type: "p", text: "These are real fully-installed prices — labour, disposal of the old tank, permit, and the compliance certificate all included. If a quote you're comparing has 'rebate handled separately' in the fine print, you're being upsold." },
+
+      { type: "h2", text: "Sizing — the 200/270/315/400 L question" },
+      { type: "p", text: "Heat pump tanks recover slower than gas continuous flow, so tank size matters more than it does for storage gas. Our rules of thumb for Melbourne households:" },
+      { type: "ul", items: [
+        "1-2 people, one bathroom: 180L (iStore) or 250L (Reclaim)",
+        "3-4 people, one to two bathrooms: 270L or 315L",
+        "5+ people or acreage with heavy draw: 400L",
+      ] },
+      { type: "p", text: "If in doubt, size up. A 315L tank with a heavier draw uses maybe 5% more energy over a year than a 270L; a 270L tank that runs out mid-second-shower is a daily annoyance." },
+
+      { type: "h2", text: "Reclaim vs Thermann vs iStore — the honest take" },
+      { type: "p", text: "We install all three. The gap between them is real but not enormous:" },
+      { type: "ul", items: [
+        "Reclaim (CO2): premium — natural refrigerant, stainless tank, quietest, best cold-climate performance. 6-year tank warranty. About $1,000 more than iStore.",
+        "Thermann (R290): mid-tier volume brand — solid Rheem parts and warranty backing, wide range covers every fuel type. Sweet spot for most Melbourne families.",
+        "iStore (R290): best VEU rebate outcome — Chinese-built but Australian-designed, hits the rebate hard so out-of-pocket is often under $1,000. Best value if budget is the driving factor.",
+      ] },
+      { type: "p", text: "We wrote a separate long-form comparison on this — see 'Reclaim vs iStore vs Thermann' — but the tl;dr is: if you're in the hills or you plan to be in the house 10+ years, Reclaim. If you want the best rebate outcome, iStore. Everything else, Thermann Series 5." },
+
+      { type: "h2", text: "Common mistakes we see" },
+      { type: "p", text: "First — trying to put a heat pump where the old gas storage tank was without checking outdoor space. Heat pumps need airflow. If your old tank was in a tight cupboard or under a stairwell, we might need to move the plumbing outdoors or repurpose a bit of the yard. Not a deal-breaker but affects the quote." },
+      { type: "p", text: "Second — choosing on sticker price without factoring in the Australian Made $400 bonus. Reclaim, Thermann and Dux qualify. iStore doesn't. So the $400 gap looks smaller once the bonus is applied." },
+      { type: "p", text: "Third — ignoring Solar Homes eligibility. If you're an owner-occupier under $150k combined income with the property under $3M, there's another $1,000 rebate available on top of VEU. Half the Melbourne households we quote qualify and don't know it. See our VEU rebate guide for the full checklist." },
+
+      { type: "h2", text: "What happens on quote day" },
+      { type: "p", text: "We come out for a 20-minute site check: measure the tank space, check the outdoor position for the compressor, look at the switchboard, confirm your Solar Homes eligibility on the spot. You get a fixed-price quote emailed within 12 hours with all rebates already applied. If you accept, we book you in — usually within the week." },
+      { type: "p", text: "No obligation to accept. If our number's higher than a competitor, we'll show you where the difference is." },
+    ],
+  },
+
+  {
+    slug: "split-system-installation-melbourne-2026",
+    cat: "Aircon",
+    date: "August 2026",
+    read: "12 min read",
+    title: "Split system installation Melbourne: the 2026 buyer's guide",
+    blurb: "Sizing, brand pick, install day, and what a proper Melbourne installer should be doing that the cheap mob doesn't.",
+    photo: "/reclaim-split-back.webp",
+    photoAlt: "Mitsubishi split system installed in a Melbourne living room",
+    content: [
+      { type: "p", text: "Split system aircon is Melbourne's default cooling and heating for anything smaller than a full ducted retrofit. If you get the sizing right and the install done properly, one 5 kW unit runs the main living zone of an average Berwick-sized brick veneer for a decade with almost zero maintenance. Get it wrong and you're either replacing the unit at year 5 or running it flat-out on the hottest day and it still can't keep up." },
+
+      { type: "h2", text: "How to actually size a split for a Melbourne room" },
+      { type: "p", text: "The rule of thumb everyone quotes is 100W of cooling per square metre — a 4m × 5m bedroom is 20 m² × 100 = 2 kW so buy a 2.5 kW unit. That's a starting point but Melbourne throws in some wrinkles:" },
+      { type: "ul", items: [
+        "West-facing glass at afternoon sun: add 30% to the load",
+        "Cathedral ceiling or double-height: add 20-40%",
+        "Poor insulation (older Berwick/Officer weatherboards): add 25%",
+        "Ceiling fan already in the room: subtract 10%",
+      ] },
+      { type: "p", text: "So a 4×5 west-facing bedroom in an older weatherboard: 20 × 100 × 1.3 × 1.25 = 3.25 kW → we'd spec a 3.5 kW unit, not a 2.5. Undersizing is the single biggest reason customers ring us to replace a unit at year 3." },
+
+      { type: "h2", text: "Common Melbourne room sizings" },
+      { type: "ul", items: [
+        "Small bedroom, well-insulated: 2.5 kW (e.g. Mitsubishi MSZ-AP25)",
+        "Master bedroom or study: 3.5 kW (MSZ-AP35)",
+        "Open-plan living / dining, average glass: 5.0 kW (MSZ-AP50)",
+        "Large living or great-room: 6.0 kW or 7.1 kW (MSZ-AP60/71)",
+        "Cathedral-ceiling great-room: 8.0 kW+ or move to multi-head",
+      ] },
+
+      { type: "h2", text: "Brand pick — Mitsubishi vs Kaden vs everything else" },
+      { type: "p", text: "We install two split-system brands as our defaults: Mitsubishi Electric (premium) and Kaden (value). We stopped installing several other brands over the last few years because the failure rates weren't worth the warranty admin. Full range and our take is on the /brands section — the short version:" },
+      { type: "ul", items: [
+        "Mitsubishi Electric MSZ-AP: our default recommendation. Genuinely quieter, longer-lived, and the parts pipeline is still open on units we installed a decade ago. ~$500-700 dearer than Kaden.",
+        "Mitsubishi Electric MSZ-FH (Hyper Heating): worth the premium if you're in the Dandenong Ranges — holds heating capacity down to -15°C where normal splits lose 30%.",
+        "Kaden Bold: value pick when the family needs cooling in three bedrooms and the Mitsubishi quote busts the budget. Solid, well-supported, 5-year warranty.",
+        "Everything else: we'll install what the customer specifies but we prefer the two above.",
+      ] },
+
+      { type: "h2", text: "What a proper install day looks like" },
+      { type: "p", text: "A standard split system install is a half-day for one unit. Here's what should happen — and what the $99-a-day mobs skip:" },
+      { type: "ul", items: [
+        "Vacuum-purge the refrigerant lines to at least -500 microHg (removes moisture that would eventually degrade the compressor)",
+        "Nitrogen pressure test the lines to confirm no leaks BEFORE releasing the factory refrigerant charge",
+        "Mount the outdoor unit on wall brackets or a purpose-made stand — never straight on the ground",
+        "Wrap and duct-tape the line-set weather cover neatly (visible from the yard, not the neighbour's problem)",
+        "Test the unit in cool AND heat for 20 minutes minimum, confirm temperatures at the vent, sign the compliance certificate",
+      ] },
+      { type: "p", text: "If the installer doesn't have a vacuum pump on the truck, they're not vacuum-purging. If they don't have a nitrogen bottle, they're not pressure testing. These are the two easy-to-check signals of a proper job." },
+
+      { type: "h2", text: "What Melbourne installs actually cost" },
+      { type: "p", text: "Fully installed prices we quote regularly — includes the unit, standard 3m back-to-back install, wall bracket, and compliance certificate:" },
+      { type: "ul", items: [
+        "2.5 kW MSZ-AP25 installed: $2,190",
+        "3.5 kW MSZ-AP35 installed: $2,390",
+        "5.0 kW MSZ-AP50 installed: $2,690",
+        "7.1 kW MSZ-AP71 installed: $3,290",
+        "Kaden Bold equivalents: $500-700 less than Mitsubishi at each size",
+      ] },
+      { type: "p", text: "Add ~$300 for extended pipe runs (>5m), ~$500 for a first-floor install with roof access, ~$200 for salt-tolerant coil coating (Tooradin, Lang Lang coastal edge)." },
+
+      { type: "h2", text: "What to ask the installer" },
+      { type: "p", text: "Three questions that tell you everything:" },
+      { type: "ul", items: [
+        "Do you vacuum-purge and nitrogen-pressure-test? (Should be yes, no hesitation)",
+        "What's the workmanship warranty on top of the manufacturer warranty? (We do 6 years — bare minimum should be 5)",
+        "Will the person who quoted me be on the tools? (Small-business red flag if the answer is 'no, we send a sub-contractor')",
+      ] },
+    ],
+  },
+
+  {
+    slug: "ducted-aircon-melbourne-cost-install",
+    cat: "Ducted aircon",
+    date: "August 2026",
+    read: "14 min read",
+    title: "Ducted aircon Melbourne — cost, install, and what to spec in 2026",
+    blurb: "Sizing a ducted system for a Melbourne family home, retrofit vs new-build install, zoning with Zonemate, and what a $9,000 quote should actually get you.",
+    photo: "/duct-work.webp",
+    photoAlt: "Ducted aircon installation in a Melbourne home ceiling void",
+    content: [
+      { type: "p", text: "Ducted air conditioning is the highest-value upgrade for a Melbourne family home that's outgrown single-room splits. Done right, one system cools and heats the entire house from a single controller with per-zone setpoints. Done wrong — undersized, badly ducted, no zoning — it costs more to run than four separate splits and never quite gets cold enough on a 38°C day." },
+      { type: "p", text: "This is what we tell every Berwick, Officer, Cranbourne and Clyde-North family that rings us for a ducted quote." },
+
+      { type: "h2", text: "Retrofit or new-build — the pricing gap is big" },
+      { type: "p", text: "If your house was built with ducted rough-ins from day one (most Clyde North, Officer South, Selandra Rise new builds after 2018), install is straightforward — indoor and outdoor unit plus connection, usually $6,500-$9,000. If we're pulling ducts through an existing weatherboard or 90s brick veneer where nothing was pre-run, add $2,000-$4,000 in duct + ceiling access labour." },
+      { type: "p", text: "We check the ceiling void on the quote visit. Standard 300mm void with truss access = straightforward. 200mm void or hip-roof with no truss access = harder, and we spec the slim-line SEZ-KD indoor rather than a normal PEAD-M. Not a deal-breaker but affects the price." },
+
+      { type: "h2", text: "Sizing — the load calc that matters" },
+      { type: "p", text: "For a typical Melbourne double-storey brick veneer of ~200m² living area with average glass:" },
+      { type: "ul", items: [
+        "Small 3-bed single-storey (~120m²): 10-12.5 kW",
+        "Standard 4-bed single-storey (~160-180m²): 14 kW",
+        "4-bed double-storey (~200m²): 16 kW",
+        "Larger great-room double-storey with high glass (>250m²): 18-22 kW",
+      ] },
+      { type: "p", text: "We do a proper heat-load calc on any job over 14 kW — measures the glass area, insulation R-value, and orientation. Skip this and either you get an oversized system that cycles constantly (expensive to run, hard on the compressor) or an undersized one that can't hold setpoint on 35°C+ days." },
+
+      { type: "h2", text: "Zoning — the single biggest efficiency win" },
+      { type: "p", text: "Never install a ducted system without zoning. Non-negotiable. A 4-zone Zonemate controller lets you shut off unused rooms — kids' bedrooms during the day, living zones at night — and cuts running cost by 30-40% over an always-on ducted setup." },
+      { type: "p", text: "Our default recommendations by house size:" },
+      { type: "ul", items: [
+        "3-bed single-storey: Zonemate 4-zone (living, master, kids, study/bathroom)",
+        "4-5 bed single-storey: Zonemate 6-zone",
+        "Double-storey: Zonemate 8-zone (per bedroom + living zones, upstairs/downstairs split)",
+      ] },
+      { type: "p", text: "Variable-speed dampers (VSD) are worth the extra ~$60 per zone if you want proportional airflow rather than just on/off. Nicer comfort in less-used zones — 30% airflow to the study, 100% to living, all controlled from your phone." },
+
+      { type: "h2", text: "Brand pick for the ducted head unit" },
+      { type: "p", text: "Mitsubishi Electric PEAD-M is our default mid-static indoor unit. For long duct runs or 6+ zones, we step up to the PEA-RP high-static. For shallow ceiling voids we use the SEZ-KD slim-line. For value builds where the Mitsubishi busts budget, Kaden Ducted is the alternative — about $1,500-$2,000 saving at the 14 kW size." },
+
+      { type: "h2", text: "What a Melbourne ducted install actually costs" },
+      { type: "p", text: "Fully installed, includes indoor + outdoor unit, all ducting to 4-6 zones, Zonemate controller and dampers, compliance certificate, warranty registration:" },
+      { type: "ul", items: [
+        "10 kW Kaden Ducted, 4-zone: $6,890",
+        "12.5 kW Kaden Ducted, 6-zone: $7,990",
+        "14 kW Kaden Ducted, 6-zone: $8,590",
+        "14 kW Mitsubishi PEAD-M, 6-zone: $10,490",
+        "18 kW Mitsubishi PEA-RP, 8-zone: $14,490",
+      ] },
+      { type: "p", text: "Retrofit adds $2,000-$4,000 to any of these numbers. Ceiling access work, patch and paint, and roof-cavity duct pulling isn't quick." },
+
+      { type: "h2", text: "What separates a $9k quote from a $12k quote" },
+      { type: "p", text: "Same-brand indoor unit, similar kW rating — but a $3,000 gap. That gap is almost always:" },
+      { type: "ul", items: [
+        "Zone count (4 vs 8) and damper type (constant-speed vs variable-speed)",
+        "Duct diameter and insulation grade (R1.0 flexi vs R1.5 rigid)",
+        "Return-air grille size (undersized returns choke airflow)",
+        "Length of copper line run and refrigerant top-up",
+        "Extras: Wi-Fi module, roof-access hatches, external condenser stand",
+      ] },
+      { type: "p", text: "Ask any competing quote to itemise these. Higher price with better spec beats lower price with cheap components every day of the week." },
+    ],
+  },
+
+  {
+    slug: "gas-heating-hot-water-melbourne-guide",
+    cat: "Gas plumbing",
+    date: "August 2026",
+    read: "11 min read",
+    title: "Gas heating & hot water Melbourne — repair, replace, or switch?",
+    blurb: "Brivis, Braemar, Rinnai and Rheem — what still makes sense on gas in Melbourne in 2026, and when it's time to move to heat pump or reverse-cycle.",
+    photo: "/gas-hot-water-changeover.webp",
+    photoAlt: "Gas hot water system replacement in a Melbourne home",
+    content: [
+      { type: "p", text: "The Victorian government wants gas out of homes by 2035. That's the direction of travel. But the reality for a Melbourne homeowner in 2026 is more nuanced — some gas appliances still make sense to repair or replace like-for-like, others don't. This guide walks through when each choice is right." },
+
+      { type: "h2", text: "The three gas appliances in a typical Melbourne home" },
+      { type: "p", text: "Most Melbourne family homes still have three gas appliances:" },
+      { type: "ul", items: [
+        "Ducted gas heater (Brivis, Braemar, Bonaire) — 10-20 years old, sitting in the roof or under the house",
+        "Gas hot water (Rinnai continuous flow or a gas storage tank) — 8-15 years old, mounted outside",
+        "Gas cooktop — usually indefinite lifespan, low running cost",
+      ] },
+      { type: "p", text: "The first two are the ones that trigger the repair-vs-replace-vs-switch decision every few years. We'll take them in turn." },
+
+      { type: "h2", text: "Ducted gas heater — repair, replace, or switch to reverse cycle?" },
+      { type: "p", text: "If your ducted gas heater is under 10 years old and just needs a service or a burner replacement, repair. Simple, cheap, done in a morning. Typical service $220, ignition unit swap ~$580." },
+      { type: "p", text: "If it's 10-15 years old and the heat exchanger has cracked (we test for this — carbon monoxide leaks kill people every winter), that's a like-for-like replacement or a switch to reverse-cycle. Like-for-like Brivis-to-Brivis replacement runs $4,500-$6,500 depending on system size. Switching to reverse-cycle ducted uses your existing ducts if they're sound — $9,000-$12,000 but the running cost is roughly 60% lower and you get cooling in summer as a bonus." },
+      { type: "p", text: "If it's 15+ years old — even if it's still running — the payback on switching to reverse-cycle is usually 6-8 years even without a rebate. If you're planning to stay in the house that long, switch." },
+
+      { type: "h2", text: "Gas hot water — the fastest-changing decision" },
+      { type: "p", text: "This is the one that's shifted hardest in the last two years. In 2023 a like-for-like gas continuous flow swap was the obvious call. In 2026, with the VEU rebate + Solar Homes bonus, a heat pump often ends up cheaper installed AND cheaper to run." },
+      { type: "p", text: "Real numbers for a Cranbourne family we quoted last month:" },
+      { type: "ul", items: [
+        "Rinnai continuous flow like-for-like replacement: $1,890 installed",
+        "iStore 270L heat pump after VEU + Solar Homes: $890 installed",
+        "Reclaim 315L stainless heat pump after rebate: $3,190 installed",
+      ] },
+      { type: "p", text: "The iStore heat pump was $1,000 cheaper installed than the like-for-like Rinnai. It'll save them another $400/year in running cost. That's an 8-year net saving over $4,000." },
+      { type: "p", text: "The one exception: if your existing gas line, meter and location can accommodate continuous flow and there's no outdoor space for a heat pump condenser, gas continuous flow is still the pragmatic choice." },
+
+      { type: "h2", text: "Emergency gas repairs — when to call today" },
+      { type: "p", text: "Ring us on the main number any time of day or night for:" },
+      { type: "ul", items: [
+        "Smell of gas anywhere in or around the house",
+        "Pilot light won't stay lit",
+        "Continuous flow throws error codes and shuts down",
+        "Yellow flame in a burner (should be blue — yellow means incomplete combustion, CO risk)",
+        "Carbon monoxide detector alarm",
+      ] },
+      { type: "p", text: "After-hours calls go to a real on-call tradie, not an overseas call centre. Response inside 90 minutes in the Pakenham-Cranbourne-Berwick belt, longer for the outer postcodes." },
+
+      { type: "h2", text: "Carbon monoxide testing — the every-two-years rule" },
+      { type: "p", text: "Any gas appliance older than 8 years should have a CO test every two years. Cracked heat exchangers in Brivis and Braemar ducted heaters are a known killer — five deaths a year in Australia from cracked units. We do the test as part of every gas heater service. $220 including the CO reading, tuning, filter clean, gas pressure check." },
+    ],
+  },
+
+  {
+    slug: "emergency-hot-water-gas-melbourne",
+    cat: "Emergency",
+    date: "August 2026",
+    read: "6 min read",
+    title: "Emergency hot water & gas repair Melbourne — what to do first",
+    blurb: "No hot water on a Sunday morning? Gas smell in the laundry? Here's the two-minute checklist before you ring us at 3am.",
+    photo: "/thermann-heat-pump.webp",
+    photoAlt: "Emergency hot water replacement in a Melbourne home",
+    content: [
+      { type: "p", text: "This is the short version — save this article for the day you actually need it, which is usually a Sunday morning with three kids and a shower queue." },
+
+      { type: "h2", text: "No hot water — the 60-second diagnosis" },
+      { type: "p", text: "Before ringing us, check three things:" },
+      { type: "ul", items: [
+        "Is any hot water coming out? Even lukewarm? (Points to element or thermostat failure vs total unit failure)",
+        "Is there an error code on the display? (Rinnai and iStore both have code lookups — snap a photo and text it to us)",
+        "Has the electrical breaker or gas isolation tap tripped? (Reset once — if it trips again, don't reset again, ring us)",
+      ] },
+      { type: "p", text: "Text the answers to our main number and we can usually tell you inside 5 minutes whether it's a same-day fix or a same-day replacement." },
+
+      { type: "h2", text: "Gas smell — do this in this order" },
+      { type: "p", text: "If you can smell gas anywhere in or around the house:" },
+      { type: "ul", items: [
+        "Do not turn any electrical switches on or off — sparks ignite gas",
+        "Open every window and external door",
+        "Turn off the gas meter (isolation valve, quarter-turn) if you can reach it safely",
+        "Get everyone outside",
+        "Ring us and, if the smell is strong, ring 000",
+      ] },
+      { type: "p", text: "We respond to gas smell calls day or night inside the Pakenham + 50km radius. On-call tradie, not overseas call centre." },
+
+      { type: "h2", text: "Carbon monoxide alarm — take it seriously" },
+      { type: "p", text: "CO is colourless, odourless, and kills. If your CO detector alarms:" },
+      { type: "ul", items: [
+        "Get everyone outside immediately",
+        "Do not turn any gas appliance on or off",
+        "Ring 000 if anyone has headache, dizziness, or nausea",
+        "Ring us for a same-day CO test and appliance shutdown",
+      ] },
+      { type: "p", text: "Ducted gas heaters are the usual culprit — cracked heat exchanger dumping CO into the return-air path. We can test on site with a proper analyser." },
+
+      { type: "h2", text: "What we do same-day (and what we don't)" },
+      { type: "p", text: "Same-day (usually within 4 hours in the Pakenham-Berwick-Cranbourne belt):" },
+      { type: "ul", items: [
+        "Hot water leak repair or unit shutdown",
+        "Gas leak isolation and repair",
+        "Ducted gas heater CO test and shutdown",
+        "Emergency plumbing (burst pipe, blocked drain if it's causing flooding)",
+      ] },
+      { type: "p", text: "Not same-day (need parts or council permits):" },
+      { type: "ul", items: [
+        "Complete heat pump replacement — usually 1-3 days for a fixed-price quote then 5-7 days for install",
+        "Complete ducted heater replacement — 3-7 days",
+        "New gas connection or meter upgrade",
+      ] },
+      { type: "p", text: "Loaner units: if you're without hot water for more than 24 hours we usually have a temporary electric loaner we can run until the new unit's in. Ask." },
+    ],
+  },
+
 ];
 
 export function getPost(slug: string): BlogPost | undefined {

@@ -60,5 +60,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]);
 
-  return [...staticUrls, ...serviceUrls, ...suburbUrls, ...brandUrls];
+  // Brand × suburb combo pages — 6 brands × 12 top suburbs = 72 URLs.
+  // Slug list kept in sync with TOP_SUBURB_SLUGS in the combo page template.
+  const TOP_SUBURB_SLUGS = [
+    "pakenham", "officer", "beaconsfield", "berwick", "narre-warren",
+    "endeavour-hills", "hallam", "hampton-park", "cranbourne", "clyde-north",
+    "drouin", "warragul",
+  ];
+  const brandSuburbUrls: MetadataRoute.Sitemap = brands.flatMap((b) =>
+    TOP_SUBURB_SLUGS
+      .filter((slug) => publishedSuburbs.some((s) => s.slug === slug))
+      .map((slug) => ({
+        url: `${base}/brands/${b.slug}/installers/${slug}`,
+        lastModified: now,
+        changeFrequency: "monthly" as const,
+        priority: 0.72,
+      })),
+  );
+
+  return [...staticUrls, ...serviceUrls, ...suburbUrls, ...brandUrls, ...brandSuburbUrls];
 }
