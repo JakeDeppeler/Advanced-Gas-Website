@@ -765,12 +765,7 @@ input, select, textarea {
 
   /* Hero: reposition team photo to focus on faces, thin the overlay
      further so the hero doesn't feel like a wall of navy on small screens. */
-  .page-home .hero__bg {
-    background:
-      linear-gradient(180deg, rgba(5,10,48,0.72) 0%, rgba(5,10,48,0.85) 100%),
-      url("/team-photo-mobile.webp") center 30% / cover no-repeat,
-      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-  }
+  /* Mobile hero — image now lives on .hero__pic <img>, no CSS bg. */
   .page-home .hero { padding: 24px 0 56px; }
   .page-home .hero__left { padding-top: 4px; }
   .page-home .hero__h1 {

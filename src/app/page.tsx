@@ -123,26 +123,26 @@ export default function HomePage() {
 
   return (
     <div className="page-home">
-      {/*
-        Preload the LCP hero image so it starts downloading before the CSS
-        parser reaches .hero__bg. Written as a plain <link> (not
-        ReactDOM.preload) because that API drops the href attribute when
-        imageSrcSet is present, and Safari won't honour a preload without
-        a resolvable href fallback. Next hoists <link> tags into <head>.
-      */}
-      <link
-        rel="preload"
-        as="image"
-        href="/team-photo.webp"
-        // @ts-expect-error - React 18 types don't yet include imagesrcset/imagesizes
-        imagesrcset="/team-photo-mobile.webp 900w, /team-photo.webp 1800w"
-        imagesizes="100vw"
-        fetchPriority="high"
-      />
-
-      {/* HERO — full-bleed team photo, cinematic overlay */}
+      {/* HERO — full-bleed team photo, cinematic overlay.
+          The hero photo is a real <img> (not a CSS background). Chrome
+          heavily deprioritises CSS backgrounds for LCP scoring — the
+          image was landing well after FCP on mobile. Rendering it as an
+          <img> with fetchpriority=high plus a responsive srcset lets
+          the browser hint discover it during initial HTML scan, and
+          the LCP candidate becomes the image itself with a clear
+          measurement. */}
       <section className="hero hero--photo">
-        <div className="hero__bg" aria-hidden="true" />
+        <picture className="hero__pic" aria-hidden="true">
+          <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
+          <img
+            src="/team-photo.webp"
+            alt=""
+            width={1800}
+            height={1200}
+            fetchPriority="high"
+            decoding="async"
+          />
+        </picture>
         <div className="hero__scrim" aria-hidden="true" />
 
         <div className="wrap hero__wrap">

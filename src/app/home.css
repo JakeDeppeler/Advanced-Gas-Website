@@ -48,13 +48,23 @@
   display: flex;
   align-items: stretch;
 }
-.page-home .hero__bg {
-  position: absolute; inset: 0;
-  background:
-    url("/team-photo.webp") center 30% / cover no-repeat,
-    linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-  z-index: 0;
+/* Hero photo — real <img> inside a <picture> so Chrome scores it as
+   the LCP element directly (CSS backgrounds are deprioritised for
+   LCP). The <picture> wrapper positions it absolute so the hero
+   layout is unchanged. */
+.page-home .hero__pic {
+  position: absolute; inset: 0; z-index: 0;
+  display: block;
+  overflow: hidden;
 }
+.page-home .hero__pic img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+}
+/* Fallback gradient behind the image in case it fails or is loading. */
+.page-home .hero { background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%); }
 .page-home .hero__scrim {
   position: absolute; inset: 0; z-index: 1;
   background:
@@ -158,11 +168,7 @@
 /* Mobile hero — pixel-close to mock B */
 @media (max-width: 760px) {
   .page-home .hero { min-height: 560px; }
-  .page-home .hero__bg {
-    background:
-      url("/team-photo-mobile.webp") center 22% / cover no-repeat,
-      linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
-  }
+  .page-home .hero__pic img { object-position: center 22%; }
   .page-home .hero__scrim {
     background:
       linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.82) 68%, rgba(5,10,48,0.98) 100%);
@@ -1013,8 +1019,12 @@
   .page-home .reviews__badge-stars { font-size: 14px; letter-spacing: 2px; }
   .page-home .reviews__badge div { font-size: 13px; }
 
-  /* swap the desktop marquee for a horizontal swipe rail */
+  /* swap the desktop marquee for a horizontal swipe rail. Explicitly stop
+     the marquee animation on mobile so the browser doesn't keep animating
+     an off-screen element (a small but measurable main-thread cost on a
+     throttled mobile CPU during Lighthouse audits). */
   .page-home .reviews__marquee { display: none; }
+  .page-home .revcol__track { animation: none !important; }
   .page-home .reviews__rail {
     display: flex;
     gap: 12px;
