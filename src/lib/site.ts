@@ -73,22 +73,10 @@ export const services = [
 
 export type ServiceSlug = (typeof services)[number]["slug"];
 
-// South-East Victoria & Gippsland service area, each becomes a local landing page.
-// Add/remove freely; sitemap + nav update automatically.
-export const suburbs = [
-  { slug: "pakenham", name: "Pakenham", postcode: "3810" },
-  { slug: "berwick", name: "Berwick", postcode: "3806" },
-  { slug: "officer", name: "Officer", postcode: "3809" },
-  { slug: "cranbourne", name: "Cranbourne", postcode: "3977" },
-  { slug: "warragul", name: "Warragul", postcode: "3820" },
-  { slug: "drouin", name: "Drouin", postcode: "3818" },
-  { slug: "garfield", name: "Garfield", postcode: "3814" },
-  { slug: "bunyip", name: "Bunyip", postcode: "3815" },
-  { slug: "korumburra", name: "Korumburra", postcode: "3950" },
-  { slug: "leongatha", name: "Leongatha", postcode: "3953" },
-  { slug: "wonthaggi", name: "Wonthaggi", postcode: "3995" },
-  { slug: "phillip-island", name: "Phillip Island", postcode: "3922" },
-  { slug: "inverloch", name: "Inverloch", postcode: "3996" },
-] as const;
-
-export type SuburbSlug = (typeof suburbs)[number]["slug"];
+// Suburb data moved to src/lib/suburbs.ts (rich per-suburb hooks). Re-exported
+// here so existing imports (`import { suburbs } from "@/lib/site"`) keep working.
+// The old list included Korumburra, Leongatha, Wonthaggi, Phillip Island and
+// Inverloch — all >50 km from Pakenham and outside our stated service radius,
+// so they've been dropped in favour of the tighter, denser 50 km catchment.
+export { suburbs, publishedSuburbs } from "./suburbs";
+export type { Suburb, SuburbSlug } from "./suburbs";

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { site, services, suburbs } from "@/lib/site";
+import { site, services } from "@/lib/site";
+import { publishedSuburbs } from "@/lib/suburbs";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -23,12 +24,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.9,
   }));
 
-  const suburbUrls: MetadataRoute.Sitemap = suburbs.flatMap((sub) => [
+  // Only sitemap-emit the suburbs we've published in the current SEO wave.
+  // Draft entries live in suburbs.ts with published:false so we can iterate on
+  // their per-suburb hooks without exposing thin content to Google.
+  const suburbUrls: MetadataRoute.Sitemap = publishedSuburbs.flatMap((sub) => [
     {
       url: `${base}/areas/${sub.slug}`,
       lastModified: now,
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.75,
     },
     ...services.slice(0, 2).map((s) => ({
       url: `${base}/areas/${sub.slug}/${s.slug}`,

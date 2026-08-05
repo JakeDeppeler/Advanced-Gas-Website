@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
-import { suburbs, services, site } from "@/lib/site";
+import { services, site } from "@/lib/site";
+import { publishedSuburbs } from "@/lib/suburbs";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
@@ -11,7 +12,7 @@ import "../../../detail.css";
 const PRIMARY_SERVICES = services.slice(0, 2);
 
 export function generateStaticParams() {
-  return suburbs.flatMap((sub) =>
+  return publishedSuburbs.flatMap((sub) =>
     PRIMARY_SERVICES.map((svc) => ({ suburb: sub.slug, service: svc.slug })),
   );
 }
@@ -21,7 +22,7 @@ export function generateMetadata({
 }: {
   params: { suburb: string; service: string };
 }): Metadata {
-  const sub = suburbs.find((s) => s.slug === params.suburb);
+  const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   const svc = services.find((s) => s.slug === params.service);
   if (!sub || !svc) return {};
 
@@ -43,7 +44,7 @@ export default function SuburbServicePage({
 }: {
   params: { suburb: string; service: string };
 }) {
-  const sub = suburbs.find((s) => s.slug === params.suburb);
+  const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   const svc = services.find((s) => s.slug === params.service);
   const content = svc ? serviceContent[svc.slug] : undefined;
   if (!sub || !svc || !content) notFound();
@@ -124,7 +125,7 @@ export default function SuburbServicePage({
               Nearby suburbs we cover
             </h3>
             <div className="dp-quote__chips">
-              {suburbs.filter((s) => s.slug !== sub.slug).slice(0, 8).map((s) => (
+              {publishedSuburbs.filter((s) => s.slug !== sub.slug).slice(0, 8).map((s) => (
                 <Link key={s.slug} href={`/areas/${s.slug}/${svc.slug}`}>{svc.short} {s.name}</Link>
               ))}
             </div>

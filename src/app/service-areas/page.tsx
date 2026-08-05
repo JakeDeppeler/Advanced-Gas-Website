@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site, suburbs, services } from "@/lib/site";
+import { site, publishedSuburbs, services } from "@/lib/site";
 import "../detail.css";
 
 export const metadata: Metadata = {
   title: "Service Areas, Pakenham + 50 km",
   description:
-    "Aircon, heat pump and gas plumbing installation across Pakenham and within 50 km. Berwick, Officer, Cranbourne, Warragul, Drouin, Phillip Island and more.",
+    "Aircon, heat pump and gas plumbing installation across Pakenham and within 50 km. Berwick, Officer, Cranbourne, Narre Warren, Endeavour Hills, Dandenong, Drouin, Warragul and everywhere in between.",
   alternates: { canonical: "/service-areas" },
 };
 
@@ -41,7 +41,7 @@ export default function ServiceAreasPage() {
             <h2>Local team, local response times.</h2>
           </div>
           <div className="dp-benefits__grid">
-            {suburbs.map((s) => (
+            {publishedSuburbs.map((s) => (
               <Link key={s.slug} href={`/areas/${s.slug}`} className="dp-benefit" style={{ textDecoration: "none", display: "block" }}>
                 <h3 style={{ fontSize: 20 }}>{s.name}</h3>
                 <p style={{ fontFamily: "var(--f-mono)", fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.04em", textTransform: "uppercase" }}>

@@ -2,20 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
-import { suburbs, services, site } from "@/lib/site";
+import { site } from "@/lib/site";
+import { publishedSuburbs, suburbs } from "@/lib/suburbs";
+import { services } from "@/lib/site";
 import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import "../../detail.css";
 
 export function generateStaticParams() {
-  return suburbs.map((s) => ({ suburb: s.slug }));
+  return publishedSuburbs.map((s) => ({ suburb: s.slug }));
 }
 
 export function generateMetadata({ params }: { params: { suburb: string } }): Metadata {
-  const sub = suburbs.find((s) => s.slug === params.suburb);
+  const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   if (!sub) return {};
-  const title = `Aircon & Heat Pump Installation ${sub.name} | Advanced Gas & Aircon`;
-  const description = `Licensed aircon, heat pump and gas plumbing services in ${sub.name} ${sub.postcode}. Same-week installs, fixed-price quotes, VEU rebates handled.`;
+  const title = `Aircon, Heat Pump & Gas Plumbing ${sub.name} ${sub.postcode} | Advanced Gas & Aircon`;
+  const description = `Licensed installer for aircon, heat pump hot water and gas plumbing in ${sub.name}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`;
   return {
     title,
     description,
@@ -24,8 +26,16 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
 }
 
 export default function SuburbPage({ params }: { params: { suburb: string } }) {
-  const sub = suburbs.find((s) => s.slug === params.suburb);
+  const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   if (!sub) notFound();
+
+  // Resolve the nearby-chip slugs to actual (published or not) suburb records —
+  // if a nearby entry isn't published yet, we still show it as a plain label so
+  // the neighbourhood context reads correctly, but only render a link when it
+  // resolves to a real, published page.
+  const nearbyResolved = sub.nearby
+    .map((slug) => suburbs.find((s) => s.slug === slug))
+    .filter((s): s is NonNullable<typeof s> => Boolean(s));
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -35,6 +45,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
 
   return (
     <div className="page-detail">
+      {/* ------------------ Hero ------------------ */}
       <section className="dp-hero">
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
@@ -46,14 +57,14 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </nav>
           <div className="dp-hero__eyebrow">
             <span className="ds-dot" />
-            {sub.name} · VIC {sub.postcode}
+            {sub.name} · VIC {sub.postcode} · {sub.council}
           </div>
           <h1>
-            Aircon &amp; heat pump installation in <span className="accent">{sub.name}</span>.
+            Aircon, heat pump &amp; gas plumbing in <span className="accent">{sub.name}</span>.
           </h1>
           <p className="dp-hero__sub">
-            Licensed plumbing and refrigeration team serving {sub.name} ({sub.postcode}) and surrounding areas.
-            Same-week installs, fixed pricing, and VEU rebates that drop heat pump hot water installs to as little as $33.
+            Licensed plumbing and refrigeration team working in {sub.name} ({sub.postcode}) since 2014.
+            You&rsquo;ll usually find us {sub.landmark}. Fixed-price quotes, same-week installs, and VEU rebates handled end-to-end.
           </p>
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my {sub.name} quote →</Link>
@@ -64,6 +75,36 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
         </div>
       </section>
 
+      {/* ------------------ Local knowledge strip ------------------ */}
+      <section className="dp-local">
+        <div className="wrap">
+          <div className="dp-local__grid">
+            <div className="dp-local__cell">
+              <div className="dp-local__lbl">Housing stock</div>
+              <p>{sub.housingStock.charAt(0).toUpperCase() + sub.housingStock.slice(1)}.</p>
+            </div>
+            <div className="dp-local__cell">
+              <div className="dp-local__lbl">What we mostly install here</div>
+              <p>{sub.commonInstall.charAt(0).toUpperCase() + sub.commonInstall.slice(1)}.</p>
+            </div>
+            <div className="dp-local__cell">
+              <div className="dp-local__lbl">Local council</div>
+              <p>{sub.council}. Compliance certificates and permit submissions handled in-house.</p>
+            </div>
+            <div className="dp-local__cell">
+              <div className="dp-local__lbl">Distance from our Pakenham base</div>
+              <p>
+                <strong>{sub.distanceKm} km</strong>
+                {sub.distanceKm === 0
+                  ? " — this is our home patch."
+                  : " — well inside our 50 km same-day service radius."}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ------------------ Services in this suburb ------------------ */}
       <section className="dp-benefits">
         <div className="wrap">
           <div className="ds-section-head">
@@ -72,14 +113,24 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </div>
           <div className="dp-benefits__grid">
             {services.slice(0, 2).map((s) => (
-              <Link key={s.slug} href={`/areas/${sub.slug}/${s.slug}`} className="dp-benefit" style={{ textDecoration: "none", display: "block" }}>
+              <Link
+                key={s.slug}
+                href={`/areas/${sub.slug}/${s.slug}`}
+                className="dp-benefit"
+                style={{ textDecoration: "none", display: "block" }}
+              >
                 <span className="dp-benefit__icon">→</span>
                 <h3>{s.short} in {sub.name}</h3>
                 <p>{s.blurb}</p>
               </Link>
             ))}
             {services.slice(2).map((s) => (
-              <Link key={s.slug} href={`/services/${s.slug}`} className="dp-benefit" style={{ textDecoration: "none", display: "block" }}>
+              <Link
+                key={s.slug}
+                href={`/services/${s.slug}`}
+                className="dp-benefit"
+                style={{ textDecoration: "none", display: "block" }}
+              >
                 <span className="dp-benefit__icon">↗</span>
                 <h3>{s.short}</h3>
                 <p>{s.blurb}</p>
@@ -89,38 +140,60 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
         </div>
       </section>
 
+      {/* ------------------ Local hooks + testimonial + quote form ------------------ */}
       <section className="dp-quote">
         <div className="wrap dp-quote__grid">
           <div className="dp-quote__copy">
             <span className="ds-eyebrow"><span className="ds-dot" /> Local team</span>
             <h2>Why {sub.name} homeowners choose us.</h2>
-            <ul style={{ listStyle: "none", padding: 0, margin: "16px 0 0", display: "flex", flexDirection: "column", gap: 8 }}>
-              {[
-                `Local technicians who know ${sub.name}'s housing stock`,
-                "Council and body-corporate paperwork sorted",
-                "Same-week install slots almost always available",
-                "VEU rebate eligibility checked before you commit",
-                "6-year workmanship warranty on every installation",
-              ].map((l) => (
-                <li key={l} style={{ paddingLeft: 24, position: "relative", fontSize: "15px", color: "var(--ink-2)" }}>
-                  <span style={{ position: "absolute", left: 0, color: "var(--orange)", fontWeight: 800 }}>✓</span>
-                  {l}
-                </li>
-              ))}
+            <ul className="dp-hooks">
+              <li>
+                Local technicians who know {sub.name}&rsquo;s housing stock — we&rsquo;re usually
+                working somewhere near {sub.localHooks[0]}
+                {sub.localHooks[1] ? ` or ${sub.localHooks[1]}` : ""} in any given week.
+              </li>
+              <li>
+                {sub.council} compliance and permit paperwork sorted before we start on-site.
+              </li>
+              <li>
+                Same-week install slots almost always available inside {sub.postcode}.
+              </li>
+              <li>
+                VEU rebate eligibility checked and the rebate applied to your quote — you don&rsquo;t pay it up-front and then chase it back.
+              </li>
+              <li>6-year workmanship warranty on every {sub.name} installation.</li>
             </ul>
-            <h3 style={{ marginTop: 28, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
-              Also serving nearby
-            </h3>
-            <div className="dp-quote__chips">
-              {suburbs.filter((s) => s.slug !== sub.slug).slice(0, 8).map((s) => (
-                <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link>
-              ))}
-            </div>
+
+            {sub.testimonial && (
+              <figure className="dp-quotebox">
+                <blockquote>&ldquo;{sub.testimonial.quote}&rdquo;</blockquote>
+                <figcaption>
+                  <strong>{sub.testimonial.who}</strong>
+                  <span> · {sub.testimonial.what}</span>
+                </figcaption>
+              </figure>
+            )}
+
+            {nearbyResolved.length > 0 && (
+              <>
+                <h3 className="dp-quote__nearby-lbl">Also serving nearby</h3>
+                <div className="dp-quote__chips">
+                  {nearbyResolved.map((s) =>
+                    s.published ? (
+                      <Link key={s.slug} href={`/areas/${s.slug}`}>{s.name}</Link>
+                    ) : (
+                      <span key={s.slug} className="dp-chip--muted">{s.name}</span>
+                    ),
+                  )}
+                </div>
+              </>
+            )}
           </div>
           <QuoteForm />
         </div>
       </section>
 
+      {/* ------------------ Big CTA ------------------ */}
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>

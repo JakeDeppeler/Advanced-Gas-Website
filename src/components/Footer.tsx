@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site, services, suburbs } from "@/lib/site";
+import { site, services, publishedSuburbs } from "@/lib/site";
 import { LogoMark } from "@/components/Logo";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
@@ -166,7 +166,7 @@ export function Footer() {
         <div className="ftr__areas">
           <h4>Servicing across South-East Vic &amp; Gippsland</h4>
           <ul className="ftr__chips">
-            {suburbs.map((s) => (
+            {publishedSuburbs.map((s) => (
               <li key={s.slug}>
                 <Link href={`/areas/${s.slug}`}>{s.name}</Link>
               </li>
