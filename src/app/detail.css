@@ -99,6 +99,81 @@
   .page-detail .dp-map__grid { grid-template-columns: 1fr; gap: 28px; }
 }
 
+/* ============== COVERAGE MAP (all 46 suburbs on one canvas) ============== */
+.covmap {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px;
+}
+.covmap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  background: var(--paper);
+}
+.covmap__dot { cursor: pointer; }
+.covmap__dot:hover circle:not([fill="transparent"]) {
+  fill: var(--orange, #F36722) !important;
+  r: 8;
+}
+.covmap__legend { min-width: 0; }
+.covmap__legend-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.covmap__legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 12px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.covmap__legend li a {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.12s;
+  gap: 8px;
+}
+.covmap__legend li a:hover { background: var(--bg-2); color: var(--navy); }
+.covmap__legend li a.is-hi { background: rgba(243,103,34,0.08); color: var(--orange); font-weight: 700; }
+.covmap__legend li a span {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+@media (max-width: 900px) {
+  .covmap { grid-template-columns: 1fr; }
+  .covmap__legend ul { grid-template-columns: 1fr 1fr 1fr; max-height: 260px; }
+}
+@media (max-width: 540px) {
+  .covmap { padding: 16px; }
+  .covmap__legend ul { grid-template-columns: 1fr 1fr; }
+}
+
 /* ============== SUBURB MAP CARD ============== */
 .submap {
   margin: 0;

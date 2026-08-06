@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site, publishedSuburbs, services } from "@/lib/site";
+import { CoverageMap } from "@/components/CoverageMap";
 import "../detail.css";
 
 export const metadata: Metadata = {
@@ -31,6 +32,23 @@ export default function ServiceAreasPage() {
             Choose your suburb below or call{" "}
             <a href={`tel:${site.phoneE164}`} style={{ color: "var(--sky-2)", fontWeight: 700 }}>{site.phone}</a> for a fast quote.
           </p>
+        </div>
+      </section>
+
+      {/* Coverage map — every suburb we install in, plotted on one canvas */}
+      <section className="dp-map" style={{ paddingBottom: 40 }}>
+        <div className="wrap">
+          <div className="ds-section-head" style={{ marginBottom: 24 }}>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Coverage map</span>
+            <h2>Every postcode we install in, on one map.</h2>
+            <p>
+              Orange centre is our Pakenham workshop. Navy dots are every suburb we
+              service — click any dot (or its name in the list) to jump to that suburb&rsquo;s
+              page. Dashed rings step out in 10&nbsp;km increments so you can gauge
+              distance at a glance.
+            </p>
+          </div>
+          <CoverageMap />
         </div>
       </section>
 
