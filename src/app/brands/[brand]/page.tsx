@@ -154,6 +154,34 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </section>
       )}
 
+      {/* Real install gallery — reuses our on-site photography */}
+      <section className="brand-gallery">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
+            <h2>Recent {brand.name} installs around Melbourne&rsquo;s south-east.</h2>
+            <p>
+              Real jobs we&rsquo;ve completed — no manufacturer catalogue shots.
+              Every one photographed on the day the compliance certificate was signed.
+            </p>
+          </div>
+          <div className="brand-gallery__grid">
+            {[
+              { src: "/reclaim-split-back.webp",              alt: `${brand.name} install — outdoor unit clean line-set` },
+              { src: "/reclaim-mitsubishi.webp",              alt: `${brand.name} install — indoor unit mounted` },
+              { src: "/reclaim-spit-close-up.webp",           alt: `${brand.name} install — heat pump close-up` },
+              { src: "/kaden-indoor.webp",                    alt: `${brand.name} install — indoor head unit` },
+              { src: "/thermann-heat-pump.webp",              alt: `${brand.name} install — hot water system` },
+              { src: "/duct-work.webp",                       alt: `${brand.name} install — ductwork in ceiling void` },
+            ].map((g) => (
+              <figure key={g.src} className="brand-gallery__cell">
+                <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Product range grouped by category */}
       <section className="brand-range">
         <div className="wrap">

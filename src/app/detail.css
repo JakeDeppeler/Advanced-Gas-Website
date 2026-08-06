@@ -67,6 +67,72 @@
 .page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: rgba(255,255,255,0.3); }
 .page-detail .dp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
+/* ============== SUBURB LOCATION SECTION ============== */
+.page-detail .dp-map {
+  background: var(--bg);
+  padding: 56px 0;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .dp-map__grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 48px;
+  align-items: center;
+}
+.page-detail .dp-map h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 10px 0 14px;
+  line-height: 1.15;
+}
+.page-detail .dp-map p {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 56ch;
+}
+@media (max-width: 900px) {
+  .page-detail .dp-map__grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ============== SUBURB MAP CARD ============== */
+.submap {
+  margin: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+.submap svg {
+  width: 100%;
+  height: auto;
+  max-width: 340px;
+  align-self: center;
+  display: block;
+}
+.submap figcaption {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.55;
+}
+.submap figcaption strong {
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
 /* ============== LOCAL KNOWLEDGE STRIP (suburb pages) ============== */
 .page-detail .dp-local {
   background: var(--paper);

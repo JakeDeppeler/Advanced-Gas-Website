@@ -7,6 +7,7 @@ import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { services } from "@/lib/site";
 import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
+import { SuburbMap } from "@/components/SuburbMap";
 import "../../detail.css";
 
 export function generateStaticParams() {
@@ -101,6 +102,30 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ------------------ Location map ------------------ */}
+      <section className="dp-map">
+        <div className="wrap dp-map__grid">
+          <div>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Location</span>
+            <h2>Where {sub.name} sits in our service radius.</h2>
+            <p>
+              {sub.name} is <strong>{sub.distanceKm}&nbsp;km</strong> from our Pakenham base — well inside
+              the 50&nbsp;km circle we cover same-week. The dotted rings step out in
+              10&nbsp;km increments so you can see how quickly we can reach nearby suburbs
+              along the same route.
+            </p>
+            <p style={{ marginTop: 12, fontSize: 14, color: "var(--ink-3)" }}>
+              Typical driving time from our Pakenham workshop to {sub.name}:{" "}
+              <strong style={{ color: "var(--navy)" }}>
+                {sub.distanceKm === 0 ? "on-site" : `${Math.max(15, Math.round(sub.distanceKm * 1.4))}–${Math.round(sub.distanceKm * 1.8)} min`}
+              </strong>{" "}
+              depending on traffic on the Princes Highway.
+            </p>
+          </div>
+          <SuburbMap slug={sub.slug} name={sub.name} />
         </div>
       </section>
 
