@@ -6,7 +6,7 @@ import "../detail.css";
 import "./heat-pumps.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Guide, Compare Reclaim, Thermann, iStore, Dux & Rinnai",
+  title: "Heat Pump Guide, Compare Reclaim, Thermann, iStore & Dux",
   description:
     "The honest guide to heat pump hot water in Pakenham. Compare the five brands we install, what a real installed price looks like after the VEU rebate, and the warning signs of no-name importer brands that ghost you after purchase.",
   alternates: { canonical: "/heat-pumps" },
@@ -16,7 +16,7 @@ const warningSigns = [
   {
     n: "01",
     t: "Brand you've never heard of on a marketplace listing",
-    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad, walk away. Reclaim, Thermann, iStore, Dux and Rinnai all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
+    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad, walk away. Reclaim, Thermann, iStore and Dux all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
   },
   {
     n: "02",
@@ -233,7 +233,6 @@ export default function HeatPumpsPage() {
               <ul>
                 <li>Reclaim CO₂ split 315 L (glass or stainless)</li>
                 <li>Dux Airoheat 315 L</li>
-                <li>Rinnai heat pump 315 L</li>
               </ul>
             </div>
             <div className="hp-sizing__card">

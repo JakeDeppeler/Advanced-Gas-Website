@@ -148,24 +148,7 @@ const UNITS: Unit[] = [
     price: 3600,
     priceLabel: "from $3,600",
   },
-  {
-    id: "rinnai-315",
-    brand: "Rinnai",
-    model: "Heat pump 315 L",
-    style: "AIO",
-    tank: "315 L",
-    people: "4 to 5",
-    origin: "Japanese engineered",
-    ausMade: false,
-    warrantyLabel: "5 yr tank",
-    warrantyYears: 5,
-    refrigerant: "R134a",
-    wifi: "Not standard",
-    photo: "/thermann-heat-pump.webp",
-    price: 3700,
-    priceLabel: "from $3,700",
-  },
-];
+  ];
 
 const MAX = 3;
 

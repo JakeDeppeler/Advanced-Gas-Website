@@ -63,12 +63,11 @@ const HP_MATERIALS = [
 const SPLIT_BRANDS = [
   { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium · up to 15 kW total heads on a 12 kW multi condenser" },
   { id: "kaden",  t: "Kaden",               s: "Great value · up to 23 kW total heads on an 18 kW multi" },
-  { id: "rinnai", t: "Rinnai",              s: "Reliable · up to 23 kW total heads on an 18 kW multi" },
 ];
 // Multi-head condensers can be diversity-oversized (typical ~130%).
 // e.g. 21 kW of heads on an 18 kW condenser is fine, and Mitsubishi's
 // MXZ range covers ~12 kW condensers with up to ~15 kW of heads.
-const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 15, kaden: 23, rinnai: 23 };
+const SPLIT_BRAND_MAX_KW: Record<string, number> = { mitsu: 15, kaden: 23 };
 
 const SPLIT_STYLES = [
   { id: "single", t: "Single head",  s: "One indoor unit, one room" },
@@ -656,13 +655,13 @@ export function HeroQuoteForm() {
             </div>
             {multiHeadOverCap && (
               <p className="qhint qhint--warn">
-                That&rsquo;s past the typical diversity max ({brandMaxKw} kW) for {labels(SPLIT_BRANDS, splitBrand)}. We can still design around it, or drop a head / add Kaden or Rinnai (23 kW).
+                That&rsquo;s past the typical diversity max ({brandMaxKw} kW) for {labels(SPLIT_BRANDS, splitBrand)}. We can still design around it, or drop a head / add Kaden (23 kW).
               </p>
             )}
             <details className="mhead__example">
               <summary>Rough sizing guide for a 4-bedroom home</summary>
               <div>
-                <p><strong>Kaden or Rinnai (18 kW condenser, ~23 kW heads):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 18.1 kW.</p>
+                <p><strong>Kaden (18 kW condenser, ~23 kW heads):</strong> 1 × 3.5 kW master + 3 × 2.5 kW bedrooms + 1 × 7.1 kW living = 18.1 kW.</p>
                 <p><strong>Mitsubishi (12 kW condenser, ~15 kW heads):</strong> 1 × 5.0 kW living + 1 × 3.5 kW master + 1 × 2.5 kW bedroom + 1 × 2.5 kW bedroom = 13.5 kW.</p>
                 <p>Multi-head systems accept diversity oversizing (heads total more than the condenser rating) because not every room runs at full load at once.</p>
                 <p>Not sure? Skip this and note &ldquo;floor plan coming&rdquo; on the details step, we&rsquo;ll design it.</p>

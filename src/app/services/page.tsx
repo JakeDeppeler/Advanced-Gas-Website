@@ -127,7 +127,7 @@ const services: Service[] = [
     num: "06",
     eyebrow: "06 · Hot water, gas & electric",
     h2: "Same-day swaps on most common units.",
-    lede: "Burst tank? Continuous flow on the blink? We carry the common Rinnai, Thermann and Rheem units on the truck for most call-outs.",
+    lede: "Burst tank? Continuous flow on the blink? We carry the common Thermann and Rheem units on the truck for most call-outs.",
     specs: [["Tank sizes", "25L – 400L"], ["Continuous", "16 – 32 L/min"], ["Call-out", "same day"], ["Warranty", "5–12 yrs"]],
     bullets: [
       "Storage gas, instantaneous gas, electric storage",
@@ -135,7 +135,7 @@ const services: Service[] = [
       "Old unit removed and disposed",
       "Plumbing compliance cert included",
     ],
-    brands: ["Rinnai", "Thermann", "Rheem"],
+    brands: ["Thermann", "Rheem"],
     photo: "/gas-hot-water-changeover.webp",
     photoAlt: "Gas hot water changeover, same day service",
     primaryCta: { label: "Call for same-day →", href: `tel:${site.phoneE164}` },

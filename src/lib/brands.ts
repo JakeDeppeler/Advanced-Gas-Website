@@ -179,7 +179,6 @@ export const brands: Brand[] = [
         categoryLabel: "Internal gas ducted heater",
         capacity: "20 kW to 32 kW output",
         veuEligible: false,
-        installedPriceFrom: "$4,890 installed",
         bestFor: "Retrofit into existing internal gas heater cupboard",
         ourTake:
           "The Buffalo is Brivis's internal in-cupboard heater — the most common Brivis we replace. Fits into the same footprint as older Brivis and Braemar units, so the retrofit is quick and the existing ducts are reused. 3-star to 5-star efficiency options.",
@@ -200,7 +199,6 @@ export const brands: Brand[] = [
         categoryLabel: "External roof-mount gas ducted",
         capacity: "20 kW to 32 kW output",
         veuEligible: false,
-        installedPriceFrom: "$5,290 installed",
         bestFor: "Roof-mounted replacement where internal space is at a premium",
         ourTake:
           "The StarPro is Brivis's roof-top unit — for homes without internal cupboard space. Weather-rated cabinet, 5-star efficiency, same ductwork compatibility as the Buffalo. Common on the newer 2010s estates in Officer + Clyde where roof-mount was the developer's default.",
@@ -220,7 +218,6 @@ export const brands: Brand[] = [
         categoryLabel: "In-slab compact gas ducted",
         capacity: "17 kW to 28 kW output",
         veuEligible: false,
-        installedPriceFrom: "$4,690 installed",
         bestFor: "Homes with in-slab ducting from build",
         ourTake:
           "The HX is Brivis's compact under-floor / in-slab option. Common in older Pakenham and Berwick homes with slab-in-ground ducts. Smaller footprint than the Buffalo but ties into the same duct network.",
@@ -239,7 +236,6 @@ export const brands: Brand[] = [
         categoryLabel: "Add-on cooling module (piggy-backs gas ducted)",
         capacity: "8 kW to 16 kW cooling",
         veuEligible: false,
-        installedPriceFrom: "$5,290 installed (module + install)",
         bestFor: "Existing Brivis gas ducted customer wanting summer cooling without a full ducted retrofit",
         ourTake:
           "The Contour piggy-backs onto an existing Brivis gas ducted setup — same ducts, adds a refrigerated cooling module. Cheaper than ripping out gas and installing full reverse-cycle. Solid mid-life upgrade for a homeowner staying on gas but wanting summer cooling.",
@@ -299,7 +295,6 @@ export const brands: Brand[] = [
         refrigerant: "R32",
         starRating: "4.5-star cooling / 4.5-star heating",
         veuEligible: false,
-        installedPriceFrom: "$2,190 installed",
         bestFor: "Single bedroom or small home office up to 25 m²",
         ourTake:
           "The 2.5 kW MSZ-AP is our workhorse bedroom unit — quiet at 21 dBA on low fan, sips power on standby, and the parts pipeline is genuinely never a worry. If you want a single unit in a kid's bedroom, this is what we install.",
@@ -323,7 +318,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling / 4.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,390 installed",
         bestFor: "Master bedroom or medium living zone up to 35 m²",
         ourTake:
           "The 3.5 kW is the sweet spot for a big master bedroom or a smaller open-plan. Same reliability as the 2.5, same low-noise profile, just enough extra capacity to handle the doors-open scenario without running at 100% all summer.",
@@ -345,7 +339,6 @@ export const brands: Brand[] = [
         capacity: "5.0 kW cooling / 6.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,690 installed",
         bestFor: "Open-plan living / dining up to 50 m²",
         ourTake:
           "The 5.0 kW MSZ-AP is our default recommendation for an open-plan living zone in a modern brick-veneer family home. Big enough to handle a Melbourne heatwave with the doors open, small enough that it doesn't cycle constantly on a mild day.",
@@ -366,7 +359,6 @@ export const brands: Brand[] = [
         capacity: "6.0 kW cooling / 6.8 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,890 installed",
         bestFor: "Large open-plan or living zone with cathedral ceilings",
         ourTake:
           "The step between the 5.0 and the 7.1 — for the awkward room size that's between a normal living and a proper great-room. Cathedral ceilings or a big north-facing glass wall usually push us up to the 6.0.",
@@ -386,7 +378,6 @@ export const brands: Brand[] = [
         capacity: "7.1 kW cooling / 8.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,290 installed",
         bestFor: "Large great-room, warehouse-style living, or open double-height space",
         ourTake:
           "The 7.1 is the biggest wall-mounted unit we'd typically spec — beyond this, ducted or multi-head makes more sense. For a big north-facing living zone in Berwick or Officer, this is usually the answer.",
@@ -406,7 +397,6 @@ export const brands: Brand[] = [
         capacity: "8.0 kW cooling / 9.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,590 installed",
         bestFor: "Warehouse conversions, large open-plan double-height spaces",
         ourTake:
           "The biggest wall split Mitsubishi makes. Beyond this size a ducted system usually delivers better airflow distribution — but for a large single space where you don't want ducting, this is the pick.",
@@ -426,7 +416,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW cooling / 3.2 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,890 installed",
         bestFor: "Bedroom where the unit is visible and design matters",
         ourTake:
           "The LN is the Design-series MSZ-AP — same reliability underneath, flush glass front, matte finish. About $500 more than the AP but people who care about the look on the wall don't mind the premium.",
@@ -446,7 +435,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling / 4.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,190 installed",
         bestFor: "Master bedroom with a design finish",
         ourTake:
           "The 3.5 kW Design — our recommendation when the customer specifies a matte black or ruby red unit to match a feature wall.",
@@ -466,7 +454,6 @@ export const brands: Brand[] = [
         capacity: "5.0 kW cooling / 6.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,490 installed",
         bestFor: "Open-plan living with a visible-unit design brief",
         ourTake:
           "The Design 5.0 goes into a lot of high-end Berwick and Officer new-builds where the interior designer has specified a matte finish. Same 5.0 kW performance as the AP, just wrapped in glass.",
@@ -485,7 +472,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW cooling / 3.2 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,790 installed",
         bestFor: "Design-conscious bedroom install where LN is over-specified",
         ourTake:
           "The EF is a mid-tier design option between the AP and the LN. Sleeker face than the AP but without the LN's glass premium.",
@@ -504,7 +490,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling / 4.0 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,990 installed",
         bestFor: "Master bedroom, mid-tier design finish",
         ourTake:
           "3.5 kW in the EF trim — the split we recommend when someone wants the design cue without the LN price step.",
@@ -523,7 +508,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW cooling / 3.6 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,290 installed",
         bestFor: "Emerald, Gembrook, Cockatoo — cold-climate zone bedrooms",
         ourTake:
           "The FH-series is the only Mitsubishi that holds rated heating capacity down to -15°C outdoor. It's not overkill for the Dandenong Ranges — a normal MSZ-AP loses ~30% of its heating capacity at 0°C, the FH doesn't. We spec it for every Cockatoo / Emerald / Gembrook install.",
@@ -543,7 +527,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling / 4.8 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,490 installed",
         bestFor: "Hills-country living zones — Emerald, Gembrook, Cockatoo",
         ourTake:
           "3.5 kW cool, 4.8 kW heat at -15°C — the FH35 punches above its weight when it's a cold morning in the ranges. Costs more up-front but pays for itself in comfort inside a couple of winters.",
@@ -562,7 +545,6 @@ export const brands: Brand[] = [
         capacity: "5.0 kW cooling / 6.7 kW heating",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,790 installed",
         bestFor: "Large open-plan hills living zone",
         ourTake:
           "5.0 kW in Hyper Heating trim — the pick for a large hills-country living space where cold-morning performance genuinely matters.",
@@ -581,7 +563,6 @@ export const brands: Brand[] = [
         capacity: "4.2 kW combined — 2 indoor heads",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$4,690 installed (unit + 2 heads)",
         bestFor: "Two-bedroom apartment or a townhouse with limited outdoor space",
         ourTake:
           "The 2F is the smallest multi-head — one outdoor condenser feeding two indoor heads. Ideal for an apartment where you only have one balcony spot for the outdoor unit.",
@@ -602,7 +583,6 @@ export const brands: Brand[] = [
         capacity: "5.4 kW combined — 3 indoor heads",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$5,890 installed (unit + 3 heads)",
         bestFor: "Three-bedroom home where three heads share one condenser",
         ourTake:
           "The 3F is our most-installed multi-head. One outdoor unit, three bedrooms — cleaner externally than three separate splits, and the individual room controllers give proper zone control.",
@@ -622,7 +602,6 @@ export const brands: Brand[] = [
         capacity: "8.0 kW combined — 4 indoor heads",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$7,290 installed (unit + 4 heads)",
         bestFor: "Four-bedroom family home wanting per-room zone control",
         ourTake:
           "The 4F is our recommendation for a family home that's outgrown ducted zones and wants individual per-room setpoints. Fewer outdoor units, per-room controllers, one refrigerant loop to service.",
@@ -642,7 +621,6 @@ export const brands: Brand[] = [
         capacity: "10.0 kW combined — 5 indoor heads",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$9,490 installed (unit + 5 heads)",
         bestFor: "Larger single-storey family homes with 4 bed + 1 living zone",
         ourTake:
           "The 5F is the biggest multi-head Mitsubishi makes. Five heads, one outdoor unit. Beyond this we'd move to ducted.",
@@ -662,7 +640,6 @@ export const brands: Brand[] = [
         capacity: "5 kW to 14 kW (multiple indoor sizes)",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$8,490 fully installed",
         bestFor: "Single-storey family home ducted retrofit or new-build",
         ourTake:
           "The PEAD-M is our default ducted indoor unit. Mid-static means it has enough duct capacity for a typical 3-4 zone family home without oversized fan power. Pairs with the PUZ outdoor and any Mitsubishi zone controller.",
@@ -683,7 +660,6 @@ export const brands: Brand[] = [
         capacity: "12 kW to 22 kW",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$14,490 fully installed",
         bestFor: "Double-storey homes, long duct runs, 6+ zones",
         ourTake:
           "The PEA-RP is the high-static big brother — necessary when you've got long duct runs or a double-storey with six or more zones. Enough fan power to actually deliver rated flow to the furthest zone.",
@@ -702,7 +678,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW to 7.1 kW",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$6,290 fully installed",
         bestFor: "Homes with shallow ceiling void (200-250mm) where PEAD doesn't fit",
         ourTake:
           "The SEZ-KD is a slim-line ducted indoor that fits into a 200mm ceiling void — the pick when the ceiling cavity is too shallow for a normal PEAD. Common in the older Berwick and Officer weatherboards.",
@@ -721,7 +696,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW to 7.1 kW",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$4,890 installed",
         bestFor: "Small commercial fit-outs — offices, small retail, medical",
         ourTake:
           "The SLZ-M is the 600×600 compact cassette — the standard for small commercial and medical fit-outs. Slots into a suspended ceiling tile grid without cutting, 4-way airflow.",
@@ -740,7 +714,6 @@ export const brands: Brand[] = [
         capacity: "5 kW to 14 kW",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$6,290 installed",
         bestFor: "Larger commercial spaces, warehouse-style offices",
         ourTake:
           "The PLA-M is the bigger 840×840 cassette for larger commercial spaces. Better throw distance, better for rooms with higher ceilings.",
@@ -758,7 +731,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW to 6.0 kW",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$3,490 installed",
         bestFor: "Rooms where you can't mount high on the wall — under a window, retrofit into old radiator locations",
         ourTake:
           "The MFZ-KJ sits on the floor like an old radiator — the answer when there's no wall space at high level, or the customer wants direct floor-level warmth.",
@@ -774,7 +746,6 @@ export const brands: Brand[] = [
         category: "controller",
         categoryLabel: "Wired wall controller",
         veuEligible: false,
-        installedPriceFrom: "$390 supply + install",
         bestFor: "Ducted or cassette systems where the customer prefers a physical wall controller",
         ourTake:
           "The PAR-42 is the physical touchscreen wall controller — the option for anyone who doesn't want to reach for their phone to change the temperature. Standard on our commercial cassette installs.",
@@ -788,7 +759,6 @@ export const brands: Brand[] = [
         category: "controller",
         categoryLabel: "Wi-Fi controller add-on",
         veuEligible: false,
-        installedPriceFrom: "$290 supply + install",
         bestFor: "Adding smartphone control to any Mitsubishi indoor unit",
         ourTake:
           "MELCloud plugs into any Mitsubishi indoor unit and adds phone + web control. We fit it as standard on new installs — you'd rather have it and not need it than the reverse.",
@@ -844,7 +814,6 @@ export const brands: Brand[] = [
         refrigerant: "R744 (CO₂)",
         starRating: "5-star equivalent",
         veuEligible: true,
-        installedPriceFrom: "$3,190 installed after VEU rebate",
         bestFor: "Family of 4-6, wanting the premium end of heat pump hot water",
         ourTake:
           "The 315L stainless is Reclaim's flagship — and the tank we install more often than any other in the range. 316-grade stainless (no anode to replace, no rust), CO₂ refrigerant that holds capacity to -10°C, and quiet enough to sit next to a bedroom wall (37 dBA).",
@@ -868,7 +837,6 @@ export const brands: Brand[] = [
         capacity: "250 L stainless steel tank",
         refrigerant: "R744 (CO₂)",
         veuEligible: true,
-        installedPriceFrom: "$2,890 installed after VEU rebate",
         bestFor: "Couples or family of 3, premium spec",
         ourTake:
           "The 250L is the smaller Reclaim — same CO₂ compressor and stainless tank as the 315, just sized for smaller households. Ideal for a couple or a small family who don't need 315L of storage.",
@@ -888,7 +856,6 @@ export const brands: Brand[] = [
         capacity: "400 L stainless steel tank",
         refrigerant: "R744 (CO₂)",
         veuEligible: true,
-        installedPriceFrom: "$3,690 installed after VEU rebate",
         bestFor: "Larger families (6+), acreage properties with high draw",
         ourTake:
           "The 400L is the big-family Reclaim — larger tank, same CO₂ compressor. What we spec for the acreage properties in Devon Meadows, Pearcedale, or a big family in Cranbourne South.",
@@ -907,7 +874,6 @@ export const brands: Brand[] = [
         capacity: "315 L vitreous-enamel tank",
         refrigerant: "R744 (CO₂)",
         veuEligible: true,
-        installedPriceFrom: "$2,890 installed after VEU rebate",
         bestFor: "Budget-conscious buyer who still wants Reclaim's CO₂ compressor",
         ourTake:
           "The vitreous tank drops the price ~$300 vs stainless — same compressor and refrigerant, just a glass-lined tank with a sacrificial anode instead of stainless. Better bang-for-buck if you're not planning to be in the house 20 years.",
@@ -924,7 +890,6 @@ export const brands: Brand[] = [
         category: "accessory",
         categoryLabel: "Solar PV diverter",
         veuEligible: false,
-        installedPriceFrom: "$690 supply + install",
         bestFor: "Homes with solar PV wanting to divert daytime surplus to hot water",
         ourTake:
           "The PV diverter tells the Reclaim compressor to fire when your PV is exporting — you heat water on free solar rather than grid power. Adds a few hundred bucks and pays back in one year for anyone with a decent-size PV system.",
@@ -938,7 +903,6 @@ export const brands: Brand[] = [
         category: "controller",
         categoryLabel: "Wi-Fi controller add-on",
         veuEligible: false,
-        installedPriceFrom: "$290 supply + install",
         bestFor: "Monitoring COP and hot-water temperature from your phone",
         ourTake:
           "The Wi-Fi module gives you tank temperature, COP, and runtime in an app. Nice-to-have not need-to-have — but if you're the sort of person who cares about the numbers, this is what unlocks them.",
@@ -992,7 +956,6 @@ export const brands: Brand[] = [
         capacity: "270 L",
         refrigerant: "R290 (propane, natural)",
         veuEligible: true,
-        installedPriceFrom: "$1,990 installed after VEU rebate",
         bestFor: "Family of 3-4, tight budget, VEU-eligible upgrade",
         ourTake:
           "The Series 4 is Thermann's mid-tier — a real workhorse for VEU rebate customers where budget is tight but the outcome needs to be solid. R290 refrigerant, 5-year warranty, quiet enough for most yards.",
@@ -1012,7 +975,6 @@ export const brands: Brand[] = [
         capacity: "315 L",
         refrigerant: "R290 (propane)",
         veuEligible: true,
-        installedPriceFrom: "$2,190 installed after VEU rebate",
         bestFor: "Family of 4-5, tight budget, VEU-eligible",
         ourTake:
           "Same platform as the 270 with a larger tank. Our recommendation when the household draw is over about 200 L/day.",
@@ -1031,7 +993,6 @@ export const brands: Brand[] = [
         capacity: "270 L",
         refrigerant: "R290 (propane)",
         veuEligible: true,
-        installedPriceFrom: "$2,390 installed after VEU rebate",
         bestFor: "Family of 3-4, want better cold-weather performance than Series 4",
         ourTake:
           "The Series 5 steps up the compressor and controls over the Series 4. Better COP in cooler weather, longer warranty on the compressor. Worth the ~$400 step for anyone who wants more than the minimum.",
@@ -1050,7 +1011,6 @@ export const brands: Brand[] = [
         capacity: "315 L",
         refrigerant: "R290 (propane)",
         veuEligible: true,
-        installedPriceFrom: "$2,590 installed after VEU rebate",
         bestFor: "Family of 4-5, mid-premium spec",
         ourTake:
           "The 315L Series 5 is our default recommendation in the Thermann range — best balance of tank size, compressor spec and price for a typical family draw.",
@@ -1068,7 +1028,6 @@ export const brands: Brand[] = [
         capacity: "270 L",
         refrigerant: "R290 (propane)",
         veuEligible: true,
-        installedPriceFrom: "$2,690 installed after VEU rebate",
         bestFor: "Cooler-climate suburbs — Emerald, Cockatoo, Gembrook",
         ourTake:
           "The R290 variant of the Series 5 — tuned for cooler ambient temperatures. Not as extreme as Reclaim's CO₂, but a solid step above the standard Series 5 for anywhere the ranges hit single digits on winter mornings.",
@@ -1086,7 +1045,6 @@ export const brands: Brand[] = [
         capacity: "315 L",
         refrigerant: "R290 (propane)",
         veuEligible: true,
-        installedPriceFrom: "$2,890 installed after VEU rebate",
         bestFor: "Larger families in cooler suburbs",
         ourTake:
           "R290 Series 5 in the 315L tank size — the pick for a 4-5 person family in the Dandenong Ranges or a cool-morning postcode.",
@@ -1103,7 +1061,6 @@ export const brands: Brand[] = [
         categoryLabel: "Solar hot water",
         capacity: "300 L close-couple",
         veuEligible: false,
-        installedPriceFrom: "$4,290 installed",
         bestFor: "Roof with north-facing space and no shading, wanting the traditional solar setup",
         ourTake:
           "Solar hot water is a decreasing part of the market — heat pump usually beats it on economics and complexity now. But if you've got a good north roof and no PV, close-couple solar still works.",
@@ -1121,7 +1078,6 @@ export const brands: Brand[] = [
         categoryLabel: "Solar hot water (split)",
         capacity: "400 L split",
         veuEligible: false,
-        installedPriceFrom: "$5,490 installed",
         bestFor: "Larger household wanting solar with ground-mounted tank",
         ourTake:
           "Split solar — panels on the roof, tank on the ground. Bigger tank capacity, no weight on the roof. More common for larger family homes than close-couple.",
@@ -1139,7 +1095,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas continuous-flow hot water",
         capacity: "16 L/min",
         veuEligible: false,
-        installedPriceFrom: "$1,690 installed",
         bestFor: "Couple or small family (1-2 bathrooms)",
         ourTake:
           "The 16 L/min is our smallest continuous-flow — enough for a couple or a small family with one bathroom. If you might ever run a shower and a tap simultaneously, jump up to the 20 L/min.",
@@ -1157,7 +1112,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas continuous-flow hot water",
         capacity: "20 L/min",
         veuEligible: false,
-        installedPriceFrom: "$1,890 installed",
         bestFor: "Family of 3-4, one or two bathrooms",
         ourTake:
           "The 20 L/min is our most-installed continuous flow. Enough capacity for two showers simultaneously without pressure loss.",
@@ -1174,7 +1128,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas continuous-flow hot water",
         capacity: "26 L/min",
         veuEligible: false,
-        installedPriceFrom: "$2,190 installed",
         bestFor: "Larger family (2+ bathrooms), simultaneous draw",
         ourTake:
           "The 26 L/min handles two bathrooms running simultaneously plus a kitchen tap without pressure drop. Our default for family homes with more than one bathroom.",
@@ -1191,7 +1144,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas continuous-flow hot water",
         capacity: "32 L/min",
         veuEligible: false,
-        installedPriceFrom: "$2,490 installed",
         bestFor: "3+ bathrooms, high simultaneous demand",
         ourTake:
           "The 32 L/min is the biggest continuous flow we install — for homes with three bathrooms all running simultaneously or high-draw applications.",
@@ -1208,7 +1160,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas storage hot water",
         capacity: "170 L",
         veuEligible: false,
-        installedPriceFrom: "$1,690 installed",
         bestFor: "Like-for-like replacement of an old gas storage tank",
         ourTake:
           "Gas storage is a shrinking market — most customers moving off gas move to heat pump. But for a like-for-like replacement where the existing gas connection and location can't accommodate anything else, this is the tank.",
@@ -1225,7 +1176,6 @@ export const brands: Brand[] = [
         categoryLabel: "Electric storage hot water",
         capacity: "315 L",
         veuEligible: false,
-        installedPriceFrom: "$1,290 installed",
         bestFor: "Emergency like-for-like replacement of a failed electric tank",
         ourTake:
           "Electric storage doesn't qualify for VEU and is the most expensive fuel to run — we only install this as a last-resort emergency replacement. For any planned upgrade, the heat pump equivalent is a better financial outcome.",
@@ -1279,7 +1229,6 @@ export const brands: Brand[] = [
         capacity: "180 L",
         refrigerant: "R290",
         veuEligible: true,
-        installedPriceFrom: "$690 installed after VEU rebate",
         bestFor: "Couples, apartments, tight VEU rebate budget",
         ourTake:
           "The 180L is the smallest iStore — for couples or apartment installs where 270L is overkill. Post-VEU-rebate this can land under $500 out of pocket, which no other heat pump in the market can match.",
@@ -1298,7 +1247,6 @@ export const brands: Brand[] = [
         capacity: "270 L",
         refrigerant: "R290",
         veuEligible: true,
-        installedPriceFrom: "$890 installed after VEU rebate",
         bestFor: "Family of 3-4, best-value VEU rebate spec",
         ourTake:
           "The 270L iStore is our most-installed unit for Hampton Park and Cranbourne VEU rebate jobs. Post-VEU-rebate typically sits under $900, which is a genuinely hard number to beat.",
@@ -1317,7 +1265,6 @@ export const brands: Brand[] = [
         capacity: "300 L",
         refrigerant: "R290",
         veuEligible: true,
-        installedPriceFrom: "$1,190 installed after VEU rebate",
         bestFor: "Larger families (5+) on a VEU rebate budget",
         ourTake:
           "The 300L is the biggest iStore — the pick for a large family that qualifies for VEU and wants tank capacity without paying Reclaim money.",
@@ -1334,7 +1281,6 @@ export const brands: Brand[] = [
         category: "accessory",
         categoryLabel: "Solar PV diverter",
         veuEligible: false,
-        installedPriceFrom: "$490 supply + install",
         bestFor: "iStore + rooftop PV — divert daytime solar surplus to hot water",
         ourTake:
           "The iStore PV diverter is built-in-friendly with the iStore range. Fires the compressor when the CT clamp sees PV export. Almost always worth it for solar homes.",
@@ -1348,7 +1294,6 @@ export const brands: Brand[] = [
         category: "accessory",
         categoryLabel: "Replacement compressor kit",
         veuEligible: false,
-        installedPriceFrom: "$890 supply + install",
         bestFor: "Out-of-warranty iStore compressor replacement",
         ourTake:
           "Compressor replacement for out-of-warranty iStore tanks — cheaper than a full unit swap if the tank itself is still sound and the plumbing is in good shape.",
@@ -1404,7 +1349,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$1,590 installed",
         bestFor: "Bedroom on a tight budget",
         ourTake:
           "The Bold 2.5 is a genuinely capable budget bedroom split. Not as quiet as the MSZ-AP25 but a $600 saving that matters when you're doing three bedrooms.",
@@ -1420,7 +1364,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$1,790 installed",
         bestFor: "Master bedroom, budget spec",
         ourTake: "The step up from the 2.5 for master bedrooms and small living zones. Same value proposition.",
         specs: [{ label: "Cooling capacity", value: "3.5 kW" }],
@@ -1435,7 +1378,6 @@ export const brands: Brand[] = [
         capacity: "5.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$1,990 installed",
         bestFor: "Living zone, budget spec",
         ourTake:
           "The Bold 5.0 is a big-selling value living-zone unit. About $700 saving vs the Mitsubishi MSZ-AP50 — not our first pick, but genuinely good value.",
@@ -1451,7 +1393,6 @@ export const brands: Brand[] = [
         capacity: "7.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,290 installed",
         bestFor: "Large open-plan living zone, budget spec",
         ourTake: "7.0 kW at the value price point — for big living zones where the budget won't stretch to Mitsubishi.",
         specs: [{ label: "Cooling capacity", value: "7.0 kW" }],
@@ -1466,7 +1407,6 @@ export const brands: Brand[] = [
         capacity: "8.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,490 installed",
         bestFor: "Warehouse living zones or big open-plan double-height rooms",
         ourTake: "The biggest wall split Kaden makes. Beyond this a ducted or multi-head makes more sense.",
         specs: [{ label: "Cooling capacity", value: "8.0 kW" }],
@@ -1481,7 +1421,6 @@ export const brands: Brand[] = [
         capacity: "2.5 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$1,990 installed",
         bestFor: "Bedroom, mid-premium spec",
         ourTake:
           "The Ultra sits between the Bold and Mitsubishi's MSZ-AP — better inverter, quieter operation, WiFi-ready. Worth the ~$400 step from the Bold for anyone who cares.",
@@ -1497,7 +1436,6 @@ export const brands: Brand[] = [
         capacity: "3.5 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,190 installed",
         bestFor: "Master bedroom, mid-premium spec",
         ourTake: "3.5 kW Ultra — better fit-and-finish than the Bold at a ~$400 step up.",
         specs: [{ label: "Cooling capacity", value: "3.5 kW" }],
@@ -1512,7 +1450,6 @@ export const brands: Brand[] = [
         capacity: "5.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$2,390 installed",
         bestFor: "Open-plan living, mid-premium spec",
         ourTake:
           "5.0 kW Ultra — the value pick when Mitsubishi's MSZ-AP50 is out of reach but the customer still wants a properly quiet, well-appointed unit.",
@@ -1528,7 +1465,6 @@ export const brands: Brand[] = [
         capacity: "10.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$6,890 fully installed",
         bestFor: "Small 3-bed single-storey ducted retrofit",
         ourTake:
           "The 10 kW Kaden Ducted is our value ducted pick for a smaller family home. Comes in about $1,500-$2,000 under the Mitsubishi PEAD-M equivalent.",
@@ -1544,7 +1480,6 @@ export const brands: Brand[] = [
         capacity: "12.5 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$7,490 fully installed",
         bestFor: "3-4 bed single-storey ducted retrofit",
         ourTake: "12.5 kW is the sweet spot for a typical 3-4 bed family home ducted retrofit at the value price point.",
         specs: [{ label: "Cool capacity", value: "12.5 kW" }],
@@ -1559,7 +1494,6 @@ export const brands: Brand[] = [
         capacity: "14.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$8,290 fully installed",
         bestFor: "Larger single-storey or a modest double-storey",
         ourTake: "14 kW Ducted for larger single-storeys — value alternative to the PEAD-M or PEA-RP.",
         specs: [{ label: "Cool capacity", value: "14.0 kW" }],
@@ -1574,7 +1508,6 @@ export const brands: Brand[] = [
         capacity: "16.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$9,290 fully installed",
         bestFor: "Double-storey family homes",
         ourTake: "16 kW for the double-storey family homes in Berwick, Officer and Clyde where 14 doesn't quite cover it.",
         specs: [{ label: "Cool capacity", value: "16.0 kW" }],
@@ -1589,7 +1522,6 @@ export const brands: Brand[] = [
         capacity: "18.0 kW cooling",
         refrigerant: "R32",
         veuEligible: false,
-        installedPriceFrom: "$10,490 fully installed",
         bestFor: "Larger double-storeys or high-load great-rooms",
         ourTake: "18 kW is the biggest Kaden Ducted — pushes toward Mitsubishi PEA-RP territory but at value pricing.",
         specs: [{ label: "Cool capacity", value: "18.0 kW" }],
@@ -1603,7 +1535,6 @@ export const brands: Brand[] = [
         categoryLabel: "Multi-head outdoor unit",
         capacity: "4.0 kW combined",
         veuEligible: false,
-        installedPriceFrom: "$3,890 installed (unit + 2 heads)",
         bestFor: "Two-bedroom install with only one balcony space for outdoor",
         ourTake: "Value alternative to the Mitsubishi MXZ-2F for two-head installs.",
         specs: [{ label: "Combined cool", value: "4.0 kW" }],
@@ -1617,7 +1548,6 @@ export const brands: Brand[] = [
         categoryLabel: "Multi-head outdoor unit",
         capacity: "8.0 kW combined",
         veuEligible: false,
-        installedPriceFrom: "$6,290 installed (unit + 4 heads)",
         bestFor: "Four-head family home install, budget alternative to MXZ-4F",
         ourTake: "Value 4-head — about $1,000 saving vs Mitsubishi MXZ-4F.",
         specs: [{ label: "Combined cool", value: "8.0 kW" }],
@@ -1631,7 +1561,6 @@ export const brands: Brand[] = [
         categoryLabel: "Gas ducted heating",
         capacity: "3-star to 6-star models · 15 kW to 30 kW",
         veuEligible: false,
-        installedPriceFrom: "$4,890 installed",
         bestFor: "Like-for-like replacement of an aging Brivis or Braemar ducted heater",
         ourTake:
           "Kaden's gas ducted range is a solid Brivis / Braemar replacement — same footprint, quiet operation, and the 6-star Advance model is the most efficient in the value tier. What we quote when the customer wants to stay on gas but the old unit's due.",
@@ -1651,7 +1580,6 @@ export const brands: Brand[] = [
         categoryLabel: "Roof-mounted evaporative cooling",
         capacity: "Small · Medium · Large roof units",
         veuEligible: false,
-        installedPriceFrom: "$3,890 installed",
         bestFor: "Dry-summer suburbs (Cranbourne, Clyde, Officer) wanting cheap-to-run cooling",
         ourTake:
           "Evaporative cooling costs a quarter of refrigerated aircon to run — but it only works when the outside humidity is low. Perfect for a Cranbourne / Officer summer, less useful during a humid Melbourne stretch. We spec it where the customer explicitly wants it or a large-footprint home makes ducted refrigerated cost-prohibitive.",
@@ -1705,7 +1633,6 @@ export const brands: Brand[] = [
         category: "zoning",
         categoryLabel: "Ducted zoning controller",
         veuEligible: false,
-        installedPriceFrom: "$690 supply + install",
         bestFor: "3-bed single-storey ducted (bedrooms + living)",
         ourTake:
           "4 zones is the minimum for a single-storey home to work properly — living, master, kids, and either study or bathroom. Anything less and you can't shut off unused rooms.",
@@ -1719,7 +1646,6 @@ export const brands: Brand[] = [
         category: "zoning",
         categoryLabel: "Ducted zoning controller",
         veuEligible: false,
-        installedPriceFrom: "$890 supply + install",
         bestFor: "4-5 bed single-storey or a small double-storey ducted",
         ourTake:
           "6 zones handles a 4-5 bedroom family home properly — living, master, kids × 3, and a study. Our most-installed zone count.",
@@ -1733,7 +1659,6 @@ export const brands: Brand[] = [
         category: "zoning",
         categoryLabel: "Ducted zoning controller",
         veuEligible: false,
-        installedPriceFrom: "$1,190 supply + install",
         bestFor: "Double-storey or 5+ bed ducted installs",
         ourTake:
           "8 zones for the double-storeys and larger family homes. Upstairs / downstairs split adds serious efficiency — you don't need to cool bedrooms during the day and living zones at night.",
@@ -1747,7 +1672,6 @@ export const brands: Brand[] = [
         category: "controller",
         categoryLabel: "Wi-Fi add-on",
         veuEligible: false,
-        installedPriceFrom: "$290 supply + install",
         bestFor: "Adding smartphone control to any Zonemate touch controller",
         ourTake: "Snap-in Wi-Fi module — turns the wall-mounted Zonemate touch panel into a phone-controlled system.",
         specs: [{ label: "Compatibility", value: "ZM-4T / ZM-6T / ZM-8T" }],
@@ -1760,7 +1684,6 @@ export const brands: Brand[] = [
         category: "damper",
         categoryLabel: "Ducted damper",
         veuEligible: false,
-        installedPriceFrom: "$190 supply + install (per damper)",
         bestFor: "Modulating airflow to individual zones",
         ourTake:
           "Variable-speed dampers let you set a per-zone airflow percentage instead of just on/off. Nicer comfort in less-used zones — never fully off, never fully open.",
@@ -1774,7 +1697,6 @@ export const brands: Brand[] = [
         category: "damper",
         categoryLabel: "Ducted damper",
         veuEligible: false,
-        installedPriceFrom: "$130 supply + install (per damper)",
         bestFor: "Standard on/off zone control",
         ourTake: "The standard constant-speed damper — on or off per zone. What we install by default unless the customer specifies VSD.",
         specs: [{ label: "Modulation", value: "on/off" }],

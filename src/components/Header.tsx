@@ -294,29 +294,36 @@ function ServicesMega() {
 }
 
 function BrandsMega() {
+  // Clean text-only cards (matches the iheatandcool competitor look): brand
+  // name bold + one-word category subtitle, no photos. Photos looked cluttered
+  // in the dropdown, especially when all fallbacks landed on the same install
+  // shot. This reads much cleaner and scans faster.
+  const brandSubtitle: Record<string, string> = {
+    "mitsubishi-electric": "Air Conditioning",
+    "reclaim":             "CO₂ Heat Pumps",
+    "thermann":            "Heat Pump · Gas · Solar",
+    "istore":              "Heat Pump Hot Water",
+    "kaden":               "Split · Ducted · Gas · Evap",
+    "zonemate":            "Ducted Zoning",
+    "brivis":              "Gas Ducted Heating",
+  };
   return (
     <div className="mega__brands">
       <div className="mega__brands-head">
         <div className="mega__collabel">Every brand we install</div>
-        <Link href="/brands" className="mega__brands-all">See all 68 models →</Link>
+        <Link href="/brands" className="mega__brands-all">See all {brands.length} brands →</Link>
       </div>
-      <div className="mega__brands-grid">
+      <div className="mega__brands-cleangrid">
         {brands.map((b) => (
           <Link
             key={b.slug}
             href={`/brands/${b.slug}`}
             role="menuitem"
-            className="mega__brandcard"
+            className="mega__brandtile"
             style={{ ["--card-accent" as string]: b.accent }}
           >
-            <div className="mega__brandcard-photo">
-              <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="200" height="140" />
-            </div>
-            <div className="mega__brandcard-body">
-              <b>{b.name}</b>
-              <span>{b.tagline}</span>
-              <em>{b.products.length} models · {b.origin}</em>
-            </div>
+            <b>{b.name}</b>
+            <span>{brandSubtitle[b.slug] ?? b.tagline}</span>
           </Link>
         ))}
       </div>

@@ -107,22 +107,11 @@ const HP_BRANDS: Brand[] = [
       { id: "dux-315", name: "Dux Airoheat 315 L", desc: "4–5 person homes", rrp: 3600, install: "split" },
     ],
   },
-  {
-    id: "rinnai",
-    t: "Rinnai",
-    s: "Reliable, common parts",
-    ausMade: false,
-    products: [
-      { id: "rinnai-250", name: "Rinnai heat pump 250 L", desc: "3–4 person homes", rrp: 3300, install: "split" },
-      { id: "rinnai-315", name: "Rinnai heat pump 315 L", desc: "4–5 person homes", rrp: 3700, install: "split" },
-    ],
-  },
-];
+  ];
 
 const AC_BRANDS = [
   { id: "mitsu",  t: "Mitsubishi Electric", s: "Premium quiet inverter" },
   { id: "kaden",  t: "Kaden",               s: "Great value, 5-yr warranty" },
-  { id: "rinnai", t: "Rinnai",              s: "Reliable, common parts" },
 ];
 
 /* ------- component ------- */
@@ -190,7 +179,7 @@ export function RebateCalculator() {
             onClick={() => pickCategory("hp")}
           >
             <span className="rb-calc__card-t">Heat pump hot water</span>
-            <span className="rb-calc__card-s">Reclaim · Thermann · Dux · iStore · Rinnai</span>
+            <span className="rb-calc__card-s">Reclaim · Thermann · Dux · iStore</span>
           </button>
           <button
             type="button"
@@ -198,7 +187,7 @@ export function RebateCalculator() {
             onClick={() => pickCategory("ac")}
           >
             <span className="rb-calc__card-t">Cooling</span>
-            <span className="rb-calc__card-s">Mitsubishi Electric · Kaden · Rinnai</span>
+            <span className="rb-calc__card-s">Mitsubishi Electric · Kaden</span>
           </button>
         </div>
       </div>

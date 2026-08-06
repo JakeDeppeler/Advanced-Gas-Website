@@ -43,7 +43,7 @@ const LABELS: Record<string, Record<string, string>> = {
   hpSize: { small: "180 – 200 L", large: "275 – 300 L", xl: "315 – 400 L" },
   hpMaterial: { stainless: "Stainless steel", glass: "Glass lined" },
   hpWifi: { yes: "Yes", no: "No" },
-  splitBrand: { mitsu: "Mitsubishi Electric", kaden: "Kaden", rinnai: "Rinnai" },
+  splitBrand: { mitsu: "Mitsubishi Electric", kaden: "Kaden" },
   splitStyle: { single: "Single head", multi: "Multi-head" },
   splitSize: {
     "2.5": "2.5 kW", "3.5": "3.5 kW", "5.0": "5.0 kW", "7.1": "7.1 kW", "9.0": "9.0 kW",

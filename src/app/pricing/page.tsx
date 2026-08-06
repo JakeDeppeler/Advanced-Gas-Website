@@ -23,7 +23,7 @@ const CATEGORY_ORDER: { key: string; label: string; desc: string }[] = [
   { key: "ducted", label: "Ducted aircon", desc: "Whole-home cooling + heating" },
   { key: "cassette", label: "Cassette aircon", desc: "Commercial ceiling-mounted 4-way" },
   { key: "floor-console", label: "Floor console", desc: "Under-window installs" },
-  { key: "gas-continuous-flow", label: "Gas continuous flow", desc: "Rinnai / Thermann continuous flow" },
+  { key: "gas-continuous-flow", label: "Gas continuous flow", desc: "Thermann continuous flow" },
   { key: "gas-storage", label: "Gas storage hot water", desc: "Like-for-like storage replacement" },
   { key: "electric-storage", label: "Electric storage hot water", desc: "Emergency replacement only" },
   { key: "solar-hot-water", label: "Solar hot water", desc: "Close-couple & split systems" },
@@ -180,7 +180,9 @@ export default function PricingPage() {
                             <td className="pricing-block__bestfor">{r.bestFor}</td>
                             <td>{r.veu ? <span className="pricing-block__pill">VEU eligible</span> : <span className="pricing-block__pill pricing-block__pill--muted">—</span>}</td>
                             <td className="pricing-block__pricecell">
-                              {r.price ? <strong>{r.price}</strong> : <span className="pricing-block__poa">POA</span>}
+                              {r.price
+                                ? <strong>{r.price}</strong>
+                                : <Link href="/quote" className="pricing-block__poa">Message for quote →</Link>}
                             </td>
                             <td className="pricing-block__linkcell">
                               <Link href={`/brands/${r.brandSlug}/${r.productSlug}`}>Details →</Link>

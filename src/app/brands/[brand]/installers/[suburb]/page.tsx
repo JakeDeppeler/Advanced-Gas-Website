@@ -165,7 +165,9 @@ export default function BrandSuburbPage({
                     {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
                     <p className="brand-card__take">{p.ourTake}</p>
                     <div className="brand-card__foot">
-                      {p.installedPriceFrom && <span className="brand-card__price">from {p.installedPriceFrom}</span>}
+                      <span className="brand-card__price">
+                        {p.installedPriceFrom ? `from ${p.installedPriceFrom}` : "Message for quote →"}
+                      </span>
                     </div>
                   </div>
                 </Link>

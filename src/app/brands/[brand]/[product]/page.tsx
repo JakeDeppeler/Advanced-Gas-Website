@@ -108,12 +108,13 @@ export default function ProductPage({
                 <p>{product.capacity}</p>
               </>
             )}
-            {product.installedPriceFrom && (
-              <>
-                <div className="dp-local__lbl">Installed from</div>
-                <p><strong>{product.installedPriceFrom}</strong></p>
-              </>
-            )}
+            <div className="dp-local__lbl">Installed price</div>
+            <p>
+              {product.installedPriceFrom
+                ? <strong>{product.installedPriceFrom}</strong>
+                : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Fixed price within 2 business hours.</span></>
+              }
+            </p>
             <div className="dp-local__lbl">VEU rebate</div>
             <p>{product.veuEligible ? "Eligible — we handle the paperwork." : "Not applicable to this unit."}</p>
           </div>
