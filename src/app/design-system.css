@@ -183,12 +183,17 @@
   color: var(--navy);
 }
 
-/* Dropdown container. Cleaner white panel with a subtle drop and a hairline
-   accent bar on top so it visually connects to the trigger below. */
+/* Dropdown container.
+   Positioned FIXED and viewport-centered so it never overflows the
+   viewport regardless of which trigger opened it. Previous per-trigger
+   positioning (left: 0 / right: 0) was fragile once nav layout changed
+   — Areas was getting cut off on the left because it wasn't the
+   rightmost trigger anymore. Fixed centering is bulletproof. */
 .mega {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
+  position: fixed;
+  top: 78px;              /* matches .hdr__row height */
+  left: 50%;
+  transform: translateX(-50%);
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -200,15 +205,20 @@
   animation: megaIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
   max-width: calc(100vw - 40px);
 }
-.hdr__navwrap--right .mega { left: auto; right: 0; }
+/* alignRight modifier kept for backwards compat but is now a no-op —
+   fixed-center positioning handles overflow itself. */
 .mega::before {
-  /* Bridge the gap between the trigger and the mega so hover doesn't drop. */
+  /* Bridge the gap between the header bottom and the mega so hover
+     doesn't drop while the user's cursor traverses the gap.
+     Extra-wide (200px each side) because the mega is fixed-centered
+     while the trigger sits anywhere in the nav — the cursor might
+     traverse a diagonal path from the trigger to the mega's edge. */
   content: "";
-  position: absolute; left: 0; right: 0; top: -12px; height: 12px;
+  position: absolute; left: -200px; right: -200px; top: -20px; height: 20px;
 }
 @keyframes megaIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate(-50%, -4px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
 .mega__collabel {
@@ -221,9 +231,17 @@
   margin: 0 0 12px;
 }
 
-/* -------- Services mega — wider on desktop so the two-up service cards
-   have breathing room + the popular list reads without hyphenation. */
-.mega__services { width: min(820px, calc(100vw - 40px)); padding: 24px 26px; }
+/* -------- Services mega — wide 4-column photo grid matching the
+   iheatandcool competitor reference. 8 service cards + a popular list
+   + CTA panel below. */
+.mega__services { width: min(1080px, calc(100vw - 40px)); padding: 24px 26px; }
+.mega__services .mega__services-grid {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px;
+}
+@media (max-width: 1100px) {
+  .mega__services .mega__services-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
 .mega__services-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -299,8 +317,8 @@
    Simplified from the photo-grid version — the fallback shots were
    repetitive and cluttered the dropdown. Now: 4-column tile grid,
    brand name in bold + a one-line category subtitle, brand-accent
-   top border on hover. Reads much cleaner. */
-.mega__brands { width: min(880px, calc(100vw - 40px)); padding: 22px 24px; }
+   top border on hover. Reads much cleaner. Wider to match competitor. */
+.mega__brands { width: min(1080px, calc(100vw - 40px)); padding: 22px 24px; }
 .mega__brands-cleangrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -440,12 +458,13 @@
   font-weight: 600;
 }
 
-/* -------- Areas mega -------- */
+/* -------- Areas mega — wider grid, more suburbs visible. Compass
+   layout: 3 region columns + a CTA panel. */
 .mega__areas {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 240px;
-  min-width: 720px;
-  width: min(860px, calc(100vw - 40px));
+  grid-template-columns: 1fr 1fr 1fr 260px;
+  min-width: 780px;
+  width: min(980px, calc(100vw - 40px));
   align-items: stretch;
 }
 .mega__areas .mega__col {

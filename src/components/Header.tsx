@@ -32,29 +32,57 @@ const SERVICES_MEGA: {
   primary: [
     {
       href: "/services/air-conditioning-installation",
-      label: "Air conditioning",
-      sub: "Split · multi-head · ducted",
-      photo: "/kaden-indoor.webp",
-      photoAlt: "Split system air conditioner",
+      label: "Split system aircon",
+      sub: "Bedroom, living, multi-head",
+      photo: "/AP_70-80HP_front-1920x1440-1.png",
+      photoAlt: "Mitsubishi MSZ-AP wall split system",
+    },
+    {
+      href: "/services/air-conditioning-installation",
+      label: "Ducted air conditioning",
+      sub: "Whole-home cooling + heating",
+      photo: "/kdi-v2-image_01.jpg",
+      photoAlt: "Ducted air conditioning indoor unit",
     },
     {
       href: "/services/heat-pump-installation",
       label: "Heat pump hot water",
       sub: "VEU rebate applied at quote",
-      photo: "/reclaim-spit-close-up.webp",
-      photoAlt: "Reclaim heat pump hot water system",
+      photo: "/270L-istore-heatpump.webp",
+      photoAlt: "iStore 270L heat pump hot water system",
     },
     {
       href: "/services/gas-plumbing",
-      label: "Gas & hot water",
-      sub: "Continuous flow, storage, LPG",
-      photo: "/gas-hot-water-changeover.webp",
-      photoAlt: "Gas hot water installation",
+      label: "Gas continuous flow",
+      sub: "Rinnai / Thermann G-series",
+      photo: "/G-Series_Front_On_View_1200x900.jpg",
+      photoAlt: "Thermann G-series continuous flow gas hot water",
+    },
+    {
+      href: "/services/gas-plumbing",
+      label: "Gas ducted heating",
+      sub: "Brivis, Kaden — repair or replace",
+      photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
+      photoAlt: "Brivis gas ducted heater",
+    },
+    {
+      href: "/services/aircon-servicing-repairs",
+      label: "Zoning & smart control",
+      sub: "Zonemate touch + Wi-Fi",
+      photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
+      photoAlt: "Zonemate touch controller in a living room",
+    },
+    {
+      href: "/services/aircon-servicing-repairs",
+      label: "Evaporative cooling",
+      sub: "Kaden roof units, dry-summer suburbs",
+      photo: "/classic_evap_product_image.jpg",
+      photoAlt: "Kaden evaporative cooler",
     },
     {
       href: "/services/aircon-servicing-repairs",
       label: "Service & repairs",
-      sub: "Every major brand",
+      sub: "Every major brand, all fuels",
       photo: "/duct-work.webp",
       photoAlt: "Aircon service and repairs",
     },
@@ -105,7 +133,7 @@ const NAV: NavItem[] = [
   { href: "/", label: "Home" },
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
-  { label: "Areas", trigger: "areas", href: "/service-areas", alignRight: true, kind: "areas" },
+  { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/about", label: "About" },
@@ -143,7 +171,9 @@ export function Header() {
   };
   const scheduleClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = setTimeout(() => setActiveMega(null), 160);
+    // Longer delay (300 ms) so the user has time to traverse the diagonal
+    // gap from a nav trigger to the viewport-centered mega panel below.
+    closeTimer.current = setTimeout(() => setActiveMega(null), 300);
   };
 
   return (
