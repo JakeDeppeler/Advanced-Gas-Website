@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { site, services, publishedSuburbs } from "@/lib/site";
-import { LogoMark } from "@/components/Logo";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
 export function Footer() {
@@ -14,10 +13,16 @@ export function Footer() {
         <div className="ftr__top">
           <div className="ftr__brand">
             <Link href="/" className="ftr__signature" aria-label={`${site.name} home`}>
-              <LogoMark className="ftr__signature-mark" />
-              <span className="ftr__signature-name">
-                <b>Advanced</b>
-                <span>Gas &amp; Aircon</span>
+              {/* Real designed logo asset — the webp has a white background
+                  so we sit it inside a padded white plate so it reads
+                  cleanly against the footer's navy. */}
+              <span className="ftr__logo-plate">
+                <img
+                  src="/advanced-gas-logo.webp"
+                  alt={`${site.name} logo`}
+                  width="240"
+                  height="120"
+                />
               </span>
             </Link>
             <p className="ftr__tag">
