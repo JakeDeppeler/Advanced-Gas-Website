@@ -60,6 +60,22 @@ export type Brand = {
   photoAlt: string;
   /** Accent hex for the brand's card treatment (subtle top border etc). */
   accent: string;
+  /** Year established / brand founded (used in "about this brand" strip). */
+  established?: string;
+  /** Standard warranty on the brand's products, brand-wide. Individual
+   *  products may extend this in their own specs table. */
+  warranty?: string;
+  /** 3-6 short bullet points on why this brand is worth choosing.
+   *  Rendered as a checklist on the brand hub. */
+  keyFeatures?: string[];
+  /** One paragraph on how the brand shows up specifically in Melbourne's
+   *  south-east — housing stock it suits, suburbs we install a lot in. */
+  commonInMelbourne?: string;
+  /** Parts + service context (how quickly we can get replacement parts,
+   *  service turnaround, etc). */
+  support?: string;
+  /** Optional links to spec sheets / brochures on the manufacturer's site. */
+  resources?: { label: string; href: string }[];
   products: Product[];
 };
 
@@ -127,6 +143,23 @@ export const brands: Brand[] = [
     photo: "/gas-ducted-install.webp",
     photoAlt: "Brivis gas ducted heater installed in a Melbourne home",
     accent: "#0058A5",
+    established: "Founded 1971 · Melbourne · part of Rinnai Australia since 2004",
+    warranty: "5-year manufacturer warranty on heat exchanger + 6-year on our workmanship",
+    keyFeatures: [
+      "The gas ducted brand more Melbourne homes were built with than any other",
+      "Same-footprint retrofit into most existing Brivis / Braemar cavities",
+      "3-star to 5-star efficiency options across the range",
+      "Australian-designed for Melbourne winters",
+      "Rinnai-backed parts pipeline — even 15-year-old units are still serviceable",
+    ],
+    commonInMelbourne:
+      "The dominant gas ducted heater in Pakenham, Berwick, Cranbourne, Officer and Endeavour Hills homes built 1990-2015. If a customer is retrofitting a working ducted system, staying on Brivis is the cheapest path because the existing ducts, controller wiring and cupboard footprint all reuse.",
+    support:
+      "Rinnai's Melbourne warehouse holds Brivis parts for every unit still in the field, including discontinued models. We keep a stock of controllers, ignition units and burners on the truck — most Brivis service jobs are one-visit fixes.",
+    resources: [
+      { label: "Brivis product range", href: "https://www.brivis.com.au/products/" },
+      { label: "Rinnai Australia support", href: "https://www.rinnai.com.au/" },
+    ],
     products: [
       {
         slug: "brivis-buffalo",
@@ -226,6 +259,25 @@ export const brands: Brand[] = [
     photo: "/reclaim-mitsubishi.webp",
     photoAlt: "Mitsubishi Electric split system installed in a Melbourne home",
     accent: "#DA1A32",
+    established: "Australian sales since 1978 · manufacturing in Thailand",
+    warranty: "5-year manufacturer parts + labour + 6-year on our workmanship. Diamond Dealer accredited installers unlock a 7-year extended warranty.",
+    keyFeatures: [
+      "The lowest failure rate in our install base — a decade-old MSZ-AP still runs to spec",
+      "Parts pipeline is genuinely never a worry, even for units we installed 10+ years ago",
+      "MSZ-AP is our default; MSZ-FH Hyper Heating for cold-climate suburbs; PEAD-M ducted for family homes",
+      "Diamond Dealer accreditation (in progress) unlocks 7-year extended warranty",
+      "R32 refrigerant across the range — modern, low-GWP",
+      "MELCloud Wi-Fi module adds phone control to any indoor unit",
+    ],
+    commonInMelbourne:
+      "The default premium spec across every Melbourne suburb we install in. Berwick, Officer, Clyde North and Cranbourne new-builds spec the PEAD-M ducted almost by default; Berwick and Pakenham weatherboards typically get the MSZ-AP wall splits; hills suburbs (Emerald, Gembrook, Cockatoo) get the MSZ-FH Hyper Heating for cold-morning performance.",
+    support:
+      "Mitsubishi's Melbourne parts warehouse is same-day for common indoor/outdoor parts. Manufacturer tech support is genuinely responsive. We rarely wait on a part.",
+    resources: [
+      { label: "Wall-mounted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/wall-mounted-air-conditioners/" },
+      { label: "Ducted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/ducted-air-conditioning/" },
+      { label: "Multi-head range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/multi-head-split-system-air-conditioners/" },
+    ],
     products: [
       {
         slug: "msz-ap25",
@@ -752,6 +804,25 @@ export const brands: Brand[] = [
     photo: "/reclaim-split-back.webp",
     photoAlt: "Reclaim CO2 heat pump hot water system installation",
     accent: "#2E8459",
+    established: "Designed and assembled in Sydney, Australia · trading since 2007",
+    warranty: "6-year cylinder + 5-year compressor + 6-year on our workmanship",
+    keyFeatures: [
+      "CO₂ (R744) natural refrigerant — zero global-warming potential",
+      "Holds heating capacity down to -10°C ambient — matters for Emerald / Gembrook / cold-morning mornings",
+      "316-grade stainless steel tank option — no anode to swap, no rust",
+      "Quiet enough (37 dBA at 1m) to sit next to a bedroom wall",
+      "Australian-designed for Australian conditions",
+      "PV-diverter kit fires the compressor on solar surplus — earns its price back fast on any home with rooftop solar",
+    ],
+    commonInMelbourne:
+      "Our default recommendation for any customer who intends to be in the house 10+ years. Popular through Pakenham Cameron Park estates, Berwick weatherboards being upgraded from gas storage, and every Cranbourne / Officer job where the customer specifies 'best of' and the tank sits in a visible spot (stainless finish reads as premium).",
+    support:
+      "Reclaim's Sydney factory holds parts for every unit currently in the field. Compressor swap-out is straightforward within warranty. We stock the common seals, O-rings and PV-diverter controllers on the truck.",
+    resources: [
+      { label: "Reclaim ECO R290 heat pump", href: "https://reclaimenergy.com.au/reclaim-eco-r290-heat-pump/" },
+      { label: "Reclaim CO₂ heat pump", href: "https://reclaimenergy.com.au/co2-heat-pump/" },
+      { label: "Reclaim CO₂ Wi-Fi heat pump", href: "https://reclaimenergy.com.au/reclaim-energy-co2-wi-fi-heat-pump/" },
+    ],
     products: [
       {
         slug: "co2-315-stainless",
@@ -883,6 +954,24 @@ export const brands: Brand[] = [
     photo: "/thermann-heat-pump.webp",
     photoAlt: "Thermann heat pump hot water tank installed outside a Melbourne home",
     accent: "#0090C3",
+    established: "Rheem's premium sub-brand · Rheem Australia has been Melbourne-based since 1937",
+    warranty: "5-year cylinder + 3-year compressor + 6-year on our workmanship. Series 5 compressor warranty extends to 5 years.",
+    keyFeatures: [
+      "Backed by Rheem Australia's Melbourne distribution and parts network",
+      "Wide range covers every fuel type — heat pump, gas continuous flow, gas storage, solar",
+      "R290 refrigerant in the heat pump range — low-GWP, high efficiency",
+      "Best mid-tier VEU rebate outcome when Reclaim busts the budget",
+      "Rheem Pro accreditation gives us direct-line parts + warranty backing",
+      "G-series continuous flow is our default gas hot water swap when the customer wants to stay on gas",
+    ],
+    commonInMelbourne:
+      "Our volume-tier default for VEU rebate customers who want a proven, well-supported brand at a mid price point. Thermann Series 5 heat pumps go into a lot of Hampton Park, Cranbourne and Narre Warren jobs where the rebate math works best. G-series continuous flow is our go-to gas hot water swap across the corridor.",
+    support:
+      "Rheem's Truganina and Dandenong South parts warehouses are same-day for us. Warranty claims process is streamlined via the Rheem Pro portal. Compressor + cylinder swap-outs are quick.",
+    resources: [
+      { label: "Thermann Integrated Heat Pump", href: "https://www.thermann.com.au/products/integrated-heat-pump/" },
+      { label: "Thermann G-series continuous flow", href: "https://www.thermann.com.au/products/g-series-continuous-flow/" },
+    ],
     products: [
       {
         slug: "series-4-270",
@@ -1150,9 +1239,26 @@ export const brands: Brand[] = [
       "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the VEU rebate customer who wants their out-of-pocket under $500, iStore hits the sweet spot every time.",
     accreditation: "iStore accredited installer",
     productLabel: "5 SKUs — heat pump storage, PV diverter",
+    // TODO(photos): swap to /istore-heat-pump.webp once saved.
     photo: "/relcaim-split-close-up.webp",
-    photoAlt: "iStore heat pump hot water installation",
+    photoAlt: "iStore heat pump hot water system",
     accent: "#F36722",
+    established: "Australian-designed, Chinese-manufactured · trading since 2018",
+    warranty: "6-year cylinder + 3-year compressor + 6-year on our workmanship",
+    keyFeatures: [
+      "Best VEU rebate outcome in the market — 270L install often lands under $900 out-of-pocket",
+      "Built-in PV-diverter compatibility — smart-schedule the compressor around your solar",
+      "Wi-Fi smart-app control comes standard — no aftermarket module needed",
+      "R290 natural refrigerant, high COP",
+      "Aggressive price point — the value pick when budget is the driving factor",
+    ],
+    commonInMelbourne:
+      "Hampton Park, Cranbourne North and Doveton are the postcodes we install the most iStore into — the VEU rebate maths there consistently gets the out-of-pocket under $500. Also popular with solar-paired households through Officer and Clyde North where the built-in PV diverter pays back inside the first year.",
+    support:
+      "iStore parts flow through their Melbourne distributor. Warranty claims are handled by iStore's Sydney office directly with the homeowner — we handle the on-site swap-out.",
+    resources: [
+      { label: "iStore product range", href: "https://istore.com.au/" },
+    ],
     products: [
       {
         slug: "istore-180",
@@ -1258,6 +1364,26 @@ export const brands: Brand[] = [
     photo: "/kaden-indoor.webp",
     photoAlt: "Kaden split system installed in a Melbourne bedroom",
     accent: "#12224E",
+    established: "Australian-distributed since 2015 · manufactured in China to AS/NZS standards",
+    warranty: "5-year manufacturer parts + labour + 6-year on our workmanship",
+    keyFeatures: [
+      "Best value-to-quality ratio at the mid-tier — genuinely closes the gap on premium brands",
+      "Full range: wall splits (Bold + Ultra), multi-head, ducted (10-18 kW), gas ducted, evaporative",
+      "Kaden Advance 6-star gas ducted is the most efficient value-tier gas heater in Melbourne",
+      "R32 refrigerant in the aircon range",
+      "National parts distribution — no waiting on overseas orders",
+    ],
+    commonInMelbourne:
+      "Our value alternative when a family wants cooling in 3+ bedrooms and the Mitsubishi quote busts the budget. Very common in Cranbourne, Narre Warren, Hampton Park and Endeavour Hills where the customer wants a real system but the numbers need to work. Kaden gas ducted is our default like-for-like Brivis / Braemar replacement path.",
+    support:
+      "Kaden's Sydney warehouse handles Victorian parts distribution overnight to our supplier network. Warranty claims are handled through our supplier direct — 5-year parts + labour means most fixes are just a service call.",
+    resources: [
+      { label: "Kaden wall-mounted", href: "https://www.kadenair.com.au/products/wall-mounted-air-conditioning/" },
+      { label: "Kaden ducted", href: "https://www.kadenair.com.au/products/ducted-air-conditioners/" },
+      { label: "Kaden multi-head", href: "https://www.kadenair.com.au/products/multi-air-conditioning/" },
+      { label: "Kaden gas ducted heating", href: "https://www.kadenair.com.au/products/gas-ducted-heating/" },
+      { label: "Kaden evaporative cooling", href: "https://www.kadenair.com.au/products/evaporative-cooling/" },
+    ],
     products: [
       {
         slug: "kaden-bold-25",
@@ -1545,6 +1671,22 @@ export const brands: Brand[] = [
     photo: "/duct-work.webp",
     photoAlt: "Zonemate zoning controller and dampers in ceiling void",
     accent: "#7A4CD8",
+    established: "Australian-designed and manufactured for the local ducted market",
+    warranty: "5-year controller + 5-year dampers + 6-year on our workmanship",
+    keyFeatures: [
+      "Built for Australian ducted installer wiring standards — plays with every ducted brand we install",
+      "4, 6 and 8-zone touch controllers — cover single-storey through to large double-storey",
+      "Wi-Fi module snaps in — turns the wall panel into a phone-controlled system",
+      "Variable-speed dampers modulate airflow 0-100% per zone (proper comfort, not just on/off)",
+      "Constant-speed dampers where the customer just wants on/off zone control at a lower price",
+    ],
+    commonInMelbourne:
+      "Every ducted job we quote includes a Zonemate as standard. Zoning is the single biggest efficiency lever on a ducted system — shutting off unused rooms cuts running cost 30-40%. 6-zone is our most-installed model; 8-zone for Clyde North / Officer double-storeys.",
+    support:
+      "Zonemate's Melbourne office is on the phone within an hour when we hit a wiring issue. Controllers and dampers are held locally by our supplier network — same-day delivery for warranty replacements.",
+    resources: [
+      { label: "Zonemate zoning systems", href: "https://zonemate.com.au/" },
+    ],
     products: [
       {
         slug: "zonemate-4",

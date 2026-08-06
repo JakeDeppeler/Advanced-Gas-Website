@@ -80,10 +80,10 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </div>
       </section>
 
-      {/* Our-take strip */}
+      {/* At-a-glance strip (4 cells): our-take, accreditation, warranty, established */}
       <section className="dp-local">
         <div className="wrap">
-          <div className="dp-local__grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <div className="dp-local__grid">
             <div className="dp-local__cell">
               <div className="dp-local__lbl">Why we install it</div>
               <p>{brand.ourTake}</p>
@@ -91,12 +91,67 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
             <div className="dp-local__cell">
               <div className="dp-local__lbl">Accreditation</div>
               <p>{brand.accreditation ?? "Authorised installer"}</p>
-              <div className="dp-local__lbl" style={{ marginTop: 16 }}>Range</div>
-              <p>{brand.productLabel}</p>
             </div>
+            {brand.warranty && (
+              <div className="dp-local__cell">
+                <div className="dp-local__lbl">Warranty</div>
+                <p>{brand.warranty}</p>
+              </div>
+            )}
+            {brand.established && (
+              <div className="dp-local__cell">
+                <div className="dp-local__lbl">Established</div>
+                <p>{brand.established}</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
+
+      {/* Key features + Melbourne context — dense info-panels */}
+      {(brand.keyFeatures || brand.commonInMelbourne || brand.support) && (
+        <section className="brand-info">
+          <div className="wrap brand-info__grid">
+            {brand.keyFeatures && brand.keyFeatures.length > 0 && (
+              <div className="brand-info__block">
+                <span className="ds-eyebrow"><span className="ds-dot" /> Why {brand.name}</span>
+                <h2>What sets it apart.</h2>
+                <ul className="brand-info__list">
+                  {brand.keyFeatures.map((f) => <li key={f}>{f}</li>)}
+                </ul>
+              </div>
+            )}
+            <div className="brand-info__aside">
+              {brand.commonInMelbourne && (
+                <div className="brand-info__cell">
+                  <div className="dp-local__lbl">Common in Melbourne</div>
+                  <p>{brand.commonInMelbourne}</p>
+                </div>
+              )}
+              {brand.support && (
+                <div className="brand-info__cell">
+                  <div className="dp-local__lbl">Parts &amp; service</div>
+                  <p>{brand.support}</p>
+                </div>
+              )}
+              {brand.resources && brand.resources.length > 0 && (
+                <div className="brand-info__cell">
+                  <div className="dp-local__lbl">Manufacturer resources</div>
+                  <ul className="brand-info__resources">
+                    {brand.resources.map((r) => (
+                      <li key={r.href}>
+                        <a href={r.href} target="_blank" rel="noopener noreferrer">
+                          {r.label} ↗
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Product range grouped by category */}
       <section className="brand-range">

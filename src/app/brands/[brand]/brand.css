@@ -136,6 +136,84 @@
   color: var(--navy);
 }
 
+/* ---------- brand info panel — key features + Melbourne + resources ---------- */
+.brand-info {
+  background: var(--bg);
+  padding: 60px 0;
+  border-bottom: 1px solid var(--line);
+}
+.brand-info__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+}
+.brand-info__block h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 10px 0 20px;
+  line-height: 1.1;
+}
+.brand-info__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.brand-info__list li {
+  position: relative;
+  padding-left: 28px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.brand-info__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 18px;
+  height: 18px;
+  background: var(--card-accent, var(--sky));
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='black' d='M8.1 13.5l-3.3-3.3 1.4-1.4 1.9 1.9 5.7-5.7 1.4 1.4z'/></svg>");
+  mask-repeat: no-repeat;
+  mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='black' d='M8.1 13.5l-3.3-3.3 1.4-1.4 1.9 1.9 5.7-5.7 1.4 1.4z'/></svg>");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+}
+.brand-info__aside { display: grid; gap: 22px; align-content: start; }
+.brand-info__cell {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px 20px;
+  border-left: 3px solid var(--card-accent, var(--sky));
+}
+.brand-info__cell p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+}
+.brand-info__resources { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.brand-info__resources a {
+  font-size: 13.5px;
+  color: var(--navy);
+  text-decoration: none;
+  font-weight: 600;
+  border-bottom: 1px dotted var(--line);
+  padding-bottom: 4px;
+  display: inline-block;
+}
+.brand-info__resources a:hover { color: var(--card-accent, var(--sky)); }
+@media (max-width: 900px) {
+  .brand-info__grid { grid-template-columns: 1fr; gap: 32px; }
+}
+
 /* ---------- brand hub (/brands/[brand]) ---------- */
 .brand-range { padding: 60px 0 90px; background: var(--bg); }
 .brand-group { margin-top: 44px; }
