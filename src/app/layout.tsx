@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
@@ -98,6 +99,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema()) }}
         />
+        {/* Vercel Speed Insights — real-user performance metrics from every
+            visit. Beacon-based, no impact on TBT or LCP; script only loads
+            once the page is idle. Dashboard at
+            vercel.com/[team]/[project]/speed-insights. */}
+        <SpeedInsights />
       </body>
     </html>
   );
