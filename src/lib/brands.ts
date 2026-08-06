@@ -39,6 +39,11 @@ export type Product = {
   ourTake: string;
   specs: { label: string; value: string }[];
   related?: string[];
+  /** Product-specific photo override. Falls back to categoryPhoto[category]
+   *  when absent. Path is relative to /public. Use for real product shots
+   *  (manufacturer or our own install photos). */
+  photo?: string;
+  photoAlt?: string;
 };
 
 export type Brand = {
@@ -58,8 +63,30 @@ export type Brand = {
   products: Product[];
 };
 
-/** Category → photo map, used as a fallback when a product doesn't have its
- *  own asset. All images live in /public as WebP. */
+/** Category → photo map. Products fall through to this when they don't
+ *  set a per-product `photo` override. All paths live in /public as WebP.
+ *
+ *  When real manufacturer shots are dropped into /public (see filename
+ *  list below), swap the src to point at them here.
+ *
+ *  Filenames to save real photos as (Wave 3 of the photo-swap plan):
+ *    /mitsubishi-msz-ap.webp          — Mitsubishi MSZ-AP wall split
+ *    /mitsubishi-pead-ducted.webp     — Mitsubishi PEAD-M ducted indoor
+ *    /mitsubishi-outdoor-large.webp   — Mitsubishi twin-fan outdoor
+ *    /kaden-bold-split.webp           — Kaden wall split + outdoor
+ *    /kaden-ducted-small.webp         — Kaden ducted small
+ *    /kaden-ducted-large.webp         — Kaden ducted twin-fan outdoor
+ *    /kaden-multi-diagram.webp        — Kaden multi-head system diagram
+ *    /kaden-gas-ducted.webp           — Kaden gas ducted heater
+ *    /kaden-evaporative.webp          — Kaden evaporative roof cooler
+ *    /reclaim-co2-split.webp          — Reclaim CO2 split system
+ *    /reclaim-r290-range.webp         — Reclaim R290 tank range
+ *    /thermann-integrated-heat-pump.webp — Thermann integrated HP
+ *    /thermann-continuous-flow.webp   — Thermann G-series CF
+ *    /thermann-electric-storage.webp  — Thermann electric storage tank
+ *    /zonemate-touch-controller.webp  — Zonemate wall tablet
+ *    /zonemate-app.webp               — Zonemate app on phone
+ */
 export const categoryPhoto: Record<ProductCategory, { src: string; alt: string }> = {
   "split-system": { src: "/kaden-indoor.webp", alt: "Split system head unit" },
   "multi-head": { src: "/reclaim-split-back.webp", alt: "Multi-head outdoor unit" },
@@ -77,11 +104,118 @@ export const categoryPhoto: Record<ProductCategory, { src: string; alt: string }
   "accessory": { src: "/gas-line.webp", alt: "Accessory kit" },
 };
 
-export function productPhoto(p: Product) {
+export function productPhoto(p: Product): { src: string; alt: string } {
+  if (p.photo) return { src: p.photo, alt: p.photoAlt ?? p.name };
   return categoryPhoto[p.category] ?? categoryPhoto["accessory"];
 }
 
 export const brands: Brand[] = [
+
+  // ================== BRIVIS ==================
+  {
+    slug: "brivis",
+    name: "Brivis",
+    tagline: "Melbourne gas ducted heating — the local incumbent.",
+    origin: "Melbourne, Australia (Rinnai Group)",
+    intro:
+      "Brivis is the gas ducted heater we replace, service and re-install more than any other in the south-east. Melbourne winters and Brivis are historically intertwined — most homes in Pakenham, Berwick, Officer and Cranbourne built between 1990 and 2015 shipped with a Brivis in the roof or under the floor.",
+    ourTake:
+      "We install Brivis when a customer wants a like-for-like gas ducted replacement — same footprint, same ducts, same controller wiring. If the existing unit is past 12-15 years old, we'll also quote a reverse-cycle switch alongside so the customer can compare running-cost economics before committing.",
+    accreditation: "Brivis-Rinnai approved installer",
+    productLabel: "4 SKUs — internal, external, in-slab, add-on cooling",
+    photo: "/brivis-gas-ducted.webp",
+    photoAlt: "Brivis gas ducted heater installed in a Melbourne home",
+    accent: "#0058A5",
+    products: [
+      {
+        slug: "brivis-buffalo",
+        name: "Brivis Buffalo Internal Gas Ducted",
+        model: "Buffalo 80 / 100 / 120",
+        category: "ducted",
+        categoryLabel: "Internal gas ducted heater",
+        capacity: "20 kW to 32 kW output",
+        veuEligible: false,
+        installedPriceFrom: "$4,890 installed",
+        bestFor: "Retrofit into existing internal gas heater cupboard",
+        ourTake:
+          "The Buffalo is Brivis's internal in-cupboard heater — the most common Brivis we replace. Fits into the same footprint as older Brivis and Braemar units, so the retrofit is quick and the existing ducts are reused. 3-star to 5-star efficiency options.",
+        specs: [
+          { label: "Output range", value: "20 – 32 kW" },
+          { label: "Install position", value: "Internal cupboard (under-floor / roof)" },
+          { label: "Star rating", value: "3-star / 4-star / 5-star options" },
+          { label: "Gas type", value: "Natural gas / LPG" },
+          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
+        ],
+        photo: "/brivis-classic.webp",
+        photoAlt: "Brivis Buffalo internal gas ducted heater",
+        related: ["brivis-starpro", "brivis-contour", "kaden-gas-ducted"],
+      },
+      {
+        slug: "brivis-starpro",
+        name: "Brivis StarPro External Gas Ducted",
+        model: "StarPro SP 5",
+        category: "ducted",
+        categoryLabel: "External roof-mount gas ducted",
+        capacity: "20 kW to 32 kW output",
+        veuEligible: false,
+        installedPriceFrom: "$5,290 installed",
+        bestFor: "Roof-mounted replacement where internal space is at a premium",
+        ourTake:
+          "The StarPro is Brivis's roof-top unit — for homes without internal cupboard space. Weather-rated cabinet, 5-star efficiency, same ductwork compatibility as the Buffalo. Common on the newer 2010s estates in Officer + Clyde where roof-mount was the developer's default.",
+        specs: [
+          { label: "Output range", value: "20 – 32 kW" },
+          { label: "Install position", value: "Roof-mounted, external" },
+          { label: "Star rating", value: "5-star" },
+          { label: "Gas type", value: "Natural gas / LPG" },
+        ],
+        photo: "/brivis-gas-ducted.webp",
+        photoAlt: "Brivis StarPro external gas ducted heater roof-mounted",
+        related: ["brivis-buffalo", "brivis-contour"],
+      },
+      {
+        slug: "brivis-in-slab",
+        name: "Brivis Compact In-Slab Gas Ducted",
+        model: "HX 3 / HX 5",
+        category: "ducted",
+        categoryLabel: "In-slab compact gas ducted",
+        capacity: "17 kW to 28 kW output",
+        veuEligible: false,
+        installedPriceFrom: "$4,690 installed",
+        bestFor: "Homes with in-slab ducting from build",
+        ourTake:
+          "The HX is Brivis's compact under-floor / in-slab option. Common in older Pakenham and Berwick homes with slab-in-ground ducts. Smaller footprint than the Buffalo but ties into the same duct network.",
+        specs: [
+          { label: "Output range", value: "17 – 28 kW" },
+          { label: "Install position", value: "In-slab / under-floor" },
+          { label: "Star rating", value: "3-star / 4-star" },
+        ],
+        photo: "/brivis-in-slab.webp",
+        photoAlt: "Brivis HX in-slab compact gas ducted heater",
+        related: ["brivis-buffalo"],
+      },
+      {
+        slug: "brivis-contour",
+        name: "Brivis Contour Add-on Refrigerated Cooling",
+        model: "Contour C 3.5 / 5 / 6.5",
+        category: "ducted",
+        categoryLabel: "Add-on cooling module (piggy-backs gas ducted)",
+        capacity: "8 kW to 16 kW cooling",
+        veuEligible: false,
+        installedPriceFrom: "$5,290 installed (module + install)",
+        bestFor: "Existing Brivis gas ducted customer wanting summer cooling without a full ducted retrofit",
+        ourTake:
+          "The Contour piggy-backs onto an existing Brivis gas ducted setup — same ducts, adds a refrigerated cooling module. Cheaper than ripping out gas and installing full reverse-cycle. Solid mid-life upgrade for a homeowner staying on gas but wanting summer cooling.",
+        specs: [
+          { label: "Cooling capacity", value: "8 – 16 kW" },
+          { label: "Requires", value: "Compatible Brivis gas ducted unit + suitable ductwork" },
+          { label: "Gas type", value: "Retains natural gas / LPG for heating" },
+        ],
+        photo: "/brivis-dual-unit.webp",
+        photoAlt: "Brivis Contour add-on refrigerated cooling with gas ducted",
+        related: ["brivis-buffalo", "brivis-starpro", "kaden-ducted-14"],
+      },
+    ],
+  },
 
   // ================== MITSUBISHI ELECTRIC ==================
   {
@@ -95,8 +229,8 @@ export const brands: Brand[] = [
       "We're pursuing Mitsubishi Electric Diamond Dealer accreditation. When it lands we can offer the extended 7-year manufacturer warranty on top of our own 6-year workmanship warranty. That's a 13-year backstop on a unit that's already the most reliable in the category.",
     accreditation: "Diamond Dealer (in progress)",
     productLabel: "22 SKUs — splits, multi-head, ducted, cassette, controllers",
-    photo: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi Electric split system installed in a Melbourne home",
+    photo: "/mitsubishi-msz-ap.webp",
+    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
     accent: "#DA1A32",
     products: [
       {
@@ -157,6 +291,8 @@ export const brands: Brand[] = [
         veuEligible: false,
         installedPriceFrom: "$2,690 installed",
         bestFor: "Open-plan living / dining up to 50 m²",
+        photo: "/mitsubishi-msz-ap.webp",
+        photoAlt: "Mitsubishi MSZ-AP wall split system indoor unit",
         ourTake:
           "The 5.0 kW MSZ-AP is our default recommendation for an open-plan living zone in a modern brick-veneer family home. Big enough to handle a Melbourne heatwave with the doors open, small enough that it doesn't cycle constantly on a mild day.",
         specs: [
@@ -474,6 +610,8 @@ export const brands: Brand[] = [
         veuEligible: false,
         installedPriceFrom: "$8,490 fully installed",
         bestFor: "Single-storey family home ducted retrofit or new-build",
+        photo: "/mitsubishi-pead-ducted.webp",
+        photoAlt: "Mitsubishi PEAD-M mid-static ducted indoor units",
         ourTake:
           "The PEAD-M is our default ducted indoor unit. Mid-static means it has enough duct capacity for a typical 3-4 zone family home without oversized fan power. Pairs with the PUZ outdoor and any Mitsubishi zone controller.",
         specs: [
@@ -495,6 +633,8 @@ export const brands: Brand[] = [
         veuEligible: false,
         installedPriceFrom: "$14,490 fully installed",
         bestFor: "Double-storey homes, long duct runs, 6+ zones",
+        photo: "/mitsubishi-outdoor-large.webp",
+        photoAlt: "Mitsubishi PEA-RP large twin-fan outdoor unit for high-static ducted",
         ourTake:
           "The PEA-RP is the high-static big brother — necessary when you've got long duct runs or a double-storey with six or more zones. Enough fan power to actually deliver rated flow to the furthest zone.",
         specs: [
@@ -620,8 +760,8 @@ export const brands: Brand[] = [
       "For a customer who wants the best heat pump on the market and knows they'll be in the house another decade, Reclaim is our first recommendation. Stainless steel tank, 6-year warranty on the tank, 5-year on the compressor, made in Australia. It costs more up-front and it earns that back.",
     accreditation: "Reclaim installer locator listed",
     productLabel: "6 SKUs — CO₂ heat pumps, split PV kits, controllers",
-    photo: "/reclaim-split-back.webp",
-    photoAlt: "Reclaim CO2 heat pump hot water system installation",
+    photo: "/reclaim-co2-split.webp",
+    photoAlt: "Reclaim CO2 heat pump — outdoor unit, tank and controller",
     accent: "#2E8459",
     products: [
       {
@@ -750,8 +890,8 @@ export const brands: Brand[] = [
       "Thermann is what we quote first when the customer wants a proven, well-supported heat pump but doesn't want to pay Reclaim money. Rheem Pro accreditation means we get direct-line parts and warranty backing.",
     accreditation: "Rheem Pro accredited installer",
     productLabel: "14 SKUs — heat pump, gas continuous flow, gas storage, solar",
-    photo: "/thermann-heat-pump.webp",
-    photoAlt: "Thermann heat pump hot water tank installed outside a Melbourne home",
+    photo: "/thermann-integrated-heat-pump.webp",
+    photoAlt: "Thermann integrated heat pump hot water system",
     accent: "#0090C3",
     products: [
       {
@@ -804,6 +944,8 @@ export const brands: Brand[] = [
         veuEligible: true,
         installedPriceFrom: "$2,390 installed after VEU rebate",
         bestFor: "Family of 3-4, want better cold-weather performance than Series 4",
+        photo: "/thermann-integrated-heat-pump.webp",
+        photoAlt: "Thermann integrated heat pump hot water system",
         ourTake:
           "The Series 5 steps up the compressor and controls over the Series 4. Better COP in cooler weather, longer warranty on the compressor. Worth the ~$400 step for anyone who wants more than the minimum.",
         specs: [
@@ -823,6 +965,8 @@ export const brands: Brand[] = [
         veuEligible: true,
         installedPriceFrom: "$2,590 installed after VEU rebate",
         bestFor: "Family of 4-5, mid-premium spec",
+        photo: "/thermann-integrated-heat-pump.webp",
+        photoAlt: "Thermann Series 5 integrated heat pump hot water",
         ourTake:
           "The 315L Series 5 is our default recommendation in the Thermann range — best balance of tank size, compressor spec and price for a typical family draw.",
         specs: [
@@ -1123,9 +1267,9 @@ export const brands: Brand[] = [
     ourTake:
       "We install Kaden when a family needs cooling in three bedrooms plus living and the Mitsubishi quote comes in over budget. The gap has closed noticeably over the last 3-4 years — Kaden today is what mid-tier Panasonic was five years ago.",
     accreditation: "Kaden authorised dealer",
-    productLabel: "15 SKUs — splits, multi-head, ducted",
-    photo: "/kaden-indoor.webp",
-    photoAlt: "Kaden split system installed in a Melbourne bedroom",
+    productLabel: "17 SKUs — splits, multi-head, ducted, gas ducted, evaporative",
+    photo: "/kaden-bold-split.webp",
+    photoAlt: "Kaden wall split system with outdoor condenser and remote",
     accent: "#12224E",
     products: [
       {
@@ -1356,6 +1500,50 @@ export const brands: Brand[] = [
         specs: [{ label: "Combined cool", value: "8.0 kW" }],
         related: ["kaden-multi-2", "mxz-4f"],
       },
+      {
+        slug: "kaden-gas-ducted",
+        name: "Kaden Gas Ducted Heater",
+        model: "KDG series",
+        category: "ducted",
+        categoryLabel: "Gas ducted heating",
+        capacity: "3-star to 6-star models · 15 kW to 30 kW",
+        veuEligible: false,
+        installedPriceFrom: "$4,890 installed",
+        bestFor: "Like-for-like replacement of an aging Brivis or Braemar ducted heater",
+        ourTake:
+          "Kaden's gas ducted range is a solid Brivis / Braemar replacement — same footprint, quiet operation, and the 6-star Advance model is the most efficient in the value tier. What we quote when the customer wants to stay on gas but the old unit's due.",
+        specs: [
+          { label: "Capacity range", value: "15 kW to 30 kW" },
+          { label: "Star rating options", value: "3-star to 6-star" },
+          { label: "Gas type", value: "Natural gas or LPG" },
+          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
+        ],
+        photo: "/kaden-gas-ducted.webp",
+        photoAlt: "Kaden gas ducted heater with wall controller",
+        related: ["kaden-ducted-14", "kaden-evaporative"],
+      },
+      {
+        slug: "kaden-evaporative",
+        name: "Kaden Evaporative Cooler",
+        model: "KDE series",
+        category: "ducted",
+        categoryLabel: "Roof-mounted evaporative cooling",
+        capacity: "Small · Medium · Large roof units",
+        veuEligible: false,
+        installedPriceFrom: "$3,890 installed",
+        bestFor: "Dry-summer suburbs (Cranbourne, Clyde, Officer) wanting cheap-to-run cooling",
+        ourTake:
+          "Evaporative cooling costs a quarter of refrigerated aircon to run — but it only works when the outside humidity is low. Perfect for a Cranbourne / Officer summer, less useful during a humid Melbourne stretch. We spec it where the customer explicitly wants it or a large-footprint home makes ducted refrigerated cost-prohibitive.",
+        specs: [
+          { label: "Capacity", value: "Small (S), Medium (M), Large (L) roof unit sizes" },
+          { label: "Refrigerant", value: "None — evaporative water cooling" },
+          { label: "Running cost", value: "~25% of a refrigerated ducted equivalent" },
+          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
+        ],
+        photo: "/kaden-evaporative.webp",
+        photoAlt: "Kaden evaporative cooler roof unit with fan-speed controller",
+        related: ["kaden-ducted-14", "kaden-gas-ducted"],
+      },
     ],
   },
 
@@ -1370,8 +1558,8 @@ export const brands: Brand[] = [
     ourTake:
       "Zoning is the single biggest efficiency win on a ducted system. Zonemate's touch controllers are the ones we specify because they're built for Australian installer wiring standards and the ranges of dampers they support cover every ducted brand we install.",
     productLabel: "6 SKUs — controllers, WiFi, dampers",
-    photo: "/duct-work.webp",
-    photoAlt: "Zonemate zoning controller and dampers in ceiling void",
+    photo: "/zonemate-touch-controller.webp",
+    photoAlt: "Zonemate wall-mounted touch controller for ducted aircon zoning",
     accent: "#7A4CD8",
     products: [
       {
