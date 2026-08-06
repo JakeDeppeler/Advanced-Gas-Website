@@ -68,7 +68,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     faqs: [
       { q: "Am I eligible for the VEU $33 deal?", a: "Most Victorian owner-occupied and rental properties with an existing electric storage hot water system are eligible. We confirm eligibility in your free quote, takes 60 seconds." },
-      { q: "How much will I save on my power bill?", a: "Typical Victorian homes save $400-$900 per year switching from an electric storage tank to a heat pump. Payback after rebate is usually under 2 years." },
+      { q: "How much will I save on my power bill?", a: "Typical Victorian homes save $400-$900 per year switching from an electric storage tank to a heat pump. Payback after VEU rebate is usually under 2 years." },
       { q: "Will it work in cold weather?", a: "Yes. Modern heat pumps operate efficiently down to -5°C and below. Premium units like Reclaim CO2 maintain efficiency in sub-zero temperatures." },
       { q: "How loud is a heat pump?", a: "About as loud as an outdoor fridge, typically 37-48 dB at 1m. Quieter than a split-system condenser. We can position it away from bedrooms." },
       { q: "How long does install take?", a: "Most replacements are done same-day, in 3-5 hours. New installs with relocation can take a full day." },

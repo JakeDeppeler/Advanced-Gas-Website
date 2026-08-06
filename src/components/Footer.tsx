@@ -82,6 +82,7 @@ export function Footer() {
               ))}
               <li><Link href="/services#commercial">Commercial &amp; strata</Link></li>
               <li><Link href="/contact#emergency">24/7 emergency</Link></li>
+              <li><Link href="/pricing"><strong>Full price list</strong></Link></li>
             </ul>
           </div>
 

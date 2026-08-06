@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
-import { LogoMark } from "@/components/Logo";
 
 /* --------------------------------------------------------------
  * Mega-menu nav data. Each nav item is either a simple link, or a
@@ -22,6 +21,10 @@ type NavItem =
       label: string;
       trigger: string;
       href?: string; // top-level link when the label is clicked (not the trigger)
+      /** Anchor the dropdown to the right edge of the trigger. Used for
+       *  triggers in the right half of the nav so the panel doesn't
+       *  overflow past the viewport. */
+      alignRight?: boolean;
       mega: {
         columns: MegaColumn[];
         cta?: { href: string; label: string; sub: string };
@@ -93,6 +96,7 @@ const NAV: NavItem[] = [
     label: "Areas",
     trigger: "areas",
     href: "/service-areas",
+    alignRight: true,
     mega: {
       columns: [
         {
@@ -128,6 +132,7 @@ const NAV: NavItem[] = [
       cta: { href: "/service-areas", label: "See all 46 suburbs →", sub: "Every postcode within 50km" },
     },
   },
+  { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
@@ -173,12 +178,18 @@ export function Header() {
   return (
     <header className="hdr">
       <div className="wrap hdr__row">
-        <Link href="/" className="hdr__logo hdr__logo--lockup" aria-label={`${site.name} home`}>
-          <LogoMark className="hdr__logo-mark" />
-          <span className="hdr__logo-name">
-            <b>Advanced</b>
-            <span>Gas &amp; Aircon</span>
-          </span>
+        <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
+          {/* Real branded logo asset (single unified image) rather than the
+              SVG mark + separate wordmark recreation. The webp has a white
+              background that blends with the white nav so it looks clean. */}
+          <img
+            src="/advanced-gas-logo.webp"
+            alt={`${site.name} logo`}
+            width="280"
+            height="140"
+            className="hdr__logo-img"
+            fetchPriority="high"
+          />
         </Link>
 
         <nav className="hdr__nav" aria-label="Primary">
@@ -205,7 +216,11 @@ export function Header() {
             return (
               <div
                 key={n.trigger}
-                className={`hdr__navwrap ${isOpen ? "is-open" : ""}`}
+                className={[
+                  "hdr__navwrap",
+                  isOpen ? "is-open" : "",
+                  n.alignRight ? "hdr__navwrap--right" : "",
+                ].filter(Boolean).join(" ")}
                 onMouseEnter={() => openMega(n.trigger)}
                 onMouseLeave={scheduleClose}
                 onFocus={() => openMega(n.trigger)}

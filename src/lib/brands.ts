@@ -1036,7 +1036,7 @@ export const brands: Brand[] = [
         installedPriceFrom: "$690 installed after VEU rebate",
         bestFor: "Couples, apartments, tight VEU rebate budget",
         ourTake:
-          "The 180L is the smallest iStore — for couples or apartment installs where 270L is overkill. Post-rebate this can land under $500 out of pocket, which no other heat pump in the market can match.",
+          "The 180L is the smallest iStore — for couples or apartment installs where 270L is overkill. Post-VEU-rebate this can land under $500 out of pocket, which no other heat pump in the market can match.",
         specs: [
           { label: "Tank capacity", value: "180 L" },
           { label: "Refrigerant", value: "R290" },
@@ -1055,7 +1055,7 @@ export const brands: Brand[] = [
         installedPriceFrom: "$890 installed after VEU rebate",
         bestFor: "Family of 3-4, best-value VEU rebate spec",
         ourTake:
-          "The 270L iStore is our most-installed unit for Hampton Park and Cranbourne VEU rebate jobs. Post-rebate typically sits under $900, which is a genuinely hard number to beat.",
+          "The 270L iStore is our most-installed unit for Hampton Park and Cranbourne VEU rebate jobs. Post-VEU-rebate typically sits under $900, which is a genuinely hard number to beat.",
         specs: [
           { label: "Tank capacity", value: "270 L" },
           { label: "Refrigerant", value: "R290" },

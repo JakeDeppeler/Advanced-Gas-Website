@@ -1,0 +1,260 @@
+/* ============================================================
+   Pricing page (/pricing) — dense fully-installed price tables.
+   ============================================================ */
+
+.page-pricing { background: var(--bg); }
+
+/* ---- Fine-print strip ---- */
+.pricing-note {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 32px 0;
+}
+.pricing-note__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.pricing-note__lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.pricing-note p {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+}
+@media (max-width: 900px) {
+  .pricing-note__grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ---- Category tab-nav (sticky, scrollable) ---- */
+.pricing-catnav {
+  position: sticky;
+  top: 84px;
+  z-index: 30;
+  background: rgba(250, 248, 243, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.pricing-catnav__scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 12px 0;
+  scrollbar-width: thin;
+  scroll-behavior: smooth;
+}
+.pricing-catnav__scroll::-webkit-scrollbar { height: 4px; }
+.pricing-catnav__scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 2px; }
+.pricing-catnav__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.pricing-catnav__chip:hover {
+  background: var(--paper);
+  border-color: var(--navy);
+}
+.pricing-catnav__chip span {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+/* ---- Price tables ---- */
+.pricing-body { padding: 40px 0 20px; }
+.pricing-body--extras { padding: 20px 0 60px; }
+
+.pricing-block {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+  margin-bottom: 28px;
+  scroll-margin-top: 160px;
+}
+.pricing-block__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--paper), #fff);
+}
+.pricing-block__head h2 {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 4px;
+}
+.pricing-block__head p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.pricing-block__count {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 6px 12px;
+  background: var(--bg-2);
+  border-radius: 6px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.pricing-block__tablewrap {
+  overflow-x: auto;
+}
+.pricing-block__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.pricing-block__table thead th {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.pricing-block__table tbody tr {
+  border-bottom: 1px solid var(--line-2);
+  transition: background 0.1s;
+}
+.pricing-block__table tbody tr:hover { background: var(--paper); }
+.pricing-block__table tbody tr:last-child { border-bottom: 0; }
+.pricing-block__table td {
+  padding: 14px;
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.pricing-block__brand {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.pricing-block__name {
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+.pricing-block__table code {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: var(--bg-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.pricing-block__bestfor {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  max-width: 300px;
+  line-height: 1.4;
+}
+.pricing-block__pill {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #217049;
+  background: rgba(46,132,89,0.12);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pricing-block__pill--muted {
+  background: transparent;
+  color: var(--ink-3);
+  border: 1px dashed var(--line-2);
+}
+.pricing-block__pricecell {
+  text-align: right;
+  white-space: nowrap;
+}
+.pricing-block__pricecell strong {
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: var(--navy);
+  font-weight: 800;
+  letter-spacing: -0.005em;
+}
+.pricing-block__poa {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.pricing-block__linkcell {
+  text-align: right;
+}
+.pricing-block__linkcell a {
+  font-family: var(--f-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.pricing-block__linkcell a:hover {
+  background: var(--paper);
+  border-color: var(--navy);
+}
+
+@media (max-width: 760px) {
+  .pricing-catnav { top: 64px; }
+  .pricing-catnav__scroll { padding: 10px 0; }
+  .pricing-block__head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 20px; }
+  .pricing-block__head h2 { font-size: 19px; }
+  .pricing-block__count { align-self: flex-start; }
+  .pricing-block__table thead th { font-size: 10px; padding: 10px 12px; }
+  .pricing-block__table td { padding: 12px; }
+  .pricing-block__bestfor { display: none; }
+}
