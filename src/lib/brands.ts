@@ -123,10 +123,16 @@ export const categoryPhoto: Record<ProductCategory, { src: string; fallback: str
   "accessory":          { src: "/gas-line.webp",                    fallback: "/gas-line.webp",                  alt: "Accessory kit" },
 };
 
-export function productPhoto(p: Product): { src: string; fallback: string; alt: string } {
+/** Returns { src, fallback, alt } for a product's photo. When the brand is
+ *  passed, the fallback prefers the brand's own working image so a
+ *  Mitsubishi product doesn't fall back to a Kaden category shot. */
+export function productPhoto(p: Product, brand?: Brand): { src: string; fallback: string; alt: string } {
   const cat = categoryPhoto[p.category] ?? categoryPhoto["accessory"];
-  if (p.photo) return { src: p.photo, fallback: cat.src, alt: p.photoAlt ?? p.name };
-  return cat;
+  const brandFallback = brand?.photoFallback ?? brand?.photo ?? cat.fallback;
+  if (p.photo) return { src: p.photo, fallback: brandFallback, alt: p.photoAlt ?? p.name };
+  // No product-specific photo → the "primary" is the category real-manufacturer
+  // shot, and the fallback is the brand-specific working image.
+  return { src: cat.src, fallback: brandFallback, alt: cat.alt };
 }
 
 export const brands: Brand[] = [

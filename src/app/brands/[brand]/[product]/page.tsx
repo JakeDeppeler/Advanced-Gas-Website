@@ -97,7 +97,7 @@ export default function ProductPage({
             {product.veuEligible && (
               <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate eligible</span>
             )}
-            {(() => { const ph = productPhoto(product); return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
+            {(() => { const ph = productPhoto(product, brand); return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
           </div>
           <div className="product-hero__spec">
             <div className="dp-local__lbl">Model</div>

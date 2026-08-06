@@ -45,9 +45,19 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
   ]);
 
   return (
-    <div className="page-detail">
-      {/* ------------------ Hero ------------------ */}
-      <section className="dp-hero">
+    <div className="page-detail page-suburb">
+      {/* ------------------ Hero with scrimmed background photo ------------------ */}
+      <section className="dp-hero suburb-hero">
+        <div className="suburb-hero__pic" aria-hidden="true">
+          <img
+            src="/team-photo.webp"
+            alt=""
+            width="1800"
+            height="1200"
+            fetchPriority="high"
+          />
+        </div>
+        <div className="suburb-hero__scrim" aria-hidden="true" />
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
@@ -120,9 +130,17 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             <p style={{ marginTop: 12, fontSize: 14, color: "var(--ink-3)" }}>
               Typical driving time from our Pakenham workshop to {sub.name}:{" "}
               <strong style={{ color: "var(--navy)" }}>
-                {sub.distanceKm === 0 ? "on-site" : `${Math.max(15, Math.round(sub.distanceKm * 1.4))}–${Math.round(sub.distanceKm * 1.8)} min`}
+                {sub.driveMin
+                  ? sub.driveMin[0] === sub.driveMin[1]
+                    ? `${sub.driveMin[0]} min`
+                    : `${sub.driveMin[0]}–${sub.driveMin[1]} min`
+                  : sub.distanceKm === 0
+                    ? "on-site"
+                    : `${Math.max(10, Math.round(sub.distanceKm * 0.7))}–${Math.max(15, Math.round(sub.distanceKm * 1.1))} min`}
               </strong>{" "}
-              depending on traffic on the Princes Highway.
+              {sub.distanceKm > 30
+                ? "— mostly highway on the Princes Freeway."
+                : "depending on traffic on the Princes Highway."}
             </p>
           </div>
           <SuburbMap slug={sub.slug} name={sub.name} />
@@ -217,6 +235,35 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           <QuoteForm />
         </div>
       </section>
+
+      {/* ------------------ Why local matters + common problems ------------------ */}
+      {(sub.whyLocal || sub.commonProblems || sub.knownEstates) && (
+        <section className="suburb-local">
+          <div className="wrap suburb-local__grid">
+            {sub.whyLocal && (
+              <div className="suburb-local__why">
+                <span className="ds-eyebrow"><span className="ds-dot" /> Why local matters</span>
+                <h2>We&rsquo;re not driving out from the city — we&rsquo;re your neighbours.</h2>
+                <p>{sub.whyLocal}</p>
+                {sub.knownEstates && (
+                  <p className="suburb-local__estates">
+                    <strong>Estates we know cold:</strong> {sub.knownEstates}
+                  </p>
+                )}
+              </div>
+            )}
+            {sub.commonProblems && sub.commonProblems.length > 0 && (
+              <div className="suburb-local__problems">
+                <span className="ds-eyebrow"><span className="ds-dot" /> Common in {sub.name}</span>
+                <h3>What we see on the tools around {sub.name}.</h3>
+                <ul>
+                  {sub.commonProblems.map((p) => <li key={p}>{p}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ------------------ Big CTA ------------------ */}
       <section className="bigcta">

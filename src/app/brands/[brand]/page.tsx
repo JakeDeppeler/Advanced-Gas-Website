@@ -199,7 +199,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
               <h3 className="brand-group__title">{groupName}</h3>
               <div className="brand-group__grid">
                 {grouped[groupName].map((p) => {
-                  const photo = productPhoto(p);
+                  const photo = productPhoto(p, brand);
                   return (
                     <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
                       <div className="brand-card__photo">

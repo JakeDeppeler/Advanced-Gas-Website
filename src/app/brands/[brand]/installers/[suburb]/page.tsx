@@ -148,7 +148,7 @@ export default function BrandSuburbPage({
           </div>
           <div className="brand-group__grid">
             {featured.map((p) => {
-              const photo = productPhoto(p);
+              const photo = productPhoto(p, brand);
               return (
                 <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
                   <div className="brand-card__photo">

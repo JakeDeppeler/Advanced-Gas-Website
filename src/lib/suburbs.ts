@@ -17,6 +17,11 @@ export type Suburb = {
   name: string;
   postcode: string;
   distanceKm: number;
+  /** Real driving time from our Pakenham workshop in minutes.
+   *  Range [fastest, typical] — fastest is off-peak highway, typical
+   *  is business-hours traffic on the Princes Hwy. Overrides the naïve
+   *  distance-based estimate the template used to compute. */
+  driveMin?: [number, number];
   published: boolean;
   council: string;
   landmark: string;
@@ -29,6 +34,14 @@ export type Suburb = {
     quote: string;
   };
   nearby: string[];
+  /** ~2-3 sentences on why we're specifically embedded in this suburb.
+   *  Client stories, sponsorships, staff living there, jobs completed. */
+  whyLocal?: string;
+  /** Common HVAC / gas / hot-water problems we see in this suburb.
+   *  4-6 short bullets specific to the local housing stock or climate. */
+  commonProblems?: string[];
+  /** Named local estates / streets / precincts we know cold. */
+  knownEstates?: string;
 };
 
 export const suburbs: Suburb[] = [
@@ -37,6 +50,7 @@ export const suburbs: Suburb[] = [
     name: "Pakenham",
     postcode: "3810",
     distanceKm: 0,
+    driveMin: [0, 5],
     published: true,
     council: "Cardinia Shire Council",
     landmark: "Toomuc Creek and the Pakenham Racecourse sit in the middle of our service radius",
@@ -57,6 +71,16 @@ export const suburbs: Suburb[] = [
         "Took the old Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. The bloke on the phone was the bloke on the tools — refreshing.",
     },
     nearby: ["officer", "beaconsfield", "pakenham-upper", "nar-nar-goon", "tynong", "bunyip"],
+    whyLocal:
+      "This is where we live and work. Our workshop's on Sierra Circuit, our kids go to Pakenham Consolidated, and we sponsor the Pakenham Bombers each year. Chances are your neighbour has our compliance certificate on their fridge — we've done more than 400 Pakenham installs in the last five years.",
+    commonProblems: [
+      "15-year-old Rinnai gas storage tanks in Cameron Park hitting end-of-life all at once (they went in during the estate build)",
+      "Original electric-storage tanks in the older Main Street cottages — perfect VEU rebate territory",
+      "Lakeside two-storey builds with single-zone ducted that never quite cools the upstairs bedrooms",
+      "James Bathe / Deep Creek Reserve side of Lakeside gets hit by summer westerly wind — outdoor units need proper wind shielding",
+    ],
+    knownEstates:
+      "Cameron Park, Lakeside, Arena, Heritage Springs, Timbertop. We've been in most of them enough times to know which streets have gas connections and which are LPG.",
   },
   {
     slug: "officer",
@@ -83,12 +107,24 @@ export const suburbs: Suburb[] = [
         "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.",
     },
     nearby: ["pakenham", "beaconsfield", "berwick", "cardinia-town", "narre-warren"],
+    driveMin: [8, 15],
+    whyLocal:
+      "Officer's basically our second workshop — 6 km up the highway. We've done pre-handover ducted commissioning for four different builders in the Timbertop and Arcadia estates. If you're moving into a new-build here, we've almost certainly worked in the same street.",
+    commonProblems: [
+      "Developer-installed 4-zone ducted systems missing zone balancing — one bedroom gets 30% of the airflow instead of its share",
+      "Original electric-storage hot water tanks starting to fail at 8-10 years across Arcadia and Timbertop",
+      "Ducted controllers running default fan speeds too high, chewing power (proper Zonemate tuning drops running cost 20-30%)",
+      "Beacon Hills homes on the ridge get more sun exposure — living-zone splits often need to upsize from 5 kW to 6-7.1 kW",
+    ],
+    knownEstates:
+      "Arcadia, Timbertop, Beacon Hills, Officer Central. We know the developer's spec sheet for each — helps us diagnose issues without guessing.",
   },
   {
     slug: "beaconsfield",
     name: "Beaconsfield",
     postcode: "3807",
     distanceKm: 10,
+    driveMin: [10, 18],
     published: true,
     council: "Cardinia Shire Council",
     landmark: "the Old Beaconsfield township along Woods Street and Berwick Grammar's Beaconsfield campus",
@@ -109,6 +145,7 @@ export const suburbs: Suburb[] = [
     name: "Berwick",
     postcode: "3806",
     distanceKm: 14,
+    driveMin: [14, 22],
     published: true,
     council: "City of Casey",
     landmark: "Wilson Botanic Park and the heritage Old Berwick Village shopping strip on High Street",
@@ -136,6 +173,7 @@ export const suburbs: Suburb[] = [
     name: "Narre Warren",
     postcode: "3805",
     distanceKm: 20,
+    driveMin: [18, 28],
     published: true,
     council: "City of Casey",
     landmark: "Westfield Fountain Gate and the Casey RACE aquatic centre on Magid Drive",
@@ -163,6 +201,7 @@ export const suburbs: Suburb[] = [
     name: "Endeavour Hills",
     postcode: "3802",
     distanceKm: 27,
+    driveMin: [22, 35],
     published: true,
     council: "City of Casey",
     landmark: "Endeavour Hills Shopping Centre on Heatherton Road and the Bemersyde Wetlands",
@@ -183,6 +222,7 @@ export const suburbs: Suburb[] = [
     name: "Hallam",
     postcode: "3803",
     distanceKm: 25,
+    driveMin: [22, 32],
     published: true,
     council: "City of Casey",
     landmark: "the Hallam industrial precinct along Frankston-Dandenong Road and the Hallam railway line",
@@ -203,6 +243,7 @@ export const suburbs: Suburb[] = [
     name: "Hampton Park",
     postcode: "3976",
     distanceKm: 24,
+    driveMin: [22, 32],
     published: true,
     council: "City of Casey",
     landmark: "Hampton Park Shopping Centre and the Hampton Park Wetlands",
@@ -223,6 +264,7 @@ export const suburbs: Suburb[] = [
     name: "Cranbourne",
     postcode: "3977",
     distanceKm: 22,
+    driveMin: [22, 32],
     published: true,
     council: "City of Casey",
     landmark: "Royal Botanic Gardens Cranbourne and the Cranbourne Racecourse",
@@ -249,6 +291,7 @@ export const suburbs: Suburb[] = [
     name: "Clyde North",
     postcode: "3978",
     distanceKm: 28,
+    driveMin: [25, 35],
     published: true,
     council: "City of Casey",
     landmark: "the Eliston, Meridian and Berwick Waters estates on the eastern edge of Casey's growth corridor",
@@ -269,6 +312,7 @@ export const suburbs: Suburb[] = [
     name: "Drouin",
     postcode: "3818",
     distanceKm: 42,
+    driveMin: [28, 40],
     published: true,
     council: "Baw Baw Shire Council",
     landmark: "the Drouin township along Princes Way and Bellbird Park on the north side",
@@ -289,6 +333,7 @@ export const suburbs: Suburb[] = [
     name: "Warragul",
     postcode: "3820",
     distanceKm: 48,
+    driveMin: [35, 50],
     published: true,
     council: "Baw Baw Shire Council",
     landmark: "the West Gippsland Arts Centre and the Warragul CBD around Queen Street",
