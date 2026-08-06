@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
+import { SafeImg } from "@/components/SafeImg";
 
 /* --------------------------------------------------------------
  * Mega-menu nav data. Simple nav items are links; mega items
@@ -61,7 +62,7 @@ const SERVICES_MEGA: {
   popular: [
     { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
-    { href: "/pricing", label: "Full price list", sub: "Every SKU installed price" },
+    { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
     { href: "/blog/emergency-hot-water-gas-melbourne", label: "24/7 emergency", sub: "Same-day response" },
   ],
 };
@@ -297,7 +298,7 @@ function BrandsMega() {
     <div className="mega__brands">
       <div className="mega__brands-head">
         <div className="mega__collabel">Every brand we install</div>
-        <Link href="/brands" className="mega__brands-all">See all 68 SKUs →</Link>
+        <Link href="/brands" className="mega__brands-all">See all 68 models →</Link>
       </div>
       <div className="mega__brands-grid">
         {brands.map((b) => (
@@ -309,12 +310,12 @@ function BrandsMega() {
             style={{ ["--card-accent" as string]: b.accent }}
           >
             <div className="mega__brandcard-photo">
-              <img src={b.photo} alt={b.photoAlt} loading="lazy" width="200" height="140" />
+              <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="200" height="140" />
             </div>
             <div className="mega__brandcard-body">
               <b>{b.name}</b>
               <span>{b.tagline}</span>
-              <em>{b.products.length} SKUs · {b.origin}</em>
+              <em>{b.products.length} models · {b.origin}</em>
             </div>
           </Link>
         ))}

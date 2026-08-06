@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, findBrand, productPhoto } from "@/lib/brands";
+import { SafeImg } from "@/components/SafeImg";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../../detail.css";
@@ -140,7 +141,7 @@ export default function BrandSuburbPage({
             <span className="ds-eyebrow"><span className="ds-dot" /> {brand.name} in {sub.name}</span>
             <h2>The {brand.name} models we install most often in {sub.name}.</h2>
             <p>
-              A handful of the range shown below — {brand.products.length} total {brand.name} SKUs
+              A handful of the range shown below — {brand.products.length} total {brand.name} models
               are in our regular install list. Tap through for spec sheet, installed price and our
               take on each model.
             </p>
@@ -154,7 +155,7 @@ export default function BrandSuburbPage({
                     {p.veuEligible && (
                       <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
                     )}
-                    <img src={photo.src} alt={photo.alt} loading="lazy" width="480" height="360" />
+                    <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
                   </div>
                   <div className="brand-card__inner">
                     <div className="brand-card__head">

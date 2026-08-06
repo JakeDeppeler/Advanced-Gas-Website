@@ -39,7 +39,7 @@ export default function PricingPage() {
     { name: "Pricing", url: `${site.url}/pricing` },
   ]);
 
-  // Flatten every SKU across every brand, keyed by category, so we render one
+  // Flatten every model across every brand, keyed by category, so we render one
   // section per category with all brands mixed together (buyers usually pick
   // "heat pump ~270L" first, then compare brands).
   type Row = {
@@ -87,7 +87,7 @@ export default function PricingPage() {
             Every system we install — <span className="accent">real installed prices</span>.
           </h1>
           <p className="dp-hero__sub">
-            Fully-installed prices for every SKU we install across Melbourne&rsquo;s south-east.
+            Fully-installed prices for every model we install across Melbourne&rsquo;s south-east.
             All prices include labour, standard install, disposal of the old unit, compliance
             certificate, and the VEU rebate applied where the unit qualifies. No hidden
             extras — the number below is the number on your quote, and the number on the
@@ -152,7 +152,7 @@ export default function PricingPage() {
                       <h2>{c.label}</h2>
                       <p>{c.desc}</p>
                     </div>
-                    <span className="pricing-block__count">{list.length} SKUs</span>
+                    <span className="pricing-block__count">{list.length} models</span>
                   </div>
 
                   <div className="pricing-block__tablewrap">

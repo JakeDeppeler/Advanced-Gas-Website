@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/lib/brands";
+import { SafeImg } from "@/components/SafeImg";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
@@ -96,7 +97,7 @@ export default function ProductPage({
             {product.veuEligible && (
               <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate eligible</span>
             )}
-            {(() => { const ph = productPhoto(product); return <img src={ph.src} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
+            {(() => { const ph = productPhoto(product); return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
           </div>
           <div className="product-hero__spec">
             <div className="dp-local__lbl">Model</div>

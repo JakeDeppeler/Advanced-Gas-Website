@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, findBrand, productPhoto } from "@/lib/brands";
+import { SafeImg } from "@/components/SafeImg";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -42,7 +43,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
   ]);
 
   // Group products by category label so the page reads as a coherent range
-  // rather than a flat SKU dump.
+  // rather than a flat model dump.
   const grouped = brand.products.reduce<Record<string, typeof brand.products>>((acc, p) => {
     (acc[p.categoryLabel] ||= []).push(p);
     return acc;
@@ -52,9 +53,9 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
   return (
     <div className="page-detail page-brand" style={{ ["--card-accent" as string]: brand.accent }}>
       <section className="dp-hero brand-hero">
-        <picture className="brand-hero__pic" aria-hidden="true">
-          <img src={brand.photo} alt="" width="1600" height="900" fetchPriority="high" />
-        </picture>
+        <div className="brand-hero__pic" aria-hidden="true">
+          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt="" width="1600" height="900" fetchPriority="high" />
+        </div>
         <div className="brand-hero__scrim" aria-hidden="true" />
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
@@ -160,7 +161,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
             <span className="ds-eyebrow"><span className="ds-dot" /> Full range we install</span>
             <h2>The {brand.name} models we install and support.</h2>
             <p>
-              Every SKU below is a product we've installed enough of to have an opinion on.
+              Every model below is a product we've installed enough of to have an opinion on.
               Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
             </p>
           </div>
@@ -177,7 +178,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
                         {p.veuEligible && (
                           <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
                         )}
-                        <img src={photo.src} alt={photo.alt} loading="lazy" width="480" height="360" />
+                        <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
                       </div>
                       <div className="brand-card__inner">
                         <div className="brand-card__head">

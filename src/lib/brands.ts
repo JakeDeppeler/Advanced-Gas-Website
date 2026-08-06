@@ -4,7 +4,7 @@
  * ("Reclaim R290 315L installer Melbourne", "MSZ-AP25 installed price"), where
  * the manufacturer's own store-locator page currently ranks and we don't.
  *
- * Same data-driven approach as the suburbs file: unique per-SKU copy,
+ * Same data-driven approach as the suburbs file: unique per-model copy,
  * verifiable specs, a stated "why we like it" so no two pages read the same.
  */
 
@@ -58,6 +58,9 @@ export type Brand = {
   /** Hero photo for the brand hub + brand card. WebP only. */
   photo: string;
   photoAlt: string;
+  /** Working existing image used as the visual fallback while the
+   *  manufacturer `photo` hasn't been saved to /public yet. */
+  photoFallback?: string;
   /** Accent hex for the brand's card treatment (subtle top border etc). */
   accent: string;
   /** Year established / brand founded (used in "about this brand" strip). */
@@ -103,26 +106,27 @@ export type Brand = {
  *    /zonemate-touch-controller.webp  — Zonemate wall tablet
  *    /zonemate-app.webp               — Zonemate app on phone
  */
-export const categoryPhoto: Record<ProductCategory, { src: string; alt: string }> = {
-  "split-system": { src: "/kaden-indoor.webp", alt: "Split system head unit" },
-  "multi-head": { src: "/reclaim-split-back.webp", alt: "Multi-head outdoor unit" },
-  "ducted": { src: "/duct-work.webp", alt: "Ducted aircon ductwork" },
-  "cassette": { src: "/ducted-condenser.webp", alt: "Cassette air conditioning unit" },
-  "floor-console": { src: "/kaden-indoor.webp", alt: "Floor console air conditioner" },
-  "heat-pump": { src: "/reclaim-spit-close-up.webp", alt: "Heat pump hot water system" },
-  "gas-continuous-flow": { src: "/gas-hot-water-changeover.webp", alt: "Gas continuous flow hot water" },
-  "gas-storage": { src: "/gas-hot-water-changeover.webp", alt: "Gas storage hot water tank" },
-  "electric-storage": { src: "/gas-hot-water-changeover.webp", alt: "Electric storage hot water tank" },
-  "solar-hot-water": { src: "/reclaim-mitsubishi.webp", alt: "Solar hot water" },
-  "controller": { src: "/gas-line.webp", alt: "Wall controller for air conditioner" },
-  "zoning": { src: "/duct-work.webp", alt: "Zoning controller for ducted system" },
-  "damper": { src: "/duct-work.webp", alt: "Ducted zone damper" },
-  "accessory": { src: "/gas-line.webp", alt: "Accessory kit" },
+export const categoryPhoto: Record<ProductCategory, { src: string; fallback: string; alt: string }> = {
+  "split-system":       { src: "/kaden-bold-split.webp",            fallback: "/kaden-indoor.webp",              alt: "Kaden split system indoor unit and outdoor condenser" },
+  "multi-head":         { src: "/kaden-multi-diagram.webp",         fallback: "/reclaim-split-back.webp",        alt: "Multi-head split system" },
+  "ducted":             { src: "/kaden-ducted-small.webp",          fallback: "/duct-work.webp",                 alt: "Kaden ducted air conditioning system" },
+  "cassette":           { src: "/ducted-condenser.webp",            fallback: "/ducted-condenser.webp",          alt: "Cassette air conditioning unit" },
+  "floor-console":      { src: "/kaden-bold-split.webp",            fallback: "/kaden-indoor.webp",              alt: "Floor console air conditioner" },
+  "heat-pump":          { src: "/reclaim-co2-split.webp",           fallback: "/reclaim-spit-close-up.webp",     alt: "Reclaim CO2 heat pump hot water system" },
+  "gas-continuous-flow":{ src: "/thermann-continuous-flow.webp",    fallback: "/gas-hot-water-changeover.webp",  alt: "Thermann continuous flow gas hot water unit" },
+  "gas-storage":        { src: "/thermann-electric-storage.webp",   fallback: "/gas-hot-water-changeover.webp",  alt: "Thermann gas storage hot water tank" },
+  "electric-storage":   { src: "/thermann-electric-storage.webp",   fallback: "/gas-hot-water-changeover.webp",  alt: "Thermann electric storage hot water tank" },
+  "solar-hot-water":    { src: "/reclaim-mitsubishi.webp",          fallback: "/reclaim-mitsubishi.webp",        alt: "Solar hot water" },
+  "controller":         { src: "/zonemate-app.webp",                fallback: "/gas-line.webp",                  alt: "Wi-Fi controller on phone" },
+  "zoning":             { src: "/zonemate-touch-controller.webp",   fallback: "/duct-work.webp",                 alt: "Zonemate touch controller for ducted zoning" },
+  "damper":             { src: "/duct-work.webp",                   fallback: "/duct-work.webp",                 alt: "Ducted zone damper" },
+  "accessory":          { src: "/gas-line.webp",                    fallback: "/gas-line.webp",                  alt: "Accessory kit" },
 };
 
-export function productPhoto(p: Product): { src: string; alt: string } {
-  if (p.photo) return { src: p.photo, alt: p.photoAlt ?? p.name };
-  return categoryPhoto[p.category] ?? categoryPhoto["accessory"];
+export function productPhoto(p: Product): { src: string; fallback: string; alt: string } {
+  const cat = categoryPhoto[p.category] ?? categoryPhoto["accessory"];
+  if (p.photo) return { src: p.photo, fallback: cat.src, alt: p.photoAlt ?? p.name };
+  return cat;
 }
 
 export const brands: Brand[] = [
@@ -138,9 +142,9 @@ export const brands: Brand[] = [
     ourTake:
       "We install Brivis when a customer wants a like-for-like gas ducted replacement — same footprint, same ducts, same controller wiring. If the existing unit is past 12-15 years old, we'll also quote a reverse-cycle switch alongside so the customer can compare running-cost economics before committing.",
     accreditation: "Brivis-Rinnai approved installer",
-    productLabel: "4 SKUs — internal, external, in-slab, add-on cooling",
-    // TODO(photos): swap to /brivis-gas-ducted.webp once saved.
-    photo: "/gas-ducted-install.webp",
+    productLabel: "4 models — internal, external, in-slab, add-on cooling",
+    photo: "/brivis-gas-ducted.webp",
+    photoFallback: "/gas-ducted-install.webp",
     photoAlt: "Brivis gas ducted heater installed in a Melbourne home",
     accent: "#0058A5",
     established: "Founded 1971 · Melbourne · part of Rinnai Australia since 2004",
@@ -254,10 +258,10 @@ export const brands: Brand[] = [
     ourTake:
       "We're pursuing Mitsubishi Electric Diamond Dealer accreditation. When it lands we can offer the extended 7-year manufacturer warranty on top of our own 6-year workmanship warranty. That's a 13-year backstop on a unit that's already the most reliable in the category.",
     accreditation: "Diamond Dealer (in progress)",
-    productLabel: "22 SKUs — splits, multi-head, ducted, cassette, controllers",
-    // TODO(photos): swap to /mitsubishi-msz-ap.webp once saved.
-    photo: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi Electric split system installed in a Melbourne home",
+    productLabel: "22 models — splits, multi-head, ducted, cassette, controllers",
+    photo: "/mitsubishi-msz-ap.webp",
+    photoFallback: "/reclaim-mitsubishi.webp",
+    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
     accent: "#DA1A32",
     established: "Australian sales since 1978 · manufacturing in Thailand",
     warranty: "5-year manufacturer parts + labour + 6-year on our workmanship. Diamond Dealer accredited installers unlock a 7-year extended warranty.",
@@ -799,10 +803,10 @@ export const brands: Brand[] = [
     ourTake:
       "For a customer who wants the best heat pump on the market and knows they'll be in the house another decade, Reclaim is our first recommendation. Stainless steel tank, 6-year warranty on the tank, 5-year on the compressor, made in Australia. It costs more up-front and it earns that back.",
     accreditation: "Reclaim installer locator listed",
-    productLabel: "6 SKUs — CO₂ heat pumps, split PV kits, controllers",
-    // TODO(photos): swap to /reclaim-co2-split.webp once saved.
-    photo: "/reclaim-split-back.webp",
-    photoAlt: "Reclaim CO2 heat pump hot water system installation",
+    productLabel: "6 models — CO₂ heat pumps, split PV kits, controllers",
+    photo: "/reclaim-co2-split.webp",
+    photoFallback: "/reclaim-split-back.webp",
+    photoAlt: "Reclaim CO2 heat pump — outdoor unit, tank and controller",
     accent: "#2E8459",
     established: "Designed and assembled in Sydney, Australia · trading since 2007",
     warranty: "6-year cylinder + 5-year compressor + 6-year on our workmanship",
@@ -949,10 +953,10 @@ export const brands: Brand[] = [
     ourTake:
       "Thermann is what we quote first when the customer wants a proven, well-supported heat pump but doesn't want to pay Reclaim money. Rheem Pro accreditation means we get direct-line parts and warranty backing.",
     accreditation: "Rheem Pro accredited installer",
-    productLabel: "14 SKUs — heat pump, gas continuous flow, gas storage, solar",
-    // TODO(photos): swap to /thermann-integrated-heat-pump.webp once saved.
-    photo: "/thermann-heat-pump.webp",
-    photoAlt: "Thermann heat pump hot water tank installed outside a Melbourne home",
+    productLabel: "14 models — heat pump, gas continuous flow, gas storage, solar",
+    photo: "/thermann-integrated-heat-pump.webp",
+    photoFallback: "/thermann-heat-pump.webp",
+    photoAlt: "Thermann integrated heat pump hot water system",
     accent: "#0090C3",
     established: "Rheem's premium sub-brand · Rheem Australia has been Melbourne-based since 1937",
     warranty: "5-year cylinder + 3-year compressor + 6-year on our workmanship. Series 5 compressor warranty extends to 5 years.",
@@ -1238,10 +1242,10 @@ export const brands: Brand[] = [
     ourTake:
       "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the VEU rebate customer who wants their out-of-pocket under $500, iStore hits the sweet spot every time.",
     accreditation: "iStore accredited installer",
-    productLabel: "5 SKUs — heat pump storage, PV diverter",
-    // TODO(photos): swap to /istore-heat-pump.webp once saved.
-    photo: "/relcaim-split-close-up.webp",
-    photoAlt: "iStore heat pump hot water system",
+    productLabel: "5 models — heat pump storage, PV diverter",
+    photo: "/istore-heat-pump.webp",
+    photoFallback: "/relcaim-split-close-up.webp",
+    photoAlt: "iStore heat pump hot water system with dual intake heat pump on top",
     accent: "#F36722",
     established: "Australian-designed, Chinese-manufactured · trading since 2018",
     warranty: "6-year cylinder + 3-year compressor + 6-year on our workmanship",
@@ -1359,10 +1363,10 @@ export const brands: Brand[] = [
     ourTake:
       "We install Kaden when a family needs cooling in three bedrooms plus living and the Mitsubishi quote comes in over budget. The gap has closed noticeably over the last 3-4 years — Kaden today is what mid-tier Panasonic was five years ago.",
     accreditation: "Kaden authorised dealer",
-    productLabel: "17 SKUs — splits, multi-head, ducted, gas ducted, evaporative",
-    // TODO(photos): swap to /kaden-bold-split.webp once saved.
-    photo: "/kaden-indoor.webp",
-    photoAlt: "Kaden split system installed in a Melbourne bedroom",
+    productLabel: "17 models — splits, multi-head, ducted, gas ducted, evaporative",
+    photo: "/kaden-bold-split.webp",
+    photoFallback: "/kaden-indoor.webp",
+    photoAlt: "Kaden wall split system with outdoor condenser and remote",
     accent: "#12224E",
     established: "Australian-distributed since 2015 · manufactured in China to AS/NZS standards",
     warranty: "5-year manufacturer parts + labour + 6-year on our workmanship",
@@ -1666,10 +1670,10 @@ export const brands: Brand[] = [
       "Zonemate is what turns a single-motor ducted system into something you can zone room-by-room. Every ducted install we quote includes a Zonemate as standard — the ability to shut off unused rooms cuts running costs by 30-40% over an always-on ducted.",
     ourTake:
       "Zoning is the single biggest efficiency win on a ducted system. Zonemate's touch controllers are the ones we specify because they're built for Australian installer wiring standards and the ranges of dampers they support cover every ducted brand we install.",
-    productLabel: "6 SKUs — controllers, WiFi, dampers",
-    // TODO(photos): swap to /zonemate-touch-controller.webp once saved.
-    photo: "/duct-work.webp",
-    photoAlt: "Zonemate zoning controller and dampers in ceiling void",
+    productLabel: "6 models — controllers, WiFi, dampers",
+    photo: "/zonemate-touch-controller.webp",
+    photoFallback: "/duct-work.webp",
+    photoAlt: "Zonemate wall-mounted touch controller for ducted aircon zoning",
     accent: "#7A4CD8",
     established: "Australian-designed and manufactured for the local ducted market",
     warranty: "5-year controller + 5-year dampers + 6-year on our workmanship",
