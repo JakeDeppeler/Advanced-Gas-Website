@@ -989,7 +989,7 @@ export const suburbs: Suburb[] = [
       "Emerald Secondary College",
       "the Emerald Village shopping strip",
     ],
-    nearby: ["gembrook", "cockatoo", "beaconsfield-upper"],
+    nearby: ["gembrook", "cockatoo", "beaconsfield-upper", "menzies-creek", "the-patch"],
   },
   {
     slug: "cockatoo",
@@ -1009,8 +1009,423 @@ export const suburbs: Suburb[] = [
       "the Cockatoo Township shops",
       "the Puffing Billy Menzies Creek station edge",
     ],
-    nearby: ["emerald", "gembrook", "beaconsfield-upper"],
+    nearby: ["emerald", "gembrook", "beaconsfield-upper", "menzies-creek", "selby"],
   },
+  // ---------- Wave 3: Dandenong Ranges + Knox hills ----------
+  // These are the "higher up" homes — cold-climate zone, patchy mains gas,
+  // cold-morning heat load that off-the-shelf splits struggle with. Every
+  // brand recommendation here leans on Mitsubishi Hyper Heating and Reclaim
+  // R290 because that's what actually holds capacity at 0–5 °C.
+
+  {
+    slug: "belgrave",
+    name: "Belgrave",
+    postcode: "3160",
+    distanceKm: 22,
+    driveMin: [28, 40],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Puffing Billy Belgrave terminus, the Cameo Cinema and the Belgrave village strip on Burwood Highway",
+    housingStock:
+      "hills homes on bush blocks — a lot of 70s-80s cedar and mudbrick, plus older weatherboard cottages tucked below the ridge on steep driveways where getting equipment to site takes proper planning",
+    commonInstall:
+      "cold-climate Mitsubishi MSZ-FH Hyper Heating splits (they hold rated output down to -15 °C, which non-Hyper units simply don't), Reclaim R290 heat pumps for the cold-morning tank draw, and Braemar gas ducted where mains gas is on the street",
+    localHooks: [
+      "Puffing Billy Belgrave Station",
+      "Cameo Cinemas",
+      "Mater Christi College",
+      "Belgrave Heights Christian School",
+      "the Belgrave village strip",
+    ],
+    testimonial: {
+      who: "Ange P., Belgrave",
+      what: "Mitsubishi Hyper Heating install — cold-climate spec",
+      quote:
+        "First installer in three quotes who actually said 'that's not the right unit for up here.' Spec'd the FH not the AP, and the difference on frosty mornings is night and day.",
+    },
+    nearby: ["tecoma", "upwey", "selby", "kallista", "sherbrooke"],
+    whyLocal:
+      "The hills postcodes are a specialty — cold-climate heat load and steep driveways mean the wrong install just doesn't hold up. We keep FH stock on the van every winter because we're up here weekly.",
+    commonProblems: [
+      "Standard-spec splits (MSZ-AP, cheaper Fujitsu) icing up on winter mornings — the customer just needs the Hyper Heating variant, but nobody explained the difference at quote time",
+      "Undersized heat pump tanks running cold by the second shower — hills households often need the 315L version rather than the entry 250L",
+      "Steep driveways adding a labour uplift most quotes forget to include — we quote it in up front",
+      "Older Braemar / Brivis ducted units without frost-protection cycling drawing full gas load 24/7 through winter",
+    ],
+  },
+  {
+    slug: "selby",
+    name: "Selby",
+    postcode: "3159",
+    distanceKm: 19,
+    driveMin: [25, 35],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Selby General Store on Wellington Road and the Selby Community House",
+    housingStock:
+      "hills bush blocks with mostly older weatherboards and 80s brick veneers on 1000-3000 m² lots — many on LPG bottles or all-electric because mains gas is spotty",
+    commonInstall:
+      "Reclaim R290 heat pumps sized to the household draw, LPG continuous-flow changeovers where the household is heavy-use, and Mitsubishi Hyper Heating splits for the winter mornings",
+    localHooks: [
+      "Selby Primary",
+      "Selby Community House",
+      "Selby General Store",
+      "the Wellington Road bush corridor",
+    ],
+    nearby: ["belgrave", "menzies-creek", "the-patch", "kallista", "emerald"],
+  },
+  {
+    slug: "menzies-creek",
+    name: "Menzies Creek",
+    postcode: "3159",
+    distanceKm: 18,
+    driveMin: [22, 32],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Puffing Billy Menzies Creek Station and the Menzies Creek township",
+    housingStock:
+      "semi-rural hills acreage, low-density — most homes on tank water and LPG bottles, older Federation weatherboards and 90s pole-frame builds mixed together",
+    commonInstall:
+      "LPG continuous-flow gas hot water changeovers, Reclaim R290 heat pumps for households cutting the LPG bill, and cold-climate splits for the frosty side of the hill",
+    localHooks: [
+      "Puffing Billy Menzies Creek Station",
+      "Emerald Museum",
+      "Menzies Creek Primary",
+      "the Selby-Emerald cross-corridor",
+    ],
+    nearby: ["selby", "emerald", "belgrave", "the-patch", "cockatoo"],
+  },
+  {
+    slug: "kallista",
+    name: "Kallista",
+    postcode: "3791",
+    distanceKm: 23,
+    driveMin: [30, 42],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "Grants Picnic Ground and the Kallista village shops on Monbulk Road",
+    housingStock:
+      "cool-temperate rainforest blocks with a lot of older cedar and mudbrick cottages plus a few larger contemporary hills builds — every install has to plan around ferngullies and access",
+    commonInstall:
+      "Mitsubishi MSZ-FH Hyper Heating splits, Reclaim R290 heat pumps (silent enough not to disturb the neighbours across the gully), and split-system relocations when the old outdoor unit is corroded from constant damp",
+    localHooks: [
+      "Grants Picnic Ground",
+      "Kallista Primary",
+      "the Kallista village shops",
+      "the Sherbrooke Forest edge",
+    ],
+    nearby: ["sherbrooke", "sassafras", "the-patch", "monbulk", "belgrave"],
+  },
+  {
+    slug: "sassafras",
+    name: "Sassafras",
+    postcode: "3787",
+    distanceKm: 26,
+    driveMin: [32, 45],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Sassafras village strip along Mount Dandenong Tourist Road and Miss Marple's Tea Room",
+    housingStock:
+      "cool-climate hills homes — a mix of restored heritage cottages in the village core and larger contemporary builds on bush blocks either side",
+    commonInstall:
+      "cold-climate Mitsubishi MSZ-FH Hyper Heating splits (the go-to for anywhere north of Belgrave), Reclaim R290 heat pumps for reliable morning hot water, and refrigeration servicing on the cafe strip",
+    localHooks: [
+      "Sassafras village strip",
+      "Miss Marple's Tea Room",
+      "Sherbrooke Forest",
+      "Perrin's Creek Reserve",
+    ],
+    nearby: ["olinda", "sherbrooke", "kallista", "mount-dandenong", "the-patch"],
+  },
+  {
+    slug: "sherbrooke",
+    name: "Sherbrooke",
+    postcode: "3789",
+    distanceKm: 23,
+    driveMin: [30, 42],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "Sherbrooke Forest and the lyrebird walk off Sherbrooke Lodge Road",
+    housingStock:
+      "bush blocks tucked deep in the forest — driveways can be 100 m of gravel, most homes are cedar-clad or mudbrick with wood heaters as the primary and splits as the secondary",
+    commonInstall:
+      "Mitsubishi Hyper Heating splits sized as the secondary heat source alongside a wood heater, and Reclaim R290 heat pumps for households moving off LPG bottles",
+    localHooks: [
+      "Sherbrooke Forest",
+      "the lyrebird walk trailhead",
+      "Kallista village (short drive)",
+      "Belgrave Heights Christian School catchment",
+    ],
+    nearby: ["kallista", "sassafras", "belgrave", "the-patch", "monbulk"],
+  },
+  {
+    slug: "olinda",
+    name: "Olinda",
+    postcode: "3788",
+    distanceKm: 28,
+    driveMin: [35, 48],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the National Rhododendron Gardens, Olinda Falls and the Olinda village shops",
+    housingStock:
+      "heritage weatherboards and 60s-70s hills chalets on ridge blocks — cold-temperate climate, snow on the ridge occasionally, mains gas patchy so LPG or all-electric common",
+    commonInstall:
+      "Mitsubishi MSZ-FH Hyper Heating splits (they're the only splits that hold capacity in a proper hills winter), Reclaim R290 heat pumps, and Braemar gas ducted replacements where mains gas reaches",
+    localHooks: [
+      "National Rhododendron Gardens",
+      "Olinda Falls",
+      "Olinda Primary",
+      "the Olinda village shopping strip",
+    ],
+    nearby: ["mount-dandenong", "sassafras", "silvan", "monbulk"],
+  },
+  {
+    slug: "mount-dandenong",
+    name: "Mount Dandenong",
+    postcode: "3767",
+    distanceKm: 30,
+    driveMin: [38, 50],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the SkyHigh lookout at the summit and the Mount Dandenong village",
+    housingStock:
+      "the highest residential postcode we service — cold-climate ridge homes, several heritage guest houses and larger architectural builds on blocks with commanding views but brutal winter exposure",
+    commonInstall:
+      "Mitsubishi MSZ-FH Hyper Heating splits are mandatory (rated to -15 °C, holds output where other brands drop 40%), Reclaim R290 for the tank draw, and full ducted retrofits with proper cold-climate outdoor units",
+    localHooks: [
+      "SkyHigh Mount Dandenong",
+      "Mount Dandenong village",
+      "Cloudehill Gardens",
+      "William Ricketts Sanctuary (short drive)",
+    ],
+    nearby: ["olinda", "sassafras", "silvan"],
+    whyLocal:
+      "Mount Dandenong homes have three problems most suburbs don't: cold-climate heat load, exposure to horizontal rain, and driveways that need a proper 4WD. Every install we quote up here includes the correct spec for all three — we don't try to sell a coastal-spec split to a ridge house.",
+    commonProblems: [
+      "Standard-spec splits under-performing at 0-5 °C — needs a proper Hyper Heating unit, not a Northern-slope compromise",
+      "Outdoor units mounted on the exposed side of the house, taking horizontal rain — we relocate to a sheltered aspect and add a wind-shield hood",
+      "Heat pump tanks sized on standard tables — hills households often need the next size up because of cold inlet water",
+    ],
+  },
+  {
+    slug: "monbulk",
+    name: "Monbulk",
+    postcode: "3793",
+    distanceKm: 23,
+    driveMin: [30, 42],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Monbulk township along Main Road and Silvan Reservoir Park",
+    housingStock:
+      "hills town core plus surrounding acreage — brick veneer and weatherboard in town, larger acreage properties on the outskirts, nursery country so a lot of homes have commercial-scale water use",
+    commonInstall:
+      "Reclaim R290 heat pumps sized for the higher household draw, Mitsubishi Hyper Heating splits for winter, and gas ducted replacements where mains gas is on the street",
+    localHooks: [
+      "Monbulk Secondary College",
+      "Monbulk Primary",
+      "Silvan Reservoir Park",
+      "the Emerald Lake edge",
+    ],
+    nearby: ["silvan", "the-patch", "kallista", "olinda", "emerald"],
+  },
+  {
+    slug: "silvan",
+    name: "Silvan",
+    postcode: "3795",
+    distanceKm: 26,
+    driveMin: [32, 45],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "Silvan Reservoir and the Tesselaar Tulip Farm off Monbulk Road",
+    housingStock:
+      "rural hills — mostly acreage, nurseries and orchards, tank water standard, LPG common because mains gas doesn't extend this far",
+    commonInstall:
+      "LPG continuous-flow hot water swaps and Reclaim R290 heat pumps sized to acreage-household draw, plus Mitsubishi Hyper Heating splits into the residential homes",
+    localHooks: [
+      "Silvan Reservoir",
+      "Tesselaar Tulip Farm",
+      "Silvan Primary",
+      "the Monbulk Road orchard corridor",
+    ],
+    nearby: ["monbulk", "olinda", "the-patch", "mount-dandenong"],
+  },
+  {
+    slug: "the-patch",
+    name: "The Patch",
+    postcode: "3792",
+    distanceKm: 23,
+    driveMin: [30, 42],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "The Patch Primary School and Old Emerald Road",
+    housingStock:
+      "hills residential on 1000-4000 m² blocks — a mix of cedar hills-style builds and 90s brick veneers, most on tank water, LPG or all-electric",
+    commonInstall:
+      "Reclaim R290 heat pumps, Mitsubishi Hyper Heating splits, and heat-pump-to-electric retrofit work as households phase out LPG bottles",
+    localHooks: [
+      "The Patch Primary",
+      "the Old Emerald Road corridor",
+      "Silvan Reservoir edge",
+      "Kallista village (short drive)",
+    ],
+    nearby: ["monbulk", "kallista", "selby", "silvan", "emerald"],
+  },
+  {
+    slug: "upwey",
+    name: "Upwey",
+    postcode: "3158",
+    distanceKm: 24,
+    driveMin: [28, 40],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "the Upwey village shopping strip and Upwey railway station on the Belgrave line",
+    housingStock:
+      "hills village stock — weatherboards through the village core and 70s-80s brick veneer on the ridges above, mains gas on most streets, retrofit-heavy",
+    commonInstall:
+      "gas ducted retrofits (Braemar and Brivis rip-and-replace), Mitsubishi MSZ-FH Hyper Heating splits, and Reclaim R290 heat pumps where the household is ready to move off gas",
+    localHooks: [
+      "Upwey Station",
+      "Upwey High School",
+      "Upwey Primary",
+      "the Upwey village shopping strip",
+    ],
+    nearby: ["tecoma", "belgrave", "ferntree-gully", "upper-ferntree-gully"],
+  },
+  {
+    slug: "tecoma",
+    name: "Tecoma",
+    postcode: "3160",
+    distanceKm: 23,
+    driveMin: [28, 40],
+    published: true,
+    council: "Yarra Ranges Shire Council",
+    landmark: "Tecoma railway station on the Belgrave line and the Burwood Highway village strip",
+    housingStock:
+      "hills residential village — weatherboards along the highway, brick veneer on the ridges either side, mains gas throughout most of the postcode",
+    commonInstall:
+      "Mitsubishi Hyper Heating splits, gas ducted rip-and-replace on end-of-life Brivis units, and iStore or Reclaim heat pump swaps replacing original electric tanks",
+    localHooks: [
+      "Tecoma Station",
+      "Burwood Highway village strip",
+      "Tecoma Primary",
+      "the Belgrave-Fern Tree Gully commuter corridor",
+    ],
+    nearby: ["upwey", "belgrave", "upper-ferntree-gully", "ferntree-gully"],
+  },
+  {
+    slug: "upper-ferntree-gully",
+    name: "Upper Ferntree Gully",
+    postcode: "3156",
+    distanceKm: 26,
+    driveMin: [30, 42],
+    published: true,
+    council: "Knox City Council",
+    landmark: "Upper Ferntree Gully Station and the Ferntree Gully NP entry at the base of the 1000 Steps",
+    housingStock:
+      "hillside residential — a lot of 70s-80s brick veneer on sloping blocks, mains gas standard, some newer infill on the ridge closer to the national park",
+    commonInstall:
+      "gas ducted retrofits, Mitsubishi wall splits sized for the sloping-block heat load, and VEU heat pump swaps as original electric tanks age out",
+    localHooks: [
+      "Upper Ferntree Gully Station",
+      "1000 Steps trailhead",
+      "Ferntree Gully National Park",
+      "Upper Ferntree Gully Primary",
+    ],
+    nearby: ["ferntree-gully", "upwey", "tecoma", "boronia"],
+  },
+  {
+    slug: "ferntree-gully",
+    name: "Ferntree Gully",
+    postcode: "3156",
+    distanceKm: 27,
+    driveMin: [32, 45],
+    published: true,
+    council: "Knox City Council",
+    landmark: "Westfield Knox at the edge of the postcode, Ferntree Gully Station and the FTG Village shops on Station Street",
+    housingStock:
+      "a real spread — post-war brick veneer through the older streets north of the highway, 80s-90s family homes in the estates south, plus new townhouse infill near the station",
+    commonInstall:
+      "full ducted retrofits into the family homes, Mitsubishi multi-head splits for the townhouses, and heat pump hot water swaps replacing original electric tanks — a strong VEU rebate postcode",
+    localHooks: [
+      "Westfield Knox",
+      "Ferntree Gully Station",
+      "Ferntree Gully NP",
+      "St Joseph's College",
+      "Knox Grammar",
+    ],
+    testimonial: {
+      who: "Marcus L., Ferntree Gully",
+      what: "Ducted retrofit — full spec, no upsell",
+      quote:
+        "Third quote and the only one that didn't try to push us onto their 'preferred' brand. Spec'd the Mitsubishi we asked for, priced it fairly, done in a day.",
+    },
+    nearby: ["upper-ferntree-gully", "boronia", "lysterfield", "rowville"],
+  },
+  {
+    slug: "boronia",
+    name: "Boronia",
+    postcode: "3155",
+    distanceKm: 30,
+    driveMin: [35, 48],
+    published: true,
+    council: "Knox City Council",
+    landmark: "the Boronia Mall shopping centre, Boronia Station and the Dorset Square precinct",
+    housingStock:
+      "post-war brick and weatherboard through the older streets, 90s brick veneer south toward Wantirna, some newer townhouse infill near the station",
+    commonInstall:
+      "gas ducted heater replacements, iStore or Thermann heat pump swaps replacing original electric tanks (max VEU rebate territory), and Mitsubishi MSZ wall splits in the older stock",
+    localHooks: [
+      "Boronia Mall",
+      "Boronia Station",
+      "Boronia West Primary",
+      "the Dorset Square precinct",
+    ],
+    nearby: ["ferntree-gully", "upper-ferntree-gully", "lysterfield"],
+  },
+  {
+    slug: "lysterfield",
+    name: "Lysterfield",
+    postcode: "3156",
+    distanceKm: 22,
+    driveMin: [26, 38],
+    published: true,
+    council: "Knox City Council",
+    landmark: "Lysterfield Park, Lysterfield Lake and the Belgrave-Hallam Road ridge",
+    housingStock:
+      "large-block hills residential — most homes on 1000-2000 m² blocks with room for outdoor unit siting, mostly late-80s and 90s brick veneer, mains gas on most streets",
+    commonInstall:
+      "full ducted retrofits on double-storey brick veneers, Mitsubishi MXZ multi-heads adding bedroom cooling to living-zone-only originals, and Reclaim R290 heat pumps for the households ready to phase out gas",
+    localHooks: [
+      "Lysterfield Park",
+      "Lysterfield Lake",
+      "Lysterfield Primary",
+      "the Wellington Road corridor",
+    ],
+    nearby: ["rowville", "ferntree-gully", "boronia", "belgrave"],
+  },
+  {
+    slug: "rowville",
+    name: "Rowville",
+    postcode: "3178",
+    distanceKm: 27,
+    driveMin: [30, 42],
+    published: true,
+    council: "Knox City Council",
+    landmark: "Stud Park Shopping Centre, Rowville Community Kindergarten and the Rowville Secondary Sports Academy",
+    housingStock:
+      "predominantly late-80s and 90s brick veneer family homes on standard 600-800 m² blocks — a lot of ducted heating from build, most on their original hot water",
+    commonInstall:
+      "gas ducted heating tune-ups and replacements, iStore or Thermann heat pump swaps replacing original electric tanks, and Mitsubishi MXZ multi-head splits for zoning older homes",
+    localHooks: [
+      "Stud Park Shopping Centre",
+      "Rowville Secondary College",
+      "Karoo Primary",
+      "the Wellington Road commuter belt",
+      "Lysterfield Park",
+    ],
+    nearby: ["lysterfield", "ferntree-gully", "boronia"],
+  },
+
   {
     slug: "gembrook",
     name: "Gembrook",

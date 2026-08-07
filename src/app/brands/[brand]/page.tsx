@@ -3,8 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, findBrand, productPhoto } from "@/lib/brands";
+import { brands, findBrand } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
+import { BrandCompare } from "@/components/BrandCompare";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -41,14 +42,6 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
     { name: "Brands", url: `${site.url}/brands` },
     { name: brand.name, url: `${site.url}/brands/${brand.slug}` },
   ]);
-
-  // Group products by category label so the page reads as a coherent range
-  // rather than a flat model dump.
-  const grouped = brand.products.reduce<Record<string, typeof brand.products>>((acc, p) => {
-    (acc[p.categoryLabel] ||= []).push(p);
-    return acc;
-  }, {});
-  const groupOrder = Object.keys(grouped);
 
   return (
     <div className="page-detail page-brand" style={{ ["--card-accent" as string]: brand.accent }}>
@@ -154,35 +147,44 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </section>
       )}
 
-      {/* Real install gallery · reuses our on-site photography */}
-      <section className="brand-gallery">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
-            <h2>Recent {brand.name} installs around Melbourne&rsquo;s south-east.</h2>
-            <p>
-              Real jobs we&rsquo;ve completed · no manufacturer catalogue shots.
-              Every one photographed on the day the compliance certificate was signed.
-            </p>
+      {/* Per-brand install gallery — each brand supplies its own tile set
+          so brand hubs feel distinct rather than sharing the same 6 photos.
+          Tiles with a blank `src` render as a "photo goes here" placeholder
+          so Jake can drop the real image in without touching code. */}
+      {brand.gallery && brand.gallery.length > 0 && (
+        <section className="brand-gallery">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
+              <h2>Recent {brand.name} installs around Melbourne&rsquo;s south-east.</h2>
+              <p>
+                Real jobs we&rsquo;ve completed · no manufacturer catalogue shots.
+                Every one photographed on the day the compliance certificate was signed.
+              </p>
+            </div>
+            <div className="brand-gallery__grid">
+              {brand.gallery.map((g, i) =>
+                g.src ? (
+                  <figure key={`${g.src}-${i}`} className="brand-gallery__cell">
+                    <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
+                  </figure>
+                ) : (
+                  <figure key={`blank-${i}`} className="brand-gallery__cell brand-gallery__cell--blank" aria-hidden="true">
+                    <div className="brand-gallery__blank">
+                      <span className="brand-gallery__blank-icon">+</span>
+                      <span className="brand-gallery__blank-lbl">Photo</span>
+                    </div>
+                  </figure>
+                ),
+              )}
+            </div>
           </div>
-          <div className="brand-gallery__grid">
-            {[
-              { src: "/reclaim-split-back.webp",              alt: `${brand.name} install · outdoor unit clean line-set` },
-              { src: "/reclaim-mitsubishi.webp",              alt: `${brand.name} install · indoor unit mounted` },
-              { src: "/reclaim-spit-close-up.webp",           alt: `${brand.name} install · heat pump close-up` },
-              { src: "/kaden-indoor.webp",                    alt: `${brand.name} install · indoor head unit` },
-              { src: "/thermann-heat-pump.webp",              alt: `${brand.name} install · hot water system` },
-              { src: "/duct-work.webp",                       alt: `${brand.name} install · ductwork in ceiling void` },
-            ].map((g) => (
-              <figure key={g.src} className="brand-gallery__cell">
-                <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
-              </figure>
-            ))}
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* Product range grouped by category */}
+      {/* Product range grouped by category — client component wraps the
+          grid to add per-card compare checkboxes + a bottom drawer that
+          opens a side-by-side spec table. */}
       <section className="brand-range">
         <div className="wrap">
           <div className="ds-section-head">
@@ -191,42 +193,11 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
             <p>
               Every model below is a product we've installed enough of to have an opinion on.
               Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
+              Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
             </p>
           </div>
 
-          {groupOrder.map((groupName) => (
-            <div key={groupName} className="brand-group">
-              <h3 className="brand-group__title">{groupName}</h3>
-              <div className="brand-group__grid">
-                {grouped[groupName].map((p) => {
-                  const photo = productPhoto(p, brand);
-                  return (
-                    <Link key={p.slug} href={`/brands/${brand.slug}/${p.slug}`} className="brand-card">
-                      <div className="brand-card__photo">
-                        {p.veuEligible && (
-                          <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
-                        )}
-                        <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
-                      </div>
-                      <div className="brand-card__inner">
-                        <div className="brand-card__head">
-                          <h4>{p.name}</h4>
-                          <span className="brand-card__model">{p.model}</span>
-                        </div>
-                        {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
-                        <p className="brand-card__take">{p.ourTake}</p>
-                        <div className="brand-card__foot">
-                          <span className="brand-card__price">
-                            {p.installedPriceFrom ? `from ${p.installedPriceFrom}` : "Message for quote →"}
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
+          <BrandCompare brand={brand} />
         </div>
       </section>
 

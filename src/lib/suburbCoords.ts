@@ -58,6 +58,26 @@ export const suburbCoords: Record<string, readonly [number, number]> = {
   "emerald":             [-37.939, 145.446],
   "cockatoo":            [-37.941, 145.500],
   "gembrook":            [-37.955, 145.564],
+
+  // Wave 3 · Dandenong Ranges + Knox hills — the "higher up" corridor
+  "belgrave":            [-37.911, 145.353],
+  "selby":               [-37.923, 145.400],
+  "menzies-creek":       [-37.928, 145.421],
+  "kallista":            [-37.892, 145.375],
+  "sassafras":           [-37.868, 145.362],
+  "sherbrooke":          [-37.899, 145.362],
+  "olinda":              [-37.849, 145.365],
+  "mount-dandenong":     [-37.834, 145.361],
+  "monbulk":             [-37.878, 145.421],
+  "silvan":              [-37.848, 145.421],
+  "the-patch":           [-37.883, 145.397],
+  "upwey":               [-37.906, 145.328],
+  "tecoma":              [-37.905, 145.339],
+  "ferntree-gully":      [-37.885, 145.302],
+  "upper-ferntree-gully":[-37.892, 145.315],
+  "boronia":             [-37.860, 145.286],
+  "lysterfield":         [-37.937, 145.309],
+  "rowville":            [-37.938, 145.238],
 };
 
 /** Great-circle distance in km between two lat/lng points (haversine). */

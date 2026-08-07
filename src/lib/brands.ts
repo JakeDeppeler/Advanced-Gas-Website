@@ -79,6 +79,12 @@ export type Brand = {
   support?: string;
   /** Optional links to spec sheets / brochures on the manufacturer's site. */
   resources?: { label: string; href: string }[];
+  /** Per-brand install-gallery photos (6 tiles rendered on the brand hub).
+   *  When absent, the brand page falls back to a generic curated set —
+   *  which is fine for a first pass but makes every brand page look the
+   *  same. Populate per-brand to make each hub feel distinct. Use
+   *  { src: "", alt: "" } to leave a blank tile Jake can drop into. */
+  gallery?: { src: string; alt: string }[];
   products: Product[];
 };
 
@@ -172,6 +178,14 @@ export const brands: Brand[] = [
       { label: "Brivis Buffalo range", href: "https://www.brivis.com.au/products/heating/gas-ducted-heating/buffalo/" },
       { label: "Brivis evaporative cooling", href: "https://www.brivis.com.au/products/cooling/evaporative-cooling/" },
       { label: "Rinnai Australia support", href: "https://www.rinnai.com.au/" },
+    ],
+    gallery: [
+      { src: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg", alt: "Brivis Wombat internal gas ducted heater" },
+      { src: "/gas-ducted-install.webp", alt: "Brivis ducted heater in-cupboard install" },
+      { src: "/duct-work.webp", alt: "Ductwork run for a Brivis ducted retrofit" },
+      { src: "/classic_evap_product_image.jpg", alt: "Brivis roof-mounted evaporative cooler" },
+      { src: "/evap-cooler-service.webp", alt: "Evaporative cooler service — roof-side access" },
+      { src: "", alt: "Brivis install photo — add later" },
     ],
     products: [
       {
@@ -271,6 +285,14 @@ export const brands: Brand[] = [
       { label: "Wall-mounted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/wall-mounted-air-conditioners/" },
       { label: "Ducted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/ducted-air-conditioning/" },
       { label: "Multi-head range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/multi-head-split-system-air-conditioners/" },
+    ],
+    gallery: [
+      { src: "/AP_70-80HP_front-1920x1440-1.png", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
+      { src: "/PUZ_M140VKA_2-1920x1440-1.png", alt: "Mitsubishi Electric twin-fan outdoor condenser" },
+      { src: "/reclaim-mitsubishi.webp", alt: "Mitsubishi Electric split system installed in a Melbourne home" },
+      { src: "/mac_slide0.jpg", alt: "Mitsubishi multi-head installation diagram" },
+      { src: "/kdi-v2-image_01.jpg", alt: "Mitsubishi PEAD-M ducted indoor unit" },
+      { src: "", alt: "Mitsubishi install photo — add later" },
     ],
     products: [
       {
@@ -793,6 +815,14 @@ export const brands: Brand[] = [
       { label: "Reclaim CO₂ heat pump", href: "https://reclaimenergy.com.au/co2-heat-pump/" },
       { label: "Reclaim CO₂ Wi-Fi heat pump", href: "https://reclaimenergy.com.au/reclaim-energy-co2-wi-fi-heat-pump/" },
     ],
+    gallery: [
+      { src: "/reclaim-split-back.webp", alt: "Reclaim CO₂ split heat pump — tank and outdoor unit installed" },
+      { src: "/reclaim-spit-close-up.webp", alt: "Reclaim heat pump close-up on Melbourne install" },
+      { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 all-in-one heat pump" },
+      { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim split heat pump — full installation view" },
+      { src: "/reclaim-mitsubishi.webp", alt: "Reclaim tank alongside Mitsubishi split system" },
+      { src: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png", alt: "Reclaim system with Wi-Fi controller" },
+    ],
     products: [
       // ---- CO₂ SPLIT SYSTEM (outdoor heat pump + separate tank) ----
       {
@@ -1074,6 +1104,14 @@ export const brands: Brand[] = [
       { label: "Thermann electric storage", href: "https://www.thermann.com.au/products/electric-storage/" },
       { label: "Made in Australia by Dux", href: "https://www.dux.com.au/" },
     ],
+    gallery: [
+      { src: "/thermann-heat-pump.webp", alt: "Thermann integrated heat pump installed on a Pakenham home" },
+      { src: "/thermann-contineues-flow-standing-back.webp", alt: "Thermann G-series continuous-flow gas hot water unit" },
+      { src: "/thermann-continues-flow-close-up.webp", alt: "Thermann G-series close-up" },
+      { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series product view" },
+      { src: "/G-Series_Angle_View_1200x900.jpg", alt: "Thermann G-series angle view" },
+      { src: "/gas-hot-water-changeover.webp", alt: "Thermann hot water changeover on install day" },
+    ],
     products: [
       // ---- Heat pump: all-in-one (200 L + 300 L) ----
       {
@@ -1257,6 +1295,14 @@ export const brands: Brand[] = [
       { label: "iStore 180L product page", href: "https://istore.com.au/product/istore-180l/" },
       { label: "iStore 270L product page", href: "https://istore.com.au/product/istore-270l/" },
     ],
+    gallery: [
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 270L heat pump — full unit view" },
+      { src: "/gas-hot-water-changeover.webp", alt: "iStore install day — old tank swap" },
+      { src: "", alt: "iStore install photo — add later" },
+      { src: "", alt: "iStore install photo — add later" },
+      { src: "", alt: "iStore install photo — add later" },
+      { src: "", alt: "iStore install photo — add later" },
+    ],
     products: [
       {
         slug: "istore-180",
@@ -1334,6 +1380,14 @@ export const brands: Brand[] = [
       { label: "Kaden multi-head", href: "https://www.kadenair.com.au/products/multi-air-conditioning/" },
       { label: "Kaden gas ducted heating", href: "https://www.kadenair.com.au/products/gas-ducted-heating/" },
       { label: "Kaden evaporative cooling", href: "https://www.kadenair.com.au/products/evaporative-cooling/" },
+    ],
+    gallery: [
+      { src: "/kaden-indoor.webp", alt: "Kaden Bold indoor head unit — Melbourne install" },
+      { src: "/4 kadens with chaz.jpg", alt: "Four Kaden systems staged pre-install with our team" },
+      { src: "/Kaden Condesnser.jpg", alt: "Kaden outdoor condenser unit installed" },
+      { src: "/duct-work.webp", alt: "Kaden ducted install — ceiling void ductwork" },
+      { src: "/gas-ducted-install.webp", alt: "Kaden gas ducted heater in-cupboard install" },
+      { src: "/evap-cooler-service.webp", alt: "Kaden evaporative cooler on the roof" },
     ],
     products: [
       {
@@ -1620,6 +1674,14 @@ export const brands: Brand[] = [
       "Zonemate's Melbourne office is on the phone within an hour when we hit a wiring issue. Controllers and dampers are held locally by our supplier network · same-day delivery for warranty replacements.",
     resources: [
       { label: "Zonemate zoning systems", href: "https://zonemate.com.au/" },
+    ],
+    gallery: [
+      { src: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg", alt: "Zonemate touch controller mounted in a living room" },
+      { src: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg", alt: "Zonemate smart room sensor" },
+      { src: "/Individual-Temps-Family_Mobile.jpg", alt: "Zonemate app running individual room temperatures" },
+      { src: "/ZM-Touch-App_Hero_1.jpg", alt: "Zonemate touch + app control combination" },
+      { src: "/duct-work.webp", alt: "Zonemate installed alongside a ducted retrofit" },
+      { src: "", alt: "Zonemate install photo — add later" },
     ],
     products: [
       {
