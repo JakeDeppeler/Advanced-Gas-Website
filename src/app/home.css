@@ -37,63 +37,48 @@
 .page-home .bcard--emergency h3,
 .page-home .bcard--emergency h4 { color: #fff; }
 
-/* ============== HERO — direction B, photo-forward, cinematic ============== */
+/* ============== HERO — stacked, text top, photo bottom ============== */
 .page-home .hero {
   position: relative;
-  min-height: 780px;   /* taller — buttons sit low enough not to cover team */
   padding: 0;
-  background: var(--navy);
+  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   color: #fff;
   overflow: hidden;
   display: flex;
-  align-items: stretch;
+  flex-direction: column;
 }
-/* Hero photo — real <img> inside a <picture> so Chrome scores it as
-   the LCP element directly (CSS backgrounds are deprioritised for
-   LCP). The <picture> wrapper positions it absolute so the hero
-   layout is unchanged. */
-.page-home .hero__pic {
-  position: absolute; inset: 0; z-index: 0;
-  display: block;
+.page-home .hero__wrap {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  /* Text sits at the top of the hero — no bottom-alignment, no photo
+     overlay to compete with. Team photo lives in its own strip below. */
+  justify-content: flex-start;
+  padding-top: 56px;
+  padding-bottom: 40px;
+  gap: 22px;
+}
+
+/* Full-width photo strip anchored at the bottom of the hero section.
+   The team faces sit as the visual full-stop under the copy rather
+   than as a background layer for text to fight. */
+.page-home .hero__photostrip {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 24 / 9;
+  max-height: 520px;
   overflow: hidden;
+  background: var(--navy-2);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.page-home .hero__pic {
+  position: absolute; inset: 0;
+  display: block;
 }
 .page-home .hero__pic img {
   width: 100%; height: 100%;
   object-fit: cover;
-  /* Team faces are in the upper-middle of the shot. Showing the top
-     third of the photo means faces sit ABOVE the H1 / CTAs in the
-     hero's lower half — no more heads covered by buttons. */
-  object-position: center top;
+  object-position: center 35%;
   display: block;
-}
-/* Fallback gradient behind the image in case it fails or is loading. */
-.page-home .hero { background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%); }
-.page-home .hero__scrim {
-  position: absolute; inset: 0; z-index: 1;
-  background:
-    /* Top half MUCH lighter so team faces read clearly. Bottom half
-       heavier so H1 + sub + CTAs stay legible over any photo detail. */
-    linear-gradient(180deg,
-      rgba(5,10,48,0.15) 0%,
-      rgba(5,10,48,0.10) 32%,
-      rgba(5,10,48,0.55) 60%,
-      rgba(5,10,48,0.88) 100%),
-    linear-gradient(90deg, rgba(5,10,48,0.40) 0%, rgba(5,10,48,0.10) 55%, rgba(5,10,48,0.02) 100%);
-  pointer-events: none;
-}
-.page-home .hero__divider { position: absolute; bottom: -1px; left: 0; right: 0; width: 100%; height: 80px; z-index: 3; }
-
-.page-home .hero__wrap {
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column;
-  /* Push all content to bottom of the hero — badge, H1, sub, CTAs
-     stack in the LOWER 40% of the hero. Upper 60% shows the team
-     photo cleanly. */
-  justify-content: flex-end;
-  min-height: 780px;
-  padding-top: 40px;
-  padding-bottom: 56px;
-  gap: 22px;
 }
 
 .page-home .hero__meta { display: flex; }
@@ -177,22 +162,18 @@
 .page-home .trust-stat strong { font-family: var(--f-display); font-size: 17px; }
 .page-home .trust-stat span { font-size: 12.5px; color: rgba(255,255,255,0.7); }
 
-/* Mobile hero — pixel-close to mock B */
+/* Mobile hero — same stacked layout, tighter spacing */
 @media (max-width: 760px) {
-  .page-home .hero { min-height: 700px; }
-  .page-home .hero__pic img { object-position: center top; }
-  .page-home .hero__wrap { min-height: 700px; padding-bottom: 40px; padding-top: 30px; }
-  .page-home .hero__scrim {
-    background:
-      linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.82) 68%, rgba(5,10,48,0.98) 100%);
-  }
   .page-home .hero__wrap {
-    /* Overridden by the 680px value above — kept here as an explicit
-       reminder that content sits at the bottom of the taller mobile
-       hero so the team faces are visible above. */
-    padding-top: 22px;
-    gap: 18px;
+    padding-top: 32px;
+    padding-bottom: 28px;
+    gap: 16px;
   }
+  .page-home .hero__photostrip {
+    aspect-ratio: 4 / 3;
+    max-height: 360px;
+  }
+  .page-home .hero__pic img { object-position: center 30%; }
   .page-home .hero__h1 { font-size: 32px; line-height: 1.04; letter-spacing: -0.028em; }
   .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
   .page-home .hero__copy { gap: 14px; }
@@ -333,22 +314,54 @@
   font-size: 32px; font-weight: 800; margin-bottom: 20px;
 }
 
-/* ============== QUOTE SECTION (moved from hero) ============== */
+/* ============== QUOTE SECTION — orange callout box ============== */
 .page-home .quotesec {
   position: relative;
-  padding: 88px 0 96px;
+  padding: 72px 0 88px;
   background: var(--bg);
   border-bottom: 1px solid var(--line);
 }
+/* The orange box wraps the entire "60-second quote" panel — left copy
+   AND the form card sit inside it, reading as one branded callout. */
+.page-home .quotesec__box {
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 48px 52px;
+  box-shadow: 0 20px 44px -18px rgba(243,103,34,0.55),
+              0 8px 24px -14px rgba(5,10,48,0.2);
+  position: relative;
+  overflow: hidden;
+}
+/* Subtle textured background inside the orange box — same warm feel
+   as the hero, keeps a flat orange from looking too dense. */
+.page-home .quotesec__box::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5,10,48,0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
 .page-home .quotesec__grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
-  gap: 56px;
+  gap: 48px;
   align-items: start;
 }
 .page-home .quotesec__left {
-  padding-top: 12px;
-  display: flex; flex-direction: column; gap: 20px;
+  padding-top: 8px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.page-home .ds-eyebrow--on-orange {
+  color: #fff;
+  opacity: 0.95;
+}
+.page-home .ds-dot--on-orange {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.28);
 }
 .page-home .quotesec__left h2 {
   font-family: var(--f-display);
@@ -356,7 +369,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.05;
-  color: var(--navy);
+  color: #fff;
   text-wrap: balance;
   margin: 6px 0 0;
   max-width: 460px;
@@ -364,7 +377,7 @@
 .page-home .quotesec__lede {
   margin: 0;
   font-size: 17px;
-  color: var(--ink-2);
+  color: rgba(255,255,255,0.92);
   max-width: 460px;
   line-height: 1.5;
 }
@@ -374,25 +387,27 @@
 }
 .page-home .quotesec__points li {
   display: flex; align-items: center; gap: 10px;
-  color: var(--ink);
+  color: rgba(255,255,255,0.96);
   font-size: 15px;
 }
-.page-home .tick--dark {
-  background: rgba(11,20,80,0.08); color: var(--navy);
+.page-home .tick--on-orange {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
 }
 .page-home .quotesec__finep {
-  margin: 8px 0 0;
+  margin: 12px 0 0;
   font-family: var(--f-mono);
   font-size: 11.5px;
-  color: var(--ink-3);
+  color: rgba(255,255,255,0.78);
   letter-spacing: 0.01em;
   max-width: 460px;
   line-height: 1.5;
 }
 
 @media (max-width: 900px) {
-  .page-home .quotesec { padding: 56px 0 64px; }
-  .page-home .quotesec__grid { grid-template-columns: 1fr; gap: 32px; }
+  .page-home .quotesec { padding: 48px 0 56px; }
+  .page-home .quotesec__box { padding: 32px 24px; border-radius: 22px; }
+  .page-home .quotesec__grid { grid-template-columns: 1fr; gap: 28px; }
   .page-home .quotesec__left h2 { font-size: 28px; }
   .page-home .quotesec__lede { font-size: 15.5px; }
 }

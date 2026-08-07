@@ -135,20 +135,7 @@ export default function HomePage() {
           the browser hint discover it during initial HTML scan, and
           the LCP candidate becomes the image itself with a clear
           measurement. */}
-      <section className="hero hero--photo">
-        <picture className="hero__pic" aria-hidden="true">
-          <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
-          <img
-            src="/team-photo.webp"
-            alt=""
-            width={1800}
-            height={1200}
-            fetchPriority="high"
-            decoding="async"
-          />
-        </picture>
-        <div className="hero__scrim" aria-hidden="true" />
-
+      <section className="hero hero--stacked">
         <div className="wrap hero__wrap">
           <div className="hero__meta">
             <span className="hero__badge">
@@ -188,9 +175,22 @@ export default function HomePage() {
           </div>
         </div>
 
-        <svg className="hero__divider" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 80 L1440 0 L1440 80 Z" fill="#faf8f3" />
-        </svg>
+        {/* Team photo strip — sits BELOW the copy, full-width, so the
+            H1 + CTAs are the first thing on the page and the team faces
+            anchor the section without overlaying text. */}
+        <div className="hero__photostrip" aria-hidden="true">
+          <picture className="hero__pic">
+            <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
+            <img
+              src="/team-photo.webp"
+              alt=""
+              width={1800}
+              height={1200}
+              fetchPriority="high"
+              decoding="async"
+            />
+          </picture>
+        </div>
       </section>
 
       {/* BRAND TRUST STRIP */}
@@ -220,26 +220,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* QUOTE FORM — dedicated section (moved out of hero for direction B) */}
+      {/* QUOTE FORM — dedicated section, wrapped in an orange callout box
+          so the whole 60-second quote reads as one branded panel. */}
       <section className="quotesec" id="quote">
-        <div className="wrap quotesec__grid">
-          <div className="quotesec__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> 60-second quote</span>
-            <h2>Fixed-price quote back within 12&nbsp;hours.</h2>
-            <p className="quotesec__lede">
-              Tell us what you need, we&rsquo;ll quote it straight. Rebates applied, GST included, no chasing.
-            </p>
-            <ul className="quotesec__points">
-              <li><span className="tick tick--dark">✓</span> No obligation, no pushy call-back</li>
-              <li><span className="tick tick--dark">✓</span> Same person quotes as installs</li>
-              <li><span className="tick tick--dark">✓</span> VEU rebate handled in the quote</li>
-              <li><span className="tick tick--dark">✓</span> Emergency? Call {site.phone} instead</li>
-            </ul>
-            <p className="quotesec__finep">
-              Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
-            </p>
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> 60-second quote</span>
+                <h2>Fixed-price quote back within 12&nbsp;hours.</h2>
+                <p className="quotesec__lede">
+                  Tell us what you need, we&rsquo;ll quote it straight. Rebates applied, GST included, no chasing.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> No obligation, no pushy call-back</li>
+                  <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
+                  <li><span className="tick tick--on-orange">✓</span> VEU rebate handled in the quote</li>
+                  <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
+                </ul>
+                <p className="quotesec__finep">
+                  Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
+                </p>
+              </div>
+              <HeroQuoteForm />
+            </div>
           </div>
-          <HeroQuoteForm />
         </div>
       </section>
 
