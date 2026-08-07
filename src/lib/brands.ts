@@ -173,11 +173,8 @@ export const brands: Brand[] = [
     support:
       "Rinnai's Melbourne warehouse holds Brivis parts for every unit still in the field, including discontinued models. We keep a stock of controllers, ignition units and burners on the truck · most Brivis service jobs are one-visit fixes.",
     resources: [
-      { label: "Brivis product range", href: "https://www.brivis.com.au/products/" },
-      { label: "Brivis Wombat range", href: "https://www.brivis.com.au/products/heating/gas-ducted-heating/wombat/" },
-      { label: "Brivis Buffalo range", href: "https://www.brivis.com.au/products/heating/gas-ducted-heating/buffalo/" },
-      { label: "Brivis evaporative cooling", href: "https://www.brivis.com.au/products/cooling/evaporative-cooling/" },
-      { label: "Rinnai Australia support", href: "https://www.rinnai.com.au/" },
+      { label: "Brivis · manufacturer website", href: "https://www.brivis.com.au/" },
+      { label: "Rinnai Australia (parent)", href: "https://www.rinnai.com.au/" },
     ],
     gallery: [
       { src: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg", alt: "Brivis Wombat internal gas ducted heater" },
@@ -282,9 +279,7 @@ export const brands: Brand[] = [
     support:
       "Mitsubishi's Melbourne parts warehouse is same-day for common indoor/outdoor parts. Manufacturer tech support is genuinely responsive. We rarely wait on a part.",
     resources: [
-      { label: "Wall-mounted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/wall-mounted-air-conditioners/" },
-      { label: "Ducted range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/ducted-air-conditioning/" },
-      { label: "Multi-head range", href: "https://www.mitsubishielectric.com.au/products/residential/air-conditioners/multi-head-split-system-air-conditioners/" },
+      { label: "Mitsubishi Electric · manufacturer website", href: "https://www.mitsubishielectric.com.au/" },
     ],
     gallery: [
       { src: "/AP_70-80HP_front-1920x1440-1.png", alt: "Mitsubishi Electric MSZ-AP wall split indoor unit" },
@@ -811,9 +806,7 @@ export const brands: Brand[] = [
     support:
       "Reclaim's Sydney factory holds parts for every unit currently in the field. Compressor swap-out is straightforward within warranty. We stock the common seals, O-rings and PV-diverter controllers on the truck.",
     resources: [
-      { label: "Reclaim ECO R290 heat pump", href: "https://reclaimenergy.com.au/reclaim-eco-r290-heat-pump/" },
-      { label: "Reclaim CO₂ heat pump", href: "https://reclaimenergy.com.au/co2-heat-pump/" },
-      { label: "Reclaim CO₂ Wi-Fi heat pump", href: "https://reclaimenergy.com.au/reclaim-energy-co2-wi-fi-heat-pump/" },
+      { label: "Reclaim Energy · manufacturer website", href: "https://reclaimenergy.com.au/" },
     ],
     gallery: [
       { src: "/reclaim-split-back.webp", alt: "Reclaim CO₂ split heat pump — tank and outdoor unit installed" },
@@ -1099,10 +1092,8 @@ export const brands: Brand[] = [
     support:
       "Reece store network across Melbourne is same-day for us · every branch stocks common Thermann parts. Dux handles compressor + cylinder warranty claims direct.",
     resources: [
-      { label: "Thermann Integrated Heat Pump", href: "https://www.thermann.com.au/products/integrated-heat-pump/" },
-      { label: "Thermann G-series continuous flow", href: "https://www.thermann.com.au/products/g-series-continuous-flow/" },
-      { label: "Thermann electric storage", href: "https://www.thermann.com.au/products/electric-storage/" },
-      { label: "Made in Australia by Dux", href: "https://www.dux.com.au/" },
+      { label: "Thermann · manufacturer website", href: "https://www.thermann.com.au/" },
+      { label: "Dux (made in Australia by)", href: "https://www.dux.com.au/" },
     ],
     gallery: [
       { src: "/thermann-heat-pump.webp", alt: "Thermann integrated heat pump installed on a Pakenham home" },
@@ -1291,9 +1282,7 @@ export const brands: Brand[] = [
     support:
       "iStore parts flow through their Melbourne distributor. Warranty claims are handled by iStore's Sydney office directly with the homeowner · we handle the on-site swap-out.",
     resources: [
-      { label: "iStore product range", href: "https://istore.com.au/" },
-      { label: "iStore 180L product page", href: "https://istore.com.au/product/istore-180l/" },
-      { label: "iStore 270L product page", href: "https://istore.com.au/product/istore-270l/" },
+      { label: "iStore · manufacturer website", href: "https://istore.com.au/" },
     ],
     gallery: [
       { src: "/270L-istore-heatpump.webp", alt: "iStore 270L heat pump — full unit view" },
@@ -1379,11 +1368,8 @@ export const brands: Brand[] = [
     support:
       "Every Reece store in Melbourne stocks common Kaden parts · same-day pickup for us on almost every job. Warranty claims run through the Reece trade portal.",
     resources: [
-      { label: "Kaden wall-mounted", href: "https://www.kadenair.com.au/products/wall-mounted-air-conditioning/" },
-      { label: "Kaden ducted", href: "https://www.kadenair.com.au/products/ducted-air-conditioners/" },
-      { label: "Kaden multi-head", href: "https://www.kadenair.com.au/products/multi-air-conditioning/" },
-      { label: "Kaden gas ducted heating", href: "https://www.kadenair.com.au/products/gas-ducted-heating/" },
-      { label: "Kaden evaporative cooling", href: "https://www.kadenair.com.au/products/evaporative-cooling/" },
+      { label: "Kaden · manufacturer website", href: "https://www.kadenair.com.au/" },
+      { label: "Reece (distributor)", href: "https://www.reece.com.au/" },
     ],
     gallery: [
       { src: "/kaden-indoor.webp", alt: "Kaden indoor head unit — Melbourne install" },

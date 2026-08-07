@@ -41,11 +41,32 @@
 .page-home .hero {
   position: relative;
   padding: 0;
-  background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+  /* Atmospheric background — the team photo behind a heavy navy scrim
+     so it reads as texture rather than a competing image. Keeps the
+     "full navy" feel out and gives the copy side a real backdrop
+     without fighting the crisp portrait card on the right. */
+  background:
+    linear-gradient(180deg, rgba(5,10,48,0.94) 0%, rgba(11,20,80,0.96) 55%, rgba(5,10,48,0.98) 100%),
+    url("/team-photo.webp") center 20% / cover no-repeat,
+    linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   color: #fff;
   overflow: hidden;
 }
+/* Warm orange glow bleeding in from the top-left of the section — cheap
+   trick that turns a flat scrim into an atmospheric hero. */
+.page-home .hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 900px 500px at 10% 0%, rgba(243,103,34,0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 400px at 90% 100%, rgba(0,176,237,0.10) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
 .page-home .hero__grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 56px;
@@ -65,10 +86,10 @@
   max-height: 640px;
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5),
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.55),
               0 12px 30px -12px rgba(0,0,0,0.35);
   background: var(--navy-2);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
 }
 .page-home .hero__photo img {
   width: 100%; height: 100%;

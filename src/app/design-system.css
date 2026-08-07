@@ -81,11 +81,24 @@
   box-shadow: 0 1px 0 rgba(11,20,80,0.03);
 }
 .hdr__row {
-  height: 78px; display: flex; align-items: center; gap: 28px;
+  /* Taller row + generous gap so 7 nav items breathe. Previous 78px was
+     tight once Blog got added and made the nav wrap on medium screens. */
+  height: 86px;
+  display: flex;
+  align-items: center;
+  gap: 36px;
+  padding-left: 12px;
+  padding-right: 12px;
+  /* Give the header itself a wider max-width than the body content
+     (1440 vs the 1280 body .wrap) so 7 nav items + logo + phone + CTA
+     fit without cramping on mid-large screens. */
+  max-width: 1440px !important;
+  padding-left: 32px !important;
+  padding-right: 32px !important;
 }
-.hdr__logo { display:flex; align-items:center; text-decoration: none; }
+.hdr__logo { display:flex; align-items:center; text-decoration: none; flex-shrink: 0; }
 .hdr__logo-img {
-  height: 56px;
+  height: 58px;
   width: auto;
   display: block;
 }
@@ -96,35 +109,57 @@
   .hdr__logo-img { height: 40px; }
 }
 
-.hdr__nav { display: flex; align-items: center; gap: 1px; margin-left: 4px; position: relative; }
+.hdr__nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  position: relative;
+  flex: 1;
+}
 .hdr__nav > a,
 .hdr__navtrigger {
   text-decoration: none;
   font-weight: 600;
-  color: var(--ink-2);
-  padding: 9px 12px;
+  color: var(--navy);
+  padding: 10px 14px;
   border-radius: 10px;
-  font-size: 14.5px;
+  font-size: 15px;
   letter-spacing: -0.005em;
   display: inline-flex; align-items: center; gap: 6px;
-  transition: background 0.15s, color 0.15s;
+  transition: color 0.12s, background 0.12s;
   cursor: pointer;
   font-family: var(--f-body);
   background: transparent;
   border: 0;
   position: relative;
 }
+/* Orange hover — every top-level nav item and mega trigger. Cleaner
+   than the previous grey-fill hover, and matches how the logo/CTAs
+   already lean on the orange accent. */
 .hdr__nav > a:hover,
-.hdr__navtrigger:hover { background: var(--bg-2); color: var(--navy); }
+.hdr__navtrigger:hover { color: var(--orange); background: transparent; }
 .hdr__nav > a.is-active,
 .hdr__navtrigger.is-active {
-  color: var(--navy);
-  background: var(--bg-2);
+  color: var(--orange);
+  background: transparent;
   font-weight: 700;
 }
+/* Underline the active item so it reads as "current page" without
+   relying on a background pill. */
+.hdr__nav > a.is-active::after,
+.hdr__navtrigger.is-active::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 2px;
+}
 .hdr__nav-rebate { color: var(--orange) !important; }
-.hdr__nav-rebate:hover { background: rgba(243,103,34,0.08) !important; }
-.hdr__nav-rebate:hover { background: rgba(243,103,34,0.08) !important; }
+.hdr__nav-rebate:hover { color: var(--orange) !important; }
 .hdr__nav-tag {
   font-family: var(--f-mono);
   font-size: 10px; letter-spacing: 0.05em;
@@ -179,8 +214,8 @@
 .hdr__navtrigger svg { opacity: 0.45; transition: transform 0.18s ease, opacity 0.18s; }
 .hdr__navwrap.is-open .hdr__navtrigger svg { transform: rotate(180deg); opacity: 1; }
 .hdr__navwrap.is-open .hdr__navtrigger {
-  background: var(--bg-2);
-  color: var(--navy);
+  background: transparent;
+  color: var(--orange);
 }
 
 /* Dropdown container.
@@ -191,7 +226,7 @@
    rightmost trigger anymore. Fixed centering is bulletproof. */
 .mega {
   position: fixed;
-  top: 78px;              /* matches .hdr__row height */
+  top: 86px;              /* matches new .hdr__row height */
   left: 50%;
   transform: translateX(-50%);
   background: #fff;

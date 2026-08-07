@@ -2,14 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { services } from "@/lib/site";
 import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
-import { SuburbMap } from "@/components/SuburbMap";
 import { CoverageMap } from "@/components/CoverageMap";
 import "../../detail.css";
+
+// Client-only Leaflet map — lazy loaded so the tiles + CSS never sit in
+// the suburb page's initial critical path. Placeholder keeps the layout
+// stable while the JS chunk fetches.
+const LeafletSuburbMap = dynamic(
+  () => import("@/components/LeafletSuburbMap").then((m) => m.LeafletSuburbMap),
+  { ssr: false, loading: () => <div className="submap__leaflet submap__leaflet--loading" aria-hidden="true" /> }
+);
 
 export function generateStaticParams() {
   return publishedSuburbs.map((s) => ({ suburb: s.slug }));
@@ -144,7 +152,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
                 : "depending on traffic on the Princes Highway."}
             </p>
           </div>
-          <SuburbMap slug={sub.slug} name={sub.name} />
+          <LeafletSuburbMap slug={sub.slug} name={sub.name} />
         </div>
       </section>
 

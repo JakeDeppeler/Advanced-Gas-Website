@@ -161,12 +161,12 @@ const AREAS_MEGA = {
 };
 
 const NAV: NavItem[] = [
-  { href: "/", label: "Home" },
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
