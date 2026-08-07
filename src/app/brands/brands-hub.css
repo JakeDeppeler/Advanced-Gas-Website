@@ -1,0 +1,184 @@
+/* /brands hub — grouped category shelves with richer per-brand cards.
+   Layered on top of brand.css (which already styles individual brand
+   pages) so the visual language stays consistent across both routes. */
+
+.page-brand-hub .brands-hub-hero {
+  padding-bottom: 44px;
+}
+.brands-hub-hero__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+.brands-hub-hero__jumpchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: background .12s, border-color .12s, color .12s, transform .12s;
+}
+.brands-hub-hero__jumpchip:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.brands-hub-hero__jumpcount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 6px;
+  height: 20px;
+  background: var(--bg-2);
+  color: var(--navy);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.brands-hub-hero__jumpchip:hover .brands-hub-hero__jumpcount {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+/* Grouped shelves — each shelf is one product category with the brands
+   that live inside it. Header (eyebrow + blurb) sits above the cards. */
+.brands-hub-group {
+  padding: 60px 0 40px;
+  background: var(--bg);
+  scroll-margin-top: 90px;
+}
+.brands-hub-group:nth-of-type(even) { background: var(--paper); }
+.brands-hub-group__head {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.brands-hub-group__blurb {
+  font-size: 15.5px;
+  color: var(--ink-2);
+  max-width: 680px;
+  line-height: 1.5;
+  margin: 0;
+}
+.page-brand-hub .brand-hub__grid {
+  padding: 0;
+}
+
+/* Enriched brand card — extends the v1 card with positioning, a
+   standout stat and a "best for" line so the hub reads like a real
+   comparison shelf, not a list of names. */
+.brand-hub-card--v2 .brand-hub-card__inner { gap: 14px; }
+.brand-hub-card__positioning {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  margin: 0;
+  line-height: 1.5;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--line);
+}
+.brand-hub-card__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border-left: 3px solid var(--card-accent, var(--sky));
+  border-radius: 6px;
+  margin: 0;
+}
+.brand-hub-card__stat strong {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.015em;
+  line-height: 1;
+}
+.brand-hub-card__stat span {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.brand-hub-card__bestfor {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: 0;
+}
+.brand-hub-card__bestfor b {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--orange);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+/* Compare/help panel between the grouped shelves and the final CTA */
+.brands-hub-help {
+  background: var(--navy);
+  color: #fff;
+  padding: 56px 0;
+}
+.brands-hub-help__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.brands-hub-help h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  margin: 10px 0 12px;
+  color: #fff;
+}
+.brands-hub-help p {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+  max-width: 620px;
+}
+.brands-hub-help .ds-eyebrow {
+  color: rgba(255,255,255,0.75);
+}
+.brands-hub-help .ds-dot {
+  background: var(--sky);
+  box-shadow: 0 0 0 3px rgba(0,176,237,0.18);
+}
+.brands-hub-help__ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.brands-hub-help__ctas .ds-btn--ghost {
+  color: #fff;
+  border-color: rgba(255,255,255,0.32);
+  background: transparent;
+}
+.brands-hub-help__ctas .ds-btn--ghost:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: #fff;
+}
+
+@media (max-width: 900px) {
+  .brands-hub-help__grid { grid-template-columns: 1fr; gap: 24px; }
+  .brands-hub-group { padding: 44px 0 28px; }
+}

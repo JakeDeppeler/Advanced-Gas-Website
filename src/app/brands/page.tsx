@@ -5,6 +5,7 @@ import { brands } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import "../detail.css";
 import "./[brand]/brand.css";
+import "./brands-hub.css";
 
 export const metadata: Metadata = {
   title: "Brands We Install · Mitsubishi Electric, Reclaim, Thermann, iStore, Kaden, Zonemate",
@@ -13,10 +14,87 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brands" },
 };
 
+/** Grouping the brand hub by category so a customer thinking
+ *  "heat pump" or "aircon" can jump directly to the right shelf,
+ *  rather than scanning a flat list of seven brand cards. */
+const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: string }[] = [
+  {
+    label: "Air conditioning",
+    slug: "aircon",
+    brandSlugs: ["mitsubishi-electric", "kaden"],
+    blurb: "Split, multi-head and ducted. Mitsubishi Electric is our default; Kaden is our value tier that closes the gap without the premium.",
+  },
+  {
+    label: "Heat pump hot water",
+    slug: "heat-pump",
+    brandSlugs: ["reclaim", "istore", "thermann"],
+    blurb: "Three tiers, one goal — get a customer off their old electric or gas storage tank onto a VEU-rebated heat pump that lasts.",
+  },
+  {
+    label: "Gas heating",
+    slug: "gas",
+    brandSlugs: ["brivis"],
+    blurb: "Like-for-like Brivis replacements — the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring.",
+  },
+  {
+    label: "Zoning & control",
+    slug: "zoning",
+    brandSlugs: ["zonemate"],
+    blurb: "Zone controllers and smart room sensors that turn a ducted system from 'on or off' into 'the room you're in, at the temp you want'.",
+  },
+];
+
+/** Per-brand one-liner pitched at a "why would I pick this over the others"
+ *  question — the info that's genuinely useful when comparing brands rather
+ *  than restating the tagline / intro that already sits on the brand hub. */
+const BRAND_PITCH: Record<string, {
+  positioning: string;
+  standoutStat: { value: string; label: string };
+  bestFor: string;
+}> = {
+  "mitsubishi-electric": {
+    positioning: "Premium default · lowest failure rate in our install base",
+    standoutStat: { value: "10+", label: "years typical service life without a callback" },
+    bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than shaving $600 up-front",
+  },
+  "kaden": {
+    positioning: "Value tier · Reece-exclusive, same-day parts state-wide",
+    standoutStat: { value: "~30%", label: "cheaper than Mitsubishi equivalents, installed" },
+    bestFor: "3+ bedroom fitouts where the Mitsubishi quote busts the budget but a real system is still the goal",
+  },
+  "reclaim": {
+    positioning: "Premium heat pump · CO₂ refrigerant, 15-year stainless tank option",
+    standoutStat: { value: "-10°C", label: "still holds full heating capacity, unlike R290 rivals" },
+    bestFor: "Long-term owners, hills postcodes, homes with rooftop solar for the PV-diverter payback",
+  },
+  "istore": {
+    positioning: "Best-value heat pump · maximum VEU rebate outcome",
+    standoutStat: { value: "under $900", label: "typical Hampton Park / Cranbourne install post-rebate" },
+    bestFor: "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
+  },
+  "thermann": {
+    positioning: "Australian-made by Dux · all-in-one heat pump + G-series continuous flow",
+    standoutStat: { value: "200/300 L", label: "all-in-one integrated tanks, no split system to plumb" },
+    bestFor: "Households that want an Australian-made brand and prefer the integrated tank+heat-pump form factor",
+  },
+  "zonemate": {
+    positioning: "Zoning + control · Wi-Fi tablet, per-room sensors, retrofit-friendly",
+    standoutStat: { value: "20-30%", label: "running-cost drop with proper zoning tuning" },
+    bestFor: "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
+  },
+  "brivis": {
+    positioning: "Retrofit incumbent · same-footprint into most existing Brivis / Braemar cavities",
+    standoutStat: { value: "3-6 star", label: "output ratings across every kW size — 15/20/26/30" },
+    bestFor: "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
+  },
+};
+
 export default function BrandsIndex() {
+  const totalModels = brands.reduce((sum, b) => sum + b.products.length, 0);
+
   return (
-    <div className="page-detail page-brand">
-      <section className="dp-hero">
+    <div className="page-detail page-brand page-brand-hub">
+      <section className="dp-hero brands-hub-hero">
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
@@ -25,43 +103,105 @@ export default function BrandsIndex() {
           </nav>
           <div className="dp-hero__eyebrow"><span className="ds-dot" /> Brands we install</div>
           <h1>
-            Six brands, <span className="accent">68 models</span> · every one we install, honestly reviewed.
+            {brands.length} brands, <span className="accent">{totalModels} models</span> · every one we install, honestly reviewed.
           </h1>
           <p className="dp-hero__sub">
             We install what works, not what we&rsquo;re paid to install. Every brand below is one
             we&rsquo;ve put into enough Melbourne homes to have a real opinion on. Tap a brand
             for the full range and our take on each individual model.
           </p>
+          <div className="brands-hub-hero__jump" aria-label="Jump to category">
+            {BRAND_GROUPS.map((g) => (
+              <a key={g.slug} href={`#${g.slug}`} className="brands-hub-hero__jumpchip">
+                {g.label}
+                <span className="brands-hub-hero__jumpcount">
+                  {g.brandSlugs.reduce((sum, sl) => sum + (brands.find((b) => b.slug === sl)?.products.length ?? 0), 0)}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="brand-range">
-        <div className="wrap">
-          <div className="brand-hub__grid">
-            {brands.map((b) => (
-              <Link
-                key={b.slug}
-                href={`/brands/${b.slug}`}
-                className="brand-hub-card"
-                style={{ ["--card-accent" as string]: b.accent }}
-              >
-                <div className="brand-hub-card__photo">
-                  <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="640" height="400" />
-                </div>
-                <div className="brand-hub-card__inner">
-                  <div className="brand-hub-card__head">
-                    <h2>{b.name}</h2>
-                    <span>{b.origin}</span>
-                  </div>
-                  <p className="brand-hub-card__tagline">{b.tagline}</p>
-                  <p className="brand-hub-card__intro">{b.intro}</p>
-                  <div className="brand-hub-card__foot">
-                    <span className="brand-hub-card__count">{b.products.length} models</span>
-                    <span className="brand-hub-card__cta">View range →</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+      {BRAND_GROUPS.map((group) => {
+        const groupBrands = group.brandSlugs
+          .map((sl) => brands.find((b) => b.slug === sl))
+          .filter((b): b is NonNullable<typeof b> => Boolean(b));
+        if (groupBrands.length === 0) return null;
+        return (
+          <section key={group.slug} className="brands-hub-group" id={group.slug}>
+            <div className="wrap">
+              <div className="brands-hub-group__head">
+                <span className="ds-eyebrow"><span className="ds-dot" /> {group.label}</span>
+                <p className="brands-hub-group__blurb">{group.blurb}</p>
+              </div>
+              <div className="brands-hub__grid">
+                {groupBrands.map((b) => {
+                  const pitch = BRAND_PITCH[b.slug];
+                  return (
+                    <Link
+                      key={b.slug}
+                      href={`/brands/${b.slug}`}
+                      className="brand-hub-card brand-hub-card--v2"
+                      style={{ ["--card-accent" as string]: b.accent }}
+                    >
+                      <div className="brand-hub-card__photo">
+                        <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="640" height="400" />
+                      </div>
+                      <div className="brand-hub-card__inner">
+                        <div className="brand-hub-card__head">
+                          <h2>{b.name}</h2>
+                          <span>{b.origin}</span>
+                        </div>
+                        <p className="brand-hub-card__tagline">{b.tagline}</p>
+                        {pitch && (
+                          <p className="brand-hub-card__positioning">{pitch.positioning}</p>
+                        )}
+                        {pitch && (
+                          <div className="brand-hub-card__stat">
+                            <strong>{pitch.standoutStat.value}</strong>
+                            <span>{pitch.standoutStat.label}</span>
+                          </div>
+                        )}
+                        {pitch && (
+                          <p className="brand-hub-card__bestfor">
+                            <b>Best for:</b> {pitch.bestFor}
+                          </p>
+                        )}
+                        <div className="brand-hub-card__foot">
+                          <span className="brand-hub-card__count">
+                            {b.products.length} model{b.products.length === 1 ? "" : "s"}
+                            {b.warranty && ` · ${b.warranty.split("+")[0].trim()}`}
+                          </span>
+                          <span className="brand-hub-card__cta">View full range →</span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
+      <section className="brands-hub-help">
+        <div className="wrap brands-hub-help__grid">
+          <div>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Compare or ask</span>
+            <h2>Two ways to narrow it down.</h2>
+            <p>
+              Open any brand page and use the <strong>Compare</strong> tick to line up 2-4 models
+              side by side. Or skip that and tell us the room, the household and the budget — we&rsquo;ll
+              come back with three real options from three different brands rather than pushing whatever
+              carries the biggest margin.
+            </p>
+          </div>
+          <div className="brands-hub-help__ctas">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get honest brand advice →</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+              Or call {site.phone}
+            </a>
           </div>
         </div>
       </section>

@@ -37,48 +37,47 @@
 .page-home .bcard--emergency h3,
 .page-home .bcard--emergency h4 { color: #fff; }
 
-/* ============== HERO — stacked, text top, photo bottom ============== */
+/* ============== HERO — split layout, copy left / photo right ============== */
 .page-home .hero {
   position: relative;
   padding: 0;
   background: linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
   color: #fff;
   overflow: hidden;
+}
+.page-home .hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+  padding: 88px 0 96px;
+  min-height: 640px;
+}
+.page-home .hero__copy {
   display: flex;
   flex-direction: column;
-}
-.page-home .hero__wrap {
-  position: relative; z-index: 2;
-  display: flex; flex-direction: column;
-  /* Text sits at the top of the hero — no bottom-alignment, no photo
-     overlay to compete with. Team photo lives in its own strip below. */
-  justify-content: flex-start;
-  padding-top: 56px;
-  padding-bottom: 40px;
   gap: 22px;
+  max-width: 560px;
 }
-
-/* Full-width photo strip anchored at the bottom of the hero section.
-   The team faces sit as the visual full-stop under the copy rather
-   than as a background layer for text to fight. */
-.page-home .hero__photostrip {
+.page-home .hero__photo {
   position: relative;
-  width: 100%;
-  aspect-ratio: 24 / 9;
-  max-height: 520px;
+  aspect-ratio: 5 / 6;
+  max-height: 640px;
+  border-radius: 24px;
   overflow: hidden;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5),
+              0 12px 30px -12px rgba(0,0,0,0.35);
   background: var(--navy-2);
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
 }
-.page-home .hero__pic {
-  position: absolute; inset: 0;
-  display: block;
-}
-.page-home .hero__pic img {
+.page-home .hero__photo img {
   width: 100%; height: 100%;
   object-fit: cover;
-  object-position: center 35%;
+  object-position: center 30%;
   display: block;
+}
+.page-home .hero__badge {
+  align-self: flex-start;
 }
 
 .page-home .hero__meta { display: flex; }
@@ -162,18 +161,26 @@
 .page-home .trust-stat strong { font-family: var(--f-display); font-size: 17px; }
 .page-home .trust-stat span { font-size: 12.5px; color: rgba(255,255,255,0.7); }
 
-/* Mobile hero — same stacked layout, tighter spacing */
+/* Tablet — narrower photo column so the copy has breathing room */
+@media (max-width: 1080px) {
+  .page-home .hero__grid { grid-template-columns: 1.1fr 0.9fr; gap: 40px; padding: 72px 0 80px; }
+  .page-home .hero__photo { aspect-ratio: 4 / 5; }
+}
+
+/* Mobile — photo stacks below the copy, both full-width */
 @media (max-width: 760px) {
-  .page-home .hero__wrap {
-    padding-top: 32px;
-    padding-bottom: 28px;
-    gap: 16px;
+  .page-home .hero__grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 40px 0 44px;
+    min-height: 0;
   }
-  .page-home .hero__photostrip {
+  .page-home .hero__photo {
     aspect-ratio: 4 / 3;
     max-height: 360px;
+    border-radius: 18px;
   }
-  .page-home .hero__pic img { object-position: center 30%; }
+  .page-home .hero__photo img { object-position: center 30%; }
   .page-home .hero__h1 { font-size: 32px; line-height: 1.04; letter-spacing: -0.028em; }
   .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
   .page-home .hero__copy { gap: 14px; }
@@ -1096,6 +1103,7 @@
   border: 1px solid var(--line);
   border-radius: var(--rad);
 }
+.page-home .suburbs__chip,
 .page-home .suburbs span {
   display: inline-block;
   font-family: var(--f-mono); font-size: 12.5px;
@@ -1103,6 +1111,15 @@
   padding: 5px 10px; border-radius: 6px;
   border: 1px solid var(--line);
   font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.12s;
+}
+.page-home .suburbs__chip:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
 }
 .page-home .area__finep {
   margin-top: 16px;

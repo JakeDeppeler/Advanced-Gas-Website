@@ -231,22 +231,37 @@
   margin: 0 0 12px;
 }
 
-/* -------- Services mega — wide 4-column photo grid matching the
-   iheatandcool competitor reference. 8 service cards + a popular list
-   + CTA panel below. */
-.mega__services { width: min(1080px, calc(100vw - 40px)); padding: 24px 26px; }
+/* -------- Services mega — Install column (wide, 8 cards in a 4-up grid)
+   + Service & Repair column (narrow, 4 compact cards) side by side. */
+.mega__services { width: min(1180px, calc(100vw - 40px)); padding: 24px 26px; }
+.mega__services-cols {
+  display: grid;
+  grid-template-columns: 1.75fr 1fr;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+.mega__services-col { min-width: 0; }
+.mega__services-col--sm { border-left: 1px solid var(--line); padding-left: 24px; }
 .mega__services .mega__services-grid {
   grid-template-columns: repeat(4, 1fr) !important;
   gap: 10px;
 }
-@media (max-width: 1100px) {
+.mega__services .mega__services-grid--sm {
+  grid-template-columns: 1fr !important;
+  gap: 6px;
+}
+@media (max-width: 1200px) {
+  .mega__services-cols { grid-template-columns: 1fr; gap: 20px; }
+  .mega__services-col--sm { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
+  .mega__services .mega__services-grid--sm { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 900px) {
   .mega__services .mega__services-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }
 .mega__services-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 22px;
 }
 .mega__servicecard {
   display: flex;
@@ -257,23 +272,27 @@
   text-decoration: none;
   color: var(--ink);
   transition: background 0.15s;
+  border: 1px solid transparent;
 }
-.mega__servicecard:hover { background: var(--bg-2); }
+.mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
 .mega__servicecard-photo {
   width: 64px; height: 64px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
-  background: var(--bg-2);
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 4px;
 }
+.mega__servicecard--sm .mega__servicecard-photo { width: 48px; height: 48px; padding: 3px; }
 .mega__servicecard-photo img {
   width: 100%; height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   transition: transform 0.3s ease;
 }
 .mega__servicecard:hover .mega__servicecard-photo img { transform: scale(1.06); }
-.mega__servicecard-body { display: flex; flex-direction: column; gap: 3px; }
+.mega__servicecard-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .mega__servicecard-body b {
   font-family: var(--f-display);
   font-weight: 700;
@@ -282,11 +301,13 @@
   color: var(--navy);
   line-height: 1.2;
 }
+.mega__servicecard--sm .mega__servicecard-body b { font-size: 13.5px; }
 .mega__servicecard-body span {
   font-size: 12.5px;
   color: var(--ink-3);
   line-height: 1.35;
 }
+.mega__servicecard--sm .mega__servicecard-body span { font-size: 11.5px; }
 
 .mega__services-foot {
   display: grid;

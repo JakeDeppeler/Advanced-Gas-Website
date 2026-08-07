@@ -26,19 +26,27 @@ type NavItem =
     };
 
 const SERVICES_MEGA: {
-  primary: ServiceMegaItem[];
+  install: ServiceMegaItem[];
+  repair: ServiceMegaItem[];
   popular: { href: string; label: string; sub: string }[];
 } = {
-  primary: [
+  install: [
     {
-      href: "/services/air-conditioning-installation",
+      href: "/services/air-conditioning-installation#split",
       label: "Split system aircon",
       sub: "Bedroom, living, multi-head",
       photo: "/AP_70-80HP_front-1920x1440-1.png",
       photoAlt: "Mitsubishi MSZ-AP wall split system",
     },
     {
-      href: "/services/air-conditioning-installation",
+      href: "/services/air-conditioning-installation#multi",
+      label: "Multi-head aircon",
+      sub: "One outdoor, 2-5 indoor heads",
+      photo: "/mac_slide0.jpg",
+      photoAlt: "Mitsubishi multi-head system with outdoor condenser",
+    },
+    {
+      href: "/services/air-conditioning-installation#ducted",
       label: "Ducted air conditioning",
       sub: "Whole-home cooling + heating",
       photo: "/kdi-v2-image_01.jpg",
@@ -47,51 +55,74 @@ const SERVICES_MEGA: {
     {
       href: "/services/heat-pump-installation",
       label: "Heat pump hot water",
-      sub: "VEU rebate applied at quote",
+      sub: "Reclaim · iStore · Thermann · VEU rebate",
       photo: "/270L-istore-heatpump.webp",
       photoAlt: "iStore 270L heat pump hot water system",
     },
     {
-      href: "/services/gas-plumbing",
+      href: "/services/gas-plumbing#continuous-flow",
       label: "Gas continuous flow",
-      sub: "Rinnai / Thermann G-series",
+      sub: "Rinnai · Thermann G-series",
       photo: "/G-Series_Front_On_View_1200x900.jpg",
       photoAlt: "Thermann G-series continuous flow gas hot water",
     },
     {
-      href: "/services/gas-plumbing",
+      href: "/services/gas-plumbing#gas-ducted",
       label: "Gas ducted heating",
-      sub: "Brivis, Kaden — repair or replace",
+      sub: "Brivis Wombat / Buffalo · Kaden",
       photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
       photoAlt: "Brivis gas ducted heater",
     },
     {
-      href: "/services/aircon-servicing-repairs",
+      href: "/services/air-conditioning-installation#evap",
+      label: "Evaporative cooling",
+      sub: "Roof-mounted · dry-summer suburbs",
+      photo: "/classic_evap_product_image.jpg",
+      photoAlt: "Brivis evaporative cooler",
+    },
+    {
+      href: "/brands/zonemate",
       label: "Zoning & smart control",
       sub: "Zonemate touch + Wi-Fi",
       photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
       photoAlt: "Zonemate touch controller in a living room",
     },
+  ],
+  repair: [
     {
       href: "/services/aircon-servicing-repairs",
-      label: "Evaporative cooling",
-      sub: "Kaden roof units, dry-summer suburbs",
-      photo: "/classic_evap_product_image.jpg",
-      photoAlt: "Kaden evaporative cooler",
+      label: "Aircon service & repair",
+      sub: "Every major brand, all fuels",
+      photo: "/reclaim-mitsubishi.webp",
+      photoAlt: "Aircon service on a Mitsubishi split system",
     },
     {
-      href: "/services/aircon-servicing-repairs",
-      label: "Service & repairs",
-      sub: "Every major brand, all fuels",
-      photo: "/duct-work.webp",
-      photoAlt: "Aircon service and repairs",
+      href: "/services/gas-plumbing#gas-service",
+      label: "Gas heater service & CO test",
+      sub: "Annual safety check · $280 + GST",
+      photo: "/gas-line-safe.webp",
+      photoAlt: "Gas line safety check",
+    },
+    {
+      href: "/services/gas-plumbing#hot-water",
+      label: "Hot water swap-out",
+      sub: "Tank or continuous · same-day",
+      photo: "/gas-hot-water-changeover.webp",
+      photoAlt: "Gas hot water changeover on install day",
+    },
+    {
+      href: "/contact#emergency",
+      label: "Emergency call-out",
+      sub: "24/7 · gas leaks, no hot water",
+      photo: "/evap-cooler-service.webp",
+      photoAlt: "Emergency service callout",
     },
   ],
   popular: [
     { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
-    { href: "/blog/emergency-hot-water-gas-melbourne", label: "24/7 emergency", sub: "Same-day response" },
+    { href: "/contact#emergency", label: "24/7 emergency", sub: "Same-day response" },
   ],
 };
 
@@ -285,19 +316,40 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      <div className="mega__collabel">Installation</div>
-      <div className="mega__services-grid">
-        {SERVICES_MEGA.primary.map((s) => (
-          <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
-            <div className="mega__servicecard-photo">
-              <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
-            </div>
-            <div className="mega__servicecard-body">
-              <b>{s.label}</b>
-              <span>{s.sub}</span>
-            </div>
-          </Link>
-        ))}
+      <div className="mega__services-cols">
+        <div className="mega__services-col">
+          <div className="mega__collabel">Installation</div>
+          <div className="mega__services-grid">
+            {SERVICES_MEGA.install.map((s) => (
+              <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
+                <div className="mega__servicecard-photo">
+                  <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
+                </div>
+                <div className="mega__servicecard-body">
+                  <b>{s.label}</b>
+                  <span>{s.sub}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="mega__services-col mega__services-col--sm">
+          <div className="mega__collabel">Service &amp; repair</div>
+          <div className="mega__services-grid mega__services-grid--sm">
+            {SERVICES_MEGA.repair.map((s) => (
+              <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
+                <div className="mega__servicecard-photo">
+                  <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
+                </div>
+                <div className="mega__servicecard-body">
+                  <b>{s.label}</b>
+                  <span>{s.sub}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mega__services-foot">
@@ -419,7 +471,14 @@ function MobileDrawer({ close }: { close: () => void }) {
               {n.kind === "services" && (
                 <div className="hdr__drawer-col">
                   <div className="hdr__drawer-collabel">Installation</div>
-                  {SERVICES_MEGA.primary.map((s) => (
+                  {SERVICES_MEGA.install.map((s) => (
+                    <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
+                      <b>{s.label}</b>
+                      <span>{s.sub}</span>
+                    </Link>
+                  ))}
+                  <div className="hdr__drawer-collabel">Service &amp; repair</div>
+                  {SERVICES_MEGA.repair.map((s) => (
                     <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{s.label}</b>
                       <span>{s.sub}</span>

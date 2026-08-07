@@ -84,12 +84,38 @@ const faqs = [
   },
 ];
 
-const SUBURBS = [
-  "Pakenham","Pakenham Upper","Officer","Beaconsfield","Berwick","Narre Warren",
-  "Cranbourne","Cranbourne East","Clyde","Clyde North","Hampton Park","Hallam",
-  "Endeavour Hills","Doveton","Dandenong","Keysborough","Lynbrook","Lyndhurst",
-  "Bunyip","Garfield","Nar Nar Goon","Tynong","Drouin","Warragul",
-  "Cockatoo","Emerald","Gembrook","Tooradin",
+const SUBURBS: { name: string; slug: string }[] = [
+  { name: "Pakenham",         slug: "pakenham" },
+  { name: "Pakenham Upper",   slug: "pakenham-upper" },
+  { name: "Officer",          slug: "officer" },
+  { name: "Beaconsfield",     slug: "beaconsfield" },
+  { name: "Berwick",          slug: "berwick" },
+  { name: "Narre Warren",     slug: "narre-warren" },
+  { name: "Cranbourne",       slug: "cranbourne" },
+  { name: "Cranbourne East",  slug: "cranbourne-east" },
+  { name: "Clyde",            slug: "clyde" },
+  { name: "Clyde North",      slug: "clyde-north" },
+  { name: "Hampton Park",     slug: "hampton-park" },
+  { name: "Hallam",           slug: "hallam" },
+  { name: "Endeavour Hills",  slug: "endeavour-hills" },
+  { name: "Doveton",          slug: "doveton" },
+  { name: "Dandenong",        slug: "dandenong" },
+  { name: "Keysborough",      slug: "keysborough" },
+  { name: "Lynbrook",         slug: "lynbrook" },
+  { name: "Lyndhurst",        slug: "lyndhurst" },
+  { name: "Bunyip",           slug: "bunyip" },
+  { name: "Garfield",         slug: "garfield" },
+  { name: "Nar Nar Goon",     slug: "nar-nar-goon" },
+  { name: "Tynong",           slug: "tynong" },
+  { name: "Drouin",           slug: "drouin" },
+  { name: "Warragul",         slug: "warragul" },
+  { name: "Belgrave",         slug: "belgrave" },
+  { name: "Emerald",          slug: "emerald" },
+  { name: "Cockatoo",         slug: "cockatoo" },
+  { name: "Gembrook",         slug: "gembrook" },
+  { name: "Ferntree Gully",   slug: "ferntree-gully" },
+  { name: "Rowville",         slug: "rowville" },
+  { name: "Tooradin",         slug: "tooradin" },
 ];
 
 type Review = { title: string; txt: string; who: string; what: string; a: string };
@@ -135,16 +161,14 @@ export default function HomePage() {
           the browser hint discover it during initial HTML scan, and
           the LCP candidate becomes the image itself with a clear
           measurement. */}
-      <section className="hero hero--stacked">
-        <div className="wrap hero__wrap">
-          <div className="hero__meta">
+      <section className="hero hero--split">
+        <div className="wrap hero__grid">
+          <div className="hero__copy">
             <span className="hero__badge">
               <span className="ds-dot" />
               Pakenham locals since 2014
             </span>
-          </div>
 
-          <div className="hero__copy">
             <h1 className="hero__h1">
               The team you&rsquo;d want in your house.
             </h1>
@@ -173,23 +197,23 @@ export default function HomePage() {
               <div className="trust-stat"><strong>12 yrs</strong><span>local trading</span></div>
             </div>
           </div>
-        </div>
 
-        {/* Team photo strip — sits BELOW the copy, full-width, so the
-            H1 + CTAs are the first thing on the page and the team faces
-            anchor the section without overlaying text. */}
-        <div className="hero__photostrip" aria-hidden="true">
-          <picture className="hero__pic">
-            <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
-            <img
-              src="/team-photo.webp"
-              alt=""
-              width={1800}
-              height={1200}
-              fetchPriority="high"
-              decoding="async"
-            />
-          </picture>
+          {/* Team photo · right column of the hero grid, rounded card so
+              it reads as a portrait alongside the copy rather than a
+              background layer. */}
+          <div className="hero__photo" aria-hidden="true">
+            <picture>
+              <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
+              <img
+                src="/team-photo.webp"
+                alt=""
+                width={1200}
+                height={1400}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </picture>
+          </div>
         </div>
       </section>
 
@@ -550,7 +574,9 @@ export default function HomePage() {
             <p>If you&apos;re south-east of Melbourne and your suburb&apos;s on this list, we cover you with no travel surcharge.</p>
             <div className="suburbs">
               {SUBURBS.map((s) => (
-                <span key={s}>{s}</span>
+                <Link key={s.slug} href={`/areas/${s.slug}`} className="suburbs__chip">
+                  {s.name}
+                </Link>
               ))}
             </div>
             <p className="area__finep">Outside this list? Give us a call, we sometimes travel further for bigger jobs and commercial work.</p>
