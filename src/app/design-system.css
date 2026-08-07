@@ -268,34 +268,32 @@
   margin: 0 0 12px;
 }
 
-/* -------- Services mega — Install column (wide, 4 cards per row) +
-   Service & Repair column (narrow, single-column list) side by side.
-   Wider container so labels like "Split system aircon" and "Ducted
-   air conditioning" stay on one line. */
+/* -------- Services mega — Installation (full-width, 4-up, big cards)
+   STACKED over Service & Repair (full-width, 4-up, compact cards). The
+   side-by-side version squashed the installation column so the photos
+   read like sub-icons. Full-width lets them read at glance. */
 .mega__services { width: min(1360px, calc(100vw - 32px)); padding: 26px 30px; }
-.mega__services-cols {
-  display: grid;
-  grid-template-columns: 2.1fr 1fr;
-  gap: 28px;
-  margin-bottom: 22px;
+.mega__services-block { margin-bottom: 22px; }
+.mega__services-block:last-of-type { margin-bottom: 20px; }
+.mega__services-block--repair {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
 }
-.mega__services-col { min-width: 0; }
-.mega__services-col--sm { border-left: 1px solid var(--line); padding-left: 26px; }
 .mega__services .mega__services-grid {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px;
+}
+.mega__services .mega__services-grid--repair {
   grid-template-columns: repeat(4, 1fr) !important;
   gap: 8px;
 }
-.mega__services .mega__services-grid--sm {
-  grid-template-columns: 1fr !important;
-  gap: 4px;
-}
-@media (max-width: 1280px) {
-  .mega__services-cols { grid-template-columns: 1fr; gap: 20px; }
-  .mega__services-col--sm { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
-  .mega__services .mega__services-grid--sm { grid-template-columns: 1fr 1fr !important; }
-}
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .mega__services .mega__services-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .mega__services .mega__services-grid--repair { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 720px) {
+  .mega__services .mega__services-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .mega__services .mega__services-grid--repair { grid-template-columns: 1fr !important; }
 }
 .mega__services-grid {
   display: grid;
@@ -305,8 +303,8 @@
 .mega__servicecard {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: 10px;
   text-decoration: none;
   color: var(--ink);
@@ -316,15 +314,16 @@
 }
 .mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
 .mega__servicecard-photo {
-  width: 52px; height: 52px;
-  border-radius: 8px;
+  /* Bumped install thumb 52 → 72 so photos read as photos not icons */
+  width: 72px; height: 72px;
+  border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
   background: #fff;
   border: 1px solid var(--line);
-  padding: 4px;
+  padding: 6px;
 }
-.mega__servicecard--sm .mega__servicecard-photo { width: 44px; height: 44px; padding: 3px; }
+.mega__servicecard--sm .mega__servicecard-photo { width: 48px; height: 48px; padding: 3px; border-radius: 8px; }
 .mega__servicecard-photo img {
   width: 100%; height: 100%;
   object-fit: contain;
@@ -340,7 +339,7 @@
 .mega__servicecard-body b {
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 14.5px;
   letter-spacing: -0.005em;
   color: var(--navy);
   line-height: 1.2;
@@ -353,7 +352,7 @@
 }
 .mega__servicecard--sm .mega__servicecard-body b { font-size: 13px; }
 .mega__servicecard-body span {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--ink-3);
   line-height: 1.35;
   display: -webkit-box;

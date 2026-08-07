@@ -316,39 +316,40 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      <div className="mega__services-cols">
-        <div className="mega__services-col">
-          <div className="mega__collabel">Installation</div>
-          <div className="mega__services-grid">
-            {SERVICES_MEGA.install.map((s) => (
-              <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
-                <div className="mega__servicecard-photo">
-                  <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
-                </div>
-                <div className="mega__servicecard-body">
-                  <b>{s.label}</b>
-                  <span>{s.sub}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+      {/* Installation row — full width so the 8 cards get plenty of
+          horizontal space and read big. Repair sits underneath as a
+          separate strip rather than fighting for width in a sidebar. */}
+      <div className="mega__services-block">
+        <div className="mega__collabel">Installation</div>
+        <div className="mega__services-grid">
+          {SERVICES_MEGA.install.map((s) => (
+            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
+              <div className="mega__servicecard-photo">
+                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
+              </div>
+              <div className="mega__servicecard-body">
+                <b>{s.label}</b>
+                <span>{s.sub}</span>
+              </div>
+            </Link>
+          ))}
         </div>
+      </div>
 
-        <div className="mega__services-col mega__services-col--sm">
-          <div className="mega__collabel">Service &amp; repair</div>
-          <div className="mega__services-grid mega__services-grid--sm">
-            {SERVICES_MEGA.repair.map((s) => (
-              <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
-                <div className="mega__servicecard-photo">
-                  <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
-                </div>
-                <div className="mega__servicecard-body">
-                  <b>{s.label}</b>
-                  <span>{s.sub}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+      <div className="mega__services-block mega__services-block--repair">
+        <div className="mega__collabel">Service &amp; repair</div>
+        <div className="mega__services-grid mega__services-grid--repair">
+          {SERVICES_MEGA.repair.map((s) => (
+            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
+              <div className="mega__servicecard-photo">
+                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
+              </div>
+              <div className="mega__servicecard-body">
+                <b>{s.label}</b>
+                <span>{s.sub}</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
 

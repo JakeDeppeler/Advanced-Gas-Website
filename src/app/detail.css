@@ -264,6 +264,28 @@
   fill: var(--orange, #F36722) !important;
   r: 8;
 }
+/* Real Leaflet coverage map — replaces the SVG rings. Height matched to
+   the sidebar list so both columns bottom-align. */
+.covmap__leaflet {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 420px;
+  max-height: 560px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.covmap__leaflet--loading {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(243,103,34,0.08) 0%, transparent 50%),
+    var(--paper);
+}
+.covmap__leaflet .leaflet-container {
+  width: 100%; height: 100%;
+  background: var(--paper);
+  font-family: inherit;
+}
 .covmap__legend { min-width: 0; }
 .covmap__legend-lbl {
   font-family: var(--f-mono);
@@ -283,7 +305,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px 12px;
-  max-height: 380px;
+  max-height: 480px;
   overflow-y: auto;
 }
 .covmap__legend li a {
