@@ -176,7 +176,7 @@ export default function HomePage() {
               Family owned. Same face on the quote as on the tools. Twelve years and 1,200+ installs across Pakenham, Berwick, Cranbourne &amp; Officer.
             </p>
 
-            <div className="hero__ctas">
+            <div className="hero__ctas" data-hide-sticky-cta>
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</a>
               <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
                 Or call {site.phone}
@@ -614,7 +614,7 @@ export default function HomePage() {
       </section>
 
       {/* BIG CTA */}
-      <section className="bigcta">
+      <section className="bigcta" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <div>
             <h2>Get a fixed quote with the VEU rebate already applied.</h2>

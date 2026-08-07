@@ -198,11 +198,24 @@
     min-height: 0;
   }
   .page-home .hero__photo {
-    aspect-ratio: 4 / 3;
-    max-height: 360px;
-    border-radius: 18px;
+    /* Slightly wider aspect on mobile so the team + vans read
+       instead of being cropped to just the workshop wall. */
+    aspect-ratio: 3 / 2;
+    max-height: 320px;
+    border-radius: 16px;
+    /* Constrain width so the frame sits centered with a bit of
+       page margin — the mobile-source photo (team-photo-mobile.webp)
+       is a pre-cropped centred crop, so we can trust its framing. */
+    width: 100%;
+    margin: 0 auto;
   }
-  .page-home .hero__photo img { object-position: center 30%; }
+  .page-home .hero__photo img {
+    /* Show the FULL width of the mobile photo with the team + vans
+       centered — previous `cover` + off-center object-position was
+       zooming into a corner of the workshop wall. */
+    object-fit: cover;
+    object-position: center center;
+  }
   .page-home .hero__h1 { font-size: 32px; line-height: 1.04; letter-spacing: -0.028em; }
   .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
   .page-home .hero__copy { gap: 14px; }
@@ -653,6 +666,61 @@
 @media (max-width: 900px) {
   .page-home .fixprice__grid { grid-template-columns: 1fr; }
 }
+
+/* Mobile phones — compact fix-price cards. Photo goes to a slim
+   left-column on the row, all the pricing/copy on the right, so each
+   card is about a third the height instead of a full screen-full. */
+@media (max-width: 640px) {
+  .page-home .fixprice__grid {
+    gap: 12px;
+  }
+  .page-home .fixprice {
+    flex-direction: row;
+    min-height: 0;
+    border-radius: 12px;
+  }
+  .page-home .fixprice__photo {
+    width: 108px;
+    min-width: 108px;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    align-self: stretch;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    background-size: cover;
+  }
+  .page-home .fixprice__badges {
+    top: 8px;
+    left: 8px;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .page-home .fixprice__badge {
+    font-size: 9.5px;
+    padding: 2px 6px;
+  }
+  .page-home .fixprice__body {
+    padding: 12px 14px 14px;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .page-home .fixprice__eyebrow { font-size: 10.5px; }
+  .page-home .fixprice h3 { font-size: 15px; line-height: 1.2; margin: 0; }
+  .page-home .fixprice__feat { display: none; } /* hide bullets on mobile — full detail on the linked page */
+  .page-home .fixprice__price { margin: 0; }
+  .page-home .fixprice__price-num { font-size: 20px; line-height: 1; }
+  .page-home .fixprice__price-lbl { font-size: 11px; }
+  .page-home .fixprice__note { display: none; }
+  .page-home .fixprice .ds-btn {
+    align-self: flex-start;
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 0;
+    margin-top: 4px;
+  }
+  .page-home .fixprice--feature { transform: none; }
+}
 .page-home .veu__h {
   font-family: var(--f-display);
   font-weight: 800;
@@ -868,6 +936,62 @@
 .page-home .bcard--emergency p { color: rgba(255,255,255,0.85); }
 .page-home .bcard--emergency .bcard__num { color: rgba(255,255,255,0.5); }
 .page-home .bcard--emergency .bcard__pill--red { background: #fff; color: var(--red); }
+
+/* Mobile phones — compact bento. Feature card drops back to 1-wide
+   and every card becomes a horizontal row (photo left, copy right) so
+   the "What we do" section fits ~4 cards in one screen instead of 1. */
+@media (max-width: 640px) {
+  .page-home .bento {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .page-home .bcard {
+    flex-direction: row;
+    min-height: 0;
+  }
+  .page-home .bcard--xl { grid-column: auto; grid-row: auto; }
+  .page-home .bcard__photo {
+    width: 110px;
+    min-width: 110px;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    padding: 0;
+  }
+  .page-home .bcard--xl .bcard__photo {
+    min-height: 0;
+    background-color: var(--paper);
+  }
+  .page-home .bcard--dark .bcard__photo,
+  .page-home .bcard--emergency .bcard__photo {
+    border-right-color: rgba(255,255,255,0.1);
+  }
+  .page-home .bcard__body {
+    padding: 12px 14px 14px;
+    min-width: 0;
+  }
+  .page-home .bcard__num { font-size: 10px; margin-bottom: 4px; }
+  .page-home .bcard h3 { font-size: 15px; margin: 0 0 4px; line-height: 1.2; }
+  .page-home .bcard--xl h3 { font-size: 16px; }
+  .page-home .bcard p {
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 0 0 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .page-home .bcard__cta { font-size: 12.5px; margin-top: 0; }
+  .page-home .bcard__pill { font-size: 10px; padding: 3px 8px; }
+  .page-home .bcard--feature::after {
+    top: 8px; left: 8px;
+    font-size: 9px;
+    padding: 2px 7px;
+  }
+}
 
 /* ============== WHY US ============== */
 .page-home .whyus { padding: 110px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

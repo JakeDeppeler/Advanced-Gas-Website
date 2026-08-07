@@ -609,28 +609,31 @@
 }
 .hdr__drawer-inner {
   display: flex; flex-direction: column;
-  padding: 14px 20px 22px;
-  gap: 4px;
+  /* More generous top + bottom padding — the drawer sits between the
+     header and the sticky bottom CTA on phones, so items need breathing
+     room from both edges to not feel cramped. */
+  padding: 24px 20px calc(28px + env(safe-area-inset-bottom, 0));
+  gap: 6px;
 }
 .hdr__drawer-call {
   display: flex; align-items: center; gap: 10px;
-  padding: 14px;
+  padding: 16px;
   border-radius: 12px;
   background: var(--bg-2);
   text-decoration: none;
   color: var(--navy);
   font-family: var(--f-display);
   font-weight: 700; font-size: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 .hdr__drawer-call svg { color: var(--orange); }
 .hdr__drawer-link {
-  padding: 12px 14px;
+  padding: 14px 14px;
   border-radius: 10px;
   text-decoration: none;
   color: var(--ink);
   font-weight: 600;
-  font-size: 15.5px;
+  font-size: 16px;
   display: flex; align-items: center; gap: 8px;
 }
 .hdr__drawer-link:hover { background: var(--bg-2); }
@@ -1547,6 +1550,15 @@ input, select, textarea {
 @media (max-width: 640px) {
   body { padding-bottom: 80px; }
 }
+/* Smart-hide state — driven by IntersectionObserver in
+   StickyMobileCTA.tsx. When the hero CTAs (or the final big-CTA) are
+   on screen, slide the bar off-screen so the buttons don't double up. */
+.stickycta.is-hidden {
+  transform: translateY(120%);
+  pointer-events: none;
+  opacity: 0;
+}
+.stickycta { transition: transform 0.25s ease, opacity 0.2s ease; }
 
 /* ==================================================================
    Mobile hero simplification (phone). Hide the two secondary bullets
