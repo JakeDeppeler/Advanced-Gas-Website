@@ -60,10 +60,10 @@
 .page-home .hero__pic img {
   width: 100%; height: 100%;
   object-fit: cover;
-  /* Team faces sit in the upper-third of the shot — moving the crop
-     up means the faces are visible ABOVE the H1, not covered by the
-     CTA buttons that sit below it. */
-  object-position: center 18%;
+  /* Team faces are in the upper-middle of the shot. Showing the top
+     third of the photo means faces sit ABOVE the H1 / CTAs in the
+     hero's lower half — no more heads covered by buttons. */
+  object-position: center top;
   display: block;
 }
 /* Fallback gradient behind the image in case it fails or is loading. */
@@ -179,9 +179,9 @@
 
 /* Mobile hero — pixel-close to mock B */
 @media (max-width: 760px) {
-  .page-home .hero { min-height: 680px; }
-  .page-home .hero__pic img { object-position: center 15%; }
-  .page-home .hero__wrap { min-height: 680px; padding-bottom: 40px; padding-top: 30px; }
+  .page-home .hero { min-height: 700px; }
+  .page-home .hero__pic img { object-position: center top; }
+  .page-home .hero__wrap { min-height: 700px; padding-bottom: 40px; padding-top: 30px; }
   .page-home .hero__scrim {
     background:
       linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.82) 68%, rgba(5,10,48,0.98) 100%);
@@ -1246,14 +1246,28 @@
 }
 .page-home .qcard__ribbon {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(0,176,237,0.10); color: var(--navy);
-  padding: 6px 12px; border-radius: 999px;
-  font-family: var(--f-mono); font-size: 12px;
-  margin-bottom: 14px; letter-spacing: 0.02em;
+  /* Bold orange pop — was subtle sky-blue tint, now the ribbon is the
+     first thing the eye lands on when the quote card renders. */
+  background: var(--orange);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  box-shadow: 0 3px 12px rgba(243,103,34,0.35);
 }
 .page-home .qcard__ribbon-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
-  box-shadow: 0 0 0 3px rgba(0,176,237,0.2);
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
+  animation: qcardDotPulse 2s ease-in-out infinite;
+}
+@keyframes qcardDotPulse {
+  50% { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
 }
 .page-home .qcard__h {
   font-family: var(--f-display);

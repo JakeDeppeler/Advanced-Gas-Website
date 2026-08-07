@@ -67,6 +67,42 @@
 .page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: rgba(255,255,255,0.3); }
 .page-detail .dp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
+/* ============== SUBURB COVERAGE SECTION ============== */
+.suburb-coverage {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  padding: 60px 0;
+  border-top: 4px solid var(--orange);
+}
+
+/* Where-we-work nearby chips upgraded to proper buttons */
+.page-suburb .dp-quote__chips a,
+.page-suburb .dp-quote__chips .dp-chip--muted {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  color: var(--navy);
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: -0.005em;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.page-suburb .dp-quote__chips a:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.page-suburb .dp-quote__chips .dp-chip--muted {
+  opacity: 0.6;
+  border-style: dashed;
+  cursor: default;
+}
+
 /* ============== SUBURB HERO WITH BACKGROUND PHOTO ============== */
 .page-suburb .suburb-hero { position: relative; overflow: hidden; }
 .suburb-hero__pic {

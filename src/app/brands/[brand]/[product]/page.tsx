@@ -21,7 +21,7 @@ export function generateMetadata({
   const found = findProduct(params.brand, params.product);
   if (!found) return {};
   const { brand, product } = found;
-  const title = `${product.name} — Installed Melbourne | ${brand.name} | Advanced Gas & Aircon`;
+  const title = `${product.name} · Installed Melbourne | ${brand.name} | Advanced Gas & Aircon`;
   const description = `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`;
   return {
     title,
@@ -116,7 +116,7 @@ export default function ProductPage({
               }
             </p>
             <div className="dp-local__lbl">VEU rebate</div>
-            <p>{product.veuEligible ? "Eligible — we handle the paperwork." : "Not applicable to this unit."}</p>
+            <p>{product.veuEligible ? "Eligible · we handle the paperwork." : "Not applicable to this unit."}</p>
           </div>
         </div>
       </section>

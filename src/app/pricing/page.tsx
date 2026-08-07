@@ -9,7 +9,7 @@ import "../brands/[brand]/brand.css";
 import "./pricing.css";
 
 export const metadata: Metadata = {
-  title: "Price List — Every System We Install, Fully Installed | Advanced Gas & Aircon",
+  title: "Price List · Every System We Install, Fully Installed | Advanced Gas & Aircon",
   description:
     "Every product we install with the fully-installed price after VEU rebate where eligible. Mitsubishi Electric splits, Reclaim heat pumps, Thermann, iStore, Kaden ducted and Zonemate zoning. No hidden fees.",
   alternates: { canonical: "/pricing" },
@@ -84,13 +84,13 @@ export default function PricingPage() {
             <span className="ds-dot" /> Fully-installed price list
           </div>
           <h1>
-            Every system we install — <span className="accent">real installed prices</span>.
+            Every system we install · <span className="accent">real installed prices</span>.
           </h1>
           <p className="dp-hero__sub">
             Fully-installed prices for every model we install across Melbourne&rsquo;s south-east.
             All prices include labour, standard install, disposal of the old unit, compliance
             certificate, and the VEU rebate applied where the unit qualifies. No hidden
-            extras — the number below is the number on your quote, and the number on the
+            extras · the number below is the number on your quote, and the number on the
             invoice.
           </p>
           <div className="dp-hero__ctas">
@@ -116,7 +116,7 @@ export default function PricingPage() {
             </div>
             <div>
               <div className="pricing-note__lbl">VEU rebate</div>
-              <p>Applied at quote — you don&rsquo;t pay it up-front then chase it back. Additional Solar Homes bonus (+$1,000) available for eligible owner-occupier households.</p>
+              <p>Applied at quote · you don&rsquo;t pay it up-front then chase it back. Additional Solar Homes bonus (+$1,000) available for eligible owner-occupier households.</p>
             </div>
           </div>
         </div>

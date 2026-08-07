@@ -29,7 +29,7 @@ const HeroQuoteForm = dynamic(
 function HeroQuoteFormSkeleton() {
   return (
     <div className="qcard" aria-hidden="true">
-      <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> Fixed-price quote</div>
+      <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> 60-second quote</div>
       <h3 className="qcard__h">Get a fixed quote in 60&nbsp;seconds.</h3>
       <p className="qcard__sub">Loading the quote form…</p>
       <div className="qcard__progress" aria-hidden="true">
@@ -68,7 +68,7 @@ const faqs = [
   },
   {
     q: "What brands do you install, and why those?",
-    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (budget-friendly). Aircon: Mitsubishi Electric and Kaden. Gas: Rinnai, Brivis, Braemar. We've installed enough of each to know which model suits which house, we'll recommend, not upsell.",
+    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (best VEU rebate outcome). Aircon: Mitsubishi Electric and Kaden. Gas ducted: Brivis (retrofit incumbent) and Kaden gas ducted. We've installed enough of each to know which model suits which house, we'll recommend, not upsell.",
   },
   {
     q: "Do you do emergencies on weekends?",
@@ -77,6 +77,10 @@ const faqs = [
   {
     q: "What's the warranty?",
     a: "Manufacturer warranty on the unit (typically 6–10 years on the tank). 6 years on our workmanship. Compliance certificate emailed within 24 hours of install, keep it for insurance.",
+  },
+  {
+    q: "Do you take developer new-build work?",
+    a: "Not the volume developer stuff. Every job we take is for a real homeowner — an owner-occupier retrofit, a landlord upgrade, a custom-build owner who wants the same person on the tools as on the quote. If you're a custom builder wanting a single-project pairing (not a 40-home estate rollout), have a chat with us. Otherwise our diary is booked with existing-home work and it's better for both of us if we say so upfront.",
   },
 ];
 
@@ -199,13 +203,13 @@ export default function HomePage() {
           </div>
           <div className="brands__grid">
             {[
-              ["RECLAIM", "heat pumps"],
+              ["Reclaim", "heat pumps"],
               ["iStore", "heat pumps"],
               ["Thermann", "hot water"],
               ["Mitsubishi", "electric aircon"],
               ["Kaden", "aircon"],
-              ["Milieu Lab", "smart controls"],
-              ["Rinnai", "gas & hw"],
+              ["Zonemate", "zoning"],
+              ["Brivis", "gas ducted"],
             ].map(([name, type]) => (
               <div key={name} className="brand-chip">
                 <span className="brand-chip__name">{name}</span>
@@ -434,7 +438,7 @@ export default function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
-                <p>Install, replace, service. Brivis, Braemar, Rinnai. Carbon monoxide tested.</p>
+                <p>Install, replace, service. Brivis, Braemar, Kaden. Carbon monoxide tested.</p>
               </div>
             </Link>
 

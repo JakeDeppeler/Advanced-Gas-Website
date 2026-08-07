@@ -7,7 +7,7 @@ import "../detail.css";
 import "./[brand]/brand.css";
 
 export const metadata: Metadata = {
-  title: "Brands We Install — Mitsubishi Electric, Reclaim, Thermann, iStore, Kaden, Zonemate",
+  title: "Brands We Install · Mitsubishi Electric, Reclaim, Thermann, iStore, Kaden, Zonemate",
   description:
     "Every brand and model we install across Melbourne's south-east. Mitsubishi Electric splits and ducted, Reclaim CO₂ heat pumps, Thermann range, iStore, Kaden, Zonemate zoning. Installed prices from Advanced Gas & Aircon.",
   alternates: { canonical: "/brands" },
@@ -25,7 +25,7 @@ export default function BrandsIndex() {
           </nav>
           <div className="dp-hero__eyebrow"><span className="ds-dot" /> Brands we install</div>
           <h1>
-            Six brands, <span className="accent">68 models</span> — every one we install, honestly reviewed.
+            Six brands, <span className="accent">68 models</span> · every one we install, honestly reviewed.
           </h1>
           <p className="dp-hero__sub">
             We install what works, not what we&rsquo;re paid to install. Every brand below is one
@@ -70,7 +70,7 @@ export default function BrandsIndex() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Not sure which brand suits your job?</h2>
-            <p>Give us the room, the household, and the budget — we&rsquo;ll quote three real options.</p>
+            <p>Give us the room, the household, and the budget · we&rsquo;ll quote three real options.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get honest advice →</Link>

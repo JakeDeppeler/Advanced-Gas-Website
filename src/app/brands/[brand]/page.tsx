@@ -23,7 +23,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { brand: string } }): Metadata {
   const brand = findBrand(params.brand);
   if (!brand) return {};
-  const title = `${brand.name} Installer Melbourne — ${brand.tagline} | Advanced Gas & Aircon`;
+  const title = `${brand.name} Installer Melbourne · ${brand.tagline} | Advanced Gas & Aircon`;
   const description = `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`;
   return {
     title,
@@ -109,7 +109,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </div>
       </section>
 
-      {/* Key features + Melbourne context — dense info-panels */}
+      {/* Key features + Melbourne context · dense info-panels */}
       {(brand.keyFeatures || brand.commonInMelbourne || brand.support) && (
         <section className="brand-info">
           <div className="wrap brand-info__grid">
@@ -154,25 +154,25 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </section>
       )}
 
-      {/* Real install gallery — reuses our on-site photography */}
+      {/* Real install gallery · reuses our on-site photography */}
       <section className="brand-gallery">
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
             <h2>Recent {brand.name} installs around Melbourne&rsquo;s south-east.</h2>
             <p>
-              Real jobs we&rsquo;ve completed — no manufacturer catalogue shots.
+              Real jobs we&rsquo;ve completed · no manufacturer catalogue shots.
               Every one photographed on the day the compliance certificate was signed.
             </p>
           </div>
           <div className="brand-gallery__grid">
             {[
-              { src: "/reclaim-split-back.webp",              alt: `${brand.name} install — outdoor unit clean line-set` },
-              { src: "/reclaim-mitsubishi.webp",              alt: `${brand.name} install — indoor unit mounted` },
-              { src: "/reclaim-spit-close-up.webp",           alt: `${brand.name} install — heat pump close-up` },
-              { src: "/kaden-indoor.webp",                    alt: `${brand.name} install — indoor head unit` },
-              { src: "/thermann-heat-pump.webp",              alt: `${brand.name} install — hot water system` },
-              { src: "/duct-work.webp",                       alt: `${brand.name} install — ductwork in ceiling void` },
+              { src: "/reclaim-split-back.webp",              alt: `${brand.name} install · outdoor unit clean line-set` },
+              { src: "/reclaim-mitsubishi.webp",              alt: `${brand.name} install · indoor unit mounted` },
+              { src: "/reclaim-spit-close-up.webp",           alt: `${brand.name} install · heat pump close-up` },
+              { src: "/kaden-indoor.webp",                    alt: `${brand.name} install · indoor head unit` },
+              { src: "/thermann-heat-pump.webp",              alt: `${brand.name} install · hot water system` },
+              { src: "/duct-work.webp",                       alt: `${brand.name} install · ductwork in ceiling void` },
             ].map((g) => (
               <figure key={g.src} className="brand-gallery__cell">
                 <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
@@ -230,7 +230,7 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </div>
       </section>
 
-      {/* Where we install this brand — 12 suburb combo links */}
+      {/* Where we install this brand · 12 suburb combo links */}
       <section className="dp-quote" style={{ paddingTop: 60, paddingBottom: 60 }}>
         <div className="wrap">
           <div className="ds-section-head" style={{ marginBottom: 24 }}>
