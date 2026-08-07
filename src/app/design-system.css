@@ -81,20 +81,19 @@
   box-shadow: 0 1px 0 rgba(11,20,80,0.03);
 }
 .hdr__row {
-  /* Taller row + generous gap so 7 nav items breathe. Previous 78px was
-     tight once Blog got added and made the nav wrap on medium screens. */
+  /* Taller row + generous gap so 8 nav items breathe. Wider max-width
+     than the body .wrap so the nav + logo + phone + CTA all fit on
+     mid-large screens without cramping or wrapping. */
   height: 86px;
   display: flex;
   align-items: center;
-  gap: 36px;
-  padding-left: 12px;
-  padding-right: 12px;
-  /* Give the header itself a wider max-width than the body content
-     (1440 vs the 1280 body .wrap) so 7 nav items + logo + phone + CTA
-     fit without cramping on mid-large screens. */
-  max-width: 1440px !important;
-  padding-left: 32px !important;
-  padding-right: 32px !important;
+  gap: 28px;
+  max-width: 1500px !important;
+  /* Tighter side padding so the logo sits closer to the viewport edge —
+     the user asked for it in the corner rather than centered with the
+     content. */
+  padding-left: 20px !important;
+  padding-right: 20px !important;
 }
 .hdr__logo { display:flex; align-items:center; text-decoration: none; flex-shrink: 0; }
 .hdr__logo-img {
@@ -158,8 +157,11 @@
   background: var(--orange);
   border-radius: 2px;
 }
-.hdr__nav-rebate { color: var(--orange) !important; }
-.hdr__nav-rebate:hover { color: var(--orange) !important; }
+/* VEU Rebate item — same treatment as every other nav link. Only the
+   tiny "$$$" tag chip keeps the orange so the rebate cue is still
+   visible without dyeing the whole label. */
+.hdr__nav-rebate { color: var(--navy); }
+.hdr__nav-rebate:hover { color: var(--orange); }
 .hdr__nav-tag {
   font-family: var(--f-mono);
   font-size: 10px; letter-spacing: 0.05em;
@@ -266,26 +268,28 @@
   margin: 0 0 12px;
 }
 
-/* -------- Services mega — Install column (wide, 8 cards in a 4-up grid)
-   + Service & Repair column (narrow, 4 compact cards) side by side. */
-.mega__services { width: min(1180px, calc(100vw - 40px)); padding: 24px 26px; }
+/* -------- Services mega — Install column (wide, 4 cards per row) +
+   Service & Repair column (narrow, single-column list) side by side.
+   Wider container so labels like "Split system aircon" and "Ducted
+   air conditioning" stay on one line. */
+.mega__services { width: min(1360px, calc(100vw - 32px)); padding: 26px 30px; }
 .mega__services-cols {
   display: grid;
-  grid-template-columns: 1.75fr 1fr;
-  gap: 24px;
+  grid-template-columns: 2.1fr 1fr;
+  gap: 28px;
   margin-bottom: 22px;
 }
 .mega__services-col { min-width: 0; }
-.mega__services-col--sm { border-left: 1px solid var(--line); padding-left: 24px; }
+.mega__services-col--sm { border-left: 1px solid var(--line); padding-left: 26px; }
 .mega__services .mega__services-grid {
   grid-template-columns: repeat(4, 1fr) !important;
-  gap: 10px;
+  gap: 8px;
 }
 .mega__services .mega__services-grid--sm {
   grid-template-columns: 1fr !important;
-  gap: 6px;
+  gap: 4px;
 }
-@media (max-width: 1200px) {
+@media (max-width: 1280px) {
   .mega__services-cols { grid-template-columns: 1fr; gap: 20px; }
   .mega__services-col--sm { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
   .mega__services .mega__services-grid--sm { grid-template-columns: 1fr 1fr !important; }
@@ -301,17 +305,18 @@
 .mega__servicecard {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px;
+  gap: 10px;
+  padding: 8px 10px;
   border-radius: 10px;
   text-decoration: none;
   color: var(--ink);
   transition: background 0.15s;
   border: 1px solid transparent;
+  min-width: 0;
 }
 .mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
 .mega__servicecard-photo {
-  width: 64px; height: 64px;
+  width: 52px; height: 52px;
   border-radius: 8px;
   overflow: hidden;
   flex-shrink: 0;
@@ -319,7 +324,7 @@
   border: 1px solid var(--line);
   padding: 4px;
 }
-.mega__servicecard--sm .mega__servicecard-photo { width: 48px; height: 48px; padding: 3px; }
+.mega__servicecard--sm .mega__servicecard-photo { width: 44px; height: 44px; padding: 3px; }
 .mega__servicecard-photo img {
   width: 100%; height: 100%;
   object-fit: contain;
@@ -327,22 +332,36 @@
   transition: transform 0.3s ease;
 }
 .mega__servicecard:hover .mega__servicecard-photo img { transform: scale(1.06); }
-.mega__servicecard-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mega__servicecard-body {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
 .mega__servicecard-body b {
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 13.5px;
   letter-spacing: -0.005em;
   color: var(--navy);
   line-height: 1.2;
+  /* Prefer wrapping at word boundaries but cap to 2 lines with the
+     overflow-line-clamp trick so no label ever eats 3+ lines. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.mega__servicecard--sm .mega__servicecard-body b { font-size: 13.5px; }
+.mega__servicecard--sm .mega__servicecard-body b { font-size: 13px; }
 .mega__servicecard-body span {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--ink-3);
   line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.mega__servicecard--sm .mega__servicecard-body span { font-size: 11.5px; }
+.mega__servicecard--sm .mega__servicecard-body span { font-size: 11px; }
 
 .mega__services-foot {
   display: grid;

@@ -77,50 +77,55 @@
 
 /* Enriched brand card — extends the v1 card with positioning, a
    standout stat and a "best for" line so the hub reads like a real
-   comparison shelf, not a list of names. */
-.brand-hub-card--v2 .brand-hub-card__inner { gap: 14px; }
+   comparison shelf, not a list of names. Compact horizontal layout. */
+.brand-hub-card--v2 .brand-hub-card__inner { gap: 8px; }
 .brand-hub-card__positioning {
   font-family: var(--f-mono);
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--ink-3);
   letter-spacing: 0.01em;
   margin: 0;
-  line-height: 1.5;
-  padding-bottom: 8px;
+  line-height: 1.4;
+  padding-bottom: 6px;
   border-bottom: 1px dashed var(--line);
 }
 .brand-hub-card__stat {
   display: flex;
   align-items: baseline;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 6px 10px;
   background: var(--bg-2);
   border-left: 3px solid var(--card-accent, var(--sky));
-  border-radius: 6px;
+  border-radius: 5px;
   margin: 0;
 }
 .brand-hub-card__stat strong {
   font-family: var(--f-display);
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--navy);
   letter-spacing: -0.015em;
   line-height: 1;
+  white-space: nowrap;
 }
 .brand-hub-card__stat span {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: var(--ink-2);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 .brand-hub-card__bestfor {
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: 12.5px;
+  line-height: 1.45;
   color: var(--ink-2);
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .brand-hub-card__bestfor b {
   font-family: var(--f-mono);
-  font-size: 11.5px;
+  font-size: 10.5px;
   color: var(--orange);
   letter-spacing: 0.04em;
   text-transform: uppercase;

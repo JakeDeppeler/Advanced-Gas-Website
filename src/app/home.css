@@ -41,14 +41,15 @@
 .page-home .hero {
   position: relative;
   padding: 0;
-  /* Atmospheric background — the team photo behind a heavy navy scrim
-     so it reads as texture rather than a competing image. Keeps the
-     "full navy" feel out and gives the copy side a real backdrop
-     without fighting the crisp portrait card on the right. */
+  /* Atmospheric background — team photo behind a mid-navy scrim so it
+     reads as texture rather than a competing image. Scrim tuned lighter
+     (rgba mid-70s not high-90s) so the workshop scene actually shows
+     through, and the top gradient is a lighter steel-blue rather than
+     pure navy so it doesn't feel like a dead block. */
   background:
-    linear-gradient(180deg, rgba(5,10,48,0.94) 0%, rgba(11,20,80,0.96) 55%, rgba(5,10,48,0.98) 100%),
+    linear-gradient(180deg, rgba(19,36,84,0.76) 0%, rgba(15,28,72,0.82) 55%, rgba(11,22,60,0.88) 100%),
     url("/team-photo.webp") center 20% / cover no-repeat,
-    linear-gradient(180deg, var(--navy) 0%, var(--navy-2) 100%);
+    linear-gradient(180deg, #1a2c68 0%, #12224e 100%);
   color: #fff;
   overflow: hidden;
 }
@@ -59,8 +60,8 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 900px 500px at 10% 0%, rgba(243,103,34,0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 700px 400px at 90% 100%, rgba(0,176,237,0.10) 0%, transparent 55%);
+    radial-gradient(ellipse 900px 500px at 10% 0%, rgba(243,103,34,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 700px 400px at 90% 100%, rgba(0,176,237,0.08) 0%, transparent 55%);
   pointer-events: none;
   z-index: 0;
 }
