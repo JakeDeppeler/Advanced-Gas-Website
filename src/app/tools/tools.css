@@ -378,6 +378,26 @@
   .faults-table td.faults-td--check {
     display: none;
   }
+  /* Table wraps horizontally on tiny phones — force a min-width so
+     it scrolls cleanly rather than cramping every cell. */
+  .faults-table { min-width: 460px; }
+  .faults-table th, .faults-table td { padding: 10px 10px; font-size: 12.5px; }
+  .fault-brand, .fault-system { font-size: 10px; padding: 2px 6px; }
+  .fault-code { font-size: 12.5px; }
+}
+
+/* System-comparison table + heat-pump compare table both need the
+   same horizontal-scroll safety net on mobile — their .sysc-scroll
+   wrapper already sets overflow:auto but the inner min-width was
+   too aggressive at 720. Trim + wrap header cells for smaller phones. */
+@media (max-width: 640px) {
+  .sysc-scroll { -webkit-overflow-scrolling: touch; }
+  .sysc-table { min-width: 640px; }
+  .sysc-th--rowhead { min-width: 110px; width: 110px; font-size: 10.5px; padding: 10px 12px; }
+  .sysc-th--sys { padding: 12px 12px; }
+  .sysc-sys__name { font-size: 13.5px; }
+  .sysc-sys__eyebrow { font-size: 10.5px; }
+  .sysc-table th, .sysc-table td { padding: 10px 12px; font-size: 12.5px; }
 }
 
 /* --------------- System comparison table --------------- */

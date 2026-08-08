@@ -177,12 +177,15 @@ export default function ReclaimComparePage() {
               The CO₂ Split has an outdoor heat pump feeding a separate tank — quieter, longer-lived,
               PV-diverter compatible. If you want everything in one integrated unit (like an old
               gas storage tank), the <strong>Reclaim ECO R290 all-in-one</strong> at 200 L or 300 L
-              is the simpler swap-in.
+              is the simpler swap-in at <strong>$2,624</strong> fully installed — same platform as
+              the Thermann Integrated. iStore comes in cheaper at <strong>$2,144</strong> if budget
+              is the priority.
             </p>
           </div>
           <div className="reclaim-aio__ctas">
             <Link href="/brands/reclaim/reclaim-eco-r290-200" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 200 L →</Link>
             <Link href="/brands/reclaim/reclaim-eco-r290-300" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 300 L →</Link>
+            <Link href="/tools/heat-pump-compare" className="ds-btn ds-btn--orange ds-btn--lg">Compare all AIO brands →</Link>
           </div>
         </div>
       </section>

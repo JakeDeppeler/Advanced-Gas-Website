@@ -108,6 +108,25 @@
 }
 .reclaim-cmp__cta { white-space: nowrap; text-align: right; }
 
+/* Mobile — kill the sticky rowhead which was overlapping cells and
+   causing the visible cut-off. Table just scrolls horizontally with
+   the whole first column visible normally. */
+@media (max-width: 760px) {
+  .reclaim-cmp { padding: 28px 0 32px; }
+  .reclaim-cmp__scroll {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+  .reclaim-cmp__table { min-width: 720px; }
+  .reclaim-cmp__th--sticky,
+  .reclaim-cmp__rowhead {
+    position: static;
+    min-width: 140px;
+  }
+  .reclaim-cmp__th, .reclaim-cmp__table td { padding: 10px 12px; font-size: 12.5px; }
+  .reclaim-cmp__take { max-width: 260px; }
+}
+
 .reclaim-aio { padding: 40px 0 20px; background: var(--bg); }
 .reclaim-aio__ctas {
   display: flex;

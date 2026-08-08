@@ -193,10 +193,16 @@
 @media (max-width: 760px) {
   .page-home .hero__grid {
     grid-template-columns: 1fr;
-    gap: 22px;
-    padding: 32px 0 32px;
+    gap: 20px;
+    padding: 28px 0 32px;
     min-height: 0;
   }
+  /* Give the copy some breathing room from the viewport edge — the
+     shared .wrap padding is 20px, but on very tight phones the display
+     H1 sits flush against the left border because .hero__grid inherits
+     .wrap's box, not the padding. Extra safety margin here. */
+  .page-home .hero > .wrap { padding-left: 18px; padding-right: 18px; }
+  .page-home .hero__copy { padding: 0 2px; gap: 14px; }
   .page-home .hero__photo {
     /* Wider aspect on mobile so the team + vans read as intended
        instead of being cropped to just the workshop wall. */
@@ -205,6 +211,10 @@
     border-radius: 16px;
     width: 100%;
     margin: 0 auto;
+    /* Put the photo AFTER the copy but BEFORE the trust bar in the
+       visual order — the copy → photo → trust flow reads better on a
+       tall phone screen than copy → trust → photo. */
+    order: 2;
   }
   .page-home .hero__photo img {
     /* Show the FULL width of the mobile photo with the team + vans
@@ -213,18 +223,24 @@
     object-fit: cover;
     object-position: center center;
   }
-  .page-home .hero__h1 { font-size: 32px; line-height: 1.04; letter-spacing: -0.028em; }
+  .page-home .hero__h1 { font-size: 30px; line-height: 1.04; letter-spacing: -0.028em; }
   .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
-  .page-home .hero__copy { gap: 14px; }
   /* Hide the in-hero CTA row on mobile — the sticky bottom bar already
      carries Call + Free Quote, and having both on screen at once is
      redundant. Desktop still shows them. */
   .page-home .hero__ctas { display: none; }
-  .page-home .hero__trust {
+  /* Trust bar moves to sit BELOW the photo. `display: contents` on
+     hero__copy promotes its children (badge / h1 / sub / trust) to
+     direct grid children so we can reorder them. */
+  .page-home .hero__copy { display: contents; }
+  .page-home .hero__copy > * { order: 1; }
+  .page-home .hero__copy > .hero__trust {
+    order: 3;
     padding: 12px 14px;
     gap: 12px;
     width: 100%;
     align-self: stretch;
+    margin-top: 4px;
   }
   .page-home .trust-divider:nth-of-type(2) { display: none; }
   .page-home .trust-stat:nth-of-type(3) { display: none; }

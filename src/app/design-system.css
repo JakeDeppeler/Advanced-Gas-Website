@@ -688,10 +688,10 @@
 }
 .hdr__drawer-inner {
   display: flex; flex-direction: column;
-  /* More generous top + bottom padding — the drawer sits between the
-     header and the sticky bottom CTA on phones, so items need breathing
-     room from both edges to not feel cramped. */
-  padding: 24px 20px calc(28px + env(safe-area-inset-bottom, 0));
+  /* Generous top padding + a big bottom clearance so the final
+     "Get a free quote" button doesn't slip under the fixed sticky
+     mobile CTA bar (which is 80px + safe-area). */
+  padding: 24px 20px calc(120px + env(safe-area-inset-bottom, 0));
   gap: 6px;
 }
 .hdr__drawer-call {
@@ -1316,6 +1316,13 @@
   .wrap { padding: 0 20px; }
   .utilbar__left .util-pill--quiet { display: none; }
   .utilbar__right .util-link { display: none; }
+  /* Hide the top-strip phone number on mobile — the sticky bottom
+     CTA already carries Call the team, and the burger drawer opens
+     with the call block front-and-center. Redundant chrome up top
+     was pushing the hero content further down. */
+  .utilbar__right .util-tel { display: none; }
+  .utilbar__right { display: none; }
+  .utilbar__row { justify-content: flex-start; }
   /* Header row height — was 70/64 competing with the new 86px base.
      Set to a single mobile height and keep .hdr__row max-width unset
      so the sticky header doesn't crop the logo or burger button. */
