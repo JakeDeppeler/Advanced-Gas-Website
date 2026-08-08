@@ -42,6 +42,19 @@ const TOOLS: {
     ],
   },
   {
+    slug: "hot-water-savings",
+    title: "Hot Water Savings Calculator",
+    tagline: "How much will a heat pump save me?",
+    blurb:
+      "Compare your current gas or electric hot water annual cost against a modern heat pump. Applies the Victorian VEU rebate to the install cost and projects the payback period over 10 years — the fastest way to see if the upgrade actually pays for itself.",
+    ctaLabel: "See my savings →",
+    bullets: [
+      "Handles gas storage, gas continuous, electric peak, off-peak and solar-boost",
+      "VEU rebate applied to net install cost",
+      "Payback in years + 10-year total savings",
+    ],
+  },
+  {
     slug: "running-cost-calculator",
     title: "Running Cost Calculator",
     tagline: "What will this cost me to run?",

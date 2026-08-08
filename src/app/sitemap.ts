@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tools/sizing-calculator`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/running-cost-calculator`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/fault-codes`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/hot-water-savings`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/quote`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/service-areas`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },

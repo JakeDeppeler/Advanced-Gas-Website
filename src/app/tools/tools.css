@@ -306,6 +306,68 @@
   margin-top: 12px;
 }
 
+/* System-type chip filter above the search row */
+.faults-systems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.faults-systemchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.faults-systemchip:hover { border-color: var(--orange); color: var(--orange); }
+.faults-systemchip.is-active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+.faults-systemchip__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 6px;
+  height: 18px;
+  background: var(--bg-2);
+  color: var(--navy);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.faults-systemchip.is-active .faults-systemchip__count {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+/* Small system-type badge in the table rows */
+.fault-system {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.fault-system--aircon     { background: rgba(0,176,237,0.10);   color: #036f96; border-color: rgba(0,176,237,0.25); }
+.fault-system--heater     { background: rgba(243,103,34,0.10);  color: #b64b12; border-color: rgba(243,103,34,0.25); }
+.fault-system--hot-water  { background: rgba(46,132,89,0.10);   color: #1c603c; border-color: rgba(46,132,89,0.25); }
+
 /* Stack the fault-table's less-important columns on mobile */
 @media (max-width: 640px) {
   .faults-table thead .faults-th--check,
