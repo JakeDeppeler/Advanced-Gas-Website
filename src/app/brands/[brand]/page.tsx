@@ -195,6 +195,13 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
               Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
               Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
             </p>
+            {brand.slug === "reclaim" && (
+              <div style={{ marginTop: 14 }}>
+                <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--orange ds-btn--sm">
+                  Open the full Reclaim comparison →
+                </Link>
+              </div>
+            )}
           </div>
 
           <BrandCompare brand={brand} />

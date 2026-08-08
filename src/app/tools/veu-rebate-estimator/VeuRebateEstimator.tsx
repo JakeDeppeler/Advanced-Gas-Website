@@ -29,18 +29,23 @@ type UpgradePath = {
 // Rebate ranges reflect current VEEC market prices ($60-$75 per certificate,
 // mid-2026) and the max heat-pump hot-water rebate of ~$2,700.
 const UPGRADES: UpgradePath[] = [
-  // ---- Hot water upgrades (max $2,700) ----
+  // ---- Hot water upgrades ----
+  // typicalInstall is the ballpark pre-rebate install for a standard
+  // mid-range heat pump. Top-of-line Reclaim CO₂ with WiFi can reach
+  // ~$9,700 pre-rebate → ~$7,000 net; entry iStore lands closer to
+  // $4,800 → $2,200 net. Net install range shown to the user is
+  // always $2,000-$7,000 across the whole hot-water heat-pump range.
   { key: "gas-storage::heat-pump", label: "Gas storage → Heat pump hot water",
-    minRebate: 2100, maxRebate: 2700, typicalInstall: 3500,
-    notes: "Biggest hot-water rebate — old inefficient gas storage is the max-abatement upgrade." },
+    minRebate: 2400, maxRebate: 2700, typicalInstall: 4800,
+    notes: "Biggest hot-water rebate. Typical mid-range install $4,800 pre-rebate → ~$2,200 net. Reclaim CO₂ top-tier goes up to $9,700 pre-rebate ($7,000 net)." },
   { key: "gas-continuous::heat-pump", label: "Gas continuous → Heat pump hot water",
-    minRebate: 1500, maxRebate: 2100, typicalInstall: 3500,
+    minRebate: 2000, maxRebate: 2400, typicalInstall: 4800,
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
   { key: "electric-storage::heat-pump", label: "Electric storage → Heat pump hot water",
-    minRebate: 1700, maxRebate: 2400, typicalInstall: 3500,
+    minRebate: 2200, maxRebate: 2600, typicalInstall: 4800,
     notes: "Strong rebate — displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
   { key: "off-peak-electric::heat-pump", label: "Off-peak electric → Heat pump hot water",
-    minRebate: 1000, maxRebate: 1500, typicalInstall: 3500,
+    minRebate: 1400, maxRebate: 1800, typicalInstall: 4800,
     notes: "Smaller rebate because off-peak electric is already comparatively cheap." },
 
   // ---- Space heating / cooling upgrades ----
@@ -267,6 +272,24 @@ export function VeuRebateEstimator() {
             </span>
           </div>
         </div>
+
+        {result.isHotWater && (
+          <div style={{
+            marginTop: 16,
+            padding: "12px 14px",
+            background: "rgba(243,103,34,0.08)",
+            border: "1px solid rgba(243,103,34,0.18)",
+            borderRadius: 8,
+            fontSize: 13,
+            lineHeight: 1.5,
+            color: "var(--navy)",
+          }}>
+            <strong>Heat pump net install range:</strong> $2,000 (entry iStore /
+            Thermann R290) → $7,000 (Reclaim CO₂ top-of-line with Wi-Fi and
+            stainless 316 tank). The number above is the mid-point of your
+            upgrade path.
+          </div>
+        )}
 
         <div className="tool-result__cta">
           <Link href="/quote" className="ds-btn ds-btn--orange">Lock in a rebate-inclusive quote →</Link>

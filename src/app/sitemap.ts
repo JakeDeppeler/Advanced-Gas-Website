@@ -19,6 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tools/veu-rebate-estimator`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/tools/heating-comparator`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/tools/system-comparison`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/brands/reclaim/compare`, lastModified: now, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/quote`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/service-areas`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },

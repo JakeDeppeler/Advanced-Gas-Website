@@ -216,8 +216,10 @@
   .page-home .hero__h1 { font-size: 32px; line-height: 1.04; letter-spacing: -0.028em; }
   .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
   .page-home .hero__copy { gap: 14px; }
-  .page-home .hero__ctas { flex-direction: column; align-items: stretch; gap: 8px; }
-  .page-home .hero__ctas .ds-btn { justify-content: center; }
+  /* Hide the in-hero CTA row on mobile — the sticky bottom bar already
+     carries Call + Free Quote, and having both on screen at once is
+     redundant. Desktop still shows them. */
+  .page-home .hero__ctas { display: none; }
   .page-home .hero__trust {
     padding: 12px 14px;
     gap: 12px;

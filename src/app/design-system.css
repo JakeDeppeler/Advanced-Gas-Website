@@ -1304,6 +1304,9 @@
   .hdr__row { gap: 16px; }
   .utilbar__left .util-pill--quiet { display: none; }
   .hdr__burger { display: inline-flex; }
+  /* Once the burger appears, hide the header phone chip — the number
+     already sits in the utility bar top and the sticky mobile CTA. */
+  .hdr__cta .hdr__phone { display: none; }
 }
 @media (max-width: 1100px) {
   .ftr__top { grid-template-columns: 1fr; gap: 36px; }
@@ -1313,13 +1316,17 @@
   .wrap { padding: 0 20px; }
   .utilbar__left .util-pill--quiet { display: none; }
   .utilbar__right .util-link { display: none; }
-  .hdr__row { height: 70px; }
-  .hdr__phone span em { display: none; }
+  /* Header row height — was 70/64 competing with the new 86px base.
+     Set to a single mobile height and keep .hdr__row max-width unset
+     so the sticky header doesn't crop the logo or burger button. */
+  .hdr__row { height: 68px !important; padding-left: 16px !important; padding-right: 16px !important; }
   .bigcta__btns { align-items: flex-start; }
   .ftr { padding: 60px 0 24px; }
   .ftr__cols { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
   .ftr__badges { justify-content: flex-start; }
   .ftr__badges li { flex: 0 1 auto; }
+  /* Mega menus anchored under the new mobile header height */
+  .mega { top: 68px !important; }
 }
 
 /* ==================================================================
@@ -1339,8 +1346,10 @@ input, select, textarea {
 
 /* --- Small tablet + phone (<= 900px) --- */
 @media (max-width: 900px) {
-  /* Section padding was 100-110px everywhere. Way too much on phones. */
-  .page-home .hero { padding: 40px 0 70px; }
+  /* Section padding was 100-110px everywhere. Way too much on phones.
+     Hero padding controlled by .hero__grid — leaving the section at 0
+     stops the stale bottom-90 leftover from re-creating a navy dead band. */
+  .page-home .hero { padding: 0; }
   .page-home .veu,
   .page-home .services,
   .page-home .whyus,
@@ -1374,12 +1383,14 @@ input, select, textarea {
   .wrap { padding: 0 16px; }
 
   /* Header: hide the phone-pill and the primary CTA on mobile — those
-     live in the burger drawer. Keep the logo and burger only. */
-  .hdr__row { height: 64px; gap: 12px; }
+     live in the burger drawer and the sticky mobile CTA. Keep the logo
+     and burger only. */
+  .hdr__row { height: 64px !important; gap: 12px; }
   .hdr__cta .hdr__phone { display: none; }
   .hdr__cta .ds-btn--primary { display: none; }
   .hdr__logo svg,
   .hdr__logo img { height: 44px; }
+  .mega { top: 64px !important; }
 
   /* Hero: reposition team photo to focus on faces, thin the overlay
      further so the hero doesn't feel like a wall of navy on small screens. */

@@ -118,6 +118,48 @@ export const FAULT_CODES: FaultCode[] = [
   { brand: "Thermann", code: "F1", system: "hot-water", meaning: "Comms error (integrated HP)",                     firstCheck: "Check internal comms wire between board and controller.",                                     severity: "warn" },
   { brand: "Thermann", code: "12", system: "hot-water", meaning: "G-series continuous flow — ignition failure",     firstCheck: "Check gas supply on. If OK, needs a licensed gas fitter.",                                    severity: "warn" },
   { brand: "Thermann", code: "11", system: "hot-water", meaning: "G-series — no ignition detected",                 firstCheck: "Gas valve or igniter fault. Book a gas fitter.",                                              severity: "warn" },
+
+  // ------------------- Braemar (gas ducted / evap) -------------------
+  { brand: "Braemar", code: "23",  system: "heater",   meaning: "Overheat lockout",                                firstCheck: "Blocked filter or return-air path. Clean filter and reset.",                                 severity: "warn" },
+  { brand: "Braemar", code: "27",  system: "heater",   meaning: "Ignition failure (no flame sensed)",              firstCheck: "Check gas is on. If OK, needs a licensed gas fitter to inspect igniter + flame sensor.",     severity: "warn" },
+  { brand: "Braemar", code: "42",  system: "heater",   meaning: "Fan proving switch fault",                        firstCheck: "Fan not detected running. Book gas heater service.",                                          severity: "warn" },
+  { brand: "Braemar", code: "51",  system: "heater",   meaning: "Wall-controller comms lost",                      firstCheck: "Check the low-voltage comms wire between controller and unit.",                              severity: "info" },
+  { brand: "Braemar", code: "58",  system: "heater",   meaning: "Zone motor / damper fault",                       firstCheck: "One zone motor stuck — book service to swap the damper motor.",                              severity: "warn" },
+
+  // ------------------- Bonaire (evap / gas ducted) -------------------
+  { brand: "Bonaire", code: "E01", system: "heater",   meaning: "Water pump fault (evap)",                         firstCheck: "Check evap water supply on. If OK, pump swap needed.",                                        severity: "warn" },
+  { brand: "Bonaire", code: "E02", system: "heater",   meaning: "Water level fault (evap)",                        firstCheck: "Water inlet blocked or float stuck. Clean the reservoir.",                                    severity: "warn" },
+  { brand: "Bonaire", code: "E04", system: "heater",   meaning: "Fan motor fault",                                 firstCheck: "Motor seized or capacitor gone. Book service.",                                               severity: "warn" },
+  { brand: "Bonaire", code: "E05", system: "heater",   meaning: "Ambient temp sensor fault",                       firstCheck: "Outdoor sensor open — sensor swap by installer.",                                             severity: "warn" },
+  { brand: "Bonaire", code: "E12", system: "heater",   meaning: "Comms error (integrated system)",                 firstCheck: "Check comms wire between wall controller and unit.",                                          severity: "info" },
+
+  // ------------------- Sanden (heat pump hot water) -------------------
+  { brand: "Sanden",  code: "F1",  system: "hot-water", meaning: "Comms error tank ↔ heat pump",                    firstCheck: "Check the comms cable between heat pump and tank controller.",                              severity: "warn" },
+  { brand: "Sanden",  code: "F2",  system: "hot-water", meaning: "Tank temp sensor fault",                          firstCheck: "Tank thermistor swap — service call.",                                                        severity: "warn" },
+  { brand: "Sanden",  code: "F3",  system: "hot-water", meaning: "Ambient sensor fault",                            firstCheck: "Outdoor sensor open. Service call.",                                                          severity: "warn" },
+  { brand: "Sanden",  code: "F5",  system: "hot-water", meaning: "High-pressure protection (CO₂)",                  firstCheck: "STOP unit. Refrigerant issue. Warranty tech required.",                                       severity: "critical" },
+  { brand: "Sanden",  code: "F7",  system: "hot-water", meaning: "Compressor overload",                             firstCheck: "STOP unit. Book warranty service.",                                                            severity: "critical" },
+
+  // ------------------- Rheem (electric + gas storage) -------------------
+  { brand: "Rheem",   code: "1",   system: "hot-water", meaning: "Water temp sensor fault",                         firstCheck: "Sensor open — book service. Element still heats but at fixed temp.",                          severity: "warn" },
+  { brand: "Rheem",   code: "12",  system: "hot-water", meaning: "Ignition failure (gas storage)",                  firstCheck: "Check gas supply. If OK, needs a gas fitter — igniter or valve fault.",                       severity: "warn" },
+  { brand: "Rheem",   code: "14",  system: "hot-water", meaning: "Blocked flue",                                   firstCheck: "STOP unit. Flue restriction / no draft. Gas fitter required immediately.",                    severity: "critical" },
+
+  // ------------------- Rinnai (gas continuous flow) -------------------
+  { brand: "Rinnai",  code: "11",  system: "hot-water", meaning: "No ignition on gas continuous flow",              firstCheck: "Check the gas isolation valve is open. If OK, gas fitter needed.",                            severity: "warn" },
+  { brand: "Rinnai",  code: "12",  system: "hot-water", meaning: "Flame failure (drops out mid-shower)",            firstCheck: "Gas pressure low or igniter dirty. Book Rinnai service.",                                     severity: "warn" },
+  { brand: "Rinnai",  code: "14",  system: "hot-water", meaning: "Thermal fuse activated (overtemp)",               firstCheck: "STOP unit. Overheat safety triggered — book service before use.",                             severity: "critical" },
+  { brand: "Rinnai",  code: "16",  system: "hot-water", meaning: "High temp warning",                              firstCheck: "Temperature setting or thermistor issue. Check controller setpoint first.",                    severity: "warn" },
+  { brand: "Rinnai",  code: "61",  system: "hot-water", meaning: "Fan motor fault",                                firstCheck: "Fan not spinning. Book service.",                                                              severity: "warn" },
+
+  // ------------------- Extra Mitsubishi codes -------------------
+  { brand: "Mitsubishi Electric", code: "P7", system: "aircon", meaning: "System error / multi-head miswire",       firstCheck: "Indoor unit address conflict on multi-head. Requires MXZ config check.",                       severity: "warn" },
+  { brand: "Mitsubishi Electric", code: "U8", system: "aircon", meaning: "Outdoor DC voltage abnormal",             firstCheck: "STOP unit. Power supply or inverter drive fault — warranty service.",                          severity: "critical" },
+
+  // ------------------- Extra Daikin codes -------------------
+  { brand: "Daikin",  code: "H9",  system: "aircon",   meaning: "Outdoor ambient sensor fault",                    firstCheck: "Sensor open — swap fix.",                                                                     severity: "warn" },
+  { brand: "Daikin",  code: "J3",  system: "aircon",   meaning: "Discharge pipe thermistor fault",                  firstCheck: "Sensor swap by installer.",                                                                    severity: "warn" },
+  { brand: "Daikin",  code: "P4",  system: "aircon",   meaning: "Heat sink temperature abnormal",                   firstCheck: "STOP unit. Inverter overheat. Warranty service.",                                              severity: "critical" },
 ];
 
 /** Distinct brands present in the table, alphabetised for filter UI. */
