@@ -5,6 +5,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
+import { ProductTabs } from "@/components/ProductTabs";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
@@ -133,8 +134,9 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* Why choose · info-panel strip breaking the page into scannable
-          chunks that answer the questions a real buyer has. */}
+      {/* At-a-glance · four scannable cells (best-for / category /
+          refrigerant / star) sit above the tabbed detail so the buyer
+          can size up the unit before choosing what to dig into. */}
       <section className="product-why">
         <div className="wrap">
           <div className="product-why__grid">
@@ -162,84 +164,46 @@ export default function ProductPage({
         </div>
       </section>
 
-      {/* Our take + full specs · main body */}
-      <section className="product-body">
-        <div className="wrap product-body__grid">
-          <div className="product-body__take">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Our take</span>
-            <h2>Why we install the {product.name}.</h2>
-            <p>{product.ourTake}</p>
-
-            {/* Why choose this brand · leverages the brand-level context so
-                the product page doesn't just talk about the unit in isolation. */}
-            {brand.ourTake && (
-              <>
-                <h3 className="product-body__section-lbl">Why choose {brand.name}</h3>
-                <p>{brand.ourTake}</p>
-              </>
-            )}
-
-            {/* Key features from the brand — pulls the checklist that
-                already exists on the brand hub so the product page reads
-                as brand-informed, not brand-agnostic. */}
-            {brand.keyFeatures && brand.keyFeatures.length > 0 && (
-              <>
-                <h3 className="product-body__section-lbl">What sets {brand.name} apart</h3>
-                <ul className="product-body__feats">
-                  {brand.keyFeatures.slice(0, 5).map((f) => <li key={f}>{f}</li>)}
-                </ul>
-              </>
-            )}
-
-            {/* Brand history + parts pipeline · the "will this be
-                supported in 10 years" question a buyer actually cares
-                about. Populated from brand.established + brand.support. */}
-            {(brand.established || brand.support) && (
-              <>
-                <h3 className="product-body__section-lbl">Brand history &amp; parts support</h3>
-                {brand.established && <p><strong>Established:</strong> {brand.established}</p>}
-                {brand.support && <p>{brand.support}</p>}
-              </>
-            )}
-
-            {relatedProducts.length > 0 && (
-              <>
-                <h3 className="product-body__related-lbl">Related models</h3>
-                <div className="product-body__related">
-                  {relatedProducts.map(({ brand: b, product: p }) => (
-                    <Link key={`${b.slug}-${p.slug}`} href={`/brands/${b.slug}/${p.slug}`} className="product-body__related-card">
-                      <span className="product-body__related-brand">{b.name}</span>
-                      <span className="product-body__related-name">{p.name}</span>
-                      {p.capacity && <span className="product-body__related-cap">{p.capacity}</span>}
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          <aside className="product-body__specs">
-            <h3>Full specification</h3>
-            <dl>
-              {product.specs.map((s) => (
-                <div key={s.label} className="product-body__specrow">
-                  <dt>{s.label}</dt>
-                  <dd>{s.value}</dd>
-                </div>
-              ))}
-            </dl>
-            {brand.warranty && (
-              <div className="product-body__warranty">
-                <div className="dp-local__lbl">Brand warranty</div>
-                <p>{brand.warranty}</p>
-              </div>
-            )}
-            <Link href={`/brands/${brand.slug}`} className="product-body__brandlink">
-              ← See full {brand.name} range
-            </Link>
-          </aside>
+      {/* Tabbed content: Full specs · Features · Why we install.
+          Puts more information on one screen without the buyer having
+          to scroll a long page. Client component keeps the switch
+          instant. Fallbacks handle products that don't yet have per-
+          product feature / why-install bullets populated. */}
+      <section className="product-tabs">
+        <div className="wrap">
+          <ProductTabs
+            specs={product.specs}
+            features={product.features && product.features.length > 0
+              ? product.features
+              : (brand.keyFeatures ?? [])}
+            whyWeInstall={product.whyWeInstall && product.whyWeInstall.length > 0
+              ? product.whyWeInstall
+              : [product.ourTake, brand.ourTake].filter(Boolean) as string[]}
+            brandName={brand.name}
+            brandWarranty={brand.warranty}
+          />
         </div>
       </section>
+
+      {relatedProducts.length > 0 && (
+        <section className="product-related">
+          <div className="wrap">
+            <h3 className="product-related__lbl">Related models</h3>
+            <div className="product-related__grid">
+              {relatedProducts.map(({ brand: b, product: p }) => (
+                <Link key={`${b.slug}-${p.slug}`} href={`/brands/${b.slug}/${p.slug}`} className="product-related__card">
+                  <span className="product-related__brand">{b.name}</span>
+                  <span className="product-related__name">{p.name}</span>
+                  {p.capacity && <span className="product-related__cap">{p.capacity}</span>}
+                </Link>
+              ))}
+            </div>
+            <Link href={`/brands/${brand.slug}`} className="product-related__all">
+              ← See full {brand.name} range
+            </Link>
+          </div>
+        </section>
+      )}
 
       <section className="bigcta">
         <div className="wrap bigcta__row">

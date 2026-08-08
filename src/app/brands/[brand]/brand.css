@@ -1222,6 +1222,241 @@
   .brand-group__grid { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 
+/* ==========================================================
+   Product page · tabbed detail (Specs · Features · Why we install)
+   Sits below the at-a-glance strip and replaces the long
+   scrolling body sections. Client component in ProductTabs.tsx.
+   ========================================================== */
+.page-product .product-tabs {
+  padding: 40px 0 20px;
+  background: var(--bg);
+}
+.ptabs {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.ptabs__nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ptabs__nav::-webkit-scrollbar { display: none; }
+.ptabs__tab {
+  flex: 1 1 0;
+  min-width: max-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background: transparent;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+  white-space: nowrap;
+}
+.ptabs__tab:hover { color: var(--navy); background: rgba(0,0,0,0.02); }
+.ptabs__tab.is-active {
+  color: var(--navy);
+  border-bottom-color: var(--orange);
+  background: #fff;
+}
+.ptabs__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 7px;
+  height: 20px;
+  background: var(--bg-2);
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.ptabs__tab.is-active .ptabs__count {
+  background: rgba(243,103,34,0.12);
+  color: var(--orange);
+}
+.ptabs__panel { padding: 26px 28px; }
+
+/* Specs panel — dl grid, same shape as the old sidebar spec table. */
+.ptabs__specs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+}
+.ptabs__specrow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: baseline;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line-2);
+}
+.ptabs__specrow dt {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.ptabs__specrow dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ptabs__note {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  border-left: 3px solid var(--orange);
+}
+.ptabs__note-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.ptabs__note p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* Features + Why-we-install lists share the same shape with different
+   marker colours so buyers can tell them apart at a glance. */
+.ptabs__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.ptabs__list li {
+  position: relative;
+  padding: 4px 0 4px 32px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+.ptabs__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 12px 12px;
+}
+.ptabs__list--features li::before {
+  background-color: rgba(0,176,237,0.14);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23036f96' d='M8.1 13.5l-3.3-3.3 1.4-1.4 1.9 1.9 5.7-5.7 1.4 1.4z'/></svg>");
+}
+.ptabs__list--why li::before {
+  background-color: rgba(243,103,34,0.14);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23b64b12' d='M10 15l-5-5 1.4-1.4L10 12.2l3.6-3.6L15 10z'/></svg>");
+}
+
+@media (max-width: 700px) {
+  .page-product .product-tabs { padding: 24px 0 12px; }
+  .ptabs__tab { padding: 14px 16px; font-size: 13.5px; gap: 6px; }
+  .ptabs__panel { padding: 20px 18px; }
+  .ptabs__specs { grid-template-columns: 1fr; }
+  .ptabs__specrow { padding: 10px 0; }
+  .ptabs__specrow dd { font-size: 13.5px; }
+  .ptabs__list li { font-size: 13.5px; padding-left: 28px; }
+}
+
+/* Related-models section — pulled out from the old product-body grid
+   so it sits below the tabs full-width. */
+.page-product .product-related {
+  padding: 0 0 60px;
+  background: var(--bg);
+}
+.page-product .product-related__lbl {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  margin: 0 0 14px;
+}
+.page-product .product-related__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.page-product .product-related__card {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: border-color 0.12s, transform 0.12s;
+}
+.page-product .product-related__card:hover {
+  border-color: var(--navy);
+  transform: translateY(-2px);
+}
+.page-product .product-related__brand {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+}
+.page-product .product-related__name {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  line-height: 1.25;
+}
+.page-product .product-related__cap {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.page-product .product-related__all {
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--navy);
+  text-decoration: none;
+  font-weight: 600;
+}
+.page-product .product-related__all:hover { color: var(--orange); }
+
 /* Compact list view for product cards on phones.
    Full-width cards with a 6-model split-system range felt bloated —
    users had to scroll a wall of near-identical cards. On mobile the
