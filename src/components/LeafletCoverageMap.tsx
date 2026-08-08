@@ -54,7 +54,7 @@ export function LeafletCoverageMap({ highlight }: { highlight?: string }) {
         maxZoom: 19,
       }).addTo(map);
 
-      // 50 km service radius, centred on Pakenham.
+      // 75 km service radius, centred on Pakenham.
       L.circle([PAKENHAM[0], PAKENHAM[1]], {
         radius: RADIUS_M,
         color: "#f36722",
@@ -102,7 +102,7 @@ export function LeafletCoverageMap({ highlight }: { highlight?: string }) {
           });
         });
 
-      // Frame the map around the 50 km circle, not just HQ.
+      // Frame the map around the 75 km circle, not just HQ.
       map.fitBounds(L.latLng(PAKENHAM[0], PAKENHAM[1]).toBounds(RADIUS_M * 2.2), {
         padding: [12, 12],
         animate: false,
@@ -120,7 +120,7 @@ export function LeafletCoverageMap({ highlight }: { highlight?: string }) {
       className="covmap__leaflet"
       ref={ref}
       role="img"
-      aria-label={`Coverage map — every suburb we install in within 50 km of Pakenham${highlight ? `, with ${highlight} highlighted` : ""}`}
+      aria-label={`Coverage map — every suburb we install in within 75 km of Pakenham${highlight ? `, with ${highlight} highlighted` : ""}`}
     />
   );
 }

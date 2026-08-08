@@ -8,7 +8,7 @@
  * chip list — so no two pages produce the same body copy.
  *
  * `published: true` gates which suburbs land in generateStaticParams +
- * sitemap. As of SEO Wave 2, all 42 postcodes within 50 km of Pakenham
+ * sitemap. As of SEO Wave 2, all 42 postcodes within 75 km of Pakenham
  * are enriched and published. Draft any new additions with published:false.
  */
 

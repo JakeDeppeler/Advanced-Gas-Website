@@ -3,10 +3,10 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Leaflet map centred on Pakenham (-38.078, 145.487) with a fixed 50 km
+ * Leaflet map centred on Pakenham (-38.078, 145.487) with a fixed 75 km
  * service radius. Position is locked (no drag, no keyboard pan, no touch
  * drag) but scroll-wheel zoom and the +/- buttons work, the radius circle
- * is drawn in Earth metres so it stays at 50 km at every zoom level.
+ * is drawn in Earth metres so it stays at 75 km at every zoom level.
  */
 const PAKENHAM: [number, number] = [-38.078, 145.487];
 const RADIUS_M = 50_000;
@@ -86,6 +86,6 @@ export function ServiceAreaMap() {
   }, []);
 
   return (
-    <div className="map__leaflet" ref={ref} role="img" aria-label="Service area map, 50 km radius from Pakenham" />
+    <div className="map__leaflet" ref={ref} role="img" aria-label="Service area map, 75 km radius from Pakenham" />
   );
 }

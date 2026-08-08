@@ -1435,25 +1435,29 @@
   .page-home .bcard--xl { grid-column: auto; }
   .page-home .why-grid { grid-template-columns: 1fr; }
   .page-home .steps { grid-template-columns: 1fr; }
-  /* Mobile — brands become a horizontal scrolling rail, same UX as
-     the reviews rail. Kills the 2-col grid that was creating a wall
-     of 4 rows of chips on tight phones. */
+  /* Mobile — brands auto-scroll left-to-right as a marquee. Kills
+     the 2-col grid that was creating a wall of 4 rows of chips on
+     tight phones and gives the strip motion so it reads as "live". */
+  .page-home .brands {
+    padding: 32px 0 24px;
+    overflow: hidden;
+  }
   .page-home .brands__grid {
     display: flex !important;
     grid-template-columns: none !important;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 20px 8px;
-    margin: 0 -20px;
     gap: 10px;
-    scrollbar-width: none;
+    padding: 4px 0 8px;
+    margin: 0 -20px;
+    animation: brands-marquee 30s linear infinite;
+    width: max-content;
   }
-  .page-home .brands__grid::-webkit-scrollbar { display: none; }
   .page-home .brand-chip {
     flex: 0 0 auto;
-    scroll-snap-align: start;
-    min-width: 140px;
+    min-width: 150px;
+  }
+  @keyframes brands-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
   }
   .page-home .veu__numbers { grid-template-columns: 1fr; }
 }

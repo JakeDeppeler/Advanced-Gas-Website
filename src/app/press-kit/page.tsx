@@ -31,7 +31,7 @@ const KEY_FACTS: { label: string; value: string }[] = [
   { label: "Founded",         value: "2014, Pakenham VIC" },
   { label: "Owner-operator",  value: "Family-owned since day one" },
   { label: "Head office",     value: "1 Sierra Circuit, Pakenham VIC 3810" },
-  { label: "Service radius",  value: "50 km from Pakenham · 64 postcodes" },
+  { label: "Service radius",  value: "75 km from Pakenham · 64 postcodes" },
   { label: "Installs done",   value: "1,200+ residential + light commercial" },
   { label: "Google reviews",  value: "4.9 / 5 stars · 280+ locals" },
   { label: "Plumbing licence",value: "VIC Lic. 46828" },
@@ -45,7 +45,7 @@ const KEY_FACTS: { label: string; value: string }[] = [
 const COPY_BLOCKS: { label: string; text: string; note?: string }[] = [
   {
     label: "One-line boilerplate (for directories with a short-description field)",
-    text: "Advanced Gas & Aircon is a family-owned Pakenham installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing, servicing every postcode within 50 km of Pakenham VIC.",
+    text: "Advanced Gas & Aircon is a family-owned Pakenham installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing, servicing every postcode within 75 km of Pakenham VIC.",
   },
   {
     label: "Two-sentence boilerplate (for chamber/community pages)",

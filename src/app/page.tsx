@@ -226,20 +226,25 @@ export default function HomePage() {
             <span className="brands__partner">Trade partner of <strong>Reece</strong></span>
           </div>
           <div className="brands__grid">
-            {[
-              ["Reclaim", "heat pumps"],
-              ["iStore", "heat pumps"],
-              ["Thermann", "hot water"],
-              ["Mitsubishi", "electric aircon"],
-              ["Kaden", "aircon"],
-              ["Zonemate", "zoning"],
-              ["Brivis", "gas ducted"],
-            ].map(([name, type]) => (
-              <div key={name} className="brand-chip">
-                <span className="brand-chip__name">{name}</span>
-                <span className="brand-chip__type">{type}</span>
-              </div>
-            ))}
+            {(() => {
+              const BRANDS_STRIP: [string, string][] = [
+                ["Reclaim", "heat pumps"],
+                ["iStore", "heat pumps"],
+                ["Thermann", "hot water"],
+                ["Mitsubishi", "electric aircon"],
+                ["Kaden", "aircon"],
+                ["Zonemate", "zoning"],
+                ["Brivis", "gas ducted"],
+              ];
+              // Duplicated so the mobile marquee (CSS translateX(-50%)) loops
+              // seamlessly — the second half slides in as the first half exits.
+              return [...BRANDS_STRIP, ...BRANDS_STRIP].map(([name, type], i) => (
+                <div key={`${name}-${i}`} className="brand-chip" aria-hidden={i >= BRANDS_STRIP.length}>
+                  <span className="brand-chip__name">{name}</span>
+                  <span className="brand-chip__type">{type}</span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </section>
@@ -362,10 +367,10 @@ export default function HomePage() {
                   <li>VEU rebate applied, compliance cert included</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">$2,610</span>
+                  <span className="fixprice__price-num">$2,624</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
-                <p className="fixprice__note">Price assumes a power point within 50&nbsp;cm of the current hot water system. New power point quoted separately.</p>
+                <p className="fixprice__note">Price assumes a power point within 75&nbsp;cm of the current hot water system. New power point quoted separately.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the R290 &rarr;</a>
               </div>
             </article>
@@ -386,10 +391,10 @@ export default function HomePage() {
                   <li>15-year warranty on stainless tank option</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">from&nbsp;$5,340</span>
-                  <span className="fixprice__price-lbl">fully installed, inc GST</span>
+                  <span className="fixprice__price-num">Message for quote</span>
+                  <span className="fixprice__price-lbl">fixed price back in 2 hrs</span>
                 </div>
-                <p className="fixprice__note">315&nbsp;L glass-lined Wi-Fi from $5,340. 400&nbsp;L stainless steel Wi-Fi $6,745 inc GST.</p>
+                <p className="fixprice__note">Reclaim CO₂ Split — glass-lined, stainless, stainless 316 or Earthworks in 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
               </div>
             </article>
@@ -410,8 +415,8 @@ export default function HomePage() {
                   <li>Design, ducting, install, commission &amp; certify</li>
                 </ul>
                 <div className="fixprice__price">
-                  <span className="fixprice__price-num">from&nbsp;$11,000</span>
-                  <span className="fixprice__price-lbl">fully installed, inc GST</span>
+                  <span className="fixprice__price-num">Message for quote</span>
+                  <span className="fixprice__price-lbl">fixed price back in 2 hrs</span>
                 </div>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the ducted &rarr;</a>
               </div>
@@ -570,7 +575,7 @@ export default function HomePage() {
         <div className="wrap area__grid">
           <div className="area__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>Based in Pakenham. On-site within 50 km.</h2>
+            <h2>Based in Pakenham. On-site within 75 km.</h2>
             <p>If you&apos;re south-east of Melbourne and your suburb&apos;s on this list, we cover you with no travel surcharge.</p>
             <div className="suburbs">
               {SUBURBS.map((s) => (
@@ -582,11 +587,11 @@ export default function HomePage() {
             <p className="area__finep">Outside this list? Give us a call, we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">
-            <div className="map map--live" aria-label="Service area map, 50 km radius from Pakenham 3810">
+            <div className="map map--live" aria-label="Service area map, 75 km radius from Pakenham 3810">
               <ServiceAreaMap />
               <div className="map__badge">
                 <span className="map__badge-eye">Service radius</span>
-                <span className="map__badge-num">50&nbsp;km</span>
+                <span className="map__badge-num">75&nbsp;km</span>
                 <span className="map__badge-note">Melbourne&rsquo;s south-east from Pakenham 3810</span>
               </div>
             </div>

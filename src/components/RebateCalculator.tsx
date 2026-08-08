@@ -49,7 +49,7 @@ type Product = {
   desc: string;
   rrp: number;          // ex GST from manufacturer pricebook
   install: InstallType;
-  needsPower?: boolean; // AIO plug-ins need a power point within 50cm
+  needsPower?: boolean; // AIO plug-ins need a power point within 75cm
 };
 
 type Brand = {
@@ -242,7 +242,7 @@ export function RebateCalculator() {
               <div className="rb-calc__block rb-calc__block--modifiers">
                 {product.needsPower && (
                   <div className="rb-calc__mod rb-calc__mod--full">
-                    <span className="rb-calc__qlabel">Power point within 50 cm of current hot water?</span>
+                    <span className="rb-calc__qlabel">Power point within 75 cm of current hot water?</span>
                     <div className="rb-calc__grid rb-calc__grid--2">
                       <button type="button"
                         className={`rb-calc__pill ${power === "yes" ? "is-on" : ""}`}

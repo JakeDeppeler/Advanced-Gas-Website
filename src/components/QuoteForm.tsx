@@ -161,7 +161,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         {step === 3 && (
           <fieldset>
             <legend className="qf-legend">Where&apos;s the job?</legend>
-            <p className="qf-sub">We service Pakenham and within 50 km.</p>
+            <p className="qf-sub">We service Pakenham and within 75 km.</p>
             <div className="qf-row">
               <label className="qf-field">
                 <span>Suburb</span>

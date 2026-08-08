@@ -52,7 +52,7 @@ export default function SuburbServicePage({
   const localFaqs = [
     {
       q: `Do you service ${sub.name} ${sub.postcode}?`,
-      a: `Yes, we service ${sub.name} and surrounding areas as part of our Pakenham + 50 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
+      a: `Yes, we service ${sub.name} and surrounding areas as part of our Pakenham + 75 km coverage. Most ${sub.name} jobs are scheduled within 5-7 days.`,
     },
     ...content.faqs.slice(0, 4),
   ];

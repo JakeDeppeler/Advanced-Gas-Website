@@ -5,7 +5,7 @@ import "./contact.css";
 
 export const metadata: Metadata = {
   title: "Contact, Free quote in 2 hours",
-  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 50 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
+  description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -16,7 +16,7 @@ export default function ContactPage() {
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Contact us</span>
           <h1>Tell us what you need. <em>We&apos;ll come back within 2 hours.</em></h1>
-          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 50 km. The bloke who quotes is the bloke who installs.</p>
+          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75 km. The bloke who quotes is the bloke who installs.</p>
         </div>
       </section>
 
@@ -57,7 +57,7 @@ export default function ContactPage() {
 
             <div className="ct-card">
               <h3>Service area</h3>
-              <p>Pakenham &amp; within 50 km. We don&apos;t quote outside that radius, keeps our response times honest.</p>
+              <p>Pakenham &amp; within 75 km. We don&apos;t quote outside that radius, keeps our response times honest.</p>
               <div className="ct-map">
                 <div className="ct-map__pin">
                   <div className="ct-map__pin-ring" />
@@ -65,7 +65,7 @@ export default function ContactPage() {
                 </div>
                 <div className="ct-map__label">
                   <span>PAKENHAM, VIC 3810</span>
-                  <span style={{ color: "var(--orange)", fontWeight: 700 }}>50 km radius</span>
+                  <span style={{ color: "var(--orange)", fontWeight: 700 }}>75 km radius</span>
                 </div>
               </div>
             </div>

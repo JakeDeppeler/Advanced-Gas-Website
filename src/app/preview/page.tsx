@@ -321,13 +321,13 @@ export default function PreviewPage() {
         {/* AREA card */}
         <div className="pv-card">
           <div className="pv-eye"><span className="pv-eye__dot" /> Where we work</div>
-          <h2 className="pv-h">Pakenham + 50&nbsp;km south-east.</h2>
+          <h2 className="pv-h">Pakenham + 75&nbsp;km south-east.</h2>
           <p className="pv-lede">South-east of Melbourne. No travel surcharge inside the ring.</p>
-          <div className="pv-map" aria-label="Service area, 50km radius from Pakenham">
+          <div className="pv-map" aria-label="Service area, 75km radius from Pakenham">
             <div className="pv-map__pin" />
             <div className="pv-map__badge">
               <span className="pv-map__badge-eye">Radius</span>
-              <span className="pv-map__badge-num">50 km</span>
+              <span className="pv-map__badge-num">75 km</span>
             </div>
           </div>
           <div className="pv-chips">

@@ -690,40 +690,50 @@
   display: flex; flex-direction: column;
   /* Tighter top padding — the Call pill above the nav was removed
      because the sticky mobile CTA already carries Call the team.
-     Big bottom clearance so the final "Get a free quote" button
-     doesn't slip under the fixed sticky mobile CTA (80px + safe-area). */
-  padding: 14px 20px calc(120px + env(safe-area-inset-bottom, 0));
+     BIG bottom clearance so the final "Get a free quote" button
+     doesn't slip under the fixed sticky mobile CTA (80 px + safe-
+     area). Bumped to 160 so the button sits well above the CTA. */
+  padding: 14px 20px calc(160px + env(safe-area-inset-bottom, 0));
   gap: 4px;
 }
 
 /* Branded row in the Brands drawer accordion — accent color stripe
    on the left uses the brand's own hex (via --brand-accent CSS var
-   set inline). Reads as "these are real brands" at a glance. */
+   set inline). Force flex-row + explicit width so the stripe is
+   always visible on mobile regardless of the base .hdr__drawer-sublink
+   flex-column default. */
 .hdr__drawer-sublink--brand {
-  display: grid;
-  grid-template-columns: 4px 1fr;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
   gap: 12px;
   padding: 10px 12px 10px 0;
-  align-items: stretch;
   border-radius: 8px;
   overflow: hidden;
+  min-height: 56px;
 }
 .hdr__drawer-brandstripe {
-  align-self: stretch;
+  display: block;
+  flex: 0 0 5px;
+  width: 5px;
   background: var(--brand-accent, var(--sky));
-  border-radius: 2px;
-  min-height: 100%;
+  border-radius: 3px;
+  align-self: stretch;
 }
 .hdr__drawer-brandbody {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
 }
 .hdr__drawer-brandbody b {
   font-family: var(--f-display);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 15.5px;
   color: var(--brand-accent, var(--navy));
+  line-height: 1.2;
 }
 .hdr__drawer-brandbody > span {
   font-size: 12.5px;
@@ -731,37 +741,42 @@
   line-height: 1.4;
 }
 
-/* Iconified row in the Tools drawer accordion */
+/* Iconified row in the Tools drawer accordion — icon on the LEFT,
+   text stacked on the RIGHT. Forced flex-direction:row + align-items
+   overrides the base .hdr__drawer-sublink which uses column stack. */
 .hdr__drawer-sublink--tool {
-  display: grid;
-  grid-template-columns: 36px 1fr;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
   gap: 12px;
-  align-items: center;
   padding: 10px 12px;
+  text-align: left;
 }
 .hdr__drawer-toolicon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border-radius: 10px;
   background: rgba(243,103,34,0.10);
   color: var(--orange);
   font-family: var(--f-display);
   font-weight: 800;
-  font-size: 17px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 .hdr__drawer-toolbody {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 .hdr__drawer-toolbody b {
   font-family: var(--f-display);
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 15px;
   color: var(--navy);
   line-height: 1.2;
 }

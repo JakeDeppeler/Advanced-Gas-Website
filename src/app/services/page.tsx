@@ -7,7 +7,7 @@ import "./services-hub.css";
 export const metadata: Metadata = {
   title: "Services, Heat Pumps, Aircon, Gas & Hot Water",
   description:
-    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 50 km. Free quote.",
+    "Heat pump hot water, split system & ducted aircon, gas heating, gas servicing, hot water and commercial fit-outs. Pakenham VIC, servicing within 75 km. Free quote.",
   alternates: { canonical: "/services" },
 };
 
@@ -164,7 +164,7 @@ const services: Service[] = [
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 50km"], ["Response", "within 2 hrs"], ["After-hours", "$400 first hr · $150/hr after"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 2 hrs"], ["After-hours", "$400 first hr · $150/hr after"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house, priority",

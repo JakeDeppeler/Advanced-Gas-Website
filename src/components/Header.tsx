@@ -26,10 +26,45 @@ type NavItem =
     };
 
 const SERVICES_MEGA: {
+  primary: ServiceMegaItem[];
   install: ServiceMegaItem[];
   repair: ServiceMegaItem[];
   popular: { href: string; label: string; sub: string }[];
 } = {
+  // Simplified 4-tile menu — the user asked for this to be tighter:
+  // Aircon · Gas heater · Evap cooler · Emergency call-out. Install
+  // and Repair sub-arrays are kept for the mobile drawer & full
+  // /services page but the header mega now renders `primary` only.
+  primary: [
+    {
+      href: "/services/air-conditioning-installation",
+      label: "Aircon",
+      sub: "Split · multi-head · ducted",
+      photo: "/AP_70-80HP_front-1920x1440-1.png",
+      photoAlt: "Air conditioning — split and ducted systems",
+    },
+    {
+      href: "/services/gas-plumbing#gas-ducted",
+      label: "Gas heater",
+      sub: "Ducted heating · service · repair",
+      photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
+      photoAlt: "Gas ducted heater — install, service, repair",
+    },
+    {
+      href: "/services/air-conditioning-installation#evap",
+      label: "Evap cooler",
+      sub: "Roof-mounted whole-home cooling",
+      photo: "/classic_evap_product_image.jpg",
+      photoAlt: "Evaporative cooler on the roof",
+    },
+    {
+      href: "/contact#emergency",
+      label: "Emergency call-out",
+      sub: "24/7 · gas leaks, no hot water",
+      photo: "/gas-line-safe.webp",
+      photoAlt: "Emergency call-out — 24/7 gas and hot water",
+    },
+  ],
   install: [
     {
       href: "/services/air-conditioning-installation#split",
@@ -329,33 +364,16 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      {/* Installation row — full width so the 8 cards get plenty of
-          horizontal space and read big. Repair sits underneath as a
-          separate strip rather than fighting for width in a sidebar. */}
+      {/* Simplified 4-tile row — Aircon · Gas heater · Evap cooler ·
+          Emergency call-out. User asked for a tighter set than the
+          old 8-install + 4-repair split. */}
       <div className="mega__services-block">
-        <div className="mega__collabel">Installation</div>
-        <div className="mega__services-grid">
-          {SERVICES_MEGA.install.map((s) => (
+        <div className="mega__collabel">Services we install &amp; repair</div>
+        <div className="mega__services-grid mega__services-grid--primary">
+          {SERVICES_MEGA.primary.map((s) => (
             <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
               <div className="mega__servicecard-photo">
                 <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
-              </div>
-              <div className="mega__servicecard-body">
-                <b>{s.label}</b>
-                <span>{s.sub}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="mega__services-block mega__services-block--repair">
-        <div className="mega__collabel">Service &amp; repair</div>
-        <div className="mega__services-grid mega__services-grid--repair">
-          {SERVICES_MEGA.repair.map((s) => (
-            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
-              <div className="mega__servicecard-photo">
-                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
               </div>
               <div className="mega__servicecard-body">
                 <b>{s.label}</b>
@@ -471,7 +489,7 @@ function AreasMega() {
         </div>
       ))}
       <div className="mega__cta">
-        <div className="mega__cta-sub">Every postcode within 50&nbsp;km of Pakenham.</div>
+        <div className="mega__cta-sub">Every postcode within 75&nbsp;km of Pakenham.</div>
         <Link href="/service-areas" className="ds-btn ds-btn--orange">See all 46 suburbs →</Link>
       </div>
     </div>
@@ -503,15 +521,8 @@ function MobileDrawer({ close }: { close: () => void }) {
               <summary>{n.label}</summary>
               {n.kind === "services" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Installation</div>
-                  {SERVICES_MEGA.install.map((s) => (
-                    <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
-                      <b>{s.label}</b>
-                      <span>{s.sub}</span>
-                    </Link>
-                  ))}
-                  <div className="hdr__drawer-collabel">Service &amp; repair</div>
-                  {SERVICES_MEGA.repair.map((s) => (
+                  <div className="hdr__drawer-collabel">Services we install &amp; repair</div>
+                  {SERVICES_MEGA.primary.map((s) => (
                     <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{s.label}</b>
                       <span>{s.sub}</span>

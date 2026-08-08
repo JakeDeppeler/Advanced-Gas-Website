@@ -6,7 +6,7 @@ import { PAKENHAM, RADIUS_KM, suburbCoords } from "@/lib/suburbCoords";
 /**
  * Real OpenStreetMap tile map for suburb pages.
  *
- * The suburb dot sits inside a 50 km circle centred on our Pakenham base,
+ * The suburb dot sits inside a 75 km circle centred on our Pakenham base,
  * so the customer sees both their suburb and how it fits inside our
  * service radius on a genuine street map — not an abstract circle.
  *
@@ -65,7 +65,7 @@ export function LeafletSuburbMap({ slug, name }: { slug: string; name: string })
         maxZoom: 19,
       }).addTo(map);
 
-      // 50 km service-radius ring, centred on Pakenham.
+      // 75 km service-radius ring, centred on Pakenham.
       L.circle([PAKENHAM[0], PAKENHAM[1]], {
         radius: RADIUS_M,
         color: "#f36722",
@@ -130,7 +130,7 @@ export function LeafletSuburbMap({ slug, name }: { slug: string; name: string })
       className="submap__leaflet"
       ref={ref}
       role="img"
-      aria-label={`Map showing ${name} within our 50 km service radius from Pakenham`}
+      aria-label={`Map showing ${name} within our 75 km service radius from Pakenham`}
     />
   );
 }

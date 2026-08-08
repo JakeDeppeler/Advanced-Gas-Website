@@ -117,7 +117,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
                 <strong>{sub.distanceKm} km</strong>
                 {sub.distanceKm === 0
                   ? " — this is our home patch."
-                  : " — well inside our 50 km same-day service radius."}
+                  : " — well inside our 75 km same-day service radius."}
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             <h2>Where {sub.name} sits in our service radius.</h2>
             <p>
               {sub.name} is <strong>{sub.distanceKm}&nbsp;km</strong> from our Pakenham base — well inside
-              the 50&nbsp;km circle we cover same-week. The dotted rings step out in
+              the 75&nbsp;km circle we cover same-week. The dotted rings step out in
               10&nbsp;km increments so you can see how quickly we can reach nearby suburbs
               along the same route.
             </p>

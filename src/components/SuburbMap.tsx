@@ -1,7 +1,7 @@
 import { PAKENHAM, RADIUS_KM, suburbCoords, distanceKm, bearingDeg, compass } from "@/lib/suburbCoords";
 
 /**
- * Inline SVG map showing a suburb's location within our 50 km service
+ * Inline SVG map showing a suburb's location within our 75 km service
  * radius from Pakenham. No external map tiles, no JS library — the whole
  * thing renders server-side as static SVG. Extremely fast, works for
  * every suburb.
@@ -15,7 +15,7 @@ export function SuburbMap({ slug, name }: { slug: string; name: string }) {
   const dir = compass(bearing);
 
   // Project lat/lng onto a 300×300 SVG canvas centered on Pakenham.
-  // Simple equirectangular projection is fine at this scale (50km ≈ 0.5°
+  // Simple equirectangular projection is fine at this scale (75km ≈ 0.5°
   // latitude; the horizontal squishing at Melbourne latitude is negligible
   // for a visual reference map).
   const W = 300, H = 300;
@@ -41,12 +41,12 @@ export function SuburbMap({ slug, name }: { slug: string; name: string }) {
 
   return (
     <figure className="submap">
-      <svg viewBox={`0 0 ${W} ${H}`} xmlns="http://www.w3.org/2000/svg" role="img" aria-label={`Map showing ${name} within the 50 km service radius from Pakenham`}>
-        {/* Concentric distance rings (10, 20, 30, 40, 50 km) */}
+      <svg viewBox={`0 0 ${W} ${H}`} xmlns="http://www.w3.org/2000/svg" role="img" aria-label={`Map showing ${name} within the 75 km service radius from Pakenham`}>
+        {/* Concentric distance rings (10, 20, 30, 40, 75 km) */}
         {[10, 20, 30, 40].map((r) => (
           <circle key={r} cx={CX} cy={CY} r={r * scale} fill="none" stroke="var(--line, #E5E9F2)" strokeWidth={0.6} strokeDasharray="2 3" />
         ))}
-        {/* 50 km hard boundary */}
+        {/* 75 km hard boundary */}
         <circle cx={CX} cy={CY} r={radiusPx} fill="rgba(243,103,34,0.06)" stroke="var(--orange, #F36722)" strokeWidth={1.5} strokeDasharray="4 4" />
 
         {/* Compass rose ticks */}

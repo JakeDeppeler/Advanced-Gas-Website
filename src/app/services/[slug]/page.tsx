@@ -47,7 +47,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </nav>
           <div className="dp-hero__eyebrow">
             <span className="ds-dot" />
-            {svc.short} · Pakenham &amp; within 50 km
+            {svc.short} · Pakenham &amp; within 75 km
           </div>
           <h1>{content.h1}</h1>
           <p className="dp-hero__sub">{content.intro}</p>

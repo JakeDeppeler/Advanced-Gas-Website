@@ -189,7 +189,7 @@ export function Footer() {
               </li>
             ))}
             <li className="ftr__chips-more">
-              <Link href="/service-areas">+ every suburb within 50km →</Link>
+              <Link href="/service-areas">+ every suburb within 75km →</Link>
             </li>
           </ul>
         </div>

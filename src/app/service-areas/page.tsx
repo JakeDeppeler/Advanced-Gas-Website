@@ -5,9 +5,9 @@ import { CoverageMap } from "@/components/CoverageMap";
 import "../detail.css";
 
 export const metadata: Metadata = {
-  title: "Service Areas, Pakenham + 50 km",
+  title: "Service Areas, Pakenham + 75 km",
   description:
-    "Aircon, heat pump and gas plumbing installation across Pakenham and within 50 km. Berwick, Officer, Cranbourne, Narre Warren, Endeavour Hills, Dandenong, Drouin, Warragul and everywhere in between.",
+    "Aircon, heat pump and gas plumbing installation across Pakenham and within 75 km. Berwick, Officer, Cranbourne, Narre Warren, Endeavour Hills, Dandenong, Drouin, Warragul and everywhere in between.",
   alternates: { canonical: "/service-areas" },
 };
 
@@ -25,7 +25,7 @@ export default function ServiceAreasPage() {
             <span className="ds-dot" /> Service areas
           </div>
           <h1>
-            Pakenham &amp; <span className="accent">within 50 km</span>.
+            Pakenham &amp; <span className="accent">within 75 km</span>.
           </h1>
           <p className="dp-hero__sub">
             Licensed aircon, heat pump and gas plumbing installation across the south-east Melbourne corridor and Gippsland.
