@@ -68,6 +68,19 @@ const TOOLS: {
     ],
   },
   {
+    slug: "heat-pump-compare",
+    title: "Heat Pump Compare",
+    tagline: "Reclaim vs iStore vs Thermann vs Sanden vs Rheem.",
+    blurb:
+      "Cross-brand heat pump hot water comparison — CO₂ vs R290 vs R134a, capacity, warranty, COP, price band, made-in and our installer take. Pick 2-5 models to compare side-by-side.",
+    ctaLabel: "Compare heat pumps →",
+    bullets: [
+      "Every major HW heat pump brand we service",
+      "Refrigerant type, COP, warranty, install range",
+      "Pros / cons + our default recommendations",
+    ],
+  },
+  {
     slug: "system-comparison",
     title: "System Type Comparison",
     tagline: "Split vs multi-head vs ducted vs gas vs evap.",

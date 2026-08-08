@@ -17,7 +17,7 @@ import {
  * is showing 22" doesn't have to scroll past 30 aircon codes.
  */
 
-const SYSTEM_ORDER: (FaultSystem | "all")[] = ["all", "aircon", "heater", "hot-water"];
+const SYSTEM_ORDER: (FaultSystem | "all")[] = ["all", "aircon", "heater", "evap", "hot-water"];
 
 export function FaultCodeLookup() {
   const [query, setQuery] = useState("");

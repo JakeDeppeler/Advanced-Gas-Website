@@ -105,6 +105,7 @@ export function Footer() {
               <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>
               <li><Link href="/tools/hot-water-savings">Hot water savings calculator</Link></li>
               <li><Link href="/tools/heating-comparator">Gas vs reverse-cycle</Link></li>
+              <li><Link href="/tools/heat-pump-compare">Heat pump compare</Link></li>
               <li><Link href="/tools/system-comparison">System comparison</Link></li>
               <li><Link href="/tools/fault-codes">Fault code lookup</Link></li>
               <li><Link href="/blog">Blog &amp; guides</Link></li>

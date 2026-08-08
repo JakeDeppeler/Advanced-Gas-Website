@@ -173,13 +173,14 @@ const NAV: NavItem[] = [
 ];
 
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
-  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",           icon: "$" },
-  { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",        icon: "⌂" },
-  { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                 icon: "⚡" },
-  { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback", icon: "♨" },
-  { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",     icon: "❄" },
-  { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap", icon: "≡" },
-  { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",     icon: "!" },
+  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$" },
+  { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂" },
+  { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡" },
+  { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback",   icon: "♨" },
+  { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann / Sanden", icon: "◆" },
+  { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",        icon: "❄" },
+  { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap",  icon: "≡" },
+  { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",        icon: "!" },
 ];
 
 function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {

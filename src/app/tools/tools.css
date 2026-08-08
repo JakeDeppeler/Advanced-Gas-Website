@@ -370,6 +370,7 @@
 .fault-system--aircon     { background: rgba(0,176,237,0.10);   color: #036f96; border-color: rgba(0,176,237,0.25); }
 .fault-system--heater     { background: rgba(243,103,34,0.10);  color: #b64b12; border-color: rgba(243,103,34,0.25); }
 .fault-system--hot-water  { background: rgba(46,132,89,0.10);   color: #1c603c; border-color: rgba(46,132,89,0.25); }
+.fault-system--evap       { background: rgba(139,92,246,0.10);  color: #5a3ab3; border-color: rgba(139,92,246,0.25); }
 
 /* Stack the fault-table's less-important columns on mobile */
 @media (max-width: 640px) {
