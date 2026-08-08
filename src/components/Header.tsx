@@ -22,7 +22,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas";
+      kind: "services" | "brands" | "areas" | "tools";
     };
 
 const SERVICES_MEGA: {
@@ -164,12 +164,22 @@ const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
-  { href: "/tools", label: "Tools" },
+  { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+];
+
+const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
+  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",           icon: "$" },
+  { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",        icon: "⌂" },
+  { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                 icon: "⚡" },
+  { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback", icon: "♨" },
+  { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",     icon: "❄" },
+  { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap", icon: "≡" },
+  { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",     icon: "!" },
 ];
 
 function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
@@ -275,6 +285,7 @@ export function Header() {
                     {n.kind === "services" && <ServicesMega />}
                     {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
+                    {n.kind === "tools" && <ToolsMega />}
                   </div>
                 )}
               </div>
@@ -415,6 +426,32 @@ function BrandsMega() {
   );
 }
 
+function ToolsMega() {
+  return (
+    <div className="mega__tools">
+      <div className="mega__toolshead">
+        <div className="mega__collabel">Free tools &amp; calculators</div>
+        <Link href="/tools" className="mega__toolsall">See all {TOOLS_MEGA.length} tools →</Link>
+      </div>
+      <div className="mega__toolsgrid">
+        {TOOLS_MEGA.map((t) => (
+          <Link key={t.href} href={t.href} role="menuitem" className="mega__toolcard">
+            <span className="mega__toolicon" aria-hidden="true">{t.icon}</span>
+            <div className="mega__toolbody">
+              <b>{t.label}</b>
+              <span>{t.sub}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="mega__toolsfoot">
+        <div className="mega__cta-sub">Prefer a real quote? We&rsquo;ll answer inside 2 business hours.</div>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+      </div>
+    </div>
+  );
+}
+
 function AreasMega() {
   return (
     <div className="mega__areas">
@@ -519,6 +556,17 @@ function MobileDrawer({ close }: { close: () => void }) {
                     </div>
                   ))}
                 </>
+              )}
+              {n.kind === "tools" && (
+                <div className="hdr__drawer-col">
+                  <div className="hdr__drawer-collabel">Free tools &amp; calculators</div>
+                  {TOOLS_MEGA.map((t) => (
+                    <Link key={t.href} href={t.href} onClick={close} className="hdr__drawer-sublink">
+                      <b>{t.label}</b>
+                      <span>{t.sub}</span>
+                    </Link>
+                  ))}
+                </div>
               )}
             </details>
           );

@@ -26,37 +26,39 @@ type UpgradePath = {
 };
 
 // Upgrade paths keyed by "currentSystem::plannedUpgrade".
+// Rebate ranges reflect current VEEC market prices ($60-$75 per certificate,
+// mid-2026) and the max heat-pump hot-water rebate of ~$2,700.
 const UPGRADES: UpgradePath[] = [
-  // ---- Hot water upgrades ----
+  // ---- Hot water upgrades (max $2,700) ----
   { key: "gas-storage::heat-pump", label: "Gas storage → Heat pump hot water",
-    minRebate: 2400, maxRebate: 3200, typicalInstall: 3500,
+    minRebate: 2100, maxRebate: 2700, typicalInstall: 3500,
     notes: "Biggest hot-water rebate — old inefficient gas storage is the max-abatement upgrade." },
   { key: "gas-continuous::heat-pump", label: "Gas continuous → Heat pump hot water",
-    minRebate: 1800, maxRebate: 2600, typicalInstall: 3500,
+    minRebate: 1500, maxRebate: 2100, typicalInstall: 3500,
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
   { key: "electric-storage::heat-pump", label: "Electric storage → Heat pump hot water",
-    minRebate: 2000, maxRebate: 2900, typicalInstall: 3500,
+    minRebate: 1700, maxRebate: 2400, typicalInstall: 3500,
     notes: "Strong rebate — displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
   { key: "off-peak-electric::heat-pump", label: "Off-peak electric → Heat pump hot water",
-    minRebate: 1200, maxRebate: 1800, typicalInstall: 3500,
+    minRebate: 1000, maxRebate: 1500, typicalInstall: 3500,
     notes: "Smaller rebate because off-peak electric is already comparatively cheap." },
 
   // ---- Space heating / cooling upgrades ----
   { key: "gas-ducted::rc-ducted", label: "Gas ducted heater → Reverse-cycle ducted",
-    minRebate: 3500, maxRebate: 5000, typicalInstall: 12000,
-    notes: "The single biggest VEU rebate available — retrofitting a whole home off gas." },
+    minRebate: 2800, maxRebate: 4200, typicalInstall: 12000,
+    notes: "The single biggest VEU rebate available — retrofitting a whole home off gas ducted." },
   { key: "gas-ducted::rc-split", label: "Gas ducted heater → Multi-head reverse-cycle split",
-    minRebate: 2400, maxRebate: 3800, typicalInstall: 8000,
+    minRebate: 2000, maxRebate: 3200, typicalInstall: 8000,
     notes: "Popular retrofit path — cheaper install than full ducted, still eligible for a healthy rebate." },
   { key: "old-aircon::rc-split", label: "Old (pre-2010) split / window unit → New reverse-cycle split",
-    minRebate: 400, maxRebate: 900, typicalInstall: 2200,
+    minRebate: 300, maxRebate: 800, typicalInstall: 2200,
     notes: "Smaller rebate but pairs well with the sizing calculator for a right-sized upgrade." },
   { key: "old-aircon::rc-ducted", label: "Old ducted → New high-efficiency ducted",
-    minRebate: 900, maxRebate: 1800, typicalInstall: 11000,
+    minRebate: 800, maxRebate: 1500, typicalInstall: 11000,
     notes: "Applies when replacing a 15+ yr old ducted system with a modern inverter." },
 ];
 
-const VEEC_PRICE_TREND = "$85-$110 / VEEC (2025-26 avg)";
+const VEEC_PRICE_TREND = "$60-$75 / VEEC (2026 market)";
 
 type FormState = {
   postcode: string;

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function VeuRebateEstimatorPage() {
   return (
-    <div className="page-detail page-tools page-tool">
+    <div className="page-detail page-tools">
       <section className="dp-hero">
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
@@ -29,10 +29,10 @@ export default function VeuRebateEstimatorPage() {
             VEU <span className="accent">rebate estimator</span>.
           </h1>
           <p className="dp-hero__sub">
-            The Victorian Energy Upgrades (VEU) scheme knocks $500-$5,000 off the install price
-            of a heat pump, high-efficiency aircon or gas-to-reverse-cycle switch. Enter your
-            postcode, current system and planned upgrade to see the estimated rebate range and
-            your out-of-pocket install cost.
+            The Victorian Energy Upgrades (VEU) scheme knocks up to $2,700 off a heat pump
+            install and up to $4,200 off a gas-to-reverse-cycle switch. Enter your postcode,
+            current system and planned upgrade to see the estimated rebate range and your
+            out-of-pocket install cost.
           </p>
         </div>
       </section>
@@ -50,7 +50,8 @@ export default function VeuRebateEstimatorPage() {
                 The Victorian Energy Upgrades scheme generates <strong>Victorian Energy
                 Efficiency Certificates</strong> (VEECs) — one for every tonne of greenhouse
                 gas your upgrade will avoid over its assumed 10-year life. Each VEEC has a
-                traded market price (typically $85-$110 in 2025-26).
+                traded market price (currently $60-$75 in 2026, having settled down from the
+                inflated 2024 highs).
               </p>
               <p>
                 The number of certificates depends on the <strong>Product Class</strong>
@@ -65,8 +66,8 @@ export default function VeuRebateEstimatorPage() {
                 {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See how the rebate is applied</Link>.
               </p>
               <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 12 }}>
-                Numbers here are estimates based on 2025-26 average VEEC prices. The exact rebate is
-                confirmed at quote time after a 20-minute site check — every home is slightly different.
+                Numbers here are estimates based on 2026 VEEC market prices ($60-$75). The exact rebate
+                is confirmed at quote time after a 20-minute site check — every home is slightly different.
               </p>
             </div>
           </details>

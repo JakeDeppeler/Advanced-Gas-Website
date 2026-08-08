@@ -452,7 +452,8 @@
   justify-content: space-between;
   margin-bottom: 14px;
 }
-.mega__brands-all {
+.mega__brands-all,
+.mega__toolsall {
   font-family: var(--f-display);
   font-size: 13px;
   font-weight: 700;
@@ -460,7 +461,85 @@
   text-decoration: none;
   transition: color 0.15s;
 }
-.mega__brands-all:hover { color: var(--orange); }
+.mega__brands-all:hover,
+.mega__toolsall:hover { color: var(--orange); }
+
+/* -------- Tools mega — 7 icon tiles in a 2×4 grid + CTA row -------- */
+.mega__tools { width: min(920px, calc(100vw - 32px)); padding: 22px 26px; }
+.mega__toolshead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.mega__toolsgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.mega__toolcard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid transparent;
+  transition: background .12s, border-color .12s;
+}
+.mega__toolcard:hover { background: var(--bg-2); border-color: var(--line); }
+.mega__toolicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(243,103,34,0.10);
+  color: var(--orange);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.mega__toolbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mega__toolbody b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.mega__toolbody span {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+.mega__toolsfoot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.mega__toolsfoot .mega__cta-sub {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+@media (max-width: 720px) {
+  .mega__tools { padding: 18px; }
+  .mega__toolsgrid { grid-template-columns: 1fr; }
+  .mega__toolsfoot { grid-template-columns: 1fr; }
+  .mega__toolsfoot .ds-btn { width: 100%; justify-content: center; }
+}
 .mega__brands-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

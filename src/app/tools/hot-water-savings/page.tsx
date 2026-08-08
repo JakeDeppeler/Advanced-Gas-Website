@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function HotWaterSavingsPage() {
   return (
-    <div className="page-detail page-tools page-tool">
+    <div className="page-detail page-tools">
       <section className="dp-hero">
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
@@ -60,10 +60,11 @@ export default function HotWaterSavingsPage() {
                 electricity — so the same 10 kWh of delivered heat needs only ~2.5-3.5 kWh of input.
               </p>
               <p>
-                The <strong>VEU rebate</strong> in Victoria typically knocks $2,400-$3,200 off a heat pump
-                install, meaning most Pakenham swap-outs land under $500-900 out of pocket. Combined with
-                the annual saving, the payback period is usually inside 4-6 years, and the unit is warrantied
-                for at least a decade after that. <Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
+                The <strong>VEU rebate</strong> in Victoria knocks up to $2,700 off a heat pump install
+                (max at current $60-$75 VEEC prices), meaning most Pakenham swap-outs land under $1,000
+                out of pocket. Combined with the annual saving, the payback period is usually inside 4-6
+                years, and the unit is warrantied for at least a decade after that.
+                {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
               </p>
             </div>
           </details>

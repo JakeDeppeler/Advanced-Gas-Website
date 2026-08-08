@@ -47,7 +47,7 @@ const DEFAULTS: FormState = {
   rcCop: 4.0,
   elecCentsPerKwh: 32,
   installCost: 12000,
-  veuRebate: 4200,      // typical gas ducted → RC ducted
+  veuRebate: 3400,      // typical gas ducted → RC ducted at current $60-$75 VEEC prices
 };
 
 export function HeatingComparator() {
@@ -221,7 +221,7 @@ export function HeatingComparator() {
               value={form.veuRebate}
               onChange={(e) => update("veuRebate", parseInt(e.target.value) || 0)}
             />
-            <small>Gas ducted → RC ducted typically $3,500-$5,000.</small>
+            <small>Gas ducted → RC ducted typically $2,800-$4,200 at current VEEC prices.</small>
           </div>
         </div>
       </div>

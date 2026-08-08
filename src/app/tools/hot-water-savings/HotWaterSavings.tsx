@@ -32,7 +32,7 @@ const EFFICIENCY: Record<string, number> = {
 
 // Sensible install-cost + rebate defaults (mid-2026 VIC).
 const HEAT_PUMP_INSTALL_COST = 3500;
-const VEU_REBATE_TYPICAL = 2600;
+const VEU_REBATE_TYPICAL = 2400; // Typical VIC heat-pump rebate at $60-$75 VEEC prices (max ~$2,700).
 
 // Energy prices (mid-2026 Melbourne retail averages).
 const DEFAULT_GAS_C_PER_MJ = 4.5;       // c / MJ for natural gas usage
@@ -244,12 +244,12 @@ export function HotWaterSavings() {
               id="veu"
               type="number"
               min="0"
-              max="5000"
+              max="3000"
               step="100"
               value={form.veuRebate}
               onChange={(e) => update("veuRebate", parseInt(e.target.value) || 0)}
             />
-            <small>Typical VIC household $2,400-$3,200.</small>
+            <small>Typical VIC heat pump $2,100-$2,700 at current VEEC prices.</small>
           </div>
         </div>
       </div>

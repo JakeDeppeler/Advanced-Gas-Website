@@ -1,6 +1,9 @@
 /* ============== /tools · hub + calculators + fault-code table ============== */
 
-.page-tools .dp-hero { padding-bottom: 40px; }
+/* Tighter hero on tool pages — default detail hero is 70/90 top/bottom,
+   which combined with the section below leaves an empty navy band. Trim
+   the bottom so the form sits close to the hero. */
+.page-tools .dp-hero { padding: 56px 0 32px; }
 
 .tools-grid-sec {
   padding: 40px 0 60px;
@@ -92,7 +95,7 @@
 }
 
 /* --------------- Calculator page shell --------------- */
-.page-tool { padding: 40px 0 60px; background: var(--bg); }
+.page-tool { padding: 28px 0 60px; background: var(--bg); }
 .page-tool__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

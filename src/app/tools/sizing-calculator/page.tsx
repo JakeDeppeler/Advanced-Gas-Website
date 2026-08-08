@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function SizingCalculatorPage() {
   return (
-    <div className="page-detail page-tools page-tool">
+    <div className="page-detail page-tools">
       <section className="dp-hero">
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
