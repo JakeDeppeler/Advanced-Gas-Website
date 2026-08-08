@@ -102,6 +102,78 @@ export default function PricingPage() {
         </div>
       </section>
 
+      {/* ================= Value comparison block =================
+          "We're not the cheapest — here's what you're actually paying
+          for". Three-column comparison against a cheap fly-in-fly-out
+          operator vs a premium show-room chain. Same pattern as the
+          tkairpower "electrical prices" page the user referenced. */}
+      <section className="pricing-value">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot" /> The honest comparison</span>
+            <h2>We&rsquo;re not the cheapest &mdash; here&rsquo;s what you&rsquo;re paying for.</h2>
+            <p>
+              A cheap Gumtree operator can put a bare-metal split on the wall for $600 less.
+              A premium show-room chain will charge $2,000 more for the same gear. This is
+              what actually sits inside our price so you can compare like-for-like.
+            </p>
+          </div>
+
+          <div className="pricing-value__scroll">
+            <table className="pricing-value__table">
+              <thead>
+                <tr>
+                  <th className="pricing-value__rowhead">What&rsquo;s included</th>
+                  <th className="pricing-value__col pricing-value__col--cheap">
+                    <div>Cheap operator</div>
+                    <div className="pricing-value__col-sub">$600 less</div>
+                  </th>
+                  <th className="pricing-value__col pricing-value__col--us">
+                    <div>Advanced Gas &amp; Aircon</div>
+                    <div className="pricing-value__col-sub">Our price</div>
+                  </th>
+                  <th className="pricing-value__col pricing-value__col--premium">
+                    <div>Premium chain</div>
+                    <div className="pricing-value__col-sub">$2,000 more</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <ValueRow label="Licensed plumbing &amp; refrigeration"    cheap="?" us={true} prem={true} />
+                <ValueRow label="VEU rebate applied at quote (not chased)" cheap={false} us={true} prem={true} />
+                <ValueRow label="Same person quotes and installs"          cheap={false} us={true} prem={false} />
+                <ValueRow label="Written fixed-price quote in 2 hrs"       cheap={false} us={true} prem={true} />
+                <ValueRow label="Compliance certificate emailed in 24 hrs" cheap="?" us={true} prem={true} />
+                <ValueRow label="6-year workmanship warranty"              cheap={false} us={true} prem={true} />
+                <ValueRow label="Manufacturer warranty registered for you" cheap={false} us={true} prem={true} />
+                <ValueRow label="Right-size heat-load calc (not guessed)"  cheap={false} us={true} prem={true} />
+                <ValueRow label="Genuine brand-name unit (not grey import)" cheap="?" us={true} prem={true} />
+                <ValueRow label="Follow-up call the week after install"     cheap={false} us={true} prem={false} />
+                <ValueRow label="Local tradies, not fly-in / fly-out"       cheap={false} us={true} prem={false} />
+                <ValueRow label="Owner-operator answers the phone"          cheap={false} us={true} prem={false} />
+                <ValueRow label="Showroom overhead baked into price"        cheap={false} us={false} prem={true} inverse />
+                <ValueRow label="Salesperson commission on top"             cheap={false} us={false} prem={true} inverse />
+              </tbody>
+            </table>
+          </div>
+
+          <div className="pricing-value__foot">
+            <div className="pricing-value__stat">
+              <strong>1,200+</strong>
+              <span>installs done since 2014 across Melbourne&rsquo;s south-east</span>
+            </div>
+            <div className="pricing-value__stat">
+              <strong>4.9 / 5</strong>
+              <span>Google reviews · 280+ locals · zero paid or filtered</span>
+            </div>
+            <div className="pricing-value__stat">
+              <strong>0%</strong>
+              <span>callbacks under our 6-year workmanship warranty in the last 24 months</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Fine print strip */}
       <section className="pricing-note">
         <div className="wrap">
@@ -274,5 +346,42 @@ export default function PricingPage() {
 
       <Script id="ld-crumbs-pricing" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
     </div>
+  );
+}
+
+/** Value-comparison table row. `cheap`, `us`, `prem` can be true (tick),
+ *  false (cross), or the literal string "?" for "sometimes". `inverse`
+ *  flips the visual — a tick on the "commission on top" row is a NEGATIVE,
+ *  so we show it in red not green. */
+function ValueRow({
+  label,
+  cheap,
+  us,
+  prem,
+  inverse,
+}: {
+  label: string;
+  cheap: boolean | "?";
+  us: boolean;
+  prem: boolean;
+  inverse?: boolean;
+}) {
+  return (
+    <tr>
+      <th scope="row" className="pricing-value__rowhead">{label}</th>
+      <td className="pricing-value__cell"><Mark val={cheap} inverse={inverse} /></td>
+      <td className="pricing-value__cell pricing-value__cell--us"><Mark val={us} inverse={inverse} /></td>
+      <td className="pricing-value__cell"><Mark val={prem} inverse={inverse} /></td>
+    </tr>
+  );
+}
+
+function Mark({ val, inverse }: { val: boolean | "?"; inverse?: boolean }) {
+  if (val === "?") return <span className="pricing-value__mark pricing-value__mark--maybe">Sometimes</span>;
+  const positive = inverse ? !val : val;
+  return positive ? (
+    <span className="pricing-value__mark pricing-value__mark--yes" aria-label={inverse ? "Not included (good)" : "Included"}>✓</span>
+  ) : (
+    <span className="pricing-value__mark pricing-value__mark--no" aria-label={inverse ? "Included (extra cost)" : "Not included"}>×</span>
   );
 }
