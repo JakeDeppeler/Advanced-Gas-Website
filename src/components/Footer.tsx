@@ -100,9 +100,12 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
+              <li><Link href="/tools/veu-rebate-estimator">VEU rebate estimator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>
               <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>
               <li><Link href="/tools/hot-water-savings">Hot water savings calculator</Link></li>
+              <li><Link href="/tools/heating-comparator">Gas vs reverse-cycle</Link></li>
+              <li><Link href="/tools/system-comparison">System comparison</Link></li>
               <li><Link href="/tools/fault-codes">Fault code lookup</Link></li>
               <li><Link href="/blog">Blog &amp; guides</Link></li>
             </ul>

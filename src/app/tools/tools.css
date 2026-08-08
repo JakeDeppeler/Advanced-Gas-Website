@@ -375,3 +375,119 @@
     display: none;
   }
 }
+
+/* --------------- System comparison table --------------- */
+.sysc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sysc-chip {
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.sysc-chip:hover { border-color: var(--orange); color: var(--orange); }
+.sysc-chip.is-active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sysc-selectionhint {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  margin: 4px 0 20px;
+}
+.sysc-selectionhint strong { color: var(--navy); }
+
+.sysc-scroll {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.sysc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
+}
+.sysc-table th,
+.sysc-table td {
+  padding: 14px 16px;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.sysc-th--rowhead {
+  width: 140px;
+  min-width: 130px;
+  background: var(--bg-2);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+.sysc-th--sys {
+  padding: 18px 16px;
+  background: #fff;
+  border-bottom: 2px solid var(--navy);
+}
+.sysc-sys__name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15.5px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.sysc-sys__eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.sysc-td {
+  color: var(--navy);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sysc-td--wrap { font-weight: 400; color: var(--ink-2); }
+.sysc-td--cta { text-align: left; padding: 16px; }
+
+.sysc-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.sysc-list li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.sysc-list--pros li::before {
+  content: "✓";
+  position: absolute; left: 0;
+  color: #217049;
+  font-weight: 800;
+}
+.sysc-list--cons li::before {
+  content: "×";
+  position: absolute; left: 2px;
+  color: #c14a13;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+}

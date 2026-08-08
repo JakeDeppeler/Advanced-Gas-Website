@@ -42,6 +42,45 @@ const TOOLS: {
     ],
   },
   {
+    slug: "veu-rebate-estimator",
+    title: "VEU Rebate Estimator",
+    tagline: "How much rebate can I claim?",
+    blurb:
+      "Enter your postcode, current system and planned upgrade — get the estimated Victorian Energy Upgrades rebate range and your net out-of-pocket install cost. Covers hot water and space heating/cooling upgrades.",
+    ctaLabel: "Estimate my rebate →",
+    bullets: [
+      "Every VEU upgrade path (gas / electric → heat pump, gas ducted → RC)",
+      "Household size + solar adjustments for hot water",
+      "Rebate range + net install cost after rebate",
+    ],
+  },
+  {
+    slug: "heating-comparator",
+    title: "Gas vs Reverse-Cycle Heating",
+    tagline: "Which is cheaper to run this winter?",
+    blurb:
+      "Compare the annual winter running cost of a gas ducted heater against a reverse-cycle (heat pump) system for your home. Enter heat load, hours, star rating, COP and tariffs — get the payback if you swap.",
+    ctaLabel: "Compare heating cost →",
+    bullets: [
+      "3 to 6-star gas efficiency + inverter reverse-cycle COP",
+      "Annual saving + payback with VEU rebate applied",
+      "10-year net saving projection",
+    ],
+  },
+  {
+    slug: "system-comparison",
+    title: "System Type Comparison",
+    tagline: "Split vs multi-head vs ducted vs gas vs evap.",
+    blurb:
+      "Side-by-side comparison of the five main home climate-control options — install cost, running cost, zone control, lifespan, best-for scenarios and which brands we install for each. Pick 2-5 systems to compare.",
+    ctaLabel: "Compare systems →",
+    bullets: [
+      "5 system types · toggle any 2-5 to compare",
+      "Real Melbourne install-cost + running-cost ranges",
+      "Pros, cons, brands and rule-of-thumb picks",
+    ],
+  },
+  {
     slug: "hot-water-savings",
     title: "Hot Water Savings Calculator",
     tagline: "How much will a heat pump save me?",
