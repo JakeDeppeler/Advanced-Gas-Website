@@ -164,6 +164,7 @@ const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
+  { href: "/tools", label: "Tools" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/blog", label: "Blog" },

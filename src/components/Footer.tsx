@@ -100,6 +100,9 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
+              <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>
+              <li><Link href="/tools/running-cost-calculator">Running cost calculator</Link></li>
+              <li><Link href="/tools/fault-codes">Fault code lookup</Link></li>
               <li><Link href="/blog">Blog &amp; guides</Link></li>
             </ul>
           </div>
