@@ -198,8 +198,8 @@ const AREAS_MEGA = {
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
-  { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
+  { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
   { href: "/blog", label: "Blog" },

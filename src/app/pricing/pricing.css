@@ -394,4 +394,80 @@
   .pricing-value__foot { grid-template-columns: 1fr; gap: 10px; }
   .pricing-value__stat { padding: 14px 16px; }
   .pricing-value__stat strong { font-size: 22px; }
+
+  /* Reshape the 3-column comparison as a card-per-feature list.
+     Feature name at the top of each card, then a compact 3-cell
+     row (Cheap · Us · Premium) with a small label above each mark
+     so nothing runs off the viewport. */
+  .pricing-value__scroll {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    margin-top: 22px;
+  }
+  .pricing-value__table { display: block; min-width: 0; border-spacing: 0; }
+  .pricing-value__table thead { display: none; }
+  .pricing-value__table tbody { display: block; }
+  .pricing-value__table tr {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .pricing-value__table tr:last-child { margin-bottom: 0; }
+  .pricing-value__rowhead {
+    display: block;
+    width: 100%;
+    position: static;
+    background: transparent;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--navy);
+  }
+  .pricing-value__table td {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc((100% - 12px) / 3);
+    padding: 10px 4px 2px;
+    border-bottom: 0;
+    font-size: 12px;
+  }
+  .pricing-value__cell,
+  .pricing-value__cell--us {
+    flex-direction: column;
+    text-align: center;
+  }
+  .pricing-value__cell--us { background: transparent; border-radius: 8px; }
+  .pricing-value__cell::before {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .pricing-value__table td:nth-of-type(1)::before { content: "Cheap"; }
+  .pricing-value__table td:nth-of-type(2)::before { content: "Us"; color: var(--orange); }
+  .pricing-value__table td:nth-of-type(3)::before { content: "Premium"; }
+  .pricing-value__cell--us::after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 4px 2px;
+    background: rgba(243,103,34,0.06);
+    border-radius: 8px;
+    z-index: 0;
+  }
+  .pricing-value__cell--us { position: relative; }
+  .pricing-value__cell--us > * { position: relative; z-index: 1; }
+  .pricing-value__cell--us::before { position: relative; z-index: 1; }
+  .pricing-value__mark--maybe { font-size: 9.5px; padding: 3px 7px; }
 }

@@ -389,16 +389,71 @@
 .fault-system--hot-water  { background: rgba(46,132,89,0.10);   color: #1c603c; border-color: rgba(46,132,89,0.25); }
 .fault-system--evap       { background: rgba(139,92,246,0.10);  color: #5a3ab3; border-color: rgba(139,92,246,0.25); }
 
-/* Stack the fault-table's less-important columns on mobile */
+/* Restructure the fault-table as a card list on mobile so nothing
+   overflows the viewport. Header row is hidden; each row becomes a
+   card with brand + system + code on the top line, meaning below,
+   first-check appended as small tertiary text. */
 @media (max-width: 640px) {
-  .faults-table thead .faults-th--check,
-  .faults-table td.faults-td--check {
-    display: none;
+  .faults-table {
+    display: block;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    min-width: 0;
   }
-  /* Table wraps horizontally on tiny phones — force a min-width so
-     it scrolls cleanly rather than cramping every cell. */
-  .faults-table { min-width: 460px; }
-  .faults-table th, .faults-table td { padding: 10px 10px; font-size: 12.5px; }
+  .faults-table thead { display: none; }
+  .faults-table tbody { display: block; }
+  .faults-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "brand system code"
+      "meaning meaning meaning"
+      "check check check";
+    row-gap: 6px;
+    column-gap: 8px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .faults-table tr:last-child { margin-bottom: 0; }
+  .faults-table tr:hover td { background: transparent; }
+  .faults-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .faults-table td:nth-child(1) { grid-area: brand; }
+  .faults-table td:nth-child(2) { grid-area: system; }
+  .faults-table td:nth-child(3) { grid-area: code; text-align: right; }
+  .faults-table td:nth-child(4) {
+    grid-area: meaning;
+    padding-top: 6px;
+    border-top: 1px dashed var(--line-2);
+  }
+  .faults-table td:nth-child(4) strong { font-size: 14px; }
+  .faults-table td.faults-td--check {
+    display: block;
+    grid-area: check;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .faults-table td.faults-td--check::before {
+    content: "First check · ";
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--orange);
+    font-weight: 700;
+  }
   .fault-brand, .fault-system { font-size: 10px; padding: 2px 6px; }
   .fault-code { font-size: 12.5px; }
 }
