@@ -316,6 +316,23 @@
   gap: 8px;
   margin-bottom: 14px;
 }
+@media (max-width: 640px) {
+  .faults-systems {
+    /* Horizontal scrolling row on tight phones so the 5 chips
+       (All / Aircon / Heater / Evap / Hot water) don't stack into
+       three rows and eat vertical space above the table. */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin: 0 -16px 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .faults-systems::-webkit-scrollbar { display: none; }
+  .faults-systemchip { flex-shrink: 0; padding: 7px 12px; font-size: 12.5px; }
+}
 .faults-systemchip {
   display: inline-flex;
   align-items: center;
@@ -389,11 +406,19 @@
 /* System-comparison table + heat-pump compare table both need the
    same horizontal-scroll safety net on mobile — their .sysc-scroll
    wrapper already sets overflow:auto but the inner min-width was
-   too aggressive at 720. Trim + wrap header cells for smaller phones. */
+   too aggressive at 720. Trim + wrap header cells for smaller phones.
+   Sticky rowhead disabled below 640 so it doesn't overlap the second
+   column and create the visible "cut off" the user reported. */
 @media (max-width: 640px) {
   .sysc-scroll { -webkit-overflow-scrolling: touch; }
-  .sysc-table { min-width: 640px; }
-  .sysc-th--rowhead { min-width: 110px; width: 110px; font-size: 10.5px; padding: 10px 12px; }
+  .sysc-table { min-width: 560px; }
+  .sysc-th--rowhead {
+    min-width: 100px;
+    width: 100px;
+    font-size: 10.5px;
+    padding: 10px 12px;
+    position: static;
+  }
   .sysc-th--sys { padding: 12px 12px; }
   .sysc-sys__name { font-size: 13.5px; }
   .sysc-sys__eyebrow { font-size: 10.5px; }
@@ -406,6 +431,20 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
+}
+@media (max-width: 640px) {
+  .sysc-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin: 0 -16px 8px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .sysc-chips::-webkit-scrollbar { display: none; }
+  .sysc-chip { flex-shrink: 0; }
 }
 .sysc-chip {
   padding: 9px 16px;

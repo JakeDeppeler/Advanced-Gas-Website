@@ -484,13 +484,6 @@ function MobileDrawer({ close }: { close: () => void }) {
   return (
     <div className="hdr__drawer">
       <div className="wrap hdr__drawer-inner">
-        <a href={`tel:${site.phoneE164}`} onClick={close} className="hdr__drawer-call">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />
-          </svg>
-          Call {site.phone}
-        </a>
-
         {NAV.map((n) => {
           if (!isMega(n)) {
             return (
@@ -537,9 +530,18 @@ function MobileDrawer({ close }: { close: () => void }) {
                 <div className="hdr__drawer-col">
                   <div className="hdr__drawer-collabel">Every brand we install</div>
                   {brands.map((b) => (
-                    <Link key={b.slug} href={`/brands/${b.slug}`} onClick={close} className="hdr__drawer-sublink">
-                      <b>{b.name}</b>
-                      <span>{b.tagline}</span>
+                    <Link
+                      key={b.slug}
+                      href={`/brands/${b.slug}`}
+                      onClick={close}
+                      className="hdr__drawer-sublink hdr__drawer-sublink--brand"
+                      style={{ ["--brand-accent" as string]: b.accent }}
+                    >
+                      <span className="hdr__drawer-brandstripe" aria-hidden="true" />
+                      <span className="hdr__drawer-brandbody">
+                        <b>{b.name}</b>
+                        <span>{b.tagline}</span>
+                      </span>
                     </Link>
                   ))}
                 </div>
@@ -562,9 +564,17 @@ function MobileDrawer({ close }: { close: () => void }) {
                 <div className="hdr__drawer-col">
                   <div className="hdr__drawer-collabel">Free tools &amp; calculators</div>
                   {TOOLS_MEGA.map((t) => (
-                    <Link key={t.href} href={t.href} onClick={close} className="hdr__drawer-sublink">
-                      <b>{t.label}</b>
-                      <span>{t.sub}</span>
+                    <Link
+                      key={t.href}
+                      href={t.href}
+                      onClick={close}
+                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
+                    >
+                      <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
+                      <span className="hdr__drawer-toolbody">
+                        <b>{t.label}</b>
+                        <span>{t.sub}</span>
+                      </span>
                     </Link>
                   ))}
                 </div>

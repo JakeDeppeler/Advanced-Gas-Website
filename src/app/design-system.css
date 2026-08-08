@@ -688,11 +688,87 @@
 }
 .hdr__drawer-inner {
   display: flex; flex-direction: column;
-  /* Generous top padding + a big bottom clearance so the final
-     "Get a free quote" button doesn't slip under the fixed sticky
-     mobile CTA bar (which is 80px + safe-area). */
-  padding: 24px 20px calc(120px + env(safe-area-inset-bottom, 0));
-  gap: 6px;
+  /* Tighter top padding — the Call pill above the nav was removed
+     because the sticky mobile CTA already carries Call the team.
+     Big bottom clearance so the final "Get a free quote" button
+     doesn't slip under the fixed sticky mobile CTA (80px + safe-area). */
+  padding: 14px 20px calc(120px + env(safe-area-inset-bottom, 0));
+  gap: 4px;
+}
+
+/* Branded row in the Brands drawer accordion — accent color stripe
+   on the left uses the brand's own hex (via --brand-accent CSS var
+   set inline). Reads as "these are real brands" at a glance. */
+.hdr__drawer-sublink--brand {
+  display: grid;
+  grid-template-columns: 4px 1fr;
+  gap: 12px;
+  padding: 10px 12px 10px 0;
+  align-items: stretch;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.hdr__drawer-brandstripe {
+  align-self: stretch;
+  background: var(--brand-accent, var(--sky));
+  border-radius: 2px;
+  min-height: 100%;
+}
+.hdr__drawer-brandbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hdr__drawer-brandbody b {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--brand-accent, var(--navy));
+}
+.hdr__drawer-brandbody > span {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* Iconified row in the Tools drawer accordion */
+.hdr__drawer-sublink--tool {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+}
+.hdr__drawer-toolicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: rgba(243,103,34,0.10);
+  color: var(--orange);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.hdr__drawer-toolbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.hdr__drawer-toolbody b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.hdr__drawer-toolbody > span {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.4;
 }
 .hdr__drawer-call {
   display: flex; align-items: center; gap: 10px;
