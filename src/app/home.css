@@ -193,19 +193,16 @@
 @media (max-width: 760px) {
   .page-home .hero__grid {
     grid-template-columns: 1fr;
-    gap: 28px;
-    padding: 40px 0 44px;
+    gap: 22px;
+    padding: 32px 0 32px;
     min-height: 0;
   }
   .page-home .hero__photo {
-    /* Slightly wider aspect on mobile so the team + vans read
+    /* Wider aspect on mobile so the team + vans read as intended
        instead of being cropped to just the workshop wall. */
-    aspect-ratio: 3 / 2;
-    max-height: 320px;
+    aspect-ratio: 16 / 10;
+    max-height: 260px;
     border-radius: 16px;
-    /* Constrain width so the frame sits centered with a bit of
-       page margin — the mobile-source photo (team-photo-mobile.webp)
-       is a pre-cropped centred crop, so we can trust its framing. */
     width: 100%;
     margin: 0 auto;
   }
@@ -690,15 +687,25 @@
     background-size: cover;
   }
   .page-home .fixprice__badges {
-    top: 8px;
-    left: 8px;
+    /* Constrain badges to the photo column so they never spill onto the
+       h3/price on the right. Explicitly unset the desktop `right: 12px`. */
+    top: 6px;
+    left: 6px;
+    right: auto;
+    max-width: 96px;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
+    align-items: flex-start;
   }
   .page-home .fixprice__badge {
-    font-size: 9.5px;
+    font-size: 9px;
     padding: 2px 6px;
+    letter-spacing: 0.04em;
+    box-shadow: 0 2px 6px rgba(11,20,80,0.18);
   }
+  /* On mobile the secondary "Australian made" badge just clutters —
+     the primary quality/value chip is enough to hold context. */
+  .page-home .fixprice__badge--aus { display: none; }
   .page-home .fixprice__body {
     padding: 12px 14px 14px;
     gap: 8px;
@@ -1228,6 +1235,17 @@
 
 /* ============== SERVICE AREA ============== */
 .page-home .area { padding: 110px 0; background: var(--bg-2); border-top: 1px solid var(--line); }
+@media (max-width: 760px) {
+  /* Mobile — tighten the padding + column gap so the suburb chips and
+     the map don't have a huge dead zone between them. */
+  .page-home .area { padding: 48px 0 56px; }
+  .page-home .area__grid { gap: 20px !important; }
+  .page-home .area__left h2 { font-size: 26px; margin: 8px 0 10px; line-height: 1.1; }
+  .page-home .area__left > p { font-size: 15px; margin: 0 0 16px; }
+  .page-home .suburbs { padding: 14px; gap: 6px; }
+  .page-home .suburbs__chip, .page-home .suburbs span { font-size: 12px; padding: 4px 9px; }
+  .page-home .area__finep { margin-top: 12px; font-size: 11px; }
+}
 .page-home .area__grid {
   display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center;
 }
@@ -1390,8 +1408,9 @@
   .page-home .brands__grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 760px) {
-  .page-home .hero { padding: 40px 0 90px; }
-  .page-home .hero__bullets { grid-template-columns: 1fr; }
+  /* Hero padding controlled by .hero__grid — the stale 90px bottom padding
+     here was leaving a big empty navy band below the mobile team photo. */
+  .page-home .hero { padding: 0; }
   .page-home .qform__grid { grid-template-columns: 1fr; }
   .page-home .qform__row { grid-template-columns: 1fr; }
   .page-home .bento { grid-template-columns: 1fr; }
