@@ -364,16 +364,32 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      {/* Simplified 4-tile row — Aircon · Gas heater · Evap cooler ·
-          Emergency call-out. User asked for a tighter set than the
-          old 8-install + 4-repair split. */}
+      {/* TOP · Installation — 8 individual product / system cards */}
       <div className="mega__services-block">
-        <div className="mega__collabel">Services we install &amp; repair</div>
-        <div className="mega__services-grid mega__services-grid--primary">
-          {SERVICES_MEGA.primary.map((s) => (
+        <div className="mega__collabel">Installation</div>
+        <div className="mega__services-grid">
+          {SERVICES_MEGA.install.map((s) => (
             <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
               <div className="mega__servicecard-photo">
                 <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
+              </div>
+              <div className="mega__servicecard-body">
+                <b>{s.label}</b>
+                <span>{s.sub}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* BOTTOM · Service & repair — 4 tighter categories */}
+      <div className="mega__services-block mega__services-block--repair">
+        <div className="mega__collabel">Service &amp; repair</div>
+        <div className="mega__services-grid mega__services-grid--repair">
+          {SERVICES_MEGA.primary.map((s) => (
+            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
+              <div className="mega__servicecard-photo">
+                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
               </div>
               <div className="mega__servicecard-body">
                 <b>{s.label}</b>
@@ -521,7 +537,14 @@ function MobileDrawer({ close }: { close: () => void }) {
               <summary>{n.label}</summary>
               {n.kind === "services" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Services we install &amp; repair</div>
+                  <div className="hdr__drawer-collabel">Installation</div>
+                  {SERVICES_MEGA.install.map((s) => (
+                    <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
+                      <b>{s.label}</b>
+                      <span>{s.sub}</span>
+                    </Link>
+                  ))}
+                  <div className="hdr__drawer-collabel">Service &amp; repair</div>
                   {SERVICES_MEGA.primary.map((s) => (
                     <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{s.label}</b>

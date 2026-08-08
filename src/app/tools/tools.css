@@ -320,15 +320,15 @@
   .faults-systems {
     /* Horizontal scrolling row on tight phones so the 5 chips
        (All / Aircon / Heater / Evap / Hot water) don't stack into
-       three rows and eat vertical space above the table. */
+       three rows and eat vertical space above the table. Trailing
+       padding-right so the LAST chip is fully visible + swipe-past-
+       able without being clipped by the viewport edge. */
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 4px;
+    padding: 4px 24px 8px 16px;
     margin: 0 -16px 14px;
-    padding-left: 16px;
-    padding-right: 16px;
   }
   .faults-systems::-webkit-scrollbar { display: none; }
   .faults-systemchip { flex-shrink: 0; padding: 7px 12px; font-size: 12.5px; }

@@ -316,22 +316,25 @@ export default function HomePage() {
             <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
           </div>
 
-          {/* Mobile-only horizontal rail (mock B) */}
+          {/* Mobile-only auto-scrolling review marquee. Cards duplicated
+              so the CSS translateX(-50%) loop reads seamless. */}
           <div className="reviews__rail" aria-hidden="true">
-            {REVIEW_COLUMNS[0].slice(0, 4).map((r, i) => (
-              <article key={`m-${i}`} className="revcard revcard--mobile">
-                <div className="revcard__stars">★★★★★</div>
-                <h3 className="revcard__title">{r.title}</h3>
-                <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                <div className="revcard__by">
-                  <span className="revcard__avatar">{r.a}</span>
-                  <div>
-                    <strong>{r.who}</strong>
-                    <span>{r.what}</span>
+            <div className="reviews__rail-track">
+              {[...REVIEW_COLUMNS[0].slice(0, 5), ...REVIEW_COLUMNS[1].slice(0, 3), ...REVIEW_COLUMNS[0].slice(0, 5), ...REVIEW_COLUMNS[1].slice(0, 3)].map((r, i) => (
+                <article key={`m-${i}`} className="revcard revcard--mobile">
+                  <div className="revcard__stars">★★★★★</div>
+                  <h3 className="revcard__title">{r.title}</h3>
+                  <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                  <div className="revcard__by">
+                    <span className="revcard__avatar">{r.a}</span>
+                    <div>
+                      <strong>{r.who}</strong>
+                      <span>{r.what}</span>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>

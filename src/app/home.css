@@ -1233,17 +1233,25 @@
   .page-home .reviews__marquee { display: none; }
   .page-home .revcol__track { animation: none !important; }
   .page-home .reviews__rail {
+    display: block;
+    overflow: hidden;
+    padding: 4px 0 20px;
+    margin: 0 -20px;
+  }
+  .page-home .reviews__rail-track {
     display: flex;
     gap: 12px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 20px 20px;
-    margin: 0 -20px;
-    scrollbar-width: none;
+    padding: 0 20px;
+    width: max-content;
+    animation: reviews-marquee 90s linear infinite;
   }
-  .page-home .reviews__rail::-webkit-scrollbar { display: none; }
+  @keyframes reviews-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
   .page-home .revcard--mobile {
+    flex: 0 0 auto;
+    width: 260px;
     padding: 16px;
     border-radius: 14px;
   }

@@ -677,9 +677,16 @@
 /* ============== MOBILE DRAWER ============== */
 .hdr__drawer {
   border-top: 1px solid var(--line);
+  /* Full-screen navy fill below the paper background so the space
+     underneath the CTA button looks intentional rather than a blank
+     grey slab. */
   background: var(--paper);
   animation: drawIn 0.18s ease-out;
-  max-height: calc(100dvh - 84px);
+  /* Take up the FULL remaining viewport so the drawer visually
+     covers the page — matches the iheatandcool feel the user asked
+     for on the sticky-bottom "the site to fill the screen better". */
+  min-height: calc(100dvh - 64px);
+  max-height: calc(100dvh - 64px);
   overflow-y: auto;
 }
 @keyframes drawIn {
@@ -688,13 +695,14 @@
 }
 .hdr__drawer-inner {
   display: flex; flex-direction: column;
-  /* Tighter top padding — the Call pill above the nav was removed
-     because the sticky mobile CTA already carries Call the team.
-     BIG bottom clearance so the final "Get a free quote" button
-     doesn't slip under the fixed sticky mobile CTA (80 px + safe-
-     area). Bumped to 160 so the button sits well above the CTA. */
-  padding: 14px 20px calc(160px + env(safe-area-inset-bottom, 0));
+  /* Generous TOP padding so the nav items breathe below the header,
+     and BIG bottom clearance so the final "Get a free quote" button
+     sits well above the fixed sticky mobile CTA (80 px + safe-area). */
+  padding: 32px 20px calc(180px + env(safe-area-inset-bottom, 0));
   gap: 4px;
+  /* Fill the full drawer height so background reads as a solid page,
+     not a floating card with a grey gap underneath. */
+  min-height: 100%;
 }
 
 /* Branded row in the Brands drawer accordion — accent color stripe
@@ -1437,6 +1445,14 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Hard stop on horizontal-page scrolling on tight phones — any child
+     that overflows the viewport (a wide table, a marquee, a chip strip)
+     should scroll inside its own container, not push the page sideways. */
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 input, select, textarea {
   font-size: 16px; /* iOS won't zoom the viewport on focus if >= 16 */
