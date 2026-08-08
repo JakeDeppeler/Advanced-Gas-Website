@@ -336,6 +336,45 @@ export function HeatPumpCompareTool() {
       {rows.length === 0 ? (
         <div className="faults-empty">Pick at least one heat pump above to see the comparison.</div>
       ) : (
+        <>
+        {/* Mobile: stacked card per selected heat pump (hidden ≥640 px). */}
+        <div className="sysc-cards">
+          {rows.map((h) => (
+            <div key={h.key} className="sysc-card">
+              <div className="sysc-card__head">
+                <div className="sysc-card__name">{h.brand} · {h.model}</div>
+                <div className="sysc-card__eyebrow">{h.eyebrow}</div>
+              </div>
+              <div className="sysc-card__rows">
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Form</span><span className="sysc-card__row-val">{h.form}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Refrigerant</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.refrigerant}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">COP</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.cop}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Capacity</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.capacity}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Tank</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.tank}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Warranty</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.warranty}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{h.installFrom === h.installTo ? h.installFrom : `${h.installFrom} → ${h.installTo}`}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Made in</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.madeIn}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best for</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{h.bestFor}</span></div>
+              </div>
+              <div className="sysc-card__block">
+                <div className="sysc-card__block-lbl">Pros</div>
+                <ul className="sysc-list sysc-list--pros">{h.pros.map((p) => <li key={p}>{p}</li>)}</ul>
+              </div>
+              <div className="sysc-card__block">
+                <div className="sysc-card__block-lbl">Cons</div>
+                <ul className="sysc-list sysc-list--cons">{h.cons.map((c) => <li key={c}>{c}</li>)}</ul>
+              </div>
+              <div className="sysc-card__cta">
+                {h.brandHref ? (
+                  <Link href={h.brandHref} className="ds-btn ds-btn--ghost">See our range →</Link>
+                ) : (
+                  <span style={{ fontSize: 12, color: "var(--ink-3)" }}>Not currently stocked</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
         <div className="sysc-scroll">
           <table className="sysc-table">
             <thead>
@@ -400,6 +439,7 @@ export function HeatPumpCompareTool() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <div style={{

@@ -203,6 +203,43 @@ export function SystemComparison() {
       {rows.length === 0 ? (
         <div className="faults-empty">Pick at least one system above to see the comparison.</div>
       ) : (
+        <>
+        {/* Mobile: stacked card per selected system (hidden ≥640 px). */}
+        <div className="sysc-cards">
+          {rows.map((s) => (
+            <div key={s.key} className="sysc-card">
+              <div className="sysc-card__head">
+                <div className="sysc-card__name">{s.name}</div>
+                <div className="sysc-card__eyebrow">{s.eyebrow}</div>
+              </div>
+              <div className="sysc-card__rows">
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Cools?</span><span className="sysc-card__row-val">{yn(s.cools)}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Heats?</span><span className="sysc-card__row-val">{s.heats === "yes" ? "Yes" : s.heats === "hyper" ? "Yes (Hyper)" : "No"}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Install</span><span className="sysc-card__row-val">{s.installFrom} → {s.installTo}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Running</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.runningCost}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Zone control</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.zoneControl}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Lifespan</span><span className="sysc-card__row-val">{s.lifespan}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best for</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.bestFor}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Best in</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.bestSuburbs}</span></div>
+                <div className="sysc-card__row"><span className="sysc-card__row-lbl">Brands</span><span className="sysc-card__row-val sysc-card__row-val--wrap">{s.brandsWeInstall}</span></div>
+              </div>
+              <div className="sysc-card__block">
+                <div className="sysc-card__block-lbl">Pros</div>
+                <ul className="sysc-list sysc-list--pros">{s.pros.map((p) => <li key={p}>{p}</li>)}</ul>
+              </div>
+              <div className="sysc-card__block">
+                <div className="sysc-card__block-lbl">Cons</div>
+                <ul className="sysc-list sysc-list--cons">{s.cons.map((c) => <li key={c}>{c}</li>)}</ul>
+              </div>
+              {s.brandHref && (
+                <div className="sysc-card__cta">
+                  <Link href={s.brandHref} className="ds-btn ds-btn--ghost">See our range →</Link>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
         <div className="sysc-scroll">
           <table className="sysc-table">
             <thead>
@@ -263,6 +300,7 @@ export function SystemComparison() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       <div style={{

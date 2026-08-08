@@ -215,6 +215,14 @@
   .page-tool__grid { grid-template-columns: 1fr; }
   .page-tool__result { position: static; }
 }
+@media (max-width: 640px) {
+  /* Two-column field row collapses to one column so selects like the
+     5-star gas rating dropdown don't get truncated inside a ~180 px cell. */
+  .tool-field__row { grid-template-columns: 1fr; }
+  .page-tool__form,
+  .page-tool__result { padding: 20px 18px; }
+  .tool-result__big { font-size: 34px; }
+}
 
 /* --------------- Fault code table --------------- */
 .faults-controls {
@@ -458,27 +466,93 @@
   .fault-code { font-size: 12.5px; }
 }
 
-/* System-comparison table + heat-pump compare table both need the
-   same horizontal-scroll safety net on mobile — their .sysc-scroll
-   wrapper already sets overflow:auto but the inner min-width was
-   too aggressive at 720. Trim + wrap header cells for smaller phones.
-   Sticky rowhead disabled below 640 so it doesn't overlap the second
-   column and create the visible "cut off" the user reported. */
+/* --------------- Compare mobile cards ---------------
+   The desktop scroll table is opaque + fussy on a phone even with
+   overflow-x working — you can't see two columns at once, the sticky
+   rowhead overlaps, and system names / values keep getting clipped.
+   Below 640 px we hide the table entirely and render a stacked
+   card-per-item view instead (populated in the tool JSX right beside
+   the table). Each card gets a header block, an attribute list, and
+   pros / cons + a CTA at the foot. */
+.sysc-cards { display: none; }
 @media (max-width: 640px) {
-  .sysc-scroll { -webkit-overflow-scrolling: touch; }
-  .sysc-table { min-width: 560px; }
-  .sysc-th--rowhead {
-    min-width: 100px;
-    width: 100px;
-    font-size: 10.5px;
-    padding: 10px 12px;
-    position: static;
-  }
-  .sysc-th--sys { padding: 12px 12px; }
-  .sysc-sys__name { font-size: 13.5px; }
-  .sysc-sys__eyebrow { font-size: 10.5px; }
-  .sysc-table th, .sysc-table td { padding: 10px 12px; font-size: 12.5px; }
+  .sysc-scroll { display: none; }
+  .sysc-cards { display: grid; gap: 14px; }
 }
+.sysc-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.sysc-card__head {
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--navy);
+  margin-bottom: 12px;
+}
+.sysc-card__name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.sysc-card__eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.sysc-card__rows {
+  display: grid;
+  gap: 0;
+}
+.sysc-card__row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.sysc-card__row:last-of-type { border-bottom: 0; }
+.sysc-card__row-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.sysc-card__row-val {
+  color: var(--navy);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sysc-card__row-val--wrap { font-weight: 400; color: var(--ink-2); }
+.sysc-card__block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.sysc-card__block-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.sysc-card__cta {
+  margin-top: 14px;
+  display: flex;
+}
+.sysc-card__cta .ds-btn { flex: 1; justify-content: center; }
 
 /* --------------- System comparison table --------------- */
 .sysc-chips {
