@@ -171,9 +171,8 @@ export const brands: Brand[] = [
     warranty: "5-year manufacturer warranty on heat exchanger + 6-year on our workmanship",
     keyFeatures: [
       "The gas ducted brand more Melbourne homes were built with than any other",
-      "Same-footprint retrofit into most existing Brivis / Braemar cavities",
-      "Full internal range: Wombat + Buffalo, each in 3-star / 4-star / 5-star / 6-star at 15 / 20 / 26 / 30 kW",
-      "Evaporative cooling range covers 15 / 20 / 26 / 30 kW for whole-home summer cooling at ~25% of refrigerated running cost",
+      "Same-footprint retrofit into most existing ducted heater cavities",
+      "Full internal range: Wombat + Buffalo, 3 to 6 star at 15 / 20 / 26 / 30 kW",
       "Rinnai-backed parts pipeline · even 15-year-old units are still serviceable",
     ],
     commonInMelbourne:
@@ -444,20 +443,22 @@ export const brands: Brand[] = [
     intro:
       "Mitsubishi Electric is the brand we quote first on any air conditioning job unless the customer's budget rules it out. The reliability record across our install base is genuinely without peer · a decade-old MSZ-AP still runs to spec, and the parts pipeline for older units is still open.",
     ourTake:
-      "We're pursuing Mitsubishi Electric Diamond Dealer accreditation. When it lands we can offer the extended 7-year manufacturer warranty on top of our own 6-year workmanship warranty. That's a 13-year backstop on a unit that's already the most reliable in the category.",
-    accreditation: "Diamond Dealer (in progress)",
+      "Mitsubishi Electric runs a failure rate under 1% across the whole range — that is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
+    accreditation: "Authorised installer",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
     photo: "/AP_70-80HP_front-1920x1440-1.png",
     photoFallback: "/reclaim-mitsubishi.webp",
     photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
     accent: "#DA1A32",
     established: "Australian sales since 1978 · manufacturing in Thailand",
-    warranty: "5-year manufacturer parts + labour + 6-year on our workmanship. Diamond Dealer accredited installers unlock a 7-year extended warranty.",
+    warranty: "5-year manufacturer parts + labour, plus 6 years on our workmanship.",
     keyFeatures: [
-      "The lowest failure rate in our install base · a decade-old MSZ-AP still runs to spec",
-      "Parts pipeline is genuinely never a worry, even for units we installed 10+ years ago",
-      "MSZ-AP is our default; MSZ-FH Hyper Heating for cold-climate suburbs; PEAD-M ducted for family homes",
-      "Diamond Dealer accreditation (in progress) unlocks 7-year extended warranty",
+      "Under 1% failure rate across the entire range — the lowest of anything we install",
+      "A decade-old MSZ-AP still runs to spec · we service units we put in 10+ years ago",
+      "Parts pipeline is genuinely never a worry, whatever the age of the unit",
+      "MSZ-AP wall splits are our default for bedrooms and living rooms",
+      "PEAD-M ducted for family homes, sized off a proper room-by-room heat load",
+      "MXZ multi-head runs 2-6 indoor units off one outdoor — one set of penetrations",
       "R32 refrigerant across the range · modern, low-GWP",
       "MELCloud Wi-Fi module adds phone control to any indoor unit",
     ],
@@ -754,7 +755,7 @@ export const brands: Brand[] = [
           { label: "Power supply", value: "1-phase 230 V (M100) · 3-phase 400 V option (M125/M140)" },
           { label: "Zoning", value: "Zonemate 4 / 6 / 8-zone with damper motors" },
           { label: "Controller", value: "PAR-40 wired / MA-remote / MELCloud Wi-Fi module" },
-          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship (7-year Diamond Dealer extension pending)" },
+          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Three capacity steps (10 / 12.5 / 14 kW) — right-size to the actual heat load, not oversized as a habit",
@@ -769,7 +770,7 @@ export const brands: Brand[] = [
         whyWeInstall: [
           "The most reliable ducted platform in our install base — decade-old PEA-M / PEAD-M units still run to spec",
           "Mitsubishi's Melbourne parts warehouse is same-day on virtually every PEA-M part we've ever needed",
-          "Diamond Dealer accreditation in progress unlocks the 7-year extended manufacturer warranty on top of our 6-year workmanship",
+          "Under 1% failure rate across the range — it is the unit we are least likely to have to come back to",
           "Hyper Heating (VKA) variant is a genuine differentiator for hills homes vs the mid-market ducted competition",
           "Right-sizing across three capacity steps means we don't oversize you into a bigger unit that short-cycles and wastes power",
           "Direct Zonemate integration handles per-room zoning without a third-party control adaptor",
@@ -799,7 +800,7 @@ export const brands: Brand[] = [
           { label: "External static pressure", value: "Adjustable 100–200 Pa (higher-static than M100-M140)" },
           { label: "Zoning", value: "Zonemate 6 / 8-zone with damper motors" },
           { label: "Controller", value: "PAR-42MAA wired / MA-remote" },
-          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship (7-year Diamond Dealer extension pending)" },
+          { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
           "Three larger capacity steps (16 / 18 / 20 kW) extend the PEA-M range for double-storey + long-run installs",
@@ -951,6 +952,8 @@ export const brands: Brand[] = [
       "Quiet enough (37 dBA at 1m) to sit next to a bedroom wall",
       "Australian-designed for Australian conditions",
       "PV-diverter kit fires the compressor on solar surplus · earns its price back fast on any home with rooftop solar",
+      "Glass-lined and stainless tanks in 250 / 315 / 400 L — the range covers a unit up to a full house",
+      "Panasonic Aquarea compressor option in 4 kW and 6 kW where recovery speed matters",
     ],
     commonInMelbourne:
       "Our default recommendation for any customer who intends to be in the house 10+ years. Popular through Pakenham Cameron Park estates, Berwick weatherboards being upgraded from gas storage, and every Cranbourne / Officer job where the customer specifies 'best of' and the tank sits in a visible spot (stainless finish reads as premium).",
@@ -1429,10 +1432,8 @@ export const brands: Brand[] = [
     keyFeatures: [
       "Reece-exclusive brand · every Reece store in Victoria stocks the common parts",
       "Manufactured in NSW by Dux · genuine Australian-made, qualifies for the $400 Aus-made VEU bonus",
-      "Focused range: heat pump (200L / 300L all-in-one + glass-lined split), G-series continuous-flow gas, electric storage",
       "R290 natural refrigerant in the heat pump range · low-GWP, high efficiency",
       "Best mid-tier VEU rebate outcome when Reclaim busts the budget",
-      "G-series continuous flow is our default gas hot water swap when the customer wants to stay on gas",
     ],
     commonInMelbourne:
       "Our volume-tier default for VEU rebate customers who want a proven, well-supported brand at a mid price point. Thermann all-in-one heat pumps go into a lot of Hampton Park, Cranbourne and Narre Warren jobs where the rebate math works best. G-series continuous flow is our go-to gas hot water swap across the corridor.",
@@ -1791,7 +1792,6 @@ export const brands: Brand[] = [
       "Built-in PV-diverter compatibility · smart-schedule the compressor around your solar",
       "Wi-Fi smart-app control comes standard · no aftermarket module needed",
       "R290 natural refrigerant, high COP",
-      "Aggressive price point · the value pick when budget is the driving factor",
     ],
     commonInMelbourne:
       "Hampton Park, Cranbourne North and Doveton are the postcodes we install the most iStore into · the VEU rebate maths there consistently gets the out-of-pocket under $500. Also popular with solar-paired households through Officer and Clyde North where the built-in PV diverter pays back inside the first year.",
@@ -1871,7 +1871,6 @@ export const brands: Brand[] = [
       "Best value-to-quality ratio at the mid-tier · genuinely closes the gap on premium brands",
       "Full range: wall splits, multi-head, ducted (10-16 kW), gas ducted, evaporative",
       "Kaden 6-star gas ducted is the most efficient value-tier gas heater in Melbourne",
-      "R32 refrigerant in the aircon range",
     ],
     commonInMelbourne:
       "Our value alternative when a family wants cooling in 3+ bedrooms and the Mitsubishi quote busts the budget. Very common in Cranbourne, Narre Warren, Hampton Park and Endeavour Hills where the customer wants a real system but the numbers need to work. Kaden gas ducted is our default like-for-like Brivis / Braemar replacement path.",
@@ -2376,9 +2375,7 @@ export const brands: Brand[] = [
       "Up to 12 zones on a single control board — covers virtually every residential ducted install",
       "Second control board doubles capacity to 24 zones — large homes and commercial fitouts",
       "Runs multiple ducted units off one Milieu tablet — a single interface for a two-system home",
-      "Milieu app on iOS + Android mirrors the wall tablet — one UI, two access points",
       "Variable-speed dampers modulate airflow 0-100% per zone (proper comfort, not just on/off)",
-      "Constant-speed dampers offered where a customer just wants on/off zone control at a lower price",
     ],
     commonInMelbourne:
       "Every ducted job we quote includes a Zonemate Milieu as standard. Zoning is the single biggest efficiency lever on a ducted system · shutting off unused rooms cuts running cost 30-40%. Milieu's 12-zones-on-one-board headroom means we can quote larger homes without expansion, and the multi-unit control feature is genuinely useful for the Clyde North / Officer double-storeys running two ducted systems.",

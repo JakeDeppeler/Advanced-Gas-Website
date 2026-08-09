@@ -101,7 +101,7 @@ const BRAND_PITCH: Record<string, {
     bestFor: "Ducted homes where one room bakes and another stays cold, or apps-and-Alexa-loving owners",
   },
   "brivis": {
-    positioning: "Retrofit incumbent · same-footprint into most existing Brivis / Braemar cavities",
+    positioning: "Retrofit incumbent · same-footprint into most existing ducted heater cavities",
     standoutStat: { value: "3-6 star", label: "output ratings across every kW size — 15/20/26/30" },
     bestFor: "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
   },

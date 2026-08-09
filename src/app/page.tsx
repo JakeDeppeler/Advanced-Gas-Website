@@ -460,7 +460,7 @@ export default async function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
-                <p>Install, replace, service. Brivis, Braemar, Kaden. Carbon monoxide tested.</p>
+                <p>Install, replace, service. Brivis, Kaden, Rinnai. Carbon monoxide tested.</p>
               </div>
             </Link>
 

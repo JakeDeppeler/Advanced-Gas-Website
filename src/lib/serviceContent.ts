@@ -60,10 +60,10 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
     h1: "Air conditioning installation across Melbourne's south-east",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first (Diamond Dealer accreditation in progress) and Kaden as the value alternative — same install team, same warranty, same finish.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first — it runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back — and Kaden as the value alternative. Same install team, same warranty, same finish.",
     benefits: [
       { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." },
-      { t: "Mitsubishi Electric default", d: "Diamond Dealer accreditation in progress — that unlocks the extended 7-year manufacturer warranty on top of our 6-year workmanship." },
+      { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." },
       { t: "Right-sized, not oversized", d: "Room-by-room heat-load calc before we quote. Oversized units cycle constantly and cost 20% more to run." },
       { t: "Zonemate zoning for ducted", d: "We install ducted with Zonemate 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." },
       { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." },
@@ -158,7 +158,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     typical: {
       time: "Single split · same day. Multi-head · 1 day. Ducted · 1–2 days.",
-      warranty: "6-year workmanship + 5-year Mitsubishi manufacturer (7-year Diamond Dealer extension pending).",
+      warranty: "6-year workmanship + 5-year Mitsubishi manufacturer.",
       priceRange: "$2,199 wall split → $18,500 large ducted with 6 zones.",
       followUp: "We ring the week after install to check it's running the way you expected. Not a marketing call — a genuine one.",
     },
@@ -334,7 +334,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "Parts pipeline is genuinely never a worry — even for units we didn't install, even for units 10+ years old.", href: "/brands/mitsubishi-electric" },
       { brand: "Kaden", reason: "Splits, ducted, gas ducted AND evap under one brand. Emerson-backed parts network in Melbourne — same-day on common boards.", href: "/brands/kaden" },
-      { brand: "Brivis & Braemar", reason: "Rinnai Melbourne warehouse holds parts for legacy Brivis + Braemar gas + evap units still in the field.", href: "/brands/brivis" },
+      { brand: "Brivis", reason: "Rinnai's Melbourne warehouse holds parts for gas and evap units still in the field after 15 years.", href: "/brands/brivis" },
     ],
     typical: {
       time: "Annual service · 60–90 min per unit. Breakdown diagnosis · under 30 min. Most repairs completed same visit.",
@@ -367,13 +367,13 @@ export const serviceContent: Record<string, ServiceContent> = {
   "gas-plumbing": {
     metaTitle: "Gas Plumbing & Ducted Heating Melbourne South-East | Brivis, Rinnai, Thermann",
     metaDescription:
-      "Licensed gas fitters + plumbers serving Melbourne's south-east — Brivis / Braemar ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",
+      "Licensed gas fitters + plumbers serving Melbourne's south-east — Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",
     h1: "Gas heating, hot water & plumbing across Melbourne's south-east",
     intro:
       "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 2 business hours, and full compliance certificates on every job.",
     benefits: [
       { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." },
-      { t: "Brivis / Braemar specialists", d: "The default gas ducted heater in most homes built 1990–2015 in the corridor. We replace one nearly every week — Wombat, Buffalo, Kaden gas ducted all covered." },
+      { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week — Brivis Wombat, Buffalo and Kaden gas ducted all covered." },
       { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water — a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." },
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." },
       { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." },
@@ -391,7 +391,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     steps: [
       { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm — call and we'll be on-site same-day. Standard call-out $120 in-hours, $220 after-hours. Fee waived if repair goes ahead on the day." },
       { title: "Planned job? Written quote in 2 hrs", detail: "Send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Includes VEU eligibility check for the swap." },
-      { title: "Old unit assessed on site", detail: "Ducted heater — is the cavity + ductwork reusable? (Usually yes for Brivis/Braemar retrofit.) Hot water — is the existing pad + pipework good, or does it need rework? We tell you before we touch anything." },
+      { title: "Old unit assessed on site", detail: "Ducted heater — is the cavity + ductwork reusable? (Usually yes on a like-for-like retrofit.) Hot water — is the existing pad + pipework good, or does it need rework? We tell you before we touch anything." },
       { title: "Install day", detail: "Brivis ducted replacement — 3-4 hours if the ducts + controller wiring reuse cleanly. Continuous flow hot water swap — 3-5 hours. Same-day for both. Old unit off the pad and loaded up." },
       { title: "Commission, pressure test, hand over", detail: "Gas pressure test to AS/NZS 5601, controller programmed, temperature setpoint checked, we run hot water at the tap. You sign the job card when it's running the way you want." },
       { title: "Compliance certificate + warranty registration", detail: "Gas compliance certificate emailed inside 24 hours. Manufacturer warranty registered in your name at the same time." },

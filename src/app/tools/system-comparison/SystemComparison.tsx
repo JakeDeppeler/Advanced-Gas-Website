@@ -126,7 +126,7 @@ const SYSTEMS: SystemRow[] = [
     brandsWeInstall: "Brivis Wombat + Buffalo, Kaden gas ducted",
     pros: [
       "Fast heat-up — big room reaches temp in ~15 minutes",
-      "Same-footprint retrofit into most 90s-onwards homes with an existing Brivis / Braemar",
+      "Same-footprint retrofit into most 90s-onwards homes with an existing ducted heater",
       "Doesn't need refrigerant handling licence to service",
     ],
     cons: [

@@ -7,6 +7,7 @@ import { brands, findBrand, productPhoto } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
+import { BrandFacts } from "@/components/BrandFacts";
 import { ProofStrip } from "@/components/ProofStrip";
 import { QuoteForm } from "@/components/QuoteForm";
 import { installsFor } from "@/lib/brandGallery";
@@ -108,31 +109,20 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </div>
       </section>
 
-      {/* At-a-glance strip (4 cells): our-take, accreditation, warranty, established */}
+      {/* At-a-glance. The reason we install it leads as prose; the
+          supporting facts hide behind buttons so the strip stays short. */}
       <section className="dp-local">
         <div className="wrap">
-          <div className="dp-local__grid">
-            <div className="dp-local__cell">
-              <div className="dp-local__lbl">Why we install it</div>
-              <p>{brand.ourTake}</p>
-            </div>
-            <div className="dp-local__cell">
-              <div className="dp-local__lbl">Accreditation</div>
-              <p>{brand.accreditation ?? "Authorised installer"}</p>
-            </div>
-            {brand.warranty && (
-              <div className="dp-local__cell">
-                <div className="dp-local__lbl">Warranty</div>
-                <p>{brand.warranty}</p>
-              </div>
-            )}
-            {brand.established && (
-              <div className="dp-local__cell">
-                <div className="dp-local__lbl">Established</div>
-                <p>{brand.established}</p>
-              </div>
-            )}
-          </div>
+          <BrandFacts
+            ourTake={brand.ourTake}
+            facts={[
+              { label: "Warranty", value: brand.warranty ?? "6-year workmanship warranty on every install." },
+              { label: "Accreditation", value: brand.accreditation ?? "Authorised installer" },
+              ...(brand.established ? [{ label: "Established", value: brand.established }] : []),
+              ...(brand.support ? [{ label: "Parts & service", value: brand.support }] : []),
+              ...(brand.commonInMelbourne ? [{ label: "Common in Melbourne", value: brand.commonInMelbourne }] : []),
+            ]}
+          />
         </div>
       </section>
 
@@ -157,18 +147,6 @@ export default async function BrandPage({ params }: { params: { brand: string } 
               </div>
             )}
             <div className="brand-context">
-              {brand.commonInMelbourne && (
-                <div className="brand-info__cell">
-                  <div className="dp-local__lbl">Common in Melbourne</div>
-                  <p>{brand.commonInMelbourne}</p>
-                </div>
-              )}
-              {brand.support && (
-                <div className="brand-info__cell">
-                  <div className="dp-local__lbl">Parts &amp; service</div>
-                  <p>{brand.support}</p>
-                </div>
-              )}
               {brand.resources && brand.resources.length > 0 && (
                 <div className="brand-info__cell">
                   <div className="dp-local__lbl">Manufacturer resources</div>

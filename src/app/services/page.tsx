@@ -90,7 +90,7 @@ const services: Service[] = [
     id: "gas-heating",
     num: "04",
     eyebrow: "04 · Gas & ducted gas heating",
-    h2: "Install, replace, service, Brivis, Braemar, Rinnai.",
+    h2: "Install, replace, service — Brivis, Kaden, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
     specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$280 + GST"], ["CO test", "included"]],
     bullets: [
@@ -99,7 +99,7 @@ const services: Service[] = [
       "Flue inspection, return-air checks, thermostat tune",
       "Compliance certificate within 24 hours",
     ],
-    brands: ["Brivis", "Braemar", "Rinnai"],
+    brands: ["Brivis", "Kaden", "Rinnai"],
     photo: "/gas-ducted-install.webp",
     photoAlt: "Ducted gas heating install by Advanced Gas",
     primaryCta: { label: "Quote my heating →", href: "/quote" },

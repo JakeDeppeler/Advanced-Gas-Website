@@ -340,7 +340,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "the regional centre for the shire — Federation weatherboards in the old town core, brick veneer through the 90s and 2000s, and new estate growth on the north edge",
     commonInstall:
-      "Reclaim R290 heat pumps — the cold-morning performance actually matters this far east — and Kaden ducted systems where the customer wants the ducted feel without the Mitsubishi Diamond premium",
+      "Reclaim R290 heat pumps — the cold-morning performance actually matters this far east — and Kaden ducted systems where the customer wants the ducted feel without the Mitsubishi premium",
     localHooks: [
       "Warragul Regional College",
       "St Paul's Anglican Grammar",
