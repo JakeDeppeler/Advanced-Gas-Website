@@ -34,6 +34,17 @@ export type ServiceContent = {
   included?: string[];
   excluded?: string[];
   /**
+   * "Why we install this gear" — the argument for the specific systems
+   * this service uses, not a generic company pitch. Every service page
+   * gets its own, because the case for Mitsubishi in a bedroom wall is a
+   * different case from Reclaim on a hot water pad.
+   */
+  whyThese?: {
+    heading: string;
+    blurb: string;
+    points: { t: string; d: string }[];
+  };
+  /**
    * System types covered by this service, each rendered as its own
    * anchored block.
    *
@@ -61,6 +72,19 @@ export const serviceContent: Record<string, ServiceContent> = {
     h1: "Air conditioning installation across Melbourne's south-east",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first — it runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back — and Kaden as the value alternative. Same install team, same warranty, same finish.",
+    whyThese: {
+      heading: "Why we put Mitsubishi Electric in, and Kaden when the budget says so.",
+      blurb:
+        "Two brands, not twelve. We'd rather know two ranges properly than carry a catalogue we can't stand behind.",
+      points: [
+        { t: "Under 1% failure rate", d: "That's Mitsubishi Electric across the whole range, and it's the number that decides what goes in a customer's wall. We're the ones who have to come back if it fails, so a unit that never needs us is worth more than the margin on a cheaper one." },
+        { t: "Parts you can actually get", d: "Mitsubishi's Melbourne warehouse still stocks parts for units we put in ten years ago. Plenty of cheap brands are unsupportable by year five — the unit isn't broken, it's just unfixable." },
+        { t: "Kaden isn't the compromise it sounds like", d: "Reece-exclusive, stocked in every store in Victoria, and genuinely close to premium on build. When the Mitsubishi number doesn't work, Kaden is what we fit in our own rentals. Same install crew, same 6-year workmanship." },
+        { t: "Zoned properly from day one", d: "Every ducted job gets Zonemate zoning as standard, not as an upsell. Zoning added in year three means pulling the ceiling apart twice." },
+        { t: "Sized on a heat load, not a guess", d: "Room by room, allowing for ceiling height, window aspect and insulation. Oversizing is the lazy way out — the unit short-cycles, never dehumidifies properly, and costs about 20% more to run forever." },
+        { t: "We'd rather quote the smaller unit", d: "If a 5 kW does the room, we quote a 5 kW. Selling someone a 7 they didn't need is how you get one job instead of a family's worth of them." },
+      ],
+    },
     benefits: [
       { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." },
       { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." },
@@ -194,6 +218,19 @@ export const serviceContent: Record<string, ServiceContent> = {
     h1: "Heat pump hot water installation across Melbourne's south-east",
     intro:
       "Reclaim, iStore and Thermann heat pump hot water systems installed by licensed plumbers across every postcode within 75 km of Pakenham. The VEU rebate (up to $2,700) is applied at quote — you don't pay it up-front and chase it back. Old tank removed and responsibly disposed, licensed plumbing to AS/NZS 3500, and a 6-year workmanship warranty on top of the manufacturer's tank + heat-pump cover.",
+    whyThese: {
+      heading: "Why Reclaim, iStore and Thermann — and nothing else.",
+      blurb:
+        "Heat pump hot water is the one category where the cheap option really bites. These three are the ones we'd put on our own houses.",
+      points: [
+        { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a lesser unit spends July running an element it was supposed to replace." },
+        { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined is cheaper up front and fine — but somebody has to remember the anode in year five, and nobody does." },
+        { t: "iStore gets the best rebate outcome", d: "On the VEU numbers a 270 L iStore often lands under $900 out of pocket. If budget is the deciding factor, that's the one we push — not the one with the biggest margin." },
+        { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
+        { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement — all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
+        { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
+      ],
+    },
     benefits: [
       { t: "VEU rebate applied at quote", d: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75). We handle the paperwork — you don't front the cash then chase it back six months later." },
       { t: "Three-brand line-up", d: "iStore 270 L for cheapest-post-rebate ($2,144 installed), Reclaim ECO R290 AIO / Thermann Integrated for AIO mid-range ($2,624), Reclaim CO₂ Split for long-life stainless." },
@@ -271,6 +308,19 @@ export const serviceContent: Record<string, ServiceContent> = {
     h1: "Aircon service, repair & tune-up across Melbourne's south-east",
     intro:
       "Keep your aircon running efficiently — and your manufacturer warranty valid — with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and fixed-price quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
+    whyThese: {
+      heading: "Why we service brands we'd never sell you.",
+      blurb:
+        "We install two aircon brands. We service all of them — including the ones we'd have talked you out of buying.",
+      points: [
+        { t: "Your unit doesn't have to be ours", d: "Daikin, Fujitsu, Panasonic, LG, Samsung, Braemar — if it's on your wall we'll look at it. Refusing to service what we didn't sell is a good way to lose a customer for the one job that matters." },
+        { t: "Most January call-outs aren't broken units", d: "They're blocked filters, filthy coils and clogged condensate drains on systems that have never been serviced. That's an afternoon, not a new system, and we'll tell you so." },
+        { t: "We'll tell you when to stop spending", d: "If a fifteen-year-old unit needs a compressor, we say so plainly and quote the replacement instead of taking your money for a repair that buys eight months." },
+        { t: "Licensed for the refrigerant", d: "ARCtick-certified for any refrigerant handling. It's a legal requirement and plenty of cheaper operators quietly aren't." },
+        { t: "Evap gets looked at before summer, not during", d: "Pads, water tray, pump and float. The first 38-degree day is a bad time to find out the pump seized over winter, and everyone rings on the same afternoon." },
+        { t: "A report you can actually read", d: "What we found, what we did, what to watch. Emailed the same day, not a scribbled docket." },
+      ],
+    },
     benefits: [
       { t: "All major brands serviced", d: "Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Braemar. Even ones we don't install." },
       { t: "Keeps your warranty valid", d: "Most manufacturers require annual service to keep warranty in force. We lodge a service report direct with the maker in your name." },
@@ -371,6 +421,19 @@ export const serviceContent: Record<string, ServiceContent> = {
     h1: "Gas heating, hot water & plumbing across Melbourne's south-east",
     intro:
       "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 2 business hours, and full compliance certificates on every job.",
+    whyThese: {
+      heading: "Why Brivis and Kaden for gas — and why the star rating matters more than the price.",
+      blurb:
+        "Gas ducted is still the cheapest way to heat a Melbourne home through winter. Which one you pick decides what you pay for the next fifteen years.",
+      points: [
+        { t: "Brivis is what most of these homes were built with", d: "Wombat, Buffalo and Compact Classic drop into the existing cavity, ductwork and controller wiring, so a retrofit is a day rather than a rebuild. Rinnai backs the parts pipeline — even fifteen-year-old units are still serviceable." },
+        { t: "Kaden does the same job for less", d: "Reece-exclusive, internal and external, 3 to 6 star. Roughly $700-1,000 cheaper installed than the Brivis equivalent with the same crew and the same 6-year workmanship warranty behind it." },
+        { t: "We quote the payback, not just the price", d: "A 3-star and a 6-star heat the same house. The 6-star costs more up front and less every winter after that — we'll show you where the crossover lands for your gas bill rather than just selling you the cheap one." },
+        { t: "Carbon monoxide testing on every gas job", d: "A cracked heat exchanger has no smell and no warning. Calibrated analyser, results on the report. This is the part of the job that isn't optional and we won't skip it to win a quote." },
+        { t: "Thermann G-series for continuous flow", d: "Made by Reece — not Rinnai, whatever the internet tells you. Never runs out, no tank losing heat overnight, and same-day swap on most like-for-like replacements." },
+        { t: "Compliance certificate within 24 hours", d: "VBA-licensed gas fitters, paperwork emailed the next business day. Not chased three weeks later when you need it for a sale." },
+      ],
+    },
     benefits: [
       { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." },
       { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week — Brivis Wombat, Buffalo and Kaden gas ducted all covered." },

@@ -212,7 +212,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </section>
       )}
 
-      <WhyDifferent service={svc.short.toLowerCase()} />
+      <WhyDifferent service={svc.short.toLowerCase()} content={content.whyThese} />
 
       {/* PRICING */}
       <section className="dp-pricing">
