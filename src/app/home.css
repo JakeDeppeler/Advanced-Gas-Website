@@ -505,6 +505,9 @@
   grid-template-columns: repeat(7, 1fr);
   gap: 12px;
 }
+/* The duplicate half exists only to make the mobile marquee loop. On a
+   static grid it just prints every brand twice, one row under the other. */
+.page-home .brands__grid .brand-chip[aria-hidden="true"] { display: none; }
 .page-home .brand-chip {
   background: var(--paper);
   border: 1px solid var(--line);
@@ -1473,6 +1476,8 @@
     animation: brands-marquee 30s linear infinite;
     width: max-content;
   }
+  /* Marquee needs the second copy back to loop seamlessly. */
+  .page-home .brands__grid .brand-chip[aria-hidden="true"] { display: flex; }
   .page-home .brand-chip {
     flex: 0 0 auto;
     min-width: 150px;

@@ -124,10 +124,14 @@ const SUBURBS: { name: string; slug: string }[] = [
 export default async function HomePage() {
   // Live 4★+ Google reviews (falls back to the curated list when the
   // Places API isn't configured — see lib/googleReviews.ts).
-  const { reviews: liveReviews } = await getReviews(10);
+  const { reviews: liveReviews } = await getReviews(12);
+  // THREE columns — .reviews__marquee is a three-column grid, so a
+  // two-way split left the right-hand third of the section empty on
+  // desktop. Pull 12 so each column gets a fair share.
   const REVIEW_COLUMNS = [
-    liveReviews.filter((_, i) => i % 2 === 0),
-    liveReviews.filter((_, i) => i % 2 === 1),
+    liveReviews.filter((_, i) => i % 3 === 0),
+    liveReviews.filter((_, i) => i % 3 === 1),
+    liveReviews.filter((_, i) => i % 3 === 2),
   ];
 
   // Warm up DNS for the OSM tile CDN so the below-the-fold service map's
@@ -221,8 +225,10 @@ export default async function HomePage() {
                 ["Zonemate", "zoning"],
                 ["Brivis", "gas ducted"],
               ];
-              // Duplicated so the mobile marquee (CSS translateX(-50%)) loops
-              // seamlessly — the second half slides in as the first half exits.
+              // Duplicated so the MOBILE marquee (CSS translateX(-50%)) loops
+              // seamlessly. On desktop the grid is static, so the second copy
+              // is hidden in CSS — otherwise seven chips in a seven-column
+              // grid render as two identical rows.
               return [...BRANDS_STRIP, ...BRANDS_STRIP].map(([name, type], i) => (
                 <div key={`${name}-${i}`} className="brand-chip" aria-hidden={i >= BRANDS_STRIP.length}>
                   <span className="brand-chip__name">{name}</span>
@@ -305,7 +311,7 @@ export default async function HomePage() {
               so the CSS translateX(-50%) loop reads seamless. */}
           <div className="reviews__rail" aria-hidden="true">
             <div className="reviews__rail-track">
-              {[...REVIEW_COLUMNS[0].slice(0, 5), ...REVIEW_COLUMNS[1].slice(0, 3), ...REVIEW_COLUMNS[0].slice(0, 5), ...REVIEW_COLUMNS[1].slice(0, 3)].map((r, i) => (
+              {[...liveReviews.slice(0, 8), ...liveReviews.slice(0, 8)].map((r, i) => (
                 <article key={`m-${i}`} className="revcard revcard--mobile">
                   <div className="revcard__stars">★★★★★</div>
                   <h3 className="revcard__title">{r.title}</h3>

@@ -126,49 +126,42 @@ const SYSTEMS: SystemPreset[] = [
     note: "Same compressor as the 270, 90 L less buffer. Where that bites is the fourth shower, not the first." },
 ];
 
+/**
+ * Two questions. That's it.
+ *
+ * Everything else the maths needs — tank setpoint, mains temperature,
+ * shower temperature, flow rate, COP, compressor draw, basin and laundry
+ * volume — is a real input that a homeowner has no way of knowing. Those
+ * are fixed at the figures we'd quote on, and only the two numbers that
+ * actually move the answer are on screen.
+ */
+const FIXED = {
+  tankTempC: 60,          // 60 °C minimum by law — Legionella control
+  mixedTempC: 41,         // comfortable shower
+  mainsTempC: 15,         // Melbourne winter mains
+  showerFlowLpm: 9,       // 3-star head
+  otherLitresPerDay: 40,  // basins, kitchen, laundry
+  runHours: 2,            // one shower run, morning or evening
+  gapHours: 9,            // ~8am finish to a ~5pm start
+};
+
 type Form = {
-  people: number;
-  showersPerPersonPerDay: number;
+  morningPeople: number;
+  eveningPeople: number;
   showerMinutes: number;
-  showerFlowLpm: number;
-  otherLitresPerDay: number;
-  tankTempC: number;
-  mixedTempC: number;
-  mainsTempC: number;
-  copRating: number;
-  inputKw: number;
-  peakWindowHours: number;
-  /** Share of the day's showers taken in the morning, 0-100. */
-  morningSharePct: number;
-  /** Gap between the morning and evening runs — the tank's reheat window. */
-  hoursBetweenSessions: number;
-  /** Bathroom turnaround per person — sets how many fit in a rush. */
-  bathroomMinutes: number;
-  /** Head-to-head selections. */
   systemA: string;
   systemB: string;
 };
 
 const DEFAULTS: Form = {
-  people: 4,
-  showersPerPersonPerDay: 1,
+  morningPeople: 2,
+  eveningPeople: 2,
   showerMinutes: 15,
-  showerFlowLpm: 9,      // standard 3-star head
-  otherLitresPerDay: 40, // kitchen, laundry, basins
-  tankTempC: 60,
-  mixedTempC: 41,
-  mainsTempC: 15,        // Melbourne winter mains ≈ 12-15 °C
-  copRating: 4.5,        // Reclaim CO₂ territory
-  inputKw: 1.0,
-  peakWindowHours: 2,    // four people, back to back, before work
-  bathroomMinutes: 15,   // turnaround per person, not water-running time
-  morningSharePct: 50,
-  hoursBetweenSessions: 9,  // ~8am finish to a 5pm evening run
   systemA: "pana-6-250",
   systemB: "istore-270",
 };
 
-/** Litres of hot water a given heat output can make per hour. */
+/** Litres of hot water a given HEAT OUTPUT can make per hour. */
 function recoveryLitresPerHour(heatKw: number, deltaT: number) {
   return (heatKw * 3600) / (SPECIFIC_HEAT * Math.max(1, deltaT));
 }
@@ -179,305 +172,108 @@ export function HeatPumpSizing() {
     setForm((f) => ({ ...f, [k]: v }));
 
   const r = useMemo(() => {
-    const { tankTempC, mixedTempC, mainsTempC } = form;
+    const { tankTempC, mixedTempC, mainsTempC, showerFlowLpm, otherLitresPerDay, runHours, gapHours } = FIXED;
 
-    // Hot fraction of the mixed flow. Guard against a setpoint at or
-    // below mains (division by zero / nonsense input).
+    // Hot fraction of the mixed flow: (41-15)/(60-15) = 0.578, so a
+    // 9 L/min shower pulls 5.2 L/min off the tank and 3.8 L/min of cold.
     const span = Math.max(1, tankTempC - mainsTempC);
     const hotFraction = Math.min(1, Math.max(0.05, (mixedTempC - mainsTempC) / span));
 
-    const hotLpm = form.showerFlowLpm * hotFraction;
-    const coldLpm = form.showerFlowLpm - hotLpm;
-
-    const showersPerDay = form.people * form.showersPerPersonPerDay;
+    const hotLpm = showerFlowLpm * hotFraction;
+    const coldLpm = showerFlowLpm - hotLpm;
     const hotPerShower = hotLpm * form.showerMinutes;
-    const showerHotPerDay = hotPerShower * showersPerDay;
-    const totalHotPerDay = showerHotPerDay + form.otherLitresPerDay;
 
-    // Showers don't all happen at once. A four-person house is typically
-    // a couple before work and a couple after dinner, with the whole day
-    // in between for the tank to recover — so the number that sizes the
-    // tank is the BIGGER SESSION, not the daily total.
-    const morningShare = Math.min(1, Math.max(0, form.morningSharePct / 100));
-    const morningShowers = showersPerDay * morningShare;
-    const eveningShowers = showersPerDay - morningShowers;
-
-    // Sinks and laundry lean to the evening.
-    const morningOther = form.otherLitresPerDay * 0.4;
-    const eveningOther = form.otherLitresPerDay * 0.6;
-
-    const morningHot = morningShowers * hotPerShower + morningOther;
-    const eveningHot = eveningShowers * hotPerShower + eveningOther;
+    const morningHot = form.morningPeople * hotPerShower + otherLitresPerDay * 0.4;
+    const eveningHot = form.eveningPeople * hotPerShower + otherLitresPerDay * 0.6;
     const peakSessionHot = Math.max(morningHot, eveningHot);
+    const totalHotPerDay = morningHot + eveningHot;
 
     const deltaT = Math.max(1, tankTempC - mainsTempC);
-    const heatOutputKw = Math.max(0.1, form.inputKw * form.copRating);
-    const litresPerHour = recoveryLitresPerHour(heatOutputKw, deltaT);
 
-    // The tank has to hold the whole busy run on its own.
-    //
-    // A shower pulls roughly 310 L/hr of stored water against a recovery
-    // of well under 100 L/hr, and people follow each other straight out
-    // of the bathroom. Counting reheat during the rush assumes the unit
-    // keeps pace with the tap, which it never does — that's how you end
-    // up recommending a 170 L tank to a family of six. Recovery earns its
-    // keep between the morning and evening runs, not inside one.
-    const peakSessionShowers = Math.max(morningShowers, eveningShowers);
-
-    // A rush is limited by the bathroom, not just the tank. Eight minutes
-    // under the water is about fifteen in the room once you count getting
-    // in and out — so a 2 hr window fits eight people through one
-    // bathroom, and a household bigger than that is really two rushes.
-    const fitThroughRush = (form.peakWindowHours * 60) / Math.max(1, form.bathroomMinutes);
-    const rushIsCrowded = peakSessionShowers > fitThroughRush;
-    const rushHoursNeeded = (peakSessionShowers * form.bathroomMinutes) / 60;
-    const showerHoursInSession = (peakSessionShowers * form.showerMinutes) / 60;
-    const idleHoursInSession = Math.max(0, form.peakWindowHours - showerHoursInSession);
-    const reheatedDuringSession = litresPerHour * idleHoursInSession;
-
-    const mustBeStored = peakSessionHot;
-    const minTankForSession = mustBeStored / USABLE_FRACTION;
-
-    // Worst realistic burst — used for the "back to back" verdict.
-    const burstShowers = Math.max(2, Math.ceil(peakSessionShowers));
-    const burstHot = burstShowers * hotPerShower;
-
-    // Sanity floor: a unit that can't make the day's total in ~16 hours
-    // of running is undersized regardless of how the draw is spread.
-    const dailyCapableLitres = litresPerHour * 16;
-    const dayPressure = totalHotPerDay / Math.max(1, dailyCapableLitres);
-
-    const requiredLitres = minTankForSession;
-    const recommended =
-      TANK_SIZES.find((t) => t.litres >= requiredLitres) ??
-      TANK_SIZES[TANK_SIZES.length - 1];
+    // The tank carries the whole run on its own. A shower pulls ~310 L/hr
+    // of stored water against a recovery under 100 L/hr, so the compressor
+    // never keeps pace mid-rush — it catches up in the gap.
+    const requiredLitres = peakSessionHot / USABLE_FRACTION;
+    const largest = TANK_SIZES[TANK_SIZES.length - 1];
+    // Past the biggest tank we sell, the honest answer is "not one tank",
+    // not the biggest one on the list pretending to cope.
+    const exceedsRange = requiredLitres > largest.litres;
+    const recommended = TANK_SIZES.find((t) => t.litres >= requiredLitres) ?? largest;
 
     const usableCapacity = recommended.litres * USABLE_FRACTION;
-
-    // What the household actually feels: litres at shower temperature,
-    // because stored hot water gets blended with cold on the way out.
-    const coldBlendedIn = usableCapacity / hotFraction - usableCapacity;
     const deliveredMixed = usableCapacity / hotFraction;
-    const deliveredMixedFullTank = recommended.litres / hotFraction;
-    const showersFromFullTank = deliveredMixed / (form.showerFlowLpm * form.showerMinutes);
+    const coldBlendedIn = deliveredMixed - usableCapacity;
+    const showersFromTank = usableCapacity / hotPerShower;
 
-    // Reheat: energy to lift a full recommended tank from mains to setpoint.
-    const energyKwh = (recommended.litres * SPECIFIC_HEAT * deltaT) / 3600;
-    const reheatHours = energyKwh / heatOutputKw;
-
-    const coversPeak = usableCapacity >= peakSessionHot;
-    const coversBurst = usableCapacity >= burstHot;
-
-    // Is the tank back up before the evening run?
-    const leftAfterMorning = Math.max(0, usableCapacity - morningHot);
-    const recoveredBetween = litresPerHour * form.hoursBetweenSessions;
-    const availableForEvening = Math.min(usableCapacity, leftAfterMorning + recoveredBetween);
-    const readyForEvening = availableForEvening >= eveningHot;
-    const hoursToRefillAfterMorning = Math.min(morningHot, usableCapacity) / Math.max(1, litresPerHour);
-
-    const runningCostPerDay = (totalHotPerDay / Math.max(1, litresPerHour)) * form.inputKw;
-
-    // ---- Head-to-head -------------------------------------------------
     const compare = [form.systemA, form.systemB].map((id) => {
       const sys = SYSTEMS.find((x) => x.id === id) ?? SYSTEMS[0];
       const lph = recoveryLitresPerHour(sys.heatKw, deltaT);
       const usable = sys.tankLitres * USABLE_FRACTION;
-      const mixed = usable / hotFraction;
       const fullReheatHrs = (sys.tankLitres * SPECIFIC_HEAT * deltaT) / 3600 / sys.heatKw;
-
       const handlesPeak = usable >= peakSessionHot;
-
-      const leftAfterAm = Math.max(0, usable - morningHot);
-      const forPm = Math.min(usable, leftAfterAm + lph * form.hoursBetweenSessions);
-      const readyPm = forPm >= eveningHot;
-
-      // Time to put back exactly what the morning took.
+      // Time to put back exactly what the morning run took.
       const recoverHrs = Math.min(morningHot, usable) / Math.max(1, lph);
-
+      const readyPm = recoverHrs <= gapHours && usable >= eveningHot;
       return {
         ...sys,
         litresPerHour: lph,
         usable,
-        mixed,
+        mixed: usable / hotFraction,
+        showers: usable / hotPerShower,
         fullReheatHrs,
         handlesPeak,
-        readyPm,
         recoverHrs,
+        readyPm,
         keepsUp: handlesPeak && readyPm,
       };
     });
 
     return {
-      hotFraction,
-      hotLpm,
-      coldLpm,
-      showersPerDay,
-      hotPerShower,
-      totalHotPerDay,
-      morningShowers,
-      eveningShowers,
-      morningHot,
-      eveningHot,
-      peakSessionHot,
-      peakSessionShowers,
-      fitThroughRush,
-      rushIsCrowded,
-      rushHoursNeeded,
-      burstShowers,
-      burstHot,
-      coversBurst,
-      requiredLitres,
-      recommended,
-      usableCapacity,
-      coldBlendedIn,
-      deliveredMixed,
-      deliveredMixedFullTank,
-      showersFromFullTank,
-      energyKwh,
-      heatOutputKw,
-      reheatHours,
-      litresPerHour,
-      coversPeak,
-      readyForEvening,
-      availableForEvening,
-      hoursToRefillAfterMorning,
-      dayPressure,
-      runningCostPerDay,
-      compare,
+      hotFraction, hotLpm, coldLpm, hotPerShower,
+      morningHot, eveningHot, peakSessionHot, totalHotPerDay,
+      recommended, usableCapacity, deliveredMixed, coldBlendedIn, showersFromTank,
+      requiredLitres, exceedsRange,
+      compare, runHours, gapHours,
     };
   }, [form]);
 
   const n = (v: number, d = 0) =>
     v.toLocaleString("en-AU", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const hrs = (v: number) => (v < 1 ? `${n(v * 60)} min` : `${n(v, 1)} hrs`);
 
   return (
     <div className="page-tool__grid">
       <div className="page-tool__form">
         <h2>Your household</h2>
 
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="ppl">People in the home</label>
-            <input id="ppl" type="number" min="1" max="12" step="1"
-              value={form.people}
-              onChange={(e) => set("people", parseInt(e.target.value) || 1)} />
-          </div>
-          <div className="tool-field">
-            <label htmlFor="spp">Showers per person / day</label>
-            <input id="spp" type="number" min="0.5" max="3" step="0.5"
-              value={form.showersPerPersonPerDay}
-              onChange={(e) => set("showersPerPersonPerDay", parseFloat(e.target.value) || 1)} />
-          </div>
-        </div>
-
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="mins">Shower length (min)</label>
-            <input id="mins" type="number" min="1" max="30" step="1"
-              value={form.showerMinutes}
-              onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 1)} />
-            <small>Average is quoted as 8. Real showers run 15, which is what actually sizes the tank.</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="flow">Shower flow (L/min)</label>
-            <input id="flow" type="number" min="4" max="20" step="0.5"
-              value={form.showerFlowLpm}
-              onChange={(e) => set("showerFlowLpm", parseFloat(e.target.value) || 9)} />
-            <small>3-star head ≈ 9 L/min. Old unrestricted heads hit 15-20.</small>
-          </div>
-        </div>
-
         <div className="tool-field">
-          <label htmlFor="other">Other hot water per day (L)</label>
-          <input id="other" type="number" min="0" max="200" step="5"
-            value={form.otherLitresPerDay}
-            onChange={(e) => set("otherLitresPerDay", parseFloat(e.target.value) || 0)} />
-          <small>Kitchen sink, basins, laundry. ~10 L per person per day is typical.</small>
-        </div>
-
-        <h2 style={{ marginTop: 24 }}>Temperatures</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="tank">Tank setpoint (°C)</label>
-            <input id="tank" type="number" min="50" max="70" step="1"
-              value={form.tankTempC}
-              onChange={(e) => set("tankTempC", parseFloat(e.target.value) || 60)} />
-            <small>60 °C minimum by law — Legionella control.</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="mixed">Shower temp (°C)</label>
-            <input id="mixed" type="number" min="35" max="50" step="0.5"
-              value={form.mixedTempC}
-              onChange={(e) => set("mixedTempC", parseFloat(e.target.value) || 41)} />
-            <small>Comfortable is 40-42 °C. Tempering valve caps outlets at 50 °C.</small>
-          </div>
-        </div>
-
-        <div className="tool-field">
-          <label htmlFor="mains">Cold mains temp (°C)</label>
-          <input id="mains" type="number" min="5" max="25" step="1"
-            value={form.mainsTempC}
-            onChange={(e) => set("mainsTempC", parseFloat(e.target.value) || 15)} />
-          <small>Melbourne winter mains sits around 12-15 °C. Summer 18-22.</small>
-        </div>
-
-        <h2 style={{ marginTop: 24 }}>The heat pump</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="cop">COP</label>
-            <input id="cop" type="number" min="1.5" max="6" step="0.1"
-              value={form.copRating}
-              onChange={(e) => set("copRating", parseFloat(e.target.value) || 4.5)} />
-            <small>Reclaim CO₂ ≈ 4.5 · Thermann ≈ 3.8 · iStore ≈ 3.5</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="kw">Compressor input (kW)</label>
-            <input id="kw" type="number" min="0.3" max="3" step="0.1"
-              value={form.inputKw}
-              onChange={(e) => set("inputKw", parseFloat(e.target.value) || 1)} />
-            <small>Most residential units draw 0.9-1.2 kW.</small>
-          </div>
-        </div>
-
-        <h2 style={{ marginTop: 24 }}>When the showers happen</h2>
-        <div className="tool-field__row">
-          <div className="tool-field">
-            <label htmlFor="peak">One shower run (hrs)</label>
-            <input id="peak" type="number" min="0.5" max="6" step="0.5"
-              value={form.peakWindowHours}
-              onChange={(e) => set("peakWindowHours", parseFloat(e.target.value) || 2)} />
-            <small>First to last shower in a single run — not the whole day.</small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="bath">Bathroom time each (min)</label>
-            <input id="bath" type="number" min="5" max="40" step="1"
-              value={form.bathroomMinutes}
-              onChange={(e) => set("bathroomMinutes", parseFloat(e.target.value) || 15)} />
-            <small>
-              In and out, not just water running. An 8 min shower is about
-              15 min in the room.
-            </small>
-          </div>
-          <div className="tool-field">
-            <label htmlFor="gap">Hours between runs</label>
-            <input id="gap" type="number" min="2" max="16" step="1"
-              value={form.hoursBetweenSessions}
-              onChange={(e) => set("hoursBetweenSessions", parseFloat(e.target.value) || 10)} />
-            <small>Morning to evening. This is the tank&rsquo;s reheat window.</small>
-          </div>
-        </div>
-
-        <div className="tool-field">
-          <label htmlFor="amshare">
-            Showers taken in the morning: {form.morningSharePct}%
+          <label htmlFor="am">
+            Showering in the morning: <strong>{form.morningPeople}</strong>
           </label>
-          <input id="amshare" type="range" min="0" max="100" step="10"
-            value={form.morningSharePct}
-            onChange={(e) => set("morningSharePct", parseFloat(e.target.value))} />
+          <input id="am" type="range" min="0" max="8" step="1"
+            value={form.morningPeople}
+            onChange={(e) => set("morningPeople", parseInt(e.target.value))} />
+          <small>People showering inside a {r.runHours} hour window before work.</small>
+        </div>
+
+        <div className="tool-field">
+          <label htmlFor="pm">
+            Showering in the evening: <strong>{form.eveningPeople}</strong>
+          </label>
+          <input id="pm" type="range" min="0" max="8" step="1"
+            value={form.eveningPeople}
+            onChange={(e) => set("eveningPeople", parseInt(e.target.value))} />
+          <small>People showering inside a {r.runHours} hour window after work.</small>
+        </div>
+
+        <div className="tool-field">
+          <label htmlFor="mins">Shower length (min)</label>
+          <input id="mins" type="number" min="5" max="30" step="1"
+            value={form.showerMinutes}
+            onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 15)} />
           <small>
-            All morning is the worst case. Split across morning and night
-            and the tank gets a full day to recover in between — which is
-            how most households actually run.
+            15 is the honest number. The 8-minute average undersizes every
+            house with a teenager in it.
           </small>
         </div>
 
@@ -496,6 +292,11 @@ export function HeatPumpSizing() {
             </select>
           </div>
         </div>
+
+        <p className="tool-result__note" style={{ marginTop: 18 }}>
+          Assumes a 9 L/min head, a 60 °C tank, a 41 °C shower and Melbourne
+          winter mains at 15 °C. We check the rest on site.
+        </p>
       </div>
 
       <div className="page-tool__result">
@@ -503,167 +304,72 @@ export function HeatPumpSizing() {
         <div className="tool-result__lead">Recommended tank</div>
         <div className="tool-result__big">{r.recommended.litres} L</div>
         <p className="tool-result__sub">
-          {r.recommended.models}. Your busiest run of the day pulls about{" "}
-          <strong>{n(r.peakSessionHot)} L</strong> of stored hot water, and a
-          tank only gives up about 80% of its nameplate before the outlet
-          starts running cold.
+          Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> of stored
+          hot water. A tank gives up about 80% of its nameplate before the
+          outlet starts running cool, so that needs {r.recommended.litres} L on the wall.
         </p>
 
-        {/* The number people actually care about: not tank litres, but
-            litres of shower-temperature water it puts out. */}
-        <div className="hps-delivery">
-          <div className="hps-delivery__lbl">What that tank actually delivers</div>
-          <div className="hps-delivery__big">
-            ≈ {n(r.deliveredMixed)} L <span>of water at {form.mixedTempC} °C</span>
+        {r.exceedsRange && (
+          <div className="hps-verdict is-tight" style={{ marginTop: 14 }}>
+            <strong>Bigger than one tank</strong>
+            <span>
+              That run needs about {n(r.requiredLitres)} L of storage — more than the
+              largest single tank we install. The usual answer is two tanks plumbed
+              in series, or staggering the showers so the run splits in two. Worth a
+              call rather than a calculator.
+            </span>
           </div>
-          <p className="hps-delivery__note">
-            {n(r.usableCapacity)} L of usable {form.tankTempC} °C water blended with
-            about <strong>{n(r.coldBlendedIn)} L</strong> of {form.mainsTempC} °C mains.
-            That&rsquo;s roughly <strong>{n(r.showersFromFullTank, 1)} showers</strong> at{" "}
-            {n(form.showerFlowLpm, 1)} L/min for {form.showerMinutes} minutes — before
-            the heat pump puts anything back.
-          </p>
-        </div>
+        )}
 
         <div className="hps-picks">
           <div className="hps-picks__lbl">Systems we install at this size</div>
           <div className="hps-picks__row">
             {r.recommended.picks.map((pk) => (
-              <Link key={pk.href} href={pk.href} className="hps-pick">
-                {pk.label} →
-              </Link>
+              <Link key={pk.href} href={pk.href} className="hps-pick">{pk.label} →</Link>
             ))}
           </div>
         </div>
 
-        {/* The insight most people miss — a 9 L/min shower isn't 9 L/min
-            off the tank. */}
-        <div className="hps-split">
-          <div className="hps-split__lbl">
-            Where a {n(form.showerFlowLpm, 1)} L/min shower actually comes from
+        <div className="hps-delivery">
+          <div className="hps-delivery__lbl">What that actually delivers</div>
+          <div className="hps-delivery__big">
+            {n(r.showersFromTank, 1)} showers <span>back to back, before any reheat</span>
           </div>
-          <div className="hps-split__bar" role="img"
-            aria-label={`${n(r.hotLpm, 1)} litres per minute hot, ${n(r.coldLpm, 1)} litres per minute cold`}>
-            <span className="hps-split__hot" style={{ width: `${r.hotFraction * 100}%` }}>
-              {n(r.hotLpm, 1)} L hot
-            </span>
-            <span className="hps-split__cold" style={{ width: `${(1 - r.hotFraction) * 100}%` }}>
-              {n(r.coldLpm, 1)} L cold
-            </span>
-          </div>
-          <p className="hps-split__note">
-            Mixing {form.tankTempC} °C stored water with {form.mainsTempC} °C mains to
-            reach {form.mixedTempC} °C means only{" "}
-            <strong>{Math.round(r.hotFraction * 100)}%</strong> of the flow leaves
-            the tank. That&rsquo;s why a {r.recommended.litres} L tank goes much
-            further than it first looks.
+          <p className="hps-delivery__note">
+            {n(r.usableCapacity)} L of usable 60 °C water blends with about{" "}
+            <strong>{n(r.coldBlendedIn)} L</strong> of cold to make{" "}
+            <strong>{n(r.deliveredMixed)} L</strong> at shower temperature. Each{" "}
+            {form.showerMinutes} minute shower takes {n(r.hotPerShower)} L out of the tank
+            — {n(r.hotLpm, 1)} L a minute hot, {n(r.coldLpm, 1)} L cold.
           </p>
         </div>
 
         <div className="hps-sessions">
-          <div className="hps-sessions__lbl">How the day splits</div>
           <div className="hps-sessions__grid">
             <div className="hps-session">
               <span className="hps-session__when">Morning</span>
               <strong>{n(r.morningHot)} L</strong>
-              <span className="hps-session__sub">{n(r.morningShowers, 1)} showers + basins</span>
+              <span className="hps-session__sub">{form.morningPeople} showers</span>
             </div>
             <div className="hps-session hps-session--gap">
-              <span className="hps-session__when">{form.hoursBetweenSessions} hr gap</span>
-              <strong>+{n(r.litresPerHour * form.hoursBetweenSessions)} L</strong>
-              <span className="hps-session__sub">reheated in between</span>
+              <span className="hps-session__when">{r.gapHours} hr gap</span>
+              <strong>reheat</strong>
+              <span className="hps-session__sub">tank refills</span>
             </div>
             <div className="hps-session">
               <span className="hps-session__when">Evening</span>
               <strong>{n(r.eveningHot)} L</strong>
-              <span className="hps-session__sub">{n(r.eveningShowers, 1)} showers + kitchen</span>
+              <span className="hps-session__sub">{form.eveningPeople} showers</span>
             </div>
           </div>
-          <p className={`hps-rushfit${r.rushIsCrowded ? " is-tight" : ""}`}>
-            {r.rushIsCrowded
-              ? `A ${form.peakWindowHours} hr rush only fits about ${n(r.fitThroughRush, 1)} people through one bathroom at ${form.bathroomMinutes} min each — but ${n(r.peakSessionShowers, 1)} need to shower. Realistically that run stretches to ${n(r.rushHoursNeeded, 1)} hrs, which gives the tank more time to recover than the numbers below assume.`
-              : `That ${form.peakWindowHours} hr window fits about ${n(r.fitThroughRush, 1)} people through one bathroom at ${form.bathroomMinutes} min each — enough for the ${n(r.peakSessionShowers, 1)} showering in it.`}
-          </p>
           <p className="hps-sessions__note">
-            The gap is what does the work. Four 15-minute showers before
-            work is {n(r.peakSessionHot)} L out of the tank — but if the next
-            shower isn&rsquo;t until 5pm, the unit has {form.hoursBetweenSessions} hours
-            to put it all back, and it only needs{" "}
-            {r.hoursToRefillAfterMorning < 1
-              ? `${n(r.hoursToRefillAfterMorning * 60)} min`
-              : `${n(r.hoursToRefillAfterMorning, 1)} hrs`}{" "}
-            of that. The tank is full again long before anyone gets home.
-          </p>
-          <p className="hps-sessions__note">
-            Sizing runs off the bigger of the two runs ({n(r.peakSessionHot)} L), not
-            the {n(r.totalHotPerDay)} L daily total. Treating every shower as one
-            simultaneous draw is what pushes people into a tank far bigger than
-            they need.
+            Sizing runs off the bigger run, not the {n(r.totalHotPerDay)} L daily total.
+            The gap between them is long enough for the tank to come all the way
+            back, which is why a house of four doesn&rsquo;t need a tank that holds
+            the whole day at once.
           </p>
         </div>
 
-        <div className={`hps-verdict${r.coversPeak ? " is-ok" : " is-tight"}`}>
-          <strong>{r.coversPeak ? "Covers the busiest run" : "Tight — size up"}</strong>
-          <span>
-            {r.coversPeak
-              ? `${n(r.usableCapacity)} L usable covers the ${n(r.peakSessionHot)} L run on stored water alone — no waiting on the compressor mid-rush.`
-              : `The ${n(r.peakSessionHot)} L run exceeds ${n(r.usableCapacity)} L usable. Go up a tank size or stagger the showers — the compressor won't backfill fast enough during the rush.`}
-          </span>
-        </div>
-
-        <div className={`hps-verdict${r.readyForEvening ? " is-ok" : " is-tight"}`}>
-          <strong>{r.readyForEvening ? "Ready again by evening" : "Won't recover in time"}</strong>
-          <span>
-            {r.readyForEvening
-              ? `Back to ${n(r.availableForEvening)} L available after the ${form.hoursBetweenSessions} hr gap — the evening run needs ${n(r.eveningHot)} L. Full recovery from the morning takes about ${r.hoursToRefillAfterMorning < 1 ? `${n(r.hoursToRefillAfterMorning * 60)} min` : `${n(r.hoursToRefillAfterMorning, 1)} hrs`}.`
-              : `Only ${n(r.availableForEvening)} L back by evening against a ${n(r.eveningHot)} L run. Needs a bigger tank, a faster compressor, or a longer gap between runs.`}
-          </span>
-        </div>
-
-        <div className="tool-result__breakdown">
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Hot water per shower</span>
-            <span className="tool-result__row-val">{n(r.hotPerShower)} L</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Showers per day</span>
-            <span className="tool-result__row-val">{n(r.showersPerDay, 1)}</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Busiest single run</span>
-            <span className="tool-result__row-val">{n(r.peakSessionHot)} L</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Total hot water / day</span>
-            <span className="tool-result__row-val">{n(r.totalHotPerDay)} L</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Usable capacity (80%)</span>
-            <span className="tool-result__row-val">{n(r.usableCapacity)} L</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Heat output</span>
-            <span className="tool-result__row-val">{n(r.heatOutputKw, 1)} kW</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Recovery rate</span>
-            <span className="tool-result__row-val">{n(r.litresPerHour)} L/hr</span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Full reheat (empty → {form.tankTempC} °C)</span>
-            <span className="tool-result__row-val" style={{ color: "var(--orange)" }}>
-              {r.reheatHours < 1
-                ? `${n(r.reheatHours * 60)} min`
-                : `${n(r.reheatHours, 1)} hrs`}
-            </span>
-          </div>
-          <div className="tool-result__row">
-            <span className="tool-result__row-lbl">Energy for a full reheat</span>
-            <span className="tool-result__row-val">{n(r.energyKwh, 1)} kWh</span>
-          </div>
-        </div>
-
-        {/* Head-to-head — same household, two systems. */}
         <div className="hps-vs">
           <div className="hps-vs__lbl">Head to head, on your numbers</div>
           <div className="hps-vs__grid">
@@ -674,10 +380,10 @@ export function HeatPumpSizing() {
                   {c.keepsUp ? "Keeps up" : "Struggles"}
                 </div>
                 <dl className="hps-vs__rows">
-                  <div><dt>Delivers at {form.mixedTempC} °C</dt><dd>{n(c.mixed)} L</dd></div>
+                  <div><dt>Showers on tap</dt><dd>{n(c.showers, 1)}</dd></div>
                   <div><dt>Recovery</dt><dd>{n(c.litresPerHour)} L/hr</dd></div>
-                  <div><dt>Full reheat</dt><dd>{c.fullReheatHrs < 1 ? `${n(c.fullReheatHrs * 60)} min` : `${n(c.fullReheatHrs, 1)} hrs`}</dd></div>
-                  <div><dt>Back after the morning</dt><dd>{c.recoverHrs < 1 ? `${n(c.recoverHrs * 60)} min` : `${n(c.recoverHrs, 1)} hrs`}</dd></div>
+                  <div><dt>Full reheat</dt><dd>{hrs(c.fullReheatHrs)}</dd></div>
+                  <div><dt>Back after the morning</dt><dd>{hrs(c.recoverHrs)}</dd></div>
                   <div><dt>Busiest run</dt><dd>{c.handlesPeak ? "covered" : "short"}</dd></div>
                   <div><dt>Ready by evening</dt><dd>{c.readyPm ? "yes" : "no"}</dd></div>
                 </dl>
@@ -692,20 +398,12 @@ export function HeatPumpSizing() {
             ))}
           </div>
           <p className="hps-vs__foot">
-            Compressor size is a recovery-speed decision, not a capacity one.
-            A 6 kW Panasonic reheats in roughly half the time of the 4 kW, which
-            only matters when the gap between runs is short — with a long
-            morning-to-evening gap the 4 kW gets there just as comfortably and
-            costs less. All-in-one units add a boost mode that forces a full
-            reheat on demand, which covers the houseful-of-guests weekend
-            without paying for a bigger compressor year-round.
-          </p>
-          <p className="hps-vs__foot">
-            Both columns run the same household, the same {form.mainsTempC} °C mains and
-            the same {form.tankTempC} °C setpoint. The difference is compressor output
-            against tank volume — a big tank with a small compressor and a small tank
-            with a big compressor can land in the same place, right up until someone
-            takes a fourth shower.
+            Compressor size is a recovery-speed decision, not a capacity one. A 6 kW
+            Panasonic reheats in roughly half the time of the 4 kW, which only matters
+            when the gap between runs is short — with a long morning-to-evening gap the
+            4 kW gets there just as comfortably and costs less. All-in-one units add a
+            boost mode that forces a full reheat on demand, covering the houseful-of-guests
+            weekend without paying for a bigger compressor all year.
           </p>
         </div>
 
@@ -717,11 +415,9 @@ export function HeatPumpSizing() {
         </div>
 
         <p className="tool-result__note">
-          Estimate only. Real-world sizing also depends on pipe runs, whether
-          you have a bath, simultaneous draw-off (two showers at once halves
-          your effective capacity), and how cold the mains actually runs at
-          your address in July. We check all of it on the site visit — this
-          gets you in the right ballpark before anyone quotes you.
+          Estimate only. Real sizing also depends on whether you have a bath, two
+          showers running at once, pipe runs, and how cold the mains actually runs
+          at your address in July. We check all of it on the site visit.
         </p>
       </div>
     </div>

@@ -70,8 +70,15 @@ export const REVIEWS: Review[] = REVIEWS_RAW
   .filter((r) => r.rating >= MIN_PUBLISHED_RATING)
   .sort((a, b) => b.rating - a.rating);
 
-/** Home page renders two balanced columns. */
+/**
+ * Home page marquee columns.
+ *
+ * THREE, not two — `.reviews__marquee` is a three-column grid, so a
+ * two-column split left the right-hand third of the section empty on
+ * desktop.
+ */
 export const REVIEW_COLUMNS: Review[][] = [
-  REVIEWS.filter((_, i) => i % 2 === 0),
-  REVIEWS.filter((_, i) => i % 2 === 1),
+  REVIEWS.filter((_, i) => i % 3 === 0),
+  REVIEWS.filter((_, i) => i % 3 === 1),
+  REVIEWS.filter((_, i) => i % 3 === 2),
 ];
