@@ -51,7 +51,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." },
       { t: "Compliance cert emailed in 24 hrs", d: "Electrical + refrigeration compliance docs into your inbox the day after we leave, not chased weeks later." },
     ],
-    brands: ["Mitsubishi Electric", "Kaden", "Zonemate"],
+    brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)", "Zonemate"],
     pricing: [
       { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert" },
       { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert" },
@@ -76,7 +76,8 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
-      { brand: "Kaden", reason: "Same install team, same 6-year warranty, ~$600–700 cheaper installed than the Mitsubishi equivalent.", href: "/brands/kaden" },
+      { brand: "Kaden", reason: "Splits, ducted, gas ducted AND evap under one brand. ~$600–700 cheaper installed than the Mitsubishi equivalent, same 6-year warranty.", href: "/brands/kaden" },
+      { brand: "Brivis (evap)", reason: "The default evap brand in the corridor — Contour + Advance roof units for dry-summer suburbs like Cranbourne, Clyde and Officer.", href: "/brands/brivis" },
       { brand: "Zonemate", reason: "Our default ducted controller — 4/6/8-zone Touch panel with Wi-Fi and per-room temp sensors.", href: "/brands/zonemate" },
     ],
     typical: {
@@ -227,8 +228,8 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "Parts pipeline is genuinely never a worry — even for units we didn't install, even for units 10+ years old.", href: "/brands/mitsubishi-electric" },
-      { brand: "Kaden", reason: "Emerson-backed parts network in Melbourne — same-day on common indoor / outdoor boards.", href: "/brands/kaden" },
-      { brand: "Brivis & Braemar", reason: "Rinnai Melbourne warehouse holds parts for legacy Brivis + Braemar units still in the field.", href: "/brands/brivis" },
+      { brand: "Kaden", reason: "Splits, ducted, gas ducted AND evap under one brand. Emerson-backed parts network in Melbourne — same-day on common boards.", href: "/brands/kaden" },
+      { brand: "Brivis & Braemar", reason: "Rinnai Melbourne warehouse holds parts for legacy Brivis + Braemar gas + evap units still in the field.", href: "/brands/brivis" },
     ],
     typical: {
       time: "Annual service · 60–90 min per unit. Breakdown diagnosis · under 30 min. Most repairs completed same visit.",
@@ -273,7 +274,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow — off the pad and to the metal recycler on install day. No hard-rubbish wait." },
     ],
-    brands: ["Brivis", "Thermann", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
+    brands: ["Brivis", "Kaden", "Thermann", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
     pricing: [
       { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal" },
       { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "As above, quieter fan, longer service life" },
@@ -299,9 +300,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/gas-line-safe.webp", alt: "Gas fitter on site", caption: "VBA-licensed + Type-A gas endorsement" },
     ],
     brandPods: [
-      { brand: "Brivis", reason: "The default ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy units.", href: "/brands/brivis" },
+      { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
+      { brand: "Kaden Gas Ducted", reason: "Value tier — 6-star Advance model is the most efficient in the value price point. Same footprint as a Brivis retrofit.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
-      { brand: "Kaden (gas ducted)", reason: "Value tier — 6-star Advance model is the most efficient in the value price point.", href: "/brands/kaden" },
     ],
     typical: {
       time: "Ducted heater replacement · 3–4 hrs (same day). Continuous flow swap · 3–5 hrs (same day). Emergency call-out · on-site same day.",
