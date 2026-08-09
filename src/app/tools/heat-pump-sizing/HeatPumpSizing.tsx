@@ -111,15 +111,17 @@ type SystemPreset = {
 
 const SYSTEMS: SystemPreset[] = [
   { id: "pana-6-250", name: "Reclaim Panasonic CO₂ 6 kW · 250 L", heatKw: 6.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "6 kW Panasonic Aquarea compressor on a 250 L tank." },
+    note: "6 kW Panasonic Aquarea compressor. Roughly half the reheat time of the 4 kW — worth it when the tank gets emptied hard and needs to be back fast." },
   { id: "pana-6-315", name: "Reclaim Panasonic CO₂ 6 kW · 315 L", heatKw: 6.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "Same 6 kW compressor, bigger buffer for back-to-back showers." },
+  { id: "reclaim-400", name: "Reclaim CO₂ 400 L", heatKw: 4.7, tankLitres: 400, cop: 4.5, verified: false,
+    note: "The big-family answer. 320 L usable covers four 15-minute showers back to back with room left over." },
   { id: "pana-4-250", name: "Reclaim Panasonic CO₂ 4 kW · 250 L", heatKw: 4.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "4 kW compressor — quieter and cheaper, slower to recover." },
+    note: "4 kW compressor — quieter and cheaper. Fine on a long gap between runs; the 6 kW is the answer when the gap is short." },
   { id: "pana-4-315", name: "Reclaim Panasonic CO₂ 4 kW · 315 L", heatKw: 4.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "4 kW compressor with the larger tank doing the heavy lifting." },
   { id: "istore-270", name: "iStore 270 L", heatKw: 3.6, tankLitres: 270, cop: 3.5, verified: false,
-    note: "All-in-one R290. Big tank, smaller compressor — leans on stored volume rather than fast recovery." },
+    note: "All-in-one R290. Leans on stored volume rather than fast recovery, and has a boost mode to force a full reheat ahead of a big day." },
   { id: "istore-180", name: "iStore 180 L", heatKw: 3.6, tankLitres: 180, cop: 3.5, verified: false,
     note: "Same compressor as the 270, 90 L less buffer. Where that bites is the fourth shower, not the first." },
 ];
@@ -150,7 +152,7 @@ type Form = {
 const DEFAULTS: Form = {
   people: 4,
   showersPerPersonPerDay: 1,
-  showerMinutes: 8,
+  showerMinutes: 15,
   showerFlowLpm: 9,      // standard 3-star head
   otherLitresPerDay: 40, // kitchen, laundry, basins
   tankTempC: 60,
@@ -158,10 +160,10 @@ const DEFAULTS: Form = {
   mainsTempC: 15,        // Melbourne winter mains ≈ 12-15 °C
   copRating: 4.5,        // Reclaim CO₂ territory
   inputKw: 1.0,
-  peakWindowHours: 2,    // length of one shower run
+  peakWindowHours: 2,    // four people, back to back, before work
   bathroomMinutes: 15,   // turnaround per person, not water-running time
-  morningSharePct: 60,
-  hoursBetweenSessions: 10,
+  morningSharePct: 50,
+  hoursBetweenSessions: 9,  // ~8am finish to a 5pm evening run
   systemA: "pana-6-250",
   systemB: "istore-270",
 };
@@ -374,7 +376,7 @@ export function HeatPumpSizing() {
             <input id="mins" type="number" min="1" max="30" step="1"
               value={form.showerMinutes}
               onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 1)} />
-            <small>Australian average is about 8 minutes.</small>
+            <small>Average is quoted as 8. Real showers run 15, which is what actually sizes the tank.</small>
           </div>
           <div className="tool-field">
             <label htmlFor="flow">Shower flow (L/min)</label>
@@ -583,6 +585,16 @@ export function HeatPumpSizing() {
               : `That ${form.peakWindowHours} hr window fits about ${n(r.fitThroughRush, 1)} people through one bathroom at ${form.bathroomMinutes} min each — enough for the ${n(r.peakSessionShowers, 1)} showering in it.`}
           </p>
           <p className="hps-sessions__note">
+            The gap is what does the work. Four 15-minute showers before
+            work is {n(r.peakSessionHot)} L out of the tank — but if the next
+            shower isn&rsquo;t until 5pm, the unit has {form.hoursBetweenSessions} hours
+            to put it all back, and it only needs{" "}
+            {r.hoursToRefillAfterMorning < 1
+              ? `${n(r.hoursToRefillAfterMorning * 60)} min`
+              : `${n(r.hoursToRefillAfterMorning, 1)} hrs`}{" "}
+            of that. The tank is full again long before anyone gets home.
+          </p>
+          <p className="hps-sessions__note">
             Sizing runs off the bigger of the two runs ({n(r.peakSessionHot)} L), not
             the {n(r.totalHotPerDay)} L daily total. Treating every shower as one
             simultaneous draw is what pushes people into a tank far bigger than
@@ -679,6 +691,15 @@ export function HeatPumpSizing() {
               </div>
             ))}
           </div>
+          <p className="hps-vs__foot">
+            Compressor size is a recovery-speed decision, not a capacity one.
+            A 6 kW Panasonic reheats in roughly half the time of the 4 kW, which
+            only matters when the gap between runs is short — with a long
+            morning-to-evening gap the 4 kW gets there just as comfortably and
+            costs less. All-in-one units add a boost mode that forces a full
+            reheat on demand, which covers the houseful-of-guests weekend
+            without paying for a bigger compressor year-round.
+          </p>
           <p className="hps-vs__foot">
             Both columns run the same household, the same {form.mainsTempC} °C mains and
             the same {form.tankTempC} °C setpoint. The difference is compressor output

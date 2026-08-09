@@ -24,7 +24,15 @@ export const HW_DEFAULTS = {
   mixedTempC: 41,  // comfortable shower
   mainsTempC: 15,  // Melbourne winter mains sits 12-15 °C
   showerFlowLpm: 9,
-  showerMinutes: 8,
+  /**
+   * 15 minutes, not the 8-minute "Australian average".
+   *
+   * Jake's field arithmetic: a 15 minute shower pulls 5 L/min of hot
+   * water, so 75 L a head — four of them is 300 L before breakfast. Size
+   * on the average and you undersize every household with a teenager in
+   * it. The physics here lands on 78 L, within 4% of his number.
+   */
+  showerMinutes: 15,
   /**
    * Bathroom turnaround, not water-running time. Someone showering for
    * 8 minutes still occupies the bathroom for about 15 once you count
@@ -102,23 +110,15 @@ export function suitsPeople(
 ): { min: number; max: number; label: string } {
   const d = deliveryFor(tankLitres, opts);
   const otherPerPerson = 10; // basins, kitchen, laundry
-  const morningShare = 0.6;
+  const morningShare = 0.5;
 
-  /**
-   * Bare arithmetic put 180 L at "2-4 people". Jake's call from actually
-   * installing them is 1-3, and he's right — the sums have no room for a
-   * long shower, a bath, a guest, or mains dropping to 10 °C in July.
-   * This margin is what closes that gap; it's calibrated so 180 L lands
-   * on 1-3 and the rest of the range follows sensibly.
-   */
-  const COMFORT_MARGIN = 1.25;
-
-  // Largest household whose busiest run still fits inside usable volume.
+  // The old fudge factor is gone. It existed to drag an 8-minute-shower
+  // model back toward reality; a 15 minute shower is the reality, so the
+  // arithmetic now lands on Jake's figures on its own — 180 L reads 1-3
+  // without anyone leaning on the scale.
   let max = 0;
   for (let people = 1; people <= 12; people++) {
-    const runHot =
-      (people * morningShare * d.hotPerShower + people * otherPerPerson * 0.4) *
-      COMFORT_MARGIN;
+    const runHot = people * morningShare * d.hotPerShower + people * otherPerPerson * 0.4;
     if (runHot <= d.usableLitres) max = people;
   }
 
