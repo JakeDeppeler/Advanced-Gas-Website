@@ -13,22 +13,27 @@ import "server-only";
  * see the content. `next.revalidate` gives ISR at 6 h.
  *
  * ── SETUP ─────────────────────────────────────────────────────────
- * Needs a long-lived token. Once set up it auto-refreshes (see
- * scripts/instagram-token.mjs).
+ * One env var: INSTAGRAM_ACCESS_TOKEN. The token identifies the account
+ * by itself, so we call `/me/media` and skip the user ID entirely.
  *
  *   1. Instagram account must be Business or Creator (not Personal):
  *      Instagram app → Settings → Account type → Switch to professional
- *   2. Link it to a Facebook Page (Instagram → Settings → Linked accounts)
- *   3. Create an app at developers.facebook.com → Business type
- *   4. Add the "Instagram Graph API" product
- *   5. Generate a token, then run:
- *        node scripts/instagram-token.mjs <short-lived-token>
- *      to exchange it for a 60-day long-lived one
+ *   2. developers.facebook.com → your app → Use cases → add
+ *      "Manage messaging & content on Instagram" (grants
+ *      instagram_business_basic, the media-read permission)
+ *   3. The account needs a role on the app while it's unpublished:
+ *      App roles → Roles → Instagram Testers → add the username, then
+ *      accept at instagram.com/accounts/manage_access/
+ *   4. Instagram → API setup with Instagram login → Generate token
  *
- *   INSTAGRAM_ACCESS_TOKEN=...
- *   INSTAGRAM_USER_ID=...        (printed by the same script)
+ * That button hands you a 60-day long-lived token — paste it straight in,
+ * no exchange step. scripts/instagram-token.mjs is still there for the
+ * short-lived OAuth case and for --refresh before the 60 days are up.
  *
- * Without them the feed renders nothing and the pages fall back to
+ * INSTAGRAM_USER_ID remains supported but is optional; set it only to
+ * read an account other than the token's own.
+ *
+ * Without a token the feed renders nothing and the pages fall back to
  * whatever local photos exist — so the site never breaks over it.
  *
  * ── BRAND FILTERING ───────────────────────────────────────────────
@@ -68,11 +73,15 @@ type RawMedia = {
  */
 export async function getInstagramFeed(limit = 24): Promise<InstagramPost[]> {
   const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-  const userId = process.env.INSTAGRAM_USER_ID;
-  if (!token || !userId) return [];
+  if (!token) return [];
+
+  // The token already identifies the account, so `me` works on its own.
+  // INSTAGRAM_USER_ID stays supported for the multi-account case but is
+  // no longer required — one env var to set instead of two.
+  const account = process.env.INSTAGRAM_USER_ID || "me";
 
   try {
-    const url = `${GRAPH}/${userId}/media?fields=${FIELDS}&limit=${Math.min(100, limit * 3)}&access_token=${token}`;
+    const url = `${GRAPH}/${account}/media?fields=${FIELDS}&limit=${Math.min(100, limit * 3)}&access_token=${token}`;
     const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
 
     if (!res.ok) {
