@@ -45,16 +45,41 @@ import "server-only";
 
 const GRAPH = "https://graph.instagram.com";
 const REVALIDATE_SECONDS = 60 * 60 * 6; // 6 h
-const FIELDS = "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp";
+
+/**
+ * `children` matters: a CAROUSEL_ALBUM often returns NO media_url on the
+ * parent object — the images hang off the children edge. Without this
+ * every multi-photo post resolves to no image and gets dropped, caption
+ * and all. Trade accounts post before/after carousels constantly, so
+ * that silently ate a large share of the feed.
+ */
+const FIELDS =
+  "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,children{media_url,thumbnail_url,media_type}";
+
+/** Posts fetched per API page. 100 is Instagram's ceiling. */
+const PAGE_SIZE = 100;
+
+/**
+ * How deep brand/service filtering looks. One page only covers a couple
+ * of months for an account that posts a few times a week, which meant
+ * older Kaden and Brivis jobs simply weren't in the set being searched.
+ */
+const MAX_PAGES = 5;
 
 export type InstagramPost = {
   id: string;
   caption: string;
-  /** Displayable image URL — thumbnail for videos. */
+  /** Displayable image URL — thumbnail for videos, first child for albums. */
   image: string;
   permalink: string;
   timestamp: string;
   isVideo: boolean;
+};
+
+type RawChild = {
+  media_url?: string;
+  thumbnail_url?: string;
+  media_type?: string;
 };
 
 type RawMedia = {
@@ -65,53 +90,107 @@ type RawMedia = {
   thumbnail_url?: string;
   permalink: string;
   timestamp: string;
+  children?: { data?: RawChild[] };
 };
+
+/** Best displayable image for a post, across all three media types. */
+function pickImage(m: RawMedia): string | undefined {
+  if (m.media_type === "VIDEO") {
+    // Reels sometimes come back with no thumbnail; media_url is the
+    // video itself, which at least gives the browser something.
+    return m.thumbnail_url ?? m.media_url;
+  }
+  if (m.media_url) return m.media_url;
+
+  // Carousel: fall back to the first child that has an image.
+  for (const c of m.children?.data ?? []) {
+    const img = c.media_type === "VIDEO" ? c.thumbnail_url ?? c.media_url : c.media_url;
+    if (img) return img;
+  }
+  return undefined;
+}
+
+function toPost(m: RawMedia): InstagramPost | null {
+  const image = pickImage(m);
+  if (!image) return null;
+  return {
+    id: m.id,
+    caption: (m.caption ?? "").trim(),
+    image,
+    permalink: m.permalink,
+    timestamp: m.timestamp,
+    isVideo: m.media_type === "VIDEO",
+  };
+}
+
+/**
+ * Raw fetch, following `paging.next` up to `maxPages`. Each page URL is
+ * stable, so ISR caches them individually.
+ */
+async function fetchPosts(maxPages: number): Promise<InstagramPost[]> {
+  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
+  if (!token) return [];
+
+  // The token already identifies the account, so `me` works on its own.
+  // INSTAGRAM_USER_ID stays supported for the multi-account case.
+  const account = process.env.INSTAGRAM_USER_ID || "me";
+
+  const out: InstagramPost[] = [];
+  let url: string | undefined =
+    `${GRAPH}/${account}/media?fields=${FIELDS}&limit=${PAGE_SIZE}&access_token=${token}`;
+
+  try {
+    for (let page = 0; page < maxPages && url; page++) {
+      const res: Response = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
+
+      if (!res.ok) {
+        // 190 = token expired. Worth shouting about in logs since the fix
+        // is a token refresh, not a code change.
+        console.warn(
+          `[instagram] Graph API ${res.status} on page ${page + 1} — ` +
+            `${out.length} posts so far. If 400/190, the token has expired: ` +
+            `node scripts/instagram-token.mjs --refresh <token>`,
+        );
+        break;
+      }
+
+      const json = (await res.json()) as {
+        data?: RawMedia[];
+        paging?: { next?: string };
+      };
+
+      const batch = json.data ?? [];
+      for (const m of batch) {
+        const post = toPost(m);
+        if (post) out.push(post);
+      }
+
+      // Short page means we've hit the end of the account's history.
+      if (batch.length < PAGE_SIZE) break;
+      url = json.paging?.next;
+    }
+  } catch (err) {
+    console.warn("[instagram] fetch failed:", err);
+  }
+
+  return out;
+}
 
 /**
  * Recent posts, newest first. Empty array when unconfigured or on any
  * failure — callers should treat empty as "no feed" and fall back.
  */
 export async function getInstagramFeed(limit = 24): Promise<InstagramPost[]> {
-  const token = process.env.INSTAGRAM_ACCESS_TOKEN;
-  if (!token) return [];
+  const pages = Math.max(1, Math.ceil(limit / PAGE_SIZE));
+  return (await fetchPosts(pages)).slice(0, limit);
+}
 
-  // The token already identifies the account, so `me` works on its own.
-  // INSTAGRAM_USER_ID stays supported for the multi-account case but is
-  // no longer required — one env var to set instead of two.
-  const account = process.env.INSTAGRAM_USER_ID || "me";
-
-  try {
-    const url = `${GRAPH}/${account}/media?fields=${FIELDS}&limit=${Math.min(100, limit * 3)}&access_token=${token}`;
-    const res = await fetch(url, { next: { revalidate: REVALIDATE_SECONDS } });
-
-    if (!res.ok) {
-      // 190 = token expired. Worth shouting about in logs since the fix
-      // is a token refresh, not a code change.
-      console.warn(`[instagram] Graph API ${res.status} — feed hidden. If 400/190, the token has expired: re-run scripts/instagram-token.mjs`);
-      return [];
-    }
-
-    const { data = [] } = (await res.json()) as { data: RawMedia[] };
-
-    return data
-      .map((m): InstagramPost | null => {
-        const image = m.media_type === "VIDEO" ? m.thumbnail_url : m.media_url;
-        if (!image) return null;
-        return {
-          id: m.id,
-          caption: (m.caption ?? "").trim(),
-          image,
-          permalink: m.permalink,
-          timestamp: m.timestamp,
-          isVideo: m.media_type === "VIDEO",
-        };
-      })
-      .filter((p): p is InstagramPost => p !== null)
-      .slice(0, limit);
-  } catch (err) {
-    console.warn("[instagram] fetch failed — feed hidden:", err);
-    return [];
-  }
+/**
+ * The full set filtering searches over — as much history as MAX_PAGES
+ * allows, rather than just the most recent screenful.
+ */
+async function getSearchCorpus(): Promise<InstagramPost[]> {
+  return fetchPosts(MAX_PAGES);
 }
 
 /** Extra caption keywords per brand, beyond the brand name itself. */
@@ -130,7 +209,7 @@ const BRAND_KEYWORDS: Record<string, string[]> = {
  * hashtags too (#brivis contains "brivis").
  */
 export async function getInstagramForBrand(brandSlug: string, limit = 8): Promise<InstagramPost[]> {
-  const all = await getInstagramFeed(60);
+  const all = await getSearchCorpus();
   if (all.length === 0) return [];
 
   const keywords = BRAND_KEYWORDS[brandSlug] ?? [brandSlug.replace(/-/g, " ")];
@@ -187,7 +266,7 @@ function captionMatches(caption: string, keywords: string[]): boolean {
  * something real in it rather than disappearing.
  */
 export async function getInstagramForService(serviceSlug: string, limit = 8): Promise<InstagramPost[]> {
-  const all = await getInstagramFeed(60);
+  const all = await getSearchCorpus();
   if (all.length === 0) return [];
 
   const keywords = SERVICE_KEYWORDS[serviceSlug];
