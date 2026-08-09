@@ -268,7 +268,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     benefits: [
       { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." },
       { t: "Brivis / Braemar specialists", d: "The default gas ducted heater in most homes built 1990–2015 in the corridor. We replace one nearly every week — Wombat, Buffalo, Kaden gas ducted all covered." },
-      { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water — Reece supply, Australian-designed, 12-yr heat-exchanger warranty." },
+      { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water — a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." },
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." },
       { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow — off the pad and to the metal recycler on install day. No hard-rubbish wait." },
@@ -305,7 +305,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     typical: {
       time: "Ducted heater replacement · 3–4 hrs (same day). Continuous flow swap · 3–5 hrs (same day). Emergency call-out · on-site same day.",
-      warranty: "6-year workmanship + manufacturer heat-exchanger warranty (Brivis 7-yr, Thermann 12-yr, Rinnai 12-yr).",
+      warranty: "6-year workmanship + manufacturer heat-exchanger warranty (Brivis 7-yr, Thermann 12-yr from Reece, Rinnai 12-yr).",
       priceRange: "$220 leak test → $6,000+ premium Brivis Buffalo 6-star",
       followUp: "We ring the following week to check controller + temperature settings and that everything's running clean.",
     },
