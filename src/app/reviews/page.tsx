@@ -3,6 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { RATING_SUMMARY } from "@/lib/reviews";
+import { getReviews } from "@/lib/googleReviews";
 import { ReviewsBlock } from "@/components/ReviewsBlock";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../detail.css";
@@ -15,7 +16,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/reviews" },
 };
 
-export default function ReviewsPage() {
+export default async function ReviewsPage() {
+  // Live summary for the hero. getReviews is fetch-memoised within a
+  // render pass, so calling it here and inside ReviewsBlock is one request.
+  const { summary } = await getReviews();
+
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
     { name: "Reviews", url: `${site.url}/reviews` },
@@ -31,7 +36,7 @@ export default function ReviewsPage() {
             <span className="cur">Reviews</span>
           </nav>
           <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> {RATING_SUMMARY.value}/5 from {RATING_SUMMARY.count}+ locals
+            <span className="ds-dot" /> {summary.value.toFixed(1)}/5 from {summary.count}+ locals
           </div>
           <h1>
             What our <span className="accent">customers</span> say.

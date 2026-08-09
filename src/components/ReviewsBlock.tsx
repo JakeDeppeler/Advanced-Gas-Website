@@ -1,19 +1,21 @@
 import Script from "next/script";
-import { REVIEWS, RATING_SUMMARY } from "@/lib/reviews";
+import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 
 /**
  * Reviews section + AggregateRating structured data.
  *
- * The structured data is the point: it's what puts the ⭐4.9 star rating
- * under our result in Google. Emitting it requires the rating to be
- * visible on the same page, which the summary strip below satisfies.
+ * Async server component — pulls live reviews from the Google Places API
+ * (see lib/googleReviews.ts) at build/revalidate time, so the markup and
+ * the schema are both server-rendered. Falls back to the curated list if
+ * the API isn't configured or errors.
  *
- * `limit` trims the card count for in-page use; the /reviews page passes
- * nothing and gets the lot.
+ * The structured data is the point: it's what makes ⭐4.9 eligible to
+ * show under our result in Google. Google requires the rating to be
+ * visible on the same page, which the summary strip satisfies.
  */
-export function ReviewsBlock({
-  limit,
+export async function ReviewsBlock({
+  limit = 12,
   heading = "What locals actually say.",
   eyebrow = "Reviews",
   showSchema = true,
@@ -23,7 +25,7 @@ export function ReviewsBlock({
   eyebrow?: string;
   showSchema?: boolean;
 }) {
-  const list = typeof limit === "number" ? REVIEWS.slice(0, limit) : REVIEWS;
+  const { reviews, summary, source } = await getReviews(limit);
 
   const schema = {
     "@context": "https://schema.org",
@@ -33,11 +35,11 @@ export function ReviewsBlock({
     telephone: site.phone,
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: RATING_SUMMARY.value,
-      reviewCount: RATING_SUMMARY.count,
-      bestRating: RATING_SUMMARY.best,
+      ratingValue: summary.value,
+      reviewCount: summary.count,
+      bestRating: summary.best,
     },
-    review: list.slice(0, 5).map((r) => ({
+    review: reviews.slice(0, 5).map((r) => ({
       "@type": "Review",
       reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
       author: { "@type": "Person", name: r.who },
@@ -58,10 +60,10 @@ export function ReviewsBlock({
             visible on the page" requirement for the schema below. */}
         <div className="rvs__summary">
           <div className="rvs__score">
-            <strong>{RATING_SUMMARY.value.toFixed(1)}</strong>
+            <strong>{summary.value.toFixed(1)}</strong>
             <span className="rvs__stars" aria-hidden="true">★★★★★</span>
             <span className="rvs__count">
-              from {RATING_SUMMARY.count}+ Google reviews
+              from {summary.count}+ Google reviews
             </span>
           </div>
           {site.social.google && (
@@ -77,8 +79,8 @@ export function ReviewsBlock({
         </div>
 
         <div className="rvs__grid">
-          {list.map((r) => (
-            <article key={r.title} className="rvs__card">
+          {reviews.map((r) => (
+            <article key={`${r.who}-${r.title}`} className="rvs__card">
               <div className="rvs__card-stars" aria-label={`${r.rating} out of 5 stars`}>
                 {"★".repeat(r.rating)}
                 <span className="rvs__card-stars-dim">{"★".repeat(5 - r.rating)}</span>
@@ -95,6 +97,12 @@ export function ReviewsBlock({
             </article>
           ))}
         </div>
+
+        {/* Google's Places API terms require attribution wherever their
+            review content is displayed. */}
+        {source !== "curated" && (
+          <p className="rvs__attrib">Reviews sourced from Google</p>
+        )}
       </div>
 
       {showSchema && (

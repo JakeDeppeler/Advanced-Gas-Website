@@ -3,7 +3,8 @@ import Link from "next/link";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
-import { REVIEW_COLUMNS, RATING_SUMMARY } from "@/lib/reviews";
+import { RATING_SUMMARY } from "@/lib/reviews";
+import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import "./home.css";
@@ -120,7 +121,15 @@ const SUBURBS: { name: string; slug: string }[] = [
 ];
 
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Live 4★+ Google reviews (falls back to the curated list when the
+  // Places API isn't configured — see lib/googleReviews.ts).
+  const { reviews: liveReviews } = await getReviews(10);
+  const REVIEW_COLUMNS = [
+    liveReviews.filter((_, i) => i % 2 === 0),
+    liveReviews.filter((_, i) => i % 2 === 1),
+  ];
+
   // Warm up DNS for the OSM tile CDN so the below-the-fold service map's
   // tiles resolve faster the moment its lazy chunk mounts. prefetchDNS is
   // idle-friendly — a preconnect would open TCP+TLS speculatively and add
