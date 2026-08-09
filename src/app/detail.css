@@ -286,6 +286,22 @@
   background: var(--paper);
   font-family: inherit;
 }
+/* Leaflet's bundled leaflet.css references marker-icon.png +
+   marker-shadow.png at paths that don't resolve through Next.js. If
+   anything in the Leaflet runtime falls back to L.Marker() (e.g. via
+   an internal default), the browser shows a broken 25×41 image icon
+   that reads as a giant coloured rectangle on top of the tiles.
+   We use circleMarker exclusively, so kill any default marker image
+   the runtime tries to attach — belt-and-braces so no page can ever
+   render a broken flag-looking placeholder mid-map. */
+.leaflet-container .leaflet-marker-icon:not([style*="background-image"]),
+.leaflet-container .leaflet-marker-shadow,
+.leaflet-container .leaflet-default-icon-path {
+  display: none !important;
+}
+/* Also cap any legitimate marker icon so a mis-loaded image can never
+   inflate past its intended 25×41 dimensions. */
+.leaflet-container .leaflet-marker-icon { max-width: 41px; max-height: 41px; }
 .covmap__legend { min-width: 0; }
 .covmap__legend-lbl {
   font-family: var(--f-mono);
