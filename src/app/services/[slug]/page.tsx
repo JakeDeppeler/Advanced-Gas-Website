@@ -6,6 +6,7 @@ import { services, suburbs, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
+import { InstagramCTA } from "@/components/InstagramCTA";
 import "../../detail.css";
 
 export function generateStaticParams() {
@@ -170,13 +171,20 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         </div>
       </section>
 
-      {/* REAL INSTALL PHOTOS */}
+      {/* THE GEAR WE INSTALL — manufacturer product shots, with an
+          honest note + a link to Instagram where the actual on-the-tools
+          install photos live. */}
       {content.photos && content.photos.length > 0 && (
         <section className="svc-photos">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Real installs</span>
-              <h2>What our {svc.short.toLowerCase()} work looks like.</h2>
+              <span className="ds-eyebrow"><span className="ds-dot" /> The gear we install</span>
+              <h2>What we put in for {svc.short.toLowerCase()}.</h2>
+              <p>
+                These are the manufacturer product shots so you can see exactly which unit
+                we&rsquo;re quoting. For photos of our actual installs &mdash; on the roof,
+                in the cupboard, on the wall &mdash; head to our Instagram.
+              </p>
             </div>
             <div className="svc-photos__grid">
               {content.photos.map((p) => (
@@ -186,6 +194,10 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
                 </figure>
               ))}
             </div>
+            <InstagramCTA
+              heading="See the real thing on Instagram"
+              body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed — real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
+            />
           </div>
         </section>
       )}
@@ -196,7 +208,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <div className="wrap">
             <div className="ds-section-head">
               <span className="ds-eyebrow"><span className="ds-dot" /> Brands we install</span>
-              <h2>What we quote — and why.</h2>
+              <h2>What we quote and why.</h2>
             </div>
             <div className="svc-brandpods__grid">
               {content.brandPods.map((b) => (

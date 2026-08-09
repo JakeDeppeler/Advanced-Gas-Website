@@ -7,6 +7,7 @@ import { brands, findBrand, productPhoto } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
+import { InstagramCTA } from "@/components/InstagramCTA";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -156,11 +157,12 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         <section className="brand-gallery">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
-              <h2>Recent {brand.name} installs around Melbourne&rsquo;s south-east.</h2>
+              <span className="ds-eyebrow"><span className="ds-dot" /> The {brand.name} range</span>
+              <h2>The {brand.name} gear we put in.</h2>
               <p>
-                Real jobs we&rsquo;ve completed · no manufacturer catalogue shots.
-                Every one photographed on the day the compliance certificate was signed.
+                Manufacturer product photography, so you can see exactly which unit
+                we&rsquo;re quoting. Photos of our actual {brand.name} installs &mdash;
+                on the roof, in the cupboard, on the wall &mdash; live on our Instagram.
               </p>
             </div>
             <div className="brand-gallery__grid">
@@ -179,6 +181,10 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
                 ),
               )}
             </div>
+            <InstagramCTA
+              heading={`See our real ${brand.name} installs`}
+              body={`Every ${brand.name} job we finish goes up on our Instagram — real houses across Pakenham, Berwick, Officer and Cranbourne, photographed on the day.`}
+            />
           </div>
         </section>
       )}

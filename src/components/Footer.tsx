@@ -55,7 +55,7 @@ export function Footer() {
               <a href="https://www.facebook.com/" aria-label="Facebook" className="ftr__social-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.2-1.5 1.6-1.5h1.7V4.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3V14h2.8v8h3.4z"/></svg>
               </a>
-              <a href="https://www.instagram.com/" aria-label="Instagram" className="ftr__social-btn">
+              <a href={site.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="ftr__social-btn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
               </a>
               <a href="https://www.google.com/maps" aria-label="Google Reviews" className="ftr__social-btn">

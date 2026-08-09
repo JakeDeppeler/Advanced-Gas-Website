@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { InstagramCTA } from "@/components/InstagramCTA";
 import "../detail.css";
 import "./tools.css";
 
@@ -174,6 +175,10 @@ export default function ToolsHubPage() {
               </Link>
             ))}
           </div>
+          <InstagramCTA
+            heading="Want to see the work, not just the numbers?"
+            body="Our Instagram is every install we finish — splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."
+          />
         </div>
       </section>
 

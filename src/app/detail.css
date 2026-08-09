@@ -916,3 +916,79 @@
   .page-detail .dp-pricing__table thead th:nth-child(3),
   .page-detail .dp-pricing__table tbody td:nth-child(3) { display: none; }
 }
+
+/* ==================================================================
+   Instagram "see the real thing" CTA.
+   Product photography on the site is manufacturer imagery — this
+   points people at the real install gallery rather than implying the
+   catalogue shots are our work. Used on service pages, brand hubs and
+   the tools hub.
+   ================================================================== */
+.ig-cta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .16s ease, box-shadow .22s ease, border-color .16s ease;
+  position: relative;
+  overflow: hidden;
+}
+/* Instagram-gradient hairline down the left edge. */
+.ig-cta::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #F9CE34 0%, #EE2A7B 50%, #6228D7 100%);
+}
+.ig-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(5, 10, 48, 0.10);
+  border-color: #EE2A7B;
+}
+.ig-cta__icon {
+  flex: 0 0 46px;
+  width: 46px; height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #F9CE34 0%, #EE2A7B 55%, #6228D7 100%);
+}
+.ig-cta__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.ig-cta__head {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.008em;
+  color: var(--navy);
+  line-height: 1.25;
+}
+.ig-cta__sub {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.ig-cta__go {
+  flex: 0 0 auto;
+  font-size: 18px;
+  font-weight: 700;
+  color: #EE2A7B;
+  transition: transform .16s ease;
+}
+.ig-cta:hover .ig-cta__go { transform: translateX(4px); }
+
+@media (max-width: 560px) {
+  .ig-cta { gap: 12px; padding: 14px 15px; margin-top: 20px; }
+  .ig-cta__icon { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 10px; }
+  .ig-cta__icon svg { width: 21px; height: 21px; }
+  .ig-cta__head { font-size: 14.5px; }
+  .ig-cta__sub { font-size: 12.5px; }
+}

@@ -28,7 +28,12 @@ export const site = {
   ],
   social: {
     facebook: "",
-    instagram: "",
+    // Our install gallery lives here. Product shots on the site are
+    // manufacturer photography — this is where the real, on-the-tools
+    // install work is. Referenced by the "see the real thing" CTAs on
+    // service pages, the tools hub and the brand pages.
+    // ⚠ CONFIRM THE HANDLE — set to the real account before launch.
+    instagram: "https://www.instagram.com/advancedgasandaircon/",
     google: "",
   },
   primaryRegion: "South-East Victoria & Gippsland",
