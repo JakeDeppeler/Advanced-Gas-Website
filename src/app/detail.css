@@ -286,22 +286,37 @@
   background: var(--paper);
   font-family: inherit;
 }
-/* Leaflet's bundled leaflet.css references marker-icon.png +
-   marker-shadow.png at paths that don't resolve through Next.js. If
-   anything in the Leaflet runtime falls back to L.Marker() (e.g. via
-   an internal default), the browser shows a broken 25×41 image icon
-   that reads as a giant coloured rectangle on top of the tiles.
-   We use circleMarker exclusively, so kill any default marker image
-   the runtime tries to attach — belt-and-braces so no page can ever
-   render a broken flag-looking placeholder mid-map. */
-.leaflet-container .leaflet-marker-icon:not([style*="background-image"]),
-.leaflet-container .leaflet-marker-shadow,
-.leaflet-container .leaflet-default-icon-path {
+/* ---- Leaflet hardening ----
+   1. Leaflet 1.9 ships a Ukrainian flag SVG inside the attribution
+      control (.leaflet-attribution-flag). Its size is constrained
+      ONLY by leaflet.css — and because we import that stylesheet as a
+      dynamic side-effect module, the rule can lose the cascade race on
+      first paint. The unconstrained inline SVG then renders at its
+      intrinsic size: a huge blue-over-yellow rectangle sitting on top
+      of the tiles next to the attribution text. Hide it outright.
+   2. Leaflet's bundled CSS also references marker-icon.png /
+      marker-shadow.png at paths Next.js doesn't serve. We use
+      circleMarker (SVG in the overlay pane) exclusively, so nothing
+      legitimate lives in the marker pane — kill it so a broken raster
+      placeholder can never appear. */
+.leaflet-container .leaflet-attribution-flag,
+.leaflet-container svg.leaflet-attribution-flag {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.leaflet-container .leaflet-marker-pane,
+.leaflet-container .leaflet-shadow-pane,
+.leaflet-container .leaflet-marker-icon,
+.leaflet-container .leaflet-marker-shadow {
   display: none !important;
 }
-/* Also cap any legitimate marker icon so a mis-loaded image can never
-   inflate past its intended 25×41 dimensions. */
-.leaflet-container .leaflet-marker-icon { max-width: 41px; max-height: 41px; }
+/* Keep the attribution text itself readable and compact. */
+.leaflet-container .leaflet-control-attribution {
+  font-size: 10px;
+  line-height: 1.4;
+  background: rgba(255, 255, 255, 0.85);
+}
 .covmap__legend { min-width: 0; }
 .covmap__legend-lbl {
   font-family: var(--f-mono);

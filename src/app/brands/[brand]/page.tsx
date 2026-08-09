@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, findBrand } from "@/lib/brands";
+import { brands, findBrand, productPhoto } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
+import { ProductTabs } from "@/components/ProductTabs";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -182,31 +183,76 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
         </section>
       )}
 
-      {/* Product range grouped by category — client component wraps the
-          grid to add per-card compare checkboxes + a bottom drawer that
-          opens a side-by-side spec table. */}
-      <section className="brand-range">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Full range we install</span>
-            <h2>The {brand.name} models we install and support.</h2>
-            <p>
-              Every model below is a product we've installed enough of to have an opinion on.
-              Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
-              Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
-            </p>
-            {brand.slug === "reclaim" && (
-              <div style={{ marginTop: 14 }}>
-                <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--orange ds-btn--sm">
-                  Open the full Reclaim comparison →
+      {/* Product range.
+          Single-product brands (e.g. Zonemate — the Milieu zoning system is
+          their only product) get the full product detail rendered inline
+          instead of a compare grid holding one lonely card. Everyone else
+          gets the grouped grid with per-card compare checkboxes. */}
+      {brand.products.length === 1 ? (
+        <section className="brand-range brand-range--single">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> The {brand.name} system</span>
+              <h2>{brand.products[0].name}</h2>
+              <p>{brand.products[0].bestFor}.</p>
+            </div>
+
+            <div className="brand-single">
+              <div className="brand-single__pic">
+                {(() => {
+                  const ph = productPhoto(brand.products[0], brand);
+                  return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="lazy" />;
+                })()}
+              </div>
+              <div className="brand-single__body">
+                <div className="brand-single__model">{brand.products[0].model}</div>
+                {brand.products[0].capacity && (
+                  <div className="brand-single__cap">{brand.products[0].capacity}</div>
+                )}
+                <p>{brand.products[0].ourTake}</p>
+                <Link href={`/brands/${brand.slug}/${brand.products[0].slug}`} className="ds-btn ds-btn--orange">
+                  Full spec sheet &amp; pricing →
                 </Link>
               </div>
-            )}
-          </div>
+            </div>
 
-          <BrandCompare brand={brand} />
-        </div>
-      </section>
+            <ProductTabs
+              specs={brand.products[0].specs}
+              features={brand.products[0].features && brand.products[0].features.length > 0
+                ? brand.products[0].features
+                : (brand.keyFeatures ?? [])}
+              whyWeInstall={brand.products[0].whyWeInstall && brand.products[0].whyWeInstall.length > 0
+                ? brand.products[0].whyWeInstall
+                : [brand.products[0].ourTake, brand.ourTake].filter(Boolean) as string[]}
+              brandName={brand.name}
+              brandWarranty={brand.warranty}
+            />
+          </div>
+        </section>
+      ) : (
+        <section className="brand-range">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Full range we install</span>
+              <h2>The {brand.name} models we install and support.</h2>
+              <p>
+                Every model below is a product we've installed enough of to have an opinion on.
+                Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
+                Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
+              </p>
+              {brand.slug === "reclaim" && (
+                <div style={{ marginTop: 14 }}>
+                  <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--orange ds-btn--sm">
+                    Open the full Reclaim comparison →
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <BrandCompare brand={brand} />
+          </div>
+        </section>
+      )}
 
       {/* Where we install this brand · 12 suburb combo links */}
       <section className="dp-quote" style={{ paddingTop: 60, paddingBottom: 60 }}>
