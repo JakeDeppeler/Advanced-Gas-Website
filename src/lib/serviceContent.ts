@@ -72,7 +72,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/AP_70-80HP_front-1920x1440-1.png", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
       { src: "/reclaim-mitsubishi.webp", alt: "Mitsubishi split system on brick veneer", caption: "Brick-veneer install, colour-matched conduit" },
       { src: "/mac_slide0.jpg", alt: "Mitsubishi multi-head system diagram", caption: "Multi-head — one outdoor, up to 5 indoor heads" },
-      { src: "/kdi-v2-image_01.jpg", alt: "Ducted indoor unit in ceiling cavity", caption: "PEAD-M ducted retrofit into a family home" },
+      { src: "/kdi-v2-image_01.webp", alt: "Ducted indoor unit in ceiling cavity", caption: "PEAD-M ducted retrofit into a family home" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
@@ -221,7 +221,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     photos: [
       { src: "/reclaim-mitsubishi.webp", alt: "Mitsubishi split system being serviced", caption: "Split system chemical coil clean" },
-      { src: "/kdi-v2-image_01.jpg", alt: "Ducted indoor unit service access", caption: "Ducted return-air access + filter swap" },
+      { src: "/kdi-v2-image_01.webp", alt: "Ducted indoor unit service access", caption: "Ducted return-air access + filter swap" },
       { src: "/gas-line-safe.webp", alt: "Refrigeration technician on site", caption: "ARCtick-licensed — every refrigerant job by a certified tech" },
       { src: "/evap cooler service.jpg", alt: "Evaporative cooler pre-summer service", caption: "Pre-summer evap clean — pump + water lines" },
     ],
@@ -294,8 +294,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/kw-Header-Image.png", alt: "Brivis Classic Wombat gas ducted heater", caption: "Brivis Classic Wombat — the ducted heater we replace most often" },
       { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow", caption: "Thermann G-series — our default continuous-flow gas hot water" },
       { src: "/gas ducted install.jpg", alt: "Gas ducted heater install", caption: "Gas ducted retrofit — reusing existing cavity + ducts" },
-      { src: "/gas hot water change over same day.png", alt: "Same-day hot water changeover", caption: "Same-day hot water changeover — old off, new on" },
-      { src: "/gas line.png", alt: "Gas line pressure test", caption: "Gas pressure test to AS/NZS 5601" },
+      { src: "/gas hot water change over same day.webp", alt: "Same-day hot water changeover", caption: "Same-day hot water changeover — old off, new on" },
+      { src: "/gas line.webp", alt: "Gas line pressure test", caption: "Gas pressure test to AS/NZS 5601" },
       { src: "/gas-line-safe.webp", alt: "Gas fitter on site", caption: "VBA-licensed + Type-A gas endorsement" },
     ],
     brandPods: [

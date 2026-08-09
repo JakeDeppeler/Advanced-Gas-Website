@@ -84,7 +84,7 @@ const SERVICES_MEGA: {
       href: "/services/air-conditioning-installation#ducted",
       label: "Ducted air conditioning",
       sub: "Whole-home cooling + heating",
-      photo: "/kdi-v2-image_01.jpg",
+      photo: "/kdi-v2-image_01.webp",
       photoAlt: "Ducted air conditioning indoor unit",
     },
     {

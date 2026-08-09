@@ -33,7 +33,11 @@ export const site = {
     // install work is. Referenced by the "see the real thing" CTAs on
     // service pages, the tools hub and the brand pages.
     instagram: "https://www.instagram.com/advancedgasaircon/",
-    google: "",
+    // Google Business profile. This is Google's own share short-link — it
+    // redirects to the full Maps listing. Swap in the canonical
+    // google.com/maps/place/... URL if you ever want it to read nicer in
+    // the status bar; the destination is identical either way.
+    google: "https://share.google/Y5gbVEwoMu8dAr7vp",
   },
   primaryRegion: "South-East Victoria & Gippsland",
   primaryRegionShort: "South-East Vic",
