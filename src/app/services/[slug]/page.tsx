@@ -30,6 +30,10 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   const svc = services.find((s) => s.slug === params.slug);
   if (!content || !svc) notFound();
 
+  // Lead photo for the hero panel — first entry in the service's own
+  // photo set, so each service opens on the gear it's actually about.
+  const heroPhoto = content.photos?.[0];
+
   // Heat pump installs are the one service with a real changeover pair
   // shot so far. Matched by slug so more pairs just drop into gallery.ts.
   const beforeAfter =
@@ -45,27 +49,65 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
 
   return (
     <div className="page-detail">
-      {/* HERO */}
-      <section className="dp-hero">
+      {/* HERO — two-column with a photo panel and trust bar, so service
+          pages carry the same weight as the home page instead of opening
+          with a wall of text on paper. */}
+      <section className="dp-hero dp-hero--rich">
         <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
+          <nav className="dp-crumbs" aria-label="Breadcrumb" style={{ paddingTop: 24 }}>
             <Link href="/">Home</Link>
             <span className="sep">/</span>
             <Link href="/services">Services</Link>
             <span className="sep">/</span>
             <span className="cur">{svc.short}</span>
           </nav>
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot" />
-            {svc.short} · Pakenham &amp; within 75 km
-          </div>
-          <h1>{content.h1}</h1>
-          <p className="dp-hero__sub">{content.intro}</p>
-          <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-              Or call {site.phone}
-            </a>
+
+          <div className="dp-hero__grid">
+            <div className="dp-hero__col">
+              <div className="dp-hero__eyebrow">
+                <span className="ds-dot" />
+                {svc.short} · Pakenham &amp; within 75 km
+              </div>
+              <h1>{content.h1}</h1>
+              <p className="dp-hero__sub">{content.intro}</p>
+              <div className="dp-hero__ctas">
+                <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
+                <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+                  Or call {site.phone}
+                </a>
+              </div>
+
+              <div className="dp-trust">
+                <div className="dp-trust__stat dp-trust__stat--stars">
+                  <strong>★★★★★</strong>
+                  <span>4.9 / 5 · 280+ Google reviews</span>
+                </div>
+                <div className="dp-trust__div" />
+                <div className="dp-trust__stat">
+                  <strong>1,200+</strong>
+                  <span>installs since 2014</span>
+                </div>
+                <div className="dp-trust__div" />
+                <div className="dp-trust__stat">
+                  <strong>6-year</strong>
+                  <span>workmanship warranty</span>
+                </div>
+              </div>
+            </div>
+
+            {heroPhoto && (
+              <div className="dp-hero__col">
+                <div className="dp-hero__media dp-hero__media--contain">
+                  <img src={heroPhoto.src} alt={heroPhoto.alt} width="800" height="600" fetchPriority="high" />
+                  {content.typical && (
+                    <div className="dp-hero__badge">
+                      <strong>{content.typical.time.split("·")[0].trim()}</strong>
+                      <span>Typical job</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

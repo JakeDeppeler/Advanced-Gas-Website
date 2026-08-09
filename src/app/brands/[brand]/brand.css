@@ -1642,3 +1642,68 @@
   .brand-single__pic { aspect-ratio: 3 / 2; padding: 12px; }
   .brand-single__body p { font-size: 14px; }
 }
+
+
+/* ==================================================================
+   Brand "what sets it apart" — feature grid instead of a plain list.
+   The tick-list against three stacked cards read as flat and made the
+   section unnecessarily tall. This gives each feature its own card so
+   the section scans, and pulls the context cards into a row underneath.
+   ================================================================== */
+.brand-info__grid--v2 { display: block; }
+.brand-feats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+.brand-feat {
+  display: flex;
+  gap: 13px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  transition: transform .16s ease, box-shadow .22s ease, border-color .16s ease;
+}
+.brand-feat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(5, 10, 48, 0.09);
+  border-color: color-mix(in srgb, var(--card-accent, var(--sky)) 40%, var(--line));
+}
+.brand-feat__num {
+  flex: 0 0 30px;
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--card-accent, var(--sky)) 13%, #fff);
+  color: var(--card-accent, var(--sky));
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 800;
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--sky)) 28%, var(--line));
+}
+.brand-feat p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  align-self: center;
+}
+
+/* Context cards move to a row under the features. */
+.brand-context {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 560px) {
+  .brand-feats { grid-template-columns: 1fr; gap: 10px; }
+  .brand-feat { padding: 14px 16px; gap: 11px; }
+  .brand-context { gap: 10px; margin-top: 20px; padding-top: 20px; }
+}

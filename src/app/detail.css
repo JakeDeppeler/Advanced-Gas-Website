@@ -1211,3 +1211,126 @@
   /* Touch devices have no hover — show the caption permanently. */
   .igf__cap { transform: translateY(0); font-size: 11px; padding: 18px 9px 9px; -webkit-line-clamp: 2; }
 }
+
+/* ==================================================================
+   RICH DETAIL HERO — carries the home page's design language.
+   The plain light hero read as a different, thinner site next to the
+   home page, which has a photo column and a trust bar. This adds both
+   back: navy panel on the right holding the photo, trust stats under
+   the CTAs, and a soft tinted ground so the section has depth instead
+   of sitting flat on paper.
+   ================================================================== */
+.page-detail .dp-hero--rich {
+  padding: 0;
+  border-bottom: 0;
+  background:
+    radial-gradient(760px 420px at 88% 8%, rgba(0, 176, 237, 0.09), transparent 62%),
+    radial-gradient(620px 400px at 2% 96%, rgba(243, 103, 34, 0.08), transparent 62%),
+    var(--bg);
+  overflow: hidden;
+}
+.dp-hero__grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 52px;
+  align-items: center;
+  padding: 50px 0 58px;
+}
+.dp-hero__col { min-width: 0; }
+
+/* Photo panel — navy card, matching the home hero's treatment. */
+.dp-hero__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--navy);
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -22px rgba(5, 10, 48, 0.42),
+              0 10px 26px -14px rgba(5, 10, 48, 0.26);
+}
+.dp-hero__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Product renders sit on a plinth rather than bleeding to the edges. */
+.dp-hero__media--contain {
+  background:
+    radial-gradient(120% 92% at 50% 6%, #fff 0%, var(--paper) 58%, var(--bg-2) 100%);
+}
+.dp-hero__media--contain img {
+  object-fit: contain;
+  padding: 26px;
+  filter: drop-shadow(0 14px 22px rgba(5, 10, 48, 0.14));
+}
+/* Floating stat chip over the bottom-left of the photo. */
+.dp-hero__badge {
+  position: absolute;
+  left: 16px; bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(5, 10, 48, 0.16);
+}
+.dp-hero__badge strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.dp-hero__badge span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Trust bar — same shape as the home page's, light-mode palette. */
+.dp-trust {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding: 15px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.dp-trust__stat { display: flex; flex-direction: column; line-height: 1.15; }
+.dp-trust__stat strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+}
+.dp-trust__stat span { font-size: 12.5px; color: var(--ink-3); }
+.dp-trust__stat--stars strong { color: #f5a623; letter-spacing: 1px; font-size: 15px; }
+.dp-trust__div { width: 1px; height: 28px; background: var(--line); }
+
+@media (max-width: 1000px) {
+  .dp-hero__grid { grid-template-columns: 1fr; gap: 30px; padding: 38px 0 42px; }
+  .dp-hero__media { aspect-ratio: 16 / 9; max-height: 320px; }
+}
+@media (max-width: 640px) {
+  .dp-hero__grid { gap: 22px; padding: 26px 0 30px; }
+  .dp-hero__media { aspect-ratio: 3 / 2; max-height: 230px; border-radius: 16px; }
+  .dp-hero__media--contain img { padding: 16px; }
+  .dp-trust { gap: 14px; padding: 12px 14px; margin-top: 18px; }
+  .dp-trust__stat strong { font-size: 15px; }
+  .dp-trust__stat span { font-size: 11.5px; }
+  /* Third stat drops on the tightest screens rather than wrapping badly. */
+  .dp-trust__div:nth-of-type(4),
+  .dp-trust__stat:nth-of-type(5) { display: none; }
+}

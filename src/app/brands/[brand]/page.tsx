@@ -119,17 +119,24 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       {/* Key features + Melbourne context · dense info-panels */}
       {(brand.keyFeatures || brand.commonInMelbourne || brand.support) && (
         <section className="brand-info">
-          <div className="wrap brand-info__grid">
+          <div className="wrap brand-info__grid brand-info__grid--v2">
             {brand.keyFeatures && brand.keyFeatures.length > 0 && (
               <div className="brand-info__block">
                 <span className="ds-eyebrow"><span className="ds-dot" /> Why {brand.name}</span>
                 <h2>What sets it apart.</h2>
-                <ul className="brand-info__list">
-                  {brand.keyFeatures.map((f) => <li key={f}>{f}</li>)}
-                </ul>
+                <div className="brand-feats">
+                  {brand.keyFeatures.map((f, i) => (
+                    <div key={f} className="brand-feat">
+                      <span className="brand-feat__num" aria-hidden="true">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <p>{f}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-            <div className="brand-info__aside">
+            <div className="brand-context">
               {brand.commonInMelbourne && (
                 <div className="brand-info__cell">
                   <div className="dp-local__lbl">Common in Melbourne</div>
