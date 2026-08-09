@@ -1723,3 +1723,53 @@
 @media (max-width: 560px) {
   .page-detail .whydiff__rules-grid { grid-template-columns: 1fr; gap: 14px; }
 }
+
+
+/* ============================================================
+   SYSTEM FIT — right call / think twice, on the system pages
+   ============================================================ */
+.page-detail .sysfit { padding: 90px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-detail .sysfit__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 38px;
+}
+.page-detail .sysfit__col {
+  padding: 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  border-top: 3px solid var(--line);
+}
+.page-detail .sysfit__col--yes { border-top-color: #17a06a; }
+.page-detail .sysfit__col--no  { border-top-color: var(--orange); }
+.page-detail .sysfit__col h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 16px;
+}
+.page-detail .sysfit__col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 11px; }
+.page-detail .sysfit__col li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.page-detail .sysfit__col--yes li::before { content: "✓"; color: #17a06a; }
+.page-detail .sysfit__col--no  li::before { content: "!"; color: var(--orange); }
+.page-detail .sysfit__col li::before {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  font-weight: 800;
+}
+@media (max-width: 820px) {
+  .page-detail .sysfit { padding: 54px 0; }
+  .page-detail .sysfit__grid { grid-template-columns: 1fr; }
+  .page-detail .sysfit__col { padding: 20px; }
+}

@@ -61,6 +61,16 @@ export type ServiceContent = {
     photo: { src: string; alt: string };
     points: string[];
     priceFrom?: string;
+    /** Long-form opening for the system's own page at
+     *  /services/<service>/<id>. Distinct from `blurb`, which is the
+     *  one-paragraph version shown on the parent service page. */
+    intro?: string;
+    /** Where this system is the right call. */
+    bestFor?: string[];
+    /** Where it isn't — the honest half, and the reason these pages are
+     *  worth reading rather than just ranking. */
+    watchOut?: string[];
+    faqs?: { q: string; a: string }[];
   }[];
 };
 
@@ -124,6 +134,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Wi-Fi via MELCloud so you can run it from the phone",
         ],
         priceFrom: "from $2,199 installed",
+        intro:
+          "A split system is the simplest air conditioner there is: one box outside, one head inside, a pair of copper lines between them. That simplicity is why it's the cheapest to buy, the cheapest to run and the quickest to install — most go in back-to-back in a single morning without anyone taking a day off work.",
+        bestFor: [
+          "A bedroom, a living room, a home office or a granny flat",
+          "Anywhere you want to condition one room properly rather than the whole house",
+          "Retrofits — a back-to-back install needs one core hole and nothing in the roof",
+          "Renters and owners who want the cheapest path to a comfortable room",
+        ],
+        watchOut: [
+          "It heats and cools the room it's in, not the hallway or the next bedroom",
+          "Three or four rooms means three or four outdoor units — at that point multi-head or ducted is tidier and often cheaper",
+          "The outdoor unit has to go somewhere, and that somewhere needs airflow and a bit of thought about the neighbour's bedroom window",
+        ],
+        faqs: [
+          { q: "How long does a split system install take?", a: "A straightforward back-to-back — indoor head directly opposite the outdoor unit — is three to four hours. Longer pipe runs, upstairs installs or a difficult outdoor location can make it half a day." },
+          { q: "What size do I need?", a: "Roughly: 2.5 kW for a bedroom, 5.0 kW for a living room, 7.1 kW for large open-plan. But ceiling height, window aspect and insulation move it, which is why we do a room-by-room heat load rather than quoting off floor area." },
+          { q: "Can I run it from my phone?", a: "Yes. Mitsubishi's MELCloud module adds Wi-Fi to any indoor unit in the range. We set it up and walk you through it before we leave." },
+        ],
       },
       {
         id: "multi",
@@ -138,6 +166,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Each room keeps its own remote and its own set temperature",
         ],
         priceFrom: "from $6,500 installed",
+        intro:
+          "A multi-head runs two to five indoor heads off a single outdoor unit. It's the answer when you want several rooms done but only have room — or body-corporate permission — for one condenser outside, and it means one set of pipe penetrations through the wall instead of four.",
+        bestFor: [
+          "Three or four bedrooms where separate splits would mean a wall of outdoor units",
+          "Townhouses and units where there's exactly one spot the condenser can legally go",
+          "Homes where the roof space won't take ducting but you still want most rooms covered",
+          "Mixing head types — wall, floor console or bulkhead — on the one system",
+        ],
+        watchOut: [
+          "All the heads share one compressor, so running one small bedroom draws more power than a dedicated split would",
+          "If the outdoor unit fails, every room goes off at once — a split only takes one room with it",
+          "Costs more than a single split and less than ducted; if you're doing five-plus rooms, price ducted before you commit",
+        ],
+        faqs: [
+          { q: "How many rooms can one outdoor unit run?", a: "Mitsubishi's MXZ range goes from 2 up to 6 ports. Beyond about five heads, ducted usually works out better on both price and comfort." },
+          { q: "Can each room have its own temperature?", a: "Yes — each head has its own remote and its own setpoint. They do share a compressor, so extreme differences between rooms are less efficient than similar ones." },
+          { q: "Do all the heads have to be the same?", a: "No. You can run a wall unit in the bedrooms, a floor console in a room with no wall height, and a bulkhead unit where you want it hidden — all off the one outdoor." },
+        ],
       },
       {
         id: "ducted",
@@ -152,6 +198,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Retrofit into an existing roof cavity where there's access",
         ],
         priceFrom: "from $12,500 installed",
+        intro:
+          "Ducted reverse-cycle puts one system in the roof and vents into every room, zoned so you're not paying to condition four empty bedrooms at 7pm. It's the most comfortable way to heat and cool a whole house, and the only one that disappears into the ceiling instead of hanging on a wall.",
+        bestFor: [
+          "Whole-home heating and cooling from a single system",
+          "New builds, and retrofits where there's roof access and clearance",
+          "Anyone who wants the gear out of sight — vents in the ceiling, nothing on the walls",
+          "Homes where zoning matters: bedrooms at night, living areas by day",
+        ],
+        watchOut: [
+          "Needs real roof space. A tight cavity or a skillion roof can rule it out, and we'll tell you on the site visit rather than after you've paid a deposit",
+          "It's the biggest up-front cost of the three, though not per room once you're past four or five",
+          "Duct design matters more than the unit. An undersized trunk or a bad branch layout will make an expensive system feel weak",
+        ],
+        faqs: [
+          { q: "Can ducted go into an existing house?", a: "Usually, if there's roof access and enough clearance for the indoor unit and the trunk duct. We check that on the site visit before quoting — it's the one thing that genuinely rules the job out." },
+          { q: "How many zones do I need?", a: "Four covers most homes: bedrooms, living, kitchen/meals and a spare. We fit Zonemate as standard so adding a zone later doesn't mean pulling the ceiling apart." },
+          { q: "Is ducted more expensive to run than splits?", a: "Zoned properly, no. Unzoned it can be, because you're conditioning the whole house to serve one room — which is exactly why we don't install it unzoned." },
+        ],
       },
       {
         id: "evap",
@@ -166,6 +230,25 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Cooling only; pair with gas ducted for winter",
         ],
         priceFrom: "from $3,900 installed",
+        intro:
+          "Evaporative cooling pulls outside air through wet pads and blows it through the house. It uses water and a fan rather than refrigerant, which makes it very cheap to run and very good at moving a lot of air — and completely dependent on the day being dry.",
+        bestFor: [
+          "The drier inland suburbs, where summer days are hot rather than humid",
+          "Households that want windows open and a lot of fresh air moving",
+          "Running cost — roughly a quarter of refrigerated cooling",
+          "Large homes where the cost of ducted refrigerated is out of reach",
+        ],
+        watchOut: [
+          "It needs windows or doors cracked open to work. Shut the house up and it does nothing",
+          "On a humid day it struggles, and Melbourne gets those — this is the honest trade-off",
+          "Cooling only. You'll still need gas ducted or a split for winter",
+          "Roof-mounted, so it needs an annual pre-summer service to stay working",
+        ],
+        faqs: [
+          { q: "Does evaporative cooling work in Melbourne?", a: "On a dry 38-degree day, very well. On a humid 30-degree day, poorly. If your household can't live with that trade-off, refrigerated is the honest answer and we'll say so." },
+          { q: "How much cheaper is it to run?", a: "Roughly a quarter of refrigerated cooling for the same house — it's a fan and a water pump rather than a compressor." },
+          { q: "Do I need to leave windows open?", a: "Yes. It works by pushing air through the house and out, so it needs somewhere for the air to go. That's a feature for some households and a deal-breaker for others." },
+        ],
       },
     ],
     photos: [
@@ -359,6 +442,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Roof-side access and safety handled by us",
         ],
         priceFrom: "from $220 + GST",
+        intro:
+          "A pre-summer service on a roof-mounted evaporative cooler. Pads, water tray, pump and float all get checked and cleaned, because the first 38-degree day is a bad time to discover the pump seized over winter — and it's the day everyone else rings too.",
+        bestFor: [
+          "Any roof-mounted evap going into summer after a winter sitting idle",
+          "Units blowing warm, smelling stale, or dripping",
+          "September and October, before the queue forms",
+          "Homes where the cooler is the only summer system, so it has to work",
+        ],
+        watchOut: [
+          "Pads have a life. If they've gone brittle or scaled up they get replaced, and that's a parts cost on top of the service",
+          "A seized pump or a failed motor is a repair, not a service — we'll quote it separately rather than bury it",
+          "Roof access in the wet is a safety call. If it's not safe on the day we'll rebook rather than push it",
+        ],
+        faqs: [
+          { q: "When should I service my evaporative cooler?", a: "Early spring — September or October. Leave it to the first hot day and you're in a queue with everyone else in the south-east." },
+          { q: "How often do the pads need replacing?", a: "Typically every three to five years depending on your water and how hard the unit runs. We check them every service and tell you when they're getting close rather than replacing them early." },
+          { q: "Why is it blowing warm air?", a: "Usually the pump isn't wetting the pads — a seized pump, a blocked distributor or a water supply that got turned off. All of it is checked in a service." },
+        ],
       },
       {
         id: "aircon-service",
@@ -373,6 +474,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Electrical connections torque-checked",
         ],
         priceFrom: "from $190 + GST",
+        intro:
+          "An annual service on a refrigerated system is filters, coils, drains and pressures. It's unglamorous and it's the difference between a system that lasts fifteen years and one that dies in an eight-year-old heatwave with the whole street ahead of you in the queue.",
+        bestFor: [
+          "Any split or ducted system that hasn't been looked at in over a year",
+          "Systems running weak, smelling musty or dripping inside",
+          "Pre-summer, before the first hot day and the two-week wait that comes with it",
+          "Rentals, where a service record matters if something goes wrong",
+        ],
+        watchOut: [
+          "A service won't fix a failed compressor or a real refrigerant leak — if that's what it is we'll tell you and quote the repair separately",
+          "If the unit is fifteen years old and needs major parts, replacing usually beats repairing and we'll say so plainly",
+          "Booked in January you'll wait. Booked in October you won't",
+        ],
+        faqs: [
+          { q: "How often should an aircon be serviced?", a: "Every two years for a lightly used split, annually for ducted or anything running most of the year. If it's never been done, now regardless of age." },
+          { q: "Will you service a brand you don't install?", a: "Yes. Daikin, Fujitsu, Panasonic, LG, Samsung, Braemar — if it's on your wall we'll look at it." },
+          { q: "My unit smells musty. Is that fixable?", a: "Usually. It's almost always the indoor coil and drain tray rather than anything serious, and it comes out in a proper service." },
+        ],
       },
     ],
     photos: [
@@ -473,6 +592,25 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Star rating drives running cost — we quote the payback, not just the price",
         ],
         priceFrom: "from $4,600 installed",
+        intro:
+          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. It's still the cheapest way to heat a whole Melbourne home through winter and the fastest to bring a cold house up to temperature — which is why most homes built here since 1990 have one.",
+        bestFor: [
+          "Whole-home winter heating, fast, in a climate that genuinely gets cold",
+          "Like-for-like replacement — the existing cavity, ductwork and controller wiring usually all reuse",
+          "Homes with existing gas where the connection is already paid for",
+          "Anyone who wants heat now rather than in twenty minutes",
+        ],
+        watchOut: [
+          "Star rating decides your running cost for the next fifteen years. The cheap 3-star costs more every winter than the 6-star saves you at purchase",
+          "Heating only. Pair it with evap or refrigerated for summer",
+          "Gas prices are moving. If you're weighing gas against a reverse-cycle system long-term, ask us to run both numbers rather than assuming",
+          "Any gas heater over ten years old wants a carbon monoxide test, whether or not you replace it",
+        ],
+        faqs: [
+          { q: "Can you replace my old ducted heater with the same footprint?", a: "Nearly always. Brivis and Kaden internal units are built to drop into the existing cavity, and the ducts, return-air grille and controller wiring usually reuse. That's what keeps it a one-day job." },
+          { q: "Is a 6-star worth the extra over a 3-star?", a: "On a house you're staying in, generally yes — the efficiency difference shows up every winter. On a house you're selling in two years, probably not. We'll show you where the crossover lands rather than just pushing the dearer one." },
+          { q: "How long does a changeover take?", a: "A like-for-like internal swap is usually a single day. External or a first-time install with new ductwork runs longer, and we'll say which at the quote." },
+        ],
       },
       {
         id: "continuous-flow",
@@ -487,6 +625,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Temperature-controlled to 50 °C at the outlets, as required",
         ],
         priceFrom: "from $1,850 installed",
+        intro:
+          "Continuous flow heats water on demand instead of storing it. There's no tank losing heat overnight and it never runs out — the trade-off is that it's tied to gas, and it heats only as fast as its rating allows.",
+        bestFor: [
+          "Households that run out of hot water with a tank",
+          "Homes tight on space — it's wall-mounted outside, about the size of a briefcase",
+          "Like-for-like replacement of an existing continuous flow, often same-day",
+          "Anyone staying on gas who wants the simplest possible swap",
+        ],
+        watchOut: [
+          "It's a gas appliance, so it doesn't attract the VEU heat pump rebates — worth comparing total cost against a heat pump before deciding",
+          "Flow rate is the limit: a 16 L/min unit won't run two showers and the kitchen at once. We size on outlets, not guesswork",
+          "No hot water in a blackout on some models, since the electronics need power",
+        ],
+        faqs: [
+          { q: "What size continuous flow do I need?", a: "16 L/min suits a smaller home with one bathroom, 20 for most family homes, 26 where two showers might run together. We size on how many outlets could realistically run at once." },
+          { q: "Is Thermann made by Rinnai?", a: "No — Thermann is Reece's own brand, made by Dux. It's a common mix-up. Parts are stocked in every Reece store in Victoria." },
+          { q: "Should I go continuous flow or a heat pump?", a: "If you're staying on gas and want the simplest swap, continuous flow. If you'd take a rebate and lower running costs, a heat pump usually wins on total cost. We'll quote both if you want to compare properly." },
+        ],
       },
       {
         id: "gas-service",
@@ -501,6 +657,24 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Recommended every 2 years, annually on units over 10 years old",
         ],
         priceFrom: "$280 + GST",
+        intro:
+          "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that actually matters — a cracked heat exchanger has no smell, no noise and no warning, and it vents into the house you sleep in.",
+        bestFor: [
+          "Any gas heater going into its first winter after a year unused",
+          "Units over ten years old, annually, without exception",
+          "Before you list a house for sale, when the certificate gets asked for",
+          "Anyone who has never had it done and doesn't know when it last was",
+        ],
+        watchOut: [
+          "If the analyser finds carbon monoxide, we shut the appliance down. That's not an upsell, it's the law and the right call",
+          "A failed heat exchanger isn't repairable on most units — it's a replacement, and we'll be straight with you about that",
+          "Booked in May you'll wait. Booked in March you won't",
+        ],
+        faqs: [
+          { q: "How often should a gas heater be serviced?", a: "Every two years as a minimum, annually once it's over ten years old. Energy Safe Victoria recommends every two years for all gas heaters." },
+          { q: "What is a carbon monoxide test?", a: "We run the appliance and measure the flue gases with a calibrated analyser, checking the heat exchanger hasn't cracked and spilled combustion products into your air. The result goes on the report." },
+          { q: "What happens if you find carbon monoxide?", a: "We disconnect the appliance and tell you exactly what we found. It's the one part of the job with no negotiation in it." },
+        ],
       },
     ],
     photos: [

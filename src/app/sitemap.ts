@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { site, services } from "@/lib/site";
+import { serviceContent } from "@/lib/serviceContent";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 
@@ -40,6 +41,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: 0.9,
   }));
+
+  // One entry per system page (/services/<service>/<system>). Only the
+  // ones with long-form content — the route 404s the rest, so listing
+  // them would advertise dead URLs.
+  const systemUrls: MetadataRoute.Sitemap = Object.entries(serviceContent).flatMap(
+    ([slug, c]) =>
+      (c.systems ?? [])
+        .filter((sys) => sys.intro)
+        .map((sys) => ({
+          url: `${base}/services/${slug}/${sys.id}`,
+          lastModified: now,
+          changeFrequency: "monthly" as const,
+          priority: 0.8,
+        })),
+  );
 
   // Only sitemap-emit the suburbs we've published in the current SEO wave.
   // Draft entries live in suburbs.ts with published:false so we can iterate on
@@ -93,5 +109,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })),
   );
 
-  return [...staticUrls, ...serviceUrls, ...suburbUrls, ...brandUrls, ...brandSuburbUrls];
+  return [...staticUrls, ...serviceUrls,
+    ...systemUrls, ...suburbUrls, ...brandUrls, ...brandSuburbUrls];
 }

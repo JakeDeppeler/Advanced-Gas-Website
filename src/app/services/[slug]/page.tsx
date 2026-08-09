@@ -178,9 +178,11 @@ export default async function ServicePage({ params }: { params: { slug: string }
               <p>Different homes want different gear. Here&rsquo;s the honest difference between them, including where each one falls down.</p>
             </div>
 
-            <nav className="svc-systems__jump" aria-label="Jump to a system type">
+            <nav className="svc-systems__jump" aria-label="System types">
               {content.systems.map((sys) => (
-                <a key={sys.id} href={`#${sys.id}`}>{sys.label}</a>
+                sys.intro
+                  ? <Link key={sys.id} href={`/services/${svc.slug}/${sys.id}`}>{sys.label}</Link>
+                  : <a key={sys.id} href={`#${sys.id}`}>{sys.label}</a>
               ))}
             </nav>
 
@@ -201,9 +203,15 @@ export default async function ServicePage({ params }: { params: { slug: string }
                   </ul>
                   <div className="svc-system__foot">
                     {sys.priceFrom && <span className="svc-system__price">{sys.priceFrom}</span>}
-                    <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--sm">
-                      Quote this system →
-                    </Link>
+                    {sys.intro ? (
+                      <Link href={`/services/${svc.slug}/${sys.id}`} className="ds-btn ds-btn--orange ds-btn--sm">
+                        Read more about {sys.label.toLowerCase()} →
+                      </Link>
+                    ) : (
+                      <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--sm">
+                        Quote this system →
+                      </Link>
+                    )}
                   </div>
                 </div>
               </article>
