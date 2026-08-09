@@ -97,8 +97,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     excluded: [
       "Line-set runs beyond the included metres (charged per additional metre in the quote)",
-      "First-floor roof-access + scaffold hire on a two-storey (~$500 typical)",
-      "Coring through masonry or double-brick (~$180 per wall penetration)",
+      "Condensate pump if the indoor is above the outdoor and there's no gravity drain (~$220 typical)",
       "Structural rework, ceiling patching or painting after ductwork",
       "LPG bottle relocation for gas-adjacent installs",
     ],
