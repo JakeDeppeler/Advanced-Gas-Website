@@ -8,6 +8,8 @@ import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
 import { InstagramCTA } from "@/components/InstagramCTA";
+import { ProofStrip } from "@/components/ProofStrip";
+import { QuoteForm } from "@/components/QuoteForm";
 import { installsFor } from "@/lib/brandGallery";
 import { getInstagramForBrand } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
@@ -84,6 +86,25 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
               Or call {site.phone}
             </a>
+          </div>
+
+          {/* Same trust bar as the home page and service pages — dark
+              variant so it sits on the hero photo instead of blocking it. */}
+          <div className="dp-trust dp-trust--dark">
+            <div className="dp-trust__stat dp-trust__stat--stars">
+              <strong>★★★★★</strong>
+              <span>4.9 / 5 · 280+ Google reviews</span>
+            </div>
+            <div className="dp-trust__div" />
+            <div className="dp-trust__stat">
+              <strong>{brand.products.length}</strong>
+              <span>{brand.name} models we install</span>
+            </div>
+            <div className="dp-trust__div" />
+            <div className="dp-trust__stat">
+              <strong>6-year</strong>
+              <span>workmanship warranty</span>
+            </div>
           </div>
         </div>
       </section>
@@ -303,27 +324,41 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </section>
       )}
 
-      {/* Where we install this brand · 12 suburb combo links */}
-      <section className="dp-quote" style={{ paddingTop: 60, paddingBottom: 60 }}>
-        <div className="wrap">
-          <div className="ds-section-head" style={{ marginBottom: 24 }}>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Local {brand.name} installer</span>
-            <h2 style={{ marginBottom: 6 }}>Where we install {brand.name}.</h2>
+      {/* Social proof — the short version of /reviews, so brand pages
+          carry the same reassurance the home page does. */}
+      <ProofStrip
+        subject={brand.name}
+        heading={`Rated 4.9 by the households we install for.`}
+      />
+
+      {/* Quote form + where we install this brand.
+          Brand pages used to end on suburb chips and a banner, which meant
+          the one page a buyer lands on from "Brivis installer Pakenham"
+          had no form on it. Same two-column shape as the service pages. */}
+      <section className="dp-quote">
+        <div className="wrap dp-quote__grid">
+          <div className="dp-quote__copy">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Free quote</span>
+            <h2>Quote for a {brand.name} system.</h2>
             <p>
-              Every one of these suburbs has {brand.name} systems we&rsquo;ve installed and continue to service.
-              Tap through to see what we typically install in each area.
+              60 seconds. No obligation. Replied within 2 business hours, with the
+              model, the installed price and any rebate you qualify for in writing.
             </p>
+            <h3 style={{ marginTop: 24, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
+              Where we install {brand.name}
+            </h3>
+            <div className="dp-quote__chips">
+              {INSTALLER_SUBURB_SLUGS
+                .map((slug) => publishedSuburbs.find((s) => s.slug === slug))
+                .filter((s): s is NonNullable<typeof s> => Boolean(s))
+                .map((s) => (
+                  <Link key={s.slug} href={`/brands/${brand.slug}/installers/${s.slug}`}>
+                    {brand.name} · {s.name}
+                  </Link>
+                ))}
+            </div>
           </div>
-          <div className="dp-quote__chips">
-            {INSTALLER_SUBURB_SLUGS
-              .map((slug) => publishedSuburbs.find((s) => s.slug === slug))
-              .filter((s): s is NonNullable<typeof s> => Boolean(s))
-              .map((s) => (
-                <Link key={s.slug} href={`/brands/${brand.slug}/installers/${s.slug}`}>
-                  {brand.name} · {s.name}
-                </Link>
-              ))}
-          </div>
+          <QuoteForm />
         </div>
       </section>
 

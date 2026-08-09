@@ -8,6 +8,7 @@ import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import { BeforeAfter } from "@/components/BeforeAfter";
+import { ProofStrip } from "@/components/ProofStrip";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 
@@ -316,6 +317,12 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           </div>
         </div>
       </section>
+
+      {/* PROOF · compact reviews row, so the page earns the form below it */}
+      <ProofStrip
+        subject={svc.short.toLowerCase()}
+        heading="Rated 4.9 by the households we work for."
+      />
 
       {/* QUOTE */}
       <section className="dp-quote">
