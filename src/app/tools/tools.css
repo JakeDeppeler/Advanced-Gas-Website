@@ -859,3 +859,192 @@
   .hps-explain__grid { grid-template-columns: 1fr; gap: 20px; }
   .hps-explain, .hps-cta-note { padding: 20px 18px; margin-top: 28px; }
 }
+
+
+/* ============================================================
+   HEAT PUMP SIZING — delivery, day split, head-to-head
+   ============================================================ */
+
+/* The headline most people are actually asking for: not tank litres,
+   but litres of shower-temperature water. */
+.hps-delivery {
+  margin: 18px 0 4px;
+  padding: 18px 20px;
+  background: color-mix(in srgb, var(--orange) 7%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--orange) 26%, var(--line));
+  border-radius: 14px;
+}
+.hps-delivery__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.hps-delivery__big {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 36px);
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.05;
+}
+.hps-delivery__big span {
+  display: block;
+  font-family: var(--f-body, inherit);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--ink-2);
+  margin-top: 4px;
+}
+.hps-delivery__note {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Morning / gap / evening */
+.hps-sessions { margin: 20px 0 4px; }
+.hps-sessions__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-sessions__grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+.hps-session {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+.hps-session strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.hps-session__when {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.hps-session__sub { font-size: 12px; color: var(--ink-3); }
+.hps-session--gap {
+  background: color-mix(in srgb, var(--sky) 8%, var(--paper));
+  border-color: color-mix(in srgb, var(--sky) 28%, var(--line));
+  justify-content: center;
+}
+.hps-session--gap strong { color: var(--sky); }
+.hps-sessions__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Head-to-head */
+.hps-vs { margin: 22px 0 4px; }
+.hps-vs__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-vs__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hps-vs__card {
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  border-top: 3px solid var(--line);
+}
+.hps-vs__card.is-ok    { border-top-color: #17a06a; }
+.hps-vs__card.is-tight { border-top-color: var(--orange); }
+.hps-vs__card h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+.hps-vs__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.hps-vs__badge.is-ok    { background: rgba(23,160,106,0.12); color: #12855a; }
+.hps-vs__badge.is-tight { background: color-mix(in srgb, var(--orange) 15%, #fff); color: #b8460f; }
+
+.hps-vs__rows { margin: 0; display: grid; gap: 6px; }
+.hps-vs__rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+.hps-vs__rows > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.hps-vs__rows dt { color: var(--ink-3); margin: 0; }
+.hps-vs__rows dd { margin: 0; font-weight: 700; color: var(--navy); text-align: right; }
+
+.hps-vs__note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.hps-vs__unverified {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orange) 9%, #fff);
+  border: 1px dashed color-mix(in srgb, var(--orange) 38%, var(--line));
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #943d0d;
+}
+.hps-vs__foot {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+@media (max-width: 620px) {
+  .hps-sessions__grid { grid-template-columns: 1fr; }
+  .hps-vs__grid { grid-template-columns: 1fr; }
+  .hps-delivery__big { font-size: 26px; }
+}
