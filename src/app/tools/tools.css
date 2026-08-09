@@ -683,3 +683,179 @@
   font-size: 15px;
   line-height: 1;
 }
+
+/* ==================================================================
+   Tools hub — grouped sections
+   ================================================================== */
+.tools-group { margin-top: 46px; }
+.tools-group:first-of-type { margin-top: 0; }
+.tools-group__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+}
+.tools-group__title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0;
+}
+.tools-group__blurb {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  flex: 1;
+  min-width: 200px;
+}
+.tools-group__count {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .tools-group { margin-top: 34px; }
+  .tools-group__title { font-size: 19px; }
+  .tools-group__blurb { font-size: 13px; }
+}
+
+/* ==================================================================
+   Heat pump sizing — hot/cold split bar + verdict + explainer
+   ================================================================== */
+.hps-split {
+  margin: 20px 0;
+  padding: 16px 18px;
+  background: var(--bg-2);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.hps-split__lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-split__bar {
+  display: flex;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.hps-split__hot,
+.hps-split__cold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: width .18s ease;
+}
+.hps-split__hot  { background: linear-gradient(135deg, #f36722, #d4520f); }
+.hps-split__cold { background: linear-gradient(135deg, #00b0ed, #0286b3); }
+.hps-split__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.hps-split__note strong { color: var(--navy); }
+
+.hps-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  border-left: 3px solid;
+}
+.hps-verdict strong {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 800;
+}
+.hps-verdict span { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.hps-verdict.is-ok {
+  background: rgba(46,132,89,0.08);
+  border-left-color: #217049;
+}
+.hps-verdict.is-ok strong { color: #217049; }
+.hps-verdict.is-tight {
+  background: rgba(243,103,34,0.08);
+  border-left-color: var(--orange);
+}
+.hps-verdict.is-tight strong { color: #b64b12; }
+
+.hps-explain,
+.hps-cta-note {
+  margin-top: 40px;
+  padding: 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.hps-cta-note { border-left: 4px solid var(--orange); }
+.hps-explain h2,
+.hps-cta-note h2 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  color: var(--navy);
+  margin: 0 0 16px;
+}
+.hps-explain__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+.hps-explain h3 {
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+.hps-explain h3 + p + h3 { margin-top: 18px; }
+.hps-explain p,
+.hps-cta-note p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}
+.hps-explain code {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.hps-explain strong { color: var(--navy); }
+@media (max-width: 760px) {
+  .hps-explain__grid { grid-template-columns: 1fr; gap: 20px; }
+  .hps-explain, .hps-cta-note { padding: 20px 18px; margin-top: 28px; }
+}

@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/reviews`, lastModified: now, changeFrequency: "weekly", priority: 0.65 },
     { url: `${base}/press-kit`, lastModified: now, changeFrequency: "monthly", priority: 0.55 },
     { url: `${base}/tools`, lastModified: now, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/tools/heat-pump-sizing`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/tools/sizing-calculator`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/running-cost-calculator`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/fault-codes`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },

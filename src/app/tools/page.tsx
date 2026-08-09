@@ -21,6 +21,17 @@ export const metadata: Metadata = {
   alternates: { canonical: "/tools" },
 };
 
+/** Tool groups — the hub was one flat grid of 8 cards, which made it
+ *  hard to tell the comparison tools from the money tools at a glance. */
+type ToolGroup = "compare" | "cost" | "size" | "reference";
+
+const TOOL_GROUPS: { key: ToolGroup; label: string; blurb: string }[] = [
+  { key: "size",      label: "Size it right",      blurb: "Work out what your home actually needs before anyone quotes you." },
+  { key: "cost",      label: "What it'll cost",    blurb: "Running costs, rebates and payback — real numbers, not sales maths." },
+  { key: "compare",   label: "Compare systems",    blurb: "Side-by-side on the specs that decide it." },
+  { key: "reference", label: "Reference",          blurb: "Look something up." },
+];
+
 const TOOLS: {
   slug: string;
   title: string;
@@ -28,9 +39,11 @@ const TOOLS: {
   blurb: string;
   ctaLabel: string;
   bullets: string[];
+  group: ToolGroup;
 }[] = [
   {
     slug: "sizing-calculator",
+    group: "size",
     title: "Aircon Sizing Calculator",
     tagline: "What size aircon does this room need?",
     blurb:
@@ -43,7 +56,22 @@ const TOOLS: {
     ],
   },
   {
+    slug: "heat-pump-sizing",
+    group: "size",
+    title: "Heat Pump Sizing Calculator",
+    tagline: "What size hot water tank does my home need?",
+    blurb:
+      "Most guides just count bedrooms. This one sizes off what your household actually draws — shower flow, shower length, how many people go through before work — then gives you the tank size, recovery rate and full reheat time.",
+    ctaLabel: "Size my heat pump →",
+    bullets: [
+      "Works out the real hot-water fraction of a mixed shower (a 9 L/min head only pulls ~5 L from the tank)",
+      "Sizes on 80% usable capacity, not the number on the badge",
+      "Reheat time + L/hr recovery for your chosen COP and compressor",
+    ],
+  },
+  {
     slug: "veu-rebate-estimator",
+    group: "cost",
     title: "VEU Rebate Estimator",
     tagline: "How much rebate can I claim?",
     blurb:
@@ -57,6 +85,7 @@ const TOOLS: {
   },
   {
     slug: "heating-comparator",
+    group: "compare",
     title: "Gas vs Reverse-Cycle Heating",
     tagline: "Which is cheaper to run this winter?",
     blurb:
@@ -70,6 +99,7 @@ const TOOLS: {
   },
   {
     slug: "heat-pump-compare",
+    group: "compare",
     title: "Heat Pump Compare",
     tagline: "Reclaim vs iStore vs Thermann vs Sanden vs Rheem.",
     blurb:
@@ -83,6 +113,7 @@ const TOOLS: {
   },
   {
     slug: "system-comparison",
+    group: "compare",
     title: "System Type Comparison",
     tagline: "Split vs multi-head vs ducted vs gas vs evap.",
     blurb:
@@ -96,6 +127,7 @@ const TOOLS: {
   },
   {
     slug: "hot-water-savings",
+    group: "cost",
     title: "Hot Water Savings Calculator",
     tagline: "How much will a heat pump save me?",
     blurb:
@@ -109,6 +141,7 @@ const TOOLS: {
   },
   {
     slug: "running-cost-calculator",
+    group: "cost",
     title: "Running Cost Calculator",
     tagline: "What will this cost me to run?",
     blurb:
@@ -122,6 +155,7 @@ const TOOLS: {
   },
   {
     slug: "fault-codes",
+    group: "reference",
     title: "Aircon Fault Code Lookup",
     tagline: "What does this error code on my aircon mean?",
     blurb:
@@ -159,22 +193,37 @@ export default function ToolsHubPage() {
 
       <section className="tools-grid-sec">
         <div className="wrap">
-          <div className="tools-grid">
-            {TOOLS.map((t) => (
-              <Link key={t.slug} href={`/tools/${t.slug}`} className="tool-card">
-                <div className="tool-card__inner">
-                  <div className="tool-card__eyebrow">Free tool</div>
-                  <h2>{t.title}</h2>
-                  <p className="tool-card__tagline">{t.tagline}</p>
-                  <p className="tool-card__blurb">{t.blurb}</p>
-                  <ul className="tool-card__bullets">
-                    {t.bullets.map((b) => <li key={b}>{b}</li>)}
-                  </ul>
-                  <span className="tool-card__cta">{t.ctaLabel}</span>
+          {TOOL_GROUPS.map((g) => {
+            const inGroup = TOOLS.filter((t) => t.group === g.key);
+            if (inGroup.length === 0) return null;
+            return (
+              <div key={g.key} className="tools-group">
+                <div className="tools-group__head">
+                  <h2 className="tools-group__title">{g.label}</h2>
+                  <p className="tools-group__blurb">{g.blurb}</p>
+                  <span className="tools-group__count">
+                    {inGroup.length} {inGroup.length === 1 ? "tool" : "tools"}
+                  </span>
                 </div>
-              </Link>
-            ))}
-          </div>
+                <div className="tools-grid">
+                  {inGroup.map((t) => (
+                    <Link key={t.slug} href={`/tools/${t.slug}`} className="tool-card">
+                      <div className="tool-card__inner">
+                        <div className="tool-card__eyebrow">Free tool</div>
+                        <h3>{t.title}</h3>
+                        <p className="tool-card__tagline">{t.tagline}</p>
+                        <p className="tool-card__blurb">{t.blurb}</p>
+                        <ul className="tool-card__bullets">
+                          {t.bullets.map((b) => <li key={b}>{b}</li>)}
+                        </ul>
+                        <span className="tool-card__cta">{t.ctaLabel}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
           <InstagramCTA
             heading="Want to see the work, not just the numbers?"
             body="Our Instagram is every install we finish — splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."

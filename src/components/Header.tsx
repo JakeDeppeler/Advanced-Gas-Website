@@ -220,6 +220,7 @@ const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[]
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
   { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$" },
   { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂" },
+  { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑" },
   { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡" },
   { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback",   icon: "♨" },
   { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann / Sanden", icon: "◆" },

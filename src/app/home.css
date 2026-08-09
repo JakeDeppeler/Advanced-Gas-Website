@@ -83,7 +83,12 @@
 }
 .page-home .hero__photo {
   position: relative;
-  aspect-ratio: 5 / 6;
+  /* Matches the source photo's 3:2 so the full lineup — team AND the
+     sign-written vans either side — actually shows. The old 5/6 portrait
+     frame cropped ~60% of the width off with object-fit: cover, which
+     threw away the vans and left three people against a wall. */
+  aspect-ratio: 3 / 2;
+  align-self: center;
   max-height: 640px;
   border-radius: 24px;
   overflow: hidden;
@@ -186,7 +191,7 @@
 /* Tablet — narrower photo column so the copy has breathing room */
 @media (max-width: 1080px) {
   .page-home .hero__grid { grid-template-columns: 1.1fr 0.9fr; gap: 40px; padding: 72px 0 80px; }
-  .page-home .hero__photo { aspect-ratio: 4 / 5; }
+  .page-home .hero__photo { aspect-ratio: 3 / 2; }
 }
 
 /* Mobile — photo stacks below the copy, both full-width */
@@ -206,8 +211,8 @@
   .page-home .hero__photo {
     /* Wider aspect on mobile so the team + vans read as intended
        instead of being cropped to just the workshop wall. */
-    aspect-ratio: 16 / 10;
-    max-height: 260px;
+    aspect-ratio: 3 / 2;
+    max-height: 280px;
     border-radius: 16px;
     width: 100%;
     margin: 0 auto;
