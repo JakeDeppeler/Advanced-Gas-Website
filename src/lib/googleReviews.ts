@@ -33,7 +33,19 @@ const REVALIDATE_SECONDS = 60 * 60 * 24; // 24 h
 
 export type ReviewsPayload = {
   reviews: Review[];
-  summary: { value: number; count: number; best: number };
+  summary: {
+    value: number;
+    count: number;
+    best: number;
+    /**
+     * True only when `count` is Google's own userRatingCount. The curated
+     * fallback's count is an estimate, and an estimated review total is
+     * not something to print on the page or feed to AggregateRating —
+     * Google's structured-data policy wants a real number, and the claim
+     * was deliberately dropped from the site once already.
+     */
+    verifiedCount: boolean;
+  };
   /** Where the data came from — surfaced in dev to make misconfig obvious. */
   source: "google" | "curated" | "google+curated";
 };
@@ -91,7 +103,7 @@ export async function getReviews(limit = 12): Promise<ReviewsPayload> {
 
   const fallback: ReviewsPayload = {
     reviews: CURATED.slice(0, limit),
-    summary: { ...CURATED_SUMMARY },
+    summary: { ...CURATED_SUMMARY, verifiedCount: false },
     source: "curated",
   };
 
@@ -135,6 +147,7 @@ export async function getReviews(limit = 12): Promise<ReviewsPayload> {
         value: data.rating ?? CURATED_SUMMARY.value,
         count: data.userRatingCount ?? CURATED_SUMMARY.count,
         best: 5,
+        verifiedCount: typeof data.userRatingCount === "number",
       },
       source: topUp.length > 0 && reviews.length > live.length ? "google+curated" : "google",
     };

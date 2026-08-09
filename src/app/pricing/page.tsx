@@ -164,7 +164,7 @@ export default function PricingPage() {
             </div>
             <div className="pricing-value__stat">
               <strong>4.9 / 5</strong>
-              <span>Google reviews · 280+ locals · zero paid or filtered</span>
+              <span>Google reviews · zero paid or filtered</span>
             </div>
             <div className="pricing-value__stat">
               <strong>0%</strong>

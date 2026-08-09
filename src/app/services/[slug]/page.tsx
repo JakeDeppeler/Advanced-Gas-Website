@@ -81,7 +81,7 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
               <div className="dp-trust">
                 <div className="dp-trust__stat dp-trust__stat--stars">
                   <strong>★★★★★</strong>
-                  <span>4.9 / 5 · 280+ Google reviews</span>
+                  <span>4.9 / 5 on Google</span>
                 </div>
                 <div className="dp-trust__div" />
                 <div className="dp-trust__stat">

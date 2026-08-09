@@ -33,11 +33,14 @@ export async function ReviewsBlock({
     name: site.name,
     url: site.url,
     telephone: site.phone,
+    // reviewCount only when it's Google's own total. Marking up an
+    // estimated count is exactly the kind of thing that costs a domain
+    // its rich-result eligibility.
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: summary.value,
-      reviewCount: summary.count,
       bestRating: summary.best,
+      ...(summary.verifiedCount ? { reviewCount: summary.count } : {}),
     },
     review: reviews.slice(0, 5).map((r) => ({
       "@type": "Review",
@@ -63,7 +66,7 @@ export async function ReviewsBlock({
             <strong>{summary.value.toFixed(1)}</strong>
             <span className="rvs__stars" aria-hidden="true">★★★★★</span>
             <span className="rvs__count">
-              from {summary.count}+ Google reviews
+              {summary.verifiedCount ? `from ${summary.count}+ Google reviews` : "on Google"}
             </span>
           </div>
           {site.social.google && (

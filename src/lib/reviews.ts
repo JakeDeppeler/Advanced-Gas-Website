@@ -34,6 +34,14 @@ export type Review = {
   rating: number;
 };
 
+/**
+ * The rating is real and stays. `count` is an ESTIMATE and is never
+ * printed or marked up on its own — consumers check `verifiedCount` on
+ * the payload from googleReviews.ts and only show a total when it came
+ * back from Google's own userRatingCount. The "280 reviews" claim was
+ * deliberately dropped from the site once; don't let it back in by
+ * rendering this number directly.
+ */
 export const RATING_SUMMARY = {
   value: 4.9,
   count: 280,

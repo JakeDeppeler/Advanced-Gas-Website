@@ -173,7 +173,7 @@ export default async function HomePage() {
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>
                 <div className="trust-rating__txt">
                   <strong>4.9 / 5</strong>
-                  <span>Google reviews · 280+ locals</span>
+                  <span>Google reviews</span>
                 </div>
               </div>
               <div className="trust-divider" />
@@ -272,7 +272,7 @@ export default async function HomePage() {
             </div>
             <div className="reviews__badge">
               <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google · 280+ reviews</div>
+              <div><strong>4.9 / 5</strong> on Google</div>
             </div>
           </div>
 

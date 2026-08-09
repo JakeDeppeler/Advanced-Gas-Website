@@ -33,7 +33,7 @@ const KEY_FACTS: { label: string; value: string }[] = [
   { label: "Head office",     value: "1 Sierra Circuit, Pakenham VIC 3810" },
   { label: "Service radius",  value: "75 km from Pakenham · 64 postcodes" },
   { label: "Installs done",   value: "1,200+ residential + light commercial" },
-  { label: "Google reviews",  value: "4.9 / 5 stars · 280+ locals" },
+  { label: "Google reviews",  value: "4.9 / 5 stars on Google" },
   { label: "Plumbing licence",value: "VIC Lic. 46828" },
   { label: "Refrigeration",   value: "ARCtick AU59557" },
   { label: "VEU accredited",  value: "Yes — rebates handled in-house" },
@@ -175,7 +175,7 @@ export default function PressKitPage() {
           <div className="press-contact__badge">
             <div className="press-contact__badge-inner">
               <div className="press-contact__badge-num">4.9 / 5</div>
-              <div className="press-contact__badge-lbl">280+ Google reviews</div>
+              <div className="press-contact__badge-lbl">Google reviews</div>
               <div className="press-contact__badge-divider" />
               <div className="press-contact__badge-num">1,200+</div>
               <div className="press-contact__badge-lbl">installs done</div>

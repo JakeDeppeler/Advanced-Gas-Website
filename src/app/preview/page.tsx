@@ -83,7 +83,7 @@ export default function PreviewPage() {
           <span className="pv-trust__stars">★★★★★</span>
           <div className="pv-trust__col">
             <strong>4.9 / 5</strong>
-            <span>280+ Google reviews</span>
+            <span>Google reviews</span>
           </div>
           <div className="pv-trust__divider" />
           <div className="pv-trust__col">
@@ -152,7 +152,7 @@ export default function PreviewPage() {
           <div className="pv-rev-rating">
             <span className="pv-rev-rating__stars">★★★★★</span>
             <strong>4.9 / 5</strong>
-            <span>· 280+ on Google</span>
+            <span>· 4.9 on Google</span>
           </div>
           <div className="pv-rev-rail">
             {REVIEWS.map((r, i) => (

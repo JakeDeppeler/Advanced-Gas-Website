@@ -93,7 +93,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           <div className="dp-trust dp-trust--dark">
             <div className="dp-trust__stat dp-trust__stat--stars">
               <strong>★★★★★</strong>
-              <span>4.9 / 5 · 280+ Google reviews</span>
+              <span>4.9 / 5 on Google</span>
             </div>
             <div className="dp-trust__div" />
             <div className="dp-trust__stat">

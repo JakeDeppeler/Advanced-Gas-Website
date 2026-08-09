@@ -44,7 +44,9 @@ export async function ProofStrip({
           <div className="proof__score">
             <strong>{summary.value.toFixed(1)}</strong>
             <span className="proof__stars" aria-hidden="true">★★★★★</span>
-            <span className="proof__count">from {summary.count}+ Google reviews</span>
+            <span className="proof__count">
+              {summary.verifiedCount ? `from ${summary.count}+ Google reviews` : "on Google"}
+            </span>
           </div>
         </div>
 
