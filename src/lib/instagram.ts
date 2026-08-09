@@ -142,6 +142,63 @@ export async function getInstagramForBrand(brandSlug: string, limit = 8): Promis
     .slice(0, limit);
 }
 
+/**
+ * System keywords per service page. These are the words that actually
+ * appear in a job caption — "split system in Berwick", "gas ducted
+ * changeover" — rather than the service's own slug, which nobody types.
+ */
+const SERVICE_KEYWORDS: Record<string, string[]> = {
+  "air-conditioning-installation": [
+    "split system", "split-system", "multi head", "multi-head", "multihead",
+    "ducted air", "ducted aircon", "ducted a/c", "reverse cycle", "reverse-cycle",
+    "aircon", "air con", "air-con", "evap", "evaporative", "mitsubishi", "kaden",
+  ],
+  "heat-pump-installation": [
+    "heat pump", "heatpump", "reclaim", "istore", "i-store", "thermann",
+    "co2", "veu", "hot water heat pump",
+  ],
+  "aircon-servicing-repairs": [
+    "service", "serviced", "servicing", "repair", "repaired", "fault",
+    "breakdown", "clean", "regas", "re-gas", "maintenance",
+  ],
+  "gas-plumbing": [
+    "gas ducted", "gas heater", "gas heating", "ducted heater", "brivis",
+    "wombat", "buffalo", "starpro", "continuous flow", "gas line", "gas fit",
+    "carbon monoxide", "co test",
+  ],
+};
+
+/**
+ * Generic "this is a job we did" markers. Used only as a fallback — if
+ * they counted as a match on their own, every service page would show
+ * the same feed, which is the opposite of the point.
+ */
+const INSTALL_KEYWORDS = ["install", "installed", "installation", "fitted", "changeover", "change over", "swap", "upgrade"];
+
+function captionMatches(caption: string, keywords: string[]): boolean {
+  const c = caption.toLowerCase();
+  return keywords.some((k) => c.includes(k));
+}
+
+/**
+ * Posts relevant to a service page. Matches the service's own system
+ * words first; if none of the recent posts mention them, falls back to
+ * anything that reads like a finished job so the section still has
+ * something real in it rather than disappearing.
+ */
+export async function getInstagramForService(serviceSlug: string, limit = 8): Promise<InstagramPost[]> {
+  const all = await getInstagramFeed(60);
+  if (all.length === 0) return [];
+
+  const keywords = SERVICE_KEYWORDS[serviceSlug];
+  if (!keywords) return all.slice(0, limit);
+
+  const onTopic = all.filter((p) => captionMatches(p.caption, keywords));
+  if (onTopic.length > 0) return onTopic.slice(0, limit);
+
+  return all.filter((p) => captionMatches(p.caption, INSTALL_KEYWORDS)).slice(0, limit);
+}
+
 /** First line of a caption, trimmed — captions run long with hashtags. */
 export function captionSummary(caption: string, max = 110): string {
   const firstLine = caption.split("\n")[0].trim();

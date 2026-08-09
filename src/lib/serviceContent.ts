@@ -33,6 +33,24 @@ export type ServiceContent = {
    *  pricing table so buyers see the boundary before they call. */
   included?: string[];
   excluded?: string[];
+  /**
+   * System types covered by this service, each rendered as its own
+   * anchored block.
+   *
+   * `id` MUST match the fragment the header's mega-menu links to
+   * (Header.tsx → SERVICE_MENU). Those links existed before these
+   * sections did, so "Split system aircon" and "Multi-head aircon" both
+   * dumped you at the top of the same page with nothing to tell them
+   * apart. Add a menu entry, add the matching id here.
+   */
+  systems?: {
+    id: string;
+    label: string;
+    blurb: string;
+    photo: { src: string; alt: string };
+    points: string[];
+    priceFrom?: string;
+  }[];
 };
 
 export const serviceContent: Record<string, ServiceContent> = {
@@ -68,11 +86,69 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Test, commission, walk-through", detail: "We run it up, check refrigerant pressures, walk you through the remote and MELCloud Wi-Fi setup. You sign the job card when you're satisfied — not before." },
       { title: "Compliance certificate emailed in 24 hrs", detail: "Electrical and refrigeration compliance docs into your inbox by end of business the next day. Warranty registered with Mitsubishi in your name at the same time." },
     ],
+    systems: [
+      {
+        id: "split",
+        label: "Split system air conditioning",
+        blurb:
+          "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat — cheapest to buy, cheapest to run, and the quickest to get in. Most go in back-to-back in a single morning.",
+        photo: { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
+        points: [
+          "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
+          "Mitsubishi Electric MSZ-AP as standard, Kaden KSI as the value pick",
+          "Back-to-back install in 3-4 hours, one visit",
+          "Wi-Fi via MELCloud so you can run it from the phone",
+        ],
+        priceFrom: "from $2,199 installed",
+      },
+      {
+        id: "multi",
+        label: "Multi-head air conditioning",
+        blurb:
+          "One outdoor unit running two to five indoor heads. Worth it when you want three bedrooms done but only have room — or body-corporate permission — for a single condenser outside.",
+        photo: { src: "/Mitsubishi Electric Multi Rooms Air Conditioner  6-Port Multi-Split condenser.webp", alt: "Mitsubishi Electric multi-split outdoor condenser" },
+        points: [
+          "2, 3, 4 and 5-port outdoor units — Mitsubishi MXZ series",
+          "Mix head types: wall, floor console or bulkhead on the one system",
+          "One set of pipe penetrations instead of four",
+          "Each room keeps its own remote and its own set temperature",
+        ],
+        priceFrom: "from $6,500 installed",
+      },
+      {
+        id: "ducted",
+        label: "Ducted reverse-cycle air conditioning",
+        blurb:
+          "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
+        photo: { src: "/Mitsubishi Electric Ducted Split System PEA-M-HAA Series.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
+        points: [
+          "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
+          "Zonemate 4, 6 and 8-zone control fitted by default",
+          "Full duct design — we size the trunk and branches, not just the unit",
+          "Retrofit into an existing roof cavity where there's access",
+        ],
+        priceFrom: "from $12,500 installed",
+      },
+      {
+        id: "evap",
+        label: "Evaporative cooling",
+        blurb:
+          "Roof-mounted, runs on water and a fan rather than refrigerant. Cheap to run and moves a lot of air, which suits the drier inland suburbs. Needs windows cracked to work, and it struggles on humid days.",
+        photo: { src: "/classic_evap_product_image.jpg", alt: "Brivis roof-mounted evaporative cooler" },
+        points: [
+          "Brivis and Kaden roof-mounted units",
+          "Running cost is a fraction of refrigerated cooling",
+          "Best in the drier north and east — less suited to humid days",
+          "Cooling only; pair with gas ducted for winter",
+        ],
+        priceFrom: "from $3,900 installed",
+      },
+    ],
     photos: [
       { src: "/AP_70-80HP_front-1920x1440-1.png", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
-      { src: "/reclaim-mitsubishi.webp", alt: "Mitsubishi split system on brick veneer", caption: "Brick-veneer install, colour-matched conduit" },
-      { src: "/mac_slide0.jpg", alt: "Mitsubishi multi-head system diagram", caption: "Multi-head — one outdoor, up to 5 indoor heads" },
-      { src: "/kdi-v2-image_01.webp", alt: "Ducted indoor unit in ceiling cavity", caption: "PEAD-M ducted retrofit into a family home" },
+      { src: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI V3 wall split system", caption: "Brick-veneer install, colour-matched conduit" },
+      { src: "/Mitsubishi Electric Multi Rooms Air Conditioner  6-Port Multi-Split condenser.webp", alt: "Mitsubishi Electric multi-split outdoor condenser", caption: "Multi-head — one outdoor, up to 5 indoor heads" },
+      { src: "/Mitsubishi Electric Ducted Split System PEA-M-HAA Series.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
@@ -147,7 +223,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO — same platform as Thermann Integrated" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split — 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated — Australian-made by Dux" },
-      { src: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png", alt: "Reclaim CO2 outdoor unit + tank", caption: "Reclaim CO₂ Split — outdoor unit + separate tank" },
+      { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ heat pump — outdoor unit and tank installed", caption: "Reclaim CO₂ Split — outdoor unit + separate tank" },
       { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover in progress", caption: "Same-day changeover — old tank out, new heat pump in" },
     ],
     brandPods: [
@@ -219,11 +295,41 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Service record lodged with the manufacturer", detail: "We upload the service report direct to Mitsubishi, Daikin, Fujitsu etc so your warranty record stays clean and any future claim goes through without a fight." },
       { title: "12-month reminder", detail: "We drop you a text 11 months later so the annual is booked before the heatwave. Skip it if you don't want it — it's a one-line opt-out." },
     ],
+    systems: [
+      {
+        id: "evap",
+        label: "Evaporative cooler service",
+        blurb:
+          "A pre-summer service on a roof-mounted evap. Pads, water tray, pump and float all get looked at, because the first hot day is a bad time to find out the pump has seized over winter.",
+        photo: { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler service — cooling pads and water tray" },
+        points: [
+          "Cooling pads inspected and replaced where they've gone brittle",
+          "Water tray drained, flushed and checked for leaks",
+          "Pump, float valve and bleed rate tested under load",
+          "Roof-side access and safety handled by us",
+        ],
+        priceFrom: "from $220 + GST",
+      },
+      {
+        id: "aircon-service",
+        label: "Split & ducted aircon service",
+        blurb:
+          "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced — a blocked drain or a filthy coil, not a dead compressor.",
+        photo: { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi MSZ-AP wall split system" },
+        points: [
+          "Filter clean, indoor and outdoor coil check",
+          "Condensate drain cleared and flow tested",
+          "Refrigerant pressures and superheat checked against spec",
+          "Electrical connections torque-checked",
+        ],
+        priceFrom: "from $190 + GST",
+      },
+    ],
     photos: [
-      { src: "/reclaim-mitsubishi.webp", alt: "Mitsubishi split system being serviced", caption: "Split system chemical coil clean" },
-      { src: "/kdi-v2-image_01.webp", alt: "Ducted indoor unit service access", caption: "Ducted return-air access + filter swap" },
-      { src: "/gas-line-safe.webp", alt: "Refrigeration technician on site", caption: "ARCtick-licensed — every refrigerant job by a certified tech" },
-      { src: "/evap cooler service.jpg", alt: "Evaporative cooler pre-summer service", caption: "Pre-summer evap clean — pump + water lines" },
+      { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi MSZ-AP wall split — the unit we service most", caption: "Split system chemical coil clean" },
+      { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden ducted indoor unit — service access panel", caption: "Ducted return-air access + filter swap" },
+      { src: "/evap-cooler-service.webp", alt: "Evaporative cooler service — roof-side access", caption: "ARCtick-licensed — every refrigerant job by a certified tech" },
+      { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler pre-summer service — pads and water tray", caption: "Pre-summer evap clean — pump + water lines" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "Parts pipeline is genuinely never a worry — even for units we didn't install, even for units 10+ years old.", href: "/brands/mitsubishi-electric" },
@@ -290,12 +396,56 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Commission, pressure test, hand over", detail: "Gas pressure test to AS/NZS 5601, controller programmed, temperature setpoint checked, we run hot water at the tap. You sign the job card when it's running the way you want." },
       { title: "Compliance certificate + warranty registration", detail: "Gas compliance certificate emailed inside 24 hours. Manufacturer warranty registered in your name at the same time." },
     ],
+    systems: [
+      {
+        id: "gas-ducted",
+        label: "Gas ducted heating",
+        blurb:
+          "A gas furnace in the roof or outside the wall, ducted to vents through the house. Still the cheapest way to heat a whole Melbourne home through winter, and the fastest to warm up from cold.",
+        photo: { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater" },
+        points: [
+          "Brivis Wombat, Compact Classic, Buffalo and StarPro",
+          "Kaden internal and external, 3 to 5 star",
+          "Internal (roof or cupboard) and external (against the wall) versions",
+          "Star rating drives running cost — we quote the payback, not just the price",
+        ],
+        priceFrom: "from $4,600 installed",
+      },
+      {
+        id: "continuous-flow",
+        label: "Continuous flow gas hot water",
+        blurb:
+          "Heats water on demand, so it never runs out and there's no tank losing heat overnight. Wall-mounted outside and about the size of a briefcase.",
+        photo: { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas hot water unit" },
+        points: [
+          "Thermann G-series (made by Reece) and Rinnai",
+          "16, 20 and 26 litre-per-minute sizes",
+          "Same-day swap on most like-for-like replacements",
+          "Temperature-controlled to 50 °C at the outlets, as required",
+        ],
+        priceFrom: "from $1,850 installed",
+      },
+      {
+        id: "gas-service",
+        label: "Gas heater service & carbon monoxide test",
+        blurb:
+          "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that matters — a cracked heat exchanger has no smell and no warning.",
+        photo: { src: "/gas-line-safe.webp", alt: "Gas appliance service and carbon monoxide testing on site" },
+        points: [
+          "Full CO test with a calibrated analyser, results on the report",
+          "Burner clean, heat exchanger inspection, flue and seal check",
+          "Written report emailed the same day",
+          "Recommended every 2 years, annually on units over 10 years old",
+        ],
+        priceFrom: "$280 + GST",
+      },
+    ],
     photos: [
-      { src: "/kw-Header-Image.png", alt: "Brivis Classic Wombat gas ducted heater", caption: "Brivis Classic Wombat — the ducted heater we replace most often" },
+      { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater", caption: "Brivis Classic Wombat — the ducted heater we replace most often" },
       { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow", caption: "Thermann G-series — our default continuous-flow gas hot water" },
-      { src: "/gas ducted install.jpg", alt: "Gas ducted heater install", caption: "Gas ducted retrofit — reusing existing cavity + ducts" },
-      { src: "/gas hot water change over same day.webp", alt: "Same-day hot water changeover", caption: "Same-day hot water changeover — old off, new on" },
-      { src: "/gas line.webp", alt: "Gas line pressure test", caption: "Gas pressure test to AS/NZS 5601" },
+      { src: "/gas-ducted-install.webp", alt: "Gas ducted heater install in progress", caption: "Gas ducted retrofit — reusing existing cavity + ducts" },
+      { src: "/gas-hot-water-changeover.webp", alt: "Same-day gas hot water changeover", caption: "Same-day hot water changeover — old off, new on" },
+      { src: "/gas-line.webp", alt: "Gas line pressure test", caption: "Gas pressure test to AS/NZS 5601" },
       { src: "/gas-line-safe.webp", alt: "Gas fitter on site", caption: "VBA-licensed + Type-A gas endorsement" },
     ],
     brandPods: [

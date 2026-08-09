@@ -9,6 +9,8 @@ import { QuoteForm } from "@/components/QuoteForm";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProofStrip } from "@/components/ProofStrip";
+import { getInstagramForService } from "@/lib/instagram";
+import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 
@@ -26,7 +28,7 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   };
 }
 
-export default function ServicePage({ params }: { params: { slug: string } }) {
+export default async function ServicePage({ params }: { params: { slug: string } }) {
   const content = serviceContent[params.slug];
   const svc = services.find((s) => s.slug === params.slug);
   if (!content || !svc) notFound();
@@ -34,6 +36,11 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   // Lead photo for the hero panel — first entry in the service's own
   // photo set, so each service opens on the gear it's actually about.
   const heroPhoto = content.photos?.[0];
+
+  // Real install photos for this service, matched on caption keywords —
+  // see SERVICE_KEYWORDS in lib/instagram.ts. Empty when the feed isn't
+  // configured, so the section hides itself rather than breaking.
+  const igPosts = await getInstagramForService(params.slug, 8);
 
   // Heat pump installs are the one service with a real changeover pair
   // shot so far. Matched by slug so more pairs just drop into gallery.ts.
@@ -157,6 +164,53 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         </section>
       )}
 
+      {/* SYSTEM TYPES · one anchored block per system, so the header's
+          "Split system" / "Multi-head" / "Ducted" menu links land on
+          something that actually differs. Ids come from content.systems
+          and must match SERVICE_MENU in Header.tsx. */}
+      {content.systems && content.systems.length > 0 && (
+        <section className="svc-systems">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Systems we install</span>
+              <h2>Which system suits your place.</h2>
+              <p>Different homes want different gear. Here&rsquo;s the honest difference between them, including where each one falls down.</p>
+            </div>
+
+            <nav className="svc-systems__jump" aria-label="Jump to a system type">
+              {content.systems.map((sys) => (
+                <a key={sys.id} href={`#${sys.id}`}>{sys.label}</a>
+              ))}
+            </nav>
+
+            {content.systems.map((sys, i) => (
+              <article
+                key={sys.id}
+                id={sys.id}
+                className={`svc-system${i % 2 === 1 ? " svc-system--flip" : ""}`}
+              >
+                <div className="svc-system__media">
+                  <img src={sys.photo.src} alt={sys.photo.alt} loading="lazy" width="800" height="600" />
+                </div>
+                <div className="svc-system__body">
+                  <h3>{sys.label}</h3>
+                  <p className="svc-system__blurb">{sys.blurb}</p>
+                  <ul className="svc-system__points">
+                    {sys.points.map((pt) => <li key={pt}>{pt}</li>)}
+                  </ul>
+                  <div className="svc-system__foot">
+                    {sys.priceFrom && <span className="svc-system__price">{sys.priceFrom}</span>}
+                    <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--sm">
+                      Quote this system →
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* PRICING */}
       <section className="dp-pricing">
         <div className="wrap">
@@ -275,13 +329,25 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
                 </figure>
               ))}
             </div>
-            <InstagramCTA
-              heading="See the real thing on Instagram"
-              body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed — real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
-            />
+            {/* Only pitch Instagram here when the live feed below isn't
+                carrying the load — otherwise it's two asks in a row. */}
+            {igPosts.length === 0 && (
+              <InstagramCTA
+                heading="See the real thing on Instagram"
+                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed — real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
+              />
+            )}
           </div>
         </section>
       )}
+
+      {/* Live Instagram — posts whose caption mentions this kind of job. */}
+      <InstagramFeed
+        posts={igPosts}
+        eyebrow={`${svc.short} on the tools`}
+        heading={`Our latest ${svc.short.toLowerCase()} jobs.`}
+        blurb={`Straight from our Instagram — real jobs across Melbourne's south-east, posted as we finish them.`}
+      />
 
       {/* BRAND PODS — richer version of the flat brand tag row */}
       {content.brandPods && content.brandPods.length > 0 && (
