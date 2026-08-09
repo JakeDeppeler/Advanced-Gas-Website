@@ -8,6 +8,7 @@ import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
 import { InstagramCTA } from "@/components/InstagramCTA";
+import { installsFor } from "@/lib/brandGallery";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -38,6 +39,11 @@ export function generateMetadata({ params }: { params: { brand: string } }): Met
 export default function BrandPage({ params }: { params: { brand: string } }) {
   const brand = findBrand(params.brand);
   if (!brand) notFound();
+
+  // Real install photos for this brand, if any are wired yet. When the
+  // list is empty the page falls back to the manufacturer gallery — which
+  // is labelled as such — so brands can be filled in one at a time.
+  const installs = installsFor(brand.slug);
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -153,20 +159,35 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
           so brand hubs feel distinct rather than sharing the same 6 photos.
           Tiles with a blank `src` render as a "photo goes here" placeholder
           so Jake can drop the real image in without touching code. */}
-      {brand.gallery && brand.gallery.length > 0 && (
+      {((brand.gallery && brand.gallery.length > 0) || installs.length > 0) && (
         <section className="brand-gallery">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> The {brand.name} range</span>
-              <h2>The {brand.name} gear we put in.</h2>
+              <span className="ds-eyebrow">
+                <span className="ds-dot" /> {installs.length > 0 ? "On the tools" : `The ${brand.name} range`}
+              </span>
+              <h2>
+                {installs.length > 0
+                  ? `Our ${brand.name} installs.`
+                  : `The ${brand.name} gear we put in.`}
+              </h2>
               <p>
-                Manufacturer product photography, so you can see exactly which unit
-                we&rsquo;re quoting. Photos of our actual {brand.name} installs &mdash;
-                on the roof, in the cupboard, on the wall &mdash; live on our Instagram.
+                {installs.length > 0
+                  ? `Real jobs we've finished across Melbourne's south-east — photographed on site, on the day.`
+                  : `Manufacturer product photography, so you can see exactly which unit we're quoting. Photos of our actual ${brand.name} installs — on the roof, in the cupboard, on the wall — live on our Instagram.`}
               </p>
             </div>
             <div className="brand-gallery__grid">
-              {brand.gallery.map((g, i) =>
+              {/* Real install shots take priority; manufacturer tiles only
+                  show for brands we haven't photographed yet. */}
+              {installs.length > 0
+                ? installs.map((g) => (
+                    <figure key={g.src} className="brand-gallery__cell">
+                      <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
+                      {g.caption && <figcaption>{g.caption}</figcaption>}
+                    </figure>
+                  ))
+                : brand.gallery!.map((g, i) =>
                 g.src ? (
                   <figure key={`${g.src}-${i}`} className="brand-gallery__cell">
                     <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
@@ -178,8 +199,8 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
                       <span className="brand-gallery__blank-lbl">Photo</span>
                     </div>
                   </figure>
-                ),
-              )}
+                    ),
+                  )}
             </div>
             <InstagramCTA
               heading={`See our real ${brand.name} installs`}
