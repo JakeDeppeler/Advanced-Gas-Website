@@ -224,7 +224,16 @@
     object-position: center center;
   }
   .page-home .hero__h1 { font-size: 30px; line-height: 1.04; letter-spacing: -0.028em; }
-  .page-home .hero__sub { font-size: 15px; line-height: 1.5; }
+  /* `.hero__copy` is display:contents on mobile, so the badge / h1 / sub
+     become direct grid children and the 20px grid gap sits between them.
+     That's too much air between the headline and the sub-line — pull the
+     sub up so it reads as one block with the H1, and let the larger gap
+     stay where it belongs (before the photo). */
+  .page-home .hero__sub {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-top: -11px;
+  }
   /* Hide the in-hero CTA row on mobile — the sticky bottom bar already
      carries Call + Free Quote, and having both on screen at once is
      redundant. Desktop still shows them. */

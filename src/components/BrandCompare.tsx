@@ -70,7 +70,12 @@ export function BrandCompare({ brand }: Props) {
     <>
       {groupOrder.map((groupName) => (
         <div key={groupName} className="brand-group">
-          <h3 className="brand-group__title">{groupName}</h3>
+          <h3 className="brand-group__title">
+            <span className="brand-group__title-txt">{groupName}</span>
+            <span className="brand-group__count">
+              {grouped[groupName].length} {grouped[groupName].length === 1 ? "model" : "models"}
+            </span>
+          </h3>
           <div className="brand-group__grid">
             {grouped[groupName].map((p) => {
               const photo = productPhoto(p, brand);
@@ -110,9 +115,16 @@ export function BrandCompare({ brand }: Props) {
                       {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
                       <p className="brand-card__take">{p.ourTake}</p>
                       <div className="brand-card__foot">
-                        <span className="brand-card__price">
-                          {p.installedPriceFrom ? `from ${p.installedPriceFrom}` : "Message for quote →"}
+                        <span className={`brand-card__price${p.installedPriceFrom ? " brand-card__price--real" : ""}`}>
+                          {p.installedPriceFrom ? (
+                            <>
+                              <em>from</em> {p.installedPriceFrom}
+                            </>
+                          ) : (
+                            "Message for quote"
+                          )}
                         </span>
+                        <span className="brand-card__go" aria-hidden="true">→</span>
                       </div>
                     </div>
                   </Link>

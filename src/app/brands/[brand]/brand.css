@@ -336,65 +336,101 @@
 
 /* ---------- brand hub (/brands/[brand]) — tight product grid ---------- */
 .brand-range { padding: 44px 0 60px; background: var(--bg); }
-.brand-group { margin-top: 30px; }
+/* ---- Category group header ----
+   Section label reads as a real header now: brand-accent bar, larger
+   display type, and a model-count chip pushed to the right so the
+   customer can see how deep each category goes at a glance. */
+.brand-group { margin-top: 42px; }
 .brand-group:first-child { margin-top: 0; }
 .brand-group__title {
   font-family: var(--f-display);
-  font-size: 16px;
+  font-size: 19px;
   font-weight: 800;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.012em;
   color: var(--navy);
-  margin: 0 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--line);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .brand-group__title::before {
   content: "";
-  width: 3px;
-  height: 15px;
-  background: var(--orange);
-  border-radius: 2px;
+  width: 4px;
+  height: 20px;
+  background: var(--card-accent, var(--orange));
+  border-radius: 3px;
+  flex: 0 0 4px;
+}
+.brand-group__title-txt { flex: 1; min-width: 0; }
+.brand-group__count {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
 }
 .brand-group__grid {
   display: grid;
-  /* Denser grid — was 280px min, now 220px so 4-5 cards per row on
-     desktop instead of 3, killing the vertical dead space. */
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 14px;
 }
 .brand-card {
   display: flex;
   flex-direction: column;
   background: #fff;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 14px;
   text-decoration: none;
   color: inherit;
   overflow: hidden;
-  transition: transform .15s, box-shadow .2s, border-color .15s;
+  transition: transform .16s ease, box-shadow .22s ease, border-color .16s ease;
+  position: relative;
+}
+/* Brand-accent hairline down the left edge — reveals on hover so each
+   brand's grid picks up its own colour rather than a generic sky blue. */
+.brand-card::after {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--card-accent, var(--sky));
+  opacity: 0;
+  transition: opacity .16s ease;
+  z-index: 3;
 }
 .brand-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  border-color: var(--sky);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(5, 10, 48, 0.10);
+  border-color: color-mix(in srgb, var(--card-accent, var(--sky)) 45%, var(--line));
 }
+.brand-card:hover::after { opacity: 1; }
 .brand-card__photo {
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #fff;
-  padding: 10px;
+  /* Soft tinted plinth so white-on-white product shots actually read as
+     objects instead of floating in the card. */
+  background:
+    radial-gradient(120% 90% at 50% 8%, #fff 0%, var(--paper) 62%, var(--bg-2) 100%);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 14px 12px;
 }
 .brand-card__photo img {
   width: 100%; height: 100%;
   object-fit: contain;
   display: block;
   transition: transform 0.4s ease;
+  /* Grounds the product with a soft contact shadow. */
+  filter: drop-shadow(0 6px 10px rgba(5, 10, 48, 0.09));
 }
-.brand-card:hover .brand-card__photo img { transform: scale(1.05); }
+.brand-card:hover .brand-card__photo img { transform: scale(1.045); }
 .brand-card__pill--rebate.brand-card__pill--overlay {
   position: absolute;
   top: 10px; left: 10px;
@@ -411,42 +447,46 @@
   z-index: 2;
 }
 .brand-card__inner {
-  padding: 10px 12px 12px;
+  padding: 14px 15px 13px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   flex: 1;
 }
-.brand-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+/* Name stacks ABOVE the model code now — side-by-side was making long
+   product names wrap awkwardly against a nowrap model chip. */
+.brand-card__head { display: flex; flex-direction: column; gap: 3px; }
 .brand-card h4 {
   font-family: var(--f-display);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.008em;
   color: var(--navy);
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .brand-card__model {
   font-family: var(--f-mono);
   font-size: 10px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.045em;
   color: var(--ink-3);
-  white-space: nowrap;
+  line-height: 1.35;
 }
 .brand-card__cap {
   font-family: var(--f-mono);
   font-size: 10.5px;
   letter-spacing: 0.02em;
+  line-height: 1.45;
   color: var(--navy);
   background: var(--bg-2);
-  padding: 3px 6px;
-  border-radius: 4px;
+  border: 1px solid var(--line-2);
+  padding: 5px 8px;
+  border-radius: 6px;
   align-self: flex-start;
 }
 .brand-card__take {
   font-size: 12.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--ink-2);
   margin: 0;
   display: -webkit-box;
@@ -454,15 +494,16 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* Footer reads as an actionable row — price left, arrow right, arrow
+   slides on hover so the whole card feels clickable. */
 .brand-card__foot {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid var(--line);
   margin-top: auto;
-  flex-wrap: wrap;
 }
 .brand-card__pill {
   font-family: var(--f-mono);
@@ -479,8 +520,47 @@
 .brand-card__price {
   font-family: var(--f-mono);
   font-size: 12px;
-  color: var(--navy);
+  color: var(--ink-3);
   font-weight: 600;
+  letter-spacing: 0.02em;
+}
+/* Real installed price gets display type + navy so it reads as a number
+   worth noticing, not just another mono label. */
+.brand-card__price--real {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+.brand-card__price--real em {
+  font-family: var(--f-mono);
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-right: 2px;
+}
+.brand-card__go {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--card-accent, var(--orange));
+  font-weight: 700;
+  transition: transform .16s ease;
+  flex: 0 0 auto;
+}
+.brand-card:hover .brand-card__go { transform: translateX(3px); }
+
+@media (max-width: 560px) {
+  .brand-group { margin-top: 30px; }
+  .brand-group__title { font-size: 16px; margin-bottom: 12px; padding-bottom: 9px; }
+  .brand-group__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .brand-card__inner { padding: 11px 12px 11px; gap: 6px; }
+  .brand-card h4 { font-size: 13.5px; }
+  .brand-card__take { -webkit-line-clamp: 2; font-size: 12px; }
+  .brand-card__price--real { font-size: 13.5px; }
 }
 
 /* ==================================================================
