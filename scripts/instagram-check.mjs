@@ -19,7 +19,7 @@
 
 const GRAPH = "https://graph.instagram.com";
 const PAGE_SIZE = 100;
-const MAX_PAGES = 5;
+const MAX_PAGES = 8;
 const FIELDS =
   "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,children{media_url,thumbnail_url,media_type}";
 
@@ -96,8 +96,7 @@ while (url && pages < MAX_PAGES) {
     if (pickImage(m)) posts.push({ caption: m.caption ?? "", permalink: m.permalink, type: m.media_type });
     else dropped.push({ caption: firstLine(m.caption), type: m.media_type, permalink: m.permalink });
   }
-  if (batch.length < PAGE_SIZE) break;
-  url = json.paging?.next;
+  url = json.paging?.next;   // short pages still carry a valid cursor
 }
 
 console.log(`\nFetched ${posts.length} usable posts across ${pages} page(s).`);

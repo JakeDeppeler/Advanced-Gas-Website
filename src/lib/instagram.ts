@@ -64,7 +64,7 @@ const PAGE_SIZE = 100;
  * of months for an account that posts a few times a week, which meant
  * older Kaden and Brivis jobs simply weren't in the set being searched.
  */
-const MAX_PAGES = 5;
+const MAX_PAGES = 8;
 
 export type InstagramPost = {
   id: string;
@@ -136,6 +136,7 @@ async function fetchPosts(maxPages: number): Promise<InstagramPost[]> {
   const account = process.env.INSTAGRAM_USER_ID || "me";
 
   const out: InstagramPost[] = [];
+  const seen = new Set<string>();
   let url: string | undefined =
     `${GRAPH}/${account}/media?fields=${FIELDS}&limit=${PAGE_SIZE}&access_token=${token}`;
 
@@ -162,11 +163,20 @@ async function fetchPosts(maxPages: number): Promise<InstagramPost[]> {
       const batch = json.data ?? [];
       for (const m of batch) {
         const post = toPost(m);
-        if (post) out.push(post);
+        // Cursor paging can repeat an item across a page boundary.
+        if (post && !seen.has(post.id)) {
+          seen.add(post.id);
+          out.push(post);
+        }
       }
 
-      // Short page means we've hit the end of the account's history.
-      if (batch.length < PAGE_SIZE) break;
+      // Stop only when Instagram says there is no next page.
+      //
+      // This used to break as soon as a page came back shorter than the
+      // limit, which looks like the end of the account but isn't — the
+      // API routinely returns a short page while still handing over a
+      // valid cursor. That truncated the feed part-way through the
+      // history, so some posts showed and some silently didn't.
       url = json.paging?.next;
     }
   } catch (err) {

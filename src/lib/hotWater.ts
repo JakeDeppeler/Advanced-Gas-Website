@@ -104,10 +104,21 @@ export function suitsPeople(
   const otherPerPerson = 10; // basins, kitchen, laundry
   const morningShare = 0.6;
 
+  /**
+   * Bare arithmetic put 180 L at "2-4 people". Jake's call from actually
+   * installing them is 1-3, and he's right — the sums have no room for a
+   * long shower, a bath, a guest, or mains dropping to 10 °C in July.
+   * This margin is what closes that gap; it's calibrated so 180 L lands
+   * on 1-3 and the rest of the range follows sensibly.
+   */
+  const COMFORT_MARGIN = 1.25;
+
   // Largest household whose busiest run still fits inside usable volume.
   let max = 0;
   for (let people = 1; people <= 12; people++) {
-    const runHot = people * morningShare * d.hotPerShower + people * otherPerPerson * 0.4;
+    const runHot =
+      (people * morningShare * d.hotPerShower + people * otherPerPerson * 0.4) *
+      COMFORT_MARGIN;
     if (runHot <= d.usableLitres) max = people;
   }
 
