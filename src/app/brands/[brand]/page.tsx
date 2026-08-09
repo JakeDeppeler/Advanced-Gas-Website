@@ -9,6 +9,8 @@ import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import { installsFor } from "@/lib/brandGallery";
+import { getInstagramForBrand } from "@/lib/instagram";
+import { InstagramFeed } from "@/components/InstagramFeed";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 
@@ -36,9 +38,13 @@ export function generateMetadata({ params }: { params: { brand: string } }): Met
   };
 }
 
-export default function BrandPage({ params }: { params: { brand: string } }) {
+export default async function BrandPage({ params }: { params: { brand: string } }) {
   const brand = findBrand(params.brand);
   if (!brand) notFound();
+
+  // Posts whose caption mentions this brand — see lib/instagram.ts.
+  // Empty when the feed isn't configured, so the page degrades cleanly.
+  const igPosts = await getInstagramForBrand(params.brand, 8);
 
   // Real install photos for this brand, if any are wired yet. When the
   // list is empty the page falls back to the manufacturer gallery — which
@@ -209,6 +215,15 @@ export default function BrandPage({ params }: { params: { brand: string } }) {
           </div>
         </section>
       )}
+
+      {/* Live Instagram — posts whose caption mentions this brand. Real
+          installs, self-maintaining: post it once, it lands here. */}
+      <InstagramFeed
+        posts={igPosts}
+        eyebrow={`${brand.name} on the tools`}
+        heading={`Our latest ${brand.name} jobs.`}
+        blurb={`Straight from our Instagram — real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
+      />
 
       {/* Product range.
           Single-product brands (e.g. Zonemate — the Milieu zoning system is

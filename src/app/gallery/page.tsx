@@ -5,6 +5,8 @@ import { site } from "@/lib/site";
 import { GALLERY, GALLERY_CATEGORY_LABELS, BEFORE_AFTER, type GalleryCategory } from "@/lib/gallery";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { InstagramCTA } from "@/components/InstagramCTA";
+import { InstagramFeed } from "@/components/InstagramFeed";
+import { getInstagramFeed } from "@/lib/instagram";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../detail.css";
 import "./gallery.css";
@@ -18,7 +20,10 @@ export const metadata: Metadata = {
 
 const CATEGORY_ORDER: GalleryCategory[] = ["heat-pump", "aircon", "ducted", "gas", "evap", "team"];
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  // Whole feed — see lib/instagram.ts. Empty when unconfigured.
+  const igPosts = await getInstagramFeed(24);
+
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
     { name: "Gallery", url: `${site.url}/gallery` },
@@ -129,6 +134,13 @@ export default function GalleryPage() {
           />
         </div>
       </section>
+
+      <InstagramFeed
+        posts={igPosts}
+        eyebrow="Live feed"
+        heading="Everything we've finished lately."
+        blurb="Pulled straight from our Instagram, so it's current — not a gallery someone forgot to update two years ago."
+      />
 
       <section className="bigcta" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
