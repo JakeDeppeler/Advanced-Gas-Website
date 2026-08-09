@@ -9,6 +9,7 @@ import { QuoteForm } from "@/components/QuoteForm";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProofStrip } from "@/components/ProofStrip";
+import { WhyDifferent } from "@/components/WhyDifferent";
 import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
@@ -210,6 +211,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
           </div>
         </section>
       )}
+
+      <WhyDifferent service={svc.short.toLowerCase()} />
 
       {/* PRICING */}
       <section className="dp-pricing">

@@ -1604,3 +1604,75 @@
   .page-detail .svc-systems { padding: 52px 0; }
   .page-detail .svc-systems__jump a { font-size: 12.5px; padding: 7px 12px; }
 }
+
+
+/* ============================================================
+   WHY US — the part that isn't on the quote
+   ============================================================ */
+.page-detail .whydiff {
+  padding: 90px 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .whydiff__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 40px;
+}
+.page-detail .whydiff__card {
+  padding: 26px 24px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+}
+.page-detail .whydiff__num {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.page-detail .whydiff__card h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+.page-detail .whydiff__card p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+.page-detail .whydiff__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .whydiff__foot p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+@media (max-width: 980px) {
+  .page-detail .whydiff__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-detail .whydiff { padding: 54px 0; }
+  .page-detail .whydiff__grid { grid-template-columns: 1fr; gap: 12px; }
+  .page-detail .whydiff__card { padding: 20px 18px; }
+}
