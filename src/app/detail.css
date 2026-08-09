@@ -538,7 +538,12 @@
 }
 
 /* ============== BENEFITS / KEY POINTS GRID ============== */
-.page-detail .dp-benefits { padding: 90px 0; background: var(--bg); }
+.page-detail .dp-benefits {
+  padding: 90px 0;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
 .page-detail .dp-benefits__intro p {
   font-size: 17px; color: var(--ink-2);
   max-width: 720px; margin: 0; line-height: 1.65;
@@ -548,15 +553,16 @@
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
 }
 .page-detail .dp-benefit {
-  background: #fff; border: 1px solid var(--line); border-radius: var(--rad);
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--rad);
   padding: 28px;
 }
-.page-detail .dp-benefit__icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 10px;
-  background: var(--navy); color: #fff;
-  margin-bottom: 14px;
-  font-weight: 800;
+.page-detail .dp-benefit__num {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 .page-detail .dp-benefit h3 {
   font-family: var(--f-display); font-weight: 700; font-size: 18px;
@@ -606,39 +612,48 @@
 }
 
 /* ============== SERVICE PROCESS STEPPER ============== */
-.page-detail .svc-steps { padding: 90px 0; background: var(--paper); border-top: 1px solid var(--line); }
+.page-detail .svc-steps {
+  position: relative;
+  padding: 100px 0 110px;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+}
+.page-detail .svc-steps .ds-eyebrow { color: rgba(255,255,255,0.7); }
+.page-detail .svc-steps .ds-section-head h2 { color: #fff; }
+.page-detail .svc-steps .ds-section-head p { color: rgba(255,255,255,0.72); }
 .page-detail .svc-steps__list {
   list-style: none;
   padding: 0;
   margin: 40px 0 0;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
 .page-detail .svc-step {
-  display: grid;
-  grid-template-columns: 56px 1fr;
-  gap: 16px;
-  padding: 22px 22px 22px 20px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--orange);
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--rad);
 }
 .page-detail .svc-step__num {
-  font-family: var(--f-mono);
-  font-size: 22px;
-  font-weight: 800;
+  font-family: var(--f-display);
+  font-size: 56px;
+  font-weight: 900;
   color: var(--orange);
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
+  margin-bottom: 6px;
 }
 .page-detail .svc-step__body h3 {
   font-family: var(--f-display);
   font-weight: 800;
   font-size: 16.5px;
   letter-spacing: -0.005em;
-  color: var(--navy);
+  color: #fff;
   margin: 0 0 6px;
   line-height: 1.25;
 }
@@ -646,13 +661,13 @@
   margin: 0;
   font-size: 14px;
   line-height: 1.55;
-  color: var(--ink-2);
+  color: rgba(255,255,255,0.74);
 }
 @media (max-width: 760px) {
   .page-detail .svc-steps { padding: 60px 0; }
   .page-detail .svc-steps__list { grid-template-columns: 1fr; gap: 12px; }
-  .page-detail .svc-step { grid-template-columns: 44px 1fr; padding: 18px 18px 18px 14px; }
-  .page-detail .svc-step__num { font-size: 18px; }
+  .page-detail .svc-step { padding: 20px 18px; }
+  .page-detail .svc-step__num { font-size: 40px; margin-bottom: 2px; }
 }
 
 /* ============== SCOPE (included / excluded / typical) ============== */
@@ -1339,7 +1354,7 @@
    digest so detail pages carry the same social proof as the home
    page without turning into it.
    ============================================================ */
-.proof { padding: 62px 0; background: var(--bg); border-top: 1px solid var(--line); }
+.proof { padding: 62px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .proof__head {
   display: flex;
   align-items: flex-end;

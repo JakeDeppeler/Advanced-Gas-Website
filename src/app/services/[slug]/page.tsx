@@ -121,9 +121,9 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
             <h2>Every {svc.short.toLowerCase()} we do, done properly.</h2>
           </div>
           <div className="dp-benefits__grid">
-            {content.benefits.map((b) => (
+            {content.benefits.map((b, i) => (
               <div key={b.t} className="dp-benefit">
-                <span className="dp-benefit__icon">✓</span>
+                <div className="dp-benefit__num">/{String(i + 1).padStart(2, "0")}</div>
                 <h3>{b.t}</h3>
                 <p>{b.d}</p>
               </div>
