@@ -48,16 +48,44 @@ const SPECIFIC_HEAT = 4.186; // kJ per kg per °C
 const USABLE_FRACTION = 0.8; // stratification — you can't use the last 20%
 
 /** Tank sizes we actually install, with the closest matching models. */
-const TANK_SIZES = [
-  { litres: 170, models: "Thermann 170 L gas storage" },
-  { litres: 180, models: "iStore 180 L" },
-  { litres: 200, models: "Reclaim ECO R290 200 L · Thermann Integrated 200 L" },
-  { litres: 250, models: "Reclaim CO₂ 250 L · Sanden 250 L" },
-  { litres: 270, models: "iStore 270 L" },
-  { litres: 285, models: "Thermann Integrated 285 L" },
-  { litres: 300, models: "Reclaim ECO R290 300 L" },
-  { litres: 315, models: "Reclaim CO₂ 315 L · Thermann Split 315 L" },
-  { litres: 400, models: "Reclaim CO₂ 400 L" },
+const TANK_SIZES: {
+  litres: number;
+  models: string;
+  picks: { label: string; href: string }[];
+}[] = [
+  { litres: 170, models: "Thermann 170 L gas storage",
+    picks: [{ label: "Thermann Gas Storage 170 L", href: "/brands/thermann/gas-storage-170" }] },
+  { litres: 180, models: "iStore 180 L",
+    picks: [{ label: "iStore 180 L Heat Pump", href: "/brands/istore/istore-180" }] },
+  { litres: 200, models: "Reclaim ECO R290 200 L · Thermann ECO R290 200 L",
+    picks: [
+      { label: "Reclaim ECO R290 200 L", href: "/brands/reclaim/eco-r290-200" },
+      { label: "Thermann ECO R290 200 L", href: "/brands/thermann/thermann-eco-r290-200" },
+    ] },
+  { litres: 250, models: "Reclaim CO₂ 250 L · Panasonic CO₂ 250 L",
+    picks: [
+      { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
+      { label: "Panasonic CO₂ 6 kW · 250 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-250" },
+    ] },
+  { litres: 270, models: "iStore 270 L · Thermann Split 270 L",
+    picks: [
+      { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
+      { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
+    ] },
+  { litres: 285, models: "Thermann Split 270 L (next size up)",
+    picks: [{ label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" }] },
+  { litres: 300, models: "Reclaim ECO R290 300 L · Thermann ECO R290 300 L",
+    picks: [
+      { label: "Reclaim ECO R290 300 L", href: "/brands/reclaim/eco-r290-300" },
+      { label: "Thermann ECO R290 300 L", href: "/brands/thermann/thermann-eco-r290-300" },
+    ] },
+  { litres: 315, models: "Reclaim CO₂ 315 L · Panasonic CO₂ 315 L",
+    picks: [
+      { label: "Reclaim CO₂ Split 315 L", href: "/brands/reclaim/co2-split-315-glass" },
+      { label: "Panasonic CO₂ 6 kW · 315 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-315" },
+    ] },
+  { litres: 400, models: "Reclaim CO₂ 400 L",
+    picks: [{ label: "Reclaim CO₂ Split 400 L", href: "/brands/reclaim/co2-split-400-glass" }] },
 ];
 
 /**
@@ -93,7 +121,7 @@ const SYSTEMS: SystemPreset[] = [
   { id: "istore-270", name: "iStore 270 L", heatKw: 3.6, tankLitres: 270, cop: 3.5, verified: false,
     note: "All-in-one R290. Big tank, smaller compressor — leans on stored volume rather than fast recovery." },
   { id: "istore-180", name: "iStore 180 L", heatKw: 3.6, tankLitres: 180, cop: 3.5, verified: false,
-    note: "All-in-one R290 for smaller households." },
+    note: "Same compressor as the 270, 90 L less buffer. Where that bites is the fourth shower, not the first." },
 ];
 
 type Form = {
@@ -112,6 +140,8 @@ type Form = {
   morningSharePct: number;
   /** Gap between the morning and evening runs — the tank's reheat window. */
   hoursBetweenSessions: number;
+  /** Bathroom turnaround per person — sets how many fit in a rush. */
+  bathroomMinutes: number;
   /** Head-to-head selections. */
   systemA: string;
   systemB: string;
@@ -129,6 +159,7 @@ const DEFAULTS: Form = {
   copRating: 4.5,        // Reclaim CO₂ territory
   inputKw: 1.0,
   peakWindowHours: 2,    // length of one shower run
+  bathroomMinutes: 15,   // turnaround per person, not water-running time
   morningSharePct: 60,
   hoursBetweenSessions: 10,
   systemA: "pana-6-250",
@@ -190,6 +221,14 @@ export function HeatPumpSizing() {
     // up recommending a 170 L tank to a family of six. Recovery earns its
     // keep between the morning and evening runs, not inside one.
     const peakSessionShowers = Math.max(morningShowers, eveningShowers);
+
+    // A rush is limited by the bathroom, not just the tank. Eight minutes
+    // under the water is about fifteen in the room once you count getting
+    // in and out — so a 2 hr window fits eight people through one
+    // bathroom, and a household bigger than that is really two rushes.
+    const fitThroughRush = (form.peakWindowHours * 60) / Math.max(1, form.bathroomMinutes);
+    const rushIsCrowded = peakSessionShowers > fitThroughRush;
+    const rushHoursNeeded = (peakSessionShowers * form.bathroomMinutes) / 60;
     const showerHoursInSession = (peakSessionShowers * form.showerMinutes) / 60;
     const idleHoursInSession = Math.max(0, form.peakWindowHours - showerHoursInSession);
     const reheatedDuringSession = litresPerHour * idleHoursInSession;
@@ -279,6 +318,9 @@ export function HeatPumpSizing() {
       eveningHot,
       peakSessionHot,
       peakSessionShowers,
+      fitThroughRush,
+      rushIsCrowded,
+      rushHoursNeeded,
       burstShowers,
       burstHot,
       coversBurst,
@@ -405,6 +447,16 @@ export function HeatPumpSizing() {
             <small>First to last shower in a single run — not the whole day.</small>
           </div>
           <div className="tool-field">
+            <label htmlFor="bath">Bathroom time each (min)</label>
+            <input id="bath" type="number" min="5" max="40" step="1"
+              value={form.bathroomMinutes}
+              onChange={(e) => set("bathroomMinutes", parseFloat(e.target.value) || 15)} />
+            <small>
+              In and out, not just water running. An 8 min shower is about
+              15 min in the room.
+            </small>
+          </div>
+          <div className="tool-field">
             <label htmlFor="gap">Hours between runs</label>
             <input id="gap" type="number" min="2" max="16" step="1"
               value={form.hoursBetweenSessions}
@@ -471,6 +523,17 @@ export function HeatPumpSizing() {
           </p>
         </div>
 
+        <div className="hps-picks">
+          <div className="hps-picks__lbl">Systems we install at this size</div>
+          <div className="hps-picks__row">
+            {r.recommended.picks.map((pk) => (
+              <Link key={pk.href} href={pk.href} className="hps-pick">
+                {pk.label} →
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {/* The insight most people miss — a 9 L/min shower isn't 9 L/min
             off the tank. */}
         <div className="hps-split">
@@ -514,6 +577,11 @@ export function HeatPumpSizing() {
               <span className="hps-session__sub">{n(r.eveningShowers, 1)} showers + kitchen</span>
             </div>
           </div>
+          <p className={`hps-rushfit${r.rushIsCrowded ? " is-tight" : ""}`}>
+            {r.rushIsCrowded
+              ? `A ${form.peakWindowHours} hr rush only fits about ${n(r.fitThroughRush, 1)} people through one bathroom at ${form.bathroomMinutes} min each — but ${n(r.peakSessionShowers, 1)} need to shower. Realistically that run stretches to ${n(r.rushHoursNeeded, 1)} hrs, which gives the tank more time to recover than the numbers below assume.`
+              : `That ${form.peakWindowHours} hr window fits about ${n(r.fitThroughRush, 1)} people through one bathroom at ${form.bathroomMinutes} min each — enough for the ${n(r.peakSessionShowers, 1)} showering in it.`}
+          </p>
           <p className="hps-sessions__note">
             Sizing runs off the bigger of the two runs ({n(r.peakSessionHot)} L), not
             the {n(r.totalHotPerDay)} L daily total. Treating every shower as one

@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import { ProductTabs } from "@/components/ProductTabs";
+import { ShowerDelivery } from "@/components/ShowerDelivery";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
@@ -169,6 +170,16 @@ export default function ProductPage({
           to scroll a long page. Client component keeps the switch
           instant. Fallbacks handle products that don't yet have per-
           product feature / why-install bullets populated. */}
+      {/* Shower delivery — storage hot water only. Hides itself when the
+          product has no tank (continuous flow, controllers, aircon). */}
+      {product.tankLitres && (
+        <section className="product-shower">
+          <div className="wrap">
+            <ShowerDelivery tankLitres={product.tankLitres} productName={product.name} />
+          </div>
+        </section>
+      )}
+
       <section className="product-tabs">
         <div className="wrap">
           <ProductTabs

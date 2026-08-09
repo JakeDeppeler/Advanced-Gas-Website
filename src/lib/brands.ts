@@ -51,6 +51,13 @@ export type Product = {
    *  (manufacturer or our own install photos). */
   photo?: string;
   photoAlt?: string;
+  /** Stored hot water capacity in litres.
+   *  Set ONLY on storage products — never on continuous-flow units (they
+   *  have no tank) or controllers. Drives the shower-delivery panel and
+   *  the sizing calculator's product links. Explicit data rather than
+   *  parsing `capacity` at render time, because that regex happily
+   *  matched a wall controller sitting next to a tank.  */
+  tankLitres?: number;
 };
 
 export type Brand = {
@@ -957,6 +964,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-glass",
         name: "Reclaim CO₂ Split · 250L Glass-Lined",
+        tankLitres: 250,
         model: "REHP-CO2-250GL-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · glass-lined tank",
@@ -979,6 +987,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-stainless",
         name: "Reclaim CO₂ Split · 250L Stainless",
+        tankLitres: 250,
         model: "REHP-CO2-250SST-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · stainless tank",
@@ -1001,6 +1010,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-earthworks",
         name: "Reclaim CO₂ Split · 250L Earthworks Stainless",
+        tankLitres: 250,
         model: "REHP-CO2-250SSEW-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · Earthworks stainless tank",
@@ -1021,6 +1031,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-glass",
         name: "Reclaim CO₂ Split · 315L Glass-Lined",
+        tankLitres: 315,
         model: "REHP-CO2-315GL-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · glass-lined tank",
@@ -1042,6 +1053,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless",
         name: "Reclaim CO₂ Split · 315L Stainless",
+        tankLitres: 315,
         model: "REHP-CO2-315SST-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · stainless tank",
@@ -1067,6 +1079,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless-316",
         name: "Reclaim CO₂ Split · 315L Stainless 316 (Q)",
+        tankLitres: 315,
         model: "REHP-CO2-315SSQ-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · 316-grade stainless tank",
@@ -1087,6 +1100,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-earthworks",
         name: "Reclaim CO₂ Split · 315L Earthworks Stainless",
+        tankLitres: 315,
         model: "REHP-CO2-315SSEW-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · Earthworks stainless tank",
@@ -1107,6 +1121,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-glass",
         name: "Reclaim CO₂ Split · 400L Glass-Lined",
+        tankLitres: 400,
         model: "REHP-CO2-400GL-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · glass-lined tank",
@@ -1127,6 +1142,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-stainless",
         name: "Reclaim CO₂ Split · 400L Stainless",
+        tankLitres: 400,
         model: "REHP-CO2-400SST-V2",
         category: "heat-pump",
         categoryLabel: "CO₂ split heat pump · stainless tank",
@@ -1149,6 +1165,7 @@ export const brands: Brand[] = [
       {
         slug: "eco-r290-200",
         name: "Reclaim ECO R290 · 200L All-in-One",
+        tankLitres: 200,
         model: "RE-ECO-200",
         category: "heat-pump",
         categoryLabel: "R290 all-in-one heat pump",
@@ -1168,6 +1185,7 @@ export const brands: Brand[] = [
       {
         slug: "eco-r290-300",
         name: "Reclaim ECO R290 · 300L All-in-One",
+        tankLitres: 300,
         model: "RE-ECO-300",
         category: "heat-pump",
         categoryLabel: "R290 all-in-one heat pump",
@@ -1189,6 +1207,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-4kw-250",
         name: "Panasonic CO₂ Split · Glass-Lined · 4 kW · 250L",
+        tankLitres: 250,
         model: "Panasonic Aquarea 4 kW + Reclaim 250 L glass-lined tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · glass-lined tank",
@@ -1213,6 +1232,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-4kw-315",
         name: "Panasonic CO₂ Split · Glass-Lined · 4 kW · 315L",
+        tankLitres: 315,
         model: "Panasonic Aquarea 4 kW + Reclaim 315 L glass-lined tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · glass-lined tank",
@@ -1237,6 +1257,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-6kw-250",
         name: "Panasonic CO₂ Split · Glass-Lined · 6 kW · 250L",
+        tankLitres: 250,
         model: "Panasonic Aquarea 6 kW + Reclaim 250 L glass-lined tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · glass-lined tank",
@@ -1261,6 +1282,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-6kw-315",
         name: "Panasonic CO₂ Split · Glass-Lined · 6 kW · 315L",
+        tankLitres: 315,
         model: "Panasonic Aquarea 6 kW + Reclaim 315 L glass-lined tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · glass-lined tank",
@@ -1286,6 +1308,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-4kw-250",
         name: "Panasonic CO₂ Split · Stainless · 4 kW · 250L",
+        tankLitres: 250,
         model: "Panasonic Aquarea 4 kW + Reclaim 250 L stainless tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · stainless tank",
@@ -1310,6 +1333,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-4kw-315",
         name: "Panasonic CO₂ Split · Stainless · 4 kW · 315L",
+        tankLitres: 315,
         model: "Panasonic Aquarea 4 kW + Reclaim 315 L stainless tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · stainless tank",
@@ -1334,6 +1358,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-6kw-250",
         name: "Panasonic CO₂ Split · Stainless · 6 kW · 250L",
+        tankLitres: 250,
         model: "Panasonic Aquarea 6 kW + Reclaim 250 L stainless tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · stainless tank",
@@ -1358,6 +1383,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-6kw-315",
         name: "Panasonic CO₂ Split · Stainless · 6 kW · 315L",
+        tankLitres: 315,
         model: "Panasonic Aquarea 6 kW + Reclaim 315 L stainless tank",
         category: "heat-pump",
         categoryLabel: "Panasonic CO₂ split heat pump · stainless tank",
@@ -1421,6 +1447,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-eco-r290-200",
         name: "Thermann ECO R290 · 200L All-in-One",
+        tankLitres: 200,
         model: "T-HP-ECO-200",
         category: "heat-pump",
         categoryLabel: "R290 all-in-one heat pump",
@@ -1443,6 +1470,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-eco-r290-300",
         name: "Thermann ECO R290 · 300L All-in-One",
+        tankLitres: 300,
         model: "T-HP-ECO-300",
         category: "heat-pump",
         categoryLabel: "R290 all-in-one heat pump",
@@ -1466,6 +1494,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-split-glass",
         name: "Thermann Split · Glass-Lined",
+        tankLitres: 270,
         model: "T-HP-SPLIT-GL",
         category: "heat-pump",
         categoryLabel: "Split heat pump · glass-lined tank",
@@ -1555,6 +1584,7 @@ export const brands: Brand[] = [
       {
         slug: "gas-storage-135",
         name: "Thermann Gas Storage · 135L",
+        tankLitres: 135,
         model: "T-GS-135 (4-star natural gas)",
         category: "gas-storage",
         categoryLabel: "Gas storage hot water",
@@ -1579,6 +1609,7 @@ export const brands: Brand[] = [
       {
         slug: "gas-storage-170",
         name: "Thermann Gas Storage · 170L",
+        tankLitres: 170,
         model: "T-GS-170 (4-star natural gas)",
         category: "gas-storage",
         categoryLabel: "Gas storage hot water",
@@ -1604,6 +1635,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-80",
         name: "Thermann Smart Electric · 80L",
+        tankLitres: 80,
         model: "T-SE-80 · 1.8 kW element",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1625,6 +1657,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-125",
         name: "Thermann Smart Electric · 125L",
+        tankLitres: 125,
         model: "T-SE-125 · 1.8 kW element",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1646,6 +1679,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-160",
         name: "Thermann Smart Electric · 160L",
+        tankLitres: 160,
         model: "T-SE-160 · 2.4 kW element",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1667,6 +1701,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-250",
         name: "Thermann Smart Electric · 250L",
+        tankLitres: 250,
         model: "T-SE-250 · 3.0 kW element (single or twin)",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1688,6 +1723,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-315",
         name: "Thermann Smart Electric · 315L",
+        tankLitres: 315,
         model: "T-SE-315 · 3.0 kW element (single or twin)",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1710,6 +1746,7 @@ export const brands: Brand[] = [
       {
         slug: "electric-storage-400",
         name: "Thermann Smart Electric · 400L",
+        tankLitres: 400,
         model: "T-SE-400 · 3.0 kW twin element",
         category: "electric-storage",
         categoryLabel: "Electric storage hot water",
@@ -1767,6 +1804,7 @@ export const brands: Brand[] = [
       {
         slug: "istore-180",
         name: "iStore 180L Heat Pump",
+        tankLitres: 180,
         model: "iS-HP-180",
         category: "heat-pump",
         categoryLabel: "Heat pump hot water",
@@ -1788,6 +1826,7 @@ export const brands: Brand[] = [
       {
         slug: "istore-270",
         name: "iStore 270L Heat Pump",
+        tankLitres: 270,
         model: "iS-HP-270",
         category: "heat-pump",
         categoryLabel: "Heat pump hot water",
