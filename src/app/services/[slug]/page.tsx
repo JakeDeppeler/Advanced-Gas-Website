@@ -79,6 +79,31 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
         </div>
       </section>
 
+      {/* HOW WE DO IT · numbered install-process steps, distinct per
+          service so no two service pages share the same body copy. */}
+      {content.steps && content.steps.length > 0 && (
+        <section className="svc-steps">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
+              <h2>Our {svc.short.toLowerCase()} process — step by step.</h2>
+              <p>The same six-step run-through we walk you through on the quote call. No surprises on install day.</p>
+            </div>
+            <ol className="svc-steps__list">
+              {content.steps.map((s, i) => (
+                <li key={s.title} className="svc-step">
+                  <span className="svc-step__num">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="svc-step__body">
+                    <h3>{s.title}</h3>
+                    <p>{s.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
       {/* PRICING */}
       <section className="dp-pricing">
         <div className="wrap">
@@ -110,13 +135,90 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           <p className="dp-pricing__fp">
             *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.
           </p>
+
+          {(content.included || content.excluded || content.typical) && (
+            <div className="svc-scope">
+              {content.included && (
+                <div className="svc-scope__col svc-scope__col--included">
+                  <div className="svc-scope__lbl">What&rsquo;s included</div>
+                  <ul>
+                    {content.included.map((i) => <li key={i}>{i}</li>)}
+                  </ul>
+                </div>
+              )}
+              {content.excluded && (
+                <div className="svc-scope__col svc-scope__col--excluded">
+                  <div className="svc-scope__lbl">What might add cost</div>
+                  <ul>
+                    {content.excluded.map((e) => <li key={e}>{e}</li>)}
+                  </ul>
+                </div>
+              )}
+              {content.typical && (
+                <div className="svc-scope__col svc-scope__col--typical">
+                  <div className="svc-scope__lbl">Typical job</div>
+                  <dl>
+                    <dt>Time</dt><dd>{content.typical.time}</dd>
+                    <dt>Warranty</dt><dd>{content.typical.warranty}</dd>
+                    <dt>Price range</dt><dd>{content.typical.priceRange}</dd>
+                    <dt>Follow-up</dt><dd>{content.typical.followUp}</dd>
+                  </dl>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* BRANDS */}
+      {/* REAL INSTALL PHOTOS */}
+      {content.photos && content.photos.length > 0 && (
+        <section className="svc-photos">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Real installs</span>
+              <h2>What our {svc.short.toLowerCase()} work looks like.</h2>
+            </div>
+            <div className="svc-photos__grid">
+              {content.photos.map((p) => (
+                <figure key={p.src} className="svc-photo">
+                  <img src={p.src} alt={p.alt} loading="lazy" width="600" height="450" />
+                  {p.caption && <figcaption>{p.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BRAND PODS — richer version of the flat brand tag row */}
+      {content.brandPods && content.brandPods.length > 0 && (
+        <section className="svc-brandpods">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Brands we install</span>
+              <h2>What we quote — and why.</h2>
+            </div>
+            <div className="svc-brandpods__grid">
+              {content.brandPods.map((b) => (
+                <Link
+                  key={b.brand}
+                  href={b.href ?? "/brands"}
+                  className="svc-brandpod"
+                >
+                  <div className="svc-brandpod__name">{b.brand}</div>
+                  <div className="svc-brandpod__reason">{b.reason}</div>
+                  <span className="svc-brandpod__more">See our range →</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* BRANDS · flat tag row for SEO + fallback */}
       <section className="dp-brands">
         <div className="wrap">
-          <h3>Brands we install</h3>
+          <h3>Also supported</h3>
           <div className="dp-brands__row">
             {content.brands.map((b) => <span key={b}>{b}</span>)}
           </div>
