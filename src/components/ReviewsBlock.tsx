@@ -39,7 +39,7 @@ export function ReviewsBlock({
     },
     review: list.slice(0, 5).map((r) => ({
       "@type": "Review",
-      reviewRating: { "@type": "Rating", ratingValue: 5, bestRating: 5 },
+      reviewRating: { "@type": "Rating", ratingValue: r.rating, bestRating: 5 },
       author: { "@type": "Person", name: r.who },
       name: r.title,
       reviewBody: r.txt,
@@ -79,7 +79,10 @@ export function ReviewsBlock({
         <div className="rvs__grid">
           {list.map((r) => (
             <article key={r.title} className="rvs__card">
-              <div className="rvs__card-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <div className="rvs__card-stars" aria-label={`${r.rating} out of 5 stars`}>
+                {"★".repeat(r.rating)}
+                <span className="rvs__card-stars-dim">{"★".repeat(5 - r.rating)}</span>
+              </div>
               <h3>{r.title}</h3>
               <p>{r.txt}</p>
               <div className="rvs__by">

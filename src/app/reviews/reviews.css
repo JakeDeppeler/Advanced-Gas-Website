@@ -126,3 +126,6 @@
   .rvs__grid { grid-template-columns: 1fr; gap: 12px; }
   .rvs__card { padding: 16px 17px 15px; }
 }
+
+/* Unfilled stars on a 4-star review. */
+.rvs__card-stars-dim { color: var(--line-2); }
