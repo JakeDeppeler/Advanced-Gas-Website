@@ -47,6 +47,24 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
 /** Per-brand one-liner pitched at a "why would I pick this over the others"
  *  question — the info that's genuinely useful when comparing brands rather
  *  than restating the tagline / intro that already sits on the brand hub. */
+/** Short chip labels per product category for the hub cards. */
+const CATEGORY_CHIP: Record<string, string> = {
+  "split-system": "Splits",
+  "multi-head": "Multi-head",
+  "ducted": "Ducted",
+  "cassette": "Cassette",
+  "floor-console": "Floor console",
+  "heat-pump": "Heat pump HW",
+  "gas-continuous-flow": "Continuous flow",
+  "gas-storage": "Gas storage",
+  "electric-storage": "Electric storage",
+  "solar-hot-water": "Solar HW",
+  "controller": "Controllers",
+  "zoning": "Zoning",
+  "damper": "Dampers",
+  "accessory": "Accessories",
+};
+
 const BRAND_PITCH: Record<string, {
   positioning: string;
   standoutStat: { value: string; label: string };
@@ -138,43 +156,58 @@ export default function BrandsIndex() {
               <div className="brands-hub__grid">
                 {groupBrands.map((b) => {
                   const pitch = BRAND_PITCH[b.slug];
+                  // Category chips derived from the actual catalogue rather
+                  // than hand-maintained — so a brand picking up a new
+                  // product type shows it here automatically.
+                  const categories = Array.from(
+                    new Set(b.products.map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel)),
+                  ).slice(0, 5);
                   return (
                     <Link
                       key={b.slug}
                       href={`/brands/${b.slug}`}
-                      className="brand-hub-card brand-hub-card--v2"
+                      className="bhc"
                       style={{ ["--card-accent" as string]: b.accent }}
                     >
-                      <div className="brand-hub-card__photo">
-                        <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="640" height="400" />
-                      </div>
-                      <div className="brand-hub-card__inner">
-                        <div className="brand-hub-card__head">
+                      {/* Accent rail carries the brand colour down the card */}
+                      <span className="bhc__rail" aria-hidden="true" />
+
+                      <div className="bhc__top">
+                        <div className="bhc__id">
                           <h2>{b.name}</h2>
-                          <span>{b.origin}</span>
+                          <span className="bhc__origin">{b.origin}</span>
                         </div>
-                        <p className="brand-hub-card__tagline">{b.tagline}</p>
-                        {pitch && (
-                          <p className="brand-hub-card__positioning">{pitch.positioning}</p>
-                        )}
-                        {pitch && (
-                          <div className="brand-hub-card__stat">
-                            <strong>{pitch.standoutStat.value}</strong>
-                            <span>{pitch.standoutStat.label}</span>
-                          </div>
-                        )}
-                        {pitch && (
-                          <p className="brand-hub-card__bestfor">
-                            <b>Best for:</b> {pitch.bestFor}
-                          </p>
-                        )}
-                        <div className="brand-hub-card__foot">
-                          <span className="brand-hub-card__count">
-                            {b.products.length} model{b.products.length === 1 ? "" : "s"}
-                            {b.warranty && ` · ${b.warranty.split("+")[0].trim()}`}
-                          </span>
-                          <span className="brand-hub-card__cta">View full range →</span>
+                        <div className="bhc__pic">
+                          <SafeImg src={b.photo} fallback={b.photoFallback} alt={b.photoAlt} loading="lazy" width="400" height="300" />
                         </div>
+                      </div>
+
+                      <p className="bhc__tagline">{b.tagline}</p>
+
+                      {pitch && (
+                        <div className="bhc__stat">
+                          <strong>{pitch.standoutStat.value}</strong>
+                          <span>{pitch.standoutStat.label}</span>
+                        </div>
+                      )}
+
+                      {categories.length > 0 && (
+                        <ul className="bhc__cats" aria-label={`${b.name} product types`}>
+                          {categories.map((c) => <li key={c}>{c}</li>)}
+                        </ul>
+                      )}
+
+                      {pitch && (
+                        <p className="bhc__bestfor">
+                          <b>Best for</b> {pitch.bestFor}
+                        </p>
+                      )}
+
+                      <div className="bhc__foot">
+                        <span className="bhc__count">
+                          {b.products.length} model{b.products.length === 1 ? "" : "s"}
+                        </span>
+                        <span className="bhc__cta">View full range →</span>
                       </div>
                     </Link>
                   );

@@ -187,3 +187,200 @@
   .brands-hub-help__grid { grid-template-columns: 1fr; gap: 24px; }
   .brands-hub-group { padding: 44px 0 28px; }
 }
+
+/* ==================================================================
+   Brand hub cards v3.
+   Previous version was a horizontal photo-left card that read as a
+   wall of near-identical text blocks. This one leads with the brand
+   name at display size, carries the brand's own accent colour down a
+   rail, surfaces the standout stat as a real number, and shows what
+   each brand actually makes as chips derived from the catalogue.
+   ================================================================== */
+.page-brand-hub .brands-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 18px;
+  padding: 0;
+}
+
+.bhc {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 24px 20px 28px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .24s ease, border-color .18s ease;
+}
+.bhc:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 34px rgba(5, 10, 48, 0.11);
+  border-color: color-mix(in srgb, var(--card-accent, var(--sky)) 50%, var(--line));
+}
+/* Brand-colour rail down the left edge. */
+.bhc__rail {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--card-accent, var(--sky));
+}
+
+.bhc__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bhc__id { min-width: 0; }
+.bhc h2 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 27px;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+  color: var(--navy);
+  margin: 0 0 5px;
+}
+.bhc__origin {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.bhc__pic {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 76px;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 10%, #fff 0%, var(--paper) 60%, var(--bg-2) 100%);
+  border: 1px solid var(--line);
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bhc__pic img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(5, 10, 48, 0.10));
+}
+
+.bhc__tagline {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--card-accent, var(--navy));
+  margin: 0;
+}
+
+/* Standout stat — the one number worth remembering per brand. */
+.bhc__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 13px 15px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  border-left: 3px solid var(--card-accent, var(--sky));
+}
+.bhc__stat strong {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: -0.028em;
+  line-height: 1;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.bhc__stat span {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+/* What the brand actually makes — derived from the catalogue. */
+.bhc__cats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bhc__cats li {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--navy);
+  background: color-mix(in srgb, var(--card-accent, var(--sky)) 9%, #fff);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--sky)) 26%, var(--line));
+  padding: 5px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.bhc__bestfor {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bhc__bestfor b {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.bhc__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.bhc__count {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.bhc__cta {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--card-accent, var(--orange));
+  white-space: nowrap;
+  transition: transform .16s ease;
+}
+.bhc:hover .bhc__cta { transform: translateX(3px); }
+
+@media (max-width: 560px) {
+  .page-brand-hub .brands-hub__grid { grid-template-columns: 1fr; gap: 12px; }
+  .bhc { padding: 18px 18px 16px 22px; gap: 12px; border-radius: 14px; }
+  .bhc h2 { font-size: 22px; }
+  .bhc__pic { flex: 0 0 74px; width: 74px; height: 60px; }
+  .bhc__stat strong { font-size: 21px; }
+  .bhc__tagline { font-size: 14px; }
+}
