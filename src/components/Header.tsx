@@ -22,7 +22,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas" | "tools";
+      kind: "services" | "brands" | "areas" | "tools" | "company";
     };
 
 const SERVICES_MEGA: {
@@ -202,9 +202,20 @@ const NAV: NavItem[] = [
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { href: "/pricing", label: "Pricing" },
   { href: "/rebates", label: "VEU Rebates", rebate: true },
-  { href: "/blog", label: "Blog" },
-  { href: "/about", label: "About" },
+  // Gallery / Blog / About / Reviews all answer "who are these people and
+  // can I trust them" — grouping them under one trigger keeps the top-level
+  // nav to the commercial path (Services · Brands · Tools · Areas · Pricing)
+  // instead of nine flat items competing for attention.
+  { label: "About us", trigger: "company", href: "/about", kind: "company" },
   { href: "/contact", label: "Contact" },
+];
+
+const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
+  { href: "/about",     label: "About us",   sub: "The family, the team, how we work", icon: "◈" },
+  { href: "/gallery",   label: "Gallery",    sub: "Real installs · before & after",    icon: "◉" },
+  { href: "/reviews",   label: "Reviews",    sub: "4.9/5 from 280+ locals",            icon: "★" },
+  { href: "/blog",      label: "Blog",       sub: "Guides, rebates + buying advice",   icon: "✎" },
+  { href: "/press-kit", label: "Press kit",  sub: "Logos, facts + media contact",      icon: "⧉" },
 ];
 
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
@@ -322,6 +333,7 @@ export function Header() {
                     {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
                     {n.kind === "tools" && <ToolsMega />}
+                    {n.kind === "company" && <CompanyMega />}
                   </div>
                 )}
               </div>
@@ -487,6 +499,32 @@ function ToolsMega() {
   );
 }
 
+function CompanyMega() {
+  return (
+    <div className="mega__tools">
+      <div className="mega__toolshead">
+        <div className="mega__collabel">Who we are</div>
+        <Link href="/gallery" className="mega__toolsall">See our install gallery →</Link>
+      </div>
+      <div className="mega__toolsgrid">
+        {COMPANY_MEGA.map((c) => (
+          <Link key={c.href} href={c.href} role="menuitem" className="mega__toolcard">
+            <span className="mega__toolicon" aria-hidden="true">{c.icon}</span>
+            <div className="mega__toolbody">
+              <b>{c.label}</b>
+              <span>{c.sub}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="mega__toolsfoot">
+        <div className="mega__cta-sub">Family owned since 2014 · same face on the quote as on the tools.</div>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+      </div>
+    </div>
+  );
+}
+
 function AreasMega() {
   return (
     <div className="mega__areas">
@@ -593,6 +631,25 @@ function MobileDrawer({ close }: { close: () => void }) {
                     </div>
                   ))}
                 </>
+              )}
+              {n.kind === "company" && (
+                <div className="hdr__drawer-col">
+                  <div className="hdr__drawer-collabel">Who we are</div>
+                  {COMPANY_MEGA.map((c) => (
+                    <Link
+                      key={c.href}
+                      href={c.href}
+                      onClick={close}
+                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
+                    >
+                      <span className="hdr__drawer-toolicon" aria-hidden="true">{c.icon}</span>
+                      <span className="hdr__drawer-toolbody">
+                        <b>{c.label}</b>
+                        <span>{c.sub}</span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               )}
               {n.kind === "tools" && (
                 <div className="hdr__drawer-col">

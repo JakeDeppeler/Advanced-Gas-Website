@@ -3,6 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
+import { REVIEW_COLUMNS, RATING_SUMMARY } from "@/lib/reviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import "./home.css";
@@ -118,31 +119,6 @@ const SUBURBS: { name: string; slug: string }[] = [
   { name: "Tooradin",         slug: "tooradin" },
 ];
 
-type Review = { title: string; txt: string; who: string; what: string; a: string };
-
-const REVIEW_COLUMNS: Review[][] = [
-  [
-    { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. Bloke on the phone is the bloke on the tools, refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" },
-    { title: "Actually got up in the roof", txt: "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.", who: "Dean R.", what: "Officer · ducted retrofit", a: "DR" },
-    { title: "Emergency sorted Sunday", txt: "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.", who: "Sam K.", what: "Berwick · emergency hot water", a: "SK" },
-    { title: "No surprises on the invoice", txt: "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.", who: "Priya S.", what: "Cranbourne · split install", a: "PS" },
-    { title: "Explained everything", txt: "Walked me through the Milieu tablet, showed the wife how to use it, showed us the compliance cert. Ten minutes of teaching that other installers just skip.", who: "Marcus T.", what: "Officer · ducted aircon", a: "MT" },
-  ],
-  [
-    { title: "Family business, feels it", txt: "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.", who: "Tom H.", what: "Narre Warren · heat pump", a: "TH" },
-    { title: "Rebate handled, didn't lift a finger", txt: "The VEU paperwork looked scary online. They filled it all in, I signed once at the quote and once on the day. Rebate was already in the price. Painless.", who: "Lauren M.", what: "Pakenham · heat pump swap", a: "LM" },
-    { title: "Cleaned up like nothing happened", txt: "Full ducted retrofit over two days. When they left the roof cavity was tidier than they found it and the driveway had been swept. Small thing but it matters.", who: "Bianca R.", what: "Berwick · ducted install", a: "BR" },
-    { title: "Follow-up call was a surprise", txt: "A week after install they rang to check the heat pump was running quiet and the app was set up. First tradie who's ever followed up after payment cleared.", who: "Nick D.", what: "Beaconsfield · heat pump", a: "ND" },
-    { title: "Split install in half a day", txt: "Bedroom Mitsubishi went in before lunch. Neat pipework, brackets straight, temp checked before they left. Would use again for the lounge.", who: "Alex P.", what: "Cranbourne East · split", a: "AP" },
-  ],
-  [
-    { title: "Talked me OUT of a big spend", txt: "I was ready to spend on a 22kW ducted system, they measured the house and said 14 would do it. Saved me $4k and it still cools like a dream.", who: "Dave K.", what: "Pakenham · ducted aircon", a: "DK" },
-    { title: "Best price on the Reclaim", txt: "Rang three installers. These guys came in $600 cheaper on the same Reclaim heat pump AND handled the rebate. No brainer.", who: "Chelsea O.", what: "Officer · heat pump", a: "CO" },
-    { title: "Fixed a botched install", txt: "Someone else had put in a ducted system that never really cooled the back rooms. They rebalanced the zones, sealed a duct, and now it's night and day.", who: "Ravi P.", what: "Berwick · ducted repair", a: "RP" },
-    { title: "Service visit was thorough", txt: "Booked the annual gas heater service. Actual CO test, actual clean, actual report. Not the 10-minute rip-off I was expecting.", who: "Karen W.", what: "Hallam · gas heater service", a: "KW" },
-    { title: "Straight-shooters", txt: "Told me the old Rinnai had two years left and to hold off replacing it. Didn't try to upsell. That's why I'll call them when the time comes.", who: "Ben S.", what: "Endeavour Hills · consult", a: "BS" },
-  ],
-];
 
 export default function HomePage() {
   // Warm up DNS for the OSM tile CDN so the below-the-fold service map's

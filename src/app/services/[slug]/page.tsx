@@ -7,6 +7,8 @@ import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import { InstagramCTA } from "@/components/InstagramCTA";
+import { BeforeAfter } from "@/components/BeforeAfter";
+import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 
 export function generateStaticParams() {
@@ -27,6 +29,13 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
   const content = serviceContent[params.slug];
   const svc = services.find((s) => s.slug === params.slug);
   if (!content || !svc) notFound();
+
+  // Heat pump installs are the one service with a real changeover pair
+  // shot so far. Matched by slug so more pairs just drop into gallery.ts.
+  const beforeAfter =
+    params.slug === "heat-pump-installation"
+      ? BEFORE_AFTER.find((b) => b.slug === "electric-storage-to-heat-pump")
+      : undefined;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -170,6 +179,35 @@ export default function ServicePage({ params }: { params: { slug: string } }) {
           )}
         </div>
       </section>
+
+      {/* BEFORE / AFTER — real changeover photography for services that
+          have a matching pair in the gallery data. */}
+      {beforeAfter && (
+        <section className="svc-ba">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Before &amp; after</span>
+              <h2>{beforeAfter.title}</h2>
+              <p>{beforeAfter.blurb}</p>
+            </div>
+            <div className="svc-ba__row">
+              <div className="svc-ba__media">
+                <BeforeAfter before={beforeAfter.before} after={beforeAfter.after} ratio="3 / 4" />
+              </div>
+              <div className="svc-ba__side">
+                {beforeAfter.meta && (
+                  <ul className="svc-ba__meta">
+                    {beforeAfter.meta.map((m) => <li key={m}>{m}</li>)}
+                  </ul>
+                )}
+                <Link href="/gallery" className="ds-btn ds-btn--orange">
+                  See more real installs →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* THE GEAR WE INSTALL — manufacturer product shots, with an
           honest note + a link to Instagram where the actual on-the-tools
