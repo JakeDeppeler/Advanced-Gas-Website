@@ -1,7 +1,10 @@
 # Tone of voice
 
-Pick one. Then everything on the site gets rewritten to match, and
-anything new gets written to it.
+**Tone A is the one. The site has been rewritten to it. Anything new
+gets written to it, and to the eight rules at the bottom.**
+
+The other two are kept below because the comparison is the fastest way
+to see what Tone A is doing, and what it is deliberately not doing.
 
 ---
 
@@ -156,15 +159,31 @@ brands". They're not stylistic.
 
 ---
 
-## What happens next
+## What was done
 
-Once a tone is chosen, the rewrite covers:
+Tone A, across four commits, roughly 300 passages:
 
-- `src/lib/brands.ts` — every `ourTake`, `bestFor` and `keyFeatures`
-- `src/lib/serviceContent.ts` — `whyThese`, `benefits`, system blurbs
-- `src/components/WhyDifferent.tsx` — the shared house rules
-- Home, services, brands hub, pricing intros
-- `src/lib/blog.ts` — the comparison posts, which rank hardest of all
+- `src/lib/brands.ts` — every `ourTake`, `bestFor`, `keyFeatures`,
+  `intro`, `commonInMelbourne` and `support`, plus the `features` and
+  `whyWeInstall` bullets that ranked
+- `src/lib/serviceContent.ts` — `whyThese`, `benefits`, system blurbs,
+  `bestFor` and `watchOut`
+- `src/lib/blog.ts` — the comparison posts, which ranked hardest of all
+- `src/lib/suburbs.ts`, the rebate cards, the hero quote form brand
+  chips, the heat pump compare tool, the VEU estimator, the Reclaim
+  range page, the home page FAQ
 
-Roughly 60 to 80 passages. The frame changes in all of them; how much
-the *sound* changes depends on which tone wins.
+The tier ladder is gone from the source. There is no "mid-tier", no
+"value price point", no "entry into the range", no "premium pick", no
+"last resort", and no sentence anywhere that puts one thing we sell
+below another. Every product now names the situation it is the right
+answer to.
+
+### What to check when adding copy
+
+```
+rg -i "value (pick|tier|spec|price)|mid-tier|mid-range|budget-|premium pick|entry-level|top-of-line|cheapest brand" src/
+```
+
+Should return nothing. If it returns something, the sentence is ranking
+rather than matching, and rule 1 says rewrite it.
