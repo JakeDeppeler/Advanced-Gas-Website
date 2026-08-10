@@ -1182,7 +1182,7 @@
 /* The tools hub and each tool open on a light hero; give the h1 the same
    accent rule the section heads use so the page has a colour anchor. */
 .page-tool .dp-hero__eyebrow,
-.page-tools .dp-hero__eyebrow { color: var(--navy); }
+.page-tools .dp-hero__eyebrow { color: var(--sky); }
 
 /* Centred heads can't take a left rule — underline them instead. */
 .ds-section-head--center.ds-section-head--hl { padding-left: 0; }
