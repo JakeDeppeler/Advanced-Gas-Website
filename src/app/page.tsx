@@ -70,7 +70,7 @@ const faqs = [
   },
   {
     q: "What brands do you install, and why those?",
-    a: "Heat pumps: Reclaim (CO₂, premium), iStore (best mid-range), Thermann (best VEU rebate outcome). Aircon: Mitsubishi Electric and Kaden. Gas ducted: Brivis (retrofit incumbent) and Kaden gas ducted. We've installed enough of each to know which model suits which house, we'll recommend, not upsell.",
+    a: "Heat pumps: Reclaim when you're staying in the house, iStore when the rebate is what decides it, Thermann when you want parts in every Reece store. Aircon: Mitsubishi Electric and Kaden. Gas ducted: Brivis, because it's what most of these homes were built with, and Kaden. Each one is the right answer to a different question, and we've installed enough of all of them to tell you which question yours is.",
   },
   {
     q: "Do you do emergencies on weekends?",
@@ -347,7 +347,7 @@ export default async function HomePage() {
           <div className="fixprice__grid fixprice__grid--3">
             <article className="fixprice">
               <div className="fixprice__badges">
-                <span className="fixprice__badge fixprice__badge--value">Best value</span>
+                <span className="fixprice__badge fixprice__badge--value">Most installed</span>
                 <span className="fixprice__badge fixprice__badge--aus">Australian made</span>
               </div>
               <div className="fixprice__photo fixprice__photo--aio" />

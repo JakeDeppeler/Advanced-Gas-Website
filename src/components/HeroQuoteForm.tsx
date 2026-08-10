@@ -21,9 +21,9 @@ const SERVICES: { id: ServiceId; t: string; s: string }[] = [
 /* ---- Heat pump options ---- */
 
 const HP_BRANDS = [
-  { id: "reclaim",  t: "Reclaim",  s: "CO₂ heat pump, premium, quietest" },
-  { id: "thermann", t: "Thermann", s: "Great value, reliable" },
-  { id: "istore",   t: "iStore",   s: "Best mid-range, smart-app ready" },
+  { id: "reclaim",  t: "Reclaim",  s: "CO₂, quietest, holds up on cold mornings" },
+  { id: "thermann", t: "Thermann", s: "Australian made, parts in every Reece store" },
+  { id: "istore",   t: "iStore",   s: "Takes the VEU rebate furthest, smart-app ready" },
 ];
 
 const HP_STYLES = [
@@ -518,7 +518,7 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "hp-style" && (
-          <StepBlock title="All-in-one or split, or quote both?" hint="Split is Reclaim only, and about $2,500 more than an all-in-one. If budget is tight, stick with all-in-one.">
+          <StepBlock title="All-in-one or split, or quote both?" hint="All-in-one puts everything in one shell with nothing outside. Split is Reclaim only, quieter at the tank end, and costs more. Not sure? Pick both and we'll price them side by side.">
             <div className="qgrid qgrid--2">
               {HP_STYLES.map(x => (
                 <button

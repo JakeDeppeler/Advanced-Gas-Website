@@ -311,7 +311,7 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "heat-pump-installation": {
-    metaTitle: "Heat Pump Hot Water Installation Melbourne South-East | From $900 net after VEU",
+    metaTitle: "Heat Pump Hot Water Installation Melbourne South-East | VEU Rebate Applied at Quote",
     metaDescription:
       "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
     h1: "Heat pump hot water installation across Melbourne's south-east",

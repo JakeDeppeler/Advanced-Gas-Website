@@ -49,14 +49,14 @@ const ROWS: Row[] = [
   { finish: "Earthworks",      finishSub: "premium poly-lined",    cap: "250 L", slug: "co2-split-250-earthworks",    price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Bore / bad water quality",            material: "Poly-lined steel · handles high mineral content",    ourTake: "Spec this only if you're on tank / bore water with high mineral content." },
   { finish: "Earthworks",      finishSub: "premium poly-lined",    cap: "315 L", slug: "co2-split-315-earthworks",    price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Bore water · family",                 material: "Poly-lined steel · handles high mineral content",    ourTake: "Bore-water version of the 315 default, same size, mineral-friendly." },
   { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "400 L", slug: "co2-split-400-glass",         price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Family of 5+ · budget",               material: "Enamel glass over steel · anode replaced ~7-10 yrs", ourTake: "400 L for high-draw households, teenagers, big showers, back-to-back use." },
-  { finish: "Stainless",       finishSub: "no anode, no rust",     cap: "400 L", slug: "co2-split-400-stainless",     price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 5+ · long-term",            material: "Stainless steel · zero anode maintenance",           ourTake: "Top-of-line residential Reclaim, 400 L stainless will outlast the mortgage." },
+  { finish: "Stainless",       finishSub: "no anode, no rust",     cap: "400 L", slug: "co2-split-400-stainless",     price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 5+ · long-term",            material: "Stainless steel · zero anode maintenance",           ourTake: "The most volume Reclaim make, in stainless, on the 5 kW compressor. For a household where the draw is high enough that stored litres and recovery speed both have to be there." },
 ];
 
 const QUICK_PICK: { label: string; recommend: string; explain: string }[] = [
-  { label: "Cheapest way in", recommend: "Glass-lined 250 L", explain: "Same CO₂ compressor as the dearer tanks, glass-lined with a sacrificial anode. Good for couples on a tight budget." },
-  { label: "Best value default", recommend: "Stainless 315 L", explain: "The one we install most, 15-year stainless tank warranty, 315 L for a family of 3-4, no anode maintenance ever." },
+  { label: "Couple, town water", recommend: "Glass-lined 250 L", explain: "Same CO₂ compressor as every other tank in the range. Glass-lined means a sacrificial anode, which we swap every five to seven years, and which does an honest job on Pakenham mains." },
+  { label: "Family of 3-4", recommend: "Stainless 315 L", explain: "The one we install most. 315 L of stainless, 15-year tank warranty, and no anode to remember in year five." },
   { label: "Family long-term", recommend: "Stainless 400 L", explain: "For 5+ person households, 400 L, 15-year tank warranty, still handles back-to-back showers on a winter morning." },
-  { label: "Coastal home", recommend: "Stainless 316 L", explain: "Only pay the 316-grade premium if you're within a couple of km of Western Port or Port Phillip, salt air kills standard stainless in ~10 years." },
+  { label: "Coastal home", recommend: "Stainless 316 L", explain: "Worth it within a couple of km of Western Port or Port Phillip, where salt air takes standard stainless out in about ten years. Further inland it solves a problem you don't have." },
   { label: "Bore / tank water", recommend: "Earthworks 315 L", explain: "Poly-lined steel handles high mineral content, spec this if your water is off a private supply, not town mains." },
 ];
 
@@ -176,15 +176,15 @@ export default function ReclaimComparePage() {
             <p>
               The CO₂ Split has an outdoor heat pump feeding a separate tank, quieter, longer-lived,
               PV-diverter compatible. If you want everything in one integrated unit (like an old
-              gas storage tank), the <strong>Reclaim ECO R290 all-in-one</strong> at 200 L or 300 L
-              is the simpler swap-in at <strong>$2,624</strong> fully installed, same platform as
-              the Thermann Integrated. iStore comes in cheaper at <strong>$2,144</strong> if budget
-              is the priority.
+              gas storage tank), the <strong>Reclaim ECO R290 all-in-one</strong> at 200 L or 285 L
+              is the simpler swap-in at <strong>$2,624</strong> fully installed, on the same platform as
+              the Thermann Integrated. If the VEU rebate is what decides it, iStore takes it
+              furthest, at <strong>$2,144</strong>.
             </p>
           </div>
           <div className="reclaim-aio__ctas">
-            <Link href="/brands/reclaim/reclaim-eco-r290-200" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 200 L →</Link>
-            <Link href="/brands/reclaim/reclaim-eco-r290-300" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 300 L →</Link>
+            <Link href="/brands/reclaim/eco-r290-200" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 200 L →</Link>
+            <Link href="/brands/reclaim/eco-r290-300" className="ds-btn ds-btn--ghost ds-btn--lg">See ECO R290 · 285 L →</Link>
             <Link href="/tools/heat-pump-compare" className="ds-btn ds-btn--orange ds-btn--lg">Compare all AIO brands →</Link>
           </div>
         </div>

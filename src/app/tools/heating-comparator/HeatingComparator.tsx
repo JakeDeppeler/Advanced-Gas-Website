@@ -148,7 +148,7 @@ export function HeatingComparator() {
             >
               <option value="3">3-star (typical pre-2010 unit)</option>
               <option value="4">4-star</option>
-              <option value="5">5-star (typical current mid-range)</option>
+              <option value="5">5-star (typical current model)</option>
               <option value="6">6-star (top efficiency)</option>
             </select>
           </div>

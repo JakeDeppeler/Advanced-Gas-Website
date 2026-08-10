@@ -31,13 +31,13 @@ type UpgradePath = {
 const UPGRADES: UpgradePath[] = [
   // ---- Hot water upgrades ----
   // typicalInstall is the ballpark pre-rebate install for a standard
-  // mid-range heat pump. Top-of-line Reclaim CO₂ with WiFi can reach
+  // all-in-one heat pump. A Reclaim CO₂ split with Wi-Fi can reach
   // ~$9,700 pre-rebate → ~$7,000 net; entry iStore lands closer to
   // $4,800 → $2,200 net. Net install range shown to the user is
   // always $2,000-$7,000 across the whole hot-water heat-pump range.
   { key: "gas-storage::heat-pump", label: "Gas storage → Heat pump hot water",
     minRebate: 2400, maxRebate: 2700, typicalInstall: 4800,
-    notes: "Biggest hot-water rebate. Typical mid-range install $4,800 pre-rebate → ~$2,200 net. Reclaim CO₂ top-tier goes up to $9,700 pre-rebate ($7,000 net)." },
+    notes: "The biggest hot-water rebate on offer. A typical all-in-one runs about $4,800 pre-rebate; a Reclaim CO₂ split with a stainless tank and Wi-Fi reaches around $9,700. Your own figure lands on the quote." },
   { key: "gas-continuous::heat-pump", label: "Gas continuous → Heat pump hot water",
     minRebate: 2000, maxRebate: 2400, typicalInstall: 4800,
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
@@ -284,10 +284,11 @@ export function VeuRebateEstimator() {
             lineHeight: 1.5,
             color: "var(--navy)",
           }}>
-            <strong>Heat pump net install range:</strong> $2,000 (entry iStore /
-            Thermann R290) → $7,000 (Reclaim CO₂ top-of-line with Wi-Fi and
-            stainless 316 tank). The number above is the mid-point of your
-            upgrade path.
+            <strong>Heat pump net install range:</strong> $2,000 for an iStore or
+            Thermann R290 all-in-one, up to $7,000 for a Reclaim CO₂ split with Wi-Fi
+            and a 316 stainless tank. What moves you along that range is tank size,
+            tank material and whether the compressor sits separately. The number
+            above is the mid-point of your upgrade path.
           </div>
         )}
 

@@ -47,7 +47,7 @@ const HEAT_PUMPS: Row[] = [
     installFrom: "Message for quote",
     installTo: ", ",
     madeIn: "Designed & assembled in Sydney",
-    bestFor: "Hills postcodes, long-term owners, homes wanting the top-tier residential heat pump",
+    bestFor: "Hills postcodes, and anyone staying in the house long enough to care what the tank is made of",
     pros: [
       "Only mainstream CO₂ heat pump in AU",
       "15-year stainless tank warranty",
@@ -454,11 +454,11 @@ export function HeatPumpCompareTool() {
           Our default recommendations
         </h2>
         <ul style={{ fontSize: 14.5, lineHeight: 1.65, color: "var(--ink-2)", margin: 0, paddingLeft: 20 }}>
-          <li><strong>Best value once the rebate is applied:</strong> iStore 270L.</li>
+          <li><strong>When the rebate is what decides it:</strong> iStore 270 L, it takes the VEU further than anything else we fit.</li>
           <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315L (15-year tank).</li>
           <li><strong>Hills / cold-climate suburbs:</strong> Reclaim CO₂ (holds capacity to -10 °C).</li>
           <li><strong>Straight swap for old storage tank:</strong> Reclaim ECO R290 All-in-One.</li>
-          <li><strong>Australian-made mid-range:</strong> Thermann Integrated (by Dux).</li>
+          <li><strong>When you want parts in every Reece store:</strong> Thermann Integrated, Australian made by Dux.</li>
         </ul>
       </div>
     </>

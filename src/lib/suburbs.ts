@@ -423,7 +423,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "larger family blocks with more roof space than the south side, a lot of two-storey brick veneer built through the 2000s where ducted retrofit is very feasible",
     commonInstall:
-      "full ducted aircon retrofits into 2000s two-storeys, and multi-head Mitsubishi Electric MXZ setups for the streets where ducted isn't in the budget",
+      "full ducted aircon retrofits into 2000s two-storeys, and multi-head Mitsubishi Electric MXZ setups on the streets where the roof cavity won't take ductwork",
     localHooks: [
       "Casey Complex",
       "Narre Warren North Primary",
