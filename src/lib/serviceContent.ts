@@ -125,7 +125,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         id: "split",
         label: "Split system air conditioning",
         blurb:
-          "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat, cheapest to buy, cheapest to run, and the quickest to get in. Most go in back-to-back in a single morning.",
+          "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
         photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
@@ -139,12 +139,12 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $2,199 installed",
         intro:
-          "A split system is the simplest air conditioner there is: one box outside, one head inside, a pair of copper lines between them. That simplicity is why it's the cheapest to buy, the cheapest to run and the quickest to install, most go in back-to-back in a single morning without anyone taking a day off work.",
+          "A split system is the simplest air conditioner there is: one box outside, one head inside, a pair of copper lines between them. That simplicity is the whole argument. There's less to buy, less to run and less to go wrong, and most go in back-to-back in a single morning without anyone taking a day off work.",
         bestFor: [
           "A bedroom, a living room, a home office or a granny flat",
           "Anywhere you want to condition one room properly rather than the whole house",
           "Retrofits, a back-to-back install needs one core hole and nothing in the roof",
-          "Renters and owners who want the cheapest path to a comfortable room",
+          "Anyone who wants one room sorted this week rather than the whole house next year",
         ],
         watchOut: [
           "It heats and cools the room it's in, not the hallway or the next bedroom",
@@ -252,7 +252,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "The drier inland suburbs, where summer days are hot rather than humid",
           "Households that want windows open and a lot of fresh air moving",
           "Running cost, roughly a quarter of refrigerated cooling",
-          "Large homes where the cost of ducted refrigerated is out of reach",
+          "Large homes where cooling every room refrigerated would cost more to run than it is worth",
         ],
         watchOut: [
           "It needs windows or doors cracked open to work. Shut the house up and it does nothing",
@@ -320,7 +320,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     whyThese: {
       heading: "Why Reclaim, iStore and Thermann, and nothing else.",
       blurb:
-        "Heat pump hot water is the one category where the cheap option really bites. These three are the ones we'd put on our own houses.",
+        "Hot water is the appliance a household notices only when it fails, which is exactly why the brand matters here. These three are the ones we'd put on our own houses, and each of them answers a different question.",
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
@@ -332,16 +332,16 @@ export const serviceContent: Record<string, ServiceContent> = {
     },
     benefits: [
       { t: "VEU rebate applied at quote", d: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75). We handle the paperwork. You don't front the cash then chase it back six months later." },
-      { t: "Three-brand line-up", d: "iStore 270 L for cheapest-post-rebate ($2,144 installed), Reclaim ECO R290 AIO / Thermann Integrated for AIO mid-range ($2,624), Reclaim CO₂ Split for long-life stainless." },
+      { t: "Three brands, three different jobs", d: "iStore when the rebate is what decides it. Reclaim ECO R290 or Thermann Integrated when it all has to fit in one shell with nothing outside. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor." },
       { t: "Same tank platform, honest pricing", d: "Reclaim ECO R290 AIO and Thermann Integrated are the same tank + heat-pump platform, Reclaim brand, Thermann brand, identical guts. Pick on brand preference or Reece supply, not spec." },
-      { t: "COP holds in cold mornings (Reclaim CO₂)", d: "Reclaim's CO₂ split maintains ~4.5 COP down to –10 °C. Worth the step-up for hills postcodes (Emerald, Gembrook, Cockatoo) where R290 units struggle." },
+      { t: "COP holds on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split still makes about 4.5 COP at –10 °C. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." },
       { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500, isolation valves + electrical connection on a dedicated circuit, done by our licensed plumber, not a sub-contractor." },
       { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." },
     ],
     brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
     pricing: [
       { tier: "iStore 270 L (all-in-one, VEU applied)", price: "$2,144", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor warranty" },
-      { tier: "Reclaim ECO R290 AIO 200/300 L (VEU applied)", price: "$2,624", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor + 6-yr workmanship" },
+      { tier: "Reclaim ECO R290 AIO 200/285 L (VEU applied)", price: "$2,624", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor + 6-yr workmanship" },
       { tier: "Thermann Integrated 200/285 L (VEU applied)", price: "$2,624", includes: "Same platform as Reclaim ECO R290 AIO, Reece stock, Dux warranty" },
       { tier: "Reclaim CO₂ Split · Glass-lined 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate tank, 10-yr tank + 10-yr heat pump warranty" },
       { tier: "Reclaim CO₂ Split · Stainless 250/315/400 L", price: "Message for quote", includes: "As above, 15-yr stainless tank warranty (no anode to service)" },
@@ -355,7 +355,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 270L heat pump on install day", caption: "iStore 270 L, cheapest post-rebate" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 270L heat pump on install day", caption: "iStore 270 L, where the VEU rebate goes furthest" },
       { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO, same platform as Thermann Integrated" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
@@ -364,7 +364,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Reclaim Energy", reason: "The only mainstream CO₂ heat pump in Australia. 15-yr stainless tank on the flagship. Made in Sydney.", href: "/brands/reclaim" },
-      { brand: "iStore", reason: "Cheapest heat pump once the VEU rebate is applied. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },
+      { brand: "iStore", reason: "Takes the VEU rebate further than anything else we fit. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },
       { brand: "Thermann", reason: "Australian-made by Dux (Moss Vale). Reece distribution means same-day parts state-wide.", href: "/brands/thermann" },
     ],
     typical: {
@@ -452,13 +452,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           "A pre-summer service on a roof-mounted evap. Pads, water tray, pump and float all get looked at, because the first hot day is a bad time to find out the pump has seized over winter.",
         photo: { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler service, cooling pads and water tray" },
         points: [
-          "Cooling pads inspected and replaced where they've gone brittle",
+          "Pads inspected and replaced when they've gone brittle or scaled up",
           "Water tray drained, flushed and checked for leaks",
           "Pump, float valve and bleed rate tested under load",
-          "Roof-side access and safety handled by us",
-          "Pads inspected and replaced when they've gone brittle",
-          "Water tray drained, flushed and checked for leaks",
-          "Pump, float valve and bleed rate tested under load",
+          "Distributor lines cleared so every pad gets wet, not just the front one",
+          "Belt, bearings and fan motor checked before the first hot day",
           "Roof access and safety handled by us, not you",
         ],
         priceFrom: "from $220 + GST",
@@ -488,13 +486,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced, a blocked drain or a filthy coil, not a dead compressor.",
         photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi MSZ-AP wall split system" },
         points: [
-          "Filter clean, indoor and outdoor coil check",
-          "Condensate drain cleared and flow tested",
-          "Refrigerant pressures and superheat checked against spec",
-          "Electrical connections torque-checked",
-          "Indoor and outdoor coils cleaned properly, not just a filter rinse",
+          "Indoor and outdoor coils chemically cleaned, not just a filter rinse",
+          "Filters washed or replaced, and the return-air path checked",
           "Condensate drain flushed and flow tested",
           "Refrigerant pressures and superheat measured against spec",
+          "Capacitor, fan motor and thermistors tested under load",
           "Electrical connections torque-checked and thermal-scanned",
         ],
         priceFrom: "from $190 + GST",
@@ -567,11 +563,11 @@ export const serviceContent: Record<string, ServiceContent> = {
     whyThese: {
       heading: "Why Brivis and Kaden for gas, and why the star rating matters more than the price.",
       blurb:
-        "Gas ducted is still the cheapest way to heat a Melbourne home through winter. Which one you pick decides what you pay for the next fifteen years.",
+        "Gas ducted is still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring a cold house up. Which one you pick decides what you pay to run it for the next fifteen years.",
       points: [
         { t: "Brivis is what most of these homes were built with", d: "Wombat, Buffalo and Compact Classic drop into the existing cavity, ductwork and controller wiring, so a retrofit is a day rather than a rebuild. Rinnai backs the parts pipeline, even fifteen-year-old units are still serviceable." },
-        { t: "Kaden, same job, different supply chain", d: "Reece-exclusive, internal and external, 3 to 6 star. Costs less installed than the Brivis equivalent, with the same crew and the same 6-year workmanship warranty behind it." },
-        { t: "We quote the payback, not just the price", d: "A 3-star and a 6-star heat the same house. The 6-star costs more up front and less every winter after that. We'll show you where the crossover lands for your gas bill rather than just selling you the cheap one." },
+        { t: "Kaden, same job, different supply chain", d: "Reece-exclusive, internal and external, 3 to 6 star, with a universal footprint that drops onto an existing Brivis or Braemar pad. Parts sit in every Reece store in Victoria, and it goes in with the same crew and the same 6-year workmanship as anything else we fit." },
+        { t: "We quote the payback, not just the price", d: "A 3-star and a 6-star heat the same house to the same temperature. The 6-star costs more on the day and less every winter after it. We'll show you where the crossover lands on your gas bill, because on a house you're selling in two years the answer is genuinely different from a house you're staying in." },
         { t: "Carbon monoxide testing on every gas job", d: "A cracked heat exchanger has no smell and no warning. Calibrated analyser, results on the report. This is the part of the job that isn't optional and we won't skip it to win a quote." },
         { t: "Thermann G-series for continuous flow", d: "Made by Reece, not Rinnai, whatever the internet tells you. Never runs out, no tank losing heat overnight, and same-day swap on most like-for-like replacements." },
         { t: "Compliance certificate within 24 hours", d: "VBA-licensed gas fitters, paperwork emailed the next business day. Not chased three weeks later when you need it for a sale." },
@@ -607,7 +603,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         id: "gas-ducted",
         label: "Gas ducted heating",
         blurb:
-          "A gas furnace in the roof or outside the wall, ducted to vents through the house. Still the cheapest way to heat a whole Melbourne home through winter, and the fastest to warm up from cold.",
+          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. Still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring one up from cold.",
         photo: { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater" },
         points: [
           "Brivis Wombat, Compact Classic, Buffalo and StarPro",
@@ -621,7 +617,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $4,600 installed",
         intro:
-          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. It's still the cheapest way to heat a whole Melbourne home through winter and the fastest to bring a cold house up to temperature, which is why most homes built here since 1990 have one.",
+          "A gas furnace in the roof or against an outside wall, ducted to vents through the house. It's still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring a cold house up to temperature, which is why most homes built here since 1990 have one.",
         bestFor: [
           "Whole-home winter heating, fast, in a climate that genuinely gets cold",
           "Like-for-like replacement, the existing cavity, ductwork and controller wiring usually all reuse",
@@ -629,7 +625,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Anyone who wants heat now rather than in twenty minutes",
         ],
         watchOut: [
-          "Star rating decides your running cost for the next fifteen years. The cheap 3-star costs more every winter than the 6-star saves you at purchase",
+          "Star rating decides your running cost for the next fifteen years. On a house you keep, what a 3-star costs you every winter outruns what it saved you on the day",
           "Heating only. Pair it with evap or refrigerated for summer",
           "Gas prices are moving. If you're weighing gas against a reverse-cycle system long-term, ask us to run both numbers rather than assuming",
           "Any gas heater over ten years old wants a carbon monoxide test, whether or not you replace it",
@@ -723,7 +719,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
-      { brand: "Kaden Gas Ducted", reason: "The 6-star Advance is the most efficient heater at its price anywhere. Same footprint as a Brivis retrofit, so the cavity and ducts reuse.", href: "/brands/kaden" },
+      { brand: "Kaden Gas Ducted", reason: "3 to 6 star, internal and external, on a universal footprint that drops into a Brivis or Braemar cavity so the ducts and wiring reuse.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
     ],
     typical: {
@@ -751,7 +747,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "Do I need a gas-safe certificate?", a: "Yes, every new gas appliance install or replacement in Victoria requires a Type-A compliance certificate from a licensed gas fitter. We issue this on every job and email it to you inside 24 hours." },
       { q: "Can you do same-day emergency call-outs?", a: "Yes, for gas leaks, burst pipes, no hot water and CO alarms across the corridor. Standard call-out is $120 in-hours, $220 after-hours. Fee waived if you accept the repair the same day." },
       { q: "Should I replace my gas hot water with a heat pump?", a: "If the gas unit is over 10 years old, a heat pump often pays back in 2–4 years through energy savings + the VEU rebate. We'll quote both side-by-side so you can see the net-of-rebate numbers before deciding." },
-      { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement is typically $4,800 fully installed and reuses your existing ducts + wiring, so the swap is cheap and clean." },
+      { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
       { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
     ],
