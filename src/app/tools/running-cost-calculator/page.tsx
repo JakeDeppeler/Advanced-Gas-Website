@@ -48,7 +48,7 @@ export default function RunningCostCalculatorPage() {
               <p>
                 An aircon&rsquo;s <strong>capacity</strong> (the kW of cooling/heating it produces) is different from
                 its <strong>input</strong> (the kW of electricity it draws from the wall). The ratio is the
-                <strong> COP</strong> (Coefficient of Performance) — a COP of 4.0 means the unit produces 4&nbsp;kW of
+                <strong> COP</strong> (Coefficient of Performance), a COP of 4.0 means the unit produces 4&nbsp;kW of
                 cooling for every 1&nbsp;kW of electricity used.
               </p>
               <p>
@@ -57,7 +57,7 @@ export default function RunningCostCalculatorPage() {
                 cost varies with outdoor temperature, thermostat setting and how well-sealed the room is.
               </p>
               <p>
-                The Victorian VEU rebate can knock up to $2,700 off a new heat pump — if you&rsquo;re still
+                The Victorian VEU rebate can knock up to $2,700 off a new heat pump, if you&rsquo;re still
                 on gas storage or electric-storage hot water, the running-cost gap will pay back the install
                 in 3-5 years on typical usage.
                 {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
@@ -71,7 +71,7 @@ export default function RunningCostCalculatorPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready to lock in the numbers?</h2>
-            <p>Send us the room and the current unit — we&rsquo;ll quote the swap fixed.</p>
+            <p>Send us the room and the current unit. We&rsquo;ll quote the swap fixed.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>

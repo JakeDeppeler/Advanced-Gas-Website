@@ -37,7 +37,7 @@ export async function ProofStrip({
             <h2>{heading}</h2>
             <p>
               {subject
-                ? `The same crew, the same standard — whether it's a ${subject} job or anything else we quote.`
+                ? `The same crew, the same standard, whether it's a ${subject} job or anything else we quote.`
                 : "Every review below came from a real job across Pakenham, Berwick, Officer and Cranbourne."}
             </p>
           </div>

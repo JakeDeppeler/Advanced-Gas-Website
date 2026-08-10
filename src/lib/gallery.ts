@@ -41,25 +41,25 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/reclaim-spit-close-up.webp",
     alt: "Reclaim CO₂ split heat pump outdoor unit close up on a finished install",
-    caption: "Reclaim CO₂ split — outdoor unit mounted and commissioned",
+    caption: "Reclaim CO₂ split, outdoor unit mounted and commissioned",
     category: "heat-pump",
   },
   {
     src: "/reclaim-split-stand-back-shot.webp",
     alt: "Reclaim CO₂ split heat pump and tank installed against a house wall",
-    caption: "Reclaim CO₂ split with tank — full install, stand-back shot",
+    caption: "Reclaim CO₂ split with tank, full install, stand-back shot",
     category: "heat-pump",
   },
   {
     src: "/reclaim-split-stand-back-shot-left-side.webp",
     alt: "Reclaim heat pump install viewed from the left side of the property",
-    caption: "Same job from the other side — clean pipe run down the wall",
+    caption: "Same job from the other side, clean pipe run down the wall",
     category: "heat-pump",
   },
   {
     src: "/thermann-heat-pump.webp",
     alt: "Thermann heat pump hot water system installed at a Pakenham home",
-    caption: "Thermann heat pump — like-for-like swap on the old tank pad",
+    caption: "Thermann heat pump, like-for-like swap on the old tank pad",
     category: "heat-pump",
   },
   {
@@ -73,7 +73,7 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/kaden-indoor.webp",
     alt: "Kaden wall split indoor head installed in a living room",
-    caption: "Kaden wall split — indoor head, brackets level, no wall damage",
+    caption: "Kaden wall split, indoor head, brackets level, no wall damage",
     category: "aircon",
   },
   {
@@ -85,13 +85,13 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/4 kadens with chaz.jpg",
     alt: "Four Kaden outdoor units installed at one property with Chaz",
-    caption: "Four Kaden units, one property — multi-room job done in a day",
+    caption: "Four Kaden units, one property, multi-room job done in a day",
     category: "aircon",
   },
   {
     src: "/photoshoot-with-reece-4.webp",
     alt: "Advanced Gas and Aircon technician on site during an install",
-    caption: "On the tools — mid-install",
+    caption: "On the tools, mid-install",
     category: "aircon",
   },
 
@@ -99,7 +99,7 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/duct-work.webp",
     alt: "Flexible ductwork run through a roof cavity for a ducted system",
-    caption: "Ductwork run through the roof cavity — supported, not sagging",
+    caption: "Ductwork run through the roof cavity, supported, not sagging",
     category: "ducted",
   },
   {
@@ -119,25 +119,25 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/gas-ducted-install.webp",
     alt: "Gas ducted heater installed in an internal cupboard",
-    caption: "Gas ducted heater — in-cupboard retrofit, existing ducts reused",
+    caption: "Gas ducted heater, in-cupboard retrofit, existing ducts reused",
     category: "gas",
   },
   {
     src: "/thermann-contineues-flow-standing-back.webp",
     alt: "Thermann continuous flow gas hot water unit mounted on an external wall",
-    caption: "Thermann G-series continuous flow — external wall mount",
+    caption: "Thermann G-series continuous flow, external wall mount",
     category: "gas",
   },
   {
     src: "/thermann-continues-flow-close-up.webp",
     alt: "Close up of Thermann continuous flow gas hot water pipework",
-    caption: "Close-up of the same job — tidy gas and water connections",
+    caption: "Close-up of the same job, tidy gas and water connections",
     category: "gas",
   },
   {
     src: "/gas-hot-water-changeover.webp",
     alt: "Gas hot water changeover completed the same day",
-    caption: "Same-day hot water changeover — old unit out, new one running",
+    caption: "Same-day hot water changeover, old unit out, new one running",
     category: "gas",
   },
   {
@@ -151,7 +151,7 @@ export const GALLERY: GalleryShot[] = [
   {
     src: "/evap-cooler-service.webp",
     alt: "Roof-mounted evaporative cooler being serviced",
-    caption: "Pre-summer evap service — pump, pads and water lines",
+    caption: "Pre-summer evap service, pump, pads and water lines",
     category: "evap",
   },
 
@@ -184,7 +184,7 @@ export const BEFORE_AFTER: BeforeAfter[] = [
     slug: "electric-storage-to-heat-pump",
     title: "Old electric storage tank → Reclaim heat pump",
     blurb:
-      "Aging electric storage tank sitting on bare dirt, pipework exposed and rusting at the base. Out it came — new concrete pad poured, Reclaim heat pump set on top, all pipework re-run and lagged. Same corner of the house, completely different result. Running cost drops by roughly three quarters on the changeover.",
+      "Aging electric storage tank sitting on bare dirt, pipework exposed and rusting at the base. Out it came, new concrete pad poured, Reclaim heat pump set on top, all pipework re-run and lagged. Same corner of the house, completely different result. Running cost drops by roughly three quarters on the changeover.",
     before: { src: "/ba-hw-before.webp", alt: "Old electric storage hot water tank on bare ground beside a house" },
     after: { src: "/ba-hw-after.webp", alt: "New Reclaim heat pump hot water system on a fresh concrete pad in the same position" },
     meta: ["Same-day changeover", "VEU rebate applied at quote", "New slab + re-run pipework"],

@@ -286,7 +286,7 @@ export function HeatingComparator() {
         </div>
 
         <p className="tool-result__note">
-          Estimate only — real running cost varies with outdoor temperature, thermostat setpoint, house
+          Estimate only, real running cost varies with outdoor temperature, thermostat setpoint, house
           insulation and how many zones are running. RC systems in Melbourne hills (Emerald, Gembrook)
           should use the Mitsubishi FH Hyper Heating COP (~3.8 at -5 °C), not a standard 4.0 rating.
         </p>

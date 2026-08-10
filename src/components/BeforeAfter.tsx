@@ -104,7 +104,7 @@ export function BeforeAfter({
           aria-label={`Drag to compare: ${beforeLabel} versus ${afterLabel}`}
         />
       </div>
-      <p className="ba__hint">Drag the handle to compare &mdash; or use the arrow keys.</p>
+      <p className="ba__hint">Drag the handle to compare, or use the arrow keys.</p>
     </div>
   );
 }

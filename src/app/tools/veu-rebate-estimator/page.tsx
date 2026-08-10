@@ -8,7 +8,7 @@ import "../tools.css";
 export const metadata: Metadata = {
   title: "VEU Rebate Estimator · How much rebate can I claim in 2026?",
   description:
-    "Free Victorian Energy Upgrades (VEU) rebate estimator. Pick your postcode, current system and planned upgrade — get the rebate range, net install cost and payback in seconds.",
+    "Free Victorian Energy Upgrades (VEU) rebate estimator. Pick your postcode, current system and planned upgrade, get the rebate range, net install cost and payback in seconds.",
   alternates: { canonical: "/tools/veu-rebate-estimator" },
 };
 
@@ -48,7 +48,7 @@ export default function VeuRebateEstimatorPage() {
             <div style={{ marginTop: 16, fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
               <p>
                 The Victorian Energy Upgrades scheme generates <strong>Victorian Energy
-                Efficiency Certificates</strong> (VEECs) — one for every tonne of greenhouse
+                Efficiency Certificates</strong> (VEECs), one for every tonne of greenhouse
                 gas your upgrade will avoid over its assumed 10-year life. Each VEEC has a
                 traded market price (currently $60-$75 in 2026, having settled down from the
                 inflated 2024 highs).
@@ -57,17 +57,17 @@ export default function VeuRebateEstimatorPage() {
                 The number of certificates depends on the <strong>Product Class</strong>
                 (heat pump hot water, ducted aircon, reverse-cycle upgrade, etc.), your
                 <strong> installation region</strong> (Melbourne / VIC-wide split), and the
-                <strong> displaced fuel</strong> — going from gas to electric earns more than
+                <strong> displaced fuel</strong>, going from gas to electric earns more than
                 electric to electric because the greenhouse saving is larger.
               </p>
               <p>
-                We&rsquo;re a <strong>VEU-accredited provider</strong> — we handle the paperwork end-to-end
+                We&rsquo;re a <strong>VEU-accredited provider</strong>. We handle the paperwork end-to-end
                 and apply the rebate to your quote up front so you never pay it and then chase it.
                 {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See how the rebate is applied</Link>.
               </p>
               <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 12 }}>
                 Numbers here are estimates based on 2026 VEEC market prices ($60-$75). The exact rebate
-                is confirmed at quote time after a 20-minute site check — every home is slightly different.
+                is confirmed at quote time after a 20-minute site check, every home is slightly different.
               </p>
             </div>
           </details>

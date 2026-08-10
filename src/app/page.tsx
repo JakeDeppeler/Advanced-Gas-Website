@@ -82,7 +82,7 @@ const faqs = [
   },
   {
     q: "Do you take developer new-build work?",
-    a: "Not the volume developer stuff. Every job we take is for a real homeowner — an owner-occupier retrofit, a landlord upgrade, a custom-build owner who wants the same person on the tools as on the quote. If you're a custom builder wanting a single-project pairing (not a 40-home estate rollout), have a chat with us. Otherwise our diary is booked with existing-home work and it's better for both of us if we say so upfront.",
+    a: "Not the volume developer stuff. Every job we take is for a real homeowner, an owner-occupier retrofit, a landlord upgrade, a custom-build owner who wants the same person on the tools as on the quote. If you're a custom builder wanting a single-project pairing (not a 40-home estate rollout), have a chat with us. Otherwise our diary is booked with existing-home work and it's better for both of us if we say so upfront.",
   },
 ];
 
@@ -388,7 +388,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-num">Message for quote</span>
                   <span className="fixprice__price-lbl">fixed price back in 2 hrs</span>
                 </div>
-                <p className="fixprice__note">Reclaim CO₂ Split — glass-lined, stainless, stainless 316 or Earthworks in 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
+                <p className="fixprice__note">Reclaim CO₂ Split, glass-lined, stainless, stainless 316 or Earthworks in 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
               </div>
             </article>

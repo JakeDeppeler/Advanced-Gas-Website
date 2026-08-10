@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import "./preview.css";
 
 export const metadata: Metadata = {
-  title: "Preview — phone-first home page mock",
+  title: "Preview, phone-first home page mock",
   description: "Live preview of the phone-first home page redesign. Not indexed.",
   robots: { index: false, follow: false },
 };
@@ -29,10 +29,10 @@ const BRANDS = [
 
 const FAQS = [
   { q: "How much is the VEU rebate, really?", a: "It depends on your existing hot water unit and the new one going in. Most Pakenham households see between $2,400 and $3,200 off. We apply it at the quote stage so you don't pay it then claim it back." },
-  { q: "Am I eligible if I'm a renter or in a unit?", a: "Owner-occupiers and landlords are both eligible under VEU. Renters can ask their landlord to upgrade — we'll talk to them directly if easier." },
+  { q: "Am I eligible if I'm a renter or in a unit?", a: "Owner-occupiers and landlords are both eligible under VEU. Renters can ask their landlord to upgrade. We'll talk to them directly if easier." },
   { q: "How long does an install take?", a: "A like-for-like heat pump swap is usually one day. A new split is half a day. Full ducted retrofit is 2–3 days. We give a firm window when you accept the quote." },
   { q: "What brands do you install, and why those?", a: "Reclaim (premium heat pumps), iStore (best mid-range), Thermann (budget-friendly), Mitsubishi Electric and Kaden for aircon, Rinnai / Brivis / Kaden for gas. We recommend, not upsell." },
-  { q: "Do you do emergencies on weekends?", a: "Yes. Gas leak, no hot water, smoking flue — call the main number any time. After hours goes to a real on-call tradie, not an overseas call centre." },
+  { q: "Do you do emergencies on weekends?", a: "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to a real on-call tradie, not an overseas call centre." },
 ];
 
 const SUBURBS = [
@@ -44,10 +44,10 @@ const SUBURBS = [
 export default function PreviewPage() {
   return (
     <div className="page-preview">
-      {/* Preview ribbon — makes it obvious this isn't the live home page */}
+      {/* Preview ribbon, makes it obvious this isn't the live home page */}
       <div className="pv-ribbon">
         <span className="pv-ribbon__dot" />
-        <span><strong>Preview mock</strong> — not the live home page. Iterate here, then promote.</span>
+        <span><strong>Preview mock</strong>, not the live home page. Iterate here, then promote.</span>
         <Link href="/" className="pv-ribbon__link">Real home →</Link>
       </div>
 

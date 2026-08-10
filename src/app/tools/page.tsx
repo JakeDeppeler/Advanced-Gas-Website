@@ -61,7 +61,7 @@ const TOOLS: {
     title: "Heat Pump Sizing Calculator",
     tagline: "What size hot water tank does my home need?",
     blurb:
-      "Most guides just count bedrooms. This one sizes off what your household actually draws — shower flow, shower length, how many people go through before work — then gives you the tank size, recovery rate and full reheat time.",
+      "Most guides just count bedrooms. This one sizes off what your household actually draws, shower flow, shower length, how many people go through before work, then gives you the tank size, recovery rate and full reheat time.",
     ctaLabel: "Size my heat pump →",
     bullets: [
       "Works out the real hot-water fraction of a mixed shower (a 9 L/min head only pulls ~5 L from the tank)",
@@ -75,7 +75,7 @@ const TOOLS: {
     title: "VEU Rebate Estimator",
     tagline: "How much rebate can I claim?",
     blurb:
-      "Enter your postcode, current system and planned upgrade — get the estimated Victorian Energy Upgrades rebate range and your net out-of-pocket install cost. Covers hot water and space heating/cooling upgrades.",
+      "Enter your postcode, current system and planned upgrade, get the estimated Victorian Energy Upgrades rebate range and your net out-of-pocket install cost. Covers hot water and space heating/cooling upgrades.",
     ctaLabel: "Estimate my rebate →",
     bullets: [
       "Every VEU upgrade path (gas / electric → heat pump, gas ducted → RC)",
@@ -89,7 +89,7 @@ const TOOLS: {
     title: "Gas vs Reverse-Cycle Heating",
     tagline: "Which is cheaper to run this winter?",
     blurb:
-      "Compare the annual winter running cost of a gas ducted heater against a reverse-cycle (heat pump) system for your home. Enter heat load, hours, star rating, COP and tariffs — get the payback if you swap.",
+      "Compare the annual winter running cost of a gas ducted heater against a reverse-cycle (heat pump) system for your home. Enter heat load, hours, star rating, COP and tariffs, get the payback if you swap.",
     ctaLabel: "Compare heating cost →",
     bullets: [
       "3 to 6-star gas efficiency + inverter reverse-cycle COP",
@@ -103,7 +103,7 @@ const TOOLS: {
     title: "Heat Pump Compare",
     tagline: "Reclaim vs iStore vs Thermann vs Sanden vs Rheem.",
     blurb:
-      "Cross-brand heat pump hot water comparison — CO₂ vs R290 vs R134a, capacity, warranty, COP, price band, made-in and our installer take. Pick 2-5 models to compare side-by-side.",
+      "Cross-brand heat pump hot water comparison, CO₂ vs R290 vs R134a, capacity, warranty, COP, price band, made-in and our installer take. Pick 2-5 models to compare side-by-side.",
     ctaLabel: "Compare heat pumps →",
     bullets: [
       "Every major HW heat pump brand we service",
@@ -117,7 +117,7 @@ const TOOLS: {
     title: "System Type Comparison",
     tagline: "Split vs multi-head vs ducted vs gas vs evap.",
     blurb:
-      "Side-by-side comparison of the five main home climate-control options — install cost, running cost, zone control, lifespan, best-for scenarios and which brands we install for each. Pick 2-5 systems to compare.",
+      "Side-by-side comparison of the five main home climate-control options, install cost, running cost, zone control, lifespan, best-for scenarios and which brands we install for each. Pick 2-5 systems to compare.",
     ctaLabel: "Compare systems →",
     bullets: [
       "5 system types · toggle any 2-5 to compare",
@@ -131,7 +131,7 @@ const TOOLS: {
     title: "Hot Water Savings Calculator",
     tagline: "How much will a heat pump save me?",
     blurb:
-      "Compare your current gas or electric hot water annual cost against a modern heat pump. Applies the Victorian VEU rebate to the install cost and projects the payback period over 10 years — the fastest way to see if the upgrade actually pays for itself.",
+      "Compare your current gas or electric hot water annual cost against a modern heat pump. Applies the Victorian VEU rebate to the install cost and projects the payback period over 10 years, the fastest way to see if the upgrade actually pays for itself.",
     ctaLabel: "See my savings →",
     bullets: [
       "Handles gas storage, gas continuous, electric peak, off-peak and solar-boost",
@@ -159,7 +159,7 @@ const TOOLS: {
     title: "Aircon Fault Code Lookup",
     tagline: "What does this error code on my aircon mean?",
     blurb:
-      "Searchable table of the most common fault codes across every major aircon brand we service — Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden and more. Each entry lists the likely cause and the first thing to check.",
+      "Searchable table of the most common fault codes across every major aircon brand we service, Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden and more. Each entry lists the likely cause and the first thing to check.",
     ctaLabel: "Look up a fault code →",
     bullets: [
       "Every brand we service, plus the ones we don't",
@@ -226,7 +226,7 @@ export default function ToolsHubPage() {
           })}
           <InstagramCTA
             heading="Want to see the work, not just the numbers?"
-            body="Our Instagram is every install we finish — splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."
+            body="Our Instagram is every install we finish, splits, ducted, heat pumps and gas heaters going into real houses across Melbourne's south-east."
           />
         </div>
       </section>
@@ -235,7 +235,7 @@ export default function ToolsHubPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Rather just have us size / quote it?</h2>
-            <p>Send the room dimensions or a photo of the fault code — we&rsquo;ll come back with a fixed price.</p>
+            <p>Send the room dimensions or a photo of the fault code. We&rsquo;ll come back with a fixed price.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

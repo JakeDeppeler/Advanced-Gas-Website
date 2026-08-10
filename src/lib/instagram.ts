@@ -148,7 +148,7 @@ async function fetchPosts(maxPages: number): Promise<InstagramPost[]> {
         // 190 = token expired. Worth shouting about in logs since the fix
         // is a token refresh, not a code change.
         console.warn(
-          `[instagram] Graph API ${res.status} on page ${page + 1} — ` +
+          `[instagram] Graph API ${res.status} on page ${page + 1}, ` +
             `${out.length} posts so far. If 400/190, the token has expired: ` +
             `node scripts/instagram-token.mjs --refresh <token>`,
         );

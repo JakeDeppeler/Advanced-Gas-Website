@@ -266,7 +266,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
               )}
               {content.excluded && (
                 <div className="svc-scope__col svc-scope__col--excluded">
-                  <div className="svc-scope__lbl">What might add cost</div>
+                  <div className="svc-scope__lbl">We&rsquo;ll quote it and let you know</div>
                   <ul>
                     {content.excluded.map((e) => <li key={e}>{e}</li>)}
                   </ul>
@@ -328,8 +328,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
               <h2>What we put in for {svc.short.toLowerCase()}.</h2>
               <p>
                 These are the manufacturer product shots so you can see exactly which unit
-                we&rsquo;re quoting. For photos of our actual installs &mdash; on the roof,
-                in the cupboard, on the wall &mdash; head to our Instagram.
+                we&rsquo;re quoting. For photos of our actual installs, on the roof,
+                in the cupboard, on the wall, head to our Instagram.
               </p>
             </div>
             <div className="svc-photos__grid">
@@ -345,22 +345,22 @@ export default async function ServicePage({ params }: { params: { slug: string }
             {igPosts.length === 0 && (
               <InstagramCTA
                 heading="See the real thing on Instagram"
-                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed — real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
+                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed, real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
               />
             )}
           </div>
         </section>
       )}
 
-      {/* Live Instagram — posts whose caption mentions this kind of job. */}
+      {/* Live Instagram, posts whose caption mentions this kind of job. */}
       <InstagramFeed
         posts={igPosts}
         eyebrow={`${svc.short} on the tools`}
         heading={`Our latest ${svc.short.toLowerCase()} jobs.`}
-        blurb={`Straight from our Instagram — real jobs across Melbourne's south-east, posted as we finish them.`}
+        blurb={`Straight from our Instagram, real jobs across Melbourne's south-east, posted as we finish them.`}
       />
 
-      {/* BRAND PODS — richer version of the flat brand tag row */}
+      {/* BRAND PODS, richer version of the flat brand tag row */}
       {content.brandPods && content.brandPods.length > 0 && (
         <section className="svc-brandpods">
           <div className="wrap">

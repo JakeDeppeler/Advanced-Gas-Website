@@ -43,7 +43,7 @@ const UPGRADES: UpgradePath[] = [
     notes: "Continuous flow gas is more efficient than storage, so the rebate is slightly smaller." },
   { key: "electric-storage::heat-pump", label: "Electric storage → Heat pump hot water",
     minRebate: 2200, maxRebate: 2600, typicalInstall: 4800,
-    notes: "Strong rebate — displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
+    notes: "Strong rebate, displacing peak-rate electric with a heat pump saves 60-70% of the running cost." },
   { key: "off-peak-electric::heat-pump", label: "Off-peak electric → Heat pump hot water",
     minRebate: 1400, maxRebate: 1800, typicalInstall: 4800,
     notes: "Smaller rebate because off-peak electric is already comparatively cheap." },
@@ -51,10 +51,10 @@ const UPGRADES: UpgradePath[] = [
   // ---- Space heating / cooling upgrades ----
   { key: "gas-ducted::rc-ducted", label: "Gas ducted heater → Reverse-cycle ducted",
     minRebate: 2800, maxRebate: 4200, typicalInstall: 12000,
-    notes: "The single biggest VEU rebate available — retrofitting a whole home off gas ducted." },
+    notes: "The single biggest VEU rebate available, retrofitting a whole home off gas ducted." },
   { key: "gas-ducted::rc-split", label: "Gas ducted heater → Multi-head reverse-cycle split",
     minRebate: 2000, maxRebate: 3200, typicalInstall: 8000,
-    notes: "Popular retrofit path — cheaper install than full ducted, still eligible for a healthy rebate." },
+    notes: "Popular retrofit path, cheaper install than full ducted, still eligible for a healthy rebate." },
   { key: "old-aircon::rc-split", label: "Old (pre-2010) split / window unit → New reverse-cycle split",
     minRebate: 300, maxRebate: 800, typicalInstall: 2200,
     notes: "Smaller rebate but pairs well with the sizing calculator for a right-sized upgrade." },
@@ -142,7 +142,7 @@ export function VeuRebateEstimator() {
           />
           <small>
             {result.validPostcode
-              ? "Valid VIC postcode — rebate applies."
+              ? "Valid VIC postcode, rebate applies."
               : "Must be a 4-digit VIC postcode (starts with 3)."}
           </small>
         </div>
@@ -299,7 +299,7 @@ export function VeuRebateEstimator() {
         <p className="tool-result__note">
           Estimates only. The exact rebate depends on the certified deemed abatement of the specific
           product being installed, the current VEEC market price, and site-specific factors. We
-          confirm the firm number at quote time and apply it to your bill up-front — you never pay
+          confirm the firm number at quote time and apply it to your bill up-front, you never pay
           the rebate and then chase it back.
         </p>
       </div>

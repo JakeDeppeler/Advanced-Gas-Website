@@ -28,13 +28,13 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
     label: "Heat pump hot water",
     slug: "heat-pump",
     brandSlugs: ["reclaim", "istore", "thermann"],
-    blurb: "Three tiers, one goal — get a customer off their old electric or gas storage tank onto a VEU-rebated heat pump that lasts.",
+    blurb: "Three tiers, one goal, get a customer off their old electric or gas storage tank onto a VEU-rebated heat pump that lasts.",
   },
   {
     label: "Gas heating",
     slug: "gas",
     brandSlugs: ["brivis"],
-    blurb: "Like-for-like Brivis replacements — the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring.",
+    blurb: "Like-for-like Brivis replacements, the same-footprint retrofit that keeps existing ducts, cupboard cavity and controller wiring.",
   },
   {
     label: "Zoning & control",
@@ -102,7 +102,7 @@ const BRAND_PITCH: Record<string, {
   },
   "brivis": {
     positioning: "Retrofit incumbent · same-footprint into most existing ducted heater cavities",
-    standoutStat: { value: "3-6 star", label: "output ratings across every kW size — 15/20/26/30" },
+    standoutStat: { value: "3-6 star", label: "output ratings across every kW size, 15/20/26/30" },
     bestFor: "Homes staying on gas ducted where the existing ducts, controller and cupboard cavity should all reuse",
   },
 };
@@ -225,7 +225,7 @@ export default function BrandsIndex() {
             <h2>Two ways to narrow it down.</h2>
             <p>
               Open any brand page and use the <strong>Compare</strong> tick to line up 2-4 models
-              side by side. Or skip that and tell us the room, the household and the budget — we&rsquo;ll
+              side by side. Or skip that and tell us the room, the household and the budget, we&rsquo;ll
               come back with three real options from three different brands rather than pushing whatever
               carries the biggest margin.
             </p>

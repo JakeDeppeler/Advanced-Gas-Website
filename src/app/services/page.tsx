@@ -90,7 +90,7 @@ const services: Service[] = [
     id: "gas-heating",
     num: "04",
     eyebrow: "04 · Gas & ducted gas heating",
-    h2: "Install, replace, service — Brivis, Kaden, Rinnai.",
+    h2: "Install, replace, service, Brivis, Kaden, Rinnai.",
     lede: "Still want the warmth of gas? We install, replace and service ducted gas units, wall furnaces and space heaters with full carbon-monoxide testing.",
     specs: [["Type", "Ducted / wall"], ["Capacity", "14 – 35 MJ"], ["Service", "$280 + GST"], ["CO test", "included"]],
     bullets: [

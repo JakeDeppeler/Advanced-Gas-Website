@@ -43,7 +43,7 @@ export default async function ReviewsPage() {
           </h1>
           <p className="dp-hero__sub">
             Every review below is from a real job across Melbourne&rsquo;s south-east. No paid
-            placements, no filtered feedback &mdash; if a job goes wrong we&rsquo;d rather fix it
+            placements, no filtered feedback, if a job goes wrong we&rsquo;d rather fix it
             than bury the review.
           </p>
           <div className="dp-hero__ctas">

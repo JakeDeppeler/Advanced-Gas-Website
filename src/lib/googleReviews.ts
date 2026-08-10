@@ -121,7 +121,7 @@ export async function getReviews(limit = 12): Promise<ReviewsPayload> {
     });
 
     if (!res.ok) {
-      console.warn(`[googleReviews] Places API ${res.status} — serving curated reviews`);
+      console.warn(`[googleReviews] Places API ${res.status}, serving curated reviews`);
       return fallback;
     }
 
@@ -152,7 +152,7 @@ export async function getReviews(limit = 12): Promise<ReviewsPayload> {
       source: topUp.length > 0 && reviews.length > live.length ? "google+curated" : "google",
     };
   } catch (err) {
-    console.warn("[googleReviews] fetch failed — serving curated reviews:", err);
+    console.warn("[googleReviews] fetch failed, serving curated reviews:", err);
     return fallback;
   }
 }

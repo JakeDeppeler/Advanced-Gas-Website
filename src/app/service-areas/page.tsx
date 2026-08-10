@@ -35,7 +35,7 @@ export default function ServiceAreasPage() {
         </div>
       </section>
 
-      {/* Coverage map — every suburb we install in, plotted on one canvas */}
+      {/* Coverage map, every suburb we install in, plotted on one canvas */}
       <section className="dp-map" style={{ paddingBottom: 40 }}>
         <div className="wrap">
           <div className="ds-section-head" style={{ marginBottom: 24 }}>

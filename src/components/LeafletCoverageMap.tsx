@@ -159,7 +159,7 @@ export function LeafletCoverageMap({ highlight }: { highlight?: string }) {
       className="covmap__leaflet"
       ref={ref}
       role="img"
-      aria-label={`Coverage map — every suburb we install in within 75 km of Pakenham${highlight ? `, with ${highlight} highlighted` : ""}`}
+      aria-label={`Coverage map, every suburb we install in within 75 km of Pakenham${highlight ? `, with ${highlight} highlighted` : ""}`}
     />
   );
 }

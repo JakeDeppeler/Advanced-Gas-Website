@@ -254,7 +254,7 @@ export function SizingCalculator() {
 
         <p className="tool-result__note">
           Heads-up: this is a residential heat-load estimator for a single room. Multi-head, ducted
-          and commercial spaces need a room-by-room load calc — we do those on quote day.
+          and commercial spaces need a room-by-room load calc, we do those on quote day.
         </p>
       </div>
     </div>

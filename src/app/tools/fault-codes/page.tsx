@@ -8,7 +8,7 @@ import "../tools.css";
 export const metadata: Metadata = {
   title: "Aircon Fault Code Lookup · Mitsubishi, Daikin, Fujitsu, LG, Panasonic, Kaden, Brivis",
   description:
-    "Free searchable table of the most common aircon fault codes — Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Brivis and more. Each entry lists likely cause and first thing to check.",
+    "Free searchable table of the most common aircon fault codes, Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Brivis and more. Each entry lists likely cause and first thing to check.",
   alternates: { canonical: "/tools/fault-codes" },
 };
 
@@ -54,7 +54,7 @@ export default function FaultCodesPage() {
             </h2>
             <p style={{ fontSize: 14.5, lineHeight: 1.55, color: "var(--ink-2)", margin: "0 0 14px", maxWidth: "60ch" }}>
               We service every major brand. Send us the code, the brand and (ideally) a photo of the
-              wall controller — we&rsquo;ll come back with what it means and a fixed-price
+              wall controller. We&rsquo;ll come back with what it means and a fixed-price
               service quote.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -69,7 +69,7 @@ export default function FaultCodesPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Broken unit worth repairing, or time to replace?</h2>
-            <p>We give the honest answer — sometimes a new install with the VEU rebate is cheaper than the repair.</p>
+            <p>We give the honest answer, sometimes a new install with the VEU rebate is cheaper than the repair.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a repair-or-replace quote →</Link>

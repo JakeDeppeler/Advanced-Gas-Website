@@ -108,7 +108,7 @@ export function RunningCostCalculator() {
           </div>
           <small>
             The capacity is the cooling/heating output (usually on the model badge). The
-            input is what the unit draws from the wall — divide capacity by COP to get it.
+            input is what the unit draws from the wall, divide capacity by COP to get it.
           </small>
         </div>
 
@@ -209,7 +209,7 @@ export function RunningCostCalculator() {
             value={form.rateCents}
             onChange={(e) => update("rateCents", parseFloat(e.target.value) || 0)}
           />
-          <small>Peak retail rate — check the &ldquo;usage&rdquo; line on your last bill.</small>
+          <small>Peak retail rate, check the &ldquo;usage&rdquo; line on your last bill.</small>
         </div>
       </div>
 

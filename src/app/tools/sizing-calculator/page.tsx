@@ -8,7 +8,7 @@ import "../tools.css";
 export const metadata: Metadata = {
   title: "Aircon Sizing Calculator · What kW size do I need? | Advanced Gas & Aircon",
   description:
-    "Free Australian aircon sizing calculator — enter your room dimensions, ceiling height, orientation and insulation to get the right cooling capacity in kW. Recommended by our licensed installers.",
+    "Free Australian aircon sizing calculator, enter your room dimensions, ceiling height, orientation and insulation to get the right cooling capacity in kW. Recommended by our licensed installers.",
   alternates: { canonical: "/tools/sizing-calculator" },
 };
 
@@ -50,17 +50,17 @@ export default function SizingCalculatorPage() {
                 a standard 2.4&nbsp;m ceiling in an average Melbourne home, then apply the following adjustments:
               </p>
               <ul style={{ paddingLeft: 20 }}>
-                <li><strong>Ceiling height</strong> — anything above 2.7&nbsp;m increases the load by 5% per 0.3&nbsp;m.</li>
-                <li><strong>Orientation</strong> — west-facing rooms take the afternoon sun and need +15% capacity.</li>
-                <li><strong>Insulation</strong> — an uninsulated ceiling or single-glazed windows add 10-20%.</li>
-                <li><strong>Occupants</strong> — every person above 2 adds ~120&nbsp;W of body heat.</li>
-                <li><strong>Glazing</strong> — large expanses of glass (&gt;20% wall area) add 10-25%.</li>
+                <li><strong>Ceiling height</strong>, anything above 2.7&nbsp;m increases the load by 5% per 0.3&nbsp;m.</li>
+                <li><strong>Orientation</strong>, west-facing rooms take the afternoon sun and need +15% capacity.</li>
+                <li><strong>Insulation</strong>, an uninsulated ceiling or single-glazed windows add 10-20%.</li>
+                <li><strong>Occupants</strong>, every person above 2 adds ~120&nbsp;W of body heat.</li>
+                <li><strong>Glazing</strong>, large expanses of glass (&gt;20% wall area) add 10-25%.</li>
               </ul>
               <p>
                 The result is a recommended cooling capacity range. The lower end is the minimum that will
                 cope with an average summer day; the upper end handles heat-wave conditions comfortably.
                 Real-world quotes we produce take room-by-room measurements into account, so numbers may
-                vary — <Link href="/quote" style={{ color: "var(--orange)", fontWeight: 700 }}>send us the room</Link> and we&rsquo;ll spec it exactly.
+                vary, <Link href="/quote" style={{ color: "var(--orange)", fontWeight: 700 }}>send us the room</Link> and we&rsquo;ll spec it exactly.
               </p>
             </div>
           </details>
@@ -71,7 +71,7 @@ export default function SizingCalculatorPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want a properly-sized quote?</h2>
-            <p>Send us the room dimensions — we&rsquo;ll spec the exact model and price it fixed.</p>
+            <p>Send us the room dimensions. We&rsquo;ll spec the exact model and price it fixed.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>

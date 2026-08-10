@@ -176,7 +176,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             <div className="ds-section-head">
               <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
               <h2>Our {brand.name} installs.</h2>
-              <p>Real jobs we&rsquo;ve finished across Melbourne&rsquo;s south-east — photographed on site, on the day.</p>
+              <p>Real jobs we&rsquo;ve finished across Melbourne&rsquo;s south-east, photographed on site, on the day.</p>
             </div>
             <div className="brand-gallery__grid">
               {installs.map((g) => (
@@ -196,7 +196,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         posts={igPosts}
         eyebrow={`${brand.name} on the tools`}
         heading={`Our latest ${brand.name} jobs.`}
-        blurb={`Straight from our Instagram — real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
+        blurb={`Straight from our Instagram, real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
       />
 
       {/* Product range.

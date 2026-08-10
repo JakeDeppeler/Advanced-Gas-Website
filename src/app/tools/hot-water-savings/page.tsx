@@ -47,7 +47,7 @@ export default function HotWaterSavingsPage() {
             <div style={{ marginTop: 16, fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
               <p>
                 Hot water energy demand depends on the volume you use and how much you have to
-                heat it. Australian standard is <strong>~50 L / person / day</strong> at ~50 °C — so a
+                heat it. Australian standard is <strong>~50 L / person / day</strong> at ~50 °C, so a
                 4-person household uses ~200 L / day, which needs about <strong>9-10 kWh</strong> of
                 delivered heat energy daily.
               </p>
@@ -57,7 +57,7 @@ export default function HotWaterSavingsPage() {
                 <strong>Electric storage</strong> is 100% efficient at the element (1 kWh input = 1 kWh heat)
                 but every kWh costs peak retail rates.<br />
                 <strong>Heat pump</strong> pulls 3-4 kWh of heat out of the ambient air for every 1 kWh of
-                electricity — so the same 10 kWh of delivered heat needs only ~2.5-3.5 kWh of input.
+                electricity, so the same 10 kWh of delivered heat needs only ~2.5-3.5 kWh of input.
               </p>
               <p>
                 The <strong>VEU rebate</strong> in Victoria knocks up to $2,700 off a heat pump install
@@ -75,7 +75,7 @@ export default function HotWaterSavingsPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready to lock in the saving?</h2>
-            <p>Send us your current unit — we&rsquo;ll price the swap fixed with the VEU rebate applied.</p>
+            <p>Send us your current unit. We&rsquo;ll price the swap fixed with the VEU rebate applied.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Quote my heat pump swap →</Link>

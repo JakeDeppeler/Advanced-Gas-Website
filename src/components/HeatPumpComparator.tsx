@@ -188,7 +188,7 @@ export function HeatPumpComparator() {
         <p>Best price and longest warranty are highlighted in orange automatically.</p>
       </div>
 
-      {/* Picker grid — clean product tiles with photo + specs */}
+      {/* Picker grid, clean product tiles with photo + specs */}
       <div className="hpc__picker">
         {visibleUnits.map((u) => {
           const isOn = selected.includes(u.id);

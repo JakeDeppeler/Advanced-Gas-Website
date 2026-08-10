@@ -46,7 +46,7 @@ export default function HeatingComparatorPage() {
             </summary>
             <div style={{ marginTop: 16, fontSize: 14.5, lineHeight: 1.6, color: "var(--ink-2)" }}>
               <p>
-                We compute the <strong>delivered heat energy</strong> needed per year — heat load (kW)
+                We compute the <strong>delivered heat energy</strong> needed per year, heat load (kW)
                 × hours per day × days per year. That&rsquo;s the same output both systems have to hit.
               </p>
               <p>
@@ -67,7 +67,7 @@ export default function HeatingComparatorPage() {
               <p>
                 Big picture: a modern reverse-cycle unit on 2025 tariffs typically runs at half the
                 cost of a 3-star gas ducted heater. The VEU rebate makes the swap cost dramatically
-                less — <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange)", fontWeight: 700 }}>estimate your rebate</Link>.
+                less, <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange)", fontWeight: 700 }}>estimate your rebate</Link>.
               </p>
             </div>
           </details>
@@ -78,7 +78,7 @@ export default function HeatingComparatorPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready to price the swap?</h2>
-            <p>Send us the current heater — we&rsquo;ll quote the reverse-cycle upgrade with rebate applied.</p>
+            <p>Send us the current heater. We&rsquo;ll quote the reverse-cycle upgrade with rebate applied.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>

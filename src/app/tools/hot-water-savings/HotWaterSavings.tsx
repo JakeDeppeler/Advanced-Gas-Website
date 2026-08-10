@@ -262,7 +262,7 @@ export function HotWaterSavings() {
           Payback in{" "}
           <strong>
             {result.paybackYears === Infinity
-              ? "n/a — no saving in this scenario"
+              ? "n/a, no saving in this scenario"
               : `${result.paybackYears.toFixed(1)} years`}
           </strong>{" "}
           on a net install of <strong>{$(result.netInstall)}</strong> after the VEU rebate.
@@ -309,7 +309,7 @@ export function HotWaterSavings() {
         <p className="tool-result__note">
           Estimate only. Real savings depend on your actual usage pattern, exact tariff, and the
           specific heat pump model. Reclaim CO₂ units perform better than R290 units in cold
-          Melbourne mornings — worth ~10-15% more delivered heat over a year.
+          Melbourne mornings, worth ~10-15% more delivered heat over a year.
         </p>
       </div>
     </div>

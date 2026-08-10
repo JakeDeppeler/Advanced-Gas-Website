@@ -110,25 +110,25 @@ export default function BrandSuburbPage({
         </div>
       </section>
 
-      {/* Intersection strip — why this brand suits this suburb */}
+      {/* Intersection strip, why this brand suits this suburb */}
       <section className="dp-local">
         <div className="wrap">
           <div className="dp-local__grid" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <div className="dp-local__cell">
-              <div className="dp-local__lbl">{brand.name} — why we install it</div>
+              <div className="dp-local__lbl">{brand.name}, why we install it</div>
               <p>{brand.ourTake}</p>
             </div>
             <div className="dp-local__cell">
-              <div className="dp-local__lbl">{sub.name} — what we usually install</div>
+              <div className="dp-local__lbl">{sub.name}, what we usually install</div>
               <p>{sub.commonInstall.charAt(0).toUpperCase() + sub.commonInstall.slice(1)}.</p>
             </div>
             <div className="dp-local__cell">
               <div className="dp-local__lbl">Local housing stock</div>
-              <p>{sub.housingStock.charAt(0).toUpperCase() + sub.housingStock.slice(1)}. {brand.name}'s range covers this stock end-to-end — that's why we lead with it here.</p>
+              <p>{sub.housingStock.charAt(0).toUpperCase() + sub.housingStock.slice(1)}. {brand.name}'s range covers this stock end-to-end. That's why we lead with it here.</p>
             </div>
             <div className="dp-local__cell">
               <div className="dp-local__lbl">Council + compliance</div>
-              <p>{sub.council}. Compliance certificates handled in-house — you receive yours by email within 24 hours of install.</p>
+              <p>{sub.council}. Compliance certificates handled in-house. You receive yours by email within 24 hours of install.</p>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ export default function BrandSuburbPage({
             <span className="ds-eyebrow"><span className="ds-dot" /> {brand.name} in {sub.name}</span>
             <h2>The {brand.name} models we install most often in {sub.name}.</h2>
             <p>
-              A handful of the range shown below — {brand.products.length} total {brand.name} models
+              A handful of the range shown below, {brand.products.length} total {brand.name} models
               are in our regular install list. Tap through for spec sheet, installed price and our
               take on each model.
             </p>
@@ -227,7 +227,7 @@ export default function BrandSuburbPage({
             </p>
           </div>
 
-          {/* Right-side quote form placeholder — reuse the shared QuoteForm */}
+          {/* Right-side quote form placeholder, reuse the shared QuoteForm */}
           <QuoteFormLite brand={brand.name} suburb={sub.name} />
         </div>
       </section>

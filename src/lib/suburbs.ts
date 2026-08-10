@@ -68,16 +68,16 @@ export const suburbs: Suburb[] = [
       who: "Jess M., Pakenham",
       what: "Reclaim heat pump swap, VEU rebate handled",
       quote:
-        "Took the old Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. The bloke on the phone was the bloke on the tools — refreshing.",
+        "Took the old Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. The bloke on the phone was the bloke on the tools, refreshing.",
     },
     nearby: ["officer", "beaconsfield", "pakenham-upper", "nar-nar-goon", "tynong", "bunyip"],
     whyLocal:
-      "This is where we live and work. Our workshop's on Sierra Circuit, our kids go to Pakenham Consolidated, and we sponsor the Pakenham Bombers each year. Chances are your neighbour has our compliance certificate on their fridge — we've done more than 400 Pakenham installs in the last five years.",
+      "This is where we live and work. Our workshop's on Sierra Circuit, our kids go to Pakenham Consolidated, and we sponsor the Pakenham Bombers each year. Chances are your neighbour has our compliance certificate on their fridge. We've done more than 400 Pakenham installs in the last five years.",
     commonProblems: [
       "15-year-old Rinnai gas storage tanks in Cameron Park hitting end-of-life all at once (they went in during the estate build)",
-      "Original electric-storage tanks in the older Main Street cottages — perfect VEU rebate territory",
+      "Original electric-storage tanks in the older Main Street cottages, perfect VEU rebate territory",
       "Lakeside two-storey builds with single-zone ducted that never quite cools the upstairs bedrooms",
-      "James Bathe / Deep Creek Reserve side of Lakeside gets hit by summer westerly wind — outdoor units need proper wind shielding",
+      "James Bathe / Deep Creek Reserve side of Lakeside gets hit by summer westerly wind, outdoor units need proper wind shielding",
     ],
     knownEstates:
       "Cameron Park, Lakeside, Arena, Heritage Springs, Timbertop. We've been in most of them enough times to know which streets have gas connections and which are LPG.",
@@ -91,7 +91,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Arena Shopping Centre and the new Officer Central precinct off Rix Road",
     housingStock:
-      "predominantly newer estate homes — Timbertop, Arcadia, Beacon Hills — most built inside the last decade with ducted heating and cooling already roughed in",
+      "predominantly newer estate homes, Timbertop, Arcadia, Beacon Hills, most built inside the last decade with ducted heating and cooling already roughed in",
     commonInstall:
       "clean ducted aircon installs into new-build cavities, and VEU-eligible heat pump swaps as the original electric storage tanks that came with the estate homes hit end-of-life",
     localHooks: [
@@ -102,22 +102,22 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Dean R., Officer",
-      what: "Mitsubishi ducted retrofit — Arcadia estate",
+      what: "Mitsubishi ducted retrofit, Arcadia estate",
       quote:
         "Had three quotes for a ducted system. These guys were the only ones who actually crawled into the roof. Middle of the pack on price but installed cleaner than the others would have.",
     },
     nearby: ["pakenham", "beaconsfield", "berwick", "cardinia-town", "narre-warren"],
     driveMin: [8, 15],
     whyLocal:
-      "Officer's basically our second workshop — 6 km up the highway. We've done pre-handover ducted commissioning for four different builders in the Timbertop and Arcadia estates. If you're moving into a new-build here, we've almost certainly worked in the same street.",
+      "Officer's basically our second workshop, 6 km up the highway. We've done pre-handover ducted commissioning for four different builders in the Timbertop and Arcadia estates. If you're moving into a new-build here, we've almost certainly worked in the same street.",
     commonProblems: [
-      "Developer-installed 4-zone ducted systems missing zone balancing — one bedroom gets 30% of the airflow instead of its share",
+      "Developer-installed 4-zone ducted systems missing zone balancing, one bedroom gets 30% of the airflow instead of its share",
       "Original electric-storage hot water tanks starting to fail at 8-10 years across Arcadia and Timbertop",
       "Ducted controllers running default fan speeds too high, chewing power (proper Zonemate tuning drops running cost 20-30%)",
-      "Beacon Hills homes on the ridge get more sun exposure — living-zone splits often need to upsize from 5 kW to 6-7.1 kW",
+      "Beacon Hills homes on the ridge get more sun exposure, living-zone splits often need to upsize from 5 kW to 6-7.1 kW",
     ],
     knownEstates:
-      "Arcadia, Timbertop, Beacon Hills, Officer Central. We know the developer's spec sheet for each — helps us diagnose issues without guessing.",
+      "Arcadia, Timbertop, Beacon Hills, Officer Central. We know the developer's spec sheet for each, helps us diagnose issues without guessing.",
   },
   {
     slug: "beaconsfield",
@@ -131,7 +131,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "large-block older weatherboards on the north side, and the newer Ellenbrook and Coach estate builds south of the highway",
     commonInstall:
-      "gas ducted heating replacements — usually Brivis or Braemar rip-out and swap — plus Mitsubishi MSZ-AP splits in the weatherboards where ducted isn't feasible",
+      "gas ducted heating replacements, usually Brivis or Braemar rip-out and swap, plus Mitsubishi MSZ-AP splits in the weatherboards where ducted isn't feasible",
     localHooks: [
       "Beaconsfield Primary School",
       "Berwick Grammar (Beaconsfield campus)",
@@ -162,7 +162,7 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Sam K., Berwick",
-      what: "Emergency hot water — iStore heat pump replacement",
+      what: "Emergency hot water, iStore heat pump replacement",
       quote:
         "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.",
     },
@@ -180,7 +180,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "predominantly 90s brick veneer family homes on quarter-acre blocks, with pockets of newer townhouse infill closer to Fountain Gate",
     commonInstall:
-      "bedroom split system upgrades — usually two-to-three-head Mitsubishi Electric multi-heads — plus like-for-like gas storage hot water swaps in the original estate builds",
+      "bedroom split system upgrades, usually two-to-three-head Mitsubishi Electric multi-heads, plus like-for-like gas storage hot water swaps in the original estate builds",
     localHooks: [
       "Westfield Fountain Gate",
       "Casey Complex",
@@ -190,7 +190,7 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Tom H., Narre Warren",
-      what: "Thermann heat pump — family business feels it",
+      what: "Thermann heat pump, family business feels it",
       quote:
         "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.",
     },
@@ -206,7 +206,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "Endeavour Hills Shopping Centre on Heatherton Road and the Bemersyde Wetlands",
     housingStock:
-      "80s cladded homes on standard blocks, most on their original gas ducted heating and electric-storage hot water systems — prime retrofit territory",
+      "80s cladded homes on standard blocks, most on their original gas ducted heating and electric-storage hot water systems, prime retrofit territory",
     commonInstall:
       "gas ducted heater replacements (usually Brivis to Braemar), and full VEU heat pump swaps replacing the original 315L electric tanks",
     localHooks: [
@@ -227,7 +227,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Hallam industrial precinct along Frankston-Dandenong Road and the Hallam railway line",
     housingStock:
-      "a working mix of residential streets north of the Princes Highway and the light-industrial belt south — we do both",
+      "a working mix of residential streets north of the Princes Highway and the light-industrial belt south, we do both",
     commonInstall:
       "commercial and light-industrial split system fit-outs, plus residential Mitsubishi splits and continuous-flow gas hot water changeovers on the residential side",
     localHooks: [
@@ -248,9 +248,9 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "Hampton Park Shopping Centre and the Hampton Park Wetlands",
     housingStock:
-      "80s and 90s Ryan Homes estates — mostly brick veneer on standard 500-600m² blocks, with original hot water and heating still in place on a lot of them",
+      "80s and 90s Ryan Homes estates, mostly brick veneer on standard 500-600m² blocks, with original hot water and heating still in place on a lot of them",
     commonInstall:
-      "iStore 270L heat pumps replacing original electric-storage tanks — this is the max-VEU-rebate postcode where the rebate + trade-in gets the install price well under $500 out of pocket",
+      "iStore 270L heat pumps replacing original electric-storage tanks. This is the max-VEU-rebate postcode where the rebate + trade-in gets the install price well under $500 out of pocket",
     localHooks: [
       "Hampton Park Secondary",
       "Coral Park Primary",
@@ -269,7 +269,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "Royal Botanic Gardens Cranbourne and the Cranbourne Racecourse",
     housingStock:
-      "a real mix — the old Cranbourne township weatherboards near the station, plus the Cranbourne North and Cranbourne East estates built through the 2010s",
+      "a real mix, the old Cranbourne township weatherboards near the station, plus the Cranbourne North and Cranbourne East estates built through the 2010s",
     commonInstall:
       "multi-head Mitsubishi Electric splits in the family homes on the newer estates, and VEU-funded heat pump swaps on the original 1980s Cranbourne stock",
     localHooks: [
@@ -280,7 +280,7 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Priya S., Cranbourne",
-      what: "Mitsubishi split install — no surprises on the invoice",
+      what: "Mitsubishi split install, no surprises on the invoice",
       quote:
         "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.",
     },
@@ -296,7 +296,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Eliston, Meridian and Berwick Waters estates on the eastern edge of Casey's growth corridor",
     housingStock:
-      "almost all post-2018 new builds — big double-storey family homes with ducted heating and cooling roughed in from day one",
+      "almost all post-2018 new builds, big double-storey family homes with ducted heating and cooling roughed in from day one",
     commonInstall:
       "Zonemate zoning upgrades on 4-zone ducted systems that came with the estate build, plus VEU heat pump hot water swaps as owners hit their first tank replacement",
     localHooks: [
@@ -338,9 +338,9 @@ export const suburbs: Suburb[] = [
     council: "Baw Baw Shire Council",
     landmark: "the West Gippsland Arts Centre and the Warragul CBD around Queen Street",
     housingStock:
-      "the regional centre for the shire — Federation weatherboards in the old town core, brick veneer through the 90s and 2000s, and new estate growth on the north edge",
+      "the regional centre for the shire, Federation weatherboards in the old town core, brick veneer through the 90s and 2000s, and new estate growth on the north edge",
     commonInstall:
-      "Reclaim R290 heat pumps — the cold-morning performance actually matters this far east — and Kaden ducted systems where the customer wants the ducted feel without the Mitsubishi premium",
+      "Reclaim R290 heat pumps, the cold-morning performance actually matters this far east, and Kaden ducted systems where the customer wants the ducted feel without the Mitsubishi premium",
     localHooks: [
       "Warragul Regional College",
       "St Paul's Anglican Grammar",
@@ -361,7 +361,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Toomuc Valley and the Beaconsfield-Emerald Road ridge climbing into the hills north of Pakenham",
     housingStock:
-      "semi-rural acreage properties on 1-to-5-hectare blocks — most on tank hot water, mains gas doesn't run this far up, so LPG or all-electric is the reality",
+      "semi-rural acreage properties on 1-to-5-hectare blocks, most on tank hot water, mains gas doesn't run this far up, so LPG or all-electric is the reality",
     commonInstall:
       "LPG continuous-flow hot water swaps for tanks that have run their course, and 315L Reclaim R290 heat pumps for larger households where mains gas simply isn't an option",
     localHooks: [
@@ -381,7 +381,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Arcadia and Timbertop new-build estates south of the highway",
     housingStock:
-      "post-2015 new-build family homes — most already have ducted cooling from the developer, so what breaks first is usually the hot water",
+      "post-2015 new-build family homes, most already have ducted cooling from the developer, so what breaks first is usually the hot water",
     commonInstall:
       "clean ducted aircon tune-ups and Zonemate zoning upgrades, plus VEU heat pump swaps as the original 315L electric tanks that came with the build hit end-of-life",
     localHooks: [
@@ -401,7 +401,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Cardinia Reservoir Park and the ridgeline off Beaconsfield-Emerald Road",
     housingStock:
-      "bush blocks and larger rural residential parcels — cold-morning heating matters here, and mains gas is patchy so a lot of homes run LPG or all-electric",
+      "bush blocks and larger rural residential parcels, cold-morning heating matters here, and mains gas is patchy so a lot of homes run LPG or all-electric",
     commonInstall:
       "Mitsubishi MSZ-FH Hyper Heating splits (they hold capacity below zero, which normal splits don't) and Reclaim R290 hot water where the household size justifies the tank",
     localHooks: [
@@ -421,7 +421,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Casey Complex sports precinct and the ridge climbing toward Berwick Springs",
     housingStock:
-      "larger family blocks with more roof space than the south side — a lot of two-storey brick veneer built through the 2000s where ducted retrofit is very feasible",
+      "larger family blocks with more roof space than the south side, a lot of two-storey brick veneer built through the 2000s where ducted retrofit is very feasible",
     commonInstall:
       "full ducted aircon retrofits into 2000s two-storeys, and multi-head Mitsubishi Electric MXZ setups for the streets where ducted isn't in the budget",
     localHooks: [
@@ -441,7 +441,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Casey Central shopping corridor and Amberley Park",
     housingStock:
-      "mid-2010s brick veneer family homes — most were built with either ducted or single-head splits, and most are hitting the age where the first component (usually the hot water) needs replacing",
+      "mid-2010s brick veneer family homes, most were built with either ducted or single-head splits, and most are hitting the age where the first component (usually the hot water) needs replacing",
     commonInstall:
       "ducted service and rebalance work, Mitsubishi MXZ multi-head installs adding a second and third head, and VEU-funded heat pump hot water swaps",
     localHooks: [
@@ -461,7 +461,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Marriott Waters estate and the Lynbrook Village shopping centre",
     housingStock:
-      "2000s Marriott Waters estate homes with ducted cooling from build, laid out around the man-made lake — mostly double-storey brick veneer",
+      "2000s Marriott Waters estate homes with ducted cooling from build, laid out around the man-made lake, mostly double-storey brick veneer",
     commonInstall:
       "Zonemate zoning controller upgrades on the original 4-zone ducted systems, plus VEU heat pump hot water swaps as the developer-installed tanks reach end-of-life",
     localHooks: [
@@ -481,7 +481,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Marriott Waters wetland corridor east of Thompsons Road",
     housingStock:
-      "new estates carved out east of Thompsons Road through the 2010s — most homes fully ducted from day one with electric-storage hot water",
+      "new estates carved out east of Thompsons Road through the 2010s, most homes fully ducted from day one with electric-storage hot water",
     commonInstall:
       "ducted rebalance and Zonemate upgrades, and iStore or Thermann heat pump swaps to unlock the VEU rebate on the original electric tanks",
     localHooks: [
@@ -501,7 +501,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Doveton Recreation Reserve and Power Reserve",
     housingStock:
-      "post-war fibro and brick homes — Doveton is one of the older postcodes in the corridor and most homes are on their original hot water and heating",
+      "post-war fibro and brick homes, Doveton is one of the older postcodes in the corridor and most homes are on their original hot water and heating",
     commonInstall:
       "gas heater replacements (usually Brivis or Braemar rip-and-replace), and iStore heat pump swaps where the household qualifies for the max VEU rebate",
     localHooks: [
@@ -521,7 +521,7 @@ export const suburbs: Suburb[] = [
     council: "City of Greater Dandenong",
     landmark: "Dandenong Market and the Drum Theatre on Walker Street",
     housingStock:
-      "a real mix — post-war units and weatherboards near the station, newer high-density apartments through the CBD, and light-industrial commercial buildings south of the Princes Highway",
+      "a real mix, post-war units and weatherboards near the station, newer high-density apartments through the CBD, and light-industrial commercial buildings south of the Princes Highway",
     commonInstall:
       "commercial split system fit-outs on Lonsdale and Foster Streets, and residential hot water swaps + Mitsubishi MSZ-AP wall splits in the older stock",
     localHooks: [
@@ -562,7 +562,7 @@ export const suburbs: Suburb[] = [
     council: "City of Greater Dandenong",
     landmark: "Noble Park Station and Ross Reserve",
     housingStock:
-      "post-war fibro and brick veneer, one of the older postcodes in the south-east — most homes are on their original gas heater and electric hot water",
+      "post-war fibro and brick veneer, one of the older postcodes in the south-east, most homes are on their original gas heater and electric hot water",
     commonInstall:
       "Mitsubishi MSZ-AP wall split upgrades (bedrooms first, living zone next), and iStore or Thermann heat pump hot water swaps timed to the VEU rebate",
     localHooks: [
@@ -602,7 +602,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Livingston and Hunt Club estates east of the South Gippsland Highway",
     housingStock:
-      "predominantly new-build family homes — Livingston, Hunt Club, and Cascades estates — most with ducted cooling from developer handover",
+      "predominantly new-build family homes, Livingston, Hunt Club, and Cascades estates, most with ducted cooling from developer handover",
     commonInstall:
       "Zonemate zoning upgrades on 4-zone systems, ducted rebalancing after developer defects, and VEU-eligible heat pump swaps",
     localHooks: [
@@ -622,7 +622,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Amstel Golf Club and the Grasmere estate",
     housingStock:
-      "mid-2010s brick veneer builds through the Amstel and Grasmere estates — larger blocks than Cranbourne central, most with ducted cooling from build",
+      "mid-2010s brick veneer builds through the Amstel and Grasmere estates, larger blocks than Cranbourne central, most with ducted cooling from build",
     commonInstall:
       "multi-head Mitsubishi Electric splits adding bedroom zones to homes that only came with living-zone ducted, and VEU heat pump hot water",
     localHooks: [
@@ -642,7 +642,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the rural fringe stretching south toward Devon Meadows and the Royal Botanic Gardens edge",
     housingStock:
-      "semi-rural acreage properties on 1-to-4-hectare blocks — most on tank hot water, LPG common, no mains gas past a certain line",
+      "semi-rural acreage properties on 1-to-4-hectare blocks, most on tank hot water, LPG common, no mains gas past a certain line",
     commonInstall:
       "LPG continuous-flow hot water swaps and larger 315L Reclaim R290 heat pumps sized for the higher family draw on acreage",
     localHooks: [
@@ -661,7 +661,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Selandra Rise estate and its Community Hub",
     housingStock:
-      "new-build Selandra Rise family homes — most planned around the Community Hub and the Selandra Boulevard spine, all ducted from day one",
+      "new-build Selandra Rise family homes, most planned around the Community Hub and the Selandra Boulevard spine, all ducted from day one",
     commonInstall:
       "ducted rebalance and Zonemate upgrades on the original 4-zone systems, plus iStore heat pump swaps as the developer-installed tanks reach end-of-life",
     localHooks: [
@@ -681,7 +681,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Clyde township area on Ballarto Road and the surrounding growth corridor",
     housingStock:
-      "the fastest-growing corridor in the south-east — new estate builds through the 2020s, almost all with developer-installed ducted cooling from the moment keys are handed over",
+      "the fastest-growing corridor in the south-east, new estate builds through the 2020s, almost all with developer-installed ducted cooling from the moment keys are handed over",
     commonInstall:
       "Zonemate zoning tune-ups on ducted-from-day-one homes, VEU heat pump swaps on the developer-installed electric tanks, and Mitsubishi splits added to homes that skipped bedroom cooling",
     localHooks: [
@@ -701,7 +701,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Settlers Run Golf & Country Club and the Royal Botanic Gardens Cranbourne boundary",
     housingStock:
-      "semi-rural, larger footprint homes on 800-1500m² blocks — the higher-end end of the Cranbourne market, most fully ducted with heat pump hot water",
+      "semi-rural, larger footprint homes on 800-1500m² blocks, the higher-end end of the Cranbourne market, most fully ducted with heat pump hot water",
     commonInstall:
       "multi-head Mitsubishi MXZ multi-heads on the bigger single-storey layouts, ducted service work, and Reclaim R290 or Thermann Series 5 heat pumps sized for larger households",
     localHooks: [
@@ -721,7 +721,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Devon Meadows township and General Store on Browns Road",
     housingStock:
-      "rural acreage — no mains gas past a certain distance from town, so LPG bottles and all-electric are the reality, tanks are common",
+      "rural acreage, no mains gas past a certain distance from town, so LPG bottles and all-electric are the reality, tanks are common",
     commonInstall:
       "LPG continuous-flow gas hot water swaps and larger 315L Reclaim R290 heat pump tanks sized for the household draw on acreage",
     localHooks: [
@@ -741,7 +741,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Pearcedale township and the Coolart Wetlands over toward Western Port",
     housingStock:
-      "rural residential on larger blocks — LPG or all-electric standard, tanks are heavy-use for large households, some hobby farms",
+      "rural residential on larger blocks, LPG or all-electric standard, tanks are heavy-use for large households, some hobby farms",
     commonInstall:
       "LPG conversions to continuous-flow hot water, Reclaim R290 315L heat pumps for higher family draw, and Mitsubishi FH cold-climate splits for the winter mornings",
     localHooks: [
@@ -761,7 +761,7 @@ export const suburbs: Suburb[] = [
     council: "City of Casey",
     landmark: "the Tooradin foreshore, the boat ramp on Sawtells Inlet, and the Tooradin Airfield",
     housingStock:
-      "coastal-edge homes needing salt-tolerant hardware on the outdoor units — off-the-shelf split systems corrode within 3-5 years here, so we spec marine-grade finishes",
+      "coastal-edge homes needing salt-tolerant hardware on the outdoor units, off-the-shelf split systems corrode within 3-5 years here, so we spec marine-grade finishes",
     commonInstall:
       "coastal-rated Mitsubishi Electric splits with marine-grade coil coating, and heat pump hot water tanks sited well away from the prevailing salt spray",
     localHooks: [
@@ -781,7 +781,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Nar Nar Goon township and the Bunyip River crossing",
     housingStock:
-      "rural blocks and older brick veneer homes — mains gas on the town blocks but LPG once you're out past the highway",
+      "rural blocks and older brick veneer homes, mains gas on the town blocks but LPG once you're out past the highway",
     commonInstall:
       "split system installs into the older brick veneers, and heat pump hot water upgrades from tank storage where the family draw doesn't justify LPG continuous flow",
     localHooks: [
@@ -821,7 +821,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Bunyip township along Main Street and the Bunyip Football Netball Club oval",
     housingStock:
-      "historic town centre with retrofit-heavy older stock — a lot of Federation weatherboards, then a ring of 90s brick veneer, then rural acreage past the town",
+      "historic town centre with retrofit-heavy older stock, a lot of Federation weatherboards, then a ring of 90s brick veneer, then rural acreage past the town",
     commonInstall:
       "gas ducted heating replacements (Brivis and Braemar rip-and-replace), and Mitsubishi MSZ-AP wall splits into the weatherboards where ducted isn't feasible",
     localHooks: [
@@ -841,7 +841,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Garfield township along Main Street and Cannibal Creek Reserve",
     housingStock:
-      "rural residential on standard blocks in the town, larger acreage on the outskirts — mostly weatherboard and older brick veneer",
+      "rural residential on standard blocks in the town, larger acreage on the outskirts, mostly weatherboard and older brick veneer",
     commonInstall:
       "Mitsubishi MSZ-AP splits into the town blocks, gas ducted heating tune-ups on the older systems, and Reclaim heat pump swaps where the family draw is heavy enough",
     localHooks: [
@@ -861,7 +861,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Cardinia township and the shire's rural offices",
     housingStock:
-      "semi-rural blocks with older brick veneer and weatherboard homes — small population, jobs here are usually acreage or rural residential",
+      "semi-rural blocks with older brick veneer and weatherboard homes, small population, jobs here are usually acreage or rural residential",
     commonInstall:
       "LPG continuous-flow hot water swaps and Reclaim heat pumps sized for larger household draw, plus split-system installs into the residential blocks",
     localHooks: [
@@ -880,7 +880,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Koo Wee Rup Swamp Historical Society and the Bunyip Main Drain running through town",
     housingStock:
-      "farming and rural residential — LPG is common past town, tanks are usually large-format to match higher household draw, some newer estate infill near the town centre",
+      "farming and rural residential, LPG is common past town, tanks are usually large-format to match higher household draw, some newer estate infill near the town centre",
     commonInstall:
       "LPG continuous-flow hot water changeovers and 315L Reclaim R290 heat pump tanks for larger farming households, plus wall splits into the town blocks",
     localHooks: [
@@ -900,7 +900,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Lang Lang township and the Western Port coastline south of the highway",
     housingStock:
-      "rural coast — mostly older weatherboards and brick veneer, some newer coastal builds nearer Western Port, LPG common past town",
+      "rural coast, mostly older weatherboards and brick veneer, some newer coastal builds nearer Western Port, LPG common past town",
     commonInstall:
       "heat pump storage swaps and LPG continuous-flow hot water, plus salt-tolerant Mitsubishi splits for the coastal-edge properties",
     localHooks: [
@@ -920,7 +920,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Bayles township and the Bayles Fauna Park",
     housingStock:
-      "farming country, low-density, larger blocks — LPG standard, tanks usually large-format to match household draw",
+      "farming country, low-density, larger blocks, LPG standard, tanks usually large-format to match household draw",
     commonInstall:
       "LPG continuous-flow hot water changeovers and Reclaim R290 heat pump storage sized for the farming-household draw",
     localHooks: [
@@ -940,7 +940,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Yannathan township and the Lang Lang River crossing",
     housingStock:
-      "rural farming community — LPG common, tanks usually large-format, homes further apart than any of the other Cardinia postcodes",
+      "rural farming community, LPG common, tanks usually large-format, homes further apart than any of the other Cardinia postcodes",
     commonInstall:
       "LPG continuous-flow hot water changeovers, and 315L Reclaim R290 heat pump tanks where the household draw is heavier",
     localHooks: [
@@ -980,7 +980,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "Emerald Lake Park and the Puffing Billy Railway line running through town",
     housingStock:
-      "Dandenong Ranges hills homes — older cottages tucked in the bush, larger newer builds on ridge blocks, most on cold-climate zones and mains gas is patchy",
+      "Dandenong Ranges hills homes, older cottages tucked in the bush, larger newer builds on ridge blocks, most on cold-climate zones and mains gas is patchy",
     commonInstall:
       "Reclaim R290 heat pumps (they hold capacity down to -5°C, which off-the-shelf tanks don't), and Mitsubishi MSZ-FH Hyper Heating splits for the cold-morning heat load",
     localHooks: [
@@ -1000,7 +1000,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Cockatoo township in the Dandenong Ranges and Wright Forest",
     housingStock:
-      "hills homes on bush blocks — cold-climate zone, patchy mains gas, most on tank storage and older gas ducted heaters",
+      "hills homes on bush blocks, cold-climate zone, patchy mains gas, most on tank storage and older gas ducted heaters",
     commonInstall:
       "cold-climate Mitsubishi MSZ-FH Hyper Heating splits (they don't ice up like non-Hyper units do), and Reclaim R290 heat pumps built for the cold-morning draw",
     localHooks: [
@@ -1027,7 +1027,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Puffing Billy Belgrave terminus, the Cameo Cinema and the Belgrave village strip on Burwood Highway",
     housingStock:
-      "hills homes on bush blocks — a lot of 70s-80s cedar and mudbrick, plus older weatherboard cottages tucked below the ridge on steep driveways where getting equipment to site takes proper planning",
+      "hills homes on bush blocks, a lot of 70s-80s cedar and mudbrick, plus older weatherboard cottages tucked below the ridge on steep driveways where getting equipment to site takes proper planning",
     commonInstall:
       "cold-climate Mitsubishi MSZ-FH Hyper Heating splits (they hold rated output down to -15 °C, which non-Hyper units simply don't), Reclaim R290 heat pumps for the cold-morning tank draw, and Braemar gas ducted where mains gas is on the street",
     localHooks: [
@@ -1039,17 +1039,17 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Ange P., Belgrave",
-      what: "Mitsubishi Hyper Heating install — cold-climate spec",
+      what: "Mitsubishi Hyper Heating install, cold-climate spec",
       quote:
         "First installer in three quotes who actually said 'that's not the right unit for up here.' Spec'd the FH not the AP, and the difference on frosty mornings is night and day.",
     },
     nearby: ["tecoma", "upwey", "selby", "kallista", "sherbrooke"],
     whyLocal:
-      "The hills postcodes are a specialty — cold-climate heat load and steep driveways mean the wrong install just doesn't hold up. We keep FH stock on the van every winter because we're up here weekly.",
+      "The hills postcodes are a specialty, cold-climate heat load and steep driveways mean the wrong install just doesn't hold up. We keep FH stock on the van every winter because we're up here weekly.",
     commonProblems: [
-      "Standard-spec splits (MSZ-AP, cheaper Fujitsu) icing up on winter mornings — the customer just needs the Hyper Heating variant, but nobody explained the difference at quote time",
-      "Undersized heat pump tanks running cold by the second shower — hills households often need the 315L version rather than the entry 250L",
-      "Steep driveways adding a labour uplift most quotes forget to include — we quote it in up front",
+      "Standard-spec splits (MSZ-AP, cheaper Fujitsu) icing up on winter mornings, the customer just needs the Hyper Heating variant, but nobody explained the difference at quote time",
+      "Undersized heat pump tanks running cold by the second shower, hills households often need the 315L version rather than the entry 250L",
+      "Steep driveways adding a labour uplift most quotes forget to include, we quote it in up front",
       "Older Braemar / Brivis ducted units without frost-protection cycling drawing full gas load 24/7 through winter",
     ],
   },
@@ -1063,7 +1063,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Selby General Store on Wellington Road and the Selby Community House",
     housingStock:
-      "hills bush blocks with mostly older weatherboards and 80s brick veneers on 1000-3000 m² lots — many on LPG bottles or all-electric because mains gas is spotty",
+      "hills bush blocks with mostly older weatherboards and 80s brick veneers on 1000-3000 m² lots, many on LPG bottles or all-electric because mains gas is spotty",
     commonInstall:
       "Reclaim R290 heat pumps sized to the household draw, LPG continuous-flow changeovers where the household is heavy-use, and Mitsubishi Hyper Heating splits for the winter mornings",
     localHooks: [
@@ -1084,7 +1084,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Puffing Billy Menzies Creek Station and the Menzies Creek township",
     housingStock:
-      "semi-rural hills acreage, low-density — most homes on tank water and LPG bottles, older Federation weatherboards and 90s pole-frame builds mixed together",
+      "semi-rural hills acreage, low-density, most homes on tank water and LPG bottles, older Federation weatherboards and 90s pole-frame builds mixed together",
     commonInstall:
       "LPG continuous-flow gas hot water changeovers, Reclaim R290 heat pumps for households cutting the LPG bill, and cold-climate splits for the frosty side of the hill",
     localHooks: [
@@ -1105,7 +1105,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "Grants Picnic Ground and the Kallista village shops on Monbulk Road",
     housingStock:
-      "cool-temperate rainforest blocks with a lot of older cedar and mudbrick cottages plus a few larger contemporary hills builds — every install has to plan around ferngullies and access",
+      "cool-temperate rainforest blocks with a lot of older cedar and mudbrick cottages plus a few larger contemporary hills builds, every install has to plan around ferngullies and access",
     commonInstall:
       "Mitsubishi MSZ-FH Hyper Heating splits, Reclaim R290 heat pumps (silent enough not to disturb the neighbours across the gully), and split-system relocations when the old outdoor unit is corroded from constant damp",
     localHooks: [
@@ -1126,7 +1126,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Sassafras village strip along Mount Dandenong Tourist Road and Miss Marple's Tea Room",
     housingStock:
-      "cool-climate hills homes — a mix of restored heritage cottages in the village core and larger contemporary builds on bush blocks either side",
+      "cool-climate hills homes, a mix of restored heritage cottages in the village core and larger contemporary builds on bush blocks either side",
     commonInstall:
       "cold-climate Mitsubishi MSZ-FH Hyper Heating splits (the go-to for anywhere north of Belgrave), Reclaim R290 heat pumps for reliable morning hot water, and refrigeration servicing on the cafe strip",
     localHooks: [
@@ -1147,7 +1147,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "Sherbrooke Forest and the lyrebird walk off Sherbrooke Lodge Road",
     housingStock:
-      "bush blocks tucked deep in the forest — driveways can be 100 m of gravel, most homes are cedar-clad or mudbrick with wood heaters as the primary and splits as the secondary",
+      "bush blocks tucked deep in the forest, driveways can be 100 m of gravel, most homes are cedar-clad or mudbrick with wood heaters as the primary and splits as the secondary",
     commonInstall:
       "Mitsubishi Hyper Heating splits sized as the secondary heat source alongside a wood heater, and Reclaim R290 heat pumps for households moving off LPG bottles",
     localHooks: [
@@ -1168,7 +1168,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the National Rhododendron Gardens, Olinda Falls and the Olinda village shops",
     housingStock:
-      "heritage weatherboards and 60s-70s hills chalets on ridge blocks — cold-temperate climate, snow on the ridge occasionally, mains gas patchy so LPG or all-electric common",
+      "heritage weatherboards and 60s-70s hills chalets on ridge blocks, cold-temperate climate, snow on the ridge occasionally, mains gas patchy so LPG or all-electric common",
     commonInstall:
       "Mitsubishi MSZ-FH Hyper Heating splits (they're the only splits that hold capacity in a proper hills winter), Reclaim R290 heat pumps, and Braemar gas ducted replacements where mains gas reaches",
     localHooks: [
@@ -1189,7 +1189,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the SkyHigh lookout at the summit and the Mount Dandenong village",
     housingStock:
-      "the highest residential postcode we service — cold-climate ridge homes, several heritage guest houses and larger architectural builds on blocks with commanding views but brutal winter exposure",
+      "the highest residential postcode we service, cold-climate ridge homes, several heritage guest houses and larger architectural builds on blocks with commanding views but brutal winter exposure",
     commonInstall:
       "Mitsubishi MSZ-FH Hyper Heating splits are mandatory (rated to -15 °C, holds output where other brands drop 40%), Reclaim R290 for the tank draw, and full ducted retrofits with proper cold-climate outdoor units",
     localHooks: [
@@ -1200,11 +1200,11 @@ export const suburbs: Suburb[] = [
     ],
     nearby: ["olinda", "sassafras", "silvan"],
     whyLocal:
-      "Mount Dandenong homes have three problems most suburbs don't: cold-climate heat load, exposure to horizontal rain, and driveways that need a proper 4WD. Every install we quote up here includes the correct spec for all three — we don't try to sell a coastal-spec split to a ridge house.",
+      "Mount Dandenong homes have three problems most suburbs don't: cold-climate heat load, exposure to horizontal rain, and driveways that need a proper 4WD. Every install we quote up here includes the correct spec for all three. We don't try to sell a coastal-spec split to a ridge house.",
     commonProblems: [
-      "Standard-spec splits under-performing at 0-5 °C — needs a proper Hyper Heating unit, not a Northern-slope compromise",
-      "Outdoor units mounted on the exposed side of the house, taking horizontal rain — we relocate to a sheltered aspect and add a wind-shield hood",
-      "Heat pump tanks sized on standard tables — hills households often need the next size up because of cold inlet water",
+      "Standard-spec splits under-performing at 0-5 °C, needs a proper Hyper Heating unit, not a Northern-slope compromise",
+      "Outdoor units mounted on the exposed side of the house, taking horizontal rain. We relocate to a sheltered aspect and add a wind-shield hood",
+      "Heat pump tanks sized on standard tables, hills households often need the next size up because of cold inlet water",
     ],
   },
   {
@@ -1217,7 +1217,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Monbulk township along Main Road and Silvan Reservoir Park",
     housingStock:
-      "hills town core plus surrounding acreage — brick veneer and weatherboard in town, larger acreage properties on the outskirts, nursery country so a lot of homes have commercial-scale water use",
+      "hills town core plus surrounding acreage, brick veneer and weatherboard in town, larger acreage properties on the outskirts, nursery country so a lot of homes have commercial-scale water use",
     commonInstall:
       "Reclaim R290 heat pumps sized for the higher household draw, Mitsubishi Hyper Heating splits for winter, and gas ducted replacements where mains gas is on the street",
     localHooks: [
@@ -1238,7 +1238,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "Silvan Reservoir and the Tesselaar Tulip Farm off Monbulk Road",
     housingStock:
-      "rural hills — mostly acreage, nurseries and orchards, tank water standard, LPG common because mains gas doesn't extend this far",
+      "rural hills, mostly acreage, nurseries and orchards, tank water standard, LPG common because mains gas doesn't extend this far",
     commonInstall:
       "LPG continuous-flow hot water swaps and Reclaim R290 heat pumps sized to acreage-household draw, plus Mitsubishi Hyper Heating splits into the residential homes",
     localHooks: [
@@ -1259,7 +1259,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "The Patch Primary School and Old Emerald Road",
     housingStock:
-      "hills residential on 1000-4000 m² blocks — a mix of cedar hills-style builds and 90s brick veneers, most on tank water, LPG or all-electric",
+      "hills residential on 1000-4000 m² blocks, a mix of cedar hills-style builds and 90s brick veneers, most on tank water, LPG or all-electric",
     commonInstall:
       "Reclaim R290 heat pumps, Mitsubishi Hyper Heating splits, and heat-pump-to-electric retrofit work as households phase out LPG bottles",
     localHooks: [
@@ -1280,7 +1280,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "the Upwey village shopping strip and Upwey railway station on the Belgrave line",
     housingStock:
-      "hills village stock — weatherboards through the village core and 70s-80s brick veneer on the ridges above, mains gas on most streets, retrofit-heavy",
+      "hills village stock, weatherboards through the village core and 70s-80s brick veneer on the ridges above, mains gas on most streets, retrofit-heavy",
     commonInstall:
       "gas ducted retrofits (Braemar and Brivis rip-and-replace), Mitsubishi MSZ-FH Hyper Heating splits, and Reclaim R290 heat pumps where the household is ready to move off gas",
     localHooks: [
@@ -1301,7 +1301,7 @@ export const suburbs: Suburb[] = [
     council: "Yarra Ranges Shire Council",
     landmark: "Tecoma railway station on the Belgrave line and the Burwood Highway village strip",
     housingStock:
-      "hills residential village — weatherboards along the highway, brick veneer on the ridges either side, mains gas throughout most of the postcode",
+      "hills residential village, weatherboards along the highway, brick veneer on the ridges either side, mains gas throughout most of the postcode",
     commonInstall:
       "Mitsubishi Hyper Heating splits, gas ducted rip-and-replace on end-of-life Brivis units, and iStore or Reclaim heat pump swaps replacing original electric tanks",
     localHooks: [
@@ -1322,7 +1322,7 @@ export const suburbs: Suburb[] = [
     council: "Knox City Council",
     landmark: "Upper Ferntree Gully Station and the Ferntree Gully NP entry at the base of the 1000 Steps",
     housingStock:
-      "hillside residential — a lot of 70s-80s brick veneer on sloping blocks, mains gas standard, some newer infill on the ridge closer to the national park",
+      "hillside residential, a lot of 70s-80s brick veneer on sloping blocks, mains gas standard, some newer infill on the ridge closer to the national park",
     commonInstall:
       "gas ducted retrofits, Mitsubishi wall splits sized for the sloping-block heat load, and VEU heat pump swaps as original electric tanks age out",
     localHooks: [
@@ -1343,9 +1343,9 @@ export const suburbs: Suburb[] = [
     council: "Knox City Council",
     landmark: "Westfield Knox at the edge of the postcode, Ferntree Gully Station and the FTG Village shops on Station Street",
     housingStock:
-      "a real spread — post-war brick veneer through the older streets north of the highway, 80s-90s family homes in the estates south, plus new townhouse infill near the station",
+      "a real spread, post-war brick veneer through the older streets north of the highway, 80s-90s family homes in the estates south, plus new townhouse infill near the station",
     commonInstall:
-      "full ducted retrofits into the family homes, Mitsubishi multi-head splits for the townhouses, and heat pump hot water swaps replacing original electric tanks — a strong VEU rebate postcode",
+      "full ducted retrofits into the family homes, Mitsubishi multi-head splits for the townhouses, and heat pump hot water swaps replacing original electric tanks, a strong VEU rebate postcode",
     localHooks: [
       "Westfield Knox",
       "Ferntree Gully Station",
@@ -1355,7 +1355,7 @@ export const suburbs: Suburb[] = [
     ],
     testimonial: {
       who: "Marcus L., Ferntree Gully",
-      what: "Ducted retrofit — full spec, no upsell",
+      what: "Ducted retrofit, full spec, no upsell",
       quote:
         "Third quote and the only one that didn't try to push us onto their 'preferred' brand. Spec'd the Mitsubishi we asked for, priced it fairly, done in a day.",
     },
@@ -1392,7 +1392,7 @@ export const suburbs: Suburb[] = [
     council: "Knox City Council",
     landmark: "Lysterfield Park, Lysterfield Lake and the Belgrave-Hallam Road ridge",
     housingStock:
-      "large-block hills residential — most homes on 1000-2000 m² blocks with room for outdoor unit siting, mostly late-80s and 90s brick veneer, mains gas on most streets",
+      "large-block hills residential, most homes on 1000-2000 m² blocks with room for outdoor unit siting, mostly late-80s and 90s brick veneer, mains gas on most streets",
     commonInstall:
       "full ducted retrofits on double-storey brick veneers, Mitsubishi MXZ multi-heads adding bedroom cooling to living-zone-only originals, and Reclaim R290 heat pumps for the households ready to phase out gas",
     localHooks: [
@@ -1413,7 +1413,7 @@ export const suburbs: Suburb[] = [
     council: "Knox City Council",
     landmark: "Stud Park Shopping Centre, Rowville Community Kindergarten and the Rowville Secondary Sports Academy",
     housingStock:
-      "predominantly late-80s and 90s brick veneer family homes on standard 600-800 m² blocks — a lot of ducted heating from build, most on their original hot water",
+      "predominantly late-80s and 90s brick veneer family homes on standard 600-800 m² blocks, a lot of ducted heating from build, most on their original hot water",
     commonInstall:
       "gas ducted heating tune-ups and replacements, iStore or Thermann heat pump swaps replacing original electric tanks, and Mitsubishi MXZ multi-head splits for zoning older homes",
     localHooks: [
@@ -1435,7 +1435,7 @@ export const suburbs: Suburb[] = [
     council: "Cardinia Shire Council",
     landmark: "the Gembrook township, the Puffing Billy Gembrook terminus, and the edge of Bunyip State Park",
     housingStock:
-      "hills, larger bush blocks — most homes on LPG or all-electric, cold-climate heat load through winter, some older bushfire-rebuild stock",
+      "hills, larger bush blocks, most homes on LPG or all-electric, cold-climate heat load through winter, some older bushfire-rebuild stock",
     commonInstall:
       "Reclaim R290 heat pumps and Mitsubishi Hyper Heating splits, plus LPG continuous-flow gas hot water changeovers where mains gas doesn't reach",
     localHooks: [

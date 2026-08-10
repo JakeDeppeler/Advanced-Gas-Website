@@ -117,13 +117,13 @@ type SystemPreset = {
 
 const SYSTEMS: SystemPreset[] = [
   { id: "pana-6-250", name: "Reclaim Panasonic CO₂ 6 kW · 250 L", heatKw: 6.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "6 kW Panasonic Aquarea compressor. Roughly half the reheat time of the 4 kW — worth it when the tank gets emptied hard and needs to be back fast." },
+    note: "6 kW Panasonic Aquarea compressor. Roughly half the reheat time of the 4 kW, worth it when the tank gets emptied hard and needs to be back fast." },
   { id: "pana-6-315", name: "Reclaim Panasonic CO₂ 6 kW · 315 L", heatKw: 6.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "Same 6 kW compressor, bigger buffer for back-to-back showers." },
   { id: "reclaim-400", name: "Reclaim CO₂ 400 L", heatKw: 4.7, tankLitres: 400, cop: 4.5, verified: false,
     note: "The big-family answer. 320 L usable covers four 15-minute showers back to back with room left over." },
   { id: "pana-4-250", name: "Reclaim Panasonic CO₂ 4 kW · 250 L", heatKw: 4.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "4 kW compressor — quieter and cheaper. Fine on a long gap between runs; the 6 kW is the answer when the gap is short." },
+    note: "4 kW compressor, quieter and cheaper. Fine on a long gap between runs; the 6 kW is the answer when the gap is short." },
   { id: "pana-4-315", name: "Reclaim Panasonic CO₂ 4 kW · 315 L", heatKw: 4.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "4 kW compressor with the larger tank doing the heavy lifting." },
   { id: "istore-270", name: "iStore 270 L", heatKw: 3.6, tankLitres: 270, cop: 3.5, verified: false,
@@ -293,7 +293,7 @@ export function HeatPumpSizing() {
             onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 15)} />
           <small>
             10 minutes is the working number. Set it higher if your household
-            runs long ones — it changes the tank size fast.
+            runs long ones, it changes the tank size fast.
           </small>
         </div>
 
@@ -317,7 +317,7 @@ export function HeatPumpSizing() {
           <summary>Advanced settings</summary>
           <p className="tool-adv__note">
             Defaults are what we&rsquo;d quote on. Change them if you know your
-            own numbers — mains runs colder in the hills, and COP moves with
+            own numbers, mains runs colder in the hills, and COP moves with
             the unit.
           </p>
 
@@ -334,7 +334,7 @@ export function HeatPumpSizing() {
               <input id="tank" type="number" min="50" max="70" step="1"
                 value={form.tankTempC}
                 onChange={(e) => set("tankTempC", parseFloat(e.target.value) || 60)} />
-              <small>60 minimum by law — Legionella control.</small>
+              <small>60 minimum by law, Legionella control.</small>
             </div>
           </div>
 
@@ -368,7 +368,7 @@ export function HeatPumpSizing() {
               <input id="gap" type="number" min="2" max="16" step="1"
                 value={form.gapHours}
                 onChange={(e) => set("gapHours", parseFloat(e.target.value) || 9)} />
-              <small>Morning to evening — the tank&rsquo;s reheat window.</small>
+              <small>Morning to evening, the tank&rsquo;s reheat window.</small>
             </div>
           </div>
 
@@ -396,7 +396,7 @@ export function HeatPumpSizing() {
           <div className="hps-verdict is-tight" style={{ marginTop: 14 }}>
             <strong>Bigger than one tank</strong>
             <span>
-              That run needs about {n(r.requiredLitres)} L of storage — more than the
+              That run needs about {n(r.requiredLitres)} L of storage, more than the
               largest single tank we install. The usual answer is two tanks plumbed
               in series, or staggering the showers so the run splits in two. Worth a
               call rather than a calculator.
@@ -423,7 +423,7 @@ export function HeatPumpSizing() {
             <strong>{n(r.coldBlendedIn)} L</strong> of cold to make{" "}
             <strong>{n(r.deliveredMixed)} L</strong> at shower temperature. Each{" "}
             {form.showerMinutes} minute shower takes {n(r.hotPerShower)} L out of the tank
-            — {n(r.hotLpm, 1)} L a minute hot, {n(r.coldLpm, 1)} L cold.
+, {n(r.hotLpm, 1)} L a minute hot, {n(r.coldLpm, 1)} L cold.
           </p>
         </div>
 
@@ -473,7 +473,7 @@ export function HeatPumpSizing() {
                 <p className="hps-vs__note">{c.note}</p>
                 {!c.verified && (
                   <p className="hps-vs__unverified">
-                    Heat output is a working estimate — confirm against the datasheet
+                    Heat output is a working estimate, confirm against the datasheet
                     before quoting off it.
                   </p>
                 )}
@@ -483,7 +483,7 @@ export function HeatPumpSizing() {
           <p className="hps-vs__foot">
             Compressor size is a recovery-speed decision, not a capacity one. A 6 kW
             Panasonic reheats in roughly half the time of the 4 kW, which only matters
-            when the gap between runs is short — with a long morning-to-evening gap the
+            when the gap between runs is short, with a long morning-to-evening gap the
             4 kW gets there just as comfortably and costs less. All-in-one units add a
             boost mode that forces a full reheat on demand, covering the houseful-of-guests
             weekend without paying for a bigger compressor all year.

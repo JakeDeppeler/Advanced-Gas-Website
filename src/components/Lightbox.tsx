@@ -99,7 +99,7 @@ export function Lightbox({
       className="lbx"
       role="dialog"
       aria-modal="true"
-      aria-label={`${album.title} — item ${i + 1} of ${count}`}
+      aria-label={`${album.title}, item ${i + 1} of ${count}`}
       onClick={(e) => {
         // Backdrop click closes; clicks on the panel don't bubble out.
         if (e.target === e.currentTarget) onClose();

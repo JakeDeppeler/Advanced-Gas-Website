@@ -163,7 +163,7 @@ export default async function SystemPage({
         </div>
       </section>
 
-      {/* Right call / wrong call — the honest half */}
+      {/* Right call / wrong call, the honest half */}
       {(system.bestFor || system.watchOut) && (
         <section className="sysfit">
           <div className="wrap">
@@ -193,7 +193,7 @@ export default async function SystemPage({
         </section>
       )}
 
-      {/* Process — shared with the parent service */}
+      {/* Process, shared with the parent service */}
       {content.steps && content.steps.length > 0 && (
         <section className="svc-steps">
           <div className="wrap">
@@ -281,7 +281,7 @@ export default async function SystemPage({
         </div>
       </section>
 
-      {/* FAQ — system-specific */}
+      {/* FAQ, system-specific */}
       {system.faqs && system.faqs.length > 0 && (
         <section className="dp-faq">
           <div className="wrap dp-faq__grid">

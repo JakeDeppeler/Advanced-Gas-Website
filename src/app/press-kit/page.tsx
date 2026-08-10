@@ -23,7 +23,7 @@ import "./press-kit.css";
 export const metadata: Metadata = {
   title: "Press Kit & Media Resources | Advanced Gas & Aircon Pakenham",
   description:
-    "Media & partner resources for Advanced Gas & Aircon — Pakenham-based heat pump, aircon and gas plumbing specialists. Logo pack, business boilerplate, team photo, key facts, media contact and pre-approved backlink copy.",
+    "Media & partner resources for Advanced Gas & Aircon, Pakenham-based heat pump, aircon and gas plumbing specialists. Logo pack, business boilerplate, team photo, key facts, media contact and pre-approved backlink copy.",
   alternates: { canonical: "/press-kit" },
 };
 
@@ -36,7 +36,7 @@ const KEY_FACTS: { label: string; value: string }[] = [
   { label: "Google reviews",  value: "4.9 / 5 stars on Google" },
   { label: "Plumbing licence",value: "VIC Lic. 46828" },
   { label: "Refrigeration",   value: "ARCtick AU59557" },
-  { label: "VEU accredited",  value: "Yes — rebates handled in-house" },
+  { label: "VEU accredited",  value: "Yes, rebates handled in-house" },
   { label: "Public liability",value: "$20M cover" },
   { label: "ABN",             value: site.abn },
   { label: "ACN",             value: site.acn },
@@ -49,16 +49,16 @@ const COPY_BLOCKS: { label: string; text: string; note?: string }[] = [
   },
   {
     label: "Two-sentence boilerplate (for chamber/community pages)",
-    text: "Advanced Gas & Aircon is a family-owned installer based at 1 Sierra Circuit, Pakenham VIC 3810. Trading since 2014 across Melbourne's south-east and Gippsland, the team installs heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing — with VEU rebates handled in-house and a 6-year workmanship warranty on every job.",
+    text: "Advanced Gas & Aircon is a family-owned installer based at 1 Sierra Circuit, Pakenham VIC 3810. Trading since 2014 across Melbourne's south-east and Gippsland, the team installs heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing, with VEU rebates handled in-house and a 6-year workmanship warranty on every job.",
   },
   {
     label: "Long-form bio (for guest posts, PR features, sponsorship pages)",
-    text: "Advanced Gas & Aircon is a Pakenham-based installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing. Founded in 2014 by owner-operator Jake Deppeler, the team has completed 1,200+ residential and light-commercial installs across the south-east — Pakenham, Berwick, Officer, Cranbourne, Narre Warren, the Dandenong Ranges hills postcodes, and out to Drouin/Warragul in Gippsland. Every install includes a fixed-price quote inside two business hours, a 6-year workmanship warranty, and the VEU rebate applied at the quote stage rather than chased after the fact. Fully licensed: Plumbing Lic. 46828, ARCtick refrigeration handling licence AU59557, VEU accredited, $20 M public liability.",
+    text: "Advanced Gas & Aircon is a Pakenham-based installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing. Founded in 2014 by owner-operator Jake Deppeler, the team has completed 1,200+ residential and light-commercial installs across the south-east, Pakenham, Berwick, Officer, Cranbourne, Narre Warren, the Dandenong Ranges hills postcodes, and out to Drouin/Warragul in Gippsland. Every install includes a fixed-price quote inside two business hours, a 6-year workmanship warranty, and the VEU rebate applied at the quote stage rather than chased after the fact. Fully licensed: Plumbing Lic. 46828, ARCtick refrigeration handling licence AU59557, VEU accredited, $20 M public liability.",
   },
   {
     label: "Suggested anchor text (for a hyperlink pointing to advancedgas.com.au)",
     text: "Advanced Gas & Aircon · Pakenham heat pump and aircon installer",
-    note: "Vary this every 3rd or 4th link — a link profile of 100 % identical anchors looks unnatural. Alternates below.",
+    note: "Vary this every 3rd or 4th link, a link profile of 100 % identical anchors looks unnatural. Alternates below.",
   },
   {
     label: "Anchor text alternates",
@@ -67,24 +67,24 @@ const COPY_BLOCKS: { label: string; text: string; note?: string }[] = [
       "Advanced Gas & Aircon",
       "licensed gas plumber Pakenham",
       "aircon installation Melbourne south-east",
-      "Advanced Gas — VEU-accredited heat pump installer",
+      "Advanced Gas, VEU-accredited heat pump installer",
       "advancedgas.com.au",
     ].map((s) => `• ${s}`).join("\n"),
   },
   {
     label: "Suggested pull-quote (from Jake, for feature articles)",
-    text: "“We answer the phone ourselves, quote the job ourselves, and we're the same face on the tools on install day. That trail of trust doesn't exist with most of the bigger mobs anymore — and it's the only reason a family-owned installer can still hold its own in this market.” — Jake Deppeler, founder, Advanced Gas & Aircon",
+    text: "“We answer the phone ourselves, quote the job ourselves, and we're the same face on the tools on install day. That trail of trust doesn't exist with most of the bigger mobs anymore, and it's the only reason a family-owned installer can still hold its own in this market.”, Jake Deppeler, founder, Advanced Gas & Aircon",
   },
   {
     label: "Suggested pull-quote (on rebates)",
-    text: "“We apply the VEU rebate at the quote stage so the customer never pays it up-front and chases it back. Most Pakenham heat pump swaps land under $500 out of pocket by the time the paperwork's done.” — Jake Deppeler",
+    text: "“We apply the VEU rebate at the quote stage so the customer never pays it up-front and chases it back. Most Pakenham heat pump swaps land under $500 out of pocket by the time the paperwork's done.”, Jake Deppeler",
   },
 ];
 
 const OUTREACH_PLAN: { audience: string; whyLink: string; useThis: string }[] = [
   {
     audience: "Manufacturer installer directories (Reclaim, iStore, Thermann, Brivis, Mitsubishi Electric, Kaden, Zonemate)",
-    whyLink: "You install their products at volume — every accredited-installer directory on their site is a link worth chasing.",
+    whyLink: "You install their products at volume, every accredited-installer directory on their site is a link worth chasing.",
     useThis: "Two-sentence boilerplate + logo pack + Pakenham postcode.",
   },
   {
@@ -94,7 +94,7 @@ const OUTREACH_PLAN: { audience: string; whyLink: string; useThis: string }[] = 
   },
   {
     audience: "VEU / Solar Victoria accredited-installer page",
-    whyLink: "Government domain, high trust — accredited installers get a public listing.",
+    whyLink: "Government domain, high trust, accredited installers get a public listing.",
     useThis: "One-line boilerplate + VEU accreditation number.",
   },
   {
@@ -104,17 +104,17 @@ const OUTREACH_PLAN: { audience: string; whyLink: string; useThis: string }[] = 
   },
   {
     audience: "Star News Group, Berwick News, Pakenham Gazette, Officer/Pakenham Star",
-    whyLink: "Local news covers accredited trades. Offer a rebate-explainer piece or an install case study — link back to /rebates or /heat-pumps.",
+    whyLink: "Local news covers accredited trades. Offer a rebate-explainer piece or an install case study, link back to /rebates or /heat-pumps.",
     useThis: "Long-form bio + pull-quote + team photo.",
   },
   {
     audience: "hipages, Oneflare, ServiceSeeking, Airtasker Pro, Yellow Pages, White Pages, TrueLocal, StartLocal",
-    whyLink: "Free directory listings — some are do-follow, some are no-follow, all reinforce name/address/phone (NAP) consistency for local SEO.",
+    whyLink: "Free directory listings, some are do-follow, some are no-follow, all reinforce name/address/phone (NAP) consistency for local SEO.",
     useThis: "One-line boilerplate + logo pack + full contact block below.",
   },
   {
     audience: "Local sports club sponsorship pages (Pakenham Bombers FC, Berwick Cricket, Cardinia Netball, etc.)",
-    whyLink: "Sponsoring a club typically earns a sponsors-page backlink — bonus community-signal for local search.",
+    whyLink: "Sponsoring a club typically earns a sponsors-page backlink, bonus community-signal for local search.",
     useThis: "Logo pack + short boilerplate + link target /contact.",
   },
 ];
@@ -138,7 +138,7 @@ export default function PressKitPage() {
           <p className="dp-hero__sub">
             Everything a chamber, manufacturer directory, community sponsor or local news outlet
             needs to link to us in one place. Logo pack, business boilerplate, key facts, team photo,
-            pre-approved quotes and a media contact — copy, paste, publish.
+            pre-approved quotes and a media contact, copy, paste, publish.
           </p>
         </div>
       </section>
@@ -319,7 +319,7 @@ export default function PressKitPage() {
             <span className="ds-eyebrow"><span className="ds-dot" /> NAP block</span>
             <h2>Name, address, phone. Use exactly this format.</h2>
             <p>
-              Local search rewards <strong>NAP consistency</strong> — every directory listing
+              Local search rewards <strong>NAP consistency</strong>, every directory listing
               should show the business name, address and phone in the same format. Copy this
               block verbatim into every listing.
             </p>

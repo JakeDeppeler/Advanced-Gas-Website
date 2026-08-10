@@ -184,29 +184,13 @@ export default function PricingPage() {
               <p>Unit + labour + standard install (up to 3 m line-set) + disposal of the old system + compliance certificate + registration for manufacturer warranty. GST inclusive.</p>
             </div>
             <div>
-              <div className="pricing-note__lbl">What might add cost</div>
-              <p>Extended pipe runs (&gt;5 m: +$300), first-floor roof access (+$500), salt-tolerant coating for coastal edge (+$200), backhoe / trenching for LPG bottle relocation (+$400).</p>
+              <div className="pricing-note__lbl">We&rsquo;ll quote it and let you know</div>
+              <p>Some sites need more than a standard install: a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, or trenching to move an LPG bottle. We price all of it into the written quote before you commit, so nothing turns up on the invoice that wasn&rsquo;t on the quote.</p>
             </div>
             <div>
               <div className="pricing-note__lbl">VEU rebate</div>
               <p>Applied at quote · you don&rsquo;t pay it up-front then chase it back. Additional Solar Homes bonus (+$1,000) available for eligible owner-occupier households.</p>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Category tabs / anchor nav */}
-      <section className="pricing-catnav">
-        <div className="wrap">
-          <div className="pricing-catnav__scroll" role="tablist" aria-label="Product categories">
-            {CATEGORY_ORDER
-              .filter((c) => (rows[c.key] ?? []).length > 0)
-              .map((c) => (
-                <a key={c.key} href={`#${c.key}`} className="pricing-catnav__chip">
-                  {c.label}
-                  <span>{(rows[c.key] ?? []).length}</span>
-                </a>
-              ))}
           </div>
         </div>
       </section>
@@ -257,9 +241,9 @@ export default function PricingPage() {
                               <div className="pricing-block__name">{r.name.replace(r.brand, "").trim() || r.name}</div>
                             </td>
                             <td><code>{r.model}</code></td>
-                            <td>{r.capacity ?? "—"}</td>
+                            <td>{r.capacity ?? ", "}</td>
                             <td className="pricing-block__bestfor">{r.bestFor}</td>
-                            <td>{r.veu ? <span className="pricing-block__pill">VEU eligible</span> : <span className="pricing-block__pill pricing-block__pill--muted">—</span>}</td>
+                            <td>{r.veu ? <span className="pricing-block__pill">VEU eligible</span> : <span className="pricing-block__pill pricing-block__pill--muted">, </span>}</td>
                             <td className="pricing-block__pricecell">
                               {r.price
                                 ? <strong>{r.price}</strong>

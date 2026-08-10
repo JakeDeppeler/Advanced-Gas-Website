@@ -41,14 +41,14 @@ const SERVICES_MEGA: {
       label: "Aircon",
       sub: "Split · multi-head · ducted",
       photo: "/mitsubishi-msz-ap-wall-split-v2.png",
-      photoAlt: "Air conditioning — split and ducted systems",
+      photoAlt: "Air conditioning, split and ducted systems",
     },
     {
       href: "/services/gas-plumbing/gas-ducted",
       label: "Gas heater",
       sub: "Ducted heating · service · repair",
       photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
-      photoAlt: "Gas ducted heater — install, service, repair",
+      photoAlt: "Gas ducted heater, install, service, repair",
     },
     {
       href: "/services/air-conditioning-installation/evap",
@@ -62,7 +62,7 @@ const SERVICES_MEGA: {
       label: "Emergency call-out",
       sub: "24/7 · gas leaks, no hot water",
       photo: "/gas-line-safe.webp",
-      photoAlt: "Emergency call-out — 24/7 gas and hot water",
+      photoAlt: "Emergency call-out, 24/7 gas and hot water",
     },
   ],
   install: [
@@ -376,7 +376,7 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      {/* TOP · Installation — 8 individual product / system cards */}
+      {/* TOP · Installation, 8 individual product / system cards */}
       <div className="mega__services-block">
         <div className="mega__collabel">Installation</div>
         <div className="mega__services-grid">
@@ -394,7 +394,7 @@ function ServicesMega() {
         </div>
       </div>
 
-      {/* BOTTOM · Service & repair — 4 tighter categories */}
+      {/* BOTTOM · Service & repair, 4 tighter categories */}
       <div className="mega__services-block mega__services-block--repair">
         <div className="mega__collabel">Service &amp; repair</div>
         <div className="mega__services-grid mega__services-grid--repair">

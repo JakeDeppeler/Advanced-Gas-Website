@@ -29,7 +29,7 @@ export default function SystemComparisonPage() {
             System <span className="accent">comparison</span> · split, multi-head, ducted, gas &amp; evap.
           </h1>
           <p className="dp-hero__sub">
-            Five options for climate-controlling an Australian home — and one is almost always right
+            Five options for climate-controlling an Australian home, and one is almost always right
             for your situation. Pick the systems you&rsquo;re considering and see them side-by-side
             on install cost, running cost, zone control, lifespan and what they&rsquo;re best for.
           </p>
@@ -46,7 +46,7 @@ export default function SystemComparisonPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Still not sure which suits you?</h2>
-            <p>Send us the room count, orientation and budget — we&rsquo;ll quote three real options from three different system types.</p>
+            <p>Send us the room count, orientation and budget. We&rsquo;ll quote three real options from three different system types.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get honest system advice →</Link>

@@ -116,8 +116,8 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
               <p>
                 <strong>{sub.distanceKm} km</strong>
                 {sub.distanceKm === 0
-                  ? " — this is our home patch."
-                  : " — well inside our 75 km same-day service radius."}
+                  ? ", this is our home patch."
+                  : ", well inside our 75 km same-day service radius."}
               </p>
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             <span className="ds-eyebrow"><span className="ds-dot" /> Location</span>
             <h2>Where {sub.name} sits in our service radius.</h2>
             <p>
-              {sub.name} is <strong>{sub.distanceKm}&nbsp;km</strong> from our Pakenham base — well inside
+              {sub.name} is <strong>{sub.distanceKm}&nbsp;km</strong> from our Pakenham base, well inside
               the 75&nbsp;km circle we cover same-week. The dotted rings step out in
               10&nbsp;km increments so you can see how quickly we can reach nearby suburbs
               along the same route.
@@ -148,7 +148,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
                     : `${Math.max(10, Math.round(sub.distanceKm * 0.7))}–${Math.max(15, Math.round(sub.distanceKm * 1.1))} min`}
               </strong>{" "}
               {sub.distanceKm > 30
-                ? "— mostly highway on the Princes Freeway."
+                ? ", mostly highway on the Princes Freeway."
                 : "depending on traffic on the Princes Highway."}
             </p>
           </div>
@@ -200,7 +200,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             <h2>Why {sub.name} homeowners choose us.</h2>
             <ul className="dp-hooks">
               <li>
-                Local technicians who know {sub.name}&rsquo;s housing stock — we&rsquo;re usually
+                Local technicians who know {sub.name}&rsquo;s housing stock, we&rsquo;re usually
                 working somewhere near {sub.localHooks[0]}
                 {sub.localHooks[1] ? ` or ${sub.localHooks[1]}` : ""} in any given week.
               </li>
@@ -211,7 +211,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
                 Same-week install slots almost always available inside {sub.postcode}.
               </li>
               <li>
-                VEU rebate eligibility checked and the rebate applied to your quote — you don&rsquo;t pay it up-front and then chase it back.
+                VEU rebate eligibility checked and the rebate applied to your quote. You don&rsquo;t pay it up-front and then chase it back.
               </li>
               <li>6-year workmanship warranty on every {sub.name} installation.</li>
             </ul>

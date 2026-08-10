@@ -35,55 +35,7 @@
 }
 
 /* ---- Category tab-nav (sticky, scrollable) ---- */
-.pricing-catnav {
-  position: sticky;
-  top: 84px;
-  z-index: 30;
-  background: rgba(250, 248, 243, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-.pricing-catnav__scroll {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 12px 0;
-  scrollbar-width: thin;
-  scroll-behavior: smooth;
-}
-.pricing-catnav__scroll::-webkit-scrollbar { height: 4px; }
-.pricing-catnav__scroll::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 2px; }
-.pricing-catnav__chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: transparent;
-  border: 1px solid var(--line);
-  text-decoration: none;
-  color: var(--ink);
-  font-size: 13.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background 0.12s, border-color 0.12s;
-  flex-shrink: 0;
-}
-.pricing-catnav__chip:hover {
-  background: var(--paper);
-  border-color: var(--navy);
-}
-.pricing-catnav__chip span {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  color: var(--ink-3);
-  background: var(--bg-2);
-  padding: 1px 6px;
-  border-radius: 5px;
-}
 
-/* ---- Price tables ---- */
 .pricing-body { padding: 40px 0 20px; }
 .pricing-body--extras { padding: 20px 0 60px; }
 
@@ -253,8 +205,6 @@
 }
 
 @media (max-width: 760px) {
-  .pricing-catnav { top: 64px; }
-  .pricing-catnav__scroll { padding: 10px 0; }
   .pricing-block__head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 20px; }
   .pricing-block__head h2 { font-size: 19px; }
   .pricing-block__count { align-self: flex-start; }

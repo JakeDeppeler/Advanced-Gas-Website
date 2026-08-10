@@ -135,7 +135,7 @@ export function BrandCompare({ brand }: Props) {
         </div>
       ))}
 
-      {/* Sticky compare drawer — appears when 1+ products are selected. */}
+      {/* Sticky compare drawer, appears when 1+ products are selected. */}
       {selected.length > 0 && (
         <div className={`compare-drawer${showModal ? " is-open" : ""}`}>
           <div className="compare-drawer__inner">
@@ -182,7 +182,7 @@ export function BrandCompare({ brand }: Props) {
         </div>
       )}
 
-      {/* Compare modal — side-by-side spec table. */}
+      {/* Compare modal, side-by-side spec table. */}
       {showModal && selectedProducts.length >= 2 && (
         <div
           className="compare-modal"
@@ -226,12 +226,12 @@ export function BrandCompare({ brand }: Props) {
                 </thead>
                 <tbody>
                   <CompareRow label="Category" values={selectedProducts.map((p) => p.categoryLabel)} />
-                  <CompareRow label="Capacity" values={selectedProducts.map((p) => p.capacity ?? "—")} />
-                  <CompareRow label="Refrigerant" values={selectedProducts.map((p) => p.refrigerant ?? "—")} />
-                  <CompareRow label="Star rating" values={selectedProducts.map((p) => p.starRating ?? "—")} />
+                  <CompareRow label="Capacity" values={selectedProducts.map((p) => p.capacity ?? ", ")} />
+                  <CompareRow label="Refrigerant" values={selectedProducts.map((p) => p.refrigerant ?? ", ")} />
+                  <CompareRow label="Star rating" values={selectedProducts.map((p) => p.starRating ?? ", ")} />
                   <CompareRow
                     label="VEU rebate"
-                    values={selectedProducts.map((p) => (p.veuEligible ? "Eligible" : "—"))}
+                    values={selectedProducts.map((p) => (p.veuEligible ? "Eligible" : ", "))}
                   />
                   <CompareRow
                     label="Best for"
@@ -255,7 +255,7 @@ export function BrandCompare({ brand }: Props) {
                       label={label}
                       values={selectedProducts.map((p) => {
                         const s = p.specs.find((sp) => sp.label === label);
-                        return s ? s.value : "—";
+                        return s ? s.value : ", ";
                       })}
                     />
                   ))}

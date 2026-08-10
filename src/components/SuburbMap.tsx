@@ -84,7 +84,7 @@ export function SuburbMap({ slug, name }: { slug: string; name: string }) {
       </svg>
       <figcaption>
         <strong>{dist.toFixed(1)}&nbsp;km</strong> {dir === "N" || dir === "S" || dir === "E" || dir === "W" ? dir.toLowerCase() : `to the ${dir.toLowerCase()}`} of our Pakenham base
-        {isBase && " — this is home."}
+        {isBase && ", this is home."}
       </figcaption>
     </figure>
   );

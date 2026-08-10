@@ -18,7 +18,7 @@ import type { ServiceContent } from "@/lib/serviceContent";
 const HOUSE_RULES = [
   {
     t: "We only install what we'd put in our own homes",
-    d: "That's the whole brand list. If a unit has a reputation for warranty claims or parts you can't get in a hurry, it doesn't go on the quote — no matter what margin is on it.",
+    d: "That's the whole brand list. If a unit has a reputation for warranty claims or parts you can't get in a hurry, it doesn't go on the quote, no matter what margin is on it.",
   },
   {
     t: "The bloke who quotes it is the bloke who installs it",

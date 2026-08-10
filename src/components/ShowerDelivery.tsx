@@ -63,7 +63,7 @@ export function ShowerDelivery({
         about {Math.round(100 * 0.8)}% of its volume before the outlet starts running
         cool, and that {HW_DEFAULTS.tankTempC} °C water gets blended with{" "}
         {HW_DEFAULTS.mainsTempC} °C mains down to a{" "}
-        {HW_DEFAULTS.mixedTempC} °C shower — so it stretches further than the label
+        {HW_DEFAULTS.mixedTempC} °C shower, so it stretches further than the label
         suggests. Figures assume Melbourne winter mains; you&rsquo;ll get more in summer.
       </p>
 

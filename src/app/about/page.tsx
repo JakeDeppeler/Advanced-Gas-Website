@@ -194,7 +194,7 @@ export default function AboutPage() {
             <h2>Featuring us or listing us?</h2>
             <p>
               Logo pack, business boilerplate, key facts, team photo, pre-approved quotes and a
-              media contact — all in one place. Chambers, manufacturer directories, sponsors and
+              media contact, all in one place. Chambers, manufacturer directories, sponsors and
               local news outlets can grab what they need in one click.
             </p>
           </div>

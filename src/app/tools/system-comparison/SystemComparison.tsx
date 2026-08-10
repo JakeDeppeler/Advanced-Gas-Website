@@ -54,7 +54,7 @@ const SYSTEMS: SystemRow[] = [
       "Doesn't need roof access",
     ],
     cons: [
-      "One room only — three bedrooms = three units + three outdoor condensers",
+      "One room only, three bedrooms = three units + three outdoor condensers",
       "Aesthetically visible indoors",
     ],
     brandHref: "/brands/mitsubishi-electric",
@@ -93,20 +93,20 @@ const SYSTEMS: SystemRow[] = [
     installFrom: "$9,500",
     installTo: "$18,000",
     runningCost: "$800-$2,500 / yr",
-    zoneControl: "Yes — Zonemate 4-8 zones",
+    zoneControl: "Yes, Zonemate 4-8 zones",
     lifespan: "15-20 years",
     bestFor: "Whole-home solution for 3+ bed family homes with attic space",
-    bestSuburbs: "Officer, Berwick, Clyde, Cranbourne — new-build estates",
+    bestSuburbs: "Officer, Berwick, Clyde, Cranbourne, new-build estates",
     brandsWeInstall: "Mitsubishi PEAD-M, Kaden ducted, Zonemate zoning",
     pros: [
-      "Seamless — no visible indoor units",
+      "Seamless, no visible indoor units",
       "One system handles cooling AND heating for the whole home",
       "Property-value uplift on any home with ceiling space to duct it",
     ],
     cons: [
       "Highest install cost of any option",
-      "Requires ceiling / roof cavity — retrofit into a single-storey slab-on-ground is expensive",
-      "Zoning tuning is important — a badly-balanced 4-zone system is worse than three splits",
+      "Requires ceiling / roof cavity, retrofit into a single-storey slab-on-ground is expensive",
+      "Zoning tuning is important, a badly-balanced 4-zone system is worse than three splits",
     ],
     brandHref: "/brands/mitsubishi-electric",
   },
@@ -125,12 +125,12 @@ const SYSTEMS: SystemRow[] = [
     bestSuburbs: "Emerald, Gembrook, Cockatoo, Beaconsfield Upper",
     brandsWeInstall: "Brivis Wombat + Buffalo, Kaden gas ducted",
     pros: [
-      "Fast heat-up — big room reaches temp in ~15 minutes",
+      "Fast heat-up, big room reaches temp in ~15 minutes",
       "Same-footprint retrofit into most 90s-onwards homes with an existing ducted heater",
       "Doesn't need refrigerant handling licence to service",
     ],
     cons: [
-      "Heating only — need separate cooling for summer",
+      "Heating only, need separate cooling for summer",
       "Running cost rising as gas tariffs rise",
       "Not eligible for VEU rebate (the scheme incentivises moving OFF gas)",
     ],
@@ -145,10 +145,10 @@ const SYSTEMS: SystemRow[] = [
     installFrom: "$3,500",
     installTo: "$6,000",
     runningCost: "$200-$500 per summer",
-    zoneControl: "No — whole-home only",
+    zoneControl: "No, whole-home only",
     lifespan: "10-15 years",
     bestFor: "Dry-summer suburbs on the outer edge that want cheap-to-run whole-home cooling",
-    bestSuburbs: "Cranbourne, Clyde, Officer — dry summer air",
+    bestSuburbs: "Cranbourne, Clyde, Officer, dry summer air",
     brandsWeInstall: "Brivis Contour / Advance, Kaden evap",
     pros: [
       "~25% of the running cost of refrigerated ducted",
@@ -156,9 +156,9 @@ const SYSTEMS: SystemRow[] = [
       "Simple mechanicals, easy to service",
     ],
     cons: [
-      "Cooling only — need a separate heater",
-      "Ineffective on humid days (dumps humidity indoors — bad on 32 °C + 70% humidity days)",
-      "Requires open windows to work — security concern for some households",
+      "Cooling only, need a separate heater",
+      "Ineffective on humid days (dumps humidity indoors, bad on 32 °C + 70% humidity days)",
+      "Requires open windows to work, security concern for some households",
     ],
     brandHref: "/brands/brivis",
   },
@@ -320,7 +320,7 @@ export function SystemComparison() {
           <li><strong>3+ bed family home, has attic:</strong> Ducted reverse-cycle with 4-6 Zonemate zones.</li>
           <li><strong>Hills postcode, mains gas on street:</strong> Gas ducted heater + a couple of splits for summer.</li>
           <li><strong>Cranbourne / Clyde new-build on the flat:</strong> Ducted RC OR evap + gas ducted combo.</li>
-          <li><strong>Rental / short-term:</strong> Wall split in the main room — smallest capex.</li>
+          <li><strong>Rental / short-term:</strong> Wall split in the main room, smallest capex.</li>
         </ul>
       </div>
     </>
