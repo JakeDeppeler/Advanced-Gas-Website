@@ -40,7 +40,7 @@ const SERVICES_MEGA: {
       href: "/services/air-conditioning-installation",
       label: "Aircon",
       sub: "Split · multi-head · ducted",
-      photo: "/AP_70-80HP_front-1920x1440-1.png",
+      photo: "/mitsubishi-msz-ap-wall-split-v2.png",
       photoAlt: "Air conditioning — split and ducted systems",
     },
     {
@@ -70,7 +70,7 @@ const SERVICES_MEGA: {
       href: "/services/air-conditioning-installation/split",
       label: "Split system aircon",
       sub: "Bedroom, living, multi-head",
-      photo: "/AP_70-80HP_front-1920x1440-1.png",
+      photo: "/mitsubishi-msz-ap-wall-split-v2.png",
       photoAlt: "Mitsubishi MSZ-AP wall split system",
     },
     {

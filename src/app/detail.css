@@ -1773,3 +1773,26 @@
   .page-detail .sysfit__grid { grid-template-columns: 1fr; }
   .page-detail .sysfit__col { padding: 20px; }
 }
+
+
+/* ============================================================
+   SYSTEM PAGES — quieter typography.
+   These pages are read, not skimmed: the section headings were set at
+   the same scale as a landing page and shouted over the copy.
+   ============================================================ */
+.page-detail .dp-hero--rich h1 { font-size: clamp(30px, 3.6vw, 46px); }
+.page-detail .sysfit .ds-section-head h2,
+.page-detail .dp-benefits .ds-section-head h2,
+.page-detail .svc-steps .ds-section-head h2,
+.page-detail .dp-pricing .ds-section-head h2 {
+  font-size: clamp(21px, 2.4vw, 28px);
+}
+.page-detail .ds-section-head p { font-size: 15.5px; }
+
+/* Points carry no heading on these pages, so the text is the card. */
+.page-detail .dp-benefit p { font-size: 14.5px; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .page-detail .dp-hero--rich h1 { font-size: clamp(25px, 7vw, 32px); }
+  .page-detail .ds-section-head p { font-size: 14.5px; }
+}

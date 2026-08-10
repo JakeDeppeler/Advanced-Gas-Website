@@ -148,7 +148,8 @@ export default async function SystemPage({
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> What you get</span>
-            <h2>{system.blurb}</h2>
+            <h2>What&rsquo;s in the price.</h2>
+            <p>{system.blurb}</p>
           </div>
           <div className="dp-benefits__grid">
             {system.points.map((pt, i) => (
@@ -167,7 +168,7 @@ export default async function SystemPage({
           <div className="wrap">
             <div className="ds-section-head">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
-              <h2>Where {system.label.toLowerCase()} works — and where it doesn&rsquo;t.</h2>
+              <h2>Where {system.label.toLowerCase()} works, and where it doesn&rsquo;t.</h2>
               <p>
                 We&rsquo;d rather you read this and ring someone else than have us fit
                 the wrong thing and both regret it.

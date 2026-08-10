@@ -126,12 +126,16 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split system air conditioning",
         blurb:
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat — cheapest to buy, cheapest to run, and the quickest to get in. Most go in back-to-back in a single morning.",
-        photo: { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
+        photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
           "Mitsubishi Electric MSZ-AP as standard, Kaden KSI as the value pick",
           "Back-to-back install in 3-4 hours, one visit",
           "Wi-Fi via MELCloud so you can run it from the phone",
+          "New line-set — we run fresh copper, never reuse the old pipe",
+          "New wall brackets or a ground stand, rated and levelled",
+          "Colour-matched ducting capping over the pipework, not bare lagging",
+          "Wall penetration cored and sealed, drop sheets down, mess taken with us",
         ],
         priceFrom: "from $2,199 installed",
         intro:
@@ -158,12 +162,16 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Multi-head air conditioning",
         blurb:
           "One outdoor unit running two to five indoor heads. Worth it when you want three bedrooms done but only have room — or body-corporate permission — for a single condenser outside.",
-        photo: { src: "/Mitsubishi Electric Multi Rooms Air Conditioner  6-Port Multi-Split condenser.webp", alt: "Mitsubishi Electric multi-split outdoor condenser" },
+        photo: { src: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric multi-split outdoor condenser" },
         points: [
           "2, 3, 4 and 5-port outdoor units — Mitsubishi MXZ series",
           "Mix head types: wall, floor console or bulkhead on the one system",
           "One set of pipe penetrations instead of four",
           "Each room keeps its own remote and its own set temperature",
+          "New copper to every head, individually sized to that indoor unit",
+          "New brackets or stand for the outdoor unit, levelled and anti-vibration mounted",
+          "Colour-matched capping on every external run",
+          "Condensate drained properly to a legal point, not just out the wall",
         ],
         priceFrom: "from $6,500 installed",
         intro:
@@ -190,12 +198,16 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Ducted reverse-cycle air conditioning",
         blurb:
           "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
-        photo: { src: "/Mitsubishi Electric Ducted Split System PEA-M-HAA Series.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
+        photo: { src: "/mitsubishi-pea-m-ducted-v2.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
         points: [
           "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
           "Zonemate 4, 6 and 8-zone control fitted by default",
           "Full duct design — we size the trunk and branches, not just the unit",
           "Retrofit into an existing roof cavity where there's access",
+          "New insulated flexible duct throughout, sized per branch",
+          "Return-air box and filter frame built to suit the house",
+          "New copper between indoor and outdoor, pressure and vacuum tested",
+          "Ceiling penetrations cut clean, grilles level, cavity left tidy",
         ],
         priceFrom: "from $12,500 installed",
         intro:
@@ -228,6 +240,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Running cost is a fraction of refrigerated cooling",
           "Best in the drier north and east — less suited to humid days",
           "Cooling only; pair with gas ducted for winter",
+          "New roof flashing and weatherproofing around the penetration",
+          "New water supply line and isolation tap to the unit",
+          "Ductwork sized to the unit, not just connected to it",
+          "Old unit removed, roof made good, nothing left up there",
         ],
         priceFrom: "from $3,900 installed",
         intro:
@@ -252,10 +268,10 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/AP_70-80HP_front-1920x1440-1.png", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
+      { src: "/mitsubishi-msz-ap-wall-split-v2.png", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
       { src: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI V3 wall split system", caption: "Brick-veneer install, colour-matched conduit" },
-      { src: "/Mitsubishi Electric Multi Rooms Air Conditioner  6-Port Multi-Split condenser.webp", alt: "Mitsubishi Electric multi-split outdoor condenser", caption: "Multi-head — one outdoor, up to 5 indoor heads" },
-      { src: "/Mitsubishi Electric Ducted Split System PEA-M-HAA Series.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
+      { src: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric multi-split outdoor condenser", caption: "Multi-head — one outdoor, up to 5 indoor heads" },
+      { src: "/mitsubishi-pea-m-ducted-v2.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
@@ -440,6 +456,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Water tray drained, flushed and checked for leaks",
           "Pump, float valve and bleed rate tested under load",
           "Roof-side access and safety handled by us",
+          "Pads inspected and replaced when they've gone brittle",
+          "Water tray drained, flushed and checked for leaks",
+          "Pump, float valve and bleed rate tested under load",
+          "Roof access and safety handled by us, not you",
         ],
         priceFrom: "from $220 + GST",
         intro:
@@ -466,12 +486,16 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split & ducted aircon service",
         blurb:
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced — a blocked drain or a filthy coil, not a dead compressor.",
-        photo: { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi MSZ-AP wall split system" },
+        photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi MSZ-AP wall split system" },
         points: [
           "Filter clean, indoor and outdoor coil check",
           "Condensate drain cleared and flow tested",
           "Refrigerant pressures and superheat checked against spec",
           "Electrical connections torque-checked",
+          "Indoor and outdoor coils cleaned properly, not just a filter rinse",
+          "Condensate drain flushed and flow tested",
+          "Refrigerant pressures and superheat measured against spec",
+          "Electrical connections torque-checked and thermal-scanned",
         ],
         priceFrom: "from $190 + GST",
         intro:
@@ -495,7 +519,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/Mitsubishi Electric Wall Mounted Air Conditioners  MSZ-AP Series.png", alt: "Mitsubishi MSZ-AP wall split — the unit we service most", caption: "Split system chemical coil clean" },
+      { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi MSZ-AP wall split — the unit we service most", caption: "Split system chemical coil clean" },
       { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden ducted indoor unit — service access panel", caption: "Ducted return-air access + filter swap" },
       { src: "/evap-cooler-service.webp", alt: "Evaporative cooler service — roof-side access", caption: "ARCtick-licensed — every refrigerant job by a certified tech" },
       { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler pre-summer service — pads and water tray", caption: "Pre-summer evap clean — pump + water lines" },
@@ -590,6 +614,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Kaden internal and external, 3 to 5 star",
           "Internal (roof or cupboard) and external (against the wall) versions",
           "Star rating drives running cost — we quote the payback, not just the price",
+          "New flue and cowl to current standards, not the old one refitted",
+          "Gas line checked and upsized if the new unit needs it",
+          "New return-air filter frame and grille where the old one is past it",
+          "Existing ductwork inspected and re-taped, or replaced if it's shot",
         ],
         priceFrom: "from $4,600 installed",
         intro:
@@ -623,6 +651,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "16, 20 and 26 litre-per-minute sizes",
           "Same-day swap on most like-for-like replacements",
           "Temperature-controlled to 50 °C at the outlets, as required",
+          "New copper tails and isolation valves, not reused fittings",
+          "New wall bracket, unit levelled and clear of the eave",
+          "Tempering valve fitted or replaced to keep outlets at 50 °C",
+          "Old unit removed, wall made good, pressure tested before we leave",
         ],
         priceFrom: "from $1,850 installed",
         intro:
@@ -655,6 +687,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Burner clean, heat exchanger inspection, flue and seal check",
           "Written report emailed the same day",
           "Recommended every 2 years, annually on units over 10 years old",
+          "Burner stripped and cleaned, not just visually checked",
+          "Heat exchanger inspected for cracking",
+          "Flue and seals checked end to end",
+          "Calibrated CO analyser reading recorded on the report",
         ],
         priceFrom: "$280 + GST",
         intro:

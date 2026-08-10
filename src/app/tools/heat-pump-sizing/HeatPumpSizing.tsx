@@ -48,6 +48,14 @@ const SPECIFIC_HEAT = 4.186; // kJ per kg per °C
 const USABLE_FRACTION = 0.8; // stratification — you can't use the last 20%
 
 /** Tank sizes we actually install, with the closest matching models. */
+/**
+ * Sizes we can actually put on a wall.
+ *
+ * Every rung must be a real product. There is no 300 L unit — the
+ * Reclaim and Thermann all-in-ones are 285 L — so recommending "300 L"
+ * sent someone off to buy a 285 and come up short. If the sum lands
+ * between rungs, the next REAL size up is the answer.
+ */
 const TANK_SIZES: {
   litres: number;
   models: string;
@@ -72,12 +80,10 @@ const TANK_SIZES: {
       { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
       { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
     ] },
-  { litres: 285, models: "Thermann Split 270 L (next size up)",
-    picks: [{ label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" }] },
-  { litres: 300, models: "Reclaim ECO R290 300 L · Thermann ECO R290 300 L",
+  { litres: 285, models: "Reclaim ECO R290 285 L · Thermann ECO R290 285 L",
     picks: [
-      { label: "Reclaim ECO R290 300 L", href: "/brands/reclaim/eco-r290-300" },
-      { label: "Thermann ECO R290 300 L", href: "/brands/thermann/thermann-eco-r290-300" },
+      { label: "Reclaim ECO R290 285 L", href: "/brands/reclaim/eco-r290-300" },
+      { label: "Thermann ECO R290 285 L", href: "/brands/thermann/thermann-eco-r290-300" },
     ] },
   { litres: 315, models: "Reclaim CO₂ 315 L · Panasonic CO₂ 315 L",
     picks: [
@@ -156,7 +162,7 @@ type Form = {
 const DEFAULTS: Form = {
   morningPeople: 2,
   eveningPeople: 2,
-  showerMinutes: 15,
+  showerMinutes: 10,
   systemA: "pana-6-250",
   systemB: "istore-270",
 };
@@ -272,8 +278,8 @@ export function HeatPumpSizing() {
             value={form.showerMinutes}
             onChange={(e) => set("showerMinutes", parseFloat(e.target.value) || 15)} />
           <small>
-            15 is the honest number. The 8-minute average undersizes every
-            house with a teenager in it.
+            10 minutes is the working number. Set it higher if your household
+            runs long ones — it changes the tank size fast.
           </small>
         </div>
 

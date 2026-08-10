@@ -25,14 +25,11 @@ export const HW_DEFAULTS = {
   mainsTempC: 15,  // Melbourne winter mains sits 12-15 °C
   showerFlowLpm: 9,
   /**
-   * 15 minutes, not the 8-minute "Australian average".
-   *
-   * Jake's field arithmetic: a 15 minute shower pulls 5 L/min of hot
-   * water, so 75 L a head — four of them is 300 L before breakfast. Size
-   * on the average and you undersize every household with a teenager in
-   * it. The physics here lands on 78 L, within 4% of his number.
+   * 10 minutes — Jake's working number, and a fair bit longer than the
+   * 8-minute figure the industry quotes. At 5.2 L/min of hot water
+   * that's 52 L a head, so four showers is a bit over 200 L.
    */
-  showerMinutes: 15,
+  showerMinutes: 10,
   /**
    * Bathroom turnaround, not water-running time. Someone showering for
    * 8 minutes still occupies the bathroom for about 15 once you count
@@ -108,7 +105,16 @@ export function suitsPeople(
   tankLitres: number,
   opts: Partial<typeof HW_DEFAULTS> = {},
 ): { min: number; max: number; label: string } {
-  const d = deliveryFor(tankLitres, opts);
+  /**
+   * Sized on a 15 minute shower even though the calculator defaults to
+   * 10. These are two different claims: the calculator answers "for THIS
+   * household", where the customer sets their own shower length; this
+   * answers "who does this tank suit" on a product page, with no chance
+   * to ask. A blanket recommendation has to cover the household that
+   * takes long ones, which is also what keeps 180 L reading 1-3 people —
+   * Jake's number from actually installing them.
+   */
+  const d = deliveryFor(tankLitres, { ...opts, showerMinutes: opts.showerMinutes ?? 15 });
   const otherPerPerson = 10; // basins, kitchen, laundry
   const morningShare = 0.5;
 
