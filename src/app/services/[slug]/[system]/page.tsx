@@ -143,11 +143,12 @@ export default async function SystemPage({
         </div>
       </section>
 
-      {/* What you get */}
-      <section className="dp-benefits">
+      {/* What you get — boxed in orange so it reads as the value list
+          rather than another block of body copy. */}
+      <section className="dp-benefits dp-benefits--boxed">
         <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What you get</span>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What you get</span>
             <h2>What&rsquo;s in the price.</h2>
             <p>{system.blurb}</p>
           </div>
@@ -218,7 +219,7 @@ export default async function SystemPage({
       {/* Pricing */}
       <section className="dp-pricing">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
             <h2>What {system.label.toLowerCase()} costs.</h2>
             <p>Real numbers. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>

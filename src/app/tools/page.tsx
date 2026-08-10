@@ -27,7 +27,7 @@ type ToolGroup = "compare" | "cost" | "size" | "reference";
 
 const TOOL_GROUPS: { key: ToolGroup; label: string; blurb: string }[] = [
   { key: "size",      label: "Size it right",      blurb: "Work out what your home actually needs before anyone quotes you." },
-  { key: "cost",      label: "What it'll cost",    blurb: "Running costs, rebates and payback — real numbers, not sales maths." },
+  { key: "cost",      label: "What it'll cost",    blurb: "Running costs, rebates and payback. Real numbers, not sales maths." },
   { key: "compare",   label: "Compare systems",    blurb: "Side-by-side on the specs that decide it." },
   { key: "reference", label: "Reference",          blurb: "Look something up." },
 ];
@@ -47,7 +47,7 @@ const TOOLS: {
     title: "Aircon Sizing Calculator",
     tagline: "What size aircon does this room need?",
     blurb:
-      "Get the right kW rating for your room in seconds. Enter the room dimensions, ceiling height, orientation and insulation — the calculator handles the industry-standard heat-load formula so you don't quote the wrong size.",
+      "Get the right kW rating for your room in seconds. Enter the room dimensions, ceiling height, orientation and insulation. The calculator handles the industry-standard heat-load formula so you don't quote the wrong size.",
     ctaLabel: "Open the sizing calculator →",
     bullets: [
       "Australian residential heat-load formula",

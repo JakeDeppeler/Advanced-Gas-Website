@@ -111,6 +111,9 @@
   box-shadow: var(--shadow-sm);
 }
 .page-tool__result { position: sticky; top: 100px; }
+/* Panel headings. The rule under them was navy on navy text, which read
+   as a divider rather than a heading — orange gives each panel a colour
+   anchor and makes the two columns scannable. */
 .page-tool h2 {
   font-family: var(--f-display);
   font-weight: 800;
@@ -119,7 +122,17 @@
   color: var(--navy);
   margin: 0 0 18px;
   padding-bottom: 12px;
-  border-bottom: 2px solid var(--navy);
+  border-bottom: 2px solid var(--line);
+  position: relative;
+}
+.page-tool h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 62px;
+  height: 2px;
+  background: var(--orange);
 }
 
 /* Form fields */
@@ -1092,3 +1105,100 @@
   background: color-mix(in srgb, var(--orange) 8%, var(--paper));
   border-color: color-mix(in srgb, var(--orange) 30%, var(--line));
 }
+
+
+/* Recommended system — the answer, boxed so it's unmissable. */
+.tool-rec {
+  margin: 6px 0 16px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--orange) 12%, var(--paper)), var(--paper));
+  border: 2px solid var(--orange);
+  border-radius: 16px;
+}
+.tool-rec__lead {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #b8460f;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tool-rec__big {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(38px, 6vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--navy);
+}
+.tool-rec__models {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* Advanced disclosure */
+.tool-adv {
+  margin-top: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.tool-adv > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 18px;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tool-adv > summary::-webkit-details-marker { display: none; }
+.tool-adv > summary::after {
+  content: "+";
+  font-family: var(--f-mono);
+  font-size: 18px;
+  color: var(--orange);
+  line-height: 1;
+}
+.tool-adv[open] > summary::after { content: "−"; }
+.tool-adv[open] > summary { border-bottom: 1px solid var(--line); }
+.tool-adv > *:not(summary) { padding-left: 18px; padding-right: 18px; }
+.tool-adv > *:last-child { padding-bottom: 16px; }
+.tool-adv__note {
+  margin: 14px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+/* The tools hub and each tool open on a light hero; give the h1 the same
+   accent rule the section heads use so the page has a colour anchor. */
+.page-tool .dp-hero__eyebrow,
+.page-tools .dp-hero__eyebrow { color: var(--orange); }
+.page-tool .dp-hero h1 .accent,
+.page-tools .dp-hero h1 .accent { color: var(--orange); }
+
+/* Centred heads can't take a left rule — underline them instead. */
+.ds-section-head--center.ds-section-head--hl { padding-left: 0; }
+.ds-section-head--center.ds-section-head--hl::before {
+  left: 50%;
+  top: auto;
+  bottom: -14px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 4px;
+}
+
+
+/* Tools hub: eyebrow and hero accent in orange so the landing page has
+   the same colour anchor as the tools themselves. */
+.page-tools .dp-hero__eyebrow { color: var(--orange); }
+.page-tools .dp-hero h1 .accent { color: var(--orange); }

@@ -157,6 +157,13 @@ type Form = {
   showerMinutes: number;
   systemA: string;
   systemB: string;
+  /** Advanced overrides — hidden behind a disclosure. */
+  tankTempC: number;
+  mixedTempC: number;
+  mainsTempC: number;
+  showerFlowLpm: number;
+  otherLitresPerDay: number;
+  gapHours: number;
 };
 
 const DEFAULTS: Form = {
@@ -165,6 +172,12 @@ const DEFAULTS: Form = {
   showerMinutes: 10,
   systemA: "pana-6-250",
   systemB: "istore-270",
+  tankTempC: FIXED.tankTempC,
+  mixedTempC: FIXED.mixedTempC,
+  mainsTempC: FIXED.mainsTempC,
+  showerFlowLpm: FIXED.showerFlowLpm,
+  otherLitresPerDay: FIXED.otherLitresPerDay,
+  gapHours: FIXED.gapHours,
 };
 
 /** Litres of hot water a given HEAT OUTPUT can make per hour. */
@@ -178,7 +191,8 @@ export function HeatPumpSizing() {
     setForm((f) => ({ ...f, [k]: v }));
 
   const r = useMemo(() => {
-    const { tankTempC, mixedTempC, mainsTempC, showerFlowLpm, otherLitresPerDay, runHours, gapHours } = FIXED;
+    const { runHours } = FIXED;
+    const { tankTempC, mixedTempC, mainsTempC, showerFlowLpm, otherLitresPerDay, gapHours } = form;
 
     // Hot fraction of the mixed flow: (41-15)/(60-15) = 0.578, so a
     // 9 L/min shower pulls 5.2 L/min off the tank and 3.8 L/min of cold.
@@ -299,16 +313,79 @@ export function HeatPumpSizing() {
           </div>
         </div>
 
-        <p className="tool-result__note" style={{ marginTop: 18 }}>
-          Assumes a 9 L/min head, a 60 °C tank, a 41 °C shower and Melbourne
-          winter mains at 15 °C. We check the rest on site.
-        </p>
+        <details className="tool-adv">
+          <summary>Advanced settings</summary>
+          <p className="tool-adv__note">
+            Defaults are what we&rsquo;d quote on. Change them if you know your
+            own numbers — mains runs colder in the hills, and COP moves with
+            the unit.
+          </p>
+
+          <div className="tool-field__row">
+            <div className="tool-field">
+              <label htmlFor="mains">Cold mains inlet (°C)</label>
+              <input id="mains" type="number" min="5" max="25" step="1"
+                value={form.mainsTempC}
+                onChange={(e) => set("mainsTempC", parseFloat(e.target.value) || 15)} />
+              <small>Melbourne winter sits 12-15. Summer 18-22.</small>
+            </div>
+            <div className="tool-field">
+              <label htmlFor="tank">Tank setpoint (°C)</label>
+              <input id="tank" type="number" min="50" max="70" step="1"
+                value={form.tankTempC}
+                onChange={(e) => set("tankTempC", parseFloat(e.target.value) || 60)} />
+              <small>60 minimum by law — Legionella control.</small>
+            </div>
+          </div>
+
+          <div className="tool-field__row">
+            <div className="tool-field">
+              <label htmlFor="mixed">Shower temp (°C)</label>
+              <input id="mixed" type="number" min="35" max="50" step="0.5"
+                value={form.mixedTempC}
+                onChange={(e) => set("mixedTempC", parseFloat(e.target.value) || 41)} />
+              <small>Comfortable is 40-42.</small>
+            </div>
+            <div className="tool-field">
+              <label htmlFor="flow">Shower flow (L/min)</label>
+              <input id="flow" type="number" min="4" max="20" step="0.5"
+                value={form.showerFlowLpm}
+                onChange={(e) => set("showerFlowLpm", parseFloat(e.target.value) || 9)} />
+              <small>3-star head ≈ 9. Old unrestricted heads hit 15-20.</small>
+            </div>
+          </div>
+
+          <div className="tool-field__row">
+            <div className="tool-field">
+              <label htmlFor="other">Other hot water / day (L)</label>
+              <input id="other" type="number" min="0" max="200" step="5"
+                value={form.otherLitresPerDay}
+                onChange={(e) => set("otherLitresPerDay", parseFloat(e.target.value) || 0)} />
+              <small>Basins, kitchen, laundry.</small>
+            </div>
+            <div className="tool-field">
+              <label htmlFor="gap">Hours between runs</label>
+              <input id="gap" type="number" min="2" max="16" step="1"
+                value={form.gapHours}
+                onChange={(e) => set("gapHours", parseFloat(e.target.value) || 9)} />
+              <small>Morning to evening — the tank&rsquo;s reheat window.</small>
+            </div>
+          </div>
+
+          <p className="tool-adv__note">
+            COP is set per system in the comparison below rather than here, so
+            each unit is judged on its own figure instead of one shared guess.
+          </p>
+        </details>
       </div>
 
       <div className="page-tool__result">
         <h2>Tank size you need</h2>
-        <div className="tool-result__lead">Recommended tank</div>
-        <div className="tool-result__big">{r.recommended.litres} L</div>
+        <div className="tool-rec">
+          <div className="tool-rec__lead">Recommended heat pump</div>
+          <div className="tool-rec__big">{r.recommended.litres} L</div>
+          <div className="tool-rec__models">{r.recommended.models}</div>
+        </div>
         <p className="tool-result__sub">
           Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> of stored
           hot water. A tank gives up about 80% of its nameplate before the

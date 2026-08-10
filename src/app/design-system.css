@@ -1787,3 +1787,27 @@ input, select, textarea {
   /* Hide the third stat on very small phones so trust bar fits on one row */
   .page-home .hero__trust > .trust-stat:nth-of-type(2) { display: none; }
 }
+
+
+/* ============================================================
+   HIGHLIGHTED SECTION HEAD
+   An accent rule and a coloured eyebrow, for the sections that
+   should catch the eye on the way down the page rather than
+   reading as one more block of body copy.
+   ============================================================ */
+.ds-section-head--hl { position: relative; padding-left: 18px; }
+.ds-section-head--hl::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--orange), #ffa25e);
+}
+.ds-section-head--hl .ds-eyebrow { color: var(--orange); }
+.ds-section-head--hl h2 { color: var(--navy); }
+
+@media (max-width: 640px) {
+  .ds-section-head--hl { padding-left: 14px; }
+  .ds-section-head--hl::before { width: 3px; }
+}

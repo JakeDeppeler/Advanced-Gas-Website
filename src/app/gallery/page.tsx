@@ -8,13 +8,16 @@ import { InstagramCTA } from "@/components/InstagramCTA";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { getInstagramFeed } from "@/lib/instagram";
 import { breadcrumbSchema } from "@/lib/schema";
+import { ALBUMS } from "@/lib/albums";
+import { AlbumGrid } from "@/components/AlbumGrid";
+import { brands as allBrands } from "@/lib/brands";
 import "../detail.css";
 import "./gallery.css";
 
 export const metadata: Metadata = {
   title: "Install Gallery · Real Jobs Across Melbourne's South-East | Advanced Gas & Aircon",
   description:
-    "Real photos from our installs — heat pumps, split and ducted aircon, gas ducted heating and evaporative cooling across Pakenham, Berwick, Officer and Cranbourne. Before and after comparisons included.",
+    "Real photos from our installs: heat pumps, split and ducted aircon, gas ducted heating and evaporative cooling across Pakenham, Berwick, Officer and Cranbourne. Before and after comparisons included.",
   alternates: { canonical: "/gallery" },
 };
 
@@ -49,7 +52,7 @@ export default async function GalleryPage() {
             Real installs across <span className="accent">Melbourne&rsquo;s south-east</span>.
           </h1>
           <p className="dp-hero__sub">
-            Every photo below is one of our own jobs &mdash; shot on site, on the day. Product
+            Every photo below is one of our own jobs, shot on site, on the day. Product
             photography elsewhere on the site is manufacturer imagery so you can see exactly which
             unit we&rsquo;re quoting; this page is the actual work.
           </p>
@@ -62,16 +65,36 @@ export default async function GalleryPage() {
         </div>
       </section>
 
+      {/* ---- Job albums: our own photos and videos, click-through ---- */}
+      {ALBUMS.length > 0 && (
+        <section className="gal-albums">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Job albums</span>
+              <h2>Click any job to walk through it.</h2>
+              <p>
+                Whole jobs rather than single shots, photos and video together.
+                Filter by brand, then click through at your own pace.
+              </p>
+            </div>
+            <AlbumGrid
+              albums={ALBUMS}
+              brandLabels={Object.fromEntries(allBrands.map((b) => [b.slug, b.name]))}
+            />
+          </div>
+        </section>
+      )}
+
       {/* ---- Before / after swipe comparisons ---- */}
       {BEFORE_AFTER.length > 0 && (
         <section className="gal-ba">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Before &amp; after</span>
               <h2>Drag the handle. Same house, same corner.</h2>
               <p>
                 The clearest way to show what a changeover actually looks like when it&rsquo;s
-                finished properly &mdash; new pad, re-run pipework, nothing left hanging.
+                finished properly: new pad, re-run pipework, nothing left hanging.
               </p>
             </div>
 
@@ -103,7 +126,7 @@ export default async function GalleryPage() {
       {/* ---- Categorised install shots ---- */}
       <section className="gal-grid-wrap">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
             <h2>Jobs we&rsquo;ve finished.</h2>
           </div>
@@ -130,7 +153,7 @@ export default async function GalleryPage() {
 
           <InstagramCTA
             heading="The full gallery lives on Instagram"
-            body="We post every job as it's finished — splits, ducted, heat pumps and gas heaters going into real houses across the south-east."
+            body="We post every job as it's finished. Splits, ducted, heat pumps and gas heaters going into real houses across the south-east."
           />
         </div>
       </section>
@@ -139,7 +162,7 @@ export default async function GalleryPage() {
         posts={igPosts}
         eyebrow="Live feed"
         heading="Everything we've finished lately."
-        blurb="Pulled straight from our Instagram, so it's current — not a gallery someone forgot to update two years ago."
+        blurb="Pulled straight from our Instagram, so it's current, not a gallery someone forgot to update two years ago."
       />
 
       <section className="bigcta" data-hide-sticky-cta>
