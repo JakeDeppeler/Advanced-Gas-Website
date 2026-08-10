@@ -16,9 +16,13 @@ import { deliveryFor, suitsPeople, HW_DEFAULTS } from "@/lib/hotWater";
  */
 export function ShowerDelivery({
   tankLitres,
+  compressorKw,
   productName,
 }: {
   tankLitres?: number;
+  /** Heat output. Decides how fast the tank comes back, so it belongs
+   *  next to the volume rather than being left off the page. */
+  compressorKw?: number;
   productName: string;
 }) {
   if (!tankLitres) return null;
@@ -51,6 +55,16 @@ export function ShowerDelivery({
           <span>of continuous shower</span>
           <em>before the heat pump puts anything back</em>
         </div>
+        {compressorKw && (
+          <div className="swd__stat">
+            <strong>{compressorKw} kW</strong>
+            <span>compressor</span>
+            <em>
+              puts back about{" "}
+              {Math.round((compressorKw * 3600) / (4.186 * (HW_DEFAULTS.tankTempC - HW_DEFAULTS.mainsTempC)))} L an hour
+            </em>
+          </div>
+        )}
         <div className="swd__stat swd__stat--fit">
           <strong>{fit.label}</strong>
           <span>comfortable household</span>

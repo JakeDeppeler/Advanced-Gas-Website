@@ -51,6 +51,11 @@ export type Product = {
    *  (manufacturer or our own install photos). */
   photo?: string;
   photoAlt?: string;
+  /** Heat OUTPUT of the compressor in kW, on heat pump products.
+   *  This is what drives recovery rate and therefore what tank size a
+   *  household needs, so it belongs next to tankLitres rather than being
+   *  guessed at by the sizing tool. */
+  compressorKw?: number;
   /** Stored hot water capacity in litres.
    *  Set ONLY on storage products — never on continuous-flow units (they
    *  have no tank) or controllers. Drives the shower-delivery panel and
@@ -967,6 +972,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-glass",
         name: "Reclaim CO₂ Split · 250L Glass-Lined",
+        compressorKw: 2.5,
         tankLitres: 250,
         model: "REHP-CO2-250GL-V2",
         category: "heat-pump",
@@ -990,6 +996,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-stainless",
         name: "Reclaim CO₂ Split · 250L Stainless",
+        compressorKw: 2.5,
         tankLitres: 250,
         model: "REHP-CO2-250SST-V2",
         category: "heat-pump",
@@ -1013,6 +1020,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-earthworks",
         name: "Reclaim CO₂ Split · 250L Earthworks Stainless",
+        compressorKw: 2.5,
         tankLitres: 250,
         model: "REHP-CO2-250SSEW-V2",
         category: "heat-pump",
@@ -1034,6 +1042,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-215-5kw",
         name: "Reclaim CO₂ Split · 215L · 5 kW",
+        compressorKw: 5.0,
         tankLitres: 215,
         model: "REHP-CO2-215-5KW",
         category: "heat-pump",
@@ -1057,6 +1066,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-5kw",
         name: "Reclaim CO₂ Split · 315L · 5 kW",
+        compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315-5KW",
         category: "heat-pump",
@@ -1080,6 +1090,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-glass",
         name: "Reclaim CO₂ Split · 315L Glass-Lined",
+        compressorKw: 2.5,
         tankLitres: 315,
         model: "REHP-CO2-315GL-V2",
         category: "heat-pump",
@@ -1102,6 +1113,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless",
         name: "Reclaim CO₂ Split · 315L Stainless",
+        compressorKw: 2.5,
         tankLitres: 315,
         model: "REHP-CO2-315SST-V2",
         category: "heat-pump",
@@ -1128,6 +1140,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless-316",
         name: "Reclaim CO₂ Split · 315L Stainless 316 (Q)",
+        compressorKw: 2.5,
         tankLitres: 315,
         model: "REHP-CO2-315SSQ-V2",
         category: "heat-pump",
@@ -1149,6 +1162,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-earthworks",
         name: "Reclaim CO₂ Split · 315L Earthworks Stainless",
+        compressorKw: 2.5,
         tankLitres: 315,
         model: "REHP-CO2-315SSEW-V2",
         category: "heat-pump",
@@ -1170,6 +1184,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-glass",
         name: "Reclaim CO₂ Split · 400L Glass-Lined",
+        compressorKw: 2.5,
         tankLitres: 400,
         model: "REHP-CO2-400GL-V2",
         category: "heat-pump",
@@ -1191,6 +1206,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-stainless",
         name: "Reclaim CO₂ Split · 400L Stainless",
+        compressorKw: 2.5,
         tankLitres: 400,
         model: "REHP-CO2-400SST-V2",
         category: "heat-pump",
@@ -1214,6 +1230,7 @@ export const brands: Brand[] = [
       {
         slug: "eco-r290-200",
         name: "Reclaim ECO R290 · 200L All-in-One",
+        compressorKw: 2.5,
         tankLitres: 200,
         model: "RE-ECO-200",
         category: "heat-pump",
@@ -1234,6 +1251,7 @@ export const brands: Brand[] = [
       {
         slug: "eco-r290-300",
         name: "Reclaim ECO R290 · 285L All-in-One",
+        compressorKw: 2.5,
         tankLitres: 285,
         model: "RE-ECO-300",
         category: "heat-pump",
@@ -1256,6 +1274,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-4kw-250",
         name: "Panasonic CO₂ Split · Glass-Lined · 4 kW · 250L",
+        compressorKw: 4.0,
         tankLitres: 250,
         model: "Panasonic Aquarea 4 kW + Reclaim 250 L glass-lined tank",
         category: "heat-pump",
@@ -1281,6 +1300,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-4kw-315",
         name: "Panasonic CO₂ Split · Glass-Lined · 4 kW · 315L",
+        compressorKw: 4.0,
         tankLitres: 315,
         model: "Panasonic Aquarea 4 kW + Reclaim 315 L glass-lined tank",
         category: "heat-pump",
@@ -1306,6 +1326,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-6kw-250",
         name: "Panasonic CO₂ Split · Glass-Lined · 6 kW · 250L",
+        compressorKw: 6.0,
         tankLitres: 250,
         model: "Panasonic Aquarea 6 kW + Reclaim 250 L glass-lined tank",
         category: "heat-pump",
@@ -1331,6 +1352,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-glass-6kw-315",
         name: "Panasonic CO₂ Split · Glass-Lined · 6 kW · 315L",
+        compressorKw: 6.0,
         tankLitres: 315,
         model: "Panasonic Aquarea 6 kW + Reclaim 315 L glass-lined tank",
         category: "heat-pump",
@@ -1357,6 +1379,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-4kw-250",
         name: "Panasonic CO₂ Split · Stainless · 4 kW · 250L",
+        compressorKw: 4.0,
         tankLitres: 250,
         model: "Panasonic Aquarea 4 kW + Reclaim 250 L stainless tank",
         category: "heat-pump",
@@ -1382,6 +1405,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-4kw-315",
         name: "Panasonic CO₂ Split · Stainless · 4 kW · 315L",
+        compressorKw: 4.0,
         tankLitres: 315,
         model: "Panasonic Aquarea 4 kW + Reclaim 315 L stainless tank",
         category: "heat-pump",
@@ -1407,6 +1431,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-6kw-250",
         name: "Panasonic CO₂ Split · Stainless · 6 kW · 250L",
+        compressorKw: 6.0,
         tankLitres: 250,
         model: "Panasonic Aquarea 6 kW + Reclaim 250 L stainless tank",
         category: "heat-pump",
@@ -1432,6 +1457,7 @@ export const brands: Brand[] = [
       {
         slug: "panasonic-co2-stainless-6kw-315",
         name: "Panasonic CO₂ Split · Stainless · 6 kW · 315L",
+        compressorKw: 6.0,
         tankLitres: 315,
         model: "Panasonic Aquarea 6 kW + Reclaim 315 L stainless tank",
         category: "heat-pump",
@@ -1494,6 +1520,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-eco-r290-200",
         name: "Thermann ECO R290 · 200L All-in-One",
+        compressorKw: 2.5,
         tankLitres: 200,
         model: "T-HP-ECO-200",
         category: "heat-pump",
@@ -1517,6 +1544,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-eco-r290-300",
         name: "Thermann ECO R290 · 285L All-in-One",
+        compressorKw: 2.5,
         tankLitres: 285,
         model: "T-HP-ECO-300",
         category: "heat-pump",
@@ -1541,6 +1569,7 @@ export const brands: Brand[] = [
       {
         slug: "thermann-split-glass",
         name: "Thermann Split · Glass-Lined",
+        compressorKw: 2.5,
         tankLitres: 270,
         model: "T-HP-SPLIT-GL",
         category: "heat-pump",
@@ -1850,6 +1879,7 @@ export const brands: Brand[] = [
       {
         slug: "istore-180",
         name: "iStore 180L Heat Pump",
+        compressorKw: 2.5,
         tankLitres: 180,
         model: "iS-HP-180",
         category: "heat-pump",
@@ -1872,6 +1902,7 @@ export const brands: Brand[] = [
       {
         slug: "istore-270",
         name: "iStore 270L Heat Pump",
+        compressorKw: 4.0,
         tankLitres: 270,
         model: "iS-HP-270",
         category: "heat-pump",

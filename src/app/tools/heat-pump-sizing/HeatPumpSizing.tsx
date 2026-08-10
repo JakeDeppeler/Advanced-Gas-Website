@@ -124,20 +124,24 @@ type SystemPreset = {
 };
 
 const SYSTEMS: SystemPreset[] = [
+  { id: "reclaim-co2-250", name: "Reclaim CO₂ 250 L", heatKw: 2.5, tankLitres: 250, cop: 4.5, verified: true,
+    note: "The standard Reclaim. A 2.5 kW compressor leans on stored volume rather than recovery speed, so the tank does the work." },
+  { id: "reclaim-co2-315", name: "Reclaim CO₂ 315 L", heatKw: 2.5, tankLitres: 315, cop: 4.5, verified: true,
+    note: "Same 2.5 kW compressor, more buffer. The size to reach for when the whole house showers in one go." },
+  { id: "reclaim-5kw-215", name: "Reclaim CO₂ 215 L · 5 kW", heatKw: 5.0, tankLitres: 215, cop: 4.5, verified: true,
+    note: "Twice the recovery of the standard unit on a smaller tank. Suits a tight morning rush and a tight footprint." },
+  { id: "reclaim-5kw-315", name: "Reclaim CO₂ 315 L · 5 kW", heatKw: 5.0, tankLitres: 315, cop: 4.5, verified: true,
+    note: "Volume and recovery together. Handles a full morning run and is back before anyone gets home." },
   { id: "pana-6-250", name: "Reclaim Panasonic CO₂ 6 kW · 250 L", heatKw: 6.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "6 kW Panasonic Aquarea compressor. Roughly half the reheat time of the 4 kW, worth it when the tank gets emptied hard and needs to be back fast." },
-  { id: "pana-6-315", name: "Reclaim Panasonic CO₂ 6 kW · 315 L", heatKw: 6.0, tankLitres: 315, cop: 4.5, verified: true,
-    note: "Same 6 kW compressor, bigger buffer for back-to-back showers." },
-  { id: "reclaim-400", name: "Reclaim CO₂ 400 L", heatKw: 4.7, tankLitres: 400, cop: 4.5, verified: false,
-    note: "The big-family answer. 320 L usable covers four 15-minute showers back to back with room left over." },
+    note: "Fastest recovery we fit. Worth it when the gap between runs is short, not when it's the whole working day." },
   { id: "pana-4-250", name: "Reclaim Panasonic CO₂ 4 kW · 250 L", heatKw: 4.0, tankLitres: 250, cop: 4.5, verified: true,
-    note: "4 kW compressor, quieter and cheaper. Fine on a long gap between runs; the 6 kW is the answer when the gap is short." },
-  { id: "pana-4-315", name: "Reclaim Panasonic CO₂ 4 kW · 315 L", heatKw: 4.0, tankLitres: 315, cop: 4.5, verified: true,
-    note: "4 kW compressor with the larger tank doing the heavy lifting." },
-  { id: "istore-270", name: "iStore 270 L", heatKw: 3.6, tankLitres: 270, cop: 3.5, verified: false,
-    note: "All-in-one R290. Leans on stored volume rather than fast recovery, and has a boost mode to force a full reheat ahead of a big day." },
-  { id: "istore-180", name: "iStore 180 L", heatKw: 3.6, tankLitres: 180, cop: 3.5, verified: false,
-    note: "Same compressor as the 270, 90 L less buffer. Where that bites is the fourth shower, not the first." },
+    note: "4 kW Panasonic. Quieter and cheaper than the 6 kW, and plenty with a long morning-to-evening gap." },
+  { id: "thermann-285", name: "Thermann ECO R290 285 L", heatKw: 2.5, tankLitres: 285, cop: 4.0, verified: true,
+    note: "Australian-made, 2.5 kW compressor, and the Aus-made VEU bonus on top. Big tank doing the work." },
+  { id: "istore-270", name: "iStore 270 L", heatKw: 4.0, tankLitres: 270, cop: 3.5, verified: true,
+    note: "The 4 kW is what makes this one punch above its size. Boost mode forces a full reheat ahead of a big day." },
+  { id: "istore-180", name: "iStore 180 L", heatKw: 2.5, tankLitres: 180, cop: 3.5, verified: true,
+    note: "Smaller tank and the 2.5 kW compressor, not the 4 kW in the 270. Where that shows is the third shower." },
 ];
 
 /**
@@ -181,8 +185,8 @@ const DEFAULTS: Form = {
   morningPeople: 2,
   eveningPeople: 2,
   showerMinutes: 10,
-  heatKw: 4,
-  systemA: "pana-6-250",
+  heatKw: 2.5,
+  systemA: "reclaim-co2-250",
   systemB: "istore-270",
   tankTempC: FIXED.tankTempC,
   mixedTempC: FIXED.mixedTempC,
@@ -271,7 +275,7 @@ export function HeatPumpSizing() {
 
     // The trade-off, spelled out: a bigger compressor buys back tank
     // volume, and a bigger tank lets a smaller compressor cope.
-    const pairings = [3, 4, 6].map((kw) => {
+    const pairings = [2.5, 4, 6].map((kw) => {
       const need = (Math.max(0, peakSessionHot - recoveryLitresPerHour(kw, deltaT) * drawHours)
         * 1.2) / USABLE_FRACTION;
       const tank = TANK_SIZES.find((t) => t.litres >= need);
@@ -357,10 +361,10 @@ export function HeatPumpSizing() {
         <div className="tool-field">
           <label htmlFor="kw">Heating capacity (kW)</label>
           <select id="kw" value={form.heatKw} onChange={(e) => set("heatKw", parseFloat(e.target.value))}>
-            <option value={3}>3 kW · smaller all-in-one</option>
-            <option value={4}>4 kW · most common</option>
-            <option value={5}>5 kW</option>
-            <option value={6}>6 kW · fastest recovery</option>
+            <option value={2.5}>2.5 kW · standard Reclaim, Thermann, iStore 180</option>
+            <option value={4}>4 kW · iStore 270, Panasonic 4 kW</option>
+            <option value={5}>5 kW · Reclaim 215 / 315</option>
+            <option value={6}>6 kW · Panasonic, fastest recovery</option>
           </select>
           <small>
             This changes the tank size as much as your household does. The

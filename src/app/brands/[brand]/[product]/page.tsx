@@ -175,7 +175,7 @@ export default function ProductPage({
       {product.tankLitres && (
         <section className="product-shower">
           <div className="wrap">
-            <ShowerDelivery tankLitres={product.tankLitres} productName={product.name} />
+            <ShowerDelivery tankLitres={product.tankLitres} compressorKw={product.compressorKw} productName={product.name} />
           </div>
         </section>
       )}
