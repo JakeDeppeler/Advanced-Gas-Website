@@ -415,7 +415,7 @@ export const posts: BlogPost[] = [
       { type: "ul", items: [
         "Mitsubishi Electric MSZ-AP: our default recommendation. Genuinely quieter, longer-lived, and the parts pipeline is still open on units we installed a decade ago. ~$500-700 dearer than Kaden.",
         "Mitsubishi Electric MSZ-FH (Hyper Heating): worth the premium if you're in the Dandenong Ranges, holds heating capacity down to -15°C where normal splits lose 30%.",
-        "Kaden Bold: value pick when the family needs cooling in three bedrooms and the Mitsubishi quote busts the budget. Solid, well-supported, 5-year warranty.",
+        "Kaden Bold: the one to pick when a family wants three bedrooms done in one visit rather than one a year. Solid, well-supported, 5-year warranty.",
         "Everything else: we'll install what the customer specifies but we prefer the two above.",
       ] },
 

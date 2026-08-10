@@ -200,7 +200,7 @@ export const brands: Brand[] = [
         veuEligible: false,
         photo: "/Brivis Wombat Indoor 3 star.jpg",
         photoAlt: "Brivis Classic Wombat 3-star internal gas ducted heater",
-        bestFor: "Entry-tier like-for-like retrofit into an existing Brivis or Braemar cupboard cavity",
+        bestFor: "Like-for-like retrofit into an existing cupboard cavity, done in a day",
         ourTake:
           "The Classic Wombat is Brivis's compact 3-star internal ducted heater · same footprint as older Brivis and Braemar units so the retrofit is quick and the existing ducts, controller wiring and return-air grille all reuse. Deliberately entry efficiency, if you're staying in the home long-term, step up to the Starpro tiers.",
         specs: [
@@ -446,7 +446,7 @@ export const brands: Brand[] = [
     tagline: "The default air conditioning brand in our workshop.",
     origin: "Japan",
     intro:
-      "Mitsubishi Electric is the brand we quote first on any air conditioning job unless the customer's budget rules it out. The reliability record across our install base is genuinely without peer · a decade-old MSZ-AP still runs to spec, and the parts pipeline for older units is still open.",
+      "Mitsubishi Electric is the brand we quote first on any air conditioning job. The reliability record across our install base is genuinely without peer · a decade-old MSZ-AP still runs to spec, and the parts pipeline for older units is still open.",
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
     accreditation: "Authorised installer",
@@ -1195,7 +1195,7 @@ export const brands: Brand[] = [
         photo: "/Reclaim Glass lined and stainless v2.webp",
         photoAlt: "Reclaim 400L CO₂ split heat pump",
         bestFor: "Large family (6+) at the glass-lined tank price point",
-        ourTake: "Biggest tank in the glass-lined range. What we spec when the household draw is high but budget rules out a 400 L stainless.",
+        ourTake: "Biggest tank in the glass-lined range. What we spec when the household draw is high and a glass-lined tank suits the site.",
         specs: [
           { label: "Tank capacity", value: "400 L" },
           { label: "Tank material", value: "Glass-lined + sacrificial anode" },
@@ -1505,7 +1505,7 @@ export const brands: Brand[] = [
       "Reece-exclusive brand · every Reece store in Victoria stocks the common parts",
       "Manufactured in NSW by Dux · genuine Australian-made, qualifies for the $400 Aus-made VEU bonus",
       "R290 natural refrigerant in the heat pump range · low-GWP, high efficiency",
-      "Best mid-tier VEU rebate outcome when Reclaim busts the budget",
+      "Strong VEU rebate outcome, and the Australian-made bonus on top",
     ],
     commonInMelbourne:
       "Our volume-tier default for VEU rebate customers who want a proven, well-supported brand at a mid price point. Thermann all-in-one heat pumps go into a lot of Hampton Park, Cranbourne and Narre Warren jobs where the rebate math works best. G-series continuous flow is our go-to gas hot water swap across the corridor.",
@@ -1532,7 +1532,7 @@ export const brands: Brand[] = [
         photoAlt: "Thermann integrated R290 all-in-one heat pump",
         bestFor: "Couple or small household wanting a single-unit heat pump swap",
         ourTake:
-          "The 200 L all-in-one is Thermann's compact heat pump · tank and heat pump in one shell, no separate outdoor. Our value pick for a couple or a small household on a VEU rebate who wants a proven brand at a mid price point.",
+          "The 200 L all-in-one is Thermann's compact heat pump · tank and heat pump in one shell, no separate outdoor. The one to pick for a couple or a small household where floor space is tight and a proven brand at a mid price point.",
         specs: [
           { label: "Tank capacity", value: "200 L" },
           { label: "Format", value: "All-in-one (single unit)" },
@@ -1579,9 +1579,9 @@ export const brands: Brand[] = [
         veuEligible: true,
         photo: "/Thermann-Split-heat-pump.jpg",
         photoAlt: "Thermann split heat pump, outdoor unit + tank",
-        bestFor: "Household wanting a split heat pump on a mid-tier budget",
+        bestFor: "Household wanting a split heat pump with the tank indoors",
         ourTake:
-          "Thermann only makes their split configuration in one tank finish · glass-lined with a sacrificial anode. Trade-off vs Reclaim's stainless is a cheaper up-front price, but the anode does need swapping every 5-7 years for the tank warranty to hold. Good pick when the customer prefers a split layout but stainless is over-budget.",
+          "Thermann only makes their split configuration in one tank finish · glass-lined with a sacrificial anode. Costs less up front than a stainless tank, and the anode does need swapping every 5-7 years for the tank warranty to hold. Good pick when the customer prefers a split layout but stainless is over-budget.",
         specs: [
           { label: "Tank capacity options", value: "270 L or 315 L" },
           { label: "Tank material", value: "Glass-lined + sacrificial anode" },
@@ -1601,7 +1601,7 @@ export const brands: Brand[] = [
         veuEligible: false,
         bestFor: "Couple or small family (1 bathroom)",
         ourTake:
-          "The 16 L/min G-series is our smallest continuous-flow · enough for a couple or a single-bathroom household. Step up to the 20 L/min if two showers might run simultaneously.",
+          "The 16 L/min G-series suits a couple or a single-bathroom household. Two showers that might run at once want the 20 L/min instead · it is a question of outlets, not of spend.",
         specs: [
           { label: "Flow rate", value: "16 L/min at 25°C rise" },
           { label: "Gas type", value: "Natural gas or LPG" },
@@ -1851,9 +1851,9 @@ export const brands: Brand[] = [
     tagline: "Best mid-tier VEU rebate outcome.",
     origin: "Australia",
     intro:
-      "iStore is our value pick for VEU rebate customers. Solid heat pump platform, aggressive price point, and the built-in PV diverter option means it plays well with solar homes without needing an aftermarket accessory.",
+      "iStore is the one to pick when the rebate decides it. Solid heat pump platform, and the built-in PV diverter means it plays well with solar homes without needing an aftermarket accessory.",
     ourTake:
-      "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the customer whose decision comes down to the rebate, iStore hits the sweet spot every time.",
+      "When the VEU rebate is what decides the job, iStore is the answer. Nothing else we fit takes the rebate as far, it goes in with the same crew and the same warranty as anything on the list, and for a household replacing an electric storage tank that is exactly the right call.",
     accreditation: "iStore accredited installer",
     productLabel: "2 models · 180L + 270L heat pump storage",
     photo: "/270L-istore-heatpump.webp",
@@ -1929,12 +1929,12 @@ export const brands: Brand[] = [
   {
     slug: "kaden",
     name: "Kaden",
-    tagline: "Reece exclusive value-tier splits + ducted.",
+    tagline: "Reece exclusive. Splits, ducted, gas and evap on one parts list.",
     origin: "Reece-exclusive brand · Australian-distributed",
     intro:
-      "Kaden is our value alternative when Mitsubishi Electric busts the customer's budget but they still want a properly-installed, warranty-backed system. Solid build for the price, national parts support, and the 5-year warranty on the compressor takes the risk out of the value tier.",
+      "Kaden is Reece-exclusive, which means parts in every store in Victoria and a supply chain that does not blink. Solid build, national parts support, and a 5-year compressor warranty behind it.",
     ourTake:
-      "We install Kaden when a family needs cooling in three bedrooms plus living and the Mitsubishi quote comes in over budget. The gap has closed noticeably over the last 3-4 years · Kaden today is what mid-tier Panasonic was five years ago.",
+      "We install Kaden when a family needs cooling across three bedrooms plus living and wants every room done in one go rather than one at a time. The gap has closed noticeably over the last 3-4 years · Kaden today is what mid-tier Panasonic was five years ago.",
     accreditation: "Reece trade partner · Kaden authorised dealer",
     productLabel: "12 models · splits, multi-head, ducted, gas ducted, evaporative",
     photo: "/Kaden KSI V3 wall split system.jpg",
@@ -1947,10 +1947,10 @@ export const brands: Brand[] = [
       "Reece exclusive · stocked in every Reece store, same-day parts across Victoria",
       "Best value-to-quality ratio at the mid-tier · genuinely closes the gap on premium brands",
       "Full range: wall splits, multi-head, ducted (10-16 kW), gas ducted, evaporative",
-      "Kaden 6-star gas ducted is the most efficient value-tier gas heater in Melbourne",
+      "Kaden 6-star gas ducted is the most efficient heater at its price in Melbourne",
     ],
     commonInMelbourne:
-      "Our value alternative when a family wants cooling in 3+ bedrooms and the Mitsubishi quote busts the budget. Very common in Cranbourne, Narre Warren, Hampton Park and Endeavour Hills where the customer wants a real system but the numbers need to work. Kaden gas ducted is our default like-for-like Brivis / Braemar replacement path.",
+      "What we reach for when a family wants cooling in 3+ bedrooms done in one go. Very common in Cranbourne, Narre Warren, Hampton Park and Endeavour Hills where the customer wants a real system but the numbers need to work. Kaden gas ducted is our default like-for-like Brivis / Braemar replacement path.",
     support:
       "Every Reece store in Melbourne stocks common Kaden parts · same-day pickup for us on almost every job. Warranty claims run through the Reece trade portal.",
     resources: [
@@ -1991,7 +1991,7 @@ export const brands: Brand[] = [
           "Anti-cold air, sleep mode and ionizer filter across every size",
         ],
         whyWeInstall: [
-          "About $600 cheaper installed than the Mitsubishi MSZ-AP25 for the same room-size fit",
+          "Covers the same room size for less, with the same crew and the same 6-year workmanship",
           "Kaden's Australian distribution means parts and support are reliable through Emerson",
           "5-year parts warranty on top of our 6-year workmanship, 6+ years fully backed",
           "Common choice when a customer wants 3 bedrooms done in one visit",
@@ -2037,7 +2037,7 @@ export const brands: Brand[] = [
         photoAlt: "Kaden KSI-v3 5.0 kW wall split",
         bestFor: "Open-plan living / dining up to 50 m² on a value spec",
         ourTake:
-          "The KSI-v3 5.0 kW is our value pick for a modern brick-veneer open-plan. Big enough to handle a Melbourne heatwave with the doors open, ~$700 cheaper installed than the Mitsubishi MSZ-AP50. Not our first pick if noise floor is the top priority, but genuinely good value.",
+          "The KSI-v3 5.0 kW suits a modern brick-veneer open-plan. Big enough to handle a Melbourne heatwave with the doors open, and priced so a whole-house job stays in one visit rather than three. Not our first pick if noise floor is the top priority, but genuinely good value.",
         specs: [
           { label: "Cooling capacity", value: "5.0 kW" },
           { label: "Heating capacity", value: "6.0 kW" },
@@ -2057,7 +2057,7 @@ export const brands: Brand[] = [
           "Anti-cold air, sleep mode, ionizer filter",
         ],
         whyWeInstall: [
-          "~$700 cheaper installed than the Mitsubishi MSZ-AP50 for the same room-size fit",
+          "Same room-size fit for less, which is what lets a three-room job happen at once",
           "Sweet-spot capacity for a typical open-plan family living zone",
           "Kaden distributor pipeline through Emerson gives us reliable parts turnaround",
           "Solid pick when you want 2-3 rooms done at the value price and don't want the cheapest fly-by-night imports",
@@ -2077,7 +2077,7 @@ export const brands: Brand[] = [
         photo: "/Kaden KSI V3 wall split system.jpg",
         photoAlt: "Kaden KSI-v3 7.0 kW wall split",
         bestFor: "Large open-plan living zone up to 70 m² on a value spec",
-        ourTake: "The KSI-v3 7.0 kW covers a big living zone where the budget won't stretch to Mitsubishi. Same inverter platform as the smaller siblings, just scaled up.",
+        ourTake: "The KSI-v3 7.0 kW covers a big living zone. Same inverter platform as the smaller siblings, just scaled up, so a house on Kaden stays on one remote and one parts list.",
         specs: [
           { label: "Cooling capacity", value: "7.0 kW" },
           { label: "Heating capacity", value: "8.0 kW" },
@@ -2156,7 +2156,7 @@ export const brands: Brand[] = [
         photo: "/Kaden kdi-v2-Ducted Split System.webp",
         photoAlt: "Kaden ducted install with return-air duct work",
         bestFor: "Larger single-storey or a modest double-storey",
-        ourTake: "14 kW Ducted for larger single-storeys · value alternative to the PEAD-M or PEA-RP.",
+        ourTake: "14 kW Ducted for larger single-storeys · the Kaden route when the rest of the house is already Kaden.",
         specs: [{ label: "Cool capacity", value: "14.0 kW" }],
         related: ["kaden-ducted-12", "kaden-ducted-17"],
       },
@@ -2188,7 +2188,7 @@ export const brands: Brand[] = [
         refrigerant: "R32",
         veuEligible: false,
         bestFor: "Two-bedroom install with only one balcony spot for the outdoor unit",
-        ourTake: "Value alternative to the Mitsubishi MXZ-2F for two-head installs. Same one-outdoor-two-indoor arrangement, about $800 cheaper installed.",
+        ourTake: "Two heads off one outdoor. Same arrangement as the Mitsubishi MXZ-2F, and the option we quote when the house is already on Kaden or the numbers need to cover two rooms in one job.",
         specs: [
           { label: "Combined cooling", value: "4.0 kW" },
           { label: "Indoor heads", value: "2" },
@@ -2209,7 +2209,7 @@ export const brands: Brand[] = [
         capacity: "8.0 kW combined · 4 indoor heads",
         refrigerant: "R32",
         veuEligible: false,
-        bestFor: "Four-head family home install, budget alternative to the Mitsubishi MXZ-4F",
+        bestFor: "Four-head family home install, all four rooms done in one visit",
         ourTake: "Value 4-head · about $1,000 saving vs the Mitsubishi MXZ-4F. Same per-room control, same install team, same 6-year workmanship warranty.",
         specs: [
           { label: "Combined cooling", value: "8.0 kW" },
@@ -2255,7 +2255,7 @@ export const brands: Brand[] = [
         refrigerant: "R32",
         veuEligible: false,
         bestFor: "5-6 bedroom family homes wanting per-room control at the value price point",
-        ourTake: "The 18 kW is Kaden's biggest multi-head, 6 indoor heads off one outdoor. Value alternative to the Mitsubishi MXZ-6C when the customer wants that scale of per-room control without going ducted.",
+        ourTake: "The 18 kW is Kaden's biggest multi-head, 6 indoor heads off one outdoor. The Kaden route to that scale of per-room control, when the customer wants six rooms handled without going ducted.",
         specs: [
           { label: "Combined cooling", value: "18.0 kW" },
           { label: "Combined heating", value: "21.0 kW" },
@@ -2279,7 +2279,7 @@ export const brands: Brand[] = [
         photoAlt: "Kaden 3-star internal gas ducted heater",
         bestFor: "Value like-for-like swap for an aging Brivis Wombat 3-star internal",
         ourTake:
-          "Kaden's 3-star internal is the entry-tier ducted heater · drops straight into an existing Brivis or Braemar cupboard cavity so the retrofit is quick and ducts reuse. ~$700-1,000 cheaper installed than the Brivis Wombat equivalent, same install team and 6-year workmanship.",
+          "Kaden's 3-star internal drops straight into an existing cupboard cavity so the retrofit is quick and the ducts reuse. Costs less installed than the Brivis Wombat equivalent, same install team and 6-year workmanship.",
         specs: [
           { label: "Star rating", value: "3-star" },
           { label: "Output range", value: "15 · 20 · 25 · 30 kW" },
@@ -2374,7 +2374,7 @@ export const brands: Brand[] = [
         photoAlt: "Kaden Classic evaporative cooler roof unit",
         bestFor: "Standard roof pitches where the Classic silhouette isn't a street-view concern",
         ourTake:
-          "Kaden's Classic evap is the value-tier equivalent of the Brivis Contour · same principle, cheaper install price, Emerson-backed parts pipeline. Cools a whole home for ~25% of refrigerated running cost when outside humidity is low.",
+          "Kaden's Classic evap works on the same principle as the Brivis Contour, with an Emerson-backed parts pipeline behind it. Cools a whole home for ~25% of refrigerated running cost when outside humidity is low.",
         specs: [
           { label: "Silhouette", value: "Classic (taller) roof profile" },
           { label: "Capacity", value: "Small · Medium · Large roof unit sizes" },
@@ -2383,13 +2383,13 @@ export const brands: Brand[] = [
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
-          "Value-tier evap · ~$800-1,200 cheaper installed than the Brivis Contour",
+          "Costs less installed than the Contour, same whole-home cooling principle",
           "Three roof-unit sizes (Small / Medium / Large) matched to home cooling load",
           "Roof-mounted install, cooled air through ceiling vents",
           "Emerson-backed parts pipeline, reliable Melbourne warranty turnaround",
         ],
         whyWeInstall: [
-          "Value alternative to the Brivis Contour for dry-summer suburbs",
+          "Whole-home evap for dry-summer suburbs, on the Kaden parts pipeline",
           "Same install team, same 6-year workmanship warranty as the Brivis quote",
           "Ideal for large-footprint homes in Cranbourne / Clyde / Officer where ducted refrigerated is over-spec",
         ],
@@ -2407,7 +2407,7 @@ export const brands: Brand[] = [
         photoAlt: "Kaden Low-Profile evaporative cooler roof unit",
         bestFor: "Street-view sensitive homes and low-pitch roofs where the Classic silhouette is too tall",
         ourTake:
-          "Kaden's Low-Profile evap is the value-tier equivalent of the Brivis Advance · same flatter cabinet for clean street-view rooflines, at Kaden's value price. What we spec on character streets or covenanted estates where a taller evap would sit awkwardly on the roof.",
+          "Kaden's Low-Profile evap does the same job as the Brivis Advance · same flatter cabinet for clean street-view rooflines, on Kaden's price. What we spec on character streets or covenanted estates where a taller evap would sit awkwardly on the roof.",
         specs: [
           { label: "Silhouette", value: "Low-Profile (flatter) roof silhouette" },
           { label: "Capacity", value: "Small · Medium · Large roof unit sizes" },
@@ -2422,7 +2422,7 @@ export const brands: Brand[] = [
           "Suits low-pitch roofs where the Classic silhouette would sit awkwardly",
         ],
         whyWeInstall: [
-          "Value alternative to the Brivis Advance for heritage / covenanted streets",
+          "Low-profile evap for heritage and covenanted streets, where roof height is capped",
           "Same install team, same 6-year workmanship warranty",
           "Emerson parts pipeline, quick Melbourne warranty turnaround",
         ],

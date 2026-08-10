@@ -81,15 +81,15 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
     h1: "Air conditioning installation across Melbourne's south-east",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden as the value alternative. Same install team, same warranty, same finish.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
-      heading: "Why we put Mitsubishi Electric in, and Kaden when the budget says so.",
+      heading: "Why these two brands, and which one is yours.",
       blurb:
-        "Two brands, not twelve. We'd rather know two ranges properly than carry a catalogue we can't stand behind.",
+        "Two brands, not twelve. We'd rather know two ranges properly than carry a catalogue we can't stand behind. Which one you end up with depends on your house, not on what you're prepared to spend.",
       points: [
         { t: "Under 1% failure rate", d: "That's Mitsubishi Electric across the whole range, and it's the number that decides what goes in a customer's wall. We're the ones who have to come back if it fails, so a unit that never needs us is worth more than the margin on a cheaper one." },
         { t: "Parts you can actually get", d: "Mitsubishi's Melbourne warehouse still stocks parts for units we put in ten years ago. Plenty of cheap brands are unsupportable by year five, the unit isn't broken, it's just unfixable." },
-        { t: "Kaden isn't the compromise it sounds like", d: "Reece-exclusive, stocked in every store in Victoria, and genuinely close to premium on build. When the Mitsubishi number doesn't work, Kaden is what we fit in our own rentals. Same install crew, same 6-year workmanship." },
+        { t: "Kaden, when the job wants it", d: "Reece-exclusive, so parts sit in every store in Victoria. It is what we quote when a family wants three or four rooms done in one visit rather than one a year, and it goes in with the same crew, the same finish and the same 6-year workmanship as anything else we fit." },
         { t: "Zoned properly from day one", d: "Every ducted job gets Zonemate zoning as standard, not as an upsell. Zoning added in year three means pulling the ceiling apart twice." },
         { t: "Sized on a heat load, not a guess", d: "Room by room, allowing for ceiling height, window aspect and insulation. Oversizing is the lazy way out, the unit short-cycles, never dehumidifies properly, and costs about 20% more to run forever." },
         { t: "We'd rather quote the smaller unit", d: "If a 5 kW does the room, we quote a 5 kW. Selling someone a 7 they didn't need is how you get one job instead of a family's worth of them." },
@@ -129,7 +129,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
-          "Mitsubishi Electric MSZ-AP as standard, Kaden KSI as the value pick",
+          "Mitsubishi Electric MSZ-AP or Kaden KSI, whichever suits the room and the job",
           "Back-to-back install in 3-4 hours, one visit",
           "Wi-Fi via MELCloud so you can run it from the phone",
           "New line-set. We run fresh copper, never reuse the old pipe",
@@ -275,7 +275,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
-      { brand: "Kaden", reason: "Splits, ducted, gas ducted AND evap under one brand. ~$600–700 cheaper installed than the Mitsubishi equivalent, same 6-year warranty.", href: "/brands/kaden" },
+      { brand: "Kaden", reason: "Splits, ducted, gas ducted and evap under one brand, so a whole house runs on one parts list. Same 6-year warranty as everything else we fit.", href: "/brands/kaden" },
       { brand: "Brivis (evap)", reason: "The default evap brand in the corridor, Contour + Advance roof units for dry-summer suburbs like Cranbourne, Clyde and Officer.", href: "/brands/brivis" },
       { brand: "Zonemate", reason: "Our default ducted controller, 4/6/8-zone Touch panel with Wi-Fi and per-room temp sensors.", href: "/brands/zonemate" },
     ],
@@ -322,9 +322,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       blurb:
         "Heat pump hot water is the one category where the cheap option really bites. These three are the ones we'd put on our own houses.",
       points: [
-        { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a lesser unit spends July running an element it was supposed to replace." },
-        { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined is cheaper up front and fine, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore gets the best rebate outcome", d: "On the VEU numbers the 270 L iStore comes out further ahead than anything else we install. If budget is the deciding factor, that's the one we push, not the one with the biggest margin." },
+        { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a unit built for milder conditions spends July running an element it was supposed to replace." },
+        { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined costs less up front and does the same job, but somebody has to remember the anode in year five, and nobody does." },
+        { t: "iStore, when the rebate decides it", d: "On the VEU numbers the 270 L iStore comes out further ahead than anything else we install. When that is what the decision turns on, that is the one we quote, not the one with the biggest margin on it." },
         { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
@@ -570,7 +570,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "Gas ducted is still the cheapest way to heat a Melbourne home through winter. Which one you pick decides what you pay for the next fifteen years.",
       points: [
         { t: "Brivis is what most of these homes were built with", d: "Wombat, Buffalo and Compact Classic drop into the existing cavity, ductwork and controller wiring, so a retrofit is a day rather than a rebuild. Rinnai backs the parts pipeline, even fifteen-year-old units are still serviceable." },
-        { t: "Kaden does the same job for less", d: "Reece-exclusive, internal and external, 3 to 6 star. Roughly $700-1,000 cheaper installed than the Brivis equivalent with the same crew and the same 6-year workmanship warranty behind it." },
+        { t: "Kaden, same job, different supply chain", d: "Reece-exclusive, internal and external, 3 to 6 star. Costs less installed than the Brivis equivalent, with the same crew and the same 6-year workmanship warranty behind it." },
         { t: "We quote the payback, not just the price", d: "A 3-star and a 6-star heat the same house. The 6-star costs more up front and less every winter after that. We'll show you where the crossover lands for your gas bill rather than just selling you the cheap one." },
         { t: "Carbon monoxide testing on every gas job", d: "A cracked heat exchanger has no smell and no warning. Calibrated analyser, results on the report. This is the part of the job that isn't optional and we won't skip it to win a quote." },
         { t: "Thermann G-series for continuous flow", d: "Made by Reece, not Rinnai, whatever the internet tells you. Never runs out, no tank losing heat overnight, and same-day swap on most like-for-like replacements." },
@@ -723,7 +723,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
-      { brand: "Kaden Gas Ducted", reason: "Value tier, 6-star Advance model is the most efficient in the value price point. Same footprint as a Brivis retrofit.", href: "/brands/kaden" },
+      { brand: "Kaden Gas Ducted", reason: "The 6-star Advance is the most efficient heater at its price anywhere. Same footprint as a Brivis retrofit, so the cavity and ducts reuse.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
     ],
     typical: {

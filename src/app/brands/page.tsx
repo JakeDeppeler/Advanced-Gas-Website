@@ -22,7 +22,7 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
     label: "Air conditioning",
     slug: "aircon",
     brandSlugs: ["mitsubishi-electric", "kaden"],
-    blurb: "Split, multi-head and ducted. Mitsubishi Electric is our default; Kaden is our value tier that closes the gap without the premium.",
+    blurb: "Split, multi-head and ducted. Mitsubishi Electric is what we quote first; Kaden is what we reach for when a whole house needs doing at once.",
   },
   {
     label: "Heat pump hot water",
@@ -76,9 +76,9 @@ const BRAND_PITCH: Record<string, {
     bestFor: "Family homes where reliability, quiet operation and long-term serviceability matter more than shaving $600 up-front",
   },
   "kaden": {
-    positioning: "Value tier · Reece-exclusive, same-day parts state-wide",
+    positioning: "Reece-exclusive · same-day parts anywhere in Victoria",
     standoutStat: { value: "~30%", label: "cheaper than Mitsubishi equivalents, installed" },
-    bestFor: "3+ bedroom fitouts where the Mitsubishi quote busts the budget but a real system is still the goal",
+    bestFor: "3+ bedroom fitouts where every room gets done in one visit rather than one a year",
   },
   "reclaim": {
     positioning: "Premium heat pump · CO₂ refrigerant, 15-year stainless tank option",
