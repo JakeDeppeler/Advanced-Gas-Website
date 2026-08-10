@@ -252,7 +252,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             {sub.whyLocal && (
               <div className="suburb-local__why">
                 <span className="ds-eyebrow"><span className="ds-dot" /> Why local matters</span>
-                <h2>We&rsquo;re not driving out from the city — we&rsquo;re your neighbours.</h2>
+                <h2>We&rsquo;re not driving out from the city. We&rsquo;re your neighbours.</h2>
                 <p>{sub.whyLocal}</p>
                 {sub.knownEstates && (
                   <p className="suburb-local__estates">

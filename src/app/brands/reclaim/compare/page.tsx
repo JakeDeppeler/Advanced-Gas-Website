@@ -101,7 +101,7 @@ export default function ReclaimComparePage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> Quick picks</span>
-            <h2>Skip the reading — jump to the right model.</h2>
+            <h2>Skip the reading. Jump to the right model.</h2>
           </div>
           <div className="reclaim-quickpick__grid">
             {QUICK_PICK.map((q) => (

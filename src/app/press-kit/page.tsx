@@ -317,7 +317,7 @@ export default function PressKitPage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> NAP block</span>
-            <h2>Name, address, phone — use exactly this format.</h2>
+            <h2>Name, address, phone. Use exactly this format.</h2>
             <p>
               Local search rewards <strong>NAP consistency</strong> — every directory listing
               should show the business name, address and phone in the same format. Copy this

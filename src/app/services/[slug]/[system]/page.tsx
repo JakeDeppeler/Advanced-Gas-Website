@@ -167,7 +167,7 @@ export default async function SystemPage({
       {(system.bestFor || system.watchOut) && (
         <section className="sysfit">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
               <h2>Where {system.label.toLowerCase()} works, and where it doesn&rsquo;t.</h2>
               <p>
@@ -197,7 +197,7 @@ export default async function SystemPage({
       {content.steps && content.steps.length > 0 && (
         <section className="svc-steps">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
               <h2>What happens, start to finish.</h2>
             </div>

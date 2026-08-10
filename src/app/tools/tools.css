@@ -111,9 +111,9 @@
   box-shadow: var(--shadow-sm);
 }
 .page-tool__result { position: sticky; top: 100px; }
-/* Panel headings. The rule under them was navy on navy text, which read
-   as a divider rather than a heading — orange gives each panel a colour
-   anchor and makes the two columns scannable. */
+/* Panel headings sit on a navy bar: a light hairline the width of the
+   panel, with a heavier navy stub under the words themselves. Reads as
+   a heading rather than the divider the full navy rule looked like. */
 .page-tool h2 {
   font-family: var(--f-display);
   font-weight: 800;
@@ -132,7 +132,7 @@
   bottom: -2px;
   width: 62px;
   height: 2px;
-  background: var(--orange);
+  background: var(--navy);
 }
 
 /* Form fields */
@@ -1182,9 +1182,7 @@
 /* The tools hub and each tool open on a light hero; give the h1 the same
    accent rule the section heads use so the page has a colour anchor. */
 .page-tool .dp-hero__eyebrow,
-.page-tools .dp-hero__eyebrow { color: var(--orange); }
-.page-tool .dp-hero h1 .accent,
-.page-tools .dp-hero h1 .accent { color: var(--orange); }
+.page-tools .dp-hero__eyebrow { color: var(--navy); }
 
 /* Centred heads can't take a left rule — underline them instead. */
 .ds-section-head--center.ds-section-head--hl { padding-left: 0; }
@@ -1200,5 +1198,4 @@
 
 /* Tools hub: eyebrow and hero accent in orange so the landing page has
    the same colour anchor as the tools themselves. */
-.page-tools .dp-hero__eyebrow { color: var(--orange); }
-.page-tools .dp-hero h1 .accent { color: var(--orange); }
+

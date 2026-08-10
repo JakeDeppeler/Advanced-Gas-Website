@@ -1802,9 +1802,10 @@ input, select, textarea {
   left: 0; top: 4px; bottom: 4px;
   width: 4px;
   border-radius: 3px;
-  background: linear-gradient(180deg, var(--orange), #ffa25e);
+  background: linear-gradient(180deg, var(--navy), #1d3a86);
 }
-.ds-section-head--hl .ds-eyebrow { color: var(--orange); }
+.ds-section-head--hl .ds-eyebrow { color: var(--navy); }
+.ds-section-head--hl .ds-eyebrow .ds-dot { background: var(--navy); }
 .ds-section-head--hl h2 { color: var(--navy); }
 
 @media (max-width: 640px) {

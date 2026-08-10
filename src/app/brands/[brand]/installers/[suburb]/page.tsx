@@ -235,7 +235,7 @@ export default function BrandSuburbPage({
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>
-            <h2>{brand.name} in {sub.name} — free quote.</h2>
+            <h2>{brand.name} in {sub.name}. Free quote.</h2>
             <p>Fixed price, no obligation, replied within 2 business hours.</p>
           </div>
           <div className="bigcta__btns">

@@ -54,7 +54,7 @@ export async function ReviewsBlock({
   return (
     <section className="rvs">
       <div className="wrap">
-        <div className="ds-section-head ds-section-head--center">
+        <div className="ds-section-head ds-section-head--center ds-section-head--hl">
           <span className="ds-eyebrow"><span className="ds-dot" /> {eyebrow}</span>
           <h2>{heading}</h2>
         </div>

@@ -1806,15 +1806,18 @@
   border-bottom: 1px solid var(--line);
 }
 .page-detail .dp-benefits--boxed > .wrap {
-  background: color-mix(in srgb, var(--orange) 6%, var(--paper));
-  border: 1px solid color-mix(in srgb, var(--orange) 26%, var(--line));
+  background: color-mix(in srgb, var(--orange) 14%, var(--paper));
+  border: 2px solid var(--orange);
   border-radius: var(--rad);
   padding: 34px 34px 36px;
 }
 .page-detail .dp-benefits--boxed .dp-benefit {
   background: var(--paper);
-  border-color: color-mix(in srgb, var(--orange) 18%, var(--line));
+  border-color: color-mix(in srgb, var(--orange) 34%, var(--line));
 }
+/* Numerals stay orange inside the panel — they're the one place the
+   accent still reads against all that warm ground. */
+.page-detail .dp-benefits--boxed .dp-benefit__num { color: #b8460f; }
 @media (max-width: 640px) {
   .page-detail .dp-benefits--boxed > .wrap { padding: 22px 18px 24px; border-radius: 16px; }
 }

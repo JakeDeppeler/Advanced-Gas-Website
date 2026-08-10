@@ -50,7 +50,7 @@ export function WhyDifferent({
   return (
     <section className="whydiff">
       <div className="wrap">
-        <div className="ds-section-head">
+        <div className="ds-section-head ds-section-head--hl">
           <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why this gear</span>
           <h2>{heading}</h2>
           <p>{blurb}</p>

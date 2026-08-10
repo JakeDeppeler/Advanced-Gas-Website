@@ -103,15 +103,15 @@ export default function PricingPage() {
       </section>
 
       {/* ================= Value comparison block =================
-          "We're not the cheapest — here's what you're actually paying
+          "We're not the cheapest. Here's what you're actually paying
           for". Three-column comparison against a cheap fly-in-fly-out
           operator vs a premium show-room chain. Same pattern as the
           tkairpower "electrical prices" page the user referenced. */}
       <section className="pricing-value">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
+          <div className="ds-section-head ds-section-head--center ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> The honest comparison</span>
-            <h2>We&rsquo;re not the cheapest &mdash; here&rsquo;s what you&rsquo;re paying for.</h2>
+            <h2>We&rsquo;re not the cheapest. Here&rsquo;s what you&rsquo;re paying for.</h2>
             <p>
               A cheap Gumtree operator can put a bare-metal split on the wall for $600 less.
               A premium show-room chain will charge $2,000 more for the same gear. This is

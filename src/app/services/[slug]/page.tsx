@@ -124,7 +124,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {/* BENEFITS */}
       <section className="dp-benefits">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> What&apos;s included</span>
             <h2>Every {svc.short.toLowerCase()} we do, done properly.</h2>
           </div>
@@ -145,7 +145,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.steps && content.steps.length > 0 && (
         <section className="svc-steps">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
               <h2>Our {svc.short.toLowerCase()} process, step by step.</h2>
               <p>The same six-step run-through we walk you through on the quote call. No surprises on install day.</p>
@@ -172,7 +172,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.systems && content.systems.length > 0 && (
         <section className="svc-systems">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> Systems we install</span>
               <h2>Which system suits your place.</h2>
               <p>Different homes want different gear. Here&rsquo;s the honest difference between them, including where each one falls down.</p>
@@ -293,7 +293,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {beforeAfter && (
         <section className="svc-ba">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Before &amp; after</span>
               <h2>{beforeAfter.title}</h2>
               <p>{beforeAfter.blurb}</p>
@@ -323,7 +323,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.photos && content.photos.length > 0 && (
         <section className="svc-photos">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> The gear we install</span>
               <h2>What we put in for {svc.short.toLowerCase()}.</h2>
               <p>
@@ -364,7 +364,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.brandPods && content.brandPods.length > 0 && (
         <section className="svc-brandpods">
           <div className="wrap">
-            <div className="ds-section-head">
+            <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> Brands we install</span>
               <h2>What we quote and why.</h2>
             </div>
