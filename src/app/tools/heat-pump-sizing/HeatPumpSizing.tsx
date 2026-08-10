@@ -61,8 +61,6 @@ const TANK_SIZES: {
   models: string;
   picks: { label: string; href: string }[];
 }[] = [
-  { litres: 170, models: "Thermann 170 L gas storage",
-    picks: [{ label: "Thermann Gas Storage 170 L", href: "/brands/thermann/gas-storage-170" }] },
   { litres: 180, models: "iStore 180 L",
     picks: [{ label: "iStore 180 L Heat Pump", href: "/brands/istore/istore-180" }] },
   { litres: 200, models: "Reclaim ECO R290 200 L · Thermann ECO R290 200 L",
@@ -70,12 +68,14 @@ const TANK_SIZES: {
       { label: "Reclaim ECO R290 200 L", href: "/brands/reclaim/eco-r290-200" },
       { label: "Thermann ECO R290 200 L", href: "/brands/thermann/thermann-eco-r290-200" },
     ] },
+  { litres: 215, models: "Reclaim CO₂ 215 L · 5 kW condenser",
+    picks: [{ label: "Reclaim CO₂ Split 215 L · 5 kW", href: "/brands/reclaim/co2-split-215-5kw" }] },
   { litres: 250, models: "Reclaim CO₂ 250 L · Panasonic CO₂ 250 L",
     picks: [
       { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
       { label: "Panasonic CO₂ 6 kW · 250 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-250" },
     ] },
-  { litres: 270, models: "iStore 270 L · Thermann Split 270 L",
+  { litres: 270, models: "Reclaim CO₂ 270 L · iStore 270 L · Thermann Split 270 L",
     picks: [
       { label: "iStore 270 L Heat Pump", href: "/brands/istore/istore-270" },
       { label: "Thermann Split Glass-Lined", href: "/brands/thermann/thermann-split-glass" },
@@ -87,12 +87,20 @@ const TANK_SIZES: {
     ] },
   { litres: 315, models: "Reclaim CO₂ 315 L · Panasonic CO₂ 315 L",
     picks: [
+      { label: "Reclaim CO₂ Split 315 L · 5 kW", href: "/brands/reclaim/co2-split-315-5kw" },
       { label: "Reclaim CO₂ Split 315 L", href: "/brands/reclaim/co2-split-315-glass" },
       { label: "Panasonic CO₂ 6 kW · 315 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-315" },
     ] },
   { litres: 400, models: "Reclaim CO₂ 400 L",
     picks: [{ label: "Reclaim CO₂ Split 400 L", href: "/brands/reclaim/co2-split-400-glass" }] },
 ];
+
+/**
+ * iStore tops out at 270 L. Past about 310 L it stops being an option at
+ * all, so listing it against a bigger recommendation would send someone
+ * to a product that can't do the job.
+ */
+const ISTORE_MAX_LITRES = 310;
 
 /**
  * Systems for the head-to-head.
@@ -249,6 +257,18 @@ export function HeatPumpSizing() {
 
     const usableCapacity = recommended.litres * USABLE_FRACTION;
 
+    // Drop iStore from the picks once we're past its largest tank.
+    const picks = recommended.litres > ISTORE_MAX_LITRES
+      ? recommended.picks.filter((p) => !p.href.includes("/istore/"))
+      : recommended.picks;
+
+    // 285 and 270 are a rung apart and both real. A Reclaim 270 covers a
+    // 285 recommendation comfortably, so offer it rather than making
+    // someone buy up a size for 15 L.
+    const alsoFine = recommended.litres === 285
+      ? { label: "Reclaim CO₂ Split 270 L", href: "/brands/reclaim/co2-split-250-glass" }
+      : null;
+
     // The trade-off, spelled out: a bigger compressor buys back tank
     // volume, and a bigger tank lets a smaller compressor cope.
     const pairings = [3, 4, 6].map((kw) => {
@@ -287,7 +307,7 @@ export function HeatPumpSizing() {
     return {
       hotFraction, hotLpm, coldLpm, hotPerShower,
       morningHot, eveningHot, peakSessionHot, totalHotPerDay,
-      recommended, usableCapacity, deliveredMixed, coldBlendedIn, showersFromTank,
+      recommended, picks, alsoFine, usableCapacity, deliveredMixed, coldBlendedIn, showersFromTank,
       requiredLitres, exceedsRange, mustBeStored, madeDuringRun,
       litresPerHour, drawHours, pairings,
       compare, runHours, gapHours,
@@ -483,10 +503,17 @@ export function HeatPumpSizing() {
         <div className="hps-picks">
           <div className="hps-picks__lbl">Systems we install at this size</div>
           <div className="hps-picks__row">
-            {r.recommended.picks.map((pk) => (
+            {r.picks.map((pk) => (
               <Link key={pk.href} href={pk.href} className="hps-pick">{pk.label} →</Link>
             ))}
           </div>
+          {r.alsoFine && (
+            <p className="hps-picks__also">
+              A <Link href={r.alsoFine.href}>{r.alsoFine.label}</Link> also covers this
+              comfortably. 285 and 270 are one rung apart, and 15 litres isn&rsquo;t worth
+              buying up a size for.
+            </p>
+          )}
         </div>
 
         <div className="hps-delivery">

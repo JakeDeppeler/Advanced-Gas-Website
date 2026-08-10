@@ -32,7 +32,7 @@ export const posts: BlogPost[] = [
     photoAlt: "Reclaim heat pump install with VEU rebate applied",
     featured: true,
     content: [
-      { type: "p", text: "The Victorian Energy Upgrades (VEU) program is the biggest chunk of free money most Pakenham households will ever leave on the table. It's the state government's way of getting old, inefficient gas and electric appliances out of homes and replacing them with efficient heat pumps and reverse-cycle aircon, and it's the reason you can put in a $5,000 heat pump for well under $3,000." },
+      { type: "p", text: "The Victorian Energy Upgrades (VEU) program is the biggest chunk of free money most Pakenham households will ever leave on the table. It's the state government's way of getting old, inefficient gas and electric appliances out of homes and replacing them with efficient heat pumps and reverse-cycle aircon, and it's the reason a heat pump costs a fraction of its sticker price once the paperwork is done." },
       { type: "h2", text: "What actually changed in 2026" },
       { type: "p", text: "The certificate values shifted at the start of the year. VEEC (Victorian Energy Efficiency Certificates) and STC (Small-scale Technology Certificates) are the two rebates that stack on every heat pump job. In 2026, a typical Pakenham heat pump install now pulls VEEC ~$576 and STC ~$629, totalling $1,205 in base rebates before you factor in the $400 Australian Made bonus and the $1,000 Solar Homes hot water rebate for eligible households." },
       { type: "p", text: "That's up from about $1,050 in base rebates for most of last year. So if you had a quote in 2025 that felt just out of reach, the same job might be $150-$200 cheaper today." },
@@ -343,7 +343,7 @@ export const posts: BlogPost[] = [
       { type: "h2", text: "What it actually costs, installed, after VEU rebate" },
       { type: "p", text: "Melbourne installed prices for the units we install most often, after the full VEU rebate stack and Solar Homes bonus where eligible:" },
       { type: "ul", items: [
-        "iStore 270L (R290): under $900 out-of-pocket for VEU-eligible households",
+        "iStore 270L (R290): the strongest rebate outcome for VEU-eligible households",
         "Thermann Series 5 315L (R290): around $2,590 installed",
         "Reclaim CO2 315L stainless: around $3,190 installed",
         "Reclaim CO2 400L stainless: around $3,690 installed (for larger families)",
@@ -364,7 +364,7 @@ export const posts: BlogPost[] = [
       { type: "ul", items: [
         "Reclaim (CO2): premium, natural refrigerant, stainless tank, quietest, best cold-climate performance. 6-year tank warranty. About $1,000 more than iStore.",
         "Thermann (R290): mid-tier volume brand, solid Rheem parts and warranty backing, wide range covers every fuel type. Sweet spot for most Melbourne families.",
-        "iStore (R290): best VEU rebate outcome, Chinese-built but Australian-designed, hits the rebate hard so out-of-pocket is often under $1,000. Best value if budget is the driving factor.",
+        "iStore (R290): best VEU rebate outcome, Chinese-built but Australian-designed, and it hits the rebate harder than anything else we fit. Best value if budget is the driving factor.",
       ] },
       { type: "p", text: "We wrote a separate long-form comparison on this, see 'Reclaim vs iStore vs Thermann', but the tl;dr is: if you're in the hills or you plan to be in the house 10+ years, Reclaim. If you want the best rebate outcome, iStore. Everything else, Thermann Series 5." },
 

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const REVIEWS = [
-  { title: "Quoted Mon, installed Fri", txt: "Bloke on the phone is the bloke on the tools. Rebate handled, paid less than $400.", who: "Jess M.", suburb: "Pakenham", a: "JM" },
+  { title: "Quoted Mon, installed Fri", txt: "Bloke on the phone is the bloke on the tools. Rebate handled start to finish.", who: "Jess M.", suburb: "Pakenham", a: "JM" },
   { title: "Actually got up in the roof", txt: "Only ones who crawled in. Middle price, cleanest install of the three.", who: "Dean R.", suburb: "Officer", a: "DR" },
   { title: "Sunday emergency sorted", txt: "Hot water died with three kids. Loaner running by lunch, iStore Tuesday.", who: "Sam K.", suburb: "Berwick", a: "SK" },
   { title: "No surprises on the invoice", txt: "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story. Nice change.", who: "Priya S.", suburb: "Cranbourne", a: "PS" },
@@ -223,7 +223,7 @@ export default function PreviewPage() {
             <Link href="/services#heatpump" className="pv-sv-tile pv-sv-tile--wide">
               <span className="pv-sv-ico pv-sv-ico--orange">🔥</span>
               <span className="pv-sv-t">Heat pump hot water</span>
-              <span className="pv-sv-s">Reclaim, iStore, Thermann. Under $500 out of pocket with VEU.</span>
+              <span className="pv-sv-s">Reclaim, iStore, Thermann. VEU rebate applied at the quote.</span>
             </Link>
             <Link href="/services#split" className="pv-sv-tile">
               <span className="pv-sv-ico">❄</span>

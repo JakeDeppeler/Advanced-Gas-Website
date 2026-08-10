@@ -87,7 +87,7 @@ const BRAND_PITCH: Record<string, {
   },
   "istore": {
     positioning: "Best-value heat pump · maximum VEU rebate outcome",
-    standoutStat: { value: "under $900", label: "typical Hampton Park / Cranbourne install post-rebate" },
+    standoutStat: { value: "Best rebate", label: "outcome of any heat pump we install" },
     bestFor: "Rebate-maximisers, tight budgets, straightforward like-for-like electric tank swaps",
   },
   "thermann": {

@@ -77,7 +77,7 @@ const COPY_BLOCKS: { label: string; text: string; note?: string }[] = [
   },
   {
     label: "Suggested pull-quote (on rebates)",
-    text: "“We apply the VEU rebate at the quote stage so the customer never pays it up-front and chases it back. Most Pakenham heat pump swaps land under $500 out of pocket by the time the paperwork's done.”, Jake Deppeler",
+    text: "“We apply the VEU rebate at the quote stage so the customer never pays it up-front and chases it back. The number on the quote is the number you pay.”, Jake Deppeler",
   },
 ];
 

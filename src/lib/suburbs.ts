@@ -68,7 +68,7 @@ export const suburbs: Suburb[] = [
       who: "Jess M., Pakenham",
       what: "Reclaim heat pump swap, VEU rebate handled",
       quote:
-        "Took the old Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so I paid less than $400 out of pocket. The bloke on the phone was the bloke on the tools, refreshing.",
+        "Took the old Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so it came straight off the price. The bloke on the phone was the bloke on the tools, refreshing.",
     },
     nearby: ["officer", "beaconsfield", "pakenham-upper", "nar-nar-goon", "tynong", "bunyip"],
     whyLocal:
@@ -250,7 +250,7 @@ export const suburbs: Suburb[] = [
     housingStock:
       "80s and 90s Ryan Homes estates, mostly brick veneer on standard 500-600m² blocks, with original hot water and heating still in place on a lot of them",
     commonInstall:
-      "iStore 270L heat pumps replacing original electric-storage tanks. This is the max-VEU-rebate postcode where the rebate + trade-in gets the install price well under $500 out of pocket",
+      "iStore 270L heat pumps replacing original electric-storage tanks. This is the max-VEU-rebate postcode, where the rebate and trade-in do the most work on the price",
     localHooks: [
       "Hampton Park Secondary",
       "Coral Park Primary",

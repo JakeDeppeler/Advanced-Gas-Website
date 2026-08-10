@@ -1032,6 +1032,52 @@ export const brands: Brand[] = [
         related: ["co2-split-250-stainless", "co2-split-315-earthworks"],
       },
       {
+        slug: "co2-split-215-5kw",
+        name: "Reclaim CO₂ Split · 215L · 5 kW",
+        tankLitres: 215,
+        model: "REHP-CO2-215-5KW",
+        category: "heat-pump",
+        categoryLabel: "CO₂ split heat pump · 5 kW condenser",
+        capacity: "215 L tank · 5 kW CO₂ condenser",
+        refrigerant: "R744 (CO₂)",
+        veuEligible: true,
+        photo: "/Reclaim Glass lined and stainless v2.webp",
+        photoAlt: "Reclaim CO₂ split heat pump",
+        bestFor: "Couples and small families wanting recovery speed over stored volume",
+        ourTake:
+          "The 5 kW condenser is the point of this one. A smaller tank keeps its footprint down, and the stronger compressor puts water back fast enough that you don't miss the litres, which suits a household that showers in a tight window rather than spread across the day.",
+        specs: [
+          { label: "Tank capacity", value: "215 L" },
+          { label: "Condenser", value: "5 kW CO₂" },
+          { label: "Tank warranty", value: "10 years parts + 5 years labour" },
+          { label: "Heat pump warranty", value: "10 years parts + labour" },
+        ],
+        related: ["co2-split-315-5kw", "co2-split-250-glass", "co2-split-315-glass"],
+      },
+      {
+        slug: "co2-split-315-5kw",
+        name: "Reclaim CO₂ Split · 315L · 5 kW",
+        tankLitres: 315,
+        model: "REHP-CO2-315-5KW",
+        category: "heat-pump",
+        categoryLabel: "CO₂ split heat pump · 5 kW condenser",
+        capacity: "315 L tank · 5 kW CO₂ condenser",
+        refrigerant: "R744 (CO₂)",
+        veuEligible: true,
+        photo: "/Reclaim Glass lined and stainless v2.webp",
+        photoAlt: "Reclaim CO₂ split heat pump",
+        bestFor: "Families of 5+, or any house where the whole morning rush lands at once",
+        ourTake:
+          "Volume and recovery together. The 315 L holds enough for a full morning run on its own, and the 5 kW puts it back inside the working day, so an evening run never starts on a half-empty tank.",
+        specs: [
+          { label: "Tank capacity", value: "315 L" },
+          { label: "Condenser", value: "5 kW CO₂" },
+          { label: "Tank warranty", value: "10 years parts + 5 years labour" },
+          { label: "Heat pump warranty", value: "10 years parts + labour" },
+        ],
+        related: ["co2-split-215-5kw", "co2-split-315-glass", "co2-split-400-glass"],
+      },
+      {
         slug: "co2-split-315-glass",
         name: "Reclaim CO₂ Split · 315L Glass-Lined",
         tankLitres: 315,
@@ -1778,7 +1824,7 @@ export const brands: Brand[] = [
     intro:
       "iStore is our value pick for VEU rebate customers. Solid heat pump platform, aggressive price point, and the built-in PV diverter option means it plays well with solar homes without needing an aftermarket accessory.",
     ourTake:
-      "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the VEU rebate customer who wants their out-of-pocket under $500, iStore hits the sweet spot every time.",
+      "iStore doesn't quite reach Reclaim's build quality or Thermann Series 5's parts network, but for the customer whose decision comes down to the rebate, iStore hits the sweet spot every time.",
     accreditation: "iStore accredited installer",
     productLabel: "2 models · 180L + 270L heat pump storage",
     photo: "/270L-istore-heatpump.webp",
@@ -1788,13 +1834,13 @@ export const brands: Brand[] = [
     established: "Australian company (Sydney) · manufactured in China to AS/NZS standards",
     warranty: "6-year cylinder + 3-year compressor + 6-year on our workmanship",
     keyFeatures: [
-      "Best VEU rebate outcome in the market · 270L install often lands under $900 out-of-pocket",
+      "Best VEU rebate outcome of any heat pump we install",
       "Built-in PV-diverter compatibility · smart-schedule the compressor around your solar",
       "Wi-Fi smart-app control comes standard · no aftermarket module needed",
       "R290 natural refrigerant, high COP",
     ],
     commonInMelbourne:
-      "Hampton Park, Cranbourne North and Doveton are the postcodes we install the most iStore into · the VEU rebate maths there consistently gets the out-of-pocket under $500. Also popular with solar-paired households through Officer and Clyde North where the built-in PV diverter pays back inside the first year.",
+      "Hampton Park, Cranbourne North and Doveton are the postcodes we install the most iStore into · the VEU rebate maths works hardest in those postcodes. Also popular with solar-paired households through Officer and Clyde North where the built-in PV diverter pays back inside the first year.",
     support:
       "iStore parts flow through their Melbourne distributor. Warranty claims are handled by iStore's Sydney office directly with the homeowner · we handle the on-site swap-out.",
     resources: [
@@ -1815,7 +1861,7 @@ export const brands: Brand[] = [
         photo: "/270L-istore-heatpump.webp",
         photoAlt: "iStore 180L heat pump, full unit view",
         ourTake:
-          "The 180L is the smallest iStore · for couples or apartment installs where 270L is overkill. Post-VEU-rebate this can land under $500 out of pocket, which no other heat pump in the market can match.",
+          "The 180L is the smallest iStore · for couples or apartment installs where 270L is overkill. Once the VEU rebate is applied it lands further ahead than any other heat pump in the market.",
         specs: [
           { label: "Tank capacity", value: "180 L" },
           { label: "Refrigerant", value: "R290" },
@@ -1837,7 +1883,7 @@ export const brands: Brand[] = [
         photo: "/270L-istore-heatpump.webp",
         photoAlt: "iStore 270L heat pump, installed unit",
         ourTake:
-          "The 270L iStore is our most-installed unit for Hampton Park and Cranbourne VEU rebate jobs. Post-VEU-rebate typically sits under $900, which is a genuinely hard number to beat.",
+          "The 270L iStore is our most-installed unit for Hampton Park and Cranbourne VEU rebate jobs. Once the rebate is applied it is a genuinely hard package to beat.",
         specs: [
           { label: "Tank capacity", value: "270 L" },
           { label: "Refrigerant", value: "R290" },

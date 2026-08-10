@@ -53,7 +53,7 @@ const ROWS: Row[] = [
 ];
 
 const QUICK_PICK: { label: string; recommend: string; explain: string }[] = [
-  { label: "Cheapest way in", recommend: "Glass-lined 250 L", explain: "Under $5,400, same CO₂ compressor, glass-lined tank with sacrificial anode. Good for couples on a tight budget." },
+  { label: "Cheapest way in", recommend: "Glass-lined 250 L", explain: "Same CO₂ compressor as the dearer tanks, glass-lined with a sacrificial anode. Good for couples on a tight budget." },
   { label: "Best value default", recommend: "Stainless 315 L", explain: "The one we install most, 15-year stainless tank warranty, 315 L for a family of 3-4, no anode maintenance ever." },
   { label: "Family long-term", recommend: "Stainless 400 L", explain: "For 5+ person households, 400 L, 15-year tank warranty, still handles back-to-back showers on a winter morning." },
   { label: "Coastal home", recommend: "Stainless 316 L", explain: "Only pay the 316-grade premium if you're within a couple of km of Western Port or Port Phillip, salt air kills standard stainless in ~10 years." },

@@ -324,7 +324,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       points: [
         { t: "Reclaim holds up on a cold morning", d: "CO₂ refrigerant keeps its heating capacity down to about -10 °C. That matters in Emerald, Gembrook and the hills, where a lesser unit spends July running an element it was supposed to replace." },
         { t: "Stainless tank, no anode to forget", d: "Reclaim's 316-grade stainless option has no sacrificial anode to replace and nothing to rust. Glass-lined is cheaper up front and fine, but somebody has to remember the anode in year five, and nobody does." },
-        { t: "iStore gets the best rebate outcome", d: "On the VEU numbers a 270 L iStore often lands under $900 out of pocket. If budget is the deciding factor, that's the one we push, not the one with the biggest margin." },
+        { t: "iStore gets the best rebate outcome", d: "On the VEU numbers the 270 L iStore comes out further ahead than anything else we install. If budget is the deciding factor, that's the one we push, not the one with the biggest margin." },
         { t: "Thermann is Australian-made", d: "Built by Dux in Moss Vale, which qualifies for the $400 Australian-made VEU bonus and means Reece stocks the parts in every Victorian store." },
         { t: "We do the rebate paperwork", d: "Eligibility check, certificates, lodgement, all of it, inside the quote. You sign once at the quote and once on the day. The rebate is already in the price, not something you chase later." },
         { t: "Sized on your actual draw-off", d: "Not a bedroom count. Four fifteen-minute showers is 300 L of hot water before breakfast; two spread across the day is a much smaller tank. We do that sum before we quote a size." },
@@ -364,7 +364,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brandPods: [
       { brand: "Reclaim Energy", reason: "The only mainstream CO₂ heat pump in Australia. 15-yr stainless tank on the flagship. Made in Sydney.", href: "/brands/reclaim" },
-      { brand: "iStore", reason: "Cheapest heat pump post-rebate, often under $900 net. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },
+      { brand: "iStore", reason: "Cheapest heat pump once the VEU rebate is applied. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },
       { brand: "Thermann", reason: "Australian-made by Dux (Moss Vale). Reece distribution means same-day parts state-wide.", href: "/brands/thermann" },
     ],
     typical: {

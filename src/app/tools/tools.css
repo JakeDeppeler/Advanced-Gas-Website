@@ -1247,3 +1247,13 @@
   line-height: 1.6;
   color: var(--ink-2);
 }
+
+
+.hps-picks__also {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.hps-picks__also a { color: var(--navy); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.hps-picks__also a:hover { color: var(--orange); }

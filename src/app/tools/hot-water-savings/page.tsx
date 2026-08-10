@@ -61,8 +61,8 @@ export default function HotWaterSavingsPage() {
               </p>
               <p>
                 The <strong>VEU rebate</strong> in Victoria knocks up to $2,700 off a heat pump install
-                (max at current $60-$75 VEEC prices), meaning most Pakenham swap-outs land under $1,000
-                out of pocket. Combined with the annual saving, the payback period is usually inside 4-6
+                (max at current $60-$75 VEEC prices), which comes off the quoted price rather than
+                being something you chase later. Combined with the annual saving, the payback period is usually inside 4-6
                 years, and the unit is warrantied for at least a decade after that.
                 {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
               </p>

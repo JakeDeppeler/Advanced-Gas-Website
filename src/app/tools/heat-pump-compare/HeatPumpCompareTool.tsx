@@ -128,7 +128,7 @@ const HEAT_PUMPS: Row[] = [
     madeIn: "Australian company · manufactured in China (AS/NZS)",
     bestFor: "Cheapest heat pump on the market post-rebate, Hampton Park / Cranbourne stock swap-outs",
     pros: [
-      "Cheapest heat pump post-rebate, often <$900 out of pocket",
+      "Cheapest heat pump once the VEU rebate is applied",
       "180 L option for couples / apartments",
       "Widely serviced, parts pipeline healthy",
     ],
@@ -454,7 +454,7 @@ export function HeatPumpCompareTool() {
           Our default recommendations
         </h2>
         <ul style={{ fontSize: 14.5, lineHeight: 1.65, color: "var(--ink-2)", margin: 0, paddingLeft: 20 }}>
-          <li><strong>Best value under $1,000 out of pocket:</strong> iStore 270L.</li>
+          <li><strong>Best value once the rebate is applied:</strong> iStore 270L.</li>
           <li><strong>Best long-term:</strong> Reclaim CO₂ Split Stainless 315L (15-year tank).</li>
           <li><strong>Hills / cold-climate suburbs:</strong> Reclaim CO₂ (holds capacity to -10 °C).</li>
           <li><strong>Straight swap for old storage tank:</strong> Reclaim ECO R290 All-in-One.</li>

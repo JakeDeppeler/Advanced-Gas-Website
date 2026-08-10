@@ -438,7 +438,7 @@ export default async function HomePage() {
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
-                <p>Reclaim, iStore, Thermann. VEU rebate handled. Most homes installed for under $500 out of pocket.</p>
+                <p>Reclaim, iStore, Thermann. VEU rebate applied at the quote, so it&rsquo;s already off the price.</p>
                 <span className="bcard__cta">See heat pump options →</span>
               </div>
             </Link>
