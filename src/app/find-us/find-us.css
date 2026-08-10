@@ -1,0 +1,154 @@
+/* Find us — workshop location, hours, licences. */
+
+.findus {
+  padding: 70px 0;
+  background: var(--bg);
+}
+
+.findus__grid {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.findus__map {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 380px;
+  max-height: 540px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.findus__map--loading {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(243, 103, 34, 0.08) 0%, transparent 50%),
+    var(--paper);
+}
+.findus__map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: var(--paper);
+  font-family: inherit;
+}
+
+.findus__maplbl {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+.findus__details {
+  display: grid;
+  gap: 14px;
+}
+
+.findus__block {
+  padding: 20px 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  border-left: 3px solid var(--navy);
+}
+
+.findus__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+
+.findus__address {
+  font-style: normal;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--navy);
+  margin-bottom: 10px;
+}
+
+.findus__link {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.findus__link:hover { color: var(--orange); }
+
+.findus__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.findus__row strong {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  text-align: right;
+}
+.findus__row a { text-decoration: none; }
+.findus__row a:hover strong { color: var(--orange); }
+
+.findus__note {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Two-card footer: come to us / we come to you */
+.findus__cta {
+  padding: 0 0 70px;
+  background: var(--bg);
+}
+.findus__cta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.findus__cta-card {
+  padding: 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+}
+.findus__cta-card h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 10px;
+}
+.findus__cta-card p {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+
+@media (max-width: 900px) {
+  .findus { padding: 48px 0; }
+  .findus__grid { grid-template-columns: 1fr; gap: 24px; }
+  .findus__map { min-height: 300px; aspect-ratio: 3 / 2; }
+  .findus__cta-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .findus__block { padding: 16px 18px; }
+  .findus__cta-card { padding: 20px; }
+  .findus__row { font-size: 13.5px; }
+}

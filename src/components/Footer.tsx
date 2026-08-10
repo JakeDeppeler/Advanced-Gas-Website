@@ -118,6 +118,7 @@ export function Footer() {
               <li><Link href="/about">About the team</Link></li>
               <li><Link href="/gallery">Install gallery</Link></li>
               <li><Link href="/reviews">Reviews</Link></li>
+              <li><Link href="/find-us">Find us</Link></li>
               <li><Link href="/service-areas">All service areas</Link></li>
               <li><Link href="/press-kit">Press kit &amp; media</Link></li>
               <li><Link href="/contact">Contact</Link></li>
@@ -173,7 +174,7 @@ export function Footer() {
           </li>
           <li>
             <span className="ftr__badge-tag">Rated</span>
-            <span className="ftr__badge-name">4.9★ · 380+ reviews</span>
+            <span className="ftr__badge-name">4.9★ on Google</span>
           </li>
           <li>
             <span className="ftr__badge-tag">Insured</span>

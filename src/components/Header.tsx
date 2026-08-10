@@ -215,6 +215,7 @@ const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[]
   { href: "/gallery",   label: "Gallery",    sub: "Real installs · before & after",    icon: "◉" },
   { href: "/reviews",   label: "Reviews",    sub: "4.9/5 on Google",            icon: "★" },
   { href: "/blog",      label: "Blog",       sub: "Guides, rebates + buying advice",   icon: "✎" },
+  { href: "/find-us",   label: "Find us",    sub: "Workshop, hours, licences",         icon: "⌖" },
 ];
 
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
