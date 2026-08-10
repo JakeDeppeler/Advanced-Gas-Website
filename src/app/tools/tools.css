@@ -1199,3 +1199,51 @@
 /* Tools hub: eyebrow and hero accent in orange so the landing page has
    the same colour anchor as the tools themselves. */
 
+
+
+/* Tank + compressor trade-off */
+.tool-rec__kw { font-size: 0.5em; color: #b8460f; letter-spacing: -0.01em; }
+.tool-pair { margin: 16px 0 4px; }
+.tool-pair__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.tool-pair__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tool-pair__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+.tool-pair__cell strong {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.tool-pair__cell span {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.tool-pair__cell.is-active {
+  background: color-mix(in srgb, var(--orange) 10%, var(--paper));
+  border-color: var(--orange);
+}
+.tool-pair__cell.is-active strong { color: #b8460f; }
+.tool-pair__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}

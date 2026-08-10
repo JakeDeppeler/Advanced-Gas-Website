@@ -155,6 +155,9 @@ type Form = {
   morningPeople: number;
   eveningPeople: number;
   showerMinutes: number;
+  /** Heat OUTPUT of the compressor, kW. Sizes the tank as much as the
+   *  household does — a bigger compressor buys back tank volume. */
+  heatKw: number;
   systemA: string;
   systemB: string;
   /** Advanced overrides — hidden behind a disclosure. */
@@ -170,6 +173,7 @@ const DEFAULTS: Form = {
   morningPeople: 2,
   eveningPeople: 2,
   showerMinutes: 10,
+  heatKw: 4,
   systemA: "pana-6-250",
   systemB: "istore-270",
   tankTempC: FIXED.tankTempC,
@@ -203,6 +207,7 @@ export function HeatPumpSizing() {
     const coldLpm = showerFlowLpm - hotLpm;
     const hotPerShower = hotLpm * form.showerMinutes;
 
+    const peakSessionShowers = Math.max(form.morningPeople, form.eveningPeople);
     const morningHot = form.morningPeople * hotPerShower + otherLitresPerDay * 0.4;
     const eveningHot = form.eveningPeople * hotPerShower + otherLitresPerDay * 0.6;
     const peakSessionHot = Math.max(morningHot, eveningHot);
@@ -213,7 +218,29 @@ export function HeatPumpSizing() {
     // The tank carries the whole run on its own. A shower pulls ~310 L/hr
     // of stored water against a recovery under 100 L/hr, so the compressor
     // never keeps pace mid-rush — it catches up in the gap.
-    const requiredLitres = peakSessionHot / USABLE_FRACTION;
+    // The compressor is running while people shower, so the tank only has
+    // to bridge what the unit can't make during the run.
+    //
+    // Sizing on the tank alone ignored heating capacity entirely, which is
+    // how a 270 L paired with a 4 kW — a combination that comfortably does
+    // four people — got told it wasn't enough. Worst case is everyone
+    // back to back, so the run is as short as the showers make it.
+    const drawHours = (peakSessionShowers * form.showerMinutes) / 60;
+    const litresPerHour = recoveryLitresPerHour(form.heatKw, deltaT);
+    const madeDuringRun = litresPerHour * drawHours;
+    const mustBeStored = Math.max(0, peakSessionHot - madeDuringRun);
+
+    /**
+     * Headroom an installer would actually carry.
+     *
+     * Bare physics puts four people on a 4 kW at 250 L — true on paper,
+     * with about half a shower spare. Jake fits 270 L on that job, and
+     * he's right to: a guest, a bath, or mains at 10 °C in July eats that
+     * margin, and running out of hot water is the failure a customer
+     * remembers. 20% is what moves the arithmetic onto his call.
+     */
+    const HEADROOM = 1.2;
+    const requiredLitres = (mustBeStored * HEADROOM) / USABLE_FRACTION;
     const largest = TANK_SIZES[TANK_SIZES.length - 1];
     // Past the biggest tank we sell, the honest answer is "not one tank",
     // not the biggest one on the list pretending to cope.
@@ -221,6 +248,15 @@ export function HeatPumpSizing() {
     const recommended = TANK_SIZES.find((t) => t.litres >= requiredLitres) ?? largest;
 
     const usableCapacity = recommended.litres * USABLE_FRACTION;
+
+    // The trade-off, spelled out: a bigger compressor buys back tank
+    // volume, and a bigger tank lets a smaller compressor cope.
+    const pairings = [3, 4, 6].map((kw) => {
+      const need = (Math.max(0, peakSessionHot - recoveryLitresPerHour(kw, deltaT) * drawHours)
+        * 1.2) / USABLE_FRACTION;
+      const tank = TANK_SIZES.find((t) => t.litres >= need);
+      return { kw, need, tank: tank?.litres ?? null };
+    });
     const deliveredMixed = usableCapacity / hotFraction;
     const coldBlendedIn = deliveredMixed - usableCapacity;
     const showersFromTank = usableCapacity / hotPerShower;
@@ -252,7 +288,8 @@ export function HeatPumpSizing() {
       hotFraction, hotLpm, coldLpm, hotPerShower,
       morningHot, eveningHot, peakSessionHot, totalHotPerDay,
       recommended, usableCapacity, deliveredMixed, coldBlendedIn, showersFromTank,
-      requiredLitres, exceedsRange,
+      requiredLitres, exceedsRange, mustBeStored, madeDuringRun,
+      litresPerHour, drawHours, pairings,
       compare, runHours, gapHours,
     };
   }, [form]);
@@ -294,6 +331,21 @@ export function HeatPumpSizing() {
           <small>
             10 minutes is the working number. Set it higher if your household
             runs long ones, it changes the tank size fast.
+          </small>
+        </div>
+
+        <div className="tool-field">
+          <label htmlFor="kw">Heating capacity (kW)</label>
+          <select id="kw" value={form.heatKw} onChange={(e) => set("heatKw", parseFloat(e.target.value))}>
+            <option value={3}>3 kW · smaller all-in-one</option>
+            <option value={4}>4 kW · most common</option>
+            <option value={5}>5 kW</option>
+            <option value={6}>6 kW · fastest recovery</option>
+          </select>
+          <small>
+            This changes the tank size as much as your household does. The
+            compressor is running while people shower, so a stronger one
+            needs less stored water behind it.
           </small>
         </div>
 
@@ -383,14 +435,38 @@ export function HeatPumpSizing() {
         <h2>Tank size you need</h2>
         <div className="tool-rec">
           <div className="tool-rec__lead">Recommended heat pump</div>
-          <div className="tool-rec__big">{r.recommended.litres} L</div>
+          <div className="tool-rec__big">
+            {r.recommended.litres} L <span className="tool-rec__kw">+ {form.heatKw} kW</span>
+          </div>
           <div className="tool-rec__models">{r.recommended.models}</div>
         </div>
         <p className="tool-result__sub">
-          Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> of stored
-          hot water. A tank gives up about 80% of its nameplate before the
-          outlet starts running cool, so that needs {r.recommended.litres} L on the wall.
+          Your busiest run pulls <strong>{n(r.peakSessionHot)} L</strong> over about{" "}
+          {n(r.drawHours * 60)} minutes. The {form.heatKw} kW compressor makes{" "}
+          <strong>{n(r.madeDuringRun)} L</strong> of that while people are still
+          showering, so the tank only has to hold <strong>{n(r.mustBeStored)} L</strong>.
+          Allowing for the 80% a tank gives up before the outlet runs cool, plus
+          a fifth again for a guest, a bath or a cold July, that&rsquo;s{" "}
+          {r.recommended.litres} L on the wall.
         </p>
+
+        <div className="tool-pair">
+          <div className="tool-pair__lbl">Tank and compressor trade off</div>
+          <div className="tool-pair__row">
+            {r.pairings.map((p) => (
+              <div key={p.kw} className={`tool-pair__cell${p.kw === form.heatKw ? " is-active" : ""}`}>
+                <strong>{p.kw} kW</strong>
+                <span>{p.tank ? `${p.tank} L` : "over 400 L"}</span>
+              </div>
+            ))}
+          </div>
+          <p className="tool-pair__note">
+            Same household either way. A bigger compressor puts water back
+            faster, so it needs less stored behind it; a bigger tank lets a
+            smaller compressor keep up. Which one is better value depends on
+            the price difference on the day.
+          </p>
+        </div>
 
         {r.exceedsRange && (
           <div className="hps-verdict is-tight" style={{ marginTop: 14 }}>
