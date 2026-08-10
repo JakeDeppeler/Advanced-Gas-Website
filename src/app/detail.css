@@ -306,20 +306,21 @@
       intrinsic size: a huge blue-over-yellow rectangle sitting on top
       of the tiles next to the attribution text. Hide it outright.
    2. Leaflet's bundled CSS also references marker-icon.png /
-      marker-shadow.png at paths Next.js doesn't serve. We use
-      circleMarker (SVG in the overlay pane) exclusively, so nothing
-      legitimate lives in the marker pane — kill it so a broken raster
-      placeholder can never appear. */
+      marker-shadow.png at paths Next.js doesn't serve, so a default
+      L.Marker renders as a broken-image placeholder. Kill the RASTER
+      icons only — targeted at img.leaflet-marker-icon — because the
+      coverage map's distance labels are divIcons, which render as divs
+      in the same pane and must stay visible. Hiding the whole pane took
+      the ring labels with it. */
 .leaflet-container .leaflet-attribution-flag,
 .leaflet-container svg.leaflet-attribution-flag {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
-.leaflet-container .leaflet-marker-pane,
 .leaflet-container .leaflet-shadow-pane,
-.leaflet-container .leaflet-marker-icon,
-.leaflet-container .leaflet-marker-shadow {
+.leaflet-container img.leaflet-marker-icon,
+.leaflet-container img.leaflet-marker-shadow {
   display: none !important;
 }
 /* Keep the attribution text itself readable and compact. */
@@ -2062,3 +2063,27 @@
 .page-detail .dp-hero .dp-hero__eyebrow { color: var(--sky); }
 .page-detail .dp-hero h1 em,
 .page-detail .dp-hero h1 .accent { color: var(--orange); }
+
+
+/* Distance-ring labels on the coverage map. divIcon, so it's a plain div
+   in the marker pane rather than one of Leaflet's raster icons. */
+.covmap__ringlbl {
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+}
+.covmap__ringlbl span {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(243, 103, 34, 0.55);
+  color: #b8460f;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(5, 10, 48, 0.14);
+}

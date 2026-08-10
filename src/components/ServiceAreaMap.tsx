@@ -20,6 +20,7 @@ export function ServiceAreaMap() {
 
     let cancelled = false;
     let map: import("leaflet").Map | null = null;
+    let ro: ResizeObserver | null = null;
 
     (async () => {
       // Load Leaflet's JS and CSS lazily so neither sits in the home page's
@@ -73,14 +74,24 @@ export function ServiceAreaMap() {
         interactive: false,
       }).addTo(map);
 
-      map.fitBounds(L.latLng(PAKENHAM).toBounds(RADIUS_M * 2.4), {
-        padding: [8, 8],
-        animate: false,
-      });
+      const frame = () => {
+        if (!map) return;
+        // See LeafletCoverageMap — measure before you fit, or Leaflet
+        // frames a container size that no longer exists.
+        map.invalidateSize({ animate: false });
+        map.fitBounds(L.latLng(PAKENHAM).toBounds(RADIUS_M * 2.4), {
+          padding: [8, 8],
+          animate: false,
+        });
+      };
+      requestAnimationFrame(frame);
+      ro = new ResizeObserver(() => frame());
+      ro.observe(el);
     })();
 
     return () => {
       cancelled = true;
+      if (ro) ro.disconnect();
       if (map) map.remove();
     };
   }, []);

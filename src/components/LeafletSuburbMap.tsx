@@ -29,6 +29,10 @@ export function LeafletSuburbMap({ slug, name }: { slug: string; name: string })
 
     let cancelled = false;
     let map: import("leaflet").Map | null = null;
+    let ro: ResizeObserver | null = null;
+    // Assigned once the framing target is known; called after
+    // invalidateSize so Leaflet fits the box we actually render.
+    let fit: (() => void) | null = null;
 
     (async () => {
       const [L] = await Promise.all([
@@ -110,17 +114,31 @@ export function LeafletSuburbMap({ slug, name }: { slug: string; name: string })
 
         // Frame to include both points comfortably.
         const bounds = L.latLngBounds([[PAKENHAM[0], PAKENHAM[1]], suburbLatLng]).pad(0.35);
-        map.fitBounds(bounds, { padding: [16, 16], animate: false });
+        fit = () => map!.fitBounds(bounds, { padding: [16, 16], animate: false });
       } else {
-        map.fitBounds(L.latLng(PAKENHAM[0], PAKENHAM[1]).toBounds(RADIUS_M * 2.2), {
+        fit = () => map!.fitBounds(L.latLng(PAKENHAM[0], PAKENHAM[1]).toBounds(RADIUS_M * 2.2), {
           padding: [8, 8],
           animate: false,
         });
       }
+
+      // invalidateSize BEFORE fitting. L.map() measures the container at
+      // construction, which in a grid is often before the final width is
+      // resolved — fit to that and you frame a much wider area than the
+      // one on screen.
+      const frame = () => {
+        if (!map || !fit) return;
+        map.invalidateSize({ animate: false });
+        fit();
+      };
+      requestAnimationFrame(frame);
+      ro = new ResizeObserver(() => frame());
+      ro.observe(el);
     })();
 
     return () => {
       cancelled = true;
+      if (ro) ro.disconnect();
       if (map) map.remove();
     };
   }, [slug, name]);

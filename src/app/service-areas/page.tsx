@@ -43,10 +43,8 @@ export default function ServiceAreasPage() {
             <h2>Every postcode we install in, on one map.</h2>
             <p>
               Orange centre is our Pakenham workshop. Navy dots are every suburb we
-              service — click any dot (or its name in the list) to jump to that suburb&rsquo;s
-              page. Dashed rings step out in 10&nbsp;km increments so you can gauge
-              distance at a glance.
-            </p>
+              service. Click any dot, or its name in the list, to jump to that suburb&rsquo;s
+              page. Dashed rings mark 25, 50 and 75 km so you can gauge distance at a glance.</p>
           </div>
           <CoverageMap />
         </div>
