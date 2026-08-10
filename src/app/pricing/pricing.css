@@ -471,3 +471,80 @@
   .pricing-value__cell--us::before { position: relative; z-index: 1; }
   .pricing-value__mark--maybe { font-size: 9.5px; padding: 3px 7px; }
 }
+
+
+/* ============================================================
+   PRICING TABS
+   Filter, not pagination — every block stays in the HTML so the
+   page still ranks for all of it; the tabs just hide what you
+   didn't ask for.
+   ============================================================ */
+.pricing-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.pricing-tabs__tab {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.pricing-tabs__tab:hover { border-color: var(--navy); color: var(--navy); }
+.pricing-tabs__tab.is-active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.pricing-tabs__tab:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.pricing-tabs__n {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(5,10,48,0.07);
+  color: var(--ink-3);
+}
+.pricing-tabs__tab.is-active .pricing-tabs__n {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+/* Hide everything the active tab didn't ask for. "all" hides nothing.
+   One rule per category key — CSS can't compare two attributes, so a new
+   category in CATEGORY_ORDER needs a line adding here or its tab will
+   show an empty panel. */
+.pricing-tabs__panels:not([data-active="all"]) .pricing-block { display: none; }
+.pricing-tabs__panels[data-active="heat-pump"] .pricing-block[data-category="heat-pump"],
+.pricing-tabs__panels[data-active="split-system"] .pricing-block[data-category="split-system"],
+.pricing-tabs__panels[data-active="multi-head"] .pricing-block[data-category="multi-head"],
+.pricing-tabs__panels[data-active="ducted"] .pricing-block[data-category="ducted"],
+.pricing-tabs__panels[data-active="cassette"] .pricing-block[data-category="cassette"],
+.pricing-tabs__panels[data-active="floor-console"] .pricing-block[data-category="floor-console"],
+.pricing-tabs__panels[data-active="gas-continuous-flow"] .pricing-block[data-category="gas-continuous-flow"],
+.pricing-tabs__panels[data-active="gas-storage"] .pricing-block[data-category="gas-storage"],
+.pricing-tabs__panels[data-active="electric-storage"] .pricing-block[data-category="electric-storage"],
+.pricing-tabs__panels[data-active="solar-hot-water"] .pricing-block[data-category="solar-hot-water"],
+.pricing-tabs__panels[data-active="zoning"] .pricing-block[data-category="zoning"],
+.pricing-tabs__panels[data-active="damper"] .pricing-block[data-category="damper"],
+.pricing-tabs__panels[data-active="controller"] .pricing-block[data-category="controller"],
+.pricing-tabs__panels[data-active="accessory"] .pricing-block[data-category="accessory"],
+.pricing-tabs__panels[data-active="service"] .pricing-block[data-category="service"] {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  .pricing-tabs { gap: 6px; margin-bottom: 20px; }
+  .pricing-tabs__tab { font-size: 12.5px; padding: 8px 13px; }
+}

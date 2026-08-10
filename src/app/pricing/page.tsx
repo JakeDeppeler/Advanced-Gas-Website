@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PricingTabs } from "@/components/PricingTabs";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
@@ -210,15 +211,23 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* One table per category */}
+      {/* One table per category, behind a filter. Every block stays in
+          the HTML — the tabs only hide what you didn't ask for, so the
+          page still ranks for all of it. */}
       <section className="pricing-body">
         <div className="wrap">
+          <PricingTabs
+            categories={CATEGORY_ORDER
+              .filter((c) => (rows[c.key] ?? []).length > 0)
+              .map((c) => ({ key: c.key, label: c.label, count: (rows[c.key] ?? []).length }))
+              .concat([{ key: "service", label: "Servicing & call-outs", count: 7 }])}
+          >
           {CATEGORY_ORDER
             .filter((c) => (rows[c.key] ?? []).length > 0)
             .map((c) => {
               const list = rows[c.key];
               return (
-                <div key={c.key} id={c.key} className="pricing-block">
+                <div key={c.key} id={c.key} className="pricing-block" data-category={c.key}>
                   <div className="pricing-block__head">
                     <div>
                       <h2>{c.label}</h2>
@@ -267,13 +276,10 @@ export default function PricingPage() {
                 </div>
               );
             })}
-        </div>
-      </section>
 
-      {/* Service call-out pricing */}
-      <section className="pricing-body pricing-body--extras">
-        <div className="wrap">
-          <div className="pricing-block" id="service">
+          {/* Service call-out pricing — inside the same filter so the
+              "Servicing" tab has something to show. */}
+          <div className="pricing-block pricing-block--extras" id="service" data-category="service">
             <div className="pricing-block__head">
               <div>
                 <h2>Service, repair &amp; call-out fees</h2>
@@ -326,6 +332,7 @@ export default function PricingPage() {
               </table>
             </div>
           </div>
+          </PricingTabs>
         </div>
       </section>
 

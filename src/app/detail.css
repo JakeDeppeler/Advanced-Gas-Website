@@ -1838,18 +1838,21 @@
 
 /* On orange, the navy header rule and navy headings disappear. */
 .page-detail .dp-benefits--boxed .ds-section-head--hl::before { background: #fff; }
-.page-detail .dp-benefits--boxed .ds-eyebrow { color: rgba(255,255,255,0.85); }
+.page-detail .dp-benefits--boxed .ds-eyebrow { color: #fff; }
 .page-detail .dp-benefits--boxed .ds-eyebrow .ds-dot { background: #fff; }
 .page-detail .dp-benefits--boxed h2 { color: #fff; }
-.page-detail .dp-benefits--boxed .ds-section-head p { color: rgba(255,255,255,0.88); }
+.page-detail .dp-benefits--boxed .ds-section-head p { color: #fff; }
 
+/* Solid white cards, like the form card inside the home page's orange
+   box. Translucent white on orange looked tidy and was barely legible. */
 .page-detail .dp-benefits--boxed .dp-benefit {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.26);
+  background: #fff;
+  border: 1px solid rgba(5,10,48,0.08);
+  box-shadow: 0 6px 18px -8px rgba(5,10,48,0.22);
 }
-.page-detail .dp-benefits--boxed .dp-benefit__num { color: #fff; opacity: 0.75; }
-.page-detail .dp-benefits--boxed .dp-benefit h3 { color: #fff; }
-.page-detail .dp-benefits--boxed .dp-benefit p { color: rgba(255,255,255,0.92); }
+.page-detail .dp-benefits--boxed .dp-benefit__num { color: #c2540f; opacity: 1; }
+.page-detail .dp-benefits--boxed .dp-benefit h3 { color: var(--navy); }
+.page-detail .dp-benefits--boxed .dp-benefit p { color: var(--ink-2); }
 @media (max-width: 640px) {
   .page-detail .dp-benefits--boxed > .wrap { padding: 26px 20px 28px; border-radius: 20px; }
 }
@@ -2058,4 +2061,4 @@
 }
 .page-detail .dp-hero .dp-hero__eyebrow { color: var(--sky); }
 .page-detail .dp-hero h1 em,
-.page-detail .dp-hero h1 .accent { color: #ffa25e; }
+.page-detail .dp-hero h1 .accent { color: var(--orange); }
