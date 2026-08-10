@@ -1184,7 +1184,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-glass",
         name: "Reclaim CO₂ Split · 400L Glass-Lined",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 400,
         model: "REHP-CO2-400GL-V2",
         category: "heat-pump",
@@ -1206,7 +1206,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-400-stainless",
         name: "Reclaim CO₂ Split · 400L Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 400,
         model: "REHP-CO2-400SST-V2",
         category: "heat-pump",

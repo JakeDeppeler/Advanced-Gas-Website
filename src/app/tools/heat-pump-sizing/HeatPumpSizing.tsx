@@ -91,8 +91,8 @@ const TANK_SIZES: {
       { label: "Reclaim CO₂ Split 315 L", href: "/brands/reclaim/co2-split-315-glass" },
       { label: "Panasonic CO₂ 6 kW · 315 L", href: "/brands/reclaim/panasonic-co2-glass-6kw-315" },
     ] },
-  { litres: 400, models: "Reclaim CO₂ 400 L",
-    picks: [{ label: "Reclaim CO₂ Split 400 L", href: "/brands/reclaim/co2-split-400-glass" }] },
+  { litres: 400, models: "Reclaim CO₂ 400 L · 5 kW compressor",
+    picks: [{ label: "Reclaim CO₂ Split 400 L · 5 kW", href: "/brands/reclaim/co2-split-400-glass" }] },
 ];
 
 /**
@@ -132,6 +132,8 @@ const SYSTEMS: SystemPreset[] = [
     note: "Twice the recovery of the standard unit on a smaller tank. Suits a tight morning rush and a tight footprint." },
   { id: "reclaim-5kw-315", name: "Reclaim CO₂ 315 L · 5 kW", heatKw: 5.0, tankLitres: 315, cop: 4.5, verified: true,
     note: "Volume and recovery together. Handles a full morning run and is back before anyone gets home." },
+  { id: "reclaim-400", name: "Reclaim CO₂ 400 L · 5 kW", heatKw: 5.0, tankLitres: 400, cop: 4.5, verified: true,
+    note: "The big-family answer. Most volume we fit, on the 5 kW rather than the 2.5, so it refills as fast as it empties." },
   { id: "pana-6-250", name: "Reclaim Panasonic CO₂ 6 kW · 250 L", heatKw: 6.0, tankLitres: 250, cop: 4.5, verified: true,
     note: "Fastest recovery we fit. Worth it when the gap between runs is short, not when it's the whole working day." },
   { id: "pana-4-250", name: "Reclaim Panasonic CO₂ 4 kW · 250 L", heatKw: 4.0, tankLitres: 250, cop: 4.5, verified: true,
