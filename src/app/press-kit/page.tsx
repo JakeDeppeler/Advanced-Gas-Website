@@ -25,6 +25,12 @@ export const metadata: Metadata = {
   description:
     "Media & partner resources for Advanced Gas & Aircon, Pakenham-based heat pump, aircon and gas plumbing specialists. Logo pack, business boilerplate, team photo, key facts, media contact and pre-approved backlink copy.",
   alternates: { canonical: "/press-kit" },
+  // Unlinked and unindexed. Nothing on the site points here any more, so
+  // the page is reachable only if you already have the URL — which is the
+  // point: it's for handing to a journalist or a directory, not something
+  // customers should stumble into. Kept rather than deleted so any link
+  // already sent out doesn't turn into a 404.
+  robots: { index: false, follow: false },
 };
 
 const KEY_FACTS: { label: string; value: string }[] = [

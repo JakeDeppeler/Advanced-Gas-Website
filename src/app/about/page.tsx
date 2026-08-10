@@ -184,26 +184,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Press-kit callout — sits above the final CTA so chambers,
-          manufacturer directories, journalists and community sponsors
-          have a one-click path to logos, boilerplate and quotes. */}
-      <section className="ab-press">
-        <div className="wrap ab-press__row">
-          <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Media &amp; partners</span>
-            <h2>Featuring us or listing us?</h2>
-            <p>
-              Logo pack, business boilerplate, key facts, team photo, pre-approved quotes and a
-              media contact, all in one place. Chambers, manufacturer directories, sponsors and
-              local news outlets can grab what they need in one click.
-            </p>
-          </div>
-          <div className="ab-press__cta">
-            <Link href="/press-kit" className="ds-btn ds-btn--ghost ds-btn--lg">Open press kit →</Link>
-          </div>
-        </div>
-      </section>
-
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>

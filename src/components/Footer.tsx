@@ -118,9 +118,7 @@ export function Footer() {
               <li><Link href="/about">About the team</Link></li>
               <li><Link href="/gallery">Install gallery</Link></li>
               <li><Link href="/reviews">Reviews</Link></li>
-              <li><Link href="/find-us">Find us</Link></li>
               <li><Link href="/service-areas">All service areas</Link></li>
-              <li><Link href="/press-kit">Press kit &amp; media</Link></li>
               <li><Link href="/contact">Contact</Link></li>
               <li><Link href="/quote">Get a fixed quote</Link></li>
               <li><a href={`tel:${site.phoneE164}`}>Call {site.phone}</a></li>

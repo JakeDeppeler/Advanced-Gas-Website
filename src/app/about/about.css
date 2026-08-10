@@ -191,42 +191,4 @@
   .page-about .values-grid { grid-template-columns: 1fr; }
   .page-about .clients-grid { grid-template-columns: 1fr; }
   .page-about .acc-list { grid-template-columns: 1fr; }
-}
-
-/* Press-kit callout on /about — dense navy card with CTA on the right */
-.page-about .ab-press {
-  padding: 40px 0 20px;
-  background: var(--bg);
-}
-.page-about .ab-press__row {
-  display: grid;
-  grid-template-columns: 1.6fr auto;
-  gap: 30px;
-  align-items: center;
-  padding: 24px 30px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--orange);
-  border-radius: 14px;
-}
-.page-about .ab-press h2 {
-  font-family: var(--f-display);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.015em;
-  color: var(--navy);
-  margin: 8px 0 6px;
-  line-height: 1.2;
-}
-.page-about .ab-press p {
-  margin: 0;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--ink-2);
-  max-width: 62ch;
-}
-.page-about .ab-press__cta { display: flex; align-items: center; }
-@media (max-width: 760px) {
-  .page-about .ab-press__row { grid-template-columns: 1fr; gap: 16px; padding: 22px; }
-  .page-about .ab-press__cta .ds-btn { width: 100%; justify-content: center; }
-}
+}@media (max-width: 760px) {}
