@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   title:
     "Reclaim Heat Pump Model Codes Explained · REHP-CO2 & Panasonic HE-UM | Advanced Gas & Aircon",
   description:
-    "Every Reclaim CO₂ heat pump system code decoded: REHP-CO2-160/250/315/400 in GL glass-lined, SST stainless tall and SSQ stainless squat, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR and HE-UM60CR on PHE tanks. Installed across Melbourne's south-east.",
+    "Every Reclaim CO₂ heat pump system code decoded: REHP-CO2-160/250/315/400 in GL glass-lined, SST stainless tall and SSQ stainless squat, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR / HE-UM60CR and HE-UM40AR / HE-UM60AR on PHE tanks. Reclaim 5 kW and Panasonic 4 kW / 6 kW, with the full component warranty table. Installed across Melbourne's south-east.",
   keywords: [
     "REHP-CO2-315SSQ",
     "REHP-CO2-315SSQ-V2",
@@ -55,17 +55,33 @@ export const metadata: Metadata = {
 /** The naming-convention explainer. This is the half of the page that
  *  answers "what does the Q mean", which is a search in its own right. */
 const DECODER: { part: string; means: string }[] = [
-  { part: "REHP", means: "Reclaim Energy Heat Pump. Every tank in Reclaim's own range starts with it." },
+  { part: "REHP", means: "Reclaim Energy Heat Pump. Every tank in Reclaim's own range starts with it, and every one of them runs the same 5 kW CO₂ heat pump, whatever the tank size." },
   { part: "CO2", means: "R744 carbon dioxide refrigerant. It is what lets these keep making heat on a cold morning when other refrigerants fade." },
   { part: "160 / 250 / 315 / 400", means: "Stored litres. Not how much shower you get, which is more, because 60 °C water gets blended down with cold on the way to the rose." },
   { part: "GL", means: "Glass-lined, also called vitreous enamel. Has a sacrificial anode that gets swapped every five to seven years. 10-year tank warranty." },
   { part: "SST", means: "Stainless Steel Tall. No anode, nothing to service, 15-year tank warranty. The taller, narrower body." },
   { part: "SSQ", means: "Stainless Steel Squat. Same steel and same warranty as the SST, in a short wide body that gets under a low eave or into a cupboard the tall one won't make. The Q is not a grade of steel." },
-  { part: "DX", means: "2205 duplex stainless, on the REHP-KY-CO2-315DX. A tougher grade again, 700 kPa working pressure." },
+  { part: "DX", means: "Duplex. 2205 duplex / 316-grade stainless, on the REHP-KY-CO2-315DX. This is the only tank in the range that goes to 316. Everywhere else in the lineup, stainless means the standard grade, whatever the shape." },
   { part: "SSEW", means: "Stainless, on an Earthworker tank built in Morwell by a worker-owned co-op." },
   { part: "-V2", means: "The Wi-Fi controller, with the app and remote fault alerts. A code without it is the V1.1, the same system with a manual controller." },
-  { part: "HE-UM40CR / HE-UM60CR", means: "Panasonic Aquarea CO₂ heat pumps, 4 kW and 6 kW. Sold paired with a Reclaim tank." },
+  { part: "HE-UM40CR / HE-UM60CR", means: "Panasonic Aquarea CO₂ heat pumps, 4 kW and 6 kW, sold paired with a Reclaim tank. You will also see them written HE-UM40AR and HE-UM60AR; same pairing, different generation on the plate." },
   { part: "PHE-315ASR", means: "The Panasonic-partnered Australian-made tank. 315 is litres, ASR is stainless, AGR is vitreous enamel." },
+];
+
+/** Reclaim's residential component warranty table, as published. Kept
+ *  as data rather than prose because the per-component split is the
+ *  whole point: a customer comparing two quotes needs to see that the
+ *  heat pump number moves and the tank number doesn't. */
+const WARRANTY: { component: string; which: string; parts: string; labour: string }[] = [
+  { component: "Tank", which: "Glass-lined (GL)", parts: "10 years", labour: "5 years" },
+  { component: "Tank", which: "Stainless steel (SS)", parts: "15 years", labour: "5 years" },
+  { component: "Tank", which: "ECO R290 all-in-one", parts: "8 years", labour: "8 years" },
+  { component: "Heat pump", which: "Reclaim (EHPE-4550P-A)", parts: "10 years", labour: "10 years" },
+  { component: "Heat pump", which: "Reclaim/Panasonic (HE-UM60AR)", parts: "7 years", labour: "7 years" },
+  { component: "Controller", which: "Reclaim controller + sensor lead", parts: "10 years", labour: "10 years" },
+  { component: "Controller", which: "Reclaim/Panasonic, non Wi-Fi", parts: "7 years", labour: "7 years" },
+  { component: "Valves", which: "850 kPa PTRV", parts: "5 years", labour: "5 years" },
+  { component: "Valves", which: "Quickie Kit", parts: "5 years", labour: "5 years" },
 ];
 
 const FAQS: { q: string; a: string }[] = [
@@ -75,7 +91,15 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Does the SSQ mean 316 marine-grade stainless?",
-    a: "No, and it is a common mix-up. The Q stands for squat. If you want a tougher grade of steel than the standard stainless, the one to look at is the duplex tank, REHP-KY-CO2-315DX, which uses 2205 duplex stainless.",
+    a: "No, and it is a common mix-up. The Q stands for squat. The only tank in the Reclaim range that goes to 316 is the duplex, REHP-KY-CO2-315DX, which uses 2205 duplex stainless. Every other stainless tank in the lineup, tall or squat, is the standard grade.",
+  },
+  {
+    q: "How big is the Reclaim heat pump, and how does the Panasonic compare?",
+    a: "Reclaim's own CO₂ heat pump, the EHPE-4550P-A, is a 5 kW, and it is the same unit behind every tank in their range, from the 160 L to the 400 L. The Panasonic Aquarea pairing that Reclaim sell alongside it comes in two outputs, 4 kW and 6 kW. Bigger output means the tank refills faster, which is what matters when the whole house showers inside an hour rather than spread across the day. It is not about how hot the water gets, it is about how quickly you get the next tankful.",
+  },
+  {
+    q: "Is the warranty the same on the Reclaim and the Panasonic heat pump?",
+    a: "No, and it is worth knowing before you sign. Reclaim's own heat pump, the EHPE-4550P-A, carries 10 years parts and labour. The Reclaim/Panasonic unit carries 7 years parts and labour. The tanks are warranted the same either way, 10 years on glass-lined and 15 on stainless, both with 5 years labour. Reclaim also cap what a warranty service call covers at two hours labour and 25 km of travel, so anything past that is charged.",
   },
   {
     q: "What is the difference between a V1.1 and a V2 Reclaim?",
@@ -145,8 +169,9 @@ export default function ReclaimModelsPage() {
           <p className="dp-hero__sub">
             If you have a quote in front of you with REHP-CO2-315SSQ-V2 or
             HE-UM40CR-PHE-315ASR on it, this is the page that tells you what it is.
-            Every tank size, every finish, Wi-Fi and non-Wi-Fi, Reclaim&rsquo;s own CO₂
-            compressor and the Panasonic Aquarea pairing. We install all of them across
+            Every tank size, every finish, Wi-Fi and non-Wi-Fi, Reclaim&rsquo;s own 5 kW
+            CO₂ heat pump and the Panasonic Aquarea pairing in 4 kW and 6 kW, with what
+            each one is actually warranted for. We install all of them across
             Melbourne&rsquo;s south-east.
           </p>
         </div>
@@ -206,6 +231,57 @@ export default function ReclaimModelsPage() {
             by. Anything flagged &ldquo;confirm on quote&rdquo; is a system we fit where we
             want to check the exact code against the current price list before we put it in
             writing for you.
+          </p>
+        </div>
+      </section>
+
+      {/* ---- Warranty ---- */}
+      <section className="rm-warranty">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What is covered, and for how long</span>
+            <h2>The warranty is per component, not per system.</h2>
+            <p>
+              Reclaim warrant the tank, the heat pump, the controller and the valves
+              separately, and for different lengths. The number people miss is the
+              heat pump: Reclaim&rsquo;s own unit runs three years longer than the
+              Reclaim/Panasonic one.
+            </p>
+          </div>
+
+          <div className="rmf__scroll">
+            <table className="rmf__table rm-warranty__table">
+              <caption className="sr-only">
+                Reclaim residential component warranty, parts and labour
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Component</th>
+                  <th scope="col">Which one</th>
+                  <th scope="col">Parts</th>
+                  <th scope="col">Labour</th>
+                </tr>
+              </thead>
+              <tbody>
+                {WARRANTY.map((w) => (
+                  <tr key={`${w.component}-${w.which}`}>
+                    <th scope="row">{w.component}</th>
+                    <td>{w.which}</td>
+                    <td>{w.parts}</td>
+                    <td>{w.labour}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="rm-table__note">
+            Heat pump cover includes the PCBs, the motor, all six sensors, the reactor,
+            the expansion valve coil, the water pump, and unit replacement on the sealed
+            refrigeration components. Reclaim cap a warranty service call at two hours
+            labour including travel up to 25 km; past that, the travel is charged. Our
+            own 6-year workmanship warranty sits on top of all of it and covers the
+            install rather than the equipment.
           </p>
         </div>
       </section>

@@ -43,7 +43,10 @@ function Row({ m }: { m: ReclaimModel }) {
       <td>{FINISH_SHORT[m.finish]}</td>
       <td>{m.wifi ? "Wi-Fi (V2)" : "No Wi-Fi (V1.1)"}</td>
       <td>{m.compressor}</td>
-      <td>{m.tankWarrantyYears} yr tank</td>
+      <td>
+        {m.tankWarrantyYears} yr tank
+        <span className="rmf__sub">{m.heatPumpWarrantyYears} yr heat pump</span>
+      </td>
       <td className="rmf__go">
         {m.productSlug ? (
           <Link href={`/brands/reclaim/${m.productSlug}`}>Details →</Link>

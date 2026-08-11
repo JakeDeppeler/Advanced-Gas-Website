@@ -17,18 +17,16 @@ export const metadata: Metadata = {
 /** Grouping the brand hub by category so a customer thinking
  *  "heat pump" or "aircon" can jump directly to the right shelf,
  *  rather than scanning a flat list of seven brand cards. */
+/** Group order follows the brand order: air conditioning first because
+ *  it is the bigger half of the business, then gas, then zoning, then
+ *  hot water. Within each group the brands are listed in the same
+ *  order they appear everywhere else on the site. */
 const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: string }[] = [
   {
     label: "Air conditioning",
     slug: "aircon",
     brandSlugs: ["mitsubishi-electric", "kaden"],
     blurb: "Split, multi-head and ducted. Mitsubishi Electric is what we quote first; Kaden is what we reach for when a whole house needs doing at once.",
-  },
-  {
-    label: "Heat pump hot water",
-    slug: "heat-pump",
-    brandSlugs: ["reclaim", "istore", "thermann"],
-    blurb: "Three tiers, one goal, get a customer off their old electric or gas storage tank onto a VEU-rebated heat pump that lasts.",
   },
   {
     label: "Gas heating",
@@ -41,6 +39,12 @@ const BRAND_GROUPS: { label: string; slug: string; brandSlugs: string[]; blurb: 
     slug: "zoning",
     brandSlugs: ["zonemate"],
     blurb: "Zone controllers and smart room sensors that turn a ducted system from 'on or off' into 'the room you're in, at the temp you want'.",
+  },
+  {
+    label: "Heat pump hot water",
+    slug: "heat-pump",
+    brandSlugs: ["reclaim", "thermann", "istore"],
+    blurb: "Three brands answering three different questions: Reclaim when you're staying in the house, Thermann when you want parts in every Reece store, iStore when the rebate is what decides it.",
   },
 ];
 

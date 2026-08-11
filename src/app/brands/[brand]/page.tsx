@@ -117,7 +117,10 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             ourTake={brand.ourTake}
             facts={[
               { label: "Warranty", value: brand.warranty ?? "6-year workmanship warranty on every install." },
-              { label: "Accreditation", value: brand.accreditation ?? "Authorised installer" },
+              // Only shown when the brand has one. A generic "Authorised
+              // installer" fallback is a claim, not a fact, so an absent
+              // accreditation means the row is absent.
+              ...(brand.accreditation ? [{ label: "Accreditation", value: brand.accreditation }] : []),
               ...(brand.established ? [{ label: "Established", value: brand.established }] : []),
               ...(brand.support ? [{ label: "Parts & service", value: brand.support }] : []),
               ...(brand.commonInMelbourne ? [{ label: "Common in Melbourne", value: brand.commonInMelbourne }] : []),

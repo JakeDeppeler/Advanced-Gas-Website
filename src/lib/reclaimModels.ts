@@ -60,8 +60,14 @@ export type ReclaimModel = {
   controller: string;
   compressor: string;
   compressorKw: number;
-  /** Manufacturer tank warranty in years. */
+  /** Manufacturer tank warranty in years. Parts; labour is 5 years on
+   *  every tank in the range. */
   tankWarrantyYears: number;
+  /** Heat pump warranty in years, parts AND labour. Reclaim's own unit
+   *  carries 10, the Reclaim/Panasonic carries 7. That three-year gap is
+   *  a real difference between two systems that otherwise look alike on
+   *  a spec sheet, so it belongs in the table rather than a footnote. */
+  heatPumpWarrantyYears: number;
   /** Our catalogue page for this exact system, where we carry it. */
   productSlug?: string;
   /** True when the code is confirmed against manufacturer documentation. */
@@ -86,7 +92,7 @@ export const FINISH_SHORT: Record<TankFinish, string> = {
   earthworker: "Earthworker stainless",
 };
 
-const RECLAIM_CO2 = "Reclaim CO₂ (R744), 2.5 kW";
+const RECLAIM_CO2 = "Reclaim CO₂ (R744), 5 kW";
 
 /** Builds the two controller variants of a Reclaim tank code. The V2
  *  suffix is the Wi-Fi controller; without it you have the V1.1, which
@@ -105,8 +111,9 @@ function pair(
     finish,
     shape,
     compressor: RECLAIM_CO2,
-    compressorKw: 2.5,
+    compressorKw: 5,
     tankWarrantyYears,
+    heatPumpWarrantyYears: 10,
     verified: true,
   };
   return [
@@ -144,8 +151,9 @@ export const RECLAIM_MODELS: ReclaimModel[] = [
     wifi: true,
     controller: "V2, Wi-Fi and app",
     compressor: RECLAIM_CO2,
-    compressorKw: 2.5,
+    compressorKw: 5,
     tankWarrantyYears: 15,
+    heatPumpWarrantyYears: 10,
     verified: true,
     note: "Tank ID RE-DXO-315. 2205 duplex stainless inner tank, 700 kPa working pressure.",
   },
@@ -160,8 +168,9 @@ export const RECLAIM_MODELS: ReclaimModel[] = [
     wifi: true,
     controller: "V2, Wi-Fi and app",
     compressor: RECLAIM_CO2,
-    compressorKw: 2.5,
+    compressorKw: 5,
     tankWarrantyYears: 15,
+    heatPumpWarrantyYears: 10,
     productSlug: "co2-split-250-earthworker",
     verified: false,
     note: "Reclaim heat pump on an Earthworker Energy Manufacturing Cooperative tank, built in Morwell. Confirm the exact code on the quote.",
@@ -175,8 +184,9 @@ export const RECLAIM_MODELS: ReclaimModel[] = [
     wifi: true,
     controller: "V2, Wi-Fi and app",
     compressor: RECLAIM_CO2,
-    compressorKw: 2.5,
+    compressorKw: 5,
     tankWarrantyYears: 15,
+    heatPumpWarrantyYears: 10,
     productSlug: "co2-split-315-earthworker",
     verified: false,
     note: "Reclaim heat pump on an Earthworker Energy Manufacturing Cooperative tank, built in Morwell. Confirm the exact code on the quote.",
@@ -204,15 +214,20 @@ export const PANASONIC_MODELS: ReclaimModel[] = (
   [
     { hp: "HE-UM40CR", kw: 4, label: "Panasonic Aquarea 4 kW HE-UM40CR" },
     { hp: "HE-UM60CR", kw: 6, label: "Panasonic Aquarea 6 kW HE-UM60CR" },
+    { hp: "HE-UM40AR", kw: 4, label: "Panasonic Aquarea 4 kW HE-UM40AR" },
+    { hp: "HE-UM60AR", kw: 6, label: "Panasonic Aquarea 6 kW HE-UM60AR" },
   ] as const
 ).flatMap((c) =>
   PANASONIC_TANKS.map((t): ReclaimModel => {
     // Our catalogue carries the 4 kW and 6 kW in 250 and 315 only, in
     // both finishes. The 400 is glass-lined only and quote-only.
     const kwPart = c.kw === 4 ? "4kw" : "6kw";
-    const slug = t.slugStem
-      ? `panasonic-co2-${t.slugStem.replace("4kw", kwPart)}`
-      : undefined;
+    // Only the CR pairings link out, so the AR rows don't point four
+    // different codes at the same canonical product URL.
+    const slug =
+      t.slugStem && c.hp.endsWith("CR")
+        ? `panasonic-co2-${t.slugStem.replace("4kw", kwPart)}`
+        : undefined;
     return {
       code: `${c.hp}-PHE-${t.litres}${t.suffix}`,
       series: "panasonic",
@@ -225,6 +240,9 @@ export const PANASONIC_MODELS: ReclaimModel[] = (
       compressor: c.label,
       compressorKw: c.kw,
       tankWarrantyYears: t.warranty,
+      // Reclaim/Panasonic is 7 years parts and labour, against 10 on
+      // Reclaim's own heat pump.
+      heatPumpWarrantyYears: 7,
       productSlug: slug,
       verified: true,
     };
@@ -258,6 +276,7 @@ export function searchIndex(m: ReclaimModel): string {
     m.wifi ? "wifi wi-fi v2 app smart" : "non-wifi no wifi v1 v1.1 manual",
     m.compressor,
     m.series === "panasonic" ? "panasonic aquarea" : "reclaim energy",
+    `${m.heatPumpWarrantyYears} year heat pump warranty`,
     m.finish.includes("stainless") ? "stainless steel" : "",
     m.finish === "glass-lined" ? "vitreous enamel anode" : "",
   ]

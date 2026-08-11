@@ -154,7 +154,21 @@ export function productPhoto(p: Product, brand?: Brand): { src: string; fallback
   return { src: cat.src, fallback: brandFallback, alt: cat.alt };
 }
 
-export const brands: Brand[] = [
+/** Display order for the brand hub, the nav and every "our brands" strip.
+ *  Air conditioning first because it is the bigger half of the business,
+ *  then zoning, then hot water. The array below stays grouped the way it
+ *  was written; this is what decides what the customer sees. */
+const BRAND_ORDER = [
+  "mitsubishi-electric",
+  "kaden",
+  "brivis",
+  "zonemate",
+  "reclaim",
+  "thermann",
+  "istore",
+];
+
+const brandCatalogue: Brand[] = [
 
   // ================== BRIVIS ==================
   {
@@ -171,7 +185,7 @@ export const brands: Brand[] = [
     photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
     photoFallback: "/gas-ducted-install.webp",
     photoAlt: "Brivis gas ducted heater installed in a Melbourne home",
-    accent: "#0058A5",
+    accent: "#0B3C7A",
     established: "Founded 1971 · Melbourne · part of Rinnai Australia since 2004",
     warranty: "5-year manufacturer warranty on heat exchanger + 6-year on our workmanship",
     keyFeatures: [
@@ -449,7 +463,6 @@ export const brands: Brand[] = [
       "Mitsubishi Electric is the brand we quote first on any air conditioning job, and the reason is the reliability record across our own install base. A decade-old MSZ-AP still runs to spec, and the parts pipeline for units that age is still open, which is what decides whether a system gets fixed or replaced in year twelve.",
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
-    accreditation: "Authorised installer",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
     photo: "/mitsubishi-msz-ap-wall-split-v2.png",
     photoFallback: "/reclaim-mitsubishi.webp",
@@ -896,33 +909,41 @@ export const brands: Brand[] = [
       },
       {
         slug: "me-zone-controller",
-        name: "Mitsubishi Electric Standard Zone Controller",
-        model: "Mitsubishi Electric Ducted Split Zone Controller",
+        name: "Mitsubishi Electric Zone Controller · PAR-ZC01M-E",
+        model: "PAR-ZC01M-E wall controller + PAC-ZC40/ZC80 zone interface",
         category: "zoning",
         categoryLabel: "Ducted zone controller (Mitsubishi native)",
         veuEligible: false,
+        // TODO(jake): save the PAR-ZC01M-E shot as
+        // /public/mitsubishi-par-zc01m-e-zone-controller.webp and swap this
+        // over. Until then this is the older controller image.
         photo: "/mitsubishi-zone-controller-v2.webp",
-        photoAlt: "Mitsubishi Electric ducted split zone controller",
-        bestFor: "PEA-M / PEAD-M ducted installs where the customer wants Mitsubishi's native zoning instead of a third-party Zonemate",
+        photoAlt: "Mitsubishi Electric PAR-ZC01M-E zone controller, white glass touch screen with occupancy sensor",
+        bestFor: "PEA-M and PEAD-M ducted installs where you want the whole system, zoning included, on one badge",
         ourTake:
-          "Mitsubishi's own zone controller wires straight into the indoor unit with nothing in between, and runs off the PAR-41MAA on the wall. It's the one to have when you want the whole system on one badge: one warranty channel, one support number, one company to call if anything ever goes wrong. Zonemate goes on instead when a job wants more zones than this handles, or more than one indoor unit driven from a single tablet. Both are on the van.",
+          "The PAR-ZC01M-E is the glass touch controller on the wall, and behind it sits a PAC-ZC interface board driving the dampers: PAC-ZC40 for four zones, PAC-ZC80 for eight, in an L version for 24 V damper motors and an H version for 240 V. The part people notice is the occupancy sensor built into the controller itself. It watches the room it is in, and when nobody has been there for a while the system can drop that zone back rather than keep conditioning an empty study. Everything is Mitsubishi end to end, which means one warranty channel and one support number for the indoor unit, the outdoor unit and the zoning. Zonemate goes on instead when a job wants more than eight zones, or more than one indoor unit driven from a single tablet. Both are on the van.",
         specs: [
+          { label: "Wall controller", value: "PAR-ZC01M-E, backlit touch screen, built-in temp sensor" },
+          { label: "Occupancy sensing", value: "PIR sensor built into the controller, four user-set energy-save responses" },
+          { label: "Remote sensors", value: "Up to 2 additional room temperature sensors per controller" },
+          { label: "Zone interface", value: "PAC-ZC40L-E / ZC40H-E (4 zones) · PAC-ZC80L-E / ZC80H-E (8 zones)" },
+          { label: "Damper motors", value: "L models drive 24 V AC, H models drive 240 V AC" },
           { label: "Compatibility", value: "PEA-M100/125/140HAA + PEAD-M SG series + PEA-M160/180/200 large-capacity" },
-          { label: "Zones supported", value: "Up to 6 zones native" },
-          { label: "Wall controller", value: "Driven from the PAR-41MAA standard wired wall controller" },
-          { label: "Warranty channel", value: "Single Mitsubishi ecosystem, one support line for indoor, outdoor + zoning" },
           { label: "Warranty", value: "5-year manufacturer + 6-year workmanship" },
         ],
         features: [
-          "Native Mitsubishi zone controller, no third-party interface between indoor unit and zoning",
-          "Direct PAR-41MAA wall controller integration, single physical interface for temp + zones",
-          "Up to 6 zones supported natively (enough for most single-storey family homes)",
-          "Single warranty channel through Mitsubishi, indoor, outdoor and zoning all covered by one manufacturer",
+          "Backlit glass touch screen with a built-in room temperature sensor",
+          "PIR occupancy sensor in the controller, so an empty room can stop being conditioned",
+          "Up to two extra remote temperature sensors, so the target is the bedroom, not the hallway",
+          "PAC-ZC40 drives four zones, PAC-ZC80 drives eight, L for 24 V dampers and H for 240 V",
+          "Native Mitsubishi throughout, no third-party bridge between the indoor unit and the zoning",
+          "PAR-ZC01M-E sub-controllers can be added where a second screen is wanted",
         ],
         whyWeInstall: [
-          "The pick when the customer wants an all-Mitsubishi install with a single support line for everything",
-          "Native integration means fewer wiring points and fewer potential failure points long-term",
-          "Zonemate goes on instead when a job wants more than 6 zones, or more than one indoor unit driven from a single tablet. Both are on the van",
+          "The pick when you want indoor, outdoor and zoning all on one badge and one support line",
+          "The occupancy sensor is the feature that actually saves money, because the zone nobody remembered to shut gets shut anyway",
+          "Native integration means fewer wiring points between the indoor unit and the dampers",
+          "Zonemate goes on instead when a job wants more than eight zones, or more than one indoor unit on a single tablet. Both are on the van",
           "Backed by our 6-year workmanship + Mitsubishi's 5-year manufacturer cover",
         ],
         related: ["pead-m", "par-41maa", "pead-large"],
@@ -945,20 +966,23 @@ export const brands: Brand[] = [
     photo: "/Reclaim-Herosystem-v2-controller-shadows-rgb-web-769x1024.png",
     photoFallback: "/reclaim-split-back.webp",
     photoAlt: "Reclaim heat pump hot water system with controller",
-    accent: "#2E8459",
+    accent: "#6B3FA0",
     established: "Designed and assembled in Sydney, Australia · trading since 2007",
-    // Warranty terms verified against Reclaim's official May 2026 policy PDF.
+    // Warranty terms taken from Reclaim's residential component warranty
+    // table. The split between the Reclaim heat pump and the
+    // Reclaim/Panasonic one is real and it is 3 years, so it belongs on
+    // the page rather than buried in a PDF.
     warranty:
-      "Tank: 10-year parts + 5-year labour (glass-lined) or 15-year parts + 5-year labour (stainless). Heat pump: 10-year parts + labour (Reclaim EHPE-4550P-A). Wi-Fi controller: 10-year parts + labour. Valves & Quickie Kit: 5-year parts + labour. Plus 6-year workmanship from us.",
+      "Tank: 10-year parts + 5-year labour (glass-lined) or 15-year parts + 5-year labour (stainless). Heat pump: 10-year parts + labour on the Reclaim EHPE-4550P-A, 7-year parts + labour on the Reclaim/Panasonic HE-UM60AR. Controller: 10-year parts + labour on the Reclaim controller and sensor lead, 7-year on the Reclaim/Panasonic non-Wi-Fi controller. ECO R290 all-in-one: 8-year tank, parts and labour. PTRV and Quickie Kit: 5-year parts + labour. Plus 6-year workmanship from us.",
     keyFeatures: [
       "CO₂ (R744) natural refrigerant, zero global-warming potential",
       "Holds heating capacity down to -10°C ambient, which is what Emerald and Gembrook mornings ask for",
-      "316-grade stainless tank option, no anode to swap and nothing to rust",
+      "Stainless tanks have no anode to swap and nothing to rust, and the duplex tank steps up to 2205 duplex / 316-grade for the hardest water",
       "Quiet enough (37 dBA at 1m) to sit next to a bedroom wall",
       "Australian-designed for Australian conditions",
       "PV-diverter kit fires the compressor on solar surplus, so a home with rooftop panels heats its water on power it was exporting anyway",
-      "Glass-lined and stainless tanks in 250 / 315 / 400 L, the range covers a unit up to a full house",
-      "Panasonic Aquarea compressor option in 4 kW and 6 kW where recovery speed matters",
+      "Glass-lined and stainless tanks in 160 / 250 / 315 / 400 L, the range covers a unit up to a full house",
+      "Reclaim's own CO₂ heat pump is a 5 kW, and the Panasonic Aquarea pairing comes in 4 kW and 6 kW where recovery speed is the deciding factor",
     ],
     commonInMelbourne:
       "The one we recommend first to anyone planning to still be in the house in ten years. Common through the Pakenham Cameron Park estates, in Berwick weatherboards coming off gas storage, and on Cranbourne and Officer jobs where the tank sits somewhere you walk past every day and the stainless finish earns its keep.",
@@ -972,7 +996,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-160-glass",
         name: "Reclaim CO₂ Split · 160L Glass-Lined",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 160,
         model: "REHP-CO2-160GL-V2",
         category: "heat-pump",
@@ -996,7 +1020,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-160-stainless",
         name: "Reclaim CO₂ Split · 160L Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 160,
         model: "REHP-CO2-160SST-V2",
         category: "heat-pump",
@@ -1020,7 +1044,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-glass",
         name: "Reclaim CO₂ Split · 250L Glass-Lined",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 250,
         model: "REHP-CO2-250GL-V2",
         category: "heat-pump",
@@ -1044,7 +1068,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-stainless",
         name: "Reclaim CO₂ Split · 250L Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 250,
         model: "REHP-CO2-250SST-V2",
         category: "heat-pump",
@@ -1068,7 +1092,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-250-earthworker",
         name: "Reclaim CO₂ Split · 250L Earthworker Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 250,
         model: "REHP-CO2-250SSEW-V2",
         category: "heat-pump",
@@ -1090,56 +1114,32 @@ export const brands: Brand[] = [
       },
       {
         slug: "co2-split-215-5kw",
-        name: "Reclaim CO₂ Split · 215L · 5 kW",
+        name: "Reclaim CO₂ Split · 215L",
         compressorKw: 5.0,
         tankLitres: 215,
-        model: "Reclaim CO₂ 5 kW · 215 L",
+        model: "Reclaim CO₂ split · 215 L",
         category: "heat-pump",
-        categoryLabel: "CO₂ split heat pump · 5 kW condenser",
-        capacity: "215 L tank · 5 kW CO₂ condenser",
+        categoryLabel: "CO₂ split heat pump",
+        capacity: "215 L tank",
         refrigerant: "R744 (CO₂)",
         veuEligible: true,
         photo: "/Reclaim Glass lined and stainless v2.webp",
         photoAlt: "Reclaim CO₂ split heat pump",
-        bestFor: "Couples and small families wanting recovery speed over stored volume",
+        bestFor: "Couples and small families who shower in a tight window rather than across the day",
         ourTake:
-          "The 5 kW condenser is the point of this one. A smaller tank keeps its footprint down, and the stronger compressor puts water back fast enough that you don't miss the litres, which suits a household that showers in a tight window rather than spread across the day.",
+          "215 L sits between the 160 and the 250, on the same 5 kW CO₂ heat pump as every other split in the range. That output is what makes the smaller tank work: it puts water back fast enough that a household showering inside one hour doesn't feel the missing litres, and it keeps the footprint down where a 250 would be tight.",
         specs: [
           { label: "Tank capacity", value: "215 L" },
-          { label: "Condenser", value: "5 kW CO₂" },
+          { label: "Heat pump", value: "5 kW CO₂ (R744)" },
           { label: "Tank warranty", value: "10 years parts + 5 years labour" },
-          { label: "Heat pump warranty", value: "10 years parts + labour" },
+          { label: "Heat pump warranty", value: "10 years parts + labour (Reclaim EHPE-4550P-A)" },
         ],
-        related: ["co2-split-315-5kw", "co2-split-250-glass", "co2-split-315-glass"],
-      },
-      {
-        slug: "co2-split-315-5kw",
-        name: "Reclaim CO₂ Split · 315L · 5 kW",
-        compressorKw: 5.0,
-        tankLitres: 315,
-        model: "Reclaim CO₂ 5 kW · 315 L",
-        category: "heat-pump",
-        categoryLabel: "CO₂ split heat pump · 5 kW condenser",
-        capacity: "315 L tank · 5 kW CO₂ condenser",
-        refrigerant: "R744 (CO₂)",
-        veuEligible: true,
-        photo: "/Reclaim Glass lined and stainless v2.webp",
-        photoAlt: "Reclaim CO₂ split heat pump",
-        bestFor: "Families of 5+, or any house where the whole morning rush lands at once",
-        ourTake:
-          "Volume and recovery together. The 315 L holds enough for a full morning run on its own, and the 5 kW puts it back inside the working day, so an evening run never starts on a half-empty tank.",
-        specs: [
-          { label: "Tank capacity", value: "315 L" },
-          { label: "Condenser", value: "5 kW CO₂" },
-          { label: "Tank warranty", value: "10 years parts + 5 years labour" },
-          { label: "Heat pump warranty", value: "10 years parts + labour" },
-        ],
-        related: ["co2-split-215-5kw", "co2-split-315-glass", "co2-split-400-glass"],
+        related: ["co2-split-250-glass", "co2-split-315-glass", "co2-split-160-stainless"],
       },
       {
         slug: "co2-split-315-glass",
         name: "Reclaim CO₂ Split · 315L Glass-Lined",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315GL-V2",
         category: "heat-pump",
@@ -1162,7 +1162,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless",
         name: "Reclaim CO₂ Split · 315L Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315SST-V2",
         category: "heat-pump",
@@ -1189,7 +1189,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-stainless-squat",
         name: "Reclaim CO₂ Split · 315L Stainless Squat (SSQ)",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315SSQ-V2",
         category: "heat-pump",
@@ -1212,7 +1212,7 @@ export const brands: Brand[] = [
       {
         slug: "co2-split-315-earthworker",
         name: "Reclaim CO₂ Split · 315L Earthworker Stainless",
-        compressorKw: 2.5,
+        compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315SSEW-V2",
         category: "heat-pump",
@@ -1281,7 +1281,6 @@ export const brands: Brand[] = [
       {
         slug: "eco-r290-200",
         name: "Reclaim ECO R290 · 200L All-in-One",
-        compressorKw: 2.5,
         tankLitres: 200,
         model: "RE-ECO-200",
         category: "heat-pump",
@@ -1295,14 +1294,13 @@ export const brands: Brand[] = [
           { label: "Tank capacity", value: "200 L" },
           { label: "Format", value: "All-in-one (single unit)" },
           { label: "Refrigerant", value: "R290 (propane, natural)" },
-          { label: "Tank warranty", value: "10 years parts + 5 years labour" },
+          { label: "Tank warranty", value: "8 years, parts and labour" },
         ],
         related: ["eco-r290-300", "co2-split-250-glass"],
       },
       {
         slug: "eco-r290-300",
         name: "Reclaim ECO R290 · 285L All-in-One",
-        compressorKw: 2.5,
         tankLitres: 285,
         model: "RE-ECO-300",
         category: "heat-pump",
@@ -1313,10 +1311,10 @@ export const brands: Brand[] = [
         bestFor: "Family of 4-5 wanting a single-unit install (no separate outdoor)",
         ourTake: "285 L with the heat pump built into the same shell as the tank. It goes in where there's no good outdoor position for a split heat pump but there is room where the old tank stood, which describes a lot of townhouses and a lot of narrow side paths.",
         specs: [
-          { label: "Tank capacity", value: "300 L" },
+          { label: "Tank capacity", value: "285 L" },
           { label: "Format", value: "All-in-one (single unit)" },
           { label: "Refrigerant", value: "R290 (propane)" },
-          { label: "Tank warranty", value: "10 years parts + 5 years labour" },
+          { label: "Tank warranty", value: "8 years, parts and labour" },
         ],
         related: ["eco-r290-200", "co2-split-315-glass"],
       },
@@ -1549,7 +1547,7 @@ export const brands: Brand[] = [
     photo: "/thermann_integrated_heat_pump_02.jpg",
     photoFallback: "/thermann-heat-pump.webp",
     photoAlt: "Thermann integrated heat pump hot water system",
-    accent: "#0090C3",
+    accent: "#C1272D",
     established: "Reece exclusive brand · manufactured by Dux at their Moss Vale (NSW) factory",
     warranty: "5-year cylinder + 3-year compressor + 6-year on our workmanship. R290 heat pump range extends compressor warranty to 5 years.",
     keyFeatures: [
@@ -1910,7 +1908,7 @@ export const brands: Brand[] = [
     photo: "/270L-istore-heatpump.webp",
     photoFallback: "/reclaim-spit-close-up.webp",
     photoAlt: "iStore 270L heat pump hot water system",
-    accent: "#F36722",
+    accent: "#00A0DF",
     established: "Australian company (Sydney) · manufactured in China to AS/NZS standards",
     warranty: "6-year cylinder + 3-year compressor + 6-year on our workmanship",
     keyFeatures: [
@@ -1991,7 +1989,7 @@ export const brands: Brand[] = [
     photo: "/Kaden KSI V3 wall split system.jpg",
     photoFallback: "/kaden-indoor.webp",
     photoAlt: "Kaden split system with outdoor condenser",
-    accent: "#12224E",
+    accent: "#2472CE",
     established: "Reece exclusive brand, distributed via Reece stores nationally · trading since 2015",
     warranty: "5-year manufacturer parts + labour + 6-year on our workmanship",
     keyFeatures: [
@@ -2496,7 +2494,7 @@ export const brands: Brand[] = [
     photo: "/Milieu Zonemate tablet.jpg",
     photoFallback: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
     photoAlt: "Zonemate Milieu wall tablet zoning control",
-    accent: "#7A4CD8",
+    accent: "#1E8E4E",
     established: "Australian-designed and manufactured for the local ducted market",
     warranty: "5-year controller + 5-year dampers + 6-year on our workmanship",
     keyFeatures: [
@@ -2562,6 +2560,10 @@ export const brands: Brand[] = [
     ],
   },
 ];
+
+export const brands: Brand[] = brandCatalogue
+  .slice()
+  .sort((a, b) => BRAND_ORDER.indexOf(a.slug) - BRAND_ORDER.indexOf(b.slug));
 
 export const publishedBrands: Brand[] = brands;
 
