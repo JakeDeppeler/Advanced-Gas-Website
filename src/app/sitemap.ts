@@ -24,6 +24,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tools/system-comparison`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/tools/heat-pump-compare`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/brands/reclaim/compare`, lastModified: now, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/brands/reclaim/models`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/quote`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/service-areas`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },

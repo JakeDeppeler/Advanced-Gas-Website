@@ -1,0 +1,303 @@
+/* ---------- Reclaim model codes page ---------- */
+
+.rm-decode,
+.rm-table,
+.rm-faq,
+.rm-next {
+  padding: clamp(2.5rem, 6vw, 4.5rem) 0;
+}
+
+.rm-decode { background: var(--paper, #fff); }
+.rm-table  { background: color-mix(in srgb, var(--navy) 4%, #fff); }
+.rm-faq    { background: var(--paper, #fff); }
+
+/* ---------- the worked example ---------- */
+
+.rm-decode__sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin: 0 0 2rem;
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: clamp(1.25rem, 5vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.rm-decode__seg {
+  padding: 0.3em 0.45em;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--navy) 8%, #fff);
+  color: var(--navy);
+}
+.rm-decode__dash { color: color-mix(in srgb, var(--navy) 45%, #fff); }
+
+/* Colour-code the three parts people actually ask about, so the
+   explainer list below reads as a legend for this line. */
+.rm-decode__seg--lit { background: color-mix(in srgb, var(--orange) 18%, #fff); color: #7a3b00; }
+.rm-decode__seg--fin { background: color-mix(in srgb, var(--orange) 34%, #fff); color: #6b3400; }
+.rm-decode__seg--ctl { background: var(--navy); color: #fff; }
+
+.rm-decode__list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.rm-decode__row {
+  display: grid;
+  grid-template-columns: minmax(150px, 210px) 1fr;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-top: 1px solid color-mix(in srgb, var(--navy) 9%, #fff);
+}
+.rm-decode__row:first-child { border-top: 0; }
+
+.rm-decode__row dt code {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: color-mix(in srgb, var(--navy) 7%, #fff);
+  padding: 0.15em 0.45em;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.rm-decode__row dd {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+@media (max-width: 640px) {
+  .rm-decode__row { grid-template-columns: 1fr; gap: 0.35rem; }
+  .rm-decode__row dt code { white-space: normal; }
+}
+
+/* ---------- model finder ---------- */
+
+.rmf__controls {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+}
+
+.rmf__search { display: block; }
+.rmf__search-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin: 0 0 0.35rem;
+}
+.rmf__search input {
+  width: 100%;
+  max-width: 520px;
+  padding: 0.75rem 0.95rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--navy);
+  background: #fff;
+  border: 2px solid color-mix(in srgb, var(--navy) 18%, #fff);
+  border-radius: 10px;
+}
+.rmf__search input:focus-visible {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--orange) 28%, transparent);
+}
+
+.rmf__chiprow { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.rmf__chip {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--navy);
+  background: #fff;
+  border: 1px solid color-mix(in srgb, var(--navy) 16%, #fff);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.rmf__chip:hover { border-color: var(--orange); }
+.rmf__chip.is-on {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.rmf__count {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--ink-2);
+}
+.rmf__clear {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--orange);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rmf__empty {
+  margin: 0 0 1rem;
+  padding: 1rem 1.1rem;
+  border-left: 4px solid var(--orange);
+  border-radius: 0 10px 10px 0;
+  background: color-mix(in srgb, var(--orange) 8%, #fff);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Wide table, own scroller. The page body must never scroll sideways. */
+.rmf__scroll {
+  overflow-x: auto;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 14px;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.rmf__table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.rmf__table th,
+.rmf__table td {
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  border-top: 1px solid color-mix(in srgb, var(--navy) 9%, #fff);
+  vertical-align: top;
+}
+.rmf__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-top: 0;
+  background: var(--navy);
+  color: #fff;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.rmf__table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--navy) 3%, #fff);
+}
+
+.rmf__code code {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.rmf__flag {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #7a3b00;
+}
+.rmf__go a {
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+.rm-table__note {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* ---------- FAQs ---------- */
+
+.rm-faq__list {
+  display: grid;
+  gap: 0.6rem;
+}
+.rm-faq__item {
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 1.1rem;
+}
+.rm-faq__item summary {
+  padding: 0.95rem 0;
+  font-weight: 700;
+  color: var(--navy);
+  cursor: pointer;
+  list-style: none;
+}
+.rm-faq__item summary::-webkit-details-marker { display: none; }
+.rm-faq__item summary::after {
+  content: "+";
+  float: right;
+  font-weight: 400;
+  color: var(--orange);
+}
+.rm-faq__item[open] summary::after { content: "\2212"; }
+.rm-faq__item p {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+/* ---------- next steps ---------- */
+
+.rm-next__box {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border-radius: 18px;
+  background: var(--navy);
+  color: #fff;
+}
+.rm-next__box h2 { color: #fff; margin: 0 0 0.6rem; }
+.rm-next__box > p {
+  margin: 0 0 1.25rem;
+  max-width: 62ch;
+  line-height: 1.65;
+  color: color-mix(in srgb, #fff 82%, var(--navy));
+}
+.rm-next__ctas { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.rm-next__seo {
+  margin: 1.5rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, #fff 58%, var(--navy));
+}
+
+/* Local visually-hidden helper. The table caption and the last column
+   header exist for screen readers and for the accessibility tree; they
+   would only be noise on screen. */
+.rm-table .sr-only,
+.rmf .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

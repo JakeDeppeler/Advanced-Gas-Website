@@ -257,9 +257,12 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
               </p>
               {brand.slug === "reclaim" && (
-                <div style={{ marginTop: 14 }}>
+                <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
                   <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--orange ds-btn--sm">
                     Open the full Reclaim comparison →
+                  </Link>
+                  <Link href="/brands/reclaim/models" className="ds-btn ds-btn--ghost ds-btn--sm">
+                    Look up a model code →
                   </Link>
                 </div>
               )}

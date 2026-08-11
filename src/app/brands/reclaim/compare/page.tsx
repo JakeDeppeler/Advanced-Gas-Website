@@ -9,8 +9,8 @@ import "./reclaim-compare.css";
 
 /**
  * Reclaim range comparison — a dedicated deep-dive page comparing every
- * tank finish (glass-lined, stainless, stainless 316, Earthworks) across
- * every capacity (250 L, 315 L, 400 L) side-by-side.
+ * tank finish (glass-lined, stainless tall, stainless squat, Earthworker)
+ * across every capacity (160 L, 250 L, 315 L, 400 L) side-by-side.
  *
  * Purpose: a customer at the top of the Reclaim decision doesn't need
  * to open 9 product pages to pick between them — this table lays out
@@ -21,14 +21,14 @@ import "./reclaim-compare.css";
 export const metadata: Metadata = {
   title: "Reclaim Heat Pump Comparison · Every Tank + Finish, Side-by-Side",
   description:
-    "Compare every Reclaim CO₂ heat pump we install, glass-lined, stainless, stainless 316, Earthworks, across 250 L / 315 L / 400 L. Warranty, price band, best-for, and our recommendation for each.",
+    "Compare every Reclaim CO₂ heat pump we install, glass-lined, stainless tall (SST), stainless squat (SSQ) and Earthworker, across 160 L / 250 L / 315 L / 400 L. Warranty, best-for and our recommendation for each.",
   alternates: { canonical: "/brands/reclaim/compare" },
 };
 
 type Row = {
   finish: string;
   finishSub: string;
-  cap: "250 L" | "315 L" | "400 L";
+  cap: "160 L" | "250 L" | "315 L" | "400 L";
   slug: string | null; // link into the individual product page
   price: string;
   warranty: string;
@@ -41,23 +41,25 @@ type Row = {
 // Keeping data local to this page so it can be edited independently
 // of the master brand catalogue without disturbing rebuild boundaries.
 const ROWS: Row[] = [
-  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "250 L", slug: "co2-split-250-glass",         price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Couples · entry price",              material: "Enamel glass over steel · anode replaced ~7-10 yrs", ourTake: "Cheapest Reclaim entry. Good for couples on a budget who still want CO₂." },
-  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "315 L", slug: "co2-split-315-glass",         price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Family of 3-4 · budget",              material: "Enamel glass over steel · anode replaced ~7-10 yrs", ourTake: "Our most-installed Reclaim glass model, best value at the 315 sweet spot." },
-  { finish: "Stainless",       finishSub: "no anode, no rust",     cap: "250 L", slug: "co2-split-250-stainless",     price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Couples wanting longevity",           material: "Stainless steel · zero anode maintenance",           ourTake: "Step up in warranty for couples who intend to stay in the house." },
-  { finish: "Stainless",       finishSub: "no anode, no rust",     cap: "315 L", slug: "co2-split-315-stainless",     price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 3-4 · long-term",           material: "Stainless steel · zero anode maintenance",           ourTake: "The default Reclaim we spec when the customer plans to be in the home 10+ years." },
-  { finish: "Stainless 316",   finishSub: "marine-grade",          cap: "315 L", slug: "co2-split-315-stainless-316", price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Coastal-edge homes",                  material: "316-grade stainless · salt-air resistant",           ourTake: "Only pay the 316 premium if you're coastal, Tooradin, Lang Lang, close to Western Port." },
-  { finish: "Earthworks",      finishSub: "premium poly-lined",    cap: "250 L", slug: "co2-split-250-earthworks",    price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Bore / bad water quality",            material: "Poly-lined steel · handles high mineral content",    ourTake: "Spec this only if you're on tank / bore water with high mineral content." },
-  { finish: "Earthworks",      finishSub: "premium poly-lined",    cap: "315 L", slug: "co2-split-315-earthworks",    price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Bore water · family",                 material: "Poly-lined steel · handles high mineral content",    ourTake: "Bore-water version of the 315 default, same size, mineral-friendly." },
-  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "400 L", slug: "co2-split-400-glass",         price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Family of 5+ · budget",               material: "Enamel glass over steel · anode replaced ~7-10 yrs", ourTake: "400 L for high-draw households, teenagers, big showers, back-to-back use." },
-  { finish: "Stainless",       finishSub: "no anode, no rust",     cap: "400 L", slug: "co2-split-400-stainless",     price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 5+ · long-term",            material: "Stainless steel · zero anode maintenance",           ourTake: "The most volume Reclaim make, in stainless, on the 5 kW compressor. For a household where the draw is high enough that stored litres and recovery speed both have to be there." },
+  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "160 L", slug: "co2-split-160-glass",          price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "1-2 people · tight spaces",           material: "Enamel glass over steel · anode swapped every 5-7 yrs", ourTake: "The smallest tank Reclaim make. You pick it for the space it fits into, not to save money." },
+  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "250 L", slug: "co2-split-250-glass",          price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Couples and families of three", material: "Enamel glass over steel · anode swapped every 5-7 yrs", ourTake: "Same CO₂ compressor as every other tank in the range, in the smallest size that still suits a family." },
+  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "315 L", slug: "co2-split-315-glass",          price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Family of 3-4 on town water",   material: "Enamel glass over steel · anode swapped every 5-7 yrs", ourTake: "The size most families land on. Glass-lined does an honest job on Pakenham mains, as long as someone remembers the anode." },
+  { finish: "Glass-lined",     finishSub: "sacrificial anode",     cap: "400 L", slug: "co2-split-400-glass",          price: "Message for quote", warranty: "10-yr tank / 5-yr labour", bestFor: "Households of 6+",              material: "Enamel glass over steel · anode swapped every 5-7 yrs", ourTake: "400 L on the 5 kW compressor, for a house where the draw is genuinely high." },
+  { finish: "Stainless, tall", finishSub: "SST · no anode",        cap: "160 L", slug: "co2-split-160-stainless",      price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Units and rentals",             material: "Stainless steel · nothing to service",                  ourTake: "160 L with no anode to remember, which is the argument on any property you don't live in." },
+  { finish: "Stainless, tall", finishSub: "SST · no anode",        cap: "250 L", slug: "co2-split-250-stainless",      price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Couples staying put",           material: "Stainless steel · nothing to service",                  ourTake: "Same size and footprint as the glass-lined 250, with 15 years of tank warranty instead of 10." },
+  { finish: "Stainless, tall", finishSub: "SST · no anode",        cap: "315 L", slug: "co2-split-315-stainless",      price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 3-4 · long-term",     material: "Stainless steel · nothing to service",                  ourTake: "Our most-installed Reclaim, and Reclaim's own best seller. Quiet enough at 37 dBA to sit against a bedroom wall." },
+  { finish: "Stainless, tall", finishSub: "SST · no anode",        cap: "400 L", slug: "co2-split-400-stainless",      price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Acreage and big households",    material: "Stainless steel · nothing to service",                  ourTake: "The most volume Reclaim make, in stainless, on the 5 kW compressor, so it comes back before the evening run." },
+  { finish: "Stainless, squat",finishSub: "SSQ · short and wide",  cap: "315 L", slug: "co2-split-315-stainless-squat",price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Low eaves, cupboards, doorways",material: "Same stainless as the SST, 1490 mm tall not 1985 mm",   ourTake: "The Q is squat, not a grade of steel. Identical system to the tall 315, in a body that fits where the tall one won't." },
+  { finish: "Earthworker",     finishSub: "made in Morwell",       cap: "250 L", slug: "co2-split-250-earthworker",    price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Buying Australian, on purpose", material: "Stainless steel, built by a worker-owned co-op",        ourTake: "Performs like the standard stainless because it is stainless. What you're choosing is where it was made." },
+  { finish: "Earthworker",     finishSub: "made in Morwell",       cap: "315 L", slug: "co2-split-315-earthworker",    price: "Message for quote", warranty: "15-yr tank / 5-yr labour", bestFor: "Family of 4-5, made locally",   material: "Stainless steel, built by a worker-owned co-op",        ourTake: "Same heat pump, same warranty, steel rolled an hour up the Princes Highway." },
 ];
 
 const QUICK_PICK: { label: string; recommend: string; explain: string }[] = [
   { label: "Couple, town water", recommend: "Glass-lined 250 L", explain: "Same CO₂ compressor as every other tank in the range. Glass-lined means a sacrificial anode, which we swap every five to seven years, and which does an honest job on Pakenham mains." },
   { label: "Family of 3-4", recommend: "Stainless 315 L", explain: "The one we install most. 315 L of stainless, 15-year tank warranty, and no anode to remember in year five." },
   { label: "Family long-term", recommend: "Stainless 400 L", explain: "For 5+ person households, 400 L, 15-year tank warranty, still handles back-to-back showers on a winter morning." },
-  { label: "Coastal home", recommend: "Stainless 316 L", explain: "Worth it within a couple of km of Western Port or Port Phillip, where salt air takes standard stainless out in about ten years. Further inland it solves a problem you don't have." },
-  { label: "Bore / tank water", recommend: "Earthworks 315 L", explain: "Poly-lined steel handles high mineral content, spec this if your water is off a private supply, not town mains." },
+  { label: "Low eave or tight cupboard", recommend: "Stainless squat 315 L (SSQ)", explain: "Same 315 litres and the same stainless as the tall SST, in a body about half a metre shorter. We measure the space at the site visit and tell you which one goes in." },
+  { label: "Australian-made, on purpose", recommend: "Earthworker 315 L", explain: "Reclaim heat pump on a stainless tank built in Morwell by a worker-owned co-op. Runs the same as the standard stainless, because it is stainless." },
 ];
 
 export default function ReclaimComparePage() {
@@ -88,10 +90,11 @@ export default function ReclaimComparePage() {
             Every <span className="accent">Reclaim</span> tank + finish, side-by-side.
           </h1>
           <p className="dp-hero__sub">
-            Nine CO₂ split models across four tank finishes (glass-lined, stainless, stainless 316,
-            Earthworks) and three capacities (250 L, 315 L, 400 L). This is the full lineup with
-            our take on which finish suits which household, so you don&rsquo;t have to open nine
-            product pages to compare.
+            Eleven CO₂ split systems across four tank types (glass-lined, stainless tall,
+            stainless squat and the Earthworker tank built in Morwell) and four capacities
+            (160 L, 250 L, 315 L, 400 L), with our take on which suits which household. If
+            you already have a model code in front of you,{" "}
+            <Link href="/brands/reclaim/models">look it up here</Link> instead.
           </p>
         </div>
       </section>
