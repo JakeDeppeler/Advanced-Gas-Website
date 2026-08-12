@@ -199,15 +199,65 @@ spent on pages Google has not looked at.
 
 **1. Get the pages indexed.** Nothing else matters until this moves.
 
-- Verify the property in Google Search Console if it isn't already, and
-  submit `https://www.advancedgas.com.au/sitemap.xml`.
-- Use the URL Inspection tool to request indexing on the ten pages that
-  matter most: the four service pages, `/rebates`, `/pricing`, and the
-  four biggest suburbs. Manual requests are rate-limited but they work.
-- Check the Pages report for "Discovered, not indexed" and "Crawled,
-  not indexed". Those two statuses tell you *why* Google is passing,
-  and the usual answer for a site this size is that it doesn't yet
-  trust the domain enough to be bothered. Which leads to step 2.
+The Search Console Pages report splits non-indexed pages into two
+buckets, and they mean opposite things:
+
+| Status | What it means | What fixes it |
+|---|---|---|
+| **Discovered, currently not indexed** | Google knows the URL exists and hasn't bothered crawling it | Domain authority. Links and reviews. Nothing on the page will change it. |
+| **Crawled, currently not indexed** | Google read the page and decided it wasn't worth keeping | The page. Usually because it's too similar to another one. |
+
+Do these, in order:
+
+- **Verify the property in Search Console** and submit
+  `https://www.advancedgas.com.au/sitemap.xml`.
+- **Request indexing manually** on the ten pages that matter most: the
+  four service pages, `/rebates`, `/pricing`, and the four biggest
+  suburbs. It's rate-limited to a handful a day and it works.
+- **Read the Pages report** and see which bucket the 425 are in. That
+  single number decides whether the work is links or content.
+
+### The duplication problem, and what was done about it
+
+Measured on the build: the `/areas/<suburb>/<service>` pages were
+**93% identical to each other**, 95% of characters shared. That is the
+textbook profile for "Crawled, currently not indexed". Google fetched
+them, saw 128 pages that differed only by a suburb name appearing 22
+times, and declined to keep them.
+
+The cause wasn't the template. It was that the template only ever read
+`sub.name`, `sub.slug` and `sub.postcode`, while `suburbs.ts` already
+carried real per-suburb detail (`housingStock`, `commonInstall`,
+`landmark`, `localHooks`, and for some suburbs `commonProblems`,
+`knownEstates`, `whyLocal` and a testimonial) that nothing rendered.
+
+Wiring that in, angled per service, took the pages from **5% unique to
+31% unique**, and from ~1,190 words to ~1,610. See `src/lib/localAngle.ts`.
+
+**What still needs doing by hand:** the richest fields are only filled
+in for a handful of suburbs.
+
+| Field | Filled in | Effect |
+|---|---|---|
+| `landmark`, `housingStock`, `commonInstall`, `localHooks` | 64 / 64 | Now rendered |
+| `testimonial` | 7 / 64 | Strongest signal on the page |
+| `whyLocal` | 4 / 64 | Second strongest |
+| `commonProblems` | 4 / 64 | Genuinely useful to a reader |
+| `knownEstates` | 2 / 64 | Names nobody else can fake |
+
+Filling `commonProblems` and `whyLocal` for the next ten suburbs, in
+distance order, is the highest-value hour anyone can spend on this
+site. It has to come from Jake or Chaz, because the whole point is that
+it's the stuff only someone who has been on those streets knows.
+
+### The sitemap was lying, and that's fixed
+
+Every URL carried `lastmod` set to the build timestamp, so every deploy
+told Google that all 406 pages had changed. Google's guidance is that
+they only use `lastmod` where it's consistently accurate and ignore it
+where it obviously isn't, which is exactly the signal we can't afford
+to waste while 425 pages sit unindexed. The field is now omitted rather
+than faked.
 
 **2. Reviews, relentlessly.** This is the single biggest lever on the
 map pack, and the map pack is where the phone calls come from.
@@ -249,7 +299,8 @@ us and the established competitors. In order of ease:
 - Supplier case studies. Earthworker, Reclaim and Reece all publish
   installer stories, and we have real ones.
 
-**5. Then, and only then, more content.** The site already covers
+**5. Then, and only then, more content.** And for tracking which of
+these actually move, see `keyword-tracking.md`. The site already covers
 64 suburbs by 4 services. Adding a 65th suburb is not the bottleneck.
 What earns links is the stuff nobody else has built:
 

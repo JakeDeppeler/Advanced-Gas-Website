@@ -4,6 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { services, site } from "@/lib/site";
 import { publishedSuburbs } from "@/lib/suburbs";
+import { localAngle, driveTime } from "@/lib/localAngle";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
@@ -60,6 +61,11 @@ export default function SuburbServicePage({
 
   const otherServices = services.filter((x) => x.slug !== svc.slug);
 
+  // The reason these pages were 93% identical to each other: the
+  // template read the suburb's name and nothing else, while suburbs.ts
+  // carried a paragraph of real local detail for every one of them.
+  const angle = localAngle(sub, svc.slug);
+
   const localFaqs = [
     {
       q: `Do you service ${sub.name} ${sub.postcode}?`,
@@ -95,7 +101,7 @@ export default function SuburbServicePage({
           </h1>
           <p className="dp-hero__sub">
             {svc.slug === "heat-pump-installation"
-              ? `Cut your hot water bill by up to 75% with a heat pump installed in your ${sub.name} home from as little as $33 after VEU rebates. Licensed plumbers, paperwork handled, 6-year workmanship warranty.`
+              ? `Heat pump hot water installed in your ${sub.name} home with the VEU rebate applied at the quote. Licensed plumbers, paperwork handled by us, 6-year workmanship warranty.`
               : `Licensed refrigeration technicians installing split system, multi-head and ducted air conditioning in ${sub.name}. Fixed-price quotes, same-week installs, 6-year warranty.`}
           </p>
           <div className="dp-hero__ctas">
@@ -170,6 +176,64 @@ export default function SuburbServicePage({
           Every one of these pages now links to the same service in the
           neighbouring suburbs and to the other services in this suburb,
           which is also genuinely what the reader wants next. */}
+      {angle && (
+        <section className="dp-local-angle">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> On the ground in {sub.name}</span>
+              <h2>{angle.heading}</h2>
+            </div>
+            <div className="localangle__grid">
+              <div className="localangle__body">
+                {angle.paras.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+                {angle.bullets && (
+                  <>
+                    <h3>{angle.bullets.label}</h3>
+                    <ul className="localangle__list">
+                      {angle.bullets.items.map((b) => (
+                        <li key={b}>{b}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+
+              <aside className="localangle__facts">
+                <dl>
+                  <div>
+                    <dt>Drive from our workshop</dt>
+                    <dd>{driveTime(sub)}</dd>
+                  </div>
+                  <div>
+                    <dt>Council</dt>
+                    <dd>{sub.council}</dd>
+                  </div>
+                  <div>
+                    <dt>We know it by</dt>
+                    <dd>{sub.landmark}</dd>
+                  </div>
+                  <div>
+                    <dt>Around here</dt>
+                    <dd>{sub.localHooks.join(", ")}</dd>
+                  </div>
+                </dl>
+                {sub.testimonial && (
+                  <figure className="localangle__quote">
+                    <blockquote>{sub.testimonial.quote}</blockquote>
+                    <figcaption>
+                      <strong>{sub.testimonial.who}</strong>
+                      <span>{sub.testimonial.what}</span>
+                    </figcaption>
+                  </figure>
+                )}
+              </aside>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="svcnear">
         <div className="wrap">
           <div className="svcnear__grid">

@@ -2144,3 +2144,96 @@
   color: var(--ink-2);
 }
 .svcnear__list a:hover span { color: var(--orange); }
+
+/* ---------- per-suburb local detail on suburb x service pages ---------- */
+/* These pages measured 93% identical to one another, which is the exact
+   profile Google reports as "crawled, currently not indexed". This
+   section is where the per-suburb facts finally get rendered. */
+
+.dp-local-angle {
+  padding: clamp(2rem, 5vw, 3.5rem) 0;
+  background: #fff;
+}
+.localangle__grid {
+  display: grid;
+  gap: clamp(1.25rem, 3.5vw, 2.5rem);
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .localangle__grid { grid-template-columns: 1fr; }
+}
+
+.localangle__body p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.localangle__body h3 {
+  margin: 1.5rem 0 0.6rem;
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+.localangle__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.localangle__list li {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.localangle__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.localangle__facts {
+  padding: 1.25rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+}
+.localangle__facts dl { margin: 0; display: grid; gap: 0.9rem; }
+.localangle__facts dt {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 0 0 2px;
+}
+.localangle__facts dd {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--navy);
+}
+
+.localangle__quote {
+  margin: 1.25rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+}
+.localangle__quote blockquote {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+  font-style: italic;
+}
+.localangle__quote figcaption { display: grid; gap: 1px; }
+.localangle__quote strong { font-size: 0.88rem; color: var(--navy); }
+.localangle__quote span { font-size: 0.8rem; color: var(--ink-2); }
