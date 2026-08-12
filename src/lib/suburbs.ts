@@ -139,6 +139,16 @@ export const suburbs: Suburb[] = [
       "Beaconsfield Reserve",
     ],
     nearby: ["berwick", "officer", "pakenham", "beaconsfield-upper", "narre-warren"],
+    whyLocal:
+      "Beaconsfield splits at the highway and the two halves need different answers. North through the Old Beaconsfield township around Woods Street the blocks are big and the houses are older weatherboard, which usually means the ducted heater is outside on a slab and the duct runs are long. South through the Ellenbrook and Coach builds it is modern brick veneer with everything already roughed in. Ten minutes from the workshop, under twenty even in traffic, so Beaconsfield is a suburb we can get to the same day when a heater or a hot water service goes down.",
+    commonProblems: [
+      "The older north-side homes mostly run gas ducted from an external cabinet on a slab. Long duct runs lose heat before they reach the far bedrooms, so the complaint is usually \"one end of the house is cold\" rather than \"the heater does not work\", and re-taping or replacing the ductwork fixes more of those than a new heater does.",
+      "Anything on a ducted gas heater over ten years old here gets a carbon monoxide test whether or not it is being replaced. A cracked heat exchanger has no smell and no warning, and the older large-block houses are exactly where the oldest units still are.",
+      "The Ellenbrook and Coach builds went in with developer-spec hot water, and those tanks are now old enough to be failing. They are close to ideal VEU rebate jobs because the existing system is exactly what the scheme was written to replace.",
+      "Big blocks mean the outdoor unit often ends up a long way from where the tank sits. On a split heat pump that distance is a real constraint, not a detail, and it is the thing we measure first on a Beaconsfield site visit.",
+    ],
+    knownEstates:
+      "Ellenbrook, Coach, and the older large-block streets through the Old Beaconsfield township around Woods Street and Beaconsfield Reserve.",
   },
   {
     slug: "berwick",
@@ -167,6 +177,16 @@ export const suburbs: Suburb[] = [
         "Hot water died on a Sunday with three kids in the house. Answered the phone, had a temp loaner running by lunch, new iStore in on Tuesday. That's service.",
     },
     nearby: ["officer", "narre-warren", "endeavour-hills", "cranbourne", "beaconsfield"],
+    whyLocal:
+      "Berwick is two suburbs in one and we quote them differently. Up on the hill through the Old Village the houses are weatherboard, the ceilings are high and there is next to no roof space, so it is wall splits, careful conduit runs and a lot of thought about where the outdoor unit goes on a heritage streetscape. South and west through Timbarra, Brentwood and Berwick Springs it is brick veneer with a proper roof cavity, which is where the ducted retrofits happen. Fourteen minutes up the highway from the workshop, twenty-two when the Nossal and Berwick College traffic is moving, so we book Berwick either first thing or after ten.",
+    commonProblems: [
+      "The Old Village weatherboards have almost no usable roof cavity, so ducted is often off the table before we start. That is a wall split or a multi-head conversation, and it is better to have it at the quote than after someone has paid a deposit somewhere else.",
+      "Timbarra double-storeys were very often fitted with a single-zone ducted system sized for the ground floor. It cools the living area beautifully and never gets on top of the upstairs bedrooms. Zoning fixes most of them; a few need a second system upstairs.",
+      "The estates built out in waves, so the gas storage tanks and ducted heaters that went in with them reach end of life in waves too. We will do three changeovers in the same street inside a year and none of them are a coincidence.",
+      "Apartment and townhouse stock around Lakeside and Parkhill comes with body corporate rules about where an outdoor unit can sit. That decides all-in-one versus split heat pump before anything technical does, so we check it before quoting rather than after.",
+    ],
+    knownEstates:
+      "Timbarra, Brentwood, Berwick Springs, Parkhill, Eden Rise, and the Old Berwick Village streets up around High Street and Wilson Botanic Park.",
   },
   {
     slug: "narre-warren",
@@ -391,6 +411,16 @@ export const suburbs: Suburb[] = [
       "the Timbertop wetland walk",
     ],
     nearby: ["officer", "pakenham", "beaconsfield", "cardinia-town"],
+    whyLocal:
+      "Officer South is almost entirely post-2015, which makes it the most predictable suburb we work in. Nearly every house came with ducted cooling already in it, so we are rarely installing from scratch here. What we get called for is the hot water reaching end of life, zoning that was never set up properly, and first services on systems that have been running since handover without anyone touching a filter. Eight kilometres from the workshop, straight down the highway, so it is an easy same-day suburb.",
+    commonProblems: [
+      "The electric storage tanks that came with the original builds are now hitting end of life across whole streets at once. They are the single best VEU rebate candidate there is, because an old electric tank is exactly what the scheme was written to replace.",
+      "A lot of the developer-fitted ducted systems went in without zoning, or with zone motors that were wired but never properly commissioned. The house conditions as one big zone, which costs a fortune to run and never gets the bedrooms right. Adding Zonemate is usually cheaper than people expect.",
+      "New-estate blocks are narrow and the side setbacks are tight, so where an outdoor unit can legally and sensibly go is genuinely constrained. Easements and the neighbour's bedroom window decide more Officer South installs than capacity does.",
+      "Systems that came with the house often reach five or six years old without a single service, because nobody thinks of it as their equipment. Filters, coils and condensate drains are most of what we find, and it is an afternoon rather than a replacement.",
+    ],
+    knownEstates:
+      "Arcadia and Timbertop, and the newer streets running south off the highway toward the Officer South growth area.",
   },
   {
     slug: "beaconsfield-upper",
