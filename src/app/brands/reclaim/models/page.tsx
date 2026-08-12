@@ -37,7 +37,7 @@ const CODE_SAMPLE = ALL_RECLAIM_MODELS.slice(0, 6).map((m) => m.code).join(", ")
 export const metadata: Metadata = {
   title: "Reclaim Model Codes, REHP-CO2 & HE-UM",
   description:
-    "Every Reclaim system code decoded: REHP-CO2 in GL, SST and SSQ from 160 to 400 L, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR and HE-UM60CR on PHE tanks.",
+    "Every Reclaim code decoded: REHP-CO2 in GL, SST and SSQ from 160 to 400 L, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR and HE-UM60CR on PHE tanks.",
   keywords: [
     "REHP-CO2-315SSQ",
     "REHP-CO2-315SSQ-V2",

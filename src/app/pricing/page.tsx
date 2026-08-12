@@ -12,7 +12,7 @@ import "./pricing.css";
 export const metadata: Metadata = {
   title: "Price List, Every System, Fully Installed",
   description:
-    "Every system we install with the fully-installed price, VEU rebate applied where eligible. Splits, ducted, heat pumps, gas ducted and zoning. No hidden fees.",
+    "Every system we install with the installed price, VEU rebate applied where eligible. Splits, ducted, heat pumps, gas ducted and zoning. No hidden fees.",
   alternates: { canonical: "/pricing" },
 };
 

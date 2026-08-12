@@ -10,7 +10,7 @@ import { ShowerDelivery } from "@/components/ShowerDelivery";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { absoluteTitle, metaDescription } from "@/lib/seo";
 
 export function generateStaticParams() {
   return allBrandProductPairs();
@@ -24,7 +24,11 @@ export function generateMetadata({
   const found = findProduct(params.brand, params.product);
   if (!found) return {};
   const { brand, product } = found;
-  const title = pageTitle(`${product.name}, installed Melbourne`);
+  // absoluteTitle, not pageTitle: these names carry their capacity at
+  // the very end, and clamping to make room for the site suffix used to
+  // cut it off, leaving four pairs of Panasonic products sharing a
+  // title. The suffix gives way instead.
+  const title = absoluteTitle(product.name);
   const description = metaDescription(
     `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
   );

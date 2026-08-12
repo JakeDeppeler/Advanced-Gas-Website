@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getReviews } from "@/lib/googleReviews";
-import { site } from "@/lib/site";
 
 /**
  * Compact social-proof row for detail pages (brands, services).
@@ -75,16 +74,12 @@ export async function ProofStrip({
           </Link>
           {/* Places API terms: attribute Google wherever their copy shows. */}
           {source !== "curated" && <span className="proof__attrib">Reviews sourced from Google</span>}
-          {site.social.google && (
-            <a
-              href={site.social.google}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="proof__glink"
-            >
-              See the profile on Google ↗
-            </a>
-          )}
+          {/* The link out to the Google profile lives on /reviews and
+              nowhere else. This strip renders on twenty service, system
+              and brand pages, and the Google share URL is a 302, so it
+              was putting a redirect on every one of them. Attribution is
+              satisfied by the line above; anyone who wants the profile
+              is one click away through "Read every review". */}
         </div>
       </div>
     </section>

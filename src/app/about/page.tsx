@@ -7,7 +7,7 @@ import "./about.css";
 export const metadata: Metadata = {
   title: "About, Family-Owned Pakenham HVAC Specialists",
   description:
-    "Pakenham-based and family-owned. HVAC, Type A gas, mechanical services and refrigeration across Victoria. 20+ years' director experience, $20M public liability.",
+    "Pakenham-based and family-owned. HVAC, Type A gas, mechanical and refrigeration across Victoria. 20+ years' experience, $20M public liability.",
   alternates: { canonical: "/about" },
 };
 

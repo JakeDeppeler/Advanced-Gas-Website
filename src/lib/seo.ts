@@ -73,3 +73,28 @@ export function metaDescription(text: string, budget = DESCRIPTION_BUDGET): stri
   if (lastStop > budget * 0.66) return cut.slice(0, lastStop + 1);
   return clamp(cut, budget);
 }
+
+/**
+ * Title for a page whose distinguishing detail sits at the END of the
+ * string, which is exactly where a length clamp does its damage.
+ *
+ * The Panasonic products are the case that proved it. Their names run
+ * "Panasonic CO₂ Split · Glass-Lined · 4 kW · 250L", and the only thing
+ * separating one from the next is the last six characters. Clamping to
+ * fit the site suffix removed the capacity and produced four pairs of
+ * identical titles, which an audit correctly reports as duplicate
+ * pages.
+ *
+ * So the suffix is what gives way, not the content. If the whole thing
+ * fits in 60 characters it keeps the suffix; if it doesn't, the page
+ * gets its name and no suffix at all. A title without the company name
+ * is a small loss. Two pages sharing a title is a real one.
+ *
+ * Returns a Metadata `title` object because `absolute` is what stops
+ * the root layout appending the suffix a second time.
+ */
+export function absoluteTitle(main: string): { absolute: string } {
+  const s = main.trim().replace(/\s+/g, " ");
+  const withSuffix = `${s}${TITLE_SUFFIX}`;
+  return { absolute: withSuffix.length <= 60 ? withSuffix : clamp(s, 60) };
+}
