@@ -250,6 +250,24 @@ distance order, is the highest-value hour anyone can spend on this
 site. It has to come from Jake or Chaz, because the whole point is that
 it's the stuff only someone who has been on those streets knows.
 
+There's a worksheet for it so nobody has to open a TypeScript file:
+
+```
+node scripts/suburb-notes.mjs template 15      # writes docs/suburb-notes.md
+# fill it in, in plain text, in any order, over any number of sittings
+node scripts/suburb-notes.mjs import docs/suburb-notes.md
+```
+
+The importer only ever adds fields that are empty, so running it twice
+changes nothing and you can do five suburbs at a time. Each block comes
+pre-filled with the suburb's distance, council and the housing-stock
+line already on file, so there's context to write against.
+
+**Testimonials have to be real customers.** A review they've already
+left publicly, or someone who has said yes to being quoted. Inventing
+them would be manufacturing reviews, and the importer says so on every
+run that includes one.
+
 ### The sitemap was lying, and that's fixed
 
 Every URL carried `lastmod` set to the build timestamp, so every deploy
