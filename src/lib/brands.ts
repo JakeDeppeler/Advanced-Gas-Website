@@ -126,11 +126,11 @@ export type Brand = {
  *    /zonemate-app.webp               · Zonemate app on phone
  */
 export const categoryPhoto: Record<ProductCategory, { src: string; fallback: string; alt: string }> = {
-  "split-system":       { src: "/mitsubishi-msz-ap-wall-split-v2.png",                 fallback: "/kaden-indoor.webp",              alt: "Mitsubishi MSZ-AP wall split system" },
+  "split-system":       { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",                 fallback: "/kaden-indoor.webp",              alt: "Mitsubishi MSZ-AP wall split system" },
   "multi-head":         { src: "/mac_slide0.jpg",                                    fallback: "/reclaim-split-back.webp",        alt: "Multi-head split system with outdoor condenser" },
   "ducted":             { src: "/kdi-v2-image_01.webp",                               fallback: "/duct-work.webp",                 alt: "Ducted air conditioning indoor unit" },
   "cassette":           { src: "/ducted-condenser.webp",                             fallback: "/ducted-condenser.webp",          alt: "Cassette air conditioning unit" },
-  "floor-console":      { src: "/mitsubishi-msz-ap-wall-split-v2.png",                 fallback: "/kaden-indoor.webp",              alt: "Floor console air conditioner" },
+  "floor-console":      { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",                 fallback: "/kaden-indoor.webp",              alt: "Floor console air conditioner" },
   "heat-pump":          { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", fallback: "/reclaim-spit-close-up.webp",  alt: "Reclaim heat pump hot water system" },
   "gas-continuous-flow":{ src: "/G-Series_Front_On_View_1200x900.jpg",              fallback: "/gas-hot-water-changeover.webp",  alt: "Thermann G-series continuous flow gas hot water unit" },
   "gas-storage":        { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", fallback: "/gas-hot-water-changeover.webp", alt: "Thermann gas storage hot water tank" },
@@ -464,7 +464,7 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
-    photo: "/mitsubishi-msz-ap-wall-split-v2.png",
+    photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
     photoFallback: "/reclaim-mitsubishi.webp",
     photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
     accent: "#DA1A32",
@@ -757,7 +757,7 @@ const brandCatalogue: Brand[] = [
         capacity: "10 kW / 12.5 kW / 14 kW cooling · heating parity",
         refrigerant: "R32",
         veuEligible: false,
-        photo: "/mitsubishi-pea-m-ducted-v2.png",
+        photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
         photoAlt: "Mitsubishi Electric PEA-M ducted indoor unit",
         bestFor: "3-4 bed single-storey ducted retrofit or new-build, 4-6 zones",
         ourTake:
@@ -804,7 +804,7 @@ const brandCatalogue: Brand[] = [
         capacity: "16 kW / 18 kW / 20 kW cooling · heating parity",
         refrigerant: "R32",
         veuEligible: false,
-        photo: "/mitsubishi-pea-m-ducted-v2.png",
+        photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
         photoAlt: "Mitsubishi Electric PEA-M large-capacity ducted indoor unit",
         bestFor: "Larger single-storey, double-storey or long duct-run family homes needing 16-20 kW output",
         ourTake:

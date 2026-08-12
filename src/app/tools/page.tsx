@@ -15,9 +15,9 @@ import "./tools.css";
  */
 
 export const metadata: Metadata = {
-  title: "Free Aircon & Heat Pump Tools · Sizing Calculator, Running Costs, Fault Codes",
+  title: "Free Aircon & Heat Pump Tools",
   description:
-    "Free calculators and reference material from Advanced Gas & Aircon: work out what size aircon your room needs, estimate the running cost, or look up a fault code from your existing unit.",
+    "Free calculators and reference: work out what size aircon a room needs, estimate the running cost, or look up a fault code from your existing unit.",
   alternates: { canonical: "/tools" },
 };
 

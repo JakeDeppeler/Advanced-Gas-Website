@@ -10,6 +10,7 @@ import { ShowerDelivery } from "@/components/ShowerDelivery";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 export function generateStaticParams() {
   return allBrandProductPairs();
@@ -23,8 +24,10 @@ export function generateMetadata({
   const found = findProduct(params.brand, params.product);
   if (!found) return {};
   const { brand, product } = found;
-  const title = `${product.name} · Installed Melbourne | ${brand.name} | Advanced Gas & Aircon`;
-  const description = `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`;
+  const title = pageTitle(`${product.name}, installed Melbourne`);
+  const description = metaDescription(
+    `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
+  );
   return {
     title,
     description,

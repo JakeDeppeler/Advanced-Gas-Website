@@ -8,9 +8,9 @@ import "./[brand]/brand.css";
 import "./brands-hub.css";
 
 export const metadata: Metadata = {
-  title: "Brands We Install · Mitsubishi Electric, Reclaim, Thermann, iStore, Kaden, Zonemate",
+  title: "Brands We Install, and Why We Install Them",
   description:
-    "Every brand and model we install across Melbourne's south-east. Mitsubishi Electric splits and ducted, Reclaim CO₂ heat pumps, Thermann range, iStore, Kaden, Zonemate zoning. Installed prices from Advanced Gas & Aircon.",
+    "Every brand we install across Melbourne's south-east: Mitsubishi Electric, Kaden, Brivis, Zonemate, Reclaim, Thermann and iStore, with our take on each.",
   alternates: { canonical: "/brands" },
 };
 

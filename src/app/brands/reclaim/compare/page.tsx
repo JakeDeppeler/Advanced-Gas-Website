@@ -19,9 +19,9 @@ import "./reclaim-compare.css";
  */
 
 export const metadata: Metadata = {
-  title: "Reclaim Heat Pump Comparison · Every Tank + Finish, Side-by-Side",
+  title: "Reclaim Heat Pumps Compared, Every Tank",
   description:
-    "Compare every Reclaim CO₂ heat pump we install, glass-lined, stainless tall (SST), stainless squat (SSQ) and Earthworker, across 160 L / 250 L / 315 L / 400 L. Warranty, best-for and our recommendation for each.",
+    "Every Reclaim CO₂ heat pump compared: glass-lined, stainless tall (SST), squat (SSQ) and Earthworker, 160 to 400 L, with warranty and who each suits.",
   alternates: { canonical: "/brands/reclaim/compare" },
 };
 

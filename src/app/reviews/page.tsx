@@ -10,7 +10,7 @@ import "../detail.css";
 import "./reviews.css";
 
 export const metadata: Metadata = {
-  title: `Reviews · ${RATING_SUMMARY.value}/5 from ${RATING_SUMMARY.count}+ Locals | Advanced Gas & Aircon`,
+  title: `Reviews, ${RATING_SUMMARY.value}/5 from ${RATING_SUMMARY.count}+ locals`,
   description:
     `What customers across Pakenham, Berwick, Officer and Cranbourne say about our heat pump, aircon and gas heating installs. ${RATING_SUMMARY.value}/5 from ${RATING_SUMMARY.count}+ Google reviews.`,
   alternates: { canonical: "/reviews" },

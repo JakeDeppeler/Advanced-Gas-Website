@@ -6,6 +6,7 @@ import { site } from "@/lib/site";
 import { posts, getPost } from "@/lib/blog";
 import "../../detail.css";
 import "../blog.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 type Params = { slug: string };
 
@@ -18,8 +19,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const post = getPost(slug);
   if (!post) return { title: "Post not found" };
   return {
-    title: `${post.title}, Advanced Gas & Aircon`,
-    description: post.blurb,
+    title: pageTitle(post.title),
+    description: metaDescription(post.blurb),
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       title: post.title,

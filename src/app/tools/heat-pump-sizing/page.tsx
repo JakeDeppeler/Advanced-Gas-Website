@@ -8,9 +8,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Hot Water Sizing Calculator · What Size Tank Do I Need?",
+  title: "Heat Pump Sizing, What Size Tank Do I Need?",
   description:
-    "Work out what size heat pump hot water tank your home needs, based on real shower flow, household size and reheat time. 170 L to 400 L, with recovery rate and full reheat time for each.",
+    "Work out what size heat pump tank your home needs, from real shower flow, household size and reheat time. 160 to 400 L, with recovery rate for each.",
   alternates: { canonical: "/tools/heat-pump-sizing" },
 };
 

@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { UtilityBar } from "@/components/UtilityBar";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { TITLE_SUFFIX } from "@/lib/seo";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -35,11 +36,13 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: "Aircon & Heat Pump Installation Pakenham | VEU Rebates | Advanced Gas & Aircon",
-    template: "%s | Advanced Gas & Aircon",
+    // 60 characters is all Google renders. The suffix is short on
+    // purpose, see lib/seo.ts, and pages must not repeat it.
+    default: "Aircon & Heat Pump Installation Pakenham | Advanced Gas",
+    template: `%s${TITLE_SUFFIX}`,
   },
   description:
-    "Pakenham aircon and heat pump specialists. VEU rebates up to $5,000 off aircon and $2,600 off heat pumps. Same-week installs, fixed quotes, 6-year warranty.",
+    "Pakenham aircon and heat pump specialists. VEU rebates handled at the quote. Same-week installs, fixed prices, 6-year workmanship warranty.",
   keywords: [
     "aircon installation Pakenham",
     "heat pump installation Pakenham",
@@ -55,14 +58,14 @@ export const metadata: Metadata = {
     locale: "en_AU",
     url: site.url,
     siteName: site.name,
-    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
+    title: "Aircon & Heat Pump Installation | Advanced Gas, Pakenham",
     description:
       "Family-run Pakenham aircon and heat pump specialists. VEU rebates up to $5,000, we do the paperwork.",
     images: [{ url: "/team-photo.webp", width: 1800, height: 1200, alt: site.name }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aircon & Heat Pump Installation | Advanced Gas & Aircon Pakenham",
+    title: "Aircon & Heat Pump Installation | Advanced Gas, Pakenham",
     description: "VEU rebates up to $5,000, we do the paperwork.",
     images: ["/team-photo.webp"],
   },

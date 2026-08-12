@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "VEU Rebate Estimator · How much rebate can I claim in 2026?",
+  title: "VEU Rebate Estimator, What Can I Claim?",
   description:
-    "Free Victorian Energy Upgrades (VEU) rebate estimator. Pick your postcode, current system and planned upgrade, get the rebate range, net install cost and payback in seconds.",
+    "Pick your postcode, current system and planned upgrade to get the Victorian Energy Upgrades rebate range, net install cost and payback in seconds.",
   alternates: { canonical: "/tools/veu-rebate-estimator" },
 };
 

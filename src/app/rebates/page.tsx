@@ -8,9 +8,9 @@ import "./rebates.css";
 
 export const metadata: Metadata = {
   title:
-    "VEU Rebates Pakenham, Up to $2,600 off heat pumps, $5,000 off aircon",
+    "VEU Rebates Pakenham, Applied at the Quote",
   description:
-    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate, up to $2,600 off heat pump hot water and $5,000 off split system aircon. Free 60-second check.",
+    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate on heat pumps and aircon. Free 60-second check.",
   keywords: [
     "VEU rebate Pakenham",
     "Victorian energy upgrades",

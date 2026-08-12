@@ -51,16 +51,27 @@ export function Footer() {
               </li>
             </ul>
 
+            {/* Two links, both with real anchor text inside them. An
+                icon-only link has no anchor text at all, which is a
+                dead link as far as a crawler is concerned, and the
+                Facebook button used to point at facebook.com's own
+                homepage, which is a redirect to nowhere useful.
+
+                Google reviews go to our own /reviews page rather than
+                straight out to the Google share link: the share link
+                is a 302, and pointing 400-odd pages at a redirect is
+                worth avoiding when the destination page is ours and
+                carries the same reviews. /reviews links out to Google
+                itself. */}
             <div className="ftr__social" aria-label="Social">
-              <a href="https://www.facebook.com/" aria-label="Facebook" className="ftr__social-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 22v-8h2.7l.4-3.2h-3.1V8.7c0-.9.2-1.5 1.6-1.5h1.7V4.3c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.3V14h2.8v8h3.4z"/></svg>
+              <a href={site.social.instagram} target="_blank" rel="noopener noreferrer" className="ftr__social-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+                <span className="ftr__social-txt">Instagram</span>
               </a>
-              <a href={site.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="ftr__social-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-              </a>
-              <a href={site.social.google} target="_blank" rel="noopener noreferrer" aria-label="Google Reviews" className="ftr__social-btn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14.5 8.6 21.5 9.2 16.2 13.8 17.9 20.6 12 16.9 6.1 20.6 7.8 13.8 2.5 9.2 9.5 8.6z"/></svg>
-              </a>
+              <Link href="/reviews" className="ftr__social-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 14.5 8.6 21.5 9.2 16.2 13.8 17.9 20.6 12 16.9 6.1 20.6 7.8 13.8 2.5 9.2 9.5 8.6z"/></svg>
+                <span className="ftr__social-txt">Google reviews</span>
+              </Link>
             </div>
           </div>
 

@@ -10,6 +10,7 @@ import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import { CoverageMap } from "@/components/CoverageMap";
 import "../../detail.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 // Client-only Leaflet map — lazy loaded so the tiles + CSS never sit in
 // the suburb page's initial critical path. Placeholder keeps the layout
@@ -26,8 +27,10 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { suburb: string } }): Metadata {
   const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   if (!sub) return {};
-  const title = `Aircon, Heat Pump & Gas Plumbing ${sub.name} ${sub.postcode} | Advanced Gas & Aircon`;
-  const description = `Licensed installer for aircon, heat pump hot water and gas plumbing in ${sub.name}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`;
+  const title = pageTitle(`Aircon, Heat Pump & Gas ${sub.name} ${sub.postcode}`);
+  const description = metaDescription(
+    `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`,
+  );
   return {
     title,
     description,
@@ -60,7 +63,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
         <div className="suburb-hero__pic" aria-hidden="true">
           <img
             src="/team-photo.webp"
-            alt=""
+            alt={`Advanced Gas & Aircon crew on a job near ${sub.name}`}
             width="1800"
             height="1200"
             fetchPriority="high"

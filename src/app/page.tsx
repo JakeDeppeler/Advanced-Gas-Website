@@ -51,7 +51,7 @@ function HeroQuoteFormSkeleton() {
 export const metadata: Metadata = {
   title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC",
   description:
-    "Family-owned Pakenham specialists in heat pump hot water, split system & ducted aircon, gas heating and servicing. VEU rebates handled for you. Free quote in 60 seconds.",
+    "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled. Free quote in 60 seconds.",
   alternates: { canonical: "/" },
 };
 
@@ -195,7 +195,7 @@ export default async function HomePage() {
               <source media="(max-width: 760px)" srcSet="/team-photo-mobile.webp" />
               <img
                 src="/team-photo.webp"
-                alt=""
+                alt="Jake and the Advanced Gas & Aircon crew on site in Pakenham"
                 width={1200}
                 height={1400}
                 fetchPriority="high"

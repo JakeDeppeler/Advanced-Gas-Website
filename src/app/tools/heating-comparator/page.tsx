@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Gas Heater vs Reverse-Cycle Aircon · Running cost comparator",
+  title: "Gas Heater vs Reverse-Cycle Running Cost",
   description:
-    "Free calculator comparing the annual running cost of a gas ducted heater versus a reverse-cycle aircon (heat pump) in Melbourne. Includes star ratings, COPs, tariffs and payback if you upgrade.",
+    "Compare the annual running cost of a gas ducted heater against reverse-cycle in Melbourne. Star ratings, COPs, tariffs and payback if you upgrade.",
   alternates: { canonical: "/tools/heating-comparator" },
 };
 

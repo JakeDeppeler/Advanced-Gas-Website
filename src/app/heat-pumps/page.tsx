@@ -6,9 +6,9 @@ import "../detail.css";
 import "./heat-pumps.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Guide, Compare Reclaim, Thermann, iStore & Dux",
+  title: "Heat Pump Guide, Reclaim, Thermann, iStore",
   description:
-    "The honest guide to heat pump hot water in Pakenham. Compare the five brands we install, what a real installed price looks like after the VEU rebate, and the warning signs of no-name importer brands that ghost you after purchase.",
+    "The honest guide to heat pump hot water in Pakenham: the brands we install, what an installed price looks like after the VEU rebate, and what to watch for.",
   alternates: { canonical: "/heat-pumps" },
 };
 

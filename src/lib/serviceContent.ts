@@ -76,7 +76,7 @@ export type ServiceContent = {
 
 export const serviceContent: Record<string, ServiceContent> = {
   "air-conditioning-installation": {
-    metaTitle: "Air Conditioning Installation Pakenham, Berwick, Officer | Advanced Gas & Aircon",
+    metaTitle: "Air Conditioning Installation Pakenham & Berwick",
     metaDescription:
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
     h1: "Air conditioning installation across Melbourne's south-east",
@@ -126,7 +126,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split system air conditioning",
         blurb:
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
-        photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
+        photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
           "Mitsubishi Electric MSZ-AP or Kaden KSI, whichever suits the room and the job",
@@ -198,7 +198,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Ducted reverse-cycle air conditioning",
         blurb:
           "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
-        photo: { src: "/mitsubishi-pea-m-ducted-v2.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
+        photo: { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
         points: [
           "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
           "Zonemate 4, 6 and 8-zone control fitted by default",
@@ -268,10 +268,10 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/mitsubishi-msz-ap-wall-split-v2.png", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
+      { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
       { src: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI V3 wall split system", caption: "Brick-veneer install, colour-matched conduit" },
       { src: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric multi-split outdoor condenser", caption: "Multi-head, one outdoor, up to 5 indoor heads" },
-      { src: "/mitsubishi-pea-m-ducted-v2.png", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
+      { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
@@ -311,7 +311,7 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "heat-pump-installation": {
-    metaTitle: "Heat Pump Hot Water Installation Melbourne South-East | VEU Rebate Applied at Quote",
+    metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
       "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
     h1: "Heat pump hot water installation across Melbourne's south-east",
@@ -401,7 +401,7 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "aircon-servicing-repairs": {
-    metaTitle: "Air Conditioning Service & Repair Melbourne South-East | All Brands, Same-Day Call-outs",
+    metaTitle: "Aircon Service & Repair, All Brands, Same Day",
     metaDescription:
       "Annual aircon service and same-day repairs across Melbourne's south-east, Mitsubishi, Daikin, Fujitsu, Panasonic, Kaden, LG. Fixed pricing, ARCtick-licensed, service records kept.",
     h1: "Aircon service, repair & tune-up across Melbourne's south-east",
@@ -484,7 +484,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split & ducted aircon service",
         blurb:
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced, a blocked drain or a filthy coil, not a dead compressor.",
-        photo: { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi MSZ-AP wall split system" },
+        photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split system" },
         points: [
           "Indoor and outdoor coils chemically cleaned, not just a filter rinse",
           "Filters washed or replaced, and the return-air path checked",
@@ -515,7 +515,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/mitsubishi-msz-ap-series-v2.png", alt: "Mitsubishi MSZ-AP wall split, the unit we service most", caption: "Split system chemical coil clean" },
+      { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split, the unit we service most", caption: "Split system chemical coil clean" },
       { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden ducted indoor unit, service access panel", caption: "Ducted return-air access + filter swap" },
       { src: "/evap-cooler-service.webp", alt: "Evaporative cooler service, roof-side access", caption: "ARCtick-licensed, every refrigerant job by a certified tech" },
       { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler pre-summer service, pads and water tray", caption: "Pre-summer evap clean, pump + water lines" },
@@ -554,7 +554,7 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "gas-plumbing": {
-    metaTitle: "Gas Plumbing & Ducted Heating Melbourne South-East | Brivis, Rinnai, Thermann",
+    metaTitle: "Gas Plumbing & Ducted Heating, Melbourne SE",
     metaDescription:
       "Licensed gas fitters + plumbers serving Melbourne's south-east, Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",
     h1: "Gas heating, hot water & plumbing across Melbourne's south-east",

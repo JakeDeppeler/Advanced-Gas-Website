@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Compare · Reclaim vs iStore vs Thermann vs Sanden vs Rheem",
+  title: "Heat Pumps Compared, Side by Side",
   description:
-    "Cross-brand heat pump hot water comparison, CO₂ vs R290 vs R744, capacity, warranty, COP, price band, made-in and our installer take. Toggle any 2-5 models to compare side by side.",
+    "Cross-brand heat pump comparison: CO₂ vs R290, capacity, warranty, COP and our installer take. Toggle any 2 to 5 models to compare side by side.",
   alternates: { canonical: "/tools/heat-pump-compare" },
 };
 

@@ -23,6 +23,7 @@ const INSTALLER_SUBURB_SLUGS = [
 ];
 import "../../detail.css";
 import "./brand.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 export function generateStaticParams() {
   return brands.map((b) => ({ brand: b.slug }));
@@ -31,8 +32,10 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: { params: { brand: string } }): Metadata {
   const brand = findBrand(params.brand);
   if (!brand) return {};
-  const title = `${brand.name} Installer Melbourne · ${brand.tagline} | Advanced Gas & Aircon`;
-  const description = `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`;
+  const title = pageTitle(`${brand.name} Installer, Melbourne South-East`);
+  const description = metaDescription(
+    `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`,
+  );
   return {
     title,
     description,

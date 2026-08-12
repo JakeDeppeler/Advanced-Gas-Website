@@ -15,9 +15,9 @@ import "../detail.css";
 import "./gallery.css";
 
 export const metadata: Metadata = {
-  title: "Install Gallery · Real Jobs Across Melbourne's South-East | Advanced Gas & Aircon",
+  title: "Install Gallery, Real Jobs Round Here",
   description:
-    "Real photos from our installs: heat pumps, split and ducted aircon, gas ducted heating and evaporative cooling across Pakenham, Berwick, Officer and Cranbourne. Before and after comparisons included.",
+    "Real photos from our installs: heat pumps, split and ducted aircon, gas ducted heating and evap, across Pakenham, Berwick, Officer and Cranbourne.",
   alternates: { canonical: "/gallery" },
 };
 

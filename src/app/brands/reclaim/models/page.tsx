@@ -35,10 +35,9 @@ import "./reclaim-models.css";
 const CODE_SAMPLE = ALL_RECLAIM_MODELS.slice(0, 6).map((m) => m.code).join(", ");
 
 export const metadata: Metadata = {
-  title:
-    "Reclaim Heat Pump Model Codes Explained · REHP-CO2 & Panasonic HE-UM | Advanced Gas & Aircon",
+  title: "Reclaim Model Codes, REHP-CO2 & HE-UM",
   description:
-    "Every Reclaim CO₂ heat pump system code decoded: REHP-CO2-160/250/315/400 in GL glass-lined, SST stainless tall and SSQ stainless squat, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR / HE-UM60CR and HE-UM40AR / HE-UM60AR on PHE tanks. Reclaim 5 kW and Panasonic 4 kW / 6 kW, with the full component warranty table. Installed across Melbourne's south-east.",
+    "Every Reclaim system code decoded: REHP-CO2 in GL, SST and SSQ from 160 to 400 L, V1.1 and V2 Wi-Fi, plus the Panasonic HE-UM40CR and HE-UM60CR on PHE tanks.",
   keywords: [
     "REHP-CO2-315SSQ",
     "REHP-CO2-315SSQ-V2",

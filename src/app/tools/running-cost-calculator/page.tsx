@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Aircon Running Cost Calculator · $ per day, week and year | Advanced Gas & Aircon",
+  title: "Aircon Running Cost, Per Day, Week and Year",
   description:
-    "Free Australian aircon running-cost calculator. Enter your unit's kW, hours per day, and electricity rate to estimate the daily, weekly and yearly cost. Works for splits, ducted and heat pump hot water.",
+    "Enter your unit's kW, hours per day and electricity rate to estimate the daily, weekly and yearly cost. Splits, ducted and heat pump hot water.",
   alternates: { canonical: "/tools/running-cost-calculator" },
 };
 

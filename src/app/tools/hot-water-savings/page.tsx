@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Hot Water vs Heat Pump Savings Calculator · How much will I save?",
+  title: "Hot Water Savings, How Much Will I Save?",
   description:
-    "Free Australian hot-water savings calculator. Compare your current gas or electric hot water annual cost against a new heat pump, with the VEU rebate applied and payback period shown.",
+    "Compare your current gas or electric hot water cost against a heat pump, with the VEU rebate applied and the payback period shown.",
   alternates: { canonical: "/tools/hot-water-savings" },
 };
 

@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Aircon Fault Code Lookup · Mitsubishi, Daikin, Fujitsu, LG, Panasonic, Kaden, Brivis",
+  title: "Aircon Fault Code Lookup, Every Major Brand",
   description:
-    "Free searchable table of the most common aircon fault codes, Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Brivis and more. Each entry lists likely cause and first thing to check.",
+    "Searchable table of common aircon fault codes: Mitsubishi, Daikin, Fujitsu, Panasonic, LG, Kaden, Brivis. Each lists the likely cause and what to check.",
   alternates: { canonical: "/tools/fault-codes" },
 };
 

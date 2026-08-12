@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "Aircon Sizing Calculator · What kW size do I need? | Advanced Gas & Aircon",
+  title: "Aircon Sizing, What kW Size Do I Need?",
   description:
-    "Free Australian aircon sizing calculator, enter your room dimensions, ceiling height, orientation and insulation to get the right cooling capacity in kW. Recommended by our licensed installers.",
+    "Enter your room dimensions, ceiling height, orientation and insulation to get the right cooling capacity in kW, sized the way our installers size it.",
   alternates: { canonical: "/tools/sizing-calculator" },
 };
 

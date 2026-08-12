@@ -10,9 +10,9 @@ import "../brands/[brand]/brand.css";
 import "./pricing.css";
 
 export const metadata: Metadata = {
-  title: "Price List · Every System We Install, Fully Installed | Advanced Gas & Aircon",
+  title: "Price List, Every System, Fully Installed",
   description:
-    "Every product we install with the fully-installed price after VEU rebate where eligible. Mitsubishi Electric splits, Reclaim heat pumps, Thermann, iStore, Kaden ducted and Zonemate zoning. No hidden fees.",
+    "Every system we install with the fully-installed price, VEU rebate applied where eligible. Splits, ducted, heat pumps, gas ducted and zoning. No hidden fees.",
   alternates: { canonical: "/pricing" },
 };
 

@@ -10,6 +10,7 @@ import { ProofStrip } from "@/components/ProofStrip";
 import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import "../../../detail.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 /**
  * A page per system type — /services/gas-plumbing/gas-ducted and so on.
@@ -49,8 +50,8 @@ export function generateMetadata({
   if (!found) return {};
   const { system } = found;
   return {
-    title: `${system.label} · Pakenham, Berwick & Melbourne's South-East | Advanced Gas & Aircon`,
-    description: system.blurb.slice(0, 155),
+    title: pageTitle(`${system.label}, Melbourne South-East`),
+    description: metaDescription(system.blurb),
     alternates: { canonical: `/services/${params.slug}/${params.system}` },
   };
 }

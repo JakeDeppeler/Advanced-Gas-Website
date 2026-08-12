@@ -6,9 +6,9 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "System Comparison · Split vs Multi-head vs Ducted vs Gas vs Evap",
+  title: "Split vs Multi-head vs Ducted vs Gas vs Evap",
   description:
-    "Compare split systems, multi-head, ducted reverse-cycle, gas ducted heating and evaporative cooling side-by-side. Install cost, running cost, zone control, best for, and which we recommend.",
+    "Compare split, multi-head, ducted reverse-cycle, gas ducted and evaporative side by side: install cost, running cost, zoning and who each suits.",
   alternates: { canonical: "/tools/system-comparison" },
 };
 

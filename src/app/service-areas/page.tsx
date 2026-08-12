@@ -7,7 +7,7 @@ import "../detail.css";
 export const metadata: Metadata = {
   title: "Service Areas, Pakenham + 75 km",
   description:
-    "Aircon, heat pump and gas plumbing installation across Pakenham and within 75 km. Berwick, Officer, Cranbourne, Narre Warren, Endeavour Hills, Dandenong, Drouin, Warragul and everywhere in between.",
+    "Aircon, heat pump and gas plumbing across Pakenham and within 75 km: Berwick, Officer, Cranbourne, Narre Warren, Dandenong, Drouin, Warragul and between.",
   alternates: { canonical: "/service-areas" },
 };
 

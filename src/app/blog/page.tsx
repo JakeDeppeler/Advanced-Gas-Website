@@ -7,7 +7,7 @@ import { posts } from "@/lib/blog";
 import "./blog.css";
 
 export const metadata: Metadata = {
-  title: "Guides & Articles, VEU rebates, heat pumps & aircon",
+  title: "Guides, VEU Rebates, Heat Pumps & Aircon",
   description:
     "Plain-English guides on VEU rebates, heat pump sizing, aircon selection, gas safety and saving on energy bills. Written by Pakenham tradies, not marketers.",
   alternates: { canonical: "/blog" },

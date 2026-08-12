@@ -14,6 +14,7 @@ import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -23,8 +24,8 @@ export function generateMetadata({ params }: { params: { slug: string } }): Meta
   const content = serviceContent[params.slug];
   if (!content) return {};
   return {
-    title: content.metaTitle,
-    description: content.metaDescription,
+    title: pageTitle(content.metaTitle),
+    description: metaDescription(content.metaDescription),
     alternates: { canonical: `/services/${params.slug}` },
   };
 }

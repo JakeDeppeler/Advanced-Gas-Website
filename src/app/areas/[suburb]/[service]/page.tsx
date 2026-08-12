@@ -8,6 +8,7 @@ import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import "../../../detail.css";
+import { pageTitle, metaDescription } from "@/lib/seo";
 
 const PRIMARY_SERVICES = services.slice(0, 2);
 
@@ -26,11 +27,12 @@ export function generateMetadata({
   const svc = services.find((s) => s.slug === params.service);
   if (!sub || !svc) return {};
 
-  const title = `${svc.short} ${sub.name} | Fixed-Price Quote | Advanced Gas & Aircon`;
-  const description =
+  const title = pageTitle(`${svc.short} ${sub.name} ${sub.postcode}`);
+  const description = metaDescription(
     svc.slug === "heat-pump-installation"
-      ? `Heat pump hot water installation in ${sub.name} from $33 with VEU rebate. Licensed plumbers, same-week install, 6-year warranty.`
-      : `${svc.short} in ${sub.name} ${sub.postcode}. Licensed refrigeration techs, fixed quotes, same-week installs, 6-year workmanship warranty.`;
+      ? `Heat pump hot water installed in ${sub.name} ${sub.postcode} with the VEU rebate applied at the quote. Licensed plumbers, same-week install, 6-year warranty.`
+      : `${svc.short} in ${sub.name} ${sub.postcode}. Licensed refrigeration techs, fixed quotes, same-week installs, 6-year workmanship warranty.`,
+  );
 
   return {
     title,
