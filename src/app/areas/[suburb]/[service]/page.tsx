@@ -51,6 +51,15 @@ export default function SuburbServicePage({
   const content = svc ? serviceContent[svc.slug] : undefined;
   if (!sub || !svc || !content) notFound();
 
+  // Neighbouring suburbs that are actually published, capped at six so
+  // the block stays a list a person would read rather than a footer dump.
+  const nearbySame = sub.nearby
+    .map((slug) => publishedSuburbs.find((x) => x.slug === slug))
+    .filter((x): x is NonNullable<typeof x> => Boolean(x))
+    .slice(0, 6);
+
+  const otherServices = services.filter((x) => x.slug !== svc.slug);
+
   const localFaqs = [
     {
       q: `Do you service ${sub.name} ${sub.postcode}?`,
@@ -150,6 +159,58 @@ export default function SuburbServicePage({
                 <p>{f.a}</p>
               </details>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sibling links. Before this, a page like
+          /areas/clyde/heat-pump-installation had exactly one inbound
+          internal link, the suburb page, which is not enough for
+          anything to get crawled properly or to pass any weight around.
+          Every one of these pages now links to the same service in the
+          neighbouring suburbs and to the other services in this suburb,
+          which is also genuinely what the reader wants next. */}
+      <section className="svcnear">
+        <div className="wrap">
+          <div className="svcnear__grid">
+            {nearbySame.length > 0 && (
+              <div className="svcnear__col">
+                <h2>{svc.short} near {sub.name}</h2>
+                <p>Same crew, same day rates, same warranty. We work right across the area.</p>
+                <ul className="svcnear__list">
+                  {nearbySame.map((n) => (
+                    <li key={n.slug}>
+                      <Link href={`/areas/${n.slug}/${svc.slug}`}>
+                        {svc.short} {n.name} <span>{n.postcode}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="svcnear__col">
+              <h2>What else we do in {sub.name}</h2>
+              <p>Most jobs here end up being more than one trade. We hold all of them.</p>
+              <ul className="svcnear__list">
+                {otherServices.map((o) => (
+                  <li key={o.slug}>
+                    <Link href={`/areas/${sub.slug}/${o.slug}`}>
+                      {o.short} {sub.name} <span>{sub.postcode}</span>
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href={`/areas/${sub.slug}`}>
+                    Everything in {sub.name} <span>overview</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/services/${svc.slug}`}>
+                    {svc.short} <span>how we do it</span>
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>

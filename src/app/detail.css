@@ -2087,3 +2087,60 @@
   white-space: nowrap;
   box-shadow: 0 1px 4px rgba(5, 10, 48, 0.14);
 }
+
+/* ---------- sibling links on suburb x service pages ---------- */
+/* These pages used to have exactly one inbound internal link each,
+   which is not enough for a crawler to treat them as anything. */
+
+.svcnear {
+  padding: clamp(2rem, 5vw, 3.25rem) 0;
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+}
+.svcnear__grid {
+  display: grid;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.svcnear__col h2 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  color: var(--navy);
+}
+.svcnear__col > p {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.svcnear__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.svcnear__list a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+}
+.svcnear__list a:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+.svcnear__list a span {
+  flex: none;
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.svcnear__list a:hover span { color: var(--orange); }

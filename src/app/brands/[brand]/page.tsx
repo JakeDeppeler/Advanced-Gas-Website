@@ -65,8 +65,11 @@ export default async function BrandPage({ params }: { params: { brand: string } 
   return (
     <div className="page-detail page-brand" style={{ ["--card-accent" as string]: brand.accent }}>
       <section className="dp-hero brand-hero">
-        <div className="brand-hero__pic" aria-hidden="true">
-          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt="" width="1600" height="900" fetchPriority="high" />
+        {/* Not decorative. It is a photograph of the gear the page is
+            about, so it gets real alt text and stays in the
+            accessibility tree. */}
+        <div className="brand-hero__pic">
+          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt={brand.photoAlt} width="1600" height="900" fetchPriority="high" />
         </div>
         <div className="brand-hero__scrim" aria-hidden="true" />
         <div className="wrap">

@@ -36,9 +36,19 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   const post = getPost(slug);
   if (!post) notFound();
 
-  const related = posts.filter((p) => p.slug !== post.slug && p.cat === post.cat).slice(0, 3);
-  const fallbackRelated = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
-  const suggested = related.length ? related : fallbackRelated;
+  // Same category first, then top up from the rest of the archive
+  // starting at this post's own position rather than at index 0.
+  //
+  // The old fallback took the first three posts every time, so seven
+  // articles ended up with a single inbound link each while the same
+  // three collected all of them. Rotating the top-up spreads the links
+  // right across the archive without anything needing to be curated.
+  const idx = posts.findIndex((p) => p.slug === post.slug);
+  const sameCat = posts.filter((p) => p.slug !== post.slug && p.cat === post.cat);
+  const rest = posts
+    .filter((p) => p.slug !== post.slug && p.cat !== post.cat)
+    .map((_, i, arr) => arr[(i + idx + 1) % arr.length]);
+  const suggested = [...sameCat, ...rest].slice(0, 3);
 
   return (
     <div className="page-blog page-detail">

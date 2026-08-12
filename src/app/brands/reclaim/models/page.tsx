@@ -145,8 +145,8 @@ export default function ReclaimModelsPage() {
       <Script id="reclaim-models-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
 
       <section className="dp-hero brand-hero">
-        <div className="brand-hero__pic" aria-hidden="true">
-          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt="" width="1600" height="900" fetchPriority="high" />
+        <div className="brand-hero__pic">
+          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt={brand.photoAlt} width="1600" height="900" fetchPriority="high" />
         </div>
         <div className="brand-hero__scrim" aria-hidden="true" />
         <div className="wrap">
