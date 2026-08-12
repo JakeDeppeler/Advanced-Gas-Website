@@ -1,12 +1,15 @@
 # Keywords
 
-Two different lists that do two different jobs. Don't mix them up.
+Three sections that do three different jobs. Don't mix them up.
 
 - **Part 1 — Instagram caption keywords.** These are live code. Type one
   of these words in a caption and the post files itself onto the matching
   page on the site. Nothing else does anything.
 - **Part 2 — SEO keywords.** What the site is built to rank for. Nothing
   to type; it's already in the page titles, headings and copy.
+- **Part 3 — How we actually get to number one.** The keywords are the
+  easy half. This is the half that decides whether any of them rank, and
+  most of it happens off the website.
 
 If Part 1 changes, `src/lib/instagram.ts` and
 `scripts/instagram-check.mjs` both need editing. They're checked against
@@ -146,17 +149,175 @@ Cardinia
 
 ---
 
+## Part 3 · How we actually get to number one
+
+The honest version. Read this before spending money on anyone who
+promises a ranking.
+
+### First: "number one" isn't one thing
+
+There is no single number one. Google returns a different page for
+every query, every suburb, every device, and increasingly every person.
+"Number one for aircon" is not a goal anyone can hit. "Number one for
+*heat pump installation Pakenham*, on a phone, inside 10 km of the
+shop" is a goal, and it's a different job from ranking in Warragul.
+
+More importantly, a search like `aircon installation Pakenham` returns
+**two separate results in one page**, and they are won in completely
+different ways:
+
+| | The map pack (top 3 pins) | The blue links below it |
+|---|---|---|
+| What decides it | Google Business Profile, distance from the searcher, reviews | The website: content, links, technical health |
+| What we control | Profile completeness, review count and recency, categories, photos, posts | Everything in this repo |
+| How fast it moves | Weeks | Months |
+| Which gets the clicks | **Most of them, on a phone** | The rest |
+
+**The map pack is the bigger prize and the website barely touches it.**
+Anyone quoting for "SEO" who only talks about the website is quoting
+for the smaller half.
+
+### Where we actually stand
+
+From the SE Ranking crawl, August 2026:
+
+| Metric | Value | What it means |
+|---|---|---|
+| Health score | 99/100 | Technically the site is done. This is not the constraint. |
+| Pages built | 432 | 406 in the sitemap |
+| **Pages in Google** | **7** | **This is the constraint.** |
+| Backlinks | 38 | Thin |
+| Referring domains | 31 | Thin |
+| Domain trust | 9/100 | Low, which is normal for a young site |
+
+Read that table again. We have built four hundred pages and Google has
+indexed seven of them. Nothing that isn't indexed can rank for
+anything, so every hour spent writing new pages right now is an hour
+spent on pages Google has not looked at.
+
+### The order to do things in
+
+**1. Get the pages indexed.** Nothing else matters until this moves.
+
+- Verify the property in Google Search Console if it isn't already, and
+  submit `https://www.advancedgas.com.au/sitemap.xml`.
+- Use the URL Inspection tool to request indexing on the ten pages that
+  matter most: the four service pages, `/rebates`, `/pricing`, and the
+  four biggest suburbs. Manual requests are rate-limited but they work.
+- Check the Pages report for "Discovered, not indexed" and "Crawled,
+  not indexed". Those two statuses tell you *why* Google is passing,
+  and the usual answer for a site this size is that it doesn't yet
+  trust the domain enough to be bothered. Which leads to step 2.
+
+**2. Reviews, relentlessly.** This is the single biggest lever on the
+map pack, and the map pack is where the phone calls come from.
+
+- **Recency beats volume.** Twenty reviews this year outrank two
+  hundred from 2019. A steady trickle is worth more than a burst.
+- **Ask on the day, on site, before you drive off.** Response rates
+  collapse the moment someone gets on with their day.
+- **Reply to every single one**, including the bad ones, especially the
+  bad ones. Google reads the replies.
+- **The words in the review matter.** Someone who writes "replaced our
+  hot water in Officer" has just put a keyword on the profile that we
+  can't put there ourselves. Never script it, but "if you mention what
+  we did and where, it helps us a lot" is a fair thing to say.
+
+**3. Finish the Google Business Profile.**
+
+- Primary category matters more than anything else on the profile. For
+  us it should be the one that matches the majority of the work.
+- Add every relevant secondary category (plumber, air conditioning
+  contractor, heating contractor, hot water system supplier).
+- Service area set to the suburbs we actually cover.
+- Photos, weekly. Geotagged install shots beat stock every time.
+- Products and services filled out with the terms from Part 2.
+- Posts weekly. Cheap, and almost nobody local does it.
+
+**4. Links from local sites.** 31 referring domains is the gap between
+us and the established competitors. In order of ease:
+
+- Supplier and manufacturer installer locators. Reece, Reclaim,
+  Mitsubishi, Kaden, Brivis, iStore, Zonemate. Ask every one of them to
+  list us. This is the highest-value, lowest-effort link there is and
+  it's a phone call.
+- Local directories that a human would actually use: the Cardinia and
+  Casey business listings, the local chamber, sponsorship of a junior
+  club with a link on the club site.
+- Trade associations: VBA, Master Plumbers, ARC. Membership listings
+  carry weight because they're verified.
+- Supplier case studies. Earthworker, Reclaim and Reece all publish
+  installer stories, and we have real ones.
+
+**5. Then, and only then, more content.** The site already covers
+64 suburbs by 4 services. Adding a 65th suburb is not the bottleneck.
+What earns links is the stuff nobody else has built:
+
+- `/brands/reclaim/models` — the only page in Australia that decodes
+  every Reclaim system code. That's a reference other installers will
+  link to.
+- The nine calculators and tools.
+- The blog comparison posts.
+
+### What to measure, monthly
+
+Not rankings. Rankings lie: they're personalised, localised and they
+bounce. Track these instead, all free:
+
+1. **Indexed pages** (Search Console → Pages). Should climb from 7.
+2. **Total impressions and clicks** (Search Console → Performance).
+   Impressions rising before clicks is normal and it's the leading
+   indicator.
+3. **Queries we appear for that we didn't expect.** The best content
+   ideas are already in this report.
+4. **Google Business Profile calls, direction requests and website
+   clicks** (Business Profile → Performance).
+5. **Review count and average**, and how many days since the last one.
+
+### The honest timeline
+
+- **Weeks 1 to 4:** indexation moves, map pack starts responding to
+  review velocity.
+- **Months 2 to 4:** suburb pages begin appearing for long-tail terms
+  like *heat pump installation Clyde North*. These are the easy wins
+  and they convert well.
+- **Months 4 to 9:** the competitive head terms, *aircon installation
+  Pakenham*, start moving, assuming the link profile has grown.
+- **Beyond:** holding it. Rankings are a subscription, not a purchase.
+
+Anyone who promises number one in 30 days is selling something. Anyone
+who says the website alone will do it hasn't looked at where the clicks
+actually go.
+
+### What not to bother with
+
+- **Buying links or directory blasts.** Cheap, fast, and the reason
+  sites get penalised.
+- **Keyword stuffing.** The tone document exists partly to stop this.
+  Copy written for a crawler reads like it, and it converts worse.
+- **Chasing Core Web Vitals further.** The site scores 99 on health and
+  the CWV report says "no results found", which means not enough real
+  traffic yet, not that anything is broken.
+- **New suburb pages** until the 64 we have are indexed.
+
+---
+
 ## What actually moves the needle
 
 Ranked by effort against return, given the site already covers the
 service+suburb grid:
 
-1. **Google reviews.** More of them, and replies to all of them. This
-   outweighs anything on the page for local search.
-2. **Instagram captions with brand and system words.** Free content on
+1. **Get indexed.** Search Console, sitemap, manual requests. Nothing
+   below this line matters while 7 pages of 432 are in the index.
+2. **Google reviews.** More of them, recent, and replies to all of
+   them. This outweighs anything on the page for local search.
+3. **Installer-locator links** from Reece, Reclaim, Mitsubishi, Kaden,
+   Brivis, iStore and Zonemate. A phone call each, and they're the
+   most relevant links we can get.
+4. **Instagram captions with brand and system words.** Free content on
    the pages that need it most, and it takes ten extra seconds.
-3. **Google Business posts** using the terms above, weekly.
-4. **Real install photos** into `public/jobs/` — own photography beats
+5. **Google Business posts** using the terms above, weekly.
+6. **Real install photos** into `public/jobs/`. Own photography beats
    manufacturer renders for both buyers and image search.
-5. **Answering questions in the FAQs** as customers ask them. Every real
+7. **Answering questions in the FAQs** as customers ask them. Every real
    question is a search someone else is running.
