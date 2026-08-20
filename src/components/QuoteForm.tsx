@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackLead } from "@/components/Analytics";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -71,6 +72,10 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(await res.text());
+      // Fired here rather than inferred from a /thanks pageview: a
+      // pageview can't tell you which form produced it, and people can
+      // land on /thanks by accident. No-op when analytics is off.
+      trackLead("quote-form");
       router.push("/thanks");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please call us instead.");

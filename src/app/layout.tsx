@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
+import { Analytics } from "@/components/Analytics";
 import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
@@ -35,6 +37,13 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
+  // Search Console ownership. Set NEXT_PUBLIC_GSC_VERIFICATION to the
+  // content value from the "HTML tag" verification option. DNS
+  // verification is better where you control the domain, because it
+  // survives a redesign; this is here for when you don't.
+  ...(process.env.NEXT_PUBLIC_GSC_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GSC_VERIFICATION } }
+    : {}),
   title: {
     // 60 characters is all Google renders. The suffix is short on
     // purpose, see lib/seo.ts, and pages must not repeat it.
@@ -109,6 +118,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             once the page is idle. Dashboard at
             vercel.com/[team]/[project]/speed-insights. */}
         <SpeedInsights />
+        {/* Page views and referrers. ~1 KB, cookieless, so no consent
+            banner. Google Analytics sits alongside it and only loads
+            when NEXT_PUBLIC_GA_ID is set. */}
+        <VercelAnalytics />
+        <Analytics />
       </body>
     </html>
   );
