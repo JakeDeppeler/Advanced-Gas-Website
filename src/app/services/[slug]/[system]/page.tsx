@@ -12,6 +12,8 @@ import { InstagramFeed } from "@/components/InstagramFeed";
 import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
+import { systemDetail } from "@/lib/systemDetail";
+import { SystemSpotlight } from "@/components/SystemSpotlight";
 import { pageTitle, metaDescription } from "@/lib/seo";
 
 /**
@@ -70,13 +72,21 @@ export default async function SystemPage({
   const igPosts = await getInstagramForService(params.slug, 6);
   const siblings = (content.systems ?? []).filter((s) => s.id !== system.id && s.intro);
 
-  // Pricing rows that mention this system, so each page shows its own
-  // numbers rather than the service's entire table.
+  // Per-system content. Everything here is authored for this system
+  // specifically; where a field is missing we fall back to the parent
+  // service so a new system can ship before its detail is written.
+  const detail = systemDetail(params.slug, system.id);
+
+  // Pricing: the system's own rows first. The keyword match on the
+  // parent table is the old fallback and it was the reason a page with
+  // no matching row silently displayed the entire service price list,
+  // which is most of why these pages read as interchangeable.
   const words = system.label.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3);
   const rows = content.pricing.filter((p) =>
     words.some((w) => p.tier.toLowerCase().includes(w)),
   );
-  const pricing = rows.length > 0 ? rows : content.pricing;
+  const pricing = detail?.pricing ?? (rows.length > 0 ? rows : null);
+  const steps = detail?.steps ?? content.steps;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -146,6 +156,24 @@ export default async function SystemPage({
         </div>
       </section>
 
+      {/* Quick facts. First thing under the hero because it's the first
+          thing anyone wants: how big, how long, what warranty. Different
+          numbers on every system page, which is rather the point. */}
+      {detail?.specs && detail.specs.length > 0 && (
+        <section className="sysspecs">
+          <div className="wrap">
+            <dl className="sysspecs__row">
+              {detail.specs.map((sp) => (
+                <div className="sysspec" key={sp.label}>
+                  <dt>{sp.label}</dt>
+                  <dd>{sp.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+      )}
+
       {/* What you get — boxed in orange so it reads as the value list
           rather than another block of body copy. */}
       <section className="dp-benefits dp-benefits--boxed">
@@ -196,16 +224,22 @@ export default async function SystemPage({
         </section>
       )}
 
-      {/* Process, shared with the parent service */}
-      {content.steps && content.steps.length > 0 && (
+      {/* The section that makes this page about this system rather than
+          about the service it sits under. Layout varies per system —
+          see components/SystemSpotlight.tsx. */}
+      {detail?.spotlight && <SystemSpotlight spotlight={detail.spotlight} />}
+
+      {/* Process for this system. Falls back to the parent service only
+          where the system's own steps haven't been written yet. */}
+      {steps && steps.length > 0 && (
         <section className="svc-steps">
           <div className="wrap">
             <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
-              <h2>What happens, start to finish.</h2>
+              <h2>What happens on a {system.label.toLowerCase()} job.</h2>
             </div>
             <ol className="svc-steps__list">
-              {content.steps.map((s, i) => (
+              {steps.map((s, i) => (
                 <li key={s.title} className="svc-step">
                   <span className="svc-step__num">{String(i + 1).padStart(2, "0")}</span>
                   <div className="svc-step__body">
@@ -228,7 +262,10 @@ export default async function SystemPage({
         </div>
       )}
 
-      {/* Pricing */}
+      {/* Pricing. Only rendered when there are rows genuinely about this
+          system — a page with no numbers of its own is better than one
+          showing the whole service's price list as if it were relevant. */}
+      {(pricing || detail?.pricingNote) && (
       <section className="dp-pricing">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
@@ -236,6 +273,7 @@ export default async function SystemPage({
             <h2>What {system.label.toLowerCase()} costs.</h2>
             <p>Real numbers. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
+          {pricing && (
           <div className="dp-pricing__table">
             <table>
               <thead>
@@ -252,11 +290,16 @@ export default async function SystemPage({
               </tbody>
             </table>
           </div>
+          )}
+          {detail?.pricingNote && (
+            <p className="dp-pricing__note">{detail.pricingNote}</p>
+          )}
           <p className="dp-pricing__fp">
             *Subject to eligibility, site inspection and rebate program changes. Final quote in writing.
           </p>
         </div>
       </section>
+      )}
 
       <ProofStrip subject={system.label.toLowerCase()} heading="Rated 4.9 by the households we work for." />
 

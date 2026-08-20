@@ -2237,3 +2237,207 @@
 .localangle__quote figcaption { display: grid; gap: 1px; }
 .localangle__quote strong { font-size: 0.88rem; color: var(--navy); }
 .localangle__quote span { font-size: 0.8rem; color: var(--ink-2); }
+
+/* ===================================================================
+   PER-SYSTEM SECTIONS — /services/<service>/<system>
+
+   These pages used to render the parent service's benefits, steps and
+   price table, so ten of them read as one. The two blocks below are the
+   per-system content: a facts strip whose numbers differ on every page,
+   and a spotlight section whose layout is chosen to suit the argument
+   rather than repeated for consistency.
+   =================================================================== */
+
+/* ---- quick facts strip ---- */
+.page-detail .sysspecs { padding: 0; background: var(--navy); }
+.page-detail .sysspecs__row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 0;
+  padding: 0;
+}
+.page-detail .sysspec {
+  padding: 22px 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.page-detail .sysspec:first-child { border-left: 0; }
+.page-detail .sysspec dt {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 7px;
+}
+.page-detail .sysspec dd {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .page-detail .sysspecs__row { grid-template-columns: repeat(2, 1fr); }
+  .page-detail .sysspec { border-left: 0; border-top: 1px solid rgba(255,255,255,0.1); padding: 18px 16px; }
+  .page-detail .sysspec:nth-child(-n+2) { border-top: 0; }
+  .page-detail .sysspec:nth-child(2n) { border-left: 1px solid rgba(255,255,255,0.1); }
+  /* Smaller so the longer values (warranty especially) stay on two
+     lines rather than three and the rows keep matching heights. */
+  .page-detail .sysspec dd { font-size: 15px; }
+}
+
+/* ---- spotlight, shared shell ---- */
+.page-detail .sysspot { padding: 76px 0; background: var(--bg); }
+.page-detail .sysspot--table,
+.page-detail .sysspot--split { background: var(--bg-2); }
+.page-detail .sysspot__note {
+  margin: 26px 0 0;
+  max-width: 80ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+/* ---- layout: cards ---- */
+.page-detail .sysspot__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+.page-detail .sysspot__card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  padding: 24px 26px;
+}
+.page-detail .sysspot__card h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.28;
+  color: var(--navy);
+  margin: 0 0 10px;
+}
+.page-detail .sysspot__card p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---- layout: steps ---- */
+.page-detail .sysspot__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.page-detail .sysspot__steps li {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 22px 26px;
+}
+.page-detail .sysspot__n {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-detail .sysspot__steps h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 7px;
+}
+.page-detail .sysspot__steps p { margin: 0; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+
+/* ---- layout: split ---- */
+.page-detail .sysspot__split { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 40px; align-items: start; }
+.page-detail .sysspot__photo {
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 22px;
+  position: sticky;
+  top: 110px;
+}
+.page-detail .sysspot__photo img { width: 100%; height: auto; display: block; object-fit: contain; }
+.page-detail .sysspot__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.page-detail .sysspot__list li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sky);
+  border-radius: var(--rad-sm);
+  padding: 18px 22px;
+}
+.page-detail .sysspot__list strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.page-detail .sysspot__list span { display: block; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---- layout: table ---- */
+.page-detail .sysspot__tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.page-detail .sysspot__table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 15px; }
+.page-detail .sysspot__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 14px 20px;
+  font-weight: 700;
+}
+.page-detail .sysspot__table tbody th {
+  text-align: left;
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  color: var(--navy);
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+  width: 170px;
+  vertical-align: top;
+}
+.page-detail .sysspot__table td {
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+  line-height: 1.58;
+  vertical-align: top;
+}
+
+/* ---- price note ---- */
+.page-detail .dp-pricing__note {
+  margin: 20px 0 0;
+  max-width: 80ch;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+@media (max-width: 900px) {
+  .page-detail .sysspot { padding: 52px 0; }
+  .page-detail .sysspot__split { grid-template-columns: 1fr; gap: 24px; }
+  .page-detail .sysspot__photo { position: static; }
+}
+@media (max-width: 640px) {
+  .page-detail .sysspot__steps li { padding: 18px 20px; gap: 14px; }
+  .page-detail .sysspot__card { padding: 20px 22px; }
+}
