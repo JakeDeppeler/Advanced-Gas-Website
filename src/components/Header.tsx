@@ -100,11 +100,11 @@ const SERVICES_MEGA: {
           photoAlt: "Zonemate touch controller in a living room",
         },
         {
-          href: "/upgrade-or-repair",
-          label: "Repair or replace?",
-          sub: "The 10-year rule, and the rebate",
+          href: "/services/gas-plumbing/gas-service",
+          label: "Gas heater service & CO test",
+          sub: "Annual safety check · $280 + GST",
           photo: "/gas-ducted-install.webp",
-          photoAlt: "Gas ducted heater being replaced",
+          photoAlt: "Gas ducted heater in a roof space",
         },
       ],
     },
@@ -141,22 +141,22 @@ const SERVICES_MEGA: {
           href: "/water-filtration",
           label: "Water filtration",
           sub: "Puretec · whole home, hot water, under sink",
-          photo: "/photoshoot-with-reece-4.webp",
-          photoAlt: "Puretec water filtration fitted by a licensed plumber",
+          photo: "/water-filtration-diagram.webp",
+          photoAlt: "Diagram of a filter on the incoming water main",
         },
         {
           href: "/services/gas-plumbing",
           label: "Gas fitting & leak detection",
           sub: "Appliance connections, pressure testing",
           photo: "/gas-line.webp",
-          photoAlt: "Gas line pressure test",
+          photoAlt: "Excavator trenching for a new gas line",
         },
         {
           href: "/contact#emergency",
           label: "24/7 emergency call-out",
           sub: "Gas leaks, no hot water, CO alarms",
-          photo: "/gas-line-safe.webp",
-          photoAlt: "Emergency call-out, 24/7 gas and hot water",
+          photo: "/gas hot water change over same day.webp",
+          photoAlt: "Same-day hot water changeover",
         },
       ],
     },
@@ -166,15 +166,8 @@ const SERVICES_MEGA: {
       href: "/services/aircon-servicing-repairs",
       label: "Aircon service & repair",
       sub: "Every major brand, all fuels",
-      photo: "/reclaim-mitsubishi.webp",
-      photoAlt: "Aircon service on a Mitsubishi split system",
-    },
-    {
-      href: "/services/gas-plumbing/gas-service",
-      label: "Gas heater service & CO test",
-      sub: "Annual safety check · $280 + GST",
-      photo: "/gas-line-safe.webp",
-      photoAlt: "Gas heater service and carbon monoxide test",
+      photo: "/ducted-split.webp",
+      photoAlt: "Ducted indoor unit in a roof space",
     },
     {
       href: "/services/aircon-servicing-repairs/evap",
@@ -189,6 +182,16 @@ const SERVICES_MEGA: {
       sub: "Search your code before you call",
       photo: "/Brivis touch tablet controller.jpg",
       photoAlt: "Brivis controller showing a fault code",
+    },
+    {
+      // Sits with the fault codes rather than in Tools: it isn't a
+      // calculator, it's the decision you make once you know what the
+      // code means.
+      href: "/upgrade-or-repair",
+      label: "Repair or replace?",
+      sub: "The 10-year rule, and the rebate",
+      photo: "/ba-hw-before.webp",
+      photoAlt: "An old hot water system at the end of its life",
     },
   ],
   popular: [
@@ -278,7 +281,6 @@ const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] =
   { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",        icon: "❄" },
   { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap",  icon: "≡" },
   { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",        icon: "!" },
-  { href: "/upgrade-or-repair",              label: "Repair or replace?",    sub: "The 10-year rule, and the rebate",     icon: "◷" },
 ];
 
 function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {

@@ -268,10 +268,10 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split installed", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
-      { src: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI V3 wall split system", caption: "Brick-veneer install, colour-matched conduit" },
+      { src: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split system", caption: "Mitsubishi MSZ-AP · our default living-zone split" },
+      { src: "/Kaden KSI V3 wall split system.jpg", alt: "Kaden KSI V3 wall split system", caption: "Kaden KSI V3 · Reece-supplied, same crew, same warranty" },
       { src: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric multi-split outdoor condenser", caption: "Multi-head, one outdoor, up to 5 indoor heads" },
-      { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "PEAD-M ducted retrofit into a family home" },
+      { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "Mitsubishi PEA-M · the ducted indoor unit we fit most" },
     ],
     brandPods: [
       { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
@@ -355,7 +355,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Compliance certificate + warranty registration", detail: "Plumbing compliance certificate emailed within 24 hours. Tank + heat-pump warranty lodged with the manufacturer in your name at the same time. VEU certificate follows within 2 weeks." },
     ],
     photos: [
-      { src: "/270L-istore-heatpump.webp", alt: "iStore 270L heat pump on install day", caption: "iStore 270 L, where the VEU rebate goes furthest" },
+      { src: "/270L-istore-heatpump.webp", alt: "iStore 270 L heat pump hot water system", caption: "iStore 270 L, where the VEU rebate goes furthest" },
       { src: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", alt: "Reclaim ECO R290 AIO heat pump", caption: "Reclaim ECO R290 AIO, same platform as Thermann Integrated" },
       { src: "/reclaim-spit-close-up.webp", alt: "Reclaim CO2 split heat pump install", caption: "Reclaim CO₂ Split, 15-year stainless tank" },
       { src: "/thermann_integrated_heat_pump_02.jpg", alt: "Thermann Integrated heat pump", caption: "Thermann Integrated, Australian-made by Dux" },
@@ -484,7 +484,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split & ducted aircon service",
         blurb:
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced, a blocked drain or a filthy coil, not a dead compressor.",
-        photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split system" },
+        photo: { src: "/ducted-split.webp", alt: "Ducted indoor unit in a roof space, where most servicing happens" },
         points: [
           "Indoor and outdoor coils chemically cleaned, not just a filter rinse",
           "Filters washed or replaced, and the return-air path checked",
@@ -515,9 +515,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
     ],
     photos: [
-      { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split, the unit we service most", caption: "Split system chemical coil clean" },
-      { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden ducted indoor unit, service access panel", caption: "Ducted return-air access + filter swap" },
-      { src: "/evap-cooler-service.webp", alt: "Evaporative cooler service, roof-side access", caption: "ARCtick-licensed, every refrigerant job by a certified tech" },
+      { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi MSZ-AP wall split system", caption: "Mitsubishi MSZ-AP, the split we service most" },
+      { src: "/Kaden kdi-v2-Ducted Split System.webp", alt: "Kaden KDI ducted split system", caption: "Kaden ducted split, the indoor unit we service most" },
+      { src: "/evap-cooler-service.webp", alt: "Evaporative cooler opened up on a tile roof", caption: "Evap opened up on the roof for a pre-summer service" },
       { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler pre-summer service, pads and water tray", caption: "Pre-summer evap clean, pump + water lines" },
     ],
     brandPods: [
@@ -678,7 +678,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Gas heater service & carbon monoxide test",
         blurb:
           "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that matters, a cracked heat exchanger has no smell and no warning.",
-        photo: { src: "/gas-line-safe.webp", alt: "Gas appliance service and carbon monoxide testing on site" },
+        photo: { src: "/gas-ducted-install.webp", alt: "Gas ducted heater in a roof space, where the service and CO test happen" },
         points: [
           "Full CO test with a calibrated analyser, results on the report",
           "Burner clean, heat exchanger inspection, flue and seal check",
@@ -714,7 +714,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Temporary hot water hire",
         blurb:
           "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. $30 a day, and the $350 set-up and removal is waived if we do the replacement.",
-        photo: { src: "/gas-hot-water-changeover.webp", alt: "Temporary hot water unit connected during a changeover" },
+        photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover on site" },
         points: [
           "Connected the same day in most cases",
           "$30 per day while it's on site",
@@ -774,8 +774,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow", caption: "Thermann G-series, our default continuous-flow gas hot water" },
       { src: "/gas-ducted-install.webp", alt: "Gas ducted heater install in progress", caption: "Gas ducted retrofit, reusing existing cavity + ducts" },
       { src: "/gas-hot-water-changeover.webp", alt: "Same-day gas hot water changeover", caption: "Same-day hot water changeover, old off, new on" },
-      { src: "/gas-line.webp", alt: "Gas line pressure test", caption: "Gas pressure test to AS/NZS 5601" },
-      { src: "/gas-line-safe.webp", alt: "Gas fitter on site", caption: "VBA-licensed + Type-A gas endorsement" },
+      { src: "/gas-line.webp", alt: "Excavator trenching for a new gas line", caption: "Trenching a new gas main to the house" },
+      { src: "/thermann-continues-flow-close-up.webp", alt: "Thermann continuous flow unit on a brick wall", caption: "Thermann G-series, installed and commissioned" },
     ],
     brandPods: [
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },

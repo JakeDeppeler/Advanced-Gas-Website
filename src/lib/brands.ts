@@ -135,11 +135,11 @@ export const categoryPhoto: Record<ProductCategory, { src: string; fallback: str
   "gas-continuous-flow":{ src: "/G-Series_Front_On_View_1200x900.jpg",              fallback: "/gas-hot-water-changeover.webp",  alt: "Thermann G-series continuous flow gas hot water unit" },
   "gas-storage":        { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", fallback: "/gas-hot-water-changeover.webp", alt: "Thermann gas storage hot water tank" },
   "electric-storage":   { src: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg", fallback: "/gas-hot-water-changeover.webp", alt: "Thermann electric storage hot water tank" },
-  "solar-hot-water":    { src: "/reclaim-mitsubishi.webp",                          fallback: "/reclaim-mitsubishi.webp",        alt: "Solar hot water" },
-  "controller":         { src: "/Individual-Temps-Family_Mobile.webp",               fallback: "/gas-line.webp",                  alt: "Zonemate Wi-Fi controller app on phone" },
+  "solar-hot-water":    { src: "/reclaim-mitsubishi.webp",                          fallback: "/reclaim-spit-close-up.webp",     alt: "Heat pump hot water system on a brick wall" },
+  "controller":         { src: "/Individual-Temps-Family_Mobile.webp",               fallback: "/Milieu Zonemate tablet.jpg",     alt: "Zonemate Wi-Fi controller app on phone" },
   "zoning":             { src: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",         fallback: "/duct-work.webp",                 alt: "Zonemate touch controller for ducted zoning" },
   "damper":             { src: "/ZoneMate-Smart-Sensor-Residential_8-1.jpg",        fallback: "/duct-work.webp",                 alt: "Zonemate smart sensor" },
-  "accessory":          { src: "/gas-line.webp",                                    fallback: "/gas-line.webp",                  alt: "Accessory kit" },
+  "accessory":          { src: "/duct-work.webp",                                   fallback: "/duct-work.webp",                 alt: "Ductwork and fittings in a roof space" },
 };
 
 /** Returns { src, fallback, alt } for a product's photo. When the brand is

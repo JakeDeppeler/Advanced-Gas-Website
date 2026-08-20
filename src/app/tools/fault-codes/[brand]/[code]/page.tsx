@@ -169,6 +169,25 @@ export default function FaultCodePage({ params }: { params: Params }) {
 
             <h2>What the fix usually involves</h2>
             <p>{d.typicalFix}</p>
+
+            {/* The question that follows every fault code, so it lives
+                here rather than in the Tools menu. Someone reading this
+                has already decided something is wrong; the next thing
+                they want to know is whether it's worth fixing. */}
+            <h2>Is it worth fixing?</h2>
+            <p>
+              That depends almost entirely on how old the unit is. Past about ten years on
+              hot water and gas heating, and twelve on aircon, a significant repair usually
+              costs more per remaining year than a replacement does — and it&rsquo;s the same
+              point at which the VEU rebate is worth the most, because old inefficient
+              appliances are exactly what the scheme pays to remove. If yours is young and
+              the fault is a component, we&rsquo;ll fix it and say so.
+            </p>
+            <p>
+              <Link href="/upgrade-or-repair" className="fd-inline-link">
+                Repair or replace? The 10-year rule, and what the rebate is worth →
+              </Link>
+            </p>
           </div>
 
           <aside className="fd-side">
@@ -209,6 +228,17 @@ export default function FaultCodePage({ params }: { params: Params }) {
                 </Link>
               </div>
             )}
+
+            <div className="fd-card fd-card--plain">
+              <h3>Fix it or replace it?</h3>
+              <p>
+                How long these systems actually last, the six signs it&rsquo;s replacement
+                time, and when we&rsquo;d tell you to repair instead.
+              </p>
+              <Link href="/upgrade-or-repair" className="fd-more__all">
+                The 10-year rule →
+              </Link>
+            </div>
           </aside>
         </div>
       </section>

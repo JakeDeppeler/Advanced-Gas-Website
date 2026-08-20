@@ -88,12 +88,6 @@ export const GALLERY: GalleryShot[] = [
     caption: "Four Kaden units, one property, multi-room job done in a day",
     category: "aircon",
   },
-  {
-    src: "/photoshoot-with-reece-4.webp",
-    alt: "Advanced Gas and Aircon technician on site during an install",
-    caption: "On the tools, mid-install",
-    category: "aircon",
-  },
 
   // ---- Ducted ----
   {
@@ -142,8 +136,8 @@ export const GALLERY: GalleryShot[] = [
   },
   {
     src: "/gas-line-safe.webp",
-    alt: "Gas line pressure testing during a compliance check",
-    caption: "Gas pressure test to AS/NZS 5601 before we sign off",
+    alt: "Excavator trenching for a new gas line",
+    caption: "Trenching a new gas main in to the house",
     category: "gas",
   },
 

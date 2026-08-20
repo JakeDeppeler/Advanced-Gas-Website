@@ -126,8 +126,8 @@ const products = [
     price: "custom quote",
     rebate: "up to $1,800 rebate",
     pill: "our default",
-    photo: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi Electric split system install",
+    photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
   },
   {
     brand: "Kaden",

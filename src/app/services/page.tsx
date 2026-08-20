@@ -170,8 +170,8 @@ const services: Service[] = [
       "Hot water failure with kids in the house, priority",
       "Carbon monoxide alarm triggered, immediate response",
     ],
-    photo: "/reclaim-mitsubishi.webp",
-    photoAlt: "Advanced Gas team on an emergency callout",
+    photo: "/gas hot water change over same day.webp",
+    photoAlt: "Same-day hot water changeover on site",
     primaryCta: { label: `Call ${site.phone} →`, href: `tel:${site.phoneE164}` },
   },
 ];

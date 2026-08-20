@@ -62,6 +62,30 @@ export default function FaultCodesPage() {
               <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost">Call {site.phone}</a>
             </div>
           </div>
+
+          {/* Knowing what the code means is only half of it. This sits
+              with the fault codes rather than in the Tools menu, because
+              it's the question that comes straight after. */}
+          <div style={{
+            marginTop: 18,
+            padding: "24px 26px",
+            background: "var(--navy)",
+            borderRadius: 12,
+            color: "#fff",
+          }}>
+            <h2 style={{ fontFamily: "var(--f-display)", fontSize: 20, fontWeight: 800, letterSpacing: -0.01, color: "#fff", margin: "0 0 8px" }}>
+              Know the code. Now, is it worth fixing?
+            </h2>
+            <p style={{ fontSize: 14.5, lineHeight: 1.55, color: "rgba(255,255,255,0.82)", margin: "0 0 14px", maxWidth: "62ch" }}>
+              Past about ten years on hot water and gas heating, and twelve on aircon, a
+              significant repair usually costs more per remaining year than a replacement
+              does — and it&rsquo;s the same point at which the VEU rebate is worth the most.
+              If yours is young and the fault is a component, we&rsquo;ll fix it and say so.
+            </p>
+            <Link href="/upgrade-or-repair" className="ds-btn ds-btn--orange">
+              Repair or replace? The 10-year rule →
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -73,9 +97,9 @@ export default function FaultCodesPage() {
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a repair-or-replace quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
+            <Link href="/upgrade-or-repair" className="bigcta__phone">
+              or read <strong>the 10-year rule</strong>
+            </Link>
           </div>
         </div>
       </section>

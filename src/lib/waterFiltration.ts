@@ -26,9 +26,11 @@ export type FiltrationTier = {
   label: string;
   /** One line, used on cards and in the nav. */
   tagline: string;
+  /** Card button text. Written per tier because "Hot water protection
+   *  filtration" is not a phrase anybody says. */
+  cta: string;
   /** Where it goes, in plain words. The single most useful thing to say. */
   fitsWhere: string;
-  photo: { src: string; alt: string };
   /** Two-sentence version for the hub cards. */
   blurb: string;
   /** Opening paragraph on its own page. */
@@ -101,8 +103,8 @@ export const TIERS: FiltrationTier[] = [
     slug: "whole-home",
     label: "Whole home",
     tagline: "Every tap, shower and appliance in the house",
+    cta: "Whole home filtration",
     fitsWhere: "On the incoming water main, before it splits off to anything else",
-    photo: { src: "/photoshoot-with-reece-4.webp", alt: "Advanced Gas plumber on site" },
     blurb:
       "One unit on the water main, filtering everything that enters the house. The shower, the washing machine, the dishwasher and the hot water system all run on filtered water rather than just the kitchen tap.",
     intro:
@@ -175,8 +177,8 @@ export const TIERS: FiltrationTier[] = [
     slug: "hot-water",
     label: "Hot water protection",
     tagline: "Keeps sediment out of the most expensive appliance in the house",
+    cta: "Protect my hot water system",
     fitsWhere: "On the cold water line feeding your hot water system",
-    photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover, where the cold inlet filter is fitted" },
     blurb:
       "A filter on the cold feed into your hot water system, so sediment stops at the cartridge instead of settling in the tank or blocking a continuous-flow heat exchanger.",
     intro:
@@ -244,8 +246,8 @@ export const TIERS: FiltrationTier[] = [
     slug: "under-sink",
     label: "Under sink",
     tagline: "Filtered drinking water at the kitchen tap",
+    cta: "Under sink filtration",
     fitsWhere: "In the cupboard under the kitchen sink, feeding a dedicated tap or a three-way mixer",
-    photo: { src: "/Photoshoot with reece 6.jpg", alt: "Advanced Gas plumbers at the Reece branch" },
     blurb:
       "A filter under the kitchen sink feeding either a small dedicated tap or a three-way mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
     intro:

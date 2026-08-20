@@ -135,11 +135,12 @@ export default function WaterFiltrationPage() {
       {/* THREE TIERS */}
       <section className="wf-tiers" id="options">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Three fittings, three jobs</span>
-            <h2>Pick the one that matches what you&rsquo;ve noticed.</h2>
-            <p>
-              They do different jobs at different points in the house. Most people only need one.
+          <div className="ds-section-head">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Three fittings, three jobs</span>
+            <h2 className="ds-h--on-dark">Pick the one that matches what you&rsquo;ve noticed.</h2>
+            <p className="wf-tiers__lede">
+              They do different jobs at different points in the house, and the diagram on each
+              card shows exactly where. Most people only need one.
             </p>
           </div>
           <div className="wf-tiers__grid">
@@ -157,7 +158,7 @@ export default function WaterFiltrationPage() {
                     {t.treats.slice(0, 3).map((x) => <li key={x}>{x}</li>)}
                   </ul>
                   <Link href={`/water-filtration/${t.slug}`} className="wf-tier__cta">
-                    {t.label} filtration →
+                    {t.cta} →
                   </Link>
                 </div>
               </article>

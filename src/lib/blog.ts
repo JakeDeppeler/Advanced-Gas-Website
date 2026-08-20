@@ -189,7 +189,7 @@ export const posts: BlogPost[] = [
     title: "Heat pumps + solar PV: the daytime-charge trick that drops bills to zero",
     blurb: "How to schedule a Reclaim or iStore unit to run in the middle of the day on your own solar export, which is about as cheap as hot water gets.",
     photo: "/reclaim-mitsubishi.webp",
-    photoAlt: "Reclaim heat pump paired with solar",
+    photoAlt: "Reclaim heat pump and outdoor unit on a brick wall",
     content: [
       { type: "p", text: "If you've got solar PV and a modern heat pump, you can run your hot water for free. Literally free. Here's how the daytime-charge trick works." },
       { type: "h2", text: "The principle" },
