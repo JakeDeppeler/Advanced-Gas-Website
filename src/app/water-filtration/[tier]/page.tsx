@@ -115,8 +115,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
             <FiltrationDiagram tier={t.slug} />
           </div>
           <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
-            <h2>Cartridges, and why we show you rather than charge you.</h2>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
+              <h2>Cartridges, and why we show you rather than charge you.</h2>
+            </div>
             <p>{t.servicing}</p>
             <p className="wf-servicing__note">
               A filter nobody changes is worse than no filter, because you stop thinking about
@@ -130,8 +132,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       <section className="wf-process wf-process--tier">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
-          <h2>What happens, start to finish.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
+            <h2>What happens, start to finish.</h2>
+          </div>
           <ol className="wf-process__list">
             {PROCESS.map((p, i) => (
               <li key={p.t}>
@@ -149,8 +153,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <section className="wf-quote">
         <div className="wrap wf-quote__grid">
           <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
-            <h2>Tell us what you&rsquo;ve noticed.</h2>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
+              <h2>Tell us what you&rsquo;ve noticed.</h2>
+            </div>
             <p>
               We haven&rsquo;t put a price on this page yet, deliberately. What the right unit
               costs depends on your water, your pressure and where it physically has to go, and
@@ -168,8 +174,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       <section className="wf-faq">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
-          <h2>Straight answers.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
+            <h2>Straight answers.</h2>
+          </div>
           <div className="wf-faq__list">
             {t.faqs.map((f) => (
               <details key={f.q}>
@@ -183,8 +191,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       <section className="wf-others">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> The other two</span>
-          <h2>Not the one you need?</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> The other two</span>
+            <h2>Not the one you need?</h2>
+          </div>
           <div className="wf-others__row">
             {others.map((o) => (
               <Link key={o.slug} href={`/water-filtration/${o.slug}`} className="wf-other">

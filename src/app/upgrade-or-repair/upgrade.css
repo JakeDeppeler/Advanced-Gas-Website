@@ -10,14 +10,10 @@
 
 /* See the note in filtration.css: `btn` is scoped to /rebates only. */
 .pg-ctas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.page-upgrade h2 {
-  font-family: var(--f-display);
-  font-size: clamp(26px, 3.4vw, 38px);
-  line-height: 1.15;
-  color: var(--navy);
-  margin: 0 0 16px;
-  max-width: 22ch;
-}
+.page-upgrade .ds-section-head h2 { margin: 14px 0 16px; }
+/* Headings come from the design system's scale (clamp 34–56px, weight
+   800) like every other page. This file used to set its own smaller
+   scale, which is what made these pages read as bolted on. */
 
 /* ---- hero ---- */
 .ug-hero {
@@ -28,18 +24,21 @@
 .ug-hero h1 {
   color: #fff;
   font-family: var(--f-display);
-  font-size: clamp(32px, 5vw, 56px);
-  line-height: 1.08;
-  margin: 0 0 18px;
-  max-width: 20ch;
+  font-weight: 900;
+  font-size: clamp(36px, 4.8vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  margin: 16px 0 16px;
+  max-width: 17ch;
+  text-wrap: balance;
 }
 .ug-hero h1 em { color: var(--orange-2); font-style: normal; }
 .ug-hero__sub {
-  max-width: 62ch;
-  font-size: 17px;
-  line-height: 1.65;
-  color: rgba(255,255,255,0.82);
-  margin: 0 0 28px;
+  max-width: 660px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 26px;
 }
 
 /* ---- life expectancy table ---- */

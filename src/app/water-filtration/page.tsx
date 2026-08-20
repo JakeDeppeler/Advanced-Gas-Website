@@ -111,13 +111,15 @@ export default function WaterFiltrationPage() {
       {/* WHAT'S IN YOUR WATER — before we sell anything */}
       <section className="wf-water">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> First, the honest part</span>
-          <h2>What&rsquo;s actually in Melbourne water, and what a filter does about it.</h2>
-          <p className="wf-lede">
-            Plenty of filtration gets sold on vague worry. We&rsquo;d rather you bought one
-            knowing exactly what it changes. Melbourne has some of the best mains water of any
-            major city, and it is genuinely soft. Here is what filtration is and isn&rsquo;t for.
-          </p>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> First, the honest part</span>
+            <h2>What&rsquo;s actually in Melbourne water.</h2>
+            <p>
+              Plenty of filtration gets sold on vague worry. We&rsquo;d rather you bought one
+              knowing exactly what it changes. Melbourne has some of the best mains water of any
+              major city, and it is genuinely soft. Here is what filtration is and isn&rsquo;t for.
+            </p>
+          </div>
           <div className="wf-water__grid">
             {IN_YOUR_WATER.map((w) => (
               <article className="wf-water__card" key={w.what}>
@@ -133,8 +135,13 @@ export default function WaterFiltrationPage() {
       {/* THREE TIERS */}
       <section className="wf-tiers" id="options">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Three fittings, three jobs</span>
-          <h2>Pick the one that matches what you&rsquo;ve noticed.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Three fittings, three jobs</span>
+            <h2>Pick the one that matches what you&rsquo;ve noticed.</h2>
+            <p>
+              They do different jobs at different points in the house. Most people only need one.
+            </p>
+          </div>
           <div className="wf-tiers__grid">
             {TIERS.map((t) => (
               <article className="wf-tier" key={t.slug}>
@@ -162,8 +169,10 @@ export default function WaterFiltrationPage() {
       {/* HOW IT WORKS */}
       <section className="wf-stages">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> How a whole-home unit is built</span>
-          <h2>Stages, in the order the water meets them.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> How a whole-home unit is built</span>
+            <h2>Stages, in the order the water meets them.</h2>
+          </div>
           <div className="wf-stages__row">
             {STAGES.map((s) => (
               <div className="wf-stage" key={s.n}>
@@ -185,8 +194,10 @@ export default function WaterFiltrationPage() {
       {/* PROCESS */}
       <section className="wf-process">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
-          <h2>From &ldquo;the water tastes funny&rdquo; to installed.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
+            <h2>From &ldquo;the water tastes funny&rdquo; to installed.</h2>
+          </div>
           <ol className="wf-process__list">
             {PROCESS.map((p, i) => (
               <li key={p.t}>
@@ -205,8 +216,10 @@ export default function WaterFiltrationPage() {
       <section className="wf-quote">
         <div className="wrap wf-quote__grid">
           <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
-            <h2>Tell us what you&rsquo;ve noticed and we&rsquo;ll tell you what fixes it.</h2>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
+              <h2>Tell us what you&rsquo;ve noticed.</h2>
+            </div>
             <p>
               We haven&rsquo;t put prices on these pages yet, and that&rsquo;s deliberate rather
               than coy. What the right unit costs depends on your water, your pressure and
@@ -226,8 +239,10 @@ export default function WaterFiltrationPage() {
       {/* FAQ */}
       <section className="wf-faq">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
-          <h2>The questions people actually ask.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
+            <h2>The questions people actually ask.</h2>
+          </div>
           <div className="wf-faq__list">
             {HUB_FAQS.map((f) => (
               <details key={f.q}>

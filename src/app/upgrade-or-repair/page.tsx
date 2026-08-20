@@ -136,14 +136,16 @@ export default function UpgradeOrRepairPage() {
       {/* THE TABLE */}
       <section className="ug-life">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> How long they actually last</span>
-          <h2>Design life, and the age where we stop recommending you spend on it.</h2>
-          <p className="ug-lede">
-            These aren't marketing numbers. They're what the manufacturers quote for design
-            life, and what we see across the corridor replacing this gear every week. The
-            "replace from" column is the age past which a significant repair usually costs
-            more per remaining year than a new system does.
-          </p>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> How long they actually last</span>
+            <h2>Design life, and where we stop recommending you spend.</h2>
+            <p>
+              These aren&rsquo;t marketing numbers. They&rsquo;re what the manufacturers quote for
+              design life, and what we see replacing this gear across the corridor every week.
+              &ldquo;Replace from&rdquo; is the age past which a significant repair usually costs
+              more per remaining year than a new system does.
+            </p>
+          </div>
 
           <div className="ug-tablewrap">
             <table className="ug-table">
@@ -175,8 +177,11 @@ export default function UpgradeOrRepairPage() {
       {/* SIGNS */}
       <section className="ug-signs">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Six signs it's replacement time</span>
-          <h2>You usually know before we tell you. These are the six that decide it.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Six signs it's replacement time</span>
+            <h2>You usually know before we tell you.</h2>
+            <p>These are the six that decide it.</p>
+          </div>
           <div className="ug-signs__grid">
             {SIGNS.map((s, i) => (
               <div className="ug-sign" key={s.t}>
@@ -193,8 +198,10 @@ export default function UpgradeOrRepairPage() {
       <section className="ug-repair">
         <div className="wrap ug-repair__grid">
           <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> The other half</span>
-            <h2>When we'd tell you to repair it and keep your money.</h2>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> The other half</span>
+              <h2>When we'd tell you to repair it and keep your money.</h2>
+            </div>
             <p>
               This page pushes replacement because most of the time, on most of the systems
               we're called to, that's the right call and the numbers say so. But a page that
@@ -215,8 +222,10 @@ export default function UpgradeOrRepairPage() {
       {/* REBATE */}
       <section className="ug-rebate">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Why the timing matters</span>
-          <h2>The rebate is worth the most at exactly the moment your system hits the line.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Why the timing matters</span>
+            <h2>The rebate is worth most at exactly the moment you hit the line.</h2>
+          </div>
           <div className="ug-rebate__grid">
             <div className="ug-rebate__copy">
               <p>
@@ -270,8 +279,10 @@ export default function UpgradeOrRepairPage() {
       {/* FAQ */}
       <section className="ug-faq">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
-          <h2>The questions we get asked on the phone.</h2>
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
+            <h2>The questions we get asked on the phone.</h2>
+          </div>
           <div className="ug-faq__list">
             {FAQS.map((f) => (
               <details key={f.q}>
