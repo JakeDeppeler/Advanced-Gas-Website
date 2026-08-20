@@ -3,6 +3,7 @@ import { site, services } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
+import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -54,6 +55,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.2 },
     { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.2 },
   ];
+
+  // One entry per written-up fault code. These are the best-shaped
+  // searches on the site: someone with a broken appliance and a code in
+  // front of them. Only codes with long-form content have a page.
+  const faultUrls: MetadataRoute.Sitemap = detailedCodes().map((f) => ({
+    url: `${base}/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}`,
+    changeFrequency: "yearly" as const,
+    priority: 0.7,
+  }));
 
   const serviceUrls: MetadataRoute.Sitemap = services.map((s) => ({
     url: `${base}/services/${s.slug}`,
@@ -122,6 +132,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })),
   );
 
-  return [...staticUrls, ...serviceUrls,
+  return [...staticUrls, ...serviceUrls, ...faultUrls,
     ...systemUrls, ...suburbUrls, ...brandUrls, ...brandSuburbUrls];
 }

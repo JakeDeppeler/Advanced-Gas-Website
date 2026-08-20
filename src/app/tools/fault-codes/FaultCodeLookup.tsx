@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   FAULT_CODES,
   FAULT_BRANDS,
   FAULT_SYSTEM_LABELS,
+  faultSlug,
   type FaultSystem,
 } from "@/lib/faultCodes";
 
@@ -117,7 +119,21 @@ export function FaultCodeLookup() {
               <tr key={`${f.brand}-${f.code}`}>
                 <td><span className="fault-brand">{f.brand}</span></td>
                 <td><span className={`fault-system fault-system--${f.system}`}>{FAULT_SYSTEM_LABELS[f.system]}</span></td>
-                <td><span className="fault-code">{f.code}</span></td>
+                <td>
+                  {/* Codes with a written-up page link to it. The rest are
+                      plain text, because a link to a page that doesn't
+                      exist helps nobody. */}
+                  {f.detail ? (
+                    <Link
+                      href={`/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}`}
+                      className="fault-code fault-code--link"
+                    >
+                      {f.code}
+                    </Link>
+                  ) : (
+                    <span className="fault-code">{f.code}</span>
+                  )}
+                </td>
                 <td>
                   <strong style={{ color: "var(--navy)" }}>{f.meaning}</strong>
                 </td>
