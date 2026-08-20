@@ -20,6 +20,26 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // ---- Water filtration moved out of gas plumbing ----
+      // It shipped as three systems under /services/gas-plumbing and got
+      // its own section a day later, because it isn't the same kind of
+      // sale as a broken heater. Short-lived URLs, but they were in a
+      // sitemap Google had already been handed.
+      {
+        source: "/services/gas-plumbing/whole-home-filtration",
+        destination: "/water-filtration/whole-home",
+        permanent: true,
+      },
+      {
+        source: "/services/gas-plumbing/hot-water-filtration",
+        destination: "/water-filtration/hot-water",
+        permanent: true,
+      },
+      {
+        source: "/services/gas-plumbing/under-sink-filtration",
+        destination: "/water-filtration/under-sink",
+        permanent: true,
+      },
       // ---- Reclaim tank naming, corrected against Reclaim's own docs ----
       // SSQ is "stainless steel squat", a short wide tank. We had it as
       // 316-grade marine stainless, which it never was.

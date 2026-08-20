@@ -110,8 +110,8 @@ export default function UpgradeOrRepairPage() {
 
       <section className="ug-hero">
         <div className="wrap">
-          <div className="hero__eyebrow">
-            <span className="eyebrow-dot" />
+          <div className="ds-eyebrow ds-eyebrow--on-dark wf-eyebrow">
+            <span className="ds-dot" />
             The question behind most of our call-outs
           </div>
           <h1>
@@ -124,9 +124,9 @@ export default function UpgradeOrRepairPage() {
             earning its keep, when we'd tell you to repair instead — and why the VEU rebate
             happens to be worth the most at exactly the moment your system hits the line.
           </p>
-          <div className="hero__ctas">
-            <Link href="/quote" className="btn btn--orange btn--lg">Get both prices side by side →</Link>
-            <a href={`tel:${site.phoneE164}`} className="btn btn--ghost btn--lg" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.3)" }}>
+          <div className="pg-ctas">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get both prices side by side →</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
               Or just ask us
             </a>
           </div>
@@ -136,7 +136,7 @@ export default function UpgradeOrRepairPage() {
       {/* THE TABLE */}
       <section className="ug-life">
         <div className="wrap">
-          <span className="eyebrow"><span className="eyebrow-dot" /> How long they actually last</span>
+          <span className="ds-eyebrow"><span className="ds-dot" /> How long they actually last</span>
           <h2>Design life, and the age where we stop recommending you spend on it.</h2>
           <p className="ug-lede">
             These aren't marketing numbers. They're what the manufacturers quote for design
@@ -175,7 +175,7 @@ export default function UpgradeOrRepairPage() {
       {/* SIGNS */}
       <section className="ug-signs">
         <div className="wrap">
-          <span className="eyebrow"><span className="eyebrow-dot" /> Six signs it's replacement time</span>
+          <span className="ds-eyebrow"><span className="ds-dot" /> Six signs it's replacement time</span>
           <h2>You usually know before we tell you. These are the six that decide it.</h2>
           <div className="ug-signs__grid">
             {SIGNS.map((s, i) => (
@@ -193,7 +193,7 @@ export default function UpgradeOrRepairPage() {
       <section className="ug-repair">
         <div className="wrap ug-repair__grid">
           <div>
-            <span className="eyebrow"><span className="eyebrow-dot" /> The other half</span>
+            <span className="ds-eyebrow"><span className="ds-dot" /> The other half</span>
             <h2>When we'd tell you to repair it and keep your money.</h2>
             <p>
               This page pushes replacement because most of the time, on most of the systems
@@ -215,7 +215,7 @@ export default function UpgradeOrRepairPage() {
       {/* REBATE */}
       <section className="ug-rebate">
         <div className="wrap">
-          <span className="eyebrow"><span className="eyebrow-dot" /> Why the timing matters</span>
+          <span className="ds-eyebrow"><span className="ds-dot" /> Why the timing matters</span>
           <h2>The rebate is worth the most at exactly the moment your system hits the line.</h2>
           <div className="ug-rebate__grid">
             <div className="ug-rebate__copy">
@@ -270,7 +270,7 @@ export default function UpgradeOrRepairPage() {
       {/* FAQ */}
       <section className="ug-faq">
         <div className="wrap">
-          <span className="eyebrow"><span className="eyebrow-dot" /> Straight answers</span>
+          <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
           <h2>The questions we get asked on the phone.</h2>
           <div className="ug-faq__list">
             {FAQS.map((f) => (
@@ -291,9 +291,9 @@ export default function UpgradeOrRepairPage() {
             repair costs, what the replacement costs after the rebate, and which one we'd do
             if it were our house. If that's the repair, we'll say so.
           </p>
-          <div className="hero__ctas">
-            <Link href="/quote" className="btn btn--orange btn--lg">Get both prices →</Link>
-            <a href={`tel:${site.phoneE164}`} className="btn btn--ghost btn--lg" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.3)" }}>
+          <div className="pg-ctas">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get both prices →</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
               {site.phone}
             </a>
           </div>

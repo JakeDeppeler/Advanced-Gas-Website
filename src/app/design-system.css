@@ -268,10 +268,61 @@
   margin: 0 0 12px;
 }
 
-/* -------- Services mega — Installation (full-width, 4-up, big cards)
-   STACKED over Service & Repair (full-width, 4-up, compact cards). The
-   side-by-side version squashed the installation column so the photos
-   read like sub-icons. Full-width lets them read at glance. */
+/* -------- Services mega — four labelled groups across the top, then a
+   Service & Repair row, then Popular + CTA.
+
+   Was a flat 4-up grid of ten items under one "Installation" heading,
+   with a second grid mislabelled "Service & repair" that contained
+   things like "Aircon" and "Temporary hot water". Grouping it means a
+   customer scans one column instead of ten tiles, and the labels are
+   now true. Cards stay horizontal (photo left, text right) because
+   vertical cards in four columns made the photos too small to read. */
+.mega__services-cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 22px;
+}
+.mega__servicecol { min-width: 0; }
+.mega__servicecol .mega__collabel {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+}
+.mega__servicecol-list { display: grid; gap: 4px; }
+.mega__servicecol .mega__servicecard { padding: 7px 8px; gap: 10px; }
+.mega__servicecol .mega__servicecard-photo { width: 44px; height: 44px; padding: 3px; border-radius: 8px; }
+.mega__servicecol .mega__servicecard-body b { font-size: 13.5px; }
+.mega__servicecol .mega__servicecard-body span { font-size: 11.5px; }
+@media (max-width: 1180px) {
+  .mega__services-cols { grid-template-columns: repeat(2, 1fr); gap: 18px 22px; }
+}
+@media (max-width: 720px) {
+  .mega__services-cols { grid-template-columns: 1fr; }
+}
+
+/* Foot: Popular across four columns instead of a tall stack, with the
+   CTA centred beside it. Stacked vertically the Popular list dragged the
+   panel down another 120px and left the quote box mostly empty. */
+.mega__services .mega__services-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding-top: 18px;
+}
+.mega__services .mega__services-foot > div:first-child { flex: 1 1 auto; min-width: 0; }
+.mega__services .mega__poplist { grid-template-columns: repeat(4, 1fr); gap: 6px 14px; }
+.mega__services .mega__cta { flex: 0 0 280px; align-self: center; padding: 14px 16px; }
+@media (max-width: 1180px) {
+  .mega__services .mega__poplist { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 860px) {
+  .mega__services .mega__services-foot { flex-direction: column; align-items: stretch; gap: 16px; }
+  .mega__services .mega__cta { flex: 1 1 auto; }
+}
+
+/* -------- Legacy Service & Repair row (still a flat grid). */
 .mega__services { width: min(1360px, calc(100vw - 32px)); padding: 26px 30px; }
 .mega__services-block { margin-bottom: 22px; }
 .mega__services-block:last-of-type { margin-bottom: 20px; }

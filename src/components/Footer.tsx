@@ -111,6 +111,7 @@ export function Footer() {
               <li><Link href="/brands/thermann">Thermann range</Link></li>
               <li><Link href="/rebates">VEU rebate explained</Link></li>
               <li><Link href="/upgrade-or-repair">Repair or replace? The 10-year rule</Link></li>
+              <li><Link href="/water-filtration">Water filtration (Puretec)</Link></li>
               <li><Link href="/heat-pumps">Heat pump vs gas</Link></li>
               <li><Link href="/tools/veu-rebate-estimator">VEU rebate estimator</Link></li>
               <li><Link href="/tools/sizing-calculator">Aircon sizing calculator</Link></li>

@@ -5,7 +5,11 @@
 .page-upgrade { background: var(--bg); }
 
 .page-upgrade section { padding: 64px 0; }
-.page-upgrade .eyebrow { margin-bottom: 14px; }
+.page-upgrade .ds-eyebrow { margin-bottom: 14px; }
+.page-upgrade .wf-eyebrow { display: inline-flex; margin-bottom: 18px; }
+
+/* See the note in filtration.css: `btn` is scoped to /rebates only. */
+.pg-ctas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 .page-upgrade h2 {
   font-family: var(--f-display);
   font-size: clamp(26px, 3.4vw, 38px);
@@ -22,6 +26,7 @@
   padding: 76px 0 70px !important;
 }
 .ug-hero h1 {
+  color: #fff;
   font-family: var(--f-display);
   font-size: clamp(32px, 5vw, 56px);
   line-height: 1.08;

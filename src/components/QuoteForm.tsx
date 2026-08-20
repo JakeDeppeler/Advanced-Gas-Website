@@ -24,6 +24,7 @@ const SERVICES = [
   { id: "heat-pump-install", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
   { id: "aircon-service", t: "🔧 Service / repair", s: "All major brands" },
   { id: "gas-plumbing", t: "🔥 Gas / plumbing", s: "Heating, hot water, leaks" },
+  { id: "water-filtration", t: "💧 Water filtration", s: "Whole home · hot water · under sink" },
 ];
 
 const PROPERTY = ["Single-storey home", "Double-storey home", "Apartment", "Commercial / office"];

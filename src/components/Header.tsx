@@ -25,116 +25,140 @@ type NavItem =
       kind: "services" | "brands" | "areas" | "tools" | "company";
     };
 
+/**
+ * Services mega.
+ *
+ * Rebuilt into four labelled groups plus a service-and-repair row.
+ *
+ * What was wrong with the old shape: `primary` was rendered under a
+ * "Service & repair" heading but contained "Aircon", "Gas heater" and
+ * "Temporary hot water", none of which are repairs. `install` had grown
+ * to ten flat items with no grouping. `repair` existed in the data and
+ * rendered nowhere on desktop. Several services appeared twice under
+ * different labels, which is how you end up with two links to the same
+ * page that look like different things.
+ *
+ * Now: every service appears exactly once, grouped the way a customer
+ * thinks about it — what am I trying to heat, cool, wash in, or get
+ * fixed — and desktop and mobile render the same structure from the
+ * same arrays.
+ */
 const SERVICES_MEGA: {
-  primary: ServiceMegaItem[];
-  install: ServiceMegaItem[];
+  groups: { label: string; items: ServiceMegaItem[] }[];
   repair: ServiceMegaItem[];
   popular: { href: string; label: string; sub: string }[];
 } = {
-  // Simplified 4-tile menu — the user asked for this to be tighter:
-  // Aircon · Gas heater · Evap cooler · Emergency call-out. Install
-  // and Repair sub-arrays are kept for the mobile drawer & full
-  // /services page but the header mega now renders `primary` only.
-  primary: [
+  groups: [
     {
-      href: "/services/air-conditioning-installation",
-      label: "Aircon",
-      sub: "Split · multi-head · ducted",
-      photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
-      photoAlt: "Air conditioning, split and ducted systems",
+      label: "Air conditioning",
+      items: [
+        {
+          href: "/services/air-conditioning-installation/split",
+          label: "Split system",
+          sub: "Bedroom, living, one room at a time",
+          photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+          photoAlt: "Mitsubishi MSZ-AP wall split system",
+        },
+        {
+          href: "/services/air-conditioning-installation/multi",
+          label: "Multi-head",
+          sub: "One outdoor unit, 2–5 indoor heads",
+          photo: "/mac_slide0.jpg",
+          photoAlt: "Mitsubishi multi-head system with outdoor condenser",
+        },
+        {
+          href: "/services/air-conditioning-installation/ducted",
+          label: "Ducted air conditioning",
+          sub: "Whole-home cooling and heating",
+          photo: "/kdi-v2-image_01.webp",
+          photoAlt: "Ducted air conditioning indoor unit",
+        },
+        {
+          href: "/services/air-conditioning-installation/evap",
+          label: "Evaporative cooling",
+          sub: "Roof-mounted, dry-summer suburbs",
+          photo: "/classic_evap_product_image.jpg",
+          photoAlt: "Brivis evaporative cooler",
+        },
+      ],
     },
     {
-      href: "/services/gas-plumbing/gas-ducted",
-      label: "Gas heater",
-      sub: "Ducted heating · service · repair",
-      photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
-      photoAlt: "Gas ducted heater, install, service, repair",
+      label: "Heating",
+      items: [
+        {
+          href: "/services/gas-plumbing/gas-ducted",
+          label: "Gas ducted heating",
+          sub: "Brivis Wombat / Buffalo · Kaden",
+          photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
+          photoAlt: "Brivis gas ducted heater",
+        },
+        {
+          href: "/brands/zonemate",
+          label: "Zoning & smart control",
+          sub: "Zonemate touch + Wi-Fi",
+          photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
+          photoAlt: "Zonemate touch controller in a living room",
+        },
+        {
+          href: "/upgrade-or-repair",
+          label: "Repair or replace?",
+          sub: "The 10-year rule, and the rebate",
+          photo: "/gas-ducted-install.webp",
+          photoAlt: "Gas ducted heater being replaced",
+        },
+      ],
     },
     {
-      href: "/services/air-conditioning-installation/evap",
-      label: "Evap cooler",
-      sub: "Roof-mounted whole-home cooling",
-      photo: "/classic_evap_product_image.jpg",
-      photoAlt: "Evaporative cooler on the roof",
+      label: "Hot water",
+      items: [
+        {
+          href: "/services/heat-pump-installation",
+          label: "Heat pump hot water",
+          sub: "Reclaim · iStore · Thermann · VEU rebate",
+          photo: "/270L-istore-heatpump.webp",
+          photoAlt: "iStore 270L heat pump hot water system",
+        },
+        {
+          href: "/services/gas-plumbing/continuous-flow",
+          label: "Gas continuous flow",
+          sub: "Rinnai · Thermann G-series",
+          photo: "/G-Series_Front_On_View_1200x900.jpg",
+          photoAlt: "Thermann G-series continuous flow gas hot water",
+        },
+        {
+          href: "/services/gas-plumbing/temporary-hot-water",
+          label: "Temporary hot water hire",
+          sub: "$30/day while you decide",
+          photo: "/gas-hot-water-changeover.webp",
+          photoAlt: "Temporary hot water unit connected during a changeover",
+        },
+      ],
     },
     {
-      href: "/contact#emergency",
-      label: "Emergency call-out",
-      sub: "24/7 · gas leaks, no hot water",
-      photo: "/gas-line-safe.webp",
-      photoAlt: "Emergency call-out, 24/7 gas and hot water",
-    },
-    {
-      href: "/services/gas-plumbing/temporary-hot-water",
-      label: "Temporary hot water",
-      sub: "$30/day while you decide",
-      photo: "/gas-hot-water-changeover.webp",
-      photoAlt: "Temporary hot water unit connected during a changeover",
-    },
-  ],
-  install: [
-    {
-      href: "/services/air-conditioning-installation/split",
-      label: "Split system aircon",
-      sub: "Bedroom, living, multi-head",
-      photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
-      photoAlt: "Mitsubishi MSZ-AP wall split system",
-    },
-    {
-      href: "/services/air-conditioning-installation/multi",
-      label: "Multi-head aircon",
-      sub: "One outdoor, 2-5 indoor heads",
-      photo: "/mac_slide0.jpg",
-      photoAlt: "Mitsubishi multi-head system with outdoor condenser",
-    },
-    {
-      href: "/services/air-conditioning-installation/ducted",
-      label: "Ducted air conditioning",
-      sub: "Whole-home cooling + heating",
-      photo: "/kdi-v2-image_01.webp",
-      photoAlt: "Ducted air conditioning indoor unit",
-    },
-    {
-      href: "/services/heat-pump-installation",
-      label: "Heat pump hot water",
-      sub: "Reclaim · iStore · Thermann · VEU rebate",
-      photo: "/270L-istore-heatpump.webp",
-      photoAlt: "iStore 270L heat pump hot water system",
-    },
-    {
-      href: "/services/gas-plumbing/continuous-flow",
-      label: "Gas continuous flow",
-      sub: "Rinnai · Thermann G-series",
-      photo: "/G-Series_Front_On_View_1200x900.jpg",
-      photoAlt: "Thermann G-series continuous flow gas hot water",
-    },
-    {
-      href: "/services/gas-plumbing/gas-ducted",
-      label: "Gas ducted heating",
-      sub: "Brivis Wombat / Buffalo · Kaden",
-      photo: "/Brivis_Heating-Gas-Ducted-Heating-Compact-Classic-Classic-Wombat-3-Star-600x371.jpg",
-      photoAlt: "Brivis gas ducted heater",
-    },
-    {
-      href: "/services/air-conditioning-installation/evap",
-      label: "Evaporative cooling",
-      sub: "Roof-mounted · dry-summer suburbs",
-      photo: "/classic_evap_product_image.jpg",
-      photoAlt: "Brivis evaporative cooler",
-    },
-    {
-      href: "/brands/zonemate",
-      label: "Zoning & smart control",
-      sub: "Zonemate touch + Wi-Fi",
-      photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
-      photoAlt: "Zonemate touch controller in a living room",
-    },
-    {
-      href: "/services/gas-plumbing/whole-home-filtration",
-      label: "Water filtration",
-      sub: "Puretec · whole-home, hot water, under-sink",
-      photo: "/photoshoot-with-reece-4.webp",
-      photoAlt: "Puretec water filtration, fitted by a licensed plumber",
+      label: "Water & gas",
+      items: [
+        {
+          href: "/water-filtration",
+          label: "Water filtration",
+          sub: "Puretec · whole home, hot water, under sink",
+          photo: "/photoshoot-with-reece-4.webp",
+          photoAlt: "Puretec water filtration fitted by a licensed plumber",
+        },
+        {
+          href: "/services/gas-plumbing",
+          label: "Gas fitting & leak detection",
+          sub: "Appliance connections, pressure testing",
+          photo: "/gas-line.webp",
+          photoAlt: "Gas line pressure test",
+        },
+        {
+          href: "/contact#emergency",
+          label: "24/7 emergency call-out",
+          sub: "Gas leaks, no hot water, CO alarms",
+          photo: "/gas-line-safe.webp",
+          photoAlt: "Emergency call-out, 24/7 gas and hot water",
+        },
+      ],
     },
   ],
   repair: [
@@ -160,18 +184,18 @@ const SERVICES_MEGA: {
       photoAlt: "Roof-mounted evaporative cooler service",
     },
     {
-      href: "/contact#emergency",
-      label: "Emergency call-out",
-      sub: "24/7 · gas leaks, no hot water",
-      photo: "/gas-hot-water-changeover.webp",
-      photoAlt: "Emergency service callout",
+      href: "/tools/fault-codes",
+      label: "Fault code lookup",
+      sub: "Search your code before you call",
+      photo: "/Brivis touch tablet controller.jpg",
+      photoAlt: "Brivis controller showing a fault code",
     },
   ],
   popular: [
     { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
-    { href: "/contact#emergency", label: "24/7 emergency", sub: "Same-day response" },
+    { href: "/gallery", label: "Recent installs", sub: "Photos from real jobs" },
   ],
 };
 
@@ -404,29 +428,34 @@ export function Header() {
 function ServicesMega() {
   return (
     <div className="mega__services">
-      {/* TOP · Installation, 8 individual product / system cards */}
-      <div className="mega__services-block">
-        <div className="mega__collabel">Installation</div>
-        <div className="mega__services-grid">
-          {SERVICES_MEGA.install.map((s) => (
-            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
-              <div className="mega__servicecard-photo">
-                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
-              </div>
-              <div className="mega__servicecard-body">
-                <b>{s.label}</b>
-                <span>{s.sub}</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+      {/* Four labelled groups, grouped the way a customer thinks about
+          the job rather than the way we invoice it. */}
+      <div className="mega__services-cols">
+        {SERVICES_MEGA.groups.map((g) => (
+          <div className="mega__servicecol" key={g.label}>
+            <div className="mega__collabel">{g.label}</div>
+            <div className="mega__servicecol-list">
+              {g.items.map((s) => (
+                <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
+                  <div className="mega__servicecard-photo">
+                    <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
+                  </div>
+                  <div className="mega__servicecard-body">
+                    <b>{s.label}</b>
+                    <span>{s.sub}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* BOTTOM · Service & repair, 4 tighter categories */}
+      {/* Service & repair, which genuinely is service and repair now. */}
       <div className="mega__services-block mega__services-block--repair">
         <div className="mega__collabel">Service &amp; repair</div>
         <div className="mega__services-grid mega__services-grid--repair">
-          {SERVICES_MEGA.primary.map((s) => (
+          {SERVICES_MEGA.repair.map((s) => (
             <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
               <div className="mega__servicecard-photo">
                 <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
@@ -603,15 +632,22 @@ function MobileDrawer({ close }: { close: () => void }) {
               <summary>{n.label}</summary>
               {n.kind === "services" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Installation</div>
-                  {SERVICES_MEGA.install.map((s) => (
-                    <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
-                      <b>{s.label}</b>
-                      <span>{s.sub}</span>
-                    </Link>
+                  {/* Same groups as the desktop mega, same order, same
+                      arrays. They used to diverge, which meant a service
+                      you could find on a phone was missing on a laptop. */}
+                  {SERVICES_MEGA.groups.map((g) => (
+                    <div key={g.label}>
+                      <div className="hdr__drawer-collabel">{g.label}</div>
+                      {g.items.map((s) => (
+                        <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
+                          <b>{s.label}</b>
+                          <span>{s.sub}</span>
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                   <div className="hdr__drawer-collabel">Service &amp; repair</div>
-                  {SERVICES_MEGA.primary.map((s) => (
+                  {SERVICES_MEGA.repair.map((s) => (
                     <Link key={s.href} href={s.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{s.label}</b>
                       <span>{s.sub}</span>
