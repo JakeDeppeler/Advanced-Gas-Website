@@ -129,6 +129,13 @@ const SERVICES_MEGA: {
       photo: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
       photoAlt: "Zonemate touch controller in a living room",
     },
+    {
+      href: "/services/gas-plumbing/whole-home-filtration",
+      label: "Water filtration",
+      sub: "Puretec · whole-home, hot water, under-sink",
+      photo: "/photoshoot-with-reece-4.webp",
+      photoAlt: "Puretec water filtration, fitted by a licensed plumber",
+    },
   ],
   repair: [
     {

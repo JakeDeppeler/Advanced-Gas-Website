@@ -580,8 +580,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." },
       { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." },
+      { t: "Puretec water filtration", d: "Whole-home on the incoming main, a protection filter on the hot water cold inlet, or an under-sink unit for drinking water. Fitted by a licensed plumber, not a handyman." },
     ],
-    brands: ["Brivis", "Kaden", "Thermann", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
+    brands: ["Brivis", "Kaden", "Thermann", "Puretec", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
     pricing: [
       { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal" },
       { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "As above, quieter fan, longer service life" },
@@ -767,6 +768,157 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
       },
+      // TODO(photos): swap these for real Puretec install shots once we've
+      // photographed one. Using site photos rather than manufacturer renders
+      // we don't have rights to.
+      {
+        id: "whole-home-filtration",
+        label: "Whole-home water filtration",
+        blurb:
+          "A Puretec filter on the main where the water comes into the house, so every tap, shower and appliance runs on filtered water. Sediment and chlorine taste gone at the source rather than at one tap.",
+        photo: { src: "/photoshoot-with-reece-4.webp", alt: "Advanced Gas plumber on site" },
+        points: [
+          "Fitted on the incoming main, so it covers the whole house",
+          "Sediment, rust, silt and chlorine taste and smell",
+          "Options for tank and rainwater properties, including UV",
+          "Cartridges change in about ten minutes once it's in",
+          "Puretec, an Australian brand, through the same Reece supply we use for everything else",
+          "Installed by a licensed plumber with the paperwork to match",
+        ],
+        intro:
+          "Whole-home filtration goes on the water main where it enters the house, before it splits off to anything else. That is the difference between it and a jug or an under-sink unit: the shower runs on filtered water, the washing machine does, the dishwasher does, the hot water system does. If your complaint is that the water smells like a swimming pool or that white shirts are coming out of the wash looking tired, this is the fitting that fixes it, and it fixes it once for the whole house instead of one tap at a time.",
+        bestFor: [
+          "Chlorine taste and smell you can pick up in the shower as well as at the tap",
+          "Sediment, grit or discolouration, which is common after mains work in the street",
+          "Properties on tank or rainwater, where filtration and UV are doing a real job rather than a cosmetic one",
+          "Anyone with skin or scalp irritation that gets better on holiday and worse at home",
+          "Protecting a new hot water system, a dishwasher and a washing machine at the same fitting",
+        ],
+        watchOut: [
+          "Melbourne mains water is soft, so this is not a water softener and we won't sell it as one. What it does is sediment and chlorine, which is what people here actually notice",
+          "Cartridges are a running cost. Budget roughly annually, sooner on tank water or after street works",
+          "Every filter costs you a little pressure. On a house that already has marginal pressure we size it up rather than pretend that isn't true",
+          "It needs somewhere accessible to sit, near the main and out of the sun. If the only spot is buried behind a garden bed we'll tell you at the quote",
+        ],
+        faqs: [
+          {
+            q: "What does a whole-home water filter actually remove?",
+            a: "Sediment, rust, silt and dirt on the first stage, then chlorine taste and odour on the carbon stage. On tank and rainwater setups we add UV, which handles the biological side. It is not a desalinator and it is not a softener, and anyone telling you a single cartridge does everything is selling rather than explaining.",
+          },
+          {
+            q: "How often do the cartridges need changing?",
+            a: "Roughly every twelve months on Melbourne mains water for a normal household. Tank water, bore water, or a house that has just had mains work in the street will chew through the sediment stage faster. Once the unit is in, the change is a ten-minute job you can do yourself, and we show you how on handover.",
+          },
+          {
+            q: "Will it drop my water pressure?",
+            a: "A little, and any plumber who says otherwise is guessing. The way to deal with it is sizing: on a house with good pressure you will not notice, and on a house with marginal pressure we fit a larger housing so the filter is not the bottleneck. We check the pressure at the quote, not after.",
+          },
+          {
+            q: "Do you install Puretec on tank water?",
+            a: "Yes, and it is where whole-home filtration earns its keep most obviously. Tank water carries sediment and organics that mains water does not, and a filtration plus UV setup is the standard answer through the hills and the smaller townships east of us. We spec it on what your tank actually delivers rather than off a catalogue page.",
+          },
+          {
+            q: "Can I have whole-home and under-sink?",
+            a: "Plenty of people do. The whole-home unit handles sediment and chlorine everywhere, and the under-sink unit gives you a dedicated drinking tap with a finer filter on it. If budget only stretches to one, we'll ask what is actually bothering you and point you at the one that fixes it.",
+          },
+        ],
+      },
+      {
+        id: "hot-water-filtration",
+        label: "Hot water system filtration",
+        blurb:
+          "A Puretec filter on the cold feed into your hot water system, so sediment stops at the filter instead of settling in the tank or blocking a continuous-flow heat exchanger.",
+        photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover, where the cold inlet filter is fitted" },
+        points: [
+          "Fitted on the cold inlet, so it protects the unit itself",
+          "Keeps sediment out of the tank and off the heating surfaces",
+          "Best fitted on install day, while the pipework is already open",
+          "Suits heat pumps, gas storage, electric storage and continuous flow",
+          "Cheap insurance against the most expensive component in the house",
+          "Cartridge change on the same visit as a service",
+        ],
+        intro:
+          "This is the least glamorous filter we fit and probably the best value one. It goes on the cold water line feeding your hot water system, which means anything the filter catches never reaches the tank, the anode or the heat exchanger. On a storage tank, sediment settles in the bottom and sits there insulating the element from the water it is meant to be heating. On a continuous-flow unit it builds up in a heat exchanger with very narrow passages. Either way you are shortening the life of a four thousand dollar appliance to save a hundred dollar fitting, and the fix is one filter on one pipe.",
+        bestFor: [
+          "Fitting at the same time as a new heat pump, tank or continuous flow, while the pipework is already apart",
+          "Properties on tank or bore water, where the sediment load is genuinely high",
+          "Anyone who has already had one hot water system fail early and doesn't want a repeat",
+          "Streets that get regular mains work, which pushes rust and silt through everyone's plumbing for a week afterwards",
+          "Continuous flow units, which have the least tolerance for sediment of anything we fit",
+        ],
+        watchOut: [
+          "It protects the system, it does not improve what comes out of the tap. If your complaint is taste, this is the wrong filter and you want whole-home or under-sink",
+          "It only covers the hot side. Cold taps are untouched by it",
+          "Fitted retrofit it is a short job; fitted on install day it is close to free labour, so if you are replacing your hot water anyway, decide now rather than later",
+          "It still needs a cartridge change. A neglected filter is worse than no filter, and we'll roll it into your service so it doesn't get forgotten",
+        ],
+        faqs: [
+          {
+            q: "Does a hot water filter actually extend the life of the system?",
+            a: "It removes the sediment that would otherwise end up in the bottom of the tank or in the heat exchanger, and sediment is one of the things that shortens their lives. It is not a warranty extension and we won't dress it up as one. It is a small, cheap thing that removes one of the ways these systems die early.",
+          },
+          {
+            q: "Should I fit one when I get a new heat pump?",
+            a: "That is the sensible time to do it. The cold line is already disconnected, so the labour is minimal, and you get the protection from day one rather than after the first few years of sediment have already gone through. Ask us to include it in the quote and you'll see exactly what it adds.",
+          },
+          {
+            q: "Will it help with the smell from my hot taps?",
+            a: "Sometimes, but usually not, and it is worth knowing why. A rotten-egg smell on the hot side only is normally the sacrificial anode reacting in the tank, and the answer is an anode change, not a filter. We'd rather diagnose that properly than sell you a filter that doesn't fix it.",
+          },
+          {
+            q: "Does it work on a continuous flow unit?",
+            a: "Yes, and continuous flow is arguably where it matters most. The passages in a continuous-flow heat exchanger are narrow, so sediment and scale have a much smaller margin before they cause a problem. The filter goes on the cold inlet the same way.",
+          },
+        ],
+      },
+      {
+        id: "under-sink-filtration",
+        label: "Under-sink drinking water filter",
+        blurb:
+          "A Puretec filter under the kitchen sink feeding a dedicated tap, or plumbed to the existing mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
+        photo: { src: "/Photoshoot with reece 6.jpg", alt: "Advanced Gas plumbers at the Reece branch" },
+        points: [
+          "Dedicated filtered tap, or a three-way mixer that does both",
+          "Finer filtration than whole-home, because it only has to do drinking water",
+          "Chlorine taste, sediment and odour gone from the water you drink",
+          "Can feed the fridge and ice maker at the same time",
+          "Cartridge change once a year, roughly, and about ten minutes",
+          "Cheapest way into filtration if you're not doing the whole house",
+        ],
+        intro:
+          "An under-sink filter does one job properly: the water you drink and cook with. Because it only has to treat a few litres a day it can use a finer cartridge than a whole-home unit, so it takes taste and odour further. You either get a separate small tap next to the mixer, or a three-way mixer that gives you hot, cold and filtered from the one spout, which is the neater option and the one most people choose when they see it. It will also feed a fridge and ice maker if the fridge is close enough, which quietly ends the filter-cartridge subscription the fridge manufacturer would rather you kept paying.",
+        bestFor: [
+          "Households buying bottled water, which this pays back faster than anything else we fit",
+          "Anyone who keeps a filter jug in the fridge and is tired of refilling it",
+          "Kitchen renovations, where a three-way mixer can go in as part of the job",
+          "Feeding a fridge and ice maker off decent filtration",
+          "Renters and apartments where a whole-home unit isn't possible, since this is a self-contained fitting under one sink",
+        ],
+        watchOut: [
+          "It only covers the tap it feeds. The shower, the washing machine and the hot water system are all still on unfiltered water",
+          "It takes up room in the cupboard under the sink. Not much, but if that cupboard is already full we'll show you where it lands before we commit",
+          "A three-way mixer means changing the tap, so factor that in if you like the one you have",
+          "Cartridges are a running cost, once a year or so. Still cheaper than bottled water by a wide margin",
+        ],
+        faqs: [
+          {
+            q: "Do I need a separate tap for an under-sink filter?",
+            a: "Not necessarily. You can have a small dedicated filtered tap beside the existing mixer, which is the cheaper option and keeps your current tap. Or you can go to a three-way mixer that delivers hot, cold and filtered from the one spout, which looks better and is what most people pick once they've seen both.",
+          },
+          {
+            q: "How long does the cartridge last?",
+            a: "About twelve months for a normal household, sometimes less if you drink a lot of water or the fridge is running off it too. Changing it takes about ten minutes and we show you how, because paying a plumber to do a ten-minute job every year is a waste of your money.",
+          },
+          {
+            q: "Can it feed the fridge and ice maker?",
+            a: "Yes, if the fridge is close enough to run a line to, which in most kitchens it is. It means the ice and the chilled water come off proper filtration, and you stop buying the fridge manufacturer's own cartridges.",
+          },
+          {
+            q: "Under-sink or whole-home, which one should I get?",
+            a: "If the problem is the taste of your drinking water, under-sink, and you'll spend a lot less. If the problem is chlorine smell in the shower, sediment in the toilet cistern, or you're on tank water, whole-home. If you tell us what you've actually noticed we'll tell you which one addresses it, including when the answer is neither.",
+          },
+        ],
+      },
     ],
     photos: [
       { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater", caption: "Brivis Classic Wombat, the ducted heater we replace most often" },
@@ -780,6 +932,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { brand: "Brivis", reason: "The default gas ducted heater in most corridor homes built 1990–2015. Rinnai-backed parts pipeline for legacy Wombat + Buffalo units.", href: "/brands/brivis" },
       { brand: "Kaden Gas Ducted", reason: "3 to 6 star, internal and external, on a universal footprint that drops into a Brivis or Braemar cavity so the ducts and wiring reuse.", href: "/brands/kaden" },
       { brand: "Thermann", reason: "Our default continuous-flow gas hot water. Australian-designed, Reece supply, 12-yr heat-exchanger warranty.", href: "/brands/thermann" },
+      { brand: "Puretec", reason: "Australian water filtration. Whole-home on the main, protection on the hot water cold inlet, and under-sink for drinking water." },
     ],
     typical: {
       time: "Ducted heater replacement · 3–4 hrs (same day). Continuous flow swap · 3–5 hrs (same day). Emergency call-out · on-site same day.",
@@ -809,6 +962,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "My Brivis is 15 years old, replace or repair?", a: "15-year-old Brivis is usually past its economic repair life for anything more than a controller / thermocouple fix. A Wombat replacement reuses your existing ducts and controller wiring, which is what keeps it a one-day job rather than a rebuild." },
       { q: "Can I move from gas to reverse-cycle at the same time?", a: "Yes. We're licensed refrigeration + gas so we can decommission the gas and install a reverse-cycle ducted or splits in the same visit. Usually the cleanest way to do a full swap." },
       { q: "How do I know if my gas line has a leak?", a: "Rotten-egg smell, hissing near the meter, unusually high gas bill, or dizziness / headaches near a burning appliance. Get out of the house, call the emergency gas line (1800 427 532) then call us. We'll be on-site same-day to leak-test and repair." },
+      { q: "Do you install water filters?", a: "Yes, Puretec. Whole-home on the incoming main so every tap and appliance runs on filtered water, a protection filter on the cold inlet to your hot water system, and under-sink units for drinking water. Which one is right depends entirely on what you've noticed, so tell us that first and we'll point you at the one that fixes it." },
     ],
   },
 };
