@@ -145,6 +145,74 @@ brivis fault code
 
 ---
 
+## Tier 2b · The eastern suburbs (20 keywords)
+
+Added because these are higher-value jobs: bigger houses, more zoning,
+people who buy the Reclaim rather than the cheapest thing on the truck.
+Set these up as a **separate project located in Ringwood**, not in the
+Pakenham project. A tracker sitting in Pakenham will report us doing
+better in Glen Waverley than we actually are.
+
+Read them differently from the Tier 1 terms, too. We are 45 to 66
+minutes from these suburbs, we have no reviews there and no local
+citations, so the **map pack is close to unwinnable** and chasing it
+would be throwing money at proximity we don't have. The organic blue
+links are winnable, because almost nobody writes real content for a
+suburb they merely service.
+
+```
+heat pump hot water ringwood
+heat pump hot water croydon
+heat pump hot water glen waverley
+heat pump hot water wheelers hill
+heat pump hot water vermont south
+heat pump hot water wantirna south
+heat pump hot water mount waverley
+ducted air conditioning glen waverley
+ducted air conditioning ringwood
+ducted air conditioning wheelers hill
+ducted heating replacement ringwood
+zoning ducted heating glen waverley
+reclaim heat pump ringwood
+reclaim co2 installer eastern suburbs melbourne
+split system installation vermont south
+multi head split system ringwood north
+hot water replacement croydon
+heat pump installer eastern suburbs melbourne
+mitsubishi electric ducted glen waverley
+veu rebate heat pump ringwood
+```
+
+### Repair-or-replace terms, where /upgrade-or-repair should win
+
+High intent and almost entirely unowned. Someone typing these is a
+month from spending four thousand dollars and has not chosen anyone yet.
+
+```
+should i repair or replace my hot water system
+how long does a hot water system last
+hot water system 10 years old
+how long does a ducted heater last
+is it worth repairing my air conditioner
+is it worth regassing an old air conditioner
+gas heater 15 years old replace
+when to replace ducted heating
+does the veu rebate need my system to be broken
+```
+
+### Water filtration, new pages and no competition locally
+
+```
+puretec water filter installer melbourne
+whole house water filter pakenham
+under sink water filter berwick
+water filter for hot water system
+puretec whole home filtration price
+tank water filtration and uv melbourne
+```
+
+---
+
 ## Tier 3 · Long tail, worth watching not chasing
 
 Don't pay to track these. Watch them in Search Console's Performance
@@ -162,7 +230,9 @@ where the next round of content comes from.
 | Brand + model (*rehp-co2-315ssq*) | 4 to 8 weeks | Almost nobody has this content |
 | Rebate terms | 2 to 4 months | Competitive but winnable locally |
 | Head terms (*air conditioning installation Pakenham*) | 4 to 9 months | Needs the link profile to grow first |
-| Map pack top 3 | Weeks, and it's reviews not the site | Different game, see keywords.md Part 3 |
+| Eastern suburbs organic (*heat pump hot water Glen Waverley*) | 2 to 5 months | Real page, no local authority yet |
+| Eastern suburbs map pack | Don't wait for it | 40 km from the pin. Proximity decides this and we can't move |
+| Repair-or-replace terms | 6 to 12 weeks | Nobody local has written this page |
 
 ---
 
