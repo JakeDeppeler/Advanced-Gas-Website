@@ -1,0 +1,165 @@
+/* ===================================================================
+   /upgrade-or-repair — the "repair it or replace it" argument.
+   =================================================================== */
+
+.page-upgrade { background: var(--bg); }
+
+.page-upgrade section { padding: 64px 0; }
+.page-upgrade .eyebrow { margin-bottom: 14px; }
+.page-upgrade h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3.4vw, 38px);
+  line-height: 1.15;
+  color: var(--navy);
+  margin: 0 0 16px;
+  max-width: 22ch;
+}
+
+/* ---- hero ---- */
+.ug-hero {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 60%, var(--navy-3) 100%);
+  color: #fff;
+  padding: 76px 0 70px !important;
+}
+.ug-hero h1 {
+  font-family: var(--f-display);
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.08;
+  margin: 0 0 18px;
+  max-width: 20ch;
+}
+.ug-hero h1 em { color: var(--orange-2); font-style: normal; }
+.ug-hero__sub {
+  max-width: 62ch;
+  font-size: 17px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.82);
+  margin: 0 0 28px;
+}
+
+/* ---- life expectancy table ---- */
+.ug-lede { max-width: 70ch; color: var(--ink-2); font-size: 16px; line-height: 1.65; margin: 0 0 28px; }
+.ug-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--rad); box-shadow: var(--shadow-sm); background: var(--paper); }
+.ug-table { width: 100%; min-width: 860px; border-collapse: collapse; font-size: 14.5px; }
+.ug-table th {
+  text-align: left;
+  background: var(--navy);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  font-weight: 700;
+}
+.ug-table td { padding: 16px; border-top: 1px solid var(--line); color: var(--ink-2); line-height: 1.55; vertical-align: top; }
+.ug-table td strong { color: var(--navy); }
+.ug-td--num { white-space: nowrap; }
+.ug-age {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+/* ---- signs ---- */
+.ug-signs { background: var(--bg-2); }
+.ug-signs__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+.ug-sign {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px;
+}
+.ug-sign__num {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--orange);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.ug-sign h3 { font-family: var(--f-display); font-size: 18px; line-height: 1.3; color: var(--navy); margin: 8px 0 8px; }
+.ug-sign p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---- the honest half ---- */
+.ug-repair__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: start; }
+.ug-repair p { font-size: 16px; line-height: 1.65; color: var(--ink-2); max-width: 52ch; }
+.ug-repair__note {
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+  font-style: italic;
+  color: var(--navy) !important;
+}
+.ug-repair__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.ug-repair__list li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sky);
+  border-radius: var(--rad-sm);
+  padding: 15px 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ---- rebate ---- */
+.ug-rebate { background: var(--bg-2); }
+.ug-rebate__grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 44px; align-items: start; }
+.ug-rebate__copy p { font-size: 16px; line-height: 1.7; color: var(--ink-2); margin: 0 0 16px; max-width: 62ch; }
+.ug-rebate__copy strong { color: var(--navy); }
+.ug-rebate__links { display: flex; flex-direction: column; gap: 8px; }
+.ug-rebate__links a { color: var(--navy); font-weight: 700; text-decoration: none; }
+.ug-rebate__links a:hover { color: var(--orange); text-decoration: underline; }
+.ug-rebate__numbers { display: grid; gap: 12px; }
+.ug-num {
+  background: var(--navy);
+  color: #fff;
+  border-radius: var(--rad);
+  padding: 20px 22px;
+}
+.ug-num strong { display: block; font-family: var(--f-display); font-size: 32px; line-height: 1; color: var(--orange-2); }
+.ug-num span { display: block; margin-top: 8px; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,0.78); }
+.ug-num--flat strong { color: var(--sky-2); }
+
+/* ---- faq ---- */
+.ug-faq__list { display: grid; gap: 10px; max-width: 900px; }
+.ug-faq details {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  padding: 16px 20px;
+}
+.ug-faq summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 16px;
+  line-height: 1.4;
+  list-style: none;
+}
+.ug-faq summary::-webkit-details-marker { display: none; }
+.ug-faq summary::after { content: " +"; color: var(--orange); float: right; }
+.ug-faq details[open] summary::after { content: " –"; }
+.ug-faq details p { margin: 12px 0 0; font-size: 15px; line-height: 1.65; color: var(--ink-2); }
+
+/* ---- cta ---- */
+.ug-cta { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; }
+.ug-cta h2 { color: #fff; max-width: 24ch; }
+.ug-cta p { max-width: 60ch; font-size: 16.5px; line-height: 1.65; color: rgba(255,255,255,0.82); margin: 0 0 26px; }
+
+@media (max-width: 900px) {
+  .ug-repair__grid,
+  .ug-rebate__grid { grid-template-columns: 1fr; gap: 28px; }
+}
+@media (max-width: 640px) {
+  .page-upgrade section { padding: 44px 0; }
+  .ug-hero { padding: 54px 0 48px !important; }
+  .ug-num strong { font-size: 27px; }
+}

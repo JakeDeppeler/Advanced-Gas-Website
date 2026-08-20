@@ -10,6 +10,8 @@ import { ProofStrip } from "@/components/ProofStrip";
 import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import "../../../detail.css";
+import { UpgradeNudge } from "@/components/UpgradeNudge";
+import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { pageTitle, metaDescription } from "@/lib/seo";
 
 /**
@@ -215,6 +217,15 @@ export default async function SystemPage({
             </ol>
           </div>
         </section>
+      )}
+
+      {/* Upgrade + rebate, right before the prices. Skipped on the
+          systems where a ten-year rule doesn't apply — see
+          nudgeForSystem(). */}
+      {nudgeForSystem(system.id) && (
+        <div className="wrap">
+          <UpgradeNudge variant={nudgeForSystem(system.id)!} />
+        </div>
       )}
 
       {/* Pricing */}

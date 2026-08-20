@@ -10,11 +10,23 @@ import { InstagramCTA } from "@/components/InstagramCTA";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProofStrip } from "@/components/ProofStrip";
 import { WhyDifferent } from "@/components/WhyDifferent";
+import { UpgradeNudge } from "@/components/UpgradeNudge";
+import type { NudgeVariant } from "@/lib/upgradeAngle";
 import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 import { pageTitle, metaDescription } from "@/lib/seo";
+
+/** Which flavour of the "near ten years old? price the upgrade" argument
+ *  each service gets. Gas plumbing leads with ducted heating, so it takes
+ *  the heating one. */
+const NUDGE_BY_SERVICE: Record<string, NudgeVariant> = {
+  "air-conditioning-installation": "cooling",
+  "aircon-servicing-repairs": "cooling",
+  "heat-pump-installation": "hot-water",
+  "gas-plumbing": "heating",
+};
 
 export function generateStaticParams() {
   return services.map((s) => ({ slug: s.slug }));
@@ -222,6 +234,13 @@ export default async function ServicePage({ params }: { params: { slug: string }
       )}
 
       <WhyDifferent service={svc.short.toLowerCase()} content={content.whyThese} />
+
+      {/* The upgrade + rebate argument, deliberately placed immediately
+          before the prices, because it's the thing that makes the prices
+          make sense. */}
+      <div className="wrap">
+        <UpgradeNudge variant={NUDGE_BY_SERVICE[svc.slug] ?? "general"} />
+      </div>
 
       {/* PRICING */}
       <section className="dp-pricing">

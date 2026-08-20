@@ -10,6 +10,8 @@ import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import { CoverageMap } from "@/components/CoverageMap";
 import "../../detail.css";
+import { UpgradeNudge } from "@/components/UpgradeNudge";
+import { nudgeForSuburbText } from "@/lib/upgradeAngle";
 import { pageTitle, metaDescription } from "@/lib/seo";
 
 // Client-only Leaflet map — lazy loaded so the tiles + CSS never sit in
@@ -194,6 +196,13 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </div>
         </div>
       </section>
+
+      {/* Upgrade + rebate. The variant comes from what we actually
+          install in this suburb, so it isn't the same paragraph on all
+          sixty-odd of these pages. */}
+      <div className="wrap">
+        <UpgradeNudge variant={nudgeForSuburbText(sub.commonInstall)} />
+      </div>
 
       {/* ------------------ Local hooks + testimonial + quote form ------------------ */}
       <section className="dp-quote">

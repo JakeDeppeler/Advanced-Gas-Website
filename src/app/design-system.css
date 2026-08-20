@@ -1820,3 +1820,67 @@ input, select, textarea {
   .ds-section-head--hl { padding-left: 14px; }
   .ds-section-head--hl::before { width: 3px; }
 }
+
+/* ============== UPGRADE / REBATE NUDGE ==============
+   The compact "near ten years old? price the upgrade" call-out.
+   Lives in the design system rather than a page stylesheet because it
+   renders on service, system, suburb and brand pages. */
+.upnudge {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+  border-radius: var(--rad);
+  padding: 26px 28px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-md);
+}
+.upnudge__age {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  line-height: 1;
+}
+.upnudge__agenum { font-family: var(--f-display); font-size: 30px; font-weight: 800; }
+.upnudge__agelab { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; opacity: 0.9; }
+.upnudge__body { min-width: 0; }
+.upnudge__body h3 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0 0 10px;
+  color: #fff;
+}
+.upnudge__body p { margin: 0 0 10px; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.86); }
+.upnudge__caveat { font-size: 14px; color: rgba(255,255,255,0.66); font-style: italic; }
+.upnudge__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+.upnudge__cta {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.upnudge__cta:hover { background: var(--orange-2); }
+.upnudge__link { color: var(--sky-2); font-weight: 600; font-size: 14px; text-decoration: none; }
+.upnudge__link:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .upnudge { flex-direction: column; gap: 14px; padding: 22px 20px; margin: 28px 0; }
+  .upnudge__age { width: 62px; height: 62px; }
+  .upnudge__agenum { font-size: 25px; }
+  .upnudge__body h3 { font-size: 19px; }
+  .upnudge__actions { gap: 10px; }
+  .upnudge__cta { width: 100%; text-align: center; }
+}

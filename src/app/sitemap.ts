@@ -48,6 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/quote`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${base}/service-areas`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/rebates`, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${base}/upgrade-or-repair`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/services`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/brands`, changeFrequency: "monthly", priority: 0.85 },

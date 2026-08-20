@@ -9,7 +9,19 @@ import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
 import "../../../detail.css";
+import { UpgradeNudge } from "@/components/UpgradeNudge";
+import type { NudgeVariant } from "@/lib/upgradeAngle";
 import { pageTitle, metaDescription } from "@/lib/seo";
+
+/** Same mapping as the parent service page. Here the nudge is the one
+ *  bit of the page that varies by service rather than by suburb, which
+ *  is deliberate: the suburb pages already vary it the other way. */
+const NUDGE_BY_SERVICE: Record<string, NudgeVariant> = {
+  "air-conditioning-installation": "cooling",
+  "aircon-servicing-repairs": "cooling",
+  "heat-pump-installation": "hot-water",
+  "gas-plumbing": "heating",
+};
 
 const PRIMARY_SERVICES = services.slice(0, 2);
 
@@ -131,6 +143,10 @@ export default function SuburbServicePage({
           </div>
         </div>
       </section>
+
+      <div className="wrap">
+        <UpgradeNudge variant={NUDGE_BY_SERVICE[svc.slug] ?? "general"} />
+      </div>
 
       <section className="dp-quote">
         <div className="wrap dp-quote__grid">
