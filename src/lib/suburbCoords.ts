@@ -78,6 +78,16 @@ export const suburbCoords: Record<string, readonly [number, number]> = {
   "boronia":             [-37.860, 145.286],
   "lysterfield":         [-37.937, 145.309],
   "rowville":            [-37.938, 145.238],
+  // Outer ring — the eastern suburbs.
+  "ringwood":            [-37.815, 145.229],
+  "ringwood-east":       [-37.817, 145.253],
+  "ringwood-north":      [-37.798, 145.238],
+  "croydon":             [-37.796, 145.281],
+  "wantirna-south":      [-37.868, 145.230],
+  "vermont-south":       [-37.855, 145.185],
+  "glen-waverley":       [-37.878, 145.164],
+  "wheelers-hill":       [-37.906, 145.185],
+  "mount-waverley":      [-37.874, 145.128],
 };
 
 /** Great-circle distance in km between two lat/lng points (haversine). */

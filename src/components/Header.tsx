@@ -206,6 +206,19 @@ const AREAS_MEGA = {
         { href: "/areas/dandenong", label: "Dandenong" },
       ],
     },
+    {
+      // Outer ring. Booked installs rather than same-day work — the
+      // suburb pages say so themselves.
+      label: "Eastern suburbs",
+      items: [
+        { href: "/areas/ringwood", label: "Ringwood" },
+        { href: "/areas/croydon", label: "Croydon" },
+        { href: "/areas/glen-waverley", label: "Glen Waverley" },
+        { href: "/areas/wheelers-hill", label: "Wheelers Hill" },
+        { href: "/areas/vermont-south", label: "Vermont South" },
+        { href: "/areas/wantirna-south", label: "Wantirna South" },
+      ],
+    },
   ],
 };
 

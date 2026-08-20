@@ -85,18 +85,37 @@ export function localAngle(sub: Suburb, serviceSlug: string): LocalAngle | null 
   if (!build) return null;
   const { heading, opener, closer } = build(sub);
 
+  // Outer-ring suburbs get the same structure with honest verbs. We
+  // don't work in Ringwood every week and the copy shouldn't imply we
+  // do — see `outerRing` in lib/suburbs.ts.
+  const installLine = sub.outerRing
+    ? `What we get asked for out this way is mostly ${bare(sub.commonInstall)}.`
+    : `What we end up installing here most is ${bare(sub.commonInstall)}.`;
+
   const paras: string[] = [
     opener,
-    `${lead(bare(sub.housingStock))}. What we end up installing here most is ${bare(
-      sub.commonInstall,
-    )}.`,
+    `${lead(bare(sub.housingStock))}. ${installLine}`,
     closer,
   ];
+
 
   // Only some suburbs carry these. Where they exist they are the most
   // specific thing on the page, so they go in ahead of anything generic.
   if (sub.knownEstates) {
     paras.splice(2, 0, `${lead(bare(sub.knownEstates))}.`);
+  }
+
+  // Goes in second, after the opener and ahead of the detail, so nobody
+  // reads three paragraphs about their suburb before finding out how far
+  // away we are. Spliced last so it doesn't shift the index above.
+  if (sub.outerRing) {
+    paras.splice(
+      1,
+      0,
+      `${sub.name} sits at the outer edge of what we cover, ${driveTime(
+        sub,
+      )} from the Pakenham workshop. That makes it a booked-install suburb for us rather than a same-day one, and it is worth knowing which of those you actually need before you ring anybody.`,
+    );
   }
   if (sub.whyLocal) {
     paras.push(bare(sub.whyLocal) + ".");

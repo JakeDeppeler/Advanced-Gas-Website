@@ -87,10 +87,25 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           <h1>
             Aircon, heat pump &amp; gas plumbing in <span className="accent">{sub.name}</span>.
           </h1>
-          <p className="dp-hero__sub">
-            Licensed plumbing and refrigeration team working in {sub.name} ({sub.postcode}) since 2014.
-            You&rsquo;ll usually find us {sub.landmark}. Fixed-price quotes, same-week installs, and VEU rebates handled end-to-end.
-          </p>
+          {/* Outer-ring suburbs get a different opening. We can't claim to
+              be around the corner in Ringwood and the map says so, so the
+              honest version runs instead — and it's the stronger pitch,
+              because a booked install genuinely doesn't care how far the
+              van came. See `outerRing` in lib/suburbs.ts. */}
+          {sub.outerRing ? (
+            <p className="dp-hero__sub">
+              We&rsquo;re based in Pakenham and we travel to {sub.name} ({sub.postcode}) for booked work,
+              about {sub.driveMin ? `${sub.driveMin[0]}\u2013${sub.driveMin[1]} minutes` : "an hour"} each way.
+              That makes us the right call for a planned install and the wrong call for a 2 am burst pipe,
+              and we&rsquo;d rather say so than find out on the night. Fixed-price quotes after a site visit,
+              VEU rebates applied at the quote, same 6-year workmanship warranty as everyone else gets.
+            </p>
+          ) : (
+            <p className="dp-hero__sub">
+              Licensed plumbing and refrigeration team working in {sub.name} ({sub.postcode}) since 2014.
+              You&rsquo;ll usually find us {sub.landmark}. Fixed-price quotes, same-week installs, and VEU rebates handled end-to-end.
+            </p>
+          )}
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my {sub.name} quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
@@ -109,7 +124,9 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
               <p>{sub.housingStock.charAt(0).toUpperCase() + sub.housingStock.slice(1)}.</p>
             </div>
             <div className="dp-local__cell">
-              <div className="dp-local__lbl">What we mostly install here</div>
+              <div className="dp-local__lbl">
+                {sub.outerRing ? "What we get called out for here" : "What we mostly install here"}
+              </div>
               <p>{sub.commonInstall.charAt(0).toUpperCase() + sub.commonInstall.slice(1)}.</p>
             </div>
             <div className="dp-local__cell">

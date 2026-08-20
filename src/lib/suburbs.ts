@@ -42,6 +42,23 @@ export type Suburb = {
   commonProblems?: string[];
   /** Named local estates / streets / precincts we know cold. */
   knownEstates?: string;
+  /**
+   * Suburbs we cover but are not embedded in.
+   *
+   * Everything in the core corridor is within about half an hour of the
+   * Pakenham workshop and we work there constantly. The outer ring is
+   * different: still inside the 75 km radius, still genuinely serviceable,
+   * but 45 minutes to an hour away and not somewhere we can claim a decade
+   * of local jobs.
+   *
+   * The template reads this flag and changes the hero and the local strip
+   * accordingly, so an outer-ring page never says "you'll usually find us
+   * at the local shops" about a suburb we drive to for booked work. The
+   * honest version of that pitch is actually stronger — a planned install
+   * doesn't care how far the van came, and that is exactly the work these
+   * suburbs send us.
+   */
+  outerRing?: boolean;
 };
 
 export const suburbs: Suburb[] = [
@@ -1475,6 +1492,312 @@ export const suburbs: Suburb[] = [
       "the Gembrook township shops",
     ],
     nearby: ["emerald", "cockatoo", "bunyip"],
+  },
+  /* ---------------------------------------------------------------
+   * Outer ring — the eastern suburbs.
+   *
+   * Inside the 75 km radius, outside the corridor we live in. These
+   * are booked-install suburbs rather than same-day-emergency ones and
+   * the pages say so, because a Ringwood homeowner can see how far
+   * Pakenham is on a map and pretending otherwise costs more trust
+   * than it wins jobs.
+   * ------------------------------------------------------------- */
+  {
+    slug: "ringwood",
+    name: "Ringwood",
+    postcode: "3134",
+    distanceKm: 37,
+    driveMin: [45, 62],
+    published: true,
+    outerRing: true,
+    council: "Maroondah City Council",
+    landmark: "Eastland, Ringwood Lake and the rebuilt station interchange",
+    housingStock:
+      "mid-century weatherboard and brick veneer through the older streets, a lot of it on blocks big enough to have been subdivided since, plus a wall of newer apartments and townhouses that went up around Eastland and the station",
+    commonInstall:
+      "heat pump hot water replacing original electric and gas storage tanks in the older homes, and Mitsubishi Electric ducted retrofits where a 1970s house has been renovated but never had its heating touched",
+    localHooks: [
+      "Eastland",
+      "Ringwood Lake Park",
+      "Aquanation",
+      "Ringwood station interchange",
+      "Heathmont College",
+    ],
+    nearby: ["ringwood-east", "ringwood-north", "croydon"],
+    whyLocal:
+      "We are not going to tell you we are a Ringwood local, because you can see where Pakenham is. What we will tell you is what the drive actually changes and what it doesn't. A booked install does not care how far the van came: we arrive at the time we said, do the job, and the six-year workmanship warranty is the same one every other customer gets. A 2 am no-hot-water emergency is a different question, and for that you want someone closer. We would rather say that plainly than take the booking and let you find out.",
+    commonProblems: [
+      "The older weatherboards through the middle of Ringwood have limited roof space, so ducted is not always on the table and a multi-head split ends up being the better answer",
+      "Original electric storage tanks in the post-war housing stock are the single best VEU rebate candidates there are, and a lot of them are still sitting there",
+      "The apartments and townhouses around Eastland come with body corporate rules about where an outdoor unit can go, which decides all-in-one versus split heat pump before anything technical does",
+      "Renovated 70s homes very often have a new kitchen and an original heater. The heat exchanger does not know the house was updated",
+    ],
+    knownEstates:
+      "The older streets between Ringwood Lake and Heathmont, the Eastland and station precinct apartments and townhouses, and the post-war pockets running toward Ringwood East.",
+  },
+  {
+    slug: "ringwood-east",
+    name: "Ringwood East",
+    postcode: "3135",
+    distanceKm: 36,
+    driveMin: [45, 62],
+    published: true,
+    outerRing: true,
+    council: "Maroondah City Council",
+    landmark: "the Ringwood East village shops, Wombolano Park and Norwood Secondary",
+    housingStock:
+      "fifties through seventies brick veneer and weatherboard on generous blocks, a good share of which have been subdivided into dual occupancies with modern services at the front and forty-year-old ones at the back",
+    commonInstall:
+      "gas ducted heater replacements in the original homes, and heat pump hot water on the subdivided rear units where the developer fitted the cheapest tank available",
+    localHooks: [
+      "Ringwood East village shops",
+      "Eastwood Primary",
+      "Norwood Secondary College",
+      "Wombolano Park",
+      "the Belgrave and Lilydale line",
+    ],
+    nearby: ["ringwood", "ringwood-north", "croydon"],
+    whyLocal:
+      "Ringwood East is an hour from us in traffic, so we quote it as planned work rather than same-day. The trade-off is worth understanding: the reason people out this way ring us at all is usually the Reclaim CO₂ range, which not many installers carry properly, or a quote that has the VEU rebate already inside the number rather than promised afterwards. If what you need is someone within ten minutes tonight, we will say so on the phone and you have lost nothing but the call.",
+    commonProblems: [
+      "Dual-occupancy subdivisions almost always got a builder-spec hot water unit on the rear dwelling, and those are the ones failing first",
+      "The original homes on the big blocks tend to run gas ducted from an external cabinet, so duct runs are long and the far bedrooms never warm up properly",
+      "Anything on a gas ducted heater past ten years here gets carbon monoxide tested whether or not it is being replaced, because the housing stock is exactly the age where cracked heat exchangers show up",
+      "Narrow side setbacks on the subdivided blocks make outdoor unit placement the real constraint, not capacity",
+    ],
+    knownEstates:
+      "The streets running off Railway Avenue and Patterson Street, the older large-block pockets around Wombolano Park, and the newer dual-occupancy developments spreading through the middle.",
+  },
+  {
+    slug: "ringwood-north",
+    name: "Ringwood North",
+    postcode: "3134",
+    distanceKm: 38,
+    driveMin: [48, 66],
+    published: true,
+    outerRing: true,
+    council: "Maroondah City Council",
+    landmark: "Loughnan's Hill, the Mullum Mullum Creek Linear Park and the Warrandyte State Park edge",
+    housingStock:
+      "seventies and eighties brick homes on large leafy elevated blocks, a lot of split-levels, and enough tree cover that solar and outdoor unit placement both need thinking about",
+    commonInstall:
+      "Mitsubishi Electric ducted retrofits and multi-head splits for split-level homes that a single system has never handled properly, plus Reclaim CO₂ split heat pumps where the tank and the outdoor unit have to sit apart",
+    localHooks: [
+      "Loughnan's Hill",
+      "Mullum Mullum Creek Linear Park",
+      "Warrandyte State Park",
+      "Yarra Valley Grammar",
+      "Old Warrandyte Road",
+    ],
+    nearby: ["ringwood", "ringwood-east", "croydon"],
+    whyLocal:
+      "The split-level houses up here are the reason we get called this far out. A single-zone ducted system in a house with three floor levels heats the middle beautifully and never gets on top of the rest, and the fix is zoning or a second system rather than a bigger unit. That is a design conversation, which means a site visit and a booked install, which is exactly the kind of work the drive from Pakenham does not affect.",
+    commonProblems: [
+      "Split-levels condition as one big zone unless somebody deliberately zoned them, and almost nobody did in the seventies and eighties",
+      "Big blocks put the outdoor unit a long way from where the tank sits, and on a split heat pump that distance is a genuine design constraint rather than a detail",
+      "Heavy tree cover means leaf litter in condensers and evap units, so servicing intervals matter more here than they do on a bare estate block",
+      "Original hot water on a house this age is well past the ten-year line, and it is usually electric, which is the biggest rebate on the list",
+    ],
+    knownEstates:
+      "The elevated streets off Oban Road and Warrandyte Road, the pockets backing onto Mullum Mullum Creek, and the larger blocks running north toward the Warrandyte State Park boundary.",
+  },
+  {
+    slug: "croydon",
+    name: "Croydon",
+    postcode: "3136",
+    distanceKm: 36,
+    driveMin: [45, 65],
+    published: true,
+    outerRing: true,
+    council: "Maroondah City Council",
+    landmark: "Croydon Main Street, Aquahub and the Tarralla Creek trail",
+    housingStock:
+      "post-war and seventies brick veneer through the flat central streets, rising to larger blocks on the hill, with steady townhouse infill along the station corridor",
+    commonInstall:
+      "heat pump hot water replacing end-of-life electric and gas storage, and gas ducted heater changeovers in the original brick veneer homes",
+    localHooks: [
+      "Croydon Main Street",
+      "Croydon Aquahub",
+      "Tarralla Creek trail",
+      "Croydon station",
+      "Melba College",
+    ],
+    nearby: ["ringwood", "ringwood-east", "ringwood-north"],
+    whyLocal:
+      "Croydon is a planned-work suburb for us and we book it that way. Where we are worth the drive is when you want a heat pump quoted properly — the right tank size for your household rather than whatever is in the van, the rebate applied at the quote instead of chased afterwards, and a straight answer on whether Reclaim, iStore or Thermann actually suits your setup. Where we are not worth it is a burst pipe at midnight.",
+    commonProblems: [
+      "A lot of the flat central streets still run original electric storage, which is the appliance the VEU scheme was most obviously written to remove",
+      "Townhouse infill along the station corridor comes with tight setbacks and body corporate rules, so unit placement is decided before capacity is",
+      "The seventies brick veneers were built with gas ducted and most are on their second heater at best, which puts them squarely in carbon monoxide test territory",
+      "Homes on the hill have longer service runs and awkward outdoor unit positions, so the quote needs a site visit rather than a phone estimate",
+    ],
+    knownEstates:
+      "The older streets either side of Main Street, the larger blocks up toward Croydon Hills, and the newer townhouse developments along the station corridor.",
+  },
+  {
+    slug: "wantirna-south",
+    name: "Wantirna South",
+    postcode: "3152",
+    distanceKm: 32,
+    driveMin: [42, 58],
+    published: true,
+    outerRing: true,
+    council: "Knox City Council",
+    landmark: "Westfield Knox, Knox Gardens and the Burwood Highway corridor",
+    housingStock:
+      "seventies through nineties brick veneer family homes on solid blocks, most built with ducted heating from new, with newer townhouse clusters filling the gaps closer to Knox",
+    commonInstall:
+      "gas ducted heater replacements and reverse-cycle changeovers, plus iStore and Thermann heat pump swaps on original storage tanks",
+    localHooks: [
+      "Westfield Knox",
+      "Knox Gardens Primary",
+      "Lewis Park",
+      "Burwood Highway",
+      "Wantirna Reserve",
+    ],
+    nearby: ["boronia", "rowville", "vermont-south"],
+    whyLocal:
+      "Wantirna South is the closest of the eastern suburbs to us and the easiest run, straight up EastLink. It is still a booked-install suburb rather than an emergency one, but the drive is under an hour either side of peak. The jobs we get out here are mostly the same as Rowville next door: gas ducted at the end of its life and a decision about whether the replacement should be gas at all.",
+    commonProblems: [
+      "Ducted heaters installed with the house in the eighties and nineties are now at or past design life, and the honest question is whether to replace like for like or move to reverse-cycle",
+      "Original hot water on the older streets is frequently untouched, and an old tank is the largest single rebate available",
+      "Newer townhouse clusters have no roof space to speak of, so ducted is often out and a multi-head split is the real option",
+      "Single-zone ducted in a nineties double-storey never gets on top of the upstairs bedrooms. Zoning fixes most of them",
+    ],
+    knownEstates:
+      "The established streets around Knox Gardens and Lewis Park, the family-home pockets running off Stud Road, and the townhouse infill closer to Westfield Knox.",
+  },
+  {
+    slug: "vermont-south",
+    name: "Vermont South",
+    postcode: "3133",
+    distanceKm: 36,
+    driveMin: [45, 62],
+    published: true,
+    outerRing: true,
+    council: "Whitehorse City Council",
+    landmark: "Vermont South Shopping Centre, the route 75 tram terminus and Bellbird Dell",
+    housingStock:
+      "seventies and eighties brick veneer on generous, well-kept blocks, one of the more consistent pockets in the east, with newer townhouse development around the tram terminus",
+    commonInstall:
+      "Mitsubishi Electric ducted retrofits and zoning upgrades, plus heat pump hot water replacing original storage tanks",
+    localHooks: [
+      "Vermont South Shopping Centre",
+      "the route 75 tram terminus",
+      "Bellbird Dell",
+      "Livingstone Primary",
+      "Emmaus College",
+    ],
+    nearby: ["wantirna-south", "glen-waverley", "ringwood"],
+    whyLocal:
+      "Vermont South homes are the age where the original heating and hot water have both reached the end together, and where a homeowner would rather spend properly once than cheaply twice. That is the work we like and it is worth the drive for. We book it as planned work, quote after a site visit, and put the rebate in the number rather than in a promise.",
+    commonProblems: [
+      "The original ducted systems here are largely single-zone, so the house conditions as one block and the bedrooms are never right",
+      "Well-kept eighties homes very often still have their first hot water replacement rather than their second, which puts them well past the line",
+      "Established gardens and mature trees mean condenser positions are more constrained than the block size suggests",
+      "Townhouses around the tram terminus have body corporate rules that decide the system type before anything technical does",
+    ],
+    knownEstates:
+      "The established streets around Bellbird Dell and Livingstone Road, the pockets backing onto the Dandenong Creek trail, and the newer developments near the tram terminus.",
+  },
+  {
+    slug: "glen-waverley",
+    name: "Glen Waverley",
+    postcode: "3150",
+    distanceKm: 36,
+    driveMin: [45, 62],
+    published: true,
+    outerRing: true,
+    council: "Monash City Council",
+    landmark: "The Glen, the Kingsway strip and Central Reserve",
+    housingStock:
+      "post-war brick veneer being steadily replaced by large double-storey rebuilds, so the suburb runs the full range from an untouched 1960s house to a brand-new four-bedroom with everything roughed in",
+    commonInstall:
+      "full Mitsubishi Electric ducted systems with proper zoning on the rebuilds, and heat pump hot water on the original homes that have not been touched",
+    localHooks: [
+      "The Glen",
+      "the Kingsway restaurant strip",
+      "Glen Waverley Secondary College",
+      "Central Reserve",
+      "Glen Waverley station",
+    ],
+    nearby: ["wheelers-hill", "mount-waverley", "vermont-south"],
+    whyLocal:
+      "Glen Waverley is two suburbs in one and they need different answers. The rebuilds want a properly zoned ducted system designed for a double-storey, which is a site visit and a design conversation rather than a price over the phone. The untouched original homes want a straight answer about hot water and whether the old ducted heater is safe. Both are planned jobs, which is the sort of work the drive from Pakenham does not change.",
+    commonProblems: [
+      "Double-storey rebuilds fitted with a single-zone system cool the living area beautifully and never get on top of the upstairs bedrooms",
+      "The remaining original 1960s houses have almost no roof cavity, so ducted is often off the table before we start",
+      "Knock-down-rebuild blocks have tight side setbacks and a neighbour's window to consider, which constrains where the outdoor unit can legally sit",
+      "Original electric and gas storage tanks in the untouched homes are decades old and are the highest-value rebate jobs on the list",
+    ],
+    knownEstates:
+      "The established streets around Central Reserve and the Glen Waverley Secondary zone, the rebuild-heavy pockets running north of High Street Road, and the apartment and townhouse development around the station and The Glen.",
+  },
+  {
+    slug: "wheelers-hill",
+    name: "Wheelers Hill",
+    postcode: "3150",
+    distanceKm: 33,
+    driveMin: [42, 58],
+    published: true,
+    outerRing: true,
+    council: "Monash City Council",
+    landmark: "Brandon Park, Jells Park and the ridge running along Ferntree Gully Road",
+    housingStock:
+      "seventies and eighties brick homes on large elevated blocks, a lot of them substantial two-storey builds with long internal runs and multiple living areas",
+    commonInstall:
+      "zoned ducted retrofits and multi-head splits for houses a single system has never covered properly, plus Reclaim CO₂ split heat pumps where the tank and outdoor unit sit apart",
+    localHooks: [
+      "Brandon Park Shopping Centre",
+      "Jells Park",
+      "Caulfield Grammar Wheelers Hill",
+      "Wheelers Hill Library",
+      "Ferntree Gully Road",
+    ],
+    nearby: ["glen-waverley", "rowville", "mount-waverley"],
+    whyLocal:
+      "The houses up here are big, and big houses are where zoning stops being a nice extra and starts being the whole job. A system sized for the floor area but run as one zone will cost a fortune and still get rooms wrong. Working that out properly takes a walk through the house, which is a booked visit, which is what we do out this way. It is also the closest eastern suburb to us after Wantirna South.",
+    commonProblems: [
+      "Large two-storey homes on one zone are the most common complaint here, and adding zoning is usually cheaper than people expect",
+      "Elevated blocks mean long refrigerant and water runs, so the design matters more than the badge on the box",
+      "Original ducted heaters in eighties homes are past design life and go on the carbon monoxide test list at every service",
+      "Mature gardens and established trees restrict where a condenser can go and how well it can breathe once it is there",
+    ],
+    knownEstates:
+      "The elevated streets running off Jells Road and Waverley Road, the pockets backing onto Jells Park, and the larger blocks along the ridge toward Ferntree Gully Road.",
+  },
+  {
+    slug: "mount-waverley",
+    name: "Mount Waverley",
+    postcode: "3149",
+    distanceKm: 39,
+    driveMin: [48, 66],
+    published: true,
+    outerRing: true,
+    council: "Monash City Council",
+    landmark: "Mount Waverley Village, Valley Reserve and Damper Creek",
+    housingStock:
+      "post-war brick veneer through most of the suburb with heavy knock-down-rebuild activity on top of it, so services age varies street by street rather than area by area",
+    commonInstall:
+      "heat pump hot water replacing original storage tanks, and zoned ducted systems on the rebuilds",
+    localHooks: [
+      "Mount Waverley Village",
+      "Valley Reserve",
+      "Damper Creek Reserve",
+      "Mount Waverley Secondary College",
+      "Mount Waverley station",
+    ],
+    nearby: ["glen-waverley", "wheelers-hill", "vermont-south"],
+    whyLocal:
+      "Mount Waverley is a suburb where the house next door can be sixty years newer than yours, which means there is no such thing as a standard quote here. We treat it as a site-visit suburb, price it after we have seen it, and book it as planned work. If you want a heat pump specified properly rather than sold off a shelf, the drive is worth it. If your tank has just burst, ring someone closer first and us second.",
+    commonProblems: [
+      "Original post-war homes have shallow roof cavities, so ducted retrofits need checking on site before anything is promised",
+      "Untouched original hot water is common and it is almost always electric storage, which is the largest rebate available",
+      "Rebuild blocks are narrow with tight setbacks, so outdoor unit placement is constrained by easements and the neighbour's windows",
+      "A rebuild fitted with a single-zone system will never get the upstairs bedrooms right, and the fix is zoning rather than more capacity",
+    ],
+    knownEstates:
+      "The established streets around Valley Reserve and Damper Creek, the rebuild-heavy pockets near Mount Waverley Secondary, and the older housing running toward Syndal.",
   },
 ];
 
