@@ -64,6 +64,13 @@ const SERVICES_MEGA: {
       photo: "/gas-line-safe.webp",
       photoAlt: "Emergency call-out, 24/7 gas and hot water",
     },
+    {
+      href: "/services/gas-plumbing/temporary-hot-water",
+      label: "Temporary hot water",
+      sub: "$30/day while you decide",
+      photo: "/gas-hot-water-changeover.webp",
+      photoAlt: "Temporary hot water unit connected during a changeover",
+    },
   ],
   install: [
     {

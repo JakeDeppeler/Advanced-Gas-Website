@@ -708,6 +708,65 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "What happens if you find carbon monoxide?", a: "We disconnect the appliance and tell you exactly what we found. It's the one part of the job with no negotiation in it." },
         ],
       },
+      {
+        id: "temporary-hot-water",
+        label: "Temporary hot water hire",
+        blurb:
+          "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. $30 a day, and the $350 set-up and removal is waived if we do the replacement.",
+        photo: { src: "/gas-hot-water-changeover.webp", alt: "Temporary hot water unit connected during a changeover" },
+        points: [
+          "Connected the same day in most cases",
+          "$30 per day while it's on site",
+          "$350 set-up and removal, waived if we do the replacement",
+          "Buys you time to compare quotes instead of deciding in a panic",
+          "Runs the whole house, not just one tap",
+          "Disconnected and taken away on the day the new system goes in",
+          "Rentals and tenanted properties, keeps you compliant while you sort it",
+          "No obligation to use us for the replacement",
+        ],
+        priceFrom: "$30/day · $350 set-up waived if we do the job",
+        intro:
+          "When a tank dies you are suddenly being asked to make a three or four thousand dollar decision, today, with cold showers as the deadline. That is the worst possible way to buy a hot water system, and it is exactly how most people end up with the wrong one. A temporary unit takes the deadline off the table: the house has hot water tonight, and you get to choose the replacement properly, at a normal pace, with real quotes in front of you.",
+        bestFor: [
+          "A tank that has failed and a replacement decision you don't want to rush",
+          "Households with kids, shift workers, or anyone who cannot go a day without hot water",
+          "Waiting on a specific unit that isn't in stock, or on a rebate approval to come through",
+          "Rentals, where the Residential Tenancies minimum standards don't pause while you decide",
+          "Anyone who wants to compare three quotes properly rather than take whoever can come today",
+        ],
+        watchOut: [
+          "It's a temporary unit, not a permanent one. It does the job and it isn't pretty, and it isn't meant to live there",
+          "The daily rate keeps running until the new system goes in, so it buys time rather than replacing the decision",
+          "We need somewhere sensible to put it and a water and power or gas point to run it from. We check that when we quote",
+          "If your existing system can be repaired for less than the hire will cost, we'll tell you that instead. It happens more often than you'd think",
+        ],
+        faqs: [
+          {
+            q: "How much does temporary hot water cost?",
+            a: "$30 a day while it's on site, plus a $350 set-up and removal fee. If we end up doing the replacement, the $350 is waived, so the only thing you pay for is the days you actually used it.",
+          },
+          {
+            q: "Do I have to use you for the new system?",
+            a: "No. The hire stands on its own and you're free to go elsewhere for the replacement. You'd pay the $350 in that case, which covers the two trips and the gear. We'd rather you had hot water and chose properly than felt cornered into a decision.",
+          },
+          {
+            q: "How fast can you get one connected?",
+            a: "Usually the same day across Pakenham, Officer, Berwick, Beaconsfield, Narre Warren and Cranbourne if you ring in the morning. It goes in on the first visit, at the same time as we look at what failed.",
+          },
+          {
+            q: "Does it run the whole house or just one tap?",
+            a: "The whole house. It plumbs into the existing hot water line where the old unit was, so every outlet works the way it normally does.",
+          },
+          {
+            q: "I'm a landlord. Does this keep me compliant?",
+            a: "It keeps hot water running at the property while the permanent replacement is arranged, which is the practical problem the Residential Tenancies minimum standards create. Get the permanent fix booked as well; the temporary unit buys time, it isn't the answer on its own.",
+          },
+          {
+            q: "What if the old system can just be fixed?",
+            a: "Then we fix it and you don't need this at all. We look at what failed on the same visit, and if it's a component rather than the tank we'll say so. Hiring a temporary unit to sit next to a repairable system would be us taking your money for nothing.",
+          },
+        ],
+      },
     ],
     photos: [
       { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater", caption: "Brivis Classic Wombat, the ducted heater we replace most often" },

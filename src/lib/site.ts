@@ -58,7 +58,7 @@ export const services = [
     name: "Heat Pump Hot Water Installation",
     short: "Heat Pump Installation",
     blurb:
-      "Energy-efficient heat pump hot water systems installed from as little as $33* with VEU rebates. Cut hot water energy use by up to 75%.",
+      "Energy-efficient heat pump hot water installed with the VEU rebate applied at the quote. Cuts hot water energy use by up to 75%.",
     icon: "thermometer",
   },
   {
