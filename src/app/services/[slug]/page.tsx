@@ -69,6 +69,87 @@ export default async function ServicePage({ params }: { params: { slug: string }
     { name: svc.name, url: `${site.url}/services/${svc.slug}` },
   ]);
 
+  // Real changeover photography, where a matching pair exists.
+  const beforeAfterSection = (
+    <>
+      {/* BEFORE / AFTER — real changeover photography for services that
+          have a matching pair in the gallery data. */}
+      {beforeAfter && (
+        <section className="svc-ba">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Before &amp; after</span>
+              <h2>{beforeAfter.title}</h2>
+              <p>{beforeAfter.blurb}</p>
+            </div>
+            <div className="svc-ba__row">
+              <div className="svc-ba__media">
+                <BeforeAfter before={beforeAfter.before} after={beforeAfter.after} ratio="3 / 4" />
+              </div>
+              <div className="svc-ba__side">
+                {beforeAfter.meta && (
+                  <ul className="svc-ba__meta">
+                    {beforeAfter.meta.map((m) => <li key={m}>{m}</li>)}
+                  </ul>
+                )}
+                <Link href="/gallery" className="ds-btn ds-btn--orange">
+                  See more real installs →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  // The range: manufacturer product shots plus the Instagram pitch.
+  const rangeSection = (
+    <>
+      {/* THE GEAR WE INSTALL — manufacturer product shots, with an
+          honest note + a link to Instagram where the actual on-the-tools
+          install photos live. */}
+      {content.photos && content.photos.length > 0 && (
+        <section className="svc-photos">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> The gear we install</span>
+              <h2>What we put in for {svc.short.toLowerCase()}.</h2>
+              <p>
+                These are the manufacturer product shots so you can see exactly which unit
+                we&rsquo;re quoting. For photos of our actual installs, on the roof,
+                in the cupboard, on the wall, head to our Instagram.
+              </p>
+            </div>
+            <div className="svc-photos__grid">
+              {content.photos.map((p) => (
+                <figure key={p.src} className="svc-photo">
+                  <img src={p.src} alt={p.alt} loading="lazy" width="600" height="450" />
+                  {p.caption && <figcaption>{p.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+            {/* Only pitch Instagram here when the live feed below isn't
+                carrying the load — otherwise it's two asks in a row. */}
+            {igPosts.length === 0 && (
+              <InstagramCTA
+                heading="See the real thing on Instagram"
+                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed, real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
+              />
+            )}
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  // Why this gear and why this crew.
+  const whyUsSection = (
+    <>
+      <WhyDifferent service={svc.short.toLowerCase()} content={content.whyThese} />
+    </>
+  );
+
   return (
     <div className="page-detail">
       {/* HERO — two-column with a photo panel and trust bar, so service
@@ -133,6 +214,58 @@ export default async function ServicePage({ params }: { params: { slug: string }
           </div>
         </div>
       </section>
+
+      {/* WHY DO THIS AT ALL — only on services where the customer hasn't
+          decided they want the thing yet. When present it leads the page
+          and the specification blocks move below it, because a spec sheet
+          is no use to somebody still asking why. */}
+      {content.whyFirst && (
+        <section className="svc-why">
+          <div className="wrap">
+            <div className="svc-why__grid">
+              <div className="svc-why__copy">
+                <div className="ds-section-head ds-section-head--hl">
+                  <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> {content.whyFirst.eyebrow}</span>
+                  <h2>{content.whyFirst.heading}</h2>
+                  <p>{content.whyFirst.blurb}</p>
+                </div>
+                <ul className="svc-why__stats">
+                  {content.whyFirst.stats.map((st) => (
+                    <li key={st.label}>
+                      <strong>{st.value}</strong>
+                      <span>{st.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <figure className="svc-why__photo">
+                <img src={content.whyFirst.photo.src} alt={content.whyFirst.photo.alt} width="800" height="1000" loading="eager" />
+              </figure>
+            </div>
+
+            <div className="svc-why__reasons">
+              {content.whyFirst.reasons.map((r) => (
+                <div className="svc-why__reason" key={r.t}>
+                  <h3>{r.t}</h3>
+                  <p>{r.d}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="svc-why__caveat">{content.whyFirst.caveat}</p>
+          </div>
+        </section>
+      )}
+
+      {/* Why this gear and why us, then the range, then the proof. On a
+          why-first page these come before the specification. */}
+      {content.whyFirst && (
+        <>
+          {whyUsSection}
+          {rangeSection}
+          {beforeAfterSection}
+        </>
+      )}
 
       {/* BENEFITS */}
       <section className="dp-benefits">
@@ -233,7 +366,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </section>
       )}
 
-      <WhyDifferent service={svc.short.toLowerCase()} content={content.whyThese} />
+      {!content.whyFirst && whyUsSection}
 
       {/* The upgrade + rebate argument, deliberately placed immediately
           before the prices, because it's the thing that makes the prices
@@ -308,68 +441,11 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      {/* BEFORE / AFTER — real changeover photography for services that
-          have a matching pair in the gallery data. */}
-      {beforeAfter && (
-        <section className="svc-ba">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Before &amp; after</span>
-              <h2>{beforeAfter.title}</h2>
-              <p>{beforeAfter.blurb}</p>
-            </div>
-            <div className="svc-ba__row">
-              <div className="svc-ba__media">
-                <BeforeAfter before={beforeAfter.before} after={beforeAfter.after} ratio="3 / 4" />
-              </div>
-              <div className="svc-ba__side">
-                {beforeAfter.meta && (
-                  <ul className="svc-ba__meta">
-                    {beforeAfter.meta.map((m) => <li key={m}>{m}</li>)}
-                  </ul>
-                )}
-                <Link href="/gallery" className="ds-btn ds-btn--orange">
-                  See more real installs →
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* THE GEAR WE INSTALL — manufacturer product shots, with an
-          honest note + a link to Instagram where the actual on-the-tools
-          install photos live. */}
-      {content.photos && content.photos.length > 0 && (
-        <section className="svc-photos">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> The gear we install</span>
-              <h2>What we put in for {svc.short.toLowerCase()}.</h2>
-              <p>
-                These are the manufacturer product shots so you can see exactly which unit
-                we&rsquo;re quoting. For photos of our actual installs, on the roof,
-                in the cupboard, on the wall, head to our Instagram.
-              </p>
-            </div>
-            <div className="svc-photos__grid">
-              {content.photos.map((p) => (
-                <figure key={p.src} className="svc-photo">
-                  <img src={p.src} alt={p.alt} loading="lazy" width="600" height="450" />
-                  {p.caption && <figcaption>{p.caption}</figcaption>}
-                </figure>
-              ))}
-            </div>
-            {/* Only pitch Instagram here when the live feed below isn't
-                carrying the load — otherwise it's two asks in a row. */}
-            {igPosts.length === 0 && (
-              <InstagramCTA
-                heading="See the real thing on Instagram"
-                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed, real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
-              />
-            )}
-          </div>
-        </section>
+      {!content.whyFirst && (
+        <>
+          {beforeAfterSection}
+          {rangeSection}
+        </>
       )}
 
       {/* Live Instagram, posts whose caption mentions this kind of job. */}

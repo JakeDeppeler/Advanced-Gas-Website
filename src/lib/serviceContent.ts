@@ -34,6 +34,28 @@ export type ServiceContent = {
   included?: string[];
   excluded?: string[];
   /**
+   * Lead the page with the case for doing this at all, before any
+   * specification. Set on services where the customer hasn't decided
+   * they want the thing yet — nobody wakes up wanting a heat pump, they
+   * wake up with a dead tank and a decision to make.
+   *
+   * When present the page reorders: why → brands → range → proof → us,
+   * and the spec-heavy blocks move below the fold. Absent, the page
+   * renders in its original order.
+   */
+  whyFirst?: {
+    eyebrow: string;
+    heading: string;
+    blurb: string;
+    /** Big numbers. Three or four, no more — this is a glance, not a read. */
+    stats: { value: string; label: string }[];
+    /** Short reasons. Each one a sentence, not a paragraph. */
+    reasons: { t: string; d: string }[];
+    photo: { src: string; alt: string };
+    /** The honest counterweight. */
+    caveat: string;
+  };
+  /**
    * "Why we install this gear" — the argument for the specific systems
    * this service uses, not a generic company pitch. Every service page
    * gets its own, because the case for Mitsubishi in a bedroom wall is a
@@ -314,9 +336,30 @@ export const serviceContent: Record<string, ServiceContent> = {
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
       "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
-    h1: "Heat pump hot water installation across Melbourne's south-east",
+    h1: "Heat pump hot water, installed properly",
     intro:
-      "Reclaim, iStore and Thermann heat pump hot water systems installed by licensed plumbers across every postcode within 75 km of Pakenham. The VEU rebate (up to $2,700) is applied at quote. You don't pay it up-front and chase it back. Old tank removed and responsibly disposed, licensed plumbing to AS/NZS 3500, and a 6-year workmanship warranty on top of the manufacturer's tank + heat-pump cover.",
+      "Nobody wakes up wanting a heat pump. You wake up with a dead tank and a decision to make. Here's the case for making it this one, which brands we'd fit in our own houses and why, and what the job actually looks like — with the rebate already in the number.",
+    whyFirst: {
+      eyebrow: "Why a heat pump at all",
+      heading: "It's the same hot water for about a quarter of the energy.",
+      blurb:
+        "A heat pump doesn't make heat, it moves it. It pulls warmth out of the outside air and puts it into your tank, which is why it delivers three to four units of heat for every unit of electricity it draws. An electric element gets you one. That gap is the whole argument, and it turns up on every bill for the next fifteen years.",
+      stats: [
+        { value: "~75%", label: "less energy than an electric element" },
+        { value: "$2,605", label: "rebate, owner-occupier, everything stacked" },
+        { value: "$0", label: "running cost if you schedule it off your solar" },
+        { value: "1 day", label: "on site for most changeovers" },
+      ],
+      reasons: [
+        { t: "The bill drops the first quarter", d: "Hot water is roughly a quarter of the average household energy bill. Cutting that by three-quarters shows up immediately, not eventually." },
+        { t: "The rebate is worth the most right now", d: "An old gas or electric tank is exactly what the VEU scheme was written to remove, so the moment your tank is on its way out is the moment the rebate is worth the most." },
+        { t: "It pairs with solar better than anything", d: "Schedule the heating for the middle of the day and it runs on power you'd otherwise export for a few cents. That's where the hot water bill goes to almost nothing." },
+        { t: "No flue, no gas, no combustion", d: "Nothing burning means no carbon monoxide test, no flue to block and one less gas appliance on the bill. If you're thinking about dropping the gas connection entirely, this is the first thing that has to go." },
+      ],
+      photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, outdoor unit and tank installed against a brick wall" },
+      caveat:
+        "The honest part: they're not silent, they need airflow around the outdoor unit, and if your existing tank is under about six years old with a cheap fault we'd fix that instead and tell you to come back in a few years.",
+    },
     whyThese: {
       heading: "Why Reclaim, iStore and Thermann, and nothing else.",
       blurb:

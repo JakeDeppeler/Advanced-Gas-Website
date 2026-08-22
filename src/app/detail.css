@@ -1022,14 +1022,25 @@
 
 /* ============== SERVICE PAGE BEFORE/AFTER ============== */
 .page-detail .svc-ba { padding: 80px 0; background: var(--paper); border-top: 1px solid var(--line); }
+/* The media column was capped at 400px against a 1fr text column, which
+   left most of the row empty on a wide screen and made the photography —
+   the whole point of a before/after — the smallest thing in the section.
+   Give the image the larger share and let the notes sit beside it. */
 .svc-ba__row {
   display: grid;
-  grid-template-columns: minmax(0, 400px) 1fr;
-  gap: 36px;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 48px;
   align-items: center;
   margin-top: 30px;
 }
-.svc-ba__side { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.svc-ba__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  max-width: 46ch;
+}
+.svc-ba__meta li { font-size: 15.5px !important; }
 .svc-ba__meta { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
 .svc-ba__meta li {
   position: relative;
@@ -2440,4 +2451,108 @@
 @media (max-width: 640px) {
   .page-detail .sysspot__steps li { padding: 18px 20px; gap: 14px; }
   .page-detail .sysspot__card { padding: 20px 22px; }
+}
+
+/* ===================================================================
+   "WHY DO THIS AT ALL" — the lead block on why-first service pages.
+
+   Photo-led on purpose. A page that opens with specification is a page
+   written for somebody who has already decided; this one is for the
+   person still asking whether to bother, so it's a big picture, four
+   numbers and four short reasons before any of the detail.
+   =================================================================== */
+.page-detail .svc-why { padding: 76px 0; background: var(--bg-2); }
+.page-detail .svc-why__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+.page-detail .svc-why__copy .ds-section-head { margin-bottom: 28px; }
+.page-detail .svc-why__photo {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  aspect-ratio: 4 / 5;
+  background: var(--bg);
+}
+.page-detail .svc-why__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Four numbers, because a glance beats a paragraph. */
+.page-detail .svc-why__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.page-detail .svc-why__stats li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--orange);
+  border-radius: var(--rad-sm);
+  padding: 16px 18px;
+}
+.page-detail .svc-why__stats strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.page-detail .svc-why__stats span {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.page-detail .svc-why__reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+.page-detail .svc-why__reason {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sky);
+  border-radius: var(--rad);
+  padding: 22px 24px;
+}
+.page-detail .svc-why__reason h3 {
+  font-family: var(--f-display);
+  font-size: 18px;
+  line-height: 1.28;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+.page-detail .svc-why__reason p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+.page-detail .svc-why__caveat {
+  margin: 26px 0 0;
+  max-width: 84ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  font-style: italic;
+  border-left: 3px solid var(--line-2);
+  padding-left: 16px;
+}
+
+@media (max-width: 1000px) {
+  .page-detail .svc-why__grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-detail .svc-why__photo { aspect-ratio: 3 / 2; max-width: 560px; }
+}
+@media (max-width: 640px) {
+  .page-detail .svc-why { padding: 48px 0; }
+  .page-detail .svc-why__stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page-detail .svc-why__stats li { padding: 13px 14px; }
+  .page-detail .svc-why__stats strong { font-size: 24px; }
+  .page-detail .svc-why__reasons { margin-top: 28px; }
 }
