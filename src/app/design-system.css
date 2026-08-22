@@ -2037,3 +2037,139 @@ input, select, textarea {
   text-align: center;
 }
 
+
+/* ============== COMPANY TRUST — "who you'd be dealing with" ==============
+   Renders on service, brand, filtration and category pages. Lives in the
+   design system rather than a route stylesheet because it appears on
+   nearly every page type — the same reason the before/after slider had
+   to move here after it turned up unstyled on the service pages. */
+.cotrust { padding: 84px 0; background: var(--bg-2); border-top: 1px solid var(--line); }
+.cotrust--compact { padding: 56px 0; }
+
+/* --- the people --- */
+.cotrust__team {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 44px;
+}
+.cotrust__person {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 22px 22px 24px;
+  text-align: center;
+}
+.cotrust__avatar {
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--navy);
+  border: 3px solid var(--orange);
+}
+.cotrust__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cotrust__person h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 3px;
+}
+.cotrust__role {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.cotrust__person p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+
+/* --- the standard --- */
+.cotrust__subhead {
+  font-family: var(--f-display);
+  font-size: 22px;
+  color: var(--navy);
+  margin: 0 0 18px;
+}
+.cotrust__stdgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+.cotrust__std {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sky);
+  border-radius: var(--rad-sm);
+  padding: 18px 20px;
+}
+.cotrust__std h4 {
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 7px;
+}
+.cotrust__std p { margin: 0; font-size: 14px; line-height: 1.58; color: var(--ink-2); }
+
+/* --- credentials --- */
+.cotrust__creds {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: var(--navy);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.cotrust__cred {
+  padding: 22px 24px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.cotrust__cred:first-child { border-left: 0; }
+.cotrust__credlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 7px;
+}
+.cotrust__cred strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #fff;
+}
+.cotrust__crednote {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.66);
+}
+.cotrust__more { margin: 22px 0 0; }
+.cotrust__more a { font-weight: 700; color: var(--navy); text-decoration: none; border-bottom: 2px solid var(--orange); padding-bottom: 2px; }
+.cotrust__more a:hover { color: var(--orange); }
+
+@media (max-width: 1000px) {
+  .cotrust__team { grid-template-columns: repeat(2, 1fr); }
+  .cotrust__creds { grid-template-columns: repeat(2, 1fr); }
+  .cotrust__cred:nth-child(-n+2) { border-top: 0; }
+  .cotrust__cred:nth-child(n+3) { border-top: 1px solid rgba(255,255,255,0.1); }
+  .cotrust__cred:nth-child(odd) { border-left: 0; }
+}
+@media (max-width: 640px) {
+  .cotrust { padding: 52px 0; }
+  .cotrust__person { padding: 18px 16px 20px; }
+  .cotrust__avatar { width: 84px; height: 84px; }
+  .cotrust__cred { padding: 16px 18px; }
+  .cotrust__cred strong { font-size: 19px; }
+}

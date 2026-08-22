@@ -11,6 +11,7 @@ import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
 import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
+import { CompanyTrust } from "@/components/CompanyTrust";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
 import { SystemSpotlight } from "@/components/SystemSpotlight";
@@ -300,6 +301,8 @@ export default async function SystemPage({
         </div>
       </section>
       )}
+
+      <CompanyTrust subject={system.label.toLowerCase()} compact />
 
       <ProofStrip subject={system.label.toLowerCase()} heading="Rated 4.9 by the households we work for." />
 

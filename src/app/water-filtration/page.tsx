@@ -6,6 +6,7 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { TIERS, IN_YOUR_WATER, STAGES, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
+import { CompanyTrust } from "@/components/CompanyTrust";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import "./filtration.css";
 
@@ -227,6 +228,8 @@ export default function WaterFiltrationPage() {
           </ol>
         </div>
       </section>
+
+      <CompanyTrust subject="your water filtration" />
 
       {/* QUOTE */}
       <section className="wf-quote">
