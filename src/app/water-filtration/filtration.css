@@ -464,3 +464,132 @@
    on white like the reference; our diagram fills the frame. */
 .wf-tier__photo img { width: 100%; height: 100%; display: block; object-fit: contain; }
 .wf-tier__photo--real { padding: 18px 18px 6px; }
+
+/* ===================================================================
+   COLOUR RHYTHM — the water pages ran four near-white sections in a row
+   after the navy tier band, which is what made them feel like one long
+   scroll of nothing. Every section now alternates against its
+   neighbours, with two dark beats and one orange callout per page, the
+   same language the home page and the heat pump page use.
+   =================================================================== */
+
+/* --- hub: navy hero → cream → navy tiers → ORANGE stages → navy
+       process → cream quote → white FAQ --- */
+.page-filtration .wf-water { background: var(--bg); }
+.page-filtration .wf-stages { background: var(--bg-2); }
+.page-filtration .wf-quote { background: var(--bg); }
+.page-filtration .wf-faq { background: var(--paper); border-top: 1px solid var(--line); }
+
+/* --- tier pages --- */
+.page-filtration .wf-where { background: var(--bg-2); }
+.page-filtration .wf-does { background: var(--bg); }
+.page-filtration .wf-fit { background: var(--paper); }
+.page-filtration .wf-servicing { background: var(--bg-2); }
+.page-filtration .wf-others { background: var(--bg); }
+
+/* --- range page --- */
+.page-filtration .wr-matrix { background: var(--bg); }
+.page-filtration .wr-families { background: var(--bg-2); }
+/* The range page needs its orange beat too — the matrix is a table and
+   boxing that would be odd, so the family cards take it instead. */
+
+/* --- the dark beat: process runs on navy, like the service pages'
+       install stepper, so there's a second anchor point on the page --- */
+.page-filtration .wf-process {
+  background:
+    radial-gradient(880px 400px at 88% -12%, rgba(0, 176, 237, 0.15), transparent 60%),
+    linear-gradient(158deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+}
+.page-filtration .wf-process .ds-eyebrow { color: rgba(255, 255, 255, 0.72); }
+.page-filtration .wf-process .ds-eyebrow .ds-dot { background: var(--sky-2); }
+.page-filtration .wf-process .ds-section-head h2 { color: #fff; }
+.page-filtration .wf-process .ds-section-head p { color: rgba(255, 255, 255, 0.78); }
+.page-filtration .wf-process .ds-section-head--hl::before { background: rgba(255, 255, 255, 0.5); }
+.page-filtration .wf-process__list li {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+.page-filtration .wf-process__n { background: var(--orange); }
+.page-filtration .wf-process__list h3 { color: #fff; }
+.page-filtration .wf-process__list p { color: rgba(255, 255, 255, 0.78); }
+
+/* --- the orange callout. Same radius, shadow and inner texture as the
+       home page's 60-second quote panel, so it reads as one design
+       language rather than a second idea. --- */
+.page-filtration .wf-stages > .wrap,
+.page-filtration .wr-families > .wrap,
+.page-filtration .wf-does > .wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 44px 48px 48px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
+              0 8px 24px -14px rgba(5, 10, 48, 0.2);
+}
+.page-filtration .wf-stages > .wrap::before,
+.page-filtration .wr-families > .wrap::before,
+.page-filtration .wf-does > .wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+.page-filtration .wf-stages > .wrap > *,
+.page-filtration .wr-families > .wrap > *,
+.page-filtration .wf-does > .wrap > * { position: relative; }
+
+/* On orange the navy rule and navy headings vanish, so they go white. */
+.page-filtration .wf-stages .ds-section-head--hl::before,
+.page-filtration .wr-families .ds-section-head--hl::before,
+.page-filtration .wf-does .ds-section-head--hl::before { background: #fff; }
+.page-filtration .wf-stages .ds-eyebrow,
+.page-filtration .wr-families .ds-eyebrow,
+.page-filtration .wf-does .ds-eyebrow { color: #fff; }
+.page-filtration .wf-stages .ds-eyebrow .ds-dot,
+.page-filtration .wr-families .ds-eyebrow .ds-dot,
+.page-filtration .wf-does .ds-eyebrow .ds-dot { background: #fff; }
+.page-filtration .wf-stages h2,
+.page-filtration .wr-families h2,
+.page-filtration .wf-does h2 { color: #fff; }
+.page-filtration .wf-stages .ds-section-head p,
+.page-filtration .wr-families .ds-section-head p { color: #fff; }
+
+/* Solid white cards inside, not translucent — translucent white on
+   orange looks tidy and is barely legible. */
+.page-filtration .wf-stage {
+  background: #fff;
+  border: 1px solid rgba(5, 10, 48, 0.08);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wf-stages__note {
+  color: #fff;
+  border-left-color: rgba(255, 255, 255, 0.55);
+}
+.page-filtration .wf-does__col--yes,
+.page-filtration .wf-does__col--no {
+  background: #fff;
+  border: 1px solid rgba(5, 10, 48, 0.08);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wf-does__col--yes { border-left: 4px solid var(--sky); }
+.page-filtration .wf-does__col--no { border-left: 4px solid var(--ink-3); }
+.page-filtration .wf-does__note { color: var(--ink-3); }
+
+/* Family cards stay solid white on the orange. */
+.page-filtration .wr-fam {
+  border-top-color: var(--sky);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wr-source { color: #fff; opacity: 0.9; }
+
+@media (max-width: 640px) {
+  .page-filtration .wf-stages > .wrap,
+  .page-filtration .wr-families > .wrap,
+  .page-filtration .wf-does > .wrap { padding: 28px 20px 30px; border-radius: 20px; }
+}

@@ -7,7 +7,6 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
 import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
-import { CompanyTrust } from "@/components/CompanyTrust";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import "../filtration.css";
@@ -174,7 +173,6 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      <CompanyTrust subject={`your ${t.label.toLowerCase()} filtration`} compact />
 
       <section className="wf-quote">
         <div className="wrap wf-quote__grid">

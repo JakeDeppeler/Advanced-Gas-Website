@@ -11,7 +11,6 @@ import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProofStrip } from "@/components/ProofStrip";
 import { WhyDifferent } from "@/components/WhyDifferent";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
-import { CompanyTrust } from "@/components/CompanyTrust";
 import type { NudgeVariant } from "@/lib/upgradeAngle";
 import { getInstagramForService } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
@@ -520,9 +519,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      {/* WHO WE ARE — the other half of the question. The page above
-          answers "do you do this"; this answers "and who are you". */}
-      <CompanyTrust subject={svc.short.toLowerCase()} />
 
       {/* PROOF · compact reviews row, so the page earns the form below it */}
       <ProofStrip
