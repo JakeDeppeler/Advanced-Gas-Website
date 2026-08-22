@@ -34,6 +34,23 @@ export type ServiceContent = {
   included?: string[];
   excluded?: string[];
   /**
+   * Photos of our own installs for this service, rendered as a
+   * full-bleed grid on a navy band so they break the page up.
+   *
+   * This is the one to add to. Drop the file into /public, add a line
+   * here with an honest alt and a caption, and it appears — no layout
+   * work, no code change. The grid reflows from two up to four across on
+   * its own, so any number from three upwards looks deliberate.
+   *
+   * Rule that doesn't bend: these are OUR jobs. Manufacturer renders go
+   * in `photos`, which sits under a heading that says exactly that.
+   */
+  installPhotos?: {
+    heading: string;
+    blurb: string;
+    shots: { src: string; alt: string; caption?: string }[];
+  };
+  /**
    * Lead the page with the case for doing this at all, before any
    * specification. Set on services where the customer hasn't decided
    * they want the thing yet — nobody wakes up wanting a heat pump, they
@@ -98,6 +115,12 @@ export type ServiceContent = {
 
 export const serviceContent: Record<string, ServiceContent> = {
   "air-conditioning-installation": {
+    // ------------------------------------------------------------------
+    // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
+    // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.
+    // Drop the files into /public, add the lines, and a navy photo band
+    // appears on this page. Nothing else needs changing.
+    // ------------------------------------------------------------------
     metaTitle: "Air Conditioning Installation Pakenham & Berwick",
     metaDescription:
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
@@ -339,6 +362,24 @@ export const serviceContent: Record<string, ServiceContent> = {
     h1: "Heat pump hot water, installed properly",
     intro:
       "Nobody wakes up wanting a heat pump. You wake up with a dead tank and a decision to make. Here's the case for making it this one, which brands we'd fit in our own houses and why, and what the job actually looks like — with the rebate already in the number.",
+    installPhotos: {
+      heading: "Heat pumps we've put in.",
+      blurb:
+        "Real jobs across the corridor, not catalogue renders. Every one of these is a house within 75 km of the workshop.",
+      // ------------------------------------------------------------------
+      // ADD MORE HERE. One line per photo: file in /public, an alt that
+      // describes what's actually in the frame, and a caption if there's
+      // something worth saying. The grid handles the rest.
+      // ------------------------------------------------------------------
+      shots: [
+        { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, tank and outdoor unit against a brick wall", caption: "Reclaim CO₂ split — tank and outdoor unit, separate" },
+        { src: "/reclaim-spit-close-up.webp", alt: "Close-up of a Reclaim CO₂ heat pump tank base and pipework on a concrete pad", caption: "New pad poured, pipework re-run and lagged" },
+        { src: "/reclaim-split-back.webp", alt: "Reclaim heat pump tank and outdoor unit installed beside a brick wall", caption: "Tight side access, unit still gets its airflow" },
+        { src: "/reclaim-split-stand-back-shot-left-side.webp", alt: "Reclaim CO₂ split heat pump viewed from the left side of the house", caption: "Same job, from the other side" },
+        { src: "/thermann-heat-pump.webp", alt: "Thermann heat pump hot water system installed on a paved area", caption: "Thermann integrated, all-in-one" },
+        { src: "/gas hot water change over same day.webp", alt: "Hot water changeover completed the same day", caption: "Old unit out, new one running, same day" },
+      ],
+    },
     whyFirst: {
       eyebrow: "Why a heat pump at all",
       heading: "It's the same hot water for about a quarter of the energy.",
@@ -444,6 +485,12 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "aircon-servicing-repairs": {
+    // ------------------------------------------------------------------
+    // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
+    // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.
+    // Drop the files into /public, add the lines, and a navy photo band
+    // appears on this page. Nothing else needs changing.
+    // ------------------------------------------------------------------
     metaTitle: "Aircon Service & Repair, All Brands, Same Day",
     metaDescription:
       "Annual aircon service and same-day repairs across Melbourne's south-east, Mitsubishi, Daikin, Fujitsu, Panasonic, Kaden, LG. Fixed pricing, ARCtick-licensed, service records kept.",
@@ -597,6 +644,12 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "gas-plumbing": {
+    // ------------------------------------------------------------------
+    // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
+    // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.
+    // Drop the files into /public, add the lines, and a navy photo band
+    // appears on this page. Nothing else needs changing.
+    // ------------------------------------------------------------------
     metaTitle: "Gas Plumbing & Ducted Heating, Melbourne SE",
     metaDescription:
       "Licensed gas fitters + plumbers serving Melbourne's south-east, Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",

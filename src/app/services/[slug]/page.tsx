@@ -143,6 +143,31 @@ export default async function ServicePage({ params }: { params: { slug: string }
     </>
   );
 
+  // Our own install photography on a navy band, so the page has a dark
+  // beat between the light ones. Grows as photos are added to the data.
+  const installShots = content.installPhotos && content.installPhotos.shots.length > 0 && (
+    <section className="svc-shots">
+      <div className="wrap">
+        <div className="ds-section-head">
+          <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Our own jobs</span>
+          <h2 className="ds-h--on-dark">{content.installPhotos.heading}</h2>
+          <p className="svc-shots__lede">{content.installPhotos.blurb}</p>
+        </div>
+        <div className="svc-shots__grid">
+          {content.installPhotos.shots.map((sh) => (
+            <figure className="svc-shot" key={sh.src}>
+              <img src={sh.src} alt={sh.alt} loading="lazy" width="600" height="750" />
+              {sh.caption && <figcaption>{sh.caption}</figcaption>}
+            </figure>
+          ))}
+        </div>
+        <div className="svc-shots__foot">
+          <Link href="/gallery" className="ds-btn ds-btn--orange">See the full gallery →</Link>
+        </div>
+      </div>
+    </section>
+  );
+
   // Why this gear and why this crew.
   const whyUsSection = (
     <>
@@ -263,12 +288,14 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <>
           {whyUsSection}
           {rangeSection}
+          {installShots}
           {beforeAfterSection}
         </>
       )}
 
-      {/* BENEFITS */}
-      <section className="dp-benefits">
+      {/* BENEFITS — boxed in orange on why-first pages, matching the
+          home page's callout, so the run of cream sections gets broken. */}
+      <section className={`dp-benefits${content.whyFirst ? " dp-benefits--boxed" : ""}`}>
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> What&apos;s included</span>
@@ -445,6 +472,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <>
           {beforeAfterSection}
           {rangeSection}
+          {installShots}
         </>
       )}
 

@@ -2556,3 +2556,70 @@
   .page-detail .svc-why__stats strong { font-size: 24px; }
   .page-detail .svc-why__reasons { margin-top: 28px; }
 }
+
+/* ===================================================================
+   OUR OWN INSTALL SHOTS — the navy photo band.
+
+   Two jobs. It gives the service pages somewhere to put real job
+   photography that isn't the manufacturer render grid, and it puts a
+   dark beat between light sections so the page stops reading as one
+   long stretch of cream.
+
+   The grid is auto-fit, so it looks deliberate at three photos and at
+   twelve. Add rows to `installPhotos.shots` and nothing here changes.
+   =================================================================== */
+.page-detail .svc-shots {
+  padding: 90px 0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+}
+.page-detail .svc-shots .ds-section-head { margin-bottom: 36px; }
+.page-detail .svc-shots__lede { color: rgba(255, 255, 255, 0.78) !important; }
+/* Three across on desktop rather than auto-fit. Auto-fit gave five
+   columns at this width, which left a single orphan on the second row
+   with six photos and made each shot small — the opposite of the point.
+   Three keeps them big and lands clean at 3, 6, 9, 12. */
+.page-detail .svc-shots__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .page-detail .svc-shots__grid { grid-template-columns: repeat(2, 1fr); }
+}
+.page-detail .svc-shot {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.page-detail .svc-shot img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+.page-detail .svc-shot figcaption {
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-detail .svc-shots__foot { margin-top: 28px; }
+
+@media (max-width: 640px) {
+  .page-detail .svc-shots { padding: 52px 0; }
+  .page-detail .svc-shots__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page-detail .svc-shot figcaption { padding: 10px 11px 12px; font-size: 12px; }
+}
+
+/* --- Colour rhythm on why-first pages ---------------------------------
+   The default order alternates cream against cream, which is why the
+   page read flat. With the why block leading, the sequence becomes
+   navy hero → cream → white → cream → NAVY photos → white → ORANGE box
+   → navy steps → cream, so no two adjacent sections share a ground. */
+.page-detail .svc-why + .whydiff { background: var(--paper); }
+.page-detail .svc-shots + .svc-ba { background: var(--paper); }
