@@ -314,3 +314,153 @@
   .wf-process__list li { padding: 18px 20px; }
   .wf-process__list li { gap: 14px; }
 }
+
+/* ===================================================================
+   /water-filtration/range — the capability matrix.
+   =================================================================== */
+
+.wr-tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.wr-table { width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 14px; }
+.wr-table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: bottom;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.wr-th--group { background: var(--navy-2); }
+.wr-th--name { text-align: left !important; min-width: 190px; }
+.wr-th--cap span { display: block; max-width: 74px; margin: 0 auto; line-height: 1.25; }
+.wr-table tbody th,
+.wr-table tbody td { border-top: 1px solid var(--line); border-left: 1px solid var(--line); padding: 14px 10px; }
+.wr-td--name {
+  text-align: left;
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  border-left: 0 !important;
+}
+.wr-td--name a { color: var(--navy); text-decoration: none; border-bottom: 2px solid var(--orange); }
+.wr-td--name a:hover { color: var(--orange); }
+.wr-yes, .wr-no { text-align: center; }
+.wr-yes { color: var(--sky); font-weight: 800; font-size: 17px; }
+.wr-dash { color: var(--line-2); }
+.wr-td--meta { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; text-align: center; }
+.wr-source {
+  margin: 18px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 80ch;
+}
+
+/* ---- family cards ---- */
+.wr-families { background: var(--bg-2); }
+.wr-fam__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; }
+.wr-fam {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sky);
+  border-radius: var(--rad);
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.wr-fam__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.wr-fam__head h3 { font-family: var(--f-display); font-size: 20px; color: var(--navy); margin: 0; }
+.wr-fam__warranty {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.wr-fam__blurb { margin: 0 0 12px; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+.wr-fam__note {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 14px;
+}
+.wr-fam__models { margin-bottom: 14px; }
+.wr-fam__models summary {
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy);
+  list-style: none;
+}
+.wr-fam__models summary::-webkit-details-marker { display: none; }
+.wr-fam__models summary::after { content: " +"; color: var(--orange); }
+.wr-fam__models[open] summary::after { content: " –"; }
+.wr-fam__models ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 7px; }
+.wr-fam__models li { display: flex; gap: 10px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.wr-fam__models code {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--navy);
+  height: fit-content;
+  white-space: nowrap;
+}
+.wr-fam__link { margin-top: auto; font-weight: 700; font-size: 14px; color: var(--navy); text-decoration: none; }
+.wr-fam__link:hover { color: var(--orange); text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .wr-fam { padding: 20px 22px; }
+}
+
+.wf-tiers__more { margin: 26px 0 0; text-align: center; }
+.wf-tiers__more a {
+  color: var(--sky-2);
+  font-weight: 700;
+  font-size: 15.5px;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(44, 197, 255, 0.4);
+  padding-bottom: 2px;
+}
+.wf-tiers__more a:hover { color: #fff; border-color: #fff; }
+/* Five cards now — three across reads better than a 5-up squeeze. */
+@media (min-width: 1001px) {
+  .wf-tiers__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---- "where it goes" diagram on the tier pages ---- */
+.wf-where { background: var(--bg-2); }
+.wf-where__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 40px; align-items: center; }
+.wf-where__grid h2 { font-size: clamp(24px, 2.8vw, 36px) !important; }
+.wf-where__diagram {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 20px;
+}
+.wf-where__diagram svg { width: 100%; height: auto; display: block; }
+.wf-servicing__photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+@media (max-width: 1000px) {
+  .wf-where__grid { grid-template-columns: 1fr; gap: 22px; }
+}
+
+/* Card image: a manufacturer shot gets padding and `contain` so it sits
+   on white like the reference; our diagram fills the frame. */
+.wf-tier__photo img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.wf-tier__photo--real { padding: 18px 18px 6px; }

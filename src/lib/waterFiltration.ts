@@ -31,6 +31,15 @@ export type FiltrationTier = {
   cta: string;
   /** Where it goes, in plain words. The single most useful thing to say. */
   fitsWhere: string;
+  /**
+   * Manufacturer product shot. Where the file isn't on disk yet the card
+   * falls back to `diagram`, which is our own drawing of where the
+   * fitting goes — see components/SafeImg.tsx for the same pattern used
+   * across the brand catalogue.
+   */
+  productPhoto: string;
+  productPhotoAlt: string;
+  diagram: string;
   /** Two-sentence version for the hub cards. */
   blurb: string;
   /** Opening paragraph on its own page. */
@@ -105,6 +114,9 @@ export const TIERS: FiltrationTier[] = [
     tagline: "Every tap, shower and appliance in the house",
     cta: "Whole home filtration",
     fitsWhere: "On the incoming water main, before it splits off to anything else",
+    productPhoto: "/puretec-filterwall-whole-house.webp",
+    productPhotoAlt: "Puretec Filterwall whole-house filtration enclosure mounted on a fence",
+    diagram: "/water-filtration-whole-home-diagram.webp",
     blurb:
       "One unit on the water main, filtering everything that enters the house. The shower, the washing machine, the dishwasher and the hot water system all run on filtered water rather than just the kitchen tap.",
     intro:
@@ -179,6 +191,9 @@ export const TIERS: FiltrationTier[] = [
     tagline: "Keeps sediment out of the most expensive appliance in the house",
     cta: "Protect my hot water system",
     fitsWhere: "On the cold water line feeding your hot water system",
+    productPhoto: "/puretec-inline-filter-hot-water.webp",
+    productPhotoAlt: "Puretec inline filter plumbed into a wall with brass isolation valves",
+    diagram: "/water-filtration-hot-water-diagram.webp",
     blurb:
       "A filter on the cold feed into your hot water system, so sediment stops at the cartridge instead of settling in the tank or blocking a continuous-flow heat exchanger.",
     intro:
@@ -248,6 +263,9 @@ export const TIERS: FiltrationTier[] = [
     tagline: "Filtered drinking water at the kitchen tap",
     cta: "Under sink filtration",
     fitsWhere: "In the cupboard under the kitchen sink, feeding a dedicated tap or a three-way mixer",
+    productPhoto: "/puretec-twin-undersink-filter.webp",
+    productPhotoAlt: "Puretec twin undersink filter system with a dedicated filtered tap",
+    diagram: "/water-filtration-under-sink-diagram.webp",
     blurb:
       "A filter under the kitchen sink feeding either a small dedicated tap or a three-way mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
     intro:
@@ -311,6 +329,155 @@ export const TIERS: FiltrationTier[] = [
       "filtered drinking water tap berwick",
     ],
   },
+  {
+    slug: "water-softeners",
+    label: "Water softeners",
+    tagline: "For hard water — which, on Melbourne mains, you probably haven't got",
+    cta: "Do I need a softener?",
+    productPhoto: "/bwt-bewamat-water-softener.webp",
+    productPhotoAlt: "BWT Bewamat automatic water softener",
+    diagram: "/water-filtration-water-softeners-diagram.webp",
+    fitsWhere: "On the incoming main, with a brine tank beside it and a drain for the regeneration flush",
+    blurb:
+      "An ion-exchange softener swaps the calcium and magnesium that cause scale for sodium. It is the right answer on bore water and the wrong answer on most Melbourne mains connections, and we will tell you which one you are.",
+    intro:
+      "Here is the page that costs us sales, and we would rather have it than not. A water softener does one thing: it removes hardness, the dissolved calcium and magnesium that leave scale in kettles, on shower screens and inside hot water systems. Melbourne's mains water is among the softest of any major Australian city. If you are on mains here, a softener is usually solving a problem you do not have, and the advertising you have read for one was almost certainly written for a country with much harder water. Where it genuinely earns its place is bore water, some rural supplies, and the occasional property where the water is doing visible damage. So the first thing we do is test your hardness, and a good proportion of the time that test ends with us telling you to save your money.",
+    treats: [
+      "Hardness — the dissolved calcium and magnesium that form scale",
+      "Scale build-up in kettles, shower screens, taps and tiles",
+      "Scale inside hot water systems and dishwashers, which is where it costs real money",
+      "Soap and detergent that will not lather properly in hard water",
+    ],
+    doesNotTreat: [
+      "Chlorine, taste or odour. A softener is not a filter and it will not change how your water tastes — if anything it adds a little sodium",
+      "Sediment, rust or silt. That is a separate filter, and it goes ahead of the softener to protect the resin",
+      "Bacteria or anything biological. That is UV, on tank water",
+      "The problem you probably have on Melbourne mains, which is chlorine rather than hardness",
+    ],
+    bestFor: [
+      "Bore water, where hardness is genuinely high and measured rather than assumed",
+      "Properties where scale is visibly building up on fittings and inside appliances despite regular cleaning",
+      "Homes that have already lost a hot water system or a dishwasher to scale",
+      "Rural supplies outside the Melbourne mains network, which is a real slice of our eastern coverage",
+    ],
+    watchOut: [
+      "On Melbourne mains water you almost certainly do not need one, and we will say so before we quote it",
+      "It uses salt and it uses water. Every regeneration cycle consumes both, and it needs a drain connection to send the flush to",
+      "It adds sodium to your water. Usually a small amount, but worth knowing if anyone in the house is on a sodium-restricted diet",
+      "It needs power, and it needs somewhere to sit near the main with room for a brine tank beside it",
+    ],
+    servicing:
+      "Salt topped up as it is used — how often depends entirely on your hardness and how much water the house gets through. The unit regenerates itself automatically on a time and volume schedule. Beyond salt, an annual look at the resin and the valve is all it wants.",
+    faqs: [
+      {
+        q: "Is Melbourne water hard?",
+        a: "No. Melbourne mains water is soft — among the softest supplied to any major Australian city, because most of it comes from protected forest catchments rather than groundwater. That is why we will usually talk you out of a softener if you are on mains. If you are on bore water the answer is completely different and worth testing.",
+      },
+      {
+        q: "How do I know if I actually need one?",
+        a: "We test the hardness. It takes a couple of minutes and it turns the question from an argument into a number. If the number is low, you do not need a softener and we will not quote you one. If it is high, you will see it in the same test and the decision makes itself.",
+      },
+      {
+        q: "What is the difference between a softener and a filter?",
+        a: "Completely different jobs. A filter physically catches sediment and adsorbs chlorine, taste and odour. A softener chemically swaps hardness minerals for sodium using a resin bed, and it does nothing at all for taste, smell or dirt. Plenty of houses that want a filter get sold a softener, which is one of the reasons this page exists.",
+      },
+      {
+        q: "How much salt does it use?",
+        a: "It depends on your hardness and your water use, because the unit regenerates on volume as well as time. On a residential unit you are topping up a bag of salt periodically rather than constantly. We will give you a realistic figure for your water at the quote, not a brochure number.",
+      },
+      {
+        q: "Does a softener waste water?",
+        a: "It uses some, yes. Every regeneration flushes the resin bed and that flush goes to drain. On a properly sized unit set for your actual hardness it is a modest amount, but it is not nothing, and it is one more reason not to fit one where it is not needed.",
+      },
+      {
+        q: "Can I put a softener on tank water?",
+        a: "You can, but it is rarely the right first move. Rainwater is naturally soft, so hardness is not usually the tank-water problem — sediment, organics and the biological side are, which means filtration and UV. If someone is pitching you a softener for a rainwater tank, ask them what hardness reading they measured.",
+      },
+    ],
+    metaTitle: "Water Softeners, and Whether You Need One",
+    metaDescription:
+      "Melbourne mains water is soft, so a softener is usually solving a problem you haven't got. Where it genuinely helps is bore water. We test the hardness first and tell you straight.",
+    keywords: [
+      "water softener melbourne",
+      "do i need a water softener melbourne",
+      "is melbourne water hard",
+      "bore water softener victoria",
+      "water softener installation pakenham",
+      "hard water treatment melbourne",
+    ],
+  },
+  {
+    slug: "rainwater-uv",
+    label: "Rainwater & tank",
+    tagline: "Filtration plus UV, for the properties on tank water",
+    cta: "Tank water filtration",
+    productPhoto: "/puretec-rainwater-uv-system.webp",
+    productPhotoAlt: "Rainwater filtration and UV system",
+    diagram: "/water-filtration-rainwater-uv-diagram.webp",
+    fitsWhere: "Between the tank pump and the house, filters first and the UV lamp last",
+    blurb:
+      "Rainwater collects off a roof, and a roof has birds, leaves and dust on it. Filtration handles the sediment and organics, UV handles the biological side, and the order they go in is not negotiable.",
+    intro:
+      "Plenty of properties through the hills and the smaller townships east of us are on tank water, either entirely or for part of the house. It is good water and it is free, and it also arrives having run off a roof that birds sit on. That makes tank water the one place in our coverage where filtration is doing a genuinely protective job rather than an improving one. The setup is sediment first, carbon second, ultraviolet last, and that order matters more than anything else on this page: UV kills what is in the water by shining through it, so it cannot do its job through water that is still cloudy.",
+    treats: [
+      "Sediment, grit, leaf matter and roof debris carried in from the tank",
+      "Organics that give tank water its taste and colour",
+      "The biological side — bacteria, protozoa and cysts — through the UV stage",
+      "Cloudiness, which has to go before UV can work at all",
+    ],
+    doesNotTreat: [
+      "Hardness, and it does not need to. Rainwater is naturally soft, which is why a softener on a tank is almost always the wrong sale",
+      "Dissolved chemicals or heavy metals, which need reverse osmosis rather than filtration",
+      "Anything at all if the lamp has failed. A UV system with a dead lamp still passes water through and tells you nothing unless it has an alarm",
+      "What is going on in the tank itself. Filtration is not a substitute for first-flush diverters, gutter guards and cleaning the tank out",
+    ],
+    bestFor: [
+      "Properties on tank water for drinking, through Emerald, Cockatoo, Gembrook, Bunyip, Tynong and the hills",
+      "Houses running partly on tank and partly on mains, where the tank side needs treating and the mains side does not",
+      "Anyone whose tank water has started tasting or smelling different, which usually means something has changed on the roof",
+      "New tank installs, where doing it properly on day one costs a fraction of retrofitting later",
+    ],
+    watchOut: [
+      "The UV lamp is a consumable. It needs replacing roughly annually even if it still lights, because output drops long before it dies",
+      "UV needs power and it needs to stay powered. No electricity, no disinfection",
+      "It only treats water on its way past. It does nothing for what is sitting in the tank, so tank maintenance still matters",
+      "Sediment loads on tank water are far higher than mains, so cartridges get changed more often and that is a running cost worth planning for",
+    ],
+    servicing:
+      "Cartridges more often than a mains-fed system — how often depends on your roof and your tank, and we will give you a realistic interval after we have seen it. UV lamp annually. We will roll both into one visit if you would rather not track them.",
+    faqs: [
+      {
+        q: "Is tank water safe to drink without treatment?",
+        a: "Plenty of people drink it untreated and always have. What treatment does is remove the variable: a roof is an open collection surface, and what lands on it changes with the season, the birds and the weather. Filtration plus UV takes that variability out, which matters most in households with young kids, elderly residents or anyone immune-compromised.",
+      },
+      {
+        q: "Why does the UV go last?",
+        a: "Because ultraviolet works by shining through the water, and it cannot shine through cloudiness. Sediment and organics shade the very things the lamp is meant to be killing. A UV lamp fitted ahead of the filters is a lamp doing very little, and it is a mistake we have been called out to correct.",
+      },
+      {
+        q: "How often does the UV lamp need changing?",
+        a: "Roughly annually. The important part is that a UV lamp keeps lighting up long after its output has dropped below the level that actually disinfects, so you cannot judge it by looking at it. Change it on a schedule, not on whether it is glowing.",
+      },
+      {
+        q: "Do I need this if the tank is only for the garden and the toilet?",
+        a: "No, and we will tell you that. If the tank does not feed anything anybody drinks or showers in, the case for UV largely disappears. A sediment filter to protect the pump and the cistern valves is usually as far as it is worth going.",
+      },
+      {
+        q: "What about first flush and gutter guards?",
+        a: "Do those first. Keeping leaf litter and the first dirty run-off out of the tank is cheaper and more effective than filtering it out afterwards, and it makes your cartridges last a lot longer. Any filtration quote we give on tank water will mention what we saw at the tank and the gutters.",
+      },
+    ],
+    metaTitle: "Rainwater & Tank Filtration With UV",
+    metaDescription:
+      "Tank water filtration and UV for properties through the Dandenong Ranges and the townships east of Pakenham. Sediment, carbon, then UV — in that order, for a reason.",
+    keywords: [
+      "rainwater filtration melbourne",
+      "tank water filter and uv",
+      "rainwater uv steriliser victoria",
+      "tank water filtration emerald cockatoo",
+      "rainwater filter system pakenham",
+    ],
+  },
 ];
 
 export function tierBySlug(slug: string): FiltrationTier | undefined {
@@ -340,3 +507,190 @@ export const PROCESS = [
     d: "On handover, on your unit, with you holding it. It's a ten-minute job once a year and there is no reason you should be paying anyone to come out and do it.",
   },
 ];
+
+/* ====================================================================
+ * THE FULL RANGE
+ *
+ * Straight off the BWT filtration cheat sheet and the 2025 brochure
+ * Jake sent through — real product descriptions, real Reece TRS codes,
+ * real warranty terms. Nothing here is inferred: if the cheat sheet
+ * doesn't tick a column, we don't tick it either.
+ *
+ * BWT and Puretec both come through Reece, which is where we get almost
+ * everything else. We lead with Puretec on the category pages because
+ * that's the range we've standardised on; BWT is here because it's the
+ * range with a published capability matrix, and because on softeners and
+ * backwash filters it's the stronger product.
+ *
+ * The point of this page isn't to list stock. It's that "which filter do
+ * I need" is genuinely hard to answer from marketing copy, and a matrix
+ * of what each type actually removes answers it in one screen.
+ * ================================================================== */
+
+/** The columns on the matrix, in the order the cheat sheet uses them. */
+export const CAPABILITIES = [
+  { key: "sediment", label: "Sediment", group: "Asset protection" },
+  { key: "hardness", label: "Hardness", group: "Asset protection" },
+  { key: "tds", label: "TDS", group: "Asset protection" },
+  { key: "taste", label: "Taste & odour", group: "Health" },
+  { key: "chlorine", label: "Chlorine", group: "Health" },
+  { key: "pharma", label: "Pharma & pesticides", group: "Health" },
+  { key: "pfas", label: "PFAS & PFOA", group: "Health" },
+  { key: "lead", label: "Lead", group: "Health" },
+  { key: "cyst", label: "Cyst", group: "Health" },
+  { key: "bacteria", label: "Bacteria", group: "Health" },
+] as const;
+
+export type CapabilityKey = (typeof CAPABILITIES)[number]["key"];
+
+export type RangeProduct = {
+  /** Reece TRS code, so Jake can order straight off the page. */
+  code: string;
+  name: string;
+};
+
+export type RangeCategory = {
+  slug: string;
+  name: string;
+  /** What this family of products is for, in one honest sentence. */
+  blurb: string;
+  /** Which capability columns it ticks. */
+  treats: CapabilityKey[];
+  /** Point of entry (whole house) and/or point of use (under sink). */
+  location: ("whole-house" | "under-sink")[];
+  source: ("mains" | "rain")[];
+  /** Warranty as published in the 2025 brochure. */
+  warranty: string;
+  products: RangeProduct[];
+  /** Which of our category pages this family belongs to. */
+  tier?: string;
+  /** The honest note — where this family is and isn't the right answer. */
+  note?: string;
+};
+
+export const RANGE: RangeCategory[] = [
+  {
+    slug: "backwash-filters",
+    name: "Backwash filters",
+    blurb:
+      "A sediment filter that cleans itself. Instead of a cartridge you replace, the mesh is flushed backwards to waste, either by hand or automatically. Sediment only — it does nothing for taste, chlorine or hardness.",
+    treats: ["sediment"],
+    location: ["whole-house"],
+    source: ["mains", "rain"],
+    warranty: "1 year parts and labour, 3 years parts",
+    tier: "whole-home",
+    note:
+      "The right answer where sediment load is high enough that cartridges would be a nuisance — bore water, tank water, or a property on the end of an old main. On clean Melbourne mains a cartridge system is usually cheaper and does more.",
+    products: [
+      { code: "1909268", name: "Avanti Manual Backwash Filter 25 mm" },
+      { code: "1909269", name: "Avanti Manual Backwash Filter 50 mm" },
+      { code: "1910793", name: "Avanti 30 Micron Backwash Filter 25 mm" },
+      { code: "1910795", name: "Infinity Auto Backwash Filter Kit 20 mm" },
+      { code: "3340001", name: "Infinity Auto Backwash Filter Kit 25 mm" },
+      { code: "1910798", name: "Infinity Auto Backwash Filter Kit 32 mm" },
+      { code: "1910797", name: "Infinity Auto Backwash Filter Kit 40 mm" },
+      { code: "3400000", name: "Infinity Auto Backwash Filter Kit 50 mm" },
+      { code: "1911285", name: "Multipur Manual Backwash Filter 65 mm" },
+      { code: "1911286", name: "Multipur Manual Backwash Filter 80 mm" },
+      { code: "1909282", name: "Multipur Auto Backwash Filter 65 mm" },
+      { code: "1909283", name: "Multipur Auto Backwash Filter 80 mm" },
+      { code: "1910438", name: "Multipur Auto Backwash Filter 100 mm" },
+      { code: "1910439", name: "Multipur Auto Backwash Filter 125 mm" },
+      { code: "1910440", name: "Multipur Auto Backwash Filter 150 mm" },
+    ],
+  },
+  {
+    slug: "twin-systems",
+    name: "Twin cartridge systems (whole house)",
+    blurb:
+      "Two cartridges in series on the incoming main — sediment first, carbon second. This is the standard whole-house setup and the one most Melbourne homes actually want, because chlorine taste and smell is the thing people notice.",
+    treats: ["sediment", "taste", "chlorine"],
+    location: ["whole-house"],
+    source: ["mains", "rain"],
+    warranty: "1 year parts and labour, 3 years parts",
+    tier: "whole-home",
+    note:
+      "House and Rain versions use different cartridges for different water. Jumbo 20\" flows better and lasts longer between changes than 10\" — worth the difference on a family home.",
+    products: [
+      { code: "1911268", name: '10" Jumbo Twin House System, with cartridges (mains)' },
+      { code: "1911267", name: '20" Jumbo Twin House System, with cartridges (mains)' },
+      { code: "1911297", name: '10" Jumbo Twin Rain System, with cartridges (tank)' },
+      { code: "1911298", name: '20" Jumbo Twin Rain System, with cartridges (tank)' },
+      { code: "1911262", name: '10" Jumbo Single Housing, no cartridge' },
+      { code: "1911263", name: '20" Jumbo Single Housing, no cartridge' },
+      { code: "1911270", name: '10" Jumbo Twin Housing, no cartridge' },
+      { code: "1911264", name: '20" Jumbo Twin Housing, no cartridge' },
+    ],
+  },
+  {
+    slug: "softeners",
+    name: "Water softeners",
+    blurb:
+      "Ion exchange, swapping the calcium and magnesium that cause scale for sodium. Hardness only — it will not change taste, smell or clarity, and on Melbourne mains you probably do not need one.",
+    treats: ["hardness"],
+    location: ["whole-house"],
+    source: ["mains"],
+    warranty: "1 year parts and labour, 5 years parts",
+    tier: "water-softeners",
+    note:
+      "Bewamat runs a hygiene disinfection of the resin on every regeneration, has an adjustable blending valve so you can dial in how soft you actually want it, and is rated IP44 so it can live outside. 25A holds 8 L of resin, 75A holds 21 L.",
+    products: [
+      { code: "1909270", name: "Bewamat 25A Water Softener — 640 mm high, 8 L resin, 18 kg salt" },
+      { code: "1909271", name: "Bewamat 75A Water Softener — 1090 mm high, 21 L resin, 50 kg salt" },
+    ],
+  },
+  {
+    slug: "inline-kits",
+    name: "Undersink inline filter kits",
+    blurb:
+      "A single cartridge under the sink feeding a dedicated tap. Finer than anything a whole-house housing can practically run, which is why it reaches lead and cysts that the bigger systems do not.",
+    treats: ["sediment", "taste", "chlorine", "lead", "cyst"],
+    location: ["under-sink"],
+    source: ["mains", "rain"],
+    warranty: "1 year parts and labour, 3 years parts",
+    tier: "under-sink",
+    note:
+      "Kits come complete — cartridge, filter head, bracket, stainless braided hose, dual check valve and the bush. 0.5 micron is the finest and 5 micron the longest-lasting; most kitchens are best on 1.0.",
+    products: [
+      { code: "1910992", name: "Inline Water Filter Kit, 0.5 micron" },
+      { code: "1910993", name: "Inline Water Filter Kit, 1.0 micron" },
+      { code: "1910998", name: "Inline Water Filter Kit, 5 micron" },
+    ],
+  },
+  {
+    slug: "reverse-osmosis",
+    name: "Reverse osmosis",
+    blurb:
+      "The only thing on this page that removes dissolved salts, PFAS and pharmaceuticals. A membrane fine enough to reject almost everything, which also makes it slow, wasteful of water, and overkill for most Melbourne households.",
+    treats: ["sediment", "hardness", "tds", "taste", "chlorine", "pharma", "pfas", "lead", "cyst", "bacteria"],
+    location: ["under-sink"],
+    source: ["mains"],
+    warranty: "See brochure — check with us at quote",
+    tier: "under-sink",
+    note:
+      "Genuinely warranted where there is a measured contaminant a cartridge cannot reach. Not warranted because a website frightened you about tap water. It sends several litres to drain for every litre it makes, and it strips minerals as well as contaminants.",
+    products: [{ code: "1911093", name: "RO300 Reverse Osmosis System" }],
+  },
+  {
+    slug: "fridge-and-ice",
+    name: "Fridge & ice filters",
+    blurb:
+      "A filter on the line feeding the fridge, so the ice and the chilled water come off proper filtration instead of the manufacturer's own subscription cartridge.",
+    treats: ["sediment"],
+    location: ["under-sink"],
+    source: ["mains"],
+    warranty: "1 year parts and labour, 3 years parts",
+    tier: "under-sink",
+    products: [
+      { code: "1910767", name: "Triple Action Fridge & Ice Filter" },
+      { code: "1911069", name: "Multi-C 1000" },
+      { code: "1911070", name: "Multi-C 2000" },
+      { code: "1911071", name: "Multi-C 3000" },
+      { code: "1911068", name: "Multi-C 7000" },
+    ],
+  },
+];
+
+export function rangeForTier(tier: string): RangeCategory[] {
+  return RANGE.filter((r) => r.tier === tier);
+}

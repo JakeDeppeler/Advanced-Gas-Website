@@ -8,6 +8,7 @@ import { absoluteTitle, metaDescription } from "@/lib/seo";
 import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
+import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import "../filtration.css";
 
 /**
@@ -74,6 +75,22 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
+      {/* Where the fitting physically goes. The single thing a reader
+          needs to picture, and the thing a product photo can't show. */}
+      <section className="wf-where">
+        <div className="wrap wf-where__grid">
+          <div>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Where it goes</span>
+              <h2>{t.fitsWhere}.</h2>
+            </div>
+          </div>
+          <div className="wf-where__diagram">
+            <FiltrationDiagram tier={t.slug} />
+          </div>
+        </div>
+      </section>
+
       {/* Treats vs doesn't. The second column is why the first is believable. */}
       <section className="wf-does">
         <div className="wrap wf-does__grid">
@@ -112,7 +129,13 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <section className="wf-servicing">
         <div className="wrap wf-servicing__inner">
           <div className="wf-servicing__photo">
-            <FiltrationDiagram tier={t.slug} />
+            <img
+              src={assetOrFallback(t.productPhoto, t.diagram)}
+              alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
+              loading="lazy"
+              width="600"
+              height="400"
+            />
           </div>
           <div>
             <div className="ds-section-head ds-section-head--hl">

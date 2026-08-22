@@ -86,7 +86,7 @@ export function FiltrationDiagram({ tier }: { tier: string }) {
     );
   }
 
-  if (tier === "water-softener") {
+  if (tier === "water-softeners") {
     return (
       <svg viewBox="0 0 480 320" role="img" aria-label="An ion-exchange softener on the main, with a resin vessel and a brine tank">
         <path d="M18 250 H120" {...PIPE} />

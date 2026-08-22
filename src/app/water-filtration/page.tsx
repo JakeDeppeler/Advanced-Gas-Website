@@ -6,7 +6,7 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { TIERS, IN_YOUR_WATER, STAGES, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
-import { FiltrationDiagram } from "@/components/FiltrationDiagram";
+import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import "./filtration.css";
 
 /**
@@ -87,10 +87,11 @@ export default function WaterFiltrationPage() {
               Water filtration, <em>done at the right point</em> in the house.
             </h1>
             <p className="wf-hero__sub">
-              Three fittings, three different jobs. One on the main filters the whole house.
-              One on the cold inlet protects your hot water system. One under the sink gives
-              you drinking water. Most people only need one of them, and which one depends
-              entirely on what you&rsquo;ve actually noticed.
+              Whole house on the incoming main is the one that changes the most for the most
+              people. Then there&rsquo;s a filter that protects your hot water system, an
+              under-sink unit for drinking water, softeners for hard water, and filtration plus
+              UV for tank-fed properties. Most households need one of them, and which one
+              depends entirely on what you&rsquo;ve actually noticed.
             </p>
             <div className="pg-ctas">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a filtration quote →</Link>
@@ -136,18 +137,27 @@ export default function WaterFiltrationPage() {
       <section className="wf-tiers" id="options">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Three fittings, three jobs</span>
-            <h2 className="ds-h--on-dark">Pick the one that matches what you&rsquo;ve noticed.</h2>
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Five ways to treat it</span>
+            <h2 className="ds-h--on-dark">Whole house first, then the rest.</h2>
             <p className="wf-tiers__lede">
-              They do different jobs at different points in the house, and the diagram on each
-              card shows exactly where. Most people only need one.
+              Whole-house filtration on the incoming main is the one that changes the most for
+              the most people, so start there. The others solve narrower problems, and most
+              households only need one of them.
             </p>
           </div>
           <div className="wf-tiers__grid">
             {TIERS.map((t) => (
               <article className="wf-tier" key={t.slug}>
-                <div className="wf-tier__photo">
-                  <FiltrationDiagram tier={t.slug} />
+                {/* Manufacturer shot where we have one; our own diagram of
+                    where the fitting goes while we don't. */}
+                <div className={`wf-tier__photo${hasAsset(t.productPhoto) ? " wf-tier__photo--real" : ""}`}>
+                  <img
+                    src={assetOrFallback(t.productPhoto, t.diagram)}
+                    alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
+                    loading="lazy"
+                    width="600"
+                    height="400"
+                  />
                 </div>
                 <div className="wf-tier__body">
                   <h3>{t.label}</h3>
@@ -164,6 +174,11 @@ export default function WaterFiltrationPage() {
               </article>
             ))}
           </div>
+          <p className="wf-tiers__more">
+            <Link href="/water-filtration/range">
+              Or see the full range and exactly what each type removes →
+            </Link>
+          </p>
         </div>
       </section>
 

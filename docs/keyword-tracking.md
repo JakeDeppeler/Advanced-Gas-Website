@@ -205,10 +205,41 @@ does the veu rebate need my system to be broken
 ```
 puretec water filter installer melbourne
 whole house water filter pakenham
+whole house water filter melbourne
 under sink water filter berwick
 water filter for hot water system
-puretec whole home filtration price
 tank water filtration and uv melbourne
+rainwater filter and uv victoria
+bwt water filter installer melbourne
+```
+
+### Softener terms, where the honest answer is the differentiator
+
+Everyone else selling softeners in Melbourne is using copy written for
+hard-water countries. Our page opens by saying Melbourne mains water is
+soft and you probably don't need one. That will lose a few sales and win
+the trust of everybody who was about to be sold something useless — and
+it's the kind of page that picks up links.
+
+```
+do i need a water softener melbourne
+is melbourne water hard
+water softener melbourne
+bore water softener victoria
+hard water treatment melbourne
+```
+
+### Comparison terms, where the full-range table should win
+
+High intent and almost nobody publishes a real capability matrix.
+
+```
+which water filter do i need
+whole house vs under sink water filter
+what removes pfas from drinking water
+water filter that removes lead
+reverse osmosis vs carbon filter
+water filter comparison australia
 ```
 
 ---

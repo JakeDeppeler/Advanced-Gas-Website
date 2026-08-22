@@ -140,7 +140,7 @@ const SERVICES_MEGA: {
         {
           href: "/water-filtration",
           label: "Water filtration",
-          sub: "Puretec · whole home, hot water, under sink",
+          sub: "Whole house · under sink · softeners",
           photo: "/water-filtration-diagram.webp",
           photoAlt: "Diagram of a filter on the incoming water main",
         },
