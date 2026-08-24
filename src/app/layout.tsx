@@ -79,8 +79,26 @@ export const metadata: Metadata = {
     images: ["/team-photo.webp"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
+  /**
+   * Favicons cut from the actual logo raster rather than the
+   * hand-approximated SVG that was here — that drawing is what Google
+   * has been showing in the search results, and it isn't our logo.
+   *
+   * PNG rather than SVG as the primary: Google's SERP favicon wants a
+   * square raster of at least 48px and handles PNG most reliably. The
+   * .ico carries 16 through 256 for older crawlers and pinned tabs.
+   */
   icons: {
-    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48.png", type: "image/png", sizes: "48x48" },
+      { url: "/favicon-96.png", type: "image/png", sizes: "96x96" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    shortcut: ["/favicon.ico"],
   },
 };
 

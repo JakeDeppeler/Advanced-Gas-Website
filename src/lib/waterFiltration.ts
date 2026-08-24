@@ -40,6 +40,28 @@ export type FiltrationTier = {
   productPhoto: string;
   productPhotoAlt: string;
   diagram: string;
+  /** Photo behind the hero, like the home page. Falls back to the flat
+   *  gradient until the file exists. */
+  heroPhoto?: string;
+  /**
+   * Real install photography. Replaces the single diagram in the "where
+   * it goes" slot — Jake's note was that a lone drawing there isn't
+   * enough, it wants several photos. Add rows as they're shot.
+   */
+  gallery?: { src: string; alt: string; caption?: string }[];
+  /**
+   * The models in this category, so a reader can see the versions side
+   * by side the way Puretec lay theirs out. Pricing deliberately absent.
+   */
+  models?: {
+    name: string;
+    suits: string;
+    handles: string;
+    flow: string;
+    cartridge: string;
+    /** Set on the one we'd fit most often. */
+    common?: boolean;
+  }[];
   /** Two-sentence version for the hub cards. */
   blurb: string;
   /** Opening paragraph on its own page. */
@@ -117,6 +139,19 @@ export const TIERS: FiltrationTier[] = [
     productPhoto: "/puretec-filterwall-whole-house.webp",
     productPhotoAlt: "Puretec Filterwall whole-house filtration enclosure mounted on a fence",
     diagram: "/water-filtration-whole-home-diagram.webp",
+    heroPhoto: "/puretec-filterwall-whole-house.webp",
+    gallery: [
+      { src: "/puretec-filterwall-install-1.webp", alt: "Puretec FilterWall mounted on a weatherboard wall beside a path", caption: "Mounted flat on the wall, pipework in copper" },
+      { src: "/puretec-filterwall-install-2.webp", alt: "FilterWall installed on a rendered wall next to the meter", caption: "Beside the meter, where the main comes in" },
+      { src: "/puretec-filterwall-install-3.webp", alt: "FilterWall in a garden bed against a fence", caption: "Along the fence line, out of the way" },
+      { src: "/puretec-filterwall-install-4.webp", alt: "FilterWall on a brick wall in a side passage", caption: "Side passage, still accessible for cartridges" },
+    ],
+    models: [
+      { name: "FilterWall F3", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour", flow: "30 L/min", cartridge: '10"' },
+      { name: "FilterWall F4", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour + ScaleProtect", flow: "30 L/min", cartridge: '10"' },
+      { name: "FilterWall F5", suits: "Large house, 2+ bathrooms", handles: "Sediment, chlorine, taste & odour", flow: "55 L/min", cartridge: '20"', common: true },
+      { name: "FilterWall F6", suits: "Large house, 2+ bathrooms", handles: "Sediment, chlorine, taste & odour + ScaleProtect", flow: "55 L/min", cartridge: '20"' },
+    ],
     blurb:
       "One unit on the water main, filtering everything that enters the house. The shower, the washing machine, the dishwasher and the hot water system all run on filtered water rather than just the kitchen tap.",
     intro:

@@ -10,7 +10,8 @@ import { QuoteForm } from "@/components/QuoteForm";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import { CtaBand } from "@/components/CtaBand";
-import { ProofStrip } from "@/components/ProofStrip";
+import { FilterWallSelector } from "@/components/FilterWallSelector";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../filtration.css";
 
 /**
@@ -39,7 +40,6 @@ export default function TierPage({ params }: { params: { tier: string } }) {
   const t = tierBySlug(params.tier);
   if (!t) notFound();
 
-  const others = TIERS.filter((x) => x.slug !== t.slug);
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -52,7 +52,19 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <Script id={`wf-faq-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(t.faqs)) }} />
       <Script id={`wf-crumbs-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
 
-      <section className="wf-hero wf-hero--tier">
+      <section
+        className="wf-hero wf-hero--tier"
+        style={
+          t.heroPhoto && hasAsset(t.heroPhoto)
+            ? {
+                backgroundImage:
+                  `linear-gradient(180deg, rgba(19,36,84,0.78) 0%, rgba(13,25,66,0.86) 60%, rgba(11,22,60,0.92) 100%), url("${t.heroPhoto}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center 55%",
+              }
+            : undefined
+        }
+      >
         <div className="wrap">
           <nav className="wf-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
@@ -77,36 +89,90 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      {/* Where the fitting physically goes. The single thing a reader
-          needs to picture, and the thing a product photo can't show. */}
-      <section className="wf-where">
-        <div className="wrap wf-where__grid">
-          <div>
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Where it goes</span>
-              <h2>{t.fitsWhere}.</h2>
+      {/* Where it goes — photos rather than the lone diagram. Jake's
+          note: one drawing isn't enough here, it wants several shots of
+          the thing actually on a wall. Falls back to the diagram until
+          the photography lands. */}
+      <section className="wf-shots">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Where it goes</span>
+            <h2>{t.fitsWhere}.</h2>
+          </div>
+          {t.gallery && t.gallery.some((g) => hasAsset(g.src)) ? (
+            <div className="wf-shots__grid">
+              {t.gallery.filter((g) => hasAsset(g.src)).map((g) => (
+                <figure className="wf-shot" key={g.src}>
+                  <img src={g.src} alt={g.alt} loading="lazy" width="700" height="520" />
+                  {g.caption && <figcaption>{g.caption}</figcaption>}
+                </figure>
+              ))}
             </div>
-          </div>
-          <div className="wf-where__diagram">
-            <FiltrationDiagram tier={t.slug} />
-          </div>
+          ) : (
+            <div className="wf-shots__fallback">
+              <FiltrationDiagram tier={t.slug} />
+              <p>
+                Install photography for this one is being shot. Until it lands, here&rsquo;s the
+                drawing of where the fitting sits.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Treats vs doesn't. The second column is why the first is believable. */}
-      <section className="wf-does">
-        <div className="wrap wf-does__grid">
-          <div className="wf-does__col wf-does__col--yes">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What it handles</span>
-            <ul>{t.treats.map((x) => <li key={x}>{x}</li>)}</ul>
-          </div>
-          <div className="wf-does__col wf-does__col--no">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What it doesn&rsquo;t</span>
-            <ul>{t.doesNotTreat.map((x) => <li key={x}>{x}</li>)}</ul>
-            <p className="wf-does__note">
-              This half matters more than the other one. A filter sold as doing everything is a
-              filter someone will be disappointed by.
+      {/* One table instead of the orange box and the two lists that
+          followed it. Jake's note on both: the compare layout is what
+          actually helps, so what it handles and what it doesn't now sit
+          in the same grid as when to pick it and when not to. */}
+      <section className="wf-verdict">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The honest version</span>
+            <h2>What it does, what it doesn&rsquo;t, and when to pick it.</h2>
+            <p>
+              Everything worth knowing about {t.label.toLowerCase()} filtration in one table,
+              including the half most product pages leave out.
             </p>
+          </div>
+          <div className="wf-verdict__wrap">
+            <table className="wf-verdict__table">
+              <thead>
+                <tr>
+                  <th className="is-yes">It handles</th>
+                  <th className="is-no">It doesn&rsquo;t</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <ul>{t.treats.map((x) => <li key={x}>{x}</li>)}</ul>
+                  </td>
+                  <td>
+                    <ul>{t.doesNotTreat.map((x) => <li key={x}>{x}</li>)}</ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="wf-verdict__wrap wf-verdict__wrap--fit">
+            <table className="wf-verdict__table">
+              <thead>
+                <tr>
+                  <th className="is-yes">Pick it when</th>
+                  <th className="is-no">Think twice if</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <ul>{t.bestFor.map((x) => <li key={x}>{x}</li>)}</ul>
+                  </td>
+                  <td>
+                    <ul>{t.watchOut.map((x) => <li key={x}>{x}</li>)}</ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -116,23 +182,6 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
         cta="Ask us which one"
       />
-
-      <section className="wf-fit">
-        <div className="wrap wf-fit__grid">
-          <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Where it&rsquo;s the right call</span>
-            <ul className="wf-fit__list wf-fit__list--for">
-              {t.bestFor.map((x) => <li key={x}>{x}</li>)}
-            </ul>
-          </div>
-          <div>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Worth knowing first</span>
-            <ul className="wf-fit__list wf-fit__list--watch">
-              {t.watchOut.map((x) => <li key={x}>{x}</li>)}
-            </ul>
-          </div>
-        </div>
-      </section>
 
       <section className="wf-servicing">
         <div className="wrap wf-servicing__inner">
@@ -160,6 +209,63 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           </div>
         </div>
       </section>
+
+      {/* THE RANGE — the versions side by side, which is what Jake liked
+          most about the Puretec page. Pricing stays off until he's ready. */}
+      {t.models && t.models.length > 0 && (
+        <section className="wf-range">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The range</span>
+              <h2>Four versions of the same idea.</h2>
+              <p>
+                They differ on two things only: how much water the house pulls at once, and
+                whether you want scale protection with it.
+              </p>
+            </div>
+            <div className="wf-range__grid">
+              {t.models.map((m) => (
+                <article className={`wf-model${m.common ? " is-common" : ""}`} key={m.name}>
+                  {m.common && <span className="wf-model__tag">Most common here</span>}
+                  <h3>{m.name}</h3>
+                  <p className="wf-model__suits">{m.suits}</p>
+                  <dl>
+                    <div><dt>Handles</dt><dd>{m.handles}</dd></div>
+                    <div><dt>Flow rate</dt><dd>{m.flow}</dd></div>
+                    <div><dt>Cartridge</dt><dd>{m.cartridge}</dd></div>
+                  </dl>
+                </article>
+              ))}
+            </div>
+            <p className="wf-range__note">
+              Priced at quote rather than on the page — the number depends on where the main
+              comes in and what the pipework needs, and a &ldquo;from&rdquo; figure with none of
+              that behind it is bait.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {/* THE SELECTOR — three questions instead of a spec table. */}
+      {t.models && t.models.length > 0 && (
+        <section className="wf-picker">
+          <div className="wrap wf-picker__grid">
+            <div>
+              <div className="ds-section-head ds-section-head--hl">
+                <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Narrow it down</span>
+                <h2>Which model is right for my home?</h2>
+                <p>Answer the three and the answer appears. Nothing is sent anywhere.</p>
+              </div>
+              <ul className="wf-picker__logic">
+                <li><strong>Bathrooms</strong> decide the flow rate — two or more means simultaneous outlets.</li>
+                <li><strong>Scale</strong> on the kettle or the shower screen is the only reason to pay for ScaleProtect.</li>
+                <li><strong>Tank water</strong> is a different product entirely, and we&rsquo;ll say so.</li>
+              </ul>
+            </div>
+            <FilterWallSelector />
+          </div>
+        </section>
+      )}
 
       <section className="wf-process wf-process--tier">
         <div className="wrap">
@@ -204,36 +310,24 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      {/* FAQ sits beside a photo rather than running full width — a
-          column of accordions on its own is the driest thing on the page
-          and this is where a reader is most likely to give up. */}
-      <section className="wf-faq wf-faq--split">
-        <div className="wrap wf-faq__grid">
-          <div className="wf-faq__aside">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
-              <h2>Straight answers.</h2>
-            </div>
-            {/* The crew rather than the product. The diagram already
-                appears twice above this, and the reference site puts a
-                warm human photo here for a reason — this is the point of
-                the page where somebody is deciding whether to ring. */}
-            <figure className="wf-faq__photo wf-faq__photo--team">
-              <img
-                src="/team photo.webp"
-                alt="The Advanced Gas & Aircon crew outside the Pakenham workshop"
-                loading="lazy"
-                width="900"
-                height="600"
-              />
-              <figcaption>
-                The people who&rsquo;d be doing it. Family-run out of Pakenham since 2014.
-              </figcaption>
-            </figure>
+      {/* FAQ in the home page's shape — heading and a human line on the
+          left, accordions on the right, first one open. */}
+      <section className="wf-faq faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
+            <h2>Straight answers.</h2>
+            <p>
+              Still want a human?{" "}
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                Call {site.phone}
+              </a>
+              .
+            </p>
           </div>
-          <div className="wf-faq__list">
-            {t.faqs.map((f) => (
-              <details key={f.q}>
+          <div className="faq__right">
+            {t.faqs.map((f, i) => (
+              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
@@ -242,32 +336,8 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      <ProofStrip
-        subject={`${t.label.toLowerCase()} filtration`}
-        eyebrow="What locals say"
-        heading="Rated 4.9 by households across the south-east."
-      />
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
-      <section className="wf-others">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> The other two</span>
-            <h2>Not the one you need?</h2>
-          </div>
-          <div className="wf-others__row">
-            {others.map((o) => (
-              <Link key={o.slug} href={`/water-filtration/${o.slug}`} className="wf-other">
-                <b>{o.label}</b>
-                <span>{o.tagline}</span>
-              </Link>
-            ))}
-            <Link href="/water-filtration" className="wf-other wf-other--hub">
-              <b>Compare all three</b>
-              <span>What&rsquo;s in Melbourne water, and which fitting handles it</span>
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
