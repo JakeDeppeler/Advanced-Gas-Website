@@ -637,3 +637,90 @@
   color: var(--ink-3);
   background: var(--paper);
 }
+
+/* ===================================================================
+   THE FIVE, COMPARED — on the hub rather than buried on /range.
+
+   The reference site's comparison table is the thing that actually
+   helps somebody choose, and ours was one click away where nobody
+   found it. This is the shallow version: five rows, six columns, the
+   "pick it when" column doing most of the work.
+   =================================================================== */
+.page-filtration .wf-compare { background: var(--bg-2); }
+.page-filtration .wf-compare__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.page-filtration .wf-compare__table { width: 100%; min-width: 960px; border-collapse: collapse; font-size: 14px; }
+.page-filtration .wf-compare__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-compare__table thead th:first-child { border-left: 0; }
+.page-filtration .wf-compare__pickcol { background: var(--orange) !important; }
+.page-filtration .wf-compare__table tbody th,
+.page-filtration .wf-compare__table tbody td {
+  padding: 16px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.page-filtration .wf-compare__table tbody th {
+  text-align: left;
+  border-left: 0;
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.page-filtration .wf-compare__table tbody th a {
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+}
+.page-filtration .wf-compare__table tbody th a:hover { color: var(--orange); }
+/* The one we lead with gets the tint, so "start here" is visible before
+   anybody reads a word of it. */
+.page-filtration .wf-compare__table tr.is-lead th,
+.page-filtration .wf-compare__table tr.is-lead td { background: rgba(243, 103, 34, 0.06); }
+.page-filtration .wf-compare__tag {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--orange);
+  border-radius: 999px;
+  padding: 3px 9px;
+  width: fit-content;
+}
+.page-filtration .wf-compare__pick {
+  background: rgba(243, 103, 34, 0.05);
+  color: var(--navy) !important;
+  font-weight: 600;
+  min-width: 260px;
+}
+.page-filtration .wf-compare__more { margin: 18px 0 0; }
+.page-filtration .wf-compare__more a {
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.page-filtration .wf-compare__more a:hover { color: var(--orange); }

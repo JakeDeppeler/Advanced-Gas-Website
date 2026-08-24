@@ -694,3 +694,64 @@ export const RANGE: RangeCategory[] = [
 export function rangeForTier(tier: string): RangeCategory[] {
   return RANGE.filter((r) => r.tier === tier);
 }
+
+/**
+ * The five categories reduced to a single comparison row each.
+ *
+ * Jake's note after looking at Puretec: the thing that actually helps a
+ * reader is a table showing the versions side by side. The full matrix
+ * on /range is the deep version, six families against ten contaminants.
+ * This is the shallow one that belongs on the hub — which of OUR five
+ * categories, on one screen, without a click.
+ *
+ * Every value here is already stated on the category page it links to.
+ * If they disagree, the category page is right and this is stale.
+ */
+export const COMPARE_ROWS = [
+  {
+    tier: "whole-home",
+    label: "Whole house",
+    fits: "Incoming main",
+    covers: "Every tap, shower and appliance",
+    handles: "Sediment · chlorine · taste",
+    service: "Cartridges ~12 months",
+    pick: "Chlorine smell in the shower, grit anywhere, or tank water",
+    lead: true,
+  },
+  {
+    tier: "hot-water",
+    label: "Hot water protection",
+    fits: "Cold inlet to the hot water unit",
+    covers: "The hot water system only",
+    handles: "Sediment",
+    service: "One cartridge, at your annual service",
+    pick: "Protecting a new heat pump, tank or continuous flow",
+  },
+  {
+    tier: "under-sink",
+    label: "Under sink",
+    fits: "Cupboard under the kitchen sink",
+    covers: "One tap, plus the fridge if it's close",
+    handles: "Sediment · chlorine · taste · lead · cyst",
+    service: "Cartridge ~12 months",
+    pick: "It's the drinking water you don't like",
+  },
+  {
+    tier: "water-softeners",
+    label: "Water softener",
+    fits: "Incoming main, with a brine tank",
+    covers: "Every tap and appliance",
+    handles: "Hardness only",
+    service: "Salt as it's used",
+    pick: "Bore water. On Melbourne mains you almost certainly don't need one",
+  },
+  {
+    tier: "rainwater-uv",
+    label: "Rainwater & tank",
+    fits: "Between the tank pump and the house",
+    covers: "Whatever the tank feeds",
+    handles: "Sediment · organics · bacteria (UV)",
+    service: "Cartridges more often · UV lamp yearly",
+    pick: "You're on tank water and somebody drinks it",
+  },
+] as const;

@@ -4,7 +4,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
-import { TIERS, IN_YOUR_WATER, STAGES, PROCESS } from "@/lib/waterFiltration";
+import { TIERS, IN_YOUR_WATER, STAGES, PROCESS, COMPARE_ROWS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import { CtaBand } from "@/components/CtaBand";
@@ -179,6 +179,57 @@ export default function WaterFiltrationPage() {
           <p className="wf-tiers__more">
             <Link href="/water-filtration/range">
               Or see the full range and exactly what each type removes →
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      {/* THE COMPARISON — the thing Jake liked most about the reference,
+          and the thing a reader actually wants: the versions side by side
+          without having to open five pages. The deep matrix lives on
+          /range; this is the shallow one that belongs here. */}
+      <section className="wf-compare">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--hl">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Side by side</span>
+            <h2>The five, compared.</h2>
+            <p>
+              Read the last column first. It&rsquo;s the one that tells you which row you&rsquo;re
+              actually in.
+            </p>
+          </div>
+          <div className="wf-compare__wrap">
+            <table className="wf-compare__table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Where it fits</th>
+                  <th>What it covers</th>
+                  <th>What it handles</th>
+                  <th>Servicing</th>
+                  <th className="wf-compare__pickcol">Pick it when</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE_ROWS.map((r) => (
+                  <tr key={r.tier} className={"lead" in r && r.lead ? "is-lead" : undefined}>
+                    <th scope="row">
+                      <Link href={`/water-filtration/${r.tier}`}>{r.label}</Link>
+                      {"lead" in r && r.lead && <span className="wf-compare__tag">Start here</span>}
+                    </th>
+                    <td>{r.fits}</td>
+                    <td>{r.covers}</td>
+                    <td>{r.handles}</td>
+                    <td>{r.service}</td>
+                    <td className="wf-compare__pick">{r.pick}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="wf-compare__more">
+            <Link href="/water-filtration/range">
+              The deep version: six product families against ten contaminants →
             </Link>
           </p>
         </div>
