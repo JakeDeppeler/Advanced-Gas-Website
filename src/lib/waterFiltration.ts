@@ -50,6 +50,26 @@ export type FiltrationTier = {
    */
   gallery?: { src: string; alt: string; caption?: string }[];
   /**
+   * Why somebody installs one. Four reasons, straight off Puretec's own
+   * product material — Jake supplied the copy, so these are the
+   * manufacturer's claims stated as the manufacturer states them.
+   */
+  whyInstall?: { t: string; points: string[] }[];
+  /** Finish options, because on this product the way it looks is part of
+   *  the pitch rather than an afterthought. */
+  finish?: { note: string; swatches: { name: string; hex: string }[] };
+  /**
+   * This category against the obvious alternative, the way Puretec put
+   * undersink against wholehouse. Rows are [label, thisOne, other].
+   */
+  versus?: {
+    heading: string;
+    thisLabel: string;
+    otherLabel: string;
+    otherHref?: string;
+    rows: { label: string; mine: string; theirs: string }[];
+  };
+  /**
    * The models in this category, so a reader can see the versions side
    * by side the way Puretec lay theirs out. Pricing deliberately absent.
    */
@@ -146,6 +166,71 @@ export const TIERS: FiltrationTier[] = [
       { src: "/puretec-filterwall-install-3.webp", alt: "FilterWall in a garden bed against a fence", caption: "Along the fence line, out of the way" },
       { src: "/puretec-filterwall-install-4.webp", alt: "FilterWall on a brick wall in a side passage", caption: "Side passage, still accessible for cartridges" },
     ],
+    whyInstall: [
+      {
+        t: "Filtered water from every tap",
+        points: [
+          "Reduces sediment, chlorine, heavy metals and other common contaminants",
+          "Filtered water in the kitchen, the bathroom, the laundry and the garden",
+        ],
+      },
+      {
+        t: "Healthier skin and hair",
+        points: [
+          "Helps reduce chlorine in shower water",
+          "Supports calmer skin and softer, healthier-looking hair",
+        ],
+      },
+      {
+        t: "Longer life out of your appliances",
+        points: [
+          "ScaleProtect™ technology in the F4 and F6 models",
+          "Helps reduce scale and sediment build-up in pipes and appliances",
+        ],
+      },
+      {
+        t: "Functionality meets style",
+        points: [
+          "Durable aluminium cover for long-lasting protection",
+          "Available in ten finishes",
+          "Backed by a 10-year warranty",
+        ],
+      },
+    ],
+    finish: {
+      note:
+        "This is the part most filtration gets wrong. A whole-house unit lives on an outside wall where you and the neighbours look at it for the next decade, so the FilterWall is a flat aluminium cover rather than a rack of exposed housings — and it comes in ten finishes so it can disappear against a fence, a render or a weatherboard. We bring the colour chart to the quote.",
+      swatches: [
+        { name: "Charcoal", hex: "#2B2B2E" },
+        { name: "Graphite", hex: "#4A4A4E" },
+        { name: "Slate", hex: "#6E6F73" },
+        { name: "Stone white", hex: "#E7E3DA" },
+        { name: "Sand", hex: "#D9C9A8" },
+        { name: "Sky", hex: "#BCD9E8" },
+        { name: "Mint", hex: "#BFDCCB" },
+        { name: "Straw", hex: "#EBC77E" },
+        { name: "Blush", hex: "#E8BFC4" },
+        { name: "Lilac", hex: "#C9BEDD" },
+      ],
+    },
+    versus: {
+      heading: "Whole house or under sink?",
+      thisLabel: "Whole house",
+      otherLabel: "Under sink",
+      otherHref: "/water-filtration/under-sink",
+      rows: [
+        { label: "Reduces chlorine, sediment, dirt", mine: "yes", theirs: "yes" },
+        { label: "Filtered water at every tap, including the shower", mine: "yes", theirs: "no" },
+        { label: "Protects your appliances and hot water system", mine: "yes", theirs: "no" },
+        { label: "Filtered water in the garden", mine: "yes", theirs: "no" },
+        { label: "Finer filtration for drinking water", mine: "no", theirs: "yes" },
+        { label: "Reaches lead and cysts", mine: "no", theirs: "yes" },
+        { label: "Fits indoors", mine: "no", theirs: "yes" },
+        { label: "Fits outdoors on the main", mine: "yes", theirs: "no" },
+        { label: "Typical flow rate", mine: "30–55 L/min", theirs: "Up to ~9.5 L/min" },
+        { label: "Cartridge life", mine: "Around 12 months", theirs: "Around 12 months" },
+      ],
+    },
     models: [
       { name: "FilterWall F3", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour", flow: "30 L/min", cartridge: '10"' },
       { name: "FilterWall F4", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour + ScaleProtect", flow: "30 L/min", cartridge: '10"' },

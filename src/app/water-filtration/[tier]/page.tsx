@@ -62,7 +62,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 backgroundSize: "cover",
                 backgroundPosition: "center 55%",
               }
-            : undefined
+            : {
+                // Until the manufacturer render is in /public, our own
+                // workshop photo behind the scrim beats a flat gradient.
+                backgroundImage:
+                  'linear-gradient(180deg, rgba(19,36,84,0.82) 0%, rgba(13,25,66,0.88) 60%, rgba(11,22,60,0.93) 100%), url("/team-photo.webp")',
+                backgroundSize: "cover",
+                backgroundPosition: "center 30%",
+              }
         }
       >
         <div className="wrap">
@@ -89,93 +96,64 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      {/* Where it goes — photos rather than the lone diagram. Jake's
-          note: one drawing isn't enough here, it wants several shots of
-          the thing actually on a wall. Falls back to the diagram until
-          the photography lands. */}
-      <section className="wf-shots">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Where it goes</span>
-            <h2>{t.fitsWhere}.</h2>
-          </div>
-          {t.gallery && t.gallery.some((g) => hasAsset(g.src)) ? (
-            <div className="wf-shots__grid">
-              {t.gallery.filter((g) => hasAsset(g.src)).map((g) => (
-                <figure className="wf-shot" key={g.src}>
-                  <img src={g.src} alt={g.alt} loading="lazy" width="700" height="520" />
-                  {g.caption && <figcaption>{g.caption}</figcaption>}
-                </figure>
-              ))}
+      {/* HOW IT LOOKS — Jake's note: the old block was a huge diagram and
+          the thing that actually sells this unit is that it's tidy. So
+          this is about the finish, and it's deliberately compact. */}
+      {t.finish && (
+        <section className="wf-look">
+          <div className="wrap wf-look__grid">
+            <div>
+              <div className="ds-section-head ds-section-head--hl">
+                <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How it looks</span>
+                <h2>Flat aluminium cover, ten finishes.</h2>
+              </div>
+              <p className="wf-look__note">{t.finish.note}</p>
+              <ul className="wf-look__facts">
+                <li><strong>10-year</strong><span>manufacturer warranty</span></li>
+                <li><strong>Aluminium</strong><span>cover, not exposed housings</span></li>
+                <li><strong>Outdoors</strong><span>mounted on the main</span></li>
+              </ul>
             </div>
-          ) : (
-            <div className="wf-shots__fallback">
-              <FiltrationDiagram tier={t.slug} />
-              <p>
-                Install photography for this one is being shot. Until it lands, here&rsquo;s the
-                drawing of where the fitting sits.
+            <div className="wf-look__swatches">
+              <span className="wf-look__swlbl">Ten finishes</span>
+              <div className="wf-look__swrow">
+                {t.finish.swatches.map((sw) => (
+                  <span key={sw.name} className="wf-swatch" title={sw.name}>
+                    <i style={{ background: sw.hex }} aria-hidden="true" />
+                    <em>{sw.name}</em>
+                  </span>
+                ))}
+              </div>
+              <p className="wf-look__swnote">
+                Indicative only — we bring the real colour chart to the quote.
               </p>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
-      {/* One table instead of the orange box and the two lists that
-          followed it. Jake's note on both: the compare layout is what
-          actually helps, so what it handles and what it doesn't now sit
-          in the same grid as when to pick it and when not to. */}
-      <section className="wf-verdict">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The honest version</span>
-            <h2>What it does, what it doesn&rsquo;t, and when to pick it.</h2>
-            <p>
-              Everything worth knowing about {t.label.toLowerCase()} filtration in one table,
-              including the half most product pages leave out.
-            </p>
+      {/* WHY INSTALL ONE — what it does, not what it doesn't. Jake was
+          blunt about the old block: compare the models, don't run a list
+          of shortcomings. Copy is Puretec's own product material. */}
+      {t.whyInstall && (
+        <section className="wf-why">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why people put one in</span>
+              <h2>What a whole-house filter actually changes.</h2>
+            </div>
+            <div className="wf-why__grid">
+              {t.whyInstall.map((w, i) => (
+                <article className="wf-whycard" key={w.t}>
+                  <span className="wf-whycard__n">{String(i + 1).padStart(2, "0")}</span>
+                  <h3>{w.t}</h3>
+                  <ul>{w.points.map((pt) => <li key={pt}>{pt}</li>)}</ul>
+                </article>
+              ))}
+            </div>
           </div>
-          <div className="wf-verdict__wrap">
-            <table className="wf-verdict__table">
-              <thead>
-                <tr>
-                  <th className="is-yes">It handles</th>
-                  <th className="is-no">It doesn&rsquo;t</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <ul>{t.treats.map((x) => <li key={x}>{x}</li>)}</ul>
-                  </td>
-                  <td>
-                    <ul>{t.doesNotTreat.map((x) => <li key={x}>{x}</li>)}</ul>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div className="wf-verdict__wrap wf-verdict__wrap--fit">
-            <table className="wf-verdict__table">
-              <thead>
-                <tr>
-                  <th className="is-yes">Pick it when</th>
-                  <th className="is-no">Think twice if</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <ul>{t.bestFor.map((x) => <li key={x}>{x}</li>)}</ul>
-                  </td>
-                  <td>
-                    <ul>{t.watchOut.map((x) => <li key={x}>{x}</li>)}</ul>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <CtaBand
         heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
@@ -242,6 +220,52 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               comes in and what the pipework needs, and a &ldquo;from&rdquo; figure with none of
               that behind it is bait.
             </p>
+          </div>
+        </section>
+      )}
+
+      {/* THIS ONE AGAINST THE OBVIOUS ALTERNATIVE — the layout Jake sent
+          from Puretec, where the choice is the whole point of the table. */}
+      {t.versus && (
+        <section className="wf-vs">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The choice</span>
+              <h2>{t.versus.heading}</h2>
+              <p>The honest split. Plenty of households end up with both, and that&rsquo;s fine.</p>
+            </div>
+            <div className="wf-vs__wrap">
+              <table className="wf-vs__table">
+                <thead>
+                  <tr>
+                    <th />
+                    <th className="is-mine">{t.versus.thisLabel}</th>
+                    <th>
+                      {t.versus.otherHref
+                        ? <Link href={t.versus.otherHref}>{t.versus.otherLabel}</Link>
+                        : t.versus.otherLabel}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {t.versus.rows.map((r) => (
+                    <tr key={r.label}>
+                      <th scope="row">{r.label}</th>
+                      <td className="is-mine">
+                        {r.mine === "yes" ? <span className="wf-vs__tick">✓</span>
+                          : r.mine === "no" ? <span className="wf-vs__dash">—</span>
+                          : r.mine}
+                      </td>
+                      <td>
+                        {r.theirs === "yes" ? <span className="wf-vs__tick">✓</span>
+                          : r.theirs === "no" ? <span className="wf-vs__dash">—</span>
+                          : r.theirs}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
       )}

@@ -932,3 +932,123 @@
   .page-filtration .wf-range__grid { grid-template-columns: 1fr; }
   .fwsel { padding: 20px 18px 22px; }
 }
+
+/* --- HOW IT LOOKS. Compact by design: the old block here was a
+       full-width diagram and the thing that actually sells this unit is
+       that it's tidy on a wall, not a rack of exposed housings. --- */
+.page-filtration .wf-look { background: var(--bg-2); padding: 62px 0; }
+.page-filtration .wf-look__grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items: center; }
+.page-filtration .wf-look__grid h2 { font-size: clamp(24px, 2.9vw, 38px) !important; }
+.page-filtration .wf-look__note { font-size: 15.5px; line-height: 1.68; color: var(--ink-2); margin: 0 0 22px; max-width: 60ch; }
+.page-filtration .wf-look__facts { list-style: none; margin: 0; padding: 0; display: flex; gap: 26px; flex-wrap: wrap; }
+.page-filtration .wf-look__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1;
+}
+.page-filtration .wf-look__facts span { display: block; margin-top: 5px; font-size: 12.5px; color: var(--ink-3); }
+.page-filtration .wf-look__swatches {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px 26px 22px;
+}
+.page-filtration .wf-look__swlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+.page-filtration .wf-look__swrow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px 10px; }
+.page-filtration .wf-swatch { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.page-filtration .wf-swatch i {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(5, 10, 48, 0.14);
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.08);
+}
+.page-filtration .wf-swatch em { font-style: normal; font-size: 10.5px; line-height: 1.25; color: var(--ink-3); text-align: center; }
+.page-filtration .wf-look__swnote { margin: 16px 0 0; font-size: 12.5px; color: var(--ink-3); font-style: italic; }
+
+/* --- WHY PEOPLE PUT ONE IN --- */
+.page-filtration .wf-why { background: var(--bg); }
+.page-filtration .wf-why__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.page-filtration .wf-whycard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  padding: 24px 22px;
+}
+.page-filtration .wf-whycard__n {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--orange);
+}
+.page-filtration .wf-whycard h3 { font-family: var(--f-display); font-size: 18.5px; line-height: 1.28; color: var(--navy); margin: 8px 0 12px; }
+.page-filtration .wf-whycard ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.page-filtration .wf-whycard li {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding-left: 18px;
+  position: relative;
+}
+.page-filtration .wf-whycard li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
+}
+
+/* --- THIS ONE vs THE ALTERNATIVE --- */
+.page-filtration .wf-vs { background: var(--paper); }
+.page-filtration .wf-vs__wrap { overflow-x: auto; border-radius: var(--rad); box-shadow: var(--shadow-sm); background: var(--paper); }
+.page-filtration .wf-vs__table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14.5px; }
+.page-filtration .wf-vs__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  padding: 16px 20px;
+  text-align: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-vs__table thead th:first-child { background: var(--navy); border-left: 0; }
+.page-filtration .wf-vs__table thead th.is-mine { background: var(--orange); }
+.page-filtration .wf-vs__table thead th a { color: #fff; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,0.5); }
+.page-filtration .wf-vs__table tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ink-2);
+  padding: 15px 20px;
+  border-top: 1px solid var(--line);
+  width: 46%;
+}
+.page-filtration .wf-vs__table tbody td {
+  text-align: center;
+  padding: 15px 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.page-filtration .wf-vs__table tbody td.is-mine { background: rgba(243, 103, 34, 0.05); }
+.page-filtration .wf-vs__tick { color: var(--orange); font-size: 19px; font-weight: 800; }
+.page-filtration .wf-vs__dash { color: var(--line-2); }
+
+@media (max-width: 1000px) {
+  .page-filtration .wf-look__grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-filtration .wf-why__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-why__grid { grid-template-columns: 1fr; }
+  .page-filtration .wf-look__swrow { grid-template-columns: repeat(5, 1fr); gap: 12px 6px; }
+  .page-filtration .wf-swatch i { width: 32px; height: 32px; }
+}
