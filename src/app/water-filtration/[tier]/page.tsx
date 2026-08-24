@@ -9,6 +9,8 @@ import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
+import { CtaBand } from "@/components/CtaBand";
+import { ProofStrip } from "@/components/ProofStrip";
 import "../filtration.css";
 
 /**
@@ -109,6 +111,12 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
+      <CtaBand
+        heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
+        blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
+        cta="Ask us which one"
+      />
+
       <section className="wf-fit">
         <div className="wrap wf-fit__grid">
           <div>
@@ -196,11 +204,32 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      <section className="wf-faq">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
-            <h2>Straight answers.</h2>
+      {/* FAQ sits beside a photo rather than running full width — a
+          column of accordions on its own is the driest thing on the page
+          and this is where a reader is most likely to give up. */}
+      <section className="wf-faq wf-faq--split">
+        <div className="wrap wf-faq__grid">
+          <div className="wf-faq__aside">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> {t.label} questions</span>
+              <h2>Straight answers.</h2>
+            </div>
+            {/* The crew rather than the product. The diagram already
+                appears twice above this, and the reference site puts a
+                warm human photo here for a reason — this is the point of
+                the page where somebody is deciding whether to ring. */}
+            <figure className="wf-faq__photo wf-faq__photo--team">
+              <img
+                src="/team photo.webp"
+                alt="The Advanced Gas & Aircon crew outside the Pakenham workshop"
+                loading="lazy"
+                width="900"
+                height="600"
+              />
+              <figcaption>
+                The people who&rsquo;d be doing it. Family-run out of Pakenham since 2014.
+              </figcaption>
+            </figure>
           </div>
           <div className="wf-faq__list">
             {t.faqs.map((f) => (
@@ -212,6 +241,12 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           </div>
         </div>
       </section>
+
+      <ProofStrip
+        subject={`${t.label.toLowerCase()} filtration`}
+        eyebrow="What locals say"
+        heading="Rated 4.9 by households across the south-east."
+      />
 
       <section className="wf-others">
         <div className="wrap">

@@ -2036,3 +2036,64 @@ input, select, textarea {
   color: var(--ink-3);
   text-align: center;
 }
+
+/* ============== CTA BAND ==============
+   Full-width orange band dropped between sections so the reader is never
+   more than a screen from a way to act. Paces the long category pages the
+   way the reference site does, in our colour rather than theirs. */
+.ctaband {
+  background: var(--orange);
+  color: #fff;
+  padding: 44px 0;
+  position: relative;
+  overflow: hidden;
+}
+.ctaband::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.ctaband__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.ctaband h2 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+  color: #fff;
+  margin: 0;
+  max-width: 24ch;
+}
+.ctaband p {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 56ch;
+}
+.ctaband__acts { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.ctaband__btn {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 4px 0 rgba(5, 10, 48, 0.28);
+}
+.ctaband__btn:hover { background: var(--navy); color: #fff; }
+.ctaband__phone { color: #fff; text-decoration: none; font-size: 15px; white-space: nowrap; }
+.ctaband__phone strong { border-bottom: 2px solid rgba(255, 255, 255, 0.6); }
+@media (max-width: 720px) {
+  .ctaband { padding: 32px 0; }
+  .ctaband__row { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .ctaband__acts { width: 100%; }
+  .ctaband__btn { width: 100%; justify-content: center; }
+}

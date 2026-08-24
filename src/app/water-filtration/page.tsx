@@ -7,6 +7,8 @@ import { pageTitle, metaDescription } from "@/lib/seo";
 import { TIERS, IN_YOUR_WATER, STAGES, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
+import { CtaBand } from "@/components/CtaBand";
+import { ProofStrip } from "@/components/ProofStrip";
 import "./filtration.css";
 
 /**
@@ -182,6 +184,12 @@ export default function WaterFiltrationPage() {
         </div>
       </section>
 
+      <CtaBand
+        heading="Tell us what you've noticed and we'll tell you which one fixes it."
+        blurb="Taste, smell, grit, cloudy water, dry skin, tank water. The symptom is the most useful diagnostic there is, and it usually points straight at one of the five."
+        cta="Ask us which one"
+      />
+
       {/* HOW IT WORKS */}
       <section className="wf-stages">
         <div className="wrap">
@@ -252,6 +260,12 @@ export default function WaterFiltrationPage() {
           <QuoteForm presetService="water-filtration" />
         </div>
       </section>
+
+      <ProofStrip
+        subject="water filtration"
+        eyebrow="What locals say"
+        heading="Rated 4.9 by households across the south-east."
+      />
 
       {/* FAQ */}
       <section className="wf-faq">

@@ -5,6 +5,7 @@ import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RANGE, CAPABILITIES, TIERS, type CapabilityKey } from "@/lib/waterFiltration";
+import { CtaBand } from "@/components/CtaBand";
 import "../filtration.css";
 
 /**
@@ -169,6 +170,12 @@ export default function RangePage() {
           </p>
         </div>
       </section>
+
+      <CtaBand
+        heading="Still not sure which row you're in?"
+        blurb="Send us the symptom and we'll point at the line on this table that matches it — including when the honest answer is that you don't need any of them."
+        cta="Ask us which one"
+      />
 
       {/* FAMILIES */}
       <section className="wr-families">
