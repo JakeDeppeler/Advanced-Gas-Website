@@ -238,28 +238,9 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </section>
       )}
 
-      {/* WHY INSTALL ONE — what it does, not what it doesn't. Jake was
-          blunt about the old block: compare the models, don't run a list
-          of shortcomings. Copy is Puretec's own product material. */}
-      {t.whyInstall && (
-        <section className="wf-why">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why people put one in</span>
-              <h2>What a whole-house filter actually changes.</h2>
-            </div>
-            <div className="wf-why__grid">
-              {t.whyInstall.map((w, i) => (
-                <article className="wf-whycard" key={w.t}>
-                  <span className="wf-whycard__n">{String(i + 1).padStart(2, "0")}</span>
-                  <h3>{w.t}</h3>
-                  <ul>{w.points.map((pt) => <li key={pt}>{pt}</li>)}</ul>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* The "why install one" block that used to sit here is gone. The
+          everyday-benefits tiles at the top of the page make the same
+          argument in the same words, and Jake spotted the double-up. */}
 
       <CtaBand
         heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
@@ -267,44 +248,19 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         cta="Ask us which one"
       />
 
-      <section className="wf-servicing">
-        <div className="wrap wf-servicing__inner">
-          <div className="wf-servicing__photo">
-            <img
-              src={assetOrFallback(t.productPhoto, t.diagram)}
-              alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
-              loading="lazy"
-              width="600"
-              height="400"
-            />
-          </div>
-          <div>
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
-              <h2>Cartridges, and why we show you rather than charge you.</h2>
-            </div>
-            <p>{t.servicing}</p>
-            <p className="wf-servicing__note">
-              A filter nobody changes is worse than no filter, because you stop thinking about
-              the water while the cartridge quietly stops doing anything. That is why we&rsquo;d
-              rather you could do it yourself in ten minutes than have it depend on us
-              remembering.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* THE RANGE — the versions side by side, which is what Jake liked
-          most about the Puretec page. Pricing stays off until he's ready. */}
+      {/* THE F RANGE — this is the whole-house product, so the range on
+          this page is F3 through F6 rather than a second pass at the
+          system styles above. Four reasons per model, because they
+          differ on exactly two variables and a longer list is padding. */}
       {t.models && t.models.length > 0 && (
         <section className="wf-range">
           <div className="wrap">
             <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The range</span>
-              <h2>Four versions of the same idea.</h2>
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The F range</span>
+              <h2>Four versions, and why you&rsquo;d pick each one.</h2>
               <p>
                 They differ on two things only: how much water the house pulls at once, and
-                whether you want scale protection with it.
+                whether you want scale protection with it. Everything else is identical.
               </p>
             </div>
             <div className="wf-range__grid">
@@ -313,11 +269,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                   {m.common && <span className="wf-model__tag">Most common here</span>}
                   <h3>{m.name}</h3>
                   <p className="wf-model__suits">{m.suits}</p>
-                  <dl>
-                    <div><dt>Handles</dt><dd>{m.handles}</dd></div>
-                    <div><dt>Flow rate</dt><dd>{m.flow}</dd></div>
+                  <dl className="wf-model__specs">
+                    <div><dt>Flow</dt><dd>{m.flow}</dd></div>
                     <div><dt>Cartridge</dt><dd>{m.cartridge}</dd></div>
                   </dl>
+                  <span className="wf-model__rl">Four reasons to pick it</span>
+                  <ol className="wf-model__reasons">
+                    {m.reasons.map((r) => <li key={r}>{r}</li>)}
+                  </ol>
                 </article>
               ))}
             </div>
@@ -396,6 +355,33 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           </div>
         </section>
       )}
+
+      <section className="wf-servicing">
+        <div className="wrap wf-servicing__inner">
+          <div className="wf-servicing__photo">
+            <img
+              src={assetOrFallback(t.productPhoto, t.diagram)}
+              alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
+              loading="lazy"
+              width="600"
+              height="400"
+            />
+          </div>
+          <div>
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
+              <h2>Cartridges, and why we show you rather than charge you.</h2>
+            </div>
+            <p>{t.servicing}</p>
+            <p className="wf-servicing__note">
+              A filter nobody changes is worse than no filter, because you stop thinking about
+              the water while the cartridge quietly stops doing anything. That is why we&rsquo;d
+              rather you could do it yourself in ten minutes than have it depend on us
+              remembering.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <section className="wf-process wf-process--tier">
         <div className="wrap">

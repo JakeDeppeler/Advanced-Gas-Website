@@ -79,6 +79,9 @@ export type FiltrationTier = {
     handles: string;
     flow: string;
     cartridge: string;
+    /** Four reasons to pick this one over its siblings. Four because the
+     *  models differ on two variables; a longer list would be padding. */
+    reasons: string[];
     /** Set on the one we'd fit most often. */
     common?: boolean;
   }[];
@@ -232,10 +235,59 @@ export const TIERS: FiltrationTier[] = [
       ],
     },
     models: [
-      { name: "FilterWall F3", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour", flow: "30 L/min", cartridge: '10"' },
-      { name: "FilterWall F4", suits: "Small to medium house", handles: "Sediment, chlorine, taste & odour + ScaleProtect", flow: "30 L/min", cartridge: '10"' },
-      { name: "FilterWall F5", suits: "Large house, 2+ bathrooms", handles: "Sediment, chlorine, taste & odour", flow: "55 L/min", cartridge: '20"', common: true },
-      { name: "FilterWall F6", suits: "Large house, 2+ bathrooms", handles: "Sediment, chlorine, taste & odour + ScaleProtect", flow: "55 L/min", cartridge: '20"' },
+      {
+        name: "FilterWall F3",
+        suits: "Small to medium house",
+        handles: "Sediment, chlorine, taste & odour",
+        flow: "30 L/min",
+        cartridge: '10 inch',
+        reasons: [
+          "The compact one. A house with one or two bathrooms rarely draws more than 30 L/min, so you aren't paying for capacity you'll never use.",
+          "Three stages, not one — coarse sediment, fine sediment, then a carbon block for the chlorine, taste and smell.",
+          "Same aluminium cover and the same ten finishes as the bigger units. You don't trade the look for the smaller size.",
+          "Ten-year warranty, and a cartridge change you can do yourself in about ten minutes.",
+        ],
+      },
+      {
+        name: "FilterWall F4",
+        suits: "Small to medium house, with scale",
+        handles: "Sediment, chlorine, taste & odour + ScaleProtect",
+        flow: "30 L/min",
+        cartridge: '10 inch',
+        reasons: [
+          "Everything the F3 does, with ScaleProtect taking the place of one of the sediment stages.",
+          "The one to pick if you can see scale — on the kettle element, the shower screen or the tap outlets.",
+          "Scale is hardest on the hot water system and the dishwasher, which is where it costs real money rather than just looking untidy.",
+          "Identical footprint and finishes to the F3, so the only thing that changes is what's inside the housing.",
+        ],
+      },
+      {
+        name: "FilterWall F5",
+        suits: "Large house, 2+ bathrooms",
+        handles: "Sediment, chlorine, taste & odour",
+        flow: "55 L/min",
+        cartridge: '20 x 4.5 inch',
+        common: true,
+        reasons: [
+          "Built for simultaneous outlets. Two showers and the washing machine at once is where a 30 L/min unit becomes the bottleneck.",
+          "Bigger cartridges mean longer between changes — more media doing the same job, so it lasts rather than just flowing faster.",
+          "Three stages with a bypass, so we can isolate it for a cartridge change without shutting the water off to the house.",
+          "The one we fit most often on a family home in this corridor, and the one we'd put in our own.",
+        ],
+      },
+      {
+        name: "FilterWall F6",
+        suits: "Large house with scale",
+        handles: "Sediment, chlorine, taste & odour + ScaleProtect",
+        flow: "55 L/min",
+        cartridge: '20 x 4.5 inch',
+        reasons: [
+          "The F5 with ScaleProtect in place of the coarse sediment stage — same capacity, scale handled as well.",
+          "The pick for a big house where scale is visible and there's a hot water system and a dishwasher worth protecting.",
+          "No capacity trade. Still 55 L/min and still the big cartridges, so nothing is given up for the scale protection.",
+          "Top of the F range. The one to choose if you'd rather do this once and not think about it again.",
+        ],
+      },
     ],
     blurb:
       "One unit on the water main, filtering everything that enters the house. The shower, the washing machine, the dishwasher and the hot water system all run on filtered water rather than just the kitchen tap.",

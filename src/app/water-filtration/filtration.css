@@ -1202,3 +1202,51 @@
   .page-filtration .wf-area summary { min-height: 0; }
   .page-filtration .wf-styles__grid { grid-template-columns: 1fr; }
 }
+
+/* Model cards now carry four reasons each, so they need more room than
+   the three-line spec cards they replaced. Two across rather than four. */
+.page-filtration .wf-range__grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.page-filtration .wf-model__specs { display: flex; gap: 24px; margin: 0 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.page-filtration .wf-model__specs dt {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 3px;
+}
+.page-filtration .wf-model__specs dd { margin: 0; font-family: var(--f-display); font-size: 17px; font-weight: 700; color: var(--navy); }
+.page-filtration .wf-model__rl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+.page-filtration .wf-model__reasons { margin: 0; padding: 0; list-style: none; counter-reset: r; display: grid; gap: 11px; }
+.page-filtration .wf-model__reasons li {
+  counter-increment: r;
+  position: relative;
+  padding-left: 30px;
+  font-size: 14px;
+  line-height: 1.58;
+  color: var(--ink-2);
+}
+.page-filtration .wf-model__reasons li::before {
+  content: counter(r);
+  position: absolute;
+  left: 0; top: 1px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-range__grid { grid-template-columns: 1fr; }
+}
