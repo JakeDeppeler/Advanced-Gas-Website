@@ -33,7 +33,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas" | "tools" | "company" | "water";
+      kind: "services" | "brands" | "areas" | "tools" | "company";
     };
 
 /**
@@ -255,10 +255,6 @@ const AREAS_MEGA = {
 
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
-  // Filtration is its own section rather than one line inside the services
-  // mega. It has five category pages, a range comparison and a buying
-  // decision of its own, which is more than a menu row can carry.
-  { label: "Water", trigger: "water", href: "/water-filtration", kind: "water" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
@@ -273,24 +269,9 @@ const NAV: NavItem[] = [
 ];
 
 /**
- * Water mega. Five categories plus the range comparison, read off the
- * same TIERS the section itself renders from, so a new category appears
- * in the nav the moment it exists rather than when somebody remembers
- * to add it here twice.
- */
-const WATER_MEGA: { href: string; label: string; sub: string }[] = [
-  ...TIERS.map((t) => ({
-    href: `/water-filtration/${t.slug}`,
-    label: t.label,
-    sub: t.tagline,
-  })),
-  { href: "/water-filtration/range", label: "The full range compared", sub: "Six families against ten contaminants" },
-];
-
-/**
- * The filtration categories as service-mega rows. Same destinations as
- * the Water mega — Water is its own section now, and it also belongs in
- * the Services tab because that is where somebody looks for it.
+ * The filtration categories as service-mega rows. Filtration is not a
+ * top-level nav item — it lives in the Services tab like everything else
+ * we sell.
  */
 const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
   href: `/water-filtration/${t.slug}`,
@@ -298,8 +279,8 @@ const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
   sub: t.tagline,
   photo: t.productPhoto,
   photoAlt: t.productPhotoAlt,
-  // Softeners have no product shot yet; the diagram is drawn for every
-  // tier and reads fine at thumbnail size.
+  // Not every tier has a product shot yet; the diagram is drawn for all
+  // of them and reads fine at thumbnail size.
   photoFallback: t.diagram,
 }));
 
@@ -423,7 +404,6 @@ export function Header() {
                 {isOpen && (
                   <div className={`mega mega--${n.kind}`} role="menu">
                     {n.kind === "services" && <ServicesMega />}
-                    {n.kind === "water" && <WaterMega />}
                     {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
                     {n.kind === "tools" && <ToolsMega />}
@@ -528,27 +508,6 @@ function ServicesMega() {
             </Link>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-function WaterMega() {
-  return (
-    <div className="megawater">
-      <div className="megawater__list">
-        {WATER_MEGA.map((w) => (
-          <Link key={w.href} href={w.href} role="menuitem" className="megawater__item">
-            <b>{w.label}</b>
-            <span>{w.sub}</span>
-          </Link>
-        ))}
-      </div>
-      <div className="megawater__foot">
-        <span>Puretec &amp; BWT · installed by licensed plumbers</span>
-        <Link href="/water-filtration" className="ds-btn ds-btn--orange">
-          The whole section →
-        </Link>
       </div>
     </div>
   );
@@ -720,17 +679,6 @@ function MobileDrawer({ close }: { close: () => void }) {
                     <Link key={p.href} href={p.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{p.label}</b>
                       <span>{p.sub}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-              {n.kind === "water" && (
-                <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Water filtration</div>
-                  {WATER_MEGA.map((w) => (
-                    <Link key={w.href} href={w.href} onClick={close} className="hdr__drawer-sublink">
-                      <b>{w.label}</b>
-                      <span>{w.sub}</span>
                     </Link>
                   ))}
                 </div>

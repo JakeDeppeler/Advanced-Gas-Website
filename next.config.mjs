@@ -20,6 +20,17 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // ---- Water softeners retired ----
+      // The page argued that Melbourne mains water is soft enough that
+      // most people don't need one, which is true and is why the category
+      // came out. It was in the sitemap, so the URL goes to the section
+      // rather than a 404.
+      {
+        source: "/water-filtration/water-softeners",
+        destination: "/water-filtration",
+        permanent: true,
+      },
+
       // ---- Water filtration moved out of gas plumbing ----
       // It shipped as three systems under /services/gas-plumbing and got
       // its own section a day later, because it isn't the same kind of

@@ -86,32 +86,6 @@ export function FiltrationDiagram({ tier }: { tier: string }) {
     );
   }
 
-  if (tier === "water-softeners") {
-    return (
-      <svg viewBox="0 0 480 320" role="img" aria-label="An ion-exchange softener on the main, with a resin vessel and a brine tank">
-        <path d="M18 250 H120" {...PIPE} />
-        <text x="22" y="236" fontSize="12" fill={NAVY} fillOpacity="0.7">Hard water in</text>
-
-        {/* resin vessel */}
-        <path d="M150 120 h74 v112 a37 22 0 0 1 -74 0 z" fill={SKY} fillOpacity="0.16" stroke={NAVY} strokeWidth="3" />
-        <ellipse cx="187" cy="120" rx="37" ry="20" fill="#fff" stroke={NAVY} strokeWidth="3" />
-        <rect x="171" y="86" width="32" height="24" rx="6" fill={NAVY} />
-        <text x="187" y="286" textAnchor="middle" fontSize="12" fontWeight="700" fill={NAVY}>Resin vessel</text>
-        <path d="M120 250 H150" {...PIPE} />
-
-        {/* brine tank */}
-        <path d="M300 150 h62 v92 a10 10 0 0 1 -10 10 h-42 a10 10 0 0 1 -10 -10 z" fill="#fff" stroke={NAVY} strokeWidth="3" />
-        <rect x="296" y="136" width="70" height="16" rx="6" fill={NAVY} />
-        <path d="M306 214 h50 v24 h-50 z" fill={ORANGE} fillOpacity="0.28" />
-        <text x="331" y="286" textAnchor="middle" fontSize="12" fontWeight="700" fill={NAVY}>Salt / brine</text>
-        <path d="M224 176 H300" stroke={ORANGE} strokeWidth="3" strokeDasharray="6 5" fill="none" strokeLinecap="round" />
-
-        {/* softened out */}
-        <path d="M224 250 H452 V196" {...PIPE} />
-        <text x="392" y="184" fontSize="12" fill={NAVY} fillOpacity="0.7">Softened out</text>
-      </svg>
-    );
-  }
 
   if (tier === "rainwater-uv") {
     return (

@@ -15,6 +15,7 @@ import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
 import { SystemSpotlight } from "@/components/SystemSpotlight";
 import { pageTitle, metaDescription } from "@/lib/seo";
+import { RangeBand } from "@/components/RangeBand";
 
 /**
  * A page per system type — /services/gas-plumbing/gas-ducted and so on.
@@ -301,6 +302,16 @@ export default async function SystemPage({
       </section>
       )}
 
+
+      {/* THE RANGE — every model for this system sits on the brand page,
+          so this is a button each rather than a second catalogue here. */}
+      {content.brandPods && content.brandPods.length > 0 && (
+        <RangeBand
+          heading={`See the full ${system.label.toLowerCase()} range.`}
+          blurb="Models, specs and installed prices, brand by brand."
+          brands={content.brandPods}
+        />
+      )}
 
       <ProofStrip subject={system.label.toLowerCase()} heading="Rated 4.9 by the households we work for." />
 

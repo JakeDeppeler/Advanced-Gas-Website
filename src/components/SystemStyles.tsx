@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 /**
  * Choose your system — the six shapes, with the F range folded in.
@@ -49,6 +49,7 @@ export function SystemStyles({
   lede?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const dropRef = useRef<HTMLDivElement | null>(null);
   const hasRange = models.length > 0;
   // Where a tier has a range but no system cards to hang a button off —
   // the softeners, which are two sizes of one product — the range is the
@@ -79,7 +80,19 @@ export function SystemStyles({
                   className={`wf-style__more${open ? " is-open" : ""}`}
                   aria-expanded={open}
                   aria-controls="wf-range-drop"
-                  onClick={() => setOpen((v) => !v)}
+                  onClick={() => {
+                    const next = !open;
+                    setOpen(next);
+                    // The button sits on the first of six cards and the
+                    // panel opens under all of them — about 1,500px down.
+                    // Without this you click and, as far as you can tell,
+                    // nothing happens.
+                    if (next) {
+                      requestAnimationFrame(() =>
+                        dropRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                      );
+                    }
+                  }}
                 >
                   {open ? "Hide the four models" : "The four models, F3 to F6"}
                   <span aria-hidden="true">{open ? "↑" : "↓"}</span>
@@ -92,6 +105,7 @@ export function SystemStyles({
 
       {hasRange && (
         <div
+          ref={dropRef}
           className={`wf-range__drop${alwaysOpen ? " is-bare" : ""}`}
           id="wf-range-drop"
           hidden={!isOpen}

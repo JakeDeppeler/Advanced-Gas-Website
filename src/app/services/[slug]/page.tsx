@@ -13,12 +13,12 @@ import { WhyDifferent } from "@/components/WhyDifferent";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import type { NudgeVariant } from "@/lib/upgradeAngle";
 import { getInstagramForService } from "@/lib/instagram";
-import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
+import { RangeBand } from "@/components/RangeBand";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
 /** The tile palette, same five the filtration pages rotate through. */
@@ -109,45 +109,10 @@ export default async function ServicePage({ params }: { params: { slug: string }
     </>
   );
 
-  // The range: manufacturer product shots plus the Instagram pitch.
-  const rangeSection = (
-    <>
-      {/* THE GEAR WE INSTALL — manufacturer product shots, with an
-          honest note + a link to Instagram where the actual on-the-tools
-          install photos live. */}
-      {content.photos && content.photos.length > 0 && (
-        <section className="svc-photos">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> The gear we install</span>
-              <h2>What we put in for {svc.short.toLowerCase()}.</h2>
-              <p>
-                These are the manufacturer product shots so you can see exactly which unit
-                we&rsquo;re quoting. For photos of our actual installs, on the roof,
-                in the cupboard, on the wall, head to our Instagram.
-              </p>
-            </div>
-            <div className="svc-photos__grid">
-              {content.photos.map((p) => (
-                <figure key={p.src} className="svc-photo">
-                  <img src={p.src} alt={p.alt} loading="lazy" width="600" height="450" />
-                  {p.caption && <figcaption>{p.caption}</figcaption>}
-                </figure>
-              ))}
-            </div>
-            {/* Only pitch Instagram here when the live feed below isn't
-                carrying the load — otherwise it's two asks in a row. */}
-            {igPosts.length === 0 && (
-              <InstagramCTA
-                heading="See the real thing on Instagram"
-                body={`Every ${svc.short.toLowerCase()} job we finish goes up on our feed, real houses, real cupboards, real rooflines across Pakenham, Berwick, Officer and Cranbourne.`}
-              />
-            )}
-          </div>
-        </section>
-      )}
-    </>
-  );
+  // "The gear we install" was here — a grid of manufacturer product
+  // renders. It came out with the brand pods: a reader on a service page
+  // wants to know what the job involves, and if they want models there is
+  // now a button per brand straight into the brand page.
 
   // Our own install photography on a navy band, so the page has a dark
   // beat between the light ones. Grows as photos are added to the data.
@@ -284,7 +249,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.whyFirst && (
         <>
           {whyUsSection}
-          {rangeSection}
           {installShots}
           {beforeAfterSection}
         </>
@@ -397,10 +361,12 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <UpgradeNudge variant={NUDGE_BY_SERVICE[svc.slug] ?? "general"} />
       </div>
 
-      {/* PRICING */}
+      {/* PRICING — kept, restyled. The table is the useful bit; what it
+          needed was the section head and the rows to look like the rest
+          of the site rather than a spreadsheet dropped into the page. */}
       <section className="dp-pricing">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
+          <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
             <h2>Transparent fixed-price options.</h2>
             <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
@@ -466,54 +432,20 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {!content.whyFirst && (
         <>
           {beforeAfterSection}
-          {rangeSection}
           {installShots}
         </>
       )}
 
-      {/* Live Instagram, posts whose caption mentions this kind of job. */}
-      <InstagramFeed
-        posts={igPosts}
-        eyebrow={`${svc.short} on the tools`}
-        heading={`Our latest ${svc.short.toLowerCase()} jobs.`}
-        blurb={`Straight from our Instagram, real jobs across Melbourne's south-east, posted as we finish them.`}
-      />
-
-      {/* BRAND PODS, richer version of the flat brand tag row */}
+      {/* THE RANGE — a button per brand into the brand page. This
+          replaces the brand pods, which were a paragraph of prose each on
+          a page somebody picked for the service, not the brand. */}
       {content.brandPods && content.brandPods.length > 0 && (
-        <section className="svc-brandpods">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Brands we install</span>
-              <h2>What we quote and why.</h2>
-            </div>
-            <div className="svc-brandpods__grid">
-              {content.brandPods.map((b) => (
-                <Link
-                  key={b.brand}
-                  href={b.href ?? "/brands"}
-                  className="svc-brandpod"
-                >
-                  <div className="svc-brandpod__name">{b.brand}</div>
-                  <div className="svc-brandpod__reason">{b.reason}</div>
-                  <span className="svc-brandpod__more">See our range →</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+        <RangeBand
+          heading={`The brands we fit for ${svc.short.toLowerCase()}.`}
+          blurb="Every model, spec and installed price sits on the brand page. One press each."
+          brands={content.brandPods}
+        />
       )}
-
-      {/* BRANDS · flat tag row for SEO + fallback */}
-      <section className="dp-brands">
-        <div className="wrap">
-          <h3>Also supported</h3>
-          <div className="dp-brands__row">
-            {content.brands.map((b) => <span key={b}>{b}</span>)}
-          </div>
-        </div>
-      </section>
-
 
       {/* PROOF · compact reviews row, so the page earns the form below it */}
       <ProofStrip

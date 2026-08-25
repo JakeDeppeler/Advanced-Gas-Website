@@ -53,7 +53,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/water-filtration/whole-home`, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/water-filtration/hot-water`, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/water-filtration/under-sink`, changeFrequency: "monthly", priority: 0.75 },
-    { url: `${base}/water-filtration/water-softeners`, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/water-filtration/rainwater-uv`, changeFrequency: "monthly", priority: 0.75 },
     { url: `${base}/water-filtration/range`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },

@@ -592,6 +592,11 @@ export const TIERS: FiltrationTier[] = [
     productPhotoAlt: "Puretec inline filter plumbed into a wall with brass isolation valves",
     heroPhoto: "/puretec-inline-filter-hot-water.webp",
     heroPhotoAlt: "Inline sediment filter plumbed into the cold feed on an external wall",
+    // The same install, framed on the bowl and the isolation valves —
+    // the part you actually undo to change the cartridge. Without this
+    // the section fell back to the diagram.
+    servicingPhoto: "/puretec-hot-water-cartridge.webp",
+    servicingPhotoAlt: "The filter head, isolation valves and clear bowl on the cold feed",
     heroFacts: [
       { v: "One cartridge", k: "A single sediment stage on the cold inlet" },
       { v: "Every system", k: "Storage, continuous flow or heat pump" },
@@ -972,169 +977,6 @@ export const TIERS: FiltrationTier[] = [
     ],
   },
   {
-    slug: "water-softeners",
-    label: "Water softeners",
-    tagline: "For hard water — which, on Melbourne mains, you probably haven't got",
-    cta: "Do I need a softener?",
-    productPhoto: "/bwt-bewamat-water-softener.webp",
-    productPhotoAlt: "BWT Bewamat automatic water softener",
-    heroFacts: [
-      { v: "Test first", k: "We measure your hardness before we quote one" },
-      { v: "Bore and rural", k: "Where a softener genuinely earns its place" },
-      { v: "Hardness only", k: "It will not change taste, smell or clarity" },
-      { v: "Adjustable", k: "A blending valve sets how soft you actually want it" },
-    ],
-    benefitsHeading: "Where hardness shows up, if you have it.",
-    benefitsLede:
-      "Read this as a checklist rather than a sales pitch. If none of it is happening at your place, you are on soft water and you do not need a softener.",
-    benefits: [
-      {
-        area: "The kettle",
-        icon: "kettle",
-        tint: "#0B1450",
-        line: "The white crust on the element, gone",
-        detail:
-          "Scale in a kettle is the most visible symptom of hardness and the least expensive one. If your kettle is clean, that is the first sign a softener is solving a problem you do not have.",
-      },
-      {
-        area: "Shower screen",
-        icon: "shower",
-        tint: "#00699A",
-        line: "Less of what you are scrubbing off the glass",
-        detail:
-          "The film that will not come off a shower screen with a normal clean is scale. Soften the water and there is less of it arriving to deposit in the first place.",
-      },
-      {
-        area: "Hot water",
-        icon: "tank",
-        tint: "#2E7D6B",
-        line: "Where hardness actually costs money",
-        detail:
-          "Scale builds fastest where water is heated. Inside a hot water system it insulates, and on a continuous-flow heat exchanger it narrows passages that were already narrow. This is the real argument for a softener, not the kettle.",
-      },
-      {
-        area: "Dishwasher",
-        icon: "washer",
-        tint: "#C2540F",
-        line: "Spotting on glassware, and the machine itself",
-        detail:
-          "Hard water is why glasses come out cloudy and why the machine needs more detergent to do the same job. Both improve on soft water, and the machine lasts longer for the same reason the hot water system does.",
-      },
-      {
-        area: "Taps and tiles",
-        icon: "basin",
-        tint: "#5A5F7A",
-        line: "The chalky ring around everything",
-        detail:
-          "Around tap outlets, on tiles, in the toilet cistern. Cosmetic rather than expensive, but it is the daily reminder that the water is hard.",
-      },
-    ],
-    modelsHeading: "Two sizes, if you need one at all.",
-    modelsLede:
-      "Both are BWT Bewamat, both disinfect the resin on every regeneration, and both have a blending valve so you can set how soft you actually want it. The difference is capacity.",
-    models: [
-      {
-        name: "Bewamat 25A",
-        suits: "Smaller households",
-        handles: "Hardness",
-        flow: "8 L resin",
-        cartridge: "18 kg salt · 640 mm high",
-        common: true,
-        reasons: [
-          "Eight litres of resin and eighteen kilos of salt — the size that suits most houses where a softener is warranted at all.",
-          "640 mm high, so it fits where the 75A would not.",
-          "Hygiene disinfection of the resin on every regeneration, which is what stops the vessel becoming its own problem.",
-          "Rated IP44, so it can live outside next to the main rather than needing a cupboard.",
-        ],
-      },
-      {
-        name: "Bewamat 75A",
-        suits: "Larger houses and heavier hardness",
-        handles: "Hardness",
-        flow: "21 L resin",
-        cartridge: "50 kg salt · 1090 mm high",
-        reasons: [
-          "Twenty-one litres of resin, so it regenerates less often on the same water than the 25A would.",
-          "Fifty kilos of salt in the cabinet — fewer trips to top it up.",
-          "The pick on bore water, where the hardness is high enough that the 25A would be working constantly.",
-          "1090 mm high and wider, so where it goes needs checking before it is ordered.",
-        ],
-      },
-    ],
-
-    diagram: "/water-filtration-water-softeners-diagram.webp",
-    fitsWhere: "On the incoming main, with a brine tank beside it and a drain for the regeneration flush",
-    blurb:
-      "An ion-exchange softener swaps the calcium and magnesium that cause scale for sodium. It is the right answer on bore water and the wrong answer on most Melbourne mains connections, and we will tell you which one you are.",
-    intro:
-      "Here is the page that costs us sales, and we would rather have it than not. A water softener does one thing: it removes hardness, the dissolved calcium and magnesium that leave scale in kettles, on shower screens and inside hot water systems. Melbourne's mains water is among the softest of any major Australian city. If you are on mains here, a softener is usually solving a problem you do not have, and the advertising you have read for one was almost certainly written for a country with much harder water. Where it genuinely earns its place is bore water, some rural supplies, and the occasional property where the water is doing visible damage. So the first thing we do is test your hardness, and a good proportion of the time that test ends with us telling you to save your money.",
-    heroSub:
-      "Softeners remove hardness. Melbourne mains water is already soft, so the first thing we do is test yours — and often that test ends with us telling you to save your money.",
-    treats: [
-      "Hardness — the dissolved calcium and magnesium that form scale",
-      "Scale build-up in kettles, shower screens, taps and tiles",
-      "Scale inside hot water systems and dishwashers, which is where it costs real money",
-      "Soap and detergent that will not lather properly in hard water",
-    ],
-    doesNotTreat: [
-      "Chlorine, taste or odour. A softener is not a filter and it will not change how your water tastes — if anything it adds a little sodium",
-      "Sediment, rust or silt. That is a separate filter, and it goes ahead of the softener to protect the resin",
-      "Bacteria or anything biological. That is UV, on tank water",
-      "The problem you probably have on Melbourne mains, which is chlorine rather than hardness",
-    ],
-    bestFor: [
-      "Bore water, where hardness is genuinely high and measured rather than assumed",
-      "Properties where scale is visibly building up on fittings and inside appliances despite regular cleaning",
-      "Homes that have already lost a hot water system or a dishwasher to scale",
-      "Rural supplies outside the Melbourne mains network, which is a real slice of our eastern coverage",
-    ],
-    watchOut: [
-      "On Melbourne mains water you almost certainly do not need one, and we will say so before we quote it",
-      "It uses salt and it uses water. Every regeneration cycle consumes both, and it needs a drain connection to send the flush to",
-      "It adds sodium to your water. Usually a small amount, but worth knowing if anyone in the house is on a sodium-restricted diet",
-      "It needs power, and it needs somewhere to sit near the main with room for a brine tank beside it",
-    ],
-    servicing:
-      "Salt topped up as it is used — how often depends entirely on your hardness and how much water the house gets through. The unit regenerates itself automatically on a time and volume schedule. Beyond salt, an annual look at the resin and the valve is all it wants.",
-    faqs: [
-      {
-        q: "Is Melbourne water hard?",
-        a: "No. Melbourne mains water is soft — among the softest supplied to any major Australian city, because most of it comes from protected forest catchments rather than groundwater. That is why we will usually talk you out of a softener if you are on mains. If you are on bore water the answer is completely different and worth testing.",
-      },
-      {
-        q: "How do I know if I actually need one?",
-        a: "We test the hardness. It takes a couple of minutes and it turns the question from an argument into a number. If the number is low, you do not need a softener and we will not quote you one. If it is high, you will see it in the same test and the decision makes itself.",
-      },
-      {
-        q: "What is the difference between a softener and a filter?",
-        a: "Completely different jobs. A filter physically catches sediment and adsorbs chlorine, taste and odour. A softener chemically swaps hardness minerals for sodium using a resin bed, and it does nothing at all for taste, smell or dirt. Plenty of houses that want a filter get sold a softener, which is one of the reasons this page exists.",
-      },
-      {
-        q: "How much salt does it use?",
-        a: "It depends on your hardness and your water use, because the unit regenerates on volume as well as time. On a residential unit you are topping up a bag of salt periodically rather than constantly. We will give you a realistic figure for your water at the quote, not a brochure number.",
-      },
-      {
-        q: "Does a softener waste water?",
-        a: "It uses some, yes. Every regeneration flushes the resin bed and that flush goes to drain. On a properly sized unit set for your actual hardness it is a modest amount, but it is not nothing, and it is one more reason not to fit one where it is not needed.",
-      },
-      {
-        q: "Can I put a softener on tank water?",
-        a: "You can, but it is rarely the right first move. Rainwater is naturally soft, so hardness is not usually the tank-water problem — sediment, organics and the biological side are, which means filtration and UV. If someone is pitching you a softener for a rainwater tank, ask them what hardness reading they measured.",
-      },
-    ],
-    metaTitle: "Water Softeners, and Whether You Need One",
-    metaDescription:
-      "Melbourne mains water is soft, so a softener is usually solving a problem you haven't got. Where it genuinely helps is bore water. We test the hardness first and tell you straight.",
-    keywords: [
-      "water softener melbourne",
-      "do i need a water softener melbourne",
-      "is melbourne water hard",
-      "bore water softener victoria",
-      "water softener installation pakenham",
-      "hard water treatment melbourne",
-    ],
-  },
-  {
     slug: "rainwater-uv",
     label: "Rainwater & tank",
     tagline: "Filtration plus UV, for the properties on tank water",
@@ -1451,23 +1293,6 @@ export const RANGE: RangeCategory[] = [
     ],
   },
   {
-    slug: "softeners",
-    name: "Water softeners",
-    blurb:
-      "Ion exchange, swapping the calcium and magnesium that cause scale for sodium. Hardness only — it will not change taste, smell or clarity, and on Melbourne mains you probably do not need one.",
-    treats: ["hardness"],
-    location: ["whole-house"],
-    source: ["mains"],
-    warranty: "1 year parts and labour, 5 years parts",
-    tier: "water-softeners",
-    note:
-      "Bewamat runs a hygiene disinfection of the resin on every regeneration, has an adjustable blending valve so you can dial in how soft you actually want it, and is rated IP44 so it can live outside. 25A holds 8 L of resin, 75A holds 21 L.",
-    products: [
-      { code: "1909270", name: "Bewamat 25A Water Softener — 640 mm high, 8 L resin, 18 kg salt" },
-      { code: "1909271", name: "Bewamat 75A Water Softener — 1090 mm high, 21 L resin, 50 kg salt" },
-    ],
-  },
-  {
     slug: "inline-kits",
     name: "Undersink inline filter kits",
     blurb:
@@ -1563,15 +1388,6 @@ export const COMPARE_ROWS = [
     handles: "Sediment · chlorine · taste · lead · cyst",
     service: "Cartridge ~12 months",
     pick: "It's the drinking water you don't like",
-  },
-  {
-    tier: "water-softeners",
-    label: "Water softener",
-    fits: "Incoming main, with a brine tank",
-    covers: "Every tap and appliance",
-    handles: "Hardness only",
-    service: "Salt as it's used",
-    pick: "Bore water. On Melbourne mains you almost certainly don't need one",
   },
   {
     tier: "rainwater-uv",
