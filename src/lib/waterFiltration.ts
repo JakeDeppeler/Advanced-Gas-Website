@@ -40,9 +40,16 @@ export type FiltrationTier = {
   productPhoto: string;
   productPhotoAlt: string;
   diagram: string;
-  /** Photo behind the hero, like the home page. Falls back to the flat
-   *  gradient until the file exists. */
+  /**
+   * The display photo for the hero. It sits in a panel beside the copy
+   * rather than washed out behind it — a product shot at 20% opacity
+   * under a navy gradient reads as a photo that failed to load, which is
+   * exactly what it looked like. Until the file exists the panel carries
+   * `heroFacts` instead.
+   */
   heroPhoto?: string;
+  /** The at-a-glance panel, for while there's no display photo. */
+  heroFacts?: { k: string; v: string }[];
   /**
    * Real install photography. Replaces the single diagram in the "where
    * it goes" slot — Jake's note was that a lone drawing there isn't
@@ -165,6 +172,12 @@ export const TIERS: FiltrationTier[] = [
     productPhotoAlt: "Puretec Filterwall whole-house filtration enclosure mounted on a fence",
     diagram: "/water-filtration-whole-home-diagram.webp",
     heroPhoto: "/puretec-filterwall-whole-house.webp",
+    heroFacts: [
+      { v: "30–55 L/min", k: "Flow rate, F3 through F6" },
+      { v: "Three stages", k: "Coarse sediment, fine sediment, carbon block" },
+      { v: "10 years", k: "Manufacturer warranty on the unit" },
+      { v: "~12 months", k: "Between cartridge changes on mains water" },
+    ],
     gallery: [
       { src: "/puretec-filterwall-install-1.webp", alt: "Puretec FilterWall mounted on a weatherboard wall beside a path", caption: "Mounted flat on the wall, pipework in copper" },
       { src: "/puretec-filterwall-install-2.webp", alt: "FilterWall installed on a rendered wall next to the meter", caption: "Beside the meter, where the main comes in" },
@@ -1024,7 +1037,10 @@ export const SYSTEM_STYLES: readonly SystemStyle[] = [
     style: "Freestanding or wall mounted",
     blurb:
       "Three-stage filtration behind a flat aluminium cover, in ten finishes. The one to pick when the unit is going somewhere you'll look at it.",
-    facts: ["3-stage with bypass", "55 L/min", '20" × 4.5" cartridges', "ScaleProtect on F4 and F6", "10-year warranty"],
+    // Deliberately about the look and the range rather than the specs:
+    // F3 to F6 get a section of their own further down the page, and
+    // repeating flow rates and cartridge sizes here was the double-up.
+    facts: ["Flat aluminium cover", "Ten finishes", "Four models, F3 to F6", "10-year warranty"],
     photo: "/puretec-filterwall-whole-house.webp",
     lead: true,
   },

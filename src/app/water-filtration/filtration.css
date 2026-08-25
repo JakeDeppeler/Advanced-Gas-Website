@@ -1064,46 +1064,6 @@
 /* --- EVERYDAY BENEFITS. Their five pastel tiles; ours take the brand
        palette instead, each tile carrying its own tint via --tint. --- */
 .page-filtration .wf-areas { background: var(--bg); }
-.page-filtration .wf-areas__row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-.page-filtration .wf-area {
-  background: var(--tint, var(--navy));
-  border-radius: var(--rad);
-  color: #fff;
-  overflow: hidden;
-  transition: transform 0.15s;
-}
-.page-filtration .wf-area[open] { grid-column: 1 / -1; }
-.page-filtration .wf-area summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 28px 22px 26px;
-  min-height: 176px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 8px;
-  position: relative;
-}
-.page-filtration .wf-area summary::-webkit-details-marker { display: none; }
-.page-filtration .wf-area summary::after {
-  content: "+";
-  position: absolute;
-  top: 18px; right: 20px;
-  font-size: 20px;
-  line-height: 1;
-  opacity: 0.75;
-}
-.page-filtration .wf-area[open] summary::after { content: "–"; }
-.page-filtration .wf-area__name { font-family: var(--f-display); font-size: 21px; font-weight: 800; }
-.page-filtration .wf-area__line { font-size: 13.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.82); }
-.page-filtration .wf-area p {
-  margin: 0;
-  padding: 0 22px 26px;
-  font-size: 15px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 80ch;
-}
 
 /* --- CHOOSE YOUR SYSTEM. Navy band so the cards read as products. --- */
 .page-filtration .wf-styles {
@@ -1129,13 +1089,6 @@
   border-bottom: 1px solid var(--line);
 }
 .page-filtration .wf-style__photo img { width: 100%; height: 100%; object-fit: contain; padding: 16px; }
-.page-filtration .wf-style__ph {
-  font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--line-2);
-}
 .page-filtration .wf-style__body { padding: 20px 22px 24px; display: flex; flex-direction: column; flex: 1; }
 .page-filtration .wf-style__tier {
   align-self: flex-start;
@@ -1197,12 +1150,8 @@
   .page-filtration .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 900px) {
-  .page-filtration .wf-areas__row { grid-template-columns: repeat(2, 1fr); }
-  .page-filtration .wf-area summary { min-height: 132px; padding: 20px 18px 18px; }
 }
 @media (max-width: 640px) {
-  .page-filtration .wf-areas__row { grid-template-columns: 1fr; gap: 8px; }
-  .page-filtration .wf-area summary { min-height: 0; }
   .page-filtration .wf-styles__grid { grid-template-columns: 1fr; }
 }
 
@@ -1260,11 +1209,7 @@
    the sections that were saying the same thing twice removed.
    =================================================================== */
 
-/* --- benefit tiles: icon, tighter spacing, and a way through --- */
-.page-filtration .wf-area__icon { display: block; margin-bottom: auto; opacity: 0.9; }
-.page-filtration .wf-area summary { justify-content: flex-start; gap: 0; padding: 22px 20px 22px; }
-.page-filtration .wf-area__name { margin-top: 14px; }
-.page-filtration .wf-area__line { margin-top: 4px; }
+/* --- benefit tiles: a way through to the explainer --- */
 .page-filtration .wf-areas__more { margin: 22px 0 0; }
 .page-filtration .wf-areas__more a {
   font-weight: 700;
@@ -1320,8 +1265,6 @@
   padding: 10px;
 }
 .page-filtration .wf-model__shot img { width: 100%; height: 100%; object-fit: contain; }
-.fwglyph { width: 100%; height: 100%; max-height: 190px; }
-.fwglyph--lg { max-height: none; }
 .page-filtration .wf-model h3 { font-size: 19px; }
 .page-filtration .wf-model__reasons li { font-size: 13.5px; line-height: 1.52; }
 
@@ -1363,4 +1306,289 @@
 }
 @media (max-width: 640px) {
   .ctaband--boxed .ctaband__row { padding: 24px 20px; border-radius: 18px; }
+}
+
+
+/* ===================================================================
+   Jake's third pass on whole home:
+     · the everyday-benefit tiles as tabs, with a real transition
+     · empty product panels shrunk or dropped
+     · more colour between sections, so the page doesn't read as one
+       long cream scroll
+     · the navy rule down the side of every section head, gone
+   =================================================================== */
+
+/* --- no more navy side bar. The orange dot on the eyebrow is enough of
+       a marker, and Jake didn't want the rule. --- */
+.page-filtration .ds-section-head--hl { padding-left: 0; }
+.page-filtration .ds-section-head--hl::before { display: none; }
+
+/* --- EVERYDAY BENEFITS, as tabs ---------------------------------- */
+.bentiles__row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bentile {
+  --tint: var(--navy);
+  appearance: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: #fff;
+  background: var(--tint);
+  border-radius: var(--rad);
+  padding: 16px 16px 18px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  opacity: 0.62;
+  transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+.bentile:hover { opacity: 0.85; }
+.bentile.is-on {
+  opacity: 1;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -18px rgba(5, 10, 48, 0.55);
+}
+/* the notch that ties the live tile to the panel underneath */
+.bentile.is-on::after {
+  content: "";
+  position: absolute;
+  left: 26px;
+  bottom: -12px;
+  width: 18px;
+  height: 18px;
+  background: var(--tint);
+  transform: rotate(45deg);
+  border-radius: 3px;
+}
+.bentile__icon { display: block; margin-bottom: auto; opacity: 0.92; }
+.bentile__icon svg { width: 30px; height: 30px; }
+.bentile__name { font-family: var(--f-display); font-size: 18px; font-weight: 800; margin-top: 14px; }
+.bentile__line { font-size: 12.5px; line-height: 1.4; color: rgba(255, 255, 255, 0.84); margin-top: 4px; }
+
+.bentiles__panel {
+  --tint: var(--navy);
+  background: var(--tint);
+  border-radius: var(--rad);
+  color: #fff;
+  padding: 22px 26px;
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  transition: background 0.28s ease;
+}
+.bentiles__inner {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  animation: bentile-in 0.3s ease both;
+}
+.bentiles__ico { flex-shrink: 0; opacity: 0.55; }
+.bentiles__ico svg { width: 34px; height: 34px; }
+.bentiles__panel p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 88ch;
+}
+.bentiles__panel strong { color: #fff; }
+@keyframes bentile-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bentile, .bentiles__panel, .bentiles__inner { transition: none; animation: none; }
+  .bentile.is-on { transform: none; }
+}
+@media (max-width: 900px) {
+  .bentiles__row { grid-template-columns: repeat(3, 1fr); }
+  .bentile { min-height: 118px; }
+  .bentile.is-on::after { display: none; }
+}
+@media (max-width: 560px) {
+  .bentiles__row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .bentile { min-height: 104px; padding: 14px; }
+  .bentile__icon svg { width: 24px; height: 24px; }
+  .bentile__name { font-size: 16px; margin-top: 10px; }
+  .bentiles__panel { padding: 18px 18px; }
+  .bentiles__ico { display: none; }
+}
+
+/* --- COLOURED BANDS. The middle of the page was cream, cream, cream;
+       these give it a rhythm without adding a single new section. --- */
+.page-filtration .wf-band--sky {
+  background:
+    radial-gradient(760px 300px at 12% 0%, rgba(0, 176, 237, 0.14), transparent 62%),
+    linear-gradient(180deg, #eef8fd 0%, #e4f2fa 100%);
+  border-top: 1px solid rgba(0, 176, 237, 0.16);
+  border-bottom: 1px solid rgba(0, 176, 237, 0.16);
+}
+.page-filtration .wf-band--sand { background: var(--bg-2); }
+.page-filtration .wf-band--peach {
+  background:
+    radial-gradient(720px 300px at 88% 0%, rgba(243, 103, 34, 0.14), transparent 60%),
+    linear-gradient(180deg, #fdf3ec 0%, #fbe9dc 100%);
+  border-top: 1px solid rgba(243, 103, 34, 0.16);
+  border-bottom: 1px solid rgba(243, 103, 34, 0.16);
+}
+.page-filtration .wf-band--paper { background: var(--paper); }
+
+/* a white card, for the bands where the content should sit on something */
+.page-filtration .wf-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 32px 34px;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.35);
+}
+@media (max-width: 780px) {
+  .page-filtration .wf-card { padding: 22px 20px; }
+}
+
+/* the finish picker reads better on white now the band behind is blue */
+.page-filtration .wf-band--sky .fpick__stage { background: #fff; }
+
+/* the selector needs to lift off the peach */
+.page-filtration .wf-band--peach .fwsel {
+  background: var(--paper);
+  box-shadow: 0 18px 40px -28px rgba(5, 10, 48, 0.4);
+}
+
+/* --- "priced at quote" becomes a navy box rather than a footnote --- */
+.page-filtration .wf-range__note {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: rgba(255, 255, 255, 0.86) !important;
+  border: 0;
+  border-radius: var(--rad);
+  padding: 20px 24px;
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.65;
+  font-style: normal;
+  max-width: none;
+  text-align: left;
+}
+.page-filtration .wf-range__note strong { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
+
+/* --- SIZING. The empty product panels were doing nothing but taking
+       up half the fold, so: photos get a shorter frame, and the drawn
+       stand-in gets a slim band rather than a 4:3 hole. --- */
+.page-filtration .wf-style__photo { aspect-ratio: auto; height: 176px; padding: 0; }
+.page-filtration .wf-style__photo img { padding: 12px; }
+.page-filtration .wf-style__body { padding: 18px 20px 20px; }
+.page-filtration .wf-style h3 { font-size: 19px; }
+.page-filtration .wf-style p { font-size: 14px; margin-bottom: 12px; }
+
+.page-filtration .wf-model__shot { aspect-ratio: auto; height: 150px; }
+
+/* No photo yet? A coloured designation strip, which is a design choice
+   rather than a hole where a picture should be. */
+.page-filtration .wf-model__code {
+  height: 62px;
+  margin-bottom: 14px;
+  border-radius: var(--rad-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-display);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background:
+    radial-gradient(240px 90px at 80% 0%, rgba(0, 176, 237, 0.35), transparent 65%),
+    linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-filtration .wf-model.is-common .wf-model__code {
+  background:
+    radial-gradient(240px 90px at 80% 0%, rgba(255, 255, 255, 0.22), transparent 65%),
+    linear-gradient(135deg, var(--orange) 0%, #d8551a 100%);
+}
+
+.page-filtration .wf-picker__shot { aspect-ratio: auto; height: 260px; padding: 14px; }
+
+/* --- the process, across rather than down. Five short steps stacked in
+       a column was a thousand pixels of scrolling for something people
+       skim; as a row it reads in one glance and the page is shorter for
+       it. --- */
+.page-filtration .wf-process__list { grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.page-filtration .wf-process__list li {
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 18px 22px;
+}
+.page-filtration .wf-process__n { width: 32px; height: 32px; font-size: 12px; }
+.page-filtration .wf-process__list h3 { font-size: 16px; }
+.page-filtration .wf-process__list p { font-size: 13.5px; line-height: 1.55; }
+@media (max-width: 1000px) {
+  .page-filtration .wf-process__list { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .page-filtration .wf-process__list { grid-template-columns: 1fr; }
+  .page-filtration .wf-process__list li { flex-direction: row; align-items: flex-start; gap: 14px; }
+}
+
+/* --- the hero panel. Display photo when there is one, at-a-glance
+       figures while there isn't. Either way it's a thing beside the copy
+       rather than a wash behind it. --- */
+.page-filtration .wf-hero--tier .wf-hero__grid { align-items: center; grid-template-columns: 1.35fr 1fr; }
+.page-filtration .wf-hero__panel {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--rad);
+  padding: 24px 26px 26px;
+  backdrop-filter: blur(2px);
+}
+.page-filtration .wf-hero__panel-lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sky-2);
+  margin-bottom: 16px;
+}
+.page-filtration .wf-hero__at { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.page-filtration .wf-hero__at li { padding-left: 14px; border-left: 2px solid rgba(0, 176, 237, 0.55); }
+.page-filtration .wf-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 22px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-filtration .wf-hero__at span {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+/* with a real display photo the panel is just a frame for it */
+.page-filtration .wf-hero__panel:has(.wf-hero__shot) {
+  background: var(--paper);
+  border-color: rgba(255, 255, 255, 0.2);
+  padding: 18px;
+}
+.page-filtration .wf-hero__shot {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: contain;
+  display: block;
+  border-radius: var(--rad-sm);
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-hero--tier .wf-hero__grid { grid-template-columns: 1fr; gap: 26px; }
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr; }
 }

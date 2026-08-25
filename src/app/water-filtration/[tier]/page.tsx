@@ -5,14 +5,12 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
-import { TIERS, tierBySlug, PROCESS, EVERYDAY_BENEFITS, SYSTEM_STYLES, SYSTEM_COMPARE } from "@/lib/waterFiltration";
+import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
-import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import { CtaBand } from "@/components/CtaBand";
-import { FiltrationIcon } from "@/components/FiltrationIcons";
+import { BenefitTiles } from "@/components/BenefitTiles";
 import { FinishPicker } from "@/components/FinishPicker";
-import { FilterWallGlyph } from "@/components/FilterWallGlyph";
 import { FilterWallSelector } from "@/components/FilterWallSelector";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../filtration.css";
@@ -55,50 +53,59 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <Script id={`wf-faq-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(t.faqs)) }} />
       <Script id={`wf-crumbs-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
 
-      <section
-        className="wf-hero wf-hero--tier"
-        style={
-          t.heroPhoto && hasAsset(t.heroPhoto)
-            ? {
-                backgroundImage:
-                  `linear-gradient(180deg, rgba(19,36,84,0.78) 0%, rgba(13,25,66,0.86) 60%, rgba(11,22,60,0.92) 100%), url("${t.heroPhoto}")`,
-                backgroundSize: "cover",
-                backgroundPosition: "center 55%",
-              }
-            : t.slug === "whole-home"
-            ? {
-                // Our own illustration of a unit on a fence, drawn rather
-                // than borrowed — same idea as the manufacturer render,
-                // ours to use. Swaps out the moment a real photo lands.
-                backgroundImage:
-                  'linear-gradient(180deg, rgba(19,36,84,0.80) 0%, rgba(13,25,66,0.87) 58%, rgba(11,22,60,0.93) 100%), url("/water-filtration-hero.webp")',
-                backgroundSize: "cover",
-                backgroundPosition: "center 62%",
-              }
-            : undefined
-        }
-      >
-        <div className="wrap">
-          <nav className="wf-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span aria-hidden="true">/</span>
-            <Link href="/water-filtration">Water filtration</Link>
-            <span aria-hidden="true">/</span>
-            <span>{t.label}</span>
-          </nav>
-          <div className="ds-eyebrow ds-eyebrow--on-dark wf-eyebrow">
-            <span className="ds-dot" />
-            Puretec · {t.tagline}
+      {/* The hero. The display photo sits in a panel beside the copy
+          rather than behind it — as a background under the navy gradient
+          it read as a photo that had half failed to load. Until the file
+          lands the panel carries the at-a-glance facts instead. */}
+      <section className="wf-hero wf-hero--tier">
+        <div className={`wrap${t.heroFacts ? " wf-hero__grid" : ""}`}>
+          <div>
+            <nav className="wf-crumbs" aria-label="Breadcrumb">
+              <Link href="/">Home</Link>
+              <span aria-hidden="true">/</span>
+              <Link href="/water-filtration">Water filtration</Link>
+              <span aria-hidden="true">/</span>
+              <span>{t.label}</span>
+            </nav>
+            <div className="ds-eyebrow ds-eyebrow--on-dark wf-eyebrow">
+              <span className="ds-dot" />
+              Puretec · {t.tagline}
+            </div>
+            <h1>{t.label} water filtration</h1>
+            <p className="wf-hero__sub">{t.intro}</p>
+            <p className="wf-hero__where"><strong>Where it goes:</strong> {t.fitsWhere}</p>
+            <div className="pg-ctas">
+              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
+                {site.phone}
+              </a>
+            </div>
           </div>
-          <h1>{t.label} water filtration</h1>
-          <p className="wf-hero__sub">{t.intro}</p>
-          <p className="wf-hero__where"><strong>Where it goes:</strong> {t.fitsWhere}</p>
-          <div className="pg-ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
-              {site.phone}
-            </a>
-          </div>
+          {t.heroFacts && (
+            <aside className="wf-hero__panel">
+              {t.heroPhoto && hasAsset(t.heroPhoto) ? (
+                <img
+                  className="wf-hero__shot"
+                  src={t.heroPhoto}
+                  alt={t.productPhotoAlt}
+                  width="640"
+                  height="640"
+                />
+              ) : (
+                <>
+                  <span className="wf-hero__panel-lbl">At a glance</span>
+                  <ul className="wf-hero__at">
+                    {t.heroFacts.map((f) => (
+                      <li key={f.k}>
+                        <strong>{f.v}</strong>
+                        <span>{f.k}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </aside>
+          )}
         </div>
       </section>
 
@@ -116,18 +123,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 on treated water rather than just the kitchen tap.
               </p>
             </div>
-            <div className="wf-areas__row">
-              {EVERYDAY_BENEFITS.map((a) => (
-                <details className="wf-area" key={a.area} style={{ ["--tint" as string]: a.tint }}>
-                  <summary>
-                    <span className="wf-area__icon"><FiltrationIcon name={a.icon} /></span>
-                    <span className="wf-area__name">{a.area}</span>
-                    <span className="wf-area__line">{a.line}</span>
-                  </summary>
-                  <p>{a.detail}</p>
-                </details>
-              ))}
-            </div>
+            <BenefitTiles />
             <p className="wf-areas__more">
               <Link href="/water-filtration">
                 What&rsquo;s actually in Melbourne water, and what a filter does about it &rarr;
@@ -154,11 +150,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
             <div className="wf-styles__grid">
               {SYSTEM_STYLES.map((sy) => (
                 <article className={`wf-style${sy.lead ? " is-lead" : ""}`} key={sy.name}>
-                  <div className="wf-style__photo">
-                    {hasAsset(sy.photo)
-                      ? <img src={sy.photo} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
-                      : <span className="wf-style__ph" aria-hidden="true">{sy.brand}</span>}
-                  </div>
+                  {/* Only draw the photo frame when there's a photo to put in
+                      it. Six empty 4:3 boxes with a brand name floating in the
+                      middle doubled the height of the section and said nothing. */}
+                  {hasAsset(sy.photo) && (
+                    <div className="wf-style__photo">
+                      <img src={sy.photo} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
+                    </div>
+                  )}
                   <div className="wf-style__body">
                     <span className="wf-style__tier">{sy.tier}</span>
                     <h3>{sy.name}</h3>
@@ -183,7 +182,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           the thing that actually sells this unit is that it's tidy. So
           this is about the finish, and it's deliberately compact. */}
       {t.finish && (
-        <section className="wf-look">
+        <section className="wf-look wf-band wf-band--sky">
           <div className="wrap wf-look__grid">
             <div>
               <div className="ds-section-head ds-section-head--hl">
@@ -218,7 +217,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           system styles above. Four reasons per model, because they
           differ on exactly two variables and a longer list is padding. */}
       {t.models && t.models.length > 0 && (
-        <section className="wf-range">
+        <section className="wf-range wf-band wf-band--sand">
           <div className="wrap">
             <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The F range</span>
@@ -232,11 +231,18 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               {t.models.map((m) => (
                 <article className={`wf-model${m.common ? " is-common" : ""}`} key={m.name}>
                   {m.common && <span className="wf-model__tag">Most common here</span>}
-                  <div className="wf-model__shot">
-                    {m.photo && hasAsset(m.photo)
-                      ? <img src={m.photo} alt={m.name} loading="lazy" width="400" height="300" />
-                      : <FilterWallGlyph />}
-                  </div>
+                  {/* Photo when there is one; otherwise the designation on a
+                      coloured strip. A drawn stand-in floating in a 4:3 box
+                      just read as a photo that failed to load. */}
+                  {m.photo && hasAsset(m.photo) ? (
+                    <div className="wf-model__shot">
+                      <img src={m.photo} alt={m.name} loading="lazy" width="400" height="300" />
+                    </div>
+                  ) : (
+                    <div className="wf-model__code" aria-hidden="true">
+                      {m.name.split(" ").pop()}
+                    </div>
+                  )}
                   <h3>{m.name}</h3>
                   <p className="wf-model__suits">{m.suits}</p>
                   <dl className="wf-model__specs">
@@ -251,9 +257,9 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               ))}
             </div>
             <p className="wf-range__note">
-              Priced at quote rather than on the page — the number depends on where the main
-              comes in and what the pipework needs, and a &ldquo;from&rdquo; figure with none of
-              that behind it is bait.
+              <strong>Priced at quote, not on the page.</strong> What it costs depends on where
+              the main comes in and what the pipework needs, and a &ldquo;from&rdquo; figure with
+              none of that behind it is bait.
             </p>
           </div>
         </section>
@@ -267,7 +273,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       {/* THE SELECTOR — three questions instead of a spec table. */}
       {t.models && t.models.length > 0 && (
-        <section className="wf-picker">
+        <section className="wf-picker wf-band wf-band--peach">
           <div className="wrap wf-picker__grid">
             <div>
               <div className="ds-section-head ds-section-head--hl">
@@ -275,11 +281,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 <h2>Which model is right for my home?</h2>
                 <p>Answer the three and the answer appears. Nothing is sent anywhere.</p>
               </div>
-              <figure className="wf-picker__shot">
-                {hasAsset(t.productPhoto)
-                  ? <img src={t.productPhoto} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
-                  : <FilterWallGlyph large />}
-              </figure>
+              {hasAsset(t.productPhoto) && (
+                <figure className="wf-picker__shot">
+                  <img src={t.productPhoto} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
+                </figure>
+              )}
               <ul className="wf-picker__logic">
                 <li><strong>Bathrooms</strong> decide the flow rate — two or more means simultaneous outlets.</li>
                 <li><strong>Scale</strong> on the kettle or the shower screen is the only reason to pay for ScaleProtect.</li>
@@ -291,29 +297,31 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </section>
       )}
 
-      <section className="wf-servicing">
-        <div className="wrap wf-servicing__inner">
-          <div className="wf-servicing__photo">
-            <img
-              src={assetOrFallback(t.productPhoto, t.diagram)}
-              alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
-              loading="lazy"
-              width="600"
-              height="400"
-            />
-          </div>
-          <div>
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
-              <h2>Cartridges, and why we show you rather than charge you.</h2>
+      <section className="wf-servicing wf-band wf-band--paper">
+        <div className="wrap">
+          <div className="wf-servicing__inner wf-card">
+            <div className="wf-servicing__photo">
+              <img
+                src={assetOrFallback(t.productPhoto, t.diagram)}
+                alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
+                loading="lazy"
+                width="600"
+                height="400"
+              />
             </div>
-            <p>{t.servicing}</p>
-            <p className="wf-servicing__note">
-              A filter nobody changes is worse than no filter, because you stop thinking about
-              the water while the cartridge quietly stops doing anything. That is why we&rsquo;d
-              rather you could do it yourself in ten minutes than have it depend on us
-              remembering.
-            </p>
+            <div>
+              <div className="ds-section-head ds-section-head--hl">
+                <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
+                <h2>Cartridges, and why we show you rather than charge you.</h2>
+              </div>
+              <p>{t.servicing}</p>
+              <p className="wf-servicing__note">
+                A filter nobody changes is worse than no filter, because you stop thinking about
+                the water while the cartridge quietly stops doing anything. That is why we&rsquo;d
+                rather you could do it yourself in ten minutes than have it depend on us
+                remembering.
+              </p>
+            </div>
           </div>
         </div>
       </section>
