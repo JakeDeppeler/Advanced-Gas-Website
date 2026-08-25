@@ -7,7 +7,7 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
 import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
-import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
+import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { CtaBand } from "@/components/CtaBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { FinishPicker } from "@/components/FinishPicker";
@@ -86,7 +86,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               {t.heroPhoto && hasAsset(t.heroPhoto) ? (
                 <img
                   className="wf-hero__shot"
-                  src={t.heroPhoto}
+                  src={resolveAsset(t.heroPhoto)!}
                   alt={t.productPhotoAlt}
                   width="640"
                   height="640"
@@ -155,7 +155,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                       middle doubled the height of the section and said nothing. */}
                   {hasAsset(sy.photo) && (
                     <div className="wf-style__photo">
-                      <img src={sy.photo} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
+                      <img src={resolveAsset(sy.photo)!} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
                     </div>
                   )}
                   <div className="wf-style__body">
@@ -236,7 +236,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                       just read as a photo that failed to load. */}
                   {m.photo && hasAsset(m.photo) ? (
                     <div className="wf-model__shot">
-                      <img src={m.photo} alt={m.name} loading="lazy" width="400" height="300" />
+                      <img src={resolveAsset(m.photo)!} alt={m.name} loading="lazy" width="400" height="300" />
                     </div>
                   ) : (
                     <div className="wf-model__code" aria-hidden="true">
@@ -283,7 +283,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               </div>
               {hasAsset(t.productPhoto) && (
                 <figure className="wf-picker__shot">
-                  <img src={t.productPhoto} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
+                  <img src={resolveAsset(t.productPhoto)!} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
                 </figure>
               )}
               <ul className="wf-picker__logic">
