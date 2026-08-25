@@ -138,6 +138,92 @@ export function FiltrationIcon({ name }: { name: string }) {
           <path d="M18 26h12" />
         </svg>
       );
+    case "snowflake":
+      return (
+        <svg {...common}>
+          <path d="M24 8v32M10 15l28 18M38 15L10 33" />
+          <path d="M24 14l-4-4M24 14l4-4M24 34l-4 4M24 34l4 4" />
+        </svg>
+      );
+    case "flame":
+      return (
+        <svg {...common}>
+          <path d="M24 40c-6 0-10-4-10-9 0-7 7-9 7-16 0 0 6 3 6 9 2-1 3-3 3-5 3 3 4 7 4 12 0 5-4 9-10 9z" />
+        </svg>
+      );
+    case "wrench":
+      return (
+        <svg {...common}>
+          <path d="M33 11a8 8 0 0 0-10 10L12 32a3 3 0 0 0 0 4l2 2a3 3 0 0 0 4 0l11-11a8 8 0 0 0 10-10l-5 5-5-1-1-5z" />
+        </svg>
+      );
+    case "shield":
+      return (
+        <svg {...common}>
+          <path d="M24 8l14 5v11c0 9-6 14-14 18-8-4-14-9-14-18V13z" />
+          <path d="M18 24l4 4 8-8" />
+        </svg>
+      );
+    case "clock":
+      return (
+        <svg {...common}>
+          <circle cx="24" cy="24" r="15" />
+          <path d="M24 15v9l6 4" />
+        </svg>
+      );
+    case "ruler":
+      return (
+        <svg {...common}>
+          <rect x="7" y="18" width="34" height="12" rx="2" transform="rotate(-12 24 24)" />
+          <path d="M15 20v4M21 19v6M27 18v4M33 17v6" />
+        </svg>
+      );
+    case "people":
+      return (
+        <svg {...common}>
+          <circle cx="18" cy="18" r="5" />
+          <circle cx="31" cy="20" r="4" />
+          <path d="M9 37c0-5 4-9 9-9s9 4 9 9" />
+          <path d="M29 28c5 0 9 4 9 9" />
+        </svg>
+      );
+    case "tag":
+      return (
+        <svg {...common}>
+          <path d="M9 9h14l16 16-14 14L9 23z" />
+          <circle cx="17" cy="17" r="2.6" />
+        </svg>
+      );
+    case "truck":
+      return (
+        <svg {...common}>
+          <path d="M6 15h20v16H6z" />
+          <path d="M26 21h7l5 6v4h-12z" />
+          <circle cx="14" cy="35" r="3" />
+          <circle cx="32" cy="35" r="3" />
+        </svg>
+      );
+    case "alarm":
+      return (
+        <svg {...common}>
+          <path d="M24 10a10 10 0 0 1 10 10v7l3 5H11l3-5v-7a10 10 0 0 1 10-10z" />
+          <path d="M21 37a3 3 0 0 0 6 0" />
+        </svg>
+      );
+    case "phone":
+      return (
+        <svg {...common}>
+          <path d="M15 9l5 6-4 4c2 5 6 9 11 11l4-4 6 5-4 5c-2 2-5 2-8 0-8-4-14-11-17-19-2-3-2-6 0-8z" />
+        </svg>
+      );
+    case "gauge":
+      return (
+        <svg {...common}>
+          <path d="M10 32a15 15 0 1 1 28 0" />
+          <path d="M24 32l8-8" />
+          <circle cx="24" cy="32" r="2.4" fill="currentColor" stroke="none" />
+        </svg>
+      );
     default:
       return null;
   }

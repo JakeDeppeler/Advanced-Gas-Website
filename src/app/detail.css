@@ -2623,3 +2623,85 @@
    → navy steps → cream, so no two adjacent sections share a ground. */
 .page-detail .svc-why + .whydiff { background: var(--paper); }
 .page-detail .svc-shots + .svc-ba { background: var(--paper); }
+
+/* ===================================================================
+   Service pages, brought onto the filtration section's language:
+   photo header, tabbed benefits, numbered steps, orange quote panel,
+   home-shape FAQ, review marquee.
+   =================================================================== */
+
+/* --- header: the photo full bleed --- */
+.page-detail .dp-hero--shot {
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding: 84px 0 76px;
+}
+.page-detail .dp-hero__copy { max-width: 600px; }
+.page-detail .dp-hero--shot .dp-crumbs { margin-bottom: 18px; }
+.page-detail .dp-hero__sub {
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.84);
+  margin: 0 0 24px;
+  max-width: 58ch;
+}
+.page-detail .dp-hero__at {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 960px;
+}
+.page-detail .dp-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-detail .dp-hero__at span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- the section head loses the navy rule here too --- */
+.page-detail .ds-section-head--hl { padding-left: 0; }
+.page-detail .ds-section-head--hl::before { display: none; }
+
+/* --- benefits are tiles now, so the old card grid is retired --- */
+.page-detail .dp-benefits { background: var(--bg); }
+
+/* --- the orange quote panel sits on cream, like the home page --- */
+.page-detail .dp-quote { background: var(--bg); }
+.page-detail .quotesec__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.page-detail .quotesec__chips a {
+  font-size: 12.5px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.page-detail .quotesec__chips a:hover { background: rgba(255, 255, 255, 0.3); }
+
+.page-detail .dp-faq { background: var(--paper); border-top: 1px solid var(--line); }
+
+@media (max-width: 900px) {
+  .page-detail .dp-hero--shot { background-position: 72% center; padding: 56px 0 48px; }
+  .page-detail .dp-hero__at { grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+}
+@media (max-width: 480px) {
+  .page-detail .dp-hero__at { grid-template-columns: 1fr; }
+}

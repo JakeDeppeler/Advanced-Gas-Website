@@ -17,6 +17,12 @@ import { InstagramFeed } from "@/components/InstagramFeed";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
 import { pageTitle, metaDescription } from "@/lib/seo";
+import { BenefitTiles } from "@/components/BenefitTiles";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
+import { hasAsset, resolveAsset } from "@/lib/publicAsset";
+
+/** The tile palette, same five the filtration pages rotate through. */
+const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 
 /** Which flavour of the "near ten years old? price the upgrade" argument
  *  each service gets. Gas plumbing leads with ducted heating, so it takes
@@ -177,12 +183,25 @@ export default async function ServicePage({ params }: { params: { slug: string }
 
   return (
     <div className="page-detail">
-      {/* HERO — two-column with a photo panel and trust bar, so service
-          pages carry the same weight as the home page instead of opening
-          with a wall of text on paper. */}
-      <section className="dp-hero dp-hero--rich">
+      {/* HEADER — the photo full bleed behind the copy, the figures along
+          the bottom. Same shape as the filtration pages: the inset photo
+          panel it replaces read as a picture pinned beside the text
+          rather than a header. */}
+      <section
+        className={`dp-hero${content.heroPhoto && hasAsset(content.heroPhoto) ? " dp-hero--shot" : ""}`}
+        style={
+          content.heroPhoto && hasAsset(content.heroPhoto)
+            ? {
+                backgroundImage:
+                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.12) 38%, rgba(9,17,52,0.72) 100%), ` +
+                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.36) 52%, rgba(9,17,52,0.08) 76%), ` +
+                  `url("${resolveAsset(content.heroPhoto)}")`,
+              }
+            : undefined
+        }
+      >
         <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb" style={{ paddingTop: 24 }}>
+          <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span className="sep">/</span>
             <Link href="/services">Services</Link>
@@ -190,53 +209,31 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <span className="cur">{svc.short}</span>
           </nav>
 
-          <div className="dp-hero__grid">
-            <div className="dp-hero__col">
-              <div className="dp-hero__eyebrow">
-                <span className="ds-dot" />
-                {svc.short} · Pakenham &amp; within 75 km
-              </div>
-              <h1>{content.h1}</h1>
-              <p className="dp-hero__sub">{content.intro}</p>
-              <div className="dp-hero__ctas">
-                <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
-                <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-                  Or call {site.phone}
-                </a>
-              </div>
-
-              <div className="dp-trust">
-                <div className="dp-trust__stat dp-trust__stat--stars">
-                  <strong>★★★★★</strong>
-                  <span>4.9 / 5 on Google</span>
-                </div>
-                <div className="dp-trust__div" />
-                <div className="dp-trust__stat">
-                  <strong>1,200+</strong>
-                  <span>installs since 2014</span>
-                </div>
-                <div className="dp-trust__div" />
-                <div className="dp-trust__stat">
-                  <strong>6-year</strong>
-                  <span>workmanship warranty</span>
-                </div>
-              </div>
+          <div className="dp-hero__copy">
+            <div className="ds-eyebrow ds-eyebrow--on-dark">
+              <span className="ds-dot" />
+              {svc.short} · Pakenham &amp; within 75 km
             </div>
-
-            {heroPhoto && (
-              <div className="dp-hero__col">
-                <div className="dp-hero__media dp-hero__media--contain">
-                  <img src={heroPhoto.src} alt={heroPhoto.alt} width="800" height="600" fetchPriority="high" />
-                  {content.typical && (
-                    <div className="dp-hero__badge">
-                      <strong>{content.typical.time.split("·")[0].trim()}</strong>
-                      <span>Typical job</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <h1>{content.h1}</h1>
+            <p className="dp-hero__sub">{content.intro}</p>
+            <div className="pg-ctas">
+              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
+                Or call {site.phone}
+              </a>
+            </div>
           </div>
+
+          {content.heroFacts && (
+            <ul className="dp-hero__at">
+              {content.heroFacts.map((f) => (
+                <li key={f.k}>
+                  <strong>{f.v}</strong>
+                  <span>{f.k}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
@@ -293,44 +290,42 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </>
       )}
 
-      {/* BENEFITS — boxed in orange on why-first pages, matching the
-          home page's callout, so the run of cream sections gets broken. */}
-      <section className={`dp-benefits${content.whyFirst ? " dp-benefits--boxed" : ""}`}>
+      {/* WHAT'S INCLUDED — the tabbed tiles the filtration pages use. Six
+          or seven cards of body copy in a grid is a wall; six tiles and
+          one panel is the same content you can actually scan. */}
+      <section className="dp-benefits">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What&apos;s included</span>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What&apos;s included</span>
             <h2>Every {svc.short.toLowerCase()} we do, done properly.</h2>
           </div>
-          <div className="dp-benefits__grid">
-            {content.benefits.map((b, i) => (
-              <div key={b.t} className="dp-benefit">
-                <div className="dp-benefit__num">/{String(i + 1).padStart(2, "0")}</div>
-                <h3>{b.t}</h3>
-                <p>{b.d}</p>
-              </div>
-            ))}
-          </div>
+          <BenefitTiles
+            benefits={content.benefits.map((b, i) => ({
+              area: b.t,
+              icon: b.icon,
+              tint: TILE_TINTS[i % TILE_TINTS.length],
+              line: b.line,
+              detail: b.d,
+            }))}
+          />
         </div>
       </section>
 
-      {/* HOW WE DO IT · numbered install-process steps, distinct per
-          service so no two service pages share the same body copy. */}
+      {/* HOW WE DO IT — the home page's numbered steps, navy band, three
+          across, arrows between. Distinct per service. */}
       {content.steps && content.steps.length > 0 && (
-        <section className="svc-steps">
+        <section className="process">
           <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
-              <h2>Our {svc.short.toLowerCase()} process, step by step.</h2>
-              <p>The same six-step run-through we walk you through on the quote call. No surprises on install day.</p>
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we do it</span>
+              <h2 className="ds-h--on-dark">Our {svc.short.toLowerCase()} process, step by step.</h2>
             </div>
-            <ol className="svc-steps__list">
-              {content.steps.map((s, i) => (
-                <li key={s.title} className="svc-step">
-                  <span className="svc-step__num">{String(i + 1).padStart(2, "0")}</span>
-                  <div className="svc-step__body">
-                    <h3>{s.title}</h3>
-                    <p>{s.detail}</p>
-                  </div>
+            <ol className="steps">
+              {content.steps.map((st, i) => (
+                <li key={st.title} className="step">
+                  <span className="step__num">{i + 1}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.detail}</p>
                 </li>
               ))}
             </ol>
@@ -526,35 +521,52 @@ export default async function ServicePage({ params }: { params: { slug: string }
         heading="Rated 4.9 by the households we work for."
       />
 
-      {/* QUOTE */}
-      <section className="dp-quote">
-        <div className="wrap dp-quote__grid">
-          <div className="dp-quote__copy">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Free quote</span>
-            <h2>Quote for {svc.short.toLowerCase()}.</h2>
-            <p>60 seconds. No obligation. Replied within 2 business hours.</p>
-            <h3 style={{ marginTop: 24, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
-              Service areas
-            </h3>
-            <div className="dp-quote__chips">
-              {suburbs.slice(0, 8).map((s) => (
-                <Link key={s.slug} href={`/areas/${s.slug}/${svc.slug}`}>{s.name}</Link>
-              ))}
+      {/* QUOTE — the home page's orange panel. */}
+      <section className="dp-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> Free quote
+                </span>
+                <h2>Quote for {svc.short.toLowerCase()}.</h2>
+                <p className="quotesec__lede">
+                  60 seconds, no obligation, replied within 2 business hours. Rebates applied and
+                  GST included, so the number you get is the number you pay.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
+                  <li><span className="tick tick--on-orange">✓</span> No obligation and no pushy call-back</li>
+                  <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
+                </ul>
+                <div className="quotesec__chips">
+                  {suburbs.slice(0, 8).map((sb) => (
+                    <Link key={sb.slug} href={`/areas/${sb.slug}/${svc.slug}`}>{sb.name}</Link>
+                  ))}
+                </div>
+              </div>
+              <QuoteForm presetService={params.slug} />
             </div>
           </div>
-          <QuoteForm presetService={params.slug} />
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="dp-faq">
-        <div className="wrap dp-faq__grid">
-          <div className="dp-faq__left">
+      {/* FAQ — heading and a human line left, accordions right. */}
+      <section className="dp-faq faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
             <h2>Quick honest answers.</h2>
-            <p>If your question isn&apos;t here, call us on <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)" }}>{site.phone}</a>.</p>
+            <p>
+              If your question isn&apos;t here,{" "}
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                call {site.phone}
+              </a>
+              .
+            </p>
           </div>
-          <div className="dp-faq__right">
+          <div className="faq__right">
             {content.faqs.map((f, i) => (
               <details key={f.q} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
@@ -564,6 +576,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
           </div>
         </div>
       </section>
+
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
       {/* BIG CTA */}
       <section className="bigcta">

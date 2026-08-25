@@ -2511,7 +2511,9 @@ input, select, textarea {
 /* --- EVERYDAY BENEFITS, as tabs ---------------------------------- */
 .bentiles__row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* Count comes in from the component. Filtration draws five of these;
+     the service pages draw six or seven. */
+  grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -2700,4 +2702,36 @@ input, select, textarea {
   .megasvc__cta { margin: 0; }
   .megasvc__grid { grid-template-columns: 1fr; }
   .megasvc__pane { min-height: 0; }
+}
+
+/* ============================================================
+   WATER MEGA — five categories and the range comparison.
+   ============================================================ */
+.megawater { width: min(560px, calc(100vw - 32px)); padding: 16px; }
+.megawater__list { display: grid; gap: 2px; }
+.megawater__item {
+  display: block;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.megawater__item:hover { background: rgba(0, 176, 237, 0.08); }
+.megawater__item b { display: block; font-size: 14.5px; color: var(--navy); }
+.megawater__item span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+.megawater__foot {
+  margin-top: 12px;
+  padding: 14px 14px 4px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.megawater__foot > span {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
 }

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
+import { TIERS } from "@/lib/waterFiltration";
 import { SafeImg } from "@/components/SafeImg";
 
 /* --------------------------------------------------------------
@@ -22,7 +23,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas" | "tools" | "company";
+      kind: "services" | "brands" | "areas" | "tools" | "company" | "water";
     };
 
 /**
@@ -135,15 +136,8 @@ const SERVICES_MEGA: {
       ],
     },
     {
-      label: "Water & gas",
+      label: "Gas",
       items: [
-        {
-          href: "/water-filtration",
-          label: "Water filtration",
-          sub: "Whole house · under sink · softeners",
-          photo: "/water-filtration-diagram.webp",
-          photoAlt: "Diagram of a filter on the incoming water main",
-        },
         {
           href: "/services/gas-plumbing",
           label: "Gas fitting & leak detection",
@@ -251,17 +245,36 @@ const AREAS_MEGA = {
 
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
+  // Filtration is its own section rather than one line inside the services
+  // mega. It has five category pages, a range comparison and a buying
+  // decision of its own, which is more than a menu row can carry.
+  { label: "Water", trigger: "water", href: "/water-filtration", kind: "water" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { href: "/pricing", label: "Pricing" },
-  { href: "/rebates", label: "VEU Rebates", rebate: true },
+  { href: "/rebates", label: "Rebates", rebate: true },
   // Gallery / Blog / About / Reviews all answer "who are these people and
   // can I trust them" — grouping them under one trigger keeps the top-level
   // nav to the commercial path (Services · Brands · Tools · Areas · Pricing)
   // instead of nine flat items competing for attention.
-  { label: "About us", trigger: "company", href: "/about", kind: "company" },
+  { label: "About", trigger: "company", href: "/about", kind: "company" },
   { href: "/contact", label: "Contact" },
+];
+
+/**
+ * Water mega. Five categories plus the range comparison, read off the
+ * same TIERS the section itself renders from, so a new category appears
+ * in the nav the moment it exists rather than when somebody remembers
+ * to add it here twice.
+ */
+const WATER_MEGA: { href: string; label: string; sub: string }[] = [
+  ...TIERS.map((t) => ({
+    href: `/water-filtration/${t.slug}`,
+    label: t.label,
+    sub: t.tagline,
+  })),
+  { href: "/water-filtration/range", label: "The full range compared", sub: "Six families against ten contaminants" },
 ];
 
 const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
@@ -384,6 +397,7 @@ export function Header() {
                 {isOpen && (
                   <div className={`mega mega--${n.kind}`} role="menu">
                     {n.kind === "services" && <ServicesMega />}
+                    {n.kind === "water" && <WaterMega />}
                     {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
                     {n.kind === "tools" && <ToolsMega />}
@@ -487,6 +501,27 @@ function ServicesMega() {
             </Link>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function WaterMega() {
+  return (
+    <div className="megawater">
+      <div className="megawater__list">
+        {WATER_MEGA.map((w) => (
+          <Link key={w.href} href={w.href} role="menuitem" className="megawater__item">
+            <b>{w.label}</b>
+            <span>{w.sub}</span>
+          </Link>
+        ))}
+      </div>
+      <div className="megawater__foot">
+        <span>Puretec &amp; BWT · installed by licensed plumbers</span>
+        <Link href="/water-filtration" className="ds-btn ds-btn--orange">
+          The whole section →
+        </Link>
       </div>
     </div>
   );
@@ -658,6 +693,17 @@ function MobileDrawer({ close }: { close: () => void }) {
                     <Link key={p.href} href={p.href} onClick={close} className="hdr__drawer-sublink">
                       <b>{p.label}</b>
                       <span>{p.sub}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {n.kind === "water" && (
+                <div className="hdr__drawer-col">
+                  <div className="hdr__drawer-collabel">Water filtration</div>
+                  {WATER_MEGA.map((w) => (
+                    <Link key={w.href} href={w.href} onClick={close} className="hdr__drawer-sublink">
+                      <b>{w.label}</b>
+                      <span>{w.sub}</span>
                     </Link>
                   ))}
                 </div>

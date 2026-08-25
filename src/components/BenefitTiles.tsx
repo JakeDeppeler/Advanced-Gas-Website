@@ -21,7 +21,7 @@ import { FiltrationIcon } from "./FiltrationIcons";
  * the parts of the appliance it protects, under sink gets the things
  * you'd actually fill.
  */
-export type Benefit = { area: string; icon: string; tint: string; line: string; detail: string };
+export type Benefit = { area: string; icon?: string; tint: string; line?: string; detail: string };
 
 export function BenefitTiles({ benefits }: { benefits: Benefit[] }) {
   const [open, setOpen] = useState(0);
@@ -29,7 +29,12 @@ export function BenefitTiles({ benefits }: { benefits: Benefit[] }) {
 
   return (
     <div className="bentiles">
-      <div className="bentiles__row" role="tablist" aria-label="Where filtered water turns up">
+      <div
+        className="bentiles__row"
+        role="tablist"
+        aria-label="What's covered"
+        style={{ ["--n" as string]: benefits.length }}
+      >
         {benefits.map((a, i) => (
           <button
             key={a.area}
@@ -42,11 +47,13 @@ export function BenefitTiles({ benefits }: { benefits: Benefit[] }) {
             style={{ ["--tint" as string]: a.tint }}
             onClick={() => setOpen(i)}
           >
-            <span className="bentile__icon">
-              <FiltrationIcon name={a.icon} />
-            </span>
+            {a.icon && (
+              <span className="bentile__icon">
+                <FiltrationIcon name={a.icon} />
+              </span>
+            )}
             <span className="bentile__name">{a.area}</span>
-            <span className="bentile__line">{a.line}</span>
+            {a.line && <span className="bentile__line">{a.line}</span>}
           </button>
         ))}
       </div>
@@ -60,9 +67,11 @@ export function BenefitTiles({ benefits }: { benefits: Benefit[] }) {
       >
         {/* keyed so React remounts it and the fade-in animation reruns */}
         <div className="bentiles__inner" key={active.area}>
-          <span className="bentiles__ico" aria-hidden="true">
-            <FiltrationIcon name={active.icon} />
-          </span>
+          {active.icon && (
+            <span className="bentiles__ico" aria-hidden="true">
+              <FiltrationIcon name={active.icon} />
+            </span>
+          )}
           <p>
             <strong>{active.area}.</strong> {active.detail}
           </p>

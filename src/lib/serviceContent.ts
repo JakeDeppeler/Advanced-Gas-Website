@@ -7,7 +7,17 @@ export type ServiceContent = {
   metaDescription: string;
   h1: string;
   intro: string;
-  benefits: { t: string; d: string }[];
+  /**
+   * What's included, as tiles. `line` is the one-liner on the face of
+   * the tile; `d` is what opens underneath it. Written per service —
+   * a tile with no line is just a heading in a coloured box.
+   */
+  benefits: { t: string; d: string; line?: string; icon?: string }[];
+  /** Full-bleed header photo, the way the filtration pages lead. */
+  heroPhoto?: string;
+  heroPhotoAlt?: string;
+  /** The figures along the bottom of the header. Four short pairs. */
+  heroFacts?: { v: string; k: string }[];
   brands: string[];
   pricing: { tier: string; price: string; includes: string }[];
   faqs: { q: string; a: string }[];
@@ -124,6 +134,12 @@ export const serviceContent: Record<string, ServiceContent> = {
     metaTitle: "Air Conditioning Installation Pakenham & Berwick",
     metaDescription:
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
+    heroFacts: [
+      { v: "Same day", k: "A single wall split, start to finish" },
+      { v: "ARCtick", k: "AU59557 — legally required, and we hold it" },
+      { v: "6-year", k: "Workmanship, on top of the manufacturer's" },
+      { v: "Heat-load first", k: "Room by room, before we quote a size" },
+    ],
     h1: "Air conditioning installation across Melbourne's south-east",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
@@ -141,12 +157,12 @@ export const serviceContent: Record<string, ServiceContent> = {
       ],
     },
     benefits: [
-      { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." },
-      { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." },
-      { t: "Right-sized, not oversized", d: "Room-by-room heat-load calc before we quote. Oversized units cycle constantly and cost 20% more to run." },
-      { t: "Zonemate zoning for ducted", d: "We install ducted with Zonemate 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." },
-      { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." },
-      { t: "Compliance cert emailed in 24 hrs", d: "Electrical + refrigeration compliance docs into your inbox the day after we leave, not chased weeks later." },
+      { t: "ARCtick-licensed refrigeration", d: "All refrigerant handling by ARC-certified technicians. Legally required, and we hold the ticket." , line: "Legally required, and we hold it", icon: "shield" },
+      { t: "Mitsubishi Electric default", d: "Under 1% failure rate across the range. We put it in our own homes, which is the only recommendation that really counts." , line: "Under 1% failure rate, and it's what we fit at home", icon: "snowflake" },
+      { t: "Right-sized, not oversized", d: "Room-by-room heat-load calc before we quote. Oversized units cycle constantly and cost 20% more to run." , line: "Room-by-room heat load, before a size is quoted", icon: "ruler" },
+      { t: "Zonemate zoning for ducted", d: "We install ducted with Zonemate 4/6/8-zone controllers by default. No re-work in year 3 when you want to zone a spare bedroom." , line: "Room by room, on a schedule you set", icon: "clock" },
+      { t: "Colour-matched conduit + tidy exit", d: "Drop sheets on the floor, dust extraction in the wall, conduit outside colour-matched to your cladding. It's the details clients remember." , line: "The pipework you'll be looking at for a decade", icon: "ruler" },
+      { t: "Compliance cert emailed in 24 hrs", d: "Electrical + refrigeration compliance docs into your inbox the day after we leave, not chased weeks later." , line: "In your inbox inside a day, not chased", icon: "shield" },
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)", "Zonemate"],
     pricing: [
@@ -359,6 +375,14 @@ export const serviceContent: Record<string, ServiceContent> = {
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
       "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
+    heroPhoto: "/reclaim-split-stand-back-shot.webp",
+    heroPhotoAlt: "Reclaim CO2 split heat pump installed against a brick wall",
+    heroFacts: [
+      { v: "Up to $2,700", k: "VEU rebate, applied at the quote" },
+      { v: "3–7 hours", k: "On site, and usually the same day" },
+      { v: "Three brands", k: "iStore, Reclaim and Thermann, for three different jobs" },
+      { v: "6-year", k: "Workmanship, plus the tank and compressor cover" },
+    ],
     h1: "Heat pump hot water, installed properly",
     intro:
       "Nobody wakes up wanting a heat pump. You wake up with a dead tank and a decision to make. Here's the case for making it this one, which brands we'd fit in our own houses and why, and what the job actually looks like — with the rebate already in the number.",
@@ -415,12 +439,12 @@ export const serviceContent: Record<string, ServiceContent> = {
       ],
     },
     benefits: [
-      { t: "VEU rebate applied at quote", d: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75). We handle the paperwork. You don't front the cash then chase it back six months later." },
-      { t: "Three brands, three different jobs", d: "iStore when the rebate is what decides it. Reclaim ECO R290 or Thermann Integrated when it all has to fit in one shell with nothing outside. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor." },
-      { t: "Same tank platform, honest pricing", d: "Reclaim ECO R290 AIO and Thermann Integrated are the same tank + heat-pump platform, Reclaim brand, Thermann brand, identical guts. Pick on brand preference or Reece supply, not spec." },
-      { t: "COP holds on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split still makes about 4.5 COP at –10 °C. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." },
-      { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500, isolation valves + electrical connection on a dedicated circuit, done by our licensed plumber, not a sub-contractor." },
-      { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." },
+      { t: "VEU rebate applied at quote", d: "Up to $2,700 for a Victorian owner-occupier at current VEEC prices ($60–$75). We handle the paperwork. You don't front the cash then chase it back six months later." , line: "Not claimed back six months later", icon: "tag" },
+      { t: "Three brands, three different jobs", d: "iStore when the rebate is what decides it. Reclaim ECO R290 or Thermann Integrated when it all has to fit in one shell with nothing outside. Reclaim CO₂ Split when you are staying in the house and want a stainless tank that outlasts the compressor." , line: "iStore, Reclaim and Thermann do different ones", icon: "heatpump" },
+      { t: "Same tank platform, honest pricing", d: "Reclaim ECO R290 AIO and Thermann Integrated are the same tank + heat-pump platform, Reclaim brand, Thermann brand, identical guts. Pick on brand preference or Reece supply, not spec." , line: "Two brands, identical guts, priced honestly", icon: "tank" },
+      { t: "COP holds on a cold morning (Reclaim CO₂)", d: "Reclaim's CO₂ split still makes about 4.5 COP at –10 °C. That is the difference in Emerald, Gembrook and Cockatoo, where an R290 unit spends July leaning on the element it was bought to replace." , line: "Where a cheap unit quietly stops working", icon: "flow" },
+      { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500, isolation valves + electrical connection on a dedicated circuit, done by our licensed plumber, not a sub-contractor." , line: "A plumbing job, done by plumbers", icon: "shield" },
+      { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
     ],
     brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
     pricing: [
@@ -494,6 +518,14 @@ export const serviceContent: Record<string, ServiceContent> = {
     metaTitle: "Aircon Service & Repair, All Brands, Same Day",
     metaDescription:
       "Annual aircon service and same-day repairs across Melbourne's south-east, Mitsubishi, Daikin, Fujitsu, Panasonic, Kaden, LG. Fixed pricing, ARCtick-licensed, service records kept.",
+    heroPhoto: "/evap-cooler-service.webp",
+    heroPhotoAlt: "Evaporative cooler being serviced on a roof",
+    heroFacts: [
+      { v: "Same day", k: "Breakdowns, across the corridor" },
+      { v: "Under 30 min", k: "To diagnose most faults" },
+      { v: "Every brand", k: "Including the ones we don't install" },
+      { v: "12 months", k: "On any part we supply" },
+    ],
     h1: "Aircon service, repair & tune-up across Melbourne's south-east",
     intro:
       "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and fixed-price quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
@@ -511,12 +543,12 @@ export const serviceContent: Record<string, ServiceContent> = {
       ],
     },
     benefits: [
-      { t: "All major brands serviced", d: "Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Braemar. Even ones we don't install." },
-      { t: "Keeps your warranty valid", d: "Most manufacturers require annual service to keep warranty in force. We lodge a service report direct with the maker in your name." },
-      { t: "Same-day breakdown attendance", d: "Aircon down in a heatwave? We aim to be on-site same-day across Pakenham, Berwick, Officer, Cranbourne and out to Warragul." },
-      { t: "Fixed pricing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before we open a wallet." },
-      { t: "Refrigerant leak repair (not just top-up)", d: "If you're losing gas, it's a leak, we find it and fix it. Yearly re-gassing is a bandaid; we'd rather do the job once properly." },
-      { t: "Coil clean that actually cleans", d: "Chemical coil clean, full disassembly on the indoor for ducted, condenser wash on the outdoor. Not a wipe-down with a rag." },
+      { t: "All major brands serviced", d: "Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Braemar. Even ones we don't install." , line: "Including the ones we don't install", icon: "snowflake" },
+      { t: "Keeps your warranty valid", d: "Most manufacturers require annual service to keep warranty in force. We lodge a service report direct with the maker in your name." , line: "We lodge the report in your name", icon: "shield" },
+      { t: "Same-day breakdown attendance", d: "Aircon down in a heatwave? We aim to be on-site same-day across Pakenham, Berwick, Officer, Cranbourne and out to Warragul." , line: "Across the corridor, in a heatwave", icon: "clock" },
+      { t: "Fixed pricing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before we open a wallet." , line: "You know the number before we start", icon: "tag" },
+      { t: "Refrigerant leak repair (not just top-up)", d: "If you're losing gas, it's a leak, we find it and fix it. Yearly re-gassing is a bandaid; we'd rather do the job once properly." , line: "Find the leak, not just refill it", icon: "gauge" },
+      { t: "Coil clean that actually cleans", d: "Chemical coil clean, full disassembly on the indoor for ducted, condenser wash on the outdoor. Not a wipe-down with a rag." , line: "Pulled apart and washed, not wiped", icon: "wrench" },
     ],
     brands: ["Mitsubishi Electric", "Daikin", "Fujitsu", "Panasonic", "LG", "Kaden", "Braemar", "Samsung"],
     pricing: [
@@ -653,6 +685,14 @@ export const serviceContent: Record<string, ServiceContent> = {
     metaTitle: "Gas Plumbing & Ducted Heating, Melbourne SE",
     metaDescription:
       "Licensed gas fitters + plumbers serving Melbourne's south-east, Brivis and Kaden ducted heater retrofit, Thermann continuous-flow hot water, gas leak detection, same-day emergency call-outs. VBA-licensed, full compliance certificates.",
+    heroPhoto: "/gas-ducted-install.webp",
+    heroPhotoAlt: "Gas ducted heater installed in a roof space",
+    heroFacts: [
+      { v: "Type-A endorsed", k: "Full Victorian plumbing licence 46828" },
+      { v: "AS/NZS 5601", k: "Every gas job to the standard" },
+      { v: "Same day", k: "Ducted swaps and continuous flow changeovers" },
+      { v: "24/7", k: "Gas leaks, no hot water, CO alarms" },
+    ],
     h1: "Gas heating, hot water & plumbing across Melbourne's south-east",
     intro:
       "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 2 business hours, and full compliance certificates on every job.",
@@ -670,13 +710,13 @@ export const serviceContent: Record<string, ServiceContent> = {
       ],
     },
     benefits: [
-      { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." },
-      { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week, Brivis Wombat, Buffalo and Kaden gas ducted all covered." },
-      { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water, a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." },
-      { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." },
-      { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." },
-      { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." },
-      { t: "Puretec water filtration", d: "Whole-home on the incoming main, a protection filter on the hot water cold inlet, or an under-sink unit for drinking water. Fitted by a licensed plumber, not a handyman." },
+      { t: "VBA-licensed gas fitting", d: "Full Victorian Plumbing Licence + Type-A gas endorsement. Every gas job compliant with AS/NZS 5601." , line: "Full licence and Type-A endorsement, both current", icon: "shield" },
+      { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week, Brivis Wombat, Buffalo and Kaden gas ducted all covered." , line: "We replace one most weeks in this corridor", icon: "flame" },
+      { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water, a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." , line: "12-year heat exchanger, through Reece", icon: "tank" },
+      { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." , line: "Tested and made safe, not sniffed at", icon: "alarm" },
+      { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." , line: "Nights and weekends, a real person", icon: "phone" },
+      { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." , line: "Disconnected, removed and gone", icon: "truck" },
+      { t: "Puretec water filtration", d: "Whole-home on the incoming main, a protection filter on the hot water cold inlet, or an under-sink unit for drinking water. Fitted by a licensed plumber, not a handyman." , line: "Whole house, under sink, softeners and tank", icon: "tap" },
     ],
     brands: ["Brivis", "Kaden", "Thermann", "Puretec", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
     pricing: [
