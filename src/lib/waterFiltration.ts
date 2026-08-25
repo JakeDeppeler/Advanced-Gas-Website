@@ -1141,6 +1141,47 @@ export const TIERS: FiltrationTier[] = [
     cta: "Tank water filtration",
     productPhoto: "/puretec-rainwater-uv-system.webp",
     productPhotoAlt: "Rainwater filtration and UV system",
+    heroPhoto: "/puretec-hybrid-rainwater-hero.webp",
+    heroPhotoAlt: "Puretec Hybrid rainwater filtration unit on a house wall, tank behind",
+    servicingPhoto: "/puretec-hybrid-uv-stage.webp",
+    servicingPhotoAlt: "Puretec Hybrid with the cover off, showing two cartridges and the UV lamp",
+    systemsHeading: "Covered or open, and how much of it you see.",
+    systemsLede:
+      "All three are the same idea — sediment, carbon and UV in one unit on the tank line. What changes is whether it lives behind an aluminium cover and how much cartridge is in it. Sizing is set at the quote, once we know the roof, the tank and how many people are on it.",
+    systems: [
+      {
+        brand: "Puretec",
+        name: "Hybrid I7",
+        tier: "Open frame",
+        style: "Wall mounted, uncovered",
+        blurb:
+          "Twin cartridges and the UV lamp on an open frame, with the controller on top. The one to put in a garage, a pump shed or anywhere the look of it isn't the point.",
+        facts: ["Two cartridge stages plus UV", "UV lamp status on the controller", "Cheapest of the three to put in", "Needs power at the unit"],
+        photo: "/puretec-hybrid-i7.webp",
+      },
+      {
+        brand: "Puretec",
+        name: "Hybrid E7 AMC",
+        tier: "Covered",
+        style: "Wall mounted, aluminium cover",
+        blurb:
+          "The same filtration behind a weather cover, for where the unit goes on an outside wall and you'd rather not be looking at cartridges.",
+        facts: ["Aluminium weather cover", "Two cartridge stages plus UV", "Outdoor rated", "Cartridges still reachable for changes"],
+        photo: "/puretec-hybrid-e7.webp",
+        lead: true,
+      },
+      {
+        brand: "Puretec",
+        name: "Hybrid E13 AMC",
+        tier: "Covered, larger",
+        style: "Wall mounted, aluminium cover",
+        blurb:
+          "The bigger covered unit, for a house pulling more water at once or a tank supply that loads cartridges faster than the E7 can keep up with.",
+        facts: ["Aluminium weather cover", "Larger cartridge capacity than the E7", "Longer between changes on the same water", "Outdoor rated"],
+        photo: "/puretec-hybrid-e13.webp",
+      },
+    ],
+
     heroFacts: [
       { v: "Sediment first", k: "Then carbon, then UV — the order is not optional" },
       { v: "UV last", k: "It cannot work through water that is still cloudy" },

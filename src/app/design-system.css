@@ -365,8 +365,9 @@
 }
 .mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
 .mega__servicecard-photo {
-  /* Bumped install thumb 52 → 72 so photos read as photos not icons */
-  width: 72px; height: 72px;
+  /* 52 → 72 → 96. In the two-pane mega there are four cards on screen
+     instead of nineteen, so the photo can be the size it deserves. */
+  width: 96px; height: 96px;
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
@@ -2620,7 +2621,7 @@ input, select, textarea {
 .megasvc {
   display: grid;
   grid-template-columns: 250px 1fr;
-  width: min(860px, calc(100vw - 32px));
+  width: min(960px, calc(100vw - 32px));
 }
 .megasvc__rail {
   display: flex;
@@ -2662,7 +2663,7 @@ input, select, textarea {
 .megasvc__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px 10px;
+  gap: 8px 12px;
   align-content: start;
   animation: megasvcIn 0.16s ease both;
 }
@@ -2734,4 +2735,123 @@ input, select, textarea {
   font-size: 10.5px;
   letter-spacing: 0.06em;
   color: var(--ink-3);
+}
+
+/* ============================================================
+   MOTION
+   A short fade and rise on sections as they arrive, plus the hover
+   and focus polish that makes the site feel responsive under the
+   cursor. Restrained on purpose — an animation you notice on a
+   plumbing site is one that has gone too far.
+
+   Everything here is additive. `.reveal` is only ever applied by
+   components/Reveal.tsx after it has run, so if the script never
+   executes the page renders normally rather than blank.
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* Cards inside a revealed section come in just behind it, in sequence,
+   so a grid arrives as a grid rather than as one slab. Capped at six —
+   past that the last card is waiting long enough to feel broken. */
+.reveal .step,
+.reveal .bentile,
+.reveal .wf-style,
+.reveal .wf-model,
+.reveal .wf-brand,
+.reveal .wf-stage,
+.reveal .wf-tier,
+.reveal .revcard,
+.reveal .hire-price__row,
+.reveal .brand-feat {
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition-delay: 0.06s;
+}
+.reveal .step:nth-child(2),
+.reveal .bentile:nth-child(2),
+.reveal .wf-style:nth-child(2),
+.reveal .wf-brand:nth-child(2),
+.reveal .wf-stage:nth-child(2) { transition-delay: 0.11s; }
+.reveal .step:nth-child(3),
+.reveal .bentile:nth-child(3),
+.reveal .wf-style:nth-child(3),
+.reveal .wf-stage:nth-child(3) { transition-delay: 0.16s; }
+.reveal .step:nth-child(4),
+.reveal .bentile:nth-child(4),
+.reveal .wf-style:nth-child(4) { transition-delay: 0.21s; }
+.reveal .step:nth-child(5),
+.reveal .bentile:nth-child(5),
+.reveal .wf-style:nth-child(5) { transition-delay: 0.26s; }
+.reveal .step:nth-child(n + 6),
+.reveal .bentile:nth-child(n + 6),
+.reveal .wf-style:nth-child(n + 6) { transition-delay: 0.31s; }
+.reveal:not(.is-revealed) .step,
+.reveal:not(.is-revealed) .bentile,
+.reveal:not(.is-revealed) .wf-style,
+.reveal:not(.is-revealed) .wf-model,
+.reveal:not(.is-revealed) .wf-brand,
+.reveal:not(.is-revealed) .wf-stage,
+.reveal:not(.is-revealed) .wf-tier,
+.reveal:not(.is-revealed) .hire-price__row,
+.reveal:not(.is-revealed) .brand-feat {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* --- hover and focus polish, sitewide --- */
+.ds-btn { transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease; }
+.ds-btn:hover { transform: translateY(-1px); }
+.ds-btn:active { transform: translateY(0); }
+
+.wf-style,
+.wf-model,
+.wf-tier,
+.step,
+.hire-price__row {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.wf-style:hover,
+.wf-tier:hover { transform: translateY(-3px); box-shadow: 0 26px 56px -26px rgba(5, 10, 48, 0.5); }
+
+/* Photos ease up very slightly under the cursor where the card is a link. */
+.mega__servicecard:hover .mega__servicecard-photo img,
+.wf-tier:hover .wf-tier__photo img { transform: scale(1.03); }
+.wf-tier__photo img { transition: transform 0.35s ease; }
+
+/* Accordions: the marker turns rather than swapping glyphs mid-air. */
+.faq__right summary::after { transition: transform 0.2s ease, color 0.2s ease; }
+.faq__right details[open] summary::after { transform: rotate(180deg); }
+
+/* Nothing above moves for anybody who has asked it not to. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal .step,
+  .reveal .bentile,
+  .reveal .wf-style,
+  .reveal .wf-model,
+  .reveal .wf-brand,
+  .reveal .wf-stage,
+  .reveal .wf-tier,
+  .reveal .revcard,
+  .reveal .hire-price__row,
+  .reveal .brand-feat {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ds-btn:hover,
+  .wf-style:hover,
+  .wf-tier:hover { transform: none; }
+  .mega__servicecard:hover .mega__servicecard-photo img,
+  .wf-tier:hover .wf-tier__photo img { transform: none; }
 }

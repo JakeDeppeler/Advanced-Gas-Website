@@ -13,7 +13,17 @@ import { SafeImg } from "@/components/SafeImg";
  * declare their own custom render kind and payload.
  * ------------------------------------------------------------ */
 
-type ServiceMegaItem = { href: string; label: string; sub: string; photo: string; photoAlt: string };
+type ServiceMegaItem = {
+  href: string;
+  label: string;
+  sub: string;
+  photo: string;
+  photoAlt: string;
+  /** Shown when `photo` isn't on disk yet. The mega renders client-side,
+   *  so SafeImg's onError fires after hydration and actually works here —
+   *  unlike in server-rendered page content, where it doesn't. */
+  photoFallback?: string;
+};
 
 type NavItem =
   | { href: string; label: string; rebate?: boolean }
@@ -277,6 +287,22 @@ const WATER_MEGA: { href: string; label: string; sub: string }[] = [
   { href: "/water-filtration/range", label: "The full range compared", sub: "Six families against ten contaminants" },
 ];
 
+/**
+ * The filtration categories as service-mega rows. Same destinations as
+ * the Water mega — Water is its own section now, and it also belongs in
+ * the Services tab because that is where somebody looks for it.
+ */
+const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
+  href: `/water-filtration/${t.slug}`,
+  label: t.label,
+  sub: t.tagline,
+  photo: t.productPhoto,
+  photoAlt: t.productPhotoAlt,
+  // Softeners have no product shot yet; the diagram is drawn for every
+  // tier and reads fine at thumbnail size.
+  photoFallback: t.diagram,
+}));
+
 const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
   { href: "/about",     label: "About us",   sub: "The family, the team, how we work", icon: "◈" },
   { href: "/gallery",   label: "Gallery",    sub: "Real installs · before & after",    icon: "◉" },
@@ -451,6 +477,7 @@ function ServicesMega() {
   const [active, setActive] = useState(0);
   const groups = [
     ...SERVICES_MEGA.groups,
+    { label: "Water filtration", items: WATER_SERVICE_ITEMS },
     { label: "Service & repair", items: SERVICES_MEGA.repair },
   ];
   const g = groups[active];
@@ -484,7 +511,7 @@ function ServicesMega() {
           {g.items.map((s) => (
             <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
               <div className="mega__servicecard-photo">
-                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
+                <SafeImg src={s.photo} fallback={s.photoFallback} alt={s.photoAlt} loading="lazy" width="120" height="90" />
               </div>
               <div className="mega__servicecard-body">
                 <b>{s.label}</b>

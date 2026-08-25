@@ -14,6 +14,7 @@ import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { UtilityBar } from "@/components/UtilityBar";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
+import { Reveal } from "@/components/Reveal";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -123,6 +124,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <UtilityBar />
         <Header />
         <main id="main" className="flex-1">{children}</main>
+        <Reveal />
         <Footer />
         <StickyMobileCTA />
         <Script
