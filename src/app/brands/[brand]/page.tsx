@@ -24,6 +24,8 @@ const INSTALLER_SUBURB_SLUGS = [
 import "../../detail.css";
 import "./brand.css";
 import { pageTitle, metaDescription } from "@/lib/seo";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
+
 
 export function generateStaticParams() {
   return brands.map((b) => ({ brand: b.slug }));
@@ -55,6 +57,11 @@ export default async function BrandPage({ params }: { params: { brand: string } 
   // list is empty the page falls back to the manufacturer gallery — which
   // is labelled as such — so brands can be filled in one at a time.
   const installs = installsFor(brand.slug);
+
+  // "Founded 1971 · Melbourne · …" → "1971". No year in the sentence
+  // means no figure, rather than a figure that is really a paragraph.
+  const estYear = brand.established?.match(/\b(19|20)\d{2}\b/)?.[0];
+  const categoryCount = new Set(brand.products.map((pr) => pr.category)).size;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -94,24 +101,37 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             </a>
           </div>
 
-          {/* Same trust bar as the home page and service pages — dark
-              variant so it sits on the hero photo instead of blocking it. */}
-          <div className="dp-trust dp-trust--dark">
-            <div className="dp-trust__stat dp-trust__stat--stars">
-              <strong>★★★★★</strong>
-              <span>4.9 / 5 on Google</span>
-            </div>
-            <div className="dp-trust__div" />
-            <div className="dp-trust__stat">
+          {/* The figures along the bottom, same as the filtration and
+              service headers. The trust bar this replaces said the same
+              three things on every brand page in the catalogue. */}
+          <ul className="dp-hero__at">
+            <li>
               <strong>{brand.products.length}</strong>
               <span>{brand.name} models we install</span>
-            </div>
-            <div className="dp-trust__div" />
-            <div className="dp-trust__stat">
+            </li>
+            {/* `established` is a sentence, not a year — "Designed and
+                assembled in Sydney, Australia · trading since 2007". Pull
+                the year out for the figure and let the sentence live in
+                the at-a-glance strip below, where it has room. */}
+            {estYear && (
+              <li>
+                <strong>Since {estYear}</strong>
+                <span>{brand.name} has been going</span>
+              </li>
+            )}
+            {/* Only where a brand genuinely has more than one system type.
+                "1 system types in the range" is not a fact worth a slot. */}
+            {categoryCount > 1 && (
+              <li>
+                <strong>{categoryCount}</strong>
+                <span>System types in the range</span>
+              </li>
+            )}
+            <li>
               <strong>6-year</strong>
-              <span>workmanship warranty</span>
-            </div>
-          </div>
+              <span>Workmanship, on top of the manufacturer&rsquo;s</span>
+            </li>
+          </ul>
         </div>
       </section>
 
@@ -143,16 +163,14 @@ export default async function BrandPage({ params }: { params: { brand: string } 
               <div className="brand-info__block">
                 <span className="ds-eyebrow"><span className="ds-dot" /> Why {brand.name}</span>
                 <h2>What sets it apart.</h2>
-                <div className="brand-feats">
-                  {brand.keyFeatures.map((f, i) => (
-                    <div key={f} className="brand-feat">
-                      <span className="brand-feat__num" aria-hidden="true">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <p>{f}</p>
-                    </div>
+                {/* A list, because that is what these are. They were
+                    briefly tiles, which forced a title out of a spec
+                    bullet and truncated half of them mid-thought. */}
+                <ul className="brand-feats">
+                  {brand.keyFeatures.map((f) => (
+                    <li key={f} className="brand-feat">{f}</li>
                   ))}
-                </div>
+                </ul>
               </div>
             )}
             <div className="brand-context">
@@ -293,32 +311,42 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           Brand pages used to end on suburb chips and a banner, which meant
           the one page a buyer lands on from "Brivis installer Pakenham"
           had no form on it. Same two-column shape as the service pages. */}
-      <section className="dp-quote">
-        <div className="wrap dp-quote__grid">
-          <div className="dp-quote__copy">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Free quote</span>
-            <h2>Quote for a {brand.name} system.</h2>
-            <p>
-              60 seconds. No obligation. Replied within 2 business hours, with the
-              model, the installed price and any rebate you qualify for in writing.
-            </p>
-            <h3 style={{ marginTop: 24, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
-              Where we install {brand.name}
-            </h3>
-            <div className="dp-quote__chips">
-              {INSTALLER_SUBURB_SLUGS
-                .map((slug) => publishedSuburbs.find((s) => s.slug === slug))
-                .filter((s): s is NonNullable<typeof s> => Boolean(s))
-                .map((s) => (
-                  <Link key={s.slug} href={`/brands/${brand.slug}/installers/${s.slug}`}>
-                    {brand.name} · {s.name}
-                  </Link>
-                ))}
+      <section className="dp-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> Free quote
+                </span>
+                <h2>Quote for a {brand.name} system.</h2>
+                <p className="quotesec__lede">
+                  60 seconds, no obligation, replied within 2 business hours — with the model,
+                  the installed price and any rebate you qualify for, in writing.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
+                  <li><span className="tick tick--on-orange">✓</span> Rebates applied and GST included</li>
+                  <li><span className="tick tick--on-orange">✓</span> We&rsquo;ll say if another brand suits you better</li>
+                </ul>
+                <div className="quotesec__chips">
+                  {INSTALLER_SUBURB_SLUGS
+                    .map((slug) => publishedSuburbs.find((sb) => sb.slug === slug))
+                    .filter((sb): sb is NonNullable<typeof sb> => Boolean(sb))
+                    .map((sb) => (
+                      <Link key={sb.slug} href={`/brands/${brand.slug}/installers/${sb.slug}`}>
+                        {sb.name}
+                      </Link>
+                    ))}
+                </div>
+              </div>
+              <QuoteForm />
             </div>
           </div>
-          <QuoteForm />
         </div>
       </section>
+
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
       <section className="bigcta">
         <div className="wrap bigcta__row">
