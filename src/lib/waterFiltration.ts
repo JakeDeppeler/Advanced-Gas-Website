@@ -50,6 +50,11 @@ export type FiltrationTier = {
   heroPhoto?: string;
   /** The at-a-glance panel, for while there's no display photo. */
   heroFacts?: { k: string; v: string }[];
+  heroPhotoAlt?: string;
+  /** The cartridges section wants the unit with its cover open, not the
+   *  same tidy install shot the hero is already using. */
+  servicingPhoto?: string;
+  servicingPhotoAlt?: string;
   /**
    * Real install photography. Replaces the single diagram in the "where
    * it goes" slot — Jake's note was that a lone drawing there isn't
@@ -171,7 +176,10 @@ export const TIERS: FiltrationTier[] = [
     productPhoto: "/puretec-filterwall-whole-house.webp",
     productPhotoAlt: "Puretec Filterwall whole-house filtration enclosure mounted on a fence",
     diagram: "/water-filtration-whole-home-diagram.webp",
-    heroPhoto: "/puretec-filterwall-whole-house.webp",
+    heroPhoto: "/puretec-filterwall-hero.webp",
+    heroPhotoAlt: "Puretec FilterWall mounted against a hedge, cover closed",
+    servicingPhoto: "/puretec-filterwall-cartridges.webp",
+    servicingPhotoAlt: "Puretec FilterWall with the cover open, showing the three cartridges",
     heroFacts: [
       { v: "30–55 L/min", k: "Flow rate, F3 through F6" },
       { v: "Three stages", k: "Coarse sediment, fine sediment, carbon block" },

@@ -87,7 +87,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 <img
                   className="wf-hero__shot"
                   src={resolveAsset(t.heroPhoto)!}
-                  alt={t.productPhotoAlt}
+                  alt={t.heroPhotoAlt ?? t.productPhotoAlt}
                   width="640"
                   height="640"
                 />
@@ -281,11 +281,9 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 <h2>Which model is right for my home?</h2>
                 <p>Answer the three and the answer appears. Nothing is sent anywhere.</p>
               </div>
-              {hasAsset(t.productPhoto) && (
-                <figure className="wf-picker__shot">
-                  <img src={resolveAsset(t.productPhoto)!} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
-                </figure>
-              )}
+              {/* No photo here on purpose. Every candidate is already on
+                  this page — the hero, the system card, the model cards —
+                  and a fourth outing for one of them is just height. */}
               <ul className="wf-picker__logic">
                 <li><strong>Bathrooms</strong> decide the flow rate — two or more means simultaneous outlets.</li>
                 <li><strong>Scale</strong> on the kettle or the shower screen is the only reason to pay for ScaleProtect.</li>
@@ -302,8 +300,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           <div className="wf-servicing__inner wf-card">
             <div className="wf-servicing__photo">
               <img
-                src={assetOrFallback(t.productPhoto, t.diagram)}
-                alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
+                src={assetOrFallback(t.servicingPhoto ?? t.productPhoto, t.diagram)}
+                alt={
+                  t.servicingPhoto && hasAsset(t.servicingPhoto)
+                    ? t.servicingPhotoAlt ?? t.productPhotoAlt
+                    : hasAsset(t.productPhoto)
+                    ? t.productPhotoAlt
+                    : `Diagram: ${t.fitsWhere}`
+                }
                 loading="lazy"
                 width="600"
                 height="400"

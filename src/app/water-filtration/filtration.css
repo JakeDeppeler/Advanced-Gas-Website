@@ -1480,13 +1480,13 @@
 /* --- SIZING. The empty product panels were doing nothing but taking
        up half the fold, so: photos get a shorter frame, and the drawn
        stand-in gets a slim band rather than a 4:3 hole. --- */
-.page-filtration .wf-style__photo { aspect-ratio: auto; height: 176px; padding: 0; }
+.page-filtration .wf-style__photo { aspect-ratio: auto; height: 176px; padding: 0; background: #fff; }
 .page-filtration .wf-style__photo img { padding: 12px; }
 .page-filtration .wf-style__body { padding: 18px 20px 20px; }
 .page-filtration .wf-style h3 { font-size: 19px; }
 .page-filtration .wf-style p { font-size: 14px; margin-bottom: 12px; }
 
-.page-filtration .wf-model__shot { aspect-ratio: auto; height: 150px; }
+.page-filtration .wf-model__shot { aspect-ratio: auto; height: 150px; background: #fff; }
 
 /* No photo yet? A coloured designation strip, which is a design choice
    rather than a hole where a picture should be. */
@@ -1573,15 +1573,16 @@
 }
 /* with a real display photo the panel is just a frame for it */
 .page-filtration .wf-hero__panel:has(.wf-hero__shot) {
-  background: var(--paper);
-  border-color: rgba(255, 255, 255, 0.2);
-  padding: 18px;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.22);
+  padding: 6px;
+  overflow: hidden;
 }
 .page-filtration .wf-hero__shot {
   width: 100%;
   height: auto;
-  max-height: 380px;
-  object-fit: contain;
+  max-height: 400px;
+  object-fit: cover;
   display: block;
   border-radius: var(--rad-sm);
 }
@@ -1592,3 +1593,13 @@
 @media (max-width: 520px) {
   .page-filtration .wf-hero__at { grid-template-columns: 1fr; }
 }
+
+/* Product shots arrive on white; a cream mat behind them draws a seam
+   round the photo instead of disappearing under it. */
+.page-filtration .wf-servicing__photo { background: #fff; padding: 10px; }
+
+/* Tier cards: a real photo fills its frame, a diagram sits inside one.
+   Mixing contain-with-padding across both left the three photographed
+   cards cropped differently from each other. */
+.page-filtration .wf-tier__photo--real { padding: 0; background: #fff; }
+.page-filtration .wf-tier__photo--real img { object-fit: cover; }
