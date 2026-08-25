@@ -1723,3 +1723,6 @@
   .page-filtration .wf-stages__row { grid-template-columns: 1fr; }
   .page-filtration .wf-stage::after { display: none; }
 }
+
+/* the quote panel sits on cream, like the home page's */
+.page-filtration .wf-quote.quotesec { background: var(--bg); }

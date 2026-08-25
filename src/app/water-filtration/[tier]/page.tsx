@@ -316,25 +316,35 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </div>
       </section>
 
-      <section className="wf-quote">
-        <div className="wrap wf-quote__grid">
-          <div>
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
-              <h2>Tell us what you&rsquo;ve noticed.</h2>
+      {/* TELL US WHAT YOU'VE NOTICED — the orange panel. On this page the
+          two moments where we ask somebody to act, the model picker and
+          the form, are both orange. They're four sections apart, which is
+          why that reads as consistency rather than repetition. */}
+      <section className="wf-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> No pricing published yet
+                </span>
+                <h2>Tell us what you&rsquo;ve noticed.</h2>
+                <p className="quotesec__lede">
+                  What the right unit costs depends on your water, your pressure and where it
+                  physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
+                  <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
+                </ul>
+                <p className="quotesec__finep">
+                  Licensed plumbers · backflow protection to standard · 6-year workmanship warranty.
+                </p>
+              </div>
+              <QuoteForm presetService="water-filtration" />
             </div>
-            <p>
-              We haven&rsquo;t put a price on this page yet, deliberately. What the right unit
-              costs depends on your water, your pressure and where it physically has to go, and
-              a &ldquo;from $X&rdquo; with none of that behind it is bait.
-            </p>
-            <p>
-              Send the symptom and you&rsquo;ll get a real figure with the reasoning attached —
-              including the times the honest answer is a cheaper unit than the one you asked
-              about.
-            </p>
           </div>
-          <QuoteForm presetService="water-filtration" />
         </div>
       </section>
 

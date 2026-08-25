@@ -6,9 +6,6 @@ import { services, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
-import { ProofStrip } from "@/components/ProofStrip";
-import { getInstagramForService } from "@/lib/instagram";
-import { InstagramFeed } from "@/components/InstagramFeed";
 import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
@@ -16,6 +13,9 @@ import { systemDetail } from "@/lib/systemDetail";
 import { SystemSpotlight } from "@/components/SystemSpotlight";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
+import { hasAsset, resolveAsset } from "@/lib/publicAsset";
+
 
 /**
  * A page per system type — /services/gas-plumbing/gas-ducted and so on.
@@ -61,7 +61,7 @@ export function generateMetadata({
   };
 }
 
-export default async function SystemPage({
+export default function SystemPage({
   params,
 }: {
   params: { slug: string; system: string };
@@ -70,7 +70,6 @@ export default async function SystemPage({
   if (!found) notFound();
   const { content, svc, system } = found;
 
-  const igPosts = await getInstagramForService(params.slug, 6);
   const siblings = (content.systems ?? []).filter((s) => s.id !== system.id && s.intro);
 
   // Per-system content. Everything here is authored for this system
@@ -98,9 +97,24 @@ export default async function SystemPage({
 
   return (
     <div className="page-detail">
-      <section className="dp-hero dp-hero--rich">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb" style={{ paddingTop: 24 }}>
+      {/* HEADER — the photo full bleed with the figures along the bottom,
+          same as the filtration pages. The specs strip that used to sit
+          in its own band under the hero is those figures now. */}
+      <section
+        className={`dp-hero${system.photo?.scene && hasAsset(system.photo.src) ? " dp-hero--shot" : ""}`}
+        style={
+          system.photo?.scene && hasAsset(system.photo.src)
+            ? {
+                backgroundImage:
+                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.12) 38%, rgba(9,17,52,0.72) 100%), ` +
+                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.36) 52%, rgba(9,17,52,0.08) 76%), ` +
+                  `url("${resolveAsset(system.photo.src)}")`,
+              }
+            : undefined
+        }
+      >
+        <div className={`wrap${!system.photo?.scene && hasAsset(system.photo?.src ?? "") ? " dp-hero__wrap--inset" : ""}`}>
+          <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span className="sep">/</span>
             <Link href="/services">Services</Link>
@@ -110,88 +124,69 @@ export default async function SystemPage({
             <span className="cur">{system.label}</span>
           </nav>
 
-          <div className="dp-hero__grid">
-            <div className="dp-hero__col">
-              <div className="dp-hero__eyebrow">
-                <span className="ds-dot" /> {svc.short} · Pakenham &amp; within 75 km
-              </div>
-              <h1>{system.label}</h1>
-              <p className="dp-hero__sub">{system.intro}</p>
-              <div className="dp-hero__ctas">
-                <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
-                <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-                  Or call {site.phone}
-                </a>
-              </div>
-
-              <div className="dp-trust">
-                <div className="dp-trust__stat dp-trust__stat--stars">
-                  <strong>★★★★★</strong>
-                  <span>4.9 / 5 on Google</span>
-                </div>
-                <div className="dp-trust__div" />
-                <div className="dp-trust__stat">
-                  <strong>1,200+</strong>
-                  <span>installs since 2014</span>
-                </div>
-                <div className="dp-trust__div" />
-                <div className="dp-trust__stat">
-                  <strong>6-year</strong>
-                  <span>workmanship warranty</span>
-                </div>
-              </div>
+          <div className="dp-hero__copy">
+            <div className="ds-eyebrow ds-eyebrow--on-dark">
+              <span className="ds-dot" /> {svc.short} · Pakenham &amp; within 75 km
             </div>
-
-            <div className="dp-hero__col">
-              <div className="dp-hero__media dp-hero__media--contain">
-                <img src={system.photo.src} alt={system.photo.alt} width="800" height="600" fetchPriority="high" />
-                {system.priceFrom && (
-                  <div className="dp-hero__badge">
-                    <strong>{system.priceFrom.replace(/^from /, "")}</strong>
-                    <span>Typically</span>
-                  </div>
-                )}
-              </div>
+            <h1>{system.label}</h1>
+            <p className="dp-hero__sub">{system.intro}</p>
+            <div className="pg-ctas">
+              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
+                Or call {site.phone}
+              </a>
             </div>
           </div>
+
+          {/* A studio cut-out doesn't full-bleed — stretched behind the
+              copy it reads as a giant letterform rather than a product.
+              Those get a framed panel beside the copy instead, so every
+              page still shows the thing it's about. */}
+          {!system.photo?.scene && system.photo?.src && hasAsset(system.photo.src) && (
+            <div className="dp-hero__inset">
+              <img
+                src={resolveAsset(system.photo.src)!}
+                alt={system.photo.alt}
+                width="760"
+                height="570"
+                fetchPriority="high"
+              />
+            </div>
+          )}
+
+          {detail?.specs && detail.specs.length > 0 && (
+            <ul className="dp-hero__at">
+              {detail.specs.slice(0, 4).map((sp) => (
+                <li key={sp.label}>
+                  <strong>{sp.value}</strong>
+                  <span>{sp.label}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
-      {/* Quick facts. First thing under the hero because it's the first
-          thing anyone wants: how big, how long, what warranty. Different
-          numbers on every system page, which is rather the point. */}
-      {detail?.specs && detail.specs.length > 0 && (
-        <section className="sysspecs">
-          <div className="wrap">
-            <dl className="sysspecs__row">
-              {detail.specs.map((sp) => (
-                <div className="sysspec" key={sp.label}>
-                  <dt>{sp.label}</dt>
-                  <dd>{sp.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
-      )}
-
-      {/* What you get — boxed in orange so it reads as the value list
-          rather than another block of body copy. */}
-      <section className="dp-benefits dp-benefits--boxed">
+      {/* WHAT'S IN THE PRICE — the tabbed tiles, same as everywhere else.
+          A numbered grid of eight one-liners is a wall; eight tiles and
+          one panel is the same content you can scan. */}
+      <section className="dp-benefits">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
+          <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What you get</span>
             <h2>What&rsquo;s in the price.</h2>
             <p>{system.blurb}</p>
           </div>
-          <div className="dp-benefits__grid">
-            {system.points.map((pt, i) => (
-              <div key={pt} className="dp-benefit">
-                <div className="dp-benefit__num">/{String(i + 1).padStart(2, "0")}</div>
-                <p>{pt}</p>
-              </div>
+          {/* A list, because that is what these are. Tiles were tried and
+              taken out: `points` are terse statements, not a claim plus an
+              explanation, so a tile face truncated them mid-thought and
+              the panel underneath just repeated the tile. Same lesson as
+              the brand feature bullets. */}
+          <ul className="syspoints">
+            {system.points.map((pt) => (
+              <li key={pt}>{pt}</li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
@@ -233,20 +228,18 @@ export default async function SystemPage({
       {/* Process for this system. Falls back to the parent service only
           where the system's own steps haven't been written yet. */}
       {steps && steps.length > 0 && (
-        <section className="svc-steps">
+        <section className="process">
           <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> How we do it</span>
-              <h2>What happens on a {system.label.toLowerCase()} job.</h2>
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we do it</span>
+              <h2 className="ds-h--on-dark">What happens on a {system.label.toLowerCase()} install.</h2>
             </div>
-            <ol className="svc-steps__list">
-              {steps.map((s, i) => (
-                <li key={s.title} className="svc-step">
-                  <span className="svc-step__num">{String(i + 1).padStart(2, "0")}</span>
-                  <div className="svc-step__body">
-                    <h3>{s.title}</h3>
-                    <p>{s.detail}</p>
-                  </div>
+            <ol className="steps">
+              {steps.map((st, n) => (
+                <li key={st.title} className="step">
+                  <span className="step__num">{n + 1}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.detail}</p>
                 </li>
               ))}
             </ol>
@@ -313,54 +306,56 @@ export default async function SystemPage({
         />
       )}
 
-      <ProofStrip subject={system.label.toLowerCase()} heading="Rated 4.9 by the households we work for." />
-
-      <InstagramFeed
-        posts={igPosts}
-        eyebrow={`${svc.short} on the tools`}
-        heading="Recent jobs from our Instagram."
-        blurb="Real work across Melbourne's south-east, posted as we finish it."
-      />
-
-      {/* Quote */}
-      <section className="dp-quote">
-        <div className="wrap dp-quote__grid">
-          <div className="dp-quote__copy">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Free quote</span>
-            <h2>Quote for {system.label.toLowerCase()}.</h2>
-            <p>60 seconds. No obligation. Replied within 2 business hours.</p>
-
-            {siblings.length > 0 && (
-              <>
-                <h3 style={{ marginTop: 24, marginBottom: 10, fontFamily: "var(--f-mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink-3)" }}>
-                  Weighing up the alternatives
-                </h3>
-                <div className="dp-quote__chips">
-                  {siblings.map((sib) => (
-                    <Link key={sib.id} href={`/services/${svc.slug}/${sib.id}`}>{sib.label}</Link>
-                  ))}
-                  <Link href={`/services/${svc.slug}`}>All {svc.short.toLowerCase()}</Link>
-                </div>
-              </>
-            )}
+      {/* QUOTE — the orange panel. */}
+      <section className="dp-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> Free quote
+                </span>
+                <h2>Quote for {system.label.toLowerCase()}.</h2>
+                <p className="quotesec__lede">
+                  60 seconds, no obligation, replied within 2 business hours. Rebates applied and
+                  GST included, so the number you get is the number you pay.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
+                  <li><span className="tick tick--on-orange">✓</span> Fixed price, confirmed in writing</li>
+                  <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
+                </ul>
+                {siblings.length > 0 && (
+                  <div className="quotesec__chips">
+                    {siblings.map((sib) => (
+                      <Link key={sib.id} href={`/services/${svc.slug}/${sib.id}`}>{sib.label}</Link>
+                    ))}
+                    <Link href={`/services/${svc.slug}`}>All {svc.short.toLowerCase()}</Link>
+                  </div>
+                )}
+              </div>
+              <QuoteForm presetService={params.slug} />
+            </div>
           </div>
-          <QuoteForm presetService={params.slug} />
         </div>
       </section>
 
-      {/* FAQ, system-specific */}
+      {/* FAQ — heading and a human line left, accordions right. */}
       {system.faqs && system.faqs.length > 0 && (
-        <section className="dp-faq">
-          <div className="wrap dp-faq__grid">
-            <div className="dp-faq__left">
+        <section className="dp-faq faq">
+          <div className="wrap faq__grid">
+            <div className="faq__left">
               <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
               <h2>Quick honest answers.</h2>
               <p>
-                Anything else, call us on{" "}
-                <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)" }}>{site.phone}</a>.
+                Anything else,{" "}
+                <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                  call {site.phone}
+                </a>
+                .
               </p>
             </div>
-            <div className="dp-faq__right">
+            <div className="faq__right">
               {system.faqs.map((f, i) => (
                 <details key={f.q} {...(i === 0 ? { open: true } : {})}>
                   <summary>{f.q}</summary>
@@ -372,20 +367,7 @@ export default async function SystemPage({
         </section>
       )}
 
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready for a {system.label.toLowerCase()} quote?</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
       <Script id={`ld-crumbs-${svc.slug}-${system.id}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
       {system.faqs && system.faqs.length > 0 && (

@@ -2829,3 +2829,78 @@
   .page-detail .dp-pricing__table { overflow-x: auto; }
   .page-detail .dp-pricing__table table { min-width: 620px; }
 }
+
+/* --- What's in the price: a checklist across columns. These are terse
+       statements of what's included, so they read as a list; forcing them
+       into tiles truncated half of them mid-thought. --- */
+.page-detail .syspoints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px 22px;
+}
+.page-detail .syspoints li {
+  position: relative;
+  padding: 15px 18px 15px 42px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.page-detail .syspoints li::before {
+  content: "✓";
+  position: absolute;
+  left: 16px; top: 14px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 176, 237, 0.16);
+  color: var(--sky);
+  font-size: 10px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* --- Header with a studio product shot. It sits in a framed panel to
+       the right of the copy rather than full bleed behind it, because a
+       cut-out on white stretched across a header is a letterform, not a
+       photo. Scenes still go full bleed; see `scene` in serviceContent. --- */
+.page-detail .dp-hero__wrap--inset {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  grid-template-areas:
+    "crumbs crumbs"
+    "copy   media"
+    "figs   figs";
+  column-gap: 44px;
+  align-items: center;
+}
+.page-detail .dp-hero__wrap--inset .dp-crumbs { grid-area: crumbs; }
+.page-detail .dp-hero__wrap--inset .dp-hero__copy { grid-area: copy; max-width: none; }
+.page-detail .dp-hero__wrap--inset .dp-hero__inset { grid-area: media; }
+.page-detail .dp-hero__wrap--inset .dp-hero__at { grid-area: figs; }
+.page-detail .dp-hero__inset {
+  background: var(--paper);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--rad);
+  padding: 18px;
+  box-shadow: 0 26px 54px -30px rgba(0, 0, 0, 0.6);
+}
+.page-detail .dp-hero__inset img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+  display: block;
+}
+@media (max-width: 900px) {
+  .page-detail .dp-hero__wrap--inset {
+    grid-template-columns: 1fr;
+    grid-template-areas: "crumbs" "copy" "media" "figs";
+    row-gap: 24px;
+  }
+  .page-detail .dp-hero__inset { max-width: 420px; }
+}

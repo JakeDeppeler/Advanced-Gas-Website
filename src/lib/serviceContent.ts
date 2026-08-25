@@ -78,7 +78,14 @@ export type ServiceContent = {
     stats: { value: string; label: string }[];
     /** Short reasons. Each one a sentence, not a paragraph. */
     reasons: { t: string; d: string }[];
-    photo: { src: string; alt: string };
+    photo: {
+      src: string;
+      alt: string;
+      /** True where the photo is a real scene rather than a studio cut-out
+       *  on white. Only scenes go full bleed behind the header — a
+       *  cut-out stretched across a hero reads as a giant letterform. */
+      scene?: boolean;
+    };
     /** The honest counterweight. */
     caveat: string;
   };
@@ -107,7 +114,14 @@ export type ServiceContent = {
     id: string;
     label: string;
     blurb: string;
-    photo: { src: string; alt: string };
+    photo: {
+      src: string;
+      alt: string;
+      /** True where the photo is a real scene rather than a studio cut-out
+       *  on white. Only scenes go full bleed behind the header — a
+       *  cut-out stretched across a hero reads as a giant letterform. */
+      scene?: boolean;
+    };
     points: string[];
     priceFrom?: string;
     /** Long-form opening for the system's own page at
@@ -421,7 +435,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         { t: "It pairs with solar better than anything", d: "Schedule the heating for the middle of the day and it runs on power you'd otherwise export for a few cents. That's where the hot water bill goes to almost nothing." },
         { t: "No flue, no gas, no combustion", d: "Nothing burning means no carbon monoxide test, no flue to block and one less gas appliance on the bill. If you're thinking about dropping the gas connection entirely, this is the first thing that has to go." },
       ],
-      photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, outdoor unit and tank installed against a brick wall" },
+      photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, outdoor unit and tank installed against a brick wall" , scene: true },
       caveat:
         "The honest part: they're not silent, they need airflow around the outdoor unit, and if your existing tank is under about six years old with a cheap fault we'd fix that instead and tell you to come back in a few years.",
     },
@@ -572,7 +586,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Evaporative cooler service",
         blurb:
           "A pre-summer service on a roof-mounted evap. Pads, water tray, pump and float all get looked at, because the first hot day is a bad time to find out the pump has seized over winter.",
-        photo: { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler service, cooling pads and water tray" },
+        photo: { src: "/evap cooler service close ip.jpg", alt: "Evaporative cooler service, cooling pads and water tray" , scene: true },
         points: [
           "Pads inspected and replaced when they've gone brittle or scaled up",
           "Water tray drained, flushed and checked for leaks",
@@ -606,7 +620,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split & ducted aircon service",
         blurb:
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced, a blocked drain or a filthy coil, not a dead compressor.",
-        photo: { src: "/ducted-split.webp", alt: "Ducted indoor unit in a roof space, where most servicing happens" },
+        photo: { src: "/ducted-split.webp", alt: "Ducted indoor unit in a roof space, where most servicing happens" , scene: true },
         points: [
           "Indoor and outdoor coils chemically cleaned, not just a filter rinse",
           "Filters washed or replaced, and the return-air path checked",
@@ -814,7 +828,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Gas heater service & carbon monoxide test",
         blurb:
           "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that matters, a cracked heat exchanger has no smell and no warning.",
-        photo: { src: "/gas-ducted-install.webp", alt: "Gas ducted heater in a roof space, where the service and CO test happen" },
+        photo: { src: "/gas-ducted-install.webp", alt: "Gas ducted heater in a roof space, where the service and CO test happen" , scene: true },
         points: [
           "Full CO test with a calibrated analyser, results on the report",
           "Burner clean, heat exchanger inspection, flue and seal check",
@@ -850,7 +864,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Temporary hot water hire",
         blurb:
           "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. $30 a day, and the $350 set-up and removal is waived if we do the replacement.",
-        photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover on site" },
+        photo: { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover on site" , scene: true },
         points: [
           "Connected the same day in most cases",
           "$30 per day while it's on site",
