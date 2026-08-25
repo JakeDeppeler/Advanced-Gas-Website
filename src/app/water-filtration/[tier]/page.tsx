@@ -5,7 +5,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
-import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
+import { TIERS, tierBySlug, PROCESS, EVERYDAY_BENEFITS, SYSTEM_STYLES, SYSTEM_COMPARE } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
@@ -95,6 +95,112 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           </div>
         </div>
       </section>
+
+      {/* EVERYDAY BENEFITS — where filtered water actually turns up.
+          Their five tiles, our palette. Whole-home only, because it's
+          the only category that reaches every room. */}
+      {t.slug === "whole-home" && (
+        <section className="wf-areas">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Everyday benefits</span>
+              <h2>Filtered water everywhere it matters.</h2>
+              <p>
+                A whole-house filter goes on at the point of entry, so every one of these runs
+                on treated water rather than just the kitchen tap.
+              </p>
+            </div>
+            <div className="wf-areas__row">
+              {EVERYDAY_BENEFITS.map((a) => (
+                <details className="wf-area" key={a.area} style={{ ["--tint" as string]: a.tint }}>
+                  <summary>
+                    <span className="wf-area__name">{a.area}</span>
+                    <span className="wf-area__line">{a.line}</span>
+                  </summary>
+                  <p>{a.detail}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* CHOOSE YOUR SYSTEM — the shape of the thing on your wall, before
+          anybody starts talking model numbers. Both ranges. */}
+      {t.slug === "whole-home" && (
+        <section className="wf-styles">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Choose your system</span>
+              <h2 className="ds-h--on-dark">Six ways to do the same job.</h2>
+              <p className="wf-styles__lede">
+                From a covered unit you&rsquo;d happily have on the front fence to plain housings
+                on a side passage. All of them filter; they differ on how they look, how much
+                they cost and how often you touch them.
+              </p>
+            </div>
+            <div className="wf-styles__grid">
+              {SYSTEM_STYLES.map((sy) => (
+                <article className={`wf-style${sy.lead ? " is-lead" : ""}`} key={sy.name}>
+                  <div className="wf-style__photo">
+                    {hasAsset(sy.photo)
+                      ? <img src={sy.photo} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
+                      : <span className="wf-style__ph" aria-hidden="true">{sy.brand}</span>}
+                  </div>
+                  <div className="wf-style__body">
+                    <span className="wf-style__tier">{sy.tier}</span>
+                    <h3>{sy.name}</h3>
+                    <span className="wf-style__style">{sy.brand} · {sy.style}</span>
+                    <p>{sy.blurb}</p>
+                    <ul>{sy.facts.map((f) => <li key={f}>{f}</li>)}</ul>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* COMPARE SYSTEMS */}
+      {t.slug === "whole-home" && (
+        <section className="wf-syscmp">
+          <div className="wrap">
+            <div className="ds-section-head ds-section-head--hl">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Compare systems</span>
+              <h2>The whole range on one line each.</h2>
+              <p>Price is a band rather than a figure, because the number depends on your site.</p>
+            </div>
+            <div className="wf-syscmp__wrap">
+              <table className="wf-syscmp__table">
+                <thead>
+                  <tr>
+                    <th>System</th>
+                    <th>Installation style</th>
+                    <th>Cover</th>
+                    <th>Finishes</th>
+                    <th>Price</th>
+                    <th>Best for</th>
+                    <th>ScaleProtect</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SYSTEM_COMPARE.map((r) => (
+                    <tr key={r.system}>
+                      <th scope="row">{r.system}</th>
+                      <td>{r.style}</td>
+                      <td className="is-mid">{r.cover ? <span className="wf-syscmp__yes">✓</span> : <span className="wf-syscmp__no">—</span>}</td>
+                      <td className="is-mid">{r.colours}</td>
+                      <td className="is-mid wf-syscmp__price">{r.price}</td>
+                      <td>{r.bestFor}</td>
+                      <td className="is-mid">{r.scale ? <span className="wf-syscmp__yes">✓</span> : <span className="wf-syscmp__no">—</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* HOW IT LOOKS — Jake's note: the old block was a huge diagram and
           the thing that actually sells this unit is that it's tidy. So

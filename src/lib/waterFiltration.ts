@@ -199,18 +199,18 @@ export const TIERS: FiltrationTier[] = [
     ],
     finish: {
       note:
-        "This is the part most filtration gets wrong. A whole-house unit lives on an outside wall where you and the neighbours look at it for the next decade, so the FilterWall is a flat aluminium cover rather than a rack of exposed housings — and it comes in ten finishes so it can disappear against a fence, a render or a weatherboard. We bring the colour chart to the quote.",
+        "This is the part most filtration gets wrong. A whole-house unit lives on an outside wall where you and the neighbours look at it for the next decade, so the FilterWall is a flat aluminium cover rather than a rack of exposed housings — and it comes in ten finishes so it can disappear against a fence, a render or a weatherboard. Five neutrals and five custom colours. Worth knowing before you choose: the custom five carry a 2-year finish warranty rather than the full term, and Buttercup Cream is F5 and F6 only.",
       swatches: [
-        { name: "Charcoal", hex: "#2B2B2E" },
-        { name: "Graphite", hex: "#4A4A4E" },
-        { name: "Slate", hex: "#6E6F73" },
-        { name: "Stone white", hex: "#E7E3DA" },
-        { name: "Sand", hex: "#D9C9A8" },
-        { name: "Sky", hex: "#BCD9E8" },
-        { name: "Mint", hex: "#BFDCCB" },
-        { name: "Straw", hex: "#EBC77E" },
-        { name: "Blush", hex: "#E8BFC4" },
-        { name: "Lilac", hex: "#C9BEDD" },
+        { name: "Buttercup Cream", hex: "#EFD9B0" },
+        { name: "Stone White", hex: "#E7E4DA" },
+        { name: "Mineral Grey", hex: "#8A9694" },
+        { name: "Charcoal", hex: "#3C4243" },
+        { name: "Midnight Black", hex: "#1B1B1D" },
+        { name: "Open Skies", hex: "#A9D4E4" },
+        { name: "Lime Sherbet", hex: "#B8DBC4" },
+        { name: "Sweet Apricot", hex: "#F0C48C" },
+        { name: "Cherry Blossom", hex: "#EFC3C6" },
+        { name: "Wisteria", hex: "#C6BBD9" },
       ],
     },
     versus: {
@@ -874,4 +874,146 @@ export const COMPARE_ROWS = [
     service: "Cartridges more often · UV lamp yearly",
     pick: "You're on tank water and somebody drinks it",
   },
+] as const;
+
+/* ====================================================================
+ * WHOLE-HOUSE PAGE FLOW
+ *
+ * Jake's running order, taken off the Puretec category page he kept
+ * pointing at: header → everyday benefits → choose your system →
+ * compare systems. Their layout, our colours.
+ *
+ * Product facts below come from the FilterWall F5/F6 spec sheet and the
+ * Puretec compare table Jake sent, plus the BWT cheat sheet. Nothing is
+ * inferred — where a spec isn't on the source it isn't here either.
+ * ================================================================== */
+
+/** Where filtered water actually turns up. Their five tiles, our palette. */
+export const EVERYDAY_BENEFITS = [
+  {
+    area: "Kitchen",
+    tint: "#0B1450",
+    line: "Drinking and cooking water without the chlorine taste",
+    detail:
+      "The tap you fill the kettle from and the one the kids drink out of. Chlorine taste and smell go, and so does the jug in the fridge and the case of bottled water in the boot.",
+  },
+  {
+    area: "Shower",
+    tint: "#00699A",
+    line: "Less chlorine on skin and hair",
+    detail:
+      "A reduction in chlorine in shower water helps with dryness and irritation. It's the benefit people notice second and mention first, usually about a fortnight in.",
+  },
+  {
+    area: "Bathroom",
+    tint: "#2E7D6B",
+    line: "Cleaner basins, and less to scrub",
+    detail:
+      "Sediment is what leaves the marks around a basin and a toilet cistern. Take it out at the main and there's simply less of it arriving.",
+  },
+  {
+    area: "Laundry",
+    tint: "#C2540F",
+    line: "Whites that stay white, and a washing machine that lasts",
+    detail:
+      "Sediment and chlorine both work on fabric and on the machine. Filtering at the point of entry means the washing machine, the dishwasher and the hot water system all run on treated water.",
+  },
+  {
+    area: "Garden tap",
+    tint: "#5A5F7A",
+    line: "Filtered water outside too",
+    detail:
+      "Point-of-entry means every outlet, including the garden taps. Not the headline reason anybody installs one, but it's part of what you're paying for.",
+  },
+] as const;
+
+/**
+ * The system styles we can put in, across both ranges. This is the
+ * "choose your system" step — the shape of the thing on your wall,
+ * before anybody talks model numbers.
+ */
+export type SystemStyle = {
+  brand: string;
+  name: string;
+  tier: string;
+  style: string;
+  blurb: string;
+  facts: readonly string[];
+  photo: string;
+  /** The one we'd put in most often. */
+  lead?: boolean;
+};
+
+export const SYSTEM_STYLES: readonly SystemStyle[] = [
+  {
+    brand: "Puretec",
+    name: "FilterWall F Series",
+    tier: "Premium",
+    style: "Freestanding or wall mounted",
+    blurb:
+      "Three-stage filtration behind a flat aluminium cover, in ten finishes. The one to pick when the unit is going somewhere you'll look at it.",
+    facts: ["3-stage with bypass", "55 L/min", '20" × 4.5" cartridges', "ScaleProtect on F4 and F6", "10-year warranty"],
+    photo: "/puretec-filterwall-whole-house.webp",
+    lead: true,
+  },
+  {
+    brand: "Puretec",
+    name: "FilterWall IM2",
+    tier: "Enhanced",
+    style: "Semi-recessed, in-wall",
+    blurb:
+      "Sits into the wall rather than on it, so it disappears almost entirely. Four finishes. Really a new-build or a renovation decision, because the cavity has to be there.",
+    facts: ["Semi-recessed", "Four finishes", "Filtered water to every tap", "Chlorine, chemicals, sediment, PFAS"],
+    photo: "/puretec-filterwall-im2.webp",
+  },
+  {
+    brand: "Puretec",
+    name: "WH2-55 AMC",
+    tier: "Practical",
+    style: "Wall mounted, covered",
+    blurb:
+      "The WH2 twin with a protective aluminium weather cover over it. Most of the tidiness for a good deal less than a FilterWall.",
+    facts: ["Aluminium weather cover", '20" cartridges', "55 L/min", '1" connection', "10-year warranty"],
+    photo: "/puretec-wh2-55-amc.webp",
+  },
+  {
+    brand: "Puretec",
+    name: "WH2 Series",
+    tier: "Essential",
+    style: "Wall mounted, uncovered",
+    blurb:
+      "Dual-stage filtration in heavy-duty housings, no cover. Does the same filtration job as the covered units and looks like plumbing, which on a side passage nobody sees is the right trade.",
+    facts: ["WH2-30 · 10\" · 30 L/min", "WH2-55 · 20\" · 55 L/min", "WH2-60 · 20\" · 60 L/min · 1.5\"", "Sediment, chlorine, chemicals, PFAS"],
+    photo: "/puretec-wh2-series.webp",
+  },
+  {
+    brand: "BWT",
+    name: "Jumbo Twin",
+    tier: "Alternative",
+    style: "Wall mounted, uncovered",
+    blurb:
+      "BWT's twin cartridge system, in 10\" and 20\" and in house or rain versions. The rain version runs different cartridges, which matters if you're on tank water.",
+    facts: ['10" and 20" jumbo', "House and Rain versions", "Sediment, taste and odour, chlorine", "1 yr parts & labour, 3 yr parts"],
+    photo: "/bwt-jumbo-twin.webp",
+  },
+  {
+    brand: "BWT",
+    name: "Backwash filter",
+    tier: "High sediment",
+    style: "Wall mounted, self-cleaning",
+    blurb:
+      "Flushes its own mesh to waste instead of using a cartridge you replace. Sediment only — but where the sediment load is high it saves you a cartridge every few months.",
+    facts: ["Manual or automatic", "20 mm to 150 mm", "Sediment only", "Mains or tank"],
+    photo: "/bwt-backwash.webp",
+  },
+] as const;
+
+/** The compare table, straight off Puretec's own, with BWT added. */
+export const SYSTEM_COMPARE = [
+  { system: "Puretec FilterWall F Series", style: "Freestanding or wall mounted", cover: true, colours: "10", price: "$$$$", bestFor: "Premium design and performance", scale: true },
+  { system: "Puretec FilterWall IM2", style: "Semi-recessed", cover: true, colours: "4", price: "$$$", bestFor: "New builds", scale: false },
+  { system: "Puretec WH2-55 AMC", style: "Wall mounted", cover: true, colours: "1", price: "$$", bestFor: "Practical covered installation", scale: false },
+  { system: "Puretec WH2 Series (30/55/60)", style: "Wall mounted", cover: false, colours: "—", price: "$", bestFor: "Essential whole house filtration", scale: false },
+  { system: "BWT Jumbo Twin (10\"/20\")", style: "Wall mounted", cover: false, colours: "—", price: "$", bestFor: "Mains or tank, on a budget", scale: false },
+  { system: "BWT Backwash filter", style: "Wall mounted", cover: false, colours: "—", price: "$$", bestFor: "High sediment, no cartridges to change", scale: false },
 ] as const;

@@ -1052,3 +1052,153 @@
   .page-filtration .wf-look__swrow { grid-template-columns: repeat(5, 1fr); gap: 12px 6px; }
   .page-filtration .wf-swatch i { width: 32px; height: 32px; }
 }
+
+/* ===================================================================
+   THE FLOW Jake asked for: header → everyday benefits → choose your
+   system → compare systems. Puretec's running order, our colours.
+   =================================================================== */
+
+/* --- EVERYDAY BENEFITS. Their five pastel tiles; ours take the brand
+       palette instead, each tile carrying its own tint via --tint. --- */
+.page-filtration .wf-areas { background: var(--bg); }
+.page-filtration .wf-areas__row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.page-filtration .wf-area {
+  background: var(--tint, var(--navy));
+  border-radius: var(--rad);
+  color: #fff;
+  overflow: hidden;
+  transition: transform 0.15s;
+}
+.page-filtration .wf-area[open] { grid-column: 1 / -1; }
+.page-filtration .wf-area summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 28px 22px 26px;
+  min-height: 176px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  position: relative;
+}
+.page-filtration .wf-area summary::-webkit-details-marker { display: none; }
+.page-filtration .wf-area summary::after {
+  content: "+";
+  position: absolute;
+  top: 18px; right: 20px;
+  font-size: 20px;
+  line-height: 1;
+  opacity: 0.75;
+}
+.page-filtration .wf-area[open] summary::after { content: "–"; }
+.page-filtration .wf-area__name { font-family: var(--f-display); font-size: 21px; font-weight: 800; }
+.page-filtration .wf-area__line { font-size: 13.5px; line-height: 1.45; color: rgba(255, 255, 255, 0.82); }
+.page-filtration .wf-area p {
+  margin: 0;
+  padding: 0 22px 26px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 80ch;
+}
+
+/* --- CHOOSE YOUR SYSTEM. Navy band so the cards read as products. --- */
+.page-filtration .wf-styles {
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-filtration .wf-styles__lede { color: rgba(255, 255, 255, 0.78) !important; }
+.page-filtration .wf-styles__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.page-filtration .wf-style {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 22px 54px -28px rgba(0, 0, 0, 0.6);
+}
+.page-filtration .wf-style.is-lead { outline: 3px solid var(--orange); outline-offset: 0; }
+.page-filtration .wf-style__photo {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.page-filtration .wf-style__photo img { width: 100%; height: 100%; object-fit: contain; padding: 16px; }
+.page-filtration .wf-style__ph {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--line-2);
+}
+.page-filtration .wf-style__body { padding: 20px 22px 24px; display: flex; flex-direction: column; flex: 1; }
+.page-filtration .wf-style__tier {
+  align-self: flex-start;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.page-filtration .wf-style h3 { font-family: var(--f-display); font-size: 21px; color: var(--navy); margin: 0 0 3px; }
+.page-filtration .wf-style__style { font-size: 12.5px; color: var(--ink-3); margin-bottom: 12px; }
+.page-filtration .wf-style p { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; }
+.page-filtration .wf-style ul { list-style: none; margin: auto 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.page-filtration .wf-style li { font-size: 13px; line-height: 1.45; color: var(--ink-2); padding-left: 16px; position: relative; }
+.page-filtration .wf-style li::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+
+/* --- COMPARE SYSTEMS --- */
+.page-filtration .wf-syscmp { background: var(--bg-2); }
+.page-filtration .wf-syscmp__wrap { overflow-x: auto; background: var(--paper); border-radius: var(--rad); box-shadow: var(--shadow-sm); }
+.page-filtration .wf-syscmp__table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
+.page-filtration .wf-syscmp__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-syscmp__table thead th:first-child { border-left: 0; }
+.page-filtration .wf-syscmp__table tbody th,
+.page-filtration .wf-syscmp__table tbody td {
+  padding: 15px 16px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+.page-filtration .wf-syscmp__table tbody th {
+  text-align: left;
+  border-left: 0;
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: var(--navy);
+}
+.page-filtration .wf-syscmp__table .is-mid { text-align: center; }
+.page-filtration .wf-syscmp__yes { color: var(--orange); font-size: 17px; font-weight: 800; }
+.page-filtration .wf-syscmp__no { color: var(--line-2); }
+.page-filtration .wf-syscmp__price { font-family: var(--f-mono); letter-spacing: 0.06em; color: var(--navy); font-weight: 700; }
+
+@media (max-width: 1100px) {
+  .page-filtration .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-areas__row { grid-template-columns: repeat(2, 1fr); }
+  .page-filtration .wf-area summary { min-height: 132px; padding: 20px 18px 18px; }
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-areas__row { grid-template-columns: 1fr; gap: 8px; }
+  .page-filtration .wf-area summary { min-height: 0; }
+  .page-filtration .wf-styles__grid { grid-template-columns: 1fr; }
+}
