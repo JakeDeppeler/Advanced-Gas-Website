@@ -86,6 +86,11 @@ export type ServiceContent = {
        *  cut-out stretched across a hero reads as a giant letterform. */
       scene?: boolean;
     };
+    /** Which of the parent service's brands we actually fit in this
+     *  system. Absent means all of them. Split systems are Mitsubishi
+     *  Electric and Kaden — the evap brand and the ducted controller are
+     *  not things you can buy on that page. */
+    brands?: string[];
     /** The honest counterweight. */
     caveat: string;
   };
@@ -122,6 +127,11 @@ export type ServiceContent = {
        *  cut-out stretched across a hero reads as a giant letterform. */
       scene?: boolean;
     };
+    /** Which of the parent service's brands we actually fit in this
+     *  system. Absent means all of them. Split systems are Mitsubishi
+     *  Electric and Kaden — the evap brand and the ducted controller are
+     *  not things you can buy on that page. */
+    brands?: string[];
     points: string[];
     priceFrom?: string;
     /** Long-form opening for the system's own page at
@@ -202,6 +212,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         blurb:
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
         photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
+        brands: ["Mitsubishi Electric", "Kaden"],
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
           "Mitsubishi Electric MSZ-AP or Kaden KSI, whichever suits the room and the job",
@@ -230,6 +241,26 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "How long does a split system install take?", a: "A straightforward back-to-back, indoor head directly opposite the outdoor unit, is three to four hours. Longer pipe runs, upstairs installs or a difficult outdoor location can make it half a day." },
           { q: "What size do I need?", a: "Roughly: 2.5 kW for a bedroom, 5.0 kW for a living room, 7.1 kW for large open-plan. But ceiling height, window aspect and insulation move it, which is why we do a room-by-room heat load rather than quoting off floor area." },
           { q: "Can I run it from my phone?", a: "Yes. Mitsubishi's MELCloud module adds Wi-Fi to any indoor unit in the range. We set it up and walk you through it before we leave." },
+          {
+            q: "Where does the outdoor unit go?",
+            a: "As close to the indoor head as the pipe run allows, on a wall bracket or a ground stand, somewhere it can breathe and somewhere you are not sitting next to it. We walk the outside of the house with you before anything is drilled — it is the decision that is hardest to undo.",
+          },
+          {
+            q: "Will it heat as well as it cools?",
+            a: "Yes, and on a Melbourne winter morning it will cost you less to run than gas. A reverse-cycle split is a heat pump; it moves heat rather than burning something to make it, which is why the running cost is a fraction of a gas heater's for the same room.",
+          },
+          {
+            q: "How noisy is it, inside and out?",
+            a: "The indoor head on low is quieter than a fridge. The outdoor unit is the one worth thinking about — it is the reason we ask where the bedroom windows are and where the neighbour's are, and why we would rather move it three metres at quote time than have you ring us about it in February.",
+          },
+          {
+            q: "Do I need one per room?",
+            a: "One per room you actually want conditioned, yes — a split heats and cools the room it is in and not the one down the hall. If the answer is turning into three or four heads, a multi-head or ducted system is usually the cheaper and tidier way to get there, and we will say so rather than quote you four splits.",
+          },
+          {
+            q: "What happens to my old unit?",
+            a: "It comes off the wall, gets de-gassed properly (venting refrigerant is illegal, not just poor form), and goes with us to a metal recycler on the same visit. You do not end up with it on the nature strip.",
+          },
         ],
       },
       {

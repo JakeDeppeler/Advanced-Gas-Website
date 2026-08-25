@@ -500,7 +500,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
           </div>
           <div className="faq__right">
             {content.faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

@@ -365,7 +365,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           </div>
           <div className="faq__right">
             {t.faqs.map((f, i) => (
-              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>

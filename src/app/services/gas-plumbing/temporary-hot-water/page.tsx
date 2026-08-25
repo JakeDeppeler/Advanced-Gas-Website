@@ -298,7 +298,7 @@ export default function TemporaryHotWaterPage() {
             </div>
             <div className="faq__right">
               {faqs.map((f, i) => (
-                <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+                <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
                   <summary>{f.q}</summary>
                   <p>{f.a}</p>
                 </details>

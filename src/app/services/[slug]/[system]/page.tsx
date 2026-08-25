@@ -10,7 +10,6 @@ import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
-import { SystemSpotlight } from "@/components/SystemSpotlight";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
@@ -77,6 +76,15 @@ export default function SystemPage({
   // service so a new system can ship before its detail is written.
   const detail = systemDetail(params.slug, system.id);
 
+  // The range band shows the brands that apply to THIS system, not every
+  // brand the parent service touches. A split system page listing the
+  // evap brand and the ducted controller is a list of things you cannot
+  // buy on this page. `system.brands` names them; without it, all of the
+  // parent's.
+  const systemBrands = (content.brandPods ?? []).filter(
+    (b) => !system.brands || system.brands.some((n) => b.brand.toLowerCase().startsWith(n.toLowerCase())),
+  );
+
   // Pricing: the system's own rows first. The keyword match on the
   // parent table is the old fallback and it was the reason a page with
   // no matching row silently displayed the entire service price list,
@@ -128,7 +136,13 @@ export default function SystemPage({
             <div className="ds-eyebrow ds-eyebrow--on-dark">
               <span className="ds-dot" /> {svc.short} · Pakenham &amp; within 75 km
             </div>
-            <h1>{system.label}</h1>
+            {/* The last word carries the accent, the way the filtration hub
+                does it — "Split system air CONDITIONING". Breaks a long
+                flat headline into something with a shape to it. */}
+            <h1>
+              {system.label.split(" ").slice(0, -1).join(" ")}{" "}
+              <em>{system.label.split(" ").slice(-1)}</em>
+            </h1>
             <p className="dp-hero__sub">{system.intro}</p>
             <div className="pg-ctas">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my free quote →</Link>
@@ -223,7 +237,9 @@ export default function SystemPage({
       {/* The section that makes this page about this system rather than
           about the service it sits under. Layout varies per system —
           see components/SystemSpotlight.tsx. */}
-      {detail?.spotlight && <SystemSpotlight spotlight={detail.spotlight} />}
+      {/* The spotlight came out. On a page that already says what you
+          get, whether it suits you and how the job runs, a fourth block
+          making the case was one too many. */}
 
       {/* Process for this system. Falls back to the parent service only
           where the system's own steps haven't been written yet. */}
@@ -298,11 +314,11 @@ export default function SystemPage({
 
       {/* THE RANGE — every model for this system sits on the brand page,
           so this is a button each rather than a second catalogue here. */}
-      {content.brandPods && content.brandPods.length > 0 && (
+      {systemBrands.length > 0 && (
         <RangeBand
           heading={`See the full ${system.label.toLowerCase()} range.`}
           blurb="Models, specs and installed prices, brand by brand."
-          brands={content.brandPods}
+          brands={systemBrands}
         />
       )}
 
@@ -357,7 +373,7 @@ export default function SystemPage({
             </div>
             <div className="faq__right">
               {system.faqs.map((f, i) => (
-                <details key={f.q} {...(i === 0 ? { open: true } : {})}>
+                <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
                   <summary>{f.q}</summary>
                   <p>{f.a}</p>
                 </details>

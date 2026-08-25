@@ -2904,3 +2904,118 @@
   }
   .page-detail .dp-hero__inset { max-width: 420px; }
 }
+
+/* ===================================================================
+   Section styling pass on the system pages: what you get, is it right
+   for you, indicative pricing. Same shell as the filtration sections —
+   generous vertical rhythm, a clear band per section, and cards that
+   look like the ones everywhere else on the site rather than three
+   different treatments in a row.
+   =================================================================== */
+
+.page-detail .dp-benefits { padding: 92px 0; background: var(--bg); }
+.page-detail .dp-benefits .ds-section-head p {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 64ch;
+  margin: 12px 0 0;
+}
+.page-detail .syspoints li {
+  padding: 18px 20px 18px 46px;
+  box-shadow: 0 12px 26px -22px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.page-detail .syspoints li:hover {
+  transform: translateY(-2px);
+  border-color: var(--sky);
+  box-shadow: 0 18px 34px -22px rgba(5, 10, 48, 0.45);
+}
+.page-detail .syspoints li::before { top: 17px; left: 18px; }
+
+/* --- Is it right for you: two cards on a sand band, the honest half
+       given the same weight as the sales half. --- */
+.page-detail .sysfit { padding: 92px 0; }
+.page-detail .sysfit__grid { gap: 22px; margin-top: 32px; }
+.page-detail .sysfit__col {
+  padding: 30px 32px 32px;
+  border-top-width: 4px;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.page-detail .sysfit__col:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -28px rgba(5, 10, 48, 0.45);
+}
+.page-detail .sysfit__col h3 {
+  font-size: 20px;
+  margin: 0 0 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .sysfit__col li { padding-left: 30px; font-size: 15px; }
+.page-detail .sysfit__col li::before {
+  left: 0;
+  top: 1px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+}
+.page-detail .sysfit__col--yes li::before { background: rgba(23, 160, 106, 0.14); }
+.page-detail .sysfit__col--no li::before { background: rgba(243, 103, 34, 0.14); }
+
+/* --- Indicative pricing --- */
+.page-detail .dp-pricing { padding: 92px 0; }
+.page-detail .dp-pricing .ds-section-head p {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 66ch;
+  margin: 12px 0 0;
+}
+
+/* --- The range needed room. It was butting up against the pricing
+       table above it and the quote panel below. --- */
+.page-detail .rangeband { padding: 92px 0 96px; }
+
+/* --- Stagger, so a grid of cards arrives as a grid. --- */
+.reveal .syspoints li,
+.reveal .sysfit__col,
+.reveal .rangeband__btn {
+  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.reveal:not(.is-revealed) .syspoints li,
+.reveal:not(.is-revealed) .sysfit__col,
+.reveal:not(.is-revealed) .rangeband__btn { opacity: 0; transform: translateY(10px); }
+.reveal .syspoints li:nth-child(2),
+.reveal .sysfit__col:nth-child(2),
+.reveal .rangeband__btn:nth-child(2) { transition-delay: 0.07s; }
+.reveal .syspoints li:nth-child(3),
+.reveal .rangeband__btn:nth-child(3) { transition-delay: 0.13s; }
+.reveal .syspoints li:nth-child(4),
+.reveal .rangeband__btn:nth-child(4) { transition-delay: 0.19s; }
+.reveal .syspoints li:nth-child(n + 5) { transition-delay: 0.25s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .syspoints li:hover,
+  .page-detail .sysfit__col:hover { transform: none; }
+  .reveal:not(.is-revealed) .syspoints li,
+  .reveal:not(.is-revealed) .sysfit__col,
+  .reveal:not(.is-revealed) .rangeband__btn { opacity: 1; transform: none; }
+}
+
+@media (max-width: 860px) {
+  .page-detail .dp-benefits,
+  .page-detail .sysfit,
+  .page-detail .dp-pricing,
+  .page-detail .rangeband { padding: 58px 0; }
+  .page-detail .sysfit__grid { grid-template-columns: 1fr; }
+}
+
+/* The accented last word in the system headline, same device the
+   filtration hub uses on its h1. */
+.page-detail .dp-hero h1 em {
+  font-style: normal;
+  color: var(--sky-2);
+}
