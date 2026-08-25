@@ -8,8 +8,9 @@ import { absoluteTitle, metaDescription } from "@/lib/seo";
 import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
-import { CtaBand } from "@/components/CtaBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
+import { CtaBand } from "@/components/CtaBand";
+import { SystemStyles } from "@/components/SystemStyles";
 import { FinishPicker } from "@/components/FinishPicker";
 import { FilterWallSelector } from "@/components/FilterWallSelector";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
@@ -42,6 +43,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
   if (!t) notFound();
 
 
+  // The system cards and the F models render client-side (the range opens
+  // from a button), so the paths have to be resolved before they cross.
+  const styleCards = SYSTEM_STYLES.map((sy) => ({ ...sy, photo: resolveAsset(sy.photo) }));
+  const modelCards = (t.models ?? []).map((m) => ({ ...m, photo: m.photo ? resolveAsset(m.photo) : null }));
+
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
     { name: "Water filtration", url: `${site.url}/water-filtration` },
@@ -53,13 +59,27 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <Script id={`wf-faq-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(t.faqs)) }} />
       <Script id={`wf-crumbs-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
 
-      {/* The hero. The display photo sits in a panel beside the copy
-          rather than behind it — as a background under the navy gradient
-          it read as a photo that had half failed to load. Until the file
-          lands the panel carries the at-a-glance facts instead. */}
-      <section className="wf-hero wf-hero--tier">
-        <div className={`wrap${t.heroFacts ? " wf-hero__grid" : ""}`}>
-          <div>
+      {/* The hero is the photo. Full bleed behind the copy with a navy
+          scrim over it, rather than a panel off to one side — Jake wanted
+          the display shot to be the header, not an inset. */}
+      <section
+        className={`wf-hero wf-hero--tier${t.heroPhoto && hasAsset(t.heroPhoto) ? " wf-hero--shot" : ""}`}
+        style={
+          t.heroPhoto && hasAsset(t.heroPhoto)
+            ? {
+                // Two scrims: one across, so the copy has something to sit
+                // on and the unit still reads on the right; one down, so
+                // the stat row at the bottom doesn't land on foliage.
+                backgroundImage:
+                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.10) 38%, rgba(9,17,52,0.70) 100%), ` +
+                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.34) 50%, rgba(9,17,52,0.06) 74%), ` +
+                  `url("${resolveAsset(t.heroPhoto)}")`,
+              }
+            : undefined
+        }
+      >
+        <div className="wrap">
+          <div className="wf-hero__copy">
             <nav className="wf-crumbs" aria-label="Breadcrumb">
               <Link href="/">Home</Link>
               <span aria-hidden="true">/</span>
@@ -82,29 +102,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
             </div>
           </div>
           {t.heroFacts && (
-            <aside className="wf-hero__panel">
-              {t.heroPhoto && hasAsset(t.heroPhoto) ? (
-                <img
-                  className="wf-hero__shot"
-                  src={resolveAsset(t.heroPhoto)!}
-                  alt={t.heroPhotoAlt ?? t.productPhotoAlt}
-                  width="640"
-                  height="640"
-                />
-              ) : (
-                <>
-                  <span className="wf-hero__panel-lbl">At a glance</span>
-                  <ul className="wf-hero__at">
-                    {t.heroFacts.map((f) => (
-                      <li key={f.k}>
-                        <strong>{f.v}</strong>
-                        <span>{f.k}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </aside>
+            <ul className="wf-hero__at">
+              {t.heroFacts.map((f) => (
+                <li key={f.k}>
+                  <strong>{f.v}</strong>
+                  <span>{f.k}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </section>
@@ -147,27 +152,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 they cost and how often you touch them.
               </p>
             </div>
-            <div className="wf-styles__grid">
-              {SYSTEM_STYLES.map((sy) => (
-                <article className={`wf-style${sy.lead ? " is-lead" : ""}`} key={sy.name}>
-                  {/* Only draw the photo frame when there's a photo to put in
-                      it. Six empty 4:3 boxes with a brand name floating in the
-                      middle doubled the height of the section and said nothing. */}
-                  {hasAsset(sy.photo) && (
-                    <div className="wf-style__photo">
-                      <img src={resolveAsset(sy.photo)!} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
-                    </div>
-                  )}
-                  <div className="wf-style__body">
-                    <span className="wf-style__tier">{sy.tier}</span>
-                    <h3>{sy.name}</h3>
-                    <span className="wf-style__style">{sy.brand} · {sy.style}</span>
-                    <p>{sy.blurb}</p>
-                    <ul>{sy.facts.map((f) => <li key={f}>{f}</li>)}</ul>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <SystemStyles styles={styleCards} models={modelCards} />
           </div>
         </section>
       )}
@@ -182,7 +167,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           the thing that actually sells this unit is that it's tidy. So
           this is about the finish, and it's deliberately compact. */}
       {t.finish && (
-        <section className="wf-look wf-band wf-band--sky">
+        <section className="wf-look wf-band wf-band--sand">
           <div className="wrap wf-look__grid">
             <div>
               <div className="ds-section-head ds-section-head--hl">
@@ -205,65 +190,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           everyday-benefits tiles at the top of the page make the same
           argument in the same words, and Jake spotted the double-up. */}
 
-      <CtaBand
-        boxed
-        heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
-        blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
-        cta="Ask us which one"
-      />
-
-      {/* THE F RANGE — this is the whole-house product, so the range on
-          this page is F3 through F6 rather than a second pass at the
-          system styles above. Four reasons per model, because they
-          differ on exactly two variables and a longer list is padding. */}
-      {t.models && t.models.length > 0 && (
-        <section className="wf-range wf-band wf-band--sand">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The F range</span>
-              <h2>Four versions, and why you&rsquo;d pick each one.</h2>
-              <p>
-                They differ on two things only: how much water the house pulls at once, and
-                whether you want scale protection with it. Everything else is identical.
-              </p>
-            </div>
-            <div className="wf-range__grid">
-              {t.models.map((m) => (
-                <article className={`wf-model${m.common ? " is-common" : ""}`} key={m.name}>
-                  {m.common && <span className="wf-model__tag">Most common here</span>}
-                  {/* Photo when there is one; otherwise the designation on a
-                      coloured strip. A drawn stand-in floating in a 4:3 box
-                      just read as a photo that failed to load. */}
-                  {m.photo && hasAsset(m.photo) ? (
-                    <div className="wf-model__shot">
-                      <img src={resolveAsset(m.photo)!} alt={m.name} loading="lazy" width="400" height="300" />
-                    </div>
-                  ) : (
-                    <div className="wf-model__code" aria-hidden="true">
-                      {m.name.split(" ").pop()}
-                    </div>
-                  )}
-                  <h3>{m.name}</h3>
-                  <p className="wf-model__suits">{m.suits}</p>
-                  <dl className="wf-model__specs">
-                    <div><dt>Flow</dt><dd>{m.flow}</dd></div>
-                    <div><dt>Cartridge</dt><dd>{m.cartridge}</dd></div>
-                  </dl>
-                  <span className="wf-model__rl">Four reasons to pick it</span>
-                  <ol className="wf-model__reasons">
-                    {m.reasons.map((r) => <li key={r}>{r}</li>)}
-                  </ol>
-                </article>
-              ))}
-            </div>
-            <p className="wf-range__note">
-              <strong>Priced at quote, not on the page.</strong> What it costs depends on where
-              the main comes in and what the pipework needs, and a &ldquo;from&rdquo; figure with
-              none of that behind it is bait.
-            </p>
-          </div>
-        </section>
-      )}
+      {/* The F range used to be a section of its own here. It's inside
+          "choose your system" now, behind a button on the FilterWall
+          card, because reading about the same product twice forty lines
+          apart was the double-up Jake kept pointing at. */}
 
       {/* The "whole house vs under sink" table used to sit here. Pulled:
           somebody reading this page has already chosen whole house, and
@@ -271,26 +201,46 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           service. It stays on /water-filtration where the choice is
           actually live. */}
 
-      {/* THE SELECTOR — three questions instead of a spec table. */}
+      {/* The tiers without a model selector still want something orange
+          mid-page, so they keep the boxed call-out the picker replaced. */}
+      {!(t.models && t.models.length > 0) && (
+        <CtaBand
+          boxed
+          heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
+          blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
+          cta="Ask us which one"
+        />
+      )}
+
+      {/* THE SELECTOR, in the home page's orange panel. Same box as the
+          60-second quote: copy on the left, the thing you interact with
+          on a white card to the right, the whole lot inside one branded
+          callout rather than a pale tinted band. */}
       {t.models && t.models.length > 0 && (
-        <section className="wf-picker wf-band wf-band--peach">
-          <div className="wrap wf-picker__grid">
-            <div>
-              <div className="ds-section-head ds-section-head--hl">
-                <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Narrow it down</span>
-                <h2>Which model is right for my home?</h2>
-                <p>Answer the three and the answer appears. Nothing is sent anywhere.</p>
+        <section className="wf-picker quotesec">
+          <div className="wrap">
+            <div className="quotesec__box">
+              <div className="quotesec__grid">
+                <div className="quotesec__left">
+                  <span className="ds-eyebrow ds-eyebrow--on-orange">
+                    <span className="ds-dot ds-dot--on-orange" /> Narrow it down
+                  </span>
+                  <h2>Which model is right for my&nbsp;home?</h2>
+                  <p className="quotesec__lede">
+                    Answer the three and the answer appears. Nothing is sent anywhere.
+                  </p>
+                  <ul className="quotesec__points">
+                    <li><span className="tick tick--on-orange">✓</span> Bathrooms decide the flow rate</li>
+                    <li><span className="tick tick--on-orange">✓</span> Scale on the kettle is the only reason to pay for ScaleProtect</li>
+                    <li><span className="tick tick--on-orange">✓</span> Tank water is a different product, and we&rsquo;ll say so</li>
+                  </ul>
+                  <p className="quotesec__finep">
+                    Runs in your browser · nothing recorded · no email asked for.
+                  </p>
+                </div>
+                <FilterWallSelector />
               </div>
-              {/* No photo here on purpose. Every candidate is already on
-                  this page — the hero, the system card, the model cards —
-                  and a fourth outing for one of them is just height. */}
-              <ul className="wf-picker__logic">
-                <li><strong>Bathrooms</strong> decide the flow rate — two or more means simultaneous outlets.</li>
-                <li><strong>Scale</strong> on the kettle or the shower screen is the only reason to pay for ScaleProtect.</li>
-                <li><strong>Tank water</strong> is a different product entirely, and we&rsquo;ll say so.</li>
-              </ul>
             </div>
-            <FilterWallSelector />
           </div>
         </section>
       )}

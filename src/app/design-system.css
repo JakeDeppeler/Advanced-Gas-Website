@@ -2307,3 +2307,115 @@ input, select, textarea {
   max-width: 580px;
 }
 
+
+
+/* ============================================================
+   ORANGE CALLOUT PANEL
+   The home page's 60-second-quote box: copy on the left, the thing
+   you interact with on a white card to the right, the whole lot in
+   one orange panel. Lives here rather than home.css because the
+   filtration picker uses the identical panel.
+   ============================================================ */
+/* ============== QUOTE SECTION — orange callout box ============== */
+.quotesec {
+  position: relative;
+  padding: 72px 0 88px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+/* The orange box wraps the entire "60-second quote" panel — left copy
+   AND the form card sit inside it, reading as one branded callout. */
+.quotesec__box {
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 48px 52px;
+  box-shadow: 0 20px 44px -18px rgba(243,103,34,0.55),
+              0 8px 24px -14px rgba(5,10,48,0.2);
+  position: relative;
+  overflow: hidden;
+}
+/* Subtle textured background inside the orange box — same warm feel
+   as the hero, keeps a flat orange from looking too dense. */
+.quotesec__box::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5,10,48,0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+.quotesec__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 48px;
+  align-items: start;
+}
+.quotesec__left {
+  padding-top: 8px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.ds-eyebrow--on-orange {
+  color: #fff;
+  opacity: 0.95;
+}
+.ds-dot--on-orange {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.28);
+}
+.quotesec__left h2 {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3.2vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #fff;
+  text-wrap: balance;
+  margin: 6px 0 0;
+  max-width: 460px;
+}
+.quotesec__lede {
+  margin: 0;
+  font-size: 17px;
+  color: rgba(255,255,255,0.92);
+  max-width: 460px;
+  line-height: 1.5;
+}
+.quotesec__points {
+  list-style: none; padding: 0; margin: 8px 0 0;
+  display: grid; gap: 8px;
+}
+.quotesec__points li {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(255,255,255,0.96);
+  font-size: 15px;
+}
+.tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0, 176, 237, 0.18); color: var(--sky-2);
+  font-size: 11px; font-weight: 800; flex: 0 0 20px; margin-top: 2px;
+}
+.tick--on-orange {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+.quotesec__finep {
+  margin: 12px 0 0;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0.01em;
+  max-width: 460px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .quotesec { padding: 48px 0 56px; }
+  .quotesec__box { padding: 32px 24px; border-radius: 22px; }
+  .quotesec__grid { grid-template-columns: 1fr; gap: 28px; }
+  .quotesec__left h2 { font-size: 28px; }
+  .quotesec__lede { font-size: 15.5px; }
+}

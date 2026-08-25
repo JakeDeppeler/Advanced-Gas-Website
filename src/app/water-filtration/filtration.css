@@ -1535,64 +1535,7 @@
   .page-filtration .wf-process__list li { flex-direction: row; align-items: flex-start; gap: 14px; }
 }
 
-/* --- the hero panel. Display photo when there is one, at-a-glance
-       figures while there isn't. Either way it's a thing beside the copy
-       rather than a wash behind it. --- */
-.page-filtration .wf-hero--tier .wf-hero__grid { align-items: center; grid-template-columns: 1.35fr 1fr; }
-.page-filtration .wf-hero__panel {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--rad);
-  padding: 24px 26px 26px;
-  backdrop-filter: blur(2px);
-}
-.page-filtration .wf-hero__panel-lbl {
-  display: block;
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--sky-2);
-  margin-bottom: 16px;
-}
-.page-filtration .wf-hero__at { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
-.page-filtration .wf-hero__at li { padding-left: 14px; border-left: 2px solid rgba(0, 176, 237, 0.55); }
-.page-filtration .wf-hero__at strong {
-  display: block;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: #fff;
-  line-height: 1.15;
-}
-.page-filtration .wf-hero__at span {
-  display: block;
-  margin-top: 4px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.72);
-}
-/* with a real display photo the panel is just a frame for it */
-.page-filtration .wf-hero__panel:has(.wf-hero__shot) {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.22);
-  padding: 6px;
-  overflow: hidden;
-}
-.page-filtration .wf-hero__shot {
-  width: 100%;
-  height: auto;
-  max-height: 400px;
-  object-fit: cover;
-  display: block;
-  border-radius: var(--rad-sm);
-}
-@media (max-width: 900px) {
-  .page-filtration .wf-hero--tier .wf-hero__grid { grid-template-columns: 1fr; gap: 26px; }
-  .page-filtration .wf-hero__at { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 520px) {
-  .page-filtration .wf-hero__at { grid-template-columns: 1fr; }
-}
+
 
 /* Product shots arrive on white; a cream mat behind them draws a seam
    round the photo instead of disappearing under it. */
@@ -1603,3 +1546,136 @@
    cards cropped differently from each other. */
 .page-filtration .wf-tier__photo--real { padding: 0; background: #fff; }
 .page-filtration .wf-tier__photo--real img { object-fit: cover; }
+
+/* ===================================================================
+   Jake's fourth pass:
+     · the header IS the photo, full bleed, not an inset panel
+     · the F range opens from the FilterWall card instead of being a
+       section of its own further down
+     · "how it looks" off the pale blue and onto the site's own sand
+     · "narrow it down" in the home page's orange panel
+   =================================================================== */
+
+/* --- HEADER: the display shot, full width, scrim over it --- */
+.page-filtration .wf-hero--shot {
+  background-size: cover;
+  /* anchored left so the unit — which sits mid-frame in the photo —
+     lands to the right of the copy rather than behind it */
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding: 84px 0 76px !important;
+}
+.page-filtration .wf-hero__copy { max-width: 560px; }
+.page-filtration .wf-hero__at {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 920px;
+}
+.page-filtration .wf-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-filtration .wf-hero__at span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-hero--shot { background-position: 72% center; padding: 56px 0 48px !important; }
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+}
+@media (max-width: 480px) {
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr; }
+}
+
+/* --- the button on the FilterWall card, and the range it opens --- */
+.page-filtration .wf-style__more {
+  appearance: none;
+  margin: 16px 0 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  transition: background 0.15s;
+}
+.page-filtration .wf-style__more:hover { background: var(--orange); }
+.page-filtration .wf-style__more.is-open { background: var(--orange); }
+
+.page-filtration .wf-range__drop {
+  margin-top: 26px;
+  padding: 30px 32px 32px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: wf-drop 0.28s ease both;
+}
+.page-filtration .wf-range__drop[hidden] { display: none; }
+@keyframes wf-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-filtration .wf-range__drophead { margin-bottom: 22px; max-width: 62ch; }
+.page-filtration .wf-range__drophead h3 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.page-filtration .wf-range__drophead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-filtration .wf-range__drop .wf-model h4 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 4px;
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-range__drop { padding: 22px 18px 24px; }
+}
+
+/* --- "how it looks" back on the site's own palette. The pale blue was
+       not a colour this site uses anywhere else. --- */
+.page-filtration .wf-band--sand {
+  background:
+    radial-gradient(760px 320px at 88% -10%, rgba(243, 103, 34, 0.10), transparent 62%),
+    var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.page-filtration .wf-band--sand .fpick__stage { background: #fff; }
+
+/* --- the picker's orange panel: the selector card goes white on it --- */
+.page-filtration .wf-picker .fwsel {
+  background: var(--paper);
+  border-radius: 20px;
+  box-shadow: 0 24px 50px -22px rgba(5, 10, 48, 0.45);
+}
+
+/* the picker section is the orange panel now, so it takes the panel's
+   cream ground rather than the white it had as a tinted band */
+.page-filtration .wf-picker { background: var(--bg); }
