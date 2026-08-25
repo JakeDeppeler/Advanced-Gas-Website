@@ -5,7 +5,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
-import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES, BRAND_COMPARE } from "@/lib/waterFiltration";
+import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { BenefitTiles } from "@/components/BenefitTiles";
@@ -45,7 +45,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
   // The system cards and the F models render client-side (the range opens
   // from a button), so the paths have to be resolved before they cross.
-  const styleCards = SYSTEM_STYLES.map((sy) => ({ ...sy, photo: resolveAsset(sy.photo) }));
+  const styleCards = (t.systems ?? []).map((sy) => ({ ...sy, photo: resolveAsset(sy.photo) }));
   const modelCards = (t.models ?? []).map((m) => ({ ...m, photo: m.photo ? resolveAsset(m.photo) : null }));
 
   const crumbs = breadcrumbSchema([
@@ -117,18 +117,15 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       {/* EVERYDAY BENEFITS — where filtered water actually turns up.
           Their five tiles, our palette. Whole-home only, because it's
           the only category that reaches every room. */}
-      {t.slug === "whole-home" && (
+      {t.benefits && (
         <section className="wf-areas">
           <div className="wrap">
             <div className="ds-section-head ds-section-head--hl">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Everyday benefits</span>
-              <h2>Filtered water everywhere it matters.</h2>
-              <p>
-                A whole-house filter goes on at the point of entry, so every one of these runs
-                on treated water rather than just the kitchen tap.
-              </p>
+              <h2>{t.benefitsHeading ?? "Where it turns up."}</h2>
+              {t.benefitsLede && <p>{t.benefitsLede}</p>}
             </div>
-            <BenefitTiles />
+            <BenefitTiles benefits={t.benefits} />
             <p className="wf-areas__more">
               <Link href="/water-filtration">
                 What&rsquo;s actually in Melbourne water, and what a filter does about it &rarr;
@@ -140,23 +137,20 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       {/* CHOOSE YOUR SYSTEM — the shape of the thing on your wall, before
           anybody starts talking model numbers. Both ranges. */}
-      {t.slug === "whole-home" && (
+      {(t.systems || t.models) && (
         <section className="wf-styles">
           <div className="wrap">
             <div className="ds-section-head">
               <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot" /> Choose your system</span>
-              <h2 className="ds-h--on-dark">Six ways to do the same job.</h2>
-              <p className="wf-styles__lede">
-                From a covered unit you&rsquo;d happily have on the front fence to plain housings
-                on a side passage. All of them filter; they differ on how they look, how much
-                they cost and how often you touch them.
-              </p>
+              <h2 className="ds-h--on-dark">{t.systemsHeading ?? "Choose your system."}</h2>
+              {t.systemsLede && <p className="wf-styles__lede">{t.systemsLede}</p>}
             </div>
             {/* The two ranges first, so somebody who has never heard of
                 either knows why there are two before they meet six
                 products. Puretec leads because it's what we fit most. */}
+            {t.brands && (
             <div className="wf-brands">
-              {BRAND_COMPARE.map((b) => (
+              {t.brands.map((b) => (
                 <article className={`wf-brand${b.lead ? " is-lead" : ""}`} key={b.brand}>
                   <div className="wf-brand__head">
                     <h3>{b.brand}</h3>
@@ -167,8 +161,14 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 </article>
               ))}
             </div>
+            )}
 
-            <SystemStyles styles={styleCards} models={modelCards} />
+            <SystemStyles
+              styles={styleCards}
+              models={modelCards}
+              heading={t.modelsHeading ?? "The range."}
+              lede={t.modelsLede}
+            />
           </div>
         </section>
       )}
@@ -219,7 +219,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
 
       {/* The tiers without a model selector still want something orange
           mid-page, so they keep the boxed call-out the picker replaced. */}
-      {!(t.models && t.models.length > 0) && (
+      {t.slug !== "whole-home" && (
         <CtaBand
           boxed
           heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
@@ -232,7 +232,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           60-second quote: copy on the left, the thing you interact with
           on a white card to the right, the whole lot inside one branded
           callout rather than a pale tinted band. */}
-      {t.models && t.models.length > 0 && (
+      {t.slug === "whole-home" && (
         <section className="wf-picker quotesec">
           <div className="wrap">
             <div className="quotesec__box">
@@ -270,12 +270,10 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         <div className="wrap wf-serv__grid">
           <figure className="wf-serv__shot">
             <img
-              src={assetOrFallback(t.servicingPhoto ?? t.productPhoto, t.diagram)}
+              src={assetOrFallback(t.servicingPhoto ?? t.diagram, t.diagram)}
               alt={
                 t.servicingPhoto && hasAsset(t.servicingPhoto)
                   ? t.servicingPhotoAlt ?? t.productPhotoAlt
-                  : hasAsset(t.productPhoto)
-                  ? t.productPhotoAlt
                   : `Diagram: ${t.fitsWhere}`
               }
               loading="lazy"

@@ -59,6 +59,34 @@ export type FiltrationTier = {
   servicingPhoto?: string;
   servicingPhotoAlt?: string;
   /**
+   * Everyday benefits — five tiles, per tier. Whole home gets rooms
+   * because it reaches all of them; hot water gets the parts of the
+   * appliance it protects; under sink gets the things you'd actually
+   * fill. Same component, different argument.
+   */
+  benefits?: { area: string; icon: string; tint: string; line: string; detail: string }[];
+  /** Choose your system — the shapes this category comes in. */
+  systems?: {
+    brand: string;
+    name: string;
+    tier: string;
+    style: string;
+    blurb: string;
+    facts: readonly string[];
+    photo: string;
+    lead?: boolean;
+  }[];
+  /** The ranges compared, where more than one brand is genuinely in play. */
+  brands?: { brand: string; role: string; blurb: string; facts: readonly string[]; lead?: boolean }[];
+  /** Headings for the two generalised sections, because "six ways to do
+   *  the same job" is only true on the page with six of them. */
+  benefitsHeading?: string;
+  benefitsLede?: string;
+  systemsHeading?: string;
+  systemsLede?: string;
+  modelsHeading?: string;
+  modelsLede?: string;
+  /**
    * Real install photography. Replaces the single diagram in the "where
    * it goes" slot — Jake's note was that a lone drawing there isn't
    * enough, it wants several photos. Add rows as they're shot.
@@ -169,6 +197,159 @@ export const STAGES = [
   },
 ] as const;
 
+/**
+ * The two ranges, side by side. Puretec first because it's what we fit
+ * most; BWT second because it earns its place on price, on tank water and
+ * on the one filter here that doesn't take a cartridge at all.
+ *
+ * Everything in the fact lists is already stated on a product card
+ * further down — this block is only there so somebody who has never heard
+ * of either brand knows why there are two of them.
+ */
+export const BRAND_COMPARE: {
+  brand: string;
+  role: string;
+  blurb: string;
+  facts: readonly string[];
+  lead?: boolean;
+}[] = [
+  {
+    brand: "Puretec",
+    role: "What we fit most",
+    blurb:
+      "The covered units. A flat aluminium cover instead of a rack of exposed housings, ten finishes on the FilterWall, and a ten-year manufacturer warranty on the unit.",
+    facts: [
+      "10-year manufacturer warranty",
+      "Ten finishes on the FilterWall",
+      "Three stages with a bypass",
+      "30 to 60 L/min across the range",
+    ],
+    lead: true,
+  },
+  {
+    brand: "BWT",
+    role: "Where it earns its place",
+    blurb:
+      "Plain housings and a self-cleaning option. Cheaper to put in, and the only range here with a filter that flushes its own mesh instead of taking a cartridge you replace.",
+    facts: [
+      "House and Rain versions for tank water",
+      "Backwash filter, no cartridge to change",
+      "1 yr parts & labour, 3 yr parts",
+      '10" and 20" jumbo housings',
+    ],
+  },
+];
+
+export const SYSTEM_STYLES: SystemStyle[] = [
+  {
+    brand: "Puretec",
+    name: "FilterWall F Series",
+    tier: "Premium",
+    style: "Freestanding or wall mounted",
+    blurb:
+      "Three-stage filtration behind a flat aluminium cover, in ten finishes. The one to pick when the unit is going somewhere you'll look at it.",
+    // Deliberately about the look and the range rather than the specs:
+    // F3 to F6 get a section of their own further down the page, and
+    // repeating flow rates and cartridge sizes here was the double-up.
+    facts: ["Flat aluminium cover", "Ten finishes", "Four models, F3 to F6", "10-year warranty"],
+    photo: "/puretec-filterwall-whole-house.webp",
+    lead: true,
+  },
+  {
+    brand: "Puretec",
+    name: "FilterWall IM2",
+    tier: "Enhanced",
+    style: "Semi-recessed, in-wall",
+    blurb:
+      "Sits into the wall rather than on it, so it disappears almost entirely. Four finishes. Really a new-build or a renovation decision, because the cavity has to be there.",
+    facts: ["Semi-recessed", "Four finishes", "Filtered water to every tap", "Chlorine, chemicals, sediment, PFAS"],
+    photo: "/puretec-filterwall-im2.webp",
+  },
+  {
+    brand: "Puretec",
+    name: "WH2-55 AMC",
+    tier: "Practical",
+    style: "Wall mounted, covered",
+    blurb:
+      "The WH2 twin with a protective aluminium weather cover over it. Most of the tidiness for a good deal less than a FilterWall.",
+    facts: ["Aluminium weather cover", '20" cartridges', "55 L/min", '1" connection', "10-year warranty"],
+    photo: "/puretec-wh2-55-amc.webp",
+  },
+  {
+    brand: "Puretec",
+    name: "WH2 Series",
+    tier: "Essential",
+    style: "Wall mounted, uncovered",
+    blurb:
+      "Dual-stage filtration in heavy-duty housings, no cover. Does the same filtration job as the covered units and looks like plumbing, which on a side passage nobody sees is the right trade.",
+    facts: ["WH2-30 · 10\" · 30 L/min", "WH2-55 · 20\" · 55 L/min", "WH2-60 · 20\" · 60 L/min · 1.5\"", "Sediment, chlorine, chemicals, PFAS"],
+    photo: "/puretec-wh2-series.webp",
+  },
+  {
+    brand: "BWT",
+    name: "Jumbo Twin",
+    tier: "Alternative",
+    style: "Wall mounted, uncovered",
+    blurb:
+      "BWT's twin cartridge system, in 10\" and 20\" and in house or rain versions. The rain version runs different cartridges, which matters if you're on tank water.",
+    facts: ['10" and 20" jumbo', "House and Rain versions", "Sediment, taste and odour, chlorine", "1 yr parts & labour, 3 yr parts"],
+    photo: "/bwt-jumbo-twin.webp",
+  },
+  {
+    brand: "BWT",
+    name: "Backwash filter",
+    tier: "High sediment",
+    style: "Wall mounted, self-cleaning",
+    blurb:
+      "Flushes its own mesh to waste instead of using a cartridge you replace. Sediment only — but where the sediment load is high it saves you a cartridge every few months.",
+    facts: ["Manual or automatic", "20 mm to 150 mm", "Sediment only", "Mains or tank"],
+    photo: "/bwt-backwash.webp",
+  },
+];
+
+export const EVERYDAY_BENEFITS: EverydayBenefit[] = [
+  {
+    area: "Kitchen",
+    icon: "tap",
+    tint: "#0B1450",
+    line: "Drinking and cooking water without the chlorine taste",
+    detail:
+      "The tap you fill the kettle from and the one the kids drink out of. Chlorine taste and smell go, and so does the jug in the fridge and the case of bottled water in the boot.",
+  },
+  {
+    area: "Shower",
+    icon: "shower",
+    tint: "#00699A",
+    line: "Less chlorine on skin and hair",
+    detail:
+      "A reduction in chlorine in shower water helps with dryness and irritation. It's the benefit people notice second and mention first, usually about a fortnight in.",
+  },
+  {
+    area: "Bathroom",
+    icon: "basin",
+    tint: "#2E7D6B",
+    line: "Cleaner basins, and less to scrub",
+    detail:
+      "Sediment is what leaves the marks around a basin and a toilet cistern. Take it out at the main and there's simply less of it arriving.",
+  },
+  {
+    area: "Laundry",
+    icon: "washer",
+    tint: "#C2540F",
+    line: "Whites that stay white, and a washing machine that lasts",
+    detail:
+      "Sediment and chlorine both work on fabric and on the machine. Filtering at the point of entry means the washing machine, the dishwasher and the hot water system all run on treated water.",
+  },
+  {
+    area: "Garden tap",
+    icon: "hose",
+    tint: "#5A5F7A",
+    line: "Filtered water outside too",
+    detail:
+      "Point-of-entry means every outlet, including the garden taps. Not the headline reason anybody installs one, but it's part of what you're paying for.",
+  },
+];
+
 export const TIERS: FiltrationTier[] = [
   {
     slug: "whole-home",
@@ -183,6 +364,18 @@ export const TIERS: FiltrationTier[] = [
     heroPhotoAlt: "Puretec FilterWall mounted against a hedge, cover closed",
     servicingPhoto: "/puretec-filterwall-cartridges.webp",
     servicingPhotoAlt: "Puretec FilterWall with the cover open, showing the three cartridges",
+    benefits: EVERYDAY_BENEFITS,
+    benefitsHeading: "Filtered water everywhere it matters.",
+    benefitsLede:
+      "A whole-house filter goes on at the point of entry, so every one of these runs on treated water rather than just the kitchen tap.",
+    systems: SYSTEM_STYLES,
+    brands: BRAND_COMPARE,
+    systemsHeading: "Six ways to do the same job.",
+    systemsLede:
+      "From a covered unit you'd happily have on the front fence to plain housings on a side passage. All of them filter; they differ on how they look, how much they cost and how often you touch them.",
+    modelsHeading: "Four versions, and why you'd pick each one.",
+    modelsLede:
+      "They differ on two things only: how much water the house pulls at once, and whether you want scale protection with it. Everything else is identical.",
     heroFacts: [
       { v: "30–55 L/min", k: "Flow rate, F3 through F6" },
       { v: "Three stages", k: "Coarse sediment, fine sediment, carbon block" },
@@ -397,6 +590,60 @@ export const TIERS: FiltrationTier[] = [
     fitsWhere: "On the cold water line feeding your hot water system",
     productPhoto: "/puretec-inline-filter-hot-water.webp",
     productPhotoAlt: "Puretec inline filter plumbed into a wall with brass isolation valves",
+    heroPhoto: "/puretec-inline-filter-hot-water.webp",
+    heroPhotoAlt: "Inline sediment filter plumbed into the cold feed on an external wall",
+    heroFacts: [
+      { v: "One cartridge", k: "A single sediment stage on the cold inlet" },
+      { v: "Every system", k: "Storage, continuous flow or heat pump" },
+      { v: "At the service", k: "Changed while the unit is being serviced anyway" },
+      { v: "Sediment only", k: "It is not a taste or a chlorine filter" },
+    ],
+    benefitsHeading: "What the cartridge is actually protecting.",
+    benefitsLede:
+      "None of this is about how the water tastes. It is about what sediment does once it is inside the most expensive appliance in the house.",
+    benefits: [
+      {
+        area: "Storage tank",
+        icon: "tank",
+        tint: "#0B1450",
+        line: "Sediment settles in the bottom and stays there",
+        detail:
+          "Whatever comes down the main ends up in the bottom of the tank, because that is where gravity puts it. It does not leave again. A cartridge on the inlet is the only thing between the street and the floor of your tank.",
+      },
+      {
+        area: "The element",
+        icon: "element",
+        tint: "#00699A",
+        line: "An element under silt is heating silt, not water",
+        detail:
+          "On an electric storage unit the element sits low in the tank, which is exactly where the sediment collects. A layer of it between the element and the water is a layer the element has to heat through.",
+      },
+      {
+        area: "Continuous flow",
+        icon: "flow",
+        tint: "#2E7D6B",
+        line: "Narrow passages, and grit does not fit through them",
+        detail:
+          "A continuous-flow heat exchanger moves water through very fine passages so it can heat it fast. That design is what makes it efficient and it is also what makes it fussy about what arrives in the water.",
+      },
+      {
+        area: "Heat pumps",
+        icon: "heatpump",
+        tint: "#C2540F",
+        line: "The newest system on the property, and the dearest",
+        detail:
+          "If you have just put in a heat pump with a rebate, it is now the most expensive appliance in the house. The filter that protects it costs a fraction of one service call on it.",
+      },
+      {
+        area: "Tempering valve",
+        icon: "valve",
+        tint: "#5A5F7A",
+        line: "Grit is a common reason one starts to weep",
+        detail:
+          "The tempering valve mixes hot and cold to a safe outlet temperature, and it does that with a seat that grit can hold open. Not the headline reason to fit a filter, but it is on the list.",
+      },
+    ],
+
     diagram: "/water-filtration-hot-water-diagram.webp",
     blurb:
       "A filter on the cold feed into your hot water system, so sediment stops at the cartridge instead of settling in the tank or blocking a continuous-flow heat exchanger.",
@@ -471,6 +718,141 @@ export const TIERS: FiltrationTier[] = [
     fitsWhere: "In the cupboard under the kitchen sink, feeding a dedicated tap or a three-way mixer",
     productPhoto: "/puretec-twin-undersink-filter.webp",
     productPhotoAlt: "Puretec twin undersink filter system with a dedicated filtered tap",
+    heroPhoto: "/puretec-twin-undersink-filter.webp",
+    heroPhotoAlt: "Twin undersink filters in a kitchen cupboard, feeding a filtered tap at the sink",
+    heroFacts: [
+      { v: "0.5 to 5 micron", k: "Finer than a whole-house housing can run" },
+      { v: "Lead and cysts", k: "Reached at this level, not at the main" },
+      { v: "Two outlets", k: "A dedicated tap, or a three-way mixer" },
+      { v: "Fridge and ice", k: "If the fridge is close enough to run a line" },
+    ],
+    benefitsHeading: "The few litres a day you actually drink.",
+    benefitsLede:
+      "An under-sink filter treats a fraction of the water a whole-house unit does, which is exactly why it can afford to treat it further.",
+    benefits: [
+      {
+        area: "The kettle",
+        icon: "kettle",
+        tint: "#0B1450",
+        line: "Tea and coffee without the chlorine underneath",
+        detail:
+          "Chlorine does not boil away as completely as people assume, and it is the thing sitting under the taste of a good coffee. This is the change most people notice on day one.",
+      },
+      {
+        area: "Drinking water",
+        icon: "tap",
+        tint: "#00699A",
+        line: "Straight from the tap, cold, with nothing to remember",
+        detail:
+          "No jug to refill, no space taken in the fridge door, and no waiting for it to chill. The reason a filtered tap gets used and a jug quietly stops getting used.",
+      },
+      {
+        area: "The fridge",
+        icon: "fridge",
+        tint: "#2E7D6B",
+        line: "Ice and chilled water off proper filtration",
+        detail:
+          "If the fridge is close enough to run a line to, it comes off the same filter — which ends the manufacturer's own cartridge subscription, at their prices, on their schedule.",
+      },
+      {
+        area: "Cooking",
+        icon: "pot",
+        tint: "#C2540F",
+        line: "Stock, rice, pasta, anything that absorbs the water",
+        detail:
+          "Anything that takes the water into it takes the taste of the water with it. It is a small difference in a glass and a larger one in a pot of stock.",
+      },
+      {
+        area: "Bottled water",
+        icon: "bottle",
+        tint: "#5A5F7A",
+        line: "The case in the boot stops being necessary",
+        detail:
+          "Most households buying bottled water are buying it for taste rather than safety. This is the fitting that addresses taste, and it addresses it for a fraction of what the bottles cost over a year.",
+      },
+    ],
+    systemsHeading: "Three ways to do it under there.",
+    systemsLede:
+      "A cartridge and a tap is what most kitchens want. The other two are for a fridge line and for the small number of households with a contaminant a cartridge cannot reach.",
+    modelsHeading: "Three cartridges, and which one you'd want.",
+    modelsLede:
+      "Same kit, same tap, same fitting. The only thing that changes is how fine the cartridge is — and finer is not automatically better.",
+    systems: [
+      {
+        brand: "Puretec",
+        name: "Inline filter kit",
+        tier: "Essential",
+        style: "Single cartridge, dedicated tap",
+        blurb:
+          "One cartridge under the sink feeding a small filtered tap beside the mixer. Complete kit — cartridge, head, bracket, braided hose, dual check valve and bush.",
+        facts: ["0.5, 1.0 or 5 micron", "Sediment, taste, chlorine, lead, cysts", "1 yr parts & labour, 3 yr parts"],
+        photo: "/puretec-inline-filter-kit.webp",
+        lead: true,
+      },
+      {
+        brand: "Puretec",
+        name: "Fridge & ice filter",
+        tier: "Add-on",
+        style: "Inline, on the fridge line",
+        blurb:
+          "A filter on the line feeding the fridge, so the ice and the chilled water come off real filtration rather than the manufacturer's own subscription cartridge.",
+        facts: ["Triple Action, or Multi-C 1000 to 7000", "Sediment", "Needs the fridge within reach of the sink"],
+        photo: "/puretec-fridge-ice-filter.webp",
+      },
+      {
+        brand: "Puretec",
+        name: "RO300 reverse osmosis",
+        tier: "Specialist",
+        style: "Membrane, under sink",
+        blurb:
+          "The only thing here that removes dissolved salts, PFAS and pharmaceuticals. Slow, wasteful of water, and genuinely warranted only where there is a measured contaminant a cartridge cannot reach.",
+        facts: ["Removes TDS, PFAS, lead, cysts, bacteria", "Several litres to drain per litre made", "Strips minerals along with contaminants"],
+        photo: "/puretec-ro300.webp",
+      },
+    ],
+    models: [
+      {
+        name: "0.5 micron",
+        suits: "The finest, for the fussiest water",
+        handles: "Sediment, taste, chlorine, lead, cysts",
+        flow: "Drinking tap",
+        cartridge: "Inline, 0.5 µm",
+        reasons: [
+          "The finest of the three, so it reaches cysts and lead that a coarser cartridge lets through.",
+          "The one to pick where the complaint is a specific contaminant rather than a general taste.",
+          "Same kit, same fitting, same tap — the only thing that changes is what is inside.",
+          "Shortest life of the three, because a finer cartridge loads up faster on the same water.",
+        ],
+      },
+      {
+        name: "1.0 micron",
+        suits: "What most kitchens want",
+        handles: "Sediment, taste, chlorine, lead, cysts",
+        flow: "Drinking tap",
+        cartridge: "Inline, 1.0 µm",
+        common: true,
+        reasons: [
+          "The middle one, and the one we fit most on Melbourne mains water.",
+          "Fine enough for taste, chlorine and the contaminants that matter, without the short life of the 0.5.",
+          "Good flow at the tap — a finer cartridge on a low-pressure kitchen can feel slow.",
+          "The default unless there is a reason on your water to go finer or coarser.",
+        ],
+      },
+      {
+        name: "5 micron",
+        suits: "Longest between changes",
+        handles: "Sediment, taste, chlorine",
+        flow: "Drinking tap",
+        cartridge: "Inline, 5 µm",
+        reasons: [
+          "The longest-lasting of the three, because it is the most open.",
+          "The pick where the water is already clean and the job is taste rather than contaminants.",
+          "Best flow of the three at the tap.",
+          "Coarser, so it does not reach as far down the contaminant list as the 0.5 does.",
+        ],
+      },
+    ],
+
     diagram: "/water-filtration-under-sink-diagram.webp",
     blurb:
       "A filter under the kitchen sink feeding either a small dedicated tap or a three-way mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
@@ -544,6 +926,90 @@ export const TIERS: FiltrationTier[] = [
     cta: "Do I need a softener?",
     productPhoto: "/bwt-bewamat-water-softener.webp",
     productPhotoAlt: "BWT Bewamat automatic water softener",
+    heroFacts: [
+      { v: "Test first", k: "We measure your hardness before we quote one" },
+      { v: "Bore and rural", k: "Where a softener genuinely earns its place" },
+      { v: "Hardness only", k: "It will not change taste, smell or clarity" },
+      { v: "Adjustable", k: "A blending valve sets how soft you actually want it" },
+    ],
+    benefitsHeading: "Where hardness shows up, if you have it.",
+    benefitsLede:
+      "Read this as a checklist rather than a sales pitch. If none of it is happening at your place, you are on soft water and you do not need a softener.",
+    benefits: [
+      {
+        area: "The kettle",
+        icon: "kettle",
+        tint: "#0B1450",
+        line: "The white crust on the element, gone",
+        detail:
+          "Scale in a kettle is the most visible symptom of hardness and the least expensive one. If your kettle is clean, that is the first sign a softener is solving a problem you do not have.",
+      },
+      {
+        area: "Shower screen",
+        icon: "shower",
+        tint: "#00699A",
+        line: "Less of what you are scrubbing off the glass",
+        detail:
+          "The film that will not come off a shower screen with a normal clean is scale. Soften the water and there is less of it arriving to deposit in the first place.",
+      },
+      {
+        area: "Hot water",
+        icon: "tank",
+        tint: "#2E7D6B",
+        line: "Where hardness actually costs money",
+        detail:
+          "Scale builds fastest where water is heated. Inside a hot water system it insulates, and on a continuous-flow heat exchanger it narrows passages that were already narrow. This is the real argument for a softener, not the kettle.",
+      },
+      {
+        area: "Dishwasher",
+        icon: "washer",
+        tint: "#C2540F",
+        line: "Spotting on glassware, and the machine itself",
+        detail:
+          "Hard water is why glasses come out cloudy and why the machine needs more detergent to do the same job. Both improve on soft water, and the machine lasts longer for the same reason the hot water system does.",
+      },
+      {
+        area: "Taps and tiles",
+        icon: "basin",
+        tint: "#5A5F7A",
+        line: "The chalky ring around everything",
+        detail:
+          "Around tap outlets, on tiles, in the toilet cistern. Cosmetic rather than expensive, but it is the daily reminder that the water is hard.",
+      },
+    ],
+    modelsHeading: "Two sizes, if you need one at all.",
+    modelsLede:
+      "Both are BWT Bewamat, both disinfect the resin on every regeneration, and both have a blending valve so you can set how soft you actually want it. The difference is capacity.",
+    models: [
+      {
+        name: "Bewamat 25A",
+        suits: "Smaller households",
+        handles: "Hardness",
+        flow: "8 L resin",
+        cartridge: "18 kg salt · 640 mm high",
+        common: true,
+        reasons: [
+          "Eight litres of resin and eighteen kilos of salt — the size that suits most houses where a softener is warranted at all.",
+          "640 mm high, so it fits where the 75A would not.",
+          "Hygiene disinfection of the resin on every regeneration, which is what stops the vessel becoming its own problem.",
+          "Rated IP44, so it can live outside next to the main rather than needing a cupboard.",
+        ],
+      },
+      {
+        name: "Bewamat 75A",
+        suits: "Larger houses and heavier hardness",
+        handles: "Hardness",
+        flow: "21 L resin",
+        cartridge: "50 kg salt · 1090 mm high",
+        reasons: [
+          "Twenty-one litres of resin, so it regenerates less often on the same water than the 25A would.",
+          "Fifty kilos of salt in the cabinet — fewer trips to top it up.",
+          "The pick on bore water, where the hardness is high enough that the 25A would be working constantly.",
+          "1090 mm high and wider, so where it goes needs checking before it is ordered.",
+        ],
+      },
+    ],
+
     diagram: "/water-filtration-water-softeners-diagram.webp",
     fitsWhere: "On the incoming main, with a brine tank beside it and a drain for the regeneration flush",
     blurb:
@@ -623,6 +1089,58 @@ export const TIERS: FiltrationTier[] = [
     cta: "Tank water filtration",
     productPhoto: "/puretec-rainwater-uv-system.webp",
     productPhotoAlt: "Rainwater filtration and UV system",
+    heroFacts: [
+      { v: "Sediment first", k: "Then carbon, then UV — the order is not optional" },
+      { v: "UV last", k: "It cannot work through water that is still cloudy" },
+      { v: "Rain cartridges", k: "Different media from the mains-water versions" },
+      { v: "Lamp yearly", k: "A UV lamp keeps glowing long after it stops working" },
+    ],
+    benefitsHeading: "Tank water, and what each stage is for.",
+    benefitsLede:
+      "Three stages doing three different jobs. Take one out and you have not saved money, you have removed the reason the other two work.",
+    benefits: [
+      {
+        area: "Drinking water",
+        icon: "tap",
+        tint: "#0B1450",
+        line: "The part of tank water people worry about",
+        detail:
+          "Tank water is good water that has run off a roof birds sit on. Sediment and carbon deal with what you can see and taste; the UV stage deals with the part you cannot.",
+      },
+      {
+        area: "The shower",
+        icon: "shower",
+        tint: "#00699A",
+        line: "Clear water rather than faintly tea-coloured",
+        detail:
+          "The colour in tank water is organics washed off the roof and out of the leaf litter in the gutters. That is a carbon-stage job, and it is the change you see first.",
+      },
+      {
+        area: "The laundry",
+        icon: "washer",
+        tint: "#2E7D6B",
+        line: "Grit out before it reaches the machine",
+        detail:
+          "Roof debris is coarser than anything that comes down a mains supply. The sediment stage is protecting the washing machine and the hot water system as much as it is protecting the UV lamp.",
+      },
+      {
+        area: "The pump",
+        icon: "flow",
+        tint: "#C2540F",
+        line: "Less abrasive material through it",
+        detail:
+          "Everything the tank sends to the house goes through the pump first. Filtration on the outlet side does not save the pump, but keeping the tank and gutters clean does, and we will say so at the quote.",
+      },
+      {
+        area: "The tank",
+        icon: "tank",
+        tint: "#5A5F7A",
+        line: "Filtration is not a substitute for a clean tank",
+        detail:
+          "If the tank has a foot of sludge in it, filtering the outlet is treating a symptom. We would rather tell you the tank needs cleaning than sell you a bigger filter to work around it.",
+      },
+    ],
+
     diagram: "/water-filtration-rainwater-uv-diagram.webp",
     fitsWhere: "Between the tank pump and the house, filters first and the UV lamp last",
     blurb:
@@ -991,52 +1509,10 @@ export type EverydayBenefit = {
   tint: string;
   line: string;
   detail: string;
-  /** Inline-SVG key, drawn in components/FiltrationIcons.tsx. */
-  icon: "tap" | "shower" | "basin" | "washer" | "hose";
+  /** Inline-SVG key, drawn in components/FiltrationIcons.tsx. Not a union
+   *  any more — every tier draws a different five. */
+  icon: string;
 };
-
-export const EVERYDAY_BENEFITS: readonly EverydayBenefit[] = [
-  {
-    area: "Kitchen",
-    icon: "tap",
-    tint: "#0B1450",
-    line: "Drinking and cooking water without the chlorine taste",
-    detail:
-      "The tap you fill the kettle from and the one the kids drink out of. Chlorine taste and smell go, and so does the jug in the fridge and the case of bottled water in the boot.",
-  },
-  {
-    area: "Shower",
-    icon: "shower",
-    tint: "#00699A",
-    line: "Less chlorine on skin and hair",
-    detail:
-      "A reduction in chlorine in shower water helps with dryness and irritation. It's the benefit people notice second and mention first, usually about a fortnight in.",
-  },
-  {
-    area: "Bathroom",
-    icon: "basin",
-    tint: "#2E7D6B",
-    line: "Cleaner basins, and less to scrub",
-    detail:
-      "Sediment is what leaves the marks around a basin and a toilet cistern. Take it out at the main and there's simply less of it arriving.",
-  },
-  {
-    area: "Laundry",
-    icon: "washer",
-    tint: "#C2540F",
-    line: "Whites that stay white, and a washing machine that lasts",
-    detail:
-      "Sediment and chlorine both work on fabric and on the machine. Filtering at the point of entry means the washing machine, the dishwasher and the hot water system all run on treated water.",
-  },
-  {
-    area: "Garden tap",
-    icon: "hose",
-    tint: "#5A5F7A",
-    line: "Filtered water outside too",
-    detail:
-      "Point-of-entry means every outlet, including the garden taps. Not the headline reason anybody installs one, but it's part of what you're paying for.",
-  },
-] as const;
 
 /**
  * The system styles we can put in, across both ranges. This is the
@@ -1055,115 +1531,6 @@ export type SystemStyle = {
   lead?: boolean;
 };
 
-/**
- * The two ranges, side by side. Puretec first because it's what we fit
- * most; BWT second because it earns its place on price, on tank water and
- * on the one filter here that doesn't take a cartridge at all.
- *
- * Everything in the fact lists is already stated on a product card
- * further down — this block is only there so somebody who has never heard
- * of either brand knows why there are two of them.
- */
-export const BRAND_COMPARE: readonly {
-  brand: string;
-  role: string;
-  blurb: string;
-  facts: readonly string[];
-  lead?: boolean;
-}[] = [
-  {
-    brand: "Puretec",
-    role: "What we fit most",
-    blurb:
-      "The covered units. A flat aluminium cover instead of a rack of exposed housings, ten finishes on the FilterWall, and a ten-year manufacturer warranty on the unit.",
-    facts: [
-      "10-year manufacturer warranty",
-      "Ten finishes on the FilterWall",
-      "Three stages with a bypass",
-      "30 to 60 L/min across the range",
-    ],
-    lead: true,
-  },
-  {
-    brand: "BWT",
-    role: "Where it earns its place",
-    blurb:
-      "Plain housings and a self-cleaning option. Cheaper to put in, and the only range here with a filter that flushes its own mesh instead of taking a cartridge you replace.",
-    facts: [
-      "House and Rain versions for tank water",
-      "Backwash filter, no cartridge to change",
-      "1 yr parts & labour, 3 yr parts",
-      '10" and 20" jumbo housings',
-    ],
-  },
-];
-
-export const SYSTEM_STYLES: readonly SystemStyle[] = [
-  {
-    brand: "Puretec",
-    name: "FilterWall F Series",
-    tier: "Premium",
-    style: "Freestanding or wall mounted",
-    blurb:
-      "Three-stage filtration behind a flat aluminium cover, in ten finishes. The one to pick when the unit is going somewhere you'll look at it.",
-    // Deliberately about the look and the range rather than the specs:
-    // F3 to F6 get a section of their own further down the page, and
-    // repeating flow rates and cartridge sizes here was the double-up.
-    facts: ["Flat aluminium cover", "Ten finishes", "Four models, F3 to F6", "10-year warranty"],
-    photo: "/puretec-filterwall-whole-house.webp",
-    lead: true,
-  },
-  {
-    brand: "Puretec",
-    name: "FilterWall IM2",
-    tier: "Enhanced",
-    style: "Semi-recessed, in-wall",
-    blurb:
-      "Sits into the wall rather than on it, so it disappears almost entirely. Four finishes. Really a new-build or a renovation decision, because the cavity has to be there.",
-    facts: ["Semi-recessed", "Four finishes", "Filtered water to every tap", "Chlorine, chemicals, sediment, PFAS"],
-    photo: "/puretec-filterwall-im2.webp",
-  },
-  {
-    brand: "Puretec",
-    name: "WH2-55 AMC",
-    tier: "Practical",
-    style: "Wall mounted, covered",
-    blurb:
-      "The WH2 twin with a protective aluminium weather cover over it. Most of the tidiness for a good deal less than a FilterWall.",
-    facts: ["Aluminium weather cover", '20" cartridges', "55 L/min", '1" connection', "10-year warranty"],
-    photo: "/puretec-wh2-55-amc.webp",
-  },
-  {
-    brand: "Puretec",
-    name: "WH2 Series",
-    tier: "Essential",
-    style: "Wall mounted, uncovered",
-    blurb:
-      "Dual-stage filtration in heavy-duty housings, no cover. Does the same filtration job as the covered units and looks like plumbing, which on a side passage nobody sees is the right trade.",
-    facts: ["WH2-30 · 10\" · 30 L/min", "WH2-55 · 20\" · 55 L/min", "WH2-60 · 20\" · 60 L/min · 1.5\"", "Sediment, chlorine, chemicals, PFAS"],
-    photo: "/puretec-wh2-series.webp",
-  },
-  {
-    brand: "BWT",
-    name: "Jumbo Twin",
-    tier: "Alternative",
-    style: "Wall mounted, uncovered",
-    blurb:
-      "BWT's twin cartridge system, in 10\" and 20\" and in house or rain versions. The rain version runs different cartridges, which matters if you're on tank water.",
-    facts: ['10" and 20" jumbo', "House and Rain versions", "Sediment, taste and odour, chlorine", "1 yr parts & labour, 3 yr parts"],
-    photo: "/bwt-jumbo-twin.webp",
-  },
-  {
-    brand: "BWT",
-    name: "Backwash filter",
-    tier: "High sediment",
-    style: "Wall mounted, self-cleaning",
-    blurb:
-      "Flushes its own mesh to waste instead of using a cartridge you replace. Sediment only — but where the sediment load is high it saves you a cartridge every few months.",
-    facts: ["Manual or automatic", "20 mm to 150 mm", "Sediment only", "Mains or tank"],
-    photo: "/bwt-backwash.webp",
-  },
-] as const;
 
 /** The compare table, straight off Puretec's own, with BWT added. */
 export const SYSTEM_COMPARE = [

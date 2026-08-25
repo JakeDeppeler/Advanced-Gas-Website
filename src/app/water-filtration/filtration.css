@@ -1775,3 +1775,13 @@
 @media (max-width: 520px) {
   .page-filtration .wf-serv__facts { grid-template-columns: 1fr; gap: 14px; }
 }
+
+/* A tier whose range is the whole section — the two softener sizes —
+   renders it open, so it doesn't need the inset panel treatment. */
+.page-filtration .wf-range__drop.is-bare {
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  animation: none;
+}

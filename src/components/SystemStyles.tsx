@@ -37,9 +37,25 @@ export type ModelCard = {
   common?: boolean;
 };
 
-export function SystemStyles({ styles, models }: { styles: StyleCard[]; models: ModelCard[] }) {
+export function SystemStyles({
+  styles,
+  models,
+  heading,
+  lede,
+}: {
+  styles: StyleCard[];
+  models: ModelCard[];
+  heading?: string;
+  lede?: string;
+}) {
   const [open, setOpen] = useState(false);
   const hasRange = models.length > 0;
+  // Where a tier has a range but no system cards to hang a button off —
+  // the softeners, which are two sizes of one product — the range is the
+  // section, so it renders open rather than behind a control nothing
+  // would ever click.
+  const alwaysOpen = hasRange && styles.length === 0;
+  const isOpen = open || alwaysOpen;
 
   return (
     <>
@@ -75,13 +91,14 @@ export function SystemStyles({ styles, models }: { styles: StyleCard[]; models: 
       </div>
 
       {hasRange && (
-        <div className="wf-range__drop" id="wf-range-drop" hidden={!open}>
+        <div
+          className={`wf-range__drop${alwaysOpen ? " is-bare" : ""}`}
+          id="wf-range-drop"
+          hidden={!isOpen}
+        >
           <div className="wf-range__drophead">
-            <h3>Four versions, and why you&rsquo;d pick each one.</h3>
-            <p>
-              They differ on two things only: how much water the house pulls at once, and whether
-              you want scale protection with it. Everything else is identical.
-            </p>
+            <h3>{heading ?? "The range."}</h3>
+            {lede && <p>{lede}</p>}
           </div>
           <div className="wf-range__grid">
             {models.map((m) => (

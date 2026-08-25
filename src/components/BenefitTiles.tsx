@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { EVERYDAY_BENEFITS } from "@/lib/waterFiltration";
 import { FiltrationIcon } from "./FiltrationIcons";
 
 /**
@@ -16,15 +15,22 @@ import { FiltrationIcon } from "./FiltrationIcons";
  *
  * The first one is open on arrival — there's nothing to gain from making
  * somebody click before they can read anything.
+ *
+ * Tiles come in as a prop rather than off a global, because every tier
+ * makes a different argument here: whole home gets rooms, hot water gets
+ * the parts of the appliance it protects, under sink gets the things
+ * you'd actually fill.
  */
-export function BenefitTiles() {
+export type Benefit = { area: string; icon: string; tint: string; line: string; detail: string };
+
+export function BenefitTiles({ benefits }: { benefits: Benefit[] }) {
   const [open, setOpen] = useState(0);
-  const active = EVERYDAY_BENEFITS[open];
+  const active = benefits[open];
 
   return (
     <div className="bentiles">
       <div className="bentiles__row" role="tablist" aria-label="Where filtered water turns up">
-        {EVERYDAY_BENEFITS.map((a, i) => (
+        {benefits.map((a, i) => (
           <button
             key={a.area}
             type="button"
