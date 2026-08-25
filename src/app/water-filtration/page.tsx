@@ -6,10 +6,13 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { TIERS, IN_YOUR_WATER, STAGES, PROCESS, COMPARE_ROWS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
-import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
-import { CtaBand } from "@/components/CtaBand";
+import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { ProofStrip } from "@/components/ProofStrip";
 import "./filtration.css";
+
+/** The header photo. Same shot the whole-home page leads with, because it
+ *  is the one that shows what a tidy install looks like. */
+const HERO_PHOTO = "/puretec-filterwall-hero.webp";
 
 /**
  * Water filtration hub.
@@ -77,23 +80,34 @@ export default function WaterFiltrationPage() {
       <Script id="wf-faq" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(HUB_FAQS)) }} />
       <Script id="wf-crumbs" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
 
-      {/* HERO */}
-      <section className="wf-hero">
-        <div className="wrap wf-hero__grid">
-          <div>
+      {/* HERO — the display shot full bleed, same as the category pages.
+          Copy on a scrim, the figures along the bottom. */}
+      <section
+        className={`wf-hero${hasAsset(HERO_PHOTO) ? " wf-hero--shot" : ""}`}
+        style={
+          hasAsset(HERO_PHOTO)
+            ? {
+                backgroundImage:
+                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.10) 38%, rgba(9,17,52,0.70) 100%), ` +
+                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.34) 50%, rgba(9,17,52,0.06) 74%), ` +
+                  `url("${resolveAsset(HERO_PHOTO)}")`,
+              }
+            : undefined
+        }
+      >
+        <div className="wrap">
+          <div className="wf-hero__copy">
             <div className="ds-eyebrow ds-eyebrow--on-dark wf-eyebrow">
               <span className="ds-dot" />
-              Puretec · installed by licensed plumbers
+              Puretec &amp; BWT · installed by licensed plumbers
             </div>
             <h1>
               Water filtration, <em>done at the right point</em> in the house.
             </h1>
             <p className="wf-hero__sub">
               Whole house on the incoming main is the one that changes the most for the most
-              people. Then there&rsquo;s a filter that protects your hot water system, an
-              under-sink unit for drinking water, softeners for hard water, and filtration plus
-              UV for tank-fed properties. Most households need one of them, and which one
-              depends entirely on what you&rsquo;ve actually noticed.
+              people. The other four solve narrower problems, and which one you want depends
+              entirely on what you&rsquo;ve actually noticed.
             </p>
             <div className="pg-ctas">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a filtration quote →</Link>
@@ -102,17 +116,17 @@ export default function WaterFiltrationPage() {
               </a>
             </div>
           </div>
-          <ul className="wf-hero__facts">
-            <li><strong>Australian brand</strong><span>Puretec, with cartridges you can actually get</span></li>
-            <li><strong>Licensed plumbers</strong><span>Backflow protection done properly, not a handyman job</span></li>
+          <ul className="wf-hero__at">
+            <li><strong>Puretec &amp; BWT</strong><span>Cartridges you can actually get</span></li>
+            <li><strong>Licensed plumbers</strong><span>Backflow protection done properly</span></li>
             <li><strong>6-year workmanship</strong><span>Same warranty as everything else we fit</span></li>
-            <li><strong>Tank &amp; rainwater</strong><span>Filtration plus UV through the hills and townships</span></li>
+            <li><strong>Tank &amp; rainwater</strong><span>Filtration plus UV through the hills</span></li>
           </ul>
         </div>
       </section>
 
       {/* WHAT'S IN YOUR WATER — before we sell anything */}
-      <section className="wf-water">
+      <section className="wf-water wf-band wf-band--sand">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> First, the honest part</span>
@@ -235,14 +249,9 @@ export default function WaterFiltrationPage() {
         </div>
       </section>
 
-      <CtaBand
-        heading="Tell us what you've noticed and we'll tell you which one fixes it."
-        blurb="Taste, smell, grit, cloudy water, dry skin, tank water. The symptom is the most useful diagnostic there is, and it usually points straight at one of the five."
-        cta="Ask us which one"
-      />
 
       {/* HOW IT WORKS */}
-      <section className="wf-stages">
+      <section className="wf-stages wf-band wf-band--paper">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> How a whole-home unit is built</span>
@@ -266,49 +275,54 @@ export default function WaterFiltrationPage() {
         </div>
       </section>
 
-      {/* PROCESS */}
-      <section className="wf-process">
+      {/* PROCESS — the home page's numbered steps, same as the category
+          pages use. */}
+      <section className="process">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
-            <h2>From &ldquo;the water tastes funny&rdquo; to installed.</h2>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
+            <h2 className="ds-h--on-dark">From &ldquo;the water tastes funny&rdquo; to installed.</h2>
           </div>
-          <ol className="wf-process__list">
+          <ol className="steps">
             {PROCESS.map((p, i) => (
-              <li key={p.t}>
-                <span className="wf-process__n">{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{p.t}</h3>
-                  <p>{p.d}</p>
-                </div>
+              <li key={p.t} className="step">
+                <span className="step__num">{i + 1}</span>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+                <span className="step__time">{p.when}</span>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-
-      {/* QUOTE */}
-      <section className="wf-quote">
-        <div className="wrap wf-quote__grid">
-          <div>
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> No pricing published yet</span>
-              <h2>Tell us what you&rsquo;ve noticed.</h2>
+      {/* QUOTE — the home page's orange panel: copy left, the form on a
+          white card right, the whole lot in one branded callout. */}
+      <section className="wf-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> No pricing published yet
+                </span>
+                <h2>Tell us what you&rsquo;ve noticed.</h2>
+                <p className="quotesec__lede">
+                  What the right unit costs depends on your water, your pressure and where it
+                  physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
+                  <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
+                </ul>
+                <p className="quotesec__finep">
+                  Licensed plumbers · backflow protection to standard · 6-year workmanship warranty.
+                </p>
+              </div>
+              <QuoteForm presetService="water-filtration" />
             </div>
-            <p>
-              We haven&rsquo;t put prices on these pages yet, and that&rsquo;s deliberate rather
-              than coy. What the right unit costs depends on your water, your pressure and
-              where it physically has to go, and a &ldquo;from $X&rdquo; number with none of
-              that behind it is bait.
-            </p>
-            <p>
-              Send us the symptom — taste, smell, grit, dry skin, tank water — and you&rsquo;ll
-              get a real figure with the reasoning attached. Including the times the honest
-              recommendation is the cheaper unit, or nothing at all.
-            </p>
           </div>
-          <QuoteForm presetService="water-filtration" />
         </div>
       </section>
 
@@ -318,16 +332,24 @@ export default function WaterFiltrationPage() {
         heading="Rated 4.9 by households across the south-east."
       />
 
-      {/* FAQ */}
-      <section className="wf-faq">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
+      {/* FAQ — heading and a human line left, accordions right, same as
+          the home page and the category pages. */}
+      <section className="wf-faq faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Straight answers</span>
             <h2>The questions people actually ask.</h2>
+            <p>
+              Still want a human?{" "}
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                Call {site.phone}
+              </a>
+              .
+            </p>
           </div>
-          <div className="wf-faq__list">
-            {HUB_FAQS.map((f) => (
-              <details key={f.q}>
+          <div className="faq__right">
+            {HUB_FAQS.map((f, i) => (
+              <details key={f.q} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
@@ -335,6 +357,7 @@ export default function WaterFiltrationPage() {
           </div>
         </div>
       </section>
+
     </div>
   );
 }

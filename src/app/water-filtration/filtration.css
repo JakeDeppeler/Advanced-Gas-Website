@@ -471,7 +471,6 @@
 /* --- the orange callout. Same radius, shadow and inner texture as the
        home page's 60-second quote panel, so it reads as one design
        language rather than a second idea. --- */
-.page-filtration .wf-stages > .wrap,
 .page-filtration .wr-families > .wrap,
 .page-filtration .wf-does > .wrap {
   position: relative;
@@ -483,7 +482,6 @@
   box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
               0 8px 24px -14px rgba(5, 10, 48, 0.2);
 }
-.page-filtration .wf-stages > .wrap::before,
 .page-filtration .wr-families > .wrap::before,
 .page-filtration .wf-does > .wrap::before {
   content: "";
@@ -494,36 +492,26 @@
     radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.10) 0%, transparent 45%);
   pointer-events: none;
 }
-.page-filtration .wf-stages > .wrap > *,
 .page-filtration .wr-families > .wrap > *,
 .page-filtration .wf-does > .wrap > * { position: relative; }
 
 /* On orange the navy rule and navy headings vanish, so they go white. */
-.page-filtration .wf-stages .ds-section-head--hl::before,
 .page-filtration .wr-families .ds-section-head--hl::before,
 .page-filtration .wf-does .ds-section-head--hl::before { background: #fff; }
-.page-filtration .wf-stages .ds-eyebrow,
 .page-filtration .wr-families .ds-eyebrow,
 .page-filtration .wf-does .ds-eyebrow { color: #fff; }
-.page-filtration .wf-stages .ds-eyebrow .ds-dot,
 .page-filtration .wr-families .ds-eyebrow .ds-dot,
 .page-filtration .wf-does .ds-eyebrow .ds-dot { background: #fff; }
-.page-filtration .wf-stages h2,
 .page-filtration .wr-families h2,
 .page-filtration .wf-does h2 { color: #fff; }
-.page-filtration .wf-stages .ds-section-head p,
 .page-filtration .wr-families .ds-section-head p { color: #fff; }
 
 /* Solid white cards inside, not translucent — translucent white on
    orange looks tidy and is barely legible. */
 .page-filtration .wf-stage {
   background: #fff;
-  border: 1px solid rgba(5, 10, 48, 0.08);
+  border: 1px solid var(--line);
   box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
-}
-.page-filtration .wf-stages__note {
-  color: #fff;
-  border-left-color: rgba(255, 255, 255, 0.55);
 }
 .page-filtration .wf-does__col--yes,
 .page-filtration .wf-does__col--no {
@@ -543,8 +531,7 @@
 .page-filtration .wr-source { color: #fff; opacity: 0.9; }
 
 @media (max-width: 640px) {
-  .page-filtration .wf-stages > .wrap,
-  .page-filtration .wr-families > .wrap,
+    .page-filtration .wr-families > .wrap,
   .page-filtration .wf-does > .wrap { padding: 28px 20px 30px; border-radius: 20px; }
 }
 
