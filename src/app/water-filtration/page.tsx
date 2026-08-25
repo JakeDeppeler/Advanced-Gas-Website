@@ -5,14 +5,36 @@ import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { TIERS, IN_YOUR_WATER, STAGES, PROCESS, COMPARE_ROWS } from "@/lib/waterFiltration";
+import { BenefitTiles } from "@/components/BenefitTiles";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
-import { ProofStrip } from "@/components/ProofStrip";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "./filtration.css";
 
 /** The header photo. Same shot the whole-home page leads with, because it
  *  is the one that shows what a tidy install looks like. */
 const HERO_PHOTO = "/puretec-filterwall-hero.webp";
+
+/**
+ * IN_YOUR_WATER, reshaped for the tabbed tiles the category pages use.
+ * Same five facts, same honesty — the hardness tile still says "usually
+ * nothing, and we'll tell you that" — just behind the same control the
+ * rest of the section family uses instead of five flat cards.
+ */
+const TILE_META: Record<string, { icon: string; tint: string; line: string }> = {
+  "Chlorine": { icon: "tap", tint: "#0B1450", line: "The taste and the smell, and the one people notice first" },
+  "Sediment, rust and silt": { icon: "flow", tint: "#00699A", line: "Grit in the cistern, marks in the washing" },
+  "Taste and odour": { icon: "kettle", tint: "#2E7D6B", line: "Almost always why somebody starts looking" },
+  "Biological, on tank and rainwater": { icon: "tank", tint: "#C2540F", line: "A real consideration on tank water, not on mains" },
+  "Hardness and scale": { icon: "basin", tint: "#5A5F7A", line: "The honest one — Melbourne water is soft" },
+};
+const WATER_TILES = IN_YOUR_WATER.map((w) => ({
+  area: w.what,
+  icon: TILE_META[w.what]?.icon ?? "tap",
+  tint: TILE_META[w.what]?.tint ?? "#0B1450",
+  line: TILE_META[w.what]?.line ?? "",
+  detail: `${w.why} What handles it: ${w.fix}`,
+}));
 
 /**
  * Water filtration hub.
@@ -137,15 +159,7 @@ export default function WaterFiltrationPage() {
               major city, and it is genuinely soft. Here is what filtration is and isn&rsquo;t for.
             </p>
           </div>
-          <div className="wf-water__grid">
-            {IN_YOUR_WATER.map((w) => (
-              <article className="wf-water__card" key={w.what}>
-                <h3>{w.what}</h3>
-                <p className="wf-water__why">{w.why}</p>
-                <p className="wf-water__fix"><strong>What handles it:</strong> {w.fix}</p>
-              </article>
-            ))}
-          </div>
+          <BenefitTiles benefits={WATER_TILES} />
         </div>
       </section>
 
@@ -251,7 +265,7 @@ export default function WaterFiltrationPage() {
 
 
       {/* HOW IT WORKS */}
-      <section className="wf-stages wf-band wf-band--paper">
+      <section className="wf-stages wf-band wf-band--sand">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
             <span className="ds-eyebrow"><span className="ds-dot" /> How a whole-home unit is built</span>
@@ -260,7 +274,7 @@ export default function WaterFiltrationPage() {
           <div className="wf-stages__row">
             {STAGES.map((s) => (
               <div className="wf-stage" key={s.n}>
-                <span className="wf-stage__n">{s.n}</span>
+                <span className="wf-stage__n">{Number(s.n)}</span>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
               </div>
@@ -326,12 +340,6 @@ export default function WaterFiltrationPage() {
         </div>
       </section>
 
-      <ProofStrip
-        subject="water filtration"
-        eyebrow="What locals say"
-        heading="Rated 4.9 by households across the south-east."
-      />
-
       {/* FAQ — heading and a human line left, accordions right, same as
           the home page and the category pages. */}
       <section className="wf-faq faq">
@@ -358,6 +366,7 @@ export default function WaterFiltrationPage() {
         </div>
       </section>
 
+      <ReviewMarquee heading="Reviews from households across the south-east." />
     </div>
   );
 }

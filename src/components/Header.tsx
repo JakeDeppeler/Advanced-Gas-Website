@@ -428,39 +428,49 @@ export function Header() {
 /* -------------------- Mega panels -------------------- */
 
 function ServicesMega() {
+  /* Two panes: the categories down the left, the active category's
+     services on the right. The flat version rendered every service at
+     once — nineteen photo cards plus a popular row — which had stopped
+     being a menu and started being a page. Now you scan five words,
+     land on the one that matches your problem, and see three or four
+     choices instead of nineteen. */
+  const [active, setActive] = useState(0);
+  const groups = [
+    ...SERVICES_MEGA.groups,
+    { label: "Service & repair", items: SERVICES_MEGA.repair },
+  ];
+  const g = groups[active];
+
   return (
-    <div className="mega__services">
-      {/* Four labelled groups, grouped the way a customer thinks about
-          the job rather than the way we invoice it. */}
-      <div className="mega__services-cols">
-        {SERVICES_MEGA.groups.map((g) => (
-          <div className="mega__servicecol" key={g.label}>
-            <div className="mega__collabel">{g.label}</div>
-            <div className="mega__servicecol-list">
-              {g.items.map((s) => (
-                <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
-                  <div className="mega__servicecard-photo">
-                    <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
-                  </div>
-                  <div className="mega__servicecard-body">
-                    <b>{s.label}</b>
-                    <span>{s.sub}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
+    <div className="megasvc">
+      <div className="megasvc__rail" role="tablist" aria-label="Service categories">
+        {groups.map((grp, i) => (
+          <button
+            key={grp.label}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            className={`megasvc__railbtn${i === active ? " is-on" : ""}`}
+            onMouseEnter={() => setActive(i)}
+            onFocus={() => setActive(i)}
+            onClick={() => setActive(i)}
+          >
+            {grp.label}
+            <span aria-hidden="true">→</span>
+          </button>
         ))}
+        <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
+          Get a fixed quote →
+        </Link>
       </div>
 
-      {/* Service & repair, which genuinely is service and repair now. */}
-      <div className="mega__services-block mega__services-block--repair">
-        <div className="mega__collabel">Service &amp; repair</div>
-        <div className="mega__services-grid mega__services-grid--repair">
-          {SERVICES_MEGA.repair.map((s) => (
-            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard mega__servicecard--sm">
+      <div className="megasvc__pane">
+        {/* keyed so the card grid re-animates on category change */}
+        <div className="megasvc__grid" key={g.label}>
+          {g.items.map((s) => (
+            <Link key={s.href} href={s.href} role="menuitem" className="mega__servicecard">
               <div className="mega__servicecard-photo">
-                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="80" height="60" />
+                <img src={s.photo} alt={s.photoAlt} loading="lazy" width="120" height="90" />
               </div>
               <div className="mega__servicecard-body">
                 <b>{s.label}</b>
@@ -469,25 +479,13 @@ function ServicesMega() {
             </Link>
           ))}
         </div>
-      </div>
-
-      <div className="mega__services-foot">
-        <div>
-          <div className="mega__collabel">Popular</div>
-          <ul className="mega__poplist">
-            {SERVICES_MEGA.popular.map((p) => (
-              <li key={p.href}>
-                <Link href={p.href} role="menuitem">
-                  <b>{p.label}</b>
-                  <span>{p.sub}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="mega__cta">
-          <div className="mega__cta-sub">60 seconds. No obligation.</div>
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        <div className="megasvc__foot">
+          <span className="megasvc__footlabel">Popular</span>
+          {SERVICES_MEGA.popular.map((pop) => (
+            <Link key={pop.href} href={pop.href} role="menuitem" className="megasvc__poplink">
+              {pop.label}
+            </Link>
+          ))}
         </div>
       </div>
     </div>

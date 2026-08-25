@@ -111,7 +111,9 @@ export function SystemStyles({
                 ) : (
                   <div className="wf-model__code" aria-hidden="true">{m.name.split(" ").pop()}</div>
                 )}
-                <h4>{m.name}</h4>
+                {/* One-word names already sit on the strip above; repeating
+                    them here printed "Single" twice in a row. */}
+                {(m.photo || m.name.includes(" ")) && <h4>{m.name}</h4>}
                 <p className="wf-model__suits">{m.suits}</p>
                 <dl className="wf-model__specs">
                   <div><dt>Flow</dt><dd>{m.flow}</dd></div>

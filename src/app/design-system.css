@@ -1356,6 +1356,11 @@
   border-radius: 22px;
   padding: 30px;
   box-shadow: var(--shadow-md);
+  /* Explicit, because this card renders inside the orange quotesec panel,
+     which sets color:#fff on everything under it. Without this the option
+     chips inherit white text on the card's white background — which is
+     exactly what happened on the filtration hub. */
+  color: var(--ink);
 }
 .qf-ribbon {
   display: inline-flex; align-items: center; gap: 8px;
@@ -2601,3 +2606,98 @@ input, select, textarea {
   .bentiles__ico { display: none; }
 }
 
+
+/* ============================================================
+   SERVICES MEGA, two panes.
+   Categories down the left, the active category's services on the
+   right. The old flat layout rendered all nineteen services with
+   photos at once; this one shows five words and then three or four
+   cards. The old .mega__services-* rules stay for the mobile drawer,
+   which still renders the flat structure.
+   ============================================================ */
+.megasvc {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  width: min(860px, calc(100vw - 32px));
+}
+.megasvc__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 18px 14px;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+}
+.megasvc__railbtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background 0.12s, color 0.12s;
+}
+.megasvc__railbtn span { opacity: 0; color: var(--orange); transition: opacity 0.12s; }
+.megasvc__railbtn:hover { background: rgba(0, 176, 237, 0.08); }
+.megasvc__railbtn.is-on { background: var(--navy); color: #fff; }
+.megasvc__railbtn.is-on span { opacity: 1; }
+.megasvc__cta { margin-top: auto; justify-content: center; }
+.megasvc__pane {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 14px;
+  min-height: 330px;
+}
+.megasvc__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  align-content: start;
+  animation: megasvcIn 0.16s ease both;
+}
+@keyframes megasvcIn {
+  from { opacity: 0; transform: translateX(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.megasvc__foot {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.megasvc__footlabel {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.megasvc__poplink {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 1px;
+}
+.megasvc__poplink:hover { color: var(--orange); border-bottom-color: var(--orange); }
+@media (max-width: 860px) {
+  .megasvc { grid-template-columns: 1fr; }
+  .megasvc__rail { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); }
+  .megasvc__cta { margin: 0; }
+  .megasvc__grid { grid-template-columns: 1fr; }
+  .megasvc__pane { min-height: 0; }
+}

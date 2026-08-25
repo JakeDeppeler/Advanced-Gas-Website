@@ -1679,3 +1679,47 @@
   border: 0;
   animation: none;
 }
+
+/* Three models sit three across; the pair layout leaves an orphan. */
+.page-filtration .wf-range__grid:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) {
+  .page-filtration .wf-range__grid:has(> :nth-child(3):last-child) { grid-template-columns: 1fr; }
+}
+
+/* --- STAGES, as a flow rather than three flat cards. The water moves
+       left to right, so the cards read that way: orange stage number,
+       arrow into the next, and the order-matters note underneath. --- */
+.page-filtration .wf-stages .wf-stage {
+  padding: 26px 24px 28px;
+  border-radius: var(--rad);
+  box-shadow: 0 14px 30px -22px rgba(5, 10, 48, 0.35);
+}
+.page-filtration .wf-stage__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+}
+.page-filtration .wf-stage::after {
+  content: "→";
+  position: absolute;
+  right: -22px;
+  top: 42px;
+  color: var(--orange);
+  font-size: 22px;
+  font-weight: 700;
+  z-index: 1;
+}
+.page-filtration .wf-stage:last-child::after { display: none; }
+@media (max-width: 780px) {
+  .page-filtration .wf-stages__row { grid-template-columns: 1fr; }
+  .page-filtration .wf-stage::after { display: none; }
+}

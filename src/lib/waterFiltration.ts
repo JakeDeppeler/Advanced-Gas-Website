@@ -598,6 +598,56 @@ export const TIERS: FiltrationTier[] = [
       { v: "At the service", k: "Changed while the unit is being serviced anyway" },
       { v: "Sediment only", k: "It is not a taste or a chlorine filter" },
     ],
+    systemsHeading: "One idea, three builds.",
+    systemsLede:
+      "Every one of these is sediment protection on the cold feed. They differ on how much cartridge stands between the street and your hot water system.",
+    modelsHeading: "Single, twin or triple, by how dirty the water arrives.",
+    modelsLede:
+      "On clean Melbourne mains a single housing is usually the whole answer. The twin and triple builds earn their extra cartridges where the supply actually carries the sediment to load them.",
+    models: [
+      {
+        name: "Single",
+        suits: "The standard hot water protector",
+        handles: "Sediment",
+        flow: "Full mains flow",
+        cartridge: '10" or 20" jumbo, one stage',
+        common: true,
+        reasons: [
+          "One sediment cartridge on the cold feed, which on Melbourne mains is usually the whole job.",
+          'Two sizes: 10" jumbo for most homes, 20" where the flow or the time between changes matters.',
+          "The cheapest to buy and the cheapest to run, because there is exactly one cartridge in it.",
+          "The one we fit most — the builds below are for water that actually needs them.",
+        ],
+      },
+      {
+        name: "Twin",
+        suits: "Gritty supplies — coarse then fine",
+        handles: "Sediment, staged",
+        flow: "Full mains flow",
+        cartridge: "Two jumbo stages in series",
+        photo: "/bwt-jumbo-twin-sediment.webp",
+        reasons: [
+          "Two sediment stages in series — a coarse cartridge doing the heavy lifting, a fine one behind it.",
+          "The staging is the point: the fine cartridge lasts, because the coarse one has already eaten the worst of it.",
+          "The pick on an old main, after repeated street works, or where a single cartridge was loading up too fast.",
+          "Same housings as the single, so it can start as one and become this if the water turns out to warrant it.",
+        ],
+      },
+      {
+        name: "Triple",
+        suits: "Tank, bore and the heaviest sediment",
+        handles: "Sediment, three stages",
+        flow: "Full mains flow",
+        cartridge: "Three jumbo stages in series",
+        photo: "/bwt-jumbo-triple-sediment.webp",
+        reasons: [
+          "Three stages stepping down in grade, for water that arrives with real material in it.",
+          "Built for tank and bore supplies, where the sediment load is a fact of the source rather than an event in the street.",
+          "Each stage protects the one behind it, so the set lasts far longer than any single cartridge would on the same water.",
+          "If the water is this dirty, the backwash filter is the other honest option — and we will price both.",
+        ],
+      },
+    ],
     benefitsHeading: "What the cartridge is actually protecting.",
     benefitsLede:
       "None of this is about how the water tastes. It is about what sediment does once it is inside the most expensive appliance in the house.",
@@ -720,6 +770,8 @@ export const TIERS: FiltrationTier[] = [
     productPhotoAlt: "Puretec twin undersink filter system with a dedicated filtered tap",
     heroPhoto: "/puretec-twin-undersink-filter.webp",
     heroPhotoAlt: "Twin undersink filters in a kitchen cupboard, feeding a filtered tap at the sink",
+    servicingPhoto: "/puretec-undersink-cartridges.webp",
+    servicingPhotoAlt: "The twin cartridges, bracket and isolation valve under the sink",
     heroFacts: [
       { v: "0.5 to 5 micron", k: "Finer than a whole-house housing can run" },
       { v: "Lead and cysts", k: "Reached at this level, not at the main" },
