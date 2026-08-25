@@ -51,6 +51,9 @@ export type FiltrationTier = {
   /** The at-a-glance panel, for while there's no display photo. */
   heroFacts?: { k: string; v: string }[];
   heroPhotoAlt?: string;
+  /** A short header lede. `intro` is the full argument and runs six or
+   *  seven lines, which is a paragraph, not a header. */
+  heroSub?: string;
   /** The cartridges section wants the unit with its cover open, not the
    *  same tidy install shot the hero is already using. */
   servicingPhoto?: string;
@@ -184,7 +187,7 @@ export const TIERS: FiltrationTier[] = [
       { v: "30–55 L/min", k: "Flow rate, F3 through F6" },
       { v: "Three stages", k: "Coarse sediment, fine sediment, carbon block" },
       { v: "10 years", k: "Manufacturer warranty on the unit" },
-      { v: "~12 months", k: "Between cartridge changes on mains water" },
+      { v: "Ten finishes", k: "Five neutrals and five custom colours" },
     ],
     gallery: [
       { src: "/puretec-filterwall-install-1.webp", alt: "Puretec FilterWall mounted on a weatherboard wall beside a path", caption: "Mounted flat on the wall, pipework in copper" },
@@ -320,6 +323,8 @@ export const TIERS: FiltrationTier[] = [
       "One unit on the water main, filtering everything that enters the house. The shower, the washing machine, the dishwasher and the hot water system all run on filtered water rather than just the kitchen tap.",
     intro:
       "Whole-home filtration goes on the water main where it enters the house, before it splits off to anything else. That is the whole difference between it and a jug or an under-sink unit: the shower runs on filtered water, the washing machine does, the dishwasher does, the hot water system does. If your complaint is that the water smells like a swimming pool in the shower, or that whites are coming out of the wash looking tired, this is the fitting that fixes it, and it fixes it once for the whole house instead of one tap at a time.",
+    heroSub:
+      "One unit on the incoming main, so the shower, the washing machine, the dishwasher and the hot water system all run on filtered water — not just the kitchen tap.",
     treats: [
       "Chlorine taste and smell, everywhere in the house rather than at one tap",
       "Sediment, rust, silt and grit, including the burst of it that follows mains work in the street",
@@ -397,6 +402,8 @@ export const TIERS: FiltrationTier[] = [
       "A filter on the cold feed into your hot water system, so sediment stops at the cartridge instead of settling in the tank or blocking a continuous-flow heat exchanger.",
     intro:
       "This is the least glamorous filter we fit and probably the best value one. It goes on the cold water line feeding your hot water system, which means anything it catches never reaches the tank, the anode or the heat exchanger. On a storage tank, sediment settles in the bottom and sits there insulating the element from the water it is meant to be heating. On a continuous-flow unit it builds up in a heat exchanger with very narrow passages. Either way you are shortening the life of a four thousand dollar appliance to save a hundred dollar fitting.",
+    heroSub:
+      "A filter on the cold feed into your hot water system, so sediment stops at a cartridge instead of inside a four-thousand-dollar appliance.",
     treats: [
       "Sediment, rust and silt before it reaches the tank",
       "The grit that follows mains work in the street, which otherwise goes straight into your hot water",
@@ -469,6 +476,8 @@ export const TIERS: FiltrationTier[] = [
       "A filter under the kitchen sink feeding either a small dedicated tap or a three-way mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
     intro:
       "An under-sink filter does one job properly: the water you drink and cook with. Because it only has to treat a few litres a day it can use a finer cartridge than a whole-home unit, so it takes taste and odour further. You either get a separate small tap next to the mixer, or a three-way mixer that gives you hot, cold and filtered from the one spout — the neater option, and the one most people choose once they've seen both. It will also feed a fridge and ice maker if the fridge is close enough, which quietly ends the cartridge subscription the fridge manufacturer would rather you kept paying.",
+    heroSub:
+      "One filter under the sink doing a finer job on the few litres a day you actually drink, feeding a dedicated tap or a three-way mixer.",
     treats: [
       "Chlorine taste and odour, at a finer level than a whole-home housing can practically manage",
       "Sediment and particulates in drinking water",
@@ -541,6 +550,8 @@ export const TIERS: FiltrationTier[] = [
       "An ion-exchange softener swaps the calcium and magnesium that cause scale for sodium. It is the right answer on bore water and the wrong answer on most Melbourne mains connections, and we will tell you which one you are.",
     intro:
       "Here is the page that costs us sales, and we would rather have it than not. A water softener does one thing: it removes hardness, the dissolved calcium and magnesium that leave scale in kettles, on shower screens and inside hot water systems. Melbourne's mains water is among the softest of any major Australian city. If you are on mains here, a softener is usually solving a problem you do not have, and the advertising you have read for one was almost certainly written for a country with much harder water. Where it genuinely earns its place is bore water, some rural supplies, and the occasional property where the water is doing visible damage. So the first thing we do is test your hardness, and a good proportion of the time that test ends with us telling you to save your money.",
+    heroSub:
+      "Softeners remove hardness. Melbourne mains water is already soft, so the first thing we do is test yours — and often that test ends with us telling you to save your money.",
     treats: [
       "Hardness — the dissolved calcium and magnesium that form scale",
       "Scale build-up in kettles, shower screens, taps and tiles",
@@ -618,6 +629,8 @@ export const TIERS: FiltrationTier[] = [
       "Rainwater collects off a roof, and a roof has birds, leaves and dust on it. Filtration handles the sediment and organics, UV handles the biological side, and the order they go in is not negotiable.",
     intro:
       "Plenty of properties through the hills and the smaller townships east of us are on tank water, either entirely or for part of the house. It is good water and it is free, and it also arrives having run off a roof that birds sit on. That makes tank water the one place in our coverage where filtration is doing a genuinely protective job rather than an improving one. The setup is sediment first, carbon second, ultraviolet last, and that order matters more than anything else on this page: UV kills what is in the water by shining through it, so it cannot do its job through water that is still cloudy.",
+    heroSub:
+      "Sediment first, carbon second, UV last. On tank water that order matters more than anything else, because UV can't work through water that's still cloudy.",
     treats: [
       "Sediment, grit, leaf matter and roof debris carried in from the tank",
       "Organics that give tank water its taste and colour",
@@ -687,22 +700,27 @@ export function tierBySlug(slug: string): FiltrationTier | undefined {
 export const PROCESS = [
   {
     t: "Tell us what you've noticed",
+    when: "~ 5 min",
     d: "Taste, smell, grit, cloudy water, dry skin, or just a general feeling that you'd rather not drink it straight. What you've noticed is the most useful diagnostic there is, and it usually points straight at which of the three is right.",
   },
   {
     t: "We look at the water and the plumbing",
+    when: "at the quote",
     d: "Mains or tank, what the pressure is doing, where the main comes in, and whether the cupboard under the sink has any room in it. On tank water we want to know about the roof and the tank as well, because that changes whether UV is warranted.",
   },
   {
     t: "A quote with the honest recommendation in it",
+    when: "within 12 hrs",
     d: "Including when the answer is a cheaper unit than you asked about, or nothing at all. If your complaint is drinking water and you were about to buy whole-home filtration, we'd rather tell you that than take the bigger job.",
   },
   {
     t: "Installed by a licensed plumber",
+    when: "install day",
     d: "Not a handyman with a spanner. Filtration ties into your potable water supply, which means backflow protection and doing it to the standard. Same six-year workmanship warranty as anything else we fit.",
   },
   {
     t: "Shown how to change the cartridge",
+    when: "on handover",
     d: "On handover, on your unit, with you holding it. It's a ten-minute job once a year and there is no reason you should be paying anyone to come out and do it.",
   },
 ];
@@ -1036,6 +1054,49 @@ export type SystemStyle = {
   /** The one we'd put in most often. */
   lead?: boolean;
 };
+
+/**
+ * The two ranges, side by side. Puretec first because it's what we fit
+ * most; BWT second because it earns its place on price, on tank water and
+ * on the one filter here that doesn't take a cartridge at all.
+ *
+ * Everything in the fact lists is already stated on a product card
+ * further down — this block is only there so somebody who has never heard
+ * of either brand knows why there are two of them.
+ */
+export const BRAND_COMPARE: readonly {
+  brand: string;
+  role: string;
+  blurb: string;
+  facts: readonly string[];
+  lead?: boolean;
+}[] = [
+  {
+    brand: "Puretec",
+    role: "What we fit most",
+    blurb:
+      "The covered units. A flat aluminium cover instead of a rack of exposed housings, ten finishes on the FilterWall, and a ten-year manufacturer warranty on the unit.",
+    facts: [
+      "10-year manufacturer warranty",
+      "Ten finishes on the FilterWall",
+      "Three stages with a bypass",
+      "30 to 60 L/min across the range",
+    ],
+    lead: true,
+  },
+  {
+    brand: "BWT",
+    role: "Where it earns its place",
+    blurb:
+      "Plain housings and a self-cleaning option. Cheaper to put in, and the only range here with a filter that flushes its own mesh instead of taking a cartridge you replace.",
+    facts: [
+      "House and Rain versions for tank water",
+      "Backwash filter, no cartridge to change",
+      "1 yr parts & labour, 3 yr parts",
+      '10" and 20" jumbo housings',
+    ],
+  },
+];
 
 export const SYSTEM_STYLES: readonly SystemStyle[] = [
   {

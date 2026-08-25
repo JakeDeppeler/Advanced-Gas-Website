@@ -225,7 +225,8 @@
 .wf-fit__list--watch li { border-left: 3px solid var(--line-2); }
 
 /* ---------- servicing ---------- */
-.wf-servicing__inner { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; align-items: center; }
+/* .wf-servicing__inner retired — the cartridges section is .wf-serv__grid
+   now, further down this file. */
 .wf-servicing__photo {
   border-radius: var(--rad);
   aspect-ratio: 3 / 2;
@@ -238,31 +239,6 @@
 .wf-servicing__note { border-left: 3px solid var(--orange); padding-left: 16px; font-style: italic; color: var(--navy) !important; }
 
 /* ---------- process ---------- */
-.wf-process { background: var(--bg-2); }
-.wf-process--tier { background: var(--bg); }
-.wf-process__list { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 14px; }
-.wf-process__list li {
-  display: flex;
-  gap: 18px;
-  align-items: flex-start;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--rad);
-  padding: 20px 24px;
-}
-.wf-process__n {
-  flex: 0 0 auto;
-  font-family: var(--f-mono);
-  font-size: 13px;
-  font-weight: 700;
-  color: #fff;
-  background: var(--navy);
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-}
-.wf-process__list h3 { font-family: var(--f-display); font-size: 18px; color: var(--navy); margin: 0 0 6px; }
-.wf-process__list p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
 
 /* ---------- quote ---------- */
 .wf-quote__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: start; }
@@ -270,13 +246,11 @@
 
 /* ---------- faq ---------- */
 .wf-faq { background: var(--bg-2); }
-.wf-faq__list { display: grid; gap: 10px; max-width: 900px; }
-.wf-faq details { background: var(--paper); border: 1px solid var(--line); border-radius: var(--rad-sm); padding: 16px 20px; }
-.wf-faq summary { cursor: pointer; font-weight: 700; color: var(--navy); font-size: 16px; line-height: 1.4; list-style: none; }
-.wf-faq summary::-webkit-details-marker { display: none; }
-.wf-faq summary::after { content: " +"; color: var(--orange); float: right; }
-.wf-faq details[open] summary::after { content: " –"; }
-.wf-faq details p { margin: 12px 0 0; font-size: 15px; line-height: 1.65; color: var(--ink-2); }
+/* No accordion rules here on purpose. This section carries the .faq
+   classes, and the design system already styles them the way the home
+   page's do — divider lines, a big orange +/-, the copy underneath. The
+   boxed-card overrides that used to live here were beating those, which
+   is why the drop-downs behaved differently from the home page's. */
 
 /* ---------- other tiers ---------- */
 .wf-others__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
@@ -310,9 +284,7 @@
   .page-filtration section { padding: 44px 0; }
   .wf-hero { padding: 52px 0 46px !important; }
   .wf-hero--tier { padding: 44px 0 40px !important; }
-  .wf-does__col,
-  .wf-process__list li { padding: 18px 20px; }
-  .wf-process__list li { gap: 14px; }
+  .wf-does__col { padding: 18px 20px; }
 }
 
 /* ===================================================================
@@ -495,24 +467,6 @@
 
 /* --- the dark beat: process runs on navy, like the service pages'
        install stepper, so there's a second anchor point on the page --- */
-.page-filtration .wf-process {
-  background:
-    radial-gradient(880px 400px at 88% -12%, rgba(0, 176, 237, 0.15), transparent 60%),
-    linear-gradient(158deg, var(--navy) 0%, var(--navy-2) 100%);
-  color: #fff;
-}
-.page-filtration .wf-process .ds-eyebrow { color: rgba(255, 255, 255, 0.72); }
-.page-filtration .wf-process .ds-eyebrow .ds-dot { background: var(--sky-2); }
-.page-filtration .wf-process .ds-section-head h2 { color: #fff; }
-.page-filtration .wf-process .ds-section-head p { color: rgba(255, 255, 255, 0.78); }
-.page-filtration .wf-process .ds-section-head--hl::before { background: rgba(255, 255, 255, 0.5); }
-.page-filtration .wf-process__list li {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-.page-filtration .wf-process__n { background: var(--orange); }
-.page-filtration .wf-process__list h3 { color: #fff; }
-.page-filtration .wf-process__list p { color: rgba(255, 255, 255, 0.78); }
 
 /* --- the orange callout. Same radius, shadow and inner texture as the
        home page's 60-second quote panel, so it reads as one design
@@ -1518,21 +1472,9 @@
        a column was a thousand pixels of scrolling for something people
        skim; as a row it reads in one glance and the page is shorter for
        it. --- */
-.page-filtration .wf-process__list { grid-template-columns: repeat(5, 1fr); gap: 12px; }
-.page-filtration .wf-process__list li {
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px 18px 22px;
-}
-.page-filtration .wf-process__n { width: 32px; height: 32px; font-size: 12px; }
-.page-filtration .wf-process__list h3 { font-size: 16px; }
-.page-filtration .wf-process__list p { font-size: 13.5px; line-height: 1.55; }
 @media (max-width: 1000px) {
-  .page-filtration .wf-process__list { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 560px) {
-  .page-filtration .wf-process__list { grid-template-columns: 1fr; }
-  .page-filtration .wf-process__list li { flex-direction: row; align-items: flex-start; gap: 14px; }
 }
 
 
@@ -1660,10 +1602,11 @@
 
 /* --- "how it looks" back on the site's own palette. The pale blue was
        not a colour this site uses anywhere else. --- */
+/* Flat. The orange radial over cream read as a stain rather than a
+   colour, and the swatches in this section need a neutral ground to be
+   worth looking at in the first place. */
 .page-filtration .wf-band--sand {
-  background:
-    radial-gradient(760px 320px at 88% -10%, rgba(243, 103, 34, 0.10), transparent 62%),
-    var(--bg-2);
+  background: var(--bg-2);
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -1679,3 +1622,156 @@
 /* the picker section is the orange panel now, so it takes the panel's
    cream ground rather than the white it had as a tinted band */
 .page-filtration .wf-picker { background: var(--bg); }
+
+/* ===================================================================
+   Jake's fifth pass: shorter header lede, the two ranges compared,
+   the cartridges section rebuilt, and the process on the home page's
+   numbered steps.
+   =================================================================== */
+
+/* --- PURETEC vs BWT, above the six systems --- */
+.page-filtration .wf-brands {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+.page-filtration .wf-brand {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--rad);
+  padding: 24px 26px 26px;
+}
+.page-filtration .wf-brand.is-lead {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(243, 103, 34, 0.55);
+}
+.page-filtration .wf-brand__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.page-filtration .wf-brand__head h3 {
+  font-family: var(--f-display);
+  font-size: 26px;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.page-filtration .wf-brand__head span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.page-filtration .wf-brand.is-lead .wf-brand__head span { background: var(--orange); }
+.page-filtration .wf-brand p {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+.page-filtration .wf-brand ul {
+  list-style: none;
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  display: grid;
+  gap: 7px;
+}
+.page-filtration .wf-brand li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.86);
+}
+.page-filtration .wf-brand li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 7px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+.page-filtration .wf-brand.is-lead li::before { background: var(--orange); }
+@media (max-width: 760px) {
+  .page-filtration .wf-brands { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* --- CARTRIDGES: the photo carries it, the numbers finish it --- */
+.page-filtration .wf-servicing { background: var(--bg); padding: 88px 0; }
+.page-filtration .wf-serv__grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 52px;
+  align-items: center;
+}
+.page-filtration .wf-serv__shot {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
+}
+.page-filtration .wf-serv__shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+}
+.page-filtration .wf-serv__copy h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3.1vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--navy);
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.page-filtration .wf-serv__copy p {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 56ch;
+}
+.page-filtration .wf-serv__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.page-filtration .wf-serv__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  line-height: 1.15;
+}
+.page-filtration .wf-serv__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-servicing { padding: 56px 0; }
+  .page-filtration .wf-serv__grid { grid-template-columns: 1fr; gap: 26px; }
+}
+@media (max-width: 520px) {
+  .page-filtration .wf-serv__facts { grid-template-columns: 1fr; gap: 14px; }
+}

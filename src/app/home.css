@@ -964,62 +964,10 @@
 .page-home .why p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.55; }
 
 /* ============== PROCESS ============== */
-.page-home .process {
-  position: relative;
-  padding: 110px 0 120px;
-  background: var(--navy);
-  color: #fff;
-  overflow: hidden;
-}
-.page-home .process::before {
-  content: "";
-  position: absolute; inset: 0;
-  background: radial-gradient(900px 600px at 50% -10%, rgba(0,176,237,0.14), transparent 60%);
-}
-.page-home .process > .wrap { position: relative; }
-.page-home .steps {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 18px; padding: 0; margin: 0; list-style: none;
-}
-.page-home .step {
-  position: relative;
-  padding: 28px 24px 28px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: var(--rad);
-  display: flex; flex-direction: column; gap: 8px;
-}
-.page-home .step::after {
-  content: "→";
-  position: absolute; right: -22px; top: 38px;
-  color: var(--orange); font-size: 22px; font-weight: 700;
-  z-index: 1;
-}
-.page-home .step:last-child::after { display: none; }
-.page-home .step:nth-child(3n)::after { display: none; }
-.page-home .step__num {
-  font-family: var(--f-display);
-  font-size: 56px; font-weight: 900;
-  color: var(--orange);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  margin-bottom: 8px;
-}
-.page-home .step h3 {
-  font-family: var(--f-display);
-  font-size: 21px;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.page-home .step p { margin: 0; color: rgba(255,255,255,0.7); font-size: 14.5px; line-height: 1.5; }
-.page-home .step__time {
-  margin-top: auto; padding-top: 12px;
-  font-family: var(--f-mono); font-size: 11.5px;
-  color: var(--sky);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
+/* The numbered process steps moved to design-system.css and de-scoped —
+   the filtration pages use the identical block, and leaving them behind
+   .page-home is exactly how the FAQ, the marquee, the before/after slider
+   and the orange panel each arrived unstyled on their second page. */
 
 /* Reviews (scrolling columns) moved to design-system.css and de-scoped.
    <ReviewMarquee /> now renders on the filtration pages too, and scoping
@@ -1153,8 +1101,6 @@
   .page-home .bento { grid-template-columns: repeat(2, 1fr); }
   .page-home .bcard--xl { grid-column: span 2; grid-row: auto; }
   .page-home .why-grid { grid-template-columns: repeat(2, 1fr); }
-  .page-home .steps { grid-template-columns: repeat(2, 1fr); }
-  .page-home .step::after { display: none; }
   .page-home .reviews__grid { grid-template-columns: 1fr; }
   .page-home .brands__grid { grid-template-columns: repeat(3, 1fr); }
 }
@@ -1167,7 +1113,6 @@
   .page-home .bento { grid-template-columns: 1fr; }
   .page-home .bcard--xl { grid-column: auto; }
   .page-home .why-grid { grid-template-columns: 1fr; }
-  .page-home .steps { grid-template-columns: 1fr; }
   /* Mobile — brands auto-scroll left-to-right as a marquee. Kills
      the 2-col grid that was creating a wall of 4 rows of chips on
      tight phones and gives the strip motion so it reads as "live". */

@@ -2419,3 +2419,79 @@ input, select, textarea {
   .quotesec__left h2 { font-size: 28px; }
   .quotesec__lede { font-size: 15.5px; }
 }
+
+
+/* ============================================================
+   NUMBERED PROCESS STEPS
+   Navy band, three across, big orange numerals, arrows between.
+   Home page and the filtration pages.
+   ============================================================ */
+.process {
+  position: relative;
+  padding: 110px 0 120px;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+}
+.process::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(900px 600px at 50% -10%, rgba(0,176,237,0.14), transparent 60%);
+}
+.process > .wrap { position: relative; }
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 18px; padding: 0; margin: 0; list-style: none;
+}
+.step {
+  position: relative;
+  padding: 28px 24px 28px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--rad);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.step::after {
+  content: "→";
+  position: absolute; right: -22px; top: 38px;
+  color: var(--orange); font-size: 22px; font-weight: 700;
+  z-index: 1;
+}
+.step:last-child::after { display: none; }
+.step:nth-child(3n)::after { display: none; }
+.step__num {
+  font-family: var(--f-display);
+  font-size: 56px; font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+}
+.step h3 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+  /* The home page set this white in a page-level colour block that stayed
+     behind .page-home. On the navy band the step titles need it here. */
+  color: #fff;
+}
+.step p { margin: 0; color: rgba(255,255,255,0.7); font-size: 14.5px; line-height: 1.5; }
+.step__time {
+  margin-top: auto; padding-top: 12px;
+  font-family: var(--f-mono); font-size: 11.5px;
+  color: var(--sky);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+@media (max-width: 900px) {
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .step::after { display: none; }
+}
+@media (max-width: 600px) {
+  .steps { grid-template-columns: 1fr; }
+  .process { padding: 64px 0 72px; }
+}

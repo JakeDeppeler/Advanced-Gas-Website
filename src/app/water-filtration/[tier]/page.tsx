@@ -5,7 +5,7 @@ import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { absoluteTitle, metaDescription } from "@/lib/seo";
-import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES } from "@/lib/waterFiltration";
+import { TIERS, tierBySlug, PROCESS, SYSTEM_STYLES, BRAND_COMPARE } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { BenefitTiles } from "@/components/BenefitTiles";
@@ -92,7 +92,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               Puretec · {t.tagline}
             </div>
             <h1>{t.label} water filtration</h1>
-            <p className="wf-hero__sub">{t.intro}</p>
+            <p className="wf-hero__sub">{t.heroSub ?? t.intro}</p>
             <p className="wf-hero__where"><strong>Where it goes:</strong> {t.fitsWhere}</p>
             <div className="pg-ctas">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
@@ -152,6 +152,22 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 they cost and how often you touch them.
               </p>
             </div>
+            {/* The two ranges first, so somebody who has never heard of
+                either knows why there are two before they meet six
+                products. Puretec leads because it's what we fit most. */}
+            <div className="wf-brands">
+              {BRAND_COMPARE.map((b) => (
+                <article className={`wf-brand${b.lead ? " is-lead" : ""}`} key={b.brand}>
+                  <div className="wf-brand__head">
+                    <h3>{b.brand}</h3>
+                    <span>{b.role}</span>
+                  </div>
+                  <p>{b.blurb}</p>
+                  <ul>{b.facts.map((f) => <li key={f}>{f}</li>)}</ul>
+                </article>
+              ))}
+            </div>
+
             <SystemStyles styles={styleCards} models={modelCards} />
           </div>
         </section>
@@ -245,61 +261,62 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </section>
       )}
 
-      <section className="wf-servicing wf-band wf-band--paper">
-        <div className="wrap">
-          <div className="wf-servicing__inner wf-card">
-            <div className="wf-servicing__photo">
-              <img
-                src={assetOrFallback(t.servicingPhoto ?? t.productPhoto, t.diagram)}
-                alt={
-                  t.servicingPhoto && hasAsset(t.servicingPhoto)
-                    ? t.servicingPhotoAlt ?? t.productPhotoAlt
-                    : hasAsset(t.productPhoto)
-                    ? t.productPhotoAlt
-                    : `Diagram: ${t.fitsWhere}`
-                }
-                loading="lazy"
-                width="600"
-                height="400"
-              />
-            </div>
-            <div>
-              <div className="ds-section-head ds-section-head--hl">
-                <span className="ds-eyebrow"><span className="ds-dot" /> Keeping it working</span>
-                <h2>Cartridges, and why we show you rather than charge you.</h2>
-              </div>
-              <p>{t.servicing}</p>
-              <p className="wf-servicing__note">
-                A filter nobody changes is worse than no filter, because you stop thinking about
-                the water while the cartridge quietly stops doing anything. That is why we&rsquo;d
-                rather you could do it yourself in ten minutes than have it depend on us
-                remembering.
-              </p>
-            </div>
+      {/* CARTRIDGES. Photo carrying the point — the cover open with the
+          three cartridges in it — then the heading, one paragraph, and
+          the three numbers that actually answer "how much of a
+          commitment is this". The card-with-a-letterboxed-diagram it
+          replaces was a layout looking for content. */}
+      <section className="wf-servicing">
+        <div className="wrap wf-serv__grid">
+          <figure className="wf-serv__shot">
+            <img
+              src={assetOrFallback(t.servicingPhoto ?? t.productPhoto, t.diagram)}
+              alt={
+                t.servicingPhoto && hasAsset(t.servicingPhoto)
+                  ? t.servicingPhotoAlt ?? t.productPhotoAlt
+                  : hasAsset(t.productPhoto)
+                  ? t.productPhotoAlt
+                  : `Diagram: ${t.fitsWhere}`
+              }
+              loading="lazy"
+              width="900"
+              height="620"
+            />
+          </figure>
+          <div className="wf-serv__copy">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
+            <h2>Cartridges, and why we show you rather than charge you.</h2>
+            <p>{t.servicing}</p>
+            <ul className="wf-serv__facts">
+              <li><strong>Once a year</strong><span>on mains water, sooner on tank</span></li>
+              <li><strong>Ten minutes</strong><span>start to finish, once you&rsquo;ve seen it done</span></li>
+              <li><strong>No service call</strong><span>we show you on handover, on your own unit</span></li>
+            </ul>
           </div>
         </div>
       </section>
 
-      <section className="wf-process wf-process--tier">
+      {/* HOW THE JOB RUNS, in the home page's numbered steps — navy band,
+          three across, big orange numerals, arrows between them. It was a
+          row of five equal boxes, which read as a table of contents. */}
+      <section className="process">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> How the job runs</span>
-            <h2>What happens, start to finish.</h2>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
+            <h2 className="ds-h--on-dark">What happens, start to finish.</h2>
           </div>
-          <ol className="wf-process__list">
+          <ol className="steps">
             {PROCESS.map((p, i) => (
-              <li key={p.t}>
-                <span className="wf-process__n">{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{p.t}</h3>
-                  <p>{p.d}</p>
-                </div>
+              <li key={p.t} className="step">
+                <span className="step__num">{i + 1}</span>
+                <h3>{p.t}</h3>
+                <p>{p.d}</p>
+                <span className="step__time">{p.when}</span>
               </li>
             ))}
           </ol>
         </div>
       </section>
-
 
       <section className="wf-quote">
         <div className="wrap wf-quote__grid">
