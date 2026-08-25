@@ -1264,103 +1264,10 @@
 .page-filtration .ds-section-head--hl { padding-left: 0; }
 .page-filtration .ds-section-head--hl::before { display: none; }
 
-/* --- EVERYDAY BENEFITS, as tabs ---------------------------------- */
-.bentiles__row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.bentile {
-  --tint: var(--navy);
-  appearance: none;
-  border: 0;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: #fff;
-  background: var(--tint);
-  border-radius: var(--rad);
-  padding: 16px 16px 18px;
-  min-height: 132px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  position: relative;
-  opacity: 0.62;
-  transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
-}
-.bentile:hover { opacity: 0.85; }
-.bentile.is-on {
-  opacity: 1;
-  transform: translateY(-3px);
-  box-shadow: 0 16px 30px -18px rgba(5, 10, 48, 0.55);
-}
-/* the notch that ties the live tile to the panel underneath */
-.bentile.is-on::after {
-  content: "";
-  position: absolute;
-  left: 26px;
-  bottom: -12px;
-  width: 18px;
-  height: 18px;
-  background: var(--tint);
-  transform: rotate(45deg);
-  border-radius: 3px;
-}
-.bentile__icon { display: block; margin-bottom: auto; opacity: 0.92; }
-.bentile__icon svg { width: 30px; height: 30px; }
-.bentile__name { font-family: var(--f-display); font-size: 18px; font-weight: 800; margin-top: 14px; }
-.bentile__line { font-size: 12.5px; line-height: 1.4; color: rgba(255, 255, 255, 0.84); margin-top: 4px; }
-
-.bentiles__panel {
-  --tint: var(--navy);
-  background: var(--tint);
-  border-radius: var(--rad);
-  color: #fff;
-  padding: 22px 26px;
-  min-height: 104px;
-  display: flex;
-  align-items: center;
-  transition: background 0.28s ease;
-}
-.bentiles__inner {
-  display: flex;
-  gap: 18px;
-  align-items: center;
-  animation: bentile-in 0.3s ease both;
-}
-.bentiles__ico { flex-shrink: 0; opacity: 0.55; }
-.bentiles__ico svg { width: 34px; height: 34px; }
-.bentiles__panel p {
-  margin: 0;
-  font-size: 15.5px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.9);
-  max-width: 88ch;
-}
-.bentiles__panel strong { color: #fff; }
-@keyframes bentile-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: none; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .bentile, .bentiles__panel, .bentiles__inner { transition: none; animation: none; }
-  .bentile.is-on { transform: none; }
-}
-@media (max-width: 900px) {
-  .bentiles__row { grid-template-columns: repeat(3, 1fr); }
-  .bentile { min-height: 118px; }
-  .bentile.is-on::after { display: none; }
-}
-@media (max-width: 560px) {
-  .bentiles__row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .bentile { min-height: 104px; padding: 14px; }
-  .bentile__icon svg { width: 24px; height: 24px; }
-  .bentile__name { font-size: 16px; margin-top: 10px; }
-  .bentiles__panel { padding: 18px 18px; }
-  .bentiles__ico { display: none; }
-}
+/* The benefit tabs moved to design-system.css. They were unscoped but
+   they lived in this file, which only the filtration pages import — so
+   the hot water hire page got the markup and none of the styling. Same
+   failure as .page-home scoping, by a different route. */
 
 /* --- COLOURED BANDS. The middle of the page was cream, cream, cream;
        these give it a rhythm without adding a single new section. --- */
