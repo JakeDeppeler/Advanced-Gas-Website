@@ -82,6 +82,8 @@ export type FiltrationTier = {
     /** Four reasons to pick this one over its siblings. Four because the
      *  models differ on two variables; a longer list would be padding. */
     reasons: string[];
+    /** Product shot. Falls back to the drawn unit until the file lands. */
+    photo?: string;
     /** Set on the one we'd fit most often. */
     common?: boolean;
   }[];
@@ -237,6 +239,7 @@ export const TIERS: FiltrationTier[] = [
     models: [
       {
         name: "FilterWall F3",
+        photo: "/puretec-filterwall-f3.webp",
         suits: "Small to medium house",
         handles: "Sediment, chlorine, taste & odour",
         flow: "30 L/min",
@@ -250,6 +253,7 @@ export const TIERS: FiltrationTier[] = [
       },
       {
         name: "FilterWall F4",
+        photo: "/puretec-filterwall-f4.webp",
         suits: "Small to medium house, with scale",
         handles: "Sediment, chlorine, taste & odour + ScaleProtect",
         flow: "30 L/min",
@@ -263,6 +267,7 @@ export const TIERS: FiltrationTier[] = [
       },
       {
         name: "FilterWall F5",
+        photo: "/puretec-filterwall-f5.webp",
         suits: "Large house, 2+ bathrooms",
         handles: "Sediment, chlorine, taste & odour",
         flow: "55 L/min",
@@ -277,6 +282,7 @@ export const TIERS: FiltrationTier[] = [
       },
       {
         name: "FilterWall F6",
+        photo: "/puretec-filterwall-f6.webp",
         suits: "Large house with scale",
         handles: "Sediment, chlorine, taste & odour + ScaleProtect",
         flow: "55 L/min",
@@ -941,9 +947,19 @@ export const COMPARE_ROWS = [
  * ================================================================== */
 
 /** Where filtered water actually turns up. Their five tiles, our palette. */
-export const EVERYDAY_BENEFITS = [
+export type EverydayBenefit = {
+  area: string;
+  tint: string;
+  line: string;
+  detail: string;
+  /** Inline-SVG key, drawn in components/FiltrationIcons.tsx. */
+  icon: "tap" | "shower" | "basin" | "washer" | "hose";
+};
+
+export const EVERYDAY_BENEFITS: readonly EverydayBenefit[] = [
   {
     area: "Kitchen",
+    icon: "tap",
     tint: "#0B1450",
     line: "Drinking and cooking water without the chlorine taste",
     detail:
@@ -951,6 +967,7 @@ export const EVERYDAY_BENEFITS = [
   },
   {
     area: "Shower",
+    icon: "shower",
     tint: "#00699A",
     line: "Less chlorine on skin and hair",
     detail:
@@ -958,6 +975,7 @@ export const EVERYDAY_BENEFITS = [
   },
   {
     area: "Bathroom",
+    icon: "basin",
     tint: "#2E7D6B",
     line: "Cleaner basins, and less to scrub",
     detail:
@@ -965,6 +983,7 @@ export const EVERYDAY_BENEFITS = [
   },
   {
     area: "Laundry",
+    icon: "washer",
     tint: "#C2540F",
     line: "Whites that stay white, and a washing machine that lasts",
     detail:
@@ -972,6 +991,7 @@ export const EVERYDAY_BENEFITS = [
   },
   {
     area: "Garden tap",
+    icon: "hose",
     tint: "#5A5F7A",
     line: "Filtered water outside too",
     detail:

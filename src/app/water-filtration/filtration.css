@@ -937,7 +937,10 @@
        full-width diagram and the thing that actually sells this unit is
        that it's tidy on a wall, not a rack of exposed housings. --- */
 .page-filtration .wf-look { background: var(--bg-2); padding: 62px 0; }
-.page-filtration .wf-look__grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 48px; align-items: center; }
+/* The picker needs room — squeezed into a 0.85fr column the unit was
+   the size of a postage stamp, which defeats the point of letting people
+   click through the finishes. */
+.page-filtration .wf-look__grid { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 44px; align-items: center; }
 .page-filtration .wf-look__grid h2 { font-size: clamp(24px, 2.9vw, 38px) !important; }
 .page-filtration .wf-look__note { font-size: 15.5px; line-height: 1.68; color: var(--ink-2); margin: 0 0 22px; max-width: 60ch; }
 .page-filtration .wf-look__facts { list-style: none; margin: 0; padding: 0; display: flex; gap: 26px; flex-wrap: wrap; }
@@ -1249,4 +1252,115 @@
 }
 @media (max-width: 900px) {
   .page-filtration .wf-range__grid { grid-template-columns: 1fr; }
+}
+
+/* ===================================================================
+   Jake's second pass on whole home. Icons on the tiles, a clickable
+   finish picker, photos on the model cards, the mid-page CTA boxed, and
+   the sections that were saying the same thing twice removed.
+   =================================================================== */
+
+/* --- benefit tiles: icon, tighter spacing, and a way through --- */
+.page-filtration .wf-area__icon { display: block; margin-bottom: auto; opacity: 0.9; }
+.page-filtration .wf-area summary { justify-content: flex-start; gap: 0; padding: 22px 20px 22px; }
+.page-filtration .wf-area__name { margin-top: 14px; }
+.page-filtration .wf-area__line { margin-top: 4px; }
+.page-filtration .wf-areas__more { margin: 22px 0 0; }
+.page-filtration .wf-areas__more a {
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.page-filtration .wf-areas__more a:hover { color: var(--orange); }
+
+/* --- finish picker --- */
+.fpick { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 26px; align-items: center; }
+.fpick__stage {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.fpick__stage svg { width: 100%; height: auto; display: block; }
+.fpick__lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+.fpick__name { display: block; font-family: var(--f-display); font-size: 24px; color: var(--navy); margin-bottom: 16px; }
+.fpick__row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.fpick__sw {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(5, 10, 48, 0.16);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.fpick__sw:hover { transform: translateY(-2px); }
+.fpick__sw.is-on { box-shadow: 0 0 0 3px var(--orange); border-color: #fff; }
+.fpick__note { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.fpick__fine { margin: 0; font-size: 12.5px; color: var(--ink-3); font-style: italic; }
+
+/* --- model cards: photo, and tighter --- */
+.page-filtration .wf-model { padding: 20px 20px 22px; }
+.page-filtration .wf-model__shot {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px;
+}
+.page-filtration .wf-model__shot img { width: 100%; height: 100%; object-fit: contain; }
+.fwglyph { width: 100%; height: 100%; max-height: 190px; }
+.fwglyph--lg { max-height: none; }
+.page-filtration .wf-model h3 { font-size: 19px; }
+.page-filtration .wf-model__reasons li { font-size: 13.5px; line-height: 1.52; }
+
+/* --- picker: photo panel so it reads as a product, not a form --- */
+.page-filtration .wf-picker__shot {
+  margin: 0 0 22px;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 18px;
+  aspect-ratio: 4 / 3;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-filtration .wf-picker__shot img { width: 100%; height: 100%; object-fit: contain; }
+
+/* --- boxed CTA, for mid-page where a full-bleed strip cuts the read --- */
+.ctaband--boxed { background: transparent; padding: 0 0 62px; }
+.ctaband--boxed::before { display: none; }
+.ctaband--boxed .ctaband__row {
+  background: var(--orange);
+  border-radius: 24px;
+  padding: 34px 38px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.5), 0 8px 24px -14px rgba(5, 10, 48, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.ctaband--boxed .ctaband__row::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.ctaband--boxed .ctaband__row > * { position: relative; }
+
+@media (max-width: 1000px) {
+  .fpick { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .ctaband--boxed .ctaband__row { padding: 24px 20px; border-radius: 18px; }
 }

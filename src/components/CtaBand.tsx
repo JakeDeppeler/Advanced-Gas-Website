@@ -15,14 +15,18 @@ export function CtaBand({
   blurb,
   cta = "Get a quote",
   href = "/quote",
+  boxed = false,
 }: {
   heading: string;
   blurb?: string;
   cta?: string;
   href?: string;
+  /** Rounded box inside the page rather than a full-bleed band. Used
+   *  mid-page, where a full-width strip cuts the reading in half. */
+  boxed?: boolean;
 }) {
   return (
-    <section className="ctaband">
+    <section className={`ctaband${boxed ? " ctaband--boxed" : ""}`}>
       <div className="wrap ctaband__row">
         <div>
           <h2>{heading}</h2>

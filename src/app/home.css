@@ -1237,51 +1237,9 @@
 }
 
 /* ============== FAQ ============== */
-.page-home .faq { padding: 110px 0; background: var(--bg); }
-.page-home .faq__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
-.page-home .faq__left h2 {
-  font-family: var(--f-display);
-  font-size: clamp(30px, 3.6vw, 46px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  margin: 14px 0 14px;
-  color: var(--navy);
-  text-wrap: balance;
-}
-.page-home .faq__left p { font-size: 17px; color: var(--ink-2); margin: 0 0 8px; }
-
-.page-home .faq__right details {
-  border-top: 1px solid var(--line);
-  padding: 22px 0;
-}
-.page-home .faq__right details:last-child { border-bottom: 1px solid var(--line); }
-.page-home .faq__right summary {
-  list-style: none;
-  font-family: var(--f-display);
-  font-size: 19px; font-weight: 700;
-  color: var(--navy); cursor: pointer;
-  letter-spacing: -0.005em;
-  display: flex; justify-content: space-between; align-items: center;
-  gap: 16px;
-}
-.page-home .faq__right summary::-webkit-details-marker { display: none; }
-.page-home .faq__right summary::after {
-  content: "+";
-  font-family: var(--f-display);
-  font-weight: 400;
-  color: var(--orange);
-  font-size: 24px;
-  transition: transform 0.2s;
-}
-.page-home .faq__right details[open] summary::after { content: "−"; }
-.page-home .faq__right p {
-  margin: 14px 0 0;
-  color: var(--ink-2);
-  font-size: 15.5px;
-  line-height: 1.6;
-  max-width: 580px;
-}
+/* FAQ moved to design-system.css and de-scoped — the filtration pages
+   render the same markup and were getting it unstyled, exactly like the
+   before/after slider and the review marquee before them. */
 
 /* ============== RESPONSIVE ============== */
 @media (max-width: 1100px) {

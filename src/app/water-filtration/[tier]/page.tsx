@@ -10,6 +10,9 @@ import { QuoteForm } from "@/components/QuoteForm";
 import { FiltrationDiagram } from "@/components/FiltrationDiagram";
 import { assetOrFallback, hasAsset } from "@/lib/publicAsset";
 import { CtaBand } from "@/components/CtaBand";
+import { FiltrationIcon } from "@/components/FiltrationIcons";
+import { FinishPicker } from "@/components/FinishPicker";
+import { FilterWallGlyph } from "@/components/FilterWallGlyph";
 import { FilterWallSelector } from "@/components/FilterWallSelector";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../filtration.css";
@@ -62,14 +65,17 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 backgroundSize: "cover",
                 backgroundPosition: "center 55%",
               }
-            : {
-                // Until the manufacturer render is in /public, our own
-                // workshop photo behind the scrim beats a flat gradient.
+            : t.slug === "whole-home"
+            ? {
+                // Our own illustration of a unit on a fence, drawn rather
+                // than borrowed — same idea as the manufacturer render,
+                // ours to use. Swaps out the moment a real photo lands.
                 backgroundImage:
-                  'linear-gradient(180deg, rgba(19,36,84,0.82) 0%, rgba(13,25,66,0.88) 60%, rgba(11,22,60,0.93) 100%), url("/team-photo.webp")',
+                  'linear-gradient(180deg, rgba(19,36,84,0.80) 0%, rgba(13,25,66,0.87) 58%, rgba(11,22,60,0.93) 100%), url("/water-filtration-hero.webp")',
                 backgroundSize: "cover",
-                backgroundPosition: "center 30%",
+                backgroundPosition: "center 62%",
               }
+            : undefined
         }
       >
         <div className="wrap">
@@ -114,6 +120,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               {EVERYDAY_BENEFITS.map((a) => (
                 <details className="wf-area" key={a.area} style={{ ["--tint" as string]: a.tint }}>
                   <summary>
+                    <span className="wf-area__icon"><FiltrationIcon name={a.icon} /></span>
                     <span className="wf-area__name">{a.area}</span>
                     <span className="wf-area__line">{a.line}</span>
                   </summary>
@@ -121,6 +128,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 </details>
               ))}
             </div>
+            <p className="wf-areas__more">
+              <Link href="/water-filtration">
+                What&rsquo;s actually in Melbourne water, and what a filter does about it &rarr;
+              </Link>
+            </p>
           </div>
         </section>
       )}
@@ -161,46 +173,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </section>
       )}
 
-      {/* COMPARE SYSTEMS */}
-      {t.slug === "whole-home" && (
-        <section className="wf-syscmp">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Compare systems</span>
-              <h2>The whole range on one line each.</h2>
-              <p>Price is a band rather than a figure, because the number depends on your site.</p>
-            </div>
-            <div className="wf-syscmp__wrap">
-              <table className="wf-syscmp__table">
-                <thead>
-                  <tr>
-                    <th>System</th>
-                    <th>Installation style</th>
-                    <th>Cover</th>
-                    <th>Finishes</th>
-                    <th>Price</th>
-                    <th>Best for</th>
-                    <th>ScaleProtect</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {SYSTEM_COMPARE.map((r) => (
-                    <tr key={r.system}>
-                      <th scope="row">{r.system}</th>
-                      <td>{r.style}</td>
-                      <td className="is-mid">{r.cover ? <span className="wf-syscmp__yes">✓</span> : <span className="wf-syscmp__no">—</span>}</td>
-                      <td className="is-mid">{r.colours}</td>
-                      <td className="is-mid wf-syscmp__price">{r.price}</td>
-                      <td>{r.bestFor}</td>
-                      <td className="is-mid">{r.scale ? <span className="wf-syscmp__yes">✓</span> : <span className="wf-syscmp__no">—</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* The compare-systems table came out. Between "choose your
+          system" above and the F range below it was a third pass at the
+          same products. The full comparison lives on /water-filtration
+          and /water-filtration/range, where somebody is genuinely
+          choosing between categories. */}
 
       {/* HOW IT LOOKS — Jake's note: the old block was a huge diagram and
           the thing that actually sells this unit is that it's tidy. So
@@ -220,20 +197,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 <li><strong>Outdoors</strong><span>mounted on the main</span></li>
               </ul>
             </div>
-            <div className="wf-look__swatches">
-              <span className="wf-look__swlbl">Ten finishes</span>
-              <div className="wf-look__swrow">
-                {t.finish.swatches.map((sw) => (
-                  <span key={sw.name} className="wf-swatch" title={sw.name}>
-                    <i style={{ background: sw.hex }} aria-hidden="true" />
-                    <em>{sw.name}</em>
-                  </span>
-                ))}
-              </div>
-              <p className="wf-look__swnote">
-                Indicative only — we bring the real colour chart to the quote.
-              </p>
-            </div>
+            <FinishPicker swatches={t.finish.swatches} />
           </div>
         </section>
       )}
@@ -243,6 +207,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
           argument in the same words, and Jake spotted the double-up. */}
 
       <CtaBand
+        boxed
         heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
         blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
         cta="Ask us which one"
@@ -267,6 +232,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
               {t.models.map((m) => (
                 <article className={`wf-model${m.common ? " is-common" : ""}`} key={m.name}>
                   {m.common && <span className="wf-model__tag">Most common here</span>}
+                  <div className="wf-model__shot">
+                    {m.photo && hasAsset(m.photo)
+                      ? <img src={m.photo} alt={m.name} loading="lazy" width="400" height="300" />
+                      : <FilterWallGlyph />}
+                  </div>
                   <h3>{m.name}</h3>
                   <p className="wf-model__suits">{m.suits}</p>
                   <dl className="wf-model__specs">
@@ -289,51 +259,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         </section>
       )}
 
-      {/* THIS ONE AGAINST THE OBVIOUS ALTERNATIVE — the layout Jake sent
-          from Puretec, where the choice is the whole point of the table. */}
-      {t.versus && (
-        <section className="wf-vs">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The choice</span>
-              <h2>{t.versus.heading}</h2>
-              <p>The honest split. Plenty of households end up with both, and that&rsquo;s fine.</p>
-            </div>
-            <div className="wf-vs__wrap">
-              <table className="wf-vs__table">
-                <thead>
-                  <tr>
-                    <th />
-                    <th className="is-mine">{t.versus.thisLabel}</th>
-                    <th>
-                      {t.versus.otherHref
-                        ? <Link href={t.versus.otherHref}>{t.versus.otherLabel}</Link>
-                        : t.versus.otherLabel}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {t.versus.rows.map((r) => (
-                    <tr key={r.label}>
-                      <th scope="row">{r.label}</th>
-                      <td className="is-mine">
-                        {r.mine === "yes" ? <span className="wf-vs__tick">✓</span>
-                          : r.mine === "no" ? <span className="wf-vs__dash">—</span>
-                          : r.mine}
-                      </td>
-                      <td>
-                        {r.theirs === "yes" ? <span className="wf-vs__tick">✓</span>
-                          : r.theirs === "no" ? <span className="wf-vs__dash">—</span>
-                          : r.theirs}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* The "whole house vs under sink" table used to sit here. Pulled:
+          somebody reading this page has already chosen whole house, and
+          offering them the alternative at this point is a wobble, not a
+          service. It stays on /water-filtration where the choice is
+          actually live. */}
 
       {/* THE SELECTOR — three questions instead of a spec table. */}
       {t.models && t.models.length > 0 && (
@@ -345,6 +275,11 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                 <h2>Which model is right for my home?</h2>
                 <p>Answer the three and the answer appears. Nothing is sent anywhere.</p>
               </div>
+              <figure className="wf-picker__shot">
+                {hasAsset(t.productPhoto)
+                  ? <img src={t.productPhoto} alt={t.productPhotoAlt} loading="lazy" width="700" height="520" />
+                  : <FilterWallGlyph large />}
+              </figure>
               <ul className="wf-picker__logic">
                 <li><strong>Bathrooms</strong> decide the flow rate — two or more means simultaneous outlets.</li>
                 <li><strong>Scale</strong> on the kettle or the shower screen is the only reason to pay for ScaleProtect.</li>
