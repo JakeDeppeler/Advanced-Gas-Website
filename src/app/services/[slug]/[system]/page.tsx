@@ -14,6 +14,7 @@ import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { ADVISORS } from "@/lib/advisor";
 
 /** The tile palette, same five the rest of the site rotates through. */
 const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
@@ -220,11 +221,14 @@ export default function SystemPage({
         </div>
       </section>
 
-      {/* Right call / wrong call, the honest half */}
-      {(system.bestFor || system.watchOut) && (
+      {/* IS IT RIGHT FOR YOU — three questions about the actual house.
+          The right-call / think-twice columns that were here came out:
+          they made the case in the abstract and the box answers it for
+          the reader's own place, which is what they were reaching for. */}
+      {ADVISORS[params.slug] && (
         <section className="sysfit">
           <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
+            <div className="ds-section-head">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
               <h2>Where {system.label.toLowerCase()} works, and where it doesn&rsquo;t.</h2>
               <p>
@@ -232,35 +236,11 @@ export default function SystemPage({
                 the wrong thing and both regret it.
               </p>
             </div>
-            <div className="sysfit__grid">
-              {system.bestFor && (
-                <div className="sysfit__col sysfit__col--yes">
-                  <h3>The right call when</h3>
-                  <ul>{system.bestFor.map((x) => <li key={x}>{x}</li>)}</ul>
-                </div>
-              )}
-              {system.watchOut && (
-                <div className="sysfit__col sysfit__col--no">
-                  <h3>Think twice if</h3>
-                  <ul>{system.watchOut.map((x) => <li key={x}>{x}</li>)}</ul>
-                </div>
-              )}
-            </div>
-
-            {/* Three questions, on the page where somebody is already
-                asking whether this is the right system. It will send them
-                somewhere else when that's the honest answer — reading
-                about splits and wanting the whole house done should end
-                up at ducted, not at four splits. Aircon only: the logic
-                is about rooms and roof space. */}
-            {params.slug === "air-conditioning-installation" && <SystemAdvisor />}
+            <SystemAdvisor service={params.slug} />
           </div>
         </section>
       )}
 
-      {/* The section that makes this page about this system rather than
-          about the service it sits under. Layout varies per system —
-          see components/SystemSpotlight.tsx. */}
       {/* The spotlight came out. On a page that already says what you
           get, whether it suits you and how the job runs, a fourth block
           making the case was one too many. */}

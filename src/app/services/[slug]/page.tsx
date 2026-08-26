@@ -19,6 +19,8 @@ import { pageTitle, metaDescription } from "@/lib/seo";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { RangeBand } from "@/components/RangeBand";
+import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { ADVISORS } from "@/lib/advisor";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
 /** The tile palette, same five the filtration pages rotate through. */
@@ -68,6 +70,25 @@ export default async function ServicePage({ params }: { params: { slug: string }
     params.slug === "heat-pump-installation"
       ? BEFORE_AFTER.find((b) => b.slug === "electric-storage-to-heat-pump")
       : undefined;
+
+  // The photo beside the price cards: the header shot where there is
+  // one, else the first of our own install photos, else the first
+  // manufacturer shot. Something real beats an empty column.
+  const pricingShot =
+    (content.heroPhoto && hasAsset(content.heroPhoto)
+      ? { src: content.heroPhoto, alt: content.heroPhotoAlt ?? "", caption: `One of ours, ${svc.short.toLowerCase()} across the south-east.` }
+      : null) ??
+    (content.installPhotos?.shots ?? []).map((sh) => ({
+      src: sh.src,
+      alt: sh.alt,
+      caption: sh.caption ?? `One of ours, ${svc.short.toLowerCase()} across the south-east.`,
+    })).find((sh) => hasAsset(sh.src)) ??
+    (content.photos ?? []).map((ph) => ({
+      src: ph.src,
+      alt: ph.alt,
+      caption: ph.caption ?? "Manufacturer shot of the unit we'd be quoting.",
+    })).find((ph) => hasAsset(ph.src)) ??
+    null;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -275,6 +296,24 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
+      {/* IS IT RIGHT FOR YOU — the same three questions the system pages
+          carry, on the page where the choice between systems is live. */}
+      {ADVISORS[params.slug] && (
+        <section className="sysfit">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
+              <h2>Which one you actually want.</h2>
+              <p>
+                We&rsquo;d rather you read this and ring someone else than have us fit
+                the wrong thing and both regret it.
+              </p>
+            </div>
+            <SystemAdvisor service={params.slug} />
+          </div>
+        </section>
+      )}
+
       {/* HOW WE DO IT — the home page's numbered steps, navy band, three
           across, arrows between. Distinct per service. */}
       {content.steps && content.steps.length > 0 && (
@@ -371,6 +410,24 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <h2>Transparent fixed-price options.</h2>
             <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
+          {/* Aircon installation has no scene photo of its own, so the
+              header falls back to navy and this would have fallen back to
+              nothing. Take the first install shot from the gallery
+              instead — a grid of price cards on its own is the blandest
+              thing on the page. */}
+          {pricingShot && (
+            <figure className="dp-pricing__shot">
+              <img
+                src={resolveAsset(pricingShot.src)!}
+                alt={pricingShot.alt}
+                loading="lazy"
+                width="900"
+                height="600"
+              />
+              <figcaption>{pricingShot.caption}</figcaption>
+            </figure>
+          )}
+
           {/* Price cards, not a table. A three-column table of tier, price
               and inclusions had to scroll sideways on a phone and read as
               a spreadsheet on a laptop. Each row is a card now: the number

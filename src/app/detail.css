@@ -3013,28 +3013,41 @@
 
 /* ============================================================
    SYSTEM ADVISOR — three questions inside "Is it right for you".
-   Sits below the right-call / think-twice columns, because those two
-   are the honest argument and this is the shortcut for anyone who
-   would rather be told.
+   Orange panel, same as the quote box: this is one of the two places
+   on the page where we ask somebody to do something.
    ============================================================ */
 .page-detail .advisor {
-  margin-top: 22px;
+  position: relative;
+  overflow: hidden;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: 1.1fr 0.9fr;
   grid-template-areas:
     "head  out"
     "q1    out"
     "q2    out"
     "q3    out";
-  column-gap: 40px;
+  column-gap: 44px;
   align-items: start;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--rad);
-  padding: 32px 34px 34px;
-  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.35);
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 40px 44px 44px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
+              0 8px 24px -14px rgba(5, 10, 48, 0.2);
 }
-.page-detail .advisor__head { grid-area: head; margin-bottom: 20px; }
+/* Same inner texture as the 60-second quote panel, so flat orange
+   doesn't read as dense. */
+.page-detail .advisor::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.page-detail .advisor > * { position: relative; }
+
+.page-detail .advisor__head { grid-area: head; margin-bottom: 22px; }
 .page-detail .advisor__q:nth-of-type(1) { grid-area: q1; }
 .page-detail .advisor__q:nth-of-type(2) { grid-area: q2; }
 .page-detail .advisor__q:nth-of-type(3) { grid-area: q3; }
@@ -3046,26 +3059,26 @@
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 700;
   margin-bottom: 8px;
 }
 .page-detail .advisor__head h3 {
   font-family: var(--f-display);
-  font-size: 24px;
+  font-size: clamp(24px, 2.6vw, 32px);
   font-weight: 800;
-  letter-spacing: -0.015em;
-  color: var(--navy);
-  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 8px;
 }
-.page-detail .advisor__head p { margin: 0; font-size: 13.5px; color: var(--ink-3); }
+.page-detail .advisor__head p { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(255, 255, 255, 0.86); max-width: 46ch; }
 
 .page-detail .advisor__q { border: 0; padding: 0; margin: 0 0 18px; }
 .page-detail .advisor__q legend {
   padding: 0;
   font-size: 13.5px;
   font-weight: 700;
-  color: var(--navy);
+  color: #fff;
   margin-bottom: 9px;
 }
 .page-detail .advisor__opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -3076,30 +3089,31 @@
   text-align: left;
   cursor: pointer;
   padding: 11px 13px;
-  border: 1.5px solid var(--line);
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
   border-radius: 11px;
-  background: var(--paper);
-  color: var(--ink);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
   transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
 }
-.page-detail .advisor__opt:hover { border-color: var(--sky); background: rgba(0, 176, 237, 0.05); }
-.page-detail .advisor__opt.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.page-detail .advisor__opt:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+.page-detail .advisor__opt.is-on { background: #fff; border-color: #fff; color: var(--navy); }
 .page-detail .advisor__opt strong { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
-.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
-.page-detail .advisor__opt.is-on span { color: rgba(255, 255, 255, 0.68); }
+.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: rgba(255, 255, 255, 0.78); line-height: 1.4; }
+.page-detail .advisor__opt.is-on span { color: var(--ink-3); }
 .page-detail .advisor__opt--sm strong { font-size: 13px; font-weight: 600; }
 
 .page-detail .advisor__out {
   position: sticky;
   top: 110px;
-  min-height: 220px;
+  min-height: 230px;
   display: flex;
   align-items: center;
-  background: linear-gradient(158deg, var(--navy) 0%, var(--navy-2) 100%);
-  border-radius: var(--rad);
-  padding: 28px 30px;
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 30px 32px;
+  box-shadow: 0 24px 50px -22px rgba(5, 10, 48, 0.45);
 }
-.page-detail .advisor__waiting { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.6); }
+.page-detail .advisor__waiting { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-3); }
 .page-detail .advisor__answer { animation: advisor-in 0.3s ease both; }
 @keyframes advisor-in {
   from { opacity: 0; transform: translateY(8px); }
@@ -3111,7 +3125,8 @@
   font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sky-2);
+  color: var(--orange);
+  font-weight: 700;
   margin-bottom: 8px;
 }
 .page-detail .advisor__answer h4 {
@@ -3119,21 +3134,24 @@
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--navy);
   margin: 0 0 10px;
 }
 .page-detail .advisor__answer p {
   margin: 0 0 14px;
   font-size: 14px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.62;
+  color: var(--ink-2);
 }
 .page-detail .advisor__note {
   border-left: 2px solid var(--orange);
   padding-left: 12px;
   font-size: 13px !important;
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--ink-3) !important;
 }
+.page-detail .advisor__cta { background: var(--navy); color: #fff; }
+.page-detail .advisor__cta:hover { background: var(--navy-2); color: #fff; }
+
 @media (prefers-reduced-motion: reduce) {
   .page-detail .advisor__answer { animation: none; }
 }
@@ -3141,9 +3159,107 @@
   .page-detail .advisor {
     grid-template-columns: 1fr;
     grid-template-areas: "head" "q1" "q2" "q3" "out";
-    row-gap: 0;
-    padding: 26px 22px 28px;
+    padding: 28px 22px 30px;
+    border-radius: 20px;
   }
-  .page-detail .advisor__out { position: static; margin-top: 8px; min-height: 0; }
+  .page-detail .advisor__out { position: static; margin-top: 10px; min-height: 0; }
   .page-detail .advisor__opts { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   PRICE CARDS
+   The pricing table became cards. Three columns of tier, price and
+   inclusions scrolled sideways on a phone and read like a spreadsheet
+   on a laptop. The number leads because it is what people came for.
+   ============================================================ */
+.page-detail .pricecards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.page-detail .pricecard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 36px -28px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.page-detail .pricecard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -26px rgba(5, 10, 48, 0.45);
+}
+.page-detail .pricecard__price {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.page-detail .pricecard h3 {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .pricecard p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.reveal .pricecard { transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease; }
+.reveal:not(.is-revealed) .pricecard { opacity: 0; transform: translateY(10px); }
+.reveal .pricecard:nth-child(2) { transition-delay: 0.06s; }
+.reveal .pricecard:nth-child(3) { transition-delay: 0.12s; }
+.reveal .pricecard:nth-child(4) { transition-delay: 0.18s; }
+.reveal .pricecard:nth-child(n + 5) { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .pricecard:hover { transform: none; }
+  .reveal:not(.is-revealed) .pricecard { opacity: 1; transform: none; }
+}
+
+
+/* --- Pricing gets a photo beside the numbers. A grid of price cards on
+       its own is the blandest thing on the page; one real install shot
+       gives it something to be about. --- */
+.page-detail .dp-pricing__shot {
+  margin: 0 0 26px;
+  border-radius: var(--rad);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 20px 44px -32px rgba(5, 10, 48, 0.4);
+  max-width: 520px;
+  float: right;
+  margin-left: 32px;
+  shape-outside: margin-box;
+}
+.page-detail .dp-pricing__shot img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+}
+.page-detail .dp-pricing__shot figcaption {
+  padding: 12px 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+}
+.page-detail .dp-pricing .pricecards { clear: both; }
+@media (max-width: 900px) {
+  .page-detail .dp-pricing__shot { float: none; margin: 0 0 22px; max-width: none; }
 }
