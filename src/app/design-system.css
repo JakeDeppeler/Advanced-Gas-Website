@@ -81,19 +81,17 @@
   box-shadow: 0 1px 0 rgba(11,20,80,0.03);
 }
 .hdr__row {
-  /* Taller row + generous gap so 8 nav items breathe. Wider max-width
-     than the body .wrap so the nav + logo + phone + CTA all fit on
-     mid-large screens without cramping or wrapping. */
+  /* Same column as the page body. It ran to 1500px with 20px padding
+     back when there were eight nav items and they needed the room; the
+     side effect was a logo pinned to the viewport edge while the hero
+     text below it started eighty pixels further in, so the two never
+     lined up. Five items fit in the content column, so the logo sits
+     where the content does. */
   height: 86px;
   display: flex;
   align-items: center;
   gap: 28px;
-  max-width: 1500px !important;
-  /* Tighter side padding so the logo sits closer to the viewport edge —
-     the user asked for it in the corner rather than centered with the
-     content. */
-  padding-left: 20px !important;
-  padding-right: 20px !important;
+  position: relative;
 }
 .hdr__logo { display:flex; align-items:center; text-decoration: none; flex-shrink: 0; }
 .hdr__logo-img {
@@ -108,19 +106,21 @@
   .hdr__logo-img { height: 40px; }
 }
 
-/* Centred, not left-aligned against the logo. At five items the nav is
-   short enough that hugging the logo left a lake of white between it
-   and the CTAs; centring puts the items between the two things that
-   anchor the bar. `flex: 1` on a centred row still lets the logo and
-   the CTAs take their natural width at either end. */
+/* Dead centre of the bar, not centre of the space left over. The logo
+   is about 180px and the phone-plus-quote block is about twice that, so
+   a flex-centred nav lands visibly left of the page's middle — which is
+   the thing that reads as "off" even when you can't say why. Taking it
+   out of flow and pinning it to 50% costs nothing here: the burger
+   replaces it before the row gets tight. */
 .hdr__nav {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   margin: 0;
-  position: relative;
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 .hdr__nav > a,
 .hdr__navtrigger {
@@ -1493,7 +1493,9 @@
 }
 
 /* ============== RESPONSIVE ============== */
-@media (max-width: 1180px) {
+/* The nav is out of flow, so the row has to be wide enough for it as
+   well as the two ends. Below this it goes and the burger takes over. */
+@media (max-width: 1260px) {
   .hdr__nav { display: none; }
   .hdr__row { gap: 16px; }
   .utilbar__left .util-pill--quiet { display: none; }

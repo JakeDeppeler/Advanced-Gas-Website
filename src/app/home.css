@@ -72,7 +72,11 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 56px;
   align-items: center;
-  padding: 88px 0 96px;
+  /* The shorthand used to read `88px 0 96px`, which quietly zeroed the
+     32px side padding `.wrap` gives every other section — so the hero
+     copy started a third of an inch left of the rest of the page, and
+     left of the header logo once that was aligned to the same column. */
+  padding: 88px 32px 96px;
   min-height: 640px;
 }
 .page-home .hero__copy {
@@ -185,7 +189,7 @@
 
 /* Tablet — narrower photo column so the copy has breathing room */
 @media (max-width: 1080px) {
-  .page-home .hero__grid { grid-template-columns: 1.1fr 0.9fr; gap: 40px; padding: 72px 0 80px; }
+  .page-home .hero__grid { grid-template-columns: 1.1fr 0.9fr; gap: 40px; padding: 72px 32px 80px; }
   .page-home .hero__photo { aspect-ratio: 3 / 2; }
 }
 

@@ -318,7 +318,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Split system air conditioning",
         blurb:
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
-        photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
+        photo: { src: "/Kaden Indoor.jpg", alt: "Kaden wall split system installed high on a bedroom wall", scene: true },
         brands: ["Mitsubishi Electric", "Kaden"],
         benefitTiles: [
           {
@@ -492,7 +492,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Multi-head air conditioning",
         blurb:
           "One outdoor unit running two to five indoor heads. Worth it when you want three bedrooms done but only have room, or body-corporate permission, for a single condenser outside.",
-        photo: { src: "/mitsubishi-mxz-multi-split-condenser-v2.webp", alt: "Mitsubishi Electric multi-split outdoor condenser" },
+        photo: { src: "/Kaden Condesnser.jpg", alt: "Kaden multi-head outdoor condenser on a levelled roof stand", scene: true },
         points: [
           "2, 3, 4 and 5-port outdoor units, Mitsubishi MXZ series",
           "Mix head types: wall, floor console or bulkhead on the one system",
@@ -587,7 +587,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Ducted reverse-cycle air conditioning",
         blurb:
           "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
-        photo: { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil" },
+        photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space", scene: true },
         points: [
           "Mitsubishi PEAD-M / PEA-M indoor with PUZ outdoor",
           "Zonemate 4, 6 and 8-zone control fitted by default",
@@ -682,7 +682,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Evaporative cooling",
         blurb:
           "Roof-mounted, runs on water and a fan rather than refrigerant. Cheap to run and moves a lot of air, which suits the drier inland suburbs. Needs windows cracked to work, and it struggles on humid days.",
-        photo: { src: "/classic_evap_product_image.jpg", alt: "Brivis roof-mounted evaporative cooler" },
+        photo: { src: "/evap-cooler-service.webp", alt: "Evaporative cooler mounted on a tiled roof", scene: true },
         points: [
           "Brivis and Kaden roof-mounted units",
           "Running cost is a fraction of refrigerated cooling",
@@ -1585,7 +1585,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Gas ducted heating",
         blurb:
           "A gas furnace in the roof or against an outside wall, ducted to vents through the house. Still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring one up from cold.",
-        photo: { src: "/Brivis Wombat Indoor 3 star.jpg", alt: "Brivis Wombat internal gas ducted heater" },
+        photo: { src: "/duct-work.webp", alt: "Insulated flex ductwork run through a roof space to the vents", scene: true },
         points: [
           "Brivis Wombat, Compact Classic, Buffalo and StarPro",
           "Kaden internal and external, 3 to 5 star",
@@ -1681,7 +1681,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         label: "Continuous flow gas hot water",
         blurb:
           "Heats water on demand, so it never runs out and there's no tank losing heat overnight. Wall-mounted outside and about the size of a briefcase.",
-        photo: { src: "/G-Series_Front_On_View_1200x900.jpg", alt: "Thermann G-series continuous flow gas hot water unit" },
+        photo: { src: "/thermann-continues-flow-close-up.webp", alt: "Thermann continuous flow gas hot water unit on an outside wall", scene: true },
         points: [
           "Thermann G-series (made by Reece) and Rinnai",
           "16, 20 and 26 litre-per-minute sizes",
