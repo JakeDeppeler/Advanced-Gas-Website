@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
+import { RepairOrReplace } from "@/components/RepairOrReplace";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { LIFE_EXPECTANCY, REBATE_FACTS } from "@/lib/upgradeAngle";
@@ -134,6 +136,16 @@ export default function UpgradeOrRepairPage() {
       </section>
 
       {/* THE TABLE */}
+      {/* THE CALCULATOR — the page argues the case in prose below, but
+          somebody standing next to a dead heater has a system, an age and
+          a number a tradesman just quoted them, and no way to tell
+          whether that number is worth paying. This does that sum. */}
+      <section className="ug-tool">
+        <div className="wrap">
+          <RepairOrReplace />
+        </div>
+      </section>
+
       <section className="ug-life">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--hl">
@@ -293,6 +305,8 @@ export default function UpgradeOrRepairPage() {
           </div>
         </div>
       </section>
+
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
       <section className="ug-cta">
         <div className="wrap">

@@ -484,6 +484,54 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     ],
   },
 
+  "heat-pump-installation/split-heat-pump": {
+    specs: [
+      { label: "Refrigerant", value: "CO₂ (R744)" },
+      { label: "Tank sizes", value: "160 – 400 L" },
+      { label: "Holds to", value: "-10 °C ambient" },
+      { label: "Rebate", value: "Up to $2,700 off" },
+    ],
+    steps: [
+      { title: "We look at both spots", detail: "A split needs somewhere for the tank and somewhere for the compressor with air around it. We walk both before quoting, because finding out on install day is how a job turns into two visits." },
+      { title: "Tank sized on the household", detail: "Not on the old tank's size. How many of you there are and when you all shower decides it, and recovery rate matters as much as volume — which is where the Panasonic 6 kW pairing earns its keep." },
+      { title: "Rebate worked out at the quote", detail: "The VEU figure depends on what's being replaced. It comes off the quoted price so the number you see is the number you pay." },
+      { title: "Old unit out, new tank in", detail: "Drained, disconnected and taken to a metal recycler on the same visit. New tempering valve so the outlets hold at 50 °C." },
+      { title: "Compressor sited and run", detail: "Lines run between the two, pressure tested, and the compressor levelled on anti-vibration mounts. Where it goes is a decision we make with you, not for you." },
+      { title: "Timer and solar set", detail: "Set to heat on the cheap part of the tariff, or on your solar if you have it. Configured before we leave rather than left on the factory default." },
+    ],
+    pricing: [
+      { tier: "Reclaim CO₂ Split · 160 L glass-lined", price: "from $4,200", includes: "Supply, install, tempering valve, old unit removed, rebate applied" },
+      { tier: "Reclaim CO₂ Split · 250 L stainless", price: "from $5,100", includes: "As above, stainless tank, no anode to replace" },
+      { tier: "Reclaim CO₂ Split · 315 L stainless", price: "from $5,700", includes: "As above, suits four to five people" },
+      { tier: "Reclaim CO₂ Split · 400 L stainless", price: "from $6,400", includes: "As above, the largest tank in the range" },
+    ],
+    pricingNote:
+      "All figures are after the VEU rebate for a Victorian owner-occupier at current VEEC prices. The rebate moves with the market, so the quoted number is confirmed in writing on the day.",
+  },
+  "heat-pump-installation/all-in-one": {
+    specs: [
+      { label: "Refrigerant", value: "R290 propane" },
+      { label: "Tank sizes", value: "180 – 285 L" },
+      { label: "Time on site", value: "3 – 5 hrs" },
+      { label: "Rebate", value: "Up to $2,700 off" },
+    ],
+    steps: [
+      { title: "One spot to check", detail: "An all-in-one goes where the old tank was, provided there is air around it. That's the whole siting question, which is why these are the simpler job." },
+      { title: "Size on the household", detail: "180–200 L for one or two, 270–285 L for three or four. Five or more and we'll point you at a split instead of selling you an undersized one." },
+      { title: "Rebate worked out at the quote", detail: "On a straight electric-storage swap the VEU figure is at its largest, and on an iStore it takes the biggest bite out of the install of anything we fit." },
+      { title: "Old unit out, new one in", detail: "Drained, disconnected and to a metal recycler the same visit. New tempering valve holding the outlets at 50 °C." },
+      { title: "Electrical checked", detail: "Most swaps run off the existing circuit. Where they don't, that's on the quote before we start rather than a surprise on the day." },
+      { title: "Timer set before we go", detail: "Cheap tariff, or the middle of the day if you have solar. Tested with you rather than left on the default." },
+    ],
+    pricing: [
+      { tier: "iStore 180 L", price: "from $2,144", includes: "Supply, install, tempering valve, old unit removed, rebate applied" },
+      { tier: "iStore 270 L", price: "from $2,590", includes: "As above, suits three to four people" },
+      { tier: "Reclaim / Thermann ECO R290 · 200 L", price: "from $3,300", includes: "R290 platform, as above" },
+      { tier: "Reclaim / Thermann ECO R290 · 285 L", price: "from $3,900", includes: "As above, the larger of the two" },
+    ],
+    pricingNote:
+      "After the VEU rebate for a Victorian owner-occupier at current VEEC prices. Reclaim ECO and Thermann ECO are the same platform — the price difference between them is supply, not spec.",
+  },
   "gas-plumbing/temporary-hot-water": {
     specs: [
       { label: "Daily rate", value: "$30 per day" },

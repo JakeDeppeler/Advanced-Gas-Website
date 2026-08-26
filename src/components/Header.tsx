@@ -123,11 +123,18 @@ const SERVICES_MEGA: {
       label: "Hot water",
       items: [
         {
-          href: "/services/heat-pump-installation",
-          label: "Heat pump hot water",
-          sub: "Reclaim · iStore · Thermann · VEU rebate",
+          href: "/services/heat-pump-installation/split-heat-pump",
+          label: "Split heat pump",
+          sub: "Reclaim CO₂ · Panasonic · 160–400 L",
+          photo: "/reclaim-split-stand-back-shot.webp",
+          photoAlt: "Reclaim CO₂ split heat pump against a brick wall",
+        },
+        {
+          href: "/services/heat-pump-installation/all-in-one",
+          label: "All-in-one heat pump",
+          sub: "iStore · Reclaim ECO · Thermann ECO",
           photo: "/270L-istore-heatpump.webp",
-          photoAlt: "iStore 270L heat pump hot water system",
+          photoAlt: "iStore 270L all-in-one heat pump hot water system",
         },
         {
           href: "/services/gas-plumbing/continuous-flow",

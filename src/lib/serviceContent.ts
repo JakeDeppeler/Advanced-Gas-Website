@@ -774,6 +774,233 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ heat pump, outdoor unit and tank installed", caption: "Reclaim CO₂ Split, outdoor unit + separate tank" },
       { src: "/gas-hot-water-changeover.webp", alt: "Hot water changeover in progress", caption: "Same-day changeover, old tank out, new heat pump in" },
     ],
+    /**
+     * The two heat pump families, split out because they are a genuinely
+     * different decision and the catalogue already treats them that way:
+     * twenty-one split models against six all-in-ones.
+     *
+     * Split = compressor outside, tank against the wall. All-in-one = one
+     * shell, nothing separate to place. Everything else — rebate, running
+     * cost, warranty — follows from that first choice, which is why it
+     * gets a page each rather than a paragraph on a shared one.
+     */
+    systems: [
+      {
+        id: "split-heat-pump",
+        label: "Split heat pump hot water",
+        blurb:
+          "Compressor outside, tank against the wall, a pair of lines between them. It is the better performer in the cold and the one with the tank options — stainless or glass-lined, 160 to 400 litres — because the tank isn't carrying a compressor on top of it.",
+        photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, compressor and tank against a brick wall", scene: true },
+        brands: ["Reclaim Energy"],
+        benefitTiles: [
+          {
+            t: "CO₂, not R32 or R134a",
+            line: "A natural refrigerant with zero global-warming potential",
+            detail:
+              "Reclaim runs CO₂ (R744) where almost everyone else runs a synthetic. It matters here rather than on a spec sheet because CO₂ keeps pulling heat out of the air on a cold Pakenham morning, which is exactly when other heat pumps are working hardest for the least.",
+            icon: "snowflake",
+          },
+          {
+            t: "Holds down to -10°",
+            line: "Where a cheaper unit quietly stops keeping up",
+            detail:
+              "Heating capacity holds to -10° ambient. That's the difference between a system that makes hot water through a Gembrook winter and one that falls back on an element and quietly hands you the power bill.",
+            icon: "gauge",
+          },
+          {
+            t: "Tank choices",
+            line: "Stainless or glass-lined, 160 to 400 litres",
+            detail:
+              "Stainless has no anode to swap and nothing to rust — the duplex tank steps up to 2205 duplex or 316-grade for the hardest water. Glass-lined is the cheaper way in. Sizes from 160 up to 400 litres, so a couple and a family of six both get the right one.",
+            icon: "tank",
+          },
+          {
+            t: "Two compressors to pick from",
+            line: "Reclaim's own 5 kW, or the Panasonic 4 and 6 kW",
+            detail:
+              "Reclaim's own CO₂ heat pump is 5 kW. The Panasonic pairing comes in 4 kW and 6 kW, which is what you want when recovery speed is the deciding factor rather than tank volume — a big household running the tank down twice a day.",
+            icon: "heatpump",
+          },
+          {
+            t: "Runs on your solar",
+            line: "PV-diverter kit fires it on surplus",
+            detail:
+              "The diverter kit starts the compressor on solar surplus, so a house with panels heats its water on power it was exporting for a few cents. It is as close to free hot water as this gets, and it only works on a heat pump.",
+            icon: "flow",
+          },
+          {
+            t: "Quiet enough for a bedroom wall",
+            line: "37 dBA at a metre",
+            detail:
+              "The compressor is the only thing that makes noise and it sits outside. At 37 dBA at one metre it can go next to a bedroom window without an argument, which matters because where it goes is usually decided by where it fits.",
+            icon: "shield",
+          },
+          {
+            t: "Rebate at the quote",
+            line: "Up to $2,700 off, applied before you pay",
+            detail:
+              "The VEU rebate comes off the quoted price. You don't front the full amount and chase it back six months later, and the number you see is the number you pay.",
+            icon: "tag",
+          },
+          {
+            t: "A plumbing job",
+            line: "Tempering valve, licensed, old unit gone",
+            detail:
+              "Hot water is plumbing, not just an appliance swap. Tempering valve to hold the outlets at 50°, the old unit drained, disconnected and taken to a metal recycler on the same visit.",
+            icon: "truck",
+          },
+        ],
+        points: [
+          "Reclaim CO₂ split in stainless, glass-lined, Earthworker stainless and squat variants",
+          "Panasonic CO₂ pairing in 4 kW and 6 kW where recovery speed decides it",
+          "Tank sizes 160 / 250 / 315 / 400 L",
+          "Compressor outside, tank against the wall — needs both spots",
+          "PV-diverter kit available for houses with solar",
+          "VEU rebate applied at the quote, up to $2,700",
+          "Tempering valve fitted, outlets held at 50 °C",
+          "Old unit drained, disconnected and taken to a metal recycler",
+        ],
+        priceFrom: "from $4,200",
+        intro:
+          "A split heat pump puts the compressor outside and the tank against the wall, with a pair of lines between them. It is the better performer on a cold morning and the one with the tank options, because the tank isn't carrying a compressor on its head. It's also the one that needs two spots rather than one, which is the trade.",
+        faqs: [
+          {
+            q: "What's the difference between split and all-in-one?",
+            a: "A split has the compressor outside and the tank separate, so the tank can be any size and any material and the compressor can go where it has air. An all-in-one is a single shell — simpler to place, fewer options, and the compressor sits on top of the tank. If you have room for both parts, a split is usually the better system.",
+          },
+          {
+            q: "Why CO₂ instead of R32 or R290?",
+            a: "CO₂ (R744) is a natural refrigerant with zero global-warming potential, and it holds heating capacity further down the temperature range. On a Melbourne winter morning that's the difference between making hot water and falling back on an element. It's also the reason Reclaim costs more than a budget unit.",
+          },
+          {
+            q: "Stainless or glass-lined?",
+            a: "Stainless has no sacrificial anode to replace and nothing to rust, so it's the one to pick if you'd rather not think about it again. Glass-lined is cheaper up front and needs the anode checked. On hard or bore water, stainless — and the 2205 duplex tank for the worst of it.",
+          },
+          {
+            q: "How big a tank do I need?",
+            a: "Roughly: 160–250 L for one or two people, 250–315 L for a family of three or four, 315–400 L for five or more. Recovery rate matters as much as volume though, which is where the Panasonic 6 kW pairing earns its place — a smaller tank that refills fast can beat a bigger one that doesn't.",
+          },
+          {
+            q: "Will it work with my solar?",
+            a: "Yes, and it's the best pairing on this site. The PV-diverter kit fires the compressor on solar surplus, so the water gets heated on power you'd otherwise export for a few cents. Without the kit you can still just time it for the middle of the day.",
+          },
+          {
+            q: "How loud is it?",
+            a: "37 dBA at one metre on the Reclaim compressor — quieter than a fridge. It can sit near a bedroom window without being the reason somebody rings us in February.",
+          },
+          {
+            q: "What's the warranty?",
+            a: "It varies by tank: the stainless tanks carry the longest cover and the glass-lined ones less. We put the exact figure for the model you're quoted in writing rather than quoting a headline number that only applies to the flagship.",
+          },
+        ],
+      },
+      {
+        id: "all-in-one",
+        label: "All-in-one heat pump hot water",
+        blurb:
+          "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump — which is why it's where the rebate goes furthest and where most straight electric swaps end up.",
+        photo: { src: "/thermann-heat-pump.webp", alt: "Thermann all-in-one heat pump hot water unit against a brick wall", scene: true },
+        brands: ["Reclaim Energy", "iStore", "Thermann"],
+        benefitTiles: [
+          {
+            t: "One thing on the wall",
+            line: "Compressor and tank in a single shell",
+            detail:
+              "Nothing separate to find a spot for. If the old tank's position is the only place a hot water unit can go at your place, this is the one that fits it — a split needs somewhere for the compressor as well.",
+            icon: "tank",
+          },
+          {
+            t: "Where the rebate goes furthest",
+            line: "iStore takes the VEU further than anything else we fit",
+            detail:
+              "The VEU rebate is calculated on what you're replacing and what you're putting in. On a straight electric-storage swap to an iStore, it takes the biggest bite out of the install of anything on this site.",
+            icon: "tag",
+          },
+          {
+            t: "Two brands, identical guts",
+            line: "Reclaim ECO R290 and Thermann ECO R290",
+            detail:
+              "These are the same tank and heat-pump platform with two badges on it. Pick on brand preference or on which one Reece can get you this week — not on spec, because there isn't a difference to find.",
+            icon: "heatpump",
+          },
+          {
+            t: "R290 propane",
+            line: "Natural refrigerant, very low global-warming potential",
+            detail:
+              "R290 is propane — a natural refrigerant with a global-warming potential in the single digits, against several hundred for the synthetics it replaces. Efficient, and the right side of where the regulations are heading.",
+            icon: "flow",
+          },
+          {
+            t: "200 or 285 litres",
+            line: "Plus iStore at 180 and 270",
+            detail:
+              "Four sizes across the two platforms. 180–200 L suits one or two people, 270–285 L a family of three or four. Past that a split with a bigger tank is the better answer and we'll say so.",
+            icon: "ruler",
+          },
+          {
+            t: "Timed for the cheap tariff",
+            line: "Set up before we leave",
+            detail:
+              "Set to heat on the cheap part of your tariff, or in the middle of the day if you have solar. Configured and tested on install day rather than left on the factory default for you to work out.",
+            icon: "clock",
+          },
+          {
+            t: "3–5 hours, usually same day",
+            line: "A straight swap in a morning",
+            detail:
+              "An all-in-one replacing an existing tank in the same spot is usually a same-day job, so you're not without hot water overnight.",
+            icon: "clock",
+          },
+          {
+            t: "Old unit gone",
+            line: "Drained, disconnected, taken away",
+            detail:
+              "Drained, disconnected and to a metal recycler on the same visit. Tempering valve fitted so the outlets sit at 50°, and the compliance paperwork emailed.",
+            icon: "truck",
+          },
+        ],
+        points: [
+          "Reclaim ECO R290 and Thermann ECO R290 — same platform, two badges",
+          "iStore 180 L and 270 L, where the VEU rebate reaches furthest",
+          "200 L and 285 L on the R290 platform",
+          "One shell: nothing separate to place or plumb",
+          "R290 natural refrigerant, single-digit global-warming potential",
+          "3–5 hours on site, usually same day on a like-for-like swap",
+          "Timer set to the cheap tariff or to your solar before we leave",
+          "Old unit drained, disconnected and taken to a metal recycler",
+        ],
+        priceFrom: "from $2,144",
+        intro:
+          "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest — and it's where the VEU rebate reaches furthest on a straight electric swap.",
+        faqs: [
+          {
+            q: "Is an all-in-one worse than a split?",
+            a: "Not worse, different. A split performs better in the cold and gives you the tank options; an all-in-one is simpler, cheaper and only needs one spot. If your old tank's position is the only place a unit can go, the all-in-one is the right system and the split isn't an option at all.",
+          },
+          {
+            q: "Reclaim ECO or Thermann ECO — which one?",
+            a: "They are the same tank and heat-pump platform with different badges on them. Identical guts. Pick on brand preference or on which one Reece has in stock, and don't let anyone tell you one out-specs the other.",
+          },
+          {
+            q: "Why is iStore cheaper?",
+            a: "It's a more basic unit, and it takes the VEU rebate further than anything else we fit — which is what makes the installed number so low. It's the right call when the rebate is what decides the job. It won't hold output on a cold morning the way a CO₂ split will.",
+          },
+          {
+            q: "Is R290 propane safe?",
+            a: "Yes. The charge is small, it's sealed in the unit, and it's outside. R290 is used in heat pumps across Europe and it's where the industry is going, because the synthetic refrigerants it replaces have global-warming potentials in the hundreds.",
+          },
+          {
+            q: "What size do I need?",
+            a: "180–200 L for one or two people, 270–285 L for three or four. Five or more and you're better off on a split with a bigger tank and a faster recovery rate — we'll tell you that rather than sell you an undersized all-in-one.",
+          },
+          {
+            q: "How long does it take?",
+            a: "Three to five hours for a straight swap in the same spot, and usually the same day. If it's moving position or needs an electrical circuit run, that's a longer job and it's on the quote before we start.",
+          },
+        ],
+      },
+    ],
+
     brandPods: [
       { brand: "Reclaim Energy", reason: "The only mainstream CO₂ heat pump in Australia. 15-yr stainless tank on the flagship. Made in Sydney.", href: "/brands/reclaim" },
       { brand: "iStore", reason: "Takes the VEU rebate further than anything else we fit. Widely serviced, healthy parts pipeline.", href: "/brands/istore" },

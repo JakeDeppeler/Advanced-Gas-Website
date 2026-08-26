@@ -34,6 +34,16 @@ export type LifeExpectancy = {
   why: string;
   /** What replacing it is actually worth per year, in plain terms. */
   upside: string;
+  /**
+   * What a replacement actually costs installed, at the low end, after
+   * any rebate. Used by the repair-or-replace calculator to put the
+   * quoted repair next to the alternative rather than leaving somebody
+   * to guess at it. These track the price tables on the service pages —
+   * if they disagree, the service page is right and this is stale.
+   */
+  replaceCost: number;
+  /** Where the replacement lands on the site. */
+  replaceHref: string;
 };
 
 export const LIFE_EXPECTANCY: LifeExpectancy[] = [
@@ -43,6 +53,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 10,
     why: "The tank is a steel cylinder with a sacrificial anode inside it. Once the anode is spent the tank starts corroding, and there is no repair for a corroded tank. Everything else on the unit is replaceable; the tank is the unit.",
     upside: "A heat pump replacement runs on roughly a quarter to a third of the energy, and it's the single biggest VEU rebate on the list.",
+    replaceCost: 2144,
+    replaceHref: "/services/heat-pump-installation/all-in-one",
   },
   {
     system: "Electric storage hot water",
@@ -50,6 +62,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 10,
     why: "Same steel tank, same anode, same ending. Elements and thermostats are cheap and easy; neither of them saves a tank that has started to go.",
     upside: "The largest running-cost gap of anything we replace. An old electric tank is the appliance the VEU scheme was most obviously written for.",
+    replaceCost: 2144,
+    replaceHref: "/services/heat-pump-installation/all-in-one",
   },
   {
     system: "Gas continuous flow",
@@ -57,6 +71,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 15,
     why: "Better lifespan than a tank because there's no tank to corrode, but the heat exchanger has narrow passages and parts availability tails off past about fifteen years on discontinued models.",
     upside: "Modern units are more efficient and quieter, though the honest answer here is that a healthy continuous-flow unit at twelve years is usually worth keeping.",
+    replaceCost: 2499,
+    replaceHref: "/services/gas-plumbing/continuous-flow",
   },
   {
     system: "Gas ducted heating",
@@ -64,6 +80,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 10,
     why: "This is the one where age is a safety question and not just an economic one. Heat exchangers crack with thermal cycling, a cracked heat exchanger spills carbon monoxide, and carbon monoxide has no smell. Past ten years it goes on the carbon monoxide test list every single service.",
     upside: "A 3-star unit replaced with a 6-star cuts the gas it burns to hold the same house at the same temperature, every winter, for the next fifteen years.",
+    replaceCost: 4800,
+    replaceHref: "/services/gas-plumbing/gas-ducted",
   },
   {
     system: "Ducted or split reverse cycle",
@@ -71,6 +89,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 12,
     why: "Compressors go, and a compressor on a twelve-year-old unit costs a serious fraction of a new system. The bigger issue is refrigerant: older units run R22 or R410A, and R22 in particular is phased out and expensive to source.",
     upside: "Inverter efficiency has moved a long way. A modern unit doing the same job draws materially less power, and the VEU covers reverse-cycle upgrades too.",
+    replaceCost: 2199,
+    replaceHref: "/services/air-conditioning-installation/split",
   },
   {
     system: "Evaporative cooling",
@@ -78,6 +98,8 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 12,
     why: "Roof-mounted, so it lives its whole life in the weather. Pads, pumps and motors are all replaceable, but once the cabinet itself starts going you're repairing something with a rusting box around it.",
     upside: "Newer units use less water and run quieter. Worth pricing a reverse-cycle changeover at the same time so you're comparing both properly.",
+    replaceCost: 3900,
+    replaceHref: "/services/air-conditioning-installation/evap",
   },
 ];
 
