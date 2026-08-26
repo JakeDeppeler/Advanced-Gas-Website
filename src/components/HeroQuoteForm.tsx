@@ -9,13 +9,14 @@ import { useEffect, useMemo, useState } from "react";
    across e.g. Reclaim + Thermann, 200L + 285L, etc.
    ============================================================ */
 
-type ServiceId = "hp" | "split" | "ducted" | "service";
+type ServiceId = "hp" | "split" | "ducted" | "service" | "water";
 
 const SERVICES: { id: ServiceId; t: string; s: string }[] = [
   { id: "hp",      t: "Heat pump hot water",  s: "Reclaim · iStore · Thermann" },
   { id: "split",   t: "Split system aircon",  s: "Mitsubishi Electric · Kaden" },
   { id: "ducted",  t: "Ducted aircon",        s: "Whole-home cooling & heating" },
   { id: "service", t: "Service or repair",    s: "Gas, hot water, aircon" },
+  { id: "water",   t: "Water filtration",     s: "Whole home · hot water · under sink" },
 ];
 
 /* ---- Heat pump options ---- */
@@ -143,6 +144,7 @@ type StepId =
   | "split-brand" | "split-style" | "split-heads" | "split-size"
   | "ducted-size" | "ducted-zones" | "ducted-tablet"
   | "svc-type" | "svc-stories"
+  | "water-where" | "water-why"
   | "details";
 
 const FLOWS: Record<ServiceId, StepId[]> = {
@@ -150,7 +152,25 @@ const FLOWS: Record<ServiceId, StepId[]> = {
   split:   ["service", "split-brand", "split-style", "split-heads", "split-size", "details"],
   ducted:  ["service", "ducted-size", "ducted-zones", "ducted-tablet", "details"],
   service: ["service", "svc-type", "svc-stories", "details"],
+  water:   ["service", "water-where", "water-why", "details"],
 };
+
+const WATER_WHERE = [
+  { id: "whole",  t: "Whole home",   s: "On the main, so every tap and appliance gets it" },
+  { id: "under",  t: "Under sink",   s: "Drinking and cooking water at the kitchen tap" },
+  { id: "hot",    t: "Hot water",    s: "Sediment off the cold feed into the unit" },
+  { id: "tank",   t: "Tank / rainwater", s: "Filtration plus UV on a rainwater supply" },
+  { id: "unsure", t: "Not sure yet", s: "Tell us the symptom and we'll say which" },
+];
+
+const WATER_WHY = [
+  { id: "taste",   t: "Taste or smell",   s: "Chlorine, or something off" },
+  { id: "grit",    t: "Grit or cloudy",   s: "Sediment, rust, marks in the basin" },
+  { id: "skin",    t: "Skin or hair",     s: "Dryness people put down to the water" },
+  { id: "scale",   t: "Scale",            s: "Kettle, shower screen, glassware" },
+  { id: "tankwtr", t: "It's tank water",  s: "Off the roof, and you'd like it treated" },
+  { id: "protect", t: "Protecting a unit", s: "New hot water system to look after" },
+];
 
 /* ---- helpers ---- */
 
@@ -166,6 +186,8 @@ export function HeroQuoteForm() {
   const [submitting, setSubmitting] = useState(false);
 
   const [service, setService] = useState<ServiceId>("hp");
+  const [waterWhere, setWaterWhere] = useState<string[]>([]);
+  const [waterWhy, setWaterWhy] = useState<string[]>([]);
 
   // Multi-select fields (arrays).
   const [hpBrand, setHpBrand] = useState<string[]>([]);
@@ -275,6 +297,8 @@ export function HeroQuoteForm() {
       case "ducted-tablet": return !!ductedTablet;
       case "svc-type": return svcType.length > 0;
       case "svc-stories": return !!svcStories;
+      case "water-where": return waterWhere.length > 0;
+      case "water-why": return waterWhy.length > 0;
       case "details": return !!(name && phone && email && postcode);
       default: return false;
     }
@@ -391,6 +415,11 @@ export function HeroQuoteForm() {
       const z = labels(ZONE_COUNTS, ductedZones);
       return `Ducted, size: ${sz}; zones: ${z}; Milieu tablet: ${ductedTablet}`;
     }
+    if (service === "water") {
+      const w = labels(WATER_WHERE, waterWhere);
+      const y = labels(WATER_WHY, waterWhy);
+      return `Water filtration, where: ${w}; noticed: ${y}`;
+    }
     const st = labels(SERVICE_TYPES, svcType);
     return `Service, appliance: ${st}; ${svcStories} storey`;
   }
@@ -414,6 +443,7 @@ export function HeroQuoteForm() {
             splitBrand, splitStyle, splitHeadConfig, splitSize,
             ductedSize, ductedZones, ductedTablet,
             svcType, svcStories,
+            waterWhere, waterWhy,
           },
           name, phone, email, postcode, address, notes,
           photos, hp,
@@ -433,6 +463,7 @@ export function HeroQuoteForm() {
     setSplitBrand([]); setSplitStyle([]); setSplitHeadConfig({}); setSplitSize([]);
     setDuctedSize([]); setDuctedZones([]); setDuctedTablet("yes");
     setSvcType([]); setSvcStories("single");
+    setWaterWhere([]); setWaterWhy([]);
     setName(""); setPhone(""); setEmail(""); setPostcode("");
     setAddress(""); setNotes(""); setPhotos([]);
     setAddressSuggestions([]); setShowAddressSuggestions(false);
@@ -762,6 +793,30 @@ export function HeroQuoteForm() {
                 <OptCard key={s.id} multi={false} checked={svcStories === s.id}
                   onClick={() => setSvcStories(s.id as "single" | "double")}
                   t={s.t} s={s.s} />
+              ))}
+            </div>
+          </StepBlock>
+        )}
+
+        {currentStep === "water-where" && (
+          <StepBlock title="Where do you want it?" hint="Tick everything you'd consider.">
+            <div className="qgrid qgrid--2">
+              {WATER_WHERE.map(w => (
+                <OptCard key={w.id} multi checked={waterWhere.includes(w.id)}
+                  onClick={() => setWaterWhere(a => toggle(a, w.id))}
+                  t={w.t} s={w.s} />
+              ))}
+            </div>
+          </StepBlock>
+        )}
+
+        {currentStep === "water-why" && (
+          <StepBlock title="What have you noticed?" hint="The symptom is the useful part — it usually decides which unit.">
+            <div className="qgrid qgrid--3">
+              {WATER_WHY.map(w => (
+                <OptCard key={w.id} multi checked={waterWhy.includes(w.id)}
+                  onClick={() => setWaterWhy(a => toggle(a, w.id))}
+                  t={w.t} s={w.s} />
               ))}
             </div>
           </StepBlock>

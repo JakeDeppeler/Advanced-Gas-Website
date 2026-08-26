@@ -163,7 +163,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
   // Why this gear and why this crew.
   const whyUsSection = (
     <>
-      <WhyDifferent service={svc.short.toLowerCase()} content={content.whyThese} />
+      {/* WhyDifferent came out — the benefit tiles say what we fit and
+          why, and the range band says it again with a door on it. */}
     </>
   );
 
@@ -336,73 +337,18 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </section>
       )}
 
-      {/* SYSTEM TYPES · one anchored block per system, so the header's
-          "Split system" / "Multi-head" / "Ducted" menu links land on
-          something that actually differs. Ids come from content.systems
-          and must match SERVICE_MENU in Header.tsx. */}
-      {content.systems && content.systems.length > 0 && (
-        <section className="svc-systems">
-          <div className="wrap">
-            <div className="ds-section-head ds-section-head--hl">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Systems we install</span>
-              <h2>Which system suits your place.</h2>
-              <p>Different homes want different gear. Here&rsquo;s the honest difference between them, including where each one falls down.</p>
-            </div>
+      {/* "Systems we install" was here. The services mega, the range
+          band and the sub-pages themselves all lead to the same places,
+          so a fourth list of the same links was noise. */}
 
-            <nav className="svc-systems__jump" aria-label="System types">
-              {content.systems.map((sys) => (
-                sys.intro
-                  ? <Link key={sys.id} href={`/services/${svc.slug}/${sys.id}`}>{sys.label}</Link>
-                  : <a key={sys.id} href={`#${sys.id}`}>{sys.label}</a>
-              ))}
-            </nav>
-
-            {content.systems.map((sys, i) => (
-              <article
-                key={sys.id}
-                id={sys.id}
-                className={`svc-system${i % 2 === 1 ? " svc-system--flip" : ""}`}
-              >
-                <div className="svc-system__media">
-                  <img src={sys.photo.src} alt={sys.photo.alt} loading="lazy" width="800" height="600" />
-                </div>
-                <div className="svc-system__body">
-                  <h3>{sys.label}</h3>
-                  <p className="svc-system__blurb">{sys.blurb}</p>
-                  <ul className="svc-system__points">
-                    {sys.points.map((pt) => <li key={pt}>{pt}</li>)}
-                  </ul>
-                  <div className="svc-system__foot">
-                    {sys.priceFrom && <span className="svc-system__price">{sys.priceFrom}</span>}
-                    {sys.intro ? (
-                      <Link href={`/services/${svc.slug}/${sys.id}`} className="ds-btn ds-btn--orange ds-btn--sm">
-                        Read more about {sys.label.toLowerCase()} →
-                      </Link>
-                    ) : (
-                      <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--sm">
-                        Quote this system →
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!content.whyFirst && whyUsSection}
-
-      {/* The upgrade + rebate argument, deliberately placed immediately
-          before the prices, because it's the thing that makes the prices
-          make sense. */}
-      <div className="wrap">
-        <UpgradeNudge variant={NUDGE_BY_SERVICE[svc.slug] ?? "general"} />
-      </div>
-
+      {/* PRICING. Not on service & repair: "transparent fixed-price
+          options" over a table is the wrong frame for a call-out, and the
+          real numbers — $120 diagnosis, $390 ducted annual — sit on the
+          two service system pages one level down where they belong. */}
       {/* PRICING — kept, restyled. The table is the useful bit; what it
           needed was the section head and the rows to look like the rest
           of the site rather than a spreadsheet dropped into the page. */}
+      {params.slug !== "aircon-servicing-repairs" && (
       <section className="dp-pricing">
         <div className="wrap">
           <div className="ds-section-head">
@@ -479,6 +425,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
           )}
         </div>
       </section>
+      )}
 
       {!content.whyFirst && (
         <>
@@ -496,11 +443,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
         brands={content.brandPods ?? []}
       />
 
-      {/* PROOF · compact reviews row, so the page earns the form below it */}
-      <ProofStrip
-        subject={svc.short.toLowerCase()}
-        heading="Rated 4.9 by the households we work for."
-      />
+      {/* The proof strip came out. The review marquee at the foot of
+          the page is the same content under the same heading. */}
 
       {/* QUOTE — the home page's orange panel. */}
       <section className="dp-quote quotesec" id="quote">
@@ -561,21 +505,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
       <ReviewMarquee heading="Reviews from households across the south-east." />
 
       {/* BIG CTA */}
-      <section className="bigcta">
-        <div className="wrap bigcta__row">
-          <div>
-            <h2>Ready for your {svc.short.toLowerCase()} quote?</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
-          </div>
-          <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
-          </div>
-        </div>
-      </section>
-
       <Script id={`ld-svc-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema(svc.slug)) }} />
       <Script id={`ld-crumbs-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
       <Script id={`ld-faq-svc-${svc.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(content.faqs)) }} />

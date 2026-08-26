@@ -132,6 +132,15 @@ export default function UpgradeOrRepairPage() {
               Or just ask us
             </a>
           </div>
+
+          {/* The figures, same strip the service and filtration headers
+              carry. The ages here are the ones the table below argues. */}
+          <ul className="dp-hero__at ug-hero__at">
+            <li><strong>10 yrs</strong><span>Where hot water tanks stop earning repairs</span></li>
+            <li><strong>10 yrs</strong><span>Where a gas heater becomes a safety question</span></li>
+            <li><strong>12 yrs</strong><span>Where a refrigerated compressor does</span></li>
+            <li><strong>$120</strong><span>Fixed diagnosis, so you know before you spend</span></li>
+          </ul>
         </div>
       </section>
 

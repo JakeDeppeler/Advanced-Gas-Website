@@ -8,6 +8,7 @@ import { breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeExplorer, type RangeItem } from "@/components/RangeExplorer";
 import { QuoteForm } from "@/components/QuoteForm";
+import { RangeFinder } from "@/components/RangeFinder";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../detail.css";
 import "./range.css";
@@ -166,15 +167,11 @@ export default function RangePage() {
                 </span>
                 <h2>Tell us the room, not the model.</h2>
                 <p className="quotesec__lede">
-                  Ninety-odd models is a lot to read. Say what you&rsquo;re trying to heat, cool or
-                  replace and we&rsquo;ll come back with the one that suits it and what it costs
-                  installed — including when a cheaper model does the job.
+                  Ninety-odd models is a lot to read. Two questions and we&rsquo;ll point you at the
+                  right kind of system — then send the room through and you&rsquo;ll get the model
+                  and what it costs installed, including when a cheaper one does the job.
                 </p>
-                <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> Rebates applied and GST included</li>
-                  <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
-                  <li><span className="tick tick--on-orange">✓</span> Replied within 2 business hours</li>
-                </ul>
+                <RangeFinder />
                 <p className="quotesec__finep">
                   Licensed plumbers · {site.licences.refrigeration} · 6-year workmanship warranty.
                 </p>

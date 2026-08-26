@@ -349,3 +349,61 @@
   .page-upgrade .ror__opts--age { grid-template-columns: 1fr 1fr; }
   .page-upgrade .ug-tool { padding: 48px 0 56px; }
 }
+
+/* ===================================================================
+   Bringing this page onto the same conventions as the rest: no navy
+   side rule on the section heads, the figures strip in the header, and
+   a band rhythm rather than five cream sections in a row.
+   =================================================================== */
+.page-upgrade .ds-section-head--hl { padding-left: 0; }
+.page-upgrade .ds-section-head--hl::before { display: none; }
+
+.page-upgrade .ug-hero__at {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 940px;
+}
+.page-upgrade .ug-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 22px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-upgrade .ug-hero__at span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+.page-upgrade .ug-hero__at li { position: relative; }
+.page-upgrade .ug-hero__at li + li { padding-left: 24px; }
+.page-upgrade .ug-hero__at li + li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 2px; bottom: 2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Band rhythm: cream, orange tool, cream, sand, white, sand, white. */
+.page-upgrade .ug-life { background: var(--bg); }
+.page-upgrade .ug-signs { background: var(--bg-2); }
+.page-upgrade .ug-repair { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-upgrade .ug-rebate { background: var(--bg-2); }
+.page-upgrade .ug-faq { background: var(--paper); border-top: 1px solid var(--line); }
+
+@media (max-width: 900px) {
+  .page-upgrade .ug-hero__at { grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+  .page-upgrade .ug-hero__at li + li { padding-left: 0; }
+  .page-upgrade .ug-hero__at li + li::before { display: none; }
+}
+@media (max-width: 480px) {
+  .page-upgrade .ug-hero__at { grid-template-columns: 1fr; }
+}

@@ -259,3 +259,89 @@
   box-shadow: 0 0 0 4px rgba(0, 176, 237, 0.15);
 }
 .page-range .rex__search input::placeholder { color: var(--ink-3); }
+
+/* --- the two-question finder, inside the orange panel --- */
+.page-range .rfind { margin: 20px 0 18px; }
+.page-range .rfind__lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 6px;
+}
+.page-range .rfind h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+.page-range .rfind__q { border: 0; padding: 0; margin: 0 0 14px; }
+.page-range .rfind__q[hidden] { display: none; }
+.page-range .rfind__q legend { padding: 0; font-size: 12.5px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.page-range .rfind__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.page-range .rfind__opts--3 { grid-template-columns: repeat(3, 1fr); }
+.page-range .rfind__opt {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 10px 12px;
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.page-range .rfind__opt:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+.page-range .rfind__opt.is-on { background: #fff; border-color: #fff; color: var(--navy); }
+.page-range .rfind__opt strong { display: block; font-size: 13px; font-weight: 700; line-height: 1.3; }
+.page-range .rfind__opt span { display: block; margin-top: 2px; font-size: 11px; color: rgba(255, 255, 255, 0.76); line-height: 1.35; }
+.page-range .rfind__opt.is-on span { color: var(--ink-3); }
+.page-range .rfind__opt--sm strong { font-size: 12.5px; font-weight: 600; }
+
+.page-range .rfind__out {
+  margin-top: 14px;
+  background: var(--paper);
+  border-radius: 14px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 18px 36px -22px rgba(5, 10, 48, 0.4);
+}
+.page-range .rfind__waiting { margin: 0; font-size: 13px; color: var(--ink-3); }
+.page-range .rfind__rec { animation: rfind-in 0.28s ease both; }
+@keyframes rfind-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-range .rfind__reclbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+.page-range .rfind__rec h4 {
+  font-family: var(--f-display);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+.page-range .rfind__rec > p { margin: 0 0 14px; font-size: 13.5px; line-height: 1.58; color: var(--ink-2); }
+.page-range .rfind__fine {
+  margin: 12px 0 0 !important;
+  font-size: 11.5px !important;
+  line-height: 1.5;
+  color: var(--ink-3) !important;
+  border-left: 2px solid var(--line);
+  padding-left: 10px;
+}
+@media (prefers-reduced-motion: reduce) { .page-range .rfind__rec { animation: none; } }
+@media (max-width: 560px) {
+  .page-range .rfind__opts, .page-range .rfind__opts--3 { grid-template-columns: 1fr; }
+}
