@@ -25,6 +25,11 @@ import "../../detail.css";
 import "./brand.css";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
+import { BenefitTiles } from "@/components/BenefitTiles";
+import { faqSchema } from "@/lib/schema";
+
+/** The tile palette, same five every other page rotates through. */
+const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 
 
 export function generateStaticParams() {
@@ -93,7 +98,13 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           <h1>
             <span className="accent">{brand.name}</span> installer, Melbourne&rsquo;s south-east.
           </h1>
-          <p className="dp-hero__sub">{brand.intro}</p>
+          <p className="dp-hero__sub">{brand.heroSub ?? brand.intro}</p>
+          {/* "Where it goes" — the filtration header's line, and the one
+              thing a brand page never used to say: which houses this
+              actually ends up in. */}
+          {brand.fitsWhere && (
+            <p className="brand-hero__where"><strong>Where it goes:</strong> {brand.fitsWhere}</p>
+          )}
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed {brand.name} quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
@@ -104,7 +115,19 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           {/* The figures along the bottom, same as the filtration and
               service headers. The trust bar this replaces said the same
               three things on every brand page in the catalogue. */}
+          {/* Authored figures where the brand has them. The derived set
+              below counts things — "1 system types in the range" was a
+              real render — so it's the fallback, not the default. */}
           <ul className="dp-hero__at">
+            {brand.heroFacts ? (
+              brand.heroFacts.map((f) => (
+                <li key={f.k}>
+                  <strong>{f.v}</strong>
+                  <span>{f.k}</span>
+                </li>
+              ))
+            ) : (
+            <>
             <li>
               <strong>{brand.products.length}</strong>
               <span>{brand.name} models we install</span>
@@ -131,6 +154,8 @@ export default async function BrandPage({ params }: { params: { brand: string } 
               <strong>6-year</strong>
               <span>Workmanship, on top of the manufacturer&rsquo;s</span>
             </li>
+            </>
+            )}
           </ul>
         </div>
       </section>
@@ -155,17 +180,42 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </div>
       </section>
 
+      {/* WHY THIS BRAND — the filtration pages' tabbed tiles. Eight
+          statements in a bulleted wall is a wall; eight tiles and one
+          panel is the same content you can actually scan. */}
+      {brand.benefitTiles && brand.benefitTiles.length > 0 && (
+        <section className="brand-why">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why {brand.name}</span>
+              <h2>{brand.benefitsHeading ?? "What sets it apart."}</h2>
+            </div>
+            <BenefitTiles
+              benefits={brand.benefitTiles.map((b, i) => ({
+                area: b.t,
+                icon: b.icon,
+                tint: TILE_TINTS[i % TILE_TINTS.length],
+                line: b.line,
+                detail: b.detail,
+              }))}
+            />
+          </div>
+        </section>
+      )}
+
       {/* Key features + Melbourne context · dense info-panels */}
       {(brand.keyFeatures || brand.commonInMelbourne || brand.support) && (
         <section className="brand-info">
           <div className="wrap brand-info__grid brand-info__grid--v2">
-            {brand.keyFeatures && brand.keyFeatures.length > 0 && (
+            {/* Tiles where the brand has authored faces for them —
+                `keyFeatures` are single statements and splitting one into
+                a face and a body truncates it mid-thought, which is why
+                this is data rather than a derivation. Brands without them
+                keep the list. */}
+            {!brand.benefitTiles && brand.keyFeatures && brand.keyFeatures.length > 0 && (
               <div className="brand-info__block">
                 <span className="ds-eyebrow"><span className="ds-dot" /> Why {brand.name}</span>
                 <h2>What sets it apart.</h2>
-                {/* A list, because that is what these are. They were
-                    briefly tiles, which forced a title out of a spec
-                    bullet and truncated half of them mid-thought. */}
                 <ul className="brand-feats">
                   {brand.keyFeatures.map((f) => (
                     <li key={f} className="brand-feat">{f}</li>
@@ -192,39 +242,6 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           </div>
         </section>
       )}
-
-      {/* Our own install photography, when a brand has any wired up in
-          brandGallery.ts. The manufacturer-render fallback that used to
-          live here is gone — the live Instagram section below shows the
-          actual work, which is what that fallback was apologising for. */}
-      {installs.length > 0 && (
-        <section className="brand-gallery">
-          <div className="wrap">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
-              <h2>Our {brand.name} installs.</h2>
-              <p>Real jobs we&rsquo;ve finished across Melbourne&rsquo;s south-east, photographed on site, on the day.</p>
-            </div>
-            <div className="brand-gallery__grid">
-              {installs.map((g) => (
-                <figure key={g.src} className="brand-gallery__cell">
-                  <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
-                  {g.caption && <figcaption>{g.caption}</figcaption>}
-                </figure>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Live Instagram — posts whose caption mentions this brand. Real
-          installs, self-maintaining: post it once, it lands here. */}
-      <InstagramFeed
-        posts={igPosts}
-        eyebrow={`${brand.name} on the tools`}
-        heading={`Our latest ${brand.name} jobs.`}
-        blurb={`Straight from our Instagram, real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
-      />
 
       {/* Product range.
           Single-product brands (e.g. Zonemate — the Milieu zoning system is
@@ -273,15 +290,19 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           </div>
         </section>
       ) : (
-        <section className="brand-range">
+        <section className={`brand-range${brand.systems ? " brand-range--shapes" : ""}`}>
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Full range we install</span>
-              <h2>The {brand.name} models we install and support.</h2>
-              <p>
-                Every model below is a product we've installed enough of to have an opinion on.
-                Tap through for our take, spec sheet, installed price and what it&rsquo;s best for.
-                Tick <strong>Compare</strong> on any 2-4 models to see them side by side.
+              <span className={`ds-eyebrow${brand.systems ? " ds-eyebrow--on-dark" : ""}`}>
+                <span className={`ds-dot${brand.systems ? "" : " ds-dot--orange"}`} />{" "}
+                {brand.systems ? "Choose your system" : "Full range we install"}
+              </span>
+              <h2 className={brand.systems ? "ds-h--on-dark" : undefined}>
+                {brand.systemsHeading ?? `The ${brand.name} models we install and support.`}
+              </h2>
+              <p className={brand.systems ? "brand-range__lede" : undefined}>
+                {brand.systemsLede ??
+                  "Every model below is a product we've installed enough of to have an opinion on. Tap through for our take, spec sheet, installed price and what it's best for. Tick Compare on any 2-4 models to see them side by side."}
               </p>
               {brand.slug === "reclaim" && (
                 <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -299,6 +320,87 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           </div>
         </section>
       )}
+
+      {/* KEEPING IT WORKING — the half of a brand argument that only
+          matters after the sale, and therefore the half worth putting on
+          the page before it. */}
+      {brand.servicing && (
+        <section className="brand-serv">
+          <div className="wrap brand-serv__grid">
+            <figure className="brand-serv__shot">
+              <img
+                src={brand.servicing.photo}
+                alt={brand.servicing.photoAlt}
+                loading="lazy"
+                width="900"
+                height="900"
+              />
+            </figure>
+            <div className="brand-serv__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
+              <h2>{brand.servicing.heading}</h2>
+              <p>{brand.servicing.body}</p>
+              <ul className="brand-serv__facts">
+                {brand.servicing.facts.map((f) => <li key={f}>{f}</li>)}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. */}
+      {brand.steps && brand.steps.length > 0 && (
+        <section className="process">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
+              <h2 className="ds-h--on-dark">What a {brand.name} install looks like, start to finish.</h2>
+            </div>
+            <ol className="steps">
+              {brand.steps.map((st, i) => (
+                <li key={st.title} className="step">
+                  <span className="step__num">{i + 1}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.detail}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
+
+      {/* Our own install photography, when a brand has any wired up in
+          brandGallery.ts. The manufacturer-render fallback that used to
+          live here is gone — the live Instagram section below shows the
+          actual work, which is what that fallback was apologising for. */}
+      {installs.length > 0 && (
+        <section className="brand-gallery">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> On the tools</span>
+              <h2>Our {brand.name} installs.</h2>
+              <p>Real jobs we&rsquo;ve finished across Melbourne&rsquo;s south-east, photographed on site, on the day.</p>
+            </div>
+            <div className="brand-gallery__grid">
+              {installs.map((g) => (
+                <figure key={g.src} className="brand-gallery__cell">
+                  <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
+                  {g.caption && <figcaption>{g.caption}</figcaption>}
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Live Instagram — posts whose caption mentions this brand. Real
+          installs, self-maintaining: post it once, it lands here. */}
+      <InstagramFeed
+        posts={igPosts}
+        eyebrow={`${brand.name} on the tools`}
+        heading={`Our latest ${brand.name} jobs.`}
+        blurb={`Straight from our Instagram, real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
+      />
 
       {/* Social proof — the short version of /reviews, so brand pages
           carry the same reassurance the home page does. */}
@@ -346,6 +448,34 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </div>
       </section>
 
+      {/* FAQ — one open at a time, same <details name> trick as the rest
+          of the site, and the answers get FAQPage schema. */}
+      {brand.faqs && brand.faqs.length > 0 && (
+        <section className="brand-faq faq">
+          <div className="wrap faq__grid">
+            <div className="faq__left">
+              <span className="ds-eyebrow"><span className="ds-dot" /> {brand.name} questions</span>
+              <h2>Straight answers.</h2>
+              <p>
+                If your question isn&rsquo;t here,{" "}
+                <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                  call {site.phone}
+                </a>
+                .
+              </p>
+            </div>
+            <div className="faq__right">
+              {brand.faqs.map((f, i) => (
+                <details key={f.q} name="faq" open={i === 0}>
+                  <summary>{f.q}</summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <ReviewMarquee heading="Reviews from households across the south-east." />
 
       <section className="bigcta">
@@ -364,6 +494,13 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       </section>
 
       <Script id={`ld-crumbs-${brand.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      {brand.faqs && brand.faqs.length > 0 && (
+        <Script
+          id={`ld-faq-${brand.slug}`}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(brand.faqs)) }}
+        />
+      )}
     </div>
   );
 }

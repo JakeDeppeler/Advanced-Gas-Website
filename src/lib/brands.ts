@@ -146,6 +146,73 @@ export type Brand = {
   /** Optional links to spec sheets / brochures on the manufacturer's site. */
   resources?: { label: string; href: string }[];
   products: Product[];
+
+  /* ---------------------------------------------------------------
+   * The whole-home-filtration treatment.
+   *
+   * The brand pages were a hero, a facts strip, a wall of key-feature
+   * bullets and a grid of every model in the catalogue — which for
+   * Mitsubishi is sixteen cards with no shape to them. The filtration
+   * pages solved the same problem: meet the shapes first, then the
+   * models inside the shape you picked.
+   *
+   * Every field below is optional and every section hides itself when
+   * its field is absent, so brands convert one at a time rather than
+   * all sixteen having to be rewritten before any of them can ship.
+   * ------------------------------------------------------------- */
+
+  /** Header sub-paragraph. Shorter than `intro`, which is a full
+   *  argument and reads long under an h1. */
+  heroSub?: string;
+  /** "Where it goes" — the one line that says what kind of house and
+   *  what part of it this brand ends up in. */
+  fitsWhere?: string;
+  /** The four figures along the bottom of the header. Authored rather
+   *  than counted, because "16 models" is a fact and "5 system types"
+   *  is arithmetic nobody asked for. */
+  heroFacts?: { v: string; k: string }[];
+
+  /** "Why this brand" as tabs. Written, not derived: `keyFeatures` are
+   *  single statements, and splitting one into a tile face and a body
+   *  truncates it mid-thought — the panel then just repeats the tile. */
+  benefitsHeading?: string;
+  benefitTiles?: { t: string; line: string; detail: string; icon?: string }[];
+
+  /** "Choose your system" — the range grouped into the shapes somebody
+   *  actually chooses between, each one linking down to its models. */
+  systemsHeading?: string;
+  systemsLede?: string;
+  systems?: {
+    id: string;
+    label: string;
+    blurb: string;
+    photo: string;
+    photoAlt: string;
+    /** A real scene fills the card's photo panel; a studio cut-out sits
+     *  inside it with padding. */
+    photoScene?: boolean;
+    priceFrom?: string;
+    facts: { lead: string; note?: string }[];
+    /** Product slugs in this group, in the order they should be listed. */
+    models: string[];
+  }[];
+
+  /** "Keeping it working" — parts, service and what happens in year ten.
+   *  The half of a brand argument that only matters after the sale, and
+   *  therefore the half worth putting on the page before it. */
+  servicing?: {
+    heading: string;
+    photo: string;
+    photoAlt: string;
+    body: string;
+    facts: string[];
+  };
+
+  /** "How the job runs" — the numbered steps, brand-specific. */
+  steps?: { title: string; detail: string }[];
+
+  /** Brand-level FAQs. One open at a time, same as everywhere else. */
+  faqs?: { q: string; a: string }[];
 };
 
 /** Category → photo map. Products fall through to this when they don't
@@ -534,6 +601,226 @@ const brandCatalogue: Brand[] = [
     resources: [
       { label: "Mitsubishi Electric · manufacturer website", href: "https://www.mitsubishielectric.com.au/" },
     ],
+
+    /* --- The filtration treatment. Mitsubishi first, because it's the
+       brand with sixteen models and therefore the one the old grid
+       served worst. --- */
+    heroSub:
+      "The brand we quote first on any air conditioning job, and the one we still get parts for in year twelve. Sixteen models across five shapes \u2014 start with the shape.",
+    fitsWhere:
+      "Wall splits in weatherboards with no roof space, ducted in the Clyde North and Officer new-builds, Hyper Heating in the hills where the cold mornings are real.",
+    heroFacts: [
+      { v: "Under 1%", k: "Failure rate across our install base" },
+      { v: "16", k: "Models we install and support" },
+      { v: "Since 1978", k: "Selling in Australia" },
+      { v: "5 + 6 yr", k: "Manufacturer, then our workmanship" },
+    ],
+
+    benefitsHeading: "Why it's the one we quote first.",
+    benefitTiles: [
+      {
+        t: "It doesn't break",
+        line: "Under 1% failure rate across everything we've put in",
+        detail:
+          "That number is ours, not a brochure's \u2014 it's what our own call-back book says across the units we've installed. It's the whole argument. A unit that never brings us back is worth more to you and to us than a cheaper one that does, and it is the reason Mitsubishi gets quoted before anything else.",
+        icon: "shield",
+      },
+      {
+        t: "Year twelve still has parts",
+        line: "A decade-old MSZ-AP runs to spec and we can still fix it",
+        detail:
+          "We service MSZ-APs we installed more than ten years ago and they still hold their rated output. More to the point, the parts are still on the shelf. Whether a system gets repaired or replaced in year twelve is decided by the parts pipeline, and Mitsubishi's is open in a way most brands' is not.",
+        icon: "clock",
+      },
+      {
+        t: "Parts the same day",
+        line: "Melbourne warehouse, common parts off the shelf",
+        detail:
+          "Mitsubishi's Melbourne parts warehouse is same-day on common indoor and outdoor components, and their tech line actually answers. In practice that means a breakdown is a visit, not a fortnight of waiting on a fan motor from overseas.",
+        icon: "truck",
+      },
+      {
+        t: "R32 across the range",
+        line: "Modern refrigerant, low global-warming potential",
+        detail:
+          "The whole current range runs R32. It's more efficient per kilogram than the R410A it replaced, so a system holds less gas to do the same work, and its global-warming potential is about a third. It also keeps the units on the right side of the phase-down, which matters for a machine you're keeping fifteen years.",
+        icon: "snowflake",
+      },
+      {
+        t: "Hyper Heating for the hills",
+        line: "Rated output held at -15\u00b0 ambient",
+        detail:
+          "Standard splits start to fade on the coldest mornings, right when you want them. The Hyper Heating variant holds its rated heating capacity down to -15\u00b0, which is why we specify it in Emerald, Gembrook and Cockatoo rather than in Cranbourne.",
+        icon: "flame",
+      },
+      {
+        t: "Run it from your phone",
+        line: "MELCloud Wi-Fi on any indoor unit in the range",
+        detail:
+          "A MELCloud module clips into any indoor unit, so scheduling, geofencing and turning the living room on from the car all work without paying for a higher model. It also gives you a usage history, which is the honest way to answer \u201cis it costing me a fortune\u201d.",
+        icon: "phone",
+      },
+      {
+        t: "Quiet enough for a bedroom",
+        line: "From 19 dBA on the smaller wall splits",
+        detail:
+          "The MSZ-AP25 runs at 19 dBA on low \u2014 quieter than a library, and quiet enough that it isn't the thing that wakes you. Worth knowing before somebody talks you into an oversized unit that will short-cycle all night.",
+        icon: "people",
+      },
+      {
+        t: "One brand, five shapes",
+        line: "Wall, multi-head, ducted, console and the controllers",
+        detail:
+          "Because the whole range is one manufacturer, the controller, the app and the service story are the same whichever shape your house needs. Mixed-brand houses are where warranty arguments come from, and this is how you avoid having one.",
+        icon: "wrench",
+      },
+    ],
+
+    systemsHeading: "Five shapes. Start here, not with a model number.",
+    systemsLede:
+      "Sixteen models is a lot to read through, and nobody chooses between an MSZ-AP50 and an MSZ-AP60 first. You choose a shape \u2014 one room or the whole house, on the wall or in the roof \u2014 and the model follows from the heat load.",
+    systems: [
+      {
+        id: "wall-split",
+        label: "MSZ-AP wall splits",
+        blurb:
+          "One outdoor unit, one indoor head on the wall. Our default for a bedroom, a living room or a granny flat, and the quickest thing we fit \u2014 most go in back-to-back in a single morning.",
+        photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+        photoAlt: "Mitsubishi Electric MSZ-AP wall-mounted split system",
+        priceFrom: "from $2,199 installed",
+        facts: [
+          { lead: "Six sizes", note: "2.5 kW for a bedroom up to 8.0 kW for large open-plan" },
+          { lead: "19 dBA on low", note: "On the AP25 \u2014 quiet enough to sleep next to" },
+          { lead: "One morning", note: "Back-to-back install in three to four hours" },
+          { lead: "Hyper Heating option", note: "Full rated heat down to -15\u00b0 for hills postcodes" },
+        ],
+        models: ["msz-ap25", "msz-ap35", "msz-ap50", "msz-ap60", "msz-ap71", "msz-ap80"],
+      },
+      {
+        id: "multi-head",
+        label: "MXZ multi-head",
+        blurb:
+          "One outdoor unit running two to six indoor heads. The answer when you want three bedrooms done but there is only room \u2014 or only body-corporate permission \u2014 for a single condenser outside.",
+        photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp",
+        photoAlt: "Mitsubishi MXZ multi-head outdoor condenser",
+        priceFrom: "from $6,500 installed",
+        facts: [
+          { lead: "Two to six heads", note: "Off one outdoor unit, 4.2 kW up to 12.0 kW combined" },
+          { lead: "One set of penetrations", note: "Not four holes in four walls and four condensers" },
+          { lead: "Mix the head types", note: "Wall, floor console or bulkhead on the same system" },
+          { lead: "Each room its own control", note: "Own remote, own set temperature" },
+        ],
+        models: ["mxz-2f", "mxz-3f", "mxz-4f", "mxz-5f", "mxz-6c"],
+      },
+      {
+        id: "ducted",
+        label: "PEAD-M ducted",
+        blurb:
+          "The indoor unit lives in the roof and vents into every room, zoned so you are not paying to condition the bedrooms at seven at night. New builds and retrofits both, sized off a room-by-room heat load rather than a guess.",
+        photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
+        photoAlt: "Mitsubishi PEAD-M ducted indoor unit",
+        priceFrom: "from $12,500 installed",
+        facts: [
+          { lead: "10 kW to 20 kW", note: "PEAD-M for most homes, PEA-M where the load is bigger" },
+          { lead: "Heating parity", note: "Rated heat output matches the cooling figure" },
+          { lead: "Zoned as standard", note: "Four, six or eight zones, fitted by default" },
+          { lead: "The duct design first", note: "We size the trunk and the branches, not just the unit" },
+        ],
+        models: ["pead-m", "pead-large"],
+      },
+      {
+        id: "console",
+        label: "MFZ-KW floor console",
+        blurb:
+          "A wall split that sits at floor level instead of up near the ceiling. For rooms where there is nothing to mount high on \u2014 full-height glass, a heritage cornice, a wall of joinery \u2014 and for anyone who wants the heat coming out at ankle height in winter.",
+        photo: "/mitsubishi-mfz-kw-floor-console-v2.webp",
+        photoAlt: "Mitsubishi MFZ-KW floor-standing console unit",
+        priceFrom: "Priced at quote",
+        facts: [
+          { lead: "Three sizes", note: "2.5, 3.5 and 5.0 kW cooling" },
+          { lead: "Heat at floor level", note: "Where it belongs in a Melbourne winter" },
+          { lead: "Nothing mounted high", note: "Suits full-height glass and heritage rooms" },
+          { lead: "Runs on multi-head too", note: "Can be one of the heads on an MXZ system" },
+        ],
+        models: ["mfz-kw"],
+      },
+      {
+        id: "controls",
+        label: "Controllers and zoning",
+        blurb:
+          "The wired wall controller and the native ducted zone controller. Not an upsell \u2014 on a ducted job the zoning is what decides whether the system costs sense to run, and it goes in as part of the install.",
+        photo: "/mitsubishi-par-41maa-controller-v2.webp",
+        photoAlt: "Mitsubishi PAR-41MAA wired wall controller",
+        priceFrom: "Included in the install",
+        facts: [
+          { lead: "PAR-41MAA wall controller", note: "Backlit, weekly schedule, no phone required" },
+          { lead: "Native zone control", note: "Mitsubishi's own, not a third-party box bolted on" },
+          { lead: "MELCloud on top", note: "Wi-Fi module adds phone control to either" },
+          { lead: "One system to service", note: "Same manufacturer end to end, so no warranty argument" },
+        ],
+        models: ["par-41maa", "me-zone-controller"],
+      },
+    ],
+
+    servicing: {
+      heading: "What happens in year ten.",
+      photo: "/ducted-split.webp",
+      photoAlt: "A ducted indoor unit sitting on a platform in a roof space",
+      body:
+        "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like \u2014 whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
+      facts: [
+        "A decade-old MSZ-AP still makes its rated output \u2014 we measure them on annual services and they hold",
+        "Common indoor and outdoor parts come out of the Melbourne warehouse same-day",
+        "Annual service is $220 on a split, $390 on a ducted, and we text you eleven months later so it gets booked",
+        "We lodge the service report with Mitsubishi, so the warranty record stays clean for any future claim",
+        "Ducted indoors go on a platform with a clear path to them, because a unit walled in behind cabinetry is a quote, not a service",
+      ],
+    },
+
+    steps: [
+      { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, then compute the actual kW. A 5 kW room gets a 5 kW unit, not a 7 kW one somebody had on the truck." },
+      { title: "Written fixed-price quote in 2 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
+      { title: "Stock ordered, day booked", detail: "Mitsubishi's Melbourne warehouse is same-day on common stock. We confirm your install day the moment the unit lands with us rather than pencilling one in and hoping." },
+      { title: "Install day", detail: "Single split back-to-back is three to four hours. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside, fresh copper every time." },
+      { title: "Commission and walk through", detail: "We run it up, check refrigerant pressures against spec, and set up the remote and MELCloud with you. You sign the job card when you're happy with it, not before." },
+      { title: "Compliance and warranty inside 24 hours", detail: "Electrical and refrigeration compliance certificates emailed by end of business the next day, and the manufacturer warranty registered in your name at the same time." },
+    ],
+
+    faqs: [
+      {
+        q: "Is Mitsubishi Electric actually worth the extra over a budget brand?",
+        a: "On a bedroom split the gap is a few hundred dollars, and the honest answer is that it usually pays for itself the first time something goes wrong \u2014 or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
+      },
+      {
+        q: "What's the difference between MSZ-AP and Hyper Heating?",
+        a: "Same wall split, different outdoor unit. A standard AP loses heating capacity as the ambient temperature drops. Hyper Heating holds its full rated output down to -15\u00b0. In Pakenham or Cranbourne that difference rarely shows up. In Emerald, Gembrook or Cockatoo it shows up most mornings in July, which is why we quote it there.",
+      },
+      {
+        q: "Do I need the ducted zoning, or is it an upsell?",
+        a: "You need it. An unzoned ducted system conditions the whole house every time it runs, including four bedrooms nobody is in at seven at night. Four to eight zones is what makes the running cost sensible, and we fit it by default rather than quoting it as an extra to make the headline number look better.",
+      },
+      {
+        q: "Can I control it from my phone?",
+        a: "Yes \u2014 a MELCloud Wi-Fi module clips into any indoor unit in the range, including the cheapest one. You get scheduling, geofencing and a usage history. It's a module rather than a model tier, so you don't have to buy up to get it.",
+      },
+      {
+        q: "How long does a Mitsubishi install take?",
+        a: "A single split back-to-back is three to four hours, done in one visit. A multi-head is usually a full day. Ducted is one to two days depending on how many zones and how kind the roof space is. We tell you which of those you're in before you accept the quote.",
+      },
+      {
+        q: "What warranty do I get?",
+        a: "Five years manufacturer parts and labour on the unit, registered in your name the day after we install it. On top of that we carry six years on our own workmanship, which covers the install rather than the box \u2014 brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong.",
+      },
+      {
+        q: "Can you service a Mitsubishi you didn't install?",
+        a: "Yes, and we do a lot of them. $220 for a split, $390 for a ducted, and the service report goes to Mitsubishi so your warranty record stays clean. If we find something we'd have done differently on the install we'll tell you what it is and whether it's worth fixing.",
+      },
+      {
+        q: "Do you install Mitsubishi in the eastern suburbs, or just the south-east?",
+        a: "Both. Pakenham, Officer, Berwick and Cranbourne are our home ground and we're same-day there. Ringwood, Croydon, Glen Waverley and the rest of the eastern ring are booked installs rather than same-day call-outs, which the suburb pages say plainly.",
+      },
+    ],
+
     products: [
       {
         slug: "msz-ap25",

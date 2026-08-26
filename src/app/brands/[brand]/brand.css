@@ -1873,3 +1873,207 @@
   border-radius: 50%;
   background: var(--card-accent, var(--sky));
 }
+
+
+/* ============================================================
+   THE FILTRATION TREATMENT
+   Brand pages were a hero, a facts strip, a wall of bullets and a grid
+   of every model in the catalogue. For Mitsubishi that last one is
+   sixteen cards with no shape to them, which is not a choice anybody
+   can make. These are the sections that give the page the same rhythm
+   the whole-home filtration page has: why, then the shapes, then the
+   models inside the shape you picked, then what year ten looks like.
+
+   The card itself is already styled — the page root carries
+   `page-detail`, so the `.wf-style` rules in detail.css apply here
+   unchanged. What is below is the band around them.
+   ============================================================ */
+
+/* --- Header: the one line that says which houses this ends up in. --- */
+.page-brand .brand-hero__where {
+  margin: 14px 0 0;
+  max-width: 62ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.8);
+}
+.page-brand .brand-hero__where strong { color: #fff; }
+/* The CTAs sit immediately after this, and without the gap the sentence
+   reads as a caption on the button. */
+.page-brand .brand-hero__where + .dp-hero__ctas { margin-top: 22px; }
+
+/* --- WHY THIS BRAND. Sand, so it sits between the navy header and the
+       navy range band rather than making a third dark stretch. --- */
+.page-brand .brand-why { padding: 88px 0; background: var(--bg-2); }
+
+/* --- CHOOSE YOUR SYSTEM. Navy band so the cards read as products. --- */
+.page-brand .brand-range--shapes {
+  padding: 90px 0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  border-top: 0;
+  border-bottom: 0;
+}
+.page-brand .brand-range__lede { color: rgba(255, 255, 255, 0.78); max-width: 66ch; }
+
+/* The button on each card, and the panel it opens. Ported from the
+   filtration pages rather than shared, because those rules are scoped
+   to `.page-filtration` and a brand page is not one. */
+.page-brand .wf-style__more {
+  appearance: none;
+  margin: 16px 0 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  transition: background 0.15s;
+}
+.page-brand .wf-style__more:hover,
+.page-brand .wf-style__more.is-open { background: var(--orange); }
+
+.page-brand .wf-range__drop {
+  margin-top: 26px;
+  padding: 30px 32px 32px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: brand-drop 0.28s ease both;
+}
+.page-brand .wf-range__drop[hidden] { display: none; }
+@keyframes brand-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-brand .wf-range__drophead { margin-bottom: 22px; max-width: 66ch; }
+.page-brand .wf-range__drophead h3 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.page-brand .wf-range__drophead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-brand .wf-range__drophead strong { color: #fff; }
+/* The model grid inside the drop sits on the translucent panel, not on
+   the page, so it loses the group heading and the outer padding it has
+   in the standalone layout. */
+/* auto-FIT rather than auto-fill: a shape with two models would
+   otherwise leave two empty tracks and read as a grid missing half its
+   cards. Fit stretches the two it has across the row. */
+.page-brand .wf-range__drop .brand-group__grid {
+  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+}
+/* Which means a two-model shape gets two very wide cards, and a photo
+   panel on a fixed aspect ratio then balloons to half a screen. Fix the
+   band height instead and let the shot sit inside it. */
+.page-brand .wf-range__drop .brand-card__photo {
+  aspect-ratio: auto;
+  height: 200px;
+  /* Manufacturer shots are cut-outs on white. Over the card's gradient
+     the shot's own white ground shows as a floating rectangle. */
+  background: #fff;
+}
+.page-brand .wf-range__drop .brand-card__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* --- KEEPING IT WORKING. Photo one side, the argument the other. --- */
+.page-brand .brand-serv { padding: 88px 0; background: var(--bg); }
+.page-brand .brand-serv__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 52px;
+  align-items: center;
+}
+.page-brand .brand-serv__shot {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
+}
+.page-brand .brand-serv__shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.page-brand .brand-serv__copy h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--navy);
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.page-brand .brand-serv__copy p {
+  margin: 0 0 22px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 58ch;
+}
+.page-brand .brand-serv__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+.page-brand .brand-serv__facts li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.page-brand .brand-serv__facts li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(-45deg);
+}
+
+/* --- FAQ. Sand, so it doesn't butt up against the white quote panel
+       above it as one undifferentiated stretch. --- */
+.page-brand .brand-faq { padding: 88px 0; background: var(--bg-2); }
+
+@media (max-width: 900px) {
+  .page-brand .brand-why,
+  .page-brand .brand-serv,
+  .page-brand .brand-faq { padding: 56px 0; }
+  .page-brand .brand-range--shapes { padding: 60px 0; }
+  .page-brand .brand-serv__grid { grid-template-columns: 1fr; gap: 26px; }
+}
+@media (max-width: 640px) {
+  .page-brand .wf-range__drop { padding: 22px 18px 24px; }
+}

@@ -1,20 +1,27 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { SafeImg } from "@/components/SafeImg";
 import { productPhoto, type Brand, type Product } from "@/lib/brands";
 
 /**
- * Client-side wrapper for the brand hub product grid.
+ * The range section on a brand page.
  *
- * Adds a checkbox to each card, tracks up to 4 selected products in state,
- * and reveals a sticky bottom drawer with a "Compare" button when 2+ are
- * selected. The compare modal renders a side-by-side spec table so a
- * customer can weigh models without bouncing between product pages.
+ * Two shapes, depending on the brand. Where `brand.systems` is authored,
+ * the range opens as "choose your system" — one card per shape, and the
+ * models for a shape appear underneath when you press its button. That
+ * exists because sixteen model cards in one grid is not a choice anybody
+ * can make; you pick a shape first and the model follows from the heat
+ * load. Where it isn't authored yet, every group renders at once, which
+ * is what this component always used to do.
  *
- * The grid layout, cards, and photo logic all match the server-rendered
- * template on brand/[brand]/page.tsx so the DOM shape stays consistent.
+ * Either way it adds a checkbox to each card, tracks up to 4 selected
+ * products, and reveals a sticky drawer with a side-by-side spec table
+ * so models can be weighed without bouncing between product pages. The
+ * compare state lives here rather than per-group so a selection survives
+ * switching shapes.
  */
 
 const MAX_COMPARE = 4;
@@ -26,6 +33,12 @@ type Props = {
 export function BrandCompare({ brand }: Props) {
   const [selected, setSelected] = useState<string[]>([]);
   const [showModal, setShowModal] = useState(false);
+  // Which shape's models are showing. Null until somebody presses one —
+  // opening a group by default would put six wall splits in front of
+  // someone who came for ducted.
+  const [openSystem, setOpenSystem] = useState<string | null>(null);
+  const dropRef = useRef<HTMLDivElement | null>(null);
+  const systems = brand.systems ?? [];
 
   // Group products by categoryLabel — same grouping the server template uses.
   const grouped = useMemo(() => {
@@ -66,75 +79,73 @@ export function BrandCompare({ brand }: Props) {
     }
   }, [showModal]);
 
-  return (
-    <>
-      {groupOrder.map((groupName) => (
-        <div key={groupName} className="brand-group">
-          <h3 className="brand-group__title">
-            <span className="brand-group__title-txt">{groupName}</span>
-            <span className="brand-group__count">
-              {grouped[groupName].length} {grouped[groupName].length === 1 ? "model" : "models"}
-            </span>
-          </h3>
-          <div className="brand-group__grid">
-            {grouped[groupName].map((p) => {
-              const photo = productPhoto(p, brand);
-              const isSelected = selected.includes(p.slug);
-              const disabled = !isSelected && selected.length >= MAX_COMPARE;
-              return (
-                <div key={p.slug} className={`brand-card brand-card--compareable${isSelected ? " is-compared" : ""}`}>
-                  <label
-                    className={`brand-card__compare${disabled ? " is-disabled" : ""}`}
-                    onClick={(e) => e.stopPropagation()}
-                    title={disabled ? `Max ${MAX_COMPARE} products at a time` : isSelected ? "Remove from compare" : "Add to compare"}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      disabled={disabled}
-                      onChange={() => toggle(p.slug)}
-                      aria-label={`Compare ${p.name}`}
-                    />
-                    <span className="brand-card__compare-box" aria-hidden="true">
-                      {isSelected ? "✓" : "+"}
-                    </span>
-                    <span className="brand-card__compare-lbl">Compare</span>
-                  </label>
-                  <Link href={`/brands/${brand.slug}/${p.slug}`} className="brand-card__link">
-                    <div className="brand-card__photo">
-                      {p.veuEligible && (
-                        <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
-                      )}
-                      <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
-                    </div>
-                    <div className="brand-card__inner">
-                      <div className="brand-card__head">
-                        <h4>{p.name}</h4>
-                        <span className="brand-card__model">{p.model}</span>
-                      </div>
-                      {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
-                      <p className="brand-card__take">{p.ourTake}</p>
-                      <div className="brand-card__foot">
-                        <span className={`brand-card__price${p.installedPriceFrom ? " brand-card__price--real" : ""}`}>
-                          {p.installedPriceFrom ? (
-                            <>
-                              <em>from</em> {p.installedPriceFrom}
-                            </>
-                          ) : (
-                            "Message for quote"
-                          )}
-                        </span>
-                        <span className="brand-card__go" aria-hidden="true">→</span>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+  const cols = systems.length === 4 ? 4 : Math.min(systems.length, 3);
+  const openGroup = systems.find((sy) => sy.id === openSystem) ?? null;
+  const bySlug = useMemo(
+    () => new Map(brand.products.map((p) => [p.slug, p])),
+    [brand.products],
+  );
 
+  /** One product card. Shared by both shapes so the grid never drifts. */
+  const card = (p: Product) => {
+    const photo = productPhoto(p, brand);
+    const isSelected = selected.includes(p.slug);
+    const disabled = !isSelected && selected.length >= MAX_COMPARE;
+    return (
+      <div key={p.slug} className={`brand-card brand-card--compareable${isSelected ? " is-compared" : ""}`}>
+        <label
+          className={`brand-card__compare${disabled ? " is-disabled" : ""}`}
+          onClick={(e) => e.stopPropagation()}
+          title={disabled ? `Max ${MAX_COMPARE} products at a time` : isSelected ? "Remove from compare" : "Add to compare"}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            disabled={disabled}
+            onChange={() => toggle(p.slug)}
+            aria-label={`Compare ${p.name}`}
+          />
+          <span className="brand-card__compare-box" aria-hidden="true">
+            {isSelected ? "✓" : "+"}
+          </span>
+          <span className="brand-card__compare-lbl">Compare</span>
+        </label>
+        <Link href={`/brands/${brand.slug}/${p.slug}`} className="brand-card__link">
+          <div className="brand-card__photo">
+            {p.veuEligible && (
+              <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
+            )}
+            <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
+          </div>
+          <div className="brand-card__inner">
+            <div className="brand-card__head">
+              <h4>{p.name}</h4>
+              <span className="brand-card__model">{p.model}</span>
+            </div>
+            {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
+            <p className="brand-card__take">{p.ourTake}</p>
+            <div className="brand-card__foot">
+              <span className={`brand-card__price${p.installedPriceFrom ? " brand-card__price--real" : ""}`}>
+                {p.installedPriceFrom ? (
+                  <>
+                    <em>from</em> {p.installedPriceFrom}
+                  </>
+                ) : (
+                  "Message for quote"
+                )}
+              </span>
+              <span className="brand-card__go" aria-hidden="true">→</span>
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  };
+
+  /** The compare drawer and its modal. Rendered by whichever shape the
+   *  brand's range takes, so the selection behaves the same in both. */
+  const drawer = (
+    <>
       {/* Sticky compare drawer, appears when 1+ products are selected. */}
       {selected.length > 0 && (
         <div className={`compare-drawer${showModal ? " is-open" : ""}`}>
@@ -287,6 +298,109 @@ export function BrandCompare({ brand }: Props) {
           </div>
         </div>
       )}
+    </>
+  );
+
+  if (systems.length > 0) {
+    return (
+      <>
+        {/* Four shapes go four across; anything else caps at three, so
+            five doesn't become a five-column squeeze or a 3 + 2 with the
+            type of a four-across grid. */}
+        <div
+          className={`wf-styles__grid is-${cols}up`}
+          style={{ "--cols": cols } as CSSProperties}
+        >
+          {systems.map((sy, i) => {
+            const on = openSystem === sy.id;
+            const n = sy.models.length;
+            return (
+              <article className={`wf-style${i === 0 ? " is-lead" : ""}`} key={sy.id}>
+                <div className={`wf-style__photo${sy.photoScene ? " is-scene" : ""}`}>
+                  <img src={sy.photo} alt={sy.photoAlt} loading="lazy" width="600" height="450" />
+                </div>
+                <div className="wf-style__body">
+                  {sy.priceFrom && <span className="wf-style__tier">{sy.priceFrom}</span>}
+                  <h3>{sy.label}</h3>
+                  <p>{sy.blurb}</p>
+                  <ul>
+                    {sy.facts.map((f) => (
+                      <li key={f.lead}>
+                        <strong>{f.lead}</strong>
+                        {f.note && <> &mdash; {f.note}</>}
+                      </li>
+                    ))}
+                  </ul>
+                  <button
+                    type="button"
+                    className={`wf-style__more${on ? " is-open" : ""}`}
+                    aria-expanded={on}
+                    aria-controls="brand-range-drop"
+                    onClick={() => {
+                      const next = on ? null : sy.id;
+                      setOpenSystem(next);
+                      // The panel opens under all the cards, which on a
+                      // five-card grid is well past the fold. Without
+                      // this you press it and nothing appears to happen.
+                      if (next) {
+                        requestAnimationFrame(() =>
+                          dropRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                        );
+                      }
+                    }}
+                  >
+                    {on ? "Hide the models" : n === 1 ? "See the model" : `The ${n} models`}
+                    <span aria-hidden="true">{on ? "↑" : "↓"}</span>
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div ref={dropRef} className="wf-range__drop" id="brand-range-drop" hidden={!openGroup}>
+          {openGroup && (
+            <>
+              <div className="wf-range__drophead">
+                <h3>{openGroup.label}</h3>
+                <p>
+                  {openGroup.models.length}{" "}
+                  {openGroup.models.length === 1 ? "model" : "models"}. Tap through for the spec
+                  sheet and our take, or tick <strong>Compare</strong> on two to four of them.
+                </p>
+              </div>
+              <div className="brand-group__grid">
+                {openGroup.models
+                  .map((slug) => bySlug.get(slug))
+                  .filter((p): p is Product => Boolean(p))
+                  .map(card)}
+              </div>
+            </>
+          )}
+        </div>
+
+        {drawer}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {groupOrder.map((groupName) => (
+        <div key={groupName} className="brand-group">
+          <h3 className="brand-group__title">
+            <span className="brand-group__title-txt">{groupName}</span>
+            <span className="brand-group__count">
+              {grouped[groupName].length} {grouped[groupName].length === 1 ? "model" : "models"}
+            </span>
+          </h3>
+          <div className="brand-group__grid">
+            {grouped[groupName].map(card)}
+          </div>
+        </div>
+      ))}
+
+      {drawer}
     </>
   );
 }
