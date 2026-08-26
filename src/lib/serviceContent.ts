@@ -40,7 +40,10 @@ export type ServiceContent = {
     photoAlt: string;
     photoScene?: boolean;
     body: string;
-    facts: string[];
+    /** Three short pairs, same as `looks.facts`. The filtration section
+     *  this mirrors ends on figures rather than a checklist — the body
+     *  paragraph above them is what carries the argument. */
+    facts: { v: string; k: string }[];
   };
 
   /** Full-bleed header photo, the way the filtration pages lead. */
@@ -243,7 +246,7 @@ export type ServiceContent = {
        *  a manufacturer cut-out sits inside it on white instead. */
       photoScene?: boolean;
       body: string;
-      facts: string[];
+      facts: { v: string; k: string }[];
     };
     /** Where this system is the right call. */
     bestFor?: string[];
@@ -278,11 +281,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "Almost every January call-out we get is a filthy coil, a blocked filter or a clogged condensate drain on a system nobody has touched since it went in. None of those are faults. All of them look like faults on the hottest day of the year, and all of them are an afternoon rather than a new system.",
       facts: [
-        "Annual service is $220 on a split and $390 on a ducted, booked September to November before the rush",
-        "Filters, coils, drain, refrigerant pressures and capacitor, with a written report before we leave",
-        "We lodge the report with the manufacturer so the warranty record stays clean for any future claim",
-        "We text you eleven months later so the next one gets booked rather than forgotten",
-        "Ducted indoors go on a platform with a clear path to them, because a unit walled in behind cabinetry is a quote, not a service",
+        { v: "$220 a year", k: "or $140 each for three or more at one address" },
+        { v: "Sept \u2013 Nov", k: "booked before the heatwave, not during it" },
+        { v: "Lodged for you", k: "the report goes to the manufacturer, not a drawer" },
       ],
     },
     // ------------------------------------------------------------------
@@ -365,11 +366,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A split that gets serviced once a year runs at its rated output for fifteen years. One that doesn't loses capacity quietly, and the first anyone notices is the afternoon it can't hold the room. That is not a fault, it's a filter and a coil.",
           facts: [
-            "$220 a year, or $140 each where there are three or more at the same address on the same visit",
-            "Filter, coil chemical clean, drain flush, refrigerant pressures and the capacitor tested",
-            "Booked September to November, before the first heatwave rather than during it",
-            "The report goes to the manufacturer so the warranty record stays clean",
-            "Five-year manufacturer warranty on the unit and six years from us on the install",
+            { v: "$220 a year", k: "or $140 each for three or more at one address" },
+            { v: "Sept \u2013 Nov", k: "before the first heatwave, not during it" },
+            { v: "5 + 6 years", k: "manufacturer on the unit, ours on the install" },
           ],
         },
         label: "Split system air conditioning",
@@ -508,11 +507,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists \u2014 there is no sense charging a full call-out per head when we are already standing in the house.",
           facts: [
-            "$220 for the first unit, $140 for each one after it at the same address on the same day",
-            "One outdoor coil clean covers every head running off it",
-            "Each head gets its own filter, drain and pressure check \u2014 they foul at different rates",
-            "A blocked drain on one head is the most common call-out, and it is a fifteen-minute fix at a service",
-            "Five-year manufacturer warranty, six years from us on the install",
+            { v: "$220 then $140", k: "the first unit, then each one after it that day" },
+            { v: "One coil clean", k: "the outdoor unit covers every head running off it" },
+            { v: "Blocked drains", k: "the most common call, and a fifteen-minute fix" },
           ],
         },
         brands: ["Mitsubishi Electric", "Kaden"],
@@ -631,11 +628,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A ducted indoor unit sits in a roof cavity for fifteen years, and the single thing that decides whether servicing it is an hour or a quote is whether somebody left a path to it. We put ours on a platform with clear access. Not everyone does, and we have crawled far enough to have opinions about it.",
           facts: [
-            "$390 a year \u2014 return-air filter, coil clean, gas pressures, zone motors and the controller",
-            "Return-air filters are the most-skipped part of a ducted system and the most likely reason it's weak",
-            "Zone damper motors fail one at a time and quietly, so they get tested rather than assumed",
-            "We fit ours on a platform with a clear path, because a unit walled in behind cabinetry is a quote",
-            "Roof-scaffold hire on a two-storey return is quoted separately, and we say so before the day",
+            { v: "$390 a year", k: "filter, coils, gas pressures, zone motors, controller" },
+            { v: "On a platform", k: "with a clear path, so a service is an hour" },
+            { v: "Return-air", k: "the most-skipped filter, and the usual reason it's weak" },
           ],
         },
         brands: ["Mitsubishi Electric", "Kaden", "Zonemate"],
@@ -754,11 +749,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Evaporative coolers sit on a roof through a Melbourne winter doing nothing, and the pump is the part that decides whether they wake up. The first thirty-degree day is the worst possible time to find out it seized in July, which is why the pre-summer service exists.",
           facts: [
-            "$220 + GST, booked September to November before the first run of the season",
-            "Pads checked and replaced where they have gone brittle or scaled up",
-            "Water tray drained and flushed, and checked for leaks while it is empty",
-            "Pump and float tested under load, with the bleed rate measured rather than eyeballed",
-            "Distributor lines cleared so every pad gets wet \u2014 a dry pad is a third of your cooling gone",
+            { v: "$220 + GST", k: "booked September to November" },
+            { v: "3 \u2013 5 years", k: "how long a set of pads usually lasts" },
+            { v: "Under load", k: "the pump tested running, not just switched on" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -922,11 +915,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "A heat pump is a fridge running backwards into a tank, and the tank is the part that decides how long you own it. Glass-lined tanks carry a sacrificial anode that has to be replaced or the tank goes; stainless has no anode and nothing to rust. That one difference is most of the gap between a ten-year system and a twenty-year one.",
       facts: [
-        "Glass-lined tanks need the anode checked at five years and usually replaced — we book it rather than wait for the leak",
-        "Stainless has no anode to service, which is what the fifteen-year warranty on the Reclaim is actually about",
-        "The tempering valve is the part that fails quietly, and it is a cheap fix if it is caught at a service",
-        "CO₂ units hold their output to -10°, so a cold snap is not the thing that puts you on the element",
-        "Warranty and the VEU certificate both go in under your name the week we install, not six months later",
+        { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
+        { v: "No anode", k: "on stainless \u2014 which is what the 15-year warranty is" },
+        { v: "-10\u00b0", k: "where a CO\u2082 unit still makes its rated heat" },
       ],
     },
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
@@ -1068,11 +1059,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Glass-lined tanks carry a sacrificial anode that corrodes so the steel doesn't. Replace it around year five and the tank lasts; skip it and the tank goes. Stainless has no anode at all, which is what the fifteen-year warranty is actually about \u2014 not a better weld, an absent failure mode.",
           facts: [
-            "Glass-lined: anode checked at five years and usually replaced \u2014 we book it rather than wait for the leak",
-            "Stainless: nothing to service on the tank, which is most of the reason it costs more up front",
-            "The tempering valve is the part that fails quietly, and it is cheap when it's caught at a service",
-            "CO₂ holds output to -10\u00b0, so a cold snap doesn't quietly put you on the backup element",
-            "Warranty and the VEU certificate both lodged in your name the week we install",
+            { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
+            { v: "No anode", k: "on stainless \u2014 what the 15-year warranty actually is" },
+            { v: "-10\u00b0", k: "where CO\u2082 still makes its rated heat" },
           ],
         },
         label: "Split heat pump hot water",
@@ -1204,11 +1193,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "There is less to an all-in-one than to a split, and that cuts both ways: fewer things to go wrong, and one shell to replace when the tank eventually does. The anode rule is the same as anywhere else, and it is still the thing most owners have never heard of.",
           facts: [
-            "Anode checked at five years on every unit that has one \u2014 that is most of the all-in-one range",
-            "R290 is a hydrocarbon refrigerant, so the unit needs clear air around it rather than a sealed cupboard",
-            "Below about 5\u00b0 an R290 unit leans on its element more, which shows up on a July bill rather than as a fault",
-            "Tempering valve and isolation valves checked at the same visit",
-            "Six-year tank and three-year compressor from the manufacturer, six years from us on the install",
+            { v: "Year five", k: "anode checked on every unit that has one" },
+            { v: "Clear air", k: "R290 needs it \u2014 not a sealed cupboard" },
+            { v: "6 + 3 years", k: "tank and compressor, plus six years from us" },
           ],
         },
         label: "All-in-one heat pump hot water",
@@ -1377,11 +1364,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "A service is worth having twice over: once because the machine runs better, and once because there is now a document saying somebody competent looked at it. That second one is what a manufacturer asks for when you make a warranty claim in year four, and it is the reason a cheap cash-in-hand clean is worth less than it looks.",
       facts: [
-        "The report goes straight to the manufacturer — Mitsubishi, Brivis, Kaden — so your warranty record stays intact",
-        "Any repair is quoted in writing before we touch it, at a fixed price rather than an hourly creep",
-        "The call-out fee is waived if the repair goes ahead the same day",
-        "Twelve-month warranty on any part we supply, plus six years on the labour",
-        "A reminder text at eleven months, with a one-line opt-out if you would rather we did not",
+        { v: "12 months", k: "on any part we supply, plus six years on the labour" },
+        { v: "Fee waived", k: "if the repair goes ahead the same day" },
+        { v: "Month 11", k: "we text you so the next one gets booked" },
       ],
     },
     // ------------------------------------------------------------------
@@ -1465,11 +1450,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Nothing about an evaporative cooler wears out in summer. It wears out sitting still through winter, with a dry pump, scale drying onto the pads and a tray full of whatever came off the roof. The service is really about undoing eight months of standing idle.",
           facts: [
-            "Pads replaced when they have gone brittle or scaled \u2014 usually every three to five years, not annually",
-            "Tray drained, flushed and checked for leaks while there is nothing in it",
-            "Pump and float tested under load; a seized pump is the single most common no-cool call",
-            "Distributor lines cleared so all the pads get wet, not just the ones nearest the feed",
-            "Winter shutdown available at the same visit if you would rather it was drained down properly",
+            { v: "3 \u2013 5 years", k: "how often a set of pads actually needs replacing" },
+            { v: "Under load", k: "pump and float tested running, not switched on" },
+            { v: "Drained down", k: "winter shutdown at the same visit if you want it" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -1572,11 +1555,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A service is worth having twice over: the machine runs better, and there is now a document saying somebody competent looked at it. The second one is what a manufacturer asks for when you claim in year four \u2014 and it is why a cash-in-hand clean is worth less than it looks.",
           facts: [
-            "The report goes straight to the manufacturer, so the warranty record stays intact",
-            "Any repair is quoted in writing before we touch it, fixed price rather than hourly creep",
-            "The call-out fee is waived if the repair goes ahead the same day",
-            "Twelve months on any part we supply, plus six years on the labour",
-            "A reminder text at eleven months, with a one-line opt-out if you would rather not",
+            { v: "12 months", k: "on any part we supply, six years on the labour" },
+            { v: "Fee waived", k: "if the repair goes ahead the same day" },
+            { v: "Lodged", k: "straight to the manufacturer, so the record holds" },
           ],
         },
         brands: ["Mitsubishi Electric", "Kaden", "Brivis"],
@@ -1719,11 +1700,9 @@ export const serviceContent: Record<string, ServiceContent> = {
       body:
         "A cracked heat exchanger puts carbon monoxide into the air your house is breathing, and it does it silently. There is no smell, no alarm on most homes, and the early symptoms read as a bad night's sleep. This is the single reason we will not let a gas heater over ten years old go unserviced without saying something about it.",
       facts: [
-        "$280 + GST for a full service with a combustion analysis on a calibrated CO analyser",
-        "Every two years while it is young, annually once it is past ten",
-        "Spillage test, gas pressure test to AS/NZS 5601 and every safety control checked",
-        "A written report with the actual readings on it, not a sticker saying it passed",
-        "If we find a cracked exchanger we condemn it on the spot and tell you why — that is not a sales tactic, it is the law",
+        { v: "$280 + GST", k: "a full service with a calibrated CO analyser" },
+        { v: "Every 2 years", k: "and annually once it is past ten" },
+        { v: "Real readings", k: "on a written report, not a sticker saying it passed" },
       ],
     },
     // ------------------------------------------------------------------
@@ -1809,11 +1788,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A cracked heat exchanger puts carbon monoxide into the air the house is breathing, silently. No smell, no alarm in most homes, and early symptoms that read as a bad night's sleep. It is the one reason we will not quietly let a heater past ten years go unserviced.",
           facts: [
-            "$280 + GST for a full service with combustion analysis on a calibrated CO analyser",
-            "Every two years while it is young, annually once it is past ten",
-            "Spillage test, gas pressure test to AS/NZS 5601, and every safety control checked",
-            "A written report with the actual readings on it, not a sticker saying it passed",
-            "A cracked exchanger gets condemned on the spot \u2014 that is the law, not a sales tactic",
+            { v: "$280 + GST", k: "a full service with a calibrated CO analyser" },
+            { v: "Every 2 years", k: "and annually once it is past ten" },
+            { v: "Condemned", k: "on the spot if the exchanger is cracked \u2014 that's the law" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -1933,11 +1910,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "A continuous flow unit has no tank, which removes the failure that ends most storage systems: there is no anode to replace and nothing standing full of water for fifteen years. What it does have is a heat exchanger and a burner, and those want looking at like any gas appliance.",
           facts: [
-            "No anode, no tank, and no overnight standing loss \u2014 the three things that kill storage units",
-            "Twelve-year heat exchanger warranty on the Thermann G-series",
-            "A service is a burner and exchanger check with a gas pressure test, same as a heater",
-            "Scale is the thing that shortens them in hard-water areas, and a filter on the cold feed prevents it",
-            "26 L/min covers two showers and a tap at once — beyond that the flow, not the gas, is the limit",
+            { v: "No anode", k: "and no tank standing full for fifteen years" },
+            { v: "12 years", k: "on the Thermann G-series heat exchanger" },
+            { v: "26 L/min", k: "two showers and a tap before flow is the limit" },
           ],
         },
         brands: ["Thermann"],
@@ -2056,11 +2031,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "That interval is not ours \u2014 it is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
           facts: [
-            "$280 + GST, with the combustion analysis included rather than quoted as an extra",
-            "Spillage test and a full gas pressure test to AS/NZS 5601",
-            "Every safety control checked \u2014 overheat, flame failure, fan proving",
-            "If we condemn it we tell you exactly what we found and why, in writing",
-            "Standard call-out $120 in hours, waived if the repair goes ahead the same day",
+            { v: "$280 + GST", k: "with the combustion analysis included, not extra" },
+            { v: "AS/NZS 5601", k: "the standard the pressure and spillage test is to" },
+            { v: "$120 call-out", k: "waived if the repair goes ahead the same day" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -2165,11 +2138,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           body:
             "Nothing about a hire unit is yours to look after. If it stops we come out and sort it at no charge, and when the new system goes in we disconnect it and take it away on the same day. There is no obligation to use us for the replacement, and we mean that \u2014 it is a different conversation.",
           facts: [
-            "If it faults while it is on site we fix or swap it, at no charge",
-            "Disconnected and collected on the day the new system is commissioned",
-            "Rentals and tenanted properties \u2014 it keeps you compliant while you sort the replacement",
-            "$350 set-up and removal, waived entirely if we install the replacement",
-            "No obligation to use us for the new system, and no pressure if you don't",
+            { v: "No charge", k: "if it faults while it's on site, we fix or swap it" },
+            { v: "Same day", k: "disconnected and collected when the new one goes in" },
+            { v: "$350 waived", k: "entirely, if we install the replacement" },
           ],
         },
         brands: ["Thermann"],

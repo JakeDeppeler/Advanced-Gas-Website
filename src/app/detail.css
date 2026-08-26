@@ -3515,8 +3515,11 @@
   gap: 52px;
   align-items: center;
 }
-/* Keeping it working puts the copy first, so the two bands mirror. */
-.page-detail .svc-serv__grid { grid-template-columns: 1.05fr 1fr; }
+/* Keeping it working leads on the photo, the way the filtration
+   section it mirrors does; How it looks leads on the copy, so the two
+   bands alternate rather than running as identical layouts. */
+.page-detail .svc-look__grid { grid-template-columns: 1.05fr 1fr; }
+.page-detail .svc-serv__grid { grid-template-columns: 1fr 1.05fr; }
 
 .page-detail .svc-look__shot,
 .page-detail .svc-serv__shot {
@@ -3594,33 +3597,31 @@
   color: var(--ink-3);
 }
 
-/* Keeping it working ends on a checklist — these are commitments, not
-   measurements. */
+/* Both bands end on the same three-across figures. This was a
+   checklist of five long sentences, which is not what the filtration
+   section does and is why the two never looked alike. */
 .page-detail .svc-serv__facts {
   list-style: none;
   margin: 0;
   padding: 22px 0 0;
   border-top: 1px solid var(--line);
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
 }
-.page-detail .svc-serv__facts li {
-  position: relative;
-  padding-left: 26px;
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--ink-2);
+.page-detail .svc-serv__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--navy);
 }
-.page-detail .svc-serv__facts li::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 7px;
-  width: 10px;
-  height: 6px;
-  border-left: 2px solid var(--orange);
-  border-bottom: 2px solid var(--orange);
-  transform: rotate(-45deg);
+.page-detail .svc-serv__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
 }
 
 @media (max-width: 900px) {
@@ -3630,10 +3631,11 @@
   .page-detail .svc-serv__grid { grid-template-columns: 1fr; gap: 26px; }
   /* Stacked, the photo leads on both — a wall of text above a picture
      reads as an article rather than a section. */
-  .page-detail .svc-serv__shot { order: -1; }
+  .page-detail .svc-look__shot { order: -1; }
 }
 @media (max-width: 520px) {
-  .page-detail .svc-look__facts { grid-template-columns: 1fr; gap: 14px; }
+  .page-detail .svc-look__facts,
+  .page-detail .svc-serv__facts { grid-template-columns: 1fr; gap: 14px; }
 }
 
 

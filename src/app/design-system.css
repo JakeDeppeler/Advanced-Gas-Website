@@ -234,9 +234,13 @@
    rightmost trigger anymore. Fixed centering is bulletproof. */
 .mega {
   position: fixed;
-  /* Sits clear of the bar rather than against it. The ::before bridge
-     below covers the gap so hover doesn't drop on the way down. */
-  top: 104px;
+  /* Tuned by measuring the gap to `.hdr__row`'s bottom edge rather
+     than by arithmetic: the header's backdrop-filter makes it the
+     containing block for this fixed panel, so `top` is not the offset
+     from the viewport you would expect. 78px lands ~14px clear — close
+     enough to read as attached to the bar, not sitting on its border.
+     The ::before bridge covers the gap so hover doesn't drop. */
+  top: 78px;
   left: 50%;
   transform: translateX(-50%);
   background: #fff;
@@ -247,7 +251,8 @@
     0 24px 48px -18px rgba(11, 20, 80, 0.22);
   z-index: 60;
   overflow: hidden;
-  animation: megaIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: megaIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
   max-width: calc(100vw - 40px);
 }
 /* alignRight modifier kept for backwards compat but is now a no-op —
@@ -261,11 +266,23 @@
   content: "";
   /* Taller now the mega sits further down — the bridge has to cover
      the whole gap or hover drops halfway. */
-  position: absolute; left: -200px; right: -200px; top: -38px; height: 38px;
+  position: absolute; left: -200px; right: -200px; top: -28px; height: 28px;
 }
 @keyframes megaIn {
-  from { opacity: 0; transform: translate(-50%, -4px); }
-  to   { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translate(-50%, -10px) scale(0.985); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+/* The contents come up a beat behind the panel, so it reads as one
+   movement opening rather than a finished box appearing. */
+.mega > * { animation: megaBodyIn 0.34s 0.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes megaBodyIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+/* An animation you notice on a plumbing site has gone too far. */
+@media (prefers-reduced-motion: reduce) {
+  .mega { animation: none; }
+  .mega > * { animation: none; }
 }
 
 .mega__collabel {
@@ -454,7 +471,7 @@
    repetitive and cluttered the dropdown. Now: 4-column tile grid,
    brand name in bold + a one-line category subtitle, brand-accent
    top border on hover. Reads much cleaner. Wider to match competitor. */
-.mega__brands { width: min(1080px, calc(100vw - 40px)); padding: 22px 24px; }
+.mega__brands { width: min(1240px, calc(100vw - 40px)); padding: 24px 28px; }
 .mega__brands-cleangrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -527,7 +544,7 @@
 .mega__toolsall:hover { color: var(--orange); }
 
 /* -------- Tools mega — 7 icon tiles in a 2×4 grid + CTA row -------- */
-.mega__tools { width: min(1120px, calc(100vw - 32px)); padding: 26px 30px; }
+.mega__tools { width: min(1240px, calc(100vw - 32px)); padding: 26px 30px; }
 .mega__toolshead {
   display: flex;
   align-items: baseline;
@@ -699,7 +716,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 260px;
   min-width: 780px;
-  width: min(980px, calc(100vw - 40px));
+  width: min(1180px, calc(100vw - 40px));
   align-items: stretch;
 }
 .mega__areas .mega__col {
@@ -2652,8 +2669,11 @@ input, select, textarea {
    ============================================================ */
 .megasvc {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  width: min(960px, calc(100vw - 32px));
+  grid-template-columns: 280px 1fr;
+  /* Widened with the rest of them. The `.mega__services` rule further
+     up sets 1360px and does nothing here — it targets the old flat
+     structure, which now only the mobile drawer renders. */
+  width: min(1240px, calc(100vw - 32px));
 }
 .megasvc__rail {
   display: flex;

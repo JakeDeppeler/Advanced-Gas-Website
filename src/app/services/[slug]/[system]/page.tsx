@@ -255,9 +255,6 @@ export default function SystemPage({
       {system.looks && (
         <section className="svc-look">
           <div className="wrap svc-look__grid">
-            <figure className={`svc-look__shot${system.looks.photoScene ? " is-scene" : ""}`}>
-              <img src={system.looks.photo} alt={system.looks.photoAlt} loading="lazy" width="900" height="900" />
-            </figure>
             <div className="svc-look__copy">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How it looks</span>
               <h2>{system.looks.heading}</h2>
@@ -268,6 +265,9 @@ export default function SystemPage({
                 ))}
               </ul>
             </div>
+            <figure className={`svc-look__shot${system.looks.photoScene ? " is-scene" : ""}`}>
+              <img src={system.looks.photo} alt={system.looks.photoAlt} loading="lazy" width="900" height="900" />
+            </figure>
           </div>
         </section>
       )}
@@ -289,17 +289,19 @@ export default function SystemPage({
       {system.servicing && (
         <section className="svc-serv">
           <div className="wrap svc-serv__grid">
+            <figure className={`svc-serv__shot${system.servicing.photoScene ? " is-scene" : ""}`}>
+              <img src={system.servicing.photo} alt={system.servicing.photoAlt} loading="lazy" width="900" height="900" />
+            </figure>
             <div className="svc-serv__copy">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
               <h2>{system.servicing.heading}</h2>
               <p>{system.servicing.body}</p>
               <ul className="svc-serv__facts">
-                {system.servicing.facts.map((f) => <li key={f}>{f}</li>)}
+                {system.servicing.facts.map((f) => (
+                  <li key={f.k}><strong>{f.v}</strong><span>{f.k}</span></li>
+                ))}
               </ul>
             </div>
-            <figure className={`svc-serv__shot${system.servicing.photoScene ? " is-scene" : ""}`}>
-              <img src={system.servicing.photo} alt={system.servicing.photoAlt} loading="lazy" width="900" height="900" />
-            </figure>
           </div>
         </section>
       )}

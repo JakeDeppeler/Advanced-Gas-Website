@@ -310,15 +310,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.looks && (
         <section className="svc-look">
           <div className="wrap svc-look__grid">
-            <figure className={`svc-look__shot${content.looks.photoScene ? " is-scene" : ""}`}>
-              <img
-                src={content.looks.photo}
-                alt={content.looks.photoAlt}
-                loading="lazy"
-                width="900"
-                height="900"
-              />
-            </figure>
             <div className="svc-look__copy">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How it looks</span>
               <h2>{content.looks.heading}</h2>
@@ -332,6 +323,15 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 ))}
               </ul>
             </div>
+            <figure className={`svc-look__shot${content.looks.photoScene ? " is-scene" : ""}`}>
+              <img
+                src={content.looks.photo}
+                alt={content.looks.photoAlt}
+                loading="lazy"
+                width="900"
+                height="900"
+              />
+            </figure>
           </div>
         </section>
       )}
@@ -356,14 +356,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.servicing && (
         <section className="svc-serv">
           <div className="wrap svc-serv__grid">
-            <div className="svc-serv__copy">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
-              <h2>{content.servicing.heading}</h2>
-              <p>{content.servicing.body}</p>
-              <ul className="svc-serv__facts">
-                {content.servicing.facts.map((f) => <li key={f}>{f}</li>)}
-              </ul>
-            </div>
             <figure className={`svc-serv__shot${content.servicing.photoScene ? " is-scene" : ""}`}>
               <img
                 src={content.servicing.photo}
@@ -373,6 +365,16 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 height="900"
               />
             </figure>
+            <div className="svc-serv__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
+              <h2>{content.servicing.heading}</h2>
+              <p>{content.servicing.body}</p>
+              <ul className="svc-serv__facts">
+                {content.servicing.facts.map((f) => (
+                  <li key={f.k}><strong>{f.v}</strong><span>{f.k}</span></li>
+                ))}
+              </ul>
+            </div>
           </div>
         </section>
       )}
