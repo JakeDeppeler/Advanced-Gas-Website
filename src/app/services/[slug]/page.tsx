@@ -490,13 +490,11 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {/* THE RANGE — a button per brand into the brand page. This
           replaces the brand pods, which were a paragraph of prose each on
           a page somebody picked for the service, not the brand. */}
-      {content.brandPods && content.brandPods.length > 0 && (
-        <RangeBand
-          heading={`The brands we fit for ${svc.short.toLowerCase()}.`}
-          blurb="Every model, spec and installed price sits on the brand page. One press each."
-          brands={content.brandPods}
-        />
-      )}
+      <RangeBand
+        heading={`The brands we fit for ${svc.short.toLowerCase()}.`}
+        blurb="Every model, spec and installed price sits on the brand page. One press each."
+        brands={content.brandPods ?? []}
+      />
 
       {/* PROOF · compact reviews row, so the page earns the form below it */}
       <ProofStrip

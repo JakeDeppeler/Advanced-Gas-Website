@@ -24,6 +24,53 @@ export type ProductCategory =
   | "damper"
   | "accessory";
 
+/**
+ * The filter groups on /range.
+ *
+ * `categoryLabel` is written per product and is deliberately specific —
+ * "Panasonic CO₂ split heat pump · stainless tank" tells you exactly
+ * what that model is, which is right on a product card and useless as a
+ * filter with one item behind it. This maps the 24 labels down to the
+ * dozen groups a customer would actually pick from.
+ *
+ * Keyed on `category` first, then narrowed by what the label says, so a
+ * new product inherits a sensible group without anybody adding a line.
+ */
+export function rangeFilterType(category: ProductCategory, categoryLabel: string): string {
+  const l = categoryLabel.toLowerCase();
+  switch (category) {
+    case "split-system":
+      return "Split system";
+    case "multi-head":
+      return "Multi-head";
+    case "ducted":
+      return l.includes("evaporative")
+        ? "Evaporative cooling"
+        : l.includes("gas ducted")
+        ? "Gas ducted heating"
+        : "Ducted air conditioning";
+    case "floor-console":
+      return "Floor console";
+    case "heat-pump":
+      // The split ones have the compressor outside and the tank against
+      // the wall; the all-in-ones are a single shell. It is the first
+      // question anybody asks, so it is the filter.
+      return l.includes("split") ? "Split heat pump" : "Heat pump, all-in-one";
+    case "gas-continuous-flow":
+      return "Gas continuous flow";
+    case "gas-storage":
+      return "Gas storage";
+    case "electric-storage":
+      return "Electric storage";
+    case "controller":
+    case "zoning":
+    case "damper":
+      return "Zoning & controls";
+    default:
+      return "Accessories";
+  }
+}
+
 export type Product = {
   slug: string;
   name: string;

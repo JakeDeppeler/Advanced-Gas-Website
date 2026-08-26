@@ -22,7 +22,6 @@ export function RangeBand({
   brands: { brand: string; href?: string; reason?: string }[];
 }) {
   const linked = brands.filter((b) => b.href);
-  if (linked.length === 0) return null;
 
   return (
     <section className="rangeband">
@@ -34,6 +33,7 @@ export function RangeBand({
           <h2 className="ds-h--on-dark">{heading}</h2>
           {blurb && <p className="rangeband__lede">{blurb}</p>}
         </div>
+        {linked.length > 0 && (
         <div className="rangeband__row">
           {linked.map((b) => (
             <Link key={b.brand} href={b.href!} className="rangeband__btn">
@@ -45,9 +45,13 @@ export function RangeBand({
             </Link>
           ))}
         </div>
-        <p className="rangeband__all">
-          <Link href="/range">Or see every model we install, filterable →</Link>
-        </p>
+        )}
+        <div className="rangeband__all">
+          <Link href="/range" className="ds-btn ds-btn--orange ds-btn--lg">
+            See the full range →
+          </Link>
+          <span>Every model we install — filter by brand, system type or rebate.</span>
+        </div>
       </div>
     </section>
   );

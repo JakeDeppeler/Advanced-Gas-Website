@@ -3264,14 +3264,25 @@
   .page-detail .dp-pricing__shot { float: none; margin: 0 0 22px; max-width: none; }
 }
 
-/* The way through from a brand button to the whole catalogue. */
-.rangeband__all { margin: 22px 0 0; }
-.rangeband__all a {
-  font-weight: 700;
-  font-size: 14px;
-  color: #fff;
-  text-decoration: none;
-  border-bottom: 2px solid var(--orange);
-  padding-bottom: 2px;
+/* The way through from a brand button to the whole catalogue. A real
+   button, because it's on every service page now — including the ones
+   with no brand cards above it, where it's the only thing in the band. */
+.rangeband__all {
+  margin: 26px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
 }
-.rangeband__all a:hover { color: var(--orange); }
+.rangeband__row + .rangeband__all { margin-top: 26px; }
+.rangeband__all > span {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 48ch;
+}
+/* No brand cards? The button is the section, so it doesn't need a rule
+   above it. */
+.rangeband .ds-section-head + .rangeband__all { border-top: 0; padding-top: 0; }

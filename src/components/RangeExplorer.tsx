@@ -34,6 +34,9 @@ export type RangeItem = {
   photo: string;
   photoFallback?: string;
   accent: string;
+  /** Filtration rows point at their category page rather than a model
+   *  page, because there isn't one per unit. */
+  href?: string;
 };
 
 type Group = { key: string; label: string; options: { id: string; label: string; count: number }[] };
@@ -146,8 +149,8 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
           <div className="rex__grid">
             {shown.map((it) => (
               <Link
-                key={`${it.brandSlug}-${it.slug}`}
-                href={`/brands/${it.brandSlug}/${it.slug}`}
+                key={`${it.brand}-${it.name}`}
+                href={it.href ?? `/brands/${it.brandSlug}/${it.slug}`}
                 className="rexcard"
                 style={{ ["--card-accent" as string]: it.accent }}
               >

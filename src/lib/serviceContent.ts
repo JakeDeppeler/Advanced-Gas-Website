@@ -347,6 +347,64 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "multi",
+        benefitTiles: [
+          {
+            t: "One outdoor unit",
+            line: "Two to five heads off a single box",
+            detail:
+              "Two, three, four and five-port Mitsubishi MXZ outdoor units. One thing on the wall or the ground instead of one per room, which is the whole reason people choose a multi-head over separate splits.",
+            icon: "snowflake",
+          },
+          {
+            t: "Mix the head types",
+            line: "Wall, floor console or bulkhead on the one system",
+            detail:
+              "The heads don't have to match. A wall unit in the bedrooms, a floor console under a window where there's no wall height, a bulkhead where you'd rather see nothing — all running off the same outdoor unit.",
+            icon: "ruler",
+          },
+          {
+            t: "One set of penetrations",
+            line: "Not four holes in four walls",
+            detail:
+              "Every separate split is another core hole and another run of capping. A multi-head brings it back to one route, which is the difference between a tidy house and one that looks like it has been added to four times.",
+            icon: "shield",
+          },
+          {
+            t: "Each room, its own control",
+            line: "Own remote, own set temperature",
+            detail:
+              "Nobody has to agree on a temperature. Each head has its own remote and its own setting, and the rooms nobody is in stay off.",
+            icon: "remote",
+          },
+          {
+            t: "New copper to every head",
+            line: "Individually sized to that indoor unit",
+            detail:
+              "Each head gets its own line-set, sized for that unit rather than run in whatever was on the truck. Undersized pipe on a long run is the reason a multi-head underperforms in the furthest room.",
+            icon: "flow",
+          },
+          {
+            t: "Mounted and isolated",
+            line: "Levelled, anti-vibration mounted",
+            detail:
+              "New brackets or a stand, levelled, on anti-vibration mounts. A multi-head outdoor unit works harder than a single split's and you notice it if it isn't mounted properly.",
+            icon: "shield",
+          },
+          {
+            t: "Tidy outside",
+            line: "Colour-matched capping on every run",
+            detail:
+              "Every external run gets ducting capping matched to the wall. On a multi-head that matters more than on a split, because there is more of it.",
+            icon: "ruler",
+          },
+          {
+            t: "Drained legally",
+            line: "To a proper point, not out the wall",
+            detail:
+              "Condensate goes to a legal discharge point. Not dribbled down the render, which is how you get the stain under every head.",
+            icon: "truck",
+          },
+        ],
         label: "Multi-head air conditioning",
         blurb:
           "One outdoor unit running two to five indoor heads. Worth it when you want three bedrooms done but only have room, or body-corporate permission, for a single condenser outside.",
@@ -383,6 +441,64 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "ducted",
+        benefitTiles: [
+          {
+            t: "The duct design first",
+            line: "We size the trunk and the branches, not just the unit",
+            detail:
+              "Most ducted complaints are a duct problem, not a unit problem — the back bedroom gets nothing because the branch feeding it was never sized. We design the run before we quote the box.",
+            icon: "ruler",
+          },
+          {
+            t: "Mitsubishi indoor and out",
+            line: "PEAD-M / PEA-M with a PUZ outdoor",
+            detail:
+              "The pairing we fit most, and the one with the parts pipeline that is still open on units we put in years ago.",
+            icon: "snowflake",
+          },
+          {
+            t: "Zoning as standard",
+            line: "Zonemate 4, 6 or 8 zone, fitted by default",
+            detail:
+              "Zoning is not an upsell here. Conditioning the whole house to run one room is the single biggest waste in a ducted system, so the controller goes in as part of the job.",
+            icon: "remote",
+          },
+          {
+            t: "New duct throughout",
+            line: "Insulated flex, sized per branch",
+            detail:
+              "New insulated flexible duct on every branch, sized individually. Old duct that's been in a roof for twenty years is leaking, and you pay for that leak on every bill.",
+            icon: "flow",
+          },
+          {
+            t: "Return air built to suit",
+            line: "Box and filter frame made for the house",
+            detail:
+              "The return-air path is where a lot of ducted systems get strangled. The box and filter frame get built for your house rather than pulled off a shelf.",
+            icon: "shield",
+          },
+          {
+            t: "Pressure and vacuum tested",
+            line: "New copper between indoor and outdoor",
+            detail:
+              "New copper, pressure tested and vacuumed down before the charge goes in. It's the step you can't see and the one that decides whether the system is still right in ten years.",
+            icon: "gauge",
+          },
+          {
+            t: "Cut clean",
+            line: "Grilles level, cavity left tidy",
+            detail:
+              "Ceiling penetrations cut properly, grilles level, and the roof space left the way we found it. You'll be looking at those grilles from the couch for a long time.",
+            icon: "ruler",
+          },
+          {
+            t: "A retrofit, where there's access",
+            line: "Into an existing roof cavity",
+            detail:
+              "Most homes in this corridor can take a retrofit without opening ceilings, provided there's access. We check that on the quote visit rather than discovering it on install day.",
+            icon: "clock",
+          },
+        ],
         label: "Ducted reverse-cycle air conditioning",
         blurb:
           "Whole-home heating and cooling from a single system in the roof. Vents in every room, zoned so you are not paying to condition the bedrooms at 7pm. New builds and retrofits both.",
@@ -419,6 +535,64 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "evap",
+        benefitTiles: [
+          {
+            t: "Cheap to run",
+            line: "A fraction of refrigerated cooling",
+            detail:
+              "Evaporative uses a fan and a water pump rather than a compressor, so the running cost is a fraction of a refrigerated system's. On the right day it's the cheapest cooling there is.",
+            icon: "flow",
+          },
+          {
+            t: "Right for dry heat",
+            line: "Best in the drier north and east",
+            detail:
+              "It cools by evaporating water into the air, which works beautifully on a dry 38° day and much less well on a humid one. We'd rather tell you that than sell you one for the wrong climate.",
+            icon: "snowflake",
+          },
+          {
+            t: "Cooling only",
+            line: "Pair it with gas ducted for winter",
+            detail:
+              "There's no heating side to an evaporative unit. If you want one system for both, this isn't it — a ducted reverse-cycle is, and we'll price that instead.",
+            icon: "flame",
+          },
+          {
+            t: "Brivis and Kaden",
+            line: "Roof-mounted units we fit most",
+            detail:
+              "The two brands we install across the corridor, both with parts availability that doesn't disappear a few years in.",
+            icon: "shield",
+          },
+          {
+            t: "Roof made good",
+            line: "New flashing and weatherproofing",
+            detail:
+              "The penetration gets new flashing and is weatherproofed properly. A roof leak from a badly flashed evap unit costs more than the unit.",
+            icon: "shield",
+          },
+          {
+            t: "Its own water line",
+            line: "New supply and isolation tap",
+            detail:
+              "A new water supply line and an isolation tap at the unit, so it can be shut off for winter or for service without turning the house off.",
+            icon: "valve",
+          },
+          {
+            t: "Ducts sized, not just joined",
+            line: "Sized to the unit",
+            detail:
+              "Evaporative moves a lot of air and it needs somewhere for that air to go. Undersized ducts or not enough open windows and it does nothing but make noise.",
+            icon: "ruler",
+          },
+          {
+            t: "Old unit gone",
+            line: "Roof made good, nothing left up there",
+            detail:
+              "The old unit comes off and leaves with us, and the roof is patched properly rather than having a dead cooler abandoned next to the new one.",
+            icon: "truck",
+          },
+        ],
         label: "Evaporative cooling",
         blurb:
           "Roof-mounted, runs on water and a fan rather than refrigerant. Cheap to run and moves a lot of air, which suits the drier inland suburbs. Needs windows cracked to work, and it struggles on humid days.",
@@ -696,6 +870,50 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "evap",
+        benefitTiles: [
+          {
+            t: "Pads, checked and replaced",
+            line: "When they've gone brittle or scaled up",
+            detail:
+              "The pads are what does the cooling. Once they're scaled or brittle the water runs past them instead of through them, and the unit becomes an expensive fan. They're inspected every service and replaced when they're done.",
+            icon: "flow",
+          },
+          {
+            t: "Tray drained and flushed",
+            line: "Checked for leaks while it's empty",
+            detail:
+              "A winter's worth of sediment comes out of the tray, and it gets checked for leaks while it's empty — which is the only time you can see one before it finds your ceiling.",
+            icon: "valve",
+          },
+          {
+            t: "Pump and float under load",
+            line: "Bleed rate tested, not just switched on",
+            detail:
+              "The pump, the float valve and the bleed rate all tested running. A float that sticks after twenty minutes tests fine in the first thirty seconds.",
+            icon: "gauge",
+          },
+          {
+            t: "Every pad gets wet",
+            line: "Distributor lines cleared",
+            detail:
+              "Blocked distributor lines are why one side of the unit cools and the other doesn't. They get cleared so water reaches all of them rather than the front one only.",
+            icon: "flow",
+          },
+          {
+            t: "Checked before the heat",
+            line: "Belt, bearings and fan motor",
+            detail:
+              "The mechanical parts get looked at before the first hot day rather than during it. A bearing that's about to go is obvious in October and a five-day wait in February.",
+            icon: "wrench",
+          },
+          {
+            t: "We go on the roof",
+            line: "Access and safety handled by us",
+            detail:
+              "It's a roof-mounted unit and getting to it safely is our problem, not yours. Nobody should be up a ladder in January to look at their own cooler.",
+            icon: "shield",
+          },
+        ],
         label: "Evaporative cooler service",
         blurb:
           "A pre-summer service on a roof-mounted evap. Pads, water tray, pump and float all get looked at, because the first hot day is a bad time to find out the pump has seized over winter.",
@@ -730,6 +948,50 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "aircon-service",
+        benefitTiles: [
+          {
+            t: "Coils chemically cleaned",
+            line: "Not a filter rinse and a wipe",
+            detail:
+              "Indoor and outdoor coils cleaned with proper coil chemical and rinsed. A dirty coil is the most common reason a system stops cooling the way it used to, and it can't be fixed by washing the filter.",
+            icon: "wrench",
+          },
+          {
+            t: "Filters and return air",
+            line: "Washed or replaced, path checked",
+            detail:
+              "Filters washed or replaced, and the return-air path checked — a strangled return does the same damage as a blocked filter and nobody ever looks at it.",
+            icon: "flow",
+          },
+          {
+            t: "Drain flushed and tested",
+            line: "Flow tested, not just poked at",
+            detail:
+              "The condensate drain gets flushed and flow tested. A blocked drain is what puts water through your ceiling in February.",
+            icon: "valve",
+          },
+          {
+            t: "Pressures measured",
+            line: "Superheat against spec, not guessed",
+            detail:
+              "Refrigerant pressures and superheat measured and compared against the manufacturer's figures. That's how you find a leak rather than topping it up every summer.",
+            icon: "gauge",
+          },
+          {
+            t: "Electricals under load",
+            line: "Capacitor, fan motor, thermistors",
+            detail:
+              "The parts that fail on a hot day get tested under load, not just looked at. A capacitor reads fine cold and drops out at 40°.",
+            icon: "shield",
+          },
+          {
+            t: "Connections thermal-scanned",
+            line: "Torque-checked as well",
+            detail:
+              "Electrical connections torque-checked and thermal-scanned. A loose terminal shows up as heat long before it shows up as a fault.",
+            icon: "gauge",
+          },
+        ],
         label: "Split & ducted aircon service",
         blurb:
           "Filters, coils and drains on a refrigerated system. Most call-outs we get in January are units that have never been serviced, a blocked drain or a filthy coil, not a dead compressor.",
@@ -865,6 +1127,64 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "gas-ducted",
+        benefitTiles: [
+          {
+            t: "Star rating is the number",
+            line: "We quote the payback, not just the price",
+            detail:
+              "The difference between a 3-star and a 5-star unit is a running cost you pay every winter for fifteen years. We'll show you both prices and what the gap actually pays back in.",
+            icon: "tag",
+          },
+          {
+            t: "Brivis and Kaden",
+            line: "Wombat, Compact Classic, Buffalo, StarPro",
+            detail:
+              "The heaters in most homes built in this corridor between 1990 and 2015, and the ones we replace nearly every week.",
+            icon: "flame",
+          },
+          {
+            t: "Internal or external",
+            line: "Roof, cupboard, or against the wall",
+            detail:
+              "Internal units go in the roof or a cupboard; external ones sit against an outside wall. Which one you can have depends on the house, and we work that out before quoting.",
+            icon: "ruler",
+          },
+          {
+            t: "New flue to standard",
+            line: "Not the old one refitted",
+            detail:
+              "A new flue and cowl to current standards. Refitting the old flue to a new heater is how carbon monoxide problems start, and it isn't something we do.",
+            icon: "shield",
+          },
+          {
+            t: "Gas line checked",
+            line: "Upsized if the new unit needs it",
+            detail:
+              "A newer, bigger heater can want more gas than the existing line carries. We check that at the quote so the number doesn't move on install day.",
+            icon: "gauge",
+          },
+          {
+            t: "Ductwork inspected",
+            line: "Re-taped, or replaced if it's shot",
+            detail:
+              "Old ductwork gets inspected and re-taped, or replaced where it's past it. A new heater blowing into leaking ducts is money going into the roof space.",
+            icon: "flow",
+          },
+          {
+            t: "Return air sorted",
+            line: "New filter frame and grille where it's needed",
+            detail:
+              "The return-air filter frame and grille get replaced where the old one is past it, because that's what the new heater has to breathe through.",
+            icon: "ruler",
+          },
+          {
+            t: "CO tested before we leave",
+            line: "Every gas heater we touch",
+            detail:
+              "A carbon monoxide test on the running unit, every time, whether you asked for one or not. The result goes on the report.",
+            icon: "alarm",
+          },
+        ],
         label: "Gas ducted heating",
         blurb:
           "A gas furnace in the roof or against an outside wall, ducted to vents through the house. Still the least expensive way to heat a whole Melbourne home through winter, and the fastest to bring one up from cold.",
@@ -902,6 +1222,64 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "continuous-flow",
+        benefitTiles: [
+          {
+            t: "No tank losing heat",
+            line: "Heats on demand instead of storing",
+            detail:
+              "There's no cylinder sitting there keeping water hot all night for nobody. That standing loss is the reason a storage unit costs more to run than the hot water you actually use.",
+            icon: "flow",
+          },
+          {
+            t: "Sized by outlets",
+            line: "16, 20 and 26 litres a minute",
+            detail:
+              "The size is about how many hot taps run at once, not how many people live there. Two bathrooms in the morning is a 26; a unit and a single bathroom is a 16.",
+            icon: "ruler",
+          },
+          {
+            t: "Thermann or Rinnai",
+            line: "G-series made for Reece, or Rinnai",
+            detail:
+              "Thermann G-series is our default — Australian-designed, Reece distribution, 12-year heat exchanger. Rinnai where you'd rather stay with what's there.",
+            icon: "flame",
+          },
+          {
+            t: "Same-day on a swap",
+            line: "Most like-for-like replacements",
+            detail:
+              "A straight replacement in the same spot usually goes in the same day, so you're not without hot water overnight.",
+            icon: "clock",
+          },
+          {
+            t: "50° at the outlets",
+            line: "Tempering valve fitted or replaced",
+            detail:
+              "Outlets are temperature-controlled to 50°, as required. The tempering valve gets fitted or replaced rather than the old one being left to keep weeping.",
+            icon: "valve",
+          },
+          {
+            t: "New tails and valves",
+            line: "Not reused fittings",
+            detail:
+              "New copper tails and isolation valves. Reusing twenty-year-old fittings on a new unit is where the callback comes from.",
+            icon: "shield",
+          },
+          {
+            t: "Mounted clear",
+            line: "Levelled, clear of the eave",
+            detail:
+              "New wall bracket, unit levelled, and enough clearance from the eave for the flue. Not wedged where the old one happened to sit.",
+            icon: "ruler",
+          },
+          {
+            t: "Pressure tested, wall made good",
+            line: "Old unit removed",
+            detail:
+              "Old unit off and gone, the wall made good, and the gas pressure tested before we leave.",
+            icon: "truck",
+          },
+        ],
         label: "Continuous flow gas hot water",
         blurb:
           "Heats water on demand, so it never runs out and there's no tank losing heat overnight. Wall-mounted outside and about the size of a briefcase.",
@@ -938,6 +1316,50 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "gas-service",
+        benefitTiles: [
+          {
+            t: "A calibrated analyser",
+            line: "Reading recorded on the report",
+            detail:
+              "The carbon monoxide test is done with a calibrated analyser and the actual reading goes on the report. Not a sniff and an assurance.",
+            icon: "alarm",
+          },
+          {
+            t: "Burner stripped",
+            line: "Cleaned, not visually checked",
+            detail:
+              "The burner comes apart and gets cleaned. A visual check tells you nothing about what's built up inside it over three winters.",
+            icon: "wrench",
+          },
+          {
+            t: "Heat exchanger inspected",
+            line: "Looked at for cracking",
+            detail:
+              "The heat exchanger is what separates combustion gases from the air you breathe. A crack in it is the reason CO tests exist, and it's inspected every service.",
+            icon: "shield",
+          },
+          {
+            t: "Flue end to end",
+            line: "Seals checked the whole way",
+            detail:
+              "The flue and its seals are checked along their whole length, not just where they're easy to see. Most CO problems we find are a flue problem.",
+            icon: "flow",
+          },
+          {
+            t: "Report the same day",
+            line: "Written, emailed, yours to keep",
+            detail:
+              "The written report is emailed the same day, with the readings on it. Useful for a landlord, a sale, or just for knowing.",
+            icon: "clock",
+          },
+          {
+            t: "Every two years, or yearly",
+            line: "Annually once it's over ten",
+            detail:
+              "Every two years on a healthy unit, annually once it's past ten. If we think you can stretch it we'll say so rather than booking you in.",
+            icon: "tag",
+          },
+        ],
         label: "Gas heater service & carbon monoxide test",
         blurb:
           "An annual check of the burner, heat exchanger and flue, with a carbon monoxide test on the running appliance. This is the one that matters, a cracked heat exchanger has no smell and no warning.",

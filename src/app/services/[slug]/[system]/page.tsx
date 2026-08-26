@@ -316,13 +316,11 @@ export default function SystemPage({
 
       {/* THE RANGE — every model for this system sits on the brand page,
           so this is a button each rather than a second catalogue here. */}
-      {systemBrands.length > 0 && (
-        <RangeBand
-          heading={`See the full ${system.label.toLowerCase()} range.`}
-          blurb="Models, specs and installed prices, brand by brand."
-          brands={systemBrands}
-        />
-      )}
+      <RangeBand
+        heading={`See the full ${system.label.toLowerCase()} range.`}
+        blurb="Models, specs and installed prices, brand by brand."
+        brands={systemBrands}
+      />
 
       {/* QUOTE — the orange panel. */}
       <section className="dp-quote quotesec" id="quote">

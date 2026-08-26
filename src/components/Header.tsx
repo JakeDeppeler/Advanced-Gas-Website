@@ -199,7 +199,6 @@ const SERVICES_MEGA: {
     },
   ],
   popular: [
-    { href: "/range", label: "The full range", sub: "Every model, filterable" },
     { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },
@@ -481,6 +480,10 @@ function ServicesMega() {
             <span aria-hidden="true">→</span>
           </button>
         ))}
+        <Link href="/range" className="megasvc__range">
+          <b>The full range</b>
+          <span>Every model, filterable</span>
+        </Link>
         <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
           Get a fixed quote →
         </Link>

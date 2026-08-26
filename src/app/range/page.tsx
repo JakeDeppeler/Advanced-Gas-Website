@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, categoryPhoto } from "@/lib/brands";
+import { brands, categoryPhoto, rangeFilterType } from "@/lib/brands";
+import { TIERS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeExplorer, type RangeItem } from "@/components/RangeExplorer";
@@ -37,7 +38,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/range" },
 };
 
-const items: RangeItem[] = brands.flatMap((b) =>
+const catalogue: RangeItem[] = brands.flatMap((b) =>
   b.products.map((p) => {
     const fallback = categoryPhoto[p.category];
     return {
@@ -47,7 +48,7 @@ const items: RangeItem[] = brands.flatMap((b) =>
       name: p.name,
       model: p.model,
       category: p.category,
-      categoryLabel: p.categoryLabel,
+      categoryLabel: rangeFilterType(p.category, p.categoryLabel),
       capacity: p.capacity,
       veuEligible: p.veuEligible,
       installedPriceFrom: p.installedPriceFrom,
@@ -58,6 +59,48 @@ const items: RangeItem[] = brands.flatMap((b) =>
     };
   }),
 );
+
+/**
+ * Water filtration belongs in the range too — it's a thing we install and
+ * a customer looking at "everything we do" shouldn't have to know it
+ * lives in its own section. The whole-house units come from the system
+ * list (they're the ones with a brand and a model); the rest of the
+ * categories go in as one card each, pointing at their own page.
+ */
+const filtration: RangeItem[] = [
+  ...SYSTEM_STYLES.map((sy) => ({
+    slug: "",
+    brandSlug: "",
+    brand: sy.brand,
+    name: sy.name,
+    model: sy.style,
+    category: "filtration",
+    categoryLabel: "Water filtration",
+    veuEligible: false,
+    bestFor: sy.blurb,
+    photo: sy.photo,
+    photoFallback: "/water-filtration-whole-home-diagram.webp",
+    accent: "#00b0ed",
+    href: "/water-filtration/whole-home",
+  })),
+  ...TIERS.filter((t) => t.slug !== "whole-home").map((t) => ({
+    slug: "",
+    brandSlug: "",
+    brand: "Puretec",
+    name: t.label,
+    model: t.tagline,
+    category: "filtration",
+    categoryLabel: "Water filtration",
+    veuEligible: false,
+    bestFor: t.fitsWhere,
+    photo: t.productPhoto,
+    photoFallback: t.diagram,
+    accent: "#00b0ed",
+    href: `/water-filtration/${t.slug}`,
+  })),
+];
+
+const items: RangeItem[] = [...catalogue, ...filtration];
 
 export default function RangePage() {
   const crumbs = breadcrumbSchema([
