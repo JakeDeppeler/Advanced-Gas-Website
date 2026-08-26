@@ -254,65 +254,13 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      {/* WHY DO THIS AT ALL — only on services where the customer hasn't
-          decided they want the thing yet. When present it leads the page
-          and the specification blocks move below it, because a spec sheet
-          is no use to somebody still asking why. */}
-      {content.whyFirst && (
-        <section className="svc-why">
-          <div className="wrap">
-            <div className="svc-why__grid">
-              <div className="svc-why__copy">
-                <div className="ds-section-head ds-section-head--hl">
-                  <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> {content.whyFirst.eyebrow}</span>
-                  <h2>{content.whyFirst.heading}</h2>
-                  <p>{content.whyFirst.blurb}</p>
-                </div>
-                <ul className="svc-why__stats">
-                  {content.whyFirst.stats.map((st) => (
-                    <li key={st.label}>
-                      <strong>{st.value}</strong>
-                      <span>{st.label}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <figure className="svc-why__photo">
-                <img src={content.whyFirst.photo.src} alt={content.whyFirst.photo.alt} width="800" height="1000" loading="eager" />
-              </figure>
-            </div>
-
-            <div className="svc-why__reasons">
-              {content.whyFirst.reasons.map((r) => (
-                <div className="svc-why__reason" key={r.t}>
-                  <h3>{r.t}</h3>
-                  <p>{r.d}</p>
-                </div>
-              ))}
-            </div>
-
-            <p className="svc-why__caveat">{content.whyFirst.caveat}</p>
-          </div>
-        </section>
-      )}
-
-      {/* Why this gear and why us, then the range, then the proof. On a
-          why-first page these come before the specification. */}
-      {content.whyFirst && (
-        <>
-          {whyUsSection}
-          {installShots}
-          {beforeAfterSection}
-        </>
-      )}
-
       {/* WHAT'S INCLUDED — the tabbed tiles the filtration pages use. Six
           or seven cards of body copy in a grid is a wall; six tiles and
           one panel is the same content you can actually scan. */}
       <section className="dp-benefits">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What&apos;s included</span>
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Everyday benefits</span>
             <h2>Every {svc.short.toLowerCase()} we do, done properly.</h2>
           </div>
           <BenefitTiles
@@ -338,20 +286,75 @@ export default async function ServicePage({ params }: { params: { slug: string }
         />
       )}
 
+      {/* HOW IT LOOKS — the filtration pages' sand band. The question
+          people are too embarrassed to ask and the one that decides
+          whether they say yes to the quote. */}
+      {content.looks && (
+        <section className="svc-look">
+          <div className="wrap svc-look__grid">
+            <figure className="svc-look__shot">
+              <img
+                src={content.looks.photo}
+                alt={content.looks.photoAlt}
+                loading="lazy"
+                width="900"
+                height="900"
+              />
+            </figure>
+            <div className="svc-look__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How it looks</span>
+              <h2>{content.looks.heading}</h2>
+              <p>{content.looks.note}</p>
+              <ul className="svc-look__facts">
+                {content.looks.facts.map((f) => (
+                  <li key={f.k}>
+                    <strong>{f.v}</strong>
+                    <span>{f.k}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* IS IT RIGHT FOR YOU — the same three questions the system pages
           carry, on the page where the choice between systems is live. */}
       {ADVISORS[params.slug] && (
         <section className="sysfit">
+          {/* No section head above the box. The advisor carries its own —
+              a sand heading here and an orange heading two inches below
+              it was the same question asked twice, and the eyebrow was
+              white on sand, which is to say invisible. */}
           <div className="wrap">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
-              <h2>Which one you actually want.</h2>
-              <p>
-                We&rsquo;d rather you read this and ring someone else than have us fit
-                the wrong thing and both regret it.
-              </p>
-            </div>
             <SystemAdvisor service={params.slug} />
+          </div>
+        </section>
+      )}
+
+      {/* KEEPING IT WORKING — the half of the argument that only matters
+          after the sale, and therefore the half worth putting on the
+          page before it. */}
+      {content.servicing && (
+        <section className="svc-serv">
+          <div className="wrap svc-serv__grid">
+            <div className="svc-serv__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
+              <h2>{content.servicing.heading}</h2>
+              <p>{content.servicing.body}</p>
+              <ul className="svc-serv__facts">
+                {content.servicing.facts.map((f) => <li key={f}>{f}</li>)}
+              </ul>
+            </div>
+            <figure className="svc-serv__shot">
+              <img
+                src={content.servicing.photo}
+                alt={content.servicing.photoAlt}
+                loading="lazy"
+                width="900"
+                height="900"
+              />
+            </figure>
           </div>
         </section>
       )}
@@ -362,7 +365,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <section className="process">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we do it</span>
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
               <h2 className="ds-h--on-dark">Our {svc.short.toLowerCase()} process, step by step.</h2>
             </div>
             <ol className="steps">
@@ -481,12 +484,57 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
-      {!content.whyFirst && (
-        <>
-          {beforeAfterSection}
-          {installShots}
-        </>
+      {/* The proof — why this gear, our own jobs, a real changeover pair.
+          It used to run before the specification on `whyFirst` pages,
+          which put three sections between the header and the benefits on
+          the heat pump page and nowhere else. Every service opens the
+          same way now and the proof sits here on all four. */}
+      {/* WHY DO THIS AT ALL — only on services where the customer hasn't
+          decided they want the thing yet. It used to lead the page, which
+          put three sections between the header and the benefits on the
+          one service that has it. It reads just as well here, next to the
+          photos of us having done it. */}
+      {content.whyFirst && (
+        <section className="svc-why">
+          <div className="wrap">
+            <div className="svc-why__grid">
+              <div className="svc-why__copy">
+                <div className="ds-section-head ds-section-head--hl">
+                  <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> {content.whyFirst.eyebrow}</span>
+                  <h2>{content.whyFirst.heading}</h2>
+                  <p>{content.whyFirst.blurb}</p>
+                </div>
+                <ul className="svc-why__stats">
+                  {content.whyFirst.stats.map((st) => (
+                    <li key={st.label}>
+                      <strong>{st.value}</strong>
+                      <span>{st.label}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <figure className="svc-why__photo">
+                <img src={content.whyFirst.photo.src} alt={content.whyFirst.photo.alt} width="800" height="1000" loading="eager" />
+              </figure>
+            </div>
+
+            <div className="svc-why__reasons">
+              {content.whyFirst.reasons.map((r) => (
+                <div className="svc-why__reason" key={r.t}>
+                  <h3>{r.t}</h3>
+                  <p>{r.d}</p>
+                </div>
+              ))}
+            </div>
+
+            <p className="svc-why__caveat">{content.whyFirst.caveat}</p>
+          </div>
+        </section>
       )}
+
+      {whyUsSection}
+      {beforeAfterSection}
+      {installShots}
 
       {/* THE RANGE — a button per brand into the brand page. This
           replaces the brand pods, which were a paragraph of prose each on

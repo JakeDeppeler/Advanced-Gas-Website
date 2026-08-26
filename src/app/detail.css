@@ -3063,7 +3063,7 @@
   font-weight: 700;
   margin-bottom: 8px;
 }
-.page-detail .advisor__head h3 {
+.page-detail .advisor__head h2 {
   font-family: var(--f-display);
   font-size: clamp(24px, 2.6vw, 32px);
   font-weight: 800;
@@ -3480,4 +3480,131 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal:not(.is-revealed) .dp-price { opacity: 1; transform: none; }
   .page-detail .wf-style__go:hover { gap: 8px; }
+}
+
+
+/* ============================================================
+   HOW IT LOOKS  ·  KEEPING IT WORKING
+   The two sections the service pages were missing against the
+   whole-home filtration rhythm. Both are a photo one side and the
+   argument the other; they mirror so the page alternates rather than
+   running two identical bands back to back.
+   ============================================================ */
+.page-detail .svc-look { padding: 88px 0; background: var(--bg-2); }
+.page-detail .svc-serv { padding: 88px 0; background: var(--bg); }
+
+.page-detail .svc-look__grid,
+.page-detail .svc-serv__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 52px;
+  align-items: center;
+}
+/* Keeping it working puts the copy first, so the two bands mirror. */
+.page-detail .svc-serv__grid { grid-template-columns: 1.05fr 1fr; }
+
+.page-detail .svc-look__shot,
+.page-detail .svc-serv__shot {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
+}
+.page-detail .svc-look__shot img,
+.page-detail .svc-serv__shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.page-detail .svc-look__copy h2,
+.page-detail .svc-serv__copy h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--navy);
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.page-detail .svc-look__copy p,
+.page-detail .svc-serv__copy p {
+  margin: 0 0 22px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 58ch;
+}
+
+/* How it looks ends on figures — the sizes and finishes somebody is
+   trying to picture. */
+.page-detail .svc-look__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 26px;
+}
+.page-detail .svc-look__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--navy);
+}
+.page-detail .svc-look__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* Keeping it working ends on a checklist — these are commitments, not
+   measurements. */
+.page-detail .svc-serv__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+}
+.page-detail .svc-serv__facts li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.page-detail .svc-serv__facts li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 900px) {
+  .page-detail .svc-look,
+  .page-detail .svc-serv { padding: 56px 0; }
+  .page-detail .svc-look__grid,
+  .page-detail .svc-serv__grid { grid-template-columns: 1fr; gap: 26px; }
+  /* Stacked, the photo leads on both — a wall of text above a picture
+     reads as an article rather than a section. */
+  .page-detail .svc-serv__shot { order: -1; }
+}
+@media (max-width: 520px) {
+  .page-detail .svc-look__facts { grid-template-columns: 1fr; gap: 14px; }
 }

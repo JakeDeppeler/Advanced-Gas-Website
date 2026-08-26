@@ -31,8 +31,10 @@ export function SystemAdvisor({ service }: { service: string }) {
   return (
     <div className="advisor">
       <div className="advisor__head">
-        <span className="advisor__lbl">Not sure which one you need?</span>
-        <h3>Three questions and we&rsquo;ll tell you.</h3>
+        {/* This is the section head now — the page used to put one on the
+            sand above the box and then this one inside it. */}
+        <span className="advisor__lbl">Narrow it down</span>
+        <h2>Which one is right for my&nbsp;home?</h2>
         <p>{cfg.lede} Runs in your browser — nothing recorded, nothing sent.</p>
       </div>
 

@@ -108,11 +108,17 @@
   .hdr__logo-img { height: 40px; }
 }
 
+/* Centred, not left-aligned against the logo. At five items the nav is
+   short enough that hugging the logo left a lake of white between it
+   and the CTAs; centring puts the items between the two things that
+   anchor the bar. `flex: 1` on a centred row still lets the logo and
+   the CTAs take their natural width at either end. */
 .hdr__nav {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  margin-left: 8px;
+  margin: 0;
   position: relative;
   flex: 1;
 }
@@ -228,7 +234,9 @@
    rightmost trigger anymore. Fixed centering is bulletproof. */
 .mega {
   position: fixed;
-  top: 86px;              /* matches new .hdr__row height */
+  /* Sits clear of the bar rather than against it. The ::before bridge
+     below covers the gap so hover doesn't drop on the way down. */
+  top: 104px;
   left: 50%;
   transform: translateX(-50%);
   background: #fff;
@@ -251,7 +259,9 @@
      while the trigger sits anywhere in the nav — the cursor might
      traverse a diagonal path from the trigger to the mega's edge. */
   content: "";
-  position: absolute; left: -200px; right: -200px; top: -20px; height: 20px;
+  /* Taller now the mega sits further down — the bridge has to cover
+     the whole gap or hover drops halfway. */
+  position: absolute; left: -200px; right: -200px; top: -38px; height: 38px;
 }
 @keyframes megaIn {
   from { opacity: 0; transform: translate(-50%, -4px); }
@@ -517,7 +527,7 @@
 .mega__toolsall:hover { color: var(--orange); }
 
 /* -------- Tools mega — 7 icon tiles in a 2×4 grid + CTA row -------- */
-.mega__tools { width: min(920px, calc(100vw - 32px)); padding: 22px 26px; }
+.mega__tools { width: min(1120px, calc(100vw - 32px)); padding: 26px 30px; }
 .mega__toolshead {
   display: flex;
   align-items: baseline;
@@ -604,10 +614,12 @@
   color: var(--ink-2);
   line-height: 1.4;
 }
+.mega__toolsbtns { display: flex; gap: 10px; align-items: center; }
 @media (max-width: 720px) {
   .mega__tools { padding: 18px; }
   .mega__toolsgrid { grid-template-columns: 1fr; }
   .mega__toolsfoot { grid-template-columns: 1fr; }
+  .mega__toolsbtns { flex-direction: column; align-items: stretch; }
   .mega__toolsfoot .ds-btn { width: 100%; justify-content: center; }
 }
 .mega__brands-grid {

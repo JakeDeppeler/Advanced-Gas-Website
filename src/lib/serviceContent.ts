@@ -13,6 +13,34 @@ export type ServiceContent = {
    * a tile with no line is just a heading in a coloured box.
    */
   benefits: { t: string; d: string; line?: string; icon?: string }[];
+  /**
+   * "How it looks" — the filtration pages' sand band, on the service
+   * pages. What the gear actually looks like where it goes, which is
+   * the question people are too embarrassed to ask and the one that
+   * decides whether they say yes to the quote.
+   */
+  looks?: {
+    heading: string;
+    note: string;
+    photo: string;
+    photoAlt: string;
+    /** The figures beside the photo. Four short pairs. */
+    facts: { v: string; k: string }[];
+  };
+
+  /**
+   * "Keeping it working" — the half of the argument that only matters
+   * after the sale, and therefore the half worth putting on the page
+   * before it. Photo one side, the facts the other.
+   */
+  servicing?: {
+    heading: string;
+    photo: string;
+    photoAlt: string;
+    body: string;
+    facts: string[];
+  };
+
   /** Full-bleed header photo, the way the filtration pages lead. */
   heroPhoto?: string;
   heroPhotoAlt?: string;
@@ -201,6 +229,33 @@ export type ServiceContent = {
 
 export const serviceContent: Record<string, ServiceContent> = {
   "air-conditioning-installation": {
+    looks: {
+      heading: "What it actually looks like on the wall.",
+      note:
+        "Nobody asks this at the quote and everybody thinks it. An indoor head is about the size of a long shoebox and sits high on the wall; the outdoor unit is the part that ends up down the side of the house. What decides whether it looks tidy is the pipework, and that is entirely down to who installs it.",
+      photo: "/ducted-condenser.webp",
+      photoAlt: "Outdoor condenser on a levelled stand against a brick wall, pipework capped",
+      facts: [
+        { v: "~80 × 30 cm", k: "A typical indoor head, mounted high" },
+        { v: "Colour-matched", k: "Capping over the pipework, not bare lagging" },
+        { v: "Levelled + rated", k: "Wall brackets or a ground stand, never bricks" },
+        { v: "Cored and sealed", k: "One neat penetration, drop sheets down" },
+      ],
+    },
+    servicing: {
+      heading: "It only stays quiet if somebody cleans it.",
+      photo: "/ducted-split.webp",
+      photoAlt: "A ducted indoor unit on a platform in a roof space",
+      body:
+        "Almost every January call-out we get is a filthy coil, a blocked filter or a clogged condensate drain on a system nobody has touched since it went in. None of those are faults. All of them look like faults on the hottest day of the year, and all of them are an afternoon rather than a new system.",
+      facts: [
+        "Annual service is $220 on a split and $390 on a ducted, booked September to November before the rush",
+        "Filters, coils, drain, refrigerant pressures and capacitor, with a written report before we leave",
+        "We lodge the report with the manufacturer so the warranty record stays clean for any future claim",
+        "We text you eleven months later so the next one gets booked rather than forgotten",
+        "Ducted indoors go on a platform with a clear path to them, because a unit walled in behind cabinetry is a quote, not a service",
+      ],
+    },
     // ------------------------------------------------------------------
     // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
     // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.
@@ -704,6 +759,33 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "heat-pump-installation": {
+    looks: {
+      heading: "What it looks like against the house.",
+      note:
+        "An all-in-one is one tall cylinder standing where the old tank stood, with the compressor in a shroud on top. A split is a slimmer tank against the wall and a compressor about the size of an aircon outdoor unit beside it. Neither is invisible, and anyone telling you otherwise has not carried one.",
+      photo: "/reclaim-split-stand-back-shot.webp",
+      photoAlt: "Reclaim CO₂ split heat pump, tank and compressor against a brick wall",
+      facts: [
+        { v: "~1.8 m tall", k: "A 270 L all-in-one, on the old tank's slab" },
+        { v: "Two pieces", k: "On a split — tank on the wall, compressor beside it" },
+        { v: "37 dBA", k: "The Reclaim CO₂, quiet enough for a bedroom wall" },
+        { v: "Shady side", k: "Sited away from bedrooms and the neighbour's fence" },
+      ],
+    },
+    servicing: {
+      heading: "What happens in year ten.",
+      photo: "/reclaim-spit-close-up.webp",
+      photoAlt: "Reclaim CO₂ heat pump compressor and pipework, close up",
+      body:
+        "A heat pump is a fridge running backwards into a tank, and the tank is the part that decides how long you own it. Glass-lined tanks carry a sacrificial anode that has to be replaced or the tank goes; stainless has no anode and nothing to rust. That one difference is most of the gap between a ten-year system and a twenty-year one.",
+      facts: [
+        "Glass-lined tanks need the anode checked at five years and usually replaced — we book it rather than wait for the leak",
+        "Stainless has no anode to service, which is what the fifteen-year warranty on the Reclaim is actually about",
+        "The tempering valve is the part that fails quietly, and it is a cheap fix if it is caught at a service",
+        "CO₂ units hold their output to -10°, so a cold snap is not the thing that puts you on the element",
+        "Warranty and the VEU certificate both go in under your name the week we install, not six months later",
+      ],
+    },
     metaTitle: "Heat Pump Hot Water Installation, VEU Applied",
     metaDescription:
       "Reclaim, iStore and Thermann heat pump hot water installed across Melbourne's south-east. VEU rebate up to $2,700 applied at quote, no chasing paperwork. 6-year workmanship warranty.",
@@ -1068,6 +1150,33 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "aircon-servicing-repairs": {
+    looks: {
+      heading: "What a service visit actually looks like.",
+      note:
+        "Sixty to ninety minutes, one van, one person you have met before. We are not there to sell you a system — most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
+      photo: "/evap cooler service close ip.jpg",
+      photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
+      facts: [
+        { v: "60 – 90 min", k: "Per unit, on site" },
+        { v: "Parts on the truck", k: "Capacitors, thermistors, relays, refrigerant" },
+        { v: "Written report", k: "Before we leave, not emailed next week" },
+        { v: "Sept – Nov", k: "The window to book, before the first heatwave" },
+      ],
+    },
+    servicing: {
+      heading: "The record matters as much as the clean.",
+      photo: "/ducted-split.webp",
+      photoAlt: "Ducted indoor unit in a roof space, ready for service access",
+      body:
+        "A service is worth having twice over: once because the machine runs better, and once because there is now a document saying somebody competent looked at it. That second one is what a manufacturer asks for when you make a warranty claim in year four, and it is the reason a cheap cash-in-hand clean is worth less than it looks.",
+      facts: [
+        "The report goes straight to the manufacturer — Mitsubishi, Brivis, Kaden — so your warranty record stays intact",
+        "Any repair is quoted in writing before we touch it, at a fixed price rather than an hourly creep",
+        "The call-out fee is waived if the repair goes ahead the same day",
+        "Twelve-month warranty on any part we supply, plus six years on the labour",
+        "A reminder text at eleven months, with a one-line opt-out if you would rather we did not",
+      ],
+    },
     // ------------------------------------------------------------------
     // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
     // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.
@@ -1325,6 +1434,33 @@ export const serviceContent: Record<string, ServiceContent> = {
   },
 
   "gas-plumbing": {
+    looks: {
+      heading: "Where the heater actually goes.",
+      note:
+        "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have already been decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler — the unit is about the size of a briefcase, on an outside wall.",
+      photo: "/gas-ducted-install.webp",
+      photoAlt: "Gas ducted heater installed in a roof space with flue and ductwork",
+      facts: [
+        { v: "Three positions", k: "Internal cupboard, external slab, or in the roof" },
+        { v: "Like-for-like", k: "Back where the old one was, ducts and wiring reused" },
+        { v: "Briefcase-sized", k: "A continuous flow unit on an outside wall" },
+        { v: "3 – 4 hours", k: "A straight ducted swap, same day" },
+      ],
+    },
+    servicing: {
+      heading: "The one that has no smell and no warning.",
+      photo: "/gas-line-safe.webp",
+      photoAlt: "Gas line work in progress on a residential property",
+      body:
+        "A cracked heat exchanger puts carbon monoxide into the air your house is breathing, and it does it silently. There is no smell, no alarm on most homes, and the early symptoms read as a bad night's sleep. This is the single reason we will not let a gas heater over ten years old go unserviced without saying something about it.",
+      facts: [
+        "$280 + GST for a full service with a combustion analysis on a calibrated CO analyser",
+        "Every two years while it is young, annually once it is past ten",
+        "Spillage test, gas pressure test to AS/NZS 5601 and every safety control checked",
+        "A written report with the actual readings on it, not a sticker saying it passed",
+        "If we find a cracked exchanger we condemn it on the spot and tell you why — that is not a sales tactic, it is the law",
+      ],
+    },
     // ------------------------------------------------------------------
     // PHOTOS OF OUR OWN JOBS go here, same shape as the heat pump one
     // above: installPhotos: { heading, blurb, shots: [{ src, alt, caption }] }.

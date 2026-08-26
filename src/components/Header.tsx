@@ -275,7 +275,7 @@ const AREAS_MEGA = {
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
-  { label: "Pricing", trigger: "tools", href: "/pricing", kind: "tools" },
+  { label: "Pricing & tools", trigger: "tools", href: "/pricing", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
 ];
@@ -605,7 +605,13 @@ function ToolsMega() {
       </div>
       <div className="mega__toolsfoot">
         <div className="mega__cta-sub">Prefer a real quote? We&rsquo;ll answer inside 2 business hours.</div>
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        {/* The price list gets a button as well as a card. It's the
+            destination the menu is named after, and a row in a grid of
+            eleven is easy to read past. */}
+        <div className="mega__toolsbtns">
+          <Link href="/pricing" className="ds-btn ds-btn--ghost">Full price list →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        </div>
       </div>
     </div>
   );
