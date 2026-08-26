@@ -45,6 +45,9 @@ export function RangeBand({
             </Link>
           ))}
         </div>
+        <p className="rangeband__all">
+          <Link href="/range">Or see every model we install, filterable →</Link>
+        </p>
       </div>
     </section>
   );

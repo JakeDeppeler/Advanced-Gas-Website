@@ -1,0 +1,231 @@
+/* ===================================================================
+   /range — the full catalogue with a filter rail.
+
+   The shape Jake sent through from Kaden and Puretec: filters down the
+   left, product cards across. Everything here is scoped to .page-range
+   because it genuinely only appears on this page — unlike about half
+   the things in this codebase that ended up scoped by accident.
+   =================================================================== */
+
+.page-range .rangesec { padding: 72px 0 88px; background: var(--bg); }
+
+.page-range .rex {
+  display: grid;
+  grid-template-columns: 258px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+/* --- filter rail --- */
+.page-range .rex__rail {
+  position: sticky;
+  top: 106px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 22px 22px 24px;
+  box-shadow: 0 16px 36px -30px rgba(5, 10, 48, 0.4);
+}
+.page-range .rex__railtop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.page-range .rex__railtop h2 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.page-range .rex__clear {
+  appearance: none;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--orange);
+  cursor: pointer;
+  padding: 0;
+}
+.page-range .rex__clear:hover { text-decoration: underline; }
+
+.page-range .rex__group { border: 0; padding: 0; margin: 0 0 20px; }
+.page-range .rex__group legend {
+  padding: 0;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.page-range .rex__check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.page-range .rex__check input {
+  width: 16px; height: 16px;
+  accent-color: var(--orange);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.page-range .rex__check span { flex: 1; min-width: 0; }
+.page-range .rex__check:hover span { color: var(--navy); }
+.page-range .rex__check em {
+  font-style: normal;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+/* --- results --- */
+.page-range .rex__count {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+.page-range .rex__none {
+  padding: 40px 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.page-range .rex__none a { color: var(--navy); font-weight: 700; }
+
+.page-range .rex__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 16px;
+}
+.page-range .rexcard {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--card-accent, var(--sky));
+  border-radius: var(--rad);
+  text-decoration: none;
+  box-shadow: 0 14px 30px -26px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.page-range .rexcard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 24px 46px -24px rgba(5, 10, 48, 0.45);
+}
+.page-range .rexcard__brand {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.page-range .rexcard__shot {
+  height: 124px;
+  margin: 12px 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: var(--rad-sm);
+}
+.page-range .rexcard__shot img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.page-range .rexcard h3 {
+  font-family: var(--f-display);
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 1.28;
+  color: var(--navy);
+  margin: 0 0 3px;
+}
+.page-range .rexcard__model {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.page-range .rexcard p {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.page-range .rexcard__foot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.page-range .rexcard__cat {
+  font-size: 11px;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.page-range .rexcard__veu {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #fff;
+  background: var(--orange);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.page-range .rexcard__price {
+  margin-top: 10px;
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+/* --- the CTA column beside the orange panel --- */
+.page-range .rangecta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.page-range .rangecta__phone { color: rgba(255, 255, 255, 0.9); font-size: 15px; text-decoration: none; }
+.page-range .rangecta__phone strong { color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-range .rexcard:hover { transform: none; }
+}
+@media (max-width: 980px) {
+  .page-range .rex { grid-template-columns: 1fr; gap: 24px; }
+  .page-range .rex__rail { position: static; }
+  .page-range .rex__group { display: inline-block; vertical-align: top; margin-right: 32px; }
+}
+@media (max-width: 700px) {
+  .page-range .rangesec { padding: 48px 0 60px; }
+  .page-range .rex__grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+}

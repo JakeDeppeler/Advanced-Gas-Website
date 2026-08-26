@@ -199,6 +199,7 @@ const SERVICES_MEGA: {
     },
   ],
   popular: [
+    { href: "/range", label: "The full range", sub: "Every model, filterable" },
     { href: "/heat-pumps", label: "Heat pump vs gas", sub: "Cost + rebate breakdown" },
     { href: "/rebates", label: "VEU rebate calculator", sub: "See your out-of-pocket" },
     { href: "/pricing", label: "Full price list", sub: "Every model installed price" },

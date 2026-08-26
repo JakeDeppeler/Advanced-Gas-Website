@@ -3263,3 +3263,15 @@
 @media (max-width: 900px) {
   .page-detail .dp-pricing__shot { float: none; margin: 0 0 22px; max-width: none; }
 }
+
+/* The way through from a brand button to the whole catalogue. */
+.rangeband__all { margin: 22px 0 0; }
+.rangeband__all a {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.rangeband__all a:hover { color: var(--orange); }
