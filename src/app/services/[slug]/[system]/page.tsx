@@ -10,6 +10,7 @@ import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
+import { systemCatalogue } from "@/lib/systemCatalogue";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
@@ -238,7 +239,8 @@ export default function SystemPage({
           ).slice(0, 4),
           href: `/services/${params.slug}/${sy.id}`,
           current: sy.id === system.id,
-          sizes: (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => ({
+          brandSizes: systemCatalogue(sy.catalogue, sy.brands ?? content.brands),
+    sizes: (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => ({
             label: z.tier,
             price: z.price,
             includes: z.includes,

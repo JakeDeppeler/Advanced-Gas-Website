@@ -33,7 +33,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas" | "tools" | "company";
+      kind: "services" | "brands" | "areas" | "pricing" | "tools" | "company";
     };
 
 /**
@@ -275,7 +275,8 @@ const AREAS_MEGA = {
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
-  { label: "Pricing & tools", trigger: "tools", href: "/pricing", kind: "tools" },
+  { label: "Pricing", trigger: "pricing", href: "/pricing", kind: "pricing" },
+  { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
 ];
@@ -313,9 +314,20 @@ const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[]
  * nav before this menu existed, and losing that entirely would have
  * been a real cost; here it gets a full orange card instead.
  */
+/**
+ * The Pricing menu. Five destinations, all of them about what a job
+ * costs: the price list itself, the rebate, the two things that compare
+ * prices, and the range with every installed price on it.
+ */
+const PRICING_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean }[] = [
+  { href: "/rebates",                    label: "VEU rebates",        sub: "What you get off, and who qualifies",  icon: "$", lead: true },
+  { href: "/pricing",                    label: "Full price list",    sub: "Every model, installed price",         icon: "≡" },
+  { href: "/tools/veu-rebate-estimator", label: "Compare pricing",    sub: "Your postcode → what you'd pay",       icon: "◆" },
+  { href: "/range",                      label: "The full range",     sub: "Every model we install, filterable",   icon: "⌂" },
+  { href: "/tools/hot-water-savings",    label: "What it costs to run", sub: "Payback on a heat pump swap",        icon: "⚡" },
+];
+
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean; tool?: boolean }[] = [
-  { href: "/rebates",                        label: "VEU rebates",           sub: "What you get off, and who qualifies",  icon: "$", lead: true },
-  { href: "/pricing",                        label: "Full price list",       sub: "Every model, installed price",         icon: "≡" },
   { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$", tool: true },
   { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂", tool: true },
   { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑", tool: true },
@@ -426,6 +438,7 @@ export function Header() {
                     {n.kind === "services" && <ServicesMega />}
                     {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
+                    {n.kind === "pricing" && <PricingMega />}
                     {n.kind === "tools" && <ToolsMega />}
                     {n.kind === "company" && <CompanyMega />}
                   </div>
@@ -575,17 +588,46 @@ function BrandsMega() {
   );
 }
 
+function PricingMega() {
+  return (
+    <div className="mega__tools mega__pricing">
+      <div className="mega__toolshead">
+        <div className="mega__collabel">What a job costs</div>
+        <Link href="/pricing" className="mega__toolsall">Open the full price list →</Link>
+      </div>
+      <div className="mega__toolsgrid">
+        {PRICING_MEGA.map((t) => (
+          <Link
+            key={t.href}
+            href={t.href}
+            role="menuitem"
+            className={`mega__toolcard${t.lead ? " mega__toolcard--lead" : ""}`}
+          >
+            <span className="mega__toolicon" aria-hidden="true">{t.icon}</span>
+            <div className="mega__toolbody">
+              <b>{t.label}</b>
+              <span>{t.sub}</span>
+            </div>
+          </Link>
+        ))}
+      </div>
+      <div className="mega__toolsfoot">
+        <div className="mega__cta-sub">Every number is the installed price with the rebate already off it.</div>
+        <div className="mega__toolsbtns">
+          <Link href="/range" className="ds-btn ds-btn--ghost">The full range →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ToolsMega() {
   return (
     <div className="mega__tools">
       <div className="mega__toolshead">
-        <div className="mega__collabel">Prices, rebates &amp; calculators</div>
-        {/* Count the calculators, not the rows — the rebate and the
-            price list are destinations, not tools, and "See all 11
-            tools" would be a link to a page holding nine. */}
-        <Link href="/tools" className="mega__toolsall">
-          See all {TOOLS_MEGA.filter((t) => t.tool).length} tools →
-        </Link>
+        <div className="mega__collabel">Free tools &amp; calculators</div>
+        <Link href="/tools" className="mega__toolsall">See all {TOOLS_MEGA.length} tools →</Link>
       </div>
       <div className="mega__toolsgrid">
         {TOOLS_MEGA.map((t) => (
@@ -608,10 +650,7 @@ function ToolsMega() {
         {/* The price list gets a button as well as a card. It's the
             destination the menu is named after, and a row in a grid of
             eleven is easy to read past. */}
-        <div className="mega__toolsbtns">
-          <Link href="/pricing" className="ds-btn ds-btn--ghost">Full price list →</Link>
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
-        </div>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
       </div>
     </div>
   );
@@ -775,6 +814,25 @@ function MobileDrawer({ close }: { close: () => void }) {
                   ))}
                 </div>
               )}
+              {n.kind === "pricing" && (
+                <div className="hdr__drawer-col">
+                  <div className="hdr__drawer-collabel">What a job costs</div>
+                  {PRICING_MEGA.map((t) => (
+                    <Link
+                      key={t.href}
+                      href={t.href}
+                      onClick={close}
+                      className={`hdr__drawer-sublink hdr__drawer-sublink--tool${t.lead ? " is-lead" : ""}`}
+                    >
+                      <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
+                      <span className="hdr__drawer-toolbody">
+                        <b>{t.label}</b>
+                        <span>{t.sub}</span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
               {n.kind === "tools" && (
                 <div className="hdr__drawer-col">
                   <div className="hdr__drawer-collabel">Prices, rebates &amp; calculators</div>
@@ -783,7 +841,7 @@ function MobileDrawer({ close }: { close: () => void }) {
                       key={t.href}
                       href={t.href}
                       onClick={close}
-                      className={`hdr__drawer-sublink hdr__drawer-sublink--tool${t.lead ? " is-lead" : ""}`}
+                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
                     >
                       <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
                       <span className="hdr__drawer-toolbody">

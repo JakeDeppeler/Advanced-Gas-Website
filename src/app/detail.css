@@ -3787,3 +3787,86 @@
 @media (max-width: 640px) {
   .page-detail .dp-choose .wf-range__drop { padding: 22px 18px 24px; }
 }
+
+
+/* The pricing note that outlived its section. It was the last thing in
+   `.dp-pricing` and inherited that section's padding; on its own it sat
+   flush against the navy band below it with nothing under it at all. */
+.page-detail .dp-pricenote { padding: 0 0 72px; background: var(--bg); }
+.page-detail .dp-pricenote .dp-pricing__note { margin: 0; }
+@media (max-width: 900px) {
+  .page-detail .dp-pricenote { padding-bottom: 48px; }
+}
+
+
+/* --- The brand ladders inside the sizes drop. Two brands and the
+       sizes each makes, before the installed prices, because "what can
+       I actually have" comes before "what does it cost". --- */
+.page-detail .choose-brands {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.page-detail .choose-brand {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rad-sm);
+  padding: 18px 20px 16px;
+}
+.page-detail .choose-brand__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-detail .choose-brand__name {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.page-detail .choose-brand__name:hover { color: var(--sky-2); }
+.page-detail .choose-brand__meta {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+.page-detail .choose-brand__models { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.page-detail .choose-brand__models a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.14s;
+}
+.page-detail .choose-brand__models a:hover { background: rgba(255, 255, 255, 0.09); }
+.page-detail .choose-brand__models strong {
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: #fff;
+  min-width: 62px;
+}
+.page-detail .choose-brand__models span {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.page-detail .choose-sizes__lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 12px;
+}

@@ -30,6 +30,13 @@ export type ChooserSize = {
   priceKey?: string;
 };
 
+export type ChooserBrandSizes = {
+  brand: string;
+  href: string;
+  series: string | null;
+  models: { slug: string; size: string; model: string; href: string; priceFrom?: string }[];
+};
+
 export type ChooserCard = {
   id: string;
   label: string;
@@ -47,6 +54,9 @@ export type ChooserCard = {
   current?: boolean;
   /** The sizes we fit and what each costs installed. */
   sizes?: ChooserSize[];
+  /** The brands it comes in and the sizes each one makes. Absent on the
+   *  service-type systems, which have price tiers rather than models. */
+  brandSizes?: ChooserBrandSizes[];
 };
 
 export function SystemChooser({
@@ -111,7 +121,7 @@ export function SystemChooser({
                     ))}
                   </ul>
 
-                  {n > 0 && (
+                  {(n > 0 || (c.brandSizes?.length ?? 0) > 0) && (
                     <button
                       type="button"
                       className={`wf-style__more${on ? " is-open" : ""}`}
@@ -131,7 +141,13 @@ export function SystemChooser({
                         }
                       }}
                     >
-                      {on ? "Hide the sizes" : n === 1 ? "Size and price" : `The ${n} sizes and prices`}
+                      {on
+                        ? "Hide the sizes"
+                        : c.brandSizes && c.brandSizes.length > 0
+                          ? `${c.brandSizes.reduce((t, g) => t + g.models.length, 0)} sizes across ${c.brandSizes.length} ${c.brandSizes.length === 1 ? "brand" : "brands"}`
+                          : n === 1
+                            ? "Size and price"
+                            : `The ${n} sizes and prices`}
                       <span aria-hidden="true">{on ? "↑" : "↓"}</span>
                     </button>
                   )}
@@ -164,8 +180,39 @@ export function SystemChooser({
                   Installed, back to back, with everything below in the number.
                 </p>
               </div>
+              {openCard.brandSizes && openCard.brandSizes.length > 0 && (
+                <div className="choose-brands">
+                  {openCard.brandSizes.map((g) => (
+                    <div className="choose-brand" key={g.brand}>
+                      <div className="choose-brand__head">
+                        <Link href={g.href} className="choose-brand__name">
+                          {g.brand} <span aria-hidden="true">→</span>
+                        </Link>
+                        <span className="choose-brand__meta">
+                          {g.series ? `${g.series} · ` : ""}
+                          {g.models.length} {g.models.length === 1 ? "size" : "sizes"}
+                        </span>
+                      </div>
+                      <ul className="choose-brand__models">
+                        {g.models.map((m) => (
+                          <li key={m.slug}>
+                            <Link href={m.href}>
+                              <strong>{m.size}</strong>
+                              <span>{m.model}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {openCard.sizes && openCard.sizes.length > 0 && (
+                <div className="choose-sizes__lbl">What it costs installed</div>
+              )}
               <div className="choose-sizes">
-                {openCard.sizes!.map((z) => {
+                {(openCard.sizes ?? []).map((z) => {
                   const isFigure = /\d/.test(z.price);
                   return (
                     <article className="choose-size" key={z.label}>

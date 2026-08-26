@@ -200,6 +200,17 @@ export type ServiceContent = {
        *  cut-out stretched across a hero reads as a giant letterform. */
       scene?: boolean;
     };
+    /**
+     * Which product categories in the brand catalogue this system is
+     * built from, by `categoryLabel`. When present, "Choose your system"
+     * lists the brands and the sizes each comes in, off the catalogue,
+     * rather than making anybody guess what "split system" contains.
+     *
+     * Absent on the service-type systems on purpose — a gas heater
+     * service has price tiers, not model sizes, and a ladder of
+     * capacities there would be answering a question nobody asked.
+     */
+    catalogue?: string[];
     /** Which of the parent service's brands we actually fit in this
      *  system. Absent means all of them. Split systems are Mitsubishi
      *  Electric and Kaden — the evap brand and the ducted controller are
@@ -345,6 +356,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "split",
+        catalogue: ["Wall split system"],
         looks: {
           heading: "A shoebox on the wall and a box outside.",
           note:
@@ -486,6 +498,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "multi",
+        catalogue: ["Multi-head outdoor unit"],
         looks: {
           heading: "One box outside instead of four.",
           note:
@@ -607,6 +620,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "ducted",
+        catalogue: ["Ducted", "Ducted system"],
         looks: {
           heading: "You see the vents. That's it.",
           note:
@@ -728,6 +742,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "evap",
+        catalogue: ["Roof-mounted evaporative cooling"],
         looks: {
           heading: "A box on the roof and vents in the ceiling.",
           note:
@@ -1037,6 +1052,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "split-heat-pump",
+        catalogue: ["CO₂ split heat pump · glass-lined tank", "CO₂ split heat pump · stainless tank", "CO₂ split heat pump · Earthworker stainless tank", "CO₂ split heat pump", "CO₂ split heat pump · squat stainless tank", "Panasonic CO₂ split heat pump · glass-lined tank", "Panasonic CO₂ split heat pump · stainless tank", "Split heat pump · glass-lined tank"],
         looks: {
           heading: "Two pieces, and the tank is the tall one.",
           note:
@@ -1173,6 +1189,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "all-in-one",
+        catalogue: ["R290 all-in-one heat pump", "Heat pump hot water"],
         looks: {
           heading: "One cylinder where the old tank stood.",
           note:
@@ -1767,6 +1784,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "gas-ducted",
+        catalogue: ["Internal gas ducted heater", "External gas ducted heater"],
         looks: {
           heading: "It lives where the old one lived.",
           note:
@@ -1889,6 +1907,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "continuous-flow",
+        catalogue: ["G-series gas continuous-flow"],
         looks: {
           heading: "About the size of a briefcase.",
           note:

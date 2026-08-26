@@ -23,6 +23,7 @@ import { SystemAdvisor } from "@/components/SystemAdvisor";
 import { SystemChooser } from "@/components/SystemChooser";
 import { ADVISORS } from "@/lib/advisor";
 import { systemDetail } from "@/lib/systemDetail";
+import { systemCatalogue } from "@/lib/systemCatalogue";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
 /** The tile palette, same five the filtration pages rotate through. */
@@ -118,6 +119,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       : sy.points.map((pt) => ({ lead: pt }))
     ).slice(0, 4),
     href: `/services/${params.slug}/${sy.id}`,
+    brandSizes: systemCatalogue(sy.catalogue, sy.brands ?? content.brands),
     sizes: (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => ({
       label: z.tier,
       price: z.price,
