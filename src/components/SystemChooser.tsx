@@ -34,6 +34,11 @@ export type ChooserCard = {
    *  qualifier alone loses the subject — so the bullet carries both. */
   facts: { lead: string; note?: string }[];
   href: string;
+  /** True on the system whose page this is. It keeps its card — being
+   *  able to see the thing you're reading about next to the three you
+   *  aren't is the whole point — but the card says so instead of
+   *  offering a link back to itself. */
+  current?: boolean;
 };
 
 export function SystemChooser({
@@ -65,7 +70,7 @@ export function SystemChooser({
             selector written the readable way silently misses. */}
         <div className={`wf-styles__grid is-${cols}up`} style={{ "--cols": cols } as CSSProperties}>
           {cards.map((c, i) => (
-            <article className={`wf-style${i === 0 ? " is-lead" : ""}`} key={c.id}>
+            <article className={`wf-style${c.current ?? i === 0 ? " is-lead" : ""}`} key={c.id}>
               {c.photo && (
                 <div className={`wf-style__photo${c.photoScene ? " is-scene" : ""}`}>
                   <img src={c.photo} alt={c.photoAlt} loading="lazy" width="600" height="450" />
@@ -86,13 +91,17 @@ export function SystemChooser({
                     </li>
                   ))}
                 </ul>
-                <Link className="wf-style__go" href={c.href}>
-                  {/* Short on purpose. "The full detail on ducted
-                      reverse-cycle air conditioning" wrapped to two lines
-                      and pushed the arrow off on its own. */}
-                  See the full detail
-                  <span aria-hidden="true">→</span>
-                </Link>
+                {c.current ? (
+                  <span className="wf-style__here">You&rsquo;re reading this one</span>
+                ) : (
+                  <Link className="wf-style__go" href={c.href}>
+                    {/* Short on purpose. "The full detail on ducted
+                        reverse-cycle air conditioning" wrapped to two lines
+                        and pushed the arrow off on its own. */}
+                    See the full detail
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                )}
               </div>
             </article>
           ))}

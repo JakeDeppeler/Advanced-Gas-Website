@@ -292,7 +292,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
       {content.looks && (
         <section className="svc-look">
           <div className="wrap svc-look__grid">
-            <figure className="svc-look__shot">
+            <figure className={`svc-look__shot${content.looks.photoScene ? " is-scene" : ""}`}>
               <img
                 src={content.looks.photo}
                 alt={content.looks.photoAlt}
@@ -346,7 +346,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 {content.servicing.facts.map((f) => <li key={f}>{f}</li>)}
               </ul>
             </div>
-            <figure className="svc-serv__shot">
+            <figure className={`svc-serv__shot${content.servicing.photoScene ? " is-scene" : ""}`}>
               <img
                 src={content.servicing.photo}
                 alt={content.servicing.photoAlt}

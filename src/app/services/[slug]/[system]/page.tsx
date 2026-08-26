@@ -14,6 +14,7 @@ import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { SystemChooser } from "@/components/SystemChooser";
 import { ADVISORS } from "@/lib/advisor";
 
 /** The tile palette, same five the rest of the site rotates through. */
@@ -221,29 +222,85 @@ export default function SystemPage({
         </div>
       </section>
 
-      {/* IS IT RIGHT FOR YOU — three questions about the actual house.
-          The right-call / think-twice columns that were here came out:
-          they made the case in the abstract and the box answers it for
-          the reader's own place, which is what they were reaching for. */}
+      {/* CHOOSE YOUR SYSTEM — every shape the parent service offers,
+          this one included and marked as the one you're on. Somebody
+          who landed here from a search for "ducted" needs to see that
+          split and evap exist before they decide, and the shape of that
+          decision is the same one level up. */}
+      <SystemChooser
+        cards={(content.systems ?? []).map((sy) => ({
+          id: sy.id,
+          label: sy.label,
+          blurb: sy.blurb,
+          photo: resolveAsset(sy.photo.src),
+          photoAlt: sy.photo.alt,
+          photoScene: sy.photo.scene ?? false,
+          brands: sy.brands ?? content.brands,
+          priceFrom: sy.priceFrom,
+          facts: (sy.benefitTiles && sy.benefitTiles.length > 0
+            ? sy.benefitTiles.map((b) => ({ lead: b.t.trim(), note: b.line }))
+            : sy.points.map((pt) => ({ lead: pt }))
+          ).slice(0, 4),
+          href: `/services/${params.slug}/${sy.id}`,
+          current: sy.id === system.id,
+        }))}
+        heading={`The ${svc.short.toLowerCase()} options, side by side.`}
+        lede={`You're reading about ${system.label.toLowerCase()}. Here it is next to everything else we fit, in case it isn't the one.`}
+      />
+
+      {/* HOW IT LOOKS — what the gear looks like where it goes. The
+          question people are too embarrassed to ask at the quote. */}
+      {system.looks && (
+        <section className="svc-look">
+          <div className="wrap svc-look__grid">
+            <figure className={`svc-look__shot${system.looks.photoScene ? " is-scene" : ""}`}>
+              <img src={system.looks.photo} alt={system.looks.photoAlt} loading="lazy" width="900" height="900" />
+            </figure>
+            <div className="svc-look__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How it looks</span>
+              <h2>{system.looks.heading}</h2>
+              <p>{system.looks.note}</p>
+              <ul className="svc-look__facts">
+                {system.looks.facts.map((f) => (
+                  <li key={f.k}><strong>{f.v}</strong><span>{f.k}</span></li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* NARROW IT DOWN — three questions about the actual house. The
+          box carries its own head, same as on the service pages: a
+          heading on sand with an orange heading asking the same thing
+          below it was the question asked twice. */}
       {ADVISORS[params.slug] && (
         <section className="sysfit">
           <div className="wrap">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Is it right for you</span>
-              <h2>Where {system.label.toLowerCase()} works, and where it doesn&rsquo;t.</h2>
-              <p>
-                We&rsquo;d rather you read this and ring someone else than have us fit
-                the wrong thing and both regret it.
-              </p>
-            </div>
             <SystemAdvisor service={params.slug} />
           </div>
         </section>
       )}
 
-      {/* The spotlight came out. On a page that already says what you
-          get, whether it suits you and how the job runs, a fourth block
-          making the case was one too many. */}
+      {/* KEEPING IT WORKING — the half of the argument that only matters
+          after the sale, about this system rather than the service. */}
+      {system.servicing && (
+        <section className="svc-serv">
+          <div className="wrap svc-serv__grid">
+            <div className="svc-serv__copy">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>
+              <h2>{system.servicing.heading}</h2>
+              <p>{system.servicing.body}</p>
+              <ul className="svc-serv__facts">
+                {system.servicing.facts.map((f) => <li key={f}>{f}</li>)}
+              </ul>
+            </div>
+            <figure className={`svc-serv__shot${system.servicing.photoScene ? " is-scene" : ""}`}>
+              <img src={system.servicing.photo} alt={system.servicing.photoAlt} loading="lazy" width="900" height="900" />
+            </figure>
+          </div>
+        </section>
+      )}
 
       {/* Process for this system. Falls back to the parent service only
           where the system's own steps haven't been written yet. */}
@@ -251,7 +308,7 @@ export default function SystemPage({
         <section className="process">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we do it</span>
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
               <h2 className="ds-h--on-dark">What happens on a {system.label.toLowerCase()} install.</h2>
             </div>
             <ol className="steps">
@@ -343,11 +400,14 @@ export default function SystemPage({
       )}
 
 
-      {/* THE RANGE — every model for this system sits on the brand page,
-          so this is a button each rather than a second catalogue here. */}
+      {/* THE BRANDS — a door each into the brand page, plus one button
+          into the full filterable list. Led by the brands rather than by
+          "the range", because at this point the choice left is whose
+          box goes on the wall, not which system. */}
       <RangeBand
-        heading={`See the full ${system.label.toLowerCase()} range.`}
-        blurb="Models, specs and installed prices, brand by brand."
+        eyebrow="The brands"
+        heading={`Who makes the ${system.label.toLowerCase()} we fit.`}
+        blurb="Every model, spec and installed price sits on the brand page. One press each — or open the full list and filter it yourself."
         brands={systemBrands}
       />
 

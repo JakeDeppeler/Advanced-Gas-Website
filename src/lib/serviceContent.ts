@@ -24,6 +24,7 @@ export type ServiceContent = {
     note: string;
     photo: string;
     photoAlt: string;
+    photoScene?: boolean;
     /** The figures beside the photo. Four short pairs. */
     facts: { v: string; k: string }[];
   };
@@ -37,6 +38,7 @@ export type ServiceContent = {
     heading: string;
     photo: string;
     photoAlt: string;
+    photoScene?: boolean;
     body: string;
     facts: string[];
   };
@@ -218,6 +220,31 @@ export type ServiceContent = {
      *  /services/<service>/<id>. Distinct from `blurb`, which is the
      *  one-paragraph version shown on the parent service page. */
     intro?: string;
+    /** "How it looks" and "Keeping it working" for this system's own
+     *  page. Same shape as the parent service's, because the system page
+     *  runs the same rhythm one level down — but written about the one
+     *  system rather than the whole service, which is the point of
+     *  having the page at all. */
+    looks?: {
+      heading: string;
+      note: string;
+      photo: string;
+      photoAlt: string;
+      /** True where the photo is a real scene. Scenes fill the panel;
+       *  a manufacturer cut-out sits inside it on white instead. */
+      photoScene?: boolean;
+      facts: { v: string; k: string }[];
+    };
+    servicing?: {
+      heading: string;
+      photo: string;
+      photoAlt: string;
+      /** True where the photo is a real scene. Scenes fill the panel;
+       *  a manufacturer cut-out sits inside it on white instead. */
+      photoScene?: boolean;
+      body: string;
+      facts: string[];
+    };
     /** Where this system is the right call. */
     bestFor?: string[];
     /** Where it isn't — the honest half, and the reason these pages are
@@ -235,6 +262,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "Nobody asks this at the quote and everybody thinks it. An indoor head is about the size of a long shoebox and sits high on the wall; the outdoor unit is the part that ends up down the side of the house. What decides whether it looks tidy is the pipework, and that is entirely down to who installs it.",
       photo: "/ducted-condenser.webp",
       photoAlt: "Outdoor condenser on a levelled stand against a brick wall, pipework capped",
+      photoScene: true,
       facts: [
         { v: "~80 × 30 cm", k: "A typical indoor head, mounted high" },
         { v: "Colour-matched", k: "Capping over the pipework, not bare lagging" },
@@ -246,6 +274,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       heading: "It only stays quiet if somebody cleans it.",
       photo: "/ducted-split.webp",
       photoAlt: "A ducted indoor unit on a platform in a roof space",
+      photoScene: true,
       body:
         "Almost every January call-out we get is a filthy coil, a blocked filter or a clogged condensate drain on a system nobody has touched since it went in. None of those are faults. All of them look like faults on the hottest day of the year, and all of them are an afternoon rather than a new system.",
       facts: [
@@ -315,6 +344,34 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "split",
+        looks: {
+          heading: "A shoebox on the wall and a box outside.",
+          note:
+            "The indoor head goes high on the wall, usually above a door or a bed. Outside, the condenser sits on brackets or a ground stand down the side of the house. What decides whether it looks tidy is the run between them \u2014 and that is entirely down to who fits it.",
+          photo: "/ducted-condenser.webp",
+          photoAlt: "The outdoor condenser on a levelled stand beside the house",
+          photoScene: true,
+          facts: [
+            { v: "~80 \u00d7 30 cm", k: "The indoor head, mounted near the ceiling" },
+            { v: "Colour-matched", k: "Capping over the pipework, not bare lagging" },
+            { v: "Back-to-back", k: "Where we can, so the run is a metre not ten" },
+            { v: "19 dBA", k: "On low, on the smallest unit" },
+          ],
+        },
+        servicing: {
+          heading: "One clean a year and it stops being a problem.",
+          photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+          photoAlt: "Mitsubishi MSZ-AP wall split indoor head",
+          body:
+            "A split that gets serviced once a year runs at its rated output for fifteen years. One that doesn't loses capacity quietly, and the first anyone notices is the afternoon it can't hold the room. That is not a fault, it's a filter and a coil.",
+          facts: [
+            "$220 a year, or $140 each where there are three or more at the same address on the same visit",
+            "Filter, coil chemical clean, drain flush, refrigerant pressures and the capacitor tested",
+            "Booked September to November, before the first heatwave rather than during it",
+            "The report goes to the manufacturer so the warranty record stays clean",
+            "Five-year manufacturer warranty on the unit and six years from us on the install",
+          ],
+        },
         label: "Split system air conditioning",
         blurb:
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
@@ -430,6 +487,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "multi",
+        looks: {
+          heading: "One box outside instead of four.",
+          note:
+            "That is the entire visual argument for a multi-head. Four separate splits means four condensers along the side of the house and four sets of holes through the wall; a multi means one larger condenser and one set of penetrations, with the pipework fanned out from there.",
+          photo: "/kaden-indoor.webp",
+          photoAlt: "One of the indoor heads running off a multi-head system",
+          photoScene: true,
+          facts: [
+            { v: "One condenser", k: "For two to six indoor heads" },
+            { v: "Wall or roof", k: "On a levelled, rated stand either way" },
+            { v: "Mix the heads", k: "Wall, floor console or bulkhead on one system" },
+            { v: "One trench", k: "Of capping, not four separate runs" },
+          ],
+        },
+        servicing: {
+          heading: "Six heads, one outdoor unit, one service.",
+          photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp",
+          photoAlt: "Mitsubishi MXZ multi-head outdoor condenser",
+          body:
+            "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists \u2014 there is no sense charging a full call-out per head when we are already standing in the house.",
+          facts: [
+            "$220 for the first unit, $140 for each one after it at the same address on the same day",
+            "One outdoor coil clean covers every head running off it",
+            "Each head gets its own filter, drain and pressure check \u2014 they foul at different rates",
+            "A blocked drain on one head is the most common call-out, and it is a fifteen-minute fix at a service",
+            "Five-year manufacturer warranty, six years from us on the install",
+          ],
+        },
         brands: ["Mitsubishi Electric", "Kaden"],
         benefitTiles: [
           {
@@ -525,6 +610,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "ducted",
+        looks: {
+          heading: "You see the vents. That's it.",
+          note:
+            "The whole point of ducted is that there is nothing on the wall. The indoor unit lives in the roof, the ducts run through the cavity, and what you see in each room is a vent in the ceiling and a controller by the hallway. Outside there is one condenser, usually on a slab down the side.",
+          photo: "/ducted-split.webp",
+          photoAlt: "Ducted indoor unit on a platform in a roof space",
+          photoScene: true,
+          facts: [
+            { v: "Ceiling vents", k: "One per room, nothing on the walls" },
+            { v: "In the roof", k: "Indoor unit on a platform, out of the way" },
+            { v: "4 – 8 zones", k: "Fitted as standard, not as an upsell" },
+            { v: "One controller", k: "Usually by the hallway or the kitchen" },
+          ],
+        },
+        servicing: {
+          heading: "Whether we can reach it was decided on install day.",
+          photo: "/mitsubishi-pea-m-ducted-v2-v3.webp",
+          photoAlt: "Mitsubishi PEAD-M ducted indoor unit",
+          body:
+            "A ducted indoor unit sits in a roof cavity for fifteen years, and the single thing that decides whether servicing it is an hour or a quote is whether somebody left a path to it. We put ours on a platform with clear access. Not everyone does, and we have crawled far enough to have opinions about it.",
+          facts: [
+            "$390 a year \u2014 return-air filter, coil clean, gas pressures, zone motors and the controller",
+            "Return-air filters are the most-skipped part of a ducted system and the most likely reason it's weak",
+            "Zone damper motors fail one at a time and quietly, so they get tested rather than assumed",
+            "We fit ours on a platform with a clear path, because a unit walled in behind cabinetry is a quote",
+            "Roof-scaffold hire on a two-storey return is quoted separately, and we say so before the day",
+          ],
+        },
         brands: ["Mitsubishi Electric", "Kaden", "Zonemate"],
         benefitTiles: [
           {
@@ -620,6 +733,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "evap",
+        looks: {
+          heading: "A box on the roof and vents in the ceiling.",
+          note:
+            "An evaporative cooler is the unit you can see from the street \u2014 a squat box on the roof, usually toward the back. Inside there is a vent per room and a small controller on the wall. There is no outdoor unit down the side of the house, which is why it suits homes with no room for one.",
+          photo: "/classic_evap_product_image.jpg",
+          photoAlt: "Evaporative cooler unit and its wall controller",
+          facts: [
+            { v: "Roof-mounted", k: "Nothing at ground level, nothing on the walls" },
+            { v: "Ceiling vents", k: "One per room, same as ducted" },
+            { v: "Needs windows", k: "Cracked open — it pushes air through the house" },
+            { v: "Water + power", k: "A supply line to the roof and a dedicated circuit" },
+          ],
+        },
+        servicing: {
+          heading: "Pads, pump, float \u2014 and the first hot day.",
+          photo: "/evap cooler service close ip.jpg",
+          photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
+          photoScene: true,
+          body:
+            "Evaporative coolers sit on a roof through a Melbourne winter doing nothing, and the pump is the part that decides whether they wake up. The first thirty-degree day is the worst possible time to find out it seized in July, which is why the pre-summer service exists.",
+          facts: [
+            "$220 + GST, booked September to November before the first run of the season",
+            "Pads checked and replaced where they have gone brittle or scaled up",
+            "Water tray drained and flushed, and checked for leaks while it is empty",
+            "Pump and float tested under load, with the bleed rate measured rather than eyeballed",
+            "Distributor lines cleared so every pad gets wet \u2014 a dry pad is a third of your cooling gone",
+          ],
+        },
         brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
@@ -765,6 +906,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "An all-in-one is one tall cylinder standing where the old tank stood, with the compressor in a shroud on top. A split is a slimmer tank against the wall and a compressor about the size of an aircon outdoor unit beside it. Neither is invisible, and anyone telling you otherwise has not carried one.",
       photo: "/reclaim-split-stand-back-shot.webp",
       photoAlt: "Reclaim CO₂ split heat pump, tank and compressor against a brick wall",
+      photoScene: true,
       facts: [
         { v: "~1.8 m tall", k: "A 270 L all-in-one, on the old tank's slab" },
         { v: "Two pieces", k: "On a split — tank on the wall, compressor beside it" },
@@ -776,6 +918,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       heading: "What happens in year ten.",
       photo: "/reclaim-spit-close-up.webp",
       photoAlt: "Reclaim CO₂ heat pump compressor and pipework, close up",
+      photoScene: true,
       body:
         "A heat pump is a fridge running backwards into a tank, and the tank is the part that decides how long you own it. Glass-lined tanks carry a sacrificial anode that has to be replaced or the tank goes; stainless has no anode and nothing to rust. That one difference is most of the gap between a ten-year system and a twenty-year one.",
       facts: [
@@ -897,6 +1040,35 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "split-heat-pump",
+        looks: {
+          heading: "Two pieces, and the tank is the tall one.",
+          note:
+            "The compressor is about the size of an aircon outdoor unit and sits on a slab or brackets. The tank stands against the wall beside it, slimmer than an all-in-one because it is not carrying a compressor on its head. A pair of insulated lines runs between them.",
+          photo: "/reclaim-split-back.webp",
+          photoAlt: "Reclaim split heat pump tank and compressor from behind",
+          photoScene: true,
+          facts: [
+            { v: "Two pieces", k: "Compressor on the ground, tank against the wall" },
+            { v: "160 – 400 L", k: "Tank sizes, so the footprint follows the household" },
+            { v: "37 dBA", k: "Quiet enough to sit near a bedroom wall" },
+            { v: "Shady side", k: "Sited away from bedrooms and the neighbour's fence" },
+          ],
+        },
+        servicing: {
+          heading: "The tank decides how long you own it.",
+          photo: "/reclaim-spit-close-up.webp",
+          photoAlt: "Reclaim CO₂ heat pump compressor and pipework, close up",
+          photoScene: true,
+          body:
+            "Glass-lined tanks carry a sacrificial anode that corrodes so the steel doesn't. Replace it around year five and the tank lasts; skip it and the tank goes. Stainless has no anode at all, which is what the fifteen-year warranty is actually about \u2014 not a better weld, an absent failure mode.",
+          facts: [
+            "Glass-lined: anode checked at five years and usually replaced \u2014 we book it rather than wait for the leak",
+            "Stainless: nothing to service on the tank, which is most of the reason it costs more up front",
+            "The tempering valve is the part that fails quietly, and it is cheap when it's caught at a service",
+            "CO₂ holds output to -10\u00b0, so a cold snap doesn't quietly put you on the backup element",
+            "Warranty and the VEU certificate both lodged in your name the week we install",
+          ],
+        },
         label: "Split heat pump hot water",
         blurb:
           "Compressor outside, tank against the wall, a pair of lines between them. It is the better performer in the cold and the one with the tank options — stainless or glass-lined, 160 to 400 litres — because the tank isn't carrying a compressor on top of it.",
@@ -1006,6 +1178,33 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "all-in-one",
+        looks: {
+          heading: "One cylinder where the old tank stood.",
+          note:
+            "An all-in-one is a single unit: tank below, compressor in a shroud on top. It goes back on the slab the old electric or gas tank came off, which is why it is the simplest swap there is. It is taller than what it replaces, and that is the one thing worth checking before the day.",
+          photo: "/270L-istore-heatpump.webp",
+          photoAlt: "iStore 270 L all-in-one heat pump",
+          facts: [
+            { v: "~1.8 m tall", k: "On a 270 L — taller than the tank it replaces" },
+            { v: "One footprint", k: "Nothing separate to place or plumb" },
+            { v: "180 – 285 L", k: "The sizes that cover most households" },
+            { v: "Existing slab", k: "Where it will take the weight — we check on the day" },
+          ],
+        },
+        servicing: {
+          heading: "Simpler to fit, and simpler to keep.",
+          photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp",
+          photoAlt: "Reclaim ECO R290 all-in-one heat pump",
+          body:
+            "There is less to an all-in-one than to a split, and that cuts both ways: fewer things to go wrong, and one shell to replace when the tank eventually does. The anode rule is the same as anywhere else, and it is still the thing most owners have never heard of.",
+          facts: [
+            "Anode checked at five years on every unit that has one \u2014 that is most of the all-in-one range",
+            "R290 is a hydrocarbon refrigerant, so the unit needs clear air around it rather than a sealed cupboard",
+            "Below about 5\u00b0 an R290 unit leans on its element more, which shows up on a July bill rather than as a fault",
+            "Tempering valve and isolation valves checked at the same visit",
+            "Six-year tank and three-year compressor from the manufacturer, six years from us on the install",
+          ],
+        },
         label: "All-in-one heat pump hot water",
         blurb:
           "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump — which is why it's where the rebate goes furthest and where most straight electric swaps end up.",
@@ -1156,6 +1355,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "Sixty to ninety minutes, one van, one person you have met before. We are not there to sell you a system — most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
       photo: "/evap cooler service close ip.jpg",
       photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
+      photoScene: true,
       facts: [
         { v: "60 – 90 min", k: "Per unit, on site" },
         { v: "Parts on the truck", k: "Capacitors, thermistors, relays, refrigerant" },
@@ -1167,6 +1367,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       heading: "The record matters as much as the clean.",
       photo: "/ducted-split.webp",
       photoAlt: "Ducted indoor unit in a roof space, ready for service access",
+      photoScene: true,
       body:
         "A service is worth having twice over: once because the machine runs better, and once because there is now a document saying somebody competent looked at it. That second one is what a manufacturer asks for when you make a warranty claim in year four, and it is the reason a cheap cash-in-hand clean is worth less than it looks.",
       facts: [
@@ -1237,6 +1438,34 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "evap",
+        looks: {
+          heading: "Everything happens on the roof.",
+          note:
+            "You will not see much of an evap service from inside the house. We are on the roof with the lid off, in the tray and the pad frames. What you get at the end is a written report and, if we found something, a price before we touch it.",
+          photo: "/evap-cooler-service.webp",
+          photoAlt: "Evaporative cooler mounted on a tiled roof",
+          photoScene: true,
+          facts: [
+            { v: "60 – 90 min", k: "On the roof, one visit" },
+            { v: "Roof access", k: "Ours to worry about, not yours" },
+            { v: "3 – 5 years", k: "How long a set of pads usually lasts" },
+            { v: "Sept – Nov", k: "The window, before the first hot day" },
+          ],
+        },
+        servicing: {
+          heading: "Winter is what breaks them.",
+          photo: "/Kaden classic_evap cooler .jpg",
+          photoAlt: "Evaporative cooler unit, pads and housing",
+          body:
+            "Nothing about an evaporative cooler wears out in summer. It wears out sitting still through winter, with a dry pump, scale drying onto the pads and a tray full of whatever came off the roof. The service is really about undoing eight months of standing idle.",
+          facts: [
+            "Pads replaced when they have gone brittle or scaled \u2014 usually every three to five years, not annually",
+            "Tray drained, flushed and checked for leaks while there is nothing in it",
+            "Pump and float tested under load; a seized pump is the single most common no-cool call",
+            "Distributor lines cleared so all the pads get wet, not just the ones nearest the feed",
+            "Winter shutdown available at the same visit if you would rather it was drained down properly",
+          ],
+        },
         brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
@@ -1316,6 +1545,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "aircon-service",
+        looks: {
+          heading: "What we actually open up.",
+          note:
+            "A refrigerated service is not a wipe-down. The indoor unit comes apart far enough to get at the coil, the outdoor unit gets the same, and the drain gets flushed rather than poked. On a ducted system most of that happens in the roof, which is where the filter has usually been ignored.",
+          photo: "/ducted-condenser.webp",
+          photoAlt: "Outdoor condenser on a levelled stand, ready for a coil clean",
+          photoScene: true,
+          facts: [
+            { v: "60 – 90 min", k: "Per unit, on site" },
+            { v: "Coils, both", k: "Indoor and outdoor, chemically cleaned" },
+            { v: "Measured", k: "Superheat against spec, not guessed" },
+            { v: "On the truck", k: "Capacitors, thermistors, relays, refrigerant" },
+          ],
+        },
+        servicing: {
+          heading: "The paperwork is half of what you're buying.",
+          photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+          photoAlt: "Wall split indoor head, opened for a filter and coil clean",
+          body:
+            "A service is worth having twice over: the machine runs better, and there is now a document saying somebody competent looked at it. The second one is what a manufacturer asks for when you claim in year four \u2014 and it is why a cash-in-hand clean is worth less than it looks.",
+          facts: [
+            "The report goes straight to the manufacturer, so the warranty record stays intact",
+            "Any repair is quoted in writing before we touch it, fixed price rather than hourly creep",
+            "The call-out fee is waived if the repair goes ahead the same day",
+            "Twelve months on any part we supply, plus six years on the labour",
+            "A reminder text at eleven months, with a one-line opt-out if you would rather not",
+          ],
+        },
         brands: ["Mitsubishi Electric", "Kaden", "Brivis"],
         benefitTiles: [
           {
@@ -1440,6 +1697,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have already been decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler — the unit is about the size of a briefcase, on an outside wall.",
       photo: "/gas-ducted-install.webp",
       photoAlt: "Gas ducted heater installed in a roof space with flue and ductwork",
+      photoScene: true,
       facts: [
         { v: "Three positions", k: "Internal cupboard, external slab, or in the roof" },
         { v: "Like-for-like", k: "Back where the old one was, ducts and wiring reused" },
@@ -1451,6 +1709,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       heading: "The one that has no smell and no warning.",
       photo: "/gas-line-safe.webp",
       photoAlt: "Gas line work in progress on a residential property",
+      photoScene: true,
       body:
         "A cracked heat exchanger puts carbon monoxide into the air your house is breathing, and it does it silently. There is no smell, no alarm on most homes, and the early symptoms read as a bad night's sleep. This is the single reason we will not let a gas heater over ten years old go unserviced without saying something about it.",
       facts: [
@@ -1523,6 +1782,34 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "gas-ducted",
+        looks: {
+          heading: "It lives where the old one lived.",
+          note:
+            "A gas ducted heater goes in one of three places, and which one you have was decided when the house was built: a cupboard inside, a slab against an outside wall, or up in the roof. A like-for-like replacement goes straight back into the same spot, on the same ducts, with the same controller wiring.",
+          photo: "/gas-ducted-install.webp",
+          photoAlt: "Gas ducted heater installed in a roof space with flue and ductwork",
+          photoScene: true,
+          facts: [
+            { v: "Three positions", k: "Internal cupboard, external slab, or in the roof" },
+            { v: "Ceiling vents", k: "One per room, usually the existing ones" },
+            { v: "3 – 4 hours", k: "A straight swap, same day" },
+            { v: "Ducts reused", k: "Where they're sound — we check before we quote" },
+          ],
+        },
+        servicing: {
+          heading: "The failure with no smell and no warning.",
+          photo: "/Brivis Wombat Indoor 3 star.jpg",
+          photoAlt: "Brivis Wombat internal gas ducted heater",
+          body:
+            "A cracked heat exchanger puts carbon monoxide into the air the house is breathing, silently. No smell, no alarm in most homes, and early symptoms that read as a bad night's sleep. It is the one reason we will not quietly let a heater past ten years go unserviced.",
+          facts: [
+            "$280 + GST for a full service with combustion analysis on a calibrated CO analyser",
+            "Every two years while it is young, annually once it is past ten",
+            "Spillage test, gas pressure test to AS/NZS 5601, and every safety control checked",
+            "A written report with the actual readings on it, not a sticker saying it passed",
+            "A cracked exchanger gets condemned on the spot \u2014 that is the law, not a sales tactic",
+          ],
+        },
         brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
@@ -1619,6 +1906,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "continuous-flow",
+        looks: {
+          heading: "About the size of a briefcase.",
+          note:
+            "A continuous flow unit hangs on an outside wall and is roughly the size of a briefcase \u2014 which is the whole point, because it replaces a tank the size of a person. There are two controllers, one inside and one out, and they are the only part of it you interact with.",
+          photo: "/thermann-contineues-flow-standing-back.webp",
+          photoAlt: "Thermann continuous flow unit on an outside wall, stood back",
+          photoScene: true,
+          facts: [
+            { v: "~60 × 35 cm", k: "On an outside wall, off the ground" },
+            { v: "No tank", k: "So nothing standing there losing heat overnight" },
+            { v: "Two controllers", k: "One indoors, one out, both included" },
+            { v: "3 – 5 hours", k: "A tank-to-continuous-flow swap" },
+          ],
+        },
+        servicing: {
+          heading: "Nothing stored, so nothing to corrode.",
+          photo: "/G-Series_Front_On_View_1200x900.jpg",
+          photoAlt: "Thermann G-series continuous flow gas hot water unit",
+          body:
+            "A continuous flow unit has no tank, which removes the failure that ends most storage systems: there is no anode to replace and nothing standing full of water for fifteen years. What it does have is a heat exchanger and a burner, and those want looking at like any gas appliance.",
+          facts: [
+            "No anode, no tank, and no overnight standing loss \u2014 the three things that kill storage units",
+            "Twelve-year heat exchanger warranty on the Thermann G-series",
+            "A service is a burner and exchanger check with a gas pressure test, same as a heater",
+            "Scale is the thing that shortens them in hard-water areas, and a filter on the cold feed prevents it",
+            "26 L/min covers two showers and a tap at once — beyond that the flow, not the gas, is the limit",
+          ],
+        },
         brands: ["Thermann"],
         benefitTiles: [
           {
@@ -1714,6 +2029,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "gas-service",
+        looks: {
+          heading: "An hour and a half, and a calibrated analyser.",
+          note:
+            "Most of a gas heater service happens at the unit \u2014 in the cupboard, on the slab or up in the roof. The part that matters is the combustion test: a probe in the flue and a calibrated analyser reading what is actually coming out, rather than a look at the flame and a guess.",
+          photo: "/Brivis Compact Classic Indoor Gas Heater.jpg",
+          photoAlt: "Brivis Compact Classic internal gas ducted heater",
+          facts: [
+            { v: "60 – 90 min", k: "On site, one visit" },
+            { v: "Calibrated", k: "A real CO analyser, not a sniff test" },
+            { v: "March – May", k: "The window, before the first cold snap" },
+            { v: "Written report", k: "With the actual readings on it" },
+          ],
+        },
+        servicing: {
+          heading: "Every two years, and annually past ten.",
+          photo: "/gas-line-safe.webp",
+          photoAlt: "Gas line work in progress on a residential property",
+          photoScene: true,
+          body:
+            "That interval is not ours \u2014 it is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
+          facts: [
+            "$280 + GST, with the combustion analysis included rather than quoted as an extra",
+            "Spillage test and a full gas pressure test to AS/NZS 5601",
+            "Every safety control checked \u2014 overheat, flame failure, fan proving",
+            "If we condemn it we tell you exactly what we found and why, in writing",
+            "Standard call-out $120 in hours, waived if the repair goes ahead the same day",
+          ],
+        },
         brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
@@ -1795,6 +2138,34 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "temporary-hot-water",
+        looks: {
+          heading: "A unit on the ground and a hose to the house.",
+          note:
+            "A temporary unit is not pretty and does not pretend to be. It sits near where the old system was, plumbed into the house hot water line, and it runs the whole house rather than one tap. It is there so you are not choosing a five-thousand-dollar system in a panic on a Tuesday.",
+          photo: "/gas hot water change over same day.webp",
+          photoAlt: "Hot water changeover completed the same day",
+          photoScene: true,
+          facts: [
+            { v: "Same day", k: "Connected on the day in most cases" },
+            { v: "Whole house", k: "Not one tap — every outlet works" },
+            { v: "$30 / day", k: "While it is on site" },
+            { v: "$350", k: "Set-up and removal, waived if we do the job" },
+          ],
+        },
+        servicing: {
+          heading: "It is our unit, so it is our problem.",
+          photo: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg",
+          photoAlt: "Thermann gas storage hot water unit",
+          body:
+            "Nothing about a hire unit is yours to look after. If it stops we come out and sort it at no charge, and when the new system goes in we disconnect it and take it away on the same day. There is no obligation to use us for the replacement, and we mean that \u2014 it is a different conversation.",
+          facts: [
+            "If it faults while it is on site we fix or swap it, at no charge",
+            "Disconnected and collected on the day the new system is commissioned",
+            "Rentals and tenanted properties \u2014 it keeps you compliant while you sort the replacement",
+            "$350 set-up and removal, waived entirely if we install the replacement",
+            "No obligation to use us for the new system, and no pressure if you don't",
+          ],
+        },
         brands: ["Thermann"],
         label: "Temporary hot water hire",
         blurb:

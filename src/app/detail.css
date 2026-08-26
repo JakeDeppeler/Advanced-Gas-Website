@@ -3379,6 +3379,21 @@
   transition: color 0.16s ease, gap 0.16s ease;
 }
 .page-detail .wf-style__go:hover { color: var(--orange); gap: 12px; }
+/* The card for the system whose page you're on. Same slot as the link,
+   so the cards still bottom-align to each other. */
+.page-detail .wf-style__here {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--orange);
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
 
 @media (max-width: 1100px) {
   .page-detail .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
@@ -3512,13 +3527,25 @@
   border: 1px solid var(--line);
   box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
 }
+/* Default is a manufacturer cut-out: contained, on white, with room
+   around it. A real scene fills the frame instead — the `is-scene`
+   flag below. Getting this the wrong way round is what makes a product
+   render look like a stretched letterform. */
 .page-detail .svc-look__shot img,
 .page-detail .svc-serv__shot img {
   width: 100%;
   height: auto;
   display: block;
   aspect-ratio: 4 / 3;
+  object-fit: contain;
+  padding: 22px;
+  background: #fff;
+}
+.page-detail .svc-look__shot.is-scene img,
+.page-detail .svc-serv__shot.is-scene img {
   object-fit: cover;
+  padding: 0;
+  object-position: center 35%;
 }
 
 .page-detail .svc-look__copy h2,
