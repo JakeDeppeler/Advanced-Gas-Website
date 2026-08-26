@@ -229,3 +229,33 @@
   .page-range .rangesec { padding: 48px 0 60px; }
   .page-range .rex__grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
 }
+
+/* --- the search field at the top of the rail --- */
+.page-range .rex__search { display: block; margin-bottom: 20px; }
+.page-range .rex__searchlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.page-range .rex__search input {
+  width: 100%;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--navy);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.page-range .rex__search input:focus {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 4px rgba(0, 176, 237, 0.15);
+}
+.page-range .rex__search input::placeholder { color: var(--ink-3); }

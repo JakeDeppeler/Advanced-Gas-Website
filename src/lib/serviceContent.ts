@@ -347,6 +347,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "multi",
+        brands: ["Mitsubishi Electric", "Kaden"],
         benefitTiles: [
           {
             t: "One outdoor unit",
@@ -441,6 +442,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "ducted",
+        brands: ["Mitsubishi Electric", "Kaden", "Zonemate"],
         benefitTiles: [
           {
             t: "The duct design first",
@@ -535,6 +537,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "evap",
+        brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
             t: "Cheap to run",
@@ -870,6 +873,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "evap",
+        brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
             t: "Pads, checked and replaced",
@@ -948,6 +952,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "aircon-service",
+        brands: ["Mitsubishi Electric", "Kaden", "Brivis"],
         benefitTiles: [
           {
             t: "Coils chemically cleaned",
@@ -1127,6 +1132,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     systems: [
       {
         id: "gas-ducted",
+        brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
             t: "Star rating is the number",
@@ -1222,6 +1228,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "continuous-flow",
+        brands: ["Thermann"],
         benefitTiles: [
           {
             t: "No tank losing heat",
@@ -1316,6 +1323,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "gas-service",
+        brands: ["Brivis", "Kaden"],
         benefitTiles: [
           {
             t: "A calibrated analyser",
@@ -1396,6 +1404,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       },
       {
         id: "temporary-hot-water",
+        brands: ["Thermann"],
         label: "Temporary hot water hire",
         blurb:
           "A temporary unit plumbed in the same day so the house has hot water while you decide what to replace the old one with. $30 a day, and the $350 set-up and removal is waived if we do the replacement.",

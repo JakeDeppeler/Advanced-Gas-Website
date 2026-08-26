@@ -2859,15 +2859,27 @@ input, select, textarea {
 /* The range button in the services rail. */
 .megasvc__range {
   margin-top: auto;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: var(--navy);
-  color: #fff;
+  background: rgba(243, 103, 34, 0.12);
+  border: 1.5px solid var(--orange);
+  color: var(--navy);
   text-decoration: none;
-  transition: background 0.14s ease;
+  transition: background 0.14s ease, transform 0.14s ease;
 }
-.megasvc__range:hover { background: var(--navy-2); }
-.megasvc__range b { display: block; font-size: 14px; }
-.megasvc__range span { display: block; margin-top: 2px; font-size: 11.5px; color: rgba(255, 255, 255, 0.7); }
+.megasvc__range::after {
+  content: "→";
+  margin-left: auto;
+  color: var(--orange);
+  font-weight: 700;
+  transition: transform 0.14s ease;
+}
+.megasvc__range:hover { background: rgba(243, 103, 34, 0.2); }
+.megasvc__range:hover::after { transform: translateX(3px); }
+.megasvc__range b { display: block; font-size: 14px; color: var(--navy); }
+.megasvc__range span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
+.megasvc__range > div { min-width: 0; }
 .megasvc__range + .megasvc__cta { margin-top: 8px; }

@@ -45,6 +45,7 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
   const [brands, setBrands] = useState<string[]>([]);
   const [cats, setCats] = useState<string[]>([]);
   const [rebate, setRebate] = useState(false);
+  const [q, setQ] = useState("");
 
   const groups: Group[] = useMemo(() => {
     const count = (pick: (i: RangeItem) => string) => {
@@ -68,21 +69,52 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
     ];
   }, [items]);
 
-  const shown = useMemo(
-    () =>
-      items.filter(
-        (i) =>
-          (brands.length === 0 || brands.includes(i.brand)) &&
-          (cats.length === 0 || cats.includes(i.categoryLabel)) &&
-          (!rebate || i.veuEligible),
-      ),
-    [items, brands, cats, rebate],
-  );
+  const shown = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    // Plain words people actually type, mapped onto the things they mean.
+    // "bedroom" is not in any product name but it is what somebody types
+    // when they want a small split.
+    const SYNONYMS: Record<string, string[]> = {
+      bedroom: ["split system"],
+      lounge: ["split system", "ducted air conditioning"],
+      living: ["split system", "ducted air conditioning"],
+      "whole house": ["ducted air conditioning", "gas ducted heating"],
+      "hot water": ["split heat pump", "heat pump, all-in-one", "gas continuous flow", "gas storage", "electric storage"],
+      "heat pump": ["split heat pump", "heat pump, all-in-one"],
+      heating: ["gas ducted heating", "ducted air conditioning"],
+      heater: ["gas ducted heating"],
+      cooling: ["split system", "ducted air conditioning", "evaporative cooling", "multi-head"],
+      aircon: ["split system", "multi-head", "ducted air conditioning"],
+      "air con": ["split system", "multi-head", "ducted air conditioning"],
+      water: ["water filtration"],
+      filter: ["water filtration"],
+      drinking: ["water filtration"],
+      rebate: [],
+      solar: ["split heat pump"],
+      tank: ["split heat pump", "gas storage", "electric storage"],
+      quiet: ["split system"],
+      zone: ["zoning & controls", "ducted air conditioning"],
+    };
+    const hits = needle
+      ? Object.entries(SYNONYMS)
+          .filter(([k]) => needle.includes(k))
+          .flatMap(([, v]) => v)
+      : [];
+
+    return items.filter((i) => {
+      if (brands.length && !brands.includes(i.brand)) return false;
+      if (cats.length && !cats.includes(i.categoryLabel)) return false;
+      if (rebate && !i.veuEligible) return false;
+      if (!needle) return true;
+      const hay = `${i.brand} ${i.name} ${i.model} ${i.categoryLabel} ${i.bestFor}`.toLowerCase();
+      return hay.includes(needle) || hits.some((h) => i.categoryLabel.toLowerCase() === h);
+    });
+  }, [items, brands, cats, rebate, q]);
 
   const toggle = (list: string[], set: (v: string[]) => void, id: string) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
-  const anyFilter = brands.length > 0 || cats.length > 0 || rebate;
+  const anyFilter = brands.length > 0 || cats.length > 0 || rebate || q.trim() !== "";
 
   return (
     <div className="rex">
@@ -97,12 +129,24 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
                 setBrands([]);
                 setCats([]);
                 setRebate(false);
+                setQ("");
               }}
             >
               Clear
             </button>
           )}
         </div>
+
+        <label className="rex__search">
+          <span className="rex__searchlbl">What are you after?</span>
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Bedroom, hot water, whole house…"
+            aria-label="Search the range"
+          />
+        </label>
 
         {groups.map((g) => (
           <fieldset className="rex__group" key={g.key}>

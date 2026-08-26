@@ -7,6 +7,7 @@ import { TIERS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeExplorer, type RangeItem } from "@/components/RangeExplorer";
+import { QuoteForm } from "@/components/QuoteForm";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "../detail.css";
 import "./range.css";
@@ -151,6 +152,10 @@ export default function RangePage() {
         </div>
       </section>
 
+      {/* Nobody should have to pick a model number off a list. This is
+          the way out of the grid for somebody who knows what they want
+          and not what it's called — the filter rail has a search field
+          for that too, and this is the same question asked properly. */}
       <section className="quotesec" id="quote">
         <div className="wrap">
           <div className="quotesec__box">
@@ -161,25 +166,20 @@ export default function RangePage() {
                 </span>
                 <h2>Tell us the room, not the model.</h2>
                 <p className="quotesec__lede">
-                  Nobody should have to pick a model number off a list. Tell us what you&rsquo;re
-                  trying to heat, cool or replace and we&rsquo;ll come back with the one that suits
-                  it and what it costs installed.
+                  Ninety-odd models is a lot to read. Say what you&rsquo;re trying to heat, cool or
+                  replace and we&rsquo;ll come back with the one that suits it and what it costs
+                  installed — including when a cheaper model does the job.
                 </p>
                 <ul className="quotesec__points">
                   <li><span className="tick tick--on-orange">✓</span> Rebates applied and GST included</li>
                   <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
-                  <li><span className="tick tick--on-orange">✓</span> We&rsquo;ll say when a cheaper model does the job</li>
+                  <li><span className="tick tick--on-orange">✓</span> Replied within 2 business hours</li>
                 </ul>
                 <p className="quotesec__finep">
                   Licensed plumbers · {site.licences.refrigeration} · 6-year workmanship warranty.
                 </p>
               </div>
-              <div className="rangecta">
-                <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>
-                <a href={`tel:${site.phoneE164}`} className="rangecta__phone">
-                  or call <strong>{site.phone}</strong>
-                </a>
-              </div>
+              <QuoteForm presetService="air-conditioning-installation" />
             </div>
           </div>
         </div>
