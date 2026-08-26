@@ -2864,158 +2864,144 @@
   display: flex; align-items: center; justify-content: center;
 }
 
-/* --- Header with a studio product shot. It sits in a framed panel to
-       the right of the copy rather than full bleed behind it, because a
-       cut-out on white stretched across a header is a letterform, not a
-       photo. Scenes still go full bleed; see `scene` in serviceContent. --- */
+/* --- Header with a studio product shot.
+
+       Reworked: the product now sits in a lit column that bleeds to the
+       right edge of the header rather than a white box floating in the
+       navy. A soft radial behind it does the work the white frame was
+       doing — separating the cut-out from the background — without the
+       hard rectangle. Scenes still go full bleed; see `scene` in
+       serviceContent. --- */
 .page-detail .dp-hero__wrap--inset {
   display: grid;
-  grid-template-columns: 1.25fr 0.75fr;
+  grid-template-columns: 1.1fr 0.9fr;
   grid-template-areas:
     "crumbs crumbs"
     "copy   media"
     "figs   figs";
-  column-gap: 44px;
+  column-gap: 56px;
   align-items: center;
 }
 .page-detail .dp-hero__wrap--inset .dp-crumbs { grid-area: crumbs; }
 .page-detail .dp-hero__wrap--inset .dp-hero__copy { grid-area: copy; max-width: none; }
 .page-detail .dp-hero__wrap--inset .dp-hero__inset { grid-area: media; }
 .page-detail .dp-hero__wrap--inset .dp-hero__at { grid-area: figs; }
+
 .page-detail .dp-hero__inset {
-  background: var(--paper);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: var(--rad);
-  padding: 18px;
-  box-shadow: 0 26px 54px -30px rgba(0, 0, 0, 0.6);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 34px 38px;
+  background: linear-gradient(160deg, #fff 0%, #f4f6fa 100%);
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 34px 64px -30px rgba(0, 0, 0, 0.65);
+}
+/* A lit floor under the product so it isn't sitting on a flat rectangle.
+   Knocking the white out of the source was the other option and it ate
+   the unit — these are white products photographed on white, so there is
+   no edge for a flood fill to stop at. */
+.page-detail .dp-hero__inset::after {
+  content: "";
+  position: absolute;
+  left: 12%; right: 12%; bottom: 26px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(5, 10, 48, 0.22), transparent 75%);
 }
 .page-detail .dp-hero__inset img {
+  position: relative;
   width: 100%;
   height: auto;
   max-height: 300px;
   object-fit: contain;
   display: block;
 }
+
+/* Figures get a rule between them rather than just space, so the strip
+   reads as one row of facts instead of four stray numbers. */
+.page-detail .dp-hero__at li { position: relative; }
+.page-detail .dp-hero__at li + li { padding-left: 24px; }
+.page-detail .dp-hero__at li + li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 2px; bottom: 2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
 @media (max-width: 900px) {
   .page-detail .dp-hero__wrap--inset {
     grid-template-columns: 1fr;
     grid-template-areas: "crumbs" "copy" "media" "figs";
-    row-gap: 24px;
+    row-gap: 26px;
   }
-  .page-detail .dp-hero__inset { max-width: 420px; }
+  .page-detail .dp-hero__inset { min-height: 0; max-width: 420px; }
+  .page-detail .dp-hero__at li + li { padding-left: 0; }
+  .page-detail .dp-hero__at li + li::before { display: none; }
 }
 
-/* ===================================================================
-   Section styling pass on the system pages: what you get, is it right
-   for you, indicative pricing. Same shell as the filtration sections —
-   generous vertical rhythm, a clear band per section, and cards that
-   look like the ones everywhere else on the site rather than three
-   different treatments in a row.
-   =================================================================== */
-
-.page-detail .dp-benefits { padding: 92px 0; background: var(--bg); }
-.page-detail .dp-benefits .ds-section-head p {
-  font-size: 16.5px;
-  line-height: 1.7;
-  color: var(--ink-2);
-  max-width: 64ch;
-  margin: 12px 0 0;
+/* ============================================================
+   PRICE CARDS
+   The pricing table became cards. Three columns of tier, price and
+   inclusions scrolled sideways on a phone and read like a spreadsheet
+   on a laptop. The number leads because it is what people came for.
+   ============================================================ */
+.page-detail .pricecards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
 }
-.page-detail .syspoints li {
-  padding: 18px 20px 18px 46px;
-  box-shadow: 0 12px 26px -22px rgba(5, 10, 48, 0.4);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-.page-detail .syspoints li:hover {
-  transform: translateY(-2px);
-  border-color: var(--sky);
-  box-shadow: 0 18px 34px -22px rgba(5, 10, 48, 0.45);
-}
-.page-detail .syspoints li::before { top: 17px; left: 18px; }
-
-/* --- Is it right for you: two cards on a sand band, the honest half
-       given the same weight as the sales half. --- */
-.page-detail .sysfit { padding: 92px 0; }
-.page-detail .sysfit__grid { gap: 22px; margin-top: 32px; }
-.page-detail .sysfit__col {
-  padding: 30px 32px 32px;
-  border-top-width: 4px;
-  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.4);
+.page-detail .pricecard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 36px -28px rgba(5, 10, 48, 0.4);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.page-detail .sysfit__col:hover {
+.page-detail .pricecard:hover {
   transform: translateY(-3px);
-  box-shadow: 0 26px 52px -28px rgba(5, 10, 48, 0.45);
+  box-shadow: 0 26px 52px -26px rgba(5, 10, 48, 0.45);
 }
-.page-detail .sysfit__col h3 {
-  font-size: 20px;
-  margin: 0 0 18px;
-  padding-bottom: 14px;
+.page-detail .pricecard__price {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.page-detail .pricecard h3 {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 10px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
 }
-.page-detail .sysfit__col li { padding-left: 30px; font-size: 15px; }
-.page-detail .sysfit__col li::before {
-  left: 0;
-  top: 1px;
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px;
-}
-.page-detail .sysfit__col--yes li::before { background: rgba(23, 160, 106, 0.14); }
-.page-detail .sysfit__col--no li::before { background: rgba(243, 103, 34, 0.14); }
-
-/* --- Indicative pricing --- */
-.page-detail .dp-pricing { padding: 92px 0; }
-.page-detail .dp-pricing .ds-section-head p {
-  font-size: 16.5px;
-  line-height: 1.7;
+.page-detail .pricecard p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--ink-2);
-  max-width: 66ch;
-  margin: 12px 0 0;
 }
-
-/* --- The range needed room. It was butting up against the pricing
-       table above it and the quote panel below. --- */
-.page-detail .rangeband { padding: 92px 0 96px; }
-
-/* --- Stagger, so a grid of cards arrives as a grid. --- */
-.reveal .syspoints li,
-.reveal .sysfit__col,
-.reveal .rangeband__btn {
-  transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-}
-.reveal:not(.is-revealed) .syspoints li,
-.reveal:not(.is-revealed) .sysfit__col,
-.reveal:not(.is-revealed) .rangeband__btn { opacity: 0; transform: translateY(10px); }
-.reveal .syspoints li:nth-child(2),
-.reveal .sysfit__col:nth-child(2),
-.reveal .rangeband__btn:nth-child(2) { transition-delay: 0.07s; }
-.reveal .syspoints li:nth-child(3),
-.reveal .rangeband__btn:nth-child(3) { transition-delay: 0.13s; }
-.reveal .syspoints li:nth-child(4),
-.reveal .rangeband__btn:nth-child(4) { transition-delay: 0.19s; }
-.reveal .syspoints li:nth-child(n + 5) { transition-delay: 0.25s; }
-
+.reveal .pricecard { transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease; }
+.reveal:not(.is-revealed) .pricecard { opacity: 0; transform: translateY(10px); }
+.reveal .pricecard:nth-child(2) { transition-delay: 0.06s; }
+.reveal .pricecard:nth-child(3) { transition-delay: 0.12s; }
+.reveal .pricecard:nth-child(4) { transition-delay: 0.18s; }
+.reveal .pricecard:nth-child(n + 5) { transition-delay: 0.24s; }
 @media (prefers-reduced-motion: reduce) {
-  .page-detail .syspoints li:hover,
-  .page-detail .sysfit__col:hover { transform: none; }
-  .reveal:not(.is-revealed) .syspoints li,
-  .reveal:not(.is-revealed) .sysfit__col,
-  .reveal:not(.is-revealed) .rangeband__btn { opacity: 1; transform: none; }
-}
-
-@media (max-width: 860px) {
-  .page-detail .dp-benefits,
-  .page-detail .sysfit,
-  .page-detail .dp-pricing,
-  .page-detail .rangeband { padding: 58px 0; }
-  .page-detail .sysfit__grid { grid-template-columns: 1fr; }
-}
-
-/* The accented last word in the system headline, same device the
-   filtration hub uses on its h1. */
-.page-detail .dp-hero h1 em {
-  font-style: normal;
-  color: var(--sky-2);
+  .page-detail .pricecard:hover { transform: none; }
+  .reveal:not(.is-revealed) .pricecard { opacity: 1; transform: none; }
 }

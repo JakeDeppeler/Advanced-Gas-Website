@@ -371,25 +371,19 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <h2>Transparent fixed-price options.</h2>
             <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
-          <div className="dp-pricing__table">
-            <table>
-              <thead>
-                <tr>
-                  <th>System</th>
-                  <th>Price</th>
-                  <th>Includes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {content.pricing.map((p) => (
-                  <tr key={p.tier}>
-                    <td><span className="dp-pricing__tier">{p.tier}</span></td>
-                    <td><span className="dp-pricing__price">{p.price}</span></td>
-                    <td>{p.includes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Price cards, not a table. A three-column table of tier, price
+              and inclusions had to scroll sideways on a phone and read as
+              a spreadsheet on a laptop. Each row is a card now: the number
+              first because it's what people came for, then what it is,
+              then what's in it. */}
+          <div className="pricecards">
+            {content.pricing.map((p) => (
+              <article className="pricecard" key={p.tier}>
+                <span className="pricecard__price">{p.price}</span>
+                <h3>{p.tier}</h3>
+                <p>{p.includes}</p>
+              </article>
+            ))}
           </div>
           <p className="dp-pricing__fp">
             *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.

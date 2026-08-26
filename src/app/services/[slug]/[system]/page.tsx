@@ -12,6 +12,10 @@ import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
+import { BenefitTiles } from "@/components/BenefitTiles";
+
+/** The tile palette, same five the rest of the site rotates through. */
+const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
@@ -191,16 +195,27 @@ export default function SystemPage({
             <h2>What&rsquo;s in the price.</h2>
             <p>{system.blurb}</p>
           </div>
-          {/* A list, because that is what these are. Tiles were tried and
-              taken out: `points` are terse statements, not a claim plus an
-              explanation, so a tile face truncated them mid-thought and
-              the panel underneath just repeated the tile. Same lesson as
-              the brand feature bullets. */}
-          <ul className="syspoints">
-            {system.points.map((pt) => (
-              <li key={pt}>{pt}</li>
-            ))}
-          </ul>
+          {/* Tiles where the faces have been written, the checklist where
+              they haven't. Deriving a face out of a `points` statement
+              truncates it and leaves the panel repeating the tile, so a
+              system opts in by authoring `benefitTiles`. */}
+          {system.benefitTiles ? (
+            <BenefitTiles
+              benefits={system.benefitTiles.map((b, i) => ({
+                area: b.t,
+                line: b.line,
+                icon: b.icon,
+                tint: TILE_TINTS[i % TILE_TINTS.length],
+                detail: b.detail,
+              }))}
+            />
+          ) : (
+            <ul className="syspoints">
+              {system.points.map((pt) => (
+                <li key={pt}>{pt}</li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
 
@@ -283,22 +298,20 @@ export default function SystemPage({
             <h2>What {system.label.toLowerCase()} costs.</h2>
             <p>Real numbers. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
+          {/* Price cards, not a table. A three-column table of tier, price
+              and inclusions had to scroll sideways on a phone and read as
+              a spreadsheet on a laptop. Each row is a card now: the number
+              first because it's what people came for, then what it is,
+              then what's in it. */}
           {pricing && (
-          <div className="dp-pricing__table">
-            <table>
-              <thead>
-                <tr><th>System</th><th>Price</th><th>Includes</th></tr>
-              </thead>
-              <tbody>
-                {pricing.map((p) => (
-                  <tr key={p.tier}>
-                    <td><span className="dp-pricing__tier">{p.tier}</span></td>
-                    <td><span className="dp-pricing__price">{p.price}</span></td>
-                    <td>{p.includes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="pricecards">
+            {pricing.map((p) => (
+              <article className="pricecard" key={p.tier}>
+                <span className="pricecard__price">{p.price}</span>
+                <h3>{p.tier}</h3>
+                <p>{p.includes}</p>
+              </article>
+            ))}
           </div>
           )}
           {detail?.pricingNote && (

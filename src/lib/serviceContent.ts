@@ -91,6 +91,18 @@ export type ServiceContent = {
      *  Electric and Kaden — the evap brand and the ducted controller are
      *  not things you can buy on that page. */
     brands?: string[];
+    /**
+     * What's in the price, as tiles rather than a checklist.
+     *
+     * `points` can't become tiles on their own: they're single statements,
+     * so splitting one into a face and a body truncates it mid-thought and
+     * the panel just repeats the tile. A tile wants a short claim you can
+     * scan and a sentence that earns it, and that has to be written.
+     *
+     * Where this is present the section renders as the tabs the filtration
+     * pages use; where it isn't, `points` render as the checklist.
+     */
+    benefitTiles?: { t: string; line: string; detail: string; icon?: string }[];
     /** The honest counterweight. */
     caveat: string;
   };
@@ -132,6 +144,18 @@ export type ServiceContent = {
      *  Electric and Kaden — the evap brand and the ducted controller are
      *  not things you can buy on that page. */
     brands?: string[];
+    /**
+     * What's in the price, as tiles rather than a checklist.
+     *
+     * `points` can't become tiles on their own: they're single statements,
+     * so splitting one into a face and a body truncates it mid-thought and
+     * the panel just repeats the tile. A tile wants a short claim you can
+     * scan and a sentence that earns it, and that has to be written.
+     *
+     * Where this is present the section renders as the tabs the filtration
+     * pages use; where it isn't, `points` render as the checklist.
+     */
+    benefitTiles?: { t: string; line: string; detail: string; icon?: string }[];
     points: string[];
     priceFrom?: string;
     /** Long-form opening for the system's own page at
@@ -213,6 +237,64 @@ export const serviceContent: Record<string, ServiceContent> = {
           "One outdoor unit, one indoor head. The right answer for a bedroom, a living room or a granny flat: the simplest system there is, the least to run, and the quickest to get in. Most go in back-to-back in a single morning.",
         photo: { src: "/mitsubishi-msz-ap-series-v2-v3.webp", alt: "Mitsubishi Electric MSZ-AP wall-mounted split system" },
         brands: ["Mitsubishi Electric", "Kaden"],
+        benefitTiles: [
+          {
+            t: "Sized to the room",
+            line: "2.5, 5.0 or 7.1 kW — not whatever's on the truck",
+            detail:
+              "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan. An oversized unit short-cycles: it hits the set point, stops, and never runs long enough to actually dehumidify. It costs more to buy and more to run, so the size is a decision, not a default.",
+            icon: "ruler",
+          },
+          {
+            t: "Two brands, both good",
+            line: "Mitsubishi Electric MSZ-AP or Kaden KSI",
+            detail:
+              "Mitsubishi has the lowest failure rate in our install base — decade-old MSZ-AP heads still running to spec. Kaden is the value pick with the same six-year workmanship behind it. We'll tell you which suits the room and the budget rather than defaulting to the dearer one.",
+            icon: "snowflake",
+          },
+          {
+            t: "One morning",
+            line: "Back-to-back install in three to four hours",
+            detail:
+              "Most splits go in back-to-back — the head on the inside of a wall, the outdoor unit directly behind it — which is one core hole and no work in the roof. In and out in a morning, without you taking a day off work.",
+            icon: "clock",
+          },
+          {
+            t: "Fresh copper",
+            line: "New line-set every time, never the old pipe",
+            detail:
+              "Reusing an old line-set means old oil and whatever was left in it going into a new compressor. We run new copper, every job. It is the difference you cannot see and the one that decides how long the system lasts.",
+            icon: "flow",
+          },
+          {
+            t: "Run it from your phone",
+            line: "Wi-Fi via MELCloud, set up before we leave",
+            detail:
+              "Turn it on from the car on the way home, or check somebody hasn't left it running. Set up and tested on your phone on install day rather than left as a QR code on the box for you to work out.",
+            icon: "remote",
+          },
+          {
+            t: "Mounted properly",
+            line: "New wall brackets or a ground stand, rated and levelled",
+            detail:
+              "The outdoor unit gets new rated brackets or a ground stand, levelled, with the drain falling the right way. Not bolted to whatever the last installer left on the wall.",
+            icon: "shield",
+          },
+          {
+            t: "Tidy pipework",
+            line: "Colour-matched capping, not bare lagging",
+            detail:
+              "The pipework between the two units gets ducting capping matched to the wall rather than grey foam left in the weather. It's the part of the job you'll look at every day for the next decade.",
+            icon: "ruler",
+          },
+          {
+            t: "We take the mess",
+            line: "Cored, sealed, drop sheets down, rubbish gone",
+            detail:
+              "The wall penetration is core-drilled and sealed rather than hammered through. Drop sheets go down inside, and everything we bring in — including the old unit if there is one — leaves with us.",
+            icon: "truck",
+          },
+        ],
         points: [
           "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan",
           "Mitsubishi Electric MSZ-AP or Kaden KSI, whichever suits the room and the job",
