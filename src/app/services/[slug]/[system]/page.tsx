@@ -13,6 +13,7 @@ import { systemDetail } from "@/lib/systemDetail";
 import { pageTitle, metaDescription } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
+import { SystemAdvisor } from "@/components/SystemAdvisor";
 
 /** The tile palette, same five the rest of the site rotates through. */
 const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
@@ -245,6 +246,14 @@ export default function SystemPage({
                 </div>
               )}
             </div>
+
+            {/* Three questions, on the page where somebody is already
+                asking whether this is the right system. It will send them
+                somewhere else when that's the honest answer — reading
+                about splits and wanting the whole house done should end
+                up at ducted, not at four splits. Aircon only: the logic
+                is about rooms and roof space. */}
+            {params.slug === "air-conditioning-installation" && <SystemAdvisor />}
           </div>
         </section>
       )}

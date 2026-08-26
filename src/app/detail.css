@@ -2920,6 +2920,11 @@
   display: block;
 }
 
+/* The range needed room — it was butting against the pricing above it
+   and the quote panel below. This rule lived in the block that got
+   rewritten when the header was restyled and went with it. */
+.page-detail .rangeband { padding: 92px 0 96px; }
+
 /* Figures get a rule between them rather than just space, so the strip
    reads as one row of facts instead of four stray numbers. */
 .page-detail .dp-hero__at li { position: relative; }
@@ -3004,4 +3009,141 @@
 @media (prefers-reduced-motion: reduce) {
   .page-detail .pricecard:hover { transform: none; }
   .reveal:not(.is-revealed) .pricecard { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   SYSTEM ADVISOR — three questions inside "Is it right for you".
+   Sits below the right-call / think-twice columns, because those two
+   are the honest argument and this is the shortcut for anyone who
+   would rather be told.
+   ============================================================ */
+.page-detail .advisor {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-areas:
+    "head  out"
+    "q1    out"
+    "q2    out"
+    "q3    out";
+  column-gap: 40px;
+  align-items: start;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 32px 34px 34px;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.35);
+}
+.page-detail .advisor__head { grid-area: head; margin-bottom: 20px; }
+.page-detail .advisor__q:nth-of-type(1) { grid-area: q1; }
+.page-detail .advisor__q:nth-of-type(2) { grid-area: q2; }
+.page-detail .advisor__q:nth-of-type(3) { grid-area: q3; }
+.page-detail .advisor__out { grid-area: out; }
+
+.page-detail .advisor__lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.page-detail .advisor__head h3 {
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0 0 6px;
+}
+.page-detail .advisor__head p { margin: 0; font-size: 13.5px; color: var(--ink-3); }
+
+.page-detail .advisor__q { border: 0; padding: 0; margin: 0 0 18px; }
+.page-detail .advisor__q legend {
+  padding: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 9px;
+}
+.page-detail .advisor__opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.page-detail .advisor__opts--tight { grid-template-columns: 1fr 1fr; }
+.page-detail .advisor__opt {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: 11px;
+  background: var(--paper);
+  color: var(--ink);
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+.page-detail .advisor__opt:hover { border-color: var(--sky); background: rgba(0, 176, 237, 0.05); }
+.page-detail .advisor__opt.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.page-detail .advisor__opt strong { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.page-detail .advisor__opt.is-on span { color: rgba(255, 255, 255, 0.68); }
+.page-detail .advisor__opt--sm strong { font-size: 13px; font-weight: 600; }
+
+.page-detail .advisor__out {
+  position: sticky;
+  top: 110px;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(158deg, var(--navy) 0%, var(--navy-2) 100%);
+  border-radius: var(--rad);
+  padding: 28px 30px;
+}
+.page-detail .advisor__waiting { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(255, 255, 255, 0.6); }
+.page-detail .advisor__answer { animation: advisor-in 0.3s ease both; }
+@keyframes advisor-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-detail .advisor__outlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sky-2);
+  margin-bottom: 8px;
+}
+.page-detail .advisor__answer h4 {
+  font-family: var(--f-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 10px;
+}
+.page-detail .advisor__answer p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+.page-detail .advisor__note {
+  border-left: 2px solid var(--orange);
+  padding-left: 12px;
+  font-size: 13px !important;
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .advisor__answer { animation: none; }
+}
+@media (max-width: 1000px) {
+  .page-detail .advisor {
+    grid-template-columns: 1fr;
+    grid-template-areas: "head" "q1" "q2" "q3" "out";
+    row-gap: 0;
+    padding: 26px 22px 28px;
+  }
+  .page-detail .advisor__out { position: static; margin-top: 8px; min-height: 0; }
+  .page-detail .advisor__opts { grid-template-columns: 1fr; }
 }

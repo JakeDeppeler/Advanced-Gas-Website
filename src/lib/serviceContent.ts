@@ -249,7 +249,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Two brands, both good",
             line: "Mitsubishi Electric MSZ-AP or Kaden KSI",
             detail:
-              "Mitsubishi has the lowest failure rate in our install base — decade-old MSZ-AP heads still running to spec. Kaden is the value pick with the same six-year workmanship behind it. We'll tell you which suits the room and the budget rather than defaulting to the dearer one.",
+              "Mitsubishi has the lowest failure rate in our install base, and we can still get parts for heads we fitted ten years ago. Kaden is the value pick with the same six-year workmanship behind it. We'll tell you which suits the room and the budget rather than defaulting to the dearer one.",
             icon: "snowflake",
           },
           {
@@ -268,9 +268,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "Run it from your phone",
-            line: "Wi-Fi via MELCloud, set up before we leave",
+            line: "Wi-Fi on both — MELCloud on Mitsubishi, the Kaden app on Kaden",
             detail:
-              "Turn it on from the car on the way home, or check somebody hasn't left it running. Set up and tested on your phone on install day rather than left as a QR code on the box for you to work out.",
+              "Turn it on from the car on the way home, or check somebody hasn't left it running. Both brands do it: MELCloud on the Mitsubishi, the Kaden app on the Kaden. Either way we set it up and test it on your phone on install day rather than leaving a QR code on the box for you to work out.",
             icon: "remote",
           },
           {
@@ -462,7 +462,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { src: "/mitsubishi-pea-m-ducted-v2-v3.webp", alt: "Mitsubishi Electric PEA-M ducted indoor fan coil", caption: "Mitsubishi PEA-M · the ducted indoor unit we fit most" },
     ],
     brandPods: [
-      { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base. Decade-old MSZ-AP still runs to spec.", href: "/brands/mitsubishi-electric" },
+      { brand: "Mitsubishi Electric", reason: "The lowest failure rate in our install base, and parts still available for the ones we fitted ten years ago.", href: "/brands/mitsubishi-electric" },
       { brand: "Kaden", reason: "Splits, ducted, gas ducted and evap under one brand, so a whole house runs on one parts list. Same 6-year warranty as everything else we fit.", href: "/brands/kaden" },
       { brand: "Brivis (evap)", reason: "The default evap brand in the corridor, Contour + Advance roof units for dry-summer suburbs like Cranbourne, Clyde and Officer.", href: "/brands/brivis" },
       { brand: "Zonemate", reason: "Our default ducted controller, 4/6/8-zone Touch panel with Wi-Fi and per-room temp sensors.", href: "/brands/zonemate" },
