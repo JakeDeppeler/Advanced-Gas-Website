@@ -1610,3 +1610,103 @@
   .page-home .pxc { grid-template-columns: 1fr; }
   .page-home .qrow { grid-template-columns: 1fr; }
 }
+
+
+/* ============================================================
+   REBATE CTA — the hero's third call to action.
+   The VEU rebate used to be a top-nav item with an orange badge. The
+   nav is five items now, and this is where that prominence went: on
+   the first screen, with the number in it, rather than behind a hover.
+
+   The sheen is deliberately slow and low-contrast. Something that
+   blinks on a plumbing site reads as an ad; something that catches the
+   light once every few seconds reads as a button worth pressing.
+   ============================================================ */
+.rebatecta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  margin: 18px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  padding: 12px 18px 12px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(2px);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.rebatecta:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.38);
+  transform: translateY(-1px);
+}
+.rebatecta__amt {
+  flex-shrink: 0;
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  color: #fff;
+  background: var(--orange);
+  border-radius: 999px;
+  padding: 6px 12px;
+  /* A slow breath, so the number is the thing the eye lands on. */
+  animation: rebate-breathe 3.6s ease-in-out infinite;
+}
+.rebatecta__txt {
+  font-size: 14px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.82);
+}
+.rebatecta__txt b { color: #fff; font-weight: 700; }
+.rebatecta__go {
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 15px;
+  transition: transform 0.18s ease;
+}
+.rebatecta:hover .rebatecta__go { transform: translateX(3px); }
+
+/* The sheen. One pass every six seconds, mostly spent off-screen. */
+.rebatecta__sheen {
+  position: absolute;
+  inset: 0 auto 0 -60%;
+  width: 45%;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  animation: rebate-sheen 6s ease-in-out infinite;
+}
+
+@keyframes rebate-sheen {
+  0%, 62% { transform: translateX(0); }
+  92%, 100% { transform: translateX(360%); }
+}
+@keyframes rebate-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(243, 103, 34, 0.55); }
+  50% { box-shadow: 0 0 0 7px rgba(243, 103, 34, 0); }
+}
+
+@media (max-width: 640px) {
+  .rebatecta { gap: 10px; padding: 10px 14px 10px 10px; align-items: flex-start; }
+  .rebatecta__amt { font-size: 14px; padding: 5px 10px; }
+  .rebatecta__txt { font-size: 13px; }
+}
+
+/* An animation you notice on a plumbing site has gone too far, and for
+   anyone who has asked the browser to stop moving things it has gone
+   much too far. */
+@media (prefers-reduced-motion: reduce) {
+  .rebatecta__sheen { display: none; }
+  .rebatecta__amt { animation: none; }
+  .rebatecta:hover { transform: none; }
+  .rebatecta:hover .rebatecta__go { transform: none; }
+}

@@ -302,10 +302,15 @@ export function HeroQuoteForm() {
       case "details": return !!(name && phone && email && postcode);
       default: return false;
     }
+    // waterWhere/waterWhy belong here for the same reason every other
+    // answer does: the switch above reads them. They were missed when
+    // the water branch was added, so the memo never recomputed on a tick
+    // and Next stayed disabled no matter what you selected.
   }, [
     currentStep, service, hpBrand, hpStyle, hpSize, hpMaterial, hpWifi,
     splitBrand, splitStyle, multiHeadCount, multiHeadOverCap, splitSize,
     ductedSize, ductedZones, ductedTablet, svcType, svcStories,
+    waterWhere, waterWhy,
     name, phone, email, postcode,
   ]);
 
@@ -317,6 +322,7 @@ export function HeroQuoteForm() {
     setSplitBrand([]); setSplitStyle([]); setSplitHeadConfig({}); setSplitSize([]);
     setDuctedSize([]); setDuctedZones([]);
     setSvcType([]);
+    setWaterWhere([]); setWaterWhy([]);
   }
 
   async function addPhotos(files: FileList | null) {

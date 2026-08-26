@@ -26,7 +26,7 @@ type ServiceMegaItem = {
 };
 
 type NavItem =
-  | { href: string; label: string; rebate?: boolean }
+  | { href: string; label: string }
   | {
       label: string;
       trigger: string;
@@ -260,19 +260,24 @@ const AREAS_MEGA = {
   ],
 };
 
+/**
+ * Five items, all of them dropdowns, in the order somebody actually
+ * asks the questions: what do you do, what gear, what does it cost, do
+ * you come here, who are you. The quote button answers the sixth.
+ *
+ * It was eight. Tools and Rebates were both "help me work out what
+ * I'll pay", so they live under Pricing now — the VEU rebate leads that
+ * menu in orange, which is more prominence than it had as one item
+ * among eight. Contact went because the phone number and the quote
+ * button sit two inches to the right of where it used to be; it's still
+ * in the About menu and the footer.
+ */
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
   { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
-  { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
+  { label: "Pricing", trigger: "tools", href: "/pricing", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/rebates", label: "Rebates", rebate: true },
-  // Gallery / Blog / About / Reviews all answer "who are these people and
-  // can I trust them" — grouping them under one trigger keeps the top-level
-  // nav to the commercial path (Services · Brands · Tools · Areas · Pricing)
-  // instead of nine flat items competing for attention.
   { label: "About", trigger: "company", href: "/about", kind: "company" },
-  { href: "/contact", label: "Contact" },
 ];
 
 /**
@@ -296,18 +301,30 @@ const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[]
   { href: "/gallery",   label: "Gallery",    sub: "Real installs · before & after",    icon: "◉" },
   { href: "/reviews",   label: "Reviews",    sub: "4.9/5 on Google",            icon: "★" },
   { href: "/blog",      label: "Blog",       sub: "Guides, rebates + buying advice",   icon: "✎" },
+  { href: "/contact",   label: "Contact",    sub: "Phone, email, where we are",        icon: "✆" },
 ];
 
-const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
-  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$" },
-  { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂" },
-  { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑" },
-  { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡" },
-  { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback",   icon: "♨" },
-  { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann / Sanden", icon: "◆" },
-  { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",        icon: "❄" },
-  { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap",  icon: "≡" },
-  { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",        icon: "!" },
+/**
+ * The Pricing menu. The first two rows are the destinations people came
+ * for — the rebate and the price list — and everything under them is a
+ * calculator that helps work one of those two numbers out.
+ *
+ * `lead` marks the rebate row. It carried an orange badge in the top
+ * nav before this menu existed, and losing that entirely would have
+ * been a real cost; here it gets a full orange card instead.
+ */
+const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean; tool?: boolean }[] = [
+  { href: "/rebates",                        label: "VEU rebates",           sub: "What you get off, and who qualifies",  icon: "$", lead: true },
+  { href: "/pricing",                        label: "Full price list",       sub: "Every model, installed price",         icon: "≡" },
+  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$", tool: true },
+  { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂", tool: true },
+  { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑", tool: true },
+  { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡", tool: true },
+  { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback",   icon: "♨", tool: true },
+  { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann / Sanden", icon: "◆", tool: true },
+  { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",        icon: "❄", tool: true },
+  { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap",  icon: "≡", tool: true },
+  { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",        icon: "!", tool: true },
 ];
 
 function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
@@ -368,13 +385,9 @@ export function Header() {
                 <Link
                   key={n.href}
                   href={n.href}
-                  className={[
-                    active ? "is-active" : "",
-                    "rebate" in n && n.rebate ? "hdr__nav-rebate" : "",
-                  ].filter(Boolean).join(" ")}
+                  className={active ? "is-active" : undefined}
                 >
                   {n.label}
-                  {"rebate" in n && n.rebate && <span className="hdr__nav-tag">$$$</span>}
                 </Link>
               );
             }
@@ -566,12 +579,22 @@ function ToolsMega() {
   return (
     <div className="mega__tools">
       <div className="mega__toolshead">
-        <div className="mega__collabel">Free tools &amp; calculators</div>
-        <Link href="/tools" className="mega__toolsall">See all {TOOLS_MEGA.length} tools →</Link>
+        <div className="mega__collabel">Prices, rebates &amp; calculators</div>
+        {/* Count the calculators, not the rows — the rebate and the
+            price list are destinations, not tools, and "See all 11
+            tools" would be a link to a page holding nine. */}
+        <Link href="/tools" className="mega__toolsall">
+          See all {TOOLS_MEGA.filter((t) => t.tool).length} tools →
+        </Link>
       </div>
       <div className="mega__toolsgrid">
         {TOOLS_MEGA.map((t) => (
-          <Link key={t.href} href={t.href} role="menuitem" className="mega__toolcard">
+          <Link
+            key={t.href}
+            href={t.href}
+            role="menuitem"
+            className={`mega__toolcard${t.lead ? " mega__toolcard--lead" : ""}`}
+          >
             <span className="mega__toolicon" aria-hidden="true">{t.icon}</span>
             <div className="mega__toolbody">
               <b>{t.label}</b>
@@ -652,10 +675,9 @@ function MobileDrawer({ close }: { close: () => void }) {
                 key={n.href}
                 href={n.href}
                 onClick={close}
-                className={`hdr__drawer-link ${"rebate" in n && n.rebate ? "hdr__drawer-link--rebate" : ""}`}
+                className="hdr__drawer-link"
               >
                 {n.label}
-                {"rebate" in n && n.rebate && <span className="hdr__nav-tag">$$$</span>}
               </Link>
             );
           }
@@ -749,13 +771,13 @@ function MobileDrawer({ close }: { close: () => void }) {
               )}
               {n.kind === "tools" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Free tools &amp; calculators</div>
+                  <div className="hdr__drawer-collabel">Prices, rebates &amp; calculators</div>
                   {TOOLS_MEGA.map((t) => (
                     <Link
                       key={t.href}
                       href={t.href}
                       onClick={close}
-                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
+                      className={`hdr__drawer-sublink hdr__drawer-sublink--tool${t.lead ? " is-lead" : ""}`}
                     >
                       <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
                       <span className="hdr__drawer-toolbody">

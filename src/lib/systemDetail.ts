@@ -44,8 +44,31 @@ export type SystemDetail = {
   spotlight?: SystemSpotlight;
   /** Process for this system, not the parent service's. */
   steps?: { title: string; detail: string }[];
-  /** Price rows for this system only. */
-  pricing?: { tier: string; price: string; includes: string }[];
+  /**
+   * Price rows for this system only, rendered as the same card the
+   * service pages and "Choose your system" use — see the comment on
+   * `pricing` in lib/serviceContent.ts, which carries the identical
+   * shape. Kept as its own type rather than imported because these rows
+   * are about one system and that one is about a whole service.
+   *
+   * `includes` is comma-separated and each item has to stand on its own:
+   * the card renders them as a list, so "As above" reads as a broken
+   * bullet.
+   */
+  pricing?: {
+    tier: string;
+    price: string;
+    includes: string;
+    /** The chip above the name — which kind of job the number is for. */
+    group?: string;
+    photo?: string;
+    /** True where `photo` is a real scene rather than a product cut-out.
+     *  Scenes fill the panel; cut-outs sit inside it with padding. */
+    photoScene?: boolean;
+    /** The caption above the figure. "Installed" is right for an install
+     *  and wrong for a call-out fee. */
+    priceKey?: string;
+  }[];
   /** One-line note under the price table where the numbers need context. */
   pricingNote?: string;
 };
@@ -104,9 +127,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Handover and clean-up", detail: "We show you the remote, set the timer if you want one, sweep up and take the packaging with us. Compliance paperwork emailed the next business day." },
     ],
     pricing: [
-      { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert" },
-      { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert" },
-      { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert" },
+      { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp" },
+      { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/Kaden KSI V3 wall split system.jpg" },
+      { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-series-v2-v3.webp" },
     ],
     pricingNote:
       "Longer line-sets, a bracket instead of a ground slab, or a new dedicated circuit are the three things that most often add to a split install. All three get quoted before the day, not on it.",
@@ -161,8 +184,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Handover, one remote at a time", detail: "Each head has its own controller and they're easy to mix up. We label them, run through each one with you, and email the compliance paperwork the next business day." },
     ],
     pricing: [
-      { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set" },
-      { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set" },
+      { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set", group: "Multi-head", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp" },
+      { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set", group: "Multi-head", photo: "/Kaden Multi Head.jpg" },
     ],
     pricingNote:
       "Three and five-head configurations sit between and above these. Combined line-set length is the number that moves the price most on a multi, so it's worth measuring properly at the quote.",
@@ -216,7 +239,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Commission, balance and set the zones up", detail: "Airflow balanced across the outlets so the far bedroom gets what it's supposed to. Controller programmed, each zone tested, and we walk you through the schedule so it's running your way before we leave." },
     ],
     pricing: [
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance" },
+      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     pricingNote:
       "Additional zones, longer duct runs and difficult roof access are the three variables. A double-storey with a second system upstairs is a different quote again, and we'll price both options if that's the honest answer.",
@@ -297,10 +320,10 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report, and honest advice", detail: "You get the report and a straight answer about where the system is in its life. If it's twelve years old and the compressor is drawing high, we'll say that rather than book you in again next year." },
     ],
     pricing: [
-      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report" },
-      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Same as above, per additional unit at the same address on the same visit" },
-      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test" },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, diagnose, quote repair in writing. Fee WAIVED if repair goes ahead the same day." },
+      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
+      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Everything in the split system service, Charged per extra unit at the same address, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per extra unit" },
+      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", photoScene: true, priceKey: "Per visit" },
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
     ],
   },
 
@@ -377,8 +400,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Carbon monoxide test and certificate", detail: "Calibrated analyser on the new unit, result written on the report, and the gas compliance certificate emailed inside 24 hours rather than chased three weeks later." },
     ],
     pricing: [
-      { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal" },
-      { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "As above, quieter fan, longer service life" },
+      { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal", group: "Gas ducted heating", photo: "/Brivis Wombat Indoor 3 star.jpg" },
+      { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "Everything in the Wombat replacement, A quieter fan, A longer service life", group: "Gas ducted heating", photo: "/Brivis Buffalo Outdorr.jpg" },
     ],
     pricingNote:
       "Kaden gas ducted drops onto an existing Brivis or Braemar footprint and prices similarly. Duct rework, a new gas run where the existing line is undersized, and cavity alterations are the three things that add — all quoted before the day.",
@@ -436,7 +459,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Certificate and warranty registration", detail: "Gas compliance certificate emailed within 24 hours and the manufacturer warranty registered in your name at the same time." },
     ],
     pricing: [
-      { tier: "Thermann G-series continuous flow (26 L)", price: "from $2,499", includes: "Supply, install, compliance cert, controller (indoor + outdoor)" },
+      { tier: "Thermann G-series continuous flow (26 L)", price: "from $2,499", includes: "Supply, install, compliance cert, controller (indoor + outdoor)", group: "Gas hot water", photo: "/G-Series_Front_On_View_1200x900.jpg" },
     ],
     pricingNote:
       "Swapping from a storage tank to continuous flow usually needs a short pipework rework and occasionally a larger gas line, which are the two things that move this number. Both get quoted before install day.",
@@ -478,9 +501,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Report emailed", detail: "Readings, what was done, and anything we'd watch. Useful at sale time, and useful for a landlord who needs to show the heater has been maintained." },
     ],
     pricing: [
-      { tier: "Gas ducted heater service + CO test", price: "$280 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report" },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, diagnose, quote repair in writing. Fee waived if the repair goes ahead the same day." },
-      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for gas leaks, no heat, CO alarms" },
+      { tier: "Gas ducted heater service + CO test", price: "$280 + GST", includes: "Full service, gas pressure test, combustion analysis with calibrated analyser, spillage test, safety controls, written report", group: "Annual service", photo: "/gas-ducted-install.webp", photoScene: true, priceKey: "Per visit" },
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No heat sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
     ],
   },
 
@@ -500,10 +523,10 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Timer and solar set", detail: "Set to heat on the cheap part of the tariff, or on your solar if you have it. Configured before we leave rather than left on the factory default." },
     ],
     pricing: [
-      { tier: "Reclaim CO₂ Split · 160 L glass-lined", price: "from $4,200", includes: "Supply, install, tempering valve, old unit removed, rebate applied" },
-      { tier: "Reclaim CO₂ Split · 250 L stainless", price: "from $5,100", includes: "As above, stainless tank, no anode to replace" },
-      { tier: "Reclaim CO₂ Split · 315 L stainless", price: "from $5,700", includes: "As above, suits four to five people" },
-      { tier: "Reclaim CO₂ Split · 400 L stainless", price: "from $6,400", includes: "As above, the largest tank in the range" },
+      { tier: "Reclaim CO₂ Split · 160 L glass-lined", price: "from $4,200", includes: "Supply, install, tempering valve, old unit removed, rebate applied", group: "Split heat pump", photo: "/Reclaim Glass lined and stainless v2.webp" },
+      { tier: "Reclaim CO₂ Split · 250 L stainless", price: "from $5,100", includes: "Supply and install with the tempering valve, A stainless tank with no anode to replace, Old unit removed and the rebate applied", group: "Split heat pump", photo: "/reclaim-duplex-316ss-.png" },
+      { tier: "Reclaim CO₂ Split · 315 L stainless", price: "from $5,700", includes: "Supply and install with the tempering valve, A stainless tank sized for four to five people, Old unit removed and the rebate applied", group: "Split heat pump", photo: "/reclaim-split-stand-back-shot.webp", photoScene: true },
+      { tier: "Reclaim CO₂ Split · 400 L stainless", price: "from $6,400", includes: "Supply and install with the tempering valve, The largest stainless tank in the range, Old unit removed and the rebate applied", group: "Split heat pump", photo: "/reclaim-spit-close-up.webp", photoScene: true },
     ],
     pricingNote:
       "All figures are after the VEU rebate for a Victorian owner-occupier at current VEEC prices. The rebate moves with the market, so the quoted number is confirmed in writing on the day.",
@@ -524,10 +547,10 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Timer set before we go", detail: "Cheap tariff, or the middle of the day if you have solar. Tested with you rather than left on the default." },
     ],
     pricing: [
-      { tier: "iStore 180 L", price: "from $2,144", includes: "Supply, install, tempering valve, old unit removed, rebate applied" },
-      { tier: "iStore 270 L", price: "from $2,590", includes: "As above, suits three to four people" },
-      { tier: "Reclaim / Thermann ECO R290 · 200 L", price: "from $3,300", includes: "R290 platform, as above" },
-      { tier: "Reclaim / Thermann ECO R290 · 285 L", price: "from $3,900", includes: "As above, the larger of the two" },
+      { tier: "iStore 180 L", price: "from $2,144", includes: "Supply, install, tempering valve, old unit removed, rebate applied", group: "All-in-one", photo: "/270L-istore-heatpump.webp" },
+      { tier: "iStore 270 L", price: "from $2,590", includes: "Supply and install with the tempering valve, Sized for three to four people, Old unit removed and the rebate applied", group: "All-in-one" },
+      { tier: "Reclaim / Thermann ECO R290 · 200 L", price: "from $3,300", includes: "The R290 platform rather than iStore, Supply and install with the tempering valve, Old unit removed and the rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+      { tier: "Reclaim / Thermann ECO R290 · 285 L", price: "from $3,900", includes: "The R290 platform rather than iStore, The larger of the two tank sizes, Old unit removed and the rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg" },
     ],
     pricingNote:
       "After the VEU rebate for a Victorian owner-occupier at current VEEC prices. Reclaim ECO and Thermann ECO are the same platform — the price difference between them is supply, not spec.",
@@ -566,8 +589,8 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Swap day", detail: "New system installed, temporary unit disconnected and loaded up the same day. Set-up and removal fee waived if the replacement is ours." },
     ],
     pricing: [
-      { tier: "Temporary hot water · daily hire", price: "$30 / day", includes: "Unit on site, connected to the house hot water line, whole-home supply" },
-      { tier: "Set-up and removal", price: "$350", includes: "Delivery, connection, disconnection and collection. WAIVED if we install the replacement." },
+      { tier: "Temporary hot water · daily hire", price: "$30 / day", includes: "Unit on site, connected to the house hot water line, whole-home supply", group: "Hire", photo: "/gas-hot-water-changeover.webp", photoScene: true, priceKey: "Per day" },
+      { tier: "Set-up and removal", price: "$350", includes: "Delivery and connection, Disconnection and collection, Waived entirely if we install the replacement", group: "Hire", priceKey: "One-off" },
     ],
     pricingNote:
       "There's no minimum hire and no lock-in. If the new system goes in three days later, you've paid for three days.",

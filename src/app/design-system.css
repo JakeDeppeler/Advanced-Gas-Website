@@ -541,6 +541,24 @@
   transition: background .12s, border-color .12s;
 }
 .mega__toolcard:hover { background: var(--bg-2); border-color: var(--line); }
+/* The rebate row. It used to be an orange-badged item in the top nav;
+   this menu is where it lives now, so it leads it as a full orange
+   card rather than sitting in the list as one of eleven. */
+.mega__toolcard--lead {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+.mega__toolcard--lead:hover { background: #e05a18; border-color: #e05a18; }
+.mega__toolcard--lead .mega__toolicon { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.mega__toolcard--lead .mega__toolbody b { color: #fff; }
+.mega__toolcard--lead .mega__toolbody span { color: rgba(255, 255, 255, 0.85); }
+
+/* Same row in the mobile drawer. */
+.hdr__drawer-sublink--tool.is-lead { background: var(--orange); border-radius: 10px; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolicon { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolbody b { color: #fff; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolbody span { color: rgba(255, 255, 255, 0.85); }
 .mega__toolicon {
   display: inline-flex;
   align-items: center;

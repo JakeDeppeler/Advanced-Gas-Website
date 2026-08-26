@@ -172,6 +172,21 @@ export default async function HomePage() {
               </a>
             </div>
 
+            {/* The rebate, as its own thing. It used to be an item in the
+                top nav with an orange badge on it; the nav is five items
+                now and this is where that prominence went. A slow sheen
+                rather than anything that blinks — it has to catch the eye
+                on a plumbing site without behaving like an ad. */}
+            <Link href="/rebates" className="rebatecta">
+              <span className="rebatecta__sheen" aria-hidden="true" />
+              <span className="rebatecta__amt">Up to $2,700</span>
+              <span className="rebatecta__txt">
+                off a heat pump with the VEU rebate.{" "}
+                <b>See if you qualify</b>
+              </span>
+              <span className="rebatecta__go" aria-hidden="true">→</span>
+            </Link>
+
             <div className="hero__trust">
               <div className="trust-rating">
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>

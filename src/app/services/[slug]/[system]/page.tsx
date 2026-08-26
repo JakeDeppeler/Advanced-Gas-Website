@@ -287,20 +287,49 @@ export default function SystemPage({
             <h2>What {system.label.toLowerCase()} costs.</h2>
             <p>Real numbers. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
-          {/* Price cards, not a table. A three-column table of tier, price
-              and inclusions had to scroll sideways on a phone and read as
-              a spreadsheet on a laptop. Each row is a card now: the number
-              first because it's what people came for, then what it is,
-              then what's in it. */}
+          {/* The same card as "Choose your system" one level up, so the
+              two pages don't present products two different ways. The
+              chip carries the figure, the list is what the figure buys,
+              and a tier with no unit to photograph — a call-out fee —
+              gets the number in the panel instead. */}
           {pricing && (
-          <div className="pricecards">
-            {pricing.map((p) => (
-              <article className="pricecard" key={p.tier}>
-                <span className="pricecard__price">{p.price}</span>
-                <h3>{p.tier}</h3>
-                <p>{p.includes}</p>
-              </article>
-            ))}
+          <div className={`wf-styles__grid dp-prices is-${Math.min(pricing.length, 3)}up`}>
+            {pricing.map((p) => {
+              const shot = p.photo ? resolveAsset(p.photo) : null;
+              // "Message for quote" is a sentence, not a figure. In the
+              // chip at figure weight it wraps and reads as a broken
+              // label, so it drops to running size.
+              const isFigure = /\d/.test(p.price);
+              return (
+                <article className="wf-style dp-price" key={p.tier}>
+                  {shot ? (
+                    <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
+                      <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
+                    </div>
+                  ) : (
+                    <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
+                      <span>{p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}</span>
+                    </div>
+                  )}
+                  <div className="wf-style__body">
+                    <span className={`wf-style__tier${isFigure ? "" : " is-words"}`}>{p.price}</span>
+                    <h3>{p.tier}</h3>
+                    <span className="wf-style__style">
+                      {p.group ? `${p.group} · ` : ""}
+                      {p.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
+                    </span>
+                    <span className="dp-price__rl">What&rsquo;s in the price</span>
+                    <ul>
+                      {p.includes.split(/,\s+/).map((inc) => (
+                        // The source string is one sentence, so everything
+                        // after the first comma arrives lowercase.
+                        <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </article>
+              );
+            })}
           </div>
           )}
           {detail?.pricingNote && (
