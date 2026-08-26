@@ -394,53 +394,51 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <h2>Transparent fixed-price options.</h2>
             <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
-          {/* Price cards in the filtration model idiom. The one big
-              install shot above the grid is gone: every card carries the
-              shot of its own unit now, so the wide photo was the same
-              picture twice with more scrolling between them.
+          {/* Price cards, built on the same card as "Choose your system"
+              above: white panel, photo on top, orange chip, then the
+              facts. Two sections on one page that both present products
+              should not be two different card designs — the only thing
+              that changes here is that the chip carries a number and the
+              facts are what the number buys.
 
               `includes` is one comma-joined sentence in the data. It
               reads as a list because that's what it is — five things you
               get for the number — so it renders as one. */}
-          <div className="dp-prices">
+          <div className={`wf-styles__grid dp-prices is-${Math.min(content.pricing.length, 3)}up`}>
             {content.pricing.map((p) => {
               const shot = p.photo ? resolveAsset(p.photo) : null;
+              // "Message for quote" is a sentence, not a figure. In the
+              // chip at figure weight it wraps and reads as a broken
+              // label, so it drops to running size.
+              const isFigure = /\d/.test(p.price);
               return (
-                <article className="dp-price" key={p.tier}>
+                <article className="wf-style dp-price" key={p.tier}>
                   {shot ? (
-                    <div className={`dp-price__shot${p.photoScene ? " is-scene" : ""}`}>
-                      <img src={shot} alt={p.tier} loading="lazy" width="400" height="300" />
+                    <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
+                      <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
                     </div>
                   ) : (
-                    <div className="dp-price__noshot" aria-hidden="true">
-                      {p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}
+                    <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
+                      <span>{p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}</span>
                     </div>
                   )}
-                  {p.group && <span className="dp-price__group">{p.group}</span>}
-                  <h3>{p.tier}</h3>
-                  {/* "Message for quote" is a sentence, not a figure. At
-                      the display size the numbers get it wraps to two
-                      lines and reads as a headline that lost its section. */}
-                  {(() => {
-                    const isFigure = /\d/.test(p.price);
-                    return (
-                      <div className="dp-price__num">
-                        <span className="dp-price__k">
-                          {p.priceKey ?? (isFigure ? "Installed" : "Price")}
-                        </span>
-                        <span className={`dp-price__v${isFigure ? "" : " is-words"}`}>{p.price}</span>
-                      </div>
-                    );
-                  })()}
-                  <span className="dp-price__rl">What&rsquo;s in the price</span>
-                  <ul className="dp-price__inc">
-                    {p.includes.split(/,\s+/).map((inc) => (
-                      // The source string is one sentence, so everything
-                      // after the first comma arrives lowercase. As list
-                      // items they each start a line of their own.
-                      <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
-                    ))}
-                  </ul>
+                  <div className="wf-style__body">
+                    <span className={`wf-style__tier${isFigure ? "" : " is-words"}`}>{p.price}</span>
+                    <h3>{p.tier}</h3>
+                    <span className="wf-style__style">
+                      {p.group ? `${p.group} · ` : ""}
+                      {p.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
+                    </span>
+                    <span className="dp-price__rl">What&rsquo;s in the price</span>
+                    <ul>
+                      {p.includes.split(/,\s+/).map((inc) => (
+                        // The source string is one sentence, so everything
+                        // after the first comma arrives lowercase. As list
+                        // items they each start a line of their own.
+                        <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </article>
               );
             })}
