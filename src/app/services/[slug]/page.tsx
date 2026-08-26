@@ -22,6 +22,7 @@ import { RangeBand } from "@/components/RangeBand";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
 import { SystemChooser } from "@/components/SystemChooser";
 import { ADVISORS } from "@/lib/advisor";
+import { systemDetail } from "@/lib/systemDetail";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
 /** The tile palette, same five the filtration pages rotate through. */
@@ -117,7 +118,23 @@ export default async function ServicePage({ params }: { params: { slug: string }
       : sy.points.map((pt) => ({ lead: pt }))
     ).slice(0, 4),
     href: `/services/${params.slug}/${sy.id}`,
+    sizes: (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => ({
+      label: z.tier,
+      price: z.price,
+      includes: z.includes,
+      priceKey: z.priceKey,
+    })),
   }));
+
+  /** Price rows that belong to no single system — gas fitting, an
+   *  after-hours call-out. The system cards carry the rest, so without
+   *  this list those would simply vanish off the site. */
+  const inSystems = new Set(
+    (content.systems ?? []).flatMap((sy) =>
+      (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => z.tier),
+    ),
+  );
+  const otherPricing = content.pricing.filter((p) => !inSystems.has(p.tier));
   const chooseHead = CHOOSE_HEAD[params.slug];
 
   const crumbs = breadcrumbSchema([
@@ -283,6 +300,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
           cards={chooserCards}
           heading={chooseHead.h2}
           lede={chooseHead.lede}
+          footnote="*Subject to eligibility, site inspection and rebate program changes. The final quote is in writing before anything starts."
         />
       )}
 
@@ -385,70 +403,65 @@ export default async function ServicePage({ params }: { params: { slug: string }
           band and the sub-pages themselves all lead to the same places,
           so a fourth list of the same links was noise. */}
 
-      {/* PRICING — the filtration model cards, on the service pages.
-          Service & repair used to be excluded because a table of call-out
-          fees was the wrong frame for a call-out; as cards with the shot
-          of the unit and the inclusions listed out, it's the same frame as
-          everything else, so it's back in. */}
+      {/* Indicative pricing was a section here. The numbers belong to
+          the systems, so they moved onto the cards in "Choose your
+          system": press a card's button and its sizes and installed
+          prices open under the grid. What is left below is the handful
+          of rows that belong to no single system — gas fitting, an
+          after-hours call-out — which would otherwise have vanished off
+          the site with the section, plus the scope columns, which are
+          about the service rather than any one system. */}
+      {(otherPricing.length > 0 || content.included || content.excluded || content.typical) && (
       <section className="dp-pricing">
         <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
-            <h2>Transparent fixed-price options.</h2>
-            <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
-          </div>
-          {/* Price cards, built on the same card as "Choose your system"
-              above: white panel, photo on top, orange chip, then the
-              facts. Two sections on one page that both present products
-              should not be two different card designs — the only thing
-              that changes here is that the chip carries a number and the
-              facts are what the number buys.
-
-              `includes` is one comma-joined sentence in the data. It
-              reads as a list because that's what it is — five things you
-              get for the number — so it renders as one. */}
-          <div className={`wf-styles__grid dp-prices is-${Math.min(content.pricing.length, 3)}up`}>
-            {content.pricing.map((p) => {
-              const shot = p.photo ? resolveAsset(p.photo) : null;
-              // "Message for quote" is a sentence, not a figure. In the
-              // chip at figure weight it wraps and reads as a broken
-              // label, so it drops to running size.
-              const isFigure = /\d/.test(p.price);
-              return (
-                <article className="wf-style dp-price" key={p.tier}>
-                  {shot ? (
-                    <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
-                      <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
-                    </div>
-                  ) : (
-                    <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
-                      <span>{p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}</span>
-                    </div>
-                  )}
-                  <div className="wf-style__body">
-                    <span className={`wf-style__tier${isFigure ? "" : " is-words"}`}>{p.price}</span>
-                    <h3>{p.tier}</h3>
-                    <span className="wf-style__style">
-                      {p.group ? `${p.group} · ` : ""}
-                      {p.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
-                    </span>
-                    <span className="dp-price__rl">What&rsquo;s in the price</span>
-                    <ul>
-                      {p.includes.split(/,\s+/).map((inc) => (
-                        // The source string is one sentence, so everything
-                        // after the first comma arrives lowercase. As list
-                        // items they each start a line of their own.
-                        <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-          <p className="dp-pricing__fp">
-            *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.
-          </p>
+          {otherPricing.length > 0 && (
+            <>
+              <div className="ds-section-head">
+                <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Also priced</span>
+                <h2>The jobs that aren&rsquo;t a system.</h2>
+                <p>
+                  Everything else we do here is priced on its own card above. These are the
+                  ones that don&rsquo;t belong to any one system.
+                </p>
+              </div>
+              <div className={`wf-styles__grid dp-prices is-${Math.min(otherPricing.length, 3)}up`}>
+                {otherPricing.map((p) => {
+                  const shot = p.photo ? resolveAsset(p.photo) : null;
+                  const isFigure = /\d/.test(p.price);
+                  return (
+                    <article className="wf-style dp-price" key={p.tier}>
+                      {shot ? (
+                        <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
+                          <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
+                        </div>
+                      ) : (
+                        <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
+                          <span>{p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}</span>
+                        </div>
+                      )}
+                      <div className="wf-style__body">
+                        <span className={`wf-style__tier${isFigure ? "" : " is-words"}`}>{p.price}</span>
+                        <h3>{p.tier}</h3>
+                        <span className="wf-style__style">
+                          {p.group ? `${p.group} · ` : ""}
+                          {p.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
+                        </span>
+                        <span className="dp-price__rl">What&rsquo;s in the price</span>
+                        <ul>
+                          {p.includes.split(/,\s+/).map((inc) => (
+                            <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+              <p className="dp-pricing__fp">
+                *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.
+              </p>
+            </>
+          )}
 
           {(content.included || content.excluded || content.typical) && (
             <div className="svc-scope">
@@ -483,6 +496,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
           )}
         </div>
       </section>
+      )}
 
       {/* The proof — why this gear, our own jobs, a real changeover pair.
           It used to run before the specification on `whyFirst` pages,

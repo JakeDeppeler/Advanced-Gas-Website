@@ -92,15 +92,10 @@ export default function SystemPage({
     (b) => !system.brands || system.brands.some((n) => b.brand.toLowerCase().startsWith(n.toLowerCase())),
   );
 
-  // Pricing: the system's own rows first. The keyword match on the
-  // parent table is the old fallback and it was the reason a page with
-  // no matching row silently displayed the entire service price list,
-  // which is most of why these pages read as interchangeable.
-  const words = system.label.toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 3);
-  const rows = content.pricing.filter((p) =>
-    words.some((w) => p.tier.toLowerCase().includes(w)),
-  );
-  const pricing = detail?.pricing ?? (rows.length > 0 ? rows : null);
+  // The keyword match against the parent service's price table is gone
+  // with the section that used it. Each system's own rows now come off
+  // `systemDetail` and render inside its card, so there is no longer a
+  // fallback that could quietly show the whole service's price list.
   const steps = detail?.steps ?? content.steps;
 
   const crumbs = breadcrumbSchema([
@@ -243,7 +238,14 @@ export default function SystemPage({
           ).slice(0, 4),
           href: `/services/${params.slug}/${sy.id}`,
           current: sy.id === system.id,
+          sizes: (systemDetail(params.slug, sy.id)?.pricing ?? []).map((z) => ({
+            label: z.tier,
+            price: z.price,
+            includes: z.includes,
+            priceKey: z.priceKey,
+          })),
         }))}
+        footnote="*Subject to eligibility, site inspection and rebate program changes. The final quote is in writing before anything starts."
         heading={`The ${svc.short.toLowerCase()} options, side by side.`}
         lede={`You're reading about ${system.label.toLowerCase()}. Here it is next to everything else we fit, in case it isn't the one.`}
       />
@@ -333,72 +335,18 @@ export default function SystemPage({
         </div>
       )}
 
-      {/* Pricing. Only rendered when there are rows genuinely about this
-          system — a page with no numbers of its own is better than one
-          showing the whole service's price list as if it were relevant. */}
-      {(pricing || detail?.pricingNote) && (
-      <section className="dp-pricing">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Indicative pricing</span>
-            <h2>What {system.label.toLowerCase()} costs.</h2>
-            <p>Real numbers. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
-          </div>
-          {/* The same card as "Choose your system" one level up, so the
-              two pages don't present products two different ways. The
-              chip carries the figure, the list is what the figure buys,
-              and a tier with no unit to photograph — a call-out fee —
-              gets the number in the panel instead. */}
-          {pricing && (
-          <div className={`wf-styles__grid dp-prices is-${Math.min(pricing.length, 3)}up`}>
-            {pricing.map((p) => {
-              const shot = p.photo ? resolveAsset(p.photo) : null;
-              // "Message for quote" is a sentence, not a figure. In the
-              // chip at figure weight it wraps and reads as a broken
-              // label, so it drops to running size.
-              const isFigure = /\d/.test(p.price);
-              return (
-                <article className="wf-style dp-price" key={p.tier}>
-                  {shot ? (
-                    <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
-                      <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
-                    </div>
-                  ) : (
-                    <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
-                      <span>{p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}</span>
-                    </div>
-                  )}
-                  <div className="wf-style__body">
-                    <span className={`wf-style__tier${isFigure ? "" : " is-words"}`}>{p.price}</span>
-                    <h3>{p.tier}</h3>
-                    <span className="wf-style__style">
-                      {p.group ? `${p.group} · ` : ""}
-                      {p.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
-                    </span>
-                    <span className="dp-price__rl">What&rsquo;s in the price</span>
-                    <ul>
-                      {p.includes.split(/,\s+/).map((inc) => (
-                        // The source string is one sentence, so everything
-                        // after the first comma arrives lowercase.
-                        <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-          )}
-          {detail?.pricingNote && (
+      {/* Indicative pricing was a section here. The numbers belong to
+          the systems, so they moved onto the system cards above: press a
+          card's button and its sizes and installed prices open under the
+          grid. A price list forty lines below the thing it prices was
+          two blocks describing one decision. */}
+      {detail?.pricingNote && (
+        <section className="dp-pricenote">
+          <div className="wrap">
             <p className="dp-pricing__note">{detail.pricingNote}</p>
-          )}
-          <p className="dp-pricing__fp">
-            *Subject to eligibility, site inspection and rebate program changes. Final quote in writing.
-          </p>
-        </div>
-      </section>
+          </div>
+        </section>
       )}
-
 
       {/* THE BRANDS — a door each into the brand page, plus one button
           into the full filterable list. Led by the brands rather than by

@@ -3635,3 +3635,153 @@
 @media (max-width: 520px) {
   .page-detail .svc-look__facts { grid-template-columns: 1fr; gap: 14px; }
 }
+
+
+/* ============================================================
+   SIZES AND PRICES — the drop under "Choose your system".
+   Indicative pricing used to be a section of its own further down.
+   The numbers belong to the system, so they open on the system's own
+   card instead: brands in the panel head, then a card per size with
+   what the number buys.
+   ============================================================ */
+.page-detail .dp-choose .wf-range__drop {
+  margin-top: 26px;
+  padding: 30px 32px 32px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: choose-drop 0.28s ease both;
+}
+.page-detail .dp-choose .wf-range__drop[hidden] { display: none; }
+@keyframes choose-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-detail .dp-choose .wf-range__drophead { margin-bottom: 22px; max-width: 66ch; }
+.page-detail .dp-choose .wf-range__drophead h3 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.page-detail .dp-choose .wf-range__drophead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-detail .dp-choose .wf-range__drophead strong { color: #fff; }
+
+.page-detail .choose-sizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+}
+.page-detail .choose-size {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 22px;
+  background: var(--paper);
+  border-radius: var(--rad-sm);
+  border-top: 3px solid var(--orange);
+}
+.page-detail .choose-size h4 {
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 12px;
+}
+.page-detail .choose-size__num {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .choose-size__k {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+.page-detail .choose-size__v {
+  font-family: var(--f-display);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--orange);
+}
+/* A sentence at figure weight wraps and stops reading as a price. */
+.page-detail .choose-size__v.is-words {
+  font-family: var(--f-body);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.page-detail .choose-size ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.page-detail .choose-size li {
+  position: relative;
+  padding-left: 19px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.page-detail .choose-size li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(-45deg);
+}
+.page-detail .choose-sizes__fp {
+  margin: 20px 0 0;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* The button itself. These rules existed for `.page-brand` and for the
+   filtration pages but never for `.page-detail`, so the first time a
+   service page grew one it rendered as a line of centred plain text. */
+.page-detail .wf-style__more {
+  appearance: none;
+  margin: 16px 0 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  transition: background 0.15s;
+}
+.page-detail .wf-style__more:hover,
+.page-detail .wf-style__more.is-open { background: var(--orange); }
+
+/* The button sits above the "see the full detail" link, so the link
+   loses the rule it would otherwise draw right under the button. */
+.page-detail .wf-style__more + .wf-style__go,
+.page-detail .wf-style__more + .wf-style__here { border-top: 0; padding-top: 10px; margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .page-detail .dp-choose .wf-range__drop { padding: 22px 18px 24px; }
+}

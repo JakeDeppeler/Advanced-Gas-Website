@@ -1,23 +1,34 @@
+"use client";
+
+import { useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 
 /**
- * Choose your system — the service-page version of the section the
- * filtration pages carry.
+ * Choose your system — and, behind a button on each card, the brands,
+ * the sizes and what each size costs installed.
  *
- * "Systems we install" used to be a list of links here, which is what
- * the services mega, the range band and the sub-pages themselves already
- * are. A fourth list of the same links told nobody anything. This is the
- * same set of destinations as a set of products: the shot of the unit,
- * what it costs, which brands it comes in, and four things that are true
- * about it — so the choice between a split and a ducted gets made on the
- * page where it's live, rather than deferred to whichever link you happen
- * to click.
+ * Indicative pricing used to be a section of its own further down the
+ * page, which meant somebody read about split systems here and then met
+ * the three split system prices forty lines later with nothing tying
+ * them together. The prices belong to the system, so they live on the
+ * system's card: press the button and the sizes open underneath the
+ * grid, one system at a time.
  *
- * Photo paths arrive resolved from the server. Cards are ordered the way
- * the data is, and the first one takes the orange outline: for every
- * service the lead system is the one we fit most.
+ * Photo paths arrive already resolved — the server knows what's on disk,
+ * this side of the wire doesn't.
  */
+
+export type ChooserSize = {
+  /** The size or tier, e.g. "Single split system (5.0 kW · living)". */
+  label: string;
+  /** Installed price, or a sentence where we don't publish one. */
+  price: string;
+  /** Comma-separated inclusions. Each item has to stand on its own. */
+  includes: string;
+  /** Caption above the figure — "Installed" is wrong over a call-out. */
+  priceKey?: string;
+};
 
 export type ChooserCard = {
   id: string;
@@ -25,33 +36,36 @@ export type ChooserCard = {
   blurb: string;
   photo: string | null;
   photoAlt: string;
-  /** A real scene fills the panel; a cut-out sits inside it. */
   photoScene: boolean;
   brands: string[];
   priceFrom?: string;
-  /** A short claim, and the sentence that qualifies it. The tile faces
-   *  are written as a pair — the claim alone loses the reason, the
-   *  qualifier alone loses the subject — so the bullet carries both. */
   facts: { lead: string; note?: string }[];
   href: string;
   /** True on the system whose page this is. It keeps its card — being
-   *  able to see the thing you're reading about next to the three you
-   *  aren't is the whole point — but the card says so instead of
-   *  offering a link back to itself. */
+   *  able to see the thing you're reading about next to the ones you
+   *  aren't is the point — but says so instead of linking to itself. */
   current?: boolean;
+  /** The sizes we fit and what each costs installed. */
+  sizes?: ChooserSize[];
 };
 
 export function SystemChooser({
   cards,
   heading,
   lede,
+  footnote,
 }: {
   cards: ChooserCard[];
   heading: string;
   lede?: string;
+  footnote?: string;
 }) {
+  const [open, setOpen] = useState<string | null>(null);
+  const dropRef = useRef<HTMLDivElement | null>(null);
+
   if (cards.length === 0) return null;
-  const cols = Math.min(cards.length, 4);
+  const cols = cards.length === 4 ? 4 : Math.min(cards.length, 3);
+  const openCard = cards.find((c) => c.id === open) ?? null;
 
   return (
     <section className="dp-choose">
@@ -63,48 +77,121 @@ export function SystemChooser({
           <h2 className="ds-h--on-dark">{heading}</h2>
           {lede && <p className="dp-choose__lede">{lede}</p>}
         </div>
-        {/* Four systems as 3 + 1 leaves an orphan card with two empty
-            columns beside it, so the count drives the columns. The class
-            carries it as well as the custom property: React writes the
-            inline style without a space (`--cols:2`), which an attribute
-            selector written the readable way silently misses. */}
+
+        {/* Four shapes go four across; anything else caps at three, so
+            five doesn't become a five-column squeeze or a 3 + 2 with the
+            type of a four-across grid. The class carries it as well as
+            the custom property: React writes the inline style without a
+            space, which an attribute selector written the readable way
+            silently misses. */}
         <div className={`wf-styles__grid is-${cols}up`} style={{ "--cols": cols } as CSSProperties}>
-          {cards.map((c, i) => (
-            <article className={`wf-style${c.current ?? i === 0 ? " is-lead" : ""}`} key={c.id}>
-              {c.photo && (
-                <div className={`wf-style__photo${c.photoScene ? " is-scene" : ""}`}>
-                  <img src={c.photo} alt={c.photoAlt} loading="lazy" width="600" height="450" />
+          {cards.map((c, i) => {
+            const on = open === c.id;
+            const n = c.sizes?.length ?? 0;
+            return (
+              <article className={`wf-style${(c.current ?? i === 0) ? " is-lead" : ""}`} key={c.id}>
+                {c.photo && (
+                  <div className={`wf-style__photo${c.photoScene ? " is-scene" : ""}`}>
+                    <img src={c.photo} alt={c.photoAlt} loading="lazy" width="600" height="450" />
+                  </div>
+                )}
+                <div className="wf-style__body">
+                  {c.priceFrom && <span className="wf-style__tier">{c.priceFrom}</span>}
+                  <h3>{c.label}</h3>
+                  {c.brands.length > 0 && (
+                    <span className="wf-style__style">{c.brands.join(" · ")}</span>
+                  )}
+                  <p>{c.blurb}</p>
+                  <ul>
+                    {c.facts.map((f) => (
+                      <li key={f.lead}>
+                        <strong>{f.lead}</strong>
+                        {f.note && <> &mdash; {f.note}</>}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {n > 0 && (
+                    <button
+                      type="button"
+                      className={`wf-style__more${on ? " is-open" : ""}`}
+                      aria-expanded={on}
+                      aria-controls="choose-sizes-drop"
+                      onClick={() => {
+                        const next = on ? null : c.id;
+                        setOpen(next);
+                        // The panel opens under every card, which on a
+                        // four-card grid is well past the fold. Without
+                        // this you press it and, as far as you can tell,
+                        // nothing happens.
+                        if (next) {
+                          requestAnimationFrame(() =>
+                            dropRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                          );
+                        }
+                      }}
+                    >
+                      {on ? "Hide the sizes" : n === 1 ? "Size and price" : `The ${n} sizes and prices`}
+                      <span aria-hidden="true">{on ? "↑" : "↓"}</span>
+                    </button>
+                  )}
+
+                  {c.current ? (
+                    <span className="wf-style__here">You&rsquo;re reading this one</span>
+                  ) : (
+                    <Link className="wf-style__go" href={c.href}>
+                      See the full detail
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </div>
-              )}
-              <div className="wf-style__body">
-                {c.priceFrom && <span className="wf-style__tier">{c.priceFrom}</span>}
-                <h3>{c.label}</h3>
-                {c.brands.length > 0 && (
-                  <span className="wf-style__style">{c.brands.join(" · ")}</span>
-                )}
-                <p>{c.blurb}</p>
-                <ul>
-                  {c.facts.map((f) => (
-                    <li key={f.lead}>
-                      <strong>{f.lead}</strong>
-                      {f.note && <> &mdash; {f.note}</>}
-                    </li>
-                  ))}
-                </ul>
-                {c.current ? (
-                  <span className="wf-style__here">You&rsquo;re reading this one</span>
-                ) : (
-                  <Link className="wf-style__go" href={c.href}>
-                    {/* Short on purpose. "The full detail on ducted
-                        reverse-cycle air conditioning" wrapped to two lines
-                        and pushed the arrow off on its own. */}
-                    See the full detail
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                )}
+              </article>
+            );
+          })}
+        </div>
+
+        <div ref={dropRef} className="wf-range__drop" id="choose-sizes-drop" hidden={!openCard}>
+          {openCard && (
+            <>
+              <div className="wf-range__drophead">
+                <h3>{openCard.label}</h3>
+                <p>
+                  {openCard.brands.length > 0 && (
+                    <>
+                      We fit it in <strong>{openCard.brands.join(" and ")}</strong>.{" "}
+                    </>
+                  )}
+                  Installed, back to back, with everything below in the number.
+                </p>
               </div>
-            </article>
-          ))}
+              <div className="choose-sizes">
+                {openCard.sizes!.map((z) => {
+                  const isFigure = /\d/.test(z.price);
+                  return (
+                    <article className="choose-size" key={z.label}>
+                      <h4>{z.label}</h4>
+                      <div className="choose-size__num">
+                        <span className="choose-size__k">
+                          {z.priceKey ?? (isFigure ? "Installed" : "Priced at quote")}
+                        </span>
+                        <span className={`choose-size__v${isFigure ? "" : " is-words"}`}>{z.price}</span>
+                      </div>
+                      <ul>
+                        {z.includes.split(/,\s+/).map((inc) => (
+                          // The source string is one sentence, so
+                          // everything after the first comma arrives
+                          // lowercase. As list items they each start a
+                          // line of their own.
+                          <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  );
+                })}
+              </div>
+              {footnote && <p className="choose-sizes__fp">{footnote}</p>}
+            </>
+          )}
         </div>
       </div>
     </section>

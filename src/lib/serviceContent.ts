@@ -1004,13 +1004,19 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
     ],
     brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
-    pricing: [
-      { tier: "iStore 270 L (all-in-one, VEU applied)", price: "$2,144", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor warranty", group: "All-in-one", photo: "/270L-istore-heatpump.webp" },
-      { tier: "Reclaim ECO R290 AIO 200/285 L (VEU applied)", price: "$2,624", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor + 6-yr workmanship", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
-      { tier: "Thermann Integrated 200/285 L (VEU applied)", price: "$2,624", includes: "Same platform as Reclaim ECO R290 AIO, Reece stock, Dux warranty", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg" },
-      { tier: "Reclaim CO₂ Split · Glass-lined 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate tank, 10-yr tank + 10-yr heat pump warranty", group: "Split heat pump", photo: "/Reclaim Glass lined and stainless v2.webp" },
-      { tier: "Reclaim CO₂ Split · Stainless 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate stainless tank, 15-yr stainless tank warranty, No anode to service or replace", group: "Split heat pump", photo: "/reclaim-duplex-316ss-.png" },
-    ],
+    /**
+     * Empty on purpose. Every heat pump price is a per-system row in
+     * lib/systemDetail.ts now, and the cards in "Choose your system"
+     * render them. The five rows that used to live here restated the
+     * same products less precisely — they had one line for "iStore
+     * 270 L" where the system rows have 180 and 270 separately.
+     *
+     * NOTE: those two sources disagreed on the 270. This list said
+     * $2,144 for it; the system rows say $2,144 for the 180 and $2,590
+     * for the 270. The system rows are kept because they are the more
+     * specific of the two, but the number wants confirming.
+     */
+    pricing: [],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
       { title: "Written fixed-price quote in 2 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },

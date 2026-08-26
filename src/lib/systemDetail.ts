@@ -246,6 +246,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
   },
 
   "air-conditioning-installation/evap": {
+    pricing: [
+      { tier: "Evaporative cooling, whole home", price: "from $3,900", includes: "Roof unit and stand, Ducting and a vent to each room, Wall controller, Water and power connection, Compliance certificate", group: "Evaporative", photo: "/classic_evap_product_image.jpg" },
+    ],
     specs: [
       { label: "Mounted", value: "On the roof" },
       { label: "Needs", value: "Water supply + power" },
@@ -328,6 +331,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
   },
 
   "aircon-servicing-repairs/evap": {
+    pricing: [
+      { tier: "Evaporative cooler · pre-summer service", price: "$220 + GST", includes: "Pads checked and replaced where needed, Tray drained and flushed, Pump and float tested under load, Distributor lines cleared, Written service report", group: "Annual service", photo: "/evap cooler service close ip.jpg", photoScene: true, priceKey: "Per visit" },
+    ],
     specs: [
       { label: "Best booked", value: "Sept – Nov" },
       { label: "Time on site", value: "60 – 90 minutes" },
