@@ -19,7 +19,35 @@ export type ServiceContent = {
   /** The figures along the bottom of the header. Four short pairs. */
   heroFacts?: { v: string; k: string }[];
   brands: string[];
-  pricing: { tier: string; price: string; includes: string }[];
+  /**
+   * Indicative pricing, rendered as cards in the same idiom as the
+   * filtration model cards: a product shot, the number, and what the
+   * number buys as a list rather than a run-on sentence.
+   *
+   * `group` is the chip above the name. Gas & plumbing is three trades
+   * on one page, so without it the six numbers read as one undivided
+   * list and you can't tell which trade a price belongs to.
+   *
+   * `photo` is a /public path. Optional — where a tier has no obvious
+   * product shot (a call-out fee), the card renders without one.
+   */
+  pricing: {
+    tier: string;
+    price: string;
+    /** What the number buys. Comma-separated, and each item has to stand
+     *  on its own — the card renders them as a list, so "As above" or a
+     *  trailing clause reads as a broken bullet. */
+    includes: string;
+    group?: string;
+    photo?: string;
+    /** True where `photo` is a real scene rather than a product cut-out.
+     *  Scenes fill the panel; cut-outs sit inside it with padding. */
+    photoScene?: boolean;
+    /** The caption above the figure. "Installed" is right for an install
+     *  and wrong for a call-out fee, so anything that isn't an install
+     *  says what it actually is. */
+    priceKey?: string;
+  }[];
   faqs: { q: string; a: string }[];
   /** Numbered install-process steps rendered as a stepper below the
    *  benefits block. Distinct per service so no two pages read the same. */
@@ -188,7 +216,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "6-year", k: "Workmanship, on top of the manufacturer's" },
       { v: "Heat-load first", k: "Room by room, before we quote a size" },
     ],
-    h1: "Air conditioning installation across Melbourne's south-east",
+    h1: "Air conditioning, installed properly",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
@@ -214,12 +242,12 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brands: ["Mitsubishi Electric", "Kaden", "Brivis (evap)", "Zonemate"],
     pricing: [
-      { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert" },
-      { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert" },
-      { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert" },
-      { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set" },
-      { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set" },
-      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance" },
+      { tier: "Single split system (2.5 kW · bedroom)", price: "from $2,199", includes: "Supply, back-to-back install, up to 3 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp" },
+      { tier: "Single split system (5.0 kW · living)", price: "from $2,899", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/Kaden KSI V3 wall split system.jpg" },
+      { tier: "Single split system (7.1 kW · large open-plan)", price: "from $3,299", includes: "Supply, install, up to 5 m line-set, compliance cert", group: "Split system", photo: "/mitsubishi-msz-ap-series-v2-v3.webp" },
+      { tier: "Multi-head 2-indoor (Mitsubishi MXZ-2F)", price: "from $6,500", includes: "One outdoor, two indoor heads, up to 15 m combined line-set", group: "Multi-head", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp" },
+      { tier: "Multi-head 4-indoor (Mitsubishi MXZ-4F)", price: "from $11,500", includes: "One outdoor, four indoor heads, up to 30 m combined line-set", group: "Multi-head", photo: "/Kaden Multi Head.jpg" },
+      { tier: "Ducted reverse-cycle (PEAD-M · 4 zones)", price: "from $12,500", includes: "PEAD-M indoor, PUZ outdoor, 4× Zonemate zones, controller, compliance", group: "Ducted reverse-cycle", photo: "/mitsubishi-pea-m-ducted-v2-v3.webp" },
     ],
     steps: [
       { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
@@ -752,11 +780,11 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
     pricing: [
-      { tier: "iStore 270 L (all-in-one, VEU applied)", price: "$2,144", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor warranty" },
-      { tier: "Reclaim ECO R290 AIO 200/285 L (VEU applied)", price: "$2,624", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor + 6-yr workmanship" },
-      { tier: "Thermann Integrated 200/285 L (VEU applied)", price: "$2,624", includes: "Same platform as Reclaim ECO R290 AIO, Reece stock, Dux warranty" },
-      { tier: "Reclaim CO₂ Split · Glass-lined 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate tank, 10-yr tank + 10-yr heat pump warranty" },
-      { tier: "Reclaim CO₂ Split · Stainless 250/315/400 L", price: "Message for quote", includes: "As above, 15-yr stainless tank warranty (no anode to service)" },
+      { tier: "iStore 270 L (all-in-one, VEU applied)", price: "$2,144", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor warranty", group: "All-in-one", photo: "/270L-istore-heatpump.webp" },
+      { tier: "Reclaim ECO R290 AIO 200/285 L (VEU applied)", price: "$2,624", includes: "Supply, install, old tank removal, VEU paperwork, 6-yr tank + 3-yr compressor + 6-yr workmanship", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
+      { tier: "Thermann Integrated 200/285 L (VEU applied)", price: "$2,624", includes: "Same platform as Reclaim ECO R290 AIO, Reece stock, Dux warranty", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg" },
+      { tier: "Reclaim CO₂ Split · Glass-lined 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate tank, 10-yr tank + 10-yr heat pump warranty", group: "Split heat pump", photo: "/Reclaim Glass lined and stainless v2.webp" },
+      { tier: "Reclaim CO₂ Split · Stainless 250/315/400 L", price: "Message for quote", includes: "Split heat pump + separate stainless tank, 15-yr stainless tank warranty, No anode to service or replace", group: "Split heat pump", photo: "/reclaim-duplex-316ss-.png" },
     ],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
@@ -1057,7 +1085,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "Every brand", k: "Including the ones we don't install" },
       { v: "12 months", k: "On any part we supply" },
     ],
-    h1: "Aircon service, repair & tune-up across Melbourne's south-east",
+    h1: "Aircon service, repair & tune-up",
     intro:
       "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and fixed-price quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
     whyThese: {
@@ -1083,11 +1111,11 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brands: ["Mitsubishi Electric", "Daikin", "Fujitsu", "Panasonic", "LG", "Kaden", "Braemar", "Samsung"],
     pricing: [
-      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report" },
-      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Same as above, per additional unit at the same address on the same visit" },
-      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test" },
-      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, diagnose, quote repair in writing. Fee WAIVED if repair goes ahead the same day." },
-      { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, on-call tradie (not an overseas call-centre)" },
+      { tier: "Split system · annual service", price: "$220", includes: "Filter clean, coil chemical clean, refrigerant pressure check, capacitor test, thermistor calibration, drain flush, service report", group: "Annual service", photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp", priceKey: "Per visit" },
+      { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Everything in the split system service, Charged per extra unit at the same address, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per extra unit" },
+      { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", priceKey: "Per visit", photoScene: true },
+      { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, An on-call tradie rather than an overseas call-centre, Diagnosis and a written repair quote on the spot", group: "Call-out", priceKey: "Call-out fee" },
     ],
     steps: [
       { title: "Book the visit, one call, no menu", detail: "Call and book with the person you'll see, Chaz or Jake picks up, quotes the service fee, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
@@ -1314,7 +1342,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "Same day", k: "Ducted swaps and continuous flow changeovers" },
       { v: "24/7", k: "Gas leaks, no hot water, CO alarms" },
     ],
-    h1: "Gas heating, hot water & plumbing across Melbourne's south-east",
+    h1: "Gas heating, hot water & plumbing",
     intro:
       "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 2 business hours, and full compliance certificates on every job.",
     whyThese: {
@@ -1341,12 +1369,12 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     brands: ["Brivis", "Kaden", "Thermann", "Puretec", "Rinnai", "Rheem", "Bosch", "Dux", "Vulcan"],
     pricing: [
-      { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal" },
-      { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "As above, quieter fan, longer service life" },
-      { tier: "Thermann G-series continuous flow (26 L)", price: "from $2,499", includes: "Supply, install, compliance cert, controller (indoor + outdoor)" },
-      { tier: "Gas appliance installation (single point)", price: "from $349", includes: "Connection, pressure test, compliance cert" },
-      { tier: "Gas leak detection + report", price: "from $220", includes: "Electronic leak test, pressure test, written safe-to-stay report" },
-      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for gas leaks, no hot water, CO alarms" },
+      { tier: "Brivis Wombat replacement (like-for-like)", price: "from $4,800", includes: "Supply, install, controller wiring reuse, compliance cert, old unit removal", group: "Gas ducted heating", photo: "/Brivis Wombat Indoor 3 star.jpg" },
+      { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "Everything in the Wombat replacement, A quieter fan, A longer service life", group: "Gas ducted heating", photo: "/Brivis Buffalo Outdorr.jpg" },
+      { tier: "Thermann G-series continuous flow (26 L)", price: "from $2,499", includes: "Supply, install, compliance cert, controller (indoor + outdoor)", group: "Gas hot water", photo: "/G-Series_Front_On_View_1200x900.jpg" },
+      { tier: "Gas appliance installation (single point)", price: "from $349", includes: "Connection, pressure test, compliance cert", group: "Gas fitting", photo: "/gas-ducted-install.webp", photoScene: true },
+      { tier: "Gas leak detection + report", price: "from $220", includes: "Electronic leak test, pressure test, written safe-to-stay report", group: "Gas fitting", photo: "/gas-line-safe.webp", priceKey: "Price", photoScene: true },
+      { tier: "Emergency call-out (after-hours)", price: "$220 + parts", includes: "Same-day attendance for a gas leak or a CO alarm, No hot water sorted the same day where we can, Diagnosis and a written repair quote on the spot", group: "Emergency", priceKey: "Call-out fee" },
     ],
     steps: [
       { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm, call and we'll be on-site same-day. Standard call-out $120 in-hours, $220 after-hours. Fee waived if repair goes ahead on the day." },
@@ -1646,7 +1674,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Rentals and tenanted properties, keeps you compliant while you sort it",
           "No obligation to use us for the replacement",
         ],
-        priceFrom: "$30/day · $350 set-up waived if we do the job",
+        priceFrom: "$30/day hire",
         intro:
           "When a tank dies you are suddenly being asked to make a three or four thousand dollar decision, today, with cold showers as the deadline. That is the worst possible way to buy a hot water system, and it is exactly how most people end up with the wrong one. A temporary unit takes the deadline off the table: the house has hot water tonight, and you get to choose the replacement properly, at a normal pace, with real quotes in front of you.",
         bestFor: [

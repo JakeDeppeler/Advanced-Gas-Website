@@ -117,10 +117,11 @@ export default function UpgradeOrRepairPage() {
             The question behind most of our call-outs
           </div>
           <h1>
-            Repair it, or replace it? <em>Ten years</em> is usually where the answer changes.
+            Repair it, or <em>replace it?</em>
           </h1>
           <p className="ug-hero__sub">
-            Nobody in this trade wants to say out loud that sometimes the right answer is
+            Ten years is usually where the answer changes. Nobody in this trade wants to say out
+            loud that sometimes the right answer is
             "fix it and keep going", because there's no invoice in it. So here's the whole
             argument in public: how long these things actually last, where repair spend stops
             earning its keep, when we'd tell you to repair instead — and why the VEU rebate

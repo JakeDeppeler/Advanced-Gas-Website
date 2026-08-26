@@ -3286,3 +3286,274 @@
 /* No brand cards? The button is the section, so it doesn't need a rule
    above it. */
 .rangeband .ds-section-head + .rangeband__all { border-top: 0; padding-top: 0; }
+
+/* --- Type scale. 64px was set when these headings were three or four
+       words; several of them run five lines at that size, which is a
+       headline that has become a paragraph. The section h2s come down
+       with it so the page keeps its hierarchy. --- */
+.page-detail .dp-hero h1 { font-size: clamp(34px, 4vw, 52px); max-width: 18ch; }
+.page-detail .ds-section-head h2,
+.page-detail .sysfit h2 { font-size: clamp(26px, 3vw, 38px) !important; }
+.page-detail .rangeband h2 { font-size: clamp(26px, 3vw, 38px) !important; max-width: 20ch; }
+
+
+/* ============================================================
+   CHOOSE YOUR SYSTEM
+   The filtration section, on the service pages. Navy band so the
+   cards read as products rather than as more page. Class names are
+   deliberately the filtration ones — `.reveal .wf-style` in
+   design-system.css already stages these in, and a parallel set of
+   `.svc-style` names would have meant maintaining the stagger twice.
+   The visual rules there are scoped to `.page-filtration`, so this is
+   the same block re-scoped, not a duplicate fighting it.
+   ============================================================ */
+.page-detail .dp-choose {
+  padding: 90px 0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-detail .dp-choose__lede { color: rgba(255, 255, 255, 0.78); max-width: 62ch; }
+.page-detail .wf-styles__grid { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: 18px; }
+.page-detail .wf-style {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 22px 54px -28px rgba(0, 0, 0, 0.6);
+}
+.page-detail .wf-style.is-lead { outline: 3px solid var(--orange); outline-offset: 0; }
+.page-detail .wf-style__photo {
+  height: 186px;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .wf-style__photo img { width: 100%; height: 100%; object-fit: contain; padding: 14px; }
+/* Scenes fill the panel. A photograph of a heater in a roof cavity,
+   contained and padded on white, reads as a thumbnail rather than as the
+   product shot the card next to it is showing. */
+.page-detail .wf-style__photo.is-scene { background: var(--bg-2); }
+/* Appliance photos are portraits and the unit's head — the compressor,
+   the badge — is the identifying part. A dead-centre crop keeps the tank
+   body and throws that away, so the frame sits high. */
+.page-detail .wf-style__photo.is-scene img { object-fit: cover; padding: 0; object-position: center 35%; }
+.page-detail .wf-style__body { padding: 20px 22px 22px; display: flex; flex-direction: column; flex: 1; }
+.page-detail .wf-style__tier {
+  align-self: flex-start;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.page-detail .wf-style h3 { font-family: var(--f-display); font-size: 21px; line-height: 1.2; color: var(--navy); margin: 0 0 3px; }
+.page-detail .wf-style__style { font-size: 12.5px; color: var(--ink-3); margin-bottom: 12px; }
+.page-detail .wf-style p { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; }
+.page-detail .wf-style ul { list-style: none; margin: auto 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.page-detail .wf-style li { font-size: 13px; line-height: 1.45; color: var(--ink-2); padding-left: 16px; position: relative; }
+.page-detail .wf-style li::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+.page-detail .wf-style li strong { font-weight: 700; color: var(--navy); }
+/* The card is the pitch; this is the way out of it. Sits under the
+   facts rather than floating over them, so the list keeps the
+   auto-margin that bottom-aligns the cards to each other. */
+.page-detail .wf-style__go {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  transition: color 0.16s ease, gap 0.16s ease;
+}
+.page-detail .wf-style__go:hover { color: var(--orange); gap: 12px; }
+
+@media (max-width: 1100px) {
+  .page-detail .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-detail .dp-choose { padding: 60px 0; }
+  .page-detail .wf-styles__grid { grid-template-columns: 1fr; }
+  /* One card across is 350px wide, so a 186px panel is a letterbox
+     again — the card has the width now, give the photo the height. */
+  .page-detail .wf-style__photo { height: 240px; }
+}
+/* Two across, the card is 600px wide and the photo panel becomes a
+   186px letterbox — which crops a portrait shot of a tank down to a
+   band of brickwork. At that width the card wants to be horizontal:
+   the photo takes a column and gets its full height back. */
+@media (min-width: 901px) {
+  .page-detail .wf-styles__grid.is-2up .wf-style { flex-direction: row; }
+  .page-detail .wf-styles__grid.is-2up .wf-style__photo {
+    flex: 0 0 40%;
+    height: auto;
+    align-self: stretch;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+  }
+  .page-detail .wf-styles__grid.is-2up .wf-style__body { flex: 1; min-width: 0; }
+}
+
+/* At four across the blurb gets narrow, so the type steps down with it
+   rather than running to seven words a line. */
+@media (min-width: 1101px) {
+  .page-detail .wf-styles__grid.is-4up .wf-style h3 { font-size: 18.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style p { font-size: 13.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style li { font-size: 12.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style__photo { height: 160px; }
+}
+
+
+/* ============================================================
+   INDICATIVE PRICING — the filtration model cards.
+   Was a grid of `.pricecard`: a number, a name and a run-on
+   sentence of inclusions. Same information, given the shape the
+   filtration model cards have — product shot, name, the figure as a
+   spec, then what the figure buys as a list.
+   ============================================================ */
+.page-detail .dp-prices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+.page-detail .dp-price {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 36px -28px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.page-detail .dp-price:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -26px rgba(5, 10, 48, 0.45);
+}
+.page-detail .dp-price__shot {
+  height: 150px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.page-detail .dp-price__shot img { width: 100%; height: 100%; object-fit: contain; padding: 10px; }
+/* A photograph of a job isn't a cut-out — floated in the middle of a white
+   panel with padding it reads as a thumbnail somebody forgot to size. */
+.page-detail .dp-price__shot.is-scene { background: var(--bg-2); }
+.page-detail .dp-price__shot.is-scene img { object-fit: cover; padding: 0; object-position: center 35%; }
+/* Call-out fees have no unit to photograph. Rather than leave a hole
+   that makes the row look broken, the figure itself fills the panel. */
+.page-detail .dp-price__noshot {
+  height: 150px;
+  margin-bottom: 16px;
+  border-radius: var(--rad-sm);
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: rgba(255, 255, 255, 0.16);
+  font-family: var(--f-display);
+  font-size: 68px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-detail .dp-price__group {
+  align-self: flex-start;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--navy);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.page-detail .dp-price h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.25;
+  color: var(--navy);
+  margin: 0 0 14px;
+}
+.page-detail .dp-price__num {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .dp-price__k {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.page-detail .dp-price__v {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--orange);
+}
+.page-detail .dp-price__v.is-words {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.page-detail .dp-price__rl {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.page-detail .dp-price__inc { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.page-detail .dp-price__inc li {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  padding-left: 20px;
+  position: relative;
+}
+.page-detail .dp-price__inc li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(-45deg);
+}
+.reveal .dp-price { transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease; }
+.reveal:not(.is-revealed) .dp-price { opacity: 0; transform: translateY(10px); }
+.reveal .dp-price:nth-child(2) { transition-delay: 0.06s; }
+.reveal .dp-price:nth-child(3) { transition-delay: 0.12s; }
+.reveal .dp-price:nth-child(4) { transition-delay: 0.18s; }
+.reveal .dp-price:nth-child(n + 5) { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .dp-price:hover { transform: none; }
+  .reveal:not(.is-revealed) .dp-price { opacity: 1; transform: none; }
+  .page-detail .wf-style__go:hover { gap: 8px; }
+}

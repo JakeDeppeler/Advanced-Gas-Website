@@ -20,11 +20,39 @@ import { BenefitTiles } from "@/components/BenefitTiles";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { RangeBand } from "@/components/RangeBand";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { SystemChooser } from "@/components/SystemChooser";
 import { ADVISORS } from "@/lib/advisor";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
 
 /** The tile palette, same five the filtration pages rotate through. */
 const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
+
+/** "Choose your system" — the heading and the line under it, per service.
+ *  Written rather than generated: "Choose your air conditioning
+ *  installation system." is what you get from a template, and it's not a
+ *  sentence anybody would say. */
+const CHOOSE_HEAD: Record<string, { h2: string; lede: string }> = {
+  "air-conditioning-installation": {
+    h2: "Four shapes. One of them is your house.",
+    lede:
+      "Before anyone talks model numbers, the choice is what shape the system takes \u2014 one room or the whole house, on the wall or in the roof, refrigerated or evaporative. Everything else follows from that.",
+  },
+  "heat-pump-installation": {
+    h2: "One shell, or two pieces?",
+    lede:
+      "That's genuinely the whole decision. All-in-one is a single unit where the old tank stood. Split puts the compressor outside and the tank against the wall, which is what buys you the cold-weather performance and the tank options.",
+  },
+  "aircon-servicing-repairs": {
+    h2: "What are we servicing?",
+    lede:
+      "Refrigerated and evaporative are different machines with different service intervals, different consumables and different prices. Pick the one on your roof.",
+  },
+  "gas-plumbing": {
+    h2: "Heating, hot water, or the gas itself.",
+    lede:
+      "Three trades on one licence, so this page covers all of them. Start with the one that brought you here \u2014 each has its own page with the models, the prices and the honest limits.",
+  },
+};
 
 /** Which flavour of the "near ten years old? price the upgrade" argument
  *  each service gets. Gas plumbing leads with ducted heating, so it takes
@@ -71,24 +99,26 @@ export default async function ServicePage({ params }: { params: { slug: string }
       ? BEFORE_AFTER.find((b) => b.slug === "electric-storage-to-heat-pump")
       : undefined;
 
-  // The photo beside the price cards: the header shot where there is
-  // one, else the first of our own install photos, else the first
-  // manufacturer shot. Something real beats an empty column.
-  const pricingShot =
-    (content.heroPhoto && hasAsset(content.heroPhoto)
-      ? { src: content.heroPhoto, alt: content.heroPhotoAlt ?? "", caption: `One of ours, ${svc.short.toLowerCase()} across the south-east.` }
-      : null) ??
-    (content.installPhotos?.shots ?? []).map((sh) => ({
-      src: sh.src,
-      alt: sh.alt,
-      caption: sh.caption ?? `One of ours, ${svc.short.toLowerCase()} across the south-east.`,
-    })).find((sh) => hasAsset(sh.src)) ??
-    (content.photos ?? []).map((ph) => ({
-      src: ph.src,
-      alt: ph.alt,
-      caption: ph.caption ?? "Manufacturer shot of the unit we'd be quoting.",
-    })).find((ph) => hasAsset(ph.src)) ??
-    null;
+  /** Product cards for "Choose your system". Facts come from the tile
+   *  faces where a system has them — they're written to be read at a
+   *  glance, which is what a card wants — and fall back to `points`,
+   *  which are terse enough to work. */
+  const chooserCards = (content.systems ?? []).map((sy) => ({
+    id: sy.id,
+    label: sy.label,
+    blurb: sy.blurb,
+    photo: resolveAsset(sy.photo.src),
+    photoAlt: sy.photo.alt,
+    photoScene: sy.photo.scene ?? false,
+    brands: sy.brands ?? content.brands,
+    priceFrom: sy.priceFrom,
+    facts: (sy.benefitTiles && sy.benefitTiles.length > 0
+      ? sy.benefitTiles.map((b) => ({ lead: b.t.trim(), note: b.line }))
+      : sy.points.map((pt) => ({ lead: pt }))
+    ).slice(0, 4),
+    href: `/services/${params.slug}/${sy.id}`,
+  }));
+  const chooseHead = CHOOSE_HEAD[params.slug];
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -297,6 +327,17 @@ export default async function ServicePage({ params }: { params: { slug: string }
         </div>
       </section>
 
+      {/* CHOOSE YOUR SYSTEM — the filtration section, on the service
+          pages. Replaces the "Systems we install" list of links: the
+          same destinations, but as products you can compare. */}
+      {chooseHead && (
+        <SystemChooser
+          cards={chooserCards}
+          heading={chooseHead.h2}
+          lede={chooseHead.lede}
+        />
+      )}
+
       {/* IS IT RIGHT FOR YOU — the same three questions the system pages
           carry, on the page where the choice between systems is live. */}
       {ADVISORS[params.slug] && (
@@ -341,14 +382,11 @@ export default async function ServicePage({ params }: { params: { slug: string }
           band and the sub-pages themselves all lead to the same places,
           so a fourth list of the same links was noise. */}
 
-      {/* PRICING. Not on service & repair: "transparent fixed-price
-          options" over a table is the wrong frame for a call-out, and the
-          real numbers — $120 diagnosis, $390 ducted annual — sit on the
-          two service system pages one level down where they belong. */}
-      {/* PRICING — kept, restyled. The table is the useful bit; what it
-          needed was the section head and the rows to look like the rest
-          of the site rather than a spreadsheet dropped into the page. */}
-      {params.slug !== "aircon-servicing-repairs" && (
+      {/* PRICING — the filtration model cards, on the service pages.
+          Service & repair used to be excluded because a table of call-out
+          fees was the wrong frame for a call-out; as cards with the shot
+          of the unit and the inclusions listed out, it's the same frame as
+          everything else, so it's back in. */}
       <section className="dp-pricing">
         <div className="wrap">
           <div className="ds-section-head">
@@ -356,37 +394,56 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <h2>Transparent fixed-price options.</h2>
             <p>Real numbers, not &ldquo;from $X&rdquo; bait. Your final quote depends on site specifics and we confirm it in writing before any work starts.</p>
           </div>
-          {/* Aircon installation has no scene photo of its own, so the
-              header falls back to navy and this would have fallen back to
-              nothing. Take the first install shot from the gallery
-              instead — a grid of price cards on its own is the blandest
-              thing on the page. */}
-          {pricingShot && (
-            <figure className="dp-pricing__shot">
-              <img
-                src={resolveAsset(pricingShot.src)!}
-                alt={pricingShot.alt}
-                loading="lazy"
-                width="900"
-                height="600"
-              />
-              <figcaption>{pricingShot.caption}</figcaption>
-            </figure>
-          )}
+          {/* Price cards in the filtration model idiom. The one big
+              install shot above the grid is gone: every card carries the
+              shot of its own unit now, so the wide photo was the same
+              picture twice with more scrolling between them.
 
-          {/* Price cards, not a table. A three-column table of tier, price
-              and inclusions had to scroll sideways on a phone and read as
-              a spreadsheet on a laptop. Each row is a card now: the number
-              first because it's what people came for, then what it is,
-              then what's in it. */}
-          <div className="pricecards">
-            {content.pricing.map((p) => (
-              <article className="pricecard" key={p.tier}>
-                <span className="pricecard__price">{p.price}</span>
-                <h3>{p.tier}</h3>
-                <p>{p.includes}</p>
-              </article>
-            ))}
+              `includes` is one comma-joined sentence in the data. It
+              reads as a list because that's what it is — five things you
+              get for the number — so it renders as one. */}
+          <div className="dp-prices">
+            {content.pricing.map((p) => {
+              const shot = p.photo ? resolveAsset(p.photo) : null;
+              return (
+                <article className="dp-price" key={p.tier}>
+                  {shot ? (
+                    <div className={`dp-price__shot${p.photoScene ? " is-scene" : ""}`}>
+                      <img src={shot} alt={p.tier} loading="lazy" width="400" height="300" />
+                    </div>
+                  ) : (
+                    <div className="dp-price__noshot" aria-hidden="true">
+                      {p.price.replace(/[^0-9]/g, "").slice(0, 3) || "$"}
+                    </div>
+                  )}
+                  {p.group && <span className="dp-price__group">{p.group}</span>}
+                  <h3>{p.tier}</h3>
+                  {/* "Message for quote" is a sentence, not a figure. At
+                      the display size the numbers get it wraps to two
+                      lines and reads as a headline that lost its section. */}
+                  {(() => {
+                    const isFigure = /\d/.test(p.price);
+                    return (
+                      <div className="dp-price__num">
+                        <span className="dp-price__k">
+                          {p.priceKey ?? (isFigure ? "Installed" : "Price")}
+                        </span>
+                        <span className={`dp-price__v${isFigure ? "" : " is-words"}`}>{p.price}</span>
+                      </div>
+                    );
+                  })()}
+                  <span className="dp-price__rl">What&rsquo;s in the price</span>
+                  <ul className="dp-price__inc">
+                    {p.includes.split(/,\s+/).map((inc) => (
+                      // The source string is one sentence, so everything
+                      // after the first comma arrives lowercase. As list
+                      // items they each start a line of their own.
+                      <li key={inc}>{inc.charAt(0).toUpperCase() + inc.slice(1)}</li>
+                    ))}
+                  </ul>
+                </article>
+              );
+            })}
           </div>
           <p className="dp-pricing__fp">
             *Prices subject to eligibility, site inspection and rebate program changes. Final quote provided in writing.
@@ -425,7 +482,6 @@ export default async function ServicePage({ params }: { params: { slug: string }
           )}
         </div>
       </section>
-      )}
 
       {!content.whyFirst && (
         <>

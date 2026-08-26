@@ -407,3 +407,8 @@
 @media (max-width: 480px) {
   .page-upgrade .ug-hero__at { grid-template-columns: 1fr; }
 }
+
+/* Same type-scale correction as the service pages. */
+.page-upgrade .ug-hero h1 { font-size: clamp(34px, 4vw, 52px); max-width: 16ch; }
+.page-upgrade .ds-section-head h2,
+.page-upgrade h2 { font-size: clamp(26px, 3vw, 38px); }

@@ -345,3 +345,6 @@
 @media (max-width: 560px) {
   .page-range .rfind__opts, .page-range .rfind__opts--3 { grid-template-columns: 1fr; }
 }
+
+/* Matching the service pages' corrected scale. */
+.page-range .dp-hero h1 { font-size: clamp(34px, 4vw, 52px); }
