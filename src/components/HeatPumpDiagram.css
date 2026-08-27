@@ -199,6 +199,7 @@
 .hpd__cost-bar--c6 { background: linear-gradient(180deg, #a3dd6f, #6fbf3f); }
 .hpd__cost-lbl { margin-top: 9px; font-size: 10px; line-height: 1.25; color: rgba(255, 255, 255, 0.72); text-align: center; }
 .hpd__cost-note { margin: 18px 0 0; font-size: 12px; line-height: 1.5; color: rgba(255, 255, 255, 0.58); }
+.hpd__cost-cta { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 20px; }
 
 /* --- animations (paused for reduced-motion) --- */
 .hpd-fan { transform-box: fill-box; transform-origin: center; animation: hpd-spin 4s linear infinite; }

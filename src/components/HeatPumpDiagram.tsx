@@ -200,6 +200,10 @@ export function HeatPumpDiagram({ brandName, split = true }: { brandName?: strin
                   Indicative running cost per year on 200 L/day, current Victorian tariffs. Your figure depends on
                   usage, tariff and whether you have solar &mdash; we run the numbers for your place at the quote.
                 </p>
+                <div className="hpd__cost-cta">
+                  <Link href="/tools/hot-water-savings" className="ds-btn ds-btn--orange">Work out your own savings →</Link>
+                  <Link href="/quote" className="hpd__size-link">Or get a fixed quote →</Link>
+                </div>
               </div>
             </div>
           )}
