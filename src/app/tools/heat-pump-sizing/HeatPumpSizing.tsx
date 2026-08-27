@@ -68,8 +68,6 @@ const TANK_SIZES: {
       { label: "Reclaim ECO R290 200 L", href: "/brands/reclaim/eco-r290-200" },
       { label: "Thermann ECO R290 200 L", href: "/brands/thermann/thermann-eco-r290-200" },
     ] },
-  { litres: 215, models: "Reclaim CO₂ 215 L · 5 kW condenser",
-    picks: [{ label: "Reclaim CO₂ Split 215 L", href: "/brands/reclaim/co2-split-215-5kw" }] },
   { litres: 250, models: "Reclaim CO₂ 250 L · Panasonic CO₂ 250 L",
     picks: [
       { label: "Reclaim CO₂ Split 250 L", href: "/brands/reclaim/co2-split-250-glass" },
