@@ -103,6 +103,15 @@ export type Product = {
    *  household needs, so it belongs next to tankLitres rather than being
    *  guessed at by the sizing tool. */
   compressorKw?: number;
+  /**
+   * True for a product retired from the catalogue but kept in the data
+   * so its old URL can 301 rather than 404. WEB-008 B3: the Thermann
+   * electric- and gas-storage tanks were near-duplicate legacy pages
+   * (six electric sizes barely distinguishable) that took no clicks and
+   * that we don't push — we lead with heat pumps. They're filtered out
+   * of every listing and 301'd to the brand hub in next.config.
+   */
+  retired?: boolean;
   /** Stored hot water capacity in litres.
    *  Set ONLY on storage products — never on continuous-flow units (they
    *  have no tank) or controllers. Drives the shower-delivery panel and
@@ -2050,6 +2059,7 @@ const brandCatalogue: Brand[] = [
       // ---- Gas storage ----
       {
         slug: "gas-storage-135",
+        retired: true,
         name: "Thermann Gas Storage · 135L",
         tankLitres: 135,
         model: "T-GS-135 (4-star natural gas)",
@@ -2075,6 +2085,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "gas-storage-170",
+        retired: true,
         name: "Thermann Gas Storage · 170L",
         tankLitres: 170,
         model: "T-GS-170 (4-star natural gas)",
@@ -2101,6 +2112,7 @@ const brandCatalogue: Brand[] = [
       // ---- Electric storage (Smart Electric range · one product per size) ----
       {
         slug: "electric-storage-80",
+        retired: true,
         name: "Thermann Smart Electric · 80L",
         tankLitres: 80,
         model: "T-SE-80 · 1.8 kW element",
@@ -2123,6 +2135,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-125",
+        retired: true,
         name: "Thermann Smart Electric · 125L",
         tankLitres: 125,
         model: "T-SE-125 · 1.8 kW element",
@@ -2145,6 +2158,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-160",
+        retired: true,
         name: "Thermann Smart Electric · 160L",
         tankLitres: 160,
         model: "T-SE-160 · 2.4 kW element",
@@ -2167,6 +2181,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-250",
+        retired: true,
         name: "Thermann Smart Electric · 250L",
         tankLitres: 250,
         model: "T-SE-250 · 3.0 kW element (single or twin)",
@@ -2189,6 +2204,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-315",
+        retired: true,
         name: "Thermann Smart Electric · 315L",
         tankLitres: 315,
         model: "T-SE-315 · 3.0 kW element (single or twin)",
@@ -2212,6 +2228,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-400",
+        retired: true,
         name: "Thermann Smart Electric · 400L",
         tankLitres: 400,
         model: "T-SE-400 · 3.0 kW twin element",
@@ -2923,5 +2940,14 @@ export function findProduct(brandSlug: string, productSlug: string) {
 }
 
 export function allBrandProductPairs() {
-  return brands.flatMap((b) => b.products.map((p) => ({ brand: b.slug, product: p.slug })));
+  // Retired products are excluded, so they aren't statically generated —
+  // their old URL is caught by a 301 in next.config instead.
+  return brands.flatMap((b) =>
+    b.products.filter((p) => !p.retired).map((p) => ({ brand: b.slug, product: p.slug })),
+  );
+}
+
+/** A brand's products for display — everything except the retired ones. */
+export function visibleProducts(b: Brand): Product[] {
+  return b.products.filter((p) => !p.retired);
 }

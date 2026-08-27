@@ -56,6 +56,21 @@ const nextConfig = {
         permanent: true,
       },
 
+      // ---- WEB-008 B3: retired Thermann storage tanks ----
+      // Six electric-storage sizes and two gas-storage, near-identical
+      // legacy pages that took no clicks. We lead with heat pumps and
+      // don't push these, so they 301 to the Thermann hub. The rest of
+      // the model estate is kept: the size ladders link 71 of the 84
+      // model pages, which is most of the catalogue.
+      { source: "/brands/thermann/gas-storage-135", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/gas-storage-170", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-80", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-125", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-160", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-250", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-315", destination: "/brands/thermann", permanent: true },
+      { source: "/brands/thermann/electric-storage-400", destination: "/brands/thermann", permanent: true },
+
       // ---- Water softeners retired ----
       // The page argued that Melbourne mains water is soft enough that
       // most people don't need one, which is true and is why the category

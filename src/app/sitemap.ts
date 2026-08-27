@@ -114,7 +114,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.75,
     },
-    ...b.products.map((p) => ({
+    ...b.products.filter((p) => !p.retired).map((p) => ({
       url: `${base}/brands/${b.slug}/${p.slug}`,
       changeFrequency: "monthly" as const,
       priority: 0.7,

@@ -42,7 +42,7 @@ export function BrandCompare({ brand }: Props) {
 
   // Group products by categoryLabel — same grouping the server template uses.
   const grouped = useMemo(() => {
-    return brand.products.reduce<Record<string, Product[]>>((acc, p) => {
+    return brand.products.filter((p) => !p.retired).reduce<Record<string, Product[]>>((acc, p) => {
       (acc[p.categoryLabel] ||= []).push(p);
       return acc;
     }, {});
