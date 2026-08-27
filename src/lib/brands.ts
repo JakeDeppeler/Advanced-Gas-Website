@@ -256,9 +256,11 @@ export type Brand = {
   /** The honest cross-brand line: which of the others we'd fit instead,
    *  and when. Only where there's a real alternative in the same slot. */
   versus?: string;
-  /** "Where it fits locally" — the south-east homes and suburbs this
-   *  brand suits. Falls back to `commonInMelbourne` prose. */
-  localFit?: { heading: string; body: string; suburbs?: string[] };
+  /** Service slug for the "Narrow it down" advisor calculator, when the
+   *  brand maps cleanly to one service (e.g. Mitsubishi →
+   *  "air-conditioning-installation"). Renders the SystemAdvisor box so a
+   *  buyer on a brand page can still find the right system for their house. */
+  advisorService?: string;
 };
 
 /** Category → photo map. Products fall through to this when they don't
@@ -624,9 +626,13 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
-    photo: "/mitsubishi-puz-outdoor-white.webp",
+    // A real ducted install in a Melbourne roof space, full-bleed behind
+    // the header copy. The manufacturer cut-out (the white-keyed PUZ) still
+    // reads well as a product, but a scene is what the header wanted.
+    photo: "/ducted-split.webp",
+    photoScene: true,
     photoFallback: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi Electric PUZ R32 outdoor condenser",
+    photoAlt: "Mitsubishi ducted air conditioning indoor unit installed in a Melbourne roof space",
     accent: "#DA1A32",
     established: "Australian sales since 1978 · manufacturing in Thailand",
     warranty: "5-year manufacturer parts + labour, plus 6 years on our workmanship.",
@@ -660,11 +666,7 @@ const brandCatalogue: Brand[] = [
       "Renovating to sell inside two years? The reliability premium is money you won't see again at the open house — a Kaden cools the room just as well for the photos. Mitsubishi earns its price over a decade of ownership, not a quick flip, and we'll say so rather than sell you up.",
     versus:
       "We fit Kaden too, and for a bedroom you're keeping five years it's the sensible spend — a real warranty, a genuine app, hundreds less. Mitsubishi is what goes in when the house is the one you're staying in.",
-    localFit: {
-      heading: "Where it goes in the south-east.",
-      body: "It turns up in every suburb we work, specified differently in each. The Clyde North, Officer and Cranbourne new-builds go PEAD-M ducted almost by default. The Berwick and Pakenham weatherboards, with no roof space to run ducts through, get MSZ-AP wall splits. And the hills — Emerald, Gembrook, Cockatoo — get the Hyper Heating variant, because it still makes its rated heat on the mornings the cheaper units start to fade.",
-      suburbs: ["Clyde North", "Officer", "Cranbourne", "Berwick", "Pakenham", "Emerald", "Gembrook", "Cockatoo"],
-    },
+    advisorService: "air-conditioning-installation",
 
     /* --- The filtration treatment. Mitsubishi first, because it's the
        brand with sixteen models and therefore the one the old grid
@@ -695,20 +697,6 @@ const brandCatalogue: Brand[] = [
         detail:
           "We service MSZ-APs we installed more than ten years ago and they still hold their rated output. More to the point, the parts are still on the shelf. Whether a system gets repaired or replaced in year twelve is decided by the parts pipeline, and Mitsubishi's is open in a way most brands' is not.",
         icon: "clock",
-      },
-      {
-        t: "Parts the same day",
-        line: "Melbourne warehouse, common parts off the shelf",
-        detail:
-          "Mitsubishi's Melbourne parts warehouse is same-day on common indoor and outdoor components, and their tech line actually answers. In practice that means a breakdown is a visit, not a fortnight of waiting on a fan motor from overseas.",
-        icon: "truck",
-      },
-      {
-        t: "R32 across the range",
-        line: "Modern refrigerant, low global-warming potential",
-        detail:
-          "The whole current range runs R32. It's more efficient per kilogram than the R410A it replaced, so a system holds less gas to do the same work, and its global-warming potential is about a third. It also keeps the units on the right side of the phase-down, which matters for a machine you're keeping fifteen years.",
-        icon: "snowflake",
       },
       {
         t: "Hyper Heating for the hills",
@@ -828,8 +816,8 @@ const brandCatalogue: Brand[] = [
 
     servicing: {
       heading: "What happens in year ten.",
-      photo: "/ducted-split.webp",
-      photoAlt: "A ducted indoor unit sitting on a platform in a roof space",
+      photo: "/duct-work.webp",
+      photoAlt: "Insulated ducted air conditioning runs through a Melbourne roof space",
       body:
         "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like \u2014 whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
       facts: [

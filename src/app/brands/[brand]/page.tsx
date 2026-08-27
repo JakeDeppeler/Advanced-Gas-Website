@@ -8,8 +8,9 @@ import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
 import { BrandFacts } from "@/components/BrandFacts";
-import { ProofStrip } from "@/components/ProofStrip";
 import { QuoteForm } from "@/components/QuoteForm";
+import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { ADVISORS } from "@/lib/advisor";
 import { installsFor } from "@/lib/brandGallery";
 import { getInstagramForBrand } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
@@ -396,6 +397,19 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </section>
       )}
 
+      {/* NARROW IT DOWN — the three-question advisor from the service pages,
+          on the brand page too. Somebody handed a quote for this brand still
+          has to work out which shape suits their house; this answers that
+          without making them read all sixteen models. Only renders where the
+          brand maps to a service that has an advisor configured. */}
+      {brand.advisorService && ADVISORS[brand.advisorService] && (
+        <section className="sysfit">
+          <div className="wrap">
+            <SystemAdvisor service={brand.advisorService} />
+          </div>
+        </section>
+      )}
+
       {/* KEEPING IT WORKING — the half of a brand argument that only
           matters after the sale, and therefore the half worth putting on
           the page before it. */}
@@ -419,33 +433,6 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 {brand.servicing.facts.map((f) => <li key={f}>{f}</li>)}
               </ul>
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* WHERE IT FITS LOCALLY — which south-east homes and suburbs this
-          brand suits. A light band that earns the local relevance the
-          brand hub is missing, off data the brand already carries. */}
-      {brand.localFit && (
-        <section className="brand-local">
-          <div className="wrap">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Where it fits</span>
-              <h2>{brand.localFit.heading}</h2>
-            </div>
-            <p className="brand-local__body">{brand.localFit.body}</p>
-            {brand.localFit.suburbs && brand.localFit.suburbs.length > 0 && (
-              <ul className="brand-local__suburbs">
-                {brand.localFit.suburbs.map((name) => {
-                  const sub = publishedSuburbs.find((s) => s.name === name);
-                  return sub ? (
-                    <li key={name}><Link href={`/areas/${sub.slug}`}>{name}</Link></li>
-                  ) : (
-                    <li key={name}><span>{name}</span></li>
-                  );
-                })}
-              </ul>
-            )}
           </div>
         </section>
       )}
@@ -483,16 +470,11 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         blurb={`Straight from our Instagram, real ${brand.name} installs across Melbourne's south-east, posted as we finish them.`}
       />
 
-      {/* Social proof — the short version of /reviews, so brand pages
-          carry the same reassurance the home page does. */}
-      <ProofStrip
-        subject={brand.name}
-        heading={`Rated 4.9 by the households we install for.`}
-      />
-
-      {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. */}
+      {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. Full
+          size, matching the filtration and service pages — the compact
+          strip read as an afterthought next to them. */}
       {brand.steps && brand.steps.length > 0 && (
-        <section className="process process--compact">
+        <section className="process">
           <div className="wrap">
             <div className="ds-section-head">
               <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
