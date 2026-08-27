@@ -192,10 +192,13 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
             <h2>What we install nearby.</h2>
           </div>
           <div className="dp-benefits__grid">
+            {/* These pointed at /areas/x/service subpages, pruned in
+                WEB-008. They go to the service pages themselves now,
+                which is where "what we install nearby" should lead. */}
             {services.slice(0, 2).map((s) => (
               <Link
                 key={s.slug}
-                href={`/areas/${sub.slug}/${s.slug}`}
+                href={`/services/${s.slug}`}
                 className="dp-benefit"
                 style={{ textDecoration: "none", display: "block" }}
               >

@@ -459,7 +459,9 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                     .map((slug) => publishedSuburbs.find((sb) => sb.slug === slug))
                     .filter((sb): sb is NonNullable<typeof sb> => Boolean(sb))
                     .map((sb) => (
-                      <Link key={sb.slug} href={`/brands/${brand.slug}/installers/${sb.slug}`}>
+                      // Was /brands/x/installers/suburb, pruned in WEB-008.
+                      // The chip points at the suburb hub now.
+                      <Link key={sb.slug} href={`/areas/${sb.slug}`}>
                         {sb.name}
                       </Link>
                     ))}

@@ -98,18 +98,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Only sitemap-emit the suburbs we've published in the current SEO wave.
   // Draft entries live in suburbs.ts with published:false so we can iterate on
   // their per-suburb hooks without exposing thin content to Google.
-  const suburbUrls: MetadataRoute.Sitemap = publishedSuburbs.flatMap((sub) => [
-    {
-      url: `${base}/areas/${sub.slug}`,
-      changeFrequency: "monthly",
-      priority: 0.75,
-    },
-    ...services.slice(0, 2).map((s) => ({
-      url: `${base}/areas/${sub.slug}/${s.slug}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
-  ]);
+  // Suburb hubs only. The per-service sub-pages (/areas/x/service) were
+  // pruned in WEB-008 and now 301 to the hub, so they must not be in the
+  // sitemap — a sitemap URL that redirects is a signal Google distrusts.
+  const suburbUrls: MetadataRoute.Sitemap = publishedSuburbs.map((sub) => ({
+    url: `${base}/areas/${sub.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
 
   // Brand hubs + individual product pages.
   const brandUrls: MetadataRoute.Sitemap = brands.flatMap((b) => [
@@ -125,23 +121,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]);
 
-  // Brand × suburb combo pages — 6 brands × 12 top suburbs = 72 URLs.
-  // Slug list kept in sync with TOP_SUBURB_SLUGS in the combo page template.
-  const TOP_SUBURB_SLUGS = [
-    "pakenham", "officer", "beaconsfield", "berwick", "narre-warren",
-    "endeavour-hills", "hallam", "hampton-park", "cranbourne", "clyde-north",
-    "drouin", "warragul",
-  ];
-  const brandSuburbUrls: MetadataRoute.Sitemap = brands.flatMap((b) =>
-    TOP_SUBURB_SLUGS
-      .filter((slug) => publishedSuburbs.some((s) => s.slug === slug))
-      .map((slug) => ({
-        url: `${base}/brands/${b.slug}/installers/${slug}`,
-        changeFrequency: "monthly" as const,
-        priority: 0.72,
-      })),
-  );
-
   return [...staticUrls, ...serviceUrls, ...faultUrls,
-    ...systemUrls, ...suburbUrls, ...brandUrls, ...brandSuburbUrls];
+    ...systemUrls, ...suburbUrls, ...brandUrls];
 }

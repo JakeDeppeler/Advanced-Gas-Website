@@ -20,6 +20,42 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // ---- WEB-002: apex host → www, 308 ----
+      // Both advancedgas.com.au and www.advancedgas.com.au were indexed
+      // as separate URLs, splitting authority down the middle (the apex
+      // ranked position 2.56, www 16.17 — same page). Canonicals,
+      // sitemap and robots already point at www; this makes the apex
+      // itself redirect there in the deploy, so the fix does not depend
+      // on the Vercel dashboard being set. Preview deploys use a
+      // *.vercel.app host, so this only fires on the bare production
+      // apex and never on previews or localhost.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "advancedgas.com.au" }],
+        destination: "https://www.advancedgas.com.au/:path*",
+        permanent: true,
+      },
+
+      // ---- WEB-008 B1/B2: prune the machine-generated estate ----
+      // 53 suburb×service sub-pages and the brand×installer×suburb pages
+      // produced a handful of clicks between them and flattened internal
+      // link equity across the whole site — every page linking to every
+      // other page so nothing concentrated anywhere. Both route families
+      // are removed; these two rules 301 every URL in them to the hub
+      // that carries the real content, so the link equity follows rather
+      // than being thrown away with a noindex. Named params pass through,
+      // so one rule covers every combination.
+      {
+        source: "/areas/:suburb/:service",
+        destination: "/areas/:suburb",
+        permanent: true,
+      },
+      {
+        source: "/brands/:brand/installers/:suburb",
+        destination: "/brands/:brand",
+        permanent: true,
+      },
+
       // ---- Water softeners retired ----
       // The page argued that Melbourne mains water is soft enough that
       // most people don't need one, which is true and is why the category

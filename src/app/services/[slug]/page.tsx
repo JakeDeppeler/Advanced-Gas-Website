@@ -586,8 +586,10 @@ export default async function ServicePage({ params }: { params: { slug: string }
                   <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
                 </ul>
                 <div className="quotesec__chips">
+                  {/* Links to the suburb hubs. They used to point at
+                      /areas/x/service subpages, which are gone in WEB-008. */}
                   {suburbs.slice(0, 8).map((sb) => (
-                    <Link key={sb.slug} href={`/areas/${sb.slug}/${svc.slug}`}>{sb.name}</Link>
+                    <Link key={sb.slug} href={`/areas/${sb.slug}`}>{sb.name}</Link>
                   ))}
                 </div>
               </div>
