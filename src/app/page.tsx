@@ -397,7 +397,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-num">$2,624</span>
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
-                <p className="fixprice__note">Price assumes a power point within 75&nbsp;cm of the current hot water system. New power point quoted separately.</p>
+                <p className="fixprice__note">Price assumes a power point within 2&nbsp;metres of the current system. A new circuit is $350, quoted on the site visit.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the R290 &rarr;</a>
               </div>
             </article>
