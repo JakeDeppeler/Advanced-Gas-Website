@@ -179,6 +179,10 @@ export default async function BrandPage({ params }: { params: { brand: string } 
 
       {/* At-a-glance. The reason we install it leads as prose; the
           supporting facts hide behind buttons so the strip stays short. */}
+      {/* At-a-glance facts. For brands on the new layout the verdict
+          replaces `ourTake` and these facts move into "the long view",
+          so this strip is only for brands not yet rewritten. */}
+      {!brand.whyLead && (
       <section className="dp-local">
         <div className="wrap">
           <BrandFacts
@@ -196,6 +200,54 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           />
         </div>
       </section>
+      )}
+
+      {/* WHY THIS BRAND, the brand-first version — leads with the one big
+          claim and our honest verdict, carries the supporting tiles, and
+          ends on the half a manufacturer's own site can't write: where
+          it's NOT the right call, and which of the others we'd fit
+          instead. That last part is why this page is worth reading. */}
+      {brand.whyLead && (
+        <section className="brand-why brand-why--lead">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why {brand.name}</span>
+              <h2>{brand.whyLead.claim}</h2>
+              <p className="brand-why__sub">{brand.whyLead.sub}</p>
+            </div>
+            {brand.verdict && <p className="brand-why__verdict">{brand.verdict}</p>}
+            {brand.benefitTiles && brand.benefitTiles.length > 0 && (
+              <BenefitTiles
+                benefits={brand.benefitTiles.map((b, i) => ({
+                  area: b.t,
+                  icon: b.icon,
+                  tint: TILE_TINTS[i % TILE_TINTS.length],
+                  line: b.line,
+                  detail: b.detail,
+                }))}
+              />
+            )}
+            {(brand.notRightWhen || brand.versus) && (
+              <div className="brand-honest">
+                <span className="brand-honest__eye">Where it&rsquo;s not the pick</span>
+                {brand.notRightWhen && <p>{brand.notRightWhen}</p>}
+                {brand.versus && <p className="brand-honest__vs">{brand.versus}</p>}
+              </div>
+            )}
+            {brand.resources && brand.resources.length > 0 && (
+              <p className="brand-why__resources">
+                Straight from the manufacturer:{" "}
+                {brand.resources.map((r, i) => (
+                  <span key={r.href}>
+                    {i > 0 && " · "}
+                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* WHY THIS BRAND — tiles where the faces have been written, the
           plain list where they haven't. `keyFeatures` are single
@@ -219,8 +271,8 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 Straight from the manufacturer:{" "}
                 {brand.resources.map((r, i) => (
                   <span key={r.href}>
-                    {i > 0 && " \u00b7 "}
-                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} \u2197</a>
+                    {i > 0 && " · "}
+                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>
                   </span>
                 ))}
               </p>
@@ -229,7 +281,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </section>
       )}
 
-      {brand.benefitTiles && brand.benefitTiles.length > 0 && (
+      {brand.benefitTiles && brand.benefitTiles.length > 0 && !brand.whyLead && (
         <section className="brand-why">
           <div className="wrap">
             <div className="ds-section-head">
@@ -250,8 +302,8 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 Straight from the manufacturer:{" "}
                 {brand.resources.map((r, i) => (
                   <span key={r.href}>
-                    {i > 0 && " \u00b7 "}
-                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} \u2197</a>
+                    {i > 0 && " · "}
+                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} ↗</a>
                   </span>
                 ))}
               </p>
@@ -371,23 +423,29 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </section>
       )}
 
-      {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. */}
-      {brand.steps && brand.steps.length > 0 && (
-        <section className="process">
+      {/* WHERE IT FITS LOCALLY — which south-east homes and suburbs this
+          brand suits. A light band that earns the local relevance the
+          brand hub is missing, off data the brand already carries. */}
+      {brand.localFit && (
+        <section className="brand-local">
           <div className="wrap">
             <div className="ds-section-head">
-              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
-              <h2 className="ds-h--on-dark">What a {brand.name} install looks like, start to finish.</h2>
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Where it fits</span>
+              <h2>{brand.localFit.heading}</h2>
             </div>
-            <ol className="steps">
-              {brand.steps.map((st, i) => (
-                <li key={st.title} className="step">
-                  <span className="step__num">{i + 1}</span>
-                  <h3>{st.title}</h3>
-                  <p>{st.detail}</p>
-                </li>
-              ))}
-            </ol>
+            <p className="brand-local__body">{brand.localFit.body}</p>
+            {brand.localFit.suburbs && brand.localFit.suburbs.length > 0 && (
+              <ul className="brand-local__suburbs">
+                {brand.localFit.suburbs.map((name) => {
+                  const sub = publishedSuburbs.find((s) => s.name === name);
+                  return sub ? (
+                    <li key={name}><Link href={`/areas/${sub.slug}`}>{name}</Link></li>
+                  ) : (
+                    <li key={name}><span>{name}</span></li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
         </section>
       )}
@@ -431,6 +489,27 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         subject={brand.name}
         heading={`Rated 4.9 by the households we install for.`}
       />
+
+      {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. */}
+      {brand.steps && brand.steps.length > 0 && (
+        <section className="process process--compact">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
+              <h2 className="ds-h--on-dark">How we fit a {brand.name} system.</h2>
+            </div>
+            <ol className="steps">
+              {brand.steps.map((st, i) => (
+                <li key={st.title} className="step">
+                  <span className="step__num">{i + 1}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.detail}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
 
       {/* Quote form + where we install this brand.
           Brand pages used to end on suburb chips and a banner, which meant

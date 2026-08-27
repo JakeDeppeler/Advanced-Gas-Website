@@ -2146,3 +2146,118 @@
   .page-brand .brand-hero__panel { padding: 22px; }
   .page-brand .brand-hero__panel img { height: 220px; }
 }
+
+
+/* ============================================================
+   THE BRAND-FIRST LAYOUT
+   The page leads with the manufacturer's identity and our verdict, and
+   demotes our install process to a strip near the bottom. These are the
+   sections that carry that.
+   ============================================================ */
+
+/* --- WHY THIS BRAND, lead version. The claim is the h2, then the
+       verdict as a lead paragraph, then the tiles, then the honest bit. */
+.page-brand .brand-why--lead .brand-why__sub {
+  max-width: 62ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.page-brand .brand-why__verdict {
+  max-width: 66ch;
+  margin: 0 0 32px;
+  padding: 0 0 0 22px;
+  border-left: 3px solid var(--orange);
+  font-size: clamp(17px, 1.7vw, 20px);
+  line-height: 1.6;
+  color: var(--navy);
+  font-weight: 500;
+}
+
+/* --- The honest bit: where it's NOT the pick, and which of the others
+       we'd fit instead. The trust differentiator, so it's set apart. --- */
+.page-brand .brand-honest {
+  margin: 34px 0 0;
+  padding: 26px 30px;
+  background: color-mix(in srgb, var(--orange) 8%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--orange) 26%, transparent);
+  border-left: 3px solid var(--orange);
+  border-radius: var(--rad);
+}
+.page-brand .brand-honest__eye {
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.page-brand .brand-honest p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+.page-brand .brand-honest__vs {
+  margin-top: 12px !important;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--orange) 20%, transparent);
+  color: var(--navy) !important;
+  font-weight: 500;
+}
+
+/* --- WHERE IT FITS LOCALLY. A light band with the copy and a row of
+       suburb chips that link to the hubs. --- */
+.page-brand .brand-local { padding: 80px 0; background: var(--bg-2); }
+.page-brand .brand-local__body {
+  max-width: 68ch;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  margin: 0 0 24px;
+}
+.page-brand .brand-local__suburbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.page-brand .brand-local__suburbs a,
+.page-brand .brand-local__suburbs span {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--navy);
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+.page-brand .brand-local__suburbs a:hover { border-color: var(--orange); color: var(--orange); }
+.page-brand .brand-local__suburbs span { color: var(--ink-3); }
+
+/* --- HOW WE FIT IT, demoted. The full navy stepper on a service page;
+       here it's a compact strip, because a brand page is about the
+       brand, not our process. Tighter padding, smaller step numbers. --- */
+.page-brand .process--compact { padding: 60px 0; }
+.page-brand .process--compact .steps {
+  gap: 14px 20px;
+}
+.page-brand .process--compact .step { padding: 20px 22px; }
+.page-brand .process--compact .step__num {
+  width: 30px; height: 30px;
+  font-size: 14px;
+}
+.page-brand .process--compact .step h3 { font-size: 16px; }
+.page-brand .process--compact .step p { font-size: 13.5px; }
+
+@media (max-width: 900px) {
+  .page-brand .brand-local { padding: 56px 0; }
+  .page-brand .brand-honest { padding: 20px 22px; }
+}

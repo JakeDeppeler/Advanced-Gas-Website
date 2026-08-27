@@ -230,6 +230,35 @@ export type Brand = {
 
   /** Brand-level FAQs. One open at a time, same as everywhere else. */
   faqs?: { q: string; a: string }[];
+
+  /* ---------------------------------------------------------------
+   * The brand-page-that's-actually-about-the-brand fields.
+   *
+   * A brand page's visitor has usually just been handed a quote naming
+   * this manufacturer and is checking it's any good — or comparing it
+   * against the others. So the page leads with the brand's identity and
+   * our honest verdict on it, and demotes our install process to a strip
+   * near the bottom. Every field is optional and the section hides when
+   * it's absent, so the six brands still on the old data render a leaner
+   * version until each is written.
+   * ------------------------------------------------------------- */
+
+  /** The one big thing this brand is known for — a short claim and the
+   *  sentence that earns it. Leads the "why this brand" section. */
+  whyLead?: { claim: string; sub: string };
+  /** Our honest verdict, as the installer with no reason to push one
+   *  brand. Two or three sentences; distinct from `ourTake`, which is
+   *  the shorter facts-strip version. */
+  verdict?: string;
+  /** Where this brand is NOT the right call. The half a manufacturer's
+   *  own site can never write, and the reason ours is worth reading. */
+  notRightWhen?: string;
+  /** The honest cross-brand line: which of the others we'd fit instead,
+   *  and when. Only where there's a real alternative in the same slot. */
+  versus?: string;
+  /** "Where it fits locally" — the south-east homes and suburbs this
+   *  brand suits. Falls back to `commonInMelbourne` prose. */
+  localFit?: { heading: string; body: string; suburbs?: string[] };
 };
 
 /** Category → photo map. Products fall through to this when they don't
@@ -618,6 +647,24 @@ const brandCatalogue: Brand[] = [
     resources: [
       { label: "Mitsubishi Electric · manufacturer website", href: "https://www.mitsubishielectric.com.au/" },
     ],
+
+    /* --- The brand-first layout: identity and our verdict lead, our
+       install process is a strip near the bottom. --- */
+    whyLead: {
+      claim: "Under 1% come back to us.",
+      sub: "That failure rate — ours, across everything we've installed — is the whole argument for the brand. Everything else Mitsubishi is known for follows from a unit that simply doesn't need us again.",
+    },
+    verdict:
+      "Mitsubishi is what we quote first and fit most, and we'd rather be straight about why: it costs a few hundred more than a budget brand on a bedroom split, and that gap buys you a decade where we don't come back. The reliability is real, the parts are on a Melbourne shelf in year twelve, and a decade-old MSZ-AP still makes its rated output — we measure them. If a system you'll own for fifteen years is worth paying for once, this is the one.",
+    notRightWhen:
+      "Renovating to sell inside two years? The reliability premium is money you won't see again at the open house — a Kaden cools the room just as well for the photos. Mitsubishi earns its price over a decade of ownership, not a quick flip, and we'll say so rather than sell you up.",
+    versus:
+      "We fit Kaden too, and for a bedroom you're keeping five years it's the sensible spend — a real warranty, a genuine app, hundreds less. Mitsubishi is what goes in when the house is the one you're staying in.",
+    localFit: {
+      heading: "Where it goes in the south-east.",
+      body: "It turns up in every suburb we work, specified differently in each. The Clyde North, Officer and Cranbourne new-builds go PEAD-M ducted almost by default. The Berwick and Pakenham weatherboards, with no roof space to run ducts through, get MSZ-AP wall splits. And the hills — Emerald, Gembrook, Cockatoo — get the Hyper Heating variant, because it still makes its rated heat on the mornings the cheaper units start to fade.",
+      suburbs: ["Clyde North", "Officer", "Cranbourne", "Berwick", "Pakenham", "Emerald", "Gembrook", "Cockatoo"],
+    },
 
     /* --- The filtration treatment. Mitsubishi first, because it's the
        brand with sixteen models and therefore the one the old grid
