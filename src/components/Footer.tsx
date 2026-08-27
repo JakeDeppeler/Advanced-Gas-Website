@@ -2,6 +2,13 @@ import Link from "next/link";
 import { site, services, publishedSuburbs } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
+/** The suburbs the footer links from every page. The core hubs we most
+ *  want to rank for, not all 73 — see the note by ftr__chips. */
+const FOOTER_SUBURBS = [
+  "pakenham", "officer", "beaconsfield", "berwick",
+  "narre-warren", "cranbourne", "clyde-north", "drouin",
+];
+
 export function Footer() {
   const year = new Date().getFullYear();
 
@@ -198,14 +205,23 @@ export function Footer() {
         {/* ============ Service areas chips ============ */}
         <div className="ftr__areas">
           <h4>Servicing across South-East Vic &amp; Gippsland</h4>
+          {/* WEB-019: this listed all 73 published suburbs on every
+              page — 73 links of boilerplate repeated site-wide, which
+              dilutes internal link equity and reads to Google as a
+              footer stuffed with keywords. Cut to the core hubs we most
+              want to rank for, plus the link to the full list. One strong
+              link into a clean hub beats seventy-three diluted ones. */}
           <ul className="ftr__chips">
-            {publishedSuburbs.map((s) => (
-              <li key={s.slug}>
-                <Link href={`/areas/${s.slug}`}>{s.name}</Link>
-              </li>
-            ))}
+            {publishedSuburbs
+              .filter((s) => FOOTER_SUBURBS.includes(s.slug))
+              .sort((a, b) => FOOTER_SUBURBS.indexOf(a.slug) - FOOTER_SUBURBS.indexOf(b.slug))
+              .map((s) => (
+                <li key={s.slug}>
+                  <Link href={`/areas/${s.slug}`}>{s.name}</Link>
+                </li>
+              ))}
             <li className="ftr__chips-more">
-              <Link href="/service-areas">+ every suburb within 75km →</Link>
+              <Link href="/service-areas">All service areas within 75km →</Link>
             </li>
           </ul>
         </div>
