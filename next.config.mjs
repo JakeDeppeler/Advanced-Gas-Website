@@ -71,6 +71,19 @@ const nextConfig = {
       { source: "/brands/thermann/electric-storage-315", destination: "/brands/thermann", permanent: true },
       { source: "/brands/thermann/electric-storage-400", destination: "/brands/thermann", permanent: true },
 
+      // ---- WEB-010: legacy Wix URLs ----
+      // /plumbing-services/ held rankings and inbound links on the old
+      // site and now 404s. Sent to the gas & plumbing service page, the
+      // closest equivalent. This is the only legacy URL I can confirm
+      // from the rendered site; the full old-sitemap map needs the Wix
+      // export or a Wayback crawl, and anything with no equivalent
+      // should go to its nearest category page, not the homepage.
+      {
+        source: "/plumbing-services",
+        destination: "/services/gas-plumbing",
+        permanent: true,
+      },
+
       // ---- Water softeners retired ----
       // The page argued that Melbourne mains water is soft enough that
       // most people don't need one, which is true and is why the category
