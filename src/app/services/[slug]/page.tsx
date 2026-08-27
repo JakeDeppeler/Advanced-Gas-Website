@@ -341,7 +341,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
 
       {/* HOW A HEAT PUMP WORKS — the interactive explainer (schematic /
           running cost / size calculator), on the heat-pump service page. */}
-      {params.slug === "heat-pump-installation" && <HeatPumpDiagram split />}
+      {params.slug === "heat-pump-installation" && <HeatPumpDiagram />}
 
       {/* IS IT RIGHT FOR YOU — the same three questions the system pages
           carry, on the page where the choice between systems is live. */}

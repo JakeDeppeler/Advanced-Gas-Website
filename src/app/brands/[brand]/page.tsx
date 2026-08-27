@@ -329,7 +329,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           heat-pump advisor). A buyer weighing a heat pump usually wants to
           know what the thing actually does before the model list. */}
       {brand.advisorService === "heat-pump-installation" && (
-        <HeatPumpDiagram brandName={brand.name} split={brand.slug !== "istore"} />
+        <HeatPumpDiagram brandName={brand.name} variant={brand.slug === "istore" ? "all-in-one" : "both"} />
       )}
 
       {/* WHAT THE STARS SAVE — gas ducted only (Brivis maps to the gas

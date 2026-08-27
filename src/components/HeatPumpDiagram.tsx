@@ -121,12 +121,24 @@ function AllInOneSvg() {
   );
 }
 
-export function HeatPumpDiagram({ brandName, split = true }: { brandName?: string; split?: boolean }) {
+export function HeatPumpDiagram({
+  brandName,
+  variant = "both",
+}: {
+  brandName?: string;
+  /** Which schematic(s) to show: both (default), or one where the page is
+   *  about a single format — all-in-one (iStore, the all-in-one system page)
+   *  or split (the split-heat-pump system page). */
+  variant?: "both" | "all-in-one" | "split";
+}) {
   const [tab, setTab] = useState<"how" | "cost" | "size">("how");
   const [size, setSize] = useState(1); // index into SIZES (default 3–4 people)
   const who = brandName
     ? `${/^[aeiou]/i.test(brandName) ? "An" : "A"} ${brandName} heat pump`
     : "A heat pump";
+  const showAio = variant !== "split";
+  const showSplit = variant !== "all-in-one";
+  const single = !(showAio && showSplit);
 
   return (
     <section className="hpd">
@@ -149,13 +161,15 @@ export function HeatPumpDiagram({ brandName, split = true }: { brandName?: strin
 
           {tab === "how" && (
             <div className="hpd__panel" role="tabpanel">
-              <div className={`hpd__pair${split ? "" : " hpd__pair--single"}`}>
-                <figure className="hpd__unit">
-                  <span className="hpd__tag">All-in-one</span>
-                  <div className="hpd__svg"><AllInOneSvg /></div>
-                  <p className="hpd__cap">Tank and heat pump in one shell &mdash; nothing to place outside.</p>
-                </figure>
-                {split && (
+              <div className={`hpd__pair${single ? " hpd__pair--single" : ""}`}>
+                {showAio && (
+                  <figure className="hpd__unit">
+                    <span className="hpd__tag">All-in-one</span>
+                    <div className="hpd__svg"><AllInOneSvg /></div>
+                    <p className="hpd__cap">Tank and heat pump in one shell &mdash; nothing to place outside.</p>
+                  </figure>
+                )}
+                {showSplit && (
                   <figure className="hpd__unit">
                     <span className="hpd__tag">Split system</span>
                     <div className="hpd__svg"><SplitSvg /></div>

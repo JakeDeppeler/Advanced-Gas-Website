@@ -16,6 +16,7 @@ import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
 import { SystemChooser } from "@/components/SystemChooser";
+import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import { ADVISORS } from "@/lib/advisor";
 
 /** The tile palette, same five the rest of the site rotates through. */
@@ -272,6 +273,15 @@ export default function SystemPage({
             </figure>
           </div>
         </section>
+      )}
+
+      {/* HOW A HEAT PUMP WORKS — the interactive explainer, tailored to the
+          system this page is about: the split-heat-pump page shows the split
+          schematic, the all-in-one page shows the all-in-one. */}
+      {params.slug === "heat-pump-installation" && (
+        <HeatPumpDiagram
+          variant={system.id === "all-in-one" ? "all-in-one" : system.id === "split-heat-pump" ? "split" : "both"}
+        />
       )}
 
       {/* NARROW IT DOWN — three questions about the actual house. The
