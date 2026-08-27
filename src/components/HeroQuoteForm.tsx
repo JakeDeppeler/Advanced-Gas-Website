@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { site } from "@/lib/site";
 
 /* ============================================================
    Multi-step, multi-select branching quote form.
@@ -184,6 +185,9 @@ export function HeroQuoteForm() {
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Set when the POST didn't land. The form keeps everything the
+  // customer typed so they can retry or read us the phone number.
+  const [sendFailed, setSendFailed] = useState(false);
 
   const [service, setService] = useState<ServiceId>("hp");
   const [waterWhere, setWaterWhere] = useState<string[]>([]);
@@ -438,8 +442,9 @@ export function HeroQuoteForm() {
     }
     if (!canNext) return;
     setSubmitting(true);
+    setSendFailed(false);
     try {
-      await fetch("/api/quote", {
+      const res = await fetch("/api/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -455,8 +460,18 @@ export function HeroQuoteForm() {
           photos, hp,
         }),
       });
-    } catch { /* server may still have logged it */ }
-    setDone(true);
+      // `res.ok` was never checked and the catch swallowed everything,
+      // so a 502 and a dead network both drew the same "thanks, we've
+      // got it". The one thing a quote form must never do is tell
+      // somebody their enquiry arrived when it didn't.
+      if (!res.ok) throw new Error(`Quote POST failed: ${res.status}`);
+      setDone(true);
+    } catch (err) {
+      console.error(err);
+      setSendFailed(true);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   function resetForm() {
@@ -912,6 +927,15 @@ export function HeroQuoteForm() {
           </StepBlock>
         )}
 
+        {sendFailed && (
+          <div className="qfail" role="alert">
+            <strong>That didn&rsquo;t send.</strong> Nothing you typed has been lost &mdash; press
+            the button again, or ring us on{" "}
+            <a href={`tel:${site.phoneE164}`}>{site.phone}</a> and we&rsquo;ll take the details
+            over the phone.
+          </div>
+        )}
+
         <div className="qcard__foot">
           <button
             type="button"
@@ -926,7 +950,13 @@ export function HeroQuoteForm() {
             className="ds-btn ds-btn--orange ds-btn--lg qnext"
             disabled={submitting || !canNext}
           >
-            {isLast ? (submitting ? "Sending…" : "Send my request →") : "Next →"}
+            {isLast
+              ? submitting
+                ? "Sending…"
+                : sendFailed
+                  ? "Try again →"
+                  : "Send my request →"
+              : "Next →"}
           </button>
         </div>
       </form>

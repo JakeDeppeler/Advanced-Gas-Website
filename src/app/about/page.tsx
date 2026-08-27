@@ -22,7 +22,7 @@ const values = [
   { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices, not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
   { n: "02", h: "Fully licensed & insured", p: "$20M public liability, workers' compensation and comprehensive motor cover. Certificates of currency provided on request." },
   { n: "03", h: "Compliance built in", p: "Type A gas, mechanical services and refrigerant handling (ARC AU59557). Compliance certificates issued on completion of every job." },
-  { n: "04", h: "Backed by warranty", p: "12-month defects liability on our workmanship, plus the full manufacturer warranties on all equipment we supply and install." },
+  { n: "04", h: "Backed by warranty", p: "Six years on our workmanship, plus the full manufacturer warranties on all equipment we supply and install. The same figure as the terms page and the FAQs — it used to say twelve months here and six years everywhere else, which is the kind of thing that gets quoted back at you in a dispute." },
   { n: "05", h: "Commercial install & maintenance", p: "From new installs and tenancy fit-outs to scheduled preventative-maintenance contracts that keep sites compliant and running year-round." },
 ];
 

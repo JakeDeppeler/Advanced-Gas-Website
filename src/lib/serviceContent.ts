@@ -1012,15 +1012,10 @@ export const serviceContent: Record<string, ServiceContent> = {
     brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
     /**
      * Empty on purpose. Every heat pump price is a per-system row in
-     * lib/systemDetail.ts now, and the cards in "Choose your system"
-     * render them. The five rows that used to live here restated the
-     * same products less precisely — they had one line for "iStore
-     * 270 L" where the system rows have 180 and 270 separately.
-     *
-     * NOTE: those two sources disagreed on the 270. This list said
-     * $2,144 for it; the system rows say $2,144 for the 180 and $2,590
-     * for the 270. The system rows are kept because they are the more
-     * specific of the two, but the number wants confirming.
+     * lib/systemDetail.ts, and the cards in "Choose your system" render
+     * them. The five rows that used to live here restated the same
+     * products less precisely and disagreed with those rows on the
+     * iStore; that is settled — $2,150 inc GST, confirmed 27 Aug.
      */
     pricing: [],
     steps: [
@@ -1288,7 +1283,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Timer set to the cheap tariff or to your solar before we leave",
           "Old unit drained, disconnected and taken to a metal recycler",
         ],
-        priceFrom: "from $2,144",
+        priceFrom: "from $2,150 inc GST",
         intro:
           "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest — and it's where the VEU rebate reaches furthest on a straight electric swap.",
         faqs: [
@@ -1328,7 +1323,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     typical: {
       time: "AIO swap · 3–5 hrs. Split heat pump · 5–7 hrs (usually same-day).",
       warranty: "6-year workmanship + manufacturer tank/compressor cover (varies by model: 6–15 yr tank, 3–10 yr heat pump).",
-      priceRange: "$2,144 (iStore) → $6,000+ (Reclaim CO₂ Split Stainless 400 L).",
+      priceRange: "$2,150 inc GST (iStore) → $6,000+ (Reclaim CO₂ Split Stainless 400 L).",
       followUp: "We call at the 4-week mark to check nothing's tripped and the timer's set the way you wanted.",
     },
     included: [
@@ -1353,7 +1348,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { q: "Does a heat pump work in cold Melbourne mornings?", a: "R290 (propane) units drop noticeably below 0 °C. CO₂ heat pumps (Reclaim) hold full capacity down to −10 °C, worth specifying for hills postcodes like Emerald, Gembrook or Cockatoo." },
       { q: "Is it noisy? Where do you put it?", a: "37–48 dBA at 1 m depending on model, Reclaim CO₂ is the quietest at 37 dBA (safe next to a bedroom wall). Ideally sited on the shady side of the house away from bedrooms." },
       { q: "How long does the install take?", a: "AIO into an existing tank position is 3–5 hours, done in one visit. Split heat pump with a new outdoor unit position is 5–7 hours. Both are usually same-day." },
-      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim R290 AIO: 6-yr tank + 3-yr compressor. iStore: 6-yr tank + 3-yr compressor. Plus our 6-year workmanship on top of all of them." },
+      { q: "What's the warranty picture?", a: "Reclaim CO₂ Stainless: 15-yr tank + 10-yr heat pump. Reclaim ECO R290 all-in-one: 8 years on the tank, parts and labour. iStore: 6-yr tank + 3-yr compressor. Plus our 6-year workmanship on top of all of them." },
       { q: "Can I combine it with solar PV?", a: "Yes, Reclaim's split range is PV-diverter compatible so the heat pump only runs when your PV is exporting. We can add a diverter kit at install time or later." },
     ],
   },

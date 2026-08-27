@@ -343,12 +343,13 @@ export const posts: BlogPost[] = [
       { type: "h2", text: "What it actually costs, installed, after VEU rebate" },
       { type: "p", text: "Melbourne installed prices for the units we install most often, after the full VEU rebate stack and Solar Homes bonus where eligible:" },
       { type: "ul", items: [
-        "iStore 270L (R290): the strongest rebate outcome for VEU-eligible households",
-        "Thermann Series 5 315L (R290): around $2,590 installed",
+        "iStore all-in-one: $2,150 inc GST installed \u2014 the strongest rebate outcome for VEU-eligible households",
+        "Reclaim ECO R290 all-in-one: $2,538 inc GST installed, with 8 years on the tank",
+        "Thermann ECO R290 all-in-one: $2,538 inc GST installed \u2014 same platform as the Reclaim ECO",
         "Reclaim CO2 315L stainless: around $3,190 installed",
         "Reclaim CO2 400L stainless: around $3,690 installed (for larger families)",
       ] },
-      { type: "p", text: "These are real fully-installed prices, labour, disposal of the old tank, permit, and the compliance certificate all included. If a quote you're comparing has 'rebate handled separately' in the fine print, you're being upsold." },
+      { type: "p", text: "These are real fully-installed prices inc GST \u2014 labour, disposal of the old tank, permit and the compliance certificate all included. One thing that can add to them: if there's no power point within two metres of the existing system, the new unit needs a circuit run to it, and that's $350. We check on the site visit so it lands on the quote rather than the invoice. If a quote you're comparing has 'rebate handled separately' in the fine print, you're being upsold." },
 
       { type: "h2", text: "Sizing, the 200/270/315/400 L question" },
       { type: "p", text: "Heat pump tanks recover slower than gas continuous flow, so tank size matters more than it does for storage gas. Our rules of thumb for Melbourne households:" },

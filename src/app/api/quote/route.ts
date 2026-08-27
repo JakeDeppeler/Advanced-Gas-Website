@@ -103,17 +103,27 @@ export async function POST(req: Request) {
 
   const summaryLine = friendlySummary(data);
 
+  // Everything below can fail, so the lead goes to the database first.
+  // Email is a notification; this is the record.
+  const stored = await storeLead(data, summaryLine, allPhotos.length);
+
   if (!key) {
-    console.warn("RESEND_API_KEY missing, logging lead only.");
+    // This used to return ok:true. On a deployment with no key that
+    // meant every enquiry drew a "thanks, we've got it" for the
+    // customer and a console line nobody reads for us. If the lead
+    // didn't reach the database either, the honest answer is failure.
+    console.error("RESEND_API_KEY missing.");
     console.log("NEW LEAD →\n" + fallbackText(data, summaryLine, allPhotos.length));
-    return NextResponse.json({ ok: true });
+    return stored
+      ? NextResponse.json({ ok: true, stored: true, emailed: false })
+      : new NextResponse("Could not record the enquiry", { status: 502 });
   }
 
   // 1) Internal notification email to the team.
   const internalHtml = renderInternalEmail(data, summaryLine, allPhotos.length);
   const internalText = fallbackText(data, summaryLine, allPhotos.length);
 
-  await sendResend({
+  const emailed = await sendResend({
     key,
     from,
     to,
@@ -123,6 +133,12 @@ export async function POST(req: Request) {
     text: internalText,
     attachments,
   });
+
+  // Only a total loss is a failure: if the row is in the database the
+  // lead is safe even when the mail server is having a day.
+  if (!emailed && !stored) {
+    return new NextResponse("Could not record the enquiry", { status: 502 });
+  }
 
   // 2) Customer confirmation email (only if we got a valid-looking email).
   if (data.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
@@ -139,7 +155,62 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, stored, emailed });
+}
+
+/* ------------ Durable record ------------ */
+
+/**
+ * Write the lead to Supabase before anything is emailed.
+ *
+ * Email delivery is the part most likely to break — a missing key, a
+ * suspended domain, a bounce — and until now it was the only place a
+ * lead existed. Returns false when the row didn't land, which is what
+ * lets the route tell the customer the truth.
+ *
+ * A no-op when the env vars aren't set, so local and preview builds
+ * don't need a database to run the form. See
+ * supabase/migrations/0001_leads.sql for the table.
+ */
+async function storeLead(data: Lead, summary: string, photoCount: number): Promise<boolean> {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    console.warn("Supabase not configured, lead not stored.");
+    return false;
+  }
+  try {
+    const res = await fetch(`${url}/rest/v1/leads`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        service: data.service,
+        headline: headline(data),
+        summary,
+        name: data.name,
+        phone: data.phone,
+        email: data.email || null,
+        postcode: data.postcode || data.suburb || null,
+        address: data.address || null,
+        notes: data.notes || null,
+        photo_count: photoCount,
+        details: data.details ?? {},
+      }),
+    });
+    if (!res.ok) {
+      console.error(`Supabase insert failed (${res.status}): ${await res.text().catch(() => "")}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("Supabase insert threw", e);
+    return false;
+  }
 }
 
 /* ------------ Resend helper ------------ */
@@ -148,7 +219,7 @@ async function sendResend(opts: {
   key: string; from: string; to: string[]; replyTo?: string;
   subject: string; html: string; text: string;
   attachments?: Array<{ filename: string; content: string }>;
-}) {
+}): Promise<boolean> {
   const body: Record<string, unknown> = {
     from: opts.from,
     to: opts.to,
@@ -171,9 +242,12 @@ async function sendResend(opts: {
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
       console.error(`Resend send failed (${res.status}) to ${opts.to.join(", ")}: ${errText}`);
+      return false;
     }
+    return true;
   } catch (e) {
     console.error("Resend threw", e);
+    return false;
   }
 }
 

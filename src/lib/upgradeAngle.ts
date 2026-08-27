@@ -53,7 +53,7 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 10,
     why: "The tank is a steel cylinder with a sacrificial anode inside it. Once the anode is spent the tank starts corroding, and there is no repair for a corroded tank. Everything else on the unit is replaceable; the tank is the unit.",
     upside: "A heat pump replacement runs on roughly a quarter to a third of the energy, and it's the single biggest VEU rebate on the list.",
-    replaceCost: 2144,
+    replaceCost: 2150,
     replaceHref: "/services/heat-pump-installation/all-in-one",
   },
   {
@@ -62,7 +62,7 @@ export const LIFE_EXPECTANCY: LifeExpectancy[] = [
     replaceFrom: 10,
     why: "Same steel tank, same anode, same ending. Elements and thermostats are cheap and easy; neither of them saves a tank that has started to go.",
     upside: "The largest running-cost gap of anything we replace. An old electric tank is the appliance the VEU scheme was most obviously written for.",
-    replaceCost: 2144,
+    replaceCost: 2150,
     replaceHref: "/services/heat-pump-installation/all-in-one",
   },
   {

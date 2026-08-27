@@ -553,13 +553,12 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Timer set before we go", detail: "Cheap tariff, or the middle of the day if you have solar. Tested with you rather than left on the default." },
     ],
     pricing: [
-      { tier: "iStore 180 L", price: "from $2,144", includes: "Supply, install, tempering valve, old unit removed, rebate applied", group: "All-in-one", photo: "/270L-istore-heatpump.webp" },
-      { tier: "iStore 270 L", price: "from $2,590", includes: "Supply and install with the tempering valve, Sized for three to four people, Old unit removed and the rebate applied", group: "All-in-one" },
-      { tier: "Reclaim / Thermann ECO R290 · 200 L", price: "from $3,300", includes: "The R290 platform rather than iStore, Supply and install with the tempering valve, Old unit removed and the rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" },
-      { tier: "Reclaim / Thermann ECO R290 · 285 L", price: "from $3,900", includes: "The R290 platform rather than iStore, The larger of the two tank sizes, Old unit removed and the rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg" },
+      { tier: "iStore", price: "$2,150", includes: "Supply and install, Tempering valve fitted, Old unit drained and taken away, VEU rebate applied at the quote", group: "All-in-one", photo: "/270L-istore-heatpump.webp", priceKey: "Inc GST" },
+      { tier: "Reclaim ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, 8-year tank warranty, parts and labour, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp", priceKey: "Inc GST" },
+      { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, The same platform as the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
     ],
     pricingNote:
-      "After the VEU rebate for a Victorian owner-occupier at current VEEC prices. Reclaim ECO and Thermann ECO are the same platform — the price difference between them is supply, not spec.",
+      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it and that is $350. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform — what differs is supply, not spec.",
   },
   "gas-plumbing/temporary-hot-water": {
     specs: [

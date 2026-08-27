@@ -1714,3 +1714,21 @@
   .rebatecta:hover { transform: none; }
   .rebatecta:hover .rebatecta__go { transform: none; }
 }
+
+
+/* The quote form's failure state. It has to be impossible to miss and
+   it must not clear anything — a customer who has just filled in four
+   steps and a photo will not do it twice. */
+.qfail {
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(214, 45, 32, 0.08);
+  border: 1px solid rgba(214, 45, 32, 0.28);
+  border-left: 3px solid #d62d20;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.qfail strong { color: #b3241a; }
+.qfail a { color: var(--navy); font-weight: 700; text-underline-offset: 2px; }

@@ -274,7 +274,12 @@ export default async function HomePage() {
                   <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
                 </ul>
                 <p className="quotesec__finep">
-                  Licensed gasfitter · ARC AU34567 · VEU-accredited provider · ABN 12&nbsp;345&nbsp;678&nbsp;910.
+                  {/* Never literals again. These were dummy values from the
+                      build — a false ARC number is a regulatory problem,
+                      not a typo — and the real ones were already sitting
+                      in lib/site.ts unused. */}
+                  Licensed gasfitter · {site.licences.refrigeration} · VEU-accredited provider ·
+                  ABN {site.abn.replace(/ /g, "\u00a0")}.
                 </p>
               </div>
               <HeroQuoteForm />
