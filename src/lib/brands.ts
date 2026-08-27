@@ -124,6 +124,14 @@ export type Brand = {
   /** Hero photo for the brand hub + brand card. WebP only. */
   photo: string;
   photoAlt: string;
+  /**
+   * True where `photo` is a real photograph rather than a manufacturer
+   * cut-out on white or on transparency. Only a scene goes full bleed
+   * behind the header: six of the seven brand photos are renders, and
+   * stretched across a hero at 40% opacity a render reads as a blurry
+   * grey shape nobody can identify. Cut-outs get a panel instead.
+   */
+  photoScene?: boolean;
   /** Working existing image used as the visual fallback while the
    *  manufacturer `photo` hasn't been saved to /public yet. */
   photoFallback?: string;
@@ -578,9 +586,9 @@ const brandCatalogue: Brand[] = [
     ourTake:
       "Mitsubishi Electric runs a failure rate under 1% across the whole range. That is the number that decides what we put in a customer's wall. A unit that never needs us back is worth more to both of us than a cheaper one that does.",
     productLabel: "22 models · splits, multi-head, ducted, cassette, controllers",
-    photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+    photo: "/mitsubishi-puz-outdoor-white.webp",
     photoFallback: "/reclaim-mitsubishi.webp",
-    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
+    photoAlt: "Mitsubishi Electric PUZ R32 outdoor condenser",
     accent: "#DA1A32",
     established: "Australian sales since 1978 · manufacturing in Thailand",
     warranty: "5-year manufacturer parts + labour, plus 6 years on our workmanship.",
@@ -2828,6 +2836,7 @@ const brandCatalogue: Brand[] = [
     photo: "/Milieu Zonemate tablet.jpg",
     photoFallback: "/ZoneMate-Touch-Duotone_Living-Room_1.jpg",
     photoAlt: "Zonemate Milieu wall tablet zoning control",
+    photoScene: true,
     accent: "#1E8E4E",
     established: "Australian-designed and manufactured for the local ducted market",
     warranty: "5-year controller + 5-year dampers + 6-year on our workmanship",

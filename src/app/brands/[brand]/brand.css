@@ -2077,3 +2077,72 @@
 @media (max-width: 640px) {
   .page-brand .wf-range__drop { padding: 22px 18px 24px; }
 }
+
+
+/* ============================================================
+   BRAND HEADER — panel, not wallpaper.
+   Six of the seven brand photos are manufacturer renders. Stretched
+   full-bleed behind the copy at 40% opacity a render is a blurry grey
+   shape with a logo floating in a corner, which is what the header
+   looked like. Only `photoScene` brands keep the full bleed; the rest
+   put the product in a panel beside the copy, where it reads as the
+   product and the type gets a solid ground to sit on.
+   ============================================================ */
+.page-brand .brand-hero--panel {
+  background:
+    radial-gradient(900px 460px at 88% 0%, color-mix(in srgb, var(--card-accent, var(--sky)) 22%, transparent), transparent 62%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+/* Three rows: crumbs, then copy beside the panel, then the figures.
+   The grid is on `.wrap` and its children are the columns — putting it
+   there without wrapping the copy first made every paragraph its own
+   grid cell, which is exactly as bad as it sounds. */
+.page-brand .brand-hero--panel .brand-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  column-gap: 48px;
+  align-items: center;
+}
+.page-brand .brand-hero--panel .dp-crumbs,
+.page-brand .brand-hero--panel .dp-hero__at { grid-column: 1 / -1; }
+.page-brand .brand-hero__copy { min-width: 0; }
+.page-brand .brand-hero__panel {
+  align-self: center;
+  background: #fff;
+  border-radius: var(--rad);
+  padding: 30px;
+  box-shadow: 0 30px 64px -30px rgba(0, 0, 0, 0.6);
+}
+.page-brand .brand-hero__panel img {
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  display: block;
+}
+
+/* The h1 was clipping its own ascenders: `line-height: 1.02` on a
+   display face with a descender-heavy brand name leaves nothing for
+   the cap-height to sit in once it wraps. */
+.page-brand .brand-hero h1 { line-height: 1.1; padding-top: 2px; }
+
+/* --- Manufacturer resources, as one line under the tiles. --- */
+.page-brand .brand-why__resources {
+  margin: 26px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+.page-brand .brand-why__resources a {
+  color: var(--navy);
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+.page-brand .brand-why__resources a:hover { color: var(--orange); }
+
+@media (max-width: 900px) {
+  .page-brand .brand-hero--panel .brand-hero__grid { grid-template-columns: 1fr; row-gap: 28px; }
+  .page-brand .brand-hero__panel { padding: 22px; }
+  .page-brand .brand-hero__panel img { height: 220px; }
+}

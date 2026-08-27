@@ -76,15 +76,21 @@ export default async function BrandPage({ params }: { params: { brand: string } 
 
   return (
     <div className="page-detail page-brand" style={{ ["--card-accent" as string]: brand.accent }}>
-      <section className="dp-hero brand-hero">
-        {/* Not decorative. It is a photograph of the gear the page is
-            about, so it gets real alt text and stays in the
-            accessibility tree. */}
-        <div className="brand-hero__pic">
-          <SafeImg src={brand.photo} fallback={brand.photoFallback} alt={brand.photoAlt} width="1600" height="900" fetchPriority="high" />
-        </div>
-        <div className="brand-hero__scrim" aria-hidden="true" />
-        <div className="wrap">
+      <section className={`dp-hero brand-hero${brand.photoScene ? " brand-hero--shot" : " brand-hero--panel"}`}>
+        {/* A photograph goes behind the copy. A manufacturer render does
+            not: six of the seven brand photos are cut-outs, and one of
+            those stretched across a hero at 40% opacity is a blurry grey
+            shape with a logo floating in the corner. Those get a panel
+            beside the copy instead, where they read as the product. */}
+        {brand.photoScene && (
+          <>
+            <div className="brand-hero__pic">
+              <SafeImg src={brand.photo} fallback={brand.photoFallback} alt={brand.photoAlt} width="1600" height="900" fetchPriority="high" />
+            </div>
+            <div className="brand-hero__scrim" aria-hidden="true" />
+          </>
+        )}
+        <div className="wrap brand-hero__grid">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
             <span className="sep">/</span>
@@ -92,6 +98,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             <span className="sep">/</span>
             <span className="cur">{brand.name}</span>
           </nav>
+          <div className="brand-hero__copy">
           <div className="dp-hero__eyebrow">
             <span className="ds-dot" /> {brand.name} · {brand.origin}
           </div>
@@ -115,6 +122,19 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           {/* The figures along the bottom, same as the filtration and
               service headers. The trust bar this replaces said the same
               three things on every brand page in the catalogue. */}
+          </div>
+          {!brand.photoScene && (
+            <div className="brand-hero__panel">
+              <SafeImg
+                src={brand.photo}
+                fallback={brand.photoFallback}
+                alt={brand.photoAlt}
+                width="900"
+                height="900"
+                fetchPriority="high"
+              />
+            </div>
+          )}
           {/* Authored figures where the brand has them. The derived set
               below counts things — "1 system types in the range" was a
               real render — so it's the fallback, not the default. */}
@@ -180,9 +200,38 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         </div>
       </section>
 
-      {/* WHY THIS BRAND — the filtration pages' tabbed tiles. Eight
-          statements in a bulleted wall is a wall; eight tiles and one
-          panel is the same content you can actually scan. */}
+      {/* WHY THIS BRAND — tiles where the faces have been written, the
+          plain list where they haven't. `keyFeatures` are single
+          statements: splitting one into a tile face and a body truncates
+          it mid-thought, which is why the tiles are data rather than a
+          derivation. */}
+      {!brand.benefitTiles && brand.keyFeatures && brand.keyFeatures.length > 0 && (
+        <section className="brand-why">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why {brand.name}</span>
+              <h2>What sets it apart.</h2>
+            </div>
+            <ul className="brand-feats">
+              {brand.keyFeatures.map((f) => (
+                <li key={f} className="brand-feat">{f}</li>
+              ))}
+            </ul>
+            {brand.resources && brand.resources.length > 0 && (
+              <p className="brand-why__resources">
+                Straight from the manufacturer:{" "}
+                {brand.resources.map((r, i) => (
+                  <span key={r.href}>
+                    {i > 0 && " \u00b7 "}
+                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} \u2197</a>
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
       {brand.benefitTiles && brand.benefitTiles.length > 0 && (
         <section className="brand-why">
           <div className="wrap">
@@ -199,49 +248,26 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 detail: b.detail,
               }))}
             />
+            {brand.resources && brand.resources.length > 0 && (
+              <p className="brand-why__resources">
+                Straight from the manufacturer:{" "}
+                {brand.resources.map((r, i) => (
+                  <span key={r.href}>
+                    {i > 0 && " \u00b7 "}
+                    <a href={r.href} target="_blank" rel="noopener noreferrer">{r.label} \u2197</a>
+                  </span>
+                ))}
+              </p>
+            )}
           </div>
         </section>
       )}
 
-      {/* Key features + Melbourne context · dense info-panels */}
-      {(brand.keyFeatures || brand.commonInMelbourne || brand.support) && (
-        <section className="brand-info">
-          <div className="wrap brand-info__grid brand-info__grid--v2">
-            {/* Tiles where the brand has authored faces for them —
-                `keyFeatures` are single statements and splitting one into
-                a face and a body truncates it mid-thought, which is why
-                this is data rather than a derivation. Brands without them
-                keep the list. */}
-            {!brand.benefitTiles && brand.keyFeatures && brand.keyFeatures.length > 0 && (
-              <div className="brand-info__block">
-                <span className="ds-eyebrow"><span className="ds-dot" /> Why {brand.name}</span>
-                <h2>What sets it apart.</h2>
-                <ul className="brand-feats">
-                  {brand.keyFeatures.map((f) => (
-                    <li key={f} className="brand-feat">{f}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="brand-context">
-              {brand.resources && brand.resources.length > 0 && (
-                <div className="brand-info__cell">
-                  <div className="dp-local__lbl">Manufacturer resources</div>
-                  <ul className="brand-info__resources">
-                    {brand.resources.map((r) => (
-                      <li key={r.href}>
-                        <a href={r.href} target="_blank" rel="noopener noreferrer">
-                          {r.label} ↗
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* The key-feature list and the manufacturer-resources box used
+          to be a two-column band here. Once the list became the tiles
+          above, the band was 340px of navy holding one small box beside
+          an empty column — the gap in the screenshot. Both now sit in
+          "Why this brand", which is where they were always about. */}
 
       {/* Product range.
           Single-product brands (e.g. Zonemate — the Milieu zoning system is
