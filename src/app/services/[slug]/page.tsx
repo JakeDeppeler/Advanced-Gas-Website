@@ -20,6 +20,7 @@ import { BenefitTiles } from "@/components/BenefitTiles";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { RangeBand } from "@/components/RangeBand";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
+import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import { SystemChooser } from "@/components/SystemChooser";
 import { ADVISORS } from "@/lib/advisor";
 import { systemDetail } from "@/lib/systemDetail";
@@ -337,6 +338,10 @@ export default async function ServicePage({ params }: { params: { slug: string }
           </div>
         </section>
       )}
+
+      {/* HOW A HEAT PUMP WORKS — the interactive explainer (schematic /
+          running cost / size calculator), on the heat-pump service page. */}
+      {params.slug === "heat-pump-installation" && <HeatPumpDiagram split />}
 
       {/* IS IT RIGHT FOR YOU — the same three questions the system pages
           carry, on the page where the choice between systems is live. */}

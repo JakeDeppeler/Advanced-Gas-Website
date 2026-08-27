@@ -230,7 +230,10 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 }))}
               />
             )}
-            {(brand.notRightWhen || brand.versus) && (
+            {/* The honest "where it's not the pick" callout — but not on the
+                heat-pump brands, where the how-it-works panel and the range
+                do the persuading and the cross-brand hedge read as doubt. */}
+            {(brand.notRightWhen || brand.versus) && brand.advisorService !== "heat-pump-installation" && (
               <div className="brand-honest">
                 <span className="brand-honest__eye">Where it&rsquo;s not the pick</span>
                 {brand.notRightWhen && <p>{brand.notRightWhen}</p>}
@@ -326,7 +329,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           heat-pump advisor). A buyer weighing a heat pump usually wants to
           know what the thing actually does before the model list. */}
       {brand.advisorService === "heat-pump-installation" && (
-        <HeatPumpDiagram brandName={brand.name} />
+        <HeatPumpDiagram brandName={brand.name} split={brand.slug !== "istore"} />
       )}
 
       {/* WHAT THE STARS SAVE — gas ducted only (Brivis maps to the gas
