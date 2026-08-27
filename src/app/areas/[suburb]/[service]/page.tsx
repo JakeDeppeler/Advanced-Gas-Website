@@ -11,7 +11,7 @@ import { QuoteForm } from "@/components/QuoteForm";
 import "../../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import type { NudgeVariant } from "@/lib/upgradeAngle";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 
 /** Same mapping as the parent service page. Here the nudge is the one
  *  bit of the page that varies by service rather than by suburb, which
@@ -38,20 +38,16 @@ export function generateMetadata({
 }): Metadata {
   const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
   const svc = services.find((s) => s.slug === params.service);
-  if (!sub || !svc) return {};
-
-  const title = pageTitle(`${svc.short} ${sub.name} ${sub.postcode}`);
-  const description = metaDescription(
-    svc.slug === "heat-pump-installation"
-      ? `Heat pump hot water installed in ${sub.name} ${sub.postcode} with the VEU rebate applied at the quote. Licensed plumbers, same-week install, 6-year warranty.`
-      : `${svc.short} in ${sub.name} ${sub.postcode}. Licensed refrigeration techs, fixed quotes, same-week installs, 6-year workmanship warranty.`,
-  );
-
-  return {
-    title,
-    description,
-    alternates: { canonical: `/areas/${sub.slug}/${svc.slug}` },
-  };
+  if (!sub || !svc) notFound();
+  return seoMeta({
+    title: `${svc.short} ${sub.name} ${sub.postcode}`,
+    description:
+      svc.slug === "heat-pump-installation"
+        ? `Heat pump hot water installed in ${sub.name} ${sub.postcode} with the VEU rebate applied at the quote. Licensed plumbers, same-week install, 6-year warranty.`
+        : `${svc.short} in ${sub.name} ${sub.postcode}. Licensed refrigeration techs, fixed quotes, same-week installs, 6-year workmanship warranty.`,
+    canonical: `/areas/${sub.slug}/${svc.slug}`,
+    absolute: true,
+  });
 }
 
 export default function SuburbServicePage({

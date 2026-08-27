@@ -15,7 +15,7 @@ import type { NudgeVariant } from "@/lib/upgradeAngle";
 import { getInstagramForService } from "@/lib/instagram";
 import { BEFORE_AFTER } from "@/lib/gallery";
 import "../../detail.css";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { RangeBand } from "@/components/RangeBand";
@@ -72,12 +72,12 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { slug: string } }): Metadata {
   const content = serviceContent[params.slug];
-  if (!content) return {};
-  return {
-    title: pageTitle(content.metaTitle),
-    description: metaDescription(content.metaDescription),
-    alternates: { canonical: `/services/${params.slug}` },
-  };
+  if (!content) notFound();
+  return seoMeta({
+    title: content.metaTitle,
+    description: content.metaDescription,
+    canonical: `/services/${params.slug}`,
+  });
 }
 
 export default async function ServicePage({ params }: { params: { slug: string } }) {

@@ -10,7 +10,7 @@ import {
   faultSlug,
   findFaultCode,
 } from "@/lib/faultCodes";
-import { absoluteTitle, metaDescription } from "@/lib/seo";
+import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../../detail.css";
 import "./fault-detail.css";
@@ -48,14 +48,13 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: Params }): Metadata {
   const f = findFaultCode(params.brand, params.code);
-  if (!f) return {};
-  return {
-    title: absoluteTitle(`${f.brand} ${f.code} fault code`),
-    description: metaDescription(
-      `${f.brand} ${f.code}: ${f.meaning}. What causes it, what you can safely check yourself, and what needs a licensed technician. ${site.name}, Pakenham.`,
-    ),
-    alternates: { canonical: `/tools/fault-codes/${params.brand}/${params.code}` },
-  };
+  if (!f) notFound();
+  return seoMeta({
+    title: `${f.brand} ${f.code} fault code`,
+    description: `${f.brand} ${f.code}: ${f.meaning}. What causes it, what you can safely check yourself, and what needs a licensed technician. ${site.name}, Pakenham.`,
+    canonical: `/tools/fault-codes/${params.brand}/${params.code}`,
+    absolute: true,
+  });
 }
 
 const SEVERITY: Record<string, { label: string; note: string }> = {

@@ -63,20 +63,23 @@ export const metadata: Metadata = {
     "Reclaim heat pump installer",
   ],
   alternates: { canonical: "/" },
+  // WEB-004. These carried a hardcoded homepage title and description,
+  // and App Router does NOT mirror a page's own `title` into
+  // `openGraph.title` — so every page that didn't set OG itself shared
+  // to Facebook AS the homepage. The dynamic routes now set full OG via
+  // seoMeta; static pages set none, so the title and description are
+  // omitted here on purpose. A crawler with no og:title falls back to
+  // the page's <title>, which is correct per-page. Only the frame
+  // stays: type, locale, siteName, card and the default image.
   openGraph: {
     type: "website",
     locale: "en_AU",
     url: site.url,
     siteName: site.name,
-    title: "Aircon & Heat Pump Installation | Advanced Gas, Pakenham",
-    description:
-      "Family-run Pakenham aircon and heat pump specialists. VEU rebates up to $5,000, we do the paperwork.",
     images: [{ url: "/team-photo.webp", width: 1800, height: 1200, alt: site.name }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Aircon & Heat Pump Installation | Advanced Gas, Pakenham",
-    description: "VEU rebates up to $5,000, we do the paperwork.",
     images: ["/team-photo.webp"],
   },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true } },

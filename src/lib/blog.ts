@@ -6,7 +6,17 @@ export type BlogPost = {
   cat: string;
   date: string;
   read: string;
+  /** The editorial headline. Used as the on-page H1, where length is
+   *  fine. */
   title: string;
+  /**
+   * The `<title>` tag, authored to Google's ~60-character budget.
+   * WEB-005: the editorial titles run 53–72 characters, so clamping
+   * them for the site suffix produced "…Melbourne: the | Advanced Gas"
+   * — a title ending on a dangling article. Falls back to `title` when
+   * a post's headline is already short enough.
+   */
+  seoTitle?: string;
   blurb: string;
   photo: string;
   photoAlt: string;
@@ -23,6 +33,7 @@ export type Section =
 export const posts: BlogPost[] = [
   {
     slug: "veu-rebate-2026-pakenham-guide",
+    seoTitle: "VEU Rebate 2026: The Pakenham Guide",
     cat: "VEU rebates",
     date: "Updated this week",
     read: "14 min read",
@@ -56,6 +67,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "reclaim-vs-istore-vs-thermann",
+    seoTitle: "Reclaim vs iStore vs Thermann Heat Pumps",
     cat: "Heat pumps",
     date: "4 May 2026",
     read: "10 min read",
@@ -85,6 +97,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "heat-pump-real-cost-2026",
+    seoTitle: "Heat Pump Cost After the VEU Rebate, 2026",
     cat: "Costs",
     date: "28 Apr 2026",
     read: "7 min read",
@@ -123,6 +136,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "size-split-system-bedroom",
+    seoTitle: "How to Size a Split System, No Upsell",
     cat: "Aircon",
     date: "19 Apr 2026",
     read: "9 min read",
@@ -153,6 +167,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "carbon-monoxide-testing-ducted-heaters",
+    seoTitle: "Carbon Monoxide Testing, Ducted Heaters",
     cat: "Gas safety",
     date: "11 Apr 2026",
     read: "6 min read",
@@ -183,6 +198,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "heat-pumps-plus-solar",
+    seoTitle: "Heat Pumps + Solar PV: The Daytime Trick",
     cat: "Solar pairing",
     date: "2 Apr 2026",
     read: "11 min read",
@@ -209,6 +225,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "hot-water-tank-failed-replace-or-upgrade",
+    seoTitle: "Tank Failed? Replace or Go Heat Pump",
     cat: "Hot water",
     date: "25 Mar 2026",
     read: "5 min read",
@@ -240,6 +257,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "replacing-ducted-gas-with-reverse-cycle",
+    seoTitle: "Ducted Gas to Reverse-Cycle: The Numbers",
     cat: "Aircon",
     date: "18 Mar 2026",
     read: "12 min read",
@@ -265,6 +283,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "veu-rentals-landlord-checklist",
+    seoTitle: "VEU for Rentals: A Landlord Checklist",
     cat: "VEU rebates",
     date: "10 Mar 2026",
     read: "8 min read",
@@ -296,6 +315,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "clean-split-system-every-quarter",
+    seoTitle: "5 Things to Clean on Your Split System",
     cat: "Maintenance",
     date: "2 Mar 2026",
     read: "4 min read",
@@ -325,6 +345,7 @@ export const posts: BlogPost[] = [
 
   {
     slug: "heat-pump-hot-water-melbourne-complete-guide",
+    seoTitle: "Heat Pump Hot Water Melbourne, 2026 Guide",
     cat: "Heat pumps",
     date: "August 2026",
     read: "16 min read",
@@ -382,6 +403,7 @@ export const posts: BlogPost[] = [
 
   {
     slug: "split-system-installation-melbourne-2026",
+    seoTitle: "Split System Installation Melbourne 2026",
     cat: "Aircon",
     date: "August 2026",
     read: "12 min read",
@@ -454,6 +476,7 @@ export const posts: BlogPost[] = [
 
   {
     slug: "ducted-aircon-melbourne-cost-install",
+    seoTitle: "Ducted Aircon Melbourne: Cost & Install",
     cat: "Ducted aircon",
     date: "August 2026",
     read: "14 min read",
@@ -518,6 +541,7 @@ export const posts: BlogPost[] = [
 
   {
     slug: "gas-heating-hot-water-melbourne-guide",
+    seoTitle: "Gas Heating & Hot Water Melbourne",
     cat: "Gas plumbing",
     date: "August 2026",
     read: "11 min read",
@@ -571,6 +595,7 @@ export const posts: BlogPost[] = [
 
   {
     slug: "emergency-hot-water-gas-melbourne",
+    seoTitle: "Emergency Hot Water & Gas Repair Melbourne",
     cat: "Emergency",
     date: "August 2026",
     read: "6 min read",

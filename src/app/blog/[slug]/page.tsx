@@ -6,7 +6,7 @@ import { site } from "@/lib/site";
 import { posts, getPost } from "@/lib/blog";
 import "../../detail.css";
 import "../blog.css";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 
 type Params = { slug: string };
 
@@ -17,18 +17,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
   const post = getPost(slug);
-  if (!post) return { title: "Post not found" };
-  return {
-    title: pageTitle(post.title),
-    description: metaDescription(post.blurb),
-    alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: {
-      title: post.title,
-      description: post.blurb,
-      images: [post.photo],
-      type: "article",
-    },
-  };
+  if (!post) notFound();
+  // seoTitle over title: WEB-005. The editorial headlines run 53–72
+  // chars and clamping them for the site suffix produced titles ending
+  // on a dangling "the". The H1 below still uses the full title.
+  return seoMeta({
+    title: post.seoTitle ?? post.title,
+    description: post.blurb,
+    canonical: `/blog/${post.slug}`,
+    image: post.photo,
+    article: {},
+  });
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<Params> }) {

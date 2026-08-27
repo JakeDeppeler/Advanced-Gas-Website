@@ -12,7 +12,7 @@ import { CoverageMap } from "@/components/CoverageMap";
 import "../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSuburbText } from "@/lib/upgradeAngle";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { seoMeta } from "@/lib/seo";
 
 // Client-only Leaflet map — lazy loaded so the tiles + CSS never sit in
 // the suburb page's initial critical path. Placeholder keeps the layout
@@ -28,16 +28,22 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { suburb: string } }): Metadata {
   const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
-  if (!sub) return {};
-  const title = pageTitle(`Aircon, Heat Pump & Gas ${sub.name} ${sub.postcode}`);
-  const description = metaDescription(
-    `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`,
-  );
-  return {
-    title,
-    description,
-    alternates: { canonical: `/areas/${sub.slug}` },
-  };
+  // WEB-003. This used to `return {}` here, which does not mean "no
+  // metadata" — it means "inherit the root layout's", i.e. serve the
+  // homepage title on a suburb page. A suburb search landing on a
+  // result headed "Pakenham" gets scrolled past. Fail loudly instead,
+  // so the page 404s rather than impersonating the homepage.
+  if (!sub) notFound();
+  return seoMeta({
+    title: `Aircon, Heat Pump & Gas ${sub.name} ${sub.postcode}`,
+    description: `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`,
+    canonical: `/areas/${sub.slug}`,
+    // Absolute so the suffix gives way, not the postcode. A long suburb
+    // name (Beaconsfield Upper) pushed the title past 60 and the clamp
+    // dropped "3808" — which is exactly the signal an "aircon officer
+    // 3809" search wants in the title.
+    absolute: true,
+  });
 }
 
 export default function SuburbPage({ params }: { params: { suburb: string } }) {

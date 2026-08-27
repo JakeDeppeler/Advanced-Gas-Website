@@ -11,7 +11,7 @@ import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSystem } from "@/lib/upgradeAngle";
 import { systemDetail } from "@/lib/systemDetail";
 import { systemCatalogue } from "@/lib/systemCatalogue";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 import { RangeBand } from "@/components/RangeBand";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
@@ -59,13 +59,13 @@ export function generateMetadata({
   params: { slug: string; system: string };
 }): Metadata {
   const found = find(params.slug, params.system);
-  if (!found) return {};
+  if (!found) notFound();
   const { system } = found;
-  return {
-    title: pageTitle(`${system.label}, Melbourne South-East`),
-    description: metaDescription(system.blurb),
-    alternates: { canonical: `/services/${params.slug}/${params.system}` },
-  };
+  return seoMeta({
+    title: `${system.label}, Melbourne South-East`,
+    description: system.blurb,
+    canonical: `/services/${params.slug}/${params.system}`,
+  });
 }
 
 export default function SystemPage({

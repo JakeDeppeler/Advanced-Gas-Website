@@ -23,7 +23,7 @@ const INSTALLER_SUBURB_SLUGS = [
 ];
 import "../../detail.css";
 import "./brand.css";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { faqSchema } from "@/lib/schema";
@@ -38,16 +38,13 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { brand: string } }): Metadata {
   const brand = findBrand(params.brand);
-  if (!brand) return {};
-  const title = pageTitle(`${brand.name} Installer, Melbourne South-East`);
-  const description = metaDescription(
-    `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`,
-  );
-  return {
-    title,
-    description,
-    alternates: { canonical: `/brands/${brand.slug}` },
-  };
+  if (!brand) notFound();
+  return seoMeta({
+    title: `${brand.name} Installer, Melbourne South-East`,
+    description: `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`,
+    canonical: `/brands/${brand.slug}`,
+    image: brand.photo,
+  });
 }
 
 export default async function BrandPage({ params }: { params: { brand: string } }) {

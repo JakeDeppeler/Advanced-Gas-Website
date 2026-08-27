@@ -10,7 +10,7 @@ import { ShowerDelivery } from "@/components/ShowerDelivery";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
-import { absoluteTitle, metaDescription } from "@/lib/seo";
+import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
 
 export function generateStaticParams() {
   return allBrandProductPairs();
@@ -22,21 +22,18 @@ export function generateMetadata({
   params: { brand: string; product: string };
 }): Metadata {
   const found = findProduct(params.brand, params.product);
-  if (!found) return {};
+  if (!found) notFound();
   const { brand, product } = found;
-  // absoluteTitle, not pageTitle: these names carry their capacity at
-  // the very end, and clamping to make room for the site suffix used to
-  // cut it off, leaving four pairs of Panasonic products sharing a
-  // title. The suffix gives way instead.
-  const title = absoluteTitle(product.name);
-  const description = metaDescription(
-    `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
-  );
-  return {
-    title,
-    description,
-    alternates: { canonical: `/brands/${brand.slug}/${product.slug}` },
-  };
+  // absolute mode: these names carry their capacity at the very end, and
+  // clamping for the site suffix once left four pairs of Panasonic
+  // products sharing a title. The suffix gives way, not the content.
+  return seoMeta({
+    title: product.name,
+    description: `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
+    canonical: `/brands/${brand.slug}/${product.slug}`,
+    image: product.photo ?? brand.photo,
+    absolute: true,
+  });
 }
 
 export default function ProductPage({

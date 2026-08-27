@@ -98,3 +98,75 @@ export function absoluteTitle(main: string): { absolute: string } {
   const withSuffix = `${s}${TITLE_SUFFIX}`;
   return { absolute: withSuffix.length <= 60 ? withSuffix : clamp(s, 60) };
 }
+
+import type { Metadata } from "next";
+
+/**
+ * The whole metadata object for a page, built from one title and one
+ * description.
+ *
+ * This exists because of WEB-004. In the App Router, a page that sets
+ * `title` but not `openGraph.title` does NOT get its own title in the
+ * OG tag — it inherits the root layout's hardcoded `openGraph.title`,
+ * which is the homepage title. So every blog post and every area page
+ * was sharing to Facebook as "Aircon & Heat Pump Installation |
+ * Advanced Gas, Pakenham". The title tag was right; the share preview
+ * was the homepage.
+ *
+ * Routing every `generateMetadata` through here means the OG and
+ * Twitter title/description can never drift from the page title again —
+ * they're the same two strings. `title` is passed absolute so the
+ * layout template doesn't append the suffix a second time; the OG title
+ * carries the suffix itself so a share card still reads as ours.
+ *
+ * `image` defaults to the team photo. Pass a page-specific one where
+ * there is one worth showing.
+ */
+export function seoMeta(opts: {
+  /** The page's own title, without the site suffix. Clamped for you. */
+  title: string;
+  description: string;
+  /** Path, e.g. `/areas/officer`. Becomes the canonical and the OG url. */
+  canonical: string;
+  /** OG/Twitter image path. Defaults to the team photo. */
+  image?: string;
+  /** For blog posts: renders as an `article` OG type with these dates. */
+  article?: { publishedTime?: string; modifiedTime?: string; authors?: string[] };
+  /** True for pages whose distinguishing detail sits at the END of the
+   *  title — product capacities, fault codes. The site suffix gives way
+   *  before the content does. See absoluteTitle. */
+  absolute?: boolean;
+}): Metadata {
+  const description = metaDescription(opts.description);
+  const img = opts.image ?? "/team-photo.webp";
+
+  // `title` is what the layout template consumes; `ogTitle` is the plain
+  // string for the share card, which always wants the company name in
+  // it. In absolute mode the two converge on absoluteTitle's output.
+  const titleField = opts.absolute ? absoluteTitle(opts.title) : pageTitle(opts.title);
+  const ogTitle = opts.absolute
+    ? absoluteTitle(opts.title).absolute
+    : `${pageTitle(opts.title)}${TITLE_SUFFIX}`;
+
+  return {
+    title: titleField,
+    description,
+    alternates: { canonical: opts.canonical },
+    openGraph: {
+      type: opts.article ? "article" : "website",
+      locale: "en_AU",
+      url: opts.canonical,
+      siteName: "Advanced Gas & Aircon",
+      title: ogTitle,
+      description,
+      images: [{ url: img }],
+      ...(opts.article ?? {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: ogTitle,
+      description,
+      images: [img],
+    },
+  };
+}

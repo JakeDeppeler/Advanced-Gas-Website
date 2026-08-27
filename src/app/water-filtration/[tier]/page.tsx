@@ -4,7 +4,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
-import { absoluteTitle, metaDescription } from "@/lib/seo";
+import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
 import { TIERS, tierBySlug, PROCESS } from "@/lib/waterFiltration";
 import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
@@ -29,13 +29,13 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: { params: { tier: string } }): Metadata {
   const t = tierBySlug(params.tier);
-  if (!t) return {};
-  return {
-    title: absoluteTitle(t.metaTitle),
-    description: metaDescription(t.metaDescription),
-    keywords: t.keywords,
-    alternates: { canonical: `/water-filtration/${t.slug}` },
-  };
+  if (!t) notFound();
+  return { ...seoMeta({
+    title: t.metaTitle,
+    description: t.metaDescription,
+    canonical: `/water-filtration/${t.slug}`,
+    absolute: true,
+  }), keywords: t.keywords };
 }
 
 export default function TierPage({ params }: { params: { tier: string } }) {

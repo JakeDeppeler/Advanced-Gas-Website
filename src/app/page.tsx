@@ -53,6 +53,19 @@ export const metadata: Metadata = {
   description:
     "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled. Free 60-second quote.",
   alternates: { canonical: "/" },
+  // Explicit, now the root no longer carries a homepage title for
+  // everything to inherit. The homepage owns its own share card.
+  openGraph: {
+    title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC | Advanced Gas",
+    description:
+      "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled at the quote.",
+    url: "/",
+  },
+  twitter: {
+    title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC | Advanced Gas",
+    description:
+      "Family-owned Pakenham specialists. VEU rebates handled at the quote, fixed prices, 6-year workmanship warranty.",
+  },
 };
 
 const faqs = [

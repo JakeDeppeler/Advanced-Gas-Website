@@ -9,7 +9,7 @@ import { publishedSuburbs } from "@/lib/suburbs";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../../../../detail.css";
 import "../../brand.css";
-import { pageTitle, metaDescription } from "@/lib/seo";
+import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 
 // A cross-linked "Reclaim installer in Berwick" style page.
 // We only spawn combos for the first 12 highest-priority suburbs so we don't
@@ -40,17 +40,13 @@ export function generateMetadata({
 }): Metadata {
   const brand = findBrand(params.brand);
   const sub = publishedSuburbs.find((s) => s.slug === params.suburb);
-  if (!brand || !sub) return {};
-
-  const title = pageTitle(`${brand.name} Installer ${sub.name} ${sub.postcode}`);
-  const description = metaDescription(
-    `Licensed ${brand.name} installer working in ${sub.name} since 2014. ${sub.commonInstall.charAt(0).toUpperCase() + sub.commonInstall.slice(1)}. Fixed-price quotes, VEU rebates handled, 6-year warranty.`,
-  );
-  return {
-    title,
-    description,
-    alternates: { canonical: `/brands/${brand.slug}/installers/${sub.slug}` },
-  };
+  if (!brand || !sub) notFound();
+  return seoMeta({
+    title: `${brand.name} Installer ${sub.name} ${sub.postcode}`,
+    description: `Licensed ${brand.name} installer working in ${sub.name} since 2014. ${sub.commonInstall.charAt(0).toUpperCase() + sub.commonInstall.slice(1)}. Fixed-price quotes, VEU rebates handled, 6-year warranty.`,
+    canonical: `/brands/${brand.slug}/installers/${sub.slug}`,
+    image: brand.photo,
+  });
 }
 
 export default function BrandSuburbPage({
