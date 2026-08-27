@@ -9,6 +9,15 @@ export type BlogPost = {
   /** The editorial headline. Used as the on-page H1, where length is
    *  fine. */
   title: string;
+  /** ISO 8601 publication date, for Article schema and dateModified
+   *  discipline. WEB-013: the visible label was a human string ("August
+   *  2026", "Updated this week") with no machine date behind it. */
+  publishedISO: string;
+  /** ISO 8601, only where the post has genuinely been revised. */
+  updatedISO?: string;
+  /** Key into AUTHORS. WEB-012: every post read "By the team"; a named,
+   *  credentialed author is both an E-E-A-T signal and the honest byline. */
+  author: string;
   /**
    * The `<title>` tag, authored to Google's ~60-character budget.
    * WEB-005: the editorial titles run 53–72 characters, so clamping
@@ -30,9 +39,46 @@ export type Section =
   | { type: "h2"; text: string }
   | { type: "ul"; items: string[] };
 
+/**
+ * The people who actually write and sign off these posts. A named
+ * author with a licence number is the strongest authorship signal Google
+ * reads, and it's the truthful byline — "the team" is nobody.
+ */
+export type Author = {
+  name: string;
+  role: string;
+  credential: string;
+  photo: string;
+  bio: string;
+  /** For Person schema sameAs — points at the About page. */
+  url: string;
+};
+
+export const AUTHORS: Record<string, Author> = {
+  dean: {
+    name: "Dean Winbanks",
+    role: "Director & Licensed Plumber",
+    credential: "Plumbing Licence 46828",
+    photo: "/dean.webp",
+    bio: "Dean has run gas, hot water and hydronic jobs across Melbourne's south-east for over twenty years. He signs off every compliance certificate we issue.",
+    url: "/about",
+  },
+  jake: {
+    name: "Jake Deppeler",
+    role: "Installer & Estimator",
+    credential: "ARC AU59557",
+    photo: "/jake.webp",
+    bio: "Jake quotes and installs the aircon and heat pump work, and sizes every system off a real heat load rather than a guess. If we quoted it, he's seen the roof.",
+    url: "/about",
+  },
+};
+
 export const posts: BlogPost[] = [
   {
     slug: "veu-rebate-2026-pakenham-guide",
+    publishedISO: "2026-08-06",
+    updatedISO: "2026-08-24",
+    author: "dean",
     seoTitle: "VEU Rebate 2026: The Pakenham Guide",
     cat: "VEU rebates",
     date: "Updated this week",
@@ -67,6 +113,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "reclaim-vs-istore-vs-thermann",
+    publishedISO: "2026-05-04",
+    author: "dean",
     seoTitle: "Reclaim vs iStore vs Thermann Heat Pumps",
     cat: "Heat pumps",
     date: "4 May 2026",
@@ -97,6 +145,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "heat-pump-real-cost-2026",
+    publishedISO: "2026-04-28",
+    author: "dean",
     seoTitle: "Heat Pump Cost After the VEU Rebate, 2026",
     cat: "Costs",
     date: "28 Apr 2026",
@@ -136,6 +186,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "size-split-system-bedroom",
+    publishedISO: "2026-04-19",
+    author: "jake",
     seoTitle: "How to Size a Split System, No Upsell",
     cat: "Aircon",
     date: "19 Apr 2026",
@@ -167,6 +219,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "carbon-monoxide-testing-ducted-heaters",
+    publishedISO: "2026-04-11",
+    author: "dean",
     seoTitle: "Carbon Monoxide Testing, Ducted Heaters",
     cat: "Gas safety",
     date: "11 Apr 2026",
@@ -198,6 +252,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "heat-pumps-plus-solar",
+    publishedISO: "2026-04-02",
+    author: "dean",
     seoTitle: "Heat Pumps + Solar PV: The Daytime Trick",
     cat: "Solar pairing",
     date: "2 Apr 2026",
@@ -225,6 +281,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "hot-water-tank-failed-replace-or-upgrade",
+    publishedISO: "2026-03-25",
+    author: "dean",
     seoTitle: "Tank Failed? Replace or Go Heat Pump",
     cat: "Hot water",
     date: "25 Mar 2026",
@@ -257,6 +315,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "replacing-ducted-gas-with-reverse-cycle",
+    publishedISO: "2026-03-18",
+    author: "dean",
     seoTitle: "Ducted Gas to Reverse-Cycle: The Numbers",
     cat: "Aircon",
     date: "18 Mar 2026",
@@ -283,6 +343,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "veu-rentals-landlord-checklist",
+    publishedISO: "2026-03-10",
+    author: "dean",
     seoTitle: "VEU for Rentals: A Landlord Checklist",
     cat: "VEU rebates",
     date: "10 Mar 2026",
@@ -315,6 +377,8 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "clean-split-system-every-quarter",
+    publishedISO: "2026-03-02",
+    author: "jake",
     seoTitle: "5 Things to Clean on Your Split System",
     cat: "Maintenance",
     date: "2 Mar 2026",
@@ -345,6 +409,8 @@ export const posts: BlogPost[] = [
 
   {
     slug: "heat-pump-hot-water-melbourne-complete-guide",
+    publishedISO: "2026-08-04",
+    author: "dean",
     seoTitle: "Heat Pump Hot Water Melbourne, 2026 Guide",
     cat: "Heat pumps",
     date: "August 2026",
@@ -403,6 +469,8 @@ export const posts: BlogPost[] = [
 
   {
     slug: "split-system-installation-melbourne-2026",
+    publishedISO: "2026-08-11",
+    author: "jake",
     seoTitle: "Split System Installation Melbourne 2026",
     cat: "Aircon",
     date: "August 2026",
@@ -476,6 +544,8 @@ export const posts: BlogPost[] = [
 
   {
     slug: "ducted-aircon-melbourne-cost-install",
+    publishedISO: "2026-08-18",
+    author: "jake",
     seoTitle: "Ducted Aircon Melbourne: Cost & Install",
     cat: "Ducted aircon",
     date: "August 2026",
@@ -541,6 +611,8 @@ export const posts: BlogPost[] = [
 
   {
     slug: "gas-heating-hot-water-melbourne-guide",
+    publishedISO: "2026-08-25",
+    author: "dean",
     seoTitle: "Gas Heating & Hot Water Melbourne",
     cat: "Gas plumbing",
     date: "August 2026",
@@ -595,6 +667,8 @@ export const posts: BlogPost[] = [
 
   {
     slug: "emergency-hot-water-gas-melbourne",
+    publishedISO: "2026-08-13",
+    author: "dean",
     seoTitle: "Emergency Hot Water & Gas Repair Melbourne",
     cat: "Emergency",
     date: "August 2026",

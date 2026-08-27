@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
-import { posts } from "@/lib/blog";
+import { posts, AUTHORS, type BlogPost } from "@/lib/blog";
 import "./blog.css";
 
 export const metadata: Metadata = {
@@ -14,6 +14,14 @@ export const metadata: Metadata = {
 };
 
 const cats = ["All", "VEU rebates", "Heat pumps", "Aircon", "Gas safety", "Hot water", "Costs & savings"];
+
+/** Formatted from the ISO date, with "Updated" where the post has been
+ *  revised — so the card and the article agree. */
+function fmtDate(p: BlogPost): string {
+  const fmt = (iso: string) =>
+    new Date(iso + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+  return p.updatedISO ? `Updated ${fmt(p.updatedISO)}` : fmt(p.publishedISO);
+}
 
 export default function BlogPage() {
   const featured = posts.find((p) => p.featured) ?? posts[0];
@@ -50,7 +58,7 @@ export default function BlogPage() {
               <span className="bl-feat__tag">Featured · {featured.cat}</span>
               <h2>{featured.title}</h2>
               <p>{featured.blurb}</p>
-              <span className="bl-feat__meta">{featured.read} · {featured.date} · By the team</span>
+              <span className="bl-feat__meta">{featured.read} · {fmtDate(featured)} · By {AUTHORS[featured.author]?.name ?? "the team"}</span>
               <div style={{ marginTop: 22 }}>
                 <span className="ds-btn ds-btn--orange">Read the guide →</span>
               </div>
@@ -75,7 +83,7 @@ export default function BlogPage() {
                   <span className="bl-card__photo-tag" style={{ zIndex: 1 }}>{p.cat}</span>
                 </div>
                 <div className="bl-card__body">
-                  <span className="bl-card__meta">{p.read} · {p.date}</span>
+                  <span className="bl-card__meta">{p.read} · {fmtDate(p)}</span>
                   <h3>{p.title}</h3>
                   <p>{p.blurb}</p>
                   <div className="bl-card__foot">

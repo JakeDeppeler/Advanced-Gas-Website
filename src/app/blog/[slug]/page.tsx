@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
-import { posts, getPost } from "@/lib/blog";
+import { posts, getPost, AUTHORS } from "@/lib/blog";
+import Script from "next/script";
 import "../../detail.css";
 import "../blog.css";
 import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
@@ -42,6 +43,15 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
   // articles ended up with a single inbound link each while the same
   // three collected all of them. Rotating the top-up spreads the links
   // right across the archive without anything needing to be curated.
+  const author = AUTHORS[post.author] ?? AUTHORS.dean;
+  // The visible date, formatted from the ISO rather than the old human
+  // string, so what a reader sees and what the schema says can't drift.
+  const fmt = (iso: string) =>
+    new Date(iso + "T00:00:00").toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" });
+  const shownDate = post.updatedISO
+    ? `Updated ${fmt(post.updatedISO)}`
+    : fmt(post.publishedISO);
+
   const idx = posts.findIndex((p) => p.slug === post.slug);
   const sameCat = posts.filter((p) => p.slug !== post.slug && p.cat === post.cat);
   const rest = posts
@@ -61,9 +71,9 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             <div className="bl-post__meta">
               <span>{post.read}</span>
               <span aria-hidden="true">·</span>
-              <span>{post.date}</span>
+              <span>{shownDate}</span>
               <span aria-hidden="true">·</span>
-              <span>By the team</span>
+              <span>By {author.name}</span>
             </div>
           </div>
         </section>
@@ -134,7 +144,49 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             </div>
           </div>
         )}
+        {/* WEB-012: a named, credentialed author, not "the team". */}
+        <div className="wrap bl-post__author">
+          <div className="bl-post__author-pic">
+            <Image src={author.photo} alt={author.name} width={72} height={72} />
+          </div>
+          <div>
+            <span className="bl-post__author-role">Written by</span>
+            <h3>{author.name}</h3>
+            <span className="bl-post__author-cred">{author.role} · {author.credential}</span>
+            <p>{author.bio}</p>
+          </div>
+        </div>
       </article>
+
+      {/* WEB-012 / WEB-013: Article with a real author reference and ISO
+          dates, plus a Person for the author. */}
+      <Script
+        id={`ld-article-${post.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            description: post.blurb,
+            image: `${site.url}${post.photo}`,
+            datePublished: post.publishedISO,
+            dateModified: post.updatedISO ?? post.publishedISO,
+            author: {
+              "@type": "Person",
+              name: author.name,
+              jobTitle: author.role,
+              url: `${site.url}${author.url}`,
+            },
+            publisher: {
+              "@type": "Organization",
+              name: site.name,
+              logo: { "@type": "ImageObject", url: `${site.url}/advanced-gas-logo.webp` },
+            },
+            mainEntityOfPage: { "@type": "WebPage", "@id": `${site.url}/blog/${post.slug}` },
+          }),
+        }}
+      />
     </div>
   );
 }

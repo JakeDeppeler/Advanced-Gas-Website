@@ -310,3 +310,59 @@
   .page-blog .bl-post__cta { grid-template-columns: 1fr; text-align: left; }
   .page-blog .bl-post__related-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ============================================================
+   AUTHOR BLOCK — WEB-012.
+   A named, credentialed byline at the foot of each post: the photo,
+   the licence, and two lines of who they are. "By the team" is nobody,
+   and Google's guidance on experience wants a real person behind the
+   advice — especially on gas and rebate content.
+   ============================================================ */
+.page-blog .bl-post__author {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 40px auto 0;
+  max-width: 760px;
+  padding: 26px 28px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+}
+.page-blog .bl-post__author-pic img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.page-blog .bl-post__author-role {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.page-blog .bl-post__author h3 {
+  font-family: var(--f-display);
+  font-size: 20px;
+  color: var(--navy);
+  margin: 4px 0 3px;
+}
+.page-blog .bl-post__author-cred {
+  display: block;
+  font-size: 13px;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.page-blog .bl-post__author p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+@media (max-width: 560px) {
+  .page-blog .bl-post__author { flex-direction: column; gap: 14px; padding: 20px; }
+}
