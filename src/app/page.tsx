@@ -301,68 +301,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* REVIEWS, front-and-centre (moved up from lower on the page) */}
-      <section className="reviews">
-        <div className="wrap">
-          <div className="reviews__head">
-            <div>
-              <span className="ds-eyebrow"><span className="ds-dot" /> What locals say</span>
-              <h2>Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
-            </div>
-            <div className="reviews__badge">
-              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google</div>
-            </div>
-          </div>
-
-          <div className="reviews__marquee" aria-label="Recent Google reviews">
-            {REVIEW_COLUMNS.map((col, ci) => (
-              <div key={ci} className={`revcol revcol--${ci + 1}`}>
-                <div className="revcol__track">
-                  {[...col, ...col].map((r, ri) => (
-                    <article key={`${ci}-${ri}`} className="revcard">
-                      <div className="revcard__stars">★★★★★</div>
-                      <h3 className="revcard__title">{r.title}</h3>
-                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                      <div className="revcard__by">
-                        <span className="revcard__avatar">{r.a}</span>
-                        <div>
-                          <strong>{r.who}</strong>
-                          <span>{r.what}</span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
-            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
-          </div>
-
-          {/* Mobile-only auto-scrolling review marquee. Cards duplicated
-              so the CSS translateX(-50%) loop reads seamless. */}
-          <div className="reviews__rail" aria-hidden="true">
-            <div className="reviews__rail-track">
-              {[...liveReviews.slice(0, 8), ...liveReviews.slice(0, 8)].map((r, i) => (
-                <article key={`m-${i}`} className="revcard revcard--mobile">
-                  <div className="revcard__stars">★★★★★</div>
-                  <h3 className="revcard__title">{r.title}</h3>
-                  <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
-                  <div className="revcard__by">
-                    <span className="revcard__avatar">{r.a}</span>
-                    <div>
-                      <strong>{r.who}</strong>
-                      <span>{r.what}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FIXED-PRICE INSTALLS */}
       <section className="veu" id="rebates">
         <div className="wrap">
@@ -621,6 +559,69 @@ export default async function HomePage() {
                 <span className="map__badge-num">75&nbsp;km</span>
                 <span className="map__badge-note">Melbourne&rsquo;s south-east from Pakenham 3810</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* REVIEWS — social proof sits low on the page now, right after
+          "where we work" and before the questions + closing CTA. */}
+      <section className="reviews">
+        <div className="wrap">
+          <div className="reviews__head">
+            <div>
+              <span className="ds-eyebrow"><span className="ds-dot" /> What locals say</span>
+              <h2>Reviews from real Pakenham, Berwick &amp; Officer households.</h2>
+            </div>
+            <div className="reviews__badge">
+              <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
+              <div><strong>4.9 / 5</strong> on Google</div>
+            </div>
+          </div>
+
+          <div className="reviews__marquee" aria-label="Recent Google reviews">
+            {REVIEW_COLUMNS.map((col, ci) => (
+              <div key={ci} className={`revcol revcol--${ci + 1}`}>
+                <div className="revcol__track">
+                  {[...col, ...col].map((r, ri) => (
+                    <article key={`${ci}-${ri}`} className="revcard">
+                      <div className="revcard__stars">★★★★★</div>
+                      <h3 className="revcard__title">{r.title}</h3>
+                      <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                      <div className="revcard__by">
+                        <span className="revcard__avatar">{r.a}</span>
+                        <div>
+                          <strong>{r.who}</strong>
+                          <span>{r.what}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="reviews__fade reviews__fade--top" aria-hidden="true" />
+            <div className="reviews__fade reviews__fade--bot" aria-hidden="true" />
+          </div>
+
+          {/* Mobile-only auto-scrolling review marquee. Cards duplicated
+              so the CSS translateX(-50%) loop reads seamless. */}
+          <div className="reviews__rail" aria-hidden="true">
+            <div className="reviews__rail-track">
+              {[...liveReviews.slice(0, 8), ...liveReviews.slice(0, 8)].map((r, i) => (
+                <article key={`m-${i}`} className="revcard revcard--mobile">
+                  <div className="revcard__stars">★★★★★</div>
+                  <h3 className="revcard__title">{r.title}</h3>
+                  <p className="revcard__txt">&ldquo;{r.txt}&rdquo;</p>
+                  <div className="revcard__by">
+                    <span className="revcard__avatar">{r.a}</span>
+                    <div>
+                      <strong>{r.who}</strong>
+                      <span>{r.what}</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </div>
