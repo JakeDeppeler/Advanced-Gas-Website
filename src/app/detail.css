@@ -3870,3 +3870,19 @@
   color: rgba(255, 255, 255, 0.6);
   margin-bottom: 12px;
 }
+
+/* ==================================================================
+   PHONE TYPE PASS (detail pages) — the section h2s here carry their
+   own !important clamp above, which out-ranked the global phone rule
+   in design-system.css. This sits later in the same file so it wins,
+   bringing the section headings down to the phone scale.
+   ================================================================== */
+@media (max-width: 540px) {
+  .page-detail .ds-section-head h2,
+  .page-detail .sysfit h2,
+  .page-detail .rangeband h2,
+  .page-detail .process h2 {
+    font-size: 22px !important;
+    line-height: 1.18 !important;
+  }
+}

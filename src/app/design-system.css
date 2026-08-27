@@ -2935,3 +2935,54 @@ input, select, textarea {
 .megasvc__range span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
 .megasvc__range > div { min-width: 0; }
 .megasvc__range + .megasvc__cta { margin-top: 8px; }
+
+/* ==================================================================
+   PHONE TYPE PASS — everything a step smaller on a phone.
+   On a 390px screen the hero h1 (up to 32px) and the section h2s
+   (26–34px) ran larger than they need to, which made every page feel
+   like it was shouting and pushed the useful content further down.
+   Scoped to <=540px and the query, so tablets and desktop are
+   untouched; !important because the sources are a mix of clamps and
+   their own !important rules.
+   ================================================================== */
+@media (max-width: 540px) {
+  .page-detail .dp-hero h1,
+  .page-home .hero h1,
+  .page-home .hero__h1,
+  .page-filtration .wf-hero h1 {
+    font-size: 26px !important;
+    line-height: 1.14 !important;
+  }
+
+  .page-detail .dp-hero__sub,
+  .page-filtration .wf-hero__sub {
+    font-size: 15.5px !important;
+    line-height: 1.55 !important;
+  }
+
+  .page-detail .ds-section-head h2,
+  .page-detail .sysfit h2,
+  .page-detail .rangeband h2,
+  .page-detail .process h2,
+  .page-detail .dp-faq h2,
+  .page-detail .faq__left h2,
+  .page-home .process h2,
+  .page-home .faq__left h2,
+  .page-home .bento h2,
+  .page-home .fixprice h2,
+  .page-filtration .ds-section-head h2,
+  .page-filtration .process h2,
+  .page-filtration .faq__left h2 {
+    font-size: 22px !important;
+    line-height: 1.18 !important;
+  }
+
+  /* Section eyebrows and ledes come down a touch with the headings so
+     the block still reads as a unit rather than a big label over small
+     type. */
+  .page-detail .ds-section-head p,
+  .page-home .process p,
+  .page-filtration .ds-section-head p {
+    font-size: 14.5px !important;
+  }
+}
