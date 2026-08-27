@@ -56,20 +56,10 @@ const nextConfig = {
         permanent: true,
       },
 
-      // ---- WEB-008 B3: retired Thermann storage tanks ----
-      // Six electric-storage sizes and two gas-storage, near-identical
-      // legacy pages that took no clicks. We lead with heat pumps and
-      // don't push these, so they 301 to the Thermann hub. The rest of
-      // the model estate is kept: the size ladders link 71 of the 84
-      // model pages, which is most of the catalogue.
-      { source: "/brands/thermann/gas-storage-135", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/gas-storage-170", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-80", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-125", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-160", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-250", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-315", destination: "/brands/thermann", permanent: true },
-      { source: "/brands/thermann/electric-storage-400", destination: "/brands/thermann", permanent: true },
+      // Retired Reclaim 215 L split — it sat between the 160 and 250 on
+      // the same pump and only muddied the range, so its page 301s to the
+      // Reclaim hub.
+      { source: "/brands/reclaim/co2-split-215-5kw", destination: "/brands/reclaim", permanent: true },
 
       // ---- WEB-010: legacy Wix URLs ----
       // /plumbing-services/ held rankings and inbound links on the old

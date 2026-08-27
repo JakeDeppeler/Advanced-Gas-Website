@@ -1733,6 +1733,10 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "co2-split-215-5kw",
+        // Retired: the 215 L sat between the 160 and the 250 on the same
+        // pump and only muddied the range. Kept in the data so its old URL
+        // 301s to the brand hub rather than 404ing.
+        retired: true,
         name: "Reclaim CO₂ Split · 215L",
         compressorKw: 5.0,
         tankLitres: 215,
@@ -1807,26 +1811,49 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "co2-split-315-stainless-squat",
-        name: "Reclaim CO₂ Split · 315L Stainless Squat (SSQ)",
+        name: "Reclaim CO₂ Split · 315L Duplex Stainless",
         compressorKw: 5.0,
         tankLitres: 315,
         model: "REHP-CO2-315SSQ-V2",
         category: "heat-pump",
-        categoryLabel: "CO₂ split heat pump · squat stainless tank",
-        capacity: "315 L stainless tank, squat body",
+        categoryLabel: "CO₂ split heat pump · duplex stainless tank",
+        capacity: "315 L duplex stainless tank",
         refrigerant: "R744 (CO₂)",
         veuEligible: true,
         photo: "/reclaim-duplex-316ss-.png",
-        photoAlt: "Reclaim 315L squat stainless steel heat pump tank",
-        bestFor: "315 L where the ceiling, the eave or the cupboard won't take a tall tank",
-        ourTake: "The Q is squat. Same 315 litres and the same stainless steel as the tall SST, in a shorter, wider body that gets under a low eave, into a laundry with a shelf over it, or through a doorway the tall one won't make. It costs the same and it is the same system. We measure the space on the site visit and tell you which one fits.",
+        photoAlt: "Reclaim 315L duplex stainless steel heat pump tank",
+        bestFor: "Hard water — bore, tank or a hard-water suburb — where a standard tank works harder for less life",
+        ourTake: "The duplex is the tank for hard water. It steps the steel up to 2205 duplex / 316-grade, which shrugs off the chloride and mineral load that eats a glass-lined anode and pits ordinary stainless — bore water, tank water, and the harder-water pockets around the south-east. Same 315 litres and the same 5 kW CO₂ heat pump as the rest of the range, in a shorter, wider body that also gets under a low eave. We test your water on the site visit and tell you whether you actually need it.",
         specs: [
           { label: "Tank capacity", value: "315 L" },
-          { label: "Tank material", value: "Stainless steel, squat body" },
-          { label: "Tank height", value: "1490 mm, against 1985 mm for the tall SST" },
+          { label: "Tank material", value: "Duplex 2205 / 316-grade stainless steel" },
+          { label: "Best for", value: "Hard, bore or tank water" },
           { label: "Tank warranty", value: "15 years parts + 5 years labour" },
         ],
-        related: ["co2-split-315-stainless", "co2-split-315-earthworker"],
+        related: ["co2-split-400-duplex", "co2-split-315-stainless", "co2-split-315-earthworker"],
+      },
+      {
+        slug: "co2-split-400-duplex",
+        name: "Reclaim CO₂ Split · 400L Duplex Stainless",
+        compressorKw: 5.0,
+        tankLitres: 400,
+        model: "REHP-CO2-400SSQ-V2",
+        category: "heat-pump",
+        categoryLabel: "CO₂ split heat pump · duplex stainless tank",
+        capacity: "400 L duplex stainless tank",
+        refrigerant: "R744 (CO₂)",
+        veuEligible: true,
+        photo: "/reclaim-duplex-316ss-.png",
+        photoAlt: "Reclaim 400L duplex stainless steel heat pump tank",
+        bestFor: "A big household on hard water — the duplex tank, in the largest size Reclaim now build it",
+        ourTake: "The duplex tank, now in 400 litres — the size Reclaim added for the bigger household that also happens to be on hard water. Same 2205 duplex / 316-grade steel that resists the chloride and mineral load bore and tank water carry, on the same 5 kW CO₂ heat pump, with enough stored volume for six-plus people and the recovery to have it back before the evening run. It's the tank we reach for on acreage where the draw is high and the water is anything but soft.",
+        specs: [
+          { label: "Tank capacity", value: "400 L" },
+          { label: "Tank material", value: "Duplex 2205 / 316-grade stainless steel" },
+          { label: "Best for", value: "High draw on hard, bore or tank water" },
+          { label: "Tank warranty", value: "15 years parts + 5 years labour" },
+        ],
+        related: ["co2-split-315-stainless-squat", "co2-split-400-stainless"],
       },
       {
         slug: "co2-split-315-earthworker",
@@ -2355,20 +2382,20 @@ const brandCatalogue: Brand[] = [
         slug: "thermann-split-glass",
         name: "Thermann Split · Glass-Lined",
         compressorKw: 2.5,
-        tankLitres: 270,
+        tankLitres: 315,
         model: "T-HP-SPLIT-GL",
         category: "heat-pump",
         categoryLabel: "Split heat pump · glass-lined tank",
-        capacity: "270 L or 315 L glass-lined tank",
+        capacity: "160 / 250 / 315 / 400 L glass-lined tank",
         refrigerant: "R290 (propane)",
         veuEligible: true,
         photo: "/Thermann-Split-heat-pump.jpg",
         photoAlt: "Thermann split heat pump, outdoor unit + tank",
-        bestFor: "Household wanting a split heat pump with the tank indoors",
+        bestFor: "Household wanting a split heat pump with the tank indoors — sized from a unit to a full house",
         ourTake:
-          "Thermann build their split in one tank finish, glass-lined with a sacrificial anode. The anode is a part we swap every five to seven years and the tank warranty depends on it being done, so it wants to be on the service list rather than forgotten. Pick it when the tank needs to live in one place and the heat pump in another.",
+          "Thermann build their split in one tank finish, glass-lined with a sacrificial anode, and now across four sizes — 160, 250, 315 and 400 litres — so it covers a single unit through to a big household. The anode is a part we swap every five to seven years and the tank warranty depends on it being done, so it wants to be on the service list rather than forgotten. Pick it when the tank needs to live in one place and the heat pump in another, and let us size it off how many of you actually shower.",
         specs: [
-          { label: "Tank capacity options", value: "270 L or 315 L" },
+          { label: "Tank capacity options", value: "160 / 250 / 315 / 400 L" },
           { label: "Tank material", value: "Glass-lined + sacrificial anode" },
           { label: "Refrigerant", value: "R290 (propane)" },
           { label: "Warranty", value: "5-year cylinder / 5-year compressor" },
@@ -2444,7 +2471,6 @@ const brandCatalogue: Brand[] = [
       // ---- Gas storage ----
       {
         slug: "gas-storage-135",
-        retired: true,
         name: "Thermann Gas Storage · 135L",
         tankLitres: 135,
         model: "T-GS-135 (4-star natural gas)",
@@ -2470,7 +2496,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "gas-storage-170",
-        retired: true,
         name: "Thermann Gas Storage · 170L",
         tankLitres: 170,
         model: "T-GS-170 (4-star natural gas)",
@@ -2497,7 +2522,6 @@ const brandCatalogue: Brand[] = [
       // ---- Electric storage (Smart Electric range · one product per size) ----
       {
         slug: "electric-storage-80",
-        retired: true,
         name: "Thermann Smart Electric · 80L",
         tankLitres: 80,
         model: "T-SE-80 · 1.8 kW element",
@@ -2520,7 +2544,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-125",
-        retired: true,
         name: "Thermann Smart Electric · 125L",
         tankLitres: 125,
         model: "T-SE-125 · 1.8 kW element",
@@ -2543,7 +2566,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-160",
-        retired: true,
         name: "Thermann Smart Electric · 160L",
         tankLitres: 160,
         model: "T-SE-160 · 2.4 kW element",
@@ -2566,7 +2588,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-250",
-        retired: true,
         name: "Thermann Smart Electric · 250L",
         tankLitres: 250,
         model: "T-SE-250 · 3.0 kW element (single or twin)",
@@ -2589,7 +2610,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-315",
-        retired: true,
         name: "Thermann Smart Electric · 315L",
         tankLitres: 315,
         model: "T-SE-315 · 3.0 kW element (single or twin)",
@@ -2613,7 +2633,6 @@ const brandCatalogue: Brand[] = [
       },
       {
         slug: "electric-storage-400",
-        retired: true,
         name: "Thermann Smart Electric · 400L",
         tankLitres: 400,
         model: "T-SE-400 · 3.0 kW twin element",

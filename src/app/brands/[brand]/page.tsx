@@ -11,6 +11,8 @@ import { BrandFacts } from "@/components/BrandFacts";
 import { QuoteForm } from "@/components/QuoteForm";
 import { SystemAdvisor } from "@/components/SystemAdvisor";
 import { ADVISORS } from "@/lib/advisor";
+import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
+import { GasSavingsChart } from "@/components/GasSavingsChart";
 import { installsFor } from "@/lib/brandGallery";
 import { getInstagramForBrand } from "@/lib/instagram";
 import { InstagramFeed } from "@/components/InstagramFeed";
@@ -318,6 +320,19 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           above, the band was 340px of navy holding one small box beside
           an empty column — the gap in the screenshot. Both now sit in
           "Why this brand", which is where they were always about. */}
+
+      {/* HOW A HEAT PUMP WORKS — the schematic + 3-step explainer, on the
+          hot-water brands (Reclaim, Thermann, iStore all map to the
+          heat-pump advisor). A buyer weighing a heat pump usually wants to
+          know what the thing actually does before the model list. */}
+      {brand.advisorService === "heat-pump-installation" && (
+        <HeatPumpDiagram brandName={brand.name} />
+      )}
+
+      {/* WHAT THE STARS SAVE — gas ducted only (Brivis maps to the gas
+          advisor). The star rating is the whole efficiency conversation, so
+          the saving gets shown, not just stated. */}
+      {brand.advisorService === "gas-plumbing" && <GasSavingsChart />}
 
       {/* Product range.
           Single-product brands (e.g. Zonemate — the Milieu zoning system is
