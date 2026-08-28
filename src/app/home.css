@@ -1112,6 +1112,10 @@
   /* Hero padding controlled by .hero__grid — the stale 90px bottom padding
      here was leaving a big empty navy band below the mobile team photo. */
   .page-home .hero { padding: 0; }
+  /* The 1100px rule above sets a 40px grid gap and, sitting later in the
+     file, was winning on phones — 40px of air between every stacked hero
+     element (and a huge gap before the photo). Pull it in tight here. */
+  .page-home .hero__grid { gap: 16px; }
   .page-home .qform__grid { grid-template-columns: 1fr; }
   .page-home .qform__row { grid-template-columns: 1fr; }
   .page-home .bento { grid-template-columns: 1fr; }

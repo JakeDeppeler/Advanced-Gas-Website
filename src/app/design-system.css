@@ -2701,9 +2701,30 @@ input, select, textarea {
   gap: 10px;
   transition: background 0.12s, color 0.12s;
 }
-.megasvc__railbtn span { opacity: 0; color: var(--orange); transition: opacity 0.12s; }
-.megasvc__railbtn:hover { background: rgba(0, 176, 237, 0.08); }
-.megasvc__railbtn.is-on { background: var(--navy); color: #fff; }
+/* Left-align the label and push the arrow to the far right, so the
+   category colour dot reads as part of the label group. */
+.megasvc__railbtn { justify-content: flex-start; }
+.megasvc__railbtn span { opacity: 0; color: var(--orange); transition: opacity 0.12s; margin-left: auto; }
+/* A colour per service category so the sections read apart at a glance —
+   the dot keeps its colour even when the row goes navy on select. */
+.megasvc__railbtn::before {
+  content: "";
+  flex: 0 0 9px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--cat, var(--line-2));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat, var(--line-2)) 22%, transparent);
+}
+.megasvc__railbtn:nth-child(1) { --cat: #00b0ed; }
+.megasvc__railbtn:nth-child(2) { --cat: #ec1c22; }
+.megasvc__railbtn:nth-child(3) { --cat: #f36722; }
+.megasvc__railbtn:nth-child(4) { --cat: #f2b134; }
+.megasvc__railbtn:nth-child(5) { --cat: #2e9e8f; }
+.megasvc__railbtn:nth-child(6) { --cat: #6b7280; }
+.megasvc__railbtn:hover { background: color-mix(in srgb, var(--cat, var(--sky)) 12%, transparent); }
+/* Active row stays navy (white text stays legible); the colour link to
+   the category is carried by the dot and a matching left accent bar. */
+.megasvc__railbtn.is-on { background: var(--navy); color: #fff; box-shadow: inset 4px 0 0 var(--cat, var(--sky)); }
 .megasvc__railbtn.is-on span { opacity: 1; }
 .megasvc__cta { margin-top: auto; justify-content: center; }
 .megasvc__pane {
@@ -2985,4 +3006,22 @@ input, select, textarea {
   .page-filtration .ds-section-head p {
     font-size: 14.5px !important;
   }
+}
+
+/* ==================================================================
+   PHONE — the "60-second quote" orange panel ran long, and its heading
+   and copy sat a size up from the rest of the phone layout. Bring it to
+   the phone scale and tighten the box so the whole panel plus the form
+   under it is quicker to get through. Applies wherever the quotesec
+   renders (home + brand + service pages).
+   ================================================================== */
+@media (max-width: 560px) {
+  .quotesec { padding: 40px 0 44px; }
+  .quotesec__box { padding: 22px 18px; border-radius: 18px; }
+  .quotesec__grid { gap: 20px; }
+  .quotesec__left { gap: 12px; }
+  .quotesec__left h2 { font-size: 21px; }
+  .quotesec__lede { font-size: 14px; line-height: 1.5; }
+  .quotesec__points li { font-size: 13.5px; }
+  .quotesec__finep { font-size: 10.5px; }
 }
