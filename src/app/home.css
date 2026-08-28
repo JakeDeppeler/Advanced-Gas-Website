@@ -1786,3 +1786,19 @@
   .page-home .bigcta--photo .bigcta__row { grid-template-columns: 1fr; gap: 22px; }
   .page-home .bigcta__photo { aspect-ratio: 16 / 10; max-height: 240px; }
 }
+
+/* ============== SUBURB SEARCH (Where we work) ============== */
+.page-home .subsearch { margin-top: 4px; }
+.page-home .subsearch__field {
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; margin-bottom: 16px; max-width: 420px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.page-home .subsearch__field:focus-within { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(0,176,237,0.15); }
+.page-home .subsearch__icon { color: var(--ink-3); flex: 0 0 auto; }
+.page-home .subsearch__input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 15px; color: var(--navy); }
+.page-home .subsearch__input::-webkit-search-cancel-button { cursor: pointer; }
+.page-home .subsearch__none { font-size: 14px; color: var(--ink-2); line-height: 1.55; margin: 4px 0 0; max-width: 420px; }
+.page-home .subsearch__none a { color: var(--orange); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.page-home .subsearch__none a:hover { text-decoration: underline; }

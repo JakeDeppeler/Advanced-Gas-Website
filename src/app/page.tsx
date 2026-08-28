@@ -8,6 +8,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { posts } from "@/lib/blog";
+import { SuburbSearch } from "@/components/SuburbSearch";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -543,13 +544,7 @@ export default async function HomePage() {
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
             <h2>Based in Pakenham. On-site within 75 km.</h2>
             <p>If you&apos;re south-east of Melbourne and your suburb&apos;s on this list, we cover you with no travel surcharge.</p>
-            <div className="suburbs">
-              {SUBURBS.map((s) => (
-                <Link key={s.slug} href={`/areas/${s.slug}`} className="suburbs__chip">
-                  {s.name}
-                </Link>
-              ))}
-            </div>
+            <SuburbSearch suburbs={SUBURBS} />
             <p className="area__finep">Outside this list? Give us a call, we sometimes travel further for bigger jobs and commercial work.</p>
           </div>
           <div className="area__right">

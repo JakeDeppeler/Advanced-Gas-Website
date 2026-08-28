@@ -8,7 +8,6 @@ import { publishedSuburbs, suburbs } from "@/lib/suburbs";
 import { services } from "@/lib/site";
 import { breadcrumbSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
-import { CoverageMap } from "@/components/CoverageMap";
 import "../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSuburbText } from "@/lib/upgradeAngle";
@@ -311,21 +310,6 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </div>
         </section>
       )}
-
-      {/* ------------------ Coverage map + where-we-work button list ------------------ */}
-      <section className="suburb-coverage">
-        <div className="wrap">
-          <div className="ds-section-head" style={{ marginBottom: 24 }}>
-            <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>{sub.name} in context of every suburb we service.</h2>
-            <p>
-              Click any suburb on the map or the buttons below to jump to that page.
-              Orange dot is our Pakenham HQ; {sub.name} is highlighted.
-            </p>
-          </div>
-          <CoverageMap highlight={sub.slug} />
-        </div>
-      </section>
 
       {/* ------------------ Big CTA ------------------ */}
       <section className="bigcta">
