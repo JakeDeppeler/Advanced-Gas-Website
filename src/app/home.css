@@ -1756,3 +1756,33 @@
 .page-home .tipcard__more { margin-top: auto; font-family: var(--f-display); font-weight: 700; font-size: 13.5px; color: var(--orange); }
 @media (max-width: 900px) { .page-home .tips__grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 620px) { .page-home .tips { padding: 48px 0; } .page-home .tips__grid { grid-template-columns: 1fr; } .page-home .tipcard__body h3 { font-size: 16px; } }
+
+/* ============== BIG CTA with crew photo (home) ============== */
+.page-home .bigcta--photo .bigcta__row {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 48px;
+  align-items: center;
+}
+.page-home .bigcta__photo {
+  margin: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 3px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 30px 60px -28px rgba(5, 10, 48, 0.5);
+}
+.page-home .bigcta__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.page-home .bigcta--photo .bigcta__copy { text-align: left; }
+.page-home .bigcta--photo .bigcta__btns {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 22px;
+}
+@media (max-width: 860px) {
+  .page-home .bigcta--photo .bigcta__row { grid-template-columns: 1fr; gap: 22px; }
+  .page-home .bigcta__photo { aspect-ratio: 16 / 10; max-height: 240px; }
+}

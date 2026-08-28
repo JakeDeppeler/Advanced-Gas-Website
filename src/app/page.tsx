@@ -676,19 +676,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* BIG CTA */}
-      <section className="bigcta" data-hide-sticky-cta>
+      {/* BIG CTA — the closing "job sorted" panel, with the crew photo so
+          it ends on a face rather than a flat colour band. */}
+      <section className="bigcta bigcta--photo" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
-          <div>
+          <figure className="bigcta__photo">
+            <img
+              src="/team-photo.webp"
+              alt="The Advanced Gas & Aircon crew on site in Pakenham"
+              width="900"
+              height="675"
+              loading="lazy"
+            />
+          </figure>
+          <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job sorted.</h2>
-            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 2 business hours. Prefer to talk? Text or call.</p>
-          </div>
-          <div className="bigcta__btns">
-            <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
-            <a href={`sms:${site.phoneE164}`} className="bigcta__textus">Text us →</a>
-            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
-              or call <strong>{site.phone}</strong>
-            </a>
+            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 2 business hours. Prefer to talk? Give us a call.</p>
+            <div className="bigcta__btns">
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
+              <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
+                or call <strong>{site.phone}</strong>
+              </a>
+            </div>
           </div>
         </div>
       </section>
