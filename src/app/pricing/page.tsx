@@ -96,23 +96,75 @@ export default function PricingPage() {
           </p>
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
               Or call {site.phone}
             </a>
+          </div>
+
+          <ul className="dp-hero__at">
+            <li>
+              <strong>Installed price</strong>
+              <span>labour, disposal &amp; cert in the number</span>
+            </li>
+            <li>
+              <strong>VEU applied</strong>
+              <span>at the quote, not chased back</span>
+            </li>
+            <li>
+              <strong>Fixed quote</strong>
+              <span>back within 2 business hours</span>
+            </li>
+            <li>
+              <strong>6-yr warranty</strong>
+              <span>on our workmanship, every job</span>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      {/* ================= What every price includes =================
+          Frame what the number means before the visitor sees a single
+          price — labour, disposal, cert and the rebate, all in. */}
+      <section className="pricing-note">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot" /> What&rsquo;s in the number</span>
+            <h2>Every price is the whole job.</h2>
+            <p>
+              No teaser &ldquo;from&rdquo; figure that balloons on the invoice. What you see below is the
+              unit, the labour, the standard install and the rebate &mdash; here&rsquo;s exactly what
+              that covers.
+            </p>
+          </div>
+          <div className="pricing-note__grid">
+            <div className="pricing-note__card">
+              <span className="pricing-note__num">01</span>
+              <div className="pricing-note__lbl">Included in every price</div>
+              <p>Unit + labour + standard install (up to 3&nbsp;m line-set) + disposal of the old system + compliance certificate + manufacturer-warranty registration. GST inclusive.</p>
+            </div>
+            <div className="pricing-note__card">
+              <span className="pricing-note__num">02</span>
+              <div className="pricing-note__lbl">We quote it, never surprise you</div>
+              <p>Some sites need more than a standard install &mdash; a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, trenching to move an LPG bottle. It all goes in the written quote before you commit, so nothing lands on the invoice that wasn&rsquo;t on the quote.</p>
+            </div>
+            <div className="pricing-note__card">
+              <span className="pricing-note__num">03</span>
+              <div className="pricing-note__lbl">VEU rebate</div>
+              <p>Applied at the quote &mdash; you don&rsquo;t pay it up-front then chase it back. The Solar Homes bonus (+$1,000) is available for eligible owner-occupier households.</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ================= Value comparison block =================
           "We're not the cheapest. Here's what you're actually paying
-          for". Three-column comparison against a cheap fly-in-fly-out
-          operator vs a premium show-room chain. Same pattern as the
-          tkairpower "electrical prices" page the user referenced. */}
+          for". A navy centrepiece — three-column comparison against a
+          cheap fly-in-fly-out operator vs a premium show-room chain. */}
       <section className="pricing-value">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--center ds-section-head--hl">
-            <span className="ds-eyebrow"><span className="ds-dot" /> The honest comparison</span>
-            <h2>We&rsquo;re not the cheapest. Here&rsquo;s what you&rsquo;re paying for.</h2>
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> The honest comparison</span>
+            <h2 className="ds-h--on-dark">We&rsquo;re not the cheapest. Here&rsquo;s what you&rsquo;re paying for.</h2>
             <p>
               A cheap Gumtree operator can put a bare-metal split on the wall for $600 less.
               A premium show-room chain will charge $2,000 more for the same gear. This is
@@ -175,31 +227,20 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Fine print strip */}
-      <section className="pricing-note">
-        <div className="wrap">
-          <div className="pricing-note__grid">
-            <div>
-              <div className="pricing-note__lbl">What&rsquo;s included in every price</div>
-              <p>Unit + labour + standard install (up to 3 m line-set) + disposal of the old system + compliance certificate + registration for manufacturer warranty. GST inclusive.</p>
-            </div>
-            <div>
-              <div className="pricing-note__lbl">We&rsquo;ll quote it and let you know</div>
-              <p>Some sites need more than a standard install: a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, or trenching to move an LPG bottle. We price all of it into the written quote before you commit, so nothing turns up on the invoice that wasn&rsquo;t on the quote.</p>
-            </div>
-            <div>
-              <div className="pricing-note__lbl">VEU rebate</div>
-              <p>Applied at quote · you don&rsquo;t pay it up-front then chase it back. Additional Solar Homes bonus (+$1,000) available for eligible owner-occupier households.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* One table per category, behind a filter. Every block stays in
+      {/* ================= The full price list =================
+          One table per category behind a filter. Every block stays in
           the HTML — the tabs only hide what you didn't ask for, so the
           page still ranks for all of it. */}
       <section className="pricing-body">
         <div className="wrap">
+          <div className="ds-section-head pricing-body__head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Every model, every price</span>
+            <h2>The full installed price list.</h2>
+            <p>
+              Filter to what you&rsquo;re after, or scroll the lot. Every figure is fully installed
+              with the VEU rebate already applied where the unit qualifies.
+            </p>
+          </div>
           <PricingTabs
             categories={CATEGORY_ORDER
               .filter((c) => (rows[c.key] ?? []).length > 0)

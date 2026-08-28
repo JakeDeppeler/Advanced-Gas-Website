@@ -2221,17 +2221,31 @@
 /* ==================================================================
    GAS STAR-RATING SAVINGS CHART — Brivis (gas ducted) page.
    ================================================================== */
-.page-brand .gsc { padding: 84px 0; background: var(--bg); }
+.page-brand .gsc { padding: 84px 0; background: var(--bg-2); }
+.page-brand .gsc__box {
+  margin-top: 10px;
+  border-radius: var(--rad);
+  padding: 34px 32px 34px;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.18), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  box-shadow: 0 30px 64px -34px rgba(5, 10, 48, 0.6);
+}
+/* heading lives inside the box now — white on the blue, centred over the chart */
+.page-brand .gsc__head { margin-bottom: 18px; text-align: center; align-items: center; }
+.page-brand .gsc__head .ds-eyebrow { justify-content: center; color: rgba(255, 255, 255, 0.82); }
+.page-brand .gsc__box .ds-section-head h2 { color: #fff; }
+.page-brand .gsc__box .ds-section-head p { color: rgba(255, 255, 255, 0.78); max-width: 62ch; margin-left: auto; margin-right: auto; }
 .page-brand .gsc__chart {
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: clamp(18px, 7vw, 64px);
-  height: 340px;
+  height: 320px;
   max-width: 620px;
-  margin: 14px auto 0;
+  margin: 6px auto 0;
   padding: 0 6px;
-  border-bottom: 2px solid var(--line-2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
 }
 .page-brand .gsc__col {
   flex: 1 1 0;
@@ -2254,9 +2268,9 @@
   color: #fff;
   box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.25) inset, 0 14px 26px -16px rgba(5, 10, 48, 0.5);
 }
-.page-brand .gsc__bar--g1 { background: linear-gradient(180deg, #99a2b3, #737d90); }
-.page-brand .gsc__bar--g2 { background: linear-gradient(180deg, #5f677a, #454c5c); }
-.page-brand .gsc__bar--g3 { background: linear-gradient(180deg, var(--sky-2, #2cc5ff), #0a6f9c); }
+.page-brand .gsc__bar--g1 { background: linear-gradient(180deg, #93a0b6, #66718a); }
+.page-brand .gsc__bar--g2 { background: linear-gradient(180deg, #3fa6cf, #2176a1); }
+.page-brand .gsc__bar--g3 { background: linear-gradient(180deg, var(--sky-2, #2cc5ff), #0a86c4); }
 .page-brand .gsc__save {
   font-family: var(--f-mono);
   font-size: 11px;
@@ -2274,7 +2288,8 @@
 .page-brand .gsc__star {
   margin-top: 12px;
   width: 100%;
-  background: var(--navy);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #fff;
   border-radius: 10px;
   padding: 9px 0 8px;
@@ -2282,17 +2297,18 @@
   line-height: 1;
 }
 .page-brand .gsc__star strong { display: block; font-family: var(--f-display); font-weight: 900; font-size: 30px; letter-spacing: -0.02em; }
-.page-brand .gsc__star span { display: block; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.14em; margin-top: 4px; color: rgba(255, 255, 255, 0.75); }
+.page-brand .gsc__star span { display: block; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.14em; margin-top: 4px; color: rgba(255, 255, 255, 0.7); }
 .page-brand .gsc__note {
   max-width: 600px;
   margin: 22px auto 0;
   text-align: center;
   font-size: 12.5px;
   line-height: 1.55;
-  color: var(--ink-3);
+  color: rgba(255, 255, 255, 0.6);
 }
 @media (max-width: 760px) {
   .page-brand .gsc { padding: 54px 0; }
+  .page-brand .gsc__box { padding: 24px 16px 26px; }
   .page-brand .gsc__chart { height: 280px; gap: 12px; }
   .page-brand .gsc__star strong { font-size: 24px; }
 }

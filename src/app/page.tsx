@@ -8,6 +8,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { posts } from "@/lib/blog";
+import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
 import "./home.css";
 
@@ -101,39 +102,13 @@ const faqs = [
   },
 ];
 
-const SUBURBS: { name: string; slug: string }[] = [
-  { name: "Pakenham",         slug: "pakenham" },
-  { name: "Pakenham Upper",   slug: "pakenham-upper" },
-  { name: "Officer",          slug: "officer" },
-  { name: "Beaconsfield",     slug: "beaconsfield" },
-  { name: "Berwick",          slug: "berwick" },
-  { name: "Narre Warren",     slug: "narre-warren" },
-  { name: "Cranbourne",       slug: "cranbourne" },
-  { name: "Cranbourne East",  slug: "cranbourne-east" },
-  { name: "Clyde",            slug: "clyde" },
-  { name: "Clyde North",      slug: "clyde-north" },
-  { name: "Hampton Park",     slug: "hampton-park" },
-  { name: "Hallam",           slug: "hallam" },
-  { name: "Endeavour Hills",  slug: "endeavour-hills" },
-  { name: "Doveton",          slug: "doveton" },
-  { name: "Dandenong",        slug: "dandenong" },
-  { name: "Keysborough",      slug: "keysborough" },
-  { name: "Lynbrook",         slug: "lynbrook" },
-  { name: "Lyndhurst",        slug: "lyndhurst" },
-  { name: "Bunyip",           slug: "bunyip" },
-  { name: "Garfield",         slug: "garfield" },
-  { name: "Nar Nar Goon",     slug: "nar-nar-goon" },
-  { name: "Tynong",           slug: "tynong" },
-  { name: "Drouin",           slug: "drouin" },
-  { name: "Warragul",         slug: "warragul" },
-  { name: "Belgrave",         slug: "belgrave" },
-  { name: "Emerald",          slug: "emerald" },
-  { name: "Cockatoo",         slug: "cockatoo" },
-  { name: "Gembrook",         slug: "gembrook" },
-  { name: "Ferntree Gully",   slug: "ferntree-gully" },
-  { name: "Rowville",         slug: "rowville" },
-  { name: "Tooradin",         slug: "tooradin" },
-];
+// Every town we publish a service-area page for — the whole 75 km radius,
+// not a hand-kept subset. Sourced straight from the suburb dataset so the
+// "Where we work" list can never drift out of sync with the pages that
+// actually exist. Nearest-first, so our home patch reads down and out.
+const SUBURBS: { name: string; slug: string }[] = [...publishedSuburbs]
+  .sort((a, b) => a.distanceKm - b.distanceKm || a.name.localeCompare(b.name))
+  .map((s) => ({ name: s.name, slug: s.slug }));
 
 
 export default async function HomePage() {
