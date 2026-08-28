@@ -7,6 +7,7 @@ import { RATING_SUMMARY } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
+import { posts } from "@/lib/blog";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -646,15 +647,45 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* EXPERT TIPS — the latest guides from the blog, so the home page
+          has a door into them and picks up the internal linking. */}
+      <section className="tips">
+        <div className="wrap">
+          <div className="tips__head">
+            <div>
+              <span className="ds-eyebrow"><span className="ds-dot" /> Expert tips</span>
+              <h2>Straight advice, from the people on the tools.</h2>
+            </div>
+            <Link href="/blog" className="tips__all">Read the blog →</Link>
+          </div>
+          <div className="tips__grid">
+            {posts.slice(0, 3).map((p) => (
+              <Link key={p.slug} href={`/blog/${p.slug}`} className="tipcard">
+                <div className="tipcard__photo">
+                  <img src={p.photo} alt={p.photoAlt} loading="lazy" width="480" height="300" />
+                  <span className="tipcard__tag">{p.cat}</span>
+                </div>
+                <div className="tipcard__body">
+                  <h3>{p.title}</h3>
+                  <p>{p.blurb}</p>
+                  <span className="tipcard__more">Read it →</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* BIG CTA */}
       <section className="bigcta" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <div>
-            <h2>Get a fixed quote with the VEU rebate already applied.</h2>
-            <p>Free, no-obligation, usually back to you within 2 hours during business hours.</p>
+            <h2>Let&rsquo;s get your job sorted.</h2>
+            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 2 business hours. Prefer to talk? Text or call.</p>
           </div>
           <div className="bigcta__btns">
             <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
+            <a href={`sms:${site.phoneE164}`} className="bigcta__textus">Text us →</a>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

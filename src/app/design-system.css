@@ -1088,6 +1088,15 @@
 .bigcta__btns .ds-btn--orange:hover { background: var(--navy-2); }
 .bigcta__phone { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 15px; }
 .bigcta__phone strong { font-family: var(--f-display); }
+.bigcta__textus {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f-display); font-weight: 700; font-size: 16px;
+  color: #fff; text-decoration: none;
+  padding: 12px 22px; border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.55);
+  transition: background .15s, border-color .15s;
+}
+.bigcta__textus:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
 
 /* ============== FOOTER ============== */
 .ftr {
