@@ -124,33 +124,43 @@ export default function PricingPage() {
 
       {/* ================= What every price includes =================
           Frame what the number means before the visitor sees a single
-          price — labour, disposal, cert and the rebate, all in. */}
+          price — a plain checklist of what's in it, then the two honest
+          caveats (extras get quoted; the rebate is already applied). */}
       <section className="pricing-note">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot" /> What&rsquo;s in the number</span>
             <h2>Every price is the whole job.</h2>
             <p>
-              No teaser &ldquo;from&rdquo; figure that balloons on the invoice. What you see below is the
-              unit, the labour, the standard install and the rebate &mdash; here&rsquo;s exactly what
-              that covers.
+              No teaser &ldquo;from&rdquo; figure that balloons on the invoice. The number you see
+              below is the unit, the labour, the standard install and the rebate &mdash; here&rsquo;s
+              exactly what that covers.
             </p>
           </div>
-          <div className="pricing-note__grid">
-            <div className="pricing-note__card">
-              <span className="pricing-note__num">01</span>
-              <div className="pricing-note__lbl">Included in every price</div>
-              <p>Unit + labour + standard install (up to 3&nbsp;m line-set) + disposal of the old system + compliance certificate + manufacturer-warranty registration. GST inclusive.</p>
+
+          <div className="pricing-note__layout">
+            <div className="pricing-note__included">
+              <div className="pricing-note__lbl">Included in every installed price</div>
+              <ul className="pricing-note__checks">
+                <li>Genuine brand-name unit</li>
+                <li>Labour &amp; standard install <span>(up to 3&nbsp;m line-set)</span></li>
+                <li>Disposal of the old system</li>
+                <li>Compliance certificate <span>emailed in 24&nbsp;hrs</span></li>
+                <li>Manufacturer warranty registered for you</li>
+                <li>6-year workmanship warranty</li>
+              </ul>
+              <p className="pricing-note__gst">Every figure is GST inclusive.</p>
             </div>
-            <div className="pricing-note__card">
-              <span className="pricing-note__num">02</span>
-              <div className="pricing-note__lbl">We quote it, never surprise you</div>
-              <p>Some sites need more than a standard install &mdash; a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, trenching to move an LPG bottle. It all goes in the written quote before you commit, so nothing lands on the invoice that wasn&rsquo;t on the quote.</p>
-            </div>
-            <div className="pricing-note__card">
-              <span className="pricing-note__num">03</span>
-              <div className="pricing-note__lbl">VEU rebate</div>
-              <p>Applied at the quote &mdash; you don&rsquo;t pay it up-front then chase it back. The Solar Homes bonus (+$1,000) is available for eligible owner-occupier households.</p>
+
+            <div className="pricing-note__side">
+              <div className="pricing-note__card">
+                <div className="pricing-note__lbl">We quote extras, never surprise you</div>
+                <p>Some sites need more than a standard install &mdash; a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, trenching to move an LPG bottle. It all goes in the written quote before you commit, so nothing lands on the invoice that wasn&rsquo;t on the quote.</p>
+              </div>
+              <div className="pricing-note__card pricing-note__card--rebate">
+                <div className="pricing-note__lbl">The VEU rebate&rsquo;s already in it</div>
+                <p>You don&rsquo;t pay it up-front then chase it back &mdash; it comes straight off at the quote. The Solar Homes bonus (+$1,000) is available for eligible owner-occupier households.</p>
+              </div>
             </div>
           </div>
         </div>
