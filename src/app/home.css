@@ -1830,3 +1830,44 @@
 }
 .page-home .subsearch__more[aria-expanded="true"]::after { transform: rotate(-135deg) translateY(-1px); }
 .page-home .subsearch__more:hover { color: var(--orange); border-color: var(--orange); }
+
+/* ============================================================
+   MOBILE COMPACTION PASS
+   On a phone the home page ran ~15 screens tall — several sections
+   kept desktop-scale padding (110px top+bottom), 34px headings that
+   wrap to three lines, and roomy cards. This tightens the vertical
+   rhythm so the page scans in far less scrolling, without changing
+   any layout. (600px catches every phone incl. the 402px Pro.)
+   ============================================================ */
+@media (max-width: 600px) {
+  /* Sections that still carried desktop 110px padding on mobile. */
+  .page-home .veu { padding: 48px 0 52px; }
+  .page-home .services { padding: 50px 0; }
+  .page-home .whyus { padding: 50px 0; }
+  .page-home .reviews { padding: 46px 0; }
+  .page-home .faq { padding: 46px 0; }
+
+  /* Generic 34px section heads on these three wrap to three lines and
+     eat a third of the viewport — bring them down a step and tighten the
+     gap to the content below. */
+  .page-home .veu .ds-section-head,
+  .page-home .services .ds-section-head,
+  .page-home .whyus .ds-section-head { margin-bottom: 22px; }
+  .page-home .veu .ds-section-head h2,
+  .page-home .services .ds-section-head h2,
+  .page-home .whyus .ds-section-head h2 { font-size: 26px; line-height: 1.14; margin: 8px 0 12px; }
+  .page-home .veu .ds-section-head p,
+  .page-home .services .ds-section-head p,
+  .page-home .whyus .ds-section-head p { font-size: 15px; }
+
+  /* Tighten the stacked cards: smaller gaps, less card padding, shorter
+     service-card images. */
+  .page-home .why-grid { gap: 12px; }
+  .page-home .why { padding: 20px; }
+  .page-home .why h3 { font-size: 18px; margin-bottom: 6px; }
+
+  .page-home .veu__grid { gap: 16px; }
+
+  .page-home .tips__grid { gap: 12px; }
+  .page-home .tipcard__photo { aspect-ratio: 16 / 8; }
+}
