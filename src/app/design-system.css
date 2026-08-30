@@ -2556,8 +2556,16 @@ input, select, textarea {
   .step::after { display: none; }
 }
 @media (max-width: 600px) {
-  .steps { grid-template-columns: 1fr; }
-  .process { padding: 64px 0 72px; }
+  .steps { grid-template-columns: 1fr; grid-auto-rows: min-content; gap: 12px; }
+  .process { padding: 54px 0 60px; }
+  /* Compact the stacked cards: smaller number, tighter padding, and drop
+     the margin-top:auto that stretched the time tag to the card bottom and
+     left a gap. */
+  .step { padding: 20px 20px 18px; gap: 5px; }
+  .step__num { font-size: 38px; margin-bottom: 2px; }
+  .step h3 { font-size: 18px; }
+  .step p { font-size: 14px; }
+  .step__time { margin-top: 8px; padding-top: 10px; }
 }
 
 
