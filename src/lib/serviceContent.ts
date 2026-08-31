@@ -305,7 +305,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // ------------------------------------------------------------------
     metaTitle: "Air Conditioning Installation Pakenham & Berwick",
     metaDescription:
-      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 2 hrs, 6-year workmanship warranty.",
+      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 12 hrs, 6-year workmanship warranty.",
     heroFacts: [
       { v: "Same day", k: "A single wall split, start to finish" },
       { v: "ARCtick", k: "AU59557 — legally required, and we hold it" },
@@ -314,7 +314,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Air conditioning, installed properly",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 2 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
       heading: "Why these two brands, and which one is yours.",
       blurb:
@@ -347,7 +347,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     steps: [
       { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
-      { title: "Written fixed-price quote in 2 hrs", detail: "Back to you inside 2 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. No 'from $X' bait." },
+      { title: "Written fixed-price quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. No 'from $X' bait." },
       { title: "Order stock, book install day", detail: "Mitsubishi warehouse in Melbourne is same-day on common stock. We confirm your install day the moment the unit lands with us." },
       { title: "Install day, usually one visit", detail: "Single-split back-to-back is 3-4 hours on site. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside." },
       { title: "Test, commission, walk-through", detail: "We run it up, check refrigerant pressures, walk you through the remote and MELCloud Wi-Fi setup. You sign the job card when you're satisfied, not before." },
@@ -1020,7 +1020,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     pricing: [],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
-      { title: "Written fixed-price quote in 2 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },
+      { title: "Written fixed-price quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },
       { title: "We lodge the VEU application", detail: "Approved accredited-provider paperwork submitted the day you accept the quote. The rebate is applied to your invoice, not something you chase back six months later." },
       { title: "Install day, usually same-day swap", detail: "AIO swap into an existing electric or gas storage tank position is 3–5 hours. Split heat pump with a new tank position is 5–7 hours. Old tank drained, disconnected, loaded up." },
       { title: "Commission, temper, hand over", detail: "Tempering valve to AS/NZS 3500, isolation valves in, dedicated circuit tested. We wait for hot water at the tap, then walk you through the controller and timer settings." },
@@ -1736,7 +1736,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Gas heating, hot water & plumbing",
     intro:
-      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 2 business hours, and full compliance certificates on every job.",
+      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
     whyThese: {
       heading: "Why Brivis and Kaden for gas, and why the star rating matters more than the price.",
       blurb:
@@ -1770,7 +1770,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     steps: [
       { title: "Same-day emergency? Call first", detail: "Gas leak, no hot water, CO alarm, call and we'll be on-site same-day. Standard call-out $120 in-hours, $220 after-hours. Fee waived if repair goes ahead on the day." },
-      { title: "Planned job? Written quote in 2 hrs", detail: "Send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Includes VEU eligibility check for the swap." },
+      { title: "Planned job? Written quote in 12 hrs", detail: "Send a photo of the existing unit and we'll come back the same business day with the replacement model, capacity, star rating and installed price. Includes VEU eligibility check for the swap." },
       { title: "Old unit assessed on site", detail: "Ducted heater, is the cavity + ductwork reusable? (Usually yes on a like-for-like retrofit.) Hot water, is the existing pad + pipework good, or does it need rework? We tell you before we touch anything." },
       { title: "Install day", detail: "Brivis ducted replacement, 3-4 hours if the ducts + controller wiring reuse cleanly. Continuous flow hot water swap, 3-5 hours. Same-day for both. Old unit off the pad and loaded up." },
       { title: "Commission, pressure test, hand over", detail: "Gas pressure test to AS/NZS 5601, controller programmed, temperature setpoint checked, we run hot water at the tap. You sign the job card when it's running the way you want." },

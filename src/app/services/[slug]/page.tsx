@@ -582,7 +582,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 </span>
                 <h2>Quote for {svc.short.toLowerCase()}.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 2 business hours. Rebates applied and
+                  60 seconds, no obligation, replied within 12 business hours. Rebates applied and
                   GST included, so the number you get is the number you pay.
                 </p>
                 <ul className="quotesec__points">

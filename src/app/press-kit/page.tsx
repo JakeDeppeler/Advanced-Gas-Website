@@ -59,7 +59,7 @@ const COPY_BLOCKS: { label: string; text: string; note?: string }[] = [
   },
   {
     label: "Long-form bio (for guest posts, PR features, sponsorship pages)",
-    text: "Advanced Gas & Aircon is a Pakenham-based installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing. Founded in 2014 by owner-operator Jake Deppeler, the team has completed 1,200+ residential and light-commercial installs across the south-east, Pakenham, Berwick, Officer, Cranbourne, Narre Warren, the Dandenong Ranges hills postcodes, and out to Drouin/Warragul in Gippsland. Every install includes a fixed-price quote inside two business hours, a 6-year workmanship warranty, and the VEU rebate applied at the quote stage rather than chased after the fact. Fully licensed: Plumbing Lic. 46828, ARCtick refrigeration handling licence AU59557, VEU accredited, $20 M public liability.",
+    text: "Advanced Gas & Aircon is a Pakenham-based installer of heat pump hot water, split-system and ducted air conditioning, and licensed gas plumbing. Founded in 2014 by owner-operator Jake Deppeler, the team has completed 1,200+ residential and light-commercial installs across the south-east, Pakenham, Berwick, Officer, Cranbourne, Narre Warren, the Dandenong Ranges hills postcodes, and out to Drouin/Warragul in Gippsland. Every install includes a fixed-price quote inside 12 business hours, a 6-year workmanship warranty, and the VEU rebate applied at the quote stage rather than chased after the fact. Fully licensed: Plumbing Lic. 46828, ARCtick refrigeration handling licence AU59557, VEU accredited, $20 M public liability.",
   },
   {
     label: "Suggested anchor text (for a hyperlink pointing to advancedgas.com.au)",
@@ -353,7 +353,7 @@ ARCtick Licence: AU59557`}
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready to feature us?</h2>
-            <p>We reply to media enquiries within 2 business hours.</p>
+            <p>We reply to media enquiries within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <a href={`mailto:${site.email}`} className="ds-btn ds-btn--orange ds-btn--xl">Email {site.email} →</a>

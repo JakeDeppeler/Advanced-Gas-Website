@@ -178,7 +178,7 @@ export default function AboutPage() {
             <div className="acc"><span className="acc__name">Plumbing Licence</span><span className="acc__num">46828</span></div>
             <div className="acc"><span className="acc__name">ARC Refrigeration Authorisation</span><span className="acc__num">AU59557</span></div>
             <div className="acc"><span className="acc__name">Public Liability</span><span className="acc__num">$20M</span></div>
-            <div className="acc"><span className="acc__name">Workmanship warranty</span><span className="acc__num">12 months</span></div>
+            <div className="acc"><span className="acc__name">Workmanship warranty</span><span className="acc__num">6 years</span></div>
             <div className="acc"><span className="acc__name">Address</span><span className="acc__num">1 Sierra Circuit, Pakenham</span></div>
           </div>
         </div>

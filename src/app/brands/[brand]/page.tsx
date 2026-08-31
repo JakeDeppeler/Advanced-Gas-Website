@@ -525,7 +525,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 </span>
                 <h2>Quote for a {brand.name} system.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 2 business hours — with the model,
+                  60 seconds, no obligation, replied within 12 business hours — with the model,
                   the installed price and any rebate you qualify for, in writing.
                 </p>
                 <ul className="quotesec__points">
@@ -586,7 +586,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         <div className="wrap bigcta__row">
           <div>
             <h2>Get a fixed {brand.name} quote.</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
+            <p>Free, no-obligation, replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

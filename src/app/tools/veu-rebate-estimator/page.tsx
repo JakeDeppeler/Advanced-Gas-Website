@@ -78,7 +78,7 @@ export default function VeuRebateEstimatorPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready for the exact number?</h2>
-            <p>We&rsquo;ll confirm the rebate on your quote inside 2 business hours.</p>
+            <p>We&rsquo;ll confirm the rebate on your quote inside 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a rebate-inclusive quote →</Link>

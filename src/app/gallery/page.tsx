@@ -169,7 +169,7 @@ export default async function GalleryPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want yours to look like this?</h2>
-            <p>Free, no-obligation quote back within 2 business hours. VEU rebate already applied.</p>
+            <p>Free, no-obligation quote back within 12 business hours. VEU rebate already applied.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my fixed quote →</Link>

@@ -947,7 +947,7 @@ const brandCatalogue: Brand[] = [
 
     steps: [
       { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, then compute the actual kW. A 5 kW room gets a 5 kW unit, not a 7 kW one somebody had on the truck." },
-      { title: "Written fixed-price quote in 2 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
+      { title: "Written fixed-price quote in 12 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
       { title: "Stock ordered, day booked", detail: "Mitsubishi's Melbourne warehouse is same-day on common stock. We confirm your install day the moment the unit lands with us rather than pencilling one in and hoping." },
       { title: "Install day", detail: "Single split back-to-back is three to four hours. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside, fresh copper every time." },
       { title: "Commission and walk through", detail: "We run it up, check refrigerant pressures against spec, and set up the remote and MELCloud with you. You sign the job card when you're happy with it, not before." },

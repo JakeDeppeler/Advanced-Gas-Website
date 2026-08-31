@@ -157,7 +157,7 @@ export default function HeatPumpSizingPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want us to check the sizing properly?</h2>
-            <p>Free site visit, fixed quote back in 2 business hours, VEU rebate already applied.</p>
+            <p>Free site visit, fixed quote back in 12 business hours, VEU rebate already applied.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my fixed quote →</Link>

@@ -85,7 +85,7 @@ export default function ProductPage({
           </div>
           <h1>{product.name}</h1>
           <p className="dp-hero__sub">
-            <strong>Best for:</strong> {product.bestFor}. Installed across Melbourne&rsquo;s south-east, {product.veuEligible ? "VEU rebate eligible where the property qualifies, " : ""}fixed-price quote inside 2 business hours.
+            <strong>Best for:</strong> {product.bestFor}. Installed across Melbourne&rsquo;s south-east, {product.veuEligible ? "VEU rebate eligible where the property qualifies, " : ""}fixed-price quote inside 12 business hours.
           </p>
           <div className="dp-hero__ctas">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
@@ -123,7 +123,7 @@ export default function ProductPage({
                 <p>
                   {product.installedPriceFrom
                     ? <strong>{product.installedPriceFrom}</strong>
-                    : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Fixed price within 2 business hours.</span></>
+                    : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Fixed price within 12 business hours.</span></>
                   }
                 </p>
               </div>
@@ -224,7 +224,7 @@ export default function ProductPage({
         <div className="wrap bigcta__row">
           <div>
             <h2>Fixed {product.name} quote.</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
+            <p>Free, no-obligation, replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

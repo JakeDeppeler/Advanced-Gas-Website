@@ -142,7 +142,7 @@ export function ContactForm() {
       </div>
 
       <div className="ct-submit">
-        <p>We&apos;ll reply within 2 business hours. No call centres, no marketing emails.</p>
+        <p>We&apos;ll reply within 12 business hours. No call centres, no marketing emails.</p>
         <button type="submit" disabled={submitting} className="ds-btn ds-btn--orange ds-btn--lg">
           {sent ? "Sent ✓, we'll be in touch" : submitting ? "Sending…" : "Send my quote request →"}
         </button>

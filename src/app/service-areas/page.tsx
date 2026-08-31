@@ -88,7 +88,7 @@ export default function ServiceAreasPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Free quote, rebate applied.</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
+            <p>Free, no-obligation, replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

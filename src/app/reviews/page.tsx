@@ -61,7 +61,7 @@ export default async function ReviewsPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want the same experience?</h2>
-            <p>Free, no-obligation quote back within 2 business hours.</p>
+            <p>Free, no-obligation quote back within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

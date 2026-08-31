@@ -204,7 +204,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         {step === 4 && (
           <fieldset>
             <legend className="qf-legend">Where do we send your quote?</legend>
-            <p className="qf-sub">We&apos;ll text or call within 2 business hours.</p>
+            <p className="qf-sub">We&apos;ll text or call within 12 business hours.</p>
             <label className="qf-field">
               <span>Full name</span>
               <input

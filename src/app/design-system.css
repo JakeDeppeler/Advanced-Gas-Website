@@ -987,11 +987,13 @@
   box-shadow: 0 4px 0 #000;
 }
 .ds-btn--primary:hover { background: var(--navy-2); box-shadow: 0 6px 0 #000; }
+/* Darker orange than the brand --orange so white text clears WCAG AA
+   (4.5:1). The bright --orange stays the accent everywhere else. */
 .ds-btn--orange {
-  background: var(--orange); color: #fff;
-  box-shadow: 0 4px 0 #c14a13;
+  background: #c2521a; color: #fff;
+  box-shadow: 0 4px 0 #8f3a0e;
 }
-.ds-btn--orange:hover { background: var(--orange-2); box-shadow: 0 6px 0 #c14a13; }
+.ds-btn--orange:hover { background: #a8460f; box-shadow: 0 6px 0 #8f3a0e; }
 .ds-btn--ghost {
   background: transparent; color: var(--navy); border-color: var(--navy);
 }

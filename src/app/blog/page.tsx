@@ -115,7 +115,7 @@ export default function BlogPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready when you are.</h2>
-            <p>Free quote with the rebate already applied. Usually back within 2 hours.</p>
+            <p>Free quote with the rebate already applied. Usually back within 12 hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

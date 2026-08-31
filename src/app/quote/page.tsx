@@ -18,7 +18,7 @@ export default function QuotePage() {
       <section className="dp-hero">
         <div className="wrap">
           <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> Free quote · usually back within 2 hrs
+            <span className="ds-dot" /> Free quote · usually back within 12 hrs
           </div>
           <h1>
             Tell us what you need.<br />
@@ -26,7 +26,7 @@ export default function QuotePage() {
           </h1>
           <p className="dp-hero__sub">
             60 seconds, no obligation, no spam. We reply with a written quote within
-            <strong style={{ color: "#fff" }}> 2 business hours</strong>, or call us now on{" "}
+            <strong style={{ color: "#fff" }}> 12 business hours</strong>, or call us now on{" "}
             <a href={`tel:${site.phoneE164}`} style={{ color: "var(--sky-2)", fontWeight: 700 }}>{site.phone}</a>.
           </p>
         </div>

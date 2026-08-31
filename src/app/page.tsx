@@ -46,13 +46,13 @@ function HeroQuoteFormSkeleton() {
         <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
         <div style={{ height: 78, borderRadius: 12, background: "var(--line-2)" }} />
       </div>
-      <p className="qcard__finep">60s. No obligation. No spam. Response in 2 business hours.</p>
+      <p className="qcard__finep">60s. No obligation. No spam. Response in 12 business hours.</p>
     </div>
   );
 }
 
 export const metadata: Metadata = {
-  title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC",
+  title: "Heat Pump, Split & Ducted Aircon, Pakenham",
   description:
     "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled. Free 60-second quote.",
   alternates: { canonical: "/" },
@@ -334,7 +334,7 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">fixed price back in 2 hrs</span>
+                  <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
                 </div>
                 <p className="fixprice__note">Reclaim CO₂ Split, glass-lined or stainless, tall or squat, in 160 / 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
@@ -358,7 +358,7 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">fixed price back in 2 hrs</span>
+                  <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
                 </div>
                 <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the ducted &rarr;</a>
               </div>
@@ -661,7 +661,7 @@ export default async function HomePage() {
           </figure>
           <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job sorted.</h2>
-            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 2 business hours. Prefer to talk? Give us a call.</p>
+            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 12 business hours. Prefer to talk? Give us a call.</p>
             <div className="bigcta__btns">
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">

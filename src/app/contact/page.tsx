@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/ContactForm";
 import "./contact.css";
 
 export const metadata: Metadata = {
-  title: "Contact, Free quote in 2 hours",
+  title: "Contact, Free quote in 12 hours",
   description: `Get a free quote with VEU rebate applied. Pakenham VIC, servicing within 75 km. ${site.phone} · ${site.email} · 24/7 emergency.`,
   alternates: { canonical: "/contact" },
 };
@@ -15,7 +15,7 @@ export default function ContactPage() {
       <section className="ct-hero">
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Contact us</span>
-          <h1>Tell us what you need. <em>We&apos;ll come back within 2 hours.</em></h1>
+          <h1>Tell us what you need. <em>We&apos;ll come back within 12 hours.</em></h1>
           <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75 km. The bloke who quotes is the bloke who installs.</p>
         </div>
       </section>
@@ -35,7 +35,7 @@ export default function ContactPage() {
               <span className="ct-card__sub" style={{ color: "rgba(255,255,255,0.7)" }}>24/7 Emergency</span>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
               <p style={{ marginTop: 8 }}>
-                Gas leak, no hot water, CO alarm, we answer after hours for locals only. $220 flat after-hours fee.
+                Gas leak, no hot water, CO alarm, we answer after hours for locals only. $380 call-out, then $260/hr after.
               </p>
             </div>
 
@@ -43,7 +43,7 @@ export default function ContactPage() {
               <h3>Email</h3>
               <p><a href={`mailto:${site.email}`} style={{ color: "var(--navy)", fontWeight: 600 }}>{site.email}</a></p>
               <h3 style={{ marginTop: 12 }}>Workshop</h3>
-              <p>Henry Road, Pakenham VIC 3810<br />By appointment only.</p>
+              <p>1 Sierra Circuit, Pakenham VIC 3810<br />By appointment only.</p>
             </div>
 
             <div className="ct-card">

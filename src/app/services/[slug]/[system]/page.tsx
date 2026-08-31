@@ -384,7 +384,7 @@ export default function SystemPage({
                 </span>
                 <h2>Quote for {system.label.toLowerCase()}.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 2 business hours. Rebates applied and
+                  60 seconds, no obligation, replied within 12 business hours. Rebates applied and
                   GST included, so the number you get is the number you pay.
                 </p>
                 <ul className="quotesec__points">

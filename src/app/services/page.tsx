@@ -164,7 +164,7 @@ const services: Service[] = [
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
     lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
-    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 2 hrs"], ["After-hours", "$400 first hr · $150/hr after"], ["Call diversion", "no"]],
+    specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 12 hrs"], ["After-hours", "$380 call-out · $260/hr after"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
       "Hot water failure with kids in the house, priority",
@@ -257,7 +257,7 @@ export default function ServicesHubPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>One quote. One crew. One handshake.</h2>
-            <p>Free quote, VEU rebate already applied, usually back within 2 hours.</p>
+            <p>Free quote, VEU rebate already applied, usually back within 12 hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

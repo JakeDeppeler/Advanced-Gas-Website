@@ -353,7 +353,7 @@ export default function RebatesPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>One free site visit. One quote with the rebate already applied. One handshake.</h2>
-            <p>Pakenham locals, usually replied within 2 business hours.</p>
+            <p>Pakenham locals, usually replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <a href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>

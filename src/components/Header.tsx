@@ -646,7 +646,7 @@ function ToolsMega() {
         ))}
       </div>
       <div className="mega__toolsfoot">
-        <div className="mega__cta-sub">Prefer a real quote? We&rsquo;ll answer inside 2 business hours.</div>
+        <div className="mega__cta-sub">Prefer a real quote? We&rsquo;ll answer inside 12 business hours.</div>
         {/* The price list gets a button as well as a card. It's the
             destination the menu is named after, and a row in a grid of
             eleven is easy to read past. */}

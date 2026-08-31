@@ -357,7 +357,7 @@ export default function PreviewPage() {
         {/* BIG CTA card */}
         <div className="pv-bcta">
           <h2 className="pv-bcta__h">VEU rebate already in the quote.</h2>
-          <p className="pv-bcta__p">Free, no-obligation. Usually back within 2 hrs during business hours.</p>
+          <p className="pv-bcta__p">Free, no-obligation. Usually back within 12 hrs during business hours.</p>
           <Link href="/quote" className="pv-bcta__btn">Start my free quote →</Link>
           <div className="pv-bcta__call">
             or call <a href={`tel:${site.phoneE164}`}><strong>{site.phone}</strong></a>
