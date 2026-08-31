@@ -64,6 +64,13 @@ const SERVICES_MEGA: {
       label: "Air conditioning",
       items: [
         {
+          href: "/services/air-conditioning-installation/reverse-cycle",
+          label: "Reverse cycle",
+          sub: "Heats & cools · split or ducted",
+          photo: "/Kaden Indoor.jpg",
+          photoAlt: "Reverse-cycle wall split heating and cooling a living room",
+        },
+        {
           href: "/services/air-conditioning-installation/split",
           label: "Split system",
           sub: "Bedroom, living, one room at a time",

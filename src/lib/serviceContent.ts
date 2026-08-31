@@ -355,6 +355,87 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     systems: [
       {
+        id: "reverse-cycle",
+        catalogue: [],
+        label: "Reverse cycle air conditioning",
+        blurb:
+          "One machine that both heats and cools — a heat pump on the wall or in the roof. It's the cheapest way to heat a Melbourne home, it's now VEU-rebate eligible, and it comes in three shapes: a split for a room, multi-head for a few, ducted for the whole house.",
+        photo: { src: "/Kaden Indoor.jpg", alt: "A reverse-cycle wall split heating and cooling a living room", scene: true },
+        brands: ["Mitsubishi Electric", "Kaden"],
+        priceFrom: "from $2,199 installed",
+        intro:
+          "Reverse cycle just means one air conditioner that heats as well as it cools. In summer it pulls heat out of the house; in winter it runs the same cycle backwards and pulls warmth from the outside air in — which is why it's a heat pump, and why it costs about a third of gas ducted to run for the same warmth. One head on the wall does a room, ducted in the roof does the whole home, and it's now the upgrade the VEU rebate is written for.",
+        benefitTiles: [
+          {
+            t: "One machine, both seasons",
+            line: "Heats in winter, cools in summer",
+            detail:
+              "A reverse-cycle unit runs the refrigeration cycle both ways — cooling the house in February and warming it in July off the same box on the wall. No separate heater, no second system to service, no gas line to run.",
+            icon: "snowflake",
+          },
+          {
+            t: "About a third of gas to run",
+            line: "A heat pump moves heat, it doesn't burn anything",
+            detail:
+              "Because it moves heat rather than making it, a reverse-cycle system delivers roughly three units of warmth for every unit of electricity. On a Melbourne winter it runs at a fraction of the cost of gas ducted for the same rooms — and that gap widens every time the gas price does.",
+            icon: "flow",
+          },
+          {
+            t: "The VEU rebate applies",
+            line: "Taken off at the quote, not chased after",
+            detail:
+              "Reverse-cycle upgrades are exactly what the Victorian Energy Upgrades scheme was written for, especially replacing an old gas or electric heater. Where the property qualifies we handle the paperwork and the rebate comes straight off the installed price.",
+            icon: "shield",
+          },
+          {
+            t: "A room, or the whole home",
+            line: "Split · multi-head · ducted, sized to the house",
+            detail:
+              "One room done properly is a split. Three or four rooms is a multi-head off a single outdoor unit. The whole house from one system in the roof is ducted, zoned so you're not conditioning empty bedrooms. We size it to your house rather than sell you the biggest one.",
+            icon: "ruler",
+          },
+          {
+            t: "No flue, no CO test",
+            line: "Nothing burns, so there's nothing to leak",
+            detail:
+              "There's no combustion, no flue and no carbon monoxide — so none of the annual gas-heater safety testing, and none of the cracked-heat-exchanger risk that comes with an ageing gas ducted unit.",
+            icon: "clock",
+          },
+          {
+            t: "Run it from your phone",
+            line: "Wi-Fi on Mitsubishi and Kaden",
+            detail:
+              "Turn it on from the car on the way home, or check nobody left it running. We set the app up and test it on your phone on install day rather than leaving a QR code on the box for you to work out.",
+            icon: "remote",
+          },
+        ],
+        points: [
+          "One system that both heats and cools — a heat pump, not a gas heater",
+          "Around a third of the running cost of gas ducted for the same warmth",
+          "VEU rebate eligible — applied at the quote where the property qualifies",
+          "Split for a room, multi-head for a few, ducted for the whole home",
+          "No flue, no gas line, no annual carbon-monoxide test",
+          "Mitsubishi Electric or Kaden, 6-year workmanship warranty on every job",
+        ],
+        bestFor: [
+          "Replacing an old gas ducted heater with something far cheaper to run",
+          "Anyone who wants heating and cooling from one system, not two",
+          "Homes going all-electric, or chasing the VEU rebate before it changes",
+        ],
+        watchOut: [
+          "The right shape depends on the house — a split, a multi-head and a ducted system solve different problems, so the sizing conversation comes first",
+          "Whole-home ducted needs roof space and access; where that's tight, a couple of splits or a multi-head gets you there instead",
+        ],
+        faqs: [
+          { q: "What does “reverse cycle” actually mean?", a: "It's an air conditioner that works both ways. In summer it moves heat out of the house to cool it; in winter it reverses and moves heat from the outside air into the house to warm it. That makes it a heat pump, and it's why one unit covers both jobs instead of a separate heater and cooler." },
+          { q: "Is reverse cycle really cheaper than gas heating?", a: "Yes, and by a wide margin on a Melbourne winter. A heat pump delivers roughly three units of heat per unit of electricity, so for the same warmth it costs about a third of what gas ducted does to run. The saving grows every time gas prices rise." },
+          { q: "Split or ducted — which do I need?", a: "A split heats and cools the room it's in, so it's the answer for a bedroom, a living room or a granny flat. Ducted puts one system in the roof and vents every room, zoned so you're not paying to condition empty bedrooms. Three or four rooms without going ducted is where a multi-head fits. We size it to your house at the quote." },
+          { q: "Does it actually heat in a cold Melbourne winter?", a: "Yes. Modern reverse-cycle systems hold their rated heating output down to around 2 °C and keep working well below that — the Mitsubishi Hyper Heating range in particular is built for it. For the frost pockets up in the hills we spec the cold-climate models rather than a standard unit." },
+          { q: "Is reverse cycle eligible for the VEU rebate?", a: "In most cases, yes. Reverse-cycle upgrades are a core Victorian Energy Upgrades activity, especially replacing an old gas or electric heater. Where your property qualifies we handle the paperwork and take the rebate straight off the installed price at the quote." },
+          { q: "How much does a reverse-cycle system cost?", a: "A single split starts from around $2,199 installed; a whole-home ducted system is a bigger job. Because the range is so wide we quote it to your house rather than a 'from' number, and the VEU rebate comes off where it applies. The written quote is the number you pay." },
+        ],
+      },
+      {
         id: "split",
         catalogue: ["Wall split system"],
         looks: {
