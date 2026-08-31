@@ -239,6 +239,8 @@ export function Footer() {
             <Link href="/sitemap.xml">Sitemap</Link>
             <span className="ftr__legal-sep" aria-hidden>·</span>
             <Link href="/contact">Complaints &amp; feedback</Link>
+            <span className="ftr__legal-sep" aria-hidden>·</span>
+            <Link href="/portal">Team portal</Link>
           </nav>
         </div>
       </div>

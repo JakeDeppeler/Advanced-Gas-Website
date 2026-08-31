@@ -1,3 +1,4 @@
+import { ChromeGate } from "@/components/ChromeGate";
 import type { Metadata, Viewport } from "next";
 import { Archivo, Manrope, JetBrains_Mono } from "next/font/google";
 import Script from "next/script";
@@ -124,12 +125,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <ScrollToTop />
-        <UtilityBar />
-        <Header />
+        <ChromeGate>
+          <UtilityBar />
+          <Header />
+        </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <Reveal />
-        <Footer />
-        <StickyMobileCTA />
+        <ChromeGate>
+          <Footer />
+          <StickyMobileCTA />
+        </ChromeGate>
         <Script
           id="ld-localbusiness"
           type="application/ld+json"
