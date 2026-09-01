@@ -19,6 +19,7 @@ export type TeamMember = {
 };
 
 const BASE_TEAM: TeamMember[] = [
+  { email: "jake@advancedgas.com.au", name: "Jake Deppeler", role: "admin" },
   { email: "jake@trusttrade.au", name: "Jake Deppeler", role: "admin" },
   // Add the rest of the crew here, e.g.:
   // { email: "sam@advancedgas.com.au", name: "Sam", role: "member" },
