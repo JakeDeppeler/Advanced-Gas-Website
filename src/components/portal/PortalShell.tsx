@@ -22,6 +22,7 @@ const ICON = {
   wrench: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6",
   reports: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M17 11l2 2 3-3.5",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6",
+  truck: "M3 6h11v9H3zM14 9h4l3 3v3h-7zM7.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
   bars: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7",
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
 };
@@ -52,6 +53,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       kind: "group", base: "/portal/tools", label: "Tools", icon: ICON.wrench,
       children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote" && t.slug !== "job-calculator").map((t) => ({ href: t.href, label: t.label, external: t.external })),
     },
+    { kind: "link", href: "/portal/vehicles", label: "Vehicles", icon: ICON.truck },
   ];
   nodes.push({ kind: "link", href: "/portal/me", label: "My file", icon: ICON.user });
   if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/team", label: "Team", icon: ICON.reports });

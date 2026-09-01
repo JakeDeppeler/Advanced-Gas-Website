@@ -344,3 +344,145 @@ export async function deleteReview(id: string): Promise<{ ok: boolean; error?: s
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };
 }
+
+/* ---------------- vehicles ---------------- */
+
+export type Vehicle = {
+  id: string;
+  name: string;
+  rego: string | null;
+  details: string | null;
+  odometer: number | null;
+  serviceIntervalKm: number | null;
+  nextServiceKm: number | null;
+  nextServiceDate: string | null;
+  active: boolean;
+  notes: string | null;
+};
+
+type VehicleRow = {
+  id: string; name: string; rego: string | null; details: string | null;
+  odometer: number | null; service_interval_km: number | null;
+  next_service_km: number | null; next_service_date: string | null;
+  active: boolean; notes: string | null;
+};
+
+const toVehicle = (r: VehicleRow): Vehicle => ({
+  id: r.id, name: r.name, rego: r.rego, details: r.details, odometer: r.odometer,
+  serviceIntervalKm: r.service_interval_km, nextServiceKm: r.next_service_km,
+  nextServiceDate: r.next_service_date, active: r.active, notes: r.notes,
+});
+
+export type VehicleLogKind = "service" | "fuel" | "damage" | "reading";
+export type VehicleLog = {
+  id: string; vehicleId: string; kind: VehicleLogKind; logDate: string;
+  odometer: number | null; cost: number | null; litres: number | null;
+  detail: string | null; createdBy: string | null; createdAt: string;
+};
+
+type VehicleLogRow = {
+  id: string; vehicle_id: string; kind: VehicleLogKind; log_date: string;
+  odometer: number | null; cost: number | null; litres: number | null;
+  detail: string | null; created_by: string | null; created_at: string;
+};
+
+const toLog = (r: VehicleLogRow): VehicleLog => ({
+  id: r.id, vehicleId: r.vehicle_id, kind: r.kind, logDate: r.log_date,
+  odometer: r.odometer, cost: r.cost === null ? null : Number(r.cost),
+  litres: r.litres === null ? null : Number(r.litres), detail: r.detail,
+  createdBy: r.created_by, createdAt: r.created_at,
+});
+
+export async function listVehicles(): Promise<Vehicle[]> {
+  const res = await sb(`portal_vehicles?select=*&order=active.desc,name.asc`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VehicleRow[]).map(toVehicle);
+}
+
+export async function getVehicle(id: string): Promise<Vehicle | null> {
+  const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}&select=*`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as VehicleRow[];
+  return rows[0] ? toVehicle(rows[0]) : null;
+}
+
+export async function createVehicle(input: {
+  name: string; rego?: string; details?: string; odometer?: number | null;
+  serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; notes?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_vehicles", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      name: input.name.trim(), rego: input.rego || null, details: input.details || null,
+      odometer: input.odometer ?? null, service_interval_km: input.serviceIntervalKm ?? null,
+      next_service_km: input.nextServiceKm ?? null, next_service_date: input.nextServiceDate || null, notes: input.notes || null,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function updateVehicle(id: string, patch: {
+  name?: string; rego?: string; details?: string; odometer?: number | null;
+  serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; active?: boolean; notes?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (patch.name !== undefined) body.name = patch.name.trim();
+  if (patch.rego !== undefined) body.rego = patch.rego || null;
+  if (patch.details !== undefined) body.details = patch.details || null;
+  if (patch.odometer !== undefined) body.odometer = patch.odometer;
+  if (patch.serviceIntervalKm !== undefined) body.service_interval_km = patch.serviceIntervalKm;
+  if (patch.nextServiceKm !== undefined) body.next_service_km = patch.nextServiceKm;
+  if (patch.nextServiceDate !== undefined) body.next_service_date = patch.nextServiceDate || null;
+  if (patch.active !== undefined) body.active = patch.active;
+  if (patch.notes !== undefined) body.notes = patch.notes || null;
+  const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteVehicle(id: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function listVehicleLogs(vehicleId: string): Promise<VehicleLog[]> {
+  const res = await sb(`portal_vehicle_logs?vehicle_id=eq.${encodeURIComponent(vehicleId)}&select=*&order=log_date.desc,created_at.desc`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VehicleLogRow[]).map(toLog);
+}
+
+export async function createVehicleLog(input: {
+  vehicleId: string; kind: VehicleLogKind; logDate?: string; odometer?: number | null;
+  cost?: number | null; litres?: number | null; detail?: string; createdBy?: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_vehicle_logs", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      vehicle_id: input.vehicleId, kind: input.kind, log_date: input.logDate || undefined,
+      odometer: input.odometer ?? null, cost: input.cost ?? null, litres: input.litres ?? null,
+      detail: input.detail || null, created_by: input.createdBy || null,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  // Roll the vehicle's odometer forward if this reading is higher.
+  if (input.odometer && input.odometer > 0) {
+    const v = await getVehicle(input.vehicleId);
+    if (v && (v.odometer === null || input.odometer > v.odometer)) {
+      await updateVehicle(input.vehicleId, { odometer: input.odometer });
+    }
+  }
+  return { ok: true };
+}
+
+export async function deleteVehicleLog(id: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_vehicle_logs?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}

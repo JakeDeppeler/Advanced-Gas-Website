@@ -128,12 +128,9 @@ function UserRow({ u, isMe, onChanged }: { u: Row; isMe: boolean; onChanged: () 
   function changeRole(r: Role) {
     setRole(r);
     // Pick a role → snap to that role's defaults, then tweak individual toggles.
-    setCaps({
-      overhead: roleDefault(r, "overhead"),
-      manage_users: roleDefault(r, "manage_users"),
-      reports_read: roleDefault(r, "reports_read"),
-      reports_write: roleDefault(r, "reports_write"),
-    });
+    const next = {} as Record<Cap, boolean>;
+    for (const { key } of CAPS) next[key] = roleDefault(r, key);
+    setCaps(next);
   }
 
   function save() {

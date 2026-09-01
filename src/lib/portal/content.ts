@@ -307,9 +307,20 @@ export const INFO_SECTIONS: InfoSection[] = [
         ],
       },
       {
-        title: "Standard service prices",
+        title: "Service prices (from)",
         rows: [
-          { k: "Split service", v: "$220 (or $140 ea for 3+ at one address)" },
+          { k: "Split service", v: "$220+ (or $140 ea for 3+ at one address)" },
+          { k: "Ducted split service", v: "$220+" },
+          { k: "Gas heater service", v: "$220+" },
+          { k: "Evap cooler service — single storey", v: "$300+" },
+          { k: "Evap cooler service — double storey", v: "$375+" },
+        ],
+      },
+      {
+        title: "Call-outs & hours",
+        rows: [
+          { k: "Business hours", v: "7:00am – 3:30pm, Mon–Fri" },
+          { k: "Outside those hours", v: "Charged as a call-out" },
           { k: "After-hours call-out", v: "$380 call-out, then $260/hr" },
           { k: "Quote turnaround", v: "Fixed price back within 12 business hours" },
           { k: "Compliance cert", v: "Emailed within 24 hours of install" },

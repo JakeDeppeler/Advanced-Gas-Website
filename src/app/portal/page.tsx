@@ -14,6 +14,7 @@ const TILES = [
   { href: "/portal/learning", title: "Learning videos", desc: "How-to and method videos for the crew.", icon: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5z", count: () => `${VIDEOS.length} videos` },
   { href: "/portal/information", title: "Information", desc: "The numbers, licences and contacts we quote from.", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5", count: () => "Quick reference" },
   { href: "/portal/tools", title: "Tools", desc: "Sizing, rebate estimator, fault codes, price list.", icon: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2z", count: () => `${TOOLS.length} tools` },
+  { href: "/portal/vehicles", title: "Vehicles", desc: "Servicing, km, fuel and the damage log for the fleet.", icon: "M3 6h11v9H3zM14 9h4l3 3v3h-7zM7.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z", count: () => "Fleet log" },
 ];
 
 export default async function PortalHome({ searchParams }: { searchParams: { denied?: string } }) {
