@@ -76,7 +76,7 @@
 .page-contact .ct-card--red h3 { color: #fff; }
 .page-contact .ct-card p { margin: 0 0 14px; font-size: 14.5px; color: var(--ink-2); line-height: 1.55; }
 .page-contact .ct-card--navy p,
-.page-contact .ct-card--red p { color: rgba(255,255,255,0.85); }
+.page-contact .ct-card--red p { color: #fff; }
 .page-contact .ct-card__phone {
   font-family: var(--f-display); font-weight: 800; font-size: 28px;
   letter-spacing: -0.01em; color: var(--orange);
@@ -88,7 +88,7 @@
   color: var(--ink-3); text-transform: uppercase;
 }
 .page-contact .ct-card--navy .ct-card__sub,
-.page-contact .ct-card--red .ct-card__sub { color: rgba(255,255,255,0.6); }
+.page-contact .ct-card--red .ct-card__sub { color: #fff; }
 
 .page-contact .ct-hours { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
 .page-contact .ct-hours__row {
