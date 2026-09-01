@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { HANDBOOK } from "@/lib/portal/content";
@@ -20,7 +21,7 @@ export default async function HandbookPage() {
       <div className="pt-head">
         <div className="pt-head__eyebrow">Handbook</div>
         <h1>How we do things here.</h1>
-        <p>The company operations manual — everything from who we are to how we quote, run a van and get paid. Grouped into shelves; each item is either written and ready to load, or a gap we still need to fill.</p>
+        <p>The company operations manual — everything from who we are to how we quote, run a van and get paid. Pick a shelf to open it.</p>
       </div>
 
       <div className="pt-hb-summary">
@@ -32,31 +33,21 @@ export default async function HandbookPage() {
         </div>
       </div>
 
-      {HANDBOOK.map((shelf) => (
-        <section key={shelf.letter} className="pt-hb-shelf">
-          <div className="pt-hb-shelf__h">
-            <span className="pt-hb-letter">{shelf.letter}</span>
-            <h2>{shelf.title}</h2>
-          </div>
-          <ul className="pt-hb-items">
-            {shelf.items.map((it) => (
-              <li key={it.title} className="pt-hb-item">
-                <span className={`pt-hb-status pt-hb-status--${it.status}`}>
-                  {it.status === "have" ? "Have it" : "To write"}
-                </span>
-                <div className="pt-hb-item__body">
-                  <div className="pt-hb-item__title">
-                    {it.title}
-                    {it.today && <span className="pt-hb-today">ready today</span>}
-                  </div>
-                  {it.note && <div className="pt-hb-item__note">{it.note}</div>}
-                  {it.status === "write" && it.gap && <div className="pt-hb-item__gap">{it.gap}</div>}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      <div className="pt-hb-cards">
+        {HANDBOOK.map((shelf) => {
+          const shelfHave = shelf.items.filter((i) => i.status === "have").length;
+          return (
+            <Link key={shelf.letter} href={`/portal/handbook/${shelf.letter.toLowerCase()}`} className="pt-hb-card">
+              <span className="pt-hb-letter">{shelf.letter}</span>
+              <span className="pt-hb-card__txt">
+                <strong>{shelf.title}</strong>
+                <span>{shelf.items.length} topic{shelf.items.length === 1 ? "" : "s"} · {shelfHave} ready</span>
+              </span>
+              <svg className="pt-hb-card__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </Link>
+          );
+        })}
+      </div>
     </PortalShell>
   );
 }

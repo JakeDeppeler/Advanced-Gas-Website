@@ -223,6 +223,20 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 .pt-hb-item__note { font-size: 12.5px; color: var(--pt-ink-2); line-height: 1.45; margin-top: 3px; }
 .pt-hb-item__gap { font-size: 11.5px; color: #a9701a; margin-top: 4px; font-style: italic; }
 
+/* handbook shelf cards (overview) */
+.pt-hb-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.pt-hb-card { display: flex; align-items: center; gap: 14px; background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: 14px; padding: 15px 18px; text-decoration: none; color: inherit; transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s; }
+.pt-hb-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgba(14,27,77,0.5); border-color: #d3daea; }
+.pt-hb-card__txt { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.pt-hb-card__txt strong { font-family: var(--f-display); font-size: 15px; font-weight: 800; color: var(--pt-ink); letter-spacing: -0.01em; }
+.pt-hb-card__txt span { font-size: 12.5px; color: var(--pt-ink-3); }
+.pt-hb-card__chev { flex: 0 0 auto; color: var(--pt-ink-3); }
+
+/* back link on sub-pages */
+.pt-back { display: inline-flex; align-items: center; gap: 4px; color: var(--pt-ink-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 10px; transition: color 0.14s; }
+.pt-back:hover { color: var(--pt-accent); }
+.pt-back svg { flex: 0 0 auto; }
+
 /* ==================================================================
    Shared form + control kit — buttons, fields, switches, panels.
    Used by the team-management and reports screens.

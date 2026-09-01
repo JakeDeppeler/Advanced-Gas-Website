@@ -368,6 +368,7 @@ export type PortalToolLink = { slug: string; label: string; blurb: string; href:
 
 export const PORTAL_TOOLS: PortalToolLink[] = [
   { slug: "quick-quote", label: "Quick quote", blurb: "Any model’s installed price, VEU applied, ready to read out.", href: "/portal/quote" },
+  { slug: "job-calculator", label: "Job calculator", blurb: "Workers × hours on the job → labour, materials and a price.", href: "/portal/job-calculator" },
   { slug: "heat-pump-sizing", label: "Heat pump sizing", blurb: "Size a tank off shower draw-off, not bedroom count.", href: "/portal/tools/heat-pump-sizing" },
   { slug: "veu-rebate-estimator", label: "VEU rebate estimator", blurb: "Ballpark the rebate before a site visit.", href: "/portal/tools/veu-rebate-estimator" },
   { slug: "running-cost-calculator", label: "Running cost", blurb: "Heat pump vs gas running costs for the quote.", href: "/portal/tools/running-cost-calculator" },

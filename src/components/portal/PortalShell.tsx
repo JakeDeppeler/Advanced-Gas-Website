@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { PortalUser } from "@/lib/portal/caps";
 import { can, ROLE_LABELS } from "@/lib/portal/caps";
-import { LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
+import { HANDBOOK, LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
 
 type Leaf = { href: string; label: string; external?: boolean };
 type NavNode =
@@ -16,6 +16,7 @@ const ICON = {
   home: "M3 11.5 12 4l9 7.5M5 10v9h5v-5h4v5h5v-9",
   book: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4zM20 5h0a3 3 0 0 0-3 3",
   quote: "M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h4",
+  calc: "M6 3h12v18H6zM9 7h6M9 11h1M13 11h2M9 14h1M13 14v4M9 17h1",
   play: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5zM8 20h8",
   info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5",
   wrench: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6",
@@ -29,8 +30,15 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
 
   const nodes: NavNode[] = [
     { kind: "link", href: "/portal", label: "Home", icon: ICON.home },
-    { kind: "link", href: "/portal/handbook", label: "Handbook", icon: ICON.book },
+    {
+      kind: "group", base: "/portal/handbook", label: "Handbook", icon: ICON.book,
+      children: [
+        { href: "/portal/handbook", label: "Overview" },
+        ...HANDBOOK.map((s) => ({ href: `/portal/handbook/${s.letter.toLowerCase()}`, label: `${s.letter} · ${s.title}` })),
+      ],
+    },
     { kind: "link", href: "/portal/quote", label: "Quick quote", icon: ICON.quote },
+    { kind: "link", href: "/portal/job-calculator", label: "Job calculator", icon: ICON.calc },
     {
       kind: "group", base: "/portal/learning", label: "Learning", icon: ICON.play,
       children: LEARNING_TRACKS.map((t) => ({ href: `/portal/learning/${t.slug}`, label: t.label })),
@@ -41,7 +49,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     },
     {
       kind: "group", base: "/portal/tools", label: "Tools", icon: ICON.wrench,
-      children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote").map((t) => ({ href: t.href, label: t.label, external: t.external })),
+      children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote" && t.slug !== "job-calculator").map((t) => ({ href: t.href, label: t.label, external: t.external })),
     },
   ];
   if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/reports", label: "Reports", icon: ICON.reports });
