@@ -65,6 +65,16 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
           </Link>
         )}
         {can(user, "overhead") && (
+          <Link href="/portal/finance" className="pt-tile">
+            <span className="pt-tile__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M4 19h16M7 15l3-4 3 2.5 4-6.5" /></svg>
+            </span>
+            <h3>Finance</h3>
+            <p>Live profit from Xero — day, week, month, year — and your targets.</p>
+            <div className="pt-card__meta">Open →</div>
+          </Link>
+        )}
+        {can(user, "overhead") && (
           <Link href="/portal/overhead" className="pt-tile">
             <span className="pt-tile__ico" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" /></svg>

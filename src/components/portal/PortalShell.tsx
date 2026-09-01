@@ -24,6 +24,7 @@ const ICON = {
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6",
   truck: "M3 6h11v9H3zM14 9h4l3 3v3h-7zM7.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
   bars: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7",
+  chart: "M4 19V5M4 19h16M7 15l3-4 3 2.5 4-6.5",
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
 };
 
@@ -57,6 +58,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
   ];
   nodes.push({ kind: "link", href: "/portal/me", label: "My file", icon: ICON.user });
   if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/team", label: "Team", icon: ICON.reports });
+  if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/finance", label: "Finance", icon: ICON.chart });
   if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/overhead", label: "Overhead", icon: ICON.bars });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
 

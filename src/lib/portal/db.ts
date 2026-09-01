@@ -486,3 +486,58 @@ export async function deleteVehicleLog(id: string): Promise<{ ok: boolean; error
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };
 }
+
+/* ---------------- integrations (OAuth tokens) ---------------- */
+
+export type Integration = {
+  provider: string;
+  tenantId: string | null;
+  tenantName: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresAt: string | null;
+  connectedBy: string | null;
+};
+
+type IntegrationRow = {
+  provider: string; tenant_id: string | null; tenant_name: string | null;
+  access_token: string | null; refresh_token: string | null; expires_at: string | null; connected_by: string | null;
+};
+
+export async function getIntegration(provider: string): Promise<Integration | null> {
+  const res = await sb(`portal_integrations?provider=eq.${encodeURIComponent(provider)}&select=*`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as IntegrationRow[];
+  const r = rows[0];
+  if (!r) return null;
+  return { provider: r.provider, tenantId: r.tenant_id, tenantName: r.tenant_name, accessToken: r.access_token, refreshToken: r.refresh_token, expiresAt: r.expires_at, connectedBy: r.connected_by };
+}
+
+export async function saveIntegration(provider: string, data: {
+  tenantId?: string | null; tenantName?: string | null;
+  accessToken?: string | null; refreshToken?: string | null; expiresAt?: string | null; connectedBy?: string | null;
+}): Promise<{ ok: boolean; error?: string }> {
+  const body: Record<string, unknown> = { provider, updated_at: new Date().toISOString() };
+  if (data.tenantId !== undefined) body.tenant_id = data.tenantId;
+  if (data.tenantName !== undefined) body.tenant_name = data.tenantName;
+  if (data.accessToken !== undefined) body.access_token = data.accessToken;
+  if (data.refreshToken !== undefined) body.refresh_token = data.refreshToken;
+  if (data.expiresAt !== undefined) body.expires_at = data.expiresAt;
+  if (data.connectedBy !== undefined) body.connected_by = data.connectedBy;
+  // upsert on the provider primary key
+  const res = await sb(`portal_integrations?on_conflict=provider`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify(body),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status} ${await res.text().catch(() => "")}` };
+  return { ok: true };
+}
+
+export async function deleteIntegration(provider: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_integrations?provider=eq.${encodeURIComponent(provider)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
