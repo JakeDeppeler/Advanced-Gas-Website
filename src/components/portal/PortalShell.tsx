@@ -1,31 +1,57 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { PortalUser } from "@/lib/portal/caps";
 import { can, ROLE_LABELS } from "@/lib/portal/caps";
+import { LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
 
-const NAV = [
-  { href: "/portal", label: "Home", icon: "M3 11.5 12 4l9 7.5M5 10v9h5v-5h4v5h5v-9" },
-  { href: "/portal/handbook", label: "Handbook", icon: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4zM20 5h0a3 3 0 0 0-3 3" },
-  { href: "/portal/learning", label: "Learning", icon: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5zM8 20h8" },
-  { href: "/portal/information", label: "Information", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5" },
-  { href: "/portal/tools", label: "Tools", icon: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6" },
-];
+type Leaf = { href: string; label: string; external?: boolean };
+type NavNode =
+  | { kind: "link"; href: string; label: string; icon: string }
+  | { kind: "group"; base: string; label: string; icon: string; children: Leaf[] };
 
-const REPORTS = { href: "/portal/reports", label: "Reports", icon: "M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5" };
-const OVERHEAD = { href: "/portal/overhead", label: "Overhead", icon: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" };
-const ADMIN = { href: "/portal/admin", label: "Admin", icon: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" };
+const ICON = {
+  home: "M3 11.5 12 4l9 7.5M5 10v9h5v-5h4v5h5v-9",
+  book: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4zM20 5h0a3 3 0 0 0-3 3",
+  quote: "M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h4",
+  play: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5zM8 20h8",
+  info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5",
+  wrench: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6",
+  reports: "M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5",
+  bars: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7",
+  shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
+};
 
 export function PortalShell({ user, children }: { user: PortalUser; children: React.ReactNode }) {
   const pathname = usePathname();
 
-  const items = [...NAV];
-  if (can(user, "reports_read")) items.push(REPORTS);
-  if (can(user, "overhead")) items.push(OVERHEAD);
-  if (can(user, "manage_users")) items.push(ADMIN);
+  const nodes: NavNode[] = [
+    { kind: "link", href: "/portal", label: "Home", icon: ICON.home },
+    { kind: "link", href: "/portal/handbook", label: "Handbook", icon: ICON.book },
+    { kind: "link", href: "/portal/quote", label: "Quick quote", icon: ICON.quote },
+    {
+      kind: "group", base: "/portal/learning", label: "Learning", icon: ICON.play,
+      children: LEARNING_TRACKS.map((t) => ({ href: `/portal/learning/${t.slug}`, label: t.label })),
+    },
+    {
+      kind: "group", base: "/portal/information", label: "Information", icon: ICON.info,
+      children: INFO_SECTIONS.map((s) => ({ href: `/portal/information/${s.slug}`, label: s.label })),
+    },
+    {
+      kind: "group", base: "/portal/tools", label: "Tools", icon: ICON.wrench,
+      children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote").map((t) => ({ href: t.href, label: t.label, external: t.external })),
+    },
+  ];
+  if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/reports", label: "Reports", icon: ICON.reports });
+  if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/overhead", label: "Overhead", icon: ICON.bars });
+  if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
 
-  const isActive = (href: string) => (href === "/portal" ? pathname === "/portal" : pathname.startsWith(href));
+  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+  const linkActive = (href: string) => (href === "/portal" ? pathname === "/portal" : pathname === href || pathname.startsWith(href + "/"));
+  const groupCurrent = (base: string) => pathname === base || pathname.startsWith(base + "/");
+  const groupOpen = (base: string) => toggled[base] ?? groupCurrent(base);
 
   return (
     <div className="pt">
@@ -35,14 +61,40 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
           <span className="pt__brand-txt">Advanced Gas<br /><em>Team portal</em></span>
         </div>
         <nav className="pt__nav" aria-label="Portal">
-          {items.map((it) => (
-            <Link key={it.href} href={it.href} className={`pt__navlink${isActive(it.href) ? " is-on" : ""}`}>
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d={it.icon} />
-              </svg>
-              {it.label}
-            </Link>
-          ))}
+          {nodes.map((node) =>
+            node.kind === "link" ? (
+              <Link key={node.href} href={node.href} className={`pt__navlink${linkActive(node.href) ? " is-on" : ""}`}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={node.icon} /></svg>
+                {node.label}
+              </Link>
+            ) : (
+              <div key={node.base} className="pt__group">
+                <button
+                  type="button"
+                  className={`pt__navlink pt__grouphead${groupCurrent(node.base) ? " is-cur" : ""}`}
+                  aria-expanded={groupOpen(node.base)}
+                  onClick={() => setToggled((t) => ({ ...t, [node.base]: !groupOpen(node.base) }))}
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={node.icon} /></svg>
+                  {node.label}
+                  <svg className={`pt__chev${groupOpen(node.base) ? " is-open" : ""}`} viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+                </button>
+                <div className={`pt__children${groupOpen(node.base) ? " is-open" : ""}`}>
+                  {node.children.map((c) => (
+                    <Link
+                      key={c.href}
+                      href={c.href}
+                      target={c.external ? "_blank" : undefined}
+                      rel={c.external ? "noopener" : undefined}
+                      className={`pt__child${!c.external && linkActive(c.href) ? " is-on" : ""}`}
+                    >
+                      {c.label}{c.external ? " ↗" : ""}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ),
+          )}
         </nav>
         <div className="pt__side-foot">
           <a href="/" className="pt__backlink">← Main site</a>
