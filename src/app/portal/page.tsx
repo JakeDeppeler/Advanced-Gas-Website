@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { DOCS, VIDEOS, TOOLS } from "@/lib/portal/content";
+import { HANDBOOK, VIDEOS, TOOLS } from "@/lib/portal/content";
 
 export const metadata = { title: "Team portal" };
 
+const HB_ITEMS = HANDBOOK.reduce((n, s) => n + s.items.length, 0);
+
 const TILES = [
-  { href: "/portal/training", title: "Training", desc: "Install standards, SWMS, VEU process and onboarding.", icon: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4z", count: () => `${DOCS.length} documents` },
+  { href: "/portal/handbook", title: "Handbook", desc: "How we work — the full operations manual, A to G.", icon: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4z", count: () => `${HB_ITEMS} topics` },
   { href: "/portal/learning", title: "Learning videos", desc: "How-to and method videos for the crew.", icon: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5z", count: () => `${VIDEOS.length} videos` },
   { href: "/portal/information", title: "Information", desc: "The numbers, licences and contacts we quote from.", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5", count: () => "Quick reference" },
   { href: "/portal/tools", title: "Tools", desc: "Sizing, rebate estimator, fault codes, price list.", icon: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2z", count: () => `${TOOLS.length} tools` },

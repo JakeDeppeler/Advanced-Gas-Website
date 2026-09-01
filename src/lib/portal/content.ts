@@ -1,43 +1,126 @@
 /**
- * Portal content — the docs, videos, reference info and tools the team sees.
+ * Portal content — the handbook shelves, videos, reference info and tools.
  *
- * This is the single place to edit what's in the portal. Add a training
- * document, drop in a video, add a supplier number — it all lives here as
- * plain data, so nobody needs to touch a React component to keep it current.
- * (A later phase can move this into an in-portal editor / file uploads; for
- * now it's version-controlled, which is no bad thing for install standards.)
+ * The HANDBOOK below is the company operations manual, grouped into the
+ * seven shelves (A–G). Each item carries a status:
+ *   - "have"  → the content is written, it just needs loading in (add an
+ *               `href` to a file/Google Doc and it goes live).
+ *   - "write" → a genuine gap still to create.
+ *   - today   → flagged as ready-today in the source map.
+ * So this doubles as the team's table of contents and our build tracker.
  *
- * A doc/video with no `href`/`youtubeId` yet renders as "coming soon" so the
- * shape of the library is visible before every file is uploaded.
+ * Everything is plain data — edit here to change what's in the portal.
  */
 
-export type Category = "Install standards" | "Safety & compliance" | "Rebates & paperwork" | "Products & brands" | "Sales & quoting" | "Onboarding";
+export type HandbookStatus = "have" | "write";
 
-export const CATEGORIES: Category[] = [
-  "Install standards",
-  "Safety & compliance",
-  "Rebates & paperwork",
-  "Products & brands",
-  "Sales & quoting",
-  "Onboarding",
-];
-
-export type Doc = {
+export type HandbookItem = {
   title: string;
-  category: Category;
-  description: string;
-  href?: string; // a file URL, Google Doc, or internal page — leave blank for "coming soon"
-  kind?: "pdf" | "doc" | "sheet" | "link";
+  note?: string;
+  status: HandbookStatus;
+  today?: boolean;
+  href?: string; // add a file/Doc link and the item becomes clickable
+  gap?: string;  // for "write" items: what's needed
 };
 
+export type Shelf = {
+  letter: string;
+  title: string;
+  items: HandbookItem[];
+};
+
+export const HANDBOOK: Shelf[] = [
+  {
+    letter: "A",
+    title: "Who we are & how we work",
+    items: [
+      { title: "Welcome / who we are", note: "Company, licences, org chart", status: "have" },
+      { title: "The 10 standards we run on", status: "have" },
+      { title: "Attitude & the two-way deal", note: "“We train as long as you learn”", status: "have", today: true },
+      { title: "Who owns what + who decides", status: "have" },
+      { title: "The weekly & daily rhythm", note: "Van check, Monday huddle, scorecard, Wednesday planning", status: "have" },
+    ],
+  },
+  {
+    letter: "B",
+    title: "Your role & your future",
+    items: [
+      { title: "Expectations per role", note: "Tradesman & apprentice", status: "have" },
+      { title: "The career ladder", note: "Apprentice yr 1–4 → tradesman → leading hand → manager", status: "have", today: true },
+      { title: "Pay bands", status: "write", gap: "Needs award check + sign-off" },
+      { title: "KPIs per role", note: "The 3–4 each person is scored on", status: "write", gap: "Targets exist, per-role split doesn’t" },
+      { title: "Reward & consequence", note: "What you earn, and the fair path when you miss", status: "have", today: true },
+    ],
+  },
+  {
+    letter: "C",
+    title: "The places — factory & vans",
+    items: [
+      { title: "Keep the factory clean", note: "Daily tidy, who owns which area, end-of-day", status: "write" },
+      { title: "Stock & restock system", note: "Van kit list, running-low flag, deliveries", status: "write" },
+      { title: "Van care", note: "Daily/weekly by the crew", status: "have" },
+      { title: "The monthly van condition check + damage log", status: "have", today: true },
+      { title: "Rego, service & fuel", note: "Who tracks it", status: "write" },
+    ],
+  },
+  {
+    letter: "D",
+    title: "The customer",
+    items: [
+      { title: "At the front door", note: "Parking, “G’day I’m [name] from Advanced Gas,” boots, their-home-their-rules", status: "have" },
+      { title: "How we present", note: "Uniform, ID, business card", status: "have" },
+      { title: "How we sell", note: "Value not price, the 4 steps, diagnose & explain, Good/Better/Best, the iPad menu, quoting on the phone, “it’s too expensive,” ask for the sale", status: "have" },
+      { title: "How we quote & price", note: "Three options always, never invent a price, scope changes priced first, rebates", status: "have" },
+    ],
+  },
+  {
+    letter: "E",
+    title: "The systems",
+    items: [
+      { title: "On the job in ServiceTitan", note: "Lead → dispatch → estimate → invoice → paid, photos & forms every time", status: "have" },
+      { title: "The numbers", note: "The scoreboard, GP%, utilisation, what they mean", status: "have" },
+      { title: "Reviews", note: "Ask every happy job, make it easy, reply to them", status: "have" },
+      { title: "The website & where to point everyone", status: "have" },
+    ],
+  },
+  {
+    letter: "F",
+    title: "Safety, compliance & admin",
+    items: [
+      { title: "Safety wins every argument", note: "SWMS/JSA, incident reporting", status: "write", gap: "Consolidate" },
+      { title: "Compliance", note: "Never work outside your licence, gas & ARC, compliance certs", status: "write", gap: "Consolidate" },
+      { title: "Timesheets, invoicing & getting paid", status: "write" },
+    ],
+  },
+  {
+    letter: "G",
+    title: "Forms & templates",
+    items: [
+      { title: "Estimate templates", note: "Good/Better/Best, top 10 jobs", status: "write", gap: "Part of the ServiceTitan build" },
+      { title: "Checklists", note: "Van kit, front-door card, before-go-live", status: "write", gap: "Part have / part write" },
+    ],
+  },
+];
+
+/* ------------------------------------------------------------- Videos -- */
 export type Video = {
   title: string;
-  category: Category;
+  category: string;
   description: string;
   youtubeId?: string; // just the id, e.g. "dQw4w9WgXcQ"
   minutes?: number;
 };
 
+export const VIDEOS: Video[] = [
+  { title: "Back-to-back split install, start to finish", category: "Install standards", description: "The full method on a standard job.", minutes: 12 },
+  { title: "Zoning a ducted system with Zonemate", category: "Install standards", description: "Setting up and balancing zones.", minutes: 9 },
+  { title: "Reclaim CO₂ heat pump commissioning", category: "Products & brands", description: "First run, temp check and app setup.", minutes: 7 },
+  { title: "Talking a customer through the VEU rebate", category: "Sales & quoting", description: "How to explain the rebate simply on a quote call.", minutes: 5 },
+  { title: "The front-door approach", category: "The customer", description: "How we introduce ourselves and set the tone on arrival.", minutes: 4 },
+  { title: "Good / Better / Best on the iPad", category: "Sales & quoting", description: "Presenting three options the right way.", minutes: 6 },
+];
+
+/* -------------------------------------------------------------- Tools -- */
 export type ToolLink = {
   title: string;
   description: string;
@@ -45,33 +128,6 @@ export type ToolLink = {
   external?: boolean;
 };
 
-export type InfoBlock = {
-  title: string;
-  rows: { k: string; v: string }[];
-};
-
-/* ---------------------------------------------------------------- Docs -- */
-export const DOCS: Doc[] = [
-  { title: "Split system install standard", category: "Install standards", description: "Back-to-back method, line-set, bracketing, capping and the finish we sign off to.", kind: "pdf" },
-  { title: "Ducted install standard", category: "Install standards", description: "Duct design, zoning, return-air and commissioning checklist.", kind: "pdf" },
-  { title: "Heat pump hot water install standard", category: "Install standards", description: "Split vs all-in-one, tank siting, condensate and power-point rules.", kind: "pdf" },
-  { title: "Job SWMS template", category: "Safety & compliance", description: "Safe work method statement to fill out before each install.", kind: "doc" },
-  { title: "Carbon monoxide test procedure", category: "Safety & compliance", description: "The gas-heater CO test steps and the analyser reading we record.", kind: "pdf" },
-  { title: "VEU rebate — how we lodge it", category: "Rebates & paperwork", description: "Eligibility, the forms, and how the rebate comes off the quote.", kind: "doc" },
-  { title: "Compliance certificate process", category: "Rebates & paperwork", description: "What gets issued, to whom, and the 24-hour turnaround.", kind: "doc" },
-  { title: "Brand cheat-sheet", category: "Products & brands", description: "Which brand we lead with for which job, and why — Reclaim, iStore, Thermann, Mitsubishi, Kaden, Brivis.", href: "/brands", kind: "link" },
-  { title: "New starter handbook", category: "Onboarding", description: "How we work, who does what, and the standards we hold to.", kind: "doc" },
-];
-
-/* ------------------------------------------------------------- Videos -- */
-export const VIDEOS: Video[] = [
-  { title: "Back-to-back split install, start to finish", category: "Install standards", description: "The full method on a standard job.", minutes: 12 },
-  { title: "Zoning a ducted system with Zonemate", category: "Install standards", description: "Setting up and balancing zones.", minutes: 9 },
-  { title: "Reclaim CO₂ heat pump commissioning", category: "Products & brands", description: "First run, temp check and app setup.", minutes: 7 },
-  { title: "Talking a customer through the VEU rebate", category: "Sales & quoting", description: "How to explain the rebate simply on a quote call.", minutes: 5 },
-];
-
-/* -------------------------------------------------------------- Tools -- */
 export const TOOLS: ToolLink[] = [
   { title: "Heat pump sizing", description: "Size a tank off shower draw-off, not bedroom count.", href: "/tools/heat-pump-sizing" },
   { title: "VEU rebate estimator", description: "Ballpark the rebate before a site visit.", href: "/tools/veu-rebate-estimator" },
@@ -82,6 +138,11 @@ export const TOOLS: ToolLink[] = [
 ];
 
 /* -------------------------------------------------------------- Info --- */
+export type InfoBlock = {
+  title: string;
+  rows: { k: string; v: string }[];
+};
+
 export const INFO: InfoBlock[] = [
   {
     title: "The numbers we quote",
