@@ -55,13 +55,23 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             <div className="pt-card__meta">Lead hands &amp; admins</div>
           </Link>
         )}
-        {(can(user, "manage_users") || can(user, "overhead")) && (
+        {can(user, "overhead") && (
+          <Link href="/portal/overhead" className="pt-tile">
+            <span className="pt-tile__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" /></svg>
+            </span>
+            <h3>Overhead cost</h3>
+            <p>What every billable hour has to recover, and your charge-out rate.</p>
+            <div className="pt-card__meta">Open →</div>
+          </Link>
+        )}
+        {can(user, "manage_users") && (
           <Link href="/portal/admin" className="pt-tile">
             <span className="pt-tile__ico" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" /></svg>
             </span>
             <h3>Admin</h3>
-            <p>Manage the team, set access, and the numbers behind the business.</p>
+            <p>Manage the team and set who can see what.</p>
             <div className="pt-card__meta">Admins only</div>
           </Link>
         )}

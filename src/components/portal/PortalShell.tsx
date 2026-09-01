@@ -14,6 +14,7 @@ const NAV = [
 ];
 
 const REPORTS = { href: "/portal/reports", label: "Reports", icon: "M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5" };
+const OVERHEAD = { href: "/portal/overhead", label: "Overhead", icon: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" };
 const ADMIN = { href: "/portal/admin", label: "Admin", icon: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" };
 
 export function PortalShell({ user, children }: { user: PortalUser; children: React.ReactNode }) {
@@ -21,7 +22,8 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
 
   const items = [...NAV];
   if (can(user, "reports_read")) items.push(REPORTS);
-  if (can(user, "manage_users") || can(user, "overhead")) items.push(ADMIN);
+  if (can(user, "overhead")) items.push(OVERHEAD);
+  if (can(user, "manage_users")) items.push(ADMIN);
 
   const isActive = (href: string) => (href === "/portal" ? pathname === "/portal" : pathname.startsWith(href));
 
