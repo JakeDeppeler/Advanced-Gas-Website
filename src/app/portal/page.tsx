@@ -45,13 +45,21 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             <div className="pt-card__meta">{t.count()}</div>
           </Link>
         ))}
+        <Link href="/portal/me" className="pt-tile">
+          <span className="pt-tile__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6" /></svg>
+          </span>
+          <h3>My file</h3>
+          <p>What&rsquo;s expected of you, your goals and targets, and your reviews.</p>
+          <div className="pt-card__meta">Open →</div>
+        </Link>
         {can(user, "reports_read") && (
-          <Link href="/portal/reports" className="pt-tile">
+          <Link href="/portal/team" className="pt-tile">
             <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5" /></svg>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M17 11l2 2 3-3.5" /></svg>
             </span>
-            <h3>Reports</h3>
-            <p>Coaching, performance and handover notes on the crew.</p>
+            <h3>Team</h3>
+            <p>Each person&rsquo;s file — expectations, goals, reviews and private notes.</p>
             <div className="pt-card__meta">Lead hands &amp; admins</div>
           </Link>
         )}

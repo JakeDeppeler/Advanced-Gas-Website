@@ -54,9 +54,10 @@ type UserRow = {
   active: boolean;
   invited_by: string | null;
   created_at: string;
+  expectations: string | null;
 };
 
-function toUser(r: UserRow): PortalUser & { invitedBy?: string | null; createdAt?: string } {
+function toUser(r: UserRow): PortalUser & { invitedBy?: string | null; createdAt?: string; expectations?: string | null } {
   return {
     id: r.id,
     email: r.email,
@@ -66,6 +67,7 @@ function toUser(r: UserRow): PortalUser & { invitedBy?: string | null; createdAt
     active: r.active,
     invitedBy: r.invited_by,
     createdAt: r.created_at,
+    expectations: r.expectations ?? null,
   };
 }
 
@@ -76,6 +78,7 @@ export type Report = {
   authorEmail: string;
   authorName: string | null;
   category: string;
+  sentiment: string | null;
   title: string | null;
   body: string;
   createdAt: string;
@@ -88,6 +91,7 @@ type ReportRow = {
   author_email: string;
   author_name: string | null;
   category: string;
+  sentiment: string | null;
   title: string | null;
   body: string;
   created_at: string;
@@ -101,15 +105,42 @@ function toReport(r: ReportRow): Report {
     authorEmail: r.author_email,
     authorName: r.author_name,
     category: r.category,
+    sentiment: r.sentiment ?? null,
     title: r.title,
     body: r.body,
     createdAt: r.created_at,
   };
 }
 
+export type Goal = {
+  id: string;
+  userId: string;
+  title: string;
+  target: string | null;
+  status: "open" | "done";
+  due: string | null;
+  createdAt: string;
+};
+
+type GoalRow = { id: string; user_id: string; title: string; target: string | null; status: "open" | "done"; due: string | null; created_at: string };
+const toGoal = (r: GoalRow): Goal => ({ id: r.id, userId: r.user_id, title: r.title, target: r.target, status: r.status, due: r.due, createdAt: r.created_at });
+
+export type Review = {
+  id: string;
+  userId: string;
+  period: string | null;
+  rating: number | null;
+  body: string;
+  authorName: string | null;
+  createdAt: string;
+};
+
+type ReviewRow = { id: string; user_id: string; period: string | null; rating: number | null; body: string; author_email: string | null; author_name: string | null; created_at: string };
+const toReview = (r: ReviewRow): Review => ({ id: r.id, userId: r.user_id, period: r.period, rating: r.rating, body: r.body, authorName: r.author_name, createdAt: r.created_at });
+
 /* ---------------- users ---------------- */
 
-export async function getUser(email: string): Promise<(PortalUser & { invitedBy?: string | null }) | null> {
+export async function getUser(email: string): Promise<(PortalUser & { invitedBy?: string | null; expectations?: string | null }) | null> {
   const e = email.trim().toLowerCase();
   const res = await sb(`${USERS}?email=eq.${encodeURIComponent(e)}&select=*`);
   if (!res || !res.ok) return null;
@@ -148,15 +179,23 @@ export async function createUser(input: {
   return { ok: true };
 }
 
+export async function getUserById(id: string): Promise<(PortalUser & { expectations?: string | null }) | null> {
+  const res = await sb(`${USERS}?id=eq.${encodeURIComponent(id)}&select=*`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as UserRow[];
+  return rows[0] ? toUser(rows[0]) : null;
+}
+
 export async function updateUser(
   id: string,
-  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string },
+  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; expectations?: string },
 ): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.role !== undefined) body.role = patch.role;
   if (patch.caps !== undefined) body.caps = patch.caps;
   if (patch.active !== undefined) body.active = patch.active;
   if (patch.name !== undefined) body.name = patch.name.trim();
+  if (patch.expectations !== undefined) body.expectations = patch.expectations;
   const res = await sb(`${USERS}?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
@@ -211,7 +250,7 @@ export async function listReports(opts: { subjectId?: string; limit?: number } =
 export async function createReport(input: {
   subjectId: string | null; subjectName: string;
   authorEmail: string; authorName: string;
-  category: string; title?: string; body: string;
+  category: string; sentiment?: string; title?: string; body: string;
 }): Promise<{ ok: boolean; error?: string }> {
   const res = await sb(REPORTS, {
     method: "POST",
@@ -222,6 +261,7 @@ export async function createReport(input: {
       author_email: input.authorEmail,
       author_name: input.authorName,
       category: input.category,
+      sentiment: input.sentiment || null,
       title: input.title || null,
       body: input.body,
     }),
@@ -236,6 +276,70 @@ export async function deleteReport(id: string): Promise<{ ok: boolean; error?: s
     method: "DELETE",
     headers: { Prefer: "return=minimal" },
   });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+/* ---------------- goals & targets ---------------- */
+
+export async function listGoals(userId: string): Promise<Goal[]> {
+  const res = await sb(`portal_goals?user_id=eq.${encodeURIComponent(userId)}&select=*&order=status.asc,created_at.desc`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as GoalRow[]).map(toGoal);
+}
+
+export async function createGoal(input: { userId: string; title: string; target?: string; due?: string | null; createdBy?: string }): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_goals", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: input.userId, title: input.title, target: input.target || null, due: input.due || null, created_by: input.createdBy || null }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function updateGoal(id: string, patch: { title?: string; target?: string; status?: "open" | "done"; due?: string | null }): Promise<{ ok: boolean; error?: string }> {
+  const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (patch.title !== undefined) body.title = patch.title;
+  if (patch.target !== undefined) body.target = patch.target || null;
+  if (patch.status !== undefined) body.status = patch.status;
+  if (patch.due !== undefined) body.due = patch.due || null;
+  const res = await sb(`portal_goals?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteGoal(id: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_goals?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+/* ---------------- reviews ---------------- */
+
+export async function listReviews(userId: string): Promise<Review[]> {
+  const res = await sb(`portal_reviews?user_id=eq.${encodeURIComponent(userId)}&select=*&order=created_at.desc`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as ReviewRow[]).map(toReview);
+}
+
+export async function createReview(input: { userId: string; period?: string; rating?: number | null; body: string; authorEmail: string; authorName: string }): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_reviews", {
+    method: "POST",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ user_id: input.userId, period: input.period || null, rating: input.rating ?? null, body: input.body, author_email: input.authorEmail, author_name: input.authorName }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteReview(id: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_reviews?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };

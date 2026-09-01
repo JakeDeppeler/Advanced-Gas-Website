@@ -20,7 +20,8 @@ const ICON = {
   play: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5zM8 20h8",
   info: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5",
   wrench: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6",
-  reports: "M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5",
+  reports: "M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M17 11l2 2 3-3.5",
+  user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6",
   bars: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7",
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
 };
@@ -52,7 +53,8 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote" && t.slug !== "job-calculator").map((t) => ({ href: t.href, label: t.label, external: t.external })),
     },
   ];
-  if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/reports", label: "Reports", icon: ICON.reports });
+  nodes.push({ kind: "link", href: "/portal/me", label: "My file", icon: ICON.user });
+  if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/team", label: "Team", icon: ICON.reports });
   if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/overhead", label: "Overhead", icon: ICON.bars });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
 
