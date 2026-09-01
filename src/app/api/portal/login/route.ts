@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isTeam } from "@/lib/portal/team";
+import { isAllowed } from "@/lib/portal/db";
 import { createMagicToken } from "@/lib/portal/session";
 import { sendMagicLink } from "@/lib/portal/email";
 import { site } from "@/lib/site";
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   const email = String(form?.get("email") ?? "").trim().toLowerCase();
   const next = String(form?.get("next") ?? "");
 
-  if (email && isTeam(email) && process.env.PORTAL_AUTH_SECRET) {
+  if (email && process.env.PORTAL_AUTH_SECRET && (await isAllowed(email))) {
     const token = await createMagicToken(email);
     if (token) {
       // Build the link against the deployment it was requested from. On

@@ -1,57 +1,34 @@
 /**
- * Who can get into the team portal, and who's an admin.
+ * The owner seed.
  *
- * This is the allow-list: only these email addresses can request a magic
- * link, and only `role: "admin"` unlocks the admin area (overhead tool,
- * managing content). To add a team member, add a line here — or set the
- * PORTAL_TEAM / PORTAL_ADMINS env vars (comma-separated emails) which are
- * merged in on top, so you can add people without a code change.
+ * The team allow-list now lives in the database (portal_users), managed
+ * from the admin screen. This file is just the hard-coded fallback so the
+ * owner can always get in — even on a fresh deploy, or if the database is
+ * unreachable, or if a row got deleted by accident. Anyone here is treated
+ * as an admin regardless of what the database says.
  *
  * Keep it lowercase; lookups are case-insensitive.
  */
 
-export type Role = "member" | "admin";
+import type { Role } from "./caps";
 
-export type TeamMember = {
-  email: string;
-  name: string;
-  role: Role;
-};
+export type { Role };
 
-const BASE_TEAM: TeamMember[] = [
+export type SeedMember = { email: string; name: string; role: Role };
+
+const OWNERS: SeedMember[] = [
   { email: "jake@advancedgas.com.au", name: "Jake Deppeler", role: "admin" },
   { email: "jake@trusttrade.au", name: "Jake Deppeler", role: "admin" },
-  // Add the rest of the crew here, e.g.:
-  // { email: "sam@advancedgas.com.au", name: "Sam", role: "member" },
 ];
 
-function envEmails(key: string): string[] {
-  return (process.env[key] ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-/** The full team = the code list plus anyone added via env vars. */
-export function team(): TeamMember[] {
-  const map = new Map<string, TeamMember>();
-  for (const m of BASE_TEAM) map.set(m.email.toLowerCase(), { ...m, email: m.email.toLowerCase() });
-  for (const e of envEmails("PORTAL_TEAM")) {
-    if (!map.has(e)) map.set(e, { email: e, name: e.split("@")[0], role: "member" });
-  }
-  for (const e of envEmails("PORTAL_ADMINS")) {
-    const existing = map.get(e);
-    if (existing) existing.role = "admin";
-    else map.set(e, { email: e, name: e.split("@")[0], role: "admin" });
-  }
-  return [...map.values()];
-}
-
-export function findMember(email: string): TeamMember | undefined {
+/** True for an owner email — always an admin, never locked out. */
+export function isOwner(email: string): boolean {
   const e = email.trim().toLowerCase();
-  return team().find((m) => m.email === e);
+  return OWNERS.some((m) => m.email === e);
 }
 
-export function isTeam(email: string): boolean {
-  return !!findMember(email);
+/** The owner seed record for an email, if any. */
+export function baseMember(email: string): SeedMember | undefined {
+  const e = email.trim().toLowerCase();
+  return OWNERS.find((m) => m.email === e);
 }

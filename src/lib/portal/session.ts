@@ -5,20 +5,23 @@
  *   - a "magic" token (15 min) that goes in the emailed sign-in link, and
  *   - a "session" token (30 days) stored in an httpOnly cookie.
  *
- * readSessionValue re-checks the team allow-list on every read, so pulling
- * someone out of team.ts logs them out immediately, cookie or not.
+ * The session cookie carries only identity (email + display name). The
+ * live role and capabilities are looked up from the database on every
+ * request via resolveUser, so changing someone's access — or switching
+ * them off — takes effect on their next page load, cookie or not.
  */
 
 import { cookies } from "next/headers";
 import { sign, verify } from "./token";
-import { findMember, type Role } from "./team";
+import { resolveUser } from "./db";
 import { SESSION_COOKIE } from "./constants";
+import type { PortalUser } from "./caps";
 
 export { SESSION_COOKIE };
+export type { PortalUser };
+
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAGIC_TTL_MS = 15 * 60 * 1000; // 15 minutes
-
-export type PortalUser = { email: string; name: string; role: Role };
 
 function secret(): string | null {
   return process.env.PORTAL_AUTH_SECRET || null;
@@ -38,30 +41,24 @@ export async function readMagicToken(token: string): Promise<string | null> {
   return String(p.email).toLowerCase();
 }
 
-export async function createSessionValue(user: PortalUser): Promise<string | null> {
+export async function createSessionValue(identity: { email: string; name: string }): Promise<string | null> {
   const s = secret();
   if (!s) return null;
   return sign(
-    { email: user.email, name: user.name, role: user.role, t: "session", exp: Date.now() + SESSION_TTL_MS },
+    { email: identity.email.toLowerCase(), name: identity.name, t: "session", exp: Date.now() + SESSION_TTL_MS },
     s,
   );
 }
 
-export async function readSessionValue(value: string): Promise<PortalUser | null> {
-  const s = secret();
-  if (!s) return null;
-  const p = await verify<{ email: string; name: string; role: Role; t: string }>(value, s);
-  if (!p || p.t !== "session" || !p.email) return null;
-  const member = findMember(String(p.email));
-  if (!member) return null; // removed from the team → no session
-  return { email: member.email, name: member.name, role: member.role };
-}
-
-/** Current signed-in team member, or null. For server components / routes. */
+/** Current signed-in team member with fresh role + caps from the database. */
 export async function getPortalUser(): Promise<PortalUser | null> {
   const value = cookies().get(SESSION_COOKIE)?.value;
   if (!value) return null;
-  return readSessionValue(value);
+  const s = secret();
+  if (!s) return null;
+  const p = await verify<{ email?: string; t?: string }>(value, s);
+  if (!p || p.t !== "session" || !p.email) return null;
+  return resolveUser(String(p.email));
 }
 
 export const sessionCookieOptions = {

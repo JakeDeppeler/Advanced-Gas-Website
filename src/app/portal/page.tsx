@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
+import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { HANDBOOK, VIDEOS, TOOLS } from "@/lib/portal/content";
 
@@ -44,13 +45,23 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             <div className="pt-card__meta">{t.count()}</div>
           </Link>
         ))}
-        {user.role === "admin" && (
+        {can(user, "reports_read") && (
+          <Link href="/portal/reports" className="pt-tile">
+            <span className="pt-tile__ico" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5" /></svg>
+            </span>
+            <h3>Reports</h3>
+            <p>Coaching, performance and handover notes on the crew.</p>
+            <div className="pt-card__meta">Lead hands &amp; admins</div>
+          </Link>
+        )}
+        {(can(user, "manage_users") || can(user, "overhead")) && (
           <Link href="/portal/admin" className="pt-tile">
             <span className="pt-tile__ico" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" /></svg>
             </span>
             <h3>Admin</h3>
-            <p>Overhead-cost tool and the numbers behind the business.</p>
+            <p>Manage the team, set access, and the numbers behind the business.</p>
             <div className="pt-card__meta">Admins only</div>
           </Link>
         )}

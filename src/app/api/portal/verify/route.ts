@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { readMagicToken, createSessionValue, sessionCookieOptions, SESSION_COOKIE } from "@/lib/portal/session";
-import { findMember } from "@/lib/portal/team";
+import { resolveUser } from "@/lib/portal/db";
 
 export const runtime = "nodejs";
 
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const next = req.nextUrl.searchParams.get("next") ?? "/portal";
 
   const email = token ? await readMagicToken(token) : null;
-  const member = email ? findMember(email) : null;
+  const member = email ? await resolveUser(email) : null;
 
   if (!member) {
     const url = req.nextUrl.clone();
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const value = await createSessionValue({ email: member.email, name: member.name, role: member.role });
+  const value = await createSessionValue({ email: member.email, name: member.name });
   const dest = req.nextUrl.clone();
   dest.pathname = next.startsWith("/portal") ? next : "/portal";
   dest.search = "";

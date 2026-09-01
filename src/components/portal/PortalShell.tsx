@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { PortalUser } from "@/lib/portal/session";
+import type { PortalUser } from "@/lib/portal/caps";
+import { can, ROLE_LABELS } from "@/lib/portal/caps";
 
 const NAV = [
   { href: "/portal", label: "Home", icon: "M3 11.5 12 4l9 7.5M5 10v9h5v-5h4v5h5v-9" },
@@ -12,11 +13,16 @@ const NAV = [
   { href: "/portal/tools", label: "Tools", icon: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2zM10 14l-6 6" },
 ];
 
+const REPORTS = { href: "/portal/reports", label: "Reports", icon: "M7 3h7l5 5v13H7zM14 3v5h5M9.5 13h5M9.5 16.5h5" };
 const ADMIN = { href: "/portal/admin", label: "Admin", icon: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" };
 
 export function PortalShell({ user, children }: { user: PortalUser; children: React.ReactNode }) {
   const pathname = usePathname();
-  const items = user.role === "admin" ? [...NAV, ADMIN] : NAV;
+
+  const items = [...NAV];
+  if (can(user, "reports_read")) items.push(REPORTS);
+  if (can(user, "manage_users") || can(user, "overhead")) items.push(ADMIN);
+
   const isActive = (href: string) => (href === "/portal" ? pathname === "/portal" : pathname.startsWith(href));
 
   return (
@@ -47,7 +53,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
             <span className="pt__avatar" aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
             <span className="pt__who-txt">
               <strong>{user.name}</strong>
-              <span>{user.role === "admin" ? "Admin" : "Team member"}</span>
+              <span>{ROLE_LABELS[user.role]}</span>
             </span>
           </div>
           <form action="/api/portal/logout" method="post">

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
+import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { OverheadCalc } from "@/components/portal/OverheadCalc";
 
@@ -9,7 +10,7 @@ export const metadata = { title: "Overhead-cost tool — Team portal" };
 export default async function OverheadPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (user.role !== "admin") redirect("/portal?denied=1");
+  if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   return (
     <PortalShell user={user}>
