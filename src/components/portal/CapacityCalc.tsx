@@ -2,19 +2,34 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type Crew = {
-  id: string; label: string; people: number; hrsWeek: number; wage: number;
+type PersonType = "tradesman" | "lead" | "apprentice" | "hybrid" | "office";
+
+type Person = {
+  id: string; name: string; type: PersonType; hrsWeek: number; wage: number;
   leaveDays: number; phDays: number; sickDays: number; schoolDays: number;
-  travelHrsWeek: number; adminHrsWeek: number;
+  travelHrsWeek: number; adminHrsWeek: number; officeHrsWeek: number;
 };
 
 type Model = {
   weeksYear: number; oncosts: number; margin: number;
-  crew: Crew[];
-  officeWages: number; vehicles: number; standard: number;
+  people: Person[];
+  vehicles: number; standard: number;
 };
 
-const KEY = "ag_capacity_model";
+const KEY = "ag_capacity_model_v2";
+
+const TYPE_LABELS: Record<PersonType, string> = {
+  tradesman: "Tradesman", lead: "Lead hand", apprentice: "Apprentice", hybrid: "Hybrid (field + office)", office: "Office / admin",
+};
+
+// Sensible starting numbers per type; picking a type applies these.
+const TYPE_DEFAULTS: Record<PersonType, Omit<Person, "id" | "name" | "type">> = {
+  tradesman: { hrsWeek: 38, wage: 45, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 5, adminHrsWeek: 2, officeHrsWeek: 0 },
+  lead: { hrsWeek: 38, wage: 55, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3 },
+  apprentice: { hrsWeek: 38, wage: 22, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 40, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0 },
+  hybrid: { hrsWeek: 38, wage: 45, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 3, adminHrsWeek: 3, officeHrsWeek: 15 },
+  office: { hrsWeek: 38, wage: 35, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38 },
+};
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -24,14 +39,14 @@ const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ?
 
 const DEFAULT: Model = {
   weeksYear: 52, oncosts: 25, margin: 40,
-  crew: [
-    { id: uid(), label: "Tradesman", people: 2, hrsWeek: 38, wage: 45, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 5, adminHrsWeek: 2 },
-    { id: uid(), label: "Apprentice", people: 1, hrsWeek: 38, wage: 22, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 40, travelHrsWeek: 4, adminHrsWeek: 1 },
+  people: [
+    { id: uid(), name: "Tradesman", type: "tradesman", ...TYPE_DEFAULTS.tradesman },
+    { id: uid(), name: "Apprentice", type: "apprentice", ...TYPE_DEFAULTS.apprentice },
+    { id: uid(), name: "Office", type: "office", ...TYPE_DEFAULTS.office },
   ],
-  officeWages: 70000, vehicles: 24000, standard: 60000,
+  vehicles: 24000, standard: 60000,
 };
 
-// Module-scope field component so inputs keep focus across re-renders.
 function CapField({ label, value, onChange, post, ready }: { label: string; value: number; onChange: (n: number) => void; post?: string; ready: boolean }) {
   return (
     <label className="pt-cap__f">
@@ -44,16 +59,18 @@ function CapField({ label, value, onChange, post, ready }: { label: string; valu
   );
 }
 
-function calcCrew(c: Crew, weeksYear: number, oncosts: number) {
-  const hrsPerDay = c.hrsWeek / 5;
-  const paidHrs = c.people * c.hrsWeek * weeksYear;
-  const offDays = c.leaveDays + c.phDays + c.sickDays + c.schoolDays;
-  const nonBillHrs = c.people * (offDays * hrsPerDay + (c.travelHrsWeek + c.adminHrsWeek) * weeksYear);
-  const billHrs = Math.max(0, paidHrs - nonBillHrs);
-  const rate = c.wage * (1 + oncosts / 100);
-  const wageCost = paidHrs * rate;
-  const nonBillWageCost = nonBillHrs * rate;
-  return { paidHrs, billHrs, nonBillHrs, wageCost, nonBillWageCost, billWageCost: wageCost - nonBillWageCost };
+function calcPerson(p: Person, weeksYear: number, oncosts: number) {
+  const rate = p.wage * (1 + oncosts / 100);
+  const paidHrs = p.hrsWeek * weeksYear;
+  if (p.type === "office") {
+    return { paidHrs, billHrs: 0, fieldWages: 0, labourOh: 0, officeOh: paidHrs * rate };
+  }
+  const hrsPerDay = p.hrsWeek / 5;
+  const daysOffHrs = (p.leaveDays + p.phDays + p.sickDays + p.schoolDays) * hrsPerDay;
+  const travelAdminHrs = (p.travelHrsWeek + p.adminHrsWeek) * weeksYear;
+  const officeHrs = Math.min(p.officeHrsWeek * weeksYear, Math.max(0, paidHrs - daysOffHrs));
+  const billHrs = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
+  return { paidHrs, billHrs, fieldWages: billHrs * rate, labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate };
 }
 
 export function CapacityCalc() {
@@ -73,28 +90,29 @@ export function CapacityCalc() {
   }, [m, ready]);
 
   const totals = useMemo(() => {
-    const per = m.crew.map((c) => calcCrew(c, m.weeksYear, m.oncosts));
+    const per = m.people.map((p) => calcPerson(p, m.weeksYear, m.oncosts));
     const billHrs = per.reduce((s, p) => s + p.billHrs, 0);
-    const paidHrs = per.reduce((s, p) => s + p.paidHrs, 0);
-    const crewWages = per.reduce((s, p) => s + p.wageCost, 0);
-    const labourOverhead = per.reduce((s, p) => s + p.nonBillWageCost, 0);
-    const billWages = crewWages - labourOverhead;
-    const totalCost = crewWages + m.officeWages + m.vehicles + m.standard;
+    const fieldWages = per.reduce((s, p) => s + p.fieldWages, 0);
+    const labourOh = per.reduce((s, p) => s + p.labourOh, 0);
+    const officeOh = per.reduce((s, p) => s + p.officeOh, 0);
     const denom = billHrs || 1;
+    const paidBillableHrs = m.people.reduce((s, p, i) => s + (p.type === "office" ? 0 : per[i].paidHrs), 0);
     const layers = [
-      { key: "wages", label: "Field wages (billable time)", annual: billWages },
-      { key: "labour", label: "Labour overhead (school, sick, travel, admin)", annual: labourOverhead },
-      { key: "office", label: "Office & non-billable staff", annual: m.officeWages },
+      { key: "wages", label: "Field wages (billable time)", annual: fieldWages },
+      { key: "labour", label: "Labour overhead (school, sick, travel, admin)", annual: labourOh },
+      { key: "office", label: "Office & non-billable staff", annual: officeOh },
       { key: "vehicles", label: "Vehicles", annual: m.vehicles },
       { key: "standard", label: "Standard (tools, marketing, rent…)", annual: m.standard },
     ].map((l) => ({ ...l, perHr: l.annual / denom }));
+    const totalCost = fieldWages + labourOh + officeOh + m.vehicles + m.standard;
     const costPerHr = totalCost / denom;
     const chargeOut = costPerHr * (1 + m.margin / 100);
-    const utilisation = paidHrs ? billHrs / paidHrs : 0;
-    return { billHrs, paidHrs, crewWages, labourOverhead, billWages, totalCost, costPerHr, chargeOut, utilisation, layers };
+    const utilisation = paidBillableHrs ? billHrs / paidBillableHrs : 0;
+    return { billHrs, totalCost, costPerHr, chargeOut, utilisation, layers };
   }, [m]);
 
-  const setCrew = (id: string, patch: Partial<Crew>) => setM((s) => ({ ...s, crew: s.crew.map((c) => (c.id === id ? { ...c, ...patch } : c)) }));
+  const setPerson = (id: string, patch: Partial<Person>) => setM((s) => ({ ...s, people: s.people.map((p) => (p.id === id ? { ...p, ...patch } : p)) }));
+  const changeType = (id: string, type: PersonType) => setM((s) => ({ ...s, people: s.people.map((p) => (p.id === id ? { ...p, type, ...TYPE_DEFAULTS[type] } : p)) }));
 
   return (
     <div className="pt-calc">
@@ -109,41 +127,50 @@ export function CapacityCalc() {
         </div>
 
         <div className="pt-calc__panel">
-          <h3 className="pt-calc__h">Billable crew</h3>
-          <p className="pt-calc__hint">Paid hours minus the time you can&rsquo;t bill — leave, sick, apprentice school, driving and admin.</p>
-          {m.crew.map((c) => {
-            const cc = calcCrew(c, m.weeksYear, m.oncosts);
+          <h3 className="pt-calc__h">The crew</h3>
+          <p className="pt-calc__hint">One row per person. Their type sets how their time is treated — a tradesman is billable, an apprentice has school, office is all overhead, a hybrid splits their week.</p>
+          {m.people.map((p) => {
+            const cc = calcPerson(p, m.weeksYear, m.oncosts);
+            const isOffice = p.type === "office";
             return (
-              <div key={c.id} className="pt-cap__crew">
+              <div key={p.id} className="pt-cap__crew">
                 <div className="pt-cap__crewhead">
-                  <input className="pt-cap__name" value={c.label} onChange={(e) => setCrew(c.id, { label: e.target.value })} placeholder="Role" />
-                  <button type="button" className="pf-x" onClick={() => setM((s) => ({ ...s, crew: s.crew.filter((x) => x.id !== c.id) }))} aria-label="Remove">×</button>
+                  <input className="pt-cap__name" value={p.name} onChange={(e) => setPerson(p.id, { name: e.target.value })} placeholder="Name" />
+                  <select className="pt-cap__type" value={p.type} onChange={(e) => changeType(p.id, e.target.value as PersonType)}>
+                    {(Object.keys(TYPE_LABELS) as PersonType[]).map((t) => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+                  </select>
+                  <button type="button" className="pf-x" onClick={() => setM((s) => ({ ...s, people: s.people.filter((x) => x.id !== p.id) }))} aria-label="Remove">×</button>
                 </div>
                 <div className="pt-cap__grid">
-                  <CapField label="People" value={c.people} onChange={(v) => setCrew(c.id, { people: v })} ready={ready} />
-                  <CapField label="Hours / week" value={c.hrsWeek} onChange={(v) => setCrew(c.id, { hrsWeek: v })} ready={ready} />
-                  <CapField label="Wage $/hr" value={c.wage} onChange={(v) => setCrew(c.id, { wage: v })} ready={ready} />
-                  <CapField label="Leave (days)" value={c.leaveDays} onChange={(v) => setCrew(c.id, { leaveDays: v })} ready={ready} />
-                  <CapField label="Pub. hols (days)" value={c.phDays} onChange={(v) => setCrew(c.id, { phDays: v })} ready={ready} />
-                  <CapField label="Sick (days)" value={c.sickDays} onChange={(v) => setCrew(c.id, { sickDays: v })} ready={ready} />
-                  <CapField label="School (days)" value={c.schoolDays} onChange={(v) => setCrew(c.id, { schoolDays: v })} ready={ready} />
-                  <CapField label="Driving hrs/wk" value={c.travelHrsWeek} onChange={(v) => setCrew(c.id, { travelHrsWeek: v })} ready={ready} />
-                  <CapField label="Admin hrs/wk" value={c.adminHrsWeek} onChange={(v) => setCrew(c.id, { adminHrsWeek: v })} ready={ready} />
+                  <CapField label="Hours / week" value={p.hrsWeek} onChange={(v) => setPerson(p.id, { hrsWeek: v })} ready={ready} />
+                  <CapField label="Wage $/hr" value={p.wage} onChange={(v) => setPerson(p.id, { wage: v })} ready={ready} />
+                  {!isOffice && <CapField label="Leave (days)" value={p.leaveDays} onChange={(v) => setPerson(p.id, { leaveDays: v })} ready={ready} />}
+                  {!isOffice && <CapField label="Pub. hols (days)" value={p.phDays} onChange={(v) => setPerson(p.id, { phDays: v })} ready={ready} />}
+                  {!isOffice && <CapField label="Sick (days)" value={p.sickDays} onChange={(v) => setPerson(p.id, { sickDays: v })} ready={ready} />}
+                  {p.type === "apprentice" && <CapField label="School (days)" value={p.schoolDays} onChange={(v) => setPerson(p.id, { schoolDays: v })} ready={ready} />}
+                  {!isOffice && <CapField label="Driving hrs/wk" value={p.travelHrsWeek} onChange={(v) => setPerson(p.id, { travelHrsWeek: v })} ready={ready} />}
+                  {!isOffice && <CapField label="Admin hrs/wk" value={p.adminHrsWeek} onChange={(v) => setPerson(p.id, { adminHrsWeek: v })} ready={ready} />}
+                  {p.type === "hybrid" && <CapField label="Office hrs/wk" value={p.officeHrsWeek} onChange={(v) => setPerson(p.id, { officeHrsWeek: v })} ready={ready} />}
                 </div>
                 <div className="pt-cap__crewsum">
-                  <span>Billable: <strong>{hrs(cc.billHrs)}</strong> of {hrs(cc.paidHrs)} paid</span>
-                  <span>Wages: <strong>{money(cc.wageCost)}</strong></span>
+                  {isOffice ? (
+                    <span>All hours are non-billable — <strong>{money(cc.officeOh)}</strong>/yr of office overhead</span>
+                  ) : (
+                    <>
+                      <span>Billable: <strong>{hrs(cc.billHrs)}</strong></span>
+                      <span>Field wages <strong>{money(cc.fieldWages)}</strong> · overhead <strong>{money(cc.labourOh + cc.officeOh)}</strong></span>
+                    </>
+                  )}
                 </div>
               </div>
             );
           })}
-          <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setM((s) => ({ ...s, crew: [...s.crew, { id: uid(), label: "New role", people: 1, hrsWeek: 38, wage: 40, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 4, adminHrsWeek: 2 }] }))}>+ Add a role</button>
+          <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setM((s) => ({ ...s, people: [...s.people, { id: uid(), name: "New person", type: "tradesman", ...TYPE_DEFAULTS.tradesman }] }))}>+ Add a person</button>
         </div>
 
         <div className="pt-calc__panel">
           <h3 className="pt-calc__h">The other overheads (per year)</h3>
-          <p className="pt-calc__hint">Everything that isn&rsquo;t field-crew wages, recovered across the billable hours above.</p>
-          <div className="pt-calc__row"><span>Office &amp; non-billable staff <em>(admin, scheduling)</em></span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={ready ? m.officeWages : ""} onChange={(e) => setM({ ...m, officeWages: parse(e.target.value) })} /></span></div>
+          <p className="pt-calc__hint">Office &amp; non-billable staff come from the crew above. Add the rest here.</p>
           <div className="pt-calc__row"><span>Vehicles <em>(rego, insurance, fuel, servicing)</em></span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={ready ? m.vehicles : ""} onChange={(e) => setM({ ...m, vehicles: parse(e.target.value) })} /></span></div>
           <div className="pt-calc__row"><span>Standard <em>(tools, marketing, rent, software)</em></span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={ready ? m.standard : ""} onChange={(e) => setM({ ...m, standard: parse(e.target.value) })} /></span></div>
         </div>
@@ -155,7 +182,7 @@ export function CapacityCalc() {
 
         <div className="pt-calc__breakdown">
           <div><span>Billable hours / year</span><strong>{hrs(totals.billHrs)}</strong></div>
-          <div><span>Utilisation</span><strong>{Math.round(totals.utilisation * 100)}%</strong></div>
+          <div><span>Field utilisation</span><strong>{Math.round(totals.utilisation * 100)}%</strong></div>
           <div className="pt-calc__break-total"><span>Cost per billable hour</span><strong>{money2(totals.costPerHr)}</strong></div>
         </div>
 
