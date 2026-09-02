@@ -199,12 +199,12 @@ function periodDate(label: string): number {
   return Date.parse(`${m[1]} 1, ${yr}`);
 }
 
-export async function getProfitAndLossSeries(months: number): Promise<MonthPoint[]> {
+export async function getProfitAndLossSeries(periods: number, timeframe: "MONTH" | "QUARTER" | "YEAR" = "MONTH"): Promise<MonthPoint[]> {
   const tok = await validToken();
   if (!tok) return [];
   const today = new Date().toISOString().slice(0, 10);
-  const periods = Math.max(1, Math.min(11, months - 1));
-  const url = `${API_BASE}/Reports/ProfitAndLoss?date=${today}&periods=${periods}&timeframe=MONTH`;
+  const p = Math.max(1, Math.min(11, periods));
+  const url = `${API_BASE}/Reports/ProfitAndLoss?date=${today}&periods=${p}&timeframe=${timeframe}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tok.tenantId, Accept: "application/json" },
     cache: "no-store",

@@ -11,7 +11,7 @@ const plotH = H - padT - padB;
 
 const full = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
-const shortLabel = (l: string) => l.replace(/-/g, " ").replace(/(\d{4})/, (m) => `'${m.slice(2)}`).replace(/\s?'\d{2}$/, (m) => m).split(" ").slice(0, 1).join(" ") || l;
+const shortLabel = (l: string) => l.match(/[A-Za-z]{3,}/)?.[0] ?? l; // the month word (e.g. "Sep")
 
 export function MoneyChart({ points }: { points: MonthPoint[] }) {
   const [hover, setHover] = useState<number | null>(null);

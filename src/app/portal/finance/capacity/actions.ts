@@ -3,8 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { updateCrew, saveSettings } from "@/lib/portal/db";
-import { isCrewLevel, type Costing, type CapSettings } from "@/lib/portal/crew";
+import { updateCrew, saveSettings, createCrewPerson } from "@/lib/portal/db";
+import { isCrewLevel, defaultsFor, type Costing, type CapSettings } from "@/lib/portal/crew";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -22,6 +24,24 @@ export async function saveCapSettings(s: CapSettings): Promise<ActionResult> {
   revalidatePath("/portal/finance/capacity");
   revalidatePath("/portal/finance");
   return { ok: true };
+}
+
+export async function addCrewPerson(input: { name: string; email: string; level: string }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const me = await requireOverhead();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!input.name.trim()) return { ok: false, error: "Give them a name." };
+  if (!isCrewLevel(input.level)) return { ok: false, error: "Pick a level." };
+  const email = input.email.trim();
+  if (email && !EMAIL_RE.test(email)) return { ok: false, error: "That email doesn't look right." };
+  const res = await createCrewPerson({ name: input.name, email: email || null, level: input.level, costing: defaultsFor(input.level) });
+  if (!res.ok) {
+    if (res.error === "exists") return { ok: false, error: "Someone with that email already exists." };
+    if (res.error === "not-configured") return { ok: false, error: "Database not connected." };
+    return { ok: false, error: "Couldn't add them." };
+  }
+  revalidatePath("/portal/finance/capacity");
+  revalidatePath("/portal/team");
+  return { ok: true, id: res.id };
 }
 
 export async function saveCrew(input: { userId: string; level: string; costing: Costing }): Promise<ActionResult> {

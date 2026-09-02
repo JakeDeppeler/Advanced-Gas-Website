@@ -264,6 +264,35 @@ export async function updateCrew(id: string, level: CrewLevel, c: Costing): Prom
   return { ok: true };
 }
 
+/** Add a crew member (a team person). Email is optional — no email means a
+ *  costing-only person who can't sign in (labourer, subbie). */
+export async function createCrewPerson(input: { name: string; email?: string | null; level: CrewLevel; costing: Costing }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const res = await sb(USERS, {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      name: input.name.trim(),
+      email: input.email ? input.email.trim().toLowerCase() : null,
+      role: "member",
+      caps: {},
+      active: true,
+      level: input.level,
+      wage: input.costing.wage, hrs_week: input.costing.hrsWeek, leave_days: input.costing.leaveDays,
+      ph_days: input.costing.phDays, sick_days: input.costing.sickDays, school_days: input.costing.schoolDays,
+      travel_hrs_week: input.costing.travelHrsWeek, admin_hrs_week: input.costing.adminHrsWeek,
+      office_hrs_week: input.costing.officeHrsWeek, rate_override: input.costing.rateOverride ?? null,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    if (res.status === 409 || /duplicate|unique/i.test(t)) return { ok: false, error: "exists" };
+    return { ok: false, error: `${res.status}` };
+  }
+  const rows = (await res.json()) as { id: string }[];
+  return { ok: true, id: rows[0]?.id };
+}
+
 /* ---------------- settings (business-wide) ---------------- */
 
 export async function getSettings<T>(key: string): Promise<T | null> {

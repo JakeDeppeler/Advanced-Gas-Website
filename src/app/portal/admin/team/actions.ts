@@ -70,8 +70,9 @@ export async function removeMember(input: { id: string; email: string }): Promis
   const me = await requireManager();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!input.id) return { ok: false, error: "Missing user." };
-  if (isOwner(input.email)) return { ok: false, error: "The owner can't be removed." };
-  if (input.email.trim().toLowerCase() === me.email) return { ok: false, error: "You can't remove yourself." };
+  // Owners can be removed (they still sign in via the owner fallback), but not
+  // the person doing the removing.
+  if ((input.email ?? "").trim().toLowerCase() === me.email) return { ok: false, error: "You can't remove yourself." };
 
   const res = await deleteUser(input.id);
   if (!res.ok) return { ok: false, error: "Couldn't remove them. Try again." };

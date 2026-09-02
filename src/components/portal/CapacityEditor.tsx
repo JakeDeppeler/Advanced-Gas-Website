@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CREW_LEVELS, LEVEL_BILLABLE, defaultsFor, computeCapacity, type CrewLevel, type Costing, type CapSettings } from "@/lib/portal/crew";
-import { saveCapSettings, saveCrew } from "@/app/portal/finance/capacity/actions";
+import { saveCapSettings, saveCrew, addCrewPerson } from "@/app/portal/finance/capacity/actions";
 
 type Row = { id: string; name: string; level: CrewLevel | ""; costing: Costing };
 
@@ -31,6 +31,20 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
 
   const [s, setS] = useState<CapSettings>(settings);
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, level: p.level ?? "", costing: { ...p.costing } })));
+  const [add, setAdd] = useState<{ open: boolean; name: string; email: string; level: CrewLevel; msg: string }>({ open: false, name: "", email: "", level: "tradesman", msg: "" });
+
+  function addPerson() {
+    setAdd((a) => ({ ...a, msg: "" }));
+    start(async () => {
+      const res = await addCrewPerson({ name: add.name, email: add.email, level: add.level });
+      if (res.ok && res.id) {
+        setRows((rs) => [...rs, { id: res.id as string, name: add.name.trim(), level: add.level, costing: { ...defaultsFor(add.level) } }]);
+        setAdd({ open: false, name: "", email: "", level: "tradesman", msg: "" });
+      } else {
+        setAdd((a) => ({ ...a, msg: res.error || "Couldn't add them." }));
+      }
+    });
+  }
 
   const setCosting = (id: string, patch: Partial<Costing>) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, costing: { ...r.costing, ...patch } } : r)));
   const setLevel = (id: string, level: CrewLevel) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, level, costing: { ...defaultsFor(level), rateOverride: r.costing.rateOverride } } : r)));
@@ -38,6 +52,8 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
   const costed = useMemo(() => rows.filter((r) => r.level !== "").map((r) => ({ id: r.id, name: r.name, level: r.level as CrewLevel, costing: r.costing })), [rows]);
   const cap = useMemo(() => computeCapacity(costed, s), [costed, s]);
   const rateById = useMemo(() => new Map(cap.rates.map((x) => [x.id, x])), [cap]);
+  const hasHrs = cap.totalBillHrs > 0;
+  const show = (n: number) => (hasHrs ? money2(n) : "—");
 
   function save() {
     setMsg("");
@@ -116,6 +132,20 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
               </div>
             );
           })}
+          {add.open ? (
+            <div className="pt-cap__addform">
+              <input className="pt-cap__name" placeholder="Name" value={add.name} onChange={(e) => setAdd((a) => ({ ...a, name: e.target.value }))} />
+              <input className="pt-cap__addemail" placeholder="Email (optional — for portal login)" value={add.email} onChange={(e) => setAdd((a) => ({ ...a, email: e.target.value }))} />
+              <select className="pt-cap__type" value={add.level} onChange={(e) => setAdd((a) => ({ ...a, level: e.target.value as CrewLevel }))}>
+                {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
+              </select>
+              <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setAdd({ open: false, name: "", email: "", level: "tradesman", msg: "" })} disabled={pending}>Cancel</button>
+              <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" onClick={addPerson} disabled={pending || !add.name.trim()}>Add</button>
+            </div>
+          ) : (
+            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setAdd((a) => ({ ...a, open: true }))}>+ Add a person</button>
+          )}
+          {add.msg && <div className="pt-inline is-err" style={{ marginTop: 8 }}>{add.msg}</div>}
         </div>
 
         <div className="pt-calc__panel">
@@ -128,20 +158,21 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
 
       <div className="pt-calc__result">
         <div className="pt-calc__result-lead">Blended charge-out</div>
-        <div className="pt-calc__big">{money(cap.costPerHr * (1 + s.margin / 100))}<span> /hr</span></div>
+        <div className="pt-calc__big">{hasHrs ? <>{money(cap.costPerHr * (1 + s.margin / 100))}<span> /hr</span></> : "—"}</div>
+        {!hasHrs && <p className="pt-calc__note" style={{ marginTop: 0 }}>Give at least one person a billable level (Tradesman, Apprentice…) to see the rates.</p>}
 
         <div className="pt-calc__breakdown">
           <div><span>Billable hours / year</span><strong>{hrs(cap.totalBillHrs)}</strong></div>
           <div><span>Field utilisation</span><strong>{cap.paidBillHrs ? Math.round((cap.totalBillHrs / cap.paidBillHrs) * 100) : 0}%</strong></div>
-          <div className="pt-calc__break-total"><span>Cost per billable hour</span><strong>{money2(cap.costPerHr)}</strong></div>
+          <div className="pt-calc__break-total"><span>Cost per billable hour</span><strong>{show(cap.costPerHr)}</strong></div>
         </div>
 
         <div className="pt-cap__layers">
           <div className="pt-cap__layers-h">What makes up the hour</div>
           {cap.layers.map((l) => (
-            <div key={l.key} className="pt-cap__layer"><span className="pt-cap__layer-lbl">{l.label}</span><span className="pt-cap__layer-val">{money2(l.perHr)}</span></div>
+            <div key={l.key} className="pt-cap__layer"><span className="pt-cap__layer-lbl">{l.label}</span><span className="pt-cap__layer-val">{show(l.perHr)}</span></div>
           ))}
-          <div className="pt-cap__layer pt-cap__layer--total"><span className="pt-cap__layer-lbl">Cost / billable hour</span><span className="pt-cap__layer-val">{money2(cap.costPerHr)}</span></div>
+          <div className="pt-cap__layer pt-cap__layer--total"><span className="pt-cap__layer-lbl">Cost / billable hour</span><span className="pt-cap__layer-val">{show(cap.costPerHr)}</span></div>
         </div>
 
         <div className="pt-calc__charge">

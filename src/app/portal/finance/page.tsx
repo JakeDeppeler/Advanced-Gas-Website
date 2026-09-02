@@ -11,6 +11,12 @@ export const metadata = { title: "Finance — Team portal" };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
+const TF: Record<string, { periods: number; timeframe: "MONTH" | "QUARTER"; label: string }> = {
+  "6m": { periods: 5, timeframe: "MONTH", label: "6 months" },
+  "12m": { periods: 11, timeframe: "MONTH", label: "12 months" },
+  q: { periods: 7, timeframe: "QUARTER", label: "Quarterly" },
+};
+
 function ranges() {
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
@@ -26,11 +32,12 @@ function ranges() {
   };
 }
 
-export default async function FinancePage() {
+export default async function FinancePage({ searchParams }: { searchParams: { tf?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
+  const tf = searchParams?.tf && TF[searchParams.tf] ? searchParams.tf : "12m";
   const { status, tenantName } = await xeroStatus();
 
   return (
@@ -62,20 +69,21 @@ export default async function FinancePage() {
         </section>
       )}
 
-      {status === "connected" && <ConnectedView tenantName={tenantName ?? null} />}
+      {status === "connected" && <ConnectedView tenantName={tenantName ?? null} tf={tf} />}
     </PortalShell>
   );
 }
 
-async function ConnectedView({ tenantName }: { tenantName: string | null }) {
+async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: string }) {
   const r = ranges();
+  const conf = TF[tf] ?? TF["12m"];
   const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
     getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
-    getProfitAndLossSeries(12),
+    getProfitAndLossSeries(conf.periods, conf.timeframe),
   ]);
 
   const cards = [
@@ -97,7 +105,7 @@ async function ConnectedView({ tenantName }: { tenantName: string | null }) {
         <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
       )}
 
-      <FinanceOverview month={month} lastMonth={lastMonth} year={year} series={series} />
+      <FinanceOverview month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
 
       <div className="pt-fin__detailhead">The full breakdown</div>
       <div className="pt-fin__cards">
