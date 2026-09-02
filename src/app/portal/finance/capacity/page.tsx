@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
+import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
+import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { CapacityCalc } from "@/components/portal/CapacityCalc";
+import { CapacityEditor } from "@/components/portal/CapacityEditor";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Billable capacity — Team portal" };
 
 export default async function CapacityPage() {
@@ -12,15 +15,21 @@ export default async function CapacityPage() {
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
+  const ready = dbConfigured();
+  const [users, settings] = ready ? await Promise.all([listUsers(), getCapSettings()]) : [[], null];
+  const people = users
+    .filter((u) => u.active && u.id)
+    .map((u) => ({ id: u.id as string, name: u.name, level: u.level, costing: u.costing }));
+
   return (
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Billable capacity</div>
         <h1>What an hour has to cover.</h1>
-        <p>Work out the hours you can actually bill — after leave, sick, apprentice school, driving and admin — then stack every overhead on top to get a true charge-out rate.</p>
+        <p>Give each of the crew a level and their numbers. The billable hours, the overhead stack and each person&rsquo;s charge-out rate all fall out — and feed the Job calculator.</p>
       </div>
-      <CapacityCalc />
+      <CapacityEditor people={people} settings={settings ?? DEFAULT_SETTINGS} dbReady={ready} />
     </PortalShell>
   );
 }

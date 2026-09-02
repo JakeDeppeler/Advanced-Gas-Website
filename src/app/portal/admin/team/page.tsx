@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
+import { can, type PortalUser } from "@/lib/portal/caps";
 import { listUsers, dbConfigured } from "@/lib/portal/db";
 import { isOwner } from "@/lib/portal/team";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -18,7 +18,7 @@ export default async function TeamPage() {
   const ready = dbConfigured();
   const raw = ready ? await listUsers() : [];
   // Make sure the signed-in owner always appears, even before the DB has rows.
-  const rows = raw.map((u) => ({ ...u, isOwner: isOwner(u.email) }));
+  const rows: (PortalUser & { isOwner: boolean })[] = raw.map((u) => ({ ...u, isOwner: isOwner(u.email) }));
   if (!rows.some((u) => u.email === user.email)) {
     rows.unshift({ ...user, isOwner: isOwner(user.email) });
   }
