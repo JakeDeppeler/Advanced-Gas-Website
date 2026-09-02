@@ -40,6 +40,7 @@ export async function saveVehicle(input: {
   id: string; name: string; rego: string; details: string;
   odometer: number | null; serviceIntervalKm: number | null;
   nextServiceKm: number | null; nextServiceDate: string; active: boolean;
+  purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };
@@ -47,6 +48,7 @@ export async function saveVehicle(input: {
     name: input.name, rego: input.rego, details: input.details,
     odometer: input.odometer, serviceIntervalKm: input.serviceIntervalKm,
     nextServiceKm: input.nextServiceKm, nextServiceDate: input.nextServiceDate, active: input.active,
+    purchasePrice: input.purchasePrice, resaleValue: input.resaleValue, lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
   });
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   reval(input.id);

@@ -9,6 +9,7 @@ export type VehicleView = {
   id: string; name: string; rego: string | null; details: string | null;
   odometer: number | null; serviceIntervalKm: number | null;
   nextServiceKm: number | null; nextServiceDate: string | null; active: boolean;
+  purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
 };
 export type LogView = {
   id: string; kind: VehicleLogKind; dateLabel: string;
@@ -49,10 +50,14 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
     name: vehicle.name, rego: vehicle.rego ?? "", details: vehicle.details ?? "",
     odometer: vehicle.odometer?.toString() ?? "", interval: vehicle.serviceIntervalKm?.toString() ?? "",
     nextKm: vehicle.nextServiceKm?.toString() ?? "", nextDate: vehicle.nextServiceDate ?? "", active: vehicle.active,
+    purchase: vehicle.purchasePrice?.toString() ?? "", resale: vehicle.resaleValue?.toString() ?? "",
+    lifespan: vehicle.lifespanYears?.toString() ?? "", fuel: vehicle.fuelPer100?.toString() ?? "",
   });
 
   const kmToService = vehicle.nextServiceKm !== null && vehicle.odometer !== null ? vehicle.nextServiceKm - vehicle.odometer : null;
   const status = kmToService === null ? null : kmToService <= 0 ? "overdue" : kmToService <= 1000 ? "soon" : "ok";
+  const annualDep = vehicle.purchasePrice !== null && vehicle.lifespanYears ? (vehicle.purchasePrice - (vehicle.resaleValue ?? 0)) / vehicle.lifespanYears : null;
+  const dollars = (v: number) => v.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
   function submitLog() {
     setMsg("");
@@ -82,6 +87,8 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
           )}
         </div>
         {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
+        {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{dollars(annualDep)}</strong></div>}
+        {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
       </section>
 
       {/* add log */}
@@ -153,6 +160,10 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                 <label className="pt-field"><span>Service interval (km)</span><input inputMode="numeric" value={f.interval} onChange={(e) => setF({ ...f, interval: e.target.value })} /></label>
                 <label className="pt-field"><span>Next service at (km)</span><input inputMode="numeric" value={f.nextKm} onChange={(e) => setF({ ...f, nextKm: e.target.value })} /></label>
                 <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
+                <label className="pt-field"><span>Purchase price ($)</span><input inputMode="numeric" value={f.purchase} onChange={(e) => setF({ ...f, purchase: e.target.value })} /></label>
+                <label className="pt-field"><span>Resale value ($)</span><input inputMode="numeric" value={f.resale} onChange={(e) => setF({ ...f, resale: e.target.value })} /></label>
+                <label className="pt-field"><span>Lifespan (years)</span><input inputMode="decimal" value={f.lifespan} onChange={(e) => setF({ ...f, lifespan: e.target.value })} /></label>
+                <label className="pt-field"><span>Fuel use (L/100km)</span><input inputMode="decimal" value={f.fuel} onChange={(e) => setF({ ...f, fuel: e.target.value })} /></label>
                 <label className="pt-switch pt-switch--sm" style={{ alignSelf: "end" }}>
                   <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
                   <span className="pt-switch__track" aria-hidden="true"><span className="pt-switch__thumb" /></span>
@@ -166,6 +177,8 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                     id: vehicle.id, name: f.name, rego: f.rego, details: f.details,
                     odometer: f.odometer ? toInt(f.odometer) : null, serviceIntervalKm: f.interval ? toInt(f.interval) : null,
                     nextServiceKm: f.nextKm ? toInt(f.nextKm) : null, nextServiceDate: f.nextDate, active: f.active,
+                    purchasePrice: f.purchase ? toNum(f.purchase) : null, resaleValue: f.resale ? toNum(f.resale) : null,
+                    lifespanYears: f.lifespan ? toNum(f.lifespan) : null, fuelPer100: f.fuel ? toNum(f.fuel) : null,
                   });
                   if (r.ok) { setEditing(false); refresh(); }
                 })}>{pending ? "Saving…" : "Save"}</button>
