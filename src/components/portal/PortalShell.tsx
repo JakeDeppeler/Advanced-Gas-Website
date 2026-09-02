@@ -63,6 +63,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     children: [
       { href: "/portal/finance", label: "Overview" },
       { href: "/portal/finance/capacity", label: "Billable capacity" },
+      { href: "/portal/finance/planning", label: "Planning" },
       { href: "/portal/finance/overhead", label: "Overhead cost" },
     ],
   });

@@ -35,6 +35,7 @@ export default async function VehiclePage({ params }: { params: { id: string } }
           id: vehicle.id, name: vehicle.name, rego: vehicle.rego, details: vehicle.details,
           odometer: vehicle.odometer, serviceIntervalKm: vehicle.serviceIntervalKm,
           nextServiceKm: vehicle.nextServiceKm, nextServiceDate: vehicle.nextServiceDate, active: vehicle.active,
+          purchasePrice: vehicle.purchasePrice, resaleValue: vehicle.resaleValue, lifespanYears: vehicle.lifespanYears, fuelPer100: vehicle.fuelPer100,
         }}
         logs={logs.map((l) => ({
           id: l.id, kind: l.kind, dateLabel: dateLabel(l.logDate),
