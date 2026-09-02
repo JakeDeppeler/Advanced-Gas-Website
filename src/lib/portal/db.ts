@@ -67,11 +67,12 @@ type UserRow = {
   admin_hrs_week: number | null;
   office_hrs_week: number | null;
   rate_override: number | null;
+  sort_order: number | null;
 };
 
 export type CostedUser = PortalUser & {
   invitedBy?: string | null; createdAt?: string; expectations?: string | null;
-  level: CrewLevel | null; costing: Costing;
+  level: CrewLevel | null; costing: Costing; sortOrder: number | null;
 };
 
 function toUser(r: UserRow): CostedUser {
@@ -98,6 +99,7 @@ function toUser(r: UserRow): CostedUser {
       officeHrsWeek: Number(r.office_hrs_week ?? 0),
       rateOverride: r.rate_override == null ? null : Number(r.rate_override),
     },
+    sortOrder: r.sort_order == null ? null : Number(r.sort_order),
   };
 }
 
@@ -218,7 +220,7 @@ export async function getUserById(id: string): Promise<CostedUser | null> {
 
 export async function updateUser(
   id: string,
-  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; expectations?: string },
+  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; expectations?: string; level?: CrewLevel; sortOrder?: number | null },
 ): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.role !== undefined) body.role = patch.role;
@@ -226,6 +228,8 @@ export async function updateUser(
   if (patch.active !== undefined) body.active = patch.active;
   if (patch.name !== undefined) body.name = patch.name.trim();
   if (patch.expectations !== undefined) body.expectations = patch.expectations;
+  if (patch.level !== undefined) body.level = patch.level;
+  if (patch.sortOrder !== undefined) body.sort_order = patch.sortOrder;
   const res = await sb(`${USERS}?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: { Prefer: "return=minimal" },
