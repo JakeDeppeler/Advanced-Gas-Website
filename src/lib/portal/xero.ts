@@ -156,3 +156,77 @@ export async function getProfitAndLoss(fromDate: string, toDate: string): Promis
   const netProfit = pick(map, ["net profit", "profit for the period", "total net profit"]) ?? income - expenses;
   return { income, expenses, netProfit };
 }
+
+/* -------- Profit & Loss, month-by-month series (for the chart) -------- */
+
+export type MonthPoint = { label: string; income: number; expenses: number; netProfit: number };
+
+const INCOME_LABELS = ["total income", "total operating income", "total trading income", "total revenue"];
+const EXPENSE_LABELS = ["total operating expenses", "total expenses", "less operating expenses"];
+const NET_LABELS = ["net profit", "profit for the period", "total net profit"];
+
+function num(v: string | undefined): number {
+  const n = v ? parseFloat(v.replace(/[^0-9.-]/g, "")) : NaN;
+  return Number.isNaN(n) ? 0 : n;
+}
+
+function findHeader(rows: XeroRow[] | undefined): string[] {
+  if (!rows) return [];
+  for (const r of rows) {
+    if (r.RowType === "Header" && r.Cells) return r.Cells.slice(1).map((c) => (c.Value || "").trim());
+  }
+  return [];
+}
+
+function findRowCells(rows: XeroRow[] | undefined, labels: string[]): number[] | null {
+  if (!rows) return null;
+  for (const r of rows) {
+    if (r.Cells && r.Cells.length >= 2) {
+      const label = (r.Cells[0]?.Value || "").trim().toLowerCase();
+      if (labels.includes(label)) return r.Cells.slice(1).map((c) => num(c.Value));
+    }
+    const nested = findRowCells(r.Rows, labels);
+    if (nested) return nested;
+  }
+  return null;
+}
+
+// Turn "Sep 2026" / "Sep-26" / "Sep 26" into a sortable timestamp.
+function periodDate(label: string): number {
+  const m = label.replace(/-/g, " ").match(/([A-Za-z]{3,})\s+(\d{2,4})/);
+  if (!m) return NaN;
+  const yr = m[2].length === 2 ? 2000 + parseInt(m[2], 10) : parseInt(m[2], 10);
+  return Date.parse(`${m[1]} 1, ${yr}`);
+}
+
+export async function getProfitAndLossSeries(months: number): Promise<MonthPoint[]> {
+  const tok = await validToken();
+  if (!tok) return [];
+  const today = new Date().toISOString().slice(0, 10);
+  const periods = Math.max(1, Math.min(11, months - 1));
+  const url = `${API_BASE}/Reports/ProfitAndLoss?date=${today}&periods=${periods}&timeframe=MONTH`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tok.tenantId, Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { Reports?: { Rows?: XeroRow[] }[] };
+  const rows = data.Reports?.[0]?.Rows;
+
+  const header = findHeader(rows);
+  const income = findRowCells(rows, INCOME_LABELS) ?? [];
+  const expenses = findRowCells(rows, EXPENSE_LABELS) ?? [];
+  const net = findRowCells(rows, NET_LABELS) ?? [];
+  const n = header.length || Math.max(income.length, expenses.length, net.length);
+
+  const points: MonthPoint[] = [];
+  for (let i = 0; i < n; i++) {
+    const inc = income[i] ?? 0;
+    const exp = expenses[i] ?? 0;
+    points.push({ label: header[i] || `P${i + 1}`, income: inc, expenses: exp, netProfit: net[i] ?? inc - exp });
+  }
+  // Oldest → newest, left to right.
+  const allDated = points.every((p) => !Number.isNaN(periodDate(p.label)));
+  if (allDated) points.sort((a, b) => periodDate(a.label) - periodDate(b.label));
+  return points;
+}

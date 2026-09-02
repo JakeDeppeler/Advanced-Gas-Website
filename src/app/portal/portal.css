@@ -528,6 +528,48 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 
 .pt-fin__detailhead { font-family: var(--f-display); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-ink-3); margin: 22px 0 12px; }
 
+/* ---- Money in/out chart ---- */
+.pt-mc__legend { display: flex; align-items: center; gap: 18px; margin-bottom: 8px; flex-wrap: wrap; }
+.pt-mc__key { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--pt-ink-2); }
+.pt-mc__key strong { color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-mc__key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.pt-mc__key--in i { background: #2aa7e0; }
+.pt-mc__key--out i { background: #e0912a; }
+.pt-mc__span { margin-left: auto; font-size: 12px; color: var(--pt-ink-3); }
+.pt-mc__wrap { position: relative; }
+.pt-mc__svg { width: 100%; height: auto; display: block; }
+.pt-mc__ytick { fill: var(--pt-ink-3); font-size: 11px; font-family: var(--f-mono, monospace); }
+.pt-mc__xtick { fill: var(--pt-ink-3); font-size: 11px; }
+.pt-mc__tip { position: absolute; top: 0; transform: translateX(-50%); background: var(--pt-navy); color: #fff; border-radius: 10px; padding: 9px 12px; font-size: 12px; pointer-events: none; box-shadow: 0 8px 20px -8px rgba(0,0,0,0.4); z-index: 3; white-space: nowrap; min-width: 120px; }
+.pt-mc__tip-h { font-weight: 700; margin-bottom: 5px; font-size: 12.5px; }
+.pt-mc__tip-r { display: flex; align-items: center; gap: 7px; margin-top: 3px; color: #c3cbe8; }
+.pt-mc__tip-r strong { margin-left: auto; color: #fff; font-variant-numeric: tabular-nums; }
+.pt-mc__tip-r--net { border-top: 1px solid rgba(255,255,255,0.15); margin-top: 6px; padding-top: 5px; }
+.pt-mc__tip-r--net strong.is-neg { color: #ff9d8a; }
+.pt-mc__dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.pt-mc__dot--in { background: #2aa7e0; }
+.pt-mc__dot--out { background: #e0912a; }
+
+/* ---- Billable capacity ---- */
+.pt-cap__row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pt-cap__f { display: flex; flex-direction: column; gap: 5px; font-size: 12px; min-width: 0; }
+.pt-cap__f > span { color: var(--pt-ink-3); font-weight: 600; }
+.pt-cap__f .pt-calc__field { width: 100%; box-sizing: border-box; justify-content: space-between; flex: 0 1 auto; }
+.pt-cap__f .pt-calc__field input { width: 100%; text-align: right; }
+.pt-cap__crew { border: 1px solid var(--pt-line); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: var(--pt-bg); }
+.pt-cap__crewhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.pt-cap__name { flex: 1; border: 1px solid var(--pt-line); border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 14px; font-weight: 700; color: var(--pt-ink); background: var(--pt-surface); }
+.pt-cap__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
+.pt-cap__crewsum { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--pt-line); font-size: 12.5px; color: var(--pt-ink-2); flex-wrap: wrap; }
+.pt-cap__crewsum strong { color: var(--pt-ink); }
+.pt-cap__layers { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.14); }
+.pt-cap__layers-h { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #b9c1e8; font-weight: 700; margin-bottom: 9px; }
+.pt-cap__layer { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; color: #c3cbe8; padding: 4px 0; }
+.pt-cap__layer-lbl { flex: 1; }
+.pt-cap__layer-val { color: #fff; font-variant-numeric: tabular-nums; font-weight: 600; flex: 0 0 auto; }
+.pt-cap__layer--total { border-top: 1px dashed rgba(255,255,255,0.18); margin-top: 5px; padding-top: 8px; }
+.pt-cap__layer--total .pt-cap__layer-lbl, .pt-cap__layer--total .pt-cap__layer-val { color: #fff; font-weight: 700; }
+
 @media (max-width: 820px) {
   .pt-calc { grid-template-columns: 1fr; }
   .pt-calc__result { position: static; }
@@ -556,6 +598,8 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
   .pt-qq { grid-template-columns: 1fr; }
   .pt-qq__detail { position: static; }
   .pt-qq__rows { max-height: none; }
+  .pt-cap__row3 { grid-template-columns: 1fr 1fr; }
+  .pt-cap__grid { grid-template-columns: 1fr 1fr; }
   .pf-add { grid-template-columns: 1fr; }
   .pf-reviewform__row { grid-template-columns: 1fr; }
   .pt-fin__needs { grid-template-columns: 1fr; }
