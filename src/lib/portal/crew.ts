@@ -10,7 +10,9 @@
  * hours. Pure and dependency-free.
  */
 
-export type CrewLevel = "lead" | "tradesman" | "hybrid" | "apprentice" | "office" | "admin";
+import type { Cap } from "./caps";
+
+export type CrewLevel = "operations" | "lead" | "tradesman" | "hybrid" | "apprentice" | "office" | "admin";
 
 export type Costing = {
   wage: number;
@@ -32,6 +34,8 @@ export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 25, margi
 export const CREW_LEVELS: {
   key: CrewLevel; label: string; billable: boolean; blurb: string; defaults: Costing;
 }[] = [
+  { key: "operations", label: "Operations", billable: false, blurb: "Runs the business day to day. Full access to everything.",
+    defaults: { wage: 60, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38 } },
   { key: "lead", label: "Lead hand", billable: true, blurb: "Runs jobs on the tools plus some supervision and office time.",
     defaults: { wage: 55, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3 } },
   { key: "tradesman", label: "Tradesman", billable: true, blurb: "Fully-qualified, on the tools and billable most of the week.",
@@ -52,6 +56,23 @@ export const LEVEL_BILLABLE: Record<CrewLevel, boolean> = CREW_LEVELS.reduce((m,
 export function isCrewLevel(v: unknown): v is CrewLevel {
   return typeof v === "string" && CREW_LEVELS.some((l) => l.key === v);
 }
+
+/**
+ * What each crew level can see and do. This is the default; admins can change
+ * it in Admin → Access levels (stored in settings) and a per-person override
+ * still beats it.
+ */
+export type AccessMap = Record<CrewLevel, Cap[]>;
+
+export const DEFAULT_ACCESS: AccessMap = {
+  operations: ["overhead", "manage_users", "reports_read", "reports_write", "vehicles"],
+  admin: ["overhead", "reports_read", "reports_write", "vehicles"],
+  lead: ["reports_read", "reports_write", "vehicles"],
+  hybrid: ["vehicles"],
+  office: ["vehicles"],
+  tradesman: [],
+  apprentice: [],
+};
 
 export function defaultsFor(level: CrewLevel): Costing {
   return { ...(CREW_LEVELS.find((l) => l.key === level)?.defaults ?? CREW_LEVELS[1].defaults) };

@@ -12,7 +12,9 @@
 
 import "server-only";
 import type { PortalUser, Role, CapMap } from "./caps";
-import type { CrewLevel, Costing, CapSettings } from "./crew";
+import { CAPS, roleDefault } from "./caps";
+import type { CrewLevel, Costing, CapSettings, AccessMap } from "./crew";
+import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
 
 const USERS = "portal_users";
@@ -364,13 +366,38 @@ export async function deleteQuote(id: string): Promise<{ ok: boolean; error?: st
  * Owners (see ./team) are always admins and can never be locked out. Anyone
  * else comes from the database and must be active.
  */
+/** The level → capabilities map (stored defaults merged over the built-ins). */
+export async function getAccessMap(): Promise<AccessMap> {
+  const stored = await getSettings<Partial<AccessMap>>("access");
+  return { ...DEFAULT_ACCESS, ...(stored ?? {}) } as AccessMap;
+}
+
+export async function saveAccessMap(map: AccessMap): Promise<{ ok: boolean; error?: string }> {
+  return saveSettings("access", map);
+}
+
+/**
+ * Resolve an email to the live user, with their capabilities worked out:
+ * a per-person override wins, otherwise their crew level decides (via the
+ * access map), and only with no level set do we fall back to the role.
+ * Owners are always full admins and can never be locked out.
+ */
 export async function resolveUser(email: string): Promise<PortalUser | null> {
   const e = email.trim().toLowerCase();
   const owner = baseMember(e);
   if (owner) return { email: owner.email, name: owner.name, role: owner.role, caps: {}, active: true };
   if (!dbConfigured()) return null;
   const u = await getUser(e);
-  return u && u.active ? { id: u.id, email: u.email, name: u.name, role: u.role, caps: u.caps, active: true } : null;
+  if (!u || !u.active) return null;
+
+  const access = await getAccessMap();
+  const levelCaps = u.level ? access[u.level] ?? [] : null;
+  const caps: CapMap = {};
+  for (const { key } of CAPS) {
+    const override = u.caps[key];
+    caps[key] = typeof override === "boolean" ? override : levelCaps ? levelCaps.includes(key) : roleDefault(u.role, key);
+  }
+  return { id: u.id, email: u.email, name: u.name, role: u.role, caps, active: true };
 }
 
 /** May this email request a sign-in link? (Owner, or an active DB member.) */

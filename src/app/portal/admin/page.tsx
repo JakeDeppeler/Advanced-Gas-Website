@@ -28,6 +28,14 @@ export default async function AdminHome() {
           <p>Add people, set their role, and switch on or off exactly what each person can see.</p>
           <div className="pt-card__meta">Open →</div>
         </Link>
+        <Link href="/portal/admin/access" className="pt-tile">
+          <span className="pt-tile__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5zM12 15v2" /></svg>
+          </span>
+          <h3>Access levels</h3>
+          <p>What each crew level can see — Operations, Lead hand, Tradesman, Apprentice, Office, Admin.</p>
+          <div className="pt-card__meta">Open →</div>
+        </Link>
       </div>
     </PortalShell>
   );

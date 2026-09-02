@@ -589,6 +589,20 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 .pt-qt__pill.is-on.pt-qt__pill--quoted { background: var(--pt-navy); border-color: var(--pt-navy); color: #fff; }
 .pt-qt__pill.is-on.pt-qt__pill--won { background: #e6f3ec; border-color: #bfe2cd; color: var(--pt-good); }
 .pt-qt__pill.is-on.pt-qt__pill--lost { background: #fbe9e6; border-color: #f0c3bd; color: #b23b2e; }
+
+/* ---- Access levels ---- */
+.pt-acc__scroll { overflow-x: auto; background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: 14px; }
+.pt-acc__table { width: 100%; border-collapse: collapse; min-width: 660px; }
+.pt-acc__table th, .pt-acc__table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--pt-line); }
+.pt-acc__table thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pt-ink-3); font-weight: 700; white-space: nowrap; text-align: center; }
+.pt-acc__table thead th:first-child { text-align: left; }
+.pt-acc__table tbody th { width: 34%; }
+.pt-acc__table tbody th strong { display: block; font-family: var(--f-display); font-size: 14.5px; font-weight: 800; color: var(--pt-ink); }
+.pt-acc__table tbody th span { display: block; font-size: 12px; color: var(--pt-ink-3); font-weight: 400; margin-top: 2px; }
+.pt-acc__table tbody tr:last-child th, .pt-acc__table tbody tr:last-child td { border-bottom: 0; }
+.pt-acc__table td { text-align: center; }
+.pt-acc__srlabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pt-acc .pf-row-end { margin-top: 14px; }
 .pt-cap__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
 .pt-cap__crewsum { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--pt-line); font-size: 12.5px; color: var(--pt-ink-2); flex-wrap: wrap; }
 .pt-cap__crewsum strong { color: var(--pt-ink); }
