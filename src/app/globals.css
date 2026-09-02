@@ -16,6 +16,21 @@
     background-color: #1AAEE6;
     color: white;
   }
+
+  /* A11y: inline body-copy links must not rely on colour alone to be
+     distinguishable from surrounding text (WCAG 1.4.1). Any <a> that is a
+     direct child of a <p> gets an underline. Buttons, nav pills, and card
+     links keep their own `text-decoration: none` because their surrounding
+     shape and hover state already make them obviously interactive. */
+  p a:not([class]),
+  p a.inline-link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: currentColor;
+  }
+  p a:not([class]):hover,
+  p a.inline-link:hover { text-decoration-thickness: 2px; }
 }
 
 @layer components {

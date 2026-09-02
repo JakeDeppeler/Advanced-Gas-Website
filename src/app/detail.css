@@ -1,70 +1,552 @@
 /* Detail page (service slug, suburb hub, suburb+service combo, quote, thanks)
-   — shared layout primitives in design language. Use with .page-detail wrapper. */
+  , shared layout primitives in design language. Use with .page-detail wrapper. */
 
 .page-detail { background: var(--bg); }
 
-/* ============== HERO (navy with glows + breadcrumb + wave) ============== */
+/* ============== HERO ==============
+   Navy, matching the home page hero and the big CTA. Went light for a
+   while to line up with /contact, but that left every detail page
+   opening on flat paper with no colour anchor at all — the header box
+   is the first thing on the page and it should carry the brand. */
 .page-detail .dp-hero {
-  background: var(--navy); color: #fff;
-  padding: 70px 0 90px;
-  position: relative; overflow: hidden;
-}
-.page-detail .dp-hero::before {
-  content: ""; position: absolute; inset: 0;
   background:
-    radial-gradient(800px 500px at 90% 10%, rgba(0,176,237,0.16), transparent 60%),
-    radial-gradient(700px 500px at 0% 100%, rgba(243,103,34,0.14), transparent 60%);
+    radial-gradient(ellipse at 15% 0%, rgba(0,176,237,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 100%, rgba(243,103,34,0.13) 0%, transparent 50%),
+    var(--navy);
+  color: #fff;
+  padding: 56px 0 44px;
+  position: relative;
+  border-bottom: 0;
 }
 .page-detail .dp-hero > .wrap { position: relative; }
 .page-detail .dp-crumbs {
   font-family: var(--f-mono);
   font-size: 12px;
   letter-spacing: 0.04em;
-  color: #fff;
-  margin-bottom: 18px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 16px;
 }
 .page-detail .dp-crumbs a {
-  color: #fff;
+  color: rgba(255,255,255,0.78);
   text-decoration: none;
 }
-.page-detail .dp-crumbs a:hover { color: var(--sky-2); }
-.page-detail .dp-crumbs span.sep { margin: 0 8px; opacity: 0.5; }
-.page-detail .dp-crumbs span.cur { color: #fff; }
+.page-detail .dp-crumbs a:hover { color: var(--orange); }
+.page-detail .dp-crumbs span.sep { margin: 0 8px; opacity: 0.45; }
+.page-detail .dp-crumbs span.cur { color: #fff; font-weight: 600; }
 .page-detail .dp-hero__eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 8px 14px;
-  border-radius: 999px;
+  background: transparent;
+  border: 0;
+  padding: 0;
   font-family: var(--f-mono);
-  font-size: 12.5px;
-  letter-spacing: 0.04em;
-  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--sky);
 }
 .page-detail .dp-hero h1 {
   font-family: var(--f-display); font-weight: 900;
-  font-size: clamp(40px, 5.2vw, 72px);
-  line-height: 0.98; letter-spacing: -0.025em;
-  margin: 22px 0 18px;
+  font-size: clamp(36px, 4.8vw, 64px);
+  line-height: 1.02; letter-spacing: -0.028em;
+  margin: 16px 0 16px;
   text-wrap: balance; max-width: 980px;
+  color: #fff;
 }
+.page-detail .dp-hero h2,
+.page-detail .dp-hero h3,
+.page-detail .dp-hero h4 { color: #fff; }
+/* Both accent forms land on orange so the emphasis reads the same
+   whichever markup a page happens to use. */
 .page-detail .dp-hero h1 em { font-style: italic; color: var(--orange); }
 .page-detail .dp-hero h1 .accent {
-  background: linear-gradient(135deg, var(--sky-2), var(--sky));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--orange);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: currentColor;
 }
 .page-detail .dp-hero__sub {
-  font-size: 18px; color: #fff;
-  max-width: 660px; margin: 0 0 28px;
+  font-size: 18px; color: rgba(255,255,255,0.82);
+  max-width: 660px; margin: 0 0 26px;
+  line-height: 1.55;
 }
 .page-detail .dp-hero__ctas { display: flex; gap: 12px; flex-wrap: wrap; }
-.page-detail .dp-hero__ctas .ds-btn--ghost { color: #fff; border-color: #fff; }
-.page-detail .dp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
+@media (max-width: 640px) {
+  .page-detail .dp-hero { padding: 32px 0 30px; }
+  .page-detail .dp-hero h1 { font-size: clamp(28px, 8vw, 38px); margin: 12px 0 12px; }
+  .page-detail .dp-hero__sub { font-size: 15.5px; margin-bottom: 20px; }
+}
+
+/* ============== SUBURB COVERAGE SECTION ============== */
+.suburb-coverage {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg));
+  padding: 60px 0;
+  border-top: 4px solid var(--orange);
+}
+
+/* Where-we-work nearby chips upgraded to proper buttons */
+.page-suburb .dp-quote__chips a,
+.page-suburb .dp-quote__chips .dp-chip--muted {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  color: var(--navy);
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: -0.005em;
+  transition: background 0.12s, border-color 0.12s, transform 0.1s;
+}
+.page-suburb .dp-quote__chips a:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.page-suburb .dp-quote__chips .dp-chip--muted {
+  opacity: 0.6;
+  border-style: dashed;
+  cursor: default;
+}
+
+/* ============== SUBURB HERO WITH BACKGROUND PHOTO ============== */
+.page-suburb .suburb-hero { position: relative; overflow: hidden; }
+.suburb-hero__pic {
+  position: absolute; inset: 0; z-index: 0;
+  display: block;
+}
+.suburb-hero__pic img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  display: block;
+  filter: saturate(0.85);
+}
+.suburb-hero__scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background:
+    linear-gradient(180deg, rgba(5,10,48,0.68) 0%, rgba(5,10,48,0.82) 100%),
+    linear-gradient(90deg, rgba(5,10,48,0.6) 0%, rgba(5,10,48,0.2) 55%, rgba(5,10,48,0.05) 100%);
+}
+.page-suburb .suburb-hero > .wrap { position: relative; z-index: 2; }
+
+/* ============== SUBURB "WHY LOCAL" + PROBLEMS SECTION ============== */
+.suburb-local {
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 60px 0;
+}
+.suburb-local__grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+.suburb-local__why h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 10px 0 18px;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+.suburb-local__why p {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 14px;
+  max-width: 58ch;
+}
+.suburb-local__estates {
+  padding: 14px 16px;
+  background: #fff;
+  border-left: 3px solid var(--orange);
+  border-radius: 0 8px 8px 0;
+  font-size: 14px !important;
+  color: var(--ink) !important;
+}
+.suburb-local__estates strong {
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 700;
+}
+
+.suburb-local__problems {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px 26px;
+}
+.suburb-local__problems h3 {
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  margin: 10px 0 14px;
+}
+.suburb-local__problems ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.suburb-local__problems li {
+  padding-left: 22px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.suburb-local__problems li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--orange);
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .suburb-local__grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ============== SUBURB LOCATION SECTION ============== */
+.page-detail .dp-map {
+  background: var(--bg);
+  padding: 56px 0;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .dp-map__grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 48px;
+  align-items: center;
+}
+.page-detail .dp-map h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 10px 0 14px;
+  line-height: 1.15;
+}
+.page-detail .dp-map p {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+  max-width: 56ch;
+}
+@media (max-width: 900px) {
+  .page-detail .dp-map__grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+/* ============== COVERAGE MAP (all 46 suburbs on one canvas) ============== */
+.covmap {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+  align-items: start;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px;
+}
+.covmap svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  background: var(--paper);
+}
+.covmap__dot { cursor: pointer; }
+.covmap__dot:hover circle:not([fill="transparent"]) {
+  fill: var(--orange, #F36722) !important;
+  r: 8;
+}
+/* Real Leaflet coverage map — replaces the SVG rings. Height matched to
+   the sidebar list so both columns bottom-align. */
+.covmap__leaflet {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  min-height: 420px;
+  max-height: 560px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.covmap__leaflet--loading {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(243,103,34,0.08) 0%, transparent 50%),
+    var(--paper);
+}
+.covmap__leaflet .leaflet-container {
+  width: 100%; height: 100%;
+  background: var(--paper);
+  font-family: inherit;
+}
+/* ---- Leaflet hardening ----
+   1. Leaflet 1.9 ships a Ukrainian flag SVG inside the attribution
+      control (.leaflet-attribution-flag). Its size is constrained
+      ONLY by leaflet.css — and because we import that stylesheet as a
+      dynamic side-effect module, the rule can lose the cascade race on
+      first paint. The unconstrained inline SVG then renders at its
+      intrinsic size: a huge blue-over-yellow rectangle sitting on top
+      of the tiles next to the attribution text. Hide it outright.
+   2. Leaflet's bundled CSS also references marker-icon.png /
+      marker-shadow.png at paths Next.js doesn't serve, so a default
+      L.Marker renders as a broken-image placeholder. Kill the RASTER
+      icons only — targeted at img.leaflet-marker-icon — because the
+      coverage map's distance labels are divIcons, which render as divs
+      in the same pane and must stay visible. Hiding the whole pane took
+      the ring labels with it. */
+.leaflet-container .leaflet-attribution-flag,
+.leaflet-container svg.leaflet-attribution-flag {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.leaflet-container .leaflet-shadow-pane,
+.leaflet-container img.leaflet-marker-icon,
+.leaflet-container img.leaflet-marker-shadow {
+  display: none !important;
+}
+/* Keep the attribution text itself readable and compact. */
+.leaflet-container .leaflet-control-attribution {
+  font-size: 10px;
+  line-height: 1.4;
+  background: rgba(255, 255, 255, 0.85);
+}
+.covmap__legend { min-width: 0; }
+.covmap__legend-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.covmap__legend ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.covmap__legend li a {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 8px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.12s;
+  gap: 8px;
+}
+.covmap__legend li a:hover { background: var(--bg-2); color: var(--navy); }
+.covmap__legend li a.is-hi { background: rgba(243,103,34,0.08); color: var(--orange); font-weight: 700; }
+.covmap__legend li a span {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+@media (max-width: 900px) {
+  .covmap { grid-template-columns: 1fr; }
+  .covmap__legend ul { grid-template-columns: 1fr 1fr 1fr; max-height: 260px; }
+}
+@media (max-width: 540px) {
+  .covmap { padding: 16px; }
+  .covmap__legend ul { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============== SUBURB MAP CARD ============== */
+.submap {
+  margin: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+.submap svg {
+  width: 100%;
+  height: auto;
+  max-width: 340px;
+  align-self: center;
+  display: block;
+}
+.submap figcaption {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-2);
+  text-align: center;
+  line-height: 1.55;
+}
+.submap figcaption strong {
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* ---- Real Leaflet map on suburb pages ---- */
+.submap__leaflet {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 480px;
+  border-radius: var(--rad);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+.submap__leaflet--loading {
+  background:
+    radial-gradient(circle at 50% 50%, rgba(243,103,34,0.08) 0%, transparent 50%),
+    var(--paper);
+}
+.submap__leaflet .leaflet-container {
+  width: 100%; height: 100%;
+  background: var(--paper);
+  font-family: inherit;
+}
+
+/* ============== LOCAL KNOWLEDGE STRIP (suburb pages) ============== */
+.page-detail .dp-local {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  padding: 40px 0;
+}
+.page-detail .dp-local__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+.page-detail .dp-local__cell {
+  border-left: 2px solid var(--line);
+  padding: 4px 0 4px 16px;
+}
+.page-detail .dp-local__lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.page-detail .dp-local__cell p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+}
+.page-detail .dp-local__cell strong { color: var(--navy); font-weight: 700; }
+@media (max-width: 900px) {
+  .page-detail .dp-local__grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+}
+@media (max-width: 540px) {
+  .page-detail .dp-local__grid { grid-template-columns: 1fr; gap: 18px; }
+}
+
+/* ============== SUBURB HOOKS + INLINE TESTIMONIAL ============== */
+.page-detail .dp-hooks {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.page-detail .dp-hooks li {
+  padding-left: 24px;
+  position: relative;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.page-detail .dp-hooks li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--orange);
+  font-weight: 800;
+}
+
+.page-detail .dp-quotebox {
+  margin: 28px 0 0;
+  padding: 20px 22px;
+  background: var(--paper);
+  border-left: 3px solid var(--orange);
+  border-radius: 0 var(--rad-sm) var(--rad-sm) 0;
+}
+.page-detail .dp-quotebox blockquote {
+  margin: 0 0 10px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink);
+  font-style: italic;
+}
+.page-detail .dp-quotebox figcaption {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+.page-detail .dp-quotebox figcaption strong { color: var(--navy); font-weight: 700; }
+
+.page-detail .dp-quote__nearby-lbl {
+  margin: 28px 0 10px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.page-detail .dp-chip--muted {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px dashed var(--line-2);
+  color: var(--ink-3);
+  font-size: 13px;
+  background: transparent;
+}
 
 /* ============== BENEFITS / KEY POINTS GRID ============== */
-.page-detail .dp-benefits { padding: 90px 0; background: var(--bg); }
+.page-detail .dp-benefits {
+  padding: 90px 0;
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
 .page-detail .dp-benefits__intro p {
   font-size: 17px; color: var(--ink-2);
   max-width: 720px; margin: 0; line-height: 1.65;
@@ -74,15 +556,16 @@
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
 }
 .page-detail .dp-benefit {
-  background: #fff; border: 1px solid var(--line); border-radius: var(--rad);
+  background: var(--paper); border: 1px solid var(--line); border-radius: var(--rad);
   padding: 28px;
 }
-.page-detail .dp-benefit__icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(0,176,237,0.1); color: var(--sky);
-  margin-bottom: 14px;
-  font-weight: 800;
+.page-detail .dp-benefit__num {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  font-weight: 500;
+  margin-bottom: 10px;
 }
 .page-detail .dp-benefit h3 {
   font-family: var(--f-display); font-weight: 700; font-size: 18px;
@@ -129,6 +612,228 @@
 .page-detail .dp-pricing__fp {
   margin-top: 14px; font-family: var(--f-mono); font-size: 11.5px;
   color: var(--ink-3); letter-spacing: 0.02em;
+}
+
+/* ============== SERVICE PROCESS STEPPER ============== */
+.page-detail .svc-steps {
+  position: relative;
+  padding: 100px 0 110px;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+}
+.page-detail .svc-steps .ds-eyebrow { color: rgba(255,255,255,0.7); }
+.page-detail .svc-steps .ds-section-head h2 { color: #fff; }
+.page-detail .svc-steps .ds-section-head p { color: rgba(255,255,255,0.72); }
+.page-detail .svc-steps__list {
+  list-style: none;
+  padding: 0;
+  margin: 40px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.page-detail .svc-step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--rad);
+}
+.page-detail .svc-step__num {
+  font-family: var(--f-display);
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 6px;
+}
+.page-detail .svc-step__body h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 16.5px;
+  letter-spacing: -0.005em;
+  color: #fff;
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+.page-detail .svc-step__body p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.74);
+}
+@media (max-width: 760px) {
+  .page-detail .svc-steps { padding: 60px 0; }
+  .page-detail .svc-steps__list { grid-template-columns: 1fr; gap: 12px; }
+  .page-detail .svc-step { padding: 20px 18px; }
+  .page-detail .svc-step__num { font-size: 40px; margin-bottom: 2px; }
+}
+
+/* ============== SCOPE (included / excluded / typical) ============== */
+.page-detail .svc-scope {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .svc-scope__col {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.page-detail .svc-scope__col--included { border-left: 3px solid #217049; }
+.page-detail .svc-scope__col--excluded { border-left: 3px solid #a52a2a; }
+.page-detail .svc-scope__col--typical { border-left: 3px solid var(--navy); }
+.page-detail .svc-scope__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.page-detail .svc-scope ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.page-detail .svc-scope ul li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.page-detail .svc-scope__col--included ul li::before {
+  content: "✓";
+  position: absolute; left: 0;
+  color: #217049;
+  font-weight: 800;
+}
+.page-detail .svc-scope__col--excluded ul li::before {
+  content: "+";
+  position: absolute; left: 0;
+  color: #a52a2a;
+  font-weight: 800;
+  font-size: 16px;
+  line-height: 1;
+}
+.page-detail .svc-scope dl {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+.page-detail .svc-scope dt {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.page-detail .svc-scope dd {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+@media (max-width: 900px) {
+  .page-detail .svc-scope { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* ============== REAL INSTALL PHOTOS GRID ============== */
+.page-detail .svc-photos { padding: 90px 0; background: var(--bg); }
+.page-detail .svc-photos__grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.page-detail .svc-photo {
+  margin: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.page-detail .svc-photo img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--paper);
+}
+.page-detail .svc-photo figcaption {
+  padding: 10px 14px 14px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+@media (max-width: 760px) {
+  .page-detail .svc-photos { padding: 60px 0; }
+  .page-detail .svc-photo img { height: 160px; }
+}
+
+/* ============== BRAND PODS ============== */
+.page-detail .svc-brandpods { padding: 90px 0; background: var(--paper); border-top: 1px solid var(--line); }
+.page-detail .svc-brandpods__grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.page-detail .svc-brandpod {
+  display: block;
+  padding: 22px 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  transition: border-color .12s, transform .12s, box-shadow .12s;
+  box-shadow: var(--shadow-sm);
+}
+.page-detail .svc-brandpod:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.page-detail .svc-brandpod__name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.page-detail .svc-brandpod__reason {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-bottom: 14px;
+}
+.page-detail .svc-brandpod__more {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  .page-detail .svc-brandpods { padding: 60px 0; }
 }
 
 /* ============== BRANDS STRIP ============== */
@@ -237,4 +942,2947 @@
   .page-detail .dp-benefits__grid { grid-template-columns: 1fr; }
   .page-detail .dp-pricing__table thead th:nth-child(3),
   .page-detail .dp-pricing__table tbody td:nth-child(3) { display: none; }
+}
+
+/* ==================================================================
+   Instagram "see the real thing" CTA.
+   Product photography on the site is manufacturer imagery — this
+   points people at the real install gallery rather than implying the
+   catalogue shots are our work. Used on service pages, brand hubs and
+   the tools hub.
+   ================================================================== */
+.ig-cta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 28px;
+  padding: 18px 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .16s ease, box-shadow .22s ease, border-color .16s ease;
+  position: relative;
+  overflow: hidden;
+}
+/* Instagram-gradient hairline down the left edge. */
+.ig-cta::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #F9CE34 0%, #EE2A7B 50%, #6228D7 100%);
+}
+.ig-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(5, 10, 48, 0.10);
+  border-color: #EE2A7B;
+}
+.ig-cta__icon {
+  flex: 0 0 46px;
+  width: 46px; height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #F9CE34 0%, #EE2A7B 55%, #6228D7 100%);
+}
+.ig-cta__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.ig-cta__head {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.008em;
+  color: var(--navy);
+  line-height: 1.25;
+}
+.ig-cta__sub {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.ig-cta__go {
+  flex: 0 0 auto;
+  font-size: 18px;
+  font-weight: 700;
+  color: #EE2A7B;
+  transition: transform .16s ease;
+}
+.ig-cta:hover .ig-cta__go { transform: translateX(4px); }
+
+@media (max-width: 560px) {
+  .ig-cta { gap: 12px; padding: 14px 15px; margin-top: 20px; }
+  .ig-cta__icon { flex: 0 0 38px; width: 38px; height: 38px; border-radius: 10px; }
+  .ig-cta__icon svg { width: 21px; height: 21px; }
+  .ig-cta__head { font-size: 14.5px; }
+  .ig-cta__sub { font-size: 12.5px; }
+}
+
+/* ============== SERVICE PAGE BEFORE/AFTER ============== */
+.page-detail .svc-ba { padding: 80px 0; background: var(--paper); border-top: 1px solid var(--line); }
+/* The media column was capped at 400px against a 1fr text column, which
+   left most of the row empty on a wide screen and made the photography —
+   the whole point of a before/after — the smallest thing in the section.
+   Give the image the larger share and let the notes sit beside it. */
+.svc-ba__row {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+  margin-top: 30px;
+}
+.svc-ba__side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  max-width: 46ch;
+}
+.svc-ba__meta li { font-size: 15.5px !important; }
+.svc-ba__meta { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+.svc-ba__meta li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.svc-ba__meta li::before {
+  content: "✓";
+  position: absolute; left: 0; top: 0;
+  color: #217049;
+  font-weight: 800;
+}
+@media (max-width: 900px) {
+  .page-detail .svc-ba { padding: 52px 0; }
+  .svc-ba__row { grid-template-columns: 1fr; gap: 24px; }
+  .svc-ba__media { max-width: 360px; width: 100%; margin: 0 auto; }
+}
+
+/* ---- Photo-backed hero variants keep the white treatment ----
+   /brands, /brands/[brand], the Reclaim compare page and /areas/[suburb]
+   layer a full-bleed photo + dark scrim behind .dp-hero. Navy-on-photo
+   would be unreadable, so these opt back into white text. Everything
+   else gets the light hero above. */
+.page-detail .dp-hero.brand-hero,
+.page-detail .dp-hero.brands-hub-hero,
+.page-detail .dp-hero.suburb-hero {
+  background: var(--navy);
+  color: #fff;
+  border-bottom: 0;
+  overflow: hidden;
+  padding: 70px 0 90px;
+}
+.page-detail .dp-hero.brand-hero h1,
+.page-detail .dp-hero.brands-hub-hero h1,
+.page-detail .dp-hero.suburb-hero h1,
+.page-detail .dp-hero.brand-hero h2,
+.page-detail .dp-hero.brands-hub-hero h2,
+.page-detail .dp-hero.suburb-hero h2 { color: #fff; }
+.page-detail .dp-hero.brand-hero .dp-hero__sub,
+.page-detail .dp-hero.brands-hub-hero .dp-hero__sub,
+.page-detail .dp-hero.suburb-hero .dp-hero__sub { color: rgba(255,255,255,0.82); }
+.page-detail .dp-hero.brand-hero .dp-crumbs,
+.page-detail .dp-hero.brands-hub-hero .dp-crumbs,
+.page-detail .dp-hero.suburb-hero .dp-crumbs { color: rgba(255,255,255,0.55); }
+.page-detail .dp-hero.brand-hero .dp-crumbs a,
+.page-detail .dp-hero.brands-hub-hero .dp-crumbs a,
+.page-detail .dp-hero.suburb-hero .dp-crumbs a { color: rgba(255,255,255,0.7); }
+.page-detail .dp-hero.brand-hero .dp-crumbs a:hover,
+.page-detail .dp-hero.brands-hub-hero .dp-crumbs a:hover,
+.page-detail .dp-hero.suburb-hero .dp-crumbs a:hover { color: var(--sky-2); }
+.page-detail .dp-hero.brand-hero .dp-crumbs span.cur,
+.page-detail .dp-hero.brands-hub-hero .dp-crumbs span.cur,
+.page-detail .dp-hero.suburb-hero .dp-crumbs span.cur { color: #fff; }
+.page-detail .dp-hero.brand-hero .dp-hero__eyebrow,
+.page-detail .dp-hero.brands-hub-hero .dp-hero__eyebrow,
+.page-detail .dp-hero.suburb-hero .dp-hero__eyebrow {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 8px 14px;
+  border-radius: 999px;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.9);
+}
+.page-detail .dp-hero.brand-hero .ds-btn--ghost,
+.page-detail .dp-hero.brands-hub-hero .ds-btn--ghost,
+.page-detail .dp-hero.suburb-hero .ds-btn--ghost {
+  color: #fff;
+  border-color: rgba(255,255,255,0.3);
+}
+.page-detail .dp-hero.brand-hero .ds-btn--ghost:hover,
+.page-detail .dp-hero.brands-hub-hero .ds-btn--ghost:hover,
+.page-detail .dp-hero.suburb-hero .ds-btn--ghost:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: #fff;
+}
+
+/* ==================================================================
+   Instagram feed grid — live install photos pulled from the account.
+   ================================================================== */
+.igf { padding: 70px 0; background: var(--paper); border-top: 1px solid var(--line); }
+.igf__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.igf__head h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 34px);
+  letter-spacing: -0.018em;
+  color: var(--navy);
+  margin: 12px 0 8px;
+  line-height: 1.12;
+}
+.igf__head p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+.igf__follow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  background: linear-gradient(135deg, #F9CE34 0%, #EE2A7B 55%, #6228D7 100%);
+  white-space: nowrap;
+  transition: transform .16s ease, box-shadow .2s ease;
+}
+.igf__follow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(238, 42, 123, 0.32);
+}
+
+.igf__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.igf__cell {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  text-decoration: none;
+  transition: transform .18s ease, box-shadow .22s ease;
+}
+.igf__cell:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(5,10,48,0.14); }
+.igf__cell img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.igf__video {
+  position: absolute;
+  top: 9px; right: 9px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(5, 10, 48, 0.62);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Caption slides up on hover — kept off-screen rather than hidden so it
+   still reaches assistive tech. */
+.igf__cap {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 22px 12px 11px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #fff;
+  background: linear-gradient(180deg, transparent, rgba(5,10,48,0.86));
+  transform: translateY(100%);
+  transition: transform .2s ease;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.igf__cell:hover .igf__cap,
+.igf__cell:focus-visible .igf__cap { transform: translateY(0); }
+
+.igf__attrib {
+  margin: 20px 0 0;
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+
+@media (max-width: 640px) {
+  .igf { padding: 48px 0; }
+  .igf__grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .igf__head { margin-bottom: 20px; }
+  /* Touch devices have no hover — show the caption permanently. */
+  .igf__cap { transform: translateY(0); font-size: 11px; padding: 18px 9px 9px; -webkit-line-clamp: 2; }
+}
+
+/* ==================================================================
+   RICH DETAIL HERO — carries the home page's design language.
+   The plain light hero read as a different, thinner site next to the
+   home page, which has a photo column and a trust bar. This adds both
+   back: navy panel on the right holding the photo, trust stats under
+   the CTAs, and a soft tinted ground so the section has depth instead
+   of sitting flat on paper.
+   ================================================================== */
+.page-detail .dp-hero--rich {
+  padding: 0;
+  border-bottom: 0;
+  background:
+    radial-gradient(760px 420px at 88% 8%, rgba(0, 176, 237, 0.20), transparent 62%),
+    radial-gradient(620px 400px at 2% 96%, rgba(243, 103, 34, 0.16), transparent 62%),
+    var(--navy);
+  overflow: hidden;
+}
+.dp-hero__grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 52px;
+  align-items: center;
+  padding: 50px 0 58px;
+}
+.dp-hero__col { min-width: 0; }
+
+/* Photo panel — navy card, matching the home hero's treatment. */
+.dp-hero__media {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #0a1440;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 26px 54px -22px rgba(0, 0, 0, 0.55),
+              0 10px 26px -14px rgba(5, 10, 48, 0.26);
+}
+.dp-hero__media img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Product renders sit on a plinth rather than bleeding to the edges. */
+.dp-hero__media--contain {
+  background:
+    radial-gradient(120% 92% at 50% 6%, #fff 0%, var(--paper) 58%, var(--bg-2) 100%);
+}
+.dp-hero__media--contain img {
+  object-fit: contain;
+  padding: 26px;
+  filter: drop-shadow(0 14px 22px rgba(5, 10, 48, 0.14));
+}
+/* Floating stat chip over the bottom-left of the photo. */
+.dp-hero__badge {
+  position: absolute;
+  left: 16px; bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(5, 10, 48, 0.16);
+}
+.dp-hero__badge strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  line-height: 1.1;
+}
+.dp-hero__badge span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Trust bar — same shape as the home page's, light-mode palette. */
+.dp-trust {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  padding: 15px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.dp-trust__stat { display: flex; flex-direction: column; line-height: 1.15; }
+.dp-trust__stat strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+}
+.dp-trust__stat span { font-size: 12.5px; color: var(--ink-3); }
+.dp-trust__stat--stars strong { color: #f5a623; letter-spacing: 1px; font-size: 15px; }
+.dp-trust__div { width: 1px; height: 28px; background: var(--line); }
+
+/* The hero is navy, so the trust bar inside it always takes the dark
+   treatment — a white slab would punch a hole in it. The explicit
+   --dark class stays for anywhere else that needs it. */
+.page-detail .dp-hero .dp-trust,
+.dp-trust--dark {
+  background: rgba(11, 22, 41, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: none;
+}
+.page-detail .dp-hero .dp-trust__stat strong,
+.dp-trust--dark .dp-trust__stat strong { color: #fff; }
+.page-detail .dp-hero .dp-trust__stat span,
+.dp-trust--dark .dp-trust__stat span { color: rgba(255, 255, 255, 0.72); }
+.page-detail .dp-hero .dp-trust__stat--stars strong,
+.dp-trust--dark .dp-trust__stat--stars strong { color: #ffc043; }
+.page-detail .dp-hero .dp-trust__div,
+.dp-trust--dark .dp-trust__div { background: rgba(255, 255, 255, 0.2); }
+
+/* ============================================================
+   PROOF STRIP — compact reviews row for brand + service pages.
+   The long-form version lives on /reviews; this is the three-card
+   digest so detail pages carry the same social proof as the home
+   page without turning into it.
+   ============================================================ */
+.proof { padding: 62px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.proof__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+.proof__head h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(23px, 3vw, 31px);
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  margin: 10px 0 8px;
+}
+.proof__head p { font-size: 15px; color: var(--ink-2); max-width: 54ch; margin: 0; }
+.proof__score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+}
+.proof__score strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.proof__stars { color: #f5a623; letter-spacing: 2px; font-size: 15px; }
+.proof__count { font-size: 12.5px; color: var(--ink-3); }
+
+.proof__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.proof__card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.proof__card-stars { color: #f5a623; letter-spacing: 2px; font-size: 14px; margin-bottom: 10px; }
+.proof__card h3 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+.proof__card p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+  flex: 1;
+}
+.proof__by { display: flex; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.proof__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--card-accent, var(--navy)) 14%, #fff);
+  color: color-mix(in srgb, var(--card-accent, var(--navy)) 78%, #000);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.proof__who { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.proof__who strong { font-size: 13.5px; font-weight: 700; color: var(--navy); }
+.proof__who em { font-style: normal; font-size: 12px; color: var(--ink-3); }
+
+.proof__foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+.proof__attrib { font-size: 11.5px; color: var(--ink-3); }
+.proof__glink { font-size: 13px; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+.proof__glink:hover { color: var(--navy); }
+
+@media (max-width: 900px) {
+  .proof__grid { grid-template-columns: 1fr; }
+  .proof__head { align-items: flex-start; }
+}
+@media (max-width: 640px) {
+  .proof { padding: 44px 0; }
+  .proof__score { padding: 10px 14px; }
+  .proof__score strong { font-size: 25px; }
+  .proof__card { padding: 16px; }
+}
+
+@media (max-width: 1000px) {
+  .dp-hero__grid { grid-template-columns: 1fr; gap: 30px; padding: 38px 0 42px; }
+  .dp-hero__media { aspect-ratio: 16 / 9; max-height: 320px; }
+}
+@media (max-width: 640px) {
+  .dp-hero__grid { gap: 22px; padding: 26px 0 30px; }
+  .dp-hero__media { aspect-ratio: 3 / 2; max-height: 230px; border-radius: 16px; }
+  .dp-hero__media--contain img { padding: 16px; }
+  .dp-trust { gap: 14px; padding: 12px 14px; margin-top: 18px; }
+  .dp-trust__stat strong { font-size: 15px; }
+  .dp-trust__stat span { font-size: 11.5px; }
+  /* Third stat drops on the tightest screens rather than wrapping badly. */
+  .dp-trust__div:nth-of-type(4),
+  .dp-trust__stat:nth-of-type(5) { display: none; }
+}
+
+
+/* ============================================================
+   SYSTEM TYPES — one anchored block per system on a service page.
+   These carry the header's deep links (#split, #multi, #ducted,
+   #evap, #gas-ducted, #continuous-flow, #gas-service), so the
+   scroll-margin below matters: without it the sticky header eats
+   the heading you just jumped to.
+   ============================================================ */
+.page-detail .svc-systems { padding: 90px 0; background: var(--bg); }
+
+.page-detail .svc-systems__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 26px 0 8px;
+}
+.page-detail .svc-systems__jump a {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+  transition: border-color .16s ease, background .16s ease;
+}
+.page-detail .svc-systems__jump a:hover {
+  border-color: var(--orange);
+  background: color-mix(in srgb, var(--orange) 8%, var(--paper));
+}
+
+.page-detail .svc-system {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 34px;
+  align-items: center;
+  margin-top: 34px;
+  padding: 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  scroll-margin-top: 110px;
+}
+.page-detail .svc-system--flip .svc-system__media { order: 2; }
+
+.page-detail .svc-system__media {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 18px;
+}
+.page-detail .svc-system__media img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+}
+
+.page-detail .svc-system__body h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: clamp(20px, 2.4vw, 26px);
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0 0 10px;
+}
+.page-detail .svc-system__blurb {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+}
+.page-detail .svc-system__points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px;
+  display: grid;
+  gap: 8px;
+}
+.page-detail .svc-system__points li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.page-detail .svc-system__points li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 8px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+.page-detail .svc-system__foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .svc-system__price {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+}
+
+@media (max-width: 900px) {
+  .page-detail .svc-system { grid-template-columns: 1fr; gap: 20px; padding: 20px; }
+  /* Photo always leads on mobile — the flip only makes sense side by side. */
+  .page-detail .svc-system--flip .svc-system__media { order: 0; }
+  .page-detail .svc-system__media { aspect-ratio: 16 / 10; }
+}
+@media (max-width: 640px) {
+  .page-detail .svc-systems { padding: 52px 0; }
+  .page-detail .svc-systems__jump a { font-size: 12.5px; padding: 7px 12px; }
+}
+
+
+/* ============================================================
+   WHY US — the part that isn't on the quote
+   ============================================================ */
+.page-detail .whydiff {
+  padding: 90px 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .whydiff__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 40px;
+}
+.page-detail .whydiff__card {
+  padding: 26px 24px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+}
+.page-detail .whydiff__num {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.page-detail .whydiff__card h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+.page-detail .whydiff__card p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+.page-detail .whydiff__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .whydiff__foot p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+@media (max-width: 980px) {
+  .page-detail .whydiff__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-detail .whydiff { padding: 54px 0; }
+  .page-detail .whydiff__grid { grid-template-columns: 1fr; gap: 12px; }
+  .page-detail .whydiff__card { padding: 20px 18px; }
+}
+
+
+/* House rules — the short tail under the per-service argument. */
+.page-detail .whydiff__rules {
+  margin-top: 34px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .whydiff__rules-lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin: 0 0 18px;
+}
+.page-detail .whydiff__rules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.page-detail .whydiff__rule {
+  padding-left: 14px;
+  border-left: 2px solid var(--orange);
+}
+.page-detail .whydiff__rule h4 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.page-detail .whydiff__rule p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+@media (max-width: 980px) {
+  .page-detail .whydiff__rules-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .page-detail .whydiff__rules-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+
+
+/* ============================================================
+   SYSTEM FIT — right call / think twice, on the system pages
+   ============================================================ */
+.page-detail .sysfit { padding: 90px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-detail .sysfit__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 38px;
+}
+.page-detail .sysfit__col {
+  padding: 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  border-top: 3px solid var(--line);
+}
+.page-detail .sysfit__col--yes { border-top-color: #17a06a; }
+.page-detail .sysfit__col--no  { border-top-color: var(--orange); }
+.page-detail .sysfit__col h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 16px;
+}
+.page-detail .sysfit__col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 11px; }
+.page-detail .sysfit__col li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.page-detail .sysfit__col--yes li::before { content: "✓"; color: #17a06a; }
+.page-detail .sysfit__col--no  li::before { content: "!"; color: var(--orange); }
+.page-detail .sysfit__col li::before {
+  position: absolute;
+  left: 4px;
+  top: 0;
+  font-weight: 800;
+}
+@media (max-width: 820px) {
+  .page-detail .sysfit { padding: 54px 0; }
+  .page-detail .sysfit__grid { grid-template-columns: 1fr; }
+  .page-detail .sysfit__col { padding: 20px; }
+}
+
+
+/* ============================================================
+   SYSTEM PAGES — quieter typography.
+   These pages are read, not skimmed: the section headings were set at
+   the same scale as a landing page and shouted over the copy.
+   ============================================================ */
+.page-detail .dp-hero--rich h1 { font-size: clamp(30px, 3.6vw, 46px); }
+.page-detail .sysfit .ds-section-head h2,
+.page-detail .dp-benefits .ds-section-head h2,
+.page-detail .svc-steps .ds-section-head h2,
+.page-detail .dp-pricing .ds-section-head h2 {
+  font-size: clamp(21px, 2.4vw, 28px);
+}
+.page-detail .ds-section-head p { font-size: 15.5px; }
+
+/* Points carry no heading on these pages, so the text is the card. */
+.page-detail .dp-benefit p { font-size: 14.5px; line-height: 1.6; }
+
+@media (max-width: 640px) {
+  .page-detail .dp-hero--rich h1 { font-size: clamp(25px, 7vw, 32px); }
+  .page-detail .ds-section-head p { font-size: 14.5px; }
+}
+
+
+/* "What you get" boxed in orange — this is the value list, so it should
+   read as a panel rather than another run of body copy. */
+.page-detail .dp-benefits--boxed {
+  background: var(--bg);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+/* Solid orange, matching the home page's 60-second quote panel — same
+   radius, same shadow, same inner texture so a flat fill doesn't read
+   too dense. */
+.page-detail .dp-benefits--boxed > .wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 44px 48px 48px;
+  box-shadow: 0 20px 44px -18px rgba(243,103,34,0.55),
+              0 8px 24px -14px rgba(5,10,48,0.2);
+}
+.page-detail .dp-benefits--boxed > .wrap::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5,10,48,0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+.page-detail .dp-benefits--boxed > .wrap > * { position: relative; }
+
+/* On orange, the navy header rule and navy headings disappear. */
+.page-detail .dp-benefits--boxed .ds-section-head--hl::before { background: #fff; }
+.page-detail .dp-benefits--boxed .ds-eyebrow { color: #fff; }
+.page-detail .dp-benefits--boxed .ds-eyebrow .ds-dot { background: #fff; }
+.page-detail .dp-benefits--boxed h2 { color: #fff; }
+.page-detail .dp-benefits--boxed .ds-section-head p { color: #fff; }
+
+/* Solid white cards, like the form card inside the home page's orange
+   box. Translucent white on orange looked tidy and was barely legible. */
+.page-detail .dp-benefits--boxed .dp-benefit {
+  background: #fff;
+  border: 1px solid rgba(5,10,48,0.08);
+  box-shadow: 0 6px 18px -8px rgba(5,10,48,0.22);
+}
+.page-detail .dp-benefits--boxed .dp-benefit__num { color: #c2540f; opacity: 1; }
+.page-detail .dp-benefits--boxed .dp-benefit h3 { color: var(--navy); }
+.page-detail .dp-benefits--boxed .dp-benefit p { color: var(--ink-2); }
+@media (max-width: 640px) {
+  .page-detail .dp-benefits--boxed > .wrap { padding: 26px 20px 28px; border-radius: 20px; }
+}
+
+
+/* ============================================================
+   ALBUMS — our own job gallery, with a click-through viewer
+   ============================================================ */
+.albums__filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.albums__chip {
+  appearance: none;
+  cursor: pointer;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.albums__chip:hover { border-color: var(--orange); color: var(--navy); }
+.albums__chip.is-active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+.albums__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+.albums__tile {
+  appearance: none;
+  cursor: pointer;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  transition: transform .16s ease, box-shadow .22s ease, border-color .16s ease;
+}
+.albums__tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--orange);
+  box-shadow: 0 12px 28px rgba(5,10,48,0.12);
+}
+.albums__pic { position: relative; display: block; aspect-ratio: 4 / 3; overflow: hidden; background: var(--bg-2); }
+.albums__pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.albums__badge {
+  position: absolute; right: 10px; bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(5,10,48,0.78);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+}
+.albums__play {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px; height: 52px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: rgba(5,10,48,0.66);
+  color: #fff;
+  font-size: 18px;
+  padding-left: 3px;
+}
+.albums__meta { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px 16px; }
+.albums__meta strong {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  line-height: 1.3;
+}
+.albums__meta em { font-style: normal; font-size: 12.5px; color: var(--ink-3); }
+
+/* ============================================================
+   LIGHTBOX
+   ============================================================ */
+.lbx {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(3, 6, 24, 0.92);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  overscroll-behavior: contain;
+}
+.lbx__shell {
+  width: min(1100px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  outline: none;
+}
+.lbx__bar { display: flex; align-items: center; gap: 14px; color: #fff; }
+.lbx__title { display: flex; flex-direction: column; min-width: 0; }
+.lbx__title strong { font-family: var(--f-display); font-weight: 700; font-size: 15.5px; }
+.lbx__title span { font-size: 12.5px; color: rgba(255,255,255,0.6); }
+.lbx__count {
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.7);
+}
+.lbx__close {
+  appearance: none; cursor: pointer;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 15px;
+  line-height: 1;
+}
+.lbx__close:hover { background: rgba(255,255,255,0.18); }
+
+.lbx__stage { position: relative; display: grid; place-items: center; min-height: 0; }
+.lbx__media {
+  max-width: 100%;
+  max-height: calc(100vh - 260px);
+  border-radius: 12px;
+  display: block;
+  background: #000;
+}
+.lbx__nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  appearance: none; cursor: pointer;
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(5,10,48,0.6);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  display: grid; place-items: center;
+}
+.lbx__nav:hover { background: var(--orange); border-color: var(--orange); }
+.lbx__nav--prev { left: 8px; }
+.lbx__nav--next { right: 8px; }
+
+.lbx__cap {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.82);
+}
+
+.lbx__thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; justify-content: center; }
+.lbx__thumb {
+  position: relative;
+  appearance: none; cursor: pointer; padding: 0;
+  flex: 0 0 62px; width: 62px; height: 46px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  overflow: hidden;
+  background: #000;
+  opacity: 0.55;
+  transition: opacity .16s ease, border-color .16s ease;
+}
+.lbx__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lbx__thumb:hover { opacity: 0.85; }
+.lbx__thumb.is-active { opacity: 1; border-color: var(--orange); }
+.lbx__thumb-play {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: #fff; font-size: 12px;
+  background: rgba(0,0,0,0.3);
+}
+
+@media (max-width: 640px) {
+  .lbx { padding: 10px; }
+  .lbx__media { max-height: calc(100vh - 220px); }
+  .lbx__nav { width: 38px; height: 38px; font-size: 21px; }
+  .lbx__thumbs { justify-content: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .albums__tile { transition: none; }
+  .albums__tile:hover { transform: none; }
+}
+
+
+
+
+/* Ghost CTA sits on navy now, so it needs a light outline rather than
+   the dark one the light hero called for. */
+.page-detail .dp-hero .ds-btn--ghost {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.32);
+  color: #fff;
+}
+.page-detail .dp-hero .ds-btn--ghost:hover {
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.5);
+  color: #fff;
+}
+.page-detail .dp-hero .dp-hero__eyebrow { color: var(--sky); }
+.page-detail .dp-hero h1 em,
+.page-detail .dp-hero h1 .accent { color: var(--orange); }
+
+
+/* Distance-ring labels on the coverage map. divIcon, so it's a plain div
+   in the marker pane rather than one of Leaflet's raster icons. */
+.covmap__ringlbl {
+  display: grid;
+  place-items: center;
+  background: none;
+  border: 0;
+}
+.covmap__ringlbl span {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(243, 103, 34, 0.55);
+  color: #b8460f;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  box-shadow: 0 1px 4px rgba(5, 10, 48, 0.14);
+}
+
+/* ---------- sibling links on suburb x service pages ---------- */
+/* These pages used to have exactly one inbound internal link each,
+   which is not enough for a crawler to treat them as anything. */
+
+.svcnear {
+  padding: clamp(2rem, 5vw, 3.25rem) 0;
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+}
+.svcnear__grid {
+  display: grid;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.svcnear__col h2 {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.1rem, 2.4vw, 1.35rem);
+  color: var(--navy);
+}
+.svcnear__col > p {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.svcnear__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.svcnear__list a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 10px;
+  background: #fff;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+}
+.svcnear__list a:hover {
+  border-color: var(--orange);
+  color: var(--orange);
+}
+.svcnear__list a span {
+  flex: none;
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--ink-2);
+}
+.svcnear__list a:hover span { color: var(--orange); }
+
+/* ---------- per-suburb local detail on suburb x service pages ---------- */
+/* These pages measured 93% identical to one another, which is the exact
+   profile Google reports as "crawled, currently not indexed". This
+   section is where the per-suburb facts finally get rendered. */
+
+.dp-local-angle {
+  padding: clamp(2rem, 5vw, 3.5rem) 0;
+  background: #fff;
+}
+.localangle__grid {
+  display: grid;
+  gap: clamp(1.25rem, 3.5vw, 2.5rem);
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .localangle__grid { grid-template-columns: 1fr; }
+}
+
+.localangle__body p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+.localangle__body h3 {
+  margin: 1.5rem 0 0.6rem;
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+.localangle__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.localangle__list li {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.localangle__list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+
+.localangle__facts {
+  padding: 1.25rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+}
+.localangle__facts dl { margin: 0; display: grid; gap: 0.9rem; }
+.localangle__facts dt {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 0 0 2px;
+}
+.localangle__facts dd {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--navy);
+}
+
+.localangle__quote {
+  margin: 1.25rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+}
+.localangle__quote blockquote {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--ink-2);
+  font-style: italic;
+}
+.localangle__quote figcaption { display: grid; gap: 1px; }
+.localangle__quote strong { font-size: 0.88rem; color: var(--navy); }
+.localangle__quote span { font-size: 0.8rem; color: var(--ink-2); }
+
+/* ===================================================================
+   PER-SYSTEM SECTIONS — /services/<service>/<system>
+
+   These pages used to render the parent service's benefits, steps and
+   price table, so ten of them read as one. The two blocks below are the
+   per-system content: a facts strip whose numbers differ on every page,
+   and a spotlight section whose layout is chosen to suit the argument
+   rather than repeated for consistency.
+   =================================================================== */
+
+/* ---- quick facts strip ---- */
+.page-detail .sysspecs { padding: 0; background: var(--navy); }
+.page-detail .sysspecs__row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 0;
+  padding: 0;
+}
+.page-detail .sysspec {
+  padding: 22px 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+.page-detail .sysspec:first-child { border-left: 0; }
+.page-detail .sysspec dt {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 7px;
+}
+.page-detail .sysspec dd {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff;
+}
+@media (max-width: 900px) {
+  .page-detail .sysspecs__row { grid-template-columns: repeat(2, 1fr); }
+  .page-detail .sysspec { border-left: 0; border-top: 1px solid rgba(255,255,255,0.1); padding: 18px 16px; }
+  .page-detail .sysspec:nth-child(-n+2) { border-top: 0; }
+  .page-detail .sysspec:nth-child(2n) { border-left: 1px solid rgba(255,255,255,0.1); }
+  /* Smaller so the longer values (warranty especially) stay on two
+     lines rather than three and the rows keep matching heights. */
+  .page-detail .sysspec dd { font-size: 15px; }
+}
+
+/* ---- spotlight, shared shell ---- */
+.page-detail .sysspot { padding: 76px 0; background: var(--bg); }
+.page-detail .sysspot--table,
+.page-detail .sysspot--split { background: var(--bg-2); }
+.page-detail .sysspot__note {
+  margin: 26px 0 0;
+  max-width: 80ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+/* ---- layout: cards ---- */
+.page-detail .sysspot__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+.page-detail .sysspot__card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  padding: 24px 26px;
+}
+.page-detail .sysspot__card h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.28;
+  color: var(--navy);
+  margin: 0 0 10px;
+}
+.page-detail .sysspot__card p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---- layout: steps ---- */
+.page-detail .sysspot__steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.page-detail .sysspot__steps li {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 22px 26px;
+}
+.page-detail .sysspot__n {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-detail .sysspot__steps h3 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 7px;
+}
+.page-detail .sysspot__steps p { margin: 0; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+
+/* ---- layout: split ---- */
+.page-detail .sysspot__split { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 40px; align-items: start; }
+.page-detail .sysspot__photo {
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 22px;
+  position: sticky;
+  top: 110px;
+}
+.page-detail .sysspot__photo img { width: 100%; height: auto; display: block; object-fit: contain; }
+.page-detail .sysspot__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.page-detail .sysspot__list li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sky);
+  border-radius: var(--rad-sm);
+  padding: 18px 22px;
+}
+.page-detail .sysspot__list strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.page-detail .sysspot__list span { display: block; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+/* ---- layout: table ---- */
+.page-detail .sysspot__tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.page-detail .sysspot__table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 15px; }
+.page-detail .sysspot__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 14px 20px;
+  font-weight: 700;
+}
+.page-detail .sysspot__table tbody th {
+  text-align: left;
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  color: var(--navy);
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+  width: 170px;
+  vertical-align: top;
+}
+.page-detail .sysspot__table td {
+  padding: 18px 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+  line-height: 1.58;
+  vertical-align: top;
+}
+
+/* ---- price note ---- */
+.page-detail .dp-pricing__note {
+  margin: 20px 0 0;
+  max-width: 80ch;
+  font-size: 15px;
+  line-height: 1.62;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+@media (max-width: 900px) {
+  .page-detail .sysspot { padding: 52px 0; }
+  .page-detail .sysspot__split { grid-template-columns: 1fr; gap: 24px; }
+  .page-detail .sysspot__photo { position: static; }
+}
+@media (max-width: 640px) {
+  .page-detail .sysspot__steps li { padding: 18px 20px; gap: 14px; }
+  .page-detail .sysspot__card { padding: 20px 22px; }
+}
+
+/* ===================================================================
+   "WHY DO THIS AT ALL" — the lead block on why-first service pages.
+
+   Photo-led on purpose. A page that opens with specification is a page
+   written for somebody who has already decided; this one is for the
+   person still asking whether to bother, so it's a big picture, four
+   numbers and four short reasons before any of the detail.
+   =================================================================== */
+.page-detail .svc-why { padding: 76px 0; background: var(--bg-2); }
+.page-detail .svc-why__grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 48px;
+  align-items: center;
+}
+.page-detail .svc-why__copy .ds-section-head { margin-bottom: 28px; }
+.page-detail .svc-why__photo {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  aspect-ratio: 4 / 5;
+  background: var(--bg);
+}
+.page-detail .svc-why__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Four numbers, because a glance beats a paragraph. */
+.page-detail .svc-why__stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.page-detail .svc-why__stats li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--orange);
+  border-radius: var(--rad-sm);
+  padding: 16px 18px;
+}
+.page-detail .svc-why__stats strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.page-detail .svc-why__stats span {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.page-detail .svc-why__reasons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+.page-detail .svc-why__reason {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sky);
+  border-radius: var(--rad);
+  padding: 22px 24px;
+}
+.page-detail .svc-why__reason h3 {
+  font-family: var(--f-display);
+  font-size: 18px;
+  line-height: 1.28;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+.page-detail .svc-why__reason p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+
+.page-detail .svc-why__caveat {
+  margin: 26px 0 0;
+  max-width: 84ch;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  font-style: italic;
+  border-left: 3px solid var(--line-2);
+  padding-left: 16px;
+}
+
+@media (max-width: 1000px) {
+  .page-detail .svc-why__grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-detail .svc-why__photo { aspect-ratio: 3 / 2; max-width: 560px; }
+}
+@media (max-width: 640px) {
+  .page-detail .svc-why { padding: 48px 0; }
+  .page-detail .svc-why__stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page-detail .svc-why__stats li { padding: 13px 14px; }
+  .page-detail .svc-why__stats strong { font-size: 24px; }
+  .page-detail .svc-why__reasons { margin-top: 28px; }
+}
+
+/* ===================================================================
+   OUR OWN INSTALL SHOTS — the navy photo band.
+
+   Two jobs. It gives the service pages somewhere to put real job
+   photography that isn't the manufacturer render grid, and it puts a
+   dark beat between light sections so the page stops reading as one
+   long stretch of cream.
+
+   The grid is auto-fit, so it looks deliberate at three photos and at
+   twelve. Add rows to `installPhotos.shots` and nothing here changes.
+   =================================================================== */
+.page-detail .svc-shots {
+  padding: 90px 0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+}
+.page-detail .svc-shots .ds-section-head { margin-bottom: 36px; }
+.page-detail .svc-shots__lede { color: rgba(255, 255, 255, 0.78) !important; }
+/* Three across on desktop rather than auto-fit. Auto-fit gave five
+   columns at this width, which left a single orphan on the second row
+   with six photos and made each shot small — the opposite of the point.
+   Three keeps them big and lands clean at 3, 6, 9, 12. */
+.page-detail .svc-shots__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .page-detail .svc-shots__grid { grid-template-columns: repeat(2, 1fr); }
+}
+.page-detail .svc-shot {
+  margin: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.page-detail .svc-shot img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+.page-detail .svc-shot figcaption {
+  padding: 12px 14px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-detail .svc-shots__foot { margin-top: 28px; }
+
+@media (max-width: 640px) {
+  .page-detail .svc-shots { padding: 52px 0; }
+  .page-detail .svc-shots__grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .page-detail .svc-shot figcaption { padding: 10px 11px 12px; font-size: 12px; }
+}
+
+/* --- Colour rhythm on why-first pages ---------------------------------
+   The default order alternates cream against cream, which is why the
+   page read flat. With the why block leading, the sequence becomes
+   navy hero → cream → white → cream → NAVY photos → white → ORANGE box
+   → navy steps → cream, so no two adjacent sections share a ground. */
+.page-detail .svc-why + .whydiff { background: var(--paper); }
+.page-detail .svc-shots + .svc-ba { background: var(--paper); }
+
+/* ===================================================================
+   Service pages, brought onto the filtration section's language:
+   photo header, tabbed benefits, numbered steps, orange quote panel,
+   home-shape FAQ, review marquee.
+   =================================================================== */
+
+/* --- header: the photo full bleed --- */
+.page-detail .dp-hero--shot {
+  background-size: cover;
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding: 84px 0 76px;
+}
+.page-detail .dp-hero__copy { max-width: 600px; }
+.page-detail .dp-hero--shot .dp-crumbs { margin-bottom: 18px; }
+.page-detail .dp-hero__sub {
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.84);
+  margin: 0 0 24px;
+  max-width: 58ch;
+}
+.page-detail .dp-hero__at {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 960px;
+}
+.page-detail .dp-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-detail .dp-hero__at span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* --- the section head loses the navy rule here too --- */
+.page-detail .ds-section-head--hl { padding-left: 0; }
+.page-detail .ds-section-head--hl::before { display: none; }
+
+/* --- benefits are tiles now, so the old card grid is retired --- */
+.page-detail .dp-benefits { background: var(--bg); }
+
+/* --- the orange quote panel sits on cream, like the home page --- */
+.page-detail .dp-quote { background: var(--bg); }
+.page-detail .quotesec__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.page-detail .quotesec__chips a {
+  font-size: 12.5px;
+  color: #fff;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 5px 11px;
+}
+.page-detail .quotesec__chips a:hover { background: rgba(255, 255, 255, 0.3); }
+
+.page-detail .dp-faq { background: var(--paper); border-top: 1px solid var(--line); }
+
+@media (max-width: 900px) {
+  .page-detail .dp-hero--shot { background-position: 72% center; padding: 56px 0 48px; }
+  .page-detail .dp-hero__at { grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+}
+@media (max-width: 480px) {
+  .page-detail .dp-hero__at { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   RANGE BAND — brand buttons into the brand pages.
+   One press per brand from any service or system page, instead of a
+   paragraph of prose about each on a page the reader chose for the
+   service rather than the brand.
+   ============================================================ */
+.rangeband {
+  background:
+    radial-gradient(880px 400px at 88% -12%, rgba(0, 176, 237, 0.15), transparent 60%),
+    linear-gradient(158deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.rangeband__lede {
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 62ch;
+  margin: 12px 0 0;
+}
+.rangeband__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+.rangeband__btn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 24px 20px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  text-decoration: none;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.rangeband__btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--orange);
+  transform: translateY(-3px);
+}
+.rangeband__name {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.rangeband__why {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
+}
+.rangeband__go {
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rangeband__btn:hover { transform: none; }
+}
+
+/* --- Indicative pricing, restyled. The numbers were right; the table
+       looked like a spreadsheet pasted onto the page. Now it's a card
+       with real row rhythm, the price in display type, and the system
+       name carrying the weight. --- */
+.page-detail .dp-pricing { background: var(--bg-2); }
+.page-detail .dp-pricing__table {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.35);
+}
+.page-detail .dp-pricing__table table { width: 100%; border-collapse: collapse; }
+.page-detail .dp-pricing__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 14px 20px;
+}
+.page-detail .dp-pricing__table tbody tr { border-top: 1px solid var(--line); }
+.page-detail .dp-pricing__table tbody tr:first-child { border-top: 0; }
+.page-detail .dp-pricing__table tbody tr:nth-child(odd) { background: rgba(243, 239, 229, 0.45); }
+.page-detail .dp-pricing__table td { padding: 18px 20px; vertical-align: top; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+.page-detail .dp-pricing__tier {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+  display: block;
+}
+.page-detail .dp-pricing__price {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--orange);
+  white-space: nowrap;
+}
+.page-detail .dp-pricing__fp,
+.page-detail .dp-pricing__note {
+  margin: 18px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+  max-width: 78ch;
+}
+@media (max-width: 700px) {
+  .page-detail .dp-pricing__table { overflow-x: auto; }
+  .page-detail .dp-pricing__table table { min-width: 620px; }
+}
+
+/* --- What's in the price: a checklist across columns. These are terse
+       statements of what's included, so they read as a list; forcing them
+       into tiles truncated half of them mid-thought. --- */
+.page-detail .syspoints {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 10px 22px;
+}
+.page-detail .syspoints li {
+  position: relative;
+  padding: 15px 18px 15px 42px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.page-detail .syspoints li::before {
+  content: "✓";
+  position: absolute;
+  left: 16px; top: 14px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: rgba(0, 176, 237, 0.16);
+  color: var(--sky);
+  font-size: 10px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* --- Header with a studio product shot.
+
+       Reworked: the product now sits in a lit column that bleeds to the
+       right edge of the header rather than a white box floating in the
+       navy. A soft radial behind it does the work the white frame was
+       doing — separating the cut-out from the background — without the
+       hard rectangle. Scenes still go full bleed; see `scene` in
+       serviceContent. --- */
+.page-detail .dp-hero__wrap--inset {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-areas:
+    "crumbs crumbs"
+    "copy   media"
+    "figs   figs";
+  column-gap: 56px;
+  align-items: center;
+}
+.page-detail .dp-hero__wrap--inset .dp-crumbs { grid-area: crumbs; }
+.page-detail .dp-hero__wrap--inset .dp-hero__copy { grid-area: copy; max-width: none; }
+.page-detail .dp-hero__wrap--inset .dp-hero__inset { grid-area: media; }
+.page-detail .dp-hero__wrap--inset .dp-hero__at { grid-area: figs; }
+
+.page-detail .dp-hero__inset {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 34px 38px;
+  background: linear-gradient(160deg, #fff 0%, #f4f6fa 100%);
+  border-radius: 22px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    0 34px 64px -30px rgba(0, 0, 0, 0.65);
+}
+/* A lit floor under the product so it isn't sitting on a flat rectangle.
+   Knocking the white out of the source was the other option and it ate
+   the unit — these are white products photographed on white, so there is
+   no edge for a flood fill to stop at. */
+.page-detail .dp-hero__inset::after {
+  content: "";
+  position: absolute;
+  left: 12%; right: 12%; bottom: 26px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(5, 10, 48, 0.22), transparent 75%);
+}
+.page-detail .dp-hero__inset img {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  object-fit: contain;
+  display: block;
+}
+
+/* The range needed room — it was butting against the pricing above it
+   and the quote panel below. This rule lived in the block that got
+   rewritten when the header was restyled and went with it. */
+.page-detail .rangeband { padding: 92px 0 96px; }
+
+/* Figures get a rule between them rather than just space, so the strip
+   reads as one row of facts instead of four stray numbers. */
+.page-detail .dp-hero__at li { position: relative; }
+.page-detail .dp-hero__at li + li { padding-left: 24px; }
+.page-detail .dp-hero__at li + li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 2px; bottom: 2px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+@media (max-width: 900px) {
+  .page-detail .dp-hero__wrap--inset {
+    grid-template-columns: 1fr;
+    grid-template-areas: "crumbs" "copy" "media" "figs";
+    row-gap: 26px;
+  }
+  .page-detail .dp-hero__inset { min-height: 0; max-width: 420px; }
+  .page-detail .dp-hero__at li + li { padding-left: 0; }
+  .page-detail .dp-hero__at li + li::before { display: none; }
+}
+
+/* ============================================================
+   PRICE CARDS
+   The pricing table became cards. Three columns of tier, price and
+   inclusions scrolled sideways on a phone and read like a spreadsheet
+   on a laptop. The number leads because it is what people came for.
+   ============================================================ */
+.page-detail .pricecards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.page-detail .pricecard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 36px -28px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.page-detail .pricecard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -26px rgba(5, 10, 48, 0.45);
+}
+.page-detail .pricecard__price {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.page-detail .pricecard h3 {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .pricecard p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.reveal .pricecard { transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease; }
+.reveal:not(.is-revealed) .pricecard { opacity: 0; transform: translateY(10px); }
+.reveal .pricecard:nth-child(2) { transition-delay: 0.06s; }
+.reveal .pricecard:nth-child(3) { transition-delay: 0.12s; }
+.reveal .pricecard:nth-child(4) { transition-delay: 0.18s; }
+.reveal .pricecard:nth-child(n + 5) { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .pricecard:hover { transform: none; }
+  .reveal:not(.is-revealed) .pricecard { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   SYSTEM ADVISOR — three questions inside "Is it right for you".
+   Orange panel, same as the quote box: this is one of the two places
+   on the page where we ask somebody to do something.
+   ============================================================ */
+.page-detail .advisor {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-areas:
+    "head  out"
+    "q1    out"
+    "q2    out"
+    "q3    out";
+  column-gap: 44px;
+  align-items: start;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 40px 44px 44px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
+              0 8px 24px -14px rgba(5, 10, 48, 0.2);
+}
+/* Same inner texture as the 60-second quote panel, so flat orange
+   doesn't read as dense. */
+.page-detail .advisor::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.page-detail .advisor > * { position: relative; }
+
+.page-detail .advisor__head { grid-area: head; margin-bottom: 22px; }
+.page-detail .advisor__q:nth-of-type(1) { grid-area: q1; }
+.page-detail .advisor__q:nth-of-type(2) { grid-area: q2; }
+.page-detail .advisor__q:nth-of-type(3) { grid-area: q3; }
+.page-detail .advisor__out { grid-area: out; }
+
+.page-detail .advisor__lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.page-detail .advisor__head h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 2.6vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0 0 8px;
+}
+.page-detail .advisor__head p { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(255, 255, 255, 0.86); max-width: 46ch; }
+
+.page-detail .advisor__q { border: 0; padding: 0; margin: 0 0 18px; }
+.page-detail .advisor__q legend {
+  padding: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 9px;
+}
+.page-detail .advisor__opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.page-detail .advisor__opts--tight { grid-template-columns: 1fr 1fr; }
+.page-detail .advisor__opt {
+  appearance: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 11px 13px;
+  border: 1.5px solid rgba(255, 255, 255, 0.38);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
+}
+.page-detail .advisor__opt:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+.page-detail .advisor__opt.is-on { background: #fff; border-color: #fff; color: var(--navy); }
+.page-detail .advisor__opt strong { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: rgba(255, 255, 255, 0.78); line-height: 1.4; }
+.page-detail .advisor__opt.is-on span { color: var(--ink-3); }
+.page-detail .advisor__opt--sm strong { font-size: 13px; font-weight: 600; }
+
+.page-detail .advisor__out {
+  position: sticky;
+  top: 110px;
+  min-height: 230px;
+  display: flex;
+  align-items: center;
+  background: var(--paper);
+  border-radius: 20px;
+  padding: 30px 32px;
+  box-shadow: 0 24px 50px -22px rgba(5, 10, 48, 0.45);
+}
+.page-detail .advisor__waiting { margin: 0; font-size: 14px; line-height: 1.6; color: var(--ink-3); }
+.page-detail .advisor__answer { animation: advisor-in 0.3s ease both; }
+@keyframes advisor-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-detail .advisor__outlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.page-detail .advisor__answer h4 {
+  font-family: var(--f-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  margin: 0 0 10px;
+}
+.page-detail .advisor__answer p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+.page-detail .advisor__note {
+  border-left: 2px solid var(--orange);
+  padding-left: 12px;
+  font-size: 13px !important;
+  color: var(--ink-3) !important;
+}
+.page-detail .advisor__cta { background: var(--navy); color: #fff; }
+.page-detail .advisor__cta:hover { background: var(--navy-2); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .advisor__answer { animation: none; }
+}
+@media (max-width: 1000px) {
+  .page-detail .advisor {
+    grid-template-columns: 1fr;
+    grid-template-areas: "head" "q1" "q2" "q3" "out";
+    padding: 28px 22px 30px;
+    border-radius: 20px;
+  }
+  .page-detail .advisor__out { position: static; margin-top: 10px; min-height: 0; }
+  .page-detail .advisor__opts { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   PRICE CARDS
+   The pricing table became cards. Three columns of tier, price and
+   inclusions scrolled sideways on a phone and read like a spreadsheet
+   on a laptop. The number leads because it is what people came for.
+   ============================================================ */
+.page-detail .pricecards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.page-detail .pricecard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  box-shadow: 0 16px 36px -28px rgba(5, 10, 48, 0.4);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.page-detail .pricecard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 26px 52px -26px rgba(5, 10, 48, 0.45);
+}
+.page-detail .pricecard__price {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--navy);
+  margin-bottom: 12px;
+}
+.page-detail .pricecard h3 {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .pricecard p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.reveal .pricecard { transition: opacity 0.45s ease, transform 0.45s ease, box-shadow 0.18s ease; }
+.reveal:not(.is-revealed) .pricecard { opacity: 0; transform: translateY(10px); }
+.reveal .pricecard:nth-child(2) { transition-delay: 0.06s; }
+.reveal .pricecard:nth-child(3) { transition-delay: 0.12s; }
+.reveal .pricecard:nth-child(4) { transition-delay: 0.18s; }
+.reveal .pricecard:nth-child(n + 5) { transition-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .page-detail .pricecard:hover { transform: none; }
+  .reveal:not(.is-revealed) .pricecard { opacity: 1; transform: none; }
+}
+
+
+/* --- Pricing gets a photo beside the numbers. A grid of price cards on
+       its own is the blandest thing on the page; one real install shot
+       gives it something to be about. --- */
+.page-detail .dp-pricing__shot {
+  margin: 0 0 26px;
+  border-radius: var(--rad);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 20px 44px -32px rgba(5, 10, 48, 0.4);
+  max-width: 520px;
+  float: right;
+  margin-left: 32px;
+  shape-outside: margin-box;
+}
+.page-detail .dp-pricing__shot img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  display: block;
+}
+.page-detail .dp-pricing__shot figcaption {
+  padding: 12px 16px 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  border-top: 1px solid var(--line);
+}
+.page-detail .dp-pricing .pricecards { clear: both; }
+@media (max-width: 900px) {
+  .page-detail .dp-pricing__shot { float: none; margin: 0 0 22px; max-width: none; }
+}
+
+/* The way through from a brand button to the whole catalogue. A real
+   button, because it's on every service page now — including the ones
+   with no brand cards above it, where it's the only thing in the band. */
+.rangeband__all {
+  margin: 26px 0 0;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.rangeband__row + .rangeband__all { margin-top: 26px; }
+.rangeband__all > span {
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.72);
+  max-width: 48ch;
+}
+/* No brand cards? The button is the section, so it doesn't need a rule
+   above it. */
+.rangeband .ds-section-head + .rangeband__all { border-top: 0; padding-top: 0; }
+
+/* --- Type scale. 64px was set when these headings were three or four
+       words; several of them run five lines at that size, which is a
+       headline that has become a paragraph. The section h2s come down
+       with it so the page keeps its hierarchy. --- */
+.page-detail .dp-hero h1 { font-size: clamp(34px, 4vw, 52px); max-width: 18ch; }
+.page-detail .ds-section-head h2,
+.page-detail .sysfit h2 { font-size: clamp(26px, 3vw, 38px) !important; }
+.page-detail .rangeband h2 { font-size: clamp(26px, 3vw, 38px) !important; max-width: 20ch; }
+
+
+/* ============================================================
+   CHOOSE YOUR SYSTEM
+   The filtration section, on the service pages. Navy band so the
+   cards read as products rather than as more page. Class names are
+   deliberately the filtration ones — `.reveal .wf-style` in
+   design-system.css already stages these in, and a parallel set of
+   `.svc-style` names would have meant maintaining the stagger twice.
+   The visual rules there are scoped to `.page-filtration`, so this is
+   the same block re-scoped, not a duplicate fighting it.
+   ============================================================ */
+.page-detail .dp-choose {
+  padding: 90px 0;
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-detail .dp-choose__lede { color: rgba(255, 255, 255, 0.78); max-width: 62ch; }
+.page-detail .wf-styles__grid { display: grid; grid-template-columns: repeat(var(--cols, 3), 1fr); gap: 18px; }
+.page-detail .wf-style {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 22px 54px -28px rgba(0, 0, 0, 0.6);
+}
+.page-detail .wf-style.is-lead { outline: 3px solid var(--orange); outline-offset: 0; }
+.page-detail .wf-style__photo {
+  height: 186px;
+  background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .wf-style__photo img { width: 100%; height: 100%; object-fit: contain; padding: 14px; }
+/* Scenes fill the panel. A photograph of a heater in a roof cavity,
+   contained and padded on white, reads as a thumbnail rather than as the
+   product shot the card next to it is showing. */
+.page-detail .wf-style__photo.is-scene { background: var(--bg-2); }
+/* Appliance photos are portraits and the unit's head — the compressor,
+   the badge — is the identifying part. A dead-centre crop keeps the tank
+   body and throws that away, so the frame sits high. */
+.page-detail .wf-style__photo.is-scene img { object-fit: cover; padding: 0; object-position: center 35%; }
+.page-detail .wf-style__body { padding: 20px 22px 22px; display: flex; flex-direction: column; flex: 1; }
+.page-detail .wf-style__tier {
+  align-self: flex-start;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.page-detail .wf-style h3 { font-family: var(--f-display); font-size: 21px; line-height: 1.2; color: var(--navy); margin: 0 0 3px; }
+.page-detail .wf-style__style { font-size: 12.5px; color: var(--ink-3); margin-bottom: 12px; }
+.page-detail .wf-style p { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; }
+.page-detail .wf-style ul { list-style: none; margin: auto 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.page-detail .wf-style li { font-size: 13px; line-height: 1.45; color: var(--ink-2); padding-left: 16px; position: relative; }
+.page-detail .wf-style li::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+.page-detail .wf-style li strong { font-weight: 700; color: var(--navy); }
+/* The card is the pitch; this is the way out of it. Sits under the
+   facts rather than floating over them, so the list keeps the
+   auto-margin that bottom-aligns the cards to each other. */
+.page-detail .wf-style__go {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  transition: color 0.16s ease, gap 0.16s ease;
+}
+.page-detail .wf-style__go:hover { color: var(--orange); gap: 12px; }
+/* The card for the system whose page you're on. Same slot as the link,
+   so the cards still bottom-align to each other. */
+.page-detail .wf-style__here {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--orange);
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+@media (max-width: 1100px) {
+  .page-detail .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-detail .dp-choose { padding: 60px 0; }
+  .page-detail .wf-styles__grid { grid-template-columns: 1fr; }
+  /* One card across is 350px wide, so a 186px panel is a letterbox
+     again — the card has the width now, give the photo the height. */
+  .page-detail .wf-style__photo { height: 240px; }
+}
+/* Two across, the card is 600px wide and the photo panel becomes a
+   186px letterbox — which crops a portrait shot of a tank down to a
+   band of brickwork. At that width the card wants to be horizontal:
+   the photo takes a column and gets its full height back. */
+@media (min-width: 901px) {
+  .page-detail .wf-styles__grid.is-2up .wf-style { flex-direction: row; }
+  .page-detail .wf-styles__grid.is-2up .wf-style__photo {
+    flex: 0 0 40%;
+    height: auto;
+    align-self: stretch;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+  }
+  .page-detail .wf-styles__grid.is-2up .wf-style__body { flex: 1; min-width: 0; }
+}
+
+/* At four across the blurb gets narrow, so the type steps down with it
+   rather than running to seven words a line. */
+@media (min-width: 1101px) {
+  .page-detail .wf-styles__grid.is-4up .wf-style h3 { font-size: 18.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style p { font-size: 13.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style li { font-size: 12.5px; }
+  .page-detail .wf-styles__grid.is-4up .wf-style__photo { height: 160px; }
+}
+
+
+/* ============================================================
+   INDICATIVE PRICING
+   The cards are the "Choose your system" card — the block above. What
+   is left here is the handful of differences: the chip carries a figure
+   rather than a tier name, the grid caps at three across because the
+   tier names are long, and a tier with no product to photograph (a
+   call-out fee) gets the figure in the panel instead.
+   ============================================================ */
+.page-detail .dp-prices { --cols: 3; }
+.page-detail .dp-prices.is-1up { --cols: 1; }
+.page-detail .dp-prices.is-2up { --cols: 2; }
+
+/* A figure wants the mono chip at its widest; a sentence in the same
+   chip wraps into a two-line lozenge and stops reading as a price. */
+.page-detail .dp-price .wf-style__tier { font-size: 11px; letter-spacing: 0.06em; }
+.page-detail .dp-price .wf-style__tier.is-words {
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 12px;
+}
+.page-detail .dp-price h3 { font-size: 18px; }
+
+/* Call-out fees have no unit to photograph. Rather than leave a hole
+   that makes the row look broken, the figure itself fills the panel. */
+.page-detail .dp-price__noshot {
+  background: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+  border-bottom: 0;
+}
+.page-detail .dp-price__noshot span {
+  color: rgba(255, 255, 255, 0.16);
+  font-family: var(--f-display);
+  font-size: 68px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+/* The label above the inclusions. On a system card the list needs no
+   introduction — it is obviously facts about the product — but here it
+   has to say that these are what the number buys. It takes over the
+   auto-margin and the rule that normally sit on the list. */
+.page-detail .dp-price__rl {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: auto 0 9px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.page-detail .dp-price .wf-style__body ul { margin: 0; padding: 0; border-top: 0; }
+.page-detail .dp-price .wf-style__body li::before { background: var(--orange); }
+
+.reveal .dp-price { transition: opacity 0.45s ease, transform 0.45s ease; }
+.reveal:not(.is-revealed) .dp-price { opacity: 0; transform: translateY(10px); }
+.reveal .dp-price:nth-child(2) { transition-delay: 0.06s; }
+.reveal .dp-price:nth-child(3) { transition-delay: 0.12s; }
+.reveal .dp-price:nth-child(n + 4) { transition-delay: 0.18s; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal:not(.is-revealed) .dp-price { opacity: 1; transform: none; }
+  .page-detail .wf-style__go:hover { gap: 8px; }
+}
+
+
+/* ============================================================
+   HOW IT LOOKS  ·  KEEPING IT WORKING
+   The two sections the service pages were missing against the
+   whole-home filtration rhythm. Both are a photo one side and the
+   argument the other; they mirror so the page alternates rather than
+   running two identical bands back to back.
+   ============================================================ */
+.page-detail .svc-look { padding: 88px 0; background: var(--bg-2); }
+.page-detail .svc-serv { padding: 88px 0; background: var(--bg); }
+
+.page-detail .svc-look__grid,
+.page-detail .svc-serv__grid {
+  display: grid;
+  grid-template-columns: 1fr 1.05fr;
+  gap: 52px;
+  align-items: center;
+}
+/* Keeping it working leads on the photo, the way the filtration
+   section it mirrors does; How it looks leads on the copy, so the two
+   bands alternate rather than running as identical layouts. */
+.page-detail .svc-look__grid { grid-template-columns: 1.05fr 1fr; }
+.page-detail .svc-serv__grid { grid-template-columns: 1fr 1.05fr; }
+
+.page-detail .svc-look__shot,
+.page-detail .svc-serv__shot {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
+}
+/* Default is a manufacturer cut-out: contained, on white, with room
+   around it. A real scene fills the frame instead — the `is-scene`
+   flag below. Getting this the wrong way round is what makes a product
+   render look like a stretched letterform. */
+.page-detail .svc-look__shot img,
+.page-detail .svc-serv__shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  padding: 22px;
+  background: #fff;
+}
+.page-detail .svc-look__shot.is-scene img,
+.page-detail .svc-serv__shot.is-scene img {
+  object-fit: cover;
+  padding: 0;
+  object-position: center 35%;
+}
+
+.page-detail .svc-look__copy h2,
+.page-detail .svc-serv__copy h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  color: var(--navy);
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.page-detail .svc-look__copy p,
+.page-detail .svc-serv__copy p {
+  margin: 0 0 22px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 58ch;
+}
+
+/* How it looks ends on figures — the sizes and finishes somebody is
+   trying to picture. */
+.page-detail .svc-look__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 26px;
+}
+.page-detail .svc-look__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--navy);
+}
+.page-detail .svc-look__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+/* Both bands end on the same three-across figures. This was a
+   checklist of five long sentences, which is not what the filtration
+   section does and is why the two never looked alike. */
+.page-detail .svc-serv__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.page-detail .svc-serv__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.15;
+  color: var(--navy);
+}
+.page-detail .svc-serv__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+
+@media (max-width: 900px) {
+  .page-detail .svc-look,
+  .page-detail .svc-serv { padding: 56px 0; }
+  .page-detail .svc-look__grid,
+  .page-detail .svc-serv__grid { grid-template-columns: 1fr; gap: 26px; }
+  /* Stacked, the photo leads on both — a wall of text above a picture
+     reads as an article rather than a section. */
+  .page-detail .svc-look__shot { order: -1; }
+}
+@media (max-width: 520px) {
+  .page-detail .svc-look__facts,
+  .page-detail .svc-serv__facts { grid-template-columns: 1fr; gap: 14px; }
+}
+
+
+/* ============================================================
+   SIZES AND PRICES — the drop under "Choose your system".
+   Indicative pricing used to be a section of its own further down.
+   The numbers belong to the system, so they open on the system's own
+   card instead: brands in the panel head, then a card per size with
+   what the number buys.
+   ============================================================ */
+.page-detail .dp-choose .wf-range__drop {
+  margin-top: 26px;
+  padding: 30px 32px 32px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: choose-drop 0.28s ease both;
+}
+.page-detail .dp-choose .wf-range__drop[hidden] { display: none; }
+@keyframes choose-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-detail .dp-choose .wf-range__drophead { margin-bottom: 22px; max-width: 66ch; }
+.page-detail .dp-choose .wf-range__drophead h3 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.page-detail .dp-choose .wf-range__drophead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-detail .dp-choose .wf-range__drophead strong { color: #fff; }
+
+.page-detail .choose-sizes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+}
+.page-detail .choose-size {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 22px;
+  background: var(--paper);
+  border-radius: var(--rad-sm);
+  border-top: 3px solid var(--orange);
+}
+.page-detail .choose-size h4 {
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--navy);
+  margin: 0 0 12px;
+}
+.page-detail .choose-size__num {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.page-detail .choose-size__k {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  flex-shrink: 0;
+}
+.page-detail .choose-size__v {
+  font-family: var(--f-display);
+  font-size: clamp(21px, 2vw, 26px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--orange);
+}
+/* A sentence at figure weight wraps and stops reading as a price. */
+.page-detail .choose-size__v.is-words {
+  font-family: var(--f-body);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+.page-detail .choose-size ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.page-detail .choose-size li {
+  position: relative;
+  padding-left: 19px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.page-detail .choose-size li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 5px;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--orange);
+  border-bottom: 2px solid var(--orange);
+  transform: rotate(-45deg);
+}
+.page-detail .choose-sizes__fp {
+  margin: 20px 0 0;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* The button itself. These rules existed for `.page-brand` and for the
+   filtration pages but never for `.page-detail`, so the first time a
+   service page grew one it rendered as a line of centred plain text. */
+.page-detail .wf-style__more {
+  appearance: none;
+  margin: 16px 0 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  transition: background 0.15s;
+}
+.page-detail .wf-style__more:hover,
+.page-detail .wf-style__more.is-open { background: var(--orange); }
+
+/* The button sits above the "see the full detail" link, so the link
+   loses the rule it would otherwise draw right under the button. */
+.page-detail .wf-style__more + .wf-style__go,
+.page-detail .wf-style__more + .wf-style__here { border-top: 0; padding-top: 10px; margin-top: 4px; }
+
+@media (max-width: 640px) {
+  .page-detail .dp-choose .wf-range__drop { padding: 22px 18px 24px; }
+}
+
+
+/* The pricing note that outlived its section. It was the last thing in
+   `.dp-pricing` and inherited that section's padding; on its own it sat
+   flush against the navy band below it with nothing under it at all. */
+.page-detail .dp-pricenote { padding: 0 0 72px; background: var(--bg); }
+.page-detail .dp-pricenote .dp-pricing__note { margin: 0; }
+@media (max-width: 900px) {
+  .page-detail .dp-pricenote { padding-bottom: 48px; }
+}
+
+
+/* --- The brand ladders inside the sizes drop. Two brands and the
+       sizes each makes, before the installed prices, because "what can
+       I actually have" comes before "what does it cost". --- */
+.page-detail .choose-brands {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.page-detail .choose-brand {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rad-sm);
+  padding: 18px 20px 16px;
+}
+.page-detail .choose-brand__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-detail .choose-brand__name {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.page-detail .choose-brand__name:hover { color: var(--sky-2); }
+.page-detail .choose-brand__meta {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+}
+.page-detail .choose-brand__models { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.page-detail .choose-brand__models a {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.14s;
+}
+.page-detail .choose-brand__models a:hover { background: rgba(255, 255, 255, 0.09); }
+.page-detail .choose-brand__models strong {
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: #fff;
+  min-width: 62px;
+}
+.page-detail .choose-brand__models span {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.page-detail .choose-sizes__lbl {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 12px;
+}
+
+/* ==================================================================
+   PHONE TYPE PASS (detail pages) — the section h2s here carry their
+   own !important clamp above, which out-ranked the global phone rule
+   in design-system.css. This sits later in the same file so it wins,
+   bringing the section headings down to the phone scale.
+   ================================================================== */
+@media (max-width: 540px) {
+  .page-detail .ds-section-head h2,
+  .page-detail .sysfit h2,
+  .page-detail .rangeband h2,
+  .page-detail .process h2 {
+    font-size: 22px !important;
+    line-height: 1.18 !important;
+  }
 }

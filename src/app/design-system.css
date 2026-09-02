@@ -1,5 +1,5 @@
 /* ===================================================================
-   Advanced Gas & Aircon — shared design system.
+   Advanced Gas & Aircon, shared design system.
    Ported from Claude Design handoff. Site-wide tokens, utility bar,
    header, footer, buttons, eyebrows, big CTA.
    =================================================================== */
@@ -20,7 +20,7 @@
   --paper: #ffffff;
   --ink: #1a1a1d;
   --ink-2: #4a4a52;
-  --ink-3: #7a7a82;
+  --ink-3: #5d5d64; /* WCAG AA on --bg cream (6.4:1); was #7a7a82 which failed AA at 4.3:1 */
   --line: #ebe6d8;
   --line-2: #d8d2c1;
 
@@ -41,7 +41,7 @@
 /* ============== UTILITY BAR ============== */
 .utilbar {
   background: var(--navy);
-  color: #fff;
+  color: rgba(255,255,255,0.85);
   font-size: 13px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
@@ -52,10 +52,10 @@
 .utilbar__left, .utilbar__right { display: flex; align-items: center; gap: 18px; }
 .util-pill { display: inline-flex; align-items: center; gap: 6px; }
 .util-pill svg { color: var(--sky); }
-.util-pill--quiet { color: #fff; font-size: 12.5px; }
+.util-pill--quiet { color: rgba(255,255,255,0.55); font-size: 12.5px; }
 .util-link {
   display: inline-flex; align-items: center; gap: 6px;
-  text-decoration: none; color: #fff;
+  text-decoration: none; color: rgba(255,255,255,0.85);
 }
 .util-dot { width: 8px; height: 8px; border-radius: 50%; display:inline-block; }
 .util-dot--red {
@@ -73,32 +73,101 @@
 
 /* ============== HEADER (design-system) ============== */
 .hdr {
-  background: rgba(250,248,243,0.92);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
   position: sticky; top: 0; z-index: 50;
-  backdrop-filter: saturate(140%) blur(8px);
+  box-shadow: 0 1px 0 rgba(11,20,80,0.03);
 }
 .hdr__row {
-  height: 84px; display: flex; align-items: center; gap: 32px;
+  /* Same column as the page body. It ran to 1500px with 20px padding
+     back when there were eight nav items and they needed the room; the
+     side effect was a logo pinned to the viewport edge while the hero
+     text below it started eighty pixels further in, so the two never
+     lined up. Five items fit in the content column, so the logo sits
+     where the content does. */
+  height: 86px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  position: relative;
 }
-.hdr__logo { display:flex; align-items:center; }
-.hdr__logo svg, .hdr__logo img { height: 48px; width: auto; }
+.hdr__logo { display:flex; align-items:center; text-decoration: none; flex-shrink: 0; }
+.hdr__logo-img {
+  height: 58px;
+  width: auto;
+  display: block;
+}
+@media (max-width: 640px) {
+  .hdr__logo-img { height: 44px; }
+}
+@media (max-width: 380px) {
+  .hdr__logo-img { height: 40px; }
+}
 
-.hdr__nav { display: flex; align-items: center; gap: 4px; margin-left: 8px; }
-.hdr__nav a {
+/* Dead centre of the bar, not centre of the space left over. The logo
+   is about 180px and the phone-plus-quote block is about twice that, so
+   a flex-centred nav lands visibly left of the page's middle — which is
+   the thing that reads as "off" even when you can't say why. Taking it
+   out of flow and pinning it to 50% costs nothing here: the burger
+   replaces it before the row gets tight. */
+.hdr__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.hdr__nav > a,
+.hdr__navtrigger {
   text-decoration: none;
   font-weight: 600;
-  color: var(--ink);
+  color: var(--navy);
   padding: 10px 14px;
-  border-radius: 999px;
+  border-radius: 10px;
   font-size: 15px;
+  letter-spacing: -0.005em;
   display: inline-flex; align-items: center; gap: 6px;
-  transition: background 0.15s;
+  transition: color 0.12s, background 0.12s;
+  cursor: pointer;
+  font-family: var(--f-body);
+  background: transparent;
+  border: 0;
+  position: relative;
 }
-.hdr__nav a:hover { background: var(--bg-2); }
-.hdr__nav a.is-active { background: var(--navy); color: #fff; }
-.hdr__nav-rebate { color: var(--orange) !important; }
-.hdr__nav-rebate:hover { background: rgba(243,103,34,0.08) !important; }
+/* Orange hover — every top-level nav item and mega trigger. Cleaner
+   than the previous grey-fill hover, and matches how the logo/CTAs
+   already lean on the orange accent. */
+.hdr__nav > a:hover,
+.hdr__navtrigger:hover { color: var(--orange); background: transparent; }
+.hdr__nav > a.is-active,
+.hdr__navtrigger.is-active {
+  color: var(--orange);
+  background: transparent;
+  font-weight: 700;
+}
+/* Underline the active item so it reads as "current page" without
+   relying on a background pill. */
+.hdr__nav > a.is-active::after,
+.hdr__navtrigger.is-active::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 2px;
+  background: var(--orange);
+  border-radius: 2px;
+}
+/* VEU Rebate item — same treatment as every other nav link. Only the
+   tiny "$$$" tag chip keeps the orange so the rebate cue is still
+   visible without dyeing the whole label. */
+.hdr__nav-rebate { color: var(--navy); }
+.hdr__nav-rebate:hover { color: var(--orange); }
 .hdr__nav-tag {
   font-family: var(--f-mono);
   font-size: 10px; letter-spacing: 0.05em;
@@ -106,19 +175,794 @@
   padding: 2px 6px; border-radius: 4px;
 }
 
-.hdr__cta { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.hdr__cta { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .hdr__phone {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   text-decoration: none; color: var(--navy);
-  padding: 8px 14px; border-radius: 12px;
-  background: var(--bg-2);
+  padding: 7px 12px; border-radius: 10px;
+  background: transparent;
   border: 1px solid var(--line);
+  transition: background 0.15s, border-color 0.15s;
 }
-.hdr__phone svg { color: var(--orange); }
-.hdr__phone span { display:flex; flex-direction: column; line-height: 1.1; font-family: var(--f-display); font-weight: 700; font-size: 15px; }
-.hdr__phone em { font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); font-family: var(--f-body); font-weight: 600; }
+.hdr__phone:hover { background: var(--bg-2); border-color: var(--navy); }
+.hdr__phone svg { color: var(--orange); flex-shrink: 0; }
+.hdr__phone span {
+  display: flex; flex-direction: column; line-height: 1.1;
+  font-family: var(--f-display); font-weight: 700; font-size: 14px;
+  letter-spacing: -0.005em;
+}
+.hdr__phone em {
+  font-style: normal; font-size: 9.5px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-3); font-family: var(--f-body); font-weight: 600;
+}
+.hdr__cta .ds-btn--primary {
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 10px;
+  box-shadow: 0 2px 0 rgba(0,0,0,0.4);
+}
+.hdr__cta .ds-btn--primary:hover { box-shadow: 0 3px 0 rgba(0,0,0,0.4); }
 
-.hdr__burger { display: none; }
+.hdr__burger {
+  display: none;
+  width: 40px; height: 40px;
+  align-items: center; justify-content: center;
+  background: transparent; border: 1px solid var(--line); border-radius: 10px;
+  color: var(--navy); cursor: pointer;
+  padding: 0;
+}
+
+/* ============== MEGA-MENU (desktop nav dropdowns) ============== */
+.hdr__navwrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.hdr__navtrigger svg { opacity: 0.45; transition: transform 0.18s ease, opacity 0.18s; }
+.hdr__navwrap.is-open .hdr__navtrigger svg { transform: rotate(180deg); opacity: 1; }
+.hdr__navwrap.is-open .hdr__navtrigger {
+  background: transparent;
+  color: var(--orange);
+}
+
+/* Dropdown container.
+   Positioned FIXED and viewport-centered so it never overflows the
+   viewport regardless of which trigger opened it. Previous per-trigger
+   positioning (left: 0 / right: 0) was fragile once nav layout changed
+   — Areas was getting cut off on the left because it wasn't the
+   rightmost trigger anymore. Fixed centering is bulletproof. */
+.mega {
+  position: fixed;
+  /* Tuned by measuring the gap to `.hdr__row`'s bottom edge rather
+     than by arithmetic: the header's backdrop-filter makes it the
+     containing block for this fixed panel, so `top` is not the offset
+     from the viewport you would expect. 78px lands ~14px clear — close
+     enough to read as attached to the bar, not sitting on its border.
+     The ::before bridge covers the gap so hover doesn't drop. */
+  top: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 rgba(11, 20, 80, 0.05),
+    0 24px 48px -18px rgba(11, 20, 80, 0.22);
+  z-index: 60;
+  overflow: hidden;
+  animation: megaIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: top center;
+  max-width: calc(100vw - 40px);
+}
+/* alignRight modifier kept for backwards compat but is now a no-op —
+   fixed-center positioning handles overflow itself. */
+.mega::before {
+  /* Bridge the gap between the header bottom and the mega so hover
+     doesn't drop while the user's cursor traverses the gap.
+     Extra-wide (200px each side) because the mega is fixed-centered
+     while the trigger sits anywhere in the nav — the cursor might
+     traverse a diagonal path from the trigger to the mega's edge. */
+  content: "";
+  /* Taller now the mega sits further down — the bridge has to cover
+     the whole gap or hover drops halfway. */
+  position: absolute; left: -200px; right: -200px; top: -28px; height: 28px;
+}
+@keyframes megaIn {
+  from { opacity: 0; transform: translate(-50%, -10px) scale(0.985); }
+  to   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+/* The contents come up a beat behind the panel, so it reads as one
+   movement opening rather than a finished box appearing. */
+.mega > * { animation: megaBodyIn 0.34s 0.05s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes megaBodyIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+/* An animation you notice on a plumbing site has gone too far. */
+@media (prefers-reduced-motion: reduce) {
+  .mega { animation: none; }
+  .mega > * { animation: none; }
+}
+
+.mega__collabel {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin: 0 0 12px;
+}
+
+/* -------- Services mega — four labelled groups across the top, then a
+   Service & Repair row, then Popular + CTA.
+
+   Was a flat 4-up grid of ten items under one "Installation" heading,
+   with a second grid mislabelled "Service & repair" that contained
+   things like "Aircon" and "Temporary hot water". Grouping it means a
+   customer scans one column instead of ten tiles, and the labels are
+   now true. Cards stay horizontal (photo left, text right) because
+   vertical cards in four columns made the photos too small to read. */
+.mega__services-cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+  margin-bottom: 22px;
+}
+.mega__servicecol { min-width: 0; }
+.mega__servicecol .mega__collabel {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+}
+.mega__servicecol-list { display: grid; gap: 4px; }
+.mega__servicecol .mega__servicecard { padding: 7px 8px; gap: 10px; }
+.mega__servicecol .mega__servicecard-photo { width: 44px; height: 44px; padding: 3px; border-radius: 8px; }
+.mega__servicecol .mega__servicecard-body b { font-size: 13.5px; }
+.mega__servicecol .mega__servicecard-body span { font-size: 11.5px; }
+@media (max-width: 1180px) {
+  .mega__services-cols { grid-template-columns: repeat(2, 1fr); gap: 18px 22px; }
+}
+@media (max-width: 720px) {
+  .mega__services-cols { grid-template-columns: 1fr; }
+}
+
+/* Foot: Popular across four columns instead of a tall stack, with the
+   CTA centred beside it. Stacked vertically the Popular list dragged the
+   panel down another 120px and left the quote box mostly empty. */
+.mega__services .mega__services-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding-top: 18px;
+}
+.mega__services .mega__services-foot > div:first-child { flex: 1 1 auto; min-width: 0; }
+.mega__services .mega__poplist { grid-template-columns: repeat(4, 1fr); gap: 6px 14px; }
+.mega__services .mega__cta { flex: 0 0 280px; align-self: center; padding: 14px 16px; }
+@media (max-width: 1180px) {
+  .mega__services .mega__poplist { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 860px) {
+  .mega__services .mega__services-foot { flex-direction: column; align-items: stretch; gap: 16px; }
+  .mega__services .mega__cta { flex: 1 1 auto; }
+}
+
+/* -------- Legacy Service & Repair row (still a flat grid). */
+.mega__services { width: min(1360px, calc(100vw - 32px)); padding: 26px 30px; }
+.mega__services-block { margin-bottom: 22px; }
+.mega__services-block:last-of-type { margin-bottom: 20px; }
+.mega__services-block--repair {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.mega__services .mega__services-grid {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 10px;
+}
+.mega__services .mega__services-grid--repair {
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 8px;
+}
+@media (max-width: 1100px) {
+  .mega__services .mega__services-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  .mega__services .mega__services-grid--repair { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 720px) {
+  .mega__services .mega__services-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .mega__services .mega__services-grid--repair { grid-template-columns: 1fr !important; }
+}
+.mega__services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.mega__servicecard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.15s;
+  border: 1px solid transparent;
+  min-width: 0;
+}
+.mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
+.mega__servicecard-photo {
+  /* 52 → 72 → 96. In the two-pane mega there are four cards on screen
+     instead of nineteen, so the photo can be the size it deserves. */
+  width: 96px; height: 96px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 6px;
+}
+.mega__servicecard--sm .mega__servicecard-photo { width: 48px; height: 48px; padding: 3px; border-radius: 8px; }
+.mega__servicecard-photo img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s ease;
+}
+.mega__servicecard:hover .mega__servicecard-photo img { transform: scale(1.06); }
+.mega__servicecard-body {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.mega__servicecard-body b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  line-height: 1.2;
+  /* Prefer wrapping at word boundaries but cap to 2 lines with the
+     overflow-line-clamp trick so no label ever eats 3+ lines. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mega__servicecard--sm .mega__servicecard-body b { font-size: 13px; }
+.mega__servicecard-body span {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mega__servicecard--sm .mega__servicecard-body span { font-size: 11px; }
+
+.mega__services-foot {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.mega__poplist { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.mega__poplist li a {
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 7px 9px;
+  border-radius: 7px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.mega__poplist li a:hover { background: var(--bg-2); }
+.mega__poplist li a b {
+  font-family: var(--f-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.005em;
+}
+.mega__poplist li a span { font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+
+/* -------- Brands mega — clean text tiles (competitor-matched) --------
+   Simplified from the photo-grid version — the fallback shots were
+   repetitive and cluttered the dropdown. Now: 4-column tile grid,
+   brand name in bold + a one-line category subtitle, brand-accent
+   top border on hover. Reads much cleaner. Wider to match competitor. */
+.mega__brands { width: min(1240px, calc(100vw - 40px)); padding: 24px 28px; }
+.mega__brands-cleangrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.mega__brandtile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  background: #fff;
+  position: relative;
+  transition: transform .12s, border-color .15s, background .12s;
+}
+.mega__brandtile::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 3px;
+  background: var(--card-accent, var(--sky));
+  border-radius: 10px 10px 0 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.mega__brandtile:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-accent, var(--sky));
+  background: var(--paper);
+}
+.mega__brandtile:hover::before { opacity: 1; }
+.mega__brandtile b {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  line-height: 1.15;
+}
+.mega__brandtile span {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+@media (max-width: 900px) {
+  .mega__brands-cleangrid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .mega__brands-cleangrid { grid-template-columns: repeat(2, 1fr); }
+}
+.mega__brands-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.mega__brands-all,
+.mega__toolsall {
+  font-family: var(--f-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.mega__brands-all:hover,
+.mega__toolsall:hover { color: var(--orange); }
+
+/* -------- Tools mega — 7 icon tiles in a 2×4 grid + CTA row -------- */
+.mega__tools { width: min(1240px, calc(100vw - 32px)); padding: 26px 30px; }
+.mega__toolshead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.mega__toolsgrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.mega__toolcard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid transparent;
+  transition: background .12s, border-color .12s;
+}
+.mega__toolcard:hover { background: var(--bg-2); border-color: var(--line); }
+/* The rebate row. It used to be an orange-badged item in the top nav;
+   this menu is where it lives now, so it leads it as a full orange
+   card rather than sitting in the list as one of eleven. */
+.mega__toolcard--lead {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+.mega__toolcard--lead:hover { background: #e05a18; border-color: #e05a18; }
+.mega__toolcard--lead .mega__toolicon { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.mega__toolcard--lead .mega__toolbody b { color: #fff; }
+.mega__toolcard--lead .mega__toolbody span { color: rgba(255, 255, 255, 0.85); }
+
+/* Same row in the mobile drawer. */
+.hdr__drawer-sublink--tool.is-lead { background: var(--orange); border-radius: 10px; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolicon { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolbody b { color: #fff; }
+.hdr__drawer-sublink--tool.is-lead .hdr__drawer-toolbody span { color: rgba(255, 255, 255, 0.85); }
+.mega__toolicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(243,103,34,0.10);
+  color: var(--orange);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.mega__toolbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mega__toolbody b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.mega__toolbody span {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.35;
+}
+.mega__toolsfoot {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.mega__toolsfoot .mega__cta-sub {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+}
+.mega__toolsbtns { display: flex; gap: 10px; align-items: center; }
+@media (max-width: 720px) {
+  .mega__tools { padding: 18px; }
+  .mega__toolsgrid { grid-template-columns: 1fr; }
+  .mega__toolsfoot { grid-template-columns: 1fr; }
+  .mega__toolsbtns { flex-direction: column; align-items: stretch; }
+  .mega__toolsfoot .ds-btn { width: 100%; justify-content: center; }
+}
+.mega__brands-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.mega__brandcard {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  position: relative;
+}
+.mega__brandcard::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--sky));
+  z-index: 2;
+}
+.mega__brandcard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -12px rgba(11,20,80,0.18);
+  border-color: var(--card-accent, var(--sky));
+}
+.mega__brandcard-photo {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.mega__brandcard-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.mega__brandcard:hover .mega__brandcard-photo img { transform: scale(1.05); }
+.mega__brandcard-body {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mega__brandcard-body b {
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.005em;
+  line-height: 1.15;
+}
+.mega__brandcard-body span {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.mega__brandcard-body em {
+  font-style: normal;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* -------- Areas mega — wider grid, more suburbs visible. Compass
+   layout: 3 region columns + a CTA panel. */
+.mega__areas {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 260px;
+  min-width: 780px;
+  width: min(1180px, calc(100vw - 40px));
+  align-items: stretch;
+}
+.mega__areas .mega__col {
+  padding: 20px 20px;
+  border-right: 1px solid var(--line-2);
+  min-width: 160px;
+}
+.mega__areas .mega__col:nth-last-child(2) { border-right: 0; }
+.mega__areas .mega__col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; }
+.mega__areas .mega__col li a {
+  display: block;
+  padding: 6px 10px;
+  border-radius: 7px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.mega__areas .mega__col li a:hover { background: var(--bg-2); }
+.mega__areas .mega__col li a b {
+  font-family: var(--f-display);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--navy);
+  letter-spacing: -0.005em;
+}
+
+/* -------- Shared CTA pane (used by Services + Areas) -------- */
+.mega__cta {
+  background: linear-gradient(180deg, var(--bg-2) 0%, #fff 100%);
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  border-left: 1px solid var(--line);
+  border-radius: 0 10px 10px 0;
+}
+.mega__services .mega__cta {
+  border-left: 0;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 16px 18px;
+}
+.mega__cta-sub {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.45;
+  font-family: var(--f-display);
+  font-weight: 600;
+}
+.mega__cta .ds-btn {
+  justify-content: center;
+  padding: 11px 16px;
+  font-size: 14px;
+  width: 100%;
+}
+
+/* ============== MOBILE DRAWER ============== */
+.hdr__drawer {
+  border-top: 1px solid var(--line);
+  /* Full-screen navy fill below the paper background so the space
+     underneath the CTA button looks intentional rather than a blank
+     grey slab. */
+  background: var(--paper);
+  animation: drawIn 0.18s ease-out;
+  /* Take up the FULL remaining viewport so the drawer visually
+     covers the page — matches the iheatandcool feel the user asked
+     for on the sticky-bottom "the site to fill the screen better". */
+  min-height: calc(100dvh - 64px);
+  max-height: calc(100dvh - 64px);
+  overflow-y: auto;
+}
+@keyframes drawIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hdr__drawer-inner {
+  display: flex; flex-direction: column;
+  /* Generous TOP padding so the nav items breathe below the header,
+     and BIG bottom clearance so the final "Get a free quote" button
+     sits well above the fixed sticky mobile CTA (80 px + safe-area). */
+  padding: 32px 20px calc(180px + env(safe-area-inset-bottom, 0));
+  gap: 4px;
+  /* Fill the full drawer height so background reads as a solid page,
+     not a floating card with a grey gap underneath. */
+  min-height: 100%;
+}
+
+/* Branded row in the Brands drawer accordion — accent color stripe
+   on the left uses the brand's own hex (via --brand-accent CSS var
+   set inline). Force flex-row + explicit width so the stripe is
+   always visible on mobile regardless of the base .hdr__drawer-sublink
+   flex-column default. */
+.hdr__drawer-sublink--brand {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  gap: 12px;
+  padding: 10px 12px 10px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 56px;
+}
+.hdr__drawer-brandstripe {
+  display: block;
+  flex: 0 0 5px;
+  width: 5px;
+  background: var(--brand-accent, var(--sky));
+  border-radius: 3px;
+  align-self: stretch;
+}
+.hdr__drawer-brandbody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+}
+.hdr__drawer-brandbody b {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15.5px;
+  color: var(--brand-accent, var(--navy));
+  line-height: 1.2;
+}
+.hdr__drawer-brandbody > span {
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+
+/* Iconified row in the Tools drawer accordion — icon on the LEFT,
+   text stacked on the RIGHT. Forced flex-direction:row + align-items
+   overrides the base .hdr__drawer-sublink which uses column stack. */
+.hdr__drawer-sublink--tool {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.hdr__drawer-toolicon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(243,103,34,0.10);
+  color: var(--orange);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.hdr__drawer-toolbody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.hdr__drawer-toolbody b {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.hdr__drawer-toolbody > span {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.4;
+}
+.hdr__drawer-call {
+  display: flex; align-items: center; gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  text-decoration: none;
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 700; font-size: 16px;
+  margin-bottom: 18px;
+}
+.hdr__drawer-call svg { color: var(--orange); }
+.hdr__drawer-link {
+  padding: 14px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hdr__drawer-link:hover { background: var(--bg-2); }
+.hdr__drawer-link--rebate { color: var(--orange); }
+
+.hdr__drawer-group {
+  border-radius: 10px;
+  overflow: hidden;
+}
+.hdr__drawer-group summary {
+  padding: 12px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15.5px;
+  color: var(--ink);
+  list-style: none;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hdr__drawer-group summary::-webkit-details-marker { display: none; }
+.hdr__drawer-group summary::after {
+  content: "+";
+  color: var(--ink-3);
+  font-size: 20px;
+  font-family: var(--f-mono);
+  font-weight: 300;
+  transition: transform 0.15s;
+}
+.hdr__drawer-group[open] summary::after { content: "−"; }
+.hdr__drawer-group summary:hover { background: var(--bg-2); }
+.hdr__drawer-col { padding: 4px 0 12px 14px; }
+.hdr__drawer-collabel {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 12px 14px 6px;
+  font-weight: 700;
+}
+.hdr__drawer-sublink {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.hdr__drawer-sublink:hover { background: var(--bg-2); }
+.hdr__drawer-sublink b {
+  font-family: var(--f-display); font-size: 14.5px; font-weight: 700;
+  color: var(--navy); letter-spacing: -0.005em;
+}
+.hdr__drawer-sublink span { font-size: 12.5px; color: var(--ink-3); line-height: 1.4; }
 
 /* ============== BUTTONS ============== */
 .ds-btn {
@@ -143,17 +987,19 @@
   box-shadow: 0 4px 0 #000;
 }
 .ds-btn--primary:hover { background: var(--navy-2); box-shadow: 0 6px 0 #000; }
+/* Darker orange than the brand --orange so white text clears WCAG AA
+   (4.5:1). The bright --orange stays the accent everywhere else. */
 .ds-btn--orange {
-  background: var(--orange); color: #fff;
-  box-shadow: 0 4px 0 #c14a13;
+  background: #c2521a; color: #fff;
+  box-shadow: 0 4px 0 #8f3a0e;
 }
-.ds-btn--orange:hover { background: var(--orange-2); box-shadow: 0 6px 0 #c14a13; }
+.ds-btn--orange:hover { background: #a8460f; box-shadow: 0 6px 0 #8f3a0e; }
 .ds-btn--ghost {
   background: transparent; color: var(--navy); border-color: var(--navy);
 }
 .ds-btn--ghost:hover { background: var(--navy); color: #fff; }
 .ds-btn--ghost-on-dark {
-  background: transparent; color: #fff; border-color: #fff;
+  background: transparent; color: #fff; border-color: rgba(255,255,255,0.4);
 }
 .ds-btn--ghost-on-dark:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
@@ -167,7 +1013,7 @@
   color: var(--navy);
   font-weight: 500;
 }
-.ds-eyebrow--on-dark { color: #fff; }
+.ds-eyebrow--on-dark { color: rgba(255,255,255,0.85); }
 .ds-dot {
   width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
   box-shadow: 0 0 0 4px rgba(0,176,237,0.18);
@@ -236,67 +1082,330 @@
   color: #fff;
   text-wrap: balance;
 }
-.bigcta p { margin: 0; color: #fff; font-size: 17px; }
+.bigcta p { margin: 0; color: rgba(255,255,255,0.85); font-size: 17px; }
 .bigcta__btns { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
 .bigcta__btns .ds-btn--orange {
   background: var(--navy); color: #fff; box-shadow: 0 4px 0 #000;
 }
 .bigcta__btns .ds-btn--orange:hover { background: var(--navy-2); }
-.bigcta__phone { color: #fff; text-decoration: none; font-size: 15px; }
+.bigcta__phone { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 15px; }
 .bigcta__phone strong { font-family: var(--f-display); }
+.bigcta__textus {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--f-display); font-weight: 700; font-size: 16px;
+  color: #fff; text-decoration: none;
+  padding: 12px 22px; border-radius: 12px;
+  border: 1.5px solid rgba(255,255,255,0.55);
+  transition: background .15s, border-color .15s;
+}
+.bigcta__textus:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
 
 /* ============== FOOTER ============== */
 .ftr {
   background: var(--navy);
-  color: #fff;
+  color: rgba(255,255,255,0.78);
   padding: 80px 0 30px;
+  position: relative;
+  overflow: hidden;
 }
-.ftr__grid {
-  display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.2fr; gap: 48px;
-  padding-bottom: 56px;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
+.ftr::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 500px at 15% -10%, rgba(0,176,237,0.10), transparent 60%),
+    radial-gradient(1000px 500px at 100% 100%, rgba(243,103,34,0.08), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
 }
-.ftr__logo { height: 56px; background: #fff; padding: 8px 14px; border-radius: 10px; display: inline-block; width: auto; max-width: 240px; }
-.ftr__tag { margin: 18px 0 24px; font-size: 14.5px; color: #fff; max-width: 340px; }
-.ftr__nap { margin: 0 0 16px; font-size: 14.5px; line-height: 1.7; color: #fff; }
-.ftr__nap a { color: var(--sky-2); text-decoration: none; }
-.ftr__hours { font-size: 13px; color: #fff; margin: 0; }
-.ftr__hours strong { color: #fff; }
+.ftr > .wrap { position: relative; z-index: 1; }
 
+/* --- Brand + newsletter row --- */
+.ftr__top {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 56px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ftr__brand { min-width: 0; }
+.ftr__signature {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+.ftr__logo-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  padding: 10px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 0.15s;
+}
+.ftr__signature:hover .ftr__logo-plate { transform: translateY(-1px); }
+.ftr__logo-plate img {
+  height: 56px;
+  width: auto;
+  display: block;
+}
+
+.ftr__tag {
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.72);
+  max-width: 460px;
+}
+
+.ftr__nap {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+  display: grid;
+  gap: 10px;
+}
+.ftr__nap li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.85);
+}
+.ftr__nap svg { color: var(--sky-2); flex-shrink: 0; margin-top: 2px; }
+.ftr__nap a { color: #fff; text-decoration: none; font-weight: 600; }
+.ftr__nap a:hover { color: var(--sky-2); }
+
+.ftr__social { display: flex; flex-wrap: wrap; gap: 8px; }
+/* These carry visible label text now, so they're pills rather than
+   36px squares. An icon-only link has no anchor text for a crawler to
+   read, and these are two of only a handful of outbound links we have. */
+.ftr__social-btn {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.82);
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.ftr__social-btn svg { flex: none; }
+.ftr__social-btn:hover {
+  background: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+  transform: translateY(-1px);
+}
+
+/* --- Newsletter --- */
+.ftr__news {
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--rad);
+  padding: 26px 26px 22px;
+}
+.ftr__news h4 {
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.ftr__news p {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.72);
+}
+.ftr__news .bl-news__form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ftr__news .bl-news__form input {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  font-family: var(--f-body);
+}
+.ftr__news .bl-news__form input::placeholder { color: rgba(255,255,255,0.4); }
+.ftr__news .bl-news__form input:focus {
+  border-color: var(--sky-2);
+  background: rgba(255,255,255,0.10);
+}
+.ftr__news .bl-news__form button {
+  padding: 11px 18px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--f-display);
+  font-weight: 700;
+}
+.ftr__news small {
+  display: block;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.62);
+}
+
+/* --- Link columns --- */
+.ftr__cols {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  padding: 44px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
 .ftr__col h4 {
   font-family: var(--f-display);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--orange);
   margin: 0 0 16px;
 }
-.ftr__col ul { list-style: none; padding: 0; margin: 0; }
-.ftr__col li { margin-bottom: 8px; }
-.ftr__col a { color: #fff; text-decoration: none; font-size: 14.5px; }
+.ftr__col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 9px; }
+.ftr__col a {
+  color: rgba(255,255,255,0.78);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.15s;
+}
 .ftr__col a:hover { color: var(--sky-2); }
 
-.ftr__suburbs { font-size: 13.5px; line-height: 1.7; color: #fff; margin: 0; }
-
-.ftr__bottom {
-  margin-top: 24px;
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 12.5px; color: #fff;
-  flex-wrap: wrap; gap: 18px;
+.ftr__creds { display: grid; gap: 8px !important; }
+.ftr__creds li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+  font-size: 13px;
 }
-.ftr__partners { display: flex; gap: 12px; flex-wrap: wrap; }
-.ftr-partner {
+.ftr__creds li:last-child { border-bottom: 0; }
+.ftr__cred-lbl { color: rgba(255,255,255,0.55); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.ftr__cred-val { color: #fff; font-family: var(--f-mono); font-size: 12.5px; }
+
+/* --- Trust badges strip --- */
+.ftr__badges {
+  list-style: none;
+  padding: 24px 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.ftr__badges li {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 10px;
+  padding: 8px 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ftr__badge-tag {
   font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
   text-transform: uppercase;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 5px 10px;
-  border-radius: 6px;
+  letter-spacing: 0.08em;
+  color: var(--sky-2);
+}
+.ftr__badge-name {
+  font-family: var(--f-display);
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* --- Service areas chips --- */
+.ftr__areas { padding: 32px 0 28px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.ftr__areas h4 {
+  font-family: var(--f-display);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 16px;
+}
+.ftr__chips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ftr__chips a {
+  display: inline-block;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ftr__chips a:hover {
+  background: rgba(0,176,237,0.15);
+  border-color: var(--sky);
   color: #fff;
 }
+.ftr__chips-more a {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  font-weight: 700;
+}
+.ftr__chips-more a:hover {
+  background: var(--orange-2);
+  border-color: var(--orange-2);
+}
+
+/* --- Bottom bar --- */
+.ftr__bottom {
+  margin-top: 20px;
+  padding-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.72); /* WCAG AA on navy */
+}
+.ftr__copy { line-height: 1.5; }
+.ftr__legal { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ftr__legal a { color: rgba(255,255,255,0.85); text-decoration: none; }
+.ftr__legal a:hover { color: var(--sky-2); text-decoration: underline; text-underline-offset: 3px; }
+.ftr__legal-sep { color: rgba(255,255,255,0.35); }
 
 /* ============== SHARED QUOTE FORM (used on /quote, suburb, service pages) ============== */
 .qf-card {
@@ -306,6 +1415,11 @@
   border-radius: 22px;
   padding: 30px;
   box-shadow: var(--shadow-md);
+  /* Explicit, because this card renders inside the orange quotesec panel,
+     which sets color:#fff on everything under it. Without this the option
+     chips inherit white text on the card's white background — which is
+     exactly what happened on the filtration hub. */
+  color: var(--ink);
 }
 .qf-ribbon {
   display: inline-flex; align-items: center; gap: 8px;
@@ -352,7 +1466,7 @@
   background: var(--navy);
   color: #fff;
 }
-.qf-opt:has(input:checked) .qf-opt__s { color: #fff; }
+.qf-opt:has(input:checked) .qf-opt__s { color: rgba(255,255,255,0.65); }
 .qf-opt__t { font-weight: 700; font-size: 14px; }
 .qf-opt__s { font-size: 12px; color: var(--ink-3); }
 .qf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -407,21 +1521,1526 @@
 }
 
 /* ============== RESPONSIVE ============== */
-@media (max-width: 1180px) {
+/* The nav is out of flow, so the row has to be wide enough for it as
+   well as the two ends. Below this it goes and the burger takes over. */
+@media (max-width: 1260px) {
   .hdr__nav { display: none; }
   .hdr__row { gap: 16px; }
   .utilbar__left .util-pill--quiet { display: none; }
   .hdr__burger { display: inline-flex; }
+  /* Once the burger appears, hide the header phone chip — the number
+     already sits in the utility bar top and the sticky mobile CTA. */
+  .hdr__cta .hdr__phone { display: none; }
 }
 @media (max-width: 1100px) {
-  .ftr__grid { grid-template-columns: 1fr 1fr; }
+  .ftr__top { grid-template-columns: 1fr; gap: 36px; }
+  .ftr__cols { grid-template-columns: repeat(2, 1fr); gap: 32px 40px; }
 }
 @media (max-width: 760px) {
   .wrap { padding: 0 20px; }
   .utilbar__left .util-pill--quiet { display: none; }
   .utilbar__right .util-link { display: none; }
-  .hdr__row { height: 70px; }
-  .hdr__phone span em { display: none; }
-  .ftr__grid { grid-template-columns: 1fr; gap: 32px; }
+  /* Hide the top-strip phone number on mobile — the sticky bottom
+     CTA already carries Call the team, and the burger drawer opens
+     with the call block front-and-center. Redundant chrome up top
+     was pushing the hero content further down. */
+  .utilbar__right .util-tel { display: none; }
+  .utilbar__right { display: none; }
+  .utilbar__row { justify-content: flex-start; }
+  /* Header row height — was 70/64 competing with the new 86px base.
+     Set to a single mobile height and keep .hdr__row max-width unset
+     so the sticky header doesn't crop the logo or burger button. */
+  .hdr__row { height: 68px !important; padding-left: 16px !important; padding-right: 16px !important; }
   .bigcta__btns { align-items: flex-start; }
+  .ftr { padding: 60px 0 24px; }
+  .ftr__cols { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+  .ftr__badges { justify-content: flex-start; }
+  .ftr__badges li { flex: 0 1 auto; }
+  /* Mega menus anchored under the new mobile header height */
+  .mega { top: 68px !important; }
+}
+
+/* ==================================================================
+   iPhone & mobile polish. Applied on top of the existing responsive
+   breakpoints. Kept in one block so it's easy to find and tune.
+   ================================================================== */
+
+/* Prevent iOS Safari from auto-inflating text after orientation change
+   and stop it zooming inputs (font-size < 16px triggers zoom). */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Hard stop on horizontal-page scrolling on tight phones — any child
+     that overflows the viewport (a wide table, a marquee, a chip strip)
+     should scroll inside its own container, not push the page sideways. */
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+input, select, textarea {
+  font-size: 16px; /* iOS won't zoom the viewport on focus if >= 16 */
+}
+
+/* --- Small tablet + phone (<= 900px) --- */
+@media (max-width: 900px) {
+  /* Section padding was 100-110px everywhere. Way too much on phones.
+     Hero padding controlled by .hero__grid — leaving the section at 0
+     stops the stale bottom-90 leftover from re-creating a navy dead band. */
+  .page-home .hero { padding: 0; }
+  .page-home .veu,
+  .page-home .services,
+  .page-home .whyus,
+  .page-home .process,
+  .page-home .reviews,
+  .page-home .area,
+  .page-home .faq { padding: 64px 0; }
+  .page-home .bigcta,
+  .page-detail .bigcta,
+  .page-blog .bigcta { padding: 56px 0; }
+
+  /* Section headings drop a size on tight screens */
+  .ds-section-head { margin-bottom: 36px; }
+
+  /* Big-CTA row stacks with proper spacing */
+  .bigcta__row {
+    flex-direction: column; align-items: flex-start; gap: 20px;
+  }
+  .bigcta__btns { flex-direction: column; align-items: stretch !important; gap: 12px; width: 100%; }
+  .bigcta__btns .ds-btn { justify-content: center; }
+
+  /* Buttons: min tap target for iOS Human Interface Guidelines (44 x 44) */
+  .ds-btn { min-height: 44px; }
+  .ds-btn--lg { min-height: 48px; }
+  .ds-btn--xl { min-height: 54px; padding: 14px 24px; font-size: 16px; }
+}
+
+/* --- Phone (<= 640px, effectively iPhone SE through Pro Max) --- */
+@media (max-width: 640px) {
+  /* Tighter page gutter */
+  .wrap { padding: 0 16px; }
+
+  /* Header: hide the phone-pill and the primary CTA on mobile — those
+     live in the burger drawer and the sticky mobile CTA. Keep the logo
+     and burger only. */
+  .hdr__row { height: 64px !important; gap: 12px; }
+  .hdr__cta .hdr__phone { display: none; }
+  .hdr__cta .ds-btn--primary { display: none; }
+  .hdr__logo svg,
+  .hdr__logo img { height: 44px; }
+  .mega { top: 64px !important; }
+
+  /* Hero: reposition team photo to focus on faces, thin the overlay
+     further so the hero doesn't feel like a wall of navy on small screens. */
+  /* Mobile hero — image now lives on .hero__pic <img>, no CSS bg. */
+  .page-home .hero { padding: 24px 0 56px; }
+  .page-home .hero__left { padding-top: 4px; }
+  .page-home .hero__h1 {
+    font-size: 26px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 14px 0 14px;
+    text-wrap: balance;
+    font-weight: 900;
+    max-width: 100%;
+  }
+  .page-home .hero__sub {
+    font-size: 14.5px;
+    line-height: 1.55;
+    margin: 0 0 18px;
+    color: rgba(255,255,255,0.82);
+  }
+  .page-home .hero__eyebrow {
+    font-size: 11px;
+    padding: 5px 10px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .page-home .hero__bullets {
+    gap: 6px 16px;
+    margin-bottom: 20px;
+  }
+  .page-home .hero__bullets li {
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
+  .page-home .hero__ctas { flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 24px; }
+  .page-home .hero__ctas .ds-btn { justify-content: center; width: 100%; }
+  .page-home .hero__trust {
+    flex-wrap: wrap; gap: 12px; padding: 12px 0;
+  }
+  .page-home .trust-divider { display: none; }
+  .page-home .hero__finep { font-size: 10.5px; line-height: 1.5; }
+
+  /* Quote card: reduce padding, no glow shadow that eats into edges */
+  .page-home .qcard { padding: 22px 20px 20px; border-radius: 16px; }
+  .page-home .qcard::before { display: none; }
+  .page-home .qcard__h { font-size: 22px; }
+
+  /* Progress bar */
+  .page-home .qcard__progress { flex-wrap: wrap; }
+  .page-home .qcard__progress-lbl {
+    width: 100%; margin-left: 0; margin-top: 6px;
+    text-align: right;
+  }
+
+  /* Option grids: 2 cols max on phone */
+  .page-home .qgrid--3,
+  .page-home .qgrid--4 { grid-template-columns: 1fr 1fr; }
+  .page-home .qrow { grid-template-columns: 1fr; }
+
+  /* Fixed-price install cards: keep it tight */
+  .page-home .fixprice__photo { min-height: 260px; aspect-ratio: 4 / 3; }
+  .page-home .fixprice__body { padding: 20px 22px 22px; }
+  .page-home .fixprice__badges { top: 8px; left: 8px; right: 8px; }
+
+  /* Services bento: single column with reasonable card height */
+  .page-home .bcard__photo { min-height: 170px; }
+  .page-home .bcard--xl .bcard__photo { min-height: 300px; }
+
+  /* Process step card */
+  .page-home .step { padding: 24px 20px; }
+  .page-home .step__num { font-size: 44px; }
+
+  /* Brand chips: keep two per row, prevent squish */
+  .page-home .brands__grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Reviews scrolling marquee: shorter height on phones */
+  .page-home .reviews__marquee { height: 500px; grid-template-columns: 1fr; }
+  .page-home .revcol--2, .page-home .revcol--3 { display: none; }
+
+  /* Area map: aspect-ratio unchanged (1/1) but shrink badge */
+  .page-home .map__badge { max-width: 170px; padding: 10px 12px; }
+  .page-home .map__badge-num { font-size: 18px; }
+
+  /* FAQ */
+  .page-home .faq__grid { grid-template-columns: 1fr; }
+
+  /* Footer: pull columns to 1 nicely */
+  .ftr { padding: 48px 0 20px; }
+  .ftr__top { padding-bottom: 32px; }
+  .ftr__signature-mark { width: 44px; height: 44px; }
+  .ftr__signature-name b { font-size: 19px; }
+  .ftr__signature-name span { font-size: 13px; }
+  .ftr__news { padding: 20px; }
+  .ftr__news h4 { font-size: 16px; }
+  .ftr__cols { grid-template-columns: 1fr 1fr; gap: 24px 16px; padding: 32px 0; }
+  .ftr__badges { padding: 20px 0; gap: 8px; }
+  .ftr__badges li { padding: 7px 10px; }
+  .ftr__badge-tag { font-size: 9.5px; }
+  .ftr__badge-name { font-size: 12px; }
+  .ftr__chips a { font-size: 12.5px; padding: 5px 10px; }
+  .ftr__bottom { flex-direction: column; align-items: flex-start; gap: 10px; font-size: 12px; }
+
+  /* Utility bar (top strip): hide the middle bits */
+  .utilbar__center { display: none !important; }
+
+  /* Big CTA text sizes */
+  .bigcta h2 { font-size: 24px !important; }
+  .bigcta__phone { font-size: 14px; }
+
+  /* Contact page tightening */
+  .page-detail .dp-hero { padding: 40px 0 50px; }
+  .page-detail .dp-hero h1 { font-size: 32px !important; }
+  .page-detail .dp-hero__sub { font-size: 15px; }
+
+  /* VEU rebate cards */
+  .page-rebates .rb-hero { padding: 40px 0 60px; }
+  .page-rebates .rb-hero h1 { font-size: 34px !important; }
+  .page-rebates .rb-stats { grid-template-columns: 1fr 1fr !important; gap: 14px; margin-top: 30px; padding-top: 20px; }
+  .page-rebates .rb-stat strong { font-size: 28px !important; }
+
+  /* Heat pumps page tightening */
+  .page-heatpumps .hp-why,
+  .page-heatpumps .hp-styles,
+  .page-heatpumps .hp-compare,
+  .page-heatpumps .hp-warn,
+  .page-heatpumps .hp-sizing { padding: 64px 0; }
+  .page-heatpumps .hp-why__grid { gap: 12px; }
+  .page-heatpumps .hp-why__stat { padding: 20px 18px; }
+  .page-heatpumps .hp-why__stat strong { font-size: 30px; }
+
+  /* Blog listing cards */
+  .page-blog .bl-feat__card { grid-template-columns: 1fr; }
+  .page-blog .bl-feat__photo { min-height: 240px; }
+  .page-blog .bl-feat__copy { padding: 28px; }
+  .page-blog .bl-feat__copy h2 { font-size: 26px; }
+  .page-blog .bl-hero { padding: 40px 0 30px; }
+
+  /* Blog post reading view */
+  .page-blog .bl-post__hero { padding: 40px 0 24px; }
+  .page-blog .bl-post h1 { font-size: 28px; }
+  .page-blog .bl-post__lede { font-size: 16px; }
+  .page-blog .bl-post__body h2 { font-size: 22px; margin: 28px 0 10px; }
+  .page-blog .bl-post__body p { font-size: 16px; line-height: 1.7; }
+  .page-blog .bl-post__cta { padding: 24px; grid-template-columns: 1fr; }
+
+  /* About page */
+  .page-about .ab-hero { padding: 40px 0 30px; }
+  .page-about .ab-hero h1 { font-size: clamp(30px, 8vw, 42px); }
+  .page-about .ab-story,
+  .page-about .ab-team,
+  .page-about .ab-values,
+  .page-about .ab-clients,
+  .page-about .ab-acc { padding: 60px 0; }
+
+  /* Services page */
+  .page-services .sv-hero { padding: 40px 0 50px; }
+  .page-services .sv-hero h1 { font-size: 32px !important; }
+  .page-services .sv { padding: 56px 0; }
+  .page-services .sv__grid { grid-template-columns: 1fr; gap: 30px; }
+}
+
+/* --- Small phone (<= 380px, iPhone SE) --- */
+@media (max-width: 380px) {
+  .wrap { padding: 0 14px; }
+  .page-home .qcard { padding: 18px 16px 18px; }
+  .page-home .hero__h1 { font-size: 27px; }
+  .page-home .brands__grid { grid-template-columns: 1fr; }
+  .hdr__row { height: 60px; }
+  .hdr__logo svg,
+  .hdr__logo img { height: 40px; }
+}
+
+/* Give every card an active-tap feedback state on iOS (mobile only) */
+@media (hover: none) and (pointer: coarse) {
+  .ds-btn:active { transform: scale(0.98); }
+  .bcard:active,
+  .fixprice:active,
+  .hpc__tile:active { transform: scale(0.995); }
+}
+
+/* ==================================================================
+   Sticky mobile CTA bar. Two big thumb targets, safe-area inset for
+   iPhone notch / gesture area. Hidden on tablet+.
+   ================================================================== */
+.stickycta {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 60;
+  display: none; /* only shown on phone via media query below */
+  gap: 8px;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0));
+  background: rgba(255,255,255,0.96);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -8px 24px -8px rgba(11,20,80,0.14);
+}
+.stickycta__call,
+.stickycta__quote {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  text-decoration: none;
+  min-height: 52px;
+  border: 1.5px solid transparent;
+  transition: transform 0.08s;
+}
+.stickycta__call {
+  background: var(--navy); color: #fff;
+  padding: 8px 12px;
+}
+.stickycta__call svg { color: var(--orange); flex-shrink: 0; }
+.stickycta__call span {
+  display: flex; flex-direction: column; align-items: flex-start;
+  line-height: 1.1;
+}
+.stickycta__call em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  font-family: var(--f-mono); font-weight: 500;
+}
+.stickycta__call strong {
+  font-size: 15px;
+  font-weight: 800;
+  font-family: var(--f-display);
+}
+.stickycta__quote {
+  background: var(--orange); color: #fff;
+  box-shadow: 0 3px 0 #c14a13;
+}
+.stickycta:active { }
+.stickycta__quote:active { transform: translateY(1px); box-shadow: 0 2px 0 #c14a13; }
+
+@media (max-width: 900px) {
+  .stickycta { display: flex; }
+  /* Give the page room so the sticky bar doesn't cover the last bit
+     of any section's content (especially the footer). */
+  body { padding-bottom: 74px; }
+}
+/* iPhones */
+@media (max-width: 640px) {
+  body { padding-bottom: 80px; }
+}
+/* Smart-hide state — driven by IntersectionObserver in
+   StickyMobileCTA.tsx. When the hero CTAs (or the final big-CTA) are
+   on screen, slide the bar off-screen so the buttons don't double up. */
+.stickycta.is-hidden {
+  transform: translateY(120%);
+  pointer-events: none;
+  opacity: 0;
+}
+.stickycta { transition: transform 0.25s ease, opacity 0.2s ease; }
+
+/* ==================================================================
+   Mobile hero simplification (phone). Hide the two secondary bullets
+   and the tiny compliance fine-print on phones, and pull the trust
+   badges into a tighter single line.
+   ================================================================== */
+@media (max-width: 640px) {
+  .page-home .hero__bullet--wide { display: none; }
+  .page-home .hero__finep { display: none; }
+  .page-home .hero__trust {
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-top: 1px solid rgba(255,255,255,0.10);
+    border-radius: 12px;
+    justify-content: space-between;
+  }
+  .page-home .trust-rating__txt strong,
+  .page-home .trust-stat strong { font-size: 15px; }
+  .page-home .trust-rating__txt span,
+  .page-home .trust-stat span { font-size: 11px; }
+  /* Hide the third stat on very small phones so trust bar fits on one row */
+  .page-home .hero__trust > .trust-stat:nth-of-type(2) { display: none; }
+}
+
+
+/* ============================================================
+   HIGHLIGHTED SECTION HEAD
+   An accent rule and a coloured eyebrow, for the sections that
+   should catch the eye on the way down the page rather than
+   reading as one more block of body copy.
+   ============================================================ */
+.ds-section-head--hl { position: relative; padding-left: 18px; }
+.ds-section-head--hl::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 4px; bottom: 4px;
+  width: 4px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--navy), #1d3a86);
+}
+.ds-section-head--hl .ds-eyebrow { color: var(--navy); }
+.ds-section-head--hl .ds-eyebrow .ds-dot { background: var(--navy); }
+.ds-section-head--hl h2 { color: var(--navy); }
+
+@media (max-width: 640px) {
+  .ds-section-head--hl { padding-left: 14px; }
+  .ds-section-head--hl::before { width: 3px; }
+}
+
+/* ============== UPGRADE / REBATE NUDGE ==============
+   The compact "near ten years old? price the upgrade" call-out.
+   Lives in the design system rather than a page stylesheet because it
+   renders on service, system, suburb and brand pages. */
+.upnudge {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: #fff;
+  border-radius: var(--rad);
+  padding: 26px 28px;
+  margin: 36px 0;
+  box-shadow: var(--shadow-md);
+}
+.upnudge__age {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  line-height: 1;
+}
+.upnudge__agenum { font-family: var(--f-display); font-size: 30px; font-weight: 800; }
+.upnudge__agelab { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; opacity: 0.9; }
+.upnudge__body { min-width: 0; }
+.upnudge__body h3 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  line-height: 1.25;
+  margin: 0 0 10px;
+  color: #fff;
+}
+.upnudge__body p { margin: 0 0 10px; font-size: 15px; line-height: 1.6; color: rgba(255,255,255,0.86); }
+.upnudge__caveat { font-size: 14px; color: rgba(255,255,255,0.66); font-style: italic; }
+.upnudge__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+.upnudge__cta {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.upnudge__cta:hover { background: var(--orange-2); }
+.upnudge__link { color: var(--sky-2); font-weight: 600; font-size: 14px; text-decoration: none; }
+.upnudge__link:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .upnudge { flex-direction: column; gap: 14px; padding: 22px 20px; margin: 28px 0; }
+  .upnudge__age { width: 62px; height: 62px; }
+  .upnudge__agenum { font-size: 25px; }
+  .upnudge__body h3 { font-size: 19px; }
+  .upnudge__actions { gap: 10px; }
+  .upnudge__cta { width: 100%; text-align: center; }
+}
+
+/* ============== BEFORE / AFTER SLIDER ==============
+   Used by the gallery and by every service page that has a
+   before/after pair. Lives here rather than in a route stylesheet
+   for exactly that reason. */
+.ba { width: 100%; }
+.ba__frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ba__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+.ba__clip {
+  position: absolute;
+  inset: 0;
+  /* clip-path set inline from React state */
+  will-change: clip-path;
+}
+.ba__tag {
+  position: absolute;
+  top: 12px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 999px;
+  color: #fff;
+  pointer-events: none;
+  transition: opacity .15s ease;
+  z-index: 3;
+}
+.ba__tag--before { left: 12px; background: rgba(5, 10, 48, 0.82); }
+.ba__tag--after  { right: 12px; background: var(--orange); }
+.ba__handle {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(5, 10, 48, 0.18), 0 0 18px rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 4;
+}
+.ba__grip {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 14px rgba(5, 10, 48, 0.28);
+}
+/* Real range input layered over the frame — keyboard + AT accessible,
+   visually replaced by .ba__handle / .ba__grip. */
+.ba__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  z-index: 5;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+.ba__range:focus-visible { outline: none; }
+.ba__frame:has(.ba__range:focus-visible) {
+  outline: 3px solid var(--sky);
+  outline-offset: 2px;
+}
+.ba__hint {
+  margin: 10px 0 0;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+/* ============== CTA BAND ==============
+   Full-width orange band dropped between sections so the reader is never
+   more than a screen from a way to act. Paces the long category pages the
+   way the reference site does, in our colour rather than theirs. */
+.ctaband {
+  background: var(--orange);
+  color: #fff;
+  padding: 44px 0;
+  position: relative;
+  overflow: hidden;
+}
+.ctaband::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.ctaband__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.ctaband h2 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 1.15;
+  color: #fff;
+  margin: 0;
+  max-width: 24ch;
+}
+.ctaband p {
+  margin: 8px 0 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 56ch;
+}
+.ctaband__acts { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.ctaband__btn {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 4px 0 rgba(5, 10, 48, 0.28);
+}
+.ctaband__btn:hover { background: var(--navy); color: #fff; }
+.ctaband__phone { color: #fff; text-decoration: none; font-size: 15px; white-space: nowrap; }
+.ctaband__phone strong { border-bottom: 2px solid rgba(255, 255, 255, 0.6); }
+@media (max-width: 720px) {
+  .ctaband { padding: 32px 0; }
+  .ctaband__row { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .ctaband__acts { width: 100%; }
+  .ctaband__btn { width: 100%; justify-content: center; }
+}
+
+/* ============== REVIEWS — scrolling columns ==============
+   Used by the home page and by any page that renders
+   <ReviewMarquee />. De-scoped from .page-home for that reason. */
+.reviews { padding: 110px 0; background: var(--bg); overflow: hidden; }
+.reviews__head {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 30px; margin-bottom: 40px; flex-wrap: wrap;
+}
+.reviews__head h2 {
+  font-family: var(--f-display);
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 800;
+  margin: 12px 0 0;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--navy);
+  max-width: 600px;
+  text-wrap: balance;
+}
+.reviews__badge {
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--paper); padding: 16px 20px; border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.reviews__badge-stars { color: #ffb800; font-size: 18px; letter-spacing: 3px; }
+.reviews__badge div { font-size: 14px; color: var(--ink-2); }
+.reviews__badge strong { color: var(--navy); }
+
+.reviews__marquee {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  height: 640px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 90px, #000 calc(100% - 90px), transparent 100%);
+}
+.revcol {
+  position: relative;
+  overflow: hidden;
+}
+.revcol__track {
+  display: flex; flex-direction: column; gap: 20px;
+  animation: revscroll 60s linear infinite;
+  will-change: transform;
+}
+.revcol--2 .revcol__track { animation-duration: 75s; }
+.revcol--3 .revcol__track { animation-duration: 50s; }
+.revcol:hover .revcol__track { animation-play-state: paused; }
+@keyframes revscroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+
+.revcard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 22px 22px 20px;
+  display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 1px 0 rgba(11,20,80,0.02);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.revcard:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.revcard__stars { color: var(--orange); font-size: 15px; letter-spacing: 2px; }
+.revcard__title {
+  font-family: var(--f-display);
+  font-size: 16.5px; font-weight: 800;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  margin: 0;
+  line-height: 1.2;
+}
+.revcard__txt {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 14.5px; line-height: 1.55;
+}
+.revcard__by {
+  display: flex; align-items: center; gap: 10px;
+  padding-top: 12px; border-top: 1px solid var(--line);
+}
+.revcard__avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--navy); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display); font-weight: 700; font-size: 13px;
+}
+.revcard__by div { display: flex; flex-direction: column; line-height: 1.15; }
+.revcard__by strong { font-size: 13.5px; color: var(--navy); }
+.revcard__by span { font-size: 12px; color: var(--ink-3); }
+
+.reviews__fade {
+  position: absolute; left: 0; right: 0; height: 90px; z-index: 2;
+  pointer-events: none;
+}
+.reviews__fade--top {
+  top: 0;
+  background: linear-gradient(180deg, var(--bg) 0%, transparent 100%);
+}
+.reviews__fade--bot {
+  bottom: 0;
+  background: linear-gradient(0deg, var(--bg) 0%, transparent 100%);
+}
+
+/* Mobile horizontal swipe rail (matches mock B). Hidden on desktop. */
+.reviews__rail { display: none; }
+.revcard--mobile {
+  flex: 0 0 82%;
+  max-width: 320px;
+  scroll-snap-align: start;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .revcol__track { animation: none; }
+  .reviews__marquee { height: auto; overflow: visible; mask-image: none; -webkit-mask-image: none; }
+}
+
+@media (max-width: 760px) {
+  .reviews { padding: 56px 0 64px; }
+  .reviews__head { margin-bottom: 20px; gap: 12px; }
+  .reviews__head h2 { font-size: 24px; }
+  .reviews__badge { padding: 10px 14px; }
+  .reviews__badge-stars { font-size: 14px; letter-spacing: 2px; }
+  .reviews__badge div { font-size: 13px; }
+
+  /* swap the desktop marquee for a horizontal swipe rail. Explicitly stop
+     the marquee animation on mobile so the browser doesn't keep animating
+     an off-screen element (a small but measurable main-thread cost on a
+     throttled mobile CPU during Lighthouse audits). */
+  .reviews__marquee { display: none; }
+  .revcol__track { animation: none !important; }
+  .reviews__rail {
+    display: block;
+    overflow: hidden;
+    padding: 4px 0 20px;
+    margin: 0 -20px;
+  }
+  .reviews__rail-track {
+    display: flex;
+    gap: 12px;
+    padding: 0 20px;
+    width: max-content;
+    animation: reviews-marquee 90s linear infinite;
+  }
+  @keyframes reviews-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .revcard--mobile {
+    flex: 0 0 auto;
+    width: 260px;
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .revcard--mobile .revcard__title { font-size: 15px; }
+  .revcard--mobile .revcard__txt { font-size: 13.5px; line-height: 1.5; }
+}
+
+
+/* ============== FAQ — heading left, accordions right ==============
+   Home page and any page using the same markup. */
+.faq { padding: 110px 0; background: var(--bg); }
+.faq__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+.faq__left h2 {
+  font-family: var(--f-display);
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 14px 0 14px;
+  color: var(--navy);
+  text-wrap: balance;
+}
+.faq__left p { font-size: 17px; color: var(--ink-2); margin: 0 0 8px; }
+
+.faq__right details {
+  border-top: 1px solid var(--line);
+  padding: 22px 0;
+}
+.faq__right details:last-child { border-bottom: 1px solid var(--line); }
+.faq__right summary {
+  list-style: none;
+  font-family: var(--f-display);
+  font-size: 19px; font-weight: 700;
+  color: var(--navy); cursor: pointer;
+  letter-spacing: -0.005em;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 16px;
+}
+.faq__right summary::-webkit-details-marker { display: none; }
+.faq__right summary::after {
+  content: "+";
+  font-family: var(--f-display);
+  font-weight: 400;
+  color: var(--orange);
+  font-size: 24px;
+  transition: transform 0.2s;
+}
+.faq__right details[open] summary::after { content: "−"; }
+.faq__right p {
+  margin: 14px 0 0;
+  color: var(--ink-2);
+  font-size: 15.5px;
+  line-height: 1.6;
+  max-width: 580px;
+}
+
+
+
+/* ============================================================
+   ORANGE CALLOUT PANEL
+   The home page's 60-second-quote box: copy on the left, the thing
+   you interact with on a white card to the right, the whole lot in
+   one orange panel. Lives here rather than home.css because the
+   filtration picker uses the identical panel.
+   ============================================================ */
+/* ============== QUOTE SECTION — orange callout box ============== */
+.quotesec {
+  position: relative;
+  padding: 72px 0 88px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+/* The orange box wraps the entire "60-second quote" panel — left copy
+   AND the form card sit inside it, reading as one branded callout. */
+.quotesec__box {
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 48px 52px;
+  box-shadow: 0 20px 44px -18px rgba(243,103,34,0.55),
+              0 8px 24px -14px rgba(5,10,48,0.2);
+  position: relative;
+  overflow: hidden;
+}
+/* Subtle textured background inside the orange box — same warm feel
+   as the hero, keeps a flat orange from looking too dense. */
+.quotesec__box::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255,255,255,0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5,10,48,0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+.quotesec__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 48px;
+  align-items: start;
+}
+.quotesec__left {
+  padding-top: 8px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.ds-eyebrow--on-orange {
+  color: #fff;
+  opacity: 0.95;
+}
+.ds-dot--on-orange {
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.28);
+}
+.quotesec__left h2 {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3.2vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #fff;
+  text-wrap: balance;
+  margin: 6px 0 0;
+  max-width: 460px;
+}
+.quotesec__lede {
+  margin: 0;
+  font-size: 17px;
+  color: rgba(255,255,255,0.92);
+  max-width: 460px;
+  line-height: 1.5;
+}
+.quotesec__points {
+  list-style: none; padding: 0; margin: 8px 0 0;
+  display: grid; gap: 8px;
+}
+.quotesec__points li {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(255,255,255,0.96);
+  font-size: 15px;
+}
+.tick {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0, 176, 237, 0.18); color: var(--sky-2);
+  font-size: 11px; font-weight: 800; flex: 0 0 20px; margin-top: 2px;
+}
+.tick--on-orange {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+.quotesec__finep {
+  margin: 12px 0 0;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0.01em;
+  max-width: 460px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .quotesec { padding: 48px 0 56px; }
+  .quotesec__box { padding: 32px 24px; border-radius: 22px; }
+  .quotesec__grid { grid-template-columns: 1fr; gap: 28px; }
+  .quotesec__left h2 { font-size: 28px; }
+  .quotesec__lede { font-size: 15.5px; }
+}
+
+
+/* ============================================================
+   NUMBERED PROCESS STEPS
+   Navy band, three across, big orange numerals, arrows between.
+   Home page and the filtration pages.
+   ============================================================ */
+.process {
+  position: relative;
+  padding: 110px 0 120px;
+  background: var(--navy);
+  color: #fff;
+  overflow: hidden;
+}
+.process::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(900px 600px at 50% -10%, rgba(0,176,237,0.14), transparent 60%);
+}
+.process > .wrap { position: relative; }
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 18px; padding: 0; margin: 0; list-style: none;
+}
+.step {
+  position: relative;
+  padding: 28px 24px 28px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--rad);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.step::after {
+  content: "→";
+  position: absolute; right: -22px; top: 38px;
+  color: var(--orange); font-size: 22px; font-weight: 700;
+  z-index: 1;
+}
+.step:last-child::after { display: none; }
+.step:nth-child(3n)::after { display: none; }
+.step__num {
+  font-family: var(--f-display);
+  font-size: 56px; font-weight: 900;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+}
+.step h3 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+  /* The home page set this white in a page-level colour block that stayed
+     behind .page-home. On the navy band the step titles need it here. */
+  color: #fff;
+}
+.step p { margin: 0; color: rgba(255,255,255,0.7); font-size: 14.5px; line-height: 1.5; }
+.step__time {
+  margin-top: auto; padding-top: 12px;
+  font-family: var(--f-mono); font-size: 11.5px;
+  color: var(--sky);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+
+@media (max-width: 900px) {
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .step::after { display: none; }
+}
+@media (max-width: 600px) {
+  .steps { grid-template-columns: 1fr; grid-auto-rows: min-content; gap: 12px; }
+  .process { padding: 54px 0 60px; }
+  /* Compact the stacked cards: smaller number, tighter padding, and drop
+     the margin-top:auto that stretched the time tag to the card bottom and
+     left a gap. */
+  .step { padding: 20px 20px 18px; gap: 5px; }
+  .step__num { font-size: 38px; margin-bottom: 2px; }
+  .step h3 { font-size: 18px; }
+  .step p { font-size: 14px; }
+  .step__time { margin-top: 8px; padding-top: 10px; }
+}
+
+
+/* ============================================================
+   BENEFIT TABS
+   Five tiles that never move, and one panel underneath that swaps
+   with a cross-fade. Used by every filtration category page and by
+   the hot water hire page.
+   ============================================================ */
+/* --- EVERYDAY BENEFITS, as tabs ---------------------------------- */
+.bentiles__row {
+  display: grid;
+  /* Count comes in from the component. Filtration draws five of these;
+     the service pages draw six or seven. */
+  grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.bentile {
+  --tint: var(--navy);
+  appearance: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: #fff;
+  background: var(--tint);
+  border-radius: var(--rad);
+  padding: 16px 16px 18px;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  opacity: 0.62;
+  transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+.bentile:hover { opacity: 0.85; }
+.bentile.is-on {
+  opacity: 1;
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px -18px rgba(5, 10, 48, 0.55);
+}
+/* the notch that ties the live tile to the panel underneath */
+.bentile.is-on::after {
+  content: "";
+  position: absolute;
+  left: 26px;
+  bottom: -12px;
+  width: 18px;
+  height: 18px;
+  background: var(--tint);
+  transform: rotate(45deg);
+  border-radius: 3px;
+}
+.bentile__icon { display: block; margin-bottom: auto; opacity: 0.92; }
+.bentile__icon svg { width: 30px; height: 30px; }
+.bentile__name { font-family: var(--f-display); font-size: 18px; font-weight: 800; margin-top: 14px; }
+.bentile__line { font-size: 12.5px; line-height: 1.4; color: rgba(255, 255, 255, 0.84); margin-top: 4px; }
+
+.bentiles__panel {
+  --tint: var(--navy);
+  background: var(--tint);
+  border-radius: var(--rad);
+  color: #fff;
+  padding: 22px 26px;
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  transition: background 0.28s ease;
+}
+.bentiles__inner {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  animation: bentile-in 0.3s ease both;
+}
+.bentiles__ico { flex-shrink: 0; opacity: 0.55; }
+.bentiles__ico svg { width: 34px; height: 34px; }
+.bentiles__panel p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 88ch;
+}
+.bentiles__panel strong { color: #fff; }
+@keyframes bentile-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bentile, .bentiles__panel, .bentiles__inner { transition: none; animation: none; }
+  .bentile.is-on { transform: none; }
+}
+@media (max-width: 900px) {
+  .bentiles__row { grid-template-columns: repeat(3, 1fr); }
+  .bentile { min-height: 118px; }
+  .bentile.is-on::after { display: none; }
+}
+@media (max-width: 560px) {
+  .bentiles__row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .bentile { min-height: 104px; padding: 14px; }
+  .bentile__icon svg { width: 24px; height: 24px; }
+  .bentile__name { font-size: 16px; margin-top: 10px; }
+  .bentiles__panel { padding: 18px 18px; }
+  .bentiles__ico { display: none; }
+}
+
+
+/* ============================================================
+   SERVICES MEGA, two panes.
+   Categories down the left, the active category's services on the
+   right. The old flat layout rendered all nineteen services with
+   photos at once; this one shows five words and then three or four
+   cards. The old .mega__services-* rules stay for the mobile drawer,
+   which still renders the flat structure.
+   ============================================================ */
+.megasvc {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  /* Widened with the rest of them. The `.mega__services` rule further
+     up sets 1360px and does nothing here — it targets the old flat
+     structure, which now only the mobile drawer renders. */
+  width: min(1240px, calc(100vw - 32px));
+}
+.megasvc__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 18px 14px;
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+}
+.megasvc__railbtn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background 0.12s, color 0.12s;
+}
+/* Left-align the label and push the arrow to the far right, so the
+   category colour dot reads as part of the label group. */
+.megasvc__railbtn { justify-content: flex-start; }
+.megasvc__railbtn span { opacity: 0; color: var(--orange); transition: opacity 0.12s; margin-left: auto; }
+/* A colour per service category so the sections read apart at a glance —
+   the dot keeps its colour even when the row goes navy on select. */
+.megasvc__railbtn::before {
+  content: "";
+  flex: 0 0 9px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--cat, var(--line-2));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat, var(--line-2)) 22%, transparent);
+}
+.megasvc__railbtn:nth-child(1) { --cat: #00b0ed; }
+.megasvc__railbtn:nth-child(2) { --cat: #ec1c22; }
+.megasvc__railbtn:nth-child(3) { --cat: #f36722; }
+.megasvc__railbtn:nth-child(4) { --cat: #f2b134; }
+.megasvc__railbtn:nth-child(5) { --cat: #2e9e8f; }
+.megasvc__railbtn:nth-child(6) { --cat: #6b7280; }
+.megasvc__railbtn:hover { background: color-mix(in srgb, var(--cat, var(--sky)) 12%, transparent); }
+/* Active row stays navy (white text stays legible); the colour link to
+   the category is carried by the dot and a matching left accent bar. */
+.megasvc__railbtn.is-on { background: var(--navy); color: #fff; box-shadow: inset 4px 0 0 var(--cat, var(--sky)); }
+.megasvc__railbtn.is-on span { opacity: 1; }
+.megasvc__cta { margin-top: auto; justify-content: center; }
+.megasvc__pane {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 14px;
+  min-height: 330px;
+}
+.megasvc__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  align-content: start;
+  animation: megasvcIn 0.16s ease both;
+}
+@keyframes megasvcIn {
+  from { opacity: 0; transform: translateX(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.megasvc__foot {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.megasvc__footlabel {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.megasvc__poplink {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-decoration: none;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 1px;
+}
+.megasvc__poplink:hover { color: var(--orange); border-bottom-color: var(--orange); }
+@media (max-width: 860px) {
+  .megasvc { grid-template-columns: 1fr; }
+  .megasvc__rail { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); }
+  .megasvc__cta { margin: 0; }
+  .megasvc__grid { grid-template-columns: 1fr; }
+  .megasvc__pane { min-height: 0; }
+}
+
+/* ============================================================
+   WATER MEGA — five categories and the range comparison.
+   ============================================================ */
+.megawater { width: min(560px, calc(100vw - 32px)); padding: 16px; }
+.megawater__list { display: grid; gap: 2px; }
+.megawater__item {
+  display: block;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.12s;
+}
+.megawater__item:hover { background: rgba(0, 176, 237, 0.08); }
+.megawater__item b { display: block; font-size: 14.5px; color: var(--navy); }
+.megawater__item span { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-3); line-height: 1.4; }
+.megawater__foot {
+  margin-top: 12px;
+  padding: 14px 14px 4px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.megawater__foot > span {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+
+/* ============================================================
+   MOTION
+   A short fade and rise on sections as they arrive, plus the hover
+   and focus polish that makes the site feel responsive under the
+   cursor. Restrained on purpose — an animation you notice on a
+   plumbing site is one that has gone too far.
+
+   Everything here is additive. `.reveal` is only ever applied by
+   components/Reveal.tsx after it has run, so if the script never
+   executes the page renders normally rather than blank.
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* Cards inside a revealed section come in just behind it, in sequence,
+   so a grid arrives as a grid rather than as one slab. Capped at six —
+   past that the last card is waiting long enough to feel broken. */
+.reveal .step,
+.reveal .bentile,
+.reveal .wf-style,
+.reveal .wf-model,
+.reveal .wf-brand,
+.reveal .wf-stage,
+.reveal .wf-tier,
+.reveal .revcard,
+.reveal .hire-price__row,
+.reveal .brand-feat {
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition-delay: 0.06s;
+}
+.reveal .step:nth-child(2),
+.reveal .bentile:nth-child(2),
+.reveal .wf-style:nth-child(2),
+.reveal .wf-brand:nth-child(2),
+.reveal .wf-stage:nth-child(2) { transition-delay: 0.11s; }
+.reveal .step:nth-child(3),
+.reveal .bentile:nth-child(3),
+.reveal .wf-style:nth-child(3),
+.reveal .wf-stage:nth-child(3) { transition-delay: 0.16s; }
+.reveal .step:nth-child(4),
+.reveal .bentile:nth-child(4),
+.reveal .wf-style:nth-child(4) { transition-delay: 0.21s; }
+.reveal .step:nth-child(5),
+.reveal .bentile:nth-child(5),
+.reveal .wf-style:nth-child(5) { transition-delay: 0.26s; }
+.reveal .step:nth-child(n + 6),
+.reveal .bentile:nth-child(n + 6),
+.reveal .wf-style:nth-child(n + 6) { transition-delay: 0.31s; }
+.reveal:not(.is-revealed) .step,
+.reveal:not(.is-revealed) .bentile,
+.reveal:not(.is-revealed) .wf-style,
+.reveal:not(.is-revealed) .wf-model,
+.reveal:not(.is-revealed) .wf-brand,
+.reveal:not(.is-revealed) .wf-stage,
+.reveal:not(.is-revealed) .wf-tier,
+.reveal:not(.is-revealed) .hire-price__row,
+.reveal:not(.is-revealed) .brand-feat {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* --- hover and focus polish, sitewide --- */
+.ds-btn { transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease; }
+.ds-btn:hover { transform: translateY(-1px); }
+.ds-btn:active { transform: translateY(0); }
+
+.wf-style,
+.wf-model,
+.wf-tier,
+.step,
+.hire-price__row {
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.wf-style:hover,
+.wf-tier:hover { transform: translateY(-3px); box-shadow: 0 26px 56px -26px rgba(5, 10, 48, 0.5); }
+
+/* Photos ease up very slightly under the cursor where the card is a link. */
+.mega__servicecard:hover .mega__servicecard-photo img,
+.wf-tier:hover .wf-tier__photo img { transform: scale(1.03); }
+.wf-tier__photo img { transition: transform 0.35s ease; }
+
+/* Accordions: the marker turns rather than swapping glyphs mid-air. */
+.faq__right summary::after { transition: transform 0.2s ease, color 0.2s ease; }
+.faq__right details[open] summary::after { transform: rotate(180deg); }
+
+/* Nothing above moves for anybody who has asked it not to. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal .step,
+  .reveal .bentile,
+  .reveal .wf-style,
+  .reveal .wf-model,
+  .reveal .wf-brand,
+  .reveal .wf-stage,
+  .reveal .wf-tier,
+  .reveal .revcard,
+  .reveal .hire-price__row,
+  .reveal .brand-feat {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .ds-btn:hover,
+  .wf-style:hover,
+  .wf-tier:hover { transform: none; }
+  .mega__servicecard:hover .mega__servicecard-photo img,
+  .wf-tier:hover .wf-tier__photo img { transform: none; }
+}
+
+/* The range button in the services rail. */
+.megasvc__range {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(243, 103, 34, 0.12);
+  border: 1.5px solid var(--orange);
+  color: var(--navy);
+  text-decoration: none;
+  transition: background 0.14s ease, transform 0.14s ease;
+}
+.megasvc__range::after {
+  content: "→";
+  margin-left: auto;
+  color: var(--orange);
+  font-weight: 700;
+  transition: transform 0.14s ease;
+}
+.megasvc__range:hover { background: rgba(243, 103, 34, 0.2); }
+.megasvc__range:hover::after { transform: translateX(3px); }
+.megasvc__range b { display: block; font-size: 14px; color: var(--navy); }
+.megasvc__range span { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-3); }
+.megasvc__range > div { min-width: 0; }
+.megasvc__range + .megasvc__cta { margin-top: 8px; }
+
+/* ==================================================================
+   PHONE TYPE PASS — everything a step smaller on a phone.
+   On a 390px screen the hero h1 (up to 32px) and the section h2s
+   (26–34px) ran larger than they need to, which made every page feel
+   like it was shouting and pushed the useful content further down.
+   Scoped to <=540px and the query, so tablets and desktop are
+   untouched; !important because the sources are a mix of clamps and
+   their own !important rules.
+   ================================================================== */
+@media (max-width: 540px) {
+  .page-detail .dp-hero h1,
+  .page-home .hero h1,
+  .page-home .hero__h1,
+  .page-filtration .wf-hero h1 {
+    font-size: 26px !important;
+    line-height: 1.14 !important;
+  }
+
+  .page-detail .dp-hero__sub,
+  .page-filtration .wf-hero__sub {
+    font-size: 15.5px !important;
+    line-height: 1.55 !important;
+  }
+
+  .page-detail .ds-section-head h2,
+  .page-detail .sysfit h2,
+  .page-detail .rangeband h2,
+  .page-detail .process h2,
+  .page-detail .dp-faq h2,
+  .page-detail .faq__left h2,
+  .page-home .process h2,
+  .page-home .faq__left h2,
+  .page-home .bento h2,
+  .page-home .fixprice h2,
+  .page-filtration .ds-section-head h2,
+  .page-filtration .process h2,
+  .page-filtration .faq__left h2 {
+    font-size: 22px !important;
+    line-height: 1.18 !important;
+  }
+
+  /* Section eyebrows and ledes come down a touch with the headings so
+     the block still reads as a unit rather than a big label over small
+     type. */
+  .page-detail .ds-section-head p,
+  .page-home .process p,
+  .page-filtration .ds-section-head p {
+    font-size: 14.5px !important;
+  }
+}
+
+/* ==================================================================
+   PHONE — the "60-second quote" orange panel ran long, and its heading
+   and copy sat a size up from the rest of the phone layout. Bring it to
+   the phone scale and tighten the box so the whole panel plus the form
+   under it is quicker to get through. Applies wherever the quotesec
+   renders (home + brand + service pages).
+   ================================================================== */
+@media (max-width: 560px) {
+  .quotesec { padding: 40px 0 44px; }
+  .quotesec__box { padding: 22px 18px; border-radius: 18px; }
+  .quotesec__grid { gap: 20px; }
+  .quotesec__left { gap: 12px; }
+  .quotesec__left h2 { font-size: 21px; }
+  .quotesec__lede { font-size: 14px; line-height: 1.5; }
+  .quotesec__points li { font-size: 13.5px; }
+  .quotesec__finep { font-size: 10.5px; }
 }

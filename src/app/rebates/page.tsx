@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
+import "../detail.css";
 import "./rebates.css";
 
 export const metadata: Metadata = {
   title:
-    "VEU Rebates Pakenham — Up to $2,600 off heat pumps, $5,000 off aircon",
+    "VEU Rebates Pakenham, Applied at the Quote",
   description:
-    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate — up to $2,600 off heat pump hot water and $5,000 off split system aircon. Free 60-second check.",
+    "VEU-accredited installer in Pakenham. Check your eligibility for the Victorian Energy Upgrades rebate on heat pumps and aircon. Free 60-second check.",
   keywords: [
     "VEU rebate Pakenham",
     "Victorian energy upgrades",
@@ -24,77 +26,94 @@ export const metadata: Metadata = {
 const faqs = [
   {
     q: "Who actually pays for the VEU rebate?",
-    a: "Energy retailers in Victoria are required by law to fund energy-efficiency upgrades — that's the VEU program. We claim and apply the certificates on your behalf, which is why you don't pay then chase.",
+    a: "Energy retailers in Victoria are required by law to fund energy-efficiency upgrades, that's the VEU program. We claim and apply the certificates on your behalf, which is why you don't pay then chase.",
   },
   {
     q: "Is the rebate guaranteed at the amount you quote?",
-    a: "The rebate value can fluctuate slightly based on certificate prices, but we lock in the quoted figure once you sign — so the price you see is the price you pay. We carry any market movement, not you.",
+    a: "The rebate value can fluctuate slightly based on certificate prices, but we lock in the quoted figure once you sign, so the price you see is the price you pay. We carry any market movement, not you.",
   },
   {
     q: "Can I use VEU with solar?",
-    a: "Absolutely — heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
+    a: "Absolutely, heat pumps run beautifully off solar PV, especially the iStore and Reclaim units with timer scheduling. Most of our customers see hot water bills drop to almost zero after a daytime-charge install.",
   },
   {
-    q: "I rent — can my landlord do this?",
-    a: "Yes. VEU is open to rental properties — many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
+    q: "I rent, can my landlord do this?",
+    a: "Yes. VEU is open to rental properties, many landlords love it because the upgrade adds property value with most of the cost offset by the rebate. We can speak to them directly if it helps.",
   },
   {
     q: "What if my old unit still works?",
-    a: "Still eligible. VEU doesn't require failure — it rewards the energy-efficiency improvement. Swapping a working but inefficient gas tank or old aircon is exactly what the program is designed for.",
+    a: "Still eligible. VEU doesn't require failure, it rewards the energy-efficiency improvement. Swapping a working but inefficient gas tank or old aircon is exactly what the program is designed for.",
   },
   {
     q: "Are concession card holders eligible for more?",
-    a: "Yes — concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
+    a: "Yes, concession card holders (pensioner, healthcare, etc.) can stack with additional Victorian Government top-up rebates in some cases. Worth a quick call to confirm what applies to your situation.",
   },
   {
     q: "Does VEU cover servicing or just installation?",
-    a: "VEU is for the new install. We offer annual servicing separately at a flat $169 to keep your warranty intact and bills low.",
+    a: "VEU is for the new install. We offer annual servicing separately at $280 + GST to keep your warranty intact and bills low.",
   },
 ];
 
 const products = [
   {
-    brand: "Reclaim · CO₂",
-    name: "Reclaim 270L heat pump",
+    brand: "Reclaim · CO₂ Split",
+    name: "Reclaim CO₂ split heat pump",
     bullets: [
-      "🇦🇺 Proudly Australian made",
-      "Natural CO₂ refrigerant (R744)",
-      "10-year tank warranty",
-      "Quietest in class — 37 dB",
-      "Best for: 3–5 person households",
+      "Compressor split from tank, quieter, longer life",
+      "Stainless steel 15-year warranty option",
+      "315 L or 400 L, Wi-Fi smart control",
+      "Best for: staying in the house, and for solar pairing",
     ],
-    rebate: "up to $2,600*",
-    pill: "flagship",
-    photo: "/reclaim-product.png",
-    photoAlt: "Reclaim Energy heat pump hot water unit",
+    price: "from $5,340",
+    rebate: "$2,605 VEU rebate applied",
+    pill: "long-life tank",
+    photo: "/reclaim-split-back.webp",
+    photoAlt: "Reclaim CO₂ split heat pump install",
+  },
+  {
+    brand: "Reclaim · R290 AIO",
+    name: "Reclaim R290 all-in-one 285 L",
+    bullets: [
+      "Plug-in all-in-one, tank + compressor in one unit",
+      "R290 refrigerant, low GWP",
+      "Compact footprint, fast, simple installs",
+      "Best for: 3–4 person homes with nowhere to put an outdoor unit",
+    ],
+    price: "$2,610",
+    rebate: "$2,605 VEU rebate applied",
+    pill: "nothing outside",
+    photo: "/thermann-heat-pump.webp",
+    photoAlt: "Reclaim R290 all-in-one heat pump",
   },
   {
     brand: "iStore",
-    name: "iStore 270L heat pump",
+    name: "iStore 270 L heat pump",
     bullets: [
       "Smart Wi-Fi control + scheduling",
       "Australian designed",
       "6-year tank warranty",
       "Best for: solar-paired households",
     ],
-    rebate: "up to $2,200*",
-    pill: "mid-range",
-    photo: "/istore-product.png",
-    photoAlt: "iStore 270L heat pump hot water unit",
+    price: "$2,910",
+    rebate: "$2,205 VEU rebate applied",
+    pill: "rebate goes furthest",
+    photo: "/thermann-heat-pump.webp",
+    photoAlt: "iStore heat pump install",
   },
   {
-    brand: "Thermann",
-    name: "Thermann 270L heat pump",
+    brand: "Thermann · R290",
+    name: "Thermann 285 L R290 all-in-one",
     bullets: [
-      "🇦🇺 Proudly Australian made",
-      "Stainless steel tank",
+      "Australian made, extra $400 rebate",
+      "R290 refrigerant, low GWP",
       "5-year tank warranty",
-      "Best for: smaller homes / rentals",
+      "Best for: 3–4 person homes, and anywhere parts have to be here today",
     ],
-    rebate: "up to $2,600*",
-    pill: "Aussie value",
-    photo: "/thermann-product.jpg",
-    photoAlt: "Thermann 270L heat pump hot water unit",
+    price: "$2,610",
+    rebate: "$2,605 VEU rebate applied",
+    pill: "Australian made",
+    photo: "/thermann-heat-pump.webp",
+    photoAlt: "Thermann 285 L R290 heat pump",
   },
   {
     brand: "Mitsubishi Electric",
@@ -105,24 +124,26 @@ const products = [
       "5-year warranty",
       "2.5kW / 3.5kW / 5kW / 7kW",
     ],
-    rebate: "up to $1,800",
-    pill: "flagship",
-    photo: "/reclaim-and-mitsubishi.jpg",
-    photoAlt: "Mitsubishi split system",
+    price: "custom quote",
+    rebate: "up to $1,800 rebate",
+    pill: "our default",
+    photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
+    photoAlt: "Mitsubishi Electric MSZ-AP wall split system",
   },
   {
     brand: "Kaden",
-    name: "Kaden KS series split",
+    name: "Kaden KSI-v3 series split",
     bullets: [
       "Inverter, R32 refrigerant",
       "5-year warranty",
       "Australian designed",
-      "Strong mid-range value",
+      "Whole house on one parts list",
     ],
-    rebate: "up to $1,500",
-    pill: "value",
-    photo: "/kaden-indoor.jpg",
-    photoAlt: "Kaden split system indoor head",
+    price: "custom quote",
+    rebate: "up to $1,500 rebate",
+    pill: "whole house at once",
+    photo: "/kaden-indoor.webp",
+    photoAlt: "Kaden split system indoor head install",
   },
   {
     brand: "Mitsubishi / Kaden",
@@ -133,10 +154,11 @@ const products = [
       "Best for: 3+ bedroom homes",
       "5–7 year warranty",
     ],
-    rebate: "up to $5,000",
+    price: "from $11,000",
+    rebate: "up to $5,000 rebate",
     pill: "whole home",
-    photo: "/ducted-condenser.jpg",
-    photoAlt: "Ducted aircon condenser",
+    photo: "/ducted-condenser.webp",
+    photoAlt: "Ducted aircon condenser install",
   },
 ];
 
@@ -144,7 +166,7 @@ const steps = [
   {
     n: 1,
     t: "You request a quote",
-    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can — speeds things up.",
+    d: "Online form (60 seconds) or call. Snap a photo of your current unit if you can, speeds things up.",
   },
   {
     n: 2,
@@ -154,7 +176,7 @@ const steps = [
   {
     n: 3,
     t: "We apply the rebate",
-    d: "Your quote arrives with the rebate already deducted. You sign off — no separate claim, no waiting weeks for refund.",
+    d: "Your quote arrives with the rebate already deducted. You sign off, no separate claim, no waiting weeks for refund.",
   },
   {
     n: 4,
@@ -170,51 +192,48 @@ export default function RebatesPage() {
   ]);
 
   return (
-    <div className="page-rebates">
-      {/* HERO */}
-      <section className="rb-hero">
+    <div className="page-detail page-rebates">
+      {/* HERO — the shared navy detail-page header */}
+      <section className="dp-hero">
         <div className="wrap">
-          <div className="hero__eyebrow">
-            <span className="eyebrow-dot" />
-            Victorian Energy Upgrades · Accredited installer
-          </div>
-          <h1>
-            The VEU rebate is real. <em>We do the paperwork.</em> You get the hot water.
-          </h1>
-          <p className="rb-hero__sub">
-            The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean,
-            efficient gear. We're a VEU-accredited installer in Pakenham — we apply the rebate at quote
-            stage so there's no chase, no claim form, no waiting.
-          </p>
+          <div className="dp-hero__copy">
+            <div className="ds-eyebrow ds-eyebrow--on-dark">
+              <span className="ds-dot" /> Victorian Energy Upgrades · Accredited installer
+            </div>
+            <h1>
+              The VEU rebate is real. <span className="accent">We do the paperwork.</span> You get the hot water.
+            </h1>
+            <p className="dp-hero__sub">
+              The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean,
+              efficient gear. We're a VEU-accredited installer in Pakenham, we apply the rebate at quote
+              stage so there's no chase, no claim form, no waiting.
+            </p>
 
-          <div className="hero__ctas">
-            <a href="#calc" className="btn btn--orange btn--lg">Check my rebate →</a>
-            <a
-              href={`tel:${site.phoneE164}`}
-              className="btn btn--ghost btn--lg"
-              style={{ color: "#fff", borderColor: "rgba(255,255,255,0.3)" }}
-            >
-              Or talk to a human
-            </a>
-          </div>
+            <div className="dp-hero__ctas">
+              <a href="#calc" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate →</a>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
+                Or talk to a human
+              </a>
+            </div>
 
-          <div className="rb-stats">
-            <div className="rb-stat">
-              <strong>up to $2,600</strong>
-              <span>heat pump hot water</span>
-            </div>
-            <div className="rb-stat">
-              <strong>up to $5,000</strong>
-              <span>split &amp; ducted aircon</span>
-            </div>
-            <div className="rb-stat rb-stat--sky">
-              <strong>~73%</strong>
-              <span>cut to running costs</span>
-            </div>
-            <div className="rb-stat rb-stat--sky">
-              <strong>$0 chase</strong>
-              <span>we apply at quote</span>
-            </div>
+            <ul className="dp-hero__at">
+              <li>
+                <strong>up to $2,600</strong>
+                <span>heat pump hot water</span>
+              </li>
+              <li>
+                <strong>up to $5,000</strong>
+                <span>split &amp; ducted aircon</span>
+              </li>
+              <li>
+                <strong>~73%</strong>
+                <span>cut to running costs</span>
+              </li>
+              <li>
+                <strong>$0 chase</strong>
+                <span>we apply it at the quote</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -223,13 +242,15 @@ export default function RebatesPage() {
       <section className="rb-tool" id="calc">
         <div className="wrap rb-tool__grid">
           <div className="rb-tool__copy">
-            <span className="eyebrow"><span className="eyebrow-dot" /> Eligibility check</span>
-            <h2>Am I eligible? Answer 4 things, find out in 30 seconds.</h2>
-            <p>
-              The VEU program is open to most Victorian households — owner-occupied, rental, and units.
-              We've designed this rough calculator to give you a real ballpark before you commit to a
-              site visit.
-            </p>
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Eligibility check</span>
+              <h2>Am I eligible? Answer 4 things, find out in 30 seconds.</h2>
+              <p>
+                The VEU program is open to most Victorian households, owner-occupied, rental, and units.
+                We've designed this rough calculator to give you a real ballpark before you commit to a
+                site visit.
+              </p>
+            </div>
             <ul>
               <li>No personal details needed for the estimate</li>
               <li>Real numbers, not "from $XXX" marketing fluff</li>
@@ -241,49 +262,50 @@ export default function RebatesPage() {
         </div>
       </section>
 
-      {/* HOW VEU WORKS */}
-      <section className="rb-how">
+      {/* HOW VEU WORKS — the shared navy numbered process band */}
+      <section className="process">
         <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow"><span className="eyebrow-dot" /> How VEU works</span>
-            <h2>Four steps from "thinking about it" to rebate-applied install.</h2>
-            <p>We handle every step that involves paperwork. You're really only doing step 1.</p>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How VEU works</span>
+            <h2 className="ds-h--on-dark">Four steps from &ldquo;thinking about it&rdquo; to rebate-applied install.</h2>
           </div>
-
-          <div className="rb-howsteps">
+          <ol className="steps">
             {steps.map((s) => (
-              <div key={s.n} className="rb-howstep">
-                <div className="rb-howstep__n">{s.n}</div>
+              <li key={s.n} className="step">
+                <span className="step__num">{s.n}</span>
                 <h3>{s.t}</h3>
                 <p>{s.d}</p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 
       {/* ELIGIBLE PRODUCTS */}
       <section className="rb-prods">
         <div className="wrap">
-          <div className="section-head">
-            <span className="eyebrow"><span className="eyebrow-dot" /> Eligible products</span>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Eligible products</span>
             <h2>Heat pumps &amp; aircon we install under the VEU program.</h2>
             <p>
               Each of these is VEU-listed, in stock through our Reece partnership, and proven across
-              Pakenham-area homes by our family-run install crew. Pricing shown is the indicative
-              VEU rebate range — your actual figure depends on your old unit and home.
+              hundreds of south-east installs. Pricing shown is the indicative VEU rebate range, your
+              actual figure depends on your old unit and home.
             </p>
           </div>
 
           <div className="rb-prodgrid">
             {products.map((p) => (
               <article key={p.name} className="rb-prod">
-                <div
-                  className="rb-prod__photo"
-                  role="img"
-                  aria-label={p.photoAlt}
-                  style={{ backgroundImage: `url(${p.photo})` }}
-                />
+                <div className="rb-prod__photo" style={{ position: "relative" }}>
+                  <Image
+                    src={p.photo}
+                    alt={p.photoAlt}
+                    fill
+                    sizes="(max-width: 900px) 100vw, 33vw"
+                    style={{ objectFit: "contain", padding: "16px" }}
+                  />
+                </div>
                 <div className="rb-prod__body">
                   <span className="rb-prod__brand">{p.brand}</span>
                   <h3>{p.name}</h3>
@@ -293,9 +315,10 @@ export default function RebatesPage() {
                     ))}
                   </ul>
                   <div className="rb-prod__foot">
-                    <div className="rb-prod__rebate">
-                      <strong>{p.rebate}</strong>
-                      <span>VEU rebate</span>
+                    <div className="rb-prod__price">
+                      <strong>{p.price}</strong>
+                      <span>fully installed, inc GST</span>
+                      <span className="rb-prod__price-rebate">{p.rebate}</span>
                     </div>
                     <span className="rb-prod__pill">{p.pill}</span>
                   </div>
@@ -303,23 +326,20 @@ export default function RebatesPage() {
               </article>
             ))}
           </div>
-          <p className="rb-prods__finep">
-            * Rebate amounts vary based on VEU certificate market price at the time of install. We lock the rebate value into your written quote so the price you see is the price you pay — any market movement after sign-off is on us, not you.
-          </p>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="rb-faq" id="faq">
-        <div className="wrap rb-faq__grid">
-          <div className="rb-faq__left">
-            <span className="eyebrow"><span className="eyebrow-dot" /> Common rebate questions</span>
+      {/* FAQ — the shared two-column detail-page FAQ */}
+      <section className="dp-faq faq" id="faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Common rebate questions</span>
             <h2>The fine print, in plain English.</h2>
-            <p>If your question isn't here, call us. We've handled hundreds of VEU jobs and seen the curly cases.</p>
+            <p>If your question isn&rsquo;t here, call us. We&rsquo;ve handled hundreds of VEU jobs and seen the curly cases.</p>
           </div>
-          <div className="rb-faq__right">
+          <div className="faq__right">
             {faqs.map((f, i) => (
-              <details key={f.q} name="rebates-faq" {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="faq" open={i === 0}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
@@ -333,10 +353,10 @@ export default function RebatesPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>One free site visit. One quote with the rebate already applied. One handshake.</h2>
-            <p>Pakenham locals — usually replied within 2 business hours.</p>
+            <p>Pakenham locals, usually replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
-            <a href="/quote" className="btn btn--orange btn--xl">Start my free quote →</a>
+            <a href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

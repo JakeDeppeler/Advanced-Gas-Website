@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Advanced Gas & Aircon — phone mock v2 (breathing room)</title>
+<style>
+  :root {
+    --navy: #050a30;
+    --navy-2: #0b1450;
+    --orange: #f36722;
+    --orange-2: #ff7a36;
+    --sky: #00b0ed;
+    --cream: #faf8f3;
+    --cream-2: #f3efe5;
+    --ink: #1a1a1d;
+    --ink-2: #4a4a52;
+    --ink-3: #7a7a82;
+    --line: #ece7d8;
+    --red: #ec1c22;
+
+    --board-bg: #eeeae0;
+    --board-ink: #2a2530;
+    --board-mute: #7c7683;
+    --board-line: rgba(20,15,30,0.08);
+
+    --pad: 16px;         /* uniform horizontal margin from phone edges */
+    --sec-gap: 14px;     /* vertical space between section cards */
+    --card-rad: 18px;    /* uniform rounded corner on section cards */
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--board-bg);
+    color: var(--board-ink);
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .page-head {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 56px 40px 24px;
+  }
+  .page-head__eye {
+    font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--board-mute);
+    margin-bottom: 14px;
+  }
+  .page-head h1 {
+    font-family: "SF Pro Display", -apple-system, "Helvetica Neue", sans-serif;
+    font-weight: 800;
+    font-size: clamp(28px, 3.4vw, 40px);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-wrap: balance;
+    max-width: 900px;
+    color: var(--board-ink);
+  }
+  .page-head p {
+    margin-top: 12px;
+    font-size: 15.5px;
+    color: var(--board-mute);
+    max-width: 720px;
+  }
+
+  .board {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 24px 40px 64px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 1180px) {
+    .board { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 780px) {
+    .page-head, .board { padding-left: 20px; padding-right: 20px; }
+    .board { grid-template-columns: 1fr; gap: 28px; }
+  }
+
+  .mock { display: flex; flex-direction: column; gap: 14px; }
+  .mock__head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--board-line);
+  }
+  .mock__label {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 19px;
+    letter-spacing: -0.01em; color: var(--board-ink);
+  }
+  .mock__num {
+    font-family: "SF Mono"; font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--board-mute);
+  }
+  .mock__tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mock__tag {
+    display: inline-block; font-family: "SF Mono"; font-size: 10px;
+    padding: 4px 8px; border-radius: 4px;
+    background: rgba(20,15,30,0.06);
+    color: var(--board-ink); letter-spacing: 0.04em;
+    text-transform: uppercase; font-weight: 600;
+  }
+  .mock__note {
+    font-size: 13px; line-height: 1.55; color: var(--board-ink);
+    opacity: 0.75; padding-top: 4px;
+  }
+
+  /* iPhone frame */
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    margin: 0 auto;
+    background: #101015;
+    border-radius: 44px;
+    padding: 10px;
+    box-shadow: 0 30px 80px -30px rgba(11,20,80,0.55);
+    position: relative;
+  }
+  .phone__screen {
+    position: relative; width: 100%; height: 1940px;
+    border-radius: 34px; overflow: hidden;
+    background: var(--cream);
+  }
+  .phone__notch {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 110px; height: 26px;
+    background: #101015; border-radius: 999px; z-index: 20;
+  }
+  .phone__statusbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 44px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 24px;
+    font-size: 15px; font-weight: 600;
+    z-index: 15; pointer-events: none;
+    color: var(--navy);
+  }
+  .phone__statusbar-right { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .phone__home-indicator {
+    position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 4px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 2px; z-index: 15;
+  }
+  .phone__body {
+    position: absolute; inset: 0;
+    padding-top: 44px;
+    background: var(--cream);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .phone__body::-webkit-scrollbar { display: none; }
+
+  /* Sticky top bar */
+  .mnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(250,248,243,0.94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; z-index: 5;
+  }
+  .mnav__logo { display: flex; align-items: center; gap: 8px; }
+  .mnav__logo-mark {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: var(--navy);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #fff; font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 14px; position: relative;
+  }
+  .mnav__logo-mark::before {
+    content: ""; position: absolute; top: 3px; left: 50%;
+    transform: translateX(-50%); width: 0; height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 7px solid var(--orange);
+  }
+  .mnav__logo-name { display: flex; flex-direction: column; line-height: 1; }
+  .mnav__logo-name b {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 12.5px; color: var(--navy); letter-spacing: -0.01em;
+  }
+  .mnav__logo-name span {
+    font-family: "SF Pro Display"; font-weight: 600;
+    font-size: 9.5px; color: var(--sky); margin-top: 1px;
+  }
+  .mnav__burger {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: transparent; border: 1px solid var(--line);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--navy);
+  }
+
+  /* Sticky bottom bar */
+  .mstickybar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 6px;
+    padding: 8px 10px 22px;
+    background: rgba(250,248,243,0.94);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line);
+    z-index: 10;
+  }
+  .mstickybar__call, .mstickybar__quote {
+    flex: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 12.5px;
+    text-decoration: none; min-height: 42px;
+  }
+  .mstickybar__call { background: var(--navy); color: #fff; }
+  .mstickybar__call svg { color: var(--orange); }
+  .mstickybar__quote { background: var(--orange); color: #fff; box-shadow: 0 3px 0 #c14a13; }
+
+  /* Wrapping stack — everything sits with breathing room */
+  .stack {
+    padding: var(--sec-gap) var(--pad) 80px;
+    display: flex; flex-direction: column; gap: var(--sec-gap);
+  }
+
+  /* Base card look — every section sits inside this */
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--card-rad);
+    padding: 18px 16px;
+    box-shadow: 0 2px 6px -3px rgba(11,20,80,0.08);
+  }
+  .card--dark {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .card--dark h2, .card--dark h3, .card--dark h4 { color: #fff; }
+
+  /* Small section eyebrow */
+  .eye {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+  .eye-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sky); }
+  .eye--orange { color: var(--orange); }
+  .eye--orange .eye-dot { background: var(--orange); }
+  .card--dark .eye { color: rgba(255,255,255,0.65); }
+
+  /* Section heading */
+  .h {
+    font-family: "SF Pro Display"; font-weight: 800;
+    font-size: 18px; letter-spacing: -0.018em;
+    line-height: 1.2; color: var(--navy);
+    text-wrap: balance;
+  }
+  .card--dark .h { color: #fff; }
+  .lede {
+    margin-top: 6px;
+    font-size: 12.5px; color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .card--dark .lede { color: rgba(255,255,255,0.75); }
+
+  /* ============================================================
+     HERO CARD — team photo inside a rounded card, not full-bleed
+     ============================================================ */
+  .hero-card {
+    position: relative;
+    border-radius: var(--card-rad);
+    overflow: hidden;
+    height: 380px;
+    color: #fff;
+    box-shadow: 0 12px 30px -18px rgba(11,20,80,0.35);
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06) 0%, transparent 30%),
+      radial-gradient(circle at 70% 40%, rgba(255,255,255,0.05) 0%, transparent 25%),
+      linear-gradient(135deg, #2a3555 0%, #1a2050 55%, #0f1738 100%);
+  }
+  .hero-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(5,10,48,0.20) 0%, rgba(5,10,48,0.10) 25%, rgba(5,10,48,0.80) 68%, rgba(5,10,48,0.96) 100%);
+  }
+  .hero-team-icon {
+    position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
+    width: 58px; height: 58px; border-radius: 16px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); z-index: 2;
+  }
+  .hero-team-icon svg { color: #fff; }
+  .hero-wrap {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    padding: 0 16px 18px;
+    z-index: 3;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 9px; border-radius: 999px;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.95);
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    backdrop-filter: blur(6px);
+    margin-bottom: 10px;
+  }
+  .hero-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sky); }
+  .hero-h {
+    font-family: "SF Pro Display"; font-weight: 900;
+    font-size: 24px; letter-spacing: -0.025em;
+    line-height: 1.08; margin-bottom: 8px;
+    text-wrap: balance;
+  }
+  .hero-sub {
+    font-size: 12.5px; color: rgba(255,255,255,0.85);
+    line-height: 1.5; margin-bottom: 14px;
+  }
+  .hero-ctas { display: flex; flex-direction: column; gap: 6px; }
+  .hero-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 11px 14px; border-radius: 10px;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13.5px;
+    text-decoration: none;
+  }
+  .hero-btn--orange { background: var(--orange); color: #fff; box-shadow: 0 2px 0 #c14a13; }
+  .hero-btn--ghost {
+    background: rgba(255,255,255,0.08); color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Trust card — separate card below hero */
+  .trust-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--card-rad);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 2px 6px -3px rgba(11,20,80,0.08);
+  }
+  .trust-card__stars { color: #ffb800; font-size: 13px; letter-spacing: 1px; }
+  .trust-card__txt { display: flex; flex-direction: column; line-height: 1.15; }
+  .trust-card__txt strong { font-family: "SF Pro Display"; font-size: 12.5px; color: var(--navy); }
+  .trust-card__txt span { font-size: 10.5px; color: var(--ink-3); }
+  .trust-card__divider { width: 1px; height: 22px; background: var(--line); }
+
+  /* ============================================================
+     BRANDS — horizontal chip rail inside a card
+     ============================================================ */
+  .brand-rail {
+    display: flex; gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 8px -16px 0;
+    padding: 2px 16px 4px;
+  }
+  .brand-rail::-webkit-scrollbar { display: none; }
+  .brand-chip {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    min-width: 84px;
+  }
+  .brand-chip strong {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 11.5px;
+    color: var(--navy); letter-spacing: -0.01em;
+  }
+  .brand-chip span {
+    font-family: "SF Mono"; font-size: 8.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ============================================================
+     QUOTE CARD
+     ============================================================ */
+  .qcard-h {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 15.5px;
+    color: var(--navy); letter-spacing: -0.015em;
+    margin-top: 8px;
+    margin-bottom: 4px;
+  }
+  .qcard-p { font-size: 12px; color: var(--ink-2); margin-bottom: 10px; }
+  .qcard-progress { display: flex; gap: 3px; margin-bottom: 10px; }
+  .qcard-progress i {
+    flex: 1; height: 3px; border-radius: 2px; background: var(--line);
+  }
+  .qcard-progress i.on { background: var(--orange); }
+  .qcard-step-lbl {
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .qcard-step-h {
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13.5px;
+    color: var(--navy); margin-bottom: 8px;
+  }
+  .qcard-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+  }
+  .qcard-opt {
+    padding: 9px 10px;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 9px;
+    text-align: left;
+  }
+  .qcard-opt.on { border-color: var(--navy); background: var(--navy); color: #fff; }
+  .qcard-opt strong {
+    display: block;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 12px;
+    color: var(--navy); margin-bottom: 1px;
+  }
+  .qcard-opt.on strong { color: #fff; }
+  .qcard-opt em {
+    font-style: normal;
+    font-size: 10px; color: var(--ink-3);
+  }
+  .qcard-opt.on em { color: rgba(255,255,255,0.7); }
+  .qcard-next {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; width: 100%;
+    margin-top: 10px;
+    padding: 11px 14px; border-radius: 10px;
+    background: var(--orange); color: #fff;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 13px;
+    box-shadow: 0 2px 0 #c14a13;
+  }
+
+  /* ============================================================
+     REVIEWS — swipe rail inside a card
+     ============================================================ */
+  .rev-rating {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 11.5px;
+    margin-top: 6px;
+  }
+  .rev-rating-str { color: #ffb800; letter-spacing: 1px; font-size: 12px; }
+  .rev-rating strong { color: var(--navy); font-weight: 800; }
+  .rev-rating span { color: var(--ink-3); }
+  .rev-rail {
+    display: flex; gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 12px -16px 0;
+    padding: 2px 16px 6px;
+    scrollbar-width: none;
+  }
+  .rev-rail::-webkit-scrollbar { display: none; }
+  .rev-card {
+    flex: 0 0 210px;
+    scroll-snap-align: start;
+    padding: 12px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .rev-card-stars { color: var(--orange); font-size: 11px; letter-spacing: 1.5px; }
+  .rev-card-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12px;
+    color: var(--navy); margin: 3px 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .rev-card-txt {
+    font-size: 11px; color: var(--ink-2); line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .rev-card-by {
+    display: flex; align-items: center; gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+  }
+  .rev-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--navy); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: "SF Pro Display"; font-weight: 700; font-size: 9.5px;
+  }
+  .rev-card-by div { display: flex; flex-direction: column; line-height: 1.1; }
+  .rev-card-by strong { font-family: "SF Pro Display"; font-size: 10.5px; color: var(--navy); }
+  .rev-card-by span { font-size: 9.5px; color: var(--ink-3); }
+
+  /* ============================================================
+     FIXED-PRICE — 3 compact cards inside a card
+     ============================================================ */
+  .fp-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .fp-item {
+    display: flex; align-items: stretch; gap: 12px;
+    padding: 12px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    position: relative;
+  }
+  .fp-item--feature { border-color: var(--orange); background: #fff; }
+  .fp-thumb {
+    flex-shrink: 0;
+    width: 68px;
+    background: linear-gradient(135deg, #d0d5dc 0%, #f5f6f8 50%, #dfe3e8 100%);
+    border-radius: 8px;
+    position: relative;
+  }
+  .fp-thumb::after {
+    content: "";
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 34px; height: 54px;
+    background: linear-gradient(180deg, #262630 0%, #46464f 30%, #d5d8dc 30%, #f0f2f5 100%);
+    border-radius: 5px;
+    box-shadow: 0 4px 8px -2px rgba(11,20,80,0.25);
+  }
+  .fp-body { flex: 1; display: flex; flex-direction: column; }
+  .fp-eye {
+    font-family: "SF Mono"; font-size: 9px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--orange); font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .fp-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
+    color: var(--navy); letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .fp-price {
+    display: flex; align-items: baseline; gap: 6px;
+    margin-top: auto;
+  }
+  .fp-num {
+    font-family: "SF Pro Display"; font-weight: 900; font-size: 17px;
+    color: var(--navy); letter-spacing: -0.02em; line-height: 1;
+  }
+  .fp-lbl {
+    font-family: "SF Mono"; font-size: 9px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .fp-flag {
+    position: absolute; top: -8px; left: 12px;
+    padding: 3px 8px; border-radius: 999px;
+    background: var(--orange); color: #fff;
+    font-family: "SF Mono"; font-size: 8.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  /* ============================================================
+     SERVICES — compact 2-col
+     ============================================================ */
+  .sv-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    margin-top: 10px;
+  }
+  .sv-tile {
+    padding: 10px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    display: flex; flex-direction: column; gap: 3px;
+    text-decoration: none; color: var(--ink);
+  }
+  .sv-tile--wide { grid-column: span 2; }
+  .sv-tile--dark { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .sv-tile--red { background: var(--red); color: #fff; border-color: var(--red); }
+  .sv-tile-ico {
+    width: 26px; height: 26px; border-radius: 6px;
+    background: rgba(0,176,237,0.10);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--sky);
+    font-size: 13px; margin-bottom: 2px;
+  }
+  .sv-tile--dark .sv-tile-ico { background: rgba(255,255,255,0.1); color: #fff; }
+  .sv-tile--red .sv-tile-ico { background: rgba(255,255,255,0.2); color: #fff; }
+  .sv-tile-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    color: var(--navy); letter-spacing: -0.005em;
+  }
+  .sv-tile--dark .sv-tile-t, .sv-tile--red .sv-tile-t { color: #fff; }
+  .sv-tile-s { font-size: 10.5px; color: var(--ink-3); line-height: 1.4; }
+  .sv-tile--dark .sv-tile-s, .sv-tile--red .sv-tile-s { color: rgba(255,255,255,0.75); }
+
+  /* ============================================================
+     WHY US — compact numbered rows
+     ============================================================ */
+  .why-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .why-row {
+    padding: 11px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .why-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px; border-radius: 7px;
+    background: rgba(243,103,34,0.10);
+    color: var(--orange);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: "SF Mono"; font-size: 10px; font-weight: 700;
+  }
+  .why-body { flex: 1; }
+  .why-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    color: var(--navy); letter-spacing: -0.005em;
+    margin-bottom: 1px;
+  }
+  .why-s { font-size: 11px; color: var(--ink-2); line-height: 1.45; }
+
+  /* ============================================================
+     PROCESS — vertical timeline inside dark card
+     ============================================================ */
+  .proc-list { position: relative; padding-left: 26px; margin-top: 10px; }
+  .proc-list::before {
+    content: "";
+    position: absolute; top: 10px; bottom: 10px; left: 11px;
+    width: 2px;
+    background: rgba(255,255,255,0.14);
+  }
+  .proc-step { position: relative; padding: 4px 0 14px; }
+  .proc-step:last-child { padding-bottom: 0; }
+  .proc-step-num {
+    position: absolute; left: -26px; top: 2px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--orange); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 11px;
+  }
+  .proc-step-t {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    letter-spacing: -0.005em;
+    margin-bottom: 1px;
+  }
+  .proc-step-s { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.45; margin-bottom: 3px; }
+  .proc-step-time {
+    font-family: "SF Mono"; font-size: 9.5px;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--sky);
+  }
+
+  /* ============================================================
+     AREA — map + chip cloud
+     ============================================================ */
+  .area-map {
+    position: relative;
+    height: 150px; border-radius: 12px;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(0,176,237,0.22) 0%, rgba(0,176,237,0.10) 30%, transparent 60%),
+      linear-gradient(180deg, #d8e4ea 0%, #cfd9de 50%, #c9d3d8 100%);
+    overflow: hidden;
+    margin: 10px 0 12px;
+    border: 1px solid var(--line);
+  }
+  .area-pin {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -100%);
+    width: 26px; height: 34px;
+    filter: drop-shadow(0 4px 8px rgba(11,20,80,0.3));
+  }
+  .area-pin::after {
+    content: "";
+    position: absolute; left: 50%; top: 0;
+    transform: translateX(-50%);
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--orange);
+    border: 3px solid #fff;
+  }
+  .area-pin::before {
+    content: "";
+    position: absolute; left: 50%; top: 16px;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px; height: 10px;
+    background: var(--orange);
+  }
+  .area-badge {
+    position: absolute; left: 10px; bottom: 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 12px -6px rgba(5,10,48,0.2);
+  }
+  .area-badge-eye {
+    font-family: "SF Mono"; font-size: 8.5px;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .area-badge-num {
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 14px;
+    color: var(--navy); letter-spacing: -0.02em;
+  }
+  .area-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .area-chip {
+    padding: 4px 9px; border-radius: 6px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    color: var(--navy);
+    font-family: "SF Mono"; font-size: 10px;
+    font-weight: 500;
+  }
+
+  /* ============================================================
+     FAQ — nested small cards
+     ============================================================ */
+  .faq-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .faq-item {
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 11px;
+  }
+  .faq-q {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 12.5px;
+    color: var(--navy); letter-spacing: -0.005em;
+    line-height: 1.3;
+    gap: 10px;
+  }
+  .faq-q-plus {
+    flex-shrink: 0;
+    font-family: "SF Pro Display"; font-weight: 400;
+    color: var(--orange); font-size: 16px; line-height: 1;
+  }
+  .faq-a {
+    margin-top: 8px;
+    font-size: 11px; color: var(--ink-2); line-height: 1.5;
+  }
+
+  /* ============================================================
+     BIG CTA — orange card
+     ============================================================ */
+  .bcta-card {
+    background: var(--orange);
+    color: #fff;
+    text-align: center;
+    padding: 20px 16px;
+  }
+  .bcta-h {
+    font-family: "SF Pro Display"; font-weight: 900; font-size: 18px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    text-wrap: balance;
+    margin-bottom: 6px;
+  }
+  .bcta-p {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .bcta-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+    padding: 11px 14px; border-radius: 10px;
+    background: #fff; color: var(--orange);
+    font-family: "SF Pro Display"; font-weight: 800; font-size: 13px;
+    text-decoration: none;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+    margin-bottom: 6px;
+  }
+  .bcta-call {
+    font-family: "SF Pro Display"; font-weight: 600; font-size: 12px;
+    color: rgba(255,255,255,0.9);
+  }
+  .bcta-call strong { color: #fff; }
+
+  /* Footer */
+  .foot {
+    padding: 4px 0 12px;
+    text-align: center;
+    font-size: 10.5px;
+    color: var(--ink-3);
+    line-height: 1.5;
+  }
+  .foot strong { color: var(--navy); }
+
+  /* Dark theme */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --board-bg: #17141c;
+      --board-ink: #e8e4ed;
+      --board-mute: #7c7686;
+      --board-line: rgba(255,255,255,0.08);
+    }
+  }
+  :root[data-theme="light"] {
+    --board-bg: #eeeae0;
+    --board-ink: #2a2530;
+    --board-mute: #7c7683;
+    --board-line: rgba(20,15,30,0.08);
+  }
+  :root[data-theme="dark"] {
+    --board-bg: #17141c;
+    --board-ink: #e8e4ed;
+    --board-mute: #7c7686;
+    --board-line: rgba(255,255,255,0.08);
+  }
+</style>
+
+<header class="page-head">
+  <div class="page-head__eye">Advanced Gas &amp; Aircon · Phone mock v2</div>
+  <h1>Same page, more breathing room.</h1>
+  <p>Everything now sits inside rounded cards with 16&nbsp;px inset from the phone edges — nothing edge-to-edge except the sticky top/bottom bars. Type dropped a size across the board so the hero doesn&rsquo;t shout and the content stops feeling like a squashed desktop.</p>
+</header>
+
+<main class="board">
+
+  <!-- =============== FRAME 1 =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">Top of scroll</div>
+      <div class="mock__num">Frame 1 / 3</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Hero</span>
+      <span class="mock__tag">Trust</span>
+      <span class="mock__tag">Brands</span>
+      <span class="mock__tag">Quote</span>
+      <span class="mock__tag">Reviews</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar">
+          <span>9:41</span>
+          <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
+        </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
+            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+          </div>
+
+          <div class="stack">
+
+            <!-- HERO card -->
+            <div class="hero-card">
+              <div class="hero-bg"></div>
+              <div class="hero-scrim"></div>
+              <div class="hero-team-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="4"/><circle cx="17" cy="8" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1"/><path d="M14 16h.5a4 4 0 0 1 4 4v1"/></svg>
+              </div>
+              <div class="hero-wrap">
+                <span class="hero-badge">
+                  <span class="hero-badge-dot"></span>
+                  Pakenham locals since 2014
+                </span>
+                <div class="hero-h">The team you'd want in your house.</div>
+                <p class="hero-sub">Family owned. Same face on the quote as on the tools. 12 yrs, 1,200+ installs.</p>
+                <div class="hero-ctas">
+                  <a href="#" class="hero-btn hero-btn--orange">Get a fixed quote →</a>
+                  <a href="#" class="hero-btn hero-btn--ghost">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+                    Call (03) 5947 8000
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRUST card -->
+            <div class="trust-card">
+              <span class="trust-card__stars">★★★★★</span>
+              <div class="trust-card__txt">
+                <strong>4.9 / 5</strong>
+                <span>280+ Google reviews</span>
+              </div>
+              <div class="trust-card__divider"></div>
+              <div class="trust-card__txt">
+                <strong>1,200+</strong>
+                <span>installs done</span>
+              </div>
+            </div>
+
+            <!-- BRANDS card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Authorised installer of</div>
+              <div class="brand-rail">
+                <div class="brand-chip"><strong>RECLAIM</strong><span>Heat pumps</span></div>
+                <div class="brand-chip"><strong>iStore</strong><span>Heat pumps</span></div>
+                <div class="brand-chip"><strong>Thermann</strong><span>Hot water</span></div>
+                <div class="brand-chip"><strong>Mitsubishi</strong><span>Aircon</span></div>
+                <div class="brand-chip"><strong>Kaden</strong><span>Aircon</span></div>
+                <div class="brand-chip"><strong>Rinnai</strong><span>Gas &amp; hw</span></div>
+              </div>
+            </div>
+
+            <!-- QUOTE card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> 60-second quote</div>
+              <div class="h">Fixed price back within 12&nbsp;hrs.</div>
+              <p class="lede">Tell us what you need, we'll price the lot. Rebates already applied.</p>
+              <div class="qcard-h">What do you need?</div>
+              <p class="qcard-p">Tick every option, we'll quote it all.</p>
+              <div class="qcard-progress">
+                <i class="on"></i><i></i><i></i><i></i><i></i><i></i>
+              </div>
+              <div class="qcard-step-lbl">Step 1 of 6</div>
+              <div class="qcard-step-h">Pick a service</div>
+              <div class="qcard-grid">
+                <div class="qcard-opt on"><strong>Heat pump</strong><em>Hot water</em></div>
+                <div class="qcard-opt"><strong>Split system</strong><em>Room aircon</em></div>
+                <div class="qcard-opt"><strong>Ducted</strong><em>Whole home</em></div>
+                <div class="qcard-opt"><strong>Service</strong><em>$280 + GST</em></div>
+              </div>
+              <a href="#" class="qcard-next">Next → the specifics</a>
+            </div>
+
+            <!-- REVIEWS card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> What locals say</div>
+              <div class="h">Reviews from real households.</div>
+              <div class="rev-rating">
+                <span class="rev-rating-str">★★★★★</span>
+                <strong>4.9 / 5</strong>
+                <span>· 280+ on Google</span>
+              </div>
+              <div class="rev-rail">
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Quoted Mon, installed Fri</div>
+                  <p class="rev-card-txt">Bloke on the phone is the bloke on the tools. Rebate handled, paid under $400.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">JM</span><div><strong>Jess M.</strong><span>Pakenham</span></div></div>
+                </div>
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Actually got up in the roof</div>
+                  <p class="rev-card-txt">Only ones who crawled in. Middle price, cleanest install of the three.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">DR</span><div><strong>Dean R.</strong><span>Officer</span></div></div>
+                </div>
+                <div class="rev-card">
+                  <div class="rev-card-stars">★★★★★</div>
+                  <div class="rev-card-t">Sunday emergency</div>
+                  <p class="rev-card-txt">Hot water died with three kids. Loaner by lunch, iStore Tuesday.</p>
+                  <div class="rev-card-by"><span class="rev-avatar">SK</span><div><strong>Sam K.</strong><span>Berwick</span></div></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Hero is now a rounded card, not a full-bleed banner — you can see the cream page behind it. Trust rating gets its own tiny card. Brands, quote and reviews each sit in their own card with 16&nbsp;px of cream showing on both sides.
+    </p>
+  </div>
+
+  <!-- =============== FRAME 2 =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">Middle of scroll</div>
+      <div class="mock__num">Frame 2 / 3</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Fixed price</span>
+      <span class="mock__tag">Services</span>
+      <span class="mock__tag">Why us</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar">
+          <span>9:41</span>
+          <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
+        </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
+            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+          </div>
+
+          <div class="stack">
+
+            <!-- FIXED PRICE card -->
+            <div class="card">
+              <div class="eye eye--orange"><span class="eye-dot"></span> Fixed-price installs</div>
+              <div class="h">Three popular jobs, locked-in.</div>
+              <p class="lede">VEU rebate applied, GST included, warranty pack in 24 hrs.</p>
+              <div class="fp-list">
+                <div class="fp-item">
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">All-in-one · Best value</div>
+                    <div class="fp-t">Reclaim R290, fully installed</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$2,610</span>
+                      <span class="fp-lbl">inc GST</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="fp-item fp-item--feature">
+                  <span class="fp-flag">Highest quality</span>
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">Split · AUS-made</div>
+                    <div class="fp-t">Reclaim CO₂ split, fully installed</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$5,340</span>
+                      <span class="fp-lbl">from · inc GST</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="fp-item">
+                  <div class="fp-thumb"></div>
+                  <div class="fp-body">
+                    <div class="fp-eye">Ducted · Whole home</div>
+                    <div class="fp-t">18 kW Mitsubishi ducted</div>
+                    <div class="fp-price">
+                      <span class="fp-num">$11,000</span>
+                      <span class="fp-lbl">from · inc GST</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SERVICES card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> What we do</div>
+              <div class="h">Gas, hot water &amp; air.</div>
+              <div class="sv-grid">
+                <a href="#" class="sv-tile sv-tile--wide">
+                  <span class="sv-tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🔥</span>
+                  <span class="sv-tile-t">Heat pump hot water</span>
+                  <span class="sv-tile-s">Reclaim, iStore, Thermann. Under $500 out of pocket with VEU.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico">❄</span>
+                  <span class="sv-tile-t">Split systems</span>
+                  <span class="sv-tile-s">Bedroom, living, granny flat.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico">🌬</span>
+                  <span class="sv-tile-t">Ducted aircon</span>
+                  <span class="sv-tile-s">Zoned whole-home.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico" style="background: rgba(11,20,80,0.08); color: var(--navy);">🔧</span>
+                  <span class="sv-tile-t">Gas heating</span>
+                  <span class="sv-tile-s">Rinnai, Brivis, Braemar.</span>
+                </a>
+                <a href="#" class="sv-tile">
+                  <span class="sv-tile-ico" style="background: rgba(243,103,34,0.10); color: var(--orange);">🛠</span>
+                  <span class="sv-tile-t">Service &amp; CO test</span>
+                  <span class="sv-tile-s">$280 + GST annual.</span>
+                </a>
+                <a href="#" class="sv-tile sv-tile--dark">
+                  <span class="sv-tile-ico">💧</span>
+                  <span class="sv-tile-t">Hot water swaps</span>
+                  <span class="sv-tile-s">Same-day on common models.</span>
+                </a>
+                <a href="#" class="sv-tile sv-tile--red sv-tile--wide">
+                  <span class="sv-tile-ico">🚨</span>
+                  <span class="sv-tile-t">Emergency call-outs · 24/7</span>
+                  <span class="sv-tile-s">Gas leak, no hot water, smoking flue. Phones answered after hours.</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- WHY US card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Why locals call us first</div>
+              <div class="h">Boring stuff done properly.</div>
+              <div class="why-list">
+                <div class="why-row">
+                  <span class="why-num">01</span>
+                  <div class="why-body">
+                    <div class="why-t">Family-owned since 2014</div>
+                    <div class="why-s">Same family answering, quoting and standing behind the work.</div>
+                  </div>
+                </div>
+                <div class="why-row">
+                  <span class="why-num">02</span>
+                  <div class="why-body">
+                    <div class="why-t">Reece trade partner</div>
+                    <div class="why-s">Direct supply, real stock, no middleman markup.</div>
+                  </div>
+                </div>
+                <div class="why-row">
+                  <span class="why-num">03</span>
+                  <div class="why-body">
+                    <div class="why-t">Rebate paperwork sorted</div>
+                    <div class="why-s">VEU accredited. Everything handled inside the quote.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Fixed-price cards go horizontal (thumbnail + copy side by side) so all three fit inside one section card. Feature card gets a flag tab. Services still 2-col but smaller. Why-us rows shrink so all three fit without scroll.
+    </p>
+  </div>
+
+  <!-- =============== FRAME 3 =============== -->
+  <div class="mock">
+    <div class="mock__head">
+      <div class="mock__label">Bottom of scroll</div>
+      <div class="mock__num">Frame 3 / 3</div>
+    </div>
+    <div class="mock__tags">
+      <span class="mock__tag">Process</span>
+      <span class="mock__tag">Area</span>
+      <span class="mock__tag">FAQ</span>
+      <span class="mock__tag">CTA</span>
+    </div>
+
+    <div class="phone">
+      <div class="phone__screen">
+        <div class="phone__notch"></div>
+        <div class="phone__statusbar">
+          <span>9:41</span>
+          <span class="phone__statusbar-right"><span>●●●</span><span style="font-family:'SF Mono';">100%</span></span>
+        </div>
+        <div class="phone__body">
+          <div class="mnav">
+            <div class="mnav__logo">
+              <div class="mnav__logo-mark">G</div>
+              <div class="mnav__logo-name"><b>Advanced</b><span>Gas &amp; Aircon</span></div>
+            </div>
+            <button class="mnav__burger" aria-label="Open menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+            </button>
+          </div>
+
+          <div class="stack">
+
+            <!-- PROCESS dark card -->
+            <div class="card card--dark">
+              <div class="eye eye--orange"><span class="eye-dot"></span> How it works</div>
+              <div class="h">Simple, honest, no runaround.</div>
+              <div class="proc-list">
+                <div class="proc-step">
+                  <span class="proc-step-num">1</span>
+                  <div class="proc-step-t">You get in touch</div>
+                  <div class="proc-step-s">Fill the form or call.</div>
+                  <div class="proc-step-time">~ 5 min</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">2</span>
+                  <div class="proc-step-t">Quote back within 12 hrs</div>
+                  <div class="proc-step-s">Fixed-price quote to your inbox.</div>
+                  <div class="proc-step-time">within 12 hrs</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">3</span>
+                  <div class="proc-step-t">Site visit if needed</div>
+                  <div class="proc-step-s">Ducted &amp; tricky retrofits.</div>
+                  <div class="proc-step-time">when required</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">4</span>
+                  <div class="proc-step-t">We install &amp; show you how</div>
+                  <div class="proc-step-s">Clean install, walk-through, gone.</div>
+                  <div class="proc-step-time">install day</div>
+                </div>
+                <div class="proc-step">
+                  <span class="proc-step-num">5</span>
+                  <div class="proc-step-t">Follow-up next week</div>
+                  <div class="proc-step-s">Quick call to make sure all good.</div>
+                  <div class="proc-step-time">week after</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AREA card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Where we work</div>
+              <div class="h">Pakenham + 50&nbsp;km south-east.</div>
+              <div class="area-map">
+                <div class="area-pin"></div>
+                <div class="area-badge">
+                  <span class="area-badge-eye">Radius</span>
+                  <span class="area-badge-num">50 km</span>
+                </div>
+              </div>
+              <div class="area-chips">
+                <span class="area-chip">Pakenham</span>
+                <span class="area-chip">Officer</span>
+                <span class="area-chip">Beaconsfield</span>
+                <span class="area-chip">Berwick</span>
+                <span class="area-chip">Narre Warren</span>
+                <span class="area-chip">Cranbourne</span>
+                <span class="area-chip">Clyde</span>
+                <span class="area-chip">Hampton Park</span>
+                <span class="area-chip">Hallam</span>
+                <span class="area-chip">Endeavour Hills</span>
+                <span class="area-chip">Dandenong</span>
+                <span class="area-chip">Keysborough</span>
+                <span class="area-chip">Bunyip</span>
+                <span class="area-chip">Garfield</span>
+                <span class="area-chip">Drouin</span>
+              </div>
+            </div>
+
+            <!-- FAQ card -->
+            <div class="card">
+              <div class="eye"><span class="eye-dot"></span> Questions we get a lot</div>
+              <div class="h">Rebates &amp; the fine print.</div>
+              <div class="faq-list">
+                <div class="faq-item">
+                  <div class="faq-q">
+                    <span>How much is the VEU rebate, really?</span>
+                    <span class="faq-q-plus">−</span>
+                  </div>
+                  <div class="faq-a">Most Pakenham households see $2,400–$3,200 off. We apply it at the quote stage so you don't pay it then claim it back.</div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>Am I eligible if I'm renting?</span><span class="faq-q-plus">+</span></div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>How long does an install take?</span><span class="faq-q-plus">+</span></div>
+                </div>
+                <div class="faq-item">
+                  <div class="faq-q"><span>What brands do you install?</span><span class="faq-q-plus">+</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BIG CTA card -->
+            <div class="card bcta-card">
+              <div class="bcta-h">VEU rebate already in the quote.</div>
+              <p class="bcta-p">Free, no-obligation. Usually back within 2 hrs.</p>
+              <a href="#" class="bcta-btn">Start my free quote →</a>
+              <div class="bcta-call">or call <strong>(03) 5947 8000</strong></div>
+            </div>
+
+            <div class="foot">
+              <strong>Advanced Gas &amp; Airconditioning Services Pty Ltd</strong><br>
+              Pakenham VIC · Mon-Fri 8am-4pm
+            </div>
+
+          </div>
+
+          <div class="mstickybar">
+            <a href="#" class="mstickybar__call">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z"/></svg>
+              Call now
+            </a>
+            <a href="#" class="mstickybar__quote">Free quote →</a>
+          </div>
+        </div>
+        <div class="phone__home-indicator"></div>
+      </div>
+    </div>
+
+    <p class="mock__note">
+      Process becomes a dark navy card so it visually breaks up the stack. Area map shrinks and area chips wrap tighter. FAQ items are individual mini-cards so each has its own tap target. Big CTA is a proper card too, matching the section rhythm.
+    </p>
+  </div>
+
+</main>
+</html>

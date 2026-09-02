@@ -1,0 +1,386 @@
+/* /brands hub — grouped category shelves with richer per-brand cards.
+   Layered on top of brand.css (which already styles individual brand
+   pages) so the visual language stays consistent across both routes. */
+
+.page-brand-hub .brands-hub-hero {
+  padding-bottom: 44px;
+}
+.brands-hub-hero__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 28px;
+}
+.brands-hub-hero__jumpchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: background .12s, border-color .12s, color .12s, transform .12s;
+}
+.brands-hub-hero__jumpchip:hover {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.brands-hub-hero__jumpcount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 6px;
+  height: 20px;
+  background: var(--bg-2);
+  color: var(--navy);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.brands-hub-hero__jumpchip:hover .brands-hub-hero__jumpcount {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+/* Grouped shelves — each shelf is one product category with the brands
+   that live inside it. Header (eyebrow + blurb) sits above the cards. */
+.brands-hub-group {
+  padding: 60px 0 40px;
+  background: var(--bg);
+  scroll-margin-top: 90px;
+}
+.brands-hub-group:nth-of-type(even) { background: var(--paper); }
+.brands-hub-group__head {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+.brands-hub-group__blurb {
+  font-size: 15.5px;
+  color: var(--ink-2);
+  max-width: 680px;
+  line-height: 1.5;
+  margin: 0;
+}
+.page-brand-hub .brand-hub__grid {
+  padding: 0;
+}
+
+/* Enriched brand card — extends the v1 card with positioning, a
+   standout stat and a "best for" line so the hub reads like a real
+   comparison shelf, not a list of names. Compact horizontal layout. */
+.brand-hub-card--v2 .brand-hub-card__inner { gap: 8px; }
+.brand-hub-card__positioning {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.01em;
+  margin: 0;
+  line-height: 1.4;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--line);
+}
+.brand-hub-card__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-2);
+  border-left: 3px solid var(--card-accent, var(--sky));
+  border-radius: 5px;
+  margin: 0;
+}
+.brand-hub-card__stat strong {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.015em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.brand-hub-card__stat span {
+  font-size: 11.5px;
+  color: var(--ink-2);
+  line-height: 1.35;
+}
+.brand-hub-card__bestfor {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.brand-hub-card__bestfor b {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--orange);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+/* Compare/help panel between the grouped shelves and the final CTA */
+.brands-hub-help {
+  background: var(--navy);
+  color: #fff;
+  padding: 56px 0;
+}
+.brands-hub-help__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+.brands-hub-help h2 {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  margin: 10px 0 12px;
+  color: #fff;
+}
+.brands-hub-help p {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+  max-width: 620px;
+}
+.brands-hub-help .ds-eyebrow {
+  color: rgba(255,255,255,0.75);
+}
+.brands-hub-help .ds-dot {
+  background: var(--sky);
+  box-shadow: 0 0 0 3px rgba(0,176,237,0.18);
+}
+.brands-hub-help__ctas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.brands-hub-help__ctas .ds-btn--ghost {
+  color: #fff;
+  border-color: rgba(255,255,255,0.32);
+  background: transparent;
+}
+.brands-hub-help__ctas .ds-btn--ghost:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: #fff;
+}
+
+@media (max-width: 900px) {
+  .brands-hub-help__grid { grid-template-columns: 1fr; gap: 24px; }
+  .brands-hub-group { padding: 44px 0 28px; }
+}
+
+/* ==================================================================
+   Brand hub cards v3.
+   Previous version was a horizontal photo-left card that read as a
+   wall of near-identical text blocks. This one leads with the brand
+   name at display size, carries the brand's own accent colour down a
+   rail, surfaces the standout stat as a real number, and shows what
+   each brand actually makes as chips derived from the catalogue.
+   ================================================================== */
+.page-brand-hub .brands-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 18px;
+  padding: 0;
+}
+
+.bhc {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px 24px 20px 28px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform .18s ease, box-shadow .24s ease, border-color .18s ease;
+}
+.bhc:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 34px rgba(5, 10, 48, 0.11);
+  border-color: color-mix(in srgb, var(--card-accent, var(--sky)) 50%, var(--line));
+}
+/* Brand-colour rail down the left edge. */
+.bhc__rail {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: var(--card-accent, var(--sky));
+}
+
+.bhc__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.bhc__id { min-width: 0; }
+.bhc h2 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 27px;
+  letter-spacing: -0.022em;
+  line-height: 1.05;
+  color: var(--navy);
+  margin: 0 0 5px;
+}
+.bhc__origin {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.bhc__pic {
+  flex: 0 0 96px;
+  width: 96px;
+  height: 76px;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 10%, #fff 0%, var(--paper) 60%, var(--bg-2) 100%);
+  border: 1px solid var(--line);
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bhc__pic img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 3px 6px rgba(5, 10, 48, 0.10));
+}
+
+.bhc__tagline {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--card-accent, var(--navy));
+  margin: 0;
+}
+
+/* Standout stat — the one number worth remembering per brand. */
+.bhc__stat {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 13px 15px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  border-left: 3px solid var(--card-accent, var(--sky));
+}
+.bhc__stat strong {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: -0.028em;
+  line-height: 1;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.bhc__stat span {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+
+/* What the brand actually makes — derived from the catalogue. */
+.bhc__cats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.bhc__cats li {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--navy);
+  background: color-mix(in srgb, var(--card-accent, var(--sky)) 9%, #fff);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--sky)) 26%, var(--line));
+  padding: 5px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.bhc__bestfor {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.bhc__bestfor b {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  display: block;
+  margin-bottom: 3px;
+}
+
+.bhc__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.bhc__count {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.bhc__cta {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--card-accent, var(--orange));
+  white-space: nowrap;
+  transition: transform .16s ease;
+}
+.bhc:hover .bhc__cta { transform: translateX(3px); }
+
+@media (max-width: 560px) {
+  .page-brand-hub .brands-hub__grid { grid-template-columns: 1fr; gap: 12px; }
+  .bhc { padding: 18px 18px 16px 22px; gap: 12px; border-radius: 14px; }
+  .bhc h2 { font-size: 22px; }
+  .bhc__pic { flex: 0 0 74px; width: 74px; height: 60px; }
+  .bhc__stat strong { font-size: 21px; }
+  .bhc__tagline { font-size: 14px; }
+}

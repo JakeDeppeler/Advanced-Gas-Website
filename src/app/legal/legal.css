@@ -1,0 +1,67 @@
+/* ---------- Privacy and Terms ---------- */
+
+.legal {
+  padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(3rem, 7vw, 5rem);
+  background: var(--paper, #fff);
+}
+
+.legal__wrap {
+  max-width: 74ch;
+  margin: 0 auto;
+}
+
+.legal__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin: 0 0 0.5rem;
+}
+
+.legal h1 {
+  margin: 0 0 0.5rem;
+  color: var(--navy);
+}
+
+.legal__updated {
+  margin: 0 0 2rem;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+}
+
+.legal h2 {
+  margin: 2.25rem 0 0.6rem;
+  font-size: clamp(1.15rem, 2.6vw, 1.4rem);
+  color: var(--navy);
+}
+
+.legal p,
+.legal li {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.legal p { margin: 0 0 1rem; }
+
+.legal ul {
+  margin: 0 0 1.25rem;
+  padding-left: 1.15rem;
+}
+.legal li { margin: 0 0 0.5rem; }
+
+.legal__box {
+  margin: 2rem 0 0;
+  padding: 1.25rem 1.4rem;
+  border-left: 4px solid var(--orange);
+  border-radius: 0 12px 12px 0;
+  background: color-mix(in srgb, var(--orange) 7%, #fff);
+}
+.legal__box h2 { margin-top: 0; }
+.legal__box p:last-child { margin-bottom: 0; }
+
+.legal a { color: var(--orange); font-weight: 600; }

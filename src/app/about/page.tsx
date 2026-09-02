@@ -1,35 +1,41 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./about.css";
 
 export const metadata: Metadata = {
-  title: "About — Family-run Pakenham tradies since 2014",
+  title: "About, Family-Owned Pakenham HVAC Specialists",
   description:
-    "Family-run gas, hot water and aircon specialists in Pakenham. 12 years local, 8-strong crew, fully licensed and VEU accredited.",
+    "Pakenham-based and family-owned. HVAC, Type A gas, mechanical and refrigeration across Victoria. 20+ years' experience, $20M public liability.",
   alternates: { canonical: "/about" },
 };
 
-const timeline = [
-  { year: "2014", h: "Dean leaves the union", p: "After years on the tools under the union ticket, Dean strikes out on his own. One ute, one phone, one mobile number he still answers." },
-  { year: "2016", h: "Jye comes on board", p: "First hire — Jye starts as an installer and is still on the trucks today as lead installer. Most installs that go out get his hands on them." },
-  { year: "2019", h: "Kellie & Tash in the office", p: "Kellie (Dean's wife) steps in to run the books and keep the install crew moving. Mate Tash is alongside her most days." },
-  { year: "2021", h: "Reece trade partnership", p: "Joined the Reece trade program — direct supply, real warranties, no inflated middleman pricing." },
-  { year: "2023", h: "VEU accreditation", p: "Became an accredited installer under the Victorian Energy Upgrades program. Started doing the rebate paperwork in-house." },
-  { year: "2024", h: "Our own factory in Pakenham", p: "Moved out of the rented garage and into our own Pakenham factory. Stock, trucks, and customer meetings all under one roof." },
-];
-
 const team = [
-  { name: "Dean", role: "Director", bio: "Started Advanced Gas in 2014. Still on most quotes, still answers his own phone.", photo: "/dean.png" },
-  { name: "Jake", role: "Commercial & Operations", bio: "Runs the commercial book and the day-to-day. Cafés, gyms, offices, fit-outs — one PM, one invoice.", photo: "/jake.png" },
-  { name: "Jye", role: "Lead installer", bio: "Cleanest pipework in the south-east. Splits, multi-heads and ducted retrofits.", photo: "/jye.png" },
-  { name: "Kellie", role: "General Manager", bio: "Keeps the wheels on. Bookings, VEU paperwork and the reason your compliance certs land in 24 hours.", photo: "/kellie.png" },
+  { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.webp" },
+  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/Photo of jake.webp" },
+  { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.webp" },
+  { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.webp" },
 ];
 
 const values = [
-  { n: "01", h: "Fixed quotes", p: "The quote you sign is the price you pay. Variations only with your written OK first. No surprise invoices on completion." },
-  { n: "02", h: "Clean job sites", p: "Drop sheets, vacuum, old unit disposed. We leave it cleaner than we found it — or we hear about it from the customer, and rightly so." },
-  { n: "03", h: "Paperwork in 24 hours", p: "Compliance certificate, warranty pack, rebate confirmation — all emailed to you within 24 hours of completion. No chase." },
+  { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices, not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
+  { n: "02", h: "Fully licensed & insured", p: "$20M public liability, workers' compensation and comprehensive motor cover. Certificates of currency provided on request." },
+  { n: "03", h: "Compliance built in", p: "Type A gas, mechanical services and refrigerant handling (ARC AU59557). Compliance certificates issued on completion of every job." },
+  { n: "04", h: "Backed by warranty", p: "Six years on our workmanship, plus the full manufacturer warranties on all equipment we supply and install. The same figure as the terms page and the FAQs — it used to say twelve months here and six years everywhere else, which is the kind of thing that gets quoted back at you in a dispute." },
+  { n: "05", h: "Commercial install & maintenance", p: "From new installs and tenancy fit-outs to scheduled preventative-maintenance contracts that keep sites compliant and running year-round." },
+];
+
+const clients = [
+  { name: "Westpac",                 tag: "Commercial fit-out" },
+  { name: "Commonwealth Bank",       tag: "Commercial fit-out" },
+  { name: "Reece Group",             tag: "Multi-site service contract" },
+  { name: "Petbarn",                 tag: "National retail" },
+  { name: "KFC",                     tag: "Hospitality / QSR" },
+  { name: "Kane Constructions",      tag: "Tier-one builder" },
+  { name: "Reliance Worldwide",      tag: "Industrial service contract" },
+  { name: "Pakenham Springs P.S.",   tag: "Education" },
+  { name: "Retirement Villages Constructions", tag: "Aged care · heat-pump upgrades" },
 ];
 
 export default function AboutPage() {
@@ -37,29 +43,33 @@ export default function AboutPage() {
     <div className="page-about">
       <section className="ab-hero">
         <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> About us · est. 2014</span>
-          <h1>Started in a Pakenham garage. <em>Still answering the phone.</em></h1>
-          <p>Family-owned, locally run. The bloke on the phone is the bloke on the tools. The bloke on the tools is the bloke who signs the warranty. Twelve years on, that hasn&apos;t changed.</p>
+          <span className="ds-eyebrow"><span className="ds-dot" /> Family owned · Pakenham · Victoria</span>
+          <h1>HVAC, gas &amp; mechanical services, <em>one licensed roof.</em></h1>
+          <p>Advanced Gas &amp; Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne&rsquo;s South-East and West Gippsland. Design, installation and maintenance across residential, commercial and industrial Victoria.</p>
         </div>
       </section>
 
       <section className="ab-frame">
         <div className="wrap">
-          <div
-            className="ab-frame__big"
-            role="img"
-            aria-label="Advanced Gas team photo"
-            style={{ backgroundImage: "url(/team-photo.png)" }}
-          />
+          <div className="ab-frame__big" style={{ position: "relative", padding: 0, overflow: "hidden" }}>
+            <Image
+              src="/team-photo.webp"
+              alt="Advanced Gas & Airconditioning team at the Pakenham workshop"
+              fill
+              sizes="(max-width: 1200px) 100vw, 1200px"
+              style={{ objectFit: "cover" }}
+              priority
+            />
+          </div>
         </div>
       </section>
 
       <section className="ab-stats">
         <div className="wrap ab-stats__grid">
-          <div className="ab-stats__item"><strong>12</strong><span>years local trading</span></div>
-          <div className="ab-stats__item"><strong>75 km</strong><span>service radius from Pakenham</span></div>
-          <div className="ab-stats__item"><strong>4.9★</strong><span>Google reviews</span></div>
-          <div className="ab-stats__item"><strong>8</strong><span>family-run team</span></div>
+          <div className="ab-stats__item"><strong>20+</strong><span>years&rsquo; director experience</span></div>
+          <div className="ab-stats__item"><strong>$20M</strong><span>public liability cover</span></div>
+          <div className="ab-stats__item"><strong>AU59557</strong><span>ARC authorisation</span></div>
+          <div className="ab-stats__item"><strong>46828</strong><span>plumbing licence</span></div>
         </div>
       </section>
 
@@ -67,41 +77,48 @@ export default function AboutPage() {
         <div className="wrap ab-story__grid">
           <div className="ab-story__copy">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Our story</span>
-            <h2>From one ute to an 8-person family crew, with the same handshake.</h2>
-            <p>Dean started Advanced Gas in 2014 — he&apos;d had enough of the union and wanted to run his own jobs his own way. One ute, one phone, one promise: if he quoted it, he installed it, and he stood behind it.</p>
-            <p>A couple of years in he hired <strong>Jye</strong> — first apprentice, now lead installer. The rest of the team grew slowly from there, one good hire at a time. Today we&apos;re an <strong>8-person family-run crew</strong>. <strong>Kellie</strong> (Dean&apos;s wife) runs the office and keeps the install crew moving; her mate <strong>Tash</strong> is alongside her most days, fielding calls and chasing rebate paperwork.</p>
-            <p>In 2024 we moved out of the rented garage and into our own factory in Pakenham — somewhere to store the gear, prep the trucks and meet customers without apologising for the mess.</p>
-            <p>What hasn&apos;t changed: <strong>family-owned, locally run, no call-centres, no quote-pumping middlemen.</strong> When you ring {site.phone} you get a tradie or a family member — same as day one.</p>
-            <p>We picked Pakenham because it&apos;s home. We service within 75 km because beyond that we can&apos;t promise the same turnaround. We chose Reece as our trade partner because their stock is real and their warranties are honoured. We chose Reclaim, Mitsubishi, Kaden and Rinnai because we&apos;ve installed enough of each to know which house suits which model.</p>
+            <h2>Family-owned. Traditional values. Compliance-first.</h2>
+            <p>We&rsquo;re based in Pakenham and serve Melbourne&rsquo;s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.</p>
+            <p>We value quality working relationships and build them on trust and experience over time. We genuinely care about our clients and their stakeholders, and we operate from traditional values: <strong>under-promise, over-deliver</strong>, and complete work on time, within schedule and within budget.</p>
+            <p>We pride ourselves on top-notch installation, repair and maintenance. We&rsquo;re a leading provider of HVAC, heating, cooling, Type A gas, general and mechanical plumbing, and refrigeration services, across residential, commercial and industrial projects throughout Victoria, and open to projects across the region and interstate.</p>
+            <p>Headed up by Director <strong>Dean Winbanks</strong>, with over 20 years&rsquo; industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same traditional values and quality of work, as though our director had completed your works personally.</p>
           </div>
-          <ol className="ab-timeline">
-            {timeline.map((t) => (
-              <li key={t.year}>
-                <span className="ab-timeline__year">{t.year}</span>
-                <h3>{t.h}</h3>
-                <p>{t.p}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="ab-story__side">
+            <div className="ab-spec-card">
+              <h3>Specialisations &amp; licensing</h3>
+              <ul>
+                <li><strong>Mechanical Services</strong>, HVAC, central heating &amp; packaged units, ducted split systems, evap and refrigerated cooling, heat pumps, design, installation and commissioning.</li>
+                <li><strong>Type A Gas Services</strong>, installation, servicing and repair of Type A gas appliances (cooktops, heaters, hot water) with safety, compliance and reliability built in.</li>
+                <li><strong>Air Balancing &amp; BMS Controls</strong>, airflow testing and balancing, BMS integration and full commissioning, measured, efficient performance across commercial sites.</li>
+                <li><strong>Refrigeration &amp; Heat-Pump Hot Water</strong>, split and multi-head systems, high-efficiency heat-pump hot water, including rebate-eligible upgrades under Victorian energy programs.</li>
+              </ul>
+              <p className="ab-spec-card__arc">
+                <span>ARC AU59557</span> Authorised ARC trading authority for the handling of refrigerant gases.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className="ab-team">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> The team</span>
-            <h2>Real names, real faces, real numbers you can ring.</h2>
-            <p>Same blokes on the quote and the install. When something needs sorting after-hours, you ring the same name.</p>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Leadership</span>
+            <h2>A small, hands-on team, the people who quote it, run it and stand behind it.</h2>
+            <p>Headed up by Director Dean Winbanks, with over 20 years&rsquo; experience across industrial, commercial and domestic work.</p>
           </div>
           <div className="team-grid">
             {team.map((m) => (
               <article key={m.name} className="team">
-                <div
-                  className="team__photo"
-                  role="img"
-                  aria-label={`${m.name} — ${m.role}`}
-                  style={{ backgroundImage: `url(${m.photo})` }}
-                />
+                <div className="team__photo" style={{ position: "relative", overflow: "hidden" }}>
+                  <Image
+                    src={m.photo}
+                    alt={`${m.name}, ${m.role}`}
+                    fill
+                    sizes="(max-width: 900px) 50vw, 25vw"
+                    style={{ objectFit: "cover", objectPosition: "top" }}
+                  />
+                </div>
                 <div className="team__body">
                   <h3 className="team__name">{m.name}</h3>
                   <p className="team__role">{m.role}</p>
@@ -116,8 +133,8 @@ export default function AboutPage() {
       <section className="ab-values">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> How we work</span>
-            <h2>Three things we don&apos;t negotiate on.</h2>
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why choose us</span>
+            <h2>Five things you can count on.</h2>
           </div>
           <div className="values-grid">
             {values.map((v) => (
@@ -131,19 +148,38 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <section className="ab-clients">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Track record</span>
+            <h2>Trusted by national brands, tier-one builders and local institutions.</h2>
+            <p>Our collaboration with these quality clients demonstrates our capability to handle large-scale, complex projects with professionalism and excellence.</p>
+          </div>
+          <div className="clients-grid">
+            {clients.map((c) => (
+              <div key={c.name} className="client">
+                <span className="client__name">{c.name}</span>
+                <span className="client__tag">{c.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="ab-acc">
         <div className="wrap ab-acc__grid">
           <div>
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Accreditations &amp; licences</span>
-            <h2>The boring tickets that mean we can sign your compliance cert.</h2>
-            <p>Every install gets a compliance certificate from a licensed tradie. No subcontracted-out-the-back jobs.</p>
+            <h2>Backed, certified and accountable.</h2>
+            <p>Every job carries our credentials, our compliance paperwork and our name.</p>
           </div>
           <div className="acc-list">
-            <div className="acc"><span className="acc__name">Licensed Plumber & Gasfitter (VIC)</span><span className="acc__num">{site.licences.plumbing}</span></div>
-            <div className="acc"><span className="acc__name">ARC Refrigeration</span><span className="acc__num">{site.licences.refrigeration}</span></div>
-            <div className="acc"><span className="acc__name">VEU Accredited Installer</span><span className="acc__num">VEET program</span></div>
-            <div className="acc"><span className="acc__name">Reece Trade Partner</span><span className="acc__num">since 2019</span></div>
-            <div className="acc"><span className="acc__name">$20M Public Liability</span><span className="acc__num">CGU Insurance</span></div>
+            <div className="acc"><span className="acc__name">Advanced Gas &amp; Airconditioning Services Pty Ltd</span><span className="acc__num">ACN 607 575 280</span></div>
+            <div className="acc"><span className="acc__name">Plumbing Licence</span><span className="acc__num">46828</span></div>
+            <div className="acc"><span className="acc__name">ARC Refrigeration Authorisation</span><span className="acc__num">AU59557</span></div>
+            <div className="acc"><span className="acc__name">Public Liability</span><span className="acc__num">$20M</span></div>
+            <div className="acc"><span className="acc__name">Workmanship warranty</span><span className="acc__num">6 years</span></div>
+            <div className="acc"><span className="acc__name">Address</span><span className="acc__num">1 Sierra Circuit, Pakenham</span></div>
           </div>
         </div>
       </section>

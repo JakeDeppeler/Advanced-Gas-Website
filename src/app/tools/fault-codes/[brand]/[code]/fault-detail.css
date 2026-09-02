@@ -1,0 +1,115 @@
+/* ---------- one page per fault code ---------- */
+
+.fd-sev {
+  display: inline-grid;
+  gap: 2px;
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 12px;
+  border-left: 4px solid;
+}
+.fd-sev strong { font-size: 0.95rem; letter-spacing: 0.01em; }
+.fd-sev span { font-size: 0.87rem; opacity: 0.9; }
+
+.fd-sev--info     { background: rgba(255,255,255,0.10); border-color: #6fb3ff; color: #fff; }
+.fd-sev--warn     { background: rgba(243,103,34,0.16); border-color: var(--orange); color: #fff; }
+.fd-sev--critical { background: rgba(214,45,32,0.22);  border-color: #ff6a5c; color: #fff; }
+
+.fd-body { padding: clamp(2rem, 5vw, 3.5rem) 0; background: #fff; }
+
+.fd-grid {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.75rem);
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  align-items: start;
+}
+@media (max-width: 900px) { .fd-grid { grid-template-columns: 1fr; } }
+
+.fd-main h2 {
+  margin: 2rem 0 0.6rem;
+  font-size: clamp(1.2rem, 2.8vw, 1.5rem);
+  color: var(--navy);
+}
+.fd-main h2:first-child { margin-top: 0; }
+.fd-main p { margin: 0 0 1rem; font-size: 1rem; line-height: 1.7; color: var(--ink-2); }
+
+.fd-causes { margin: 0 0 0.5rem; padding-left: 1.3rem; display: grid; gap: 8px; }
+.fd-causes li { font-size: 0.98rem; line-height: 1.6; color: var(--ink-2); }
+.fd-causes li::marker { color: var(--orange); font-weight: 800; }
+
+.fd-note { font-size: 0.87rem !important; font-style: italic; color: var(--ink-3, #7a7a82) !important; }
+
+.fd-checks {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin: 1.75rem 0;
+}
+.fd-checks__col {
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+}
+.fd-checks__col--diy  { background: color-mix(in srgb, #1e8e4e 7%, #fff); border-color: color-mix(in srgb, #1e8e4e 26%, #fff); }
+.fd-checks__col--tech { background: color-mix(in srgb, var(--navy) 5%, #fff); }
+.fd-checks__col h3 { margin: 0 0 0.2rem; font-size: 1.02rem; color: var(--navy); }
+.fd-checks__col > p { margin: 0 0 0.7rem !important; font-size: 0.85rem !important; color: var(--ink-2) !important; }
+.fd-checks__col ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.fd-checks__col li {
+  position: relative;
+  padding-left: 1.4rem;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.fd-checks__col--diy li::before  { content: "✓"; position: absolute; left: 0; color: #1e8e4e; font-weight: 900; }
+.fd-checks__col--tech li::before { content: "→"; position: absolute; left: 0; color: var(--navy); font-weight: 800; }
+
+/* ---------- sidebar ---------- */
+
+.fd-side { display: grid; gap: 14px; position: sticky; top: 1rem; }
+@media (max-width: 900px) { .fd-side { position: static; } }
+
+.fd-card {
+  padding: 1.25rem 1.35rem;
+  border-radius: 16px;
+  background: var(--navy);
+  color: #fff;
+}
+.fd-card h3 { margin: 0 0 0.5rem; font-size: 1.08rem; color: #fff; }
+.fd-card p { margin: 0 0 0.9rem; font-size: 0.92rem; line-height: 1.6; color: rgba(255,255,255,0.84); }
+.fd-card__fine { margin: 0.8rem 0 0 !important; font-size: 0.8rem !important; color: rgba(255,255,255,0.6) !important; }
+
+.fd-card--plain {
+  background: color-mix(in srgb, var(--navy) 4%, #fff);
+  color: var(--navy);
+  border: 1px solid color-mix(in srgb, var(--navy) 12%, #fff);
+}
+.fd-card--plain h3 { color: var(--navy); }
+
+.fd-more { list-style: none; margin: 0 0 0.9rem; padding: 0; display: grid; gap: 8px; }
+.fd-more li { font-size: 0.88rem; line-height: 1.5; }
+.fd-more a { color: var(--navy); text-decoration: none; display: block; }
+.fd-more a:hover { color: var(--orange); }
+.fd-more strong {
+  display: inline-block;
+  min-width: 3.6em;
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", monospace;
+  color: var(--orange);
+}
+.fd-more span { color: var(--ink-2); }
+.fd-more__all { font-size: 0.85rem; font-weight: 700; color: var(--orange); text-decoration: none; }
+.fd-more__all:hover { text-decoration: underline; }
+
+/* "Is it worth fixing?" — the question that follows every fault code.
+   Repair-or-replace lives here rather than in the Tools menu, because
+   somebody reading a code has already decided something is wrong. */
+.fd-inline-link {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.fd-inline-link:hover { color: var(--orange); }

@@ -1,0 +1,675 @@
+/* ============================================================
+   Pricing page (/pricing) · dense fully-installed price tables.
+   ============================================================ */
+
+.page-pricing { background: var(--bg); }
+
+/* ---- "What's in the number" — framed cards on a light band ---- */
+.page-pricing .pricing-note {
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  padding: 76px 0;
+}
+.pricing-note__layout {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 4px;
+}
+.pricing-note__lbl {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin-bottom: 14px;
+}
+.pricing-note p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+/* Featured "included" panel — navy so the checklist reads as the headline. */
+.pricing-note__included {
+  background:
+    radial-gradient(700px 320px at 88% -20%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy), var(--navy-2));
+  border-radius: 18px;
+  padding: 30px 30px 26px;
+  box-shadow: 0 26px 56px -34px rgba(5, 10, 48, 0.65);
+}
+.pricing-note__included .pricing-note__lbl { color: #fff; margin-bottom: 18px; }
+.pricing-note__checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 20px;
+}
+.pricing-note__checks li {
+  position: relative;
+  padding-left: 30px;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  line-height: 1.3;
+  color: #fff;
+}
+.pricing-note__checks li span {
+  display: block;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.62);
+  margin-top: 3px;
+}
+.pricing-note__checks li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--orange);
+}
+/* white tick: a rotated box showing only its right + bottom borders */
+.pricing-note__checks li::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.pricing-note__gst {
+  margin-top: 20px !important;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Two supporting notes, stacked beside the panel. */
+.pricing-note__side { display: grid; grid-template-rows: 1fr 1fr; gap: 20px; }
+.pricing-note__card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line-2);
+  border-radius: 16px;
+  padding: 22px 24px;
+}
+.pricing-note__card--rebate { border-left-color: var(--orange); }
+
+@media (max-width: 880px) {
+  .page-pricing .pricing-note { padding: 52px 0; }
+  .pricing-note__layout { grid-template-columns: 1fr; gap: 14px; }
+  .pricing-note__side { gap: 14px; }
+}
+@media (max-width: 460px) {
+  .pricing-note__checks { grid-template-columns: 1fr; gap: 11px; }
+  .pricing-note__included { padding: 24px 20px 22px; }
+}
+
+/* ---- The full price list ---- */
+
+.page-pricing .pricing-body { padding: 80px 0 76px; background: var(--bg); }
+.pricing-body--extras { padding: 20px 0 60px; }
+/* Inline intro head — tighter than the default section-head rhythm because
+   the filter tabs follow immediately below it. */
+.pricing-body__head { margin-bottom: 30px; max-width: 720px; }
+
+.pricing-block {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--orange);
+  border-radius: var(--rad);
+  overflow: hidden;
+  margin-bottom: 22px;
+  scroll-margin-top: 160px;
+  box-shadow: 0 18px 40px -34px rgba(5, 10, 48, 0.4);
+}
+.pricing-block__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--paper), #fff);
+}
+.pricing-block__head h2 {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 4px;
+}
+.pricing-block__head p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.pricing-block__count {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 6px 12px;
+  background: var(--bg-2);
+  border-radius: 6px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.pricing-block__tablewrap {
+  overflow-x: auto;
+}
+.pricing-block__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+.pricing-block__table thead th {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.pricing-block__table tbody tr {
+  border-bottom: 1px solid var(--line-2);
+  transition: background 0.1s;
+}
+.pricing-block__table tbody tr:hover { background: var(--paper); }
+.pricing-block__table tbody tr:last-child { border-bottom: 0; }
+.pricing-block__table td {
+  padding: 14px;
+  vertical-align: top;
+  color: var(--ink-2);
+}
+.pricing-block__brand {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.pricing-block__name {
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+.pricing-block__table code {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  background: var(--bg-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.pricing-block__bestfor {
+  color: var(--ink-3);
+  font-size: 12.5px;
+  max-width: 300px;
+  line-height: 1.4;
+}
+.pricing-block__pill {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #217049;
+  background: rgba(46,132,89,0.12);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pricing-block__pill--muted {
+  background: transparent;
+  color: var(--ink-3);
+  border: 1px dashed var(--line-2);
+}
+.pricing-block__pricecell {
+  text-align: right;
+  white-space: nowrap;
+}
+.pricing-block__pricecell strong {
+  font-family: var(--f-display);
+  font-size: 16.5px;
+  color: var(--navy);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.pricing-block__poa {
+  font-family: var(--f-display);
+  font-size: 12.5px;
+  color: var(--orange);
+  text-decoration: none;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pricing-block__poa:hover { text-decoration: underline; text-underline-offset: 3px; }
+.pricing-block__linkcell {
+  text-align: right;
+}
+.pricing-block__linkcell a {
+  font-family: var(--f-display);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.pricing-block__linkcell a:hover {
+  background: var(--paper);
+  border-color: var(--navy);
+}
+
+@media (max-width: 760px) {
+  .pricing-block__head { flex-direction: column; align-items: flex-start; gap: 8px; padding: 18px 20px; }
+  .pricing-block__head h2 { font-size: 19px; }
+  .pricing-block__count { align-self: flex-start; }
+  .pricing-block__table thead th { font-size: 10px; padding: 10px 12px; }
+  .pricing-block__table td { padding: 12px; }
+  .pricing-block__bestfor { display: none; }
+}
+
+/* ============== Value comparison block — navy centrepiece ============== */
+.page-pricing .pricing-value {
+  padding: 88px 0 80px;
+  border-bottom: 0;
+  background:
+    radial-gradient(900px 460px at 85% -8%, rgba(0, 176, 237, 0.18), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-pricing .pricing-value .ds-section-head p { color: rgba(255, 255, 255, 0.78); }
+.pricing-value__scroll {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #fff;
+  margin-top: 4px;
+  box-shadow: 0 34px 70px -36px rgba(5, 10, 48, 0.75);
+}
+.pricing-value__table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 640px;
+}
+.pricing-value__table th,
+.pricing-value__table td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+.pricing-value__rowhead {
+  width: 40%;
+  background: var(--paper);
+  color: var(--navy);
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 14px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+.pricing-value__col {
+  text-align: center !important;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--navy);
+  border-bottom: 2px solid var(--navy);
+  padding-top: 20px;
+  padding-bottom: 16px;
+  background: #fff;
+}
+.pricing-value__col--us {
+  background: rgba(243,103,34,0.08);
+  color: var(--orange);
+  border-top: 3px solid var(--orange);
+  border-bottom-color: var(--orange);
+}
+.pricing-value__col-sub {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.pricing-value__col--us .pricing-value__col-sub { color: var(--orange); }
+.pricing-value__cell { text-align: center; font-variant-numeric: tabular-nums; }
+.pricing-value__cell--us { background: rgba(243,103,34,0.04); }
+.pricing-value__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+.pricing-value__mark--yes {
+  background: rgba(46,132,89,0.14);
+  color: #217049;
+}
+.pricing-value__mark--no {
+  background: rgba(200,50,50,0.10);
+  color: #a52a2a;
+  font-size: 18px;
+}
+.pricing-value__mark--maybe {
+  width: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--ink-3);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.pricing-value__foot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 22px;
+}
+.pricing-value__stat {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid var(--orange);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.pricing-value__stat strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.pricing-value__stat span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}
+@media (max-width: 760px) {
+  .page-pricing .pricing-value { padding: 40px 0 32px; }
+  .pricing-value__foot { grid-template-columns: 1fr; gap: 10px; }
+  .pricing-value__stat { padding: 14px 16px; }
+  .pricing-value__stat strong { font-size: 22px; }
+
+  /* Reshape the 3-column comparison as a card-per-feature list.
+     Feature name at the top of each card, then a compact 3-cell
+     row (Cheap · Us · Premium) with a small label above each mark
+     so nothing runs off the viewport. */
+  .pricing-value__scroll {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+    border-radius: 0;
+    margin-top: 22px;
+  }
+  .pricing-value__table { display: block; min-width: 0; border-spacing: 0; }
+  .pricing-value__table thead { display: none; }
+  .pricing-value__table tbody { display: block; }
+  .pricing-value__table tr {
+    display: block;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .pricing-value__table tr:last-child { margin-bottom: 0; }
+  .pricing-value__rowhead {
+    display: block;
+    width: 100%;
+    position: static;
+    background: transparent;
+    padding: 0 0 10px;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--navy);
+  }
+  .pricing-value__table td {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc((100% - 12px) / 3);
+    padding: 10px 4px 2px;
+    border-bottom: 0;
+    font-size: 12px;
+  }
+  .pricing-value__cell,
+  .pricing-value__cell--us {
+    flex-direction: column;
+    text-align: center;
+  }
+  .pricing-value__cell--us { background: transparent; border-radius: 8px; }
+  .pricing-value__cell::before {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 700;
+    line-height: 1;
+  }
+  .pricing-value__table td:nth-of-type(1)::before { content: "Cheap"; }
+  .pricing-value__table td:nth-of-type(2)::before { content: "Us"; color: var(--orange); }
+  .pricing-value__table td:nth-of-type(3)::before { content: "Premium"; }
+  .pricing-value__cell--us::after {
+    content: "";
+    display: block;
+    position: absolute;
+    inset: 4px 2px;
+    background: rgba(243,103,34,0.06);
+    border-radius: 8px;
+    z-index: 0;
+  }
+  .pricing-value__cell--us { position: relative; }
+  .pricing-value__cell--us > * { position: relative; z-index: 1; }
+  .pricing-value__cell--us::before { position: relative; z-index: 1; }
+  .pricing-value__mark--maybe { font-size: 9.5px; padding: 3px 7px; }
+}
+
+
+/* ============================================================
+   PRICING SEARCH — filters rows across every category at once.
+   ============================================================ */
+.pricing-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 520px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pricing-search:focus-within { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(0,176,237,0.15); }
+.pricing-search__icon { color: var(--ink-3); flex: 0 0 auto; }
+.pricing-search__input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 15px;
+  color: var(--navy);
+}
+.pricing-search__input::-webkit-search-cancel-button { cursor: pointer; }
+.pricing-search__clear {
+  appearance: none;
+  border: 0;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: background 0.14s, color 0.14s;
+}
+.pricing-search__clear:hover { background: var(--navy); color: #fff; }
+
+.pricing-tabs__noresults {
+  margin: 0 0 24px;
+  padding: 18px 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.pricing-tabs__noresults-clear {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--orange);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* ============================================================
+   PRICING TABS
+   Filter, not pagination — every block stays in the HTML so the
+   page still ranks for all of it; the tabs just hide what you
+   didn't ask for.
+   ============================================================ */
+.pricing-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.pricing-tabs__tab {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.pricing-tabs__tab:hover { border-color: var(--navy); color: var(--navy); }
+.pricing-tabs__tab.is-active {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+.pricing-tabs__tab:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.pricing-tabs__n {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(5,10,48,0.07);
+  color: var(--ink-3);
+}
+.pricing-tabs__tab.is-active .pricing-tabs__n {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+}
+
+/* Hide everything the active tab didn't ask for. "all" hides nothing.
+   One rule per category key — CSS can't compare two attributes, so a new
+   category in CATEGORY_ORDER needs a line adding here or its tab will
+   show an empty panel. */
+.pricing-tabs__panels:not([data-active="all"]) .pricing-block { display: none; }
+.pricing-tabs__panels[data-active="heat-pump"] .pricing-block[data-category="heat-pump"],
+.pricing-tabs__panels[data-active="split-system"] .pricing-block[data-category="split-system"],
+.pricing-tabs__panels[data-active="multi-head"] .pricing-block[data-category="multi-head"],
+.pricing-tabs__panels[data-active="ducted"] .pricing-block[data-category="ducted"],
+.pricing-tabs__panels[data-active="cassette"] .pricing-block[data-category="cassette"],
+.pricing-tabs__panels[data-active="floor-console"] .pricing-block[data-category="floor-console"],
+.pricing-tabs__panels[data-active="gas-continuous-flow"] .pricing-block[data-category="gas-continuous-flow"],
+.pricing-tabs__panels[data-active="gas-storage"] .pricing-block[data-category="gas-storage"],
+.pricing-tabs__panels[data-active="electric-storage"] .pricing-block[data-category="electric-storage"],
+.pricing-tabs__panels[data-active="solar-hot-water"] .pricing-block[data-category="solar-hot-water"],
+.pricing-tabs__panels[data-active="zoning"] .pricing-block[data-category="zoning"],
+.pricing-tabs__panels[data-active="damper"] .pricing-block[data-category="damper"],
+.pricing-tabs__panels[data-active="controller"] .pricing-block[data-category="controller"],
+.pricing-tabs__panels[data-active="accessory"] .pricing-block[data-category="accessory"],
+.pricing-tabs__panels[data-active="service"] .pricing-block[data-category="service"] {
+  display: block;
+}
+
+/* While searching, data-active is forced to "all" (so every block shows),
+   then any block the search emptied is hidden. !important beats the
+   category show-rules above. Individual rows are hidden via [hidden]. */
+.pricing-tabs__panels[data-searching] .pricing-block[data-empty] { display: none !important; }
+/* The block's "N models" count is the full category total, which reads
+   wrong next to a filtered handful — hide it while searching. */
+.pricing-tabs__panels[data-searching] .pricing-block__count { display: none; }
+
+@media (max-width: 640px) {
+  .pricing-tabs { gap: 6px; margin-bottom: 20px; }
+  .pricing-tabs__tab { font-size: 12.5px; padding: 8px 13px; }
+}

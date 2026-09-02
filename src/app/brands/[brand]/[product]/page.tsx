@@ -1,0 +1,241 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import Script from "next/script";
+import { site } from "@/lib/site";
+import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/lib/brands";
+import { SafeImg } from "@/components/SafeImg";
+import { ProductTabs } from "@/components/ProductTabs";
+import { ShowerDelivery } from "@/components/ShowerDelivery";
+import { breadcrumbSchema } from "@/lib/schema";
+import "../../../detail.css";
+import "../brand.css";
+import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
+
+export function generateStaticParams() {
+  return allBrandProductPairs();
+}
+
+export function generateMetadata({
+  params,
+}: {
+  params: { brand: string; product: string };
+}): Metadata {
+  const found = findProduct(params.brand, params.product);
+  if (!found) notFound();
+  const { brand, product } = found;
+  // absolute mode: these names carry their capacity at the very end, and
+  // clamping for the site suffix once left four pairs of Panasonic
+  // products sharing a title. The suffix gives way, not the content.
+  return seoMeta({
+    title: product.name,
+    description: `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
+    canonical: `/brands/${brand.slug}/${product.slug}`,
+    image: product.photo ?? brand.photo,
+    absolute: true,
+  });
+}
+
+export default function ProductPage({
+  params,
+}: {
+  params: { brand: string; product: string };
+}) {
+  const found = findProduct(params.brand, params.product);
+  if (!found) notFound();
+  const { brand, product } = found;
+
+  const relatedProducts =
+    product.related
+      ?.map((slug) => {
+        // First check this brand, then check all brands (cross-brand related)
+        const inBrand = brand.products.find((p) => p.slug === slug);
+        if (inBrand) return { brand, product: inBrand };
+        for (const b of [findBrand("mitsubishi-electric"), findBrand("reclaim"), findBrand("thermann"), findBrand("istore"), findBrand("kaden"), findBrand("zonemate")]) {
+          if (!b) continue;
+          const found = b.products.find((p) => p.slug === slug);
+          if (found) return { brand: b, product: found };
+        }
+        return null;
+      })
+      .filter((x): x is NonNullable<typeof x> => Boolean(x)) ?? [];
+
+  const crumbs = breadcrumbSchema([
+    { name: "Home", url: site.url },
+    { name: "Brands", url: `${site.url}/brands` },
+    { name: brand.name, url: `${site.url}/brands/${brand.slug}` },
+    { name: product.name, url: `${site.url}/brands/${brand.slug}/${product.slug}` },
+  ]);
+
+  return (
+    <div className="page-detail page-product">
+      <section className="dp-hero">
+        <div className="wrap">
+          <nav className="dp-crumbs" aria-label="Breadcrumb">
+            <Link href="/">Home</Link>
+            <span className="sep">/</span>
+            <Link href="/brands">Brands</Link>
+            <span className="sep">/</span>
+            <Link href={`/brands/${brand.slug}`}>{brand.name}</Link>
+            <span className="sep">/</span>
+            <span className="cur">{product.model}</span>
+          </nav>
+          <div className="dp-hero__eyebrow">
+            <span className="ds-dot" /> {brand.name} · {product.categoryLabel}
+          </div>
+          <h1>{product.name}</h1>
+          <p className="dp-hero__sub">
+            <strong>Best for:</strong> {product.bestFor}. Installed across Melbourne&rsquo;s south-east, {product.veuEligible ? "VEU rebate eligible where the property qualifies, " : ""}fixed-price quote inside 12 business hours.
+          </p>
+          <div className="dp-hero__ctas">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+              Or call {site.phone}
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Product photo + at-a-glance strip · balanced 1:1 grid so the
+          photo card and the spec column are the same height. */}
+      <section className="product-hero">
+        <div className="wrap product-hero__grid">
+          <div className="product-hero__pic">
+            {product.veuEligible && (
+              <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate eligible</span>
+            )}
+            {(() => { const ph = productPhoto(product, brand); return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="eager" />; })()}
+          </div>
+          <div className="product-hero__spec">
+            <div className="product-hero__spec-inner">
+              <div className="product-hero__spec-row">
+                <div className="dp-local__lbl">Model</div>
+                <p><strong>{product.model}</strong></p>
+              </div>
+              {product.capacity && (
+                <div className="product-hero__spec-row">
+                  <div className="dp-local__lbl">Capacity</div>
+                  <p>{product.capacity}</p>
+                </div>
+              )}
+              <div className="product-hero__spec-row">
+                <div className="dp-local__lbl">Installed price</div>
+                <p>
+                  {product.installedPriceFrom
+                    ? <strong>{product.installedPriceFrom}</strong>
+                    : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Fixed price within 12 business hours.</span></>
+                  }
+                </p>
+              </div>
+              <div className="product-hero__spec-row">
+                <div className="dp-local__lbl">VEU rebate</div>
+                <p>{product.veuEligible ? "Eligible · we handle the paperwork." : "Not applicable to this unit."}</p>
+              </div>
+              <div className="product-hero__spec-cta">
+                <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* At-a-glance · four scannable cells (best-for / category /
+          refrigerant / star) sit above the tabbed detail so the buyer
+          can size up the unit before choosing what to dig into. */}
+      <section className="product-why">
+        <div className="wrap">
+          <div className="product-why__grid">
+            <div className="product-why__cell">
+              <div className="product-why__lbl">Best for</div>
+              <p>{product.bestFor}</p>
+            </div>
+            <div className="product-why__cell">
+              <div className="product-why__lbl">Category</div>
+              <p>{product.categoryLabel}</p>
+            </div>
+            {product.refrigerant && (
+              <div className="product-why__cell">
+                <div className="product-why__lbl">Refrigerant</div>
+                <p>{product.refrigerant}</p>
+              </div>
+            )}
+            {product.starRating && (
+              <div className="product-why__cell">
+                <div className="product-why__lbl">Star rating</div>
+                <p>{product.starRating}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Tabbed content: Full specs · Features · Why we install.
+          Puts more information on one screen without the buyer having
+          to scroll a long page. Client component keeps the switch
+          instant. Fallbacks handle products that don't yet have per-
+          product feature / why-install bullets populated. */}
+      {/* Shower delivery — storage hot water only. Hides itself when the
+          product has no tank (continuous flow, controllers, aircon). */}
+      {product.tankLitres && (
+        <section className="product-shower">
+          <div className="wrap">
+            <ShowerDelivery tankLitres={product.tankLitres} compressorKw={product.compressorKw} productName={product.name} />
+          </div>
+        </section>
+      )}
+
+      <section className="product-tabs">
+        <div className="wrap">
+          <ProductTabs
+            specs={product.specs}
+            features={product.features && product.features.length > 0
+              ? product.features
+              : (brand.keyFeatures ?? [])}
+            whyWeInstall={product.whyWeInstall && product.whyWeInstall.length > 0
+              ? product.whyWeInstall
+              : [product.ourTake, brand.ourTake].filter(Boolean) as string[]}
+            brandName={brand.name}
+            brandWarranty={brand.warranty}
+          />
+        </div>
+      </section>
+
+      {relatedProducts.length > 0 && (
+        <section className="product-related">
+          <div className="wrap">
+            <h3 className="product-related__lbl">Related models</h3>
+            <div className="product-related__grid">
+              {relatedProducts.map(({ brand: b, product: p }) => (
+                <Link key={`${b.slug}-${p.slug}`} href={`/brands/${b.slug}/${p.slug}`} className="product-related__card">
+                  <span className="product-related__brand">{b.name}</span>
+                  <span className="product-related__name">{p.name}</span>
+                  {p.capacity && <span className="product-related__cap">{p.capacity}</span>}
+                </Link>
+              ))}
+            </div>
+            <Link href={`/brands/${brand.slug}`} className="product-related__all">
+              ← See full {brand.name} range
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <section className="bigcta">
+        <div className="wrap bigcta__row">
+          <div>
+            <h2>Fixed {product.name} quote.</h2>
+            <p>Free, no-obligation, replied within 12 business hours.</p>
+          </div>
+          <div className="bigcta__btns">
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
+            <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
+              or call <strong>{site.phone}</strong>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <Script id={`ld-crumbs-${brand.slug}-${product.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+    </div>
+  );
+}

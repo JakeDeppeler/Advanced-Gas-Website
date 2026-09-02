@@ -140,7 +140,7 @@ export function ContactForm() {
       <div className="ct-field ct-field--full" style={{ marginTop: 14 }}>
         <label>Anything else? (optional)</label>
         <textarea
-          placeholder="e.g. ducted gas heater is making a clunking sound, looking to replace before winter — house is 4 bed, 2 bath, single storey."
+          placeholder="e.g. ducted gas heater is making a clunking sound, looking to replace before winter, house is 4 bed, 2 bath, single storey."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
@@ -151,9 +151,9 @@ export function ContactForm() {
       )}
 
       <div className="ct-submit">
-        <p>We&apos;ll reply within 2 business hours. No call centres, no marketing emails.</p>
+        <p>We&apos;ll reply within 12 business hours. No call centres, no marketing emails.</p>
         <button type="submit" disabled={submitting} className="ds-btn ds-btn--orange ds-btn--lg">
-          {sent ? "Sent ✓ — we'll be in touch" : submitting ? "Sending…" : "Send my quote request →"}
+          {sent ? "Sent ✓, we'll be in touch" : submitting ? "Sending…" : "Send my quote request →"}
         </button>
       </div>
     </form>

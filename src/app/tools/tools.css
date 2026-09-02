@@ -1,0 +1,1259 @@
+/* ============== /tools · hub + calculators + fault-code table ============== */
+
+/* Tighter hero on tool pages — default detail hero is 70/90 top/bottom,
+   which combined with the section below leaves an empty navy band. Trim
+   the bottom so the form sits close to the hero. */
+.page-tools .dp-hero { padding: 56px 0 32px; }
+
+.tools-grid-sec {
+  padding: 40px 0 60px;
+  background: var(--bg);
+}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+.tool-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  transition: transform .18s, box-shadow .22s, border-color .18s;
+  position: relative;
+}
+.tool-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--orange);
+}
+.tool-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--orange); }
+.tool-card__inner { padding: 26px 26px 28px; display: flex; flex-direction: column; gap: 12px; }
+.tool-card__eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+  font-weight: 700;
+}
+.tool-card h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0;
+  line-height: 1.15;
+}
+.tool-card__tagline {
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: var(--ink-2);
+  margin: 0;
+  font-weight: 600;
+}
+.tool-card__blurb {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: 0;
+}
+.tool-card__bullets {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.tool-card__bullets li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.45;
+}
+.tool-card__bullets li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--sky);
+  font-weight: 800;
+  font-size: 13px;
+}
+.tool-card__cta {
+  font-family: var(--f-display);
+  font-weight: 700;
+  color: var(--orange);
+  font-size: 14px;
+  margin-top: 6px;
+}
+
+/* --------------- Calculator page shell --------------- */
+.page-tool { padding: 28px 0 60px; background: var(--bg); }
+.page-tool__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.page-tool__form,
+.page-tool__result {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 26px 28px;
+  box-shadow: var(--shadow-sm);
+}
+.page-tool__result { position: sticky; top: 100px; }
+/* Panel headings sit on a navy bar: a light hairline the width of the
+   panel, with a heavier navy stub under the words themselves. Reads as
+   a heading rather than the divider the full navy rule looked like. */
+.page-tool h2 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+  position: relative;
+}
+.page-tool h2::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 62px;
+  height: 2px;
+  background: var(--navy);
+}
+
+/* Form fields */
+.tool-field { display: grid; gap: 6px; margin-bottom: 14px; }
+.tool-field label {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.tool-field input,
+.tool-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-family: var(--f-body);
+  color: var(--navy);
+  background: #fff;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.tool-field input:focus,
+.tool-field select:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(243,103,34,0.12);
+}
+.tool-field small { font-size: 11.5px; color: var(--ink-3); }
+.tool-field__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* Result panel */
+.tool-result__lead {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.tool-result__big {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 40px;
+  color: var(--orange);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.tool-result__sub {
+  font-size: 14.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+.tool-result__breakdown {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--bg-2);
+  border-radius: 10px;
+  margin-bottom: 18px;
+}
+.tool-result__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line);
+  font-size: 13.5px;
+}
+.tool-result__row:last-child { border-bottom: 0; }
+.tool-result__row-lbl { color: var(--ink-3); }
+.tool-result__row-val { color: var(--navy); font-family: var(--f-display); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tool-result__cta { display: flex; flex-direction: column; gap: 8px; }
+.tool-result__cta .ds-btn { justify-content: center; }
+.tool-result__note {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .page-tool__grid { grid-template-columns: 1fr; }
+  .page-tool__result { position: static; }
+}
+@media (max-width: 640px) {
+  /* Two-column field row collapses to one column so selects like the
+     5-star gas rating dropdown don't get truncated inside a ~180 px cell. */
+  .tool-field__row { grid-template-columns: 1fr; }
+  .page-tool__form,
+  .page-tool__result { padding: 20px 18px; }
+  .tool-result__big { font-size: 34px; }
+}
+
+/* --------------- Fault code table --------------- */
+.faults-controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.faults-controls input,
+.faults-controls select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: var(--f-body);
+  color: var(--navy);
+  background: #fff;
+}
+.faults-controls input:focus,
+.faults-controls select:focus {
+  outline: none;
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(243,103,34,0.12);
+}
+@media (max-width: 640px) {
+  .faults-controls { grid-template-columns: 1fr; }
+}
+
+.faults-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.faults-table th {
+  text-align: left;
+  padding: 12px 14px;
+  background: var(--paper);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  border-bottom: 2px solid var(--navy);
+  white-space: nowrap;
+}
+.faults-table td {
+  padding: 14px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink);
+  vertical-align: top;
+  line-height: 1.45;
+}
+.faults-table tr:last-child td { border-bottom: 0; }
+.faults-table tr:hover td { background: var(--bg-2); }
+.fault-brand {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--bg-2);
+  color: var(--navy);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.fault-code {
+  font-family: var(--f-mono);
+  font-size: 13.5px;
+  color: var(--orange);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.faults-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--ink-3);
+  font-style: italic;
+}
+.faults-count {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 12px;
+}
+
+/* System-type chip filter above the search row */
+.faults-systems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+@media (max-width: 640px) {
+  .faults-systems {
+    /* Horizontal scrolling row on tight phones so the 5 chips
+       (All / Aircon / Heater / Evap / Hot water) don't stack into
+       three rows and eat vertical space above the table. Trailing
+       padding-right so the LAST chip is fully visible + swipe-past-
+       able without being clipped by the viewport edge. */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 24px 8px 16px;
+    margin: 0 -16px 14px;
+  }
+  .faults-systems::-webkit-scrollbar { display: none; }
+  .faults-systemchip { flex-shrink: 0; padding: 7px 12px; font-size: 12.5px; }
+}
+.faults-systemchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.faults-systemchip:hover { border-color: var(--orange); color: var(--orange); }
+.faults-systemchip.is-active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+.faults-systemchip__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  padding: 0 6px;
+  height: 18px;
+  background: var(--bg-2);
+  color: var(--navy);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.faults-systemchip.is-active .faults-systemchip__count {
+  background: rgba(255,255,255,0.22);
+  color: #fff;
+}
+
+/* Small system-type badge in the table rows */
+.fault-system {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-weight: 700;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.fault-system--aircon     { background: rgba(0,176,237,0.10);   color: #036f96; border-color: rgba(0,176,237,0.25); }
+.fault-system--heater     { background: rgba(243,103,34,0.10);  color: #b64b12; border-color: rgba(243,103,34,0.25); }
+.fault-system--hot-water  { background: rgba(46,132,89,0.10);   color: #1c603c; border-color: rgba(46,132,89,0.25); }
+.fault-system--evap       { background: rgba(139,92,246,0.10);  color: #5a3ab3; border-color: rgba(139,92,246,0.25); }
+
+/* Restructure the fault-table as a card list on mobile so nothing
+   overflows the viewport. Header row is hidden; each row becomes a
+   card with brand + system + code on the top line, meaning below,
+   first-check appended as small tertiary text. */
+@media (max-width: 640px) {
+  .faults-table {
+    display: block;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    min-width: 0;
+  }
+  .faults-table thead { display: none; }
+  .faults-table tbody { display: block; }
+  .faults-table tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "brand system code"
+      "meaning meaning meaning"
+      "check check check";
+    row-gap: 6px;
+    column-gap: 8px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .faults-table tr:last-child { margin-bottom: 0; }
+  .faults-table tr:hover td { background: transparent; }
+  .faults-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .faults-table td:nth-child(1) { grid-area: brand; }
+  .faults-table td:nth-child(2) { grid-area: system; }
+  .faults-table td:nth-child(3) { grid-area: code; text-align: right; }
+  .faults-table td:nth-child(4) {
+    grid-area: meaning;
+    padding-top: 6px;
+    border-top: 1px dashed var(--line-2);
+  }
+  .faults-table td:nth-child(4) strong { font-size: 14px; }
+  .faults-table td.faults-td--check {
+    display: block;
+    grid-area: check;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .faults-table td.faults-td--check::before {
+    content: "First check · ";
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--orange);
+    font-weight: 700;
+  }
+  .fault-brand, .fault-system { font-size: 10px; padding: 2px 6px; }
+  .fault-code { font-size: 12.5px; }
+}
+
+/* --------------- Compare mobile cards ---------------
+   The desktop scroll table is opaque + fussy on a phone even with
+   overflow-x working — you can't see two columns at once, the sticky
+   rowhead overlaps, and system names / values keep getting clipped.
+   Below 640 px we hide the table entirely and render a stacked
+   card-per-item view instead (populated in the tool JSX right beside
+   the table). Each card gets a header block, an attribute list, and
+   pros / cons + a CTA at the foot. */
+.sysc-cards { display: none; }
+@media (max-width: 640px) {
+  .sysc-scroll { display: none; }
+  .sysc-cards { display: grid; gap: 14px; }
+}
+.sysc-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.sysc-card__head {
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--navy);
+  margin-bottom: 12px;
+}
+.sysc-card__name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.sysc-card__eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.sysc-card__rows {
+  display: grid;
+  gap: 0;
+}
+.sysc-card__row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--line-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.sysc-card__row:last-of-type { border-bottom: 0; }
+.sysc-card__row-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+.sysc-card__row-val {
+  color: var(--navy);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sysc-card__row-val--wrap { font-weight: 400; color: var(--ink-2); }
+.sysc-card__block {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.sysc-card__block-lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.sysc-card__cta {
+  margin-top: 14px;
+  display: flex;
+}
+.sysc-card__cta .ds-btn { flex: 1; justify-content: center; }
+
+/* --------------- System comparison table --------------- */
+.sysc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+@media (max-width: 640px) {
+  .sysc-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin: 0 -16px 8px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .sysc-chips::-webkit-scrollbar { display: none; }
+  .sysc-chip { flex-shrink: 0; }
+}
+.sysc-chip {
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  color: var(--navy);
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.sysc-chip:hover { border-color: var(--orange); color: var(--orange); }
+.sysc-chip.is-active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sysc-selectionhint {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.02em;
+  margin: 4px 0 20px;
+}
+.sysc-selectionhint strong { color: var(--navy); }
+
+.sysc-scroll {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.sysc-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 720px;
+}
+.sysc-table th,
+.sysc-table td {
+  padding: 14px 16px;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.sysc-th--rowhead {
+  width: 140px;
+  min-width: 130px;
+  background: var(--bg-2);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+.sysc-th--sys {
+  padding: 18px 16px;
+  background: #fff;
+  border-bottom: 2px solid var(--navy);
+}
+.sysc-sys__name {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15.5px;
+  color: var(--navy);
+  line-height: 1.2;
+}
+.sysc-sys__eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.sysc-td {
+  color: var(--navy);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.sysc-td--wrap { font-weight: 400; color: var(--ink-2); }
+.sysc-td--cta { text-align: left; padding: 16px; }
+
+.sysc-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.sysc-list li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.sysc-list--pros li::before {
+  content: "✓";
+  position: absolute; left: 0;
+  color: #217049;
+  font-weight: 800;
+}
+.sysc-list--cons li::before {
+  content: "×";
+  position: absolute; left: 2px;
+  color: #c14a13;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* ==================================================================
+   Tools hub — grouped sections
+   ================================================================== */
+.tools-group { margin-top: 46px; }
+.tools-group:first-of-type { margin-top: 0; }
+.tools-group__head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--line);
+}
+.tools-group__title {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0;
+}
+.tools-group__blurb {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  flex: 1;
+  min-width: 200px;
+}
+.tools-group__count {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  background: var(--bg-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .tools-group { margin-top: 34px; }
+  .tools-group__title { font-size: 19px; }
+  .tools-group__blurb { font-size: 13px; }
+}
+
+/* ==================================================================
+   Heat pump sizing — hot/cold split bar + verdict + explainer
+   ================================================================== */
+.hps-split {
+  margin: 20px 0;
+  padding: 16px 18px;
+  background: var(--bg-2);
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+.hps-split__lbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-split__bar {
+  display: flex;
+  height: 40px;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.hps-split__hot,
+.hps-split__cold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: width .18s ease;
+}
+.hps-split__hot  { background: linear-gradient(135deg, #f36722, #d4520f); }
+.hps-split__cold { background: linear-gradient(135deg, #00b0ed, #0286b3); }
+.hps-split__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.hps-split__note strong { color: var(--navy); }
+
+.hps-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  border-left: 3px solid;
+}
+.hps-verdict strong {
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 800;
+}
+.hps-verdict span { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+.hps-verdict.is-ok {
+  background: rgba(46,132,89,0.08);
+  border-left-color: #217049;
+}
+.hps-verdict.is-ok strong { color: #217049; }
+.hps-verdict.is-tight {
+  background: rgba(243,103,34,0.08);
+  border-left-color: var(--orange);
+}
+.hps-verdict.is-tight strong { color: #b64b12; }
+
+.hps-explain,
+.hps-cta-note {
+  margin-top: 40px;
+  padding: 26px 28px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.hps-cta-note { border-left: 4px solid var(--orange); }
+.hps-explain h2,
+.hps-cta-note h2 {
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  color: var(--navy);
+  margin: 0 0 16px;
+}
+.hps-explain__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+}
+.hps-explain h3 {
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 0 8px;
+}
+.hps-explain h3 + p + h3 { margin-top: 18px; }
+.hps-explain p,
+.hps-cta-note p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  margin: 0 0 12px;
+}
+.hps-explain code {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  padding: 2px 6px;
+  border-radius: 5px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.hps-explain strong { color: var(--navy); }
+@media (max-width: 760px) {
+  .hps-explain__grid { grid-template-columns: 1fr; gap: 20px; }
+  .hps-explain, .hps-cta-note { padding: 20px 18px; margin-top: 28px; }
+}
+
+
+/* ============================================================
+   HEAT PUMP SIZING — delivery, day split, head-to-head
+   ============================================================ */
+
+/* The headline most people are actually asking for: not tank litres,
+   but litres of shower-temperature water. */
+.hps-delivery {
+  margin: 18px 0 4px;
+  padding: 18px 20px;
+  background: color-mix(in srgb, var(--orange) 7%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--orange) 26%, var(--line));
+  border-radius: 14px;
+}
+.hps-delivery__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.hps-delivery__big {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(26px, 4vw, 36px);
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.05;
+}
+.hps-delivery__big span {
+  display: block;
+  font-family: var(--f-body, inherit);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0;
+  color: var(--ink-2);
+  margin-top: 4px;
+}
+.hps-delivery__note {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Morning / gap / evening */
+.hps-sessions { margin: 20px 0 4px; }
+.hps-sessions__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-sessions__grid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: stretch;
+}
+.hps-session {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+.hps-session strong {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.hps-session__when {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.hps-session__sub { font-size: 12px; color: var(--ink-3); }
+.hps-session--gap {
+  background: color-mix(in srgb, var(--sky) 8%, var(--paper));
+  border-color: color-mix(in srgb, var(--sky) 28%, var(--line));
+  justify-content: center;
+}
+.hps-session--gap strong { color: var(--sky); }
+.hps-sessions__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+/* Head-to-head */
+.hps-vs { margin: 22px 0 4px; }
+.hps-vs__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hps-vs__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.hps-vs__card {
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  border-top: 3px solid var(--line);
+}
+.hps-vs__card.is-ok    { border-top-color: #17a06a; }
+.hps-vs__card.is-tight { border-top-color: var(--orange); }
+.hps-vs__card h3 {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--navy);
+  margin: 0 0 8px;
+  line-height: 1.25;
+}
+.hps-vs__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.hps-vs__badge.is-ok    { background: rgba(23,160,106,0.12); color: #12855a; }
+.hps-vs__badge.is-tight { background: color-mix(in srgb, var(--orange) 15%, #fff); color: #b8460f; }
+
+.hps-vs__rows { margin: 0; display: grid; gap: 6px; }
+.hps-vs__rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--line);
+}
+.hps-vs__rows > div:last-child { border-bottom: 0; padding-bottom: 0; }
+.hps-vs__rows dt { color: var(--ink-3); margin: 0; }
+.hps-vs__rows dd { margin: 0; font-weight: 700; color: var(--navy); text-align: right; }
+
+.hps-vs__note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.hps-vs__unverified {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--orange) 9%, #fff);
+  border: 1px dashed color-mix(in srgb, var(--orange) 38%, var(--line));
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #943d0d;
+}
+.hps-vs__foot {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+@media (max-width: 620px) {
+  .hps-sessions__grid { grid-template-columns: 1fr; }
+  .hps-vs__grid { grid-template-columns: 1fr; }
+  .hps-delivery__big { font-size: 26px; }
+}
+
+
+/* Product picks under the recommended size */
+.hps-picks { margin: 14px 0 4px; }
+.hps-picks__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.hps-picks__row { display: flex; flex-wrap: wrap; gap: 8px; }
+.hps-pick {
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: none;
+  transition: border-color .16s ease, background .16s ease;
+}
+.hps-pick:hover {
+  border-color: var(--orange);
+  background: color-mix(in srgb, var(--orange) 8%, var(--paper));
+}
+
+/* Can the bathroom actually pass that many people? */
+.hps-rushfit {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--sky) 8%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--sky) 26%, var(--line));
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.hps-rushfit.is-tight {
+  background: color-mix(in srgb, var(--orange) 8%, var(--paper));
+  border-color: color-mix(in srgb, var(--orange) 30%, var(--line));
+}
+
+
+/* Recommended system — the answer, boxed so it's unmissable. */
+.tool-rec {
+  margin: 6px 0 16px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--orange) 12%, var(--paper)), var(--paper));
+  border: 2px solid var(--orange);
+  border-radius: 16px;
+}
+.tool-rec__lead {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #b8460f;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.tool-rec__big {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(38px, 6vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--navy);
+}
+.tool-rec__models {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+/* Advanced disclosure */
+.tool-adv {
+  margin-top: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.tool-adv > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 14px 18px;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 14.5px;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tool-adv > summary::-webkit-details-marker { display: none; }
+.tool-adv > summary::after {
+  content: "+";
+  font-family: var(--f-mono);
+  font-size: 18px;
+  color: var(--orange);
+  line-height: 1;
+}
+.tool-adv[open] > summary::after { content: "−"; }
+.tool-adv[open] > summary { border-bottom: 1px solid var(--line); }
+.tool-adv > *:not(summary) { padding-left: 18px; padding-right: 18px; }
+.tool-adv > *:last-child { padding-bottom: 16px; }
+.tool-adv__note {
+  margin: 14px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-3);
+}
+
+/* The tools hub and each tool open on a light hero; give the h1 the same
+   accent rule the section heads use so the page has a colour anchor. */
+.page-tool .dp-hero__eyebrow,
+.page-tools .dp-hero__eyebrow { color: var(--sky); }
+
+/* Centred heads can't take a left rule — underline them instead. */
+.ds-section-head--center.ds-section-head--hl { padding-left: 0; }
+.ds-section-head--center.ds-section-head--hl::before {
+  left: 50%;
+  top: auto;
+  bottom: -14px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 4px;
+}
+
+
+/* Tools hub: eyebrow and hero accent in orange so the landing page has
+   the same colour anchor as the tools themselves. */
+
+
+
+/* Tank + compressor trade-off */
+.tool-rec__kw { font-size: 0.5em; color: #b8460f; letter-spacing: -0.01em; }
+.tool-pair { margin: 16px 0 4px; }
+.tool-pair__lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.tool-pair__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.tool-pair__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: center;
+}
+.tool-pair__cell strong {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+.tool-pair__cell span {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.tool-pair__cell.is-active {
+  background: color-mix(in srgb, var(--orange) 10%, var(--paper));
+  border-color: var(--orange);
+}
+.tool-pair__cell.is-active strong { color: #b8460f; }
+.tool-pair__note {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+
+.hps-picks__also {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.hps-picks__also a { color: var(--navy); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.hps-picks__also a:hover { color: var(--orange); }

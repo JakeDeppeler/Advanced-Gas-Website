@@ -1,51 +1,125 @@
 import type { MetadataRoute } from "next";
-import { site, services, suburbs } from "@/lib/site";
-import { blogPosts } from "@/lib/blogPosts";
+import { site, services } from "@/lib/site";
+import { serviceContent } from "@/lib/serviceContent";
+import { publishedSuburbs } from "@/lib/suburbs";
+import { brands } from "@/lib/brands";
+import { detailedCodes, faultSlug } from "@/lib/faultCodes";
 
+/**
+ * No `lastModified` anywhere in here, deliberately.
+ *
+ * It used to be `new Date()` on all 406 URLs, which told Google that
+ * every page on the site changed on every deploy. Google's own guidance
+ * is that they only use lastmod when it is consistently accurate, and
+ * they ignore it outright on sites where it obviously isn't. A blanket
+ * build timestamp is the textbook way to get it ignored, and it is
+ * worse than useless when 425 of 432 pages aren't indexed yet and we
+ * need every crawl signal we send to be believed.
+ *
+ * We don't track per-page content dates, so omitting the field is the
+ * honest option. If we ever want it back, the right source is the git
+ * commit date of the file that produces each page, resolved at build
+ * time, not the moment the build ran.
+ *
+ * `changeFrequency` and `priority` are kept because they cost nothing.
+ * Google ignores both; some smaller crawlers still read them.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
   const base = site.url;
 
   const staticUrls: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified: now, changeFrequency: "weekly", priority: 1.0 },
-    { url: `${base}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.6 },
-    { url: `${base}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/quote`, lastModified: now, changeFrequency: "monthly", priority: 0.9 },
-    { url: `${base}/service-areas`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/rebates`, lastModified: now, changeFrequency: "weekly", priority: 0.95 },
-    { url: `${base}/membership`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.6 },
-    { url: `${base}/services`, lastModified: now, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/`, changeFrequency: "weekly", priority: 1.0 },
+    { url: `${base}/about`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${base}/gallery`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/reviews`, changeFrequency: "weekly", priority: 0.65 },
+    { url: `${base}/tools`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/tools/heat-pump-sizing`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${base}/tools/sizing-calculator`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/running-cost-calculator`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/fault-codes`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/hot-water-savings`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/tools/veu-rebate-estimator`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/tools/heating-comparator`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/tools/system-comparison`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/tools/heat-pump-compare`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/brands/reclaim/compare`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/brands/reclaim/models`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/contact`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/quote`, changeFrequency: "monthly", priority: 0.9 },
+    { url: `${base}/service-areas`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/rebates`, changeFrequency: "weekly", priority: 0.95 },
+    { url: `${base}/upgrade-or-repair`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/heat-pumps`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/range`, changeFrequency: "weekly", priority: 0.85 },
+    { url: `${base}/water-filtration`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/water-filtration/whole-home`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/water-filtration/hot-water`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/water-filtration/under-sink`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/water-filtration/rainwater-uv`, changeFrequency: "monthly", priority: 0.75 },
+    { url: `${base}/water-filtration/range`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/services`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/brands`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/pricing`, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${base}/terms`, changeFrequency: "yearly", priority: 0.2 },
   ];
+
+  // One entry per written-up fault code. These are the best-shaped
+  // searches on the site: someone with a broken appliance and a code in
+  // front of them. Only codes with long-form content have a page.
+  const faultUrls: MetadataRoute.Sitemap = detailedCodes().map((f) => ({
+    url: `${base}/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}`,
+    changeFrequency: "yearly" as const,
+    priority: 0.7,
+  }));
 
   const serviceUrls: MetadataRoute.Sitemap = services.map((s) => ({
     url: `${base}/services/${s.slug}`,
-    lastModified: now,
     changeFrequency: "monthly",
     priority: 0.9,
   }));
 
-  const suburbUrls: MetadataRoute.Sitemap = suburbs.flatMap((sub) => [
+  // One entry per system page (/services/<service>/<system>). Only the
+  // ones with long-form content — the route 404s the rest, so listing
+  // them would advertise dead URLs.
+  const systemUrls: MetadataRoute.Sitemap = Object.entries(serviceContent).flatMap(
+    ([slug, c]) =>
+      (c.systems ?? [])
+        .filter((sys) => sys.intro)
+        .map((sys) => ({
+          url: `${base}/services/${slug}/${sys.id}`,
+          changeFrequency: "monthly" as const,
+          priority: 0.8,
+        })),
+  );
+
+  // Only sitemap-emit the suburbs we've published in the current SEO wave.
+  // Draft entries live in suburbs.ts with published:false so we can iterate on
+  // their per-suburb hooks without exposing thin content to Google.
+  // Suburb hubs only. The per-service sub-pages (/areas/x/service) were
+  // pruned in WEB-008 and now 301 to the hub, so they must not be in the
+  // sitemap — a sitemap URL that redirects is a signal Google distrusts.
+  const suburbUrls: MetadataRoute.Sitemap = publishedSuburbs.map((sub) => ({
+    url: `${base}/areas/${sub.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
+
+  // Brand hubs + individual product pages.
+  const brandUrls: MetadataRoute.Sitemap = brands.flatMap((b) => [
     {
-      url: `${base}/areas/${sub.slug}`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    ...services.slice(0, 2).map((s) => ({
-      url: `${base}/areas/${sub.slug}/${s.slug}`,
-      lastModified: now,
+      url: `${base}/brands/${b.slug}`,
       changeFrequency: "monthly" as const,
-      priority: 0.8,
+      priority: 0.75,
+    },
+    ...b.products.filter((p) => !p.retired).map((p) => ({
+      url: `${base}/brands/${b.slug}/${p.slug}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
   ]);
 
-  const blogUrls: MetadataRoute.Sitemap = blogPosts.map((p) => ({
-    url: `${base}/blog/${p.slug}`,
-    lastModified: new Date(p.iso),
-    changeFrequency: "monthly",
-    priority: 0.65,
-  }));
-
-  return [...staticUrls, ...serviceUrls, ...suburbUrls, ...blogUrls];
+  return [...staticUrls, ...serviceUrls, ...faultUrls,
+    ...systemUrls, ...suburbUrls, ...brandUrls];
 }

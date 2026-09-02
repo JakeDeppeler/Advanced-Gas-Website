@@ -1,0 +1,1728 @@
+/* ===================================================================
+   /water-filtration — hub + the three tier pages.
+
+   Its own stylesheet rather than detail.css because the section is a
+   different page shape: it explains before it sells, so the reading
+   sections are wider and the product cards come later than they do on
+   a service page.
+   =================================================================== */
+
+.page-filtration { background: var(--bg); }
+.page-filtration section { padding: 64px 0; }
+.page-filtration .ds-eyebrow { margin-bottom: 14px; }
+.page-filtration .wf-eyebrow { display: inline-flex; margin-bottom: 18px; }
+
+/* Shared CTA row. The site's button utilities are `ds-btn`; the bare
+   `btn` names only exist scoped to /rebates, so using them here rendered
+   the CTAs as plain underlined links. */
+.pg-ctas { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.page-filtration .ds-section-head h2 { margin: 14px 0 16px; }
+/* Headings come from the design system's scale (clamp 34–56px, weight
+   800) like every other page. This file used to set its own smaller
+   scale, which is what made these pages read as bolted on. */
+
+/* ---------- hero ---------- */
+.wf-hero {
+  background:
+    radial-gradient(1100px 480px at 80% -10%, rgba(0, 176, 237, 0.22), transparent 60%),
+    linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 65%, var(--navy-3) 100%);
+  color: #fff;
+  padding: 74px 0 66px !important;
+}
+.wf-hero__grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 48px; align-items: center; }
+.wf-hero h1 {
+  color: #fff;
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(36px, 4.8vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  margin: 16px 0 16px;
+  max-width: 16ch;
+  text-wrap: balance;
+}
+.wf-hero h1 em { color: var(--sky-2); font-style: normal; }
+.wf-hero__sub {
+  max-width: 660px;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 26px;
+}
+.wf-hero__where {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.72);
+  border-left: 3px solid var(--sky);
+  padding-left: 14px;
+  margin: 0 0 26px;
+  max-width: 60ch;
+}
+.wf-hero__where strong { color: #fff; }
+.wf-hero__facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wf-hero__facts li {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rad-sm);
+  padding: 14px 16px;
+}
+.wf-hero__facts strong { display: block; font-size: 15px; color: #fff; }
+.wf-hero__facts span { display: block; margin-top: 3px; font-size: 13px; color: rgba(255, 255, 255, 0.7); line-height: 1.45; }
+
+.wf-hero--tier { padding: 60px 0 56px !important; }
+.wf-crumbs { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 18px; color: rgba(255,255,255,0.55); }
+.wf-crumbs a { color: rgba(255, 255, 255, 0.78); text-decoration: none; }
+.wf-crumbs a:hover { color: #fff; text-decoration: underline; }
+
+/* ---------- what's in your water ---------- */
+.wf-lede { max-width: 72ch; font-size: 16.5px; line-height: 1.7; color: var(--ink-2); margin: 0 0 30px; }
+.wf-water__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+.wf-water__card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sky);
+  border-radius: var(--rad);
+  padding: 22px 24px;
+}
+.wf-water__card h3 { font-family: var(--f-display); font-size: 19px; color: var(--navy); margin: 0 0 10px; }
+.wf-water__why { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 12px; }
+.wf-water__fix { font-size: 14px; line-height: 1.55; color: var(--ink-2); margin: 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.wf-water__fix strong { color: var(--navy); }
+
+/* ---------- three tiers ----------
+   White product cards on a navy band, centred, with an outlined pill
+   CTA — the layout Jake pointed at on the Complete Home Filtration site.
+   The "product shot" is our own diagram of where the fitting goes, which
+   is more use to a reader than a photo of a canister and doesn't pretend
+   to be a Puretec press image we don't have. */
+.wf-tiers { background: var(--navy); }
+.wf-tiers__lede { color: rgba(255, 255, 255, 0.78) !important; }
+.wf-tiers__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 26px; }
+.wf-tier {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.6);
+}
+.wf-tier__photo {
+  aspect-ratio: 3 / 2;
+  background: #fff;
+  padding: 14px 14px 0;
+}
+.wf-tier__photo svg { width: 100%; height: 100%; display: block; }
+.wf-tier__body {
+  padding: 6px 28px 30px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: center;
+}
+.wf-tier__body h3 {
+  font-family: var(--f-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+  margin: 0 0 6px;
+}
+.wf-tier__tag { font-size: 14px; color: var(--orange); font-weight: 700; margin: 0 0 14px; }
+.wf-tier__where {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.wf-tier__where strong { color: var(--navy); }
+.wf-tier__blurb { font-size: 15px; line-height: 1.62; color: var(--ink-2); margin: 0 0 16px; }
+.wf-tier__list { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 8px; text-align: left; }
+.wf-tier__list li {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  padding-left: 20px;
+  position: relative;
+}
+.wf-tier__list li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 7px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+.wf-tier__cta {
+  margin-top: auto;
+  align-self: center;
+  display: inline-block;
+  background: transparent;
+  border: 2px solid var(--navy);
+  color: var(--navy);
+  font-weight: 700;
+  font-size: 14.5px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.wf-tier__cta:hover { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+/* ---------- stages ---------- */
+.wf-stages__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; }
+.wf-stage {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px;
+  position: relative;
+}
+.wf-stage__n {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--sky);
+}
+.wf-stage h3 { font-family: var(--f-display); font-size: 19px; color: var(--navy); margin: 8px 0 8px; }
+.wf-stage p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+.wf-stages__note {
+  margin: 22px 0 0;
+  max-width: 76ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+/* ---------- treats / doesn't ---------- */
+.wf-does__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.wf-does__col { border-radius: var(--rad); padding: 26px 28px; }
+.wf-does__col--yes { background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--sky); }
+.wf-does__col--no { background: var(--bg-2); border: 1px solid var(--line-2); border-left: 4px solid var(--ink-3); }
+.wf-does__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wf-does__col li { font-size: 15px; line-height: 1.55; color: var(--ink-2); padding-left: 22px; position: relative; }
+.wf-does__col--yes li::before { content: "✓"; position: absolute; left: 0; color: var(--sky); font-weight: 700; }
+.wf-does__col--no li::before { content: "–"; position: absolute; left: 2px; color: var(--ink-3); font-weight: 700; }
+.wf-does__note { margin: 16px 0 0; font-size: 14px; font-style: italic; color: var(--ink-3); line-height: 1.55; }
+
+/* ---------- best for / watch out ---------- */
+.wf-fit { background: var(--bg-2); }
+.wf-fit__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: start; }
+.wf-fit__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wf-fit__list li {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  padding: 14px 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.wf-fit__list--for li { border-left: 3px solid var(--orange); }
+.wf-fit__list--watch li { border-left: 3px solid var(--line-2); }
+
+/* ---------- servicing ---------- */
+/* .wf-servicing__inner retired — the cartridges section is .wf-serv__grid
+   now, further down this file. */
+.wf-servicing__photo {
+  border-radius: var(--rad);
+  aspect-ratio: 3 / 2;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  border: 1px solid var(--line);
+  padding: 16px;
+}
+.wf-servicing__photo svg { width: 100%; height: 100%; display: block; }
+.wf-servicing p { font-size: 16px; line-height: 1.7; color: var(--ink-2); margin: 0 0 14px; max-width: 56ch; }
+.wf-servicing__note { border-left: 3px solid var(--orange); padding-left: 16px; font-style: italic; color: var(--navy) !important; }
+
+/* ---------- process ---------- */
+
+/* ---------- quote ---------- */
+.wf-quote__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: start; }
+.wf-quote p { font-size: 16px; line-height: 1.7; color: var(--ink-2); margin: 0 0 14px; max-width: 54ch; }
+
+/* ---------- faq ---------- */
+.wf-faq { background: var(--bg-2); }
+/* No accordion rules here on purpose. This section carries the .faq
+   classes, and the design system already styles them the way the home
+   page's do — divider lines, a big orange +/-, the copy underneath. The
+   boxed-card overrides that used to live here were beating those, which
+   is why the drop-downs behaved differently from the home page's. */
+
+/* ---------- other tiers ---------- */
+.wf-others__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 22px; }
+.wf-other {
+  display: block;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 20px 22px;
+  text-decoration: none;
+}
+.wf-other:hover { border-color: var(--orange); box-shadow: var(--shadow-sm); }
+.wf-other b { display: block; font-family: var(--f-display); font-size: 18px; color: var(--navy); margin-bottom: 5px; }
+.wf-other span { display: block; font-size: 13.5px; line-height: 1.5; color: var(--ink-3); }
+.wf-other--hub { background: var(--navy); border-color: var(--navy); }
+.wf-other--hub b { color: #fff; }
+.wf-other--hub span { color: rgba(255, 255, 255, 0.72); }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .wf-hero__grid,
+  .wf-does__grid,
+  .wf-fit__grid,
+  .wf-servicing__inner,
+  .wf-quote__grid { grid-template-columns: 1fr; gap: 28px; }
+  .wf-tiers__grid,
+  .wf-stages__row,
+  .wf-others__row { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .page-filtration section { padding: 44px 0; }
+  .wf-hero { padding: 52px 0 46px !important; }
+  .wf-hero--tier { padding: 44px 0 40px !important; }
+  .wf-does__col { padding: 18px 20px; }
+}
+
+/* ===================================================================
+   /water-filtration/range — the capability matrix.
+   =================================================================== */
+
+.wr-tablewrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.wr-table { width: 100%; min-width: 1000px; border-collapse: collapse; font-size: 14px; }
+.wr-table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: bottom;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.wr-th--group { background: var(--navy-2); }
+.wr-th--name { text-align: left !important; min-width: 190px; }
+.wr-th--cap span { display: block; max-width: 74px; margin: 0 auto; line-height: 1.25; }
+.wr-table tbody th,
+.wr-table tbody td { border-top: 1px solid var(--line); border-left: 1px solid var(--line); padding: 14px 10px; }
+.wr-td--name {
+  text-align: left;
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+  border-left: 0 !important;
+}
+.wr-td--name a { color: var(--navy); text-decoration: none; border-bottom: 2px solid var(--orange); }
+.wr-td--name a:hover { color: var(--orange); }
+.wr-yes, .wr-no { text-align: center; }
+.wr-yes { color: var(--sky); font-weight: 800; font-size: 17px; }
+.wr-dash { color: var(--line-2); }
+.wr-td--meta { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; text-align: center; }
+.wr-source {
+  margin: 18px 0 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  max-width: 80ch;
+}
+
+/* ---- family cards ---- */
+.wr-families { background: var(--bg-2); }
+.wr-fam__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 18px; }
+.wr-fam {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--sky);
+  border-radius: var(--rad);
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+}
+.wr-fam__head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.wr-fam__head h3 { font-family: var(--f-display); font-size: 20px; color: var(--navy); margin: 0; }
+.wr-fam__warranty {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.wr-fam__blurb { margin: 0 0 12px; font-size: 15px; line-height: 1.62; color: var(--ink-2); }
+.wr-fam__note {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 14px;
+}
+.wr-fam__models { margin-bottom: 14px; }
+.wr-fam__models summary {
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy);
+  list-style: none;
+}
+.wr-fam__models summary::-webkit-details-marker { display: none; }
+.wr-fam__models summary::after { content: " +"; color: var(--orange); }
+.wr-fam__models[open] summary::after { content: " –"; }
+.wr-fam__models ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 7px; }
+.wr-fam__models li { display: flex; gap: 10px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.wr-fam__models code {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--navy);
+  height: fit-content;
+  white-space: nowrap;
+}
+.wr-fam__link { margin-top: auto; font-weight: 700; font-size: 14px; color: var(--navy); text-decoration: none; }
+.wr-fam__link:hover { color: var(--orange); text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .wr-fam { padding: 20px 22px; }
+}
+
+.wf-tiers__more { margin: 26px 0 0; text-align: center; }
+.wf-tiers__more a {
+  color: var(--sky-2);
+  font-weight: 700;
+  font-size: 15.5px;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(44, 197, 255, 0.4);
+  padding-bottom: 2px;
+}
+.wf-tiers__more a:hover { color: #fff; border-color: #fff; }
+/* Five cards now — three across reads better than a 5-up squeeze. */
+@media (min-width: 1001px) {
+  .wf-tiers__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ---- "where it goes" diagram on the tier pages ---- */
+.wf-where { background: var(--bg-2); }
+.wf-where__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 40px; align-items: center; }
+.wf-where__grid h2 { font-size: clamp(24px, 2.8vw, 36px) !important; }
+.wf-where__diagram {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 20px;
+}
+.wf-where__diagram svg { width: 100%; height: auto; display: block; }
+.wf-servicing__photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+@media (max-width: 1000px) {
+  .wf-where__grid { grid-template-columns: 1fr; gap: 22px; }
+}
+
+/* Card image: a manufacturer shot gets padding and `contain` so it sits
+   on white like the reference; our diagram fills the frame. */
+.wf-tier__photo img { width: 100%; height: 100%; display: block; object-fit: contain; }
+.wf-tier__photo--real { padding: 18px 18px 6px; }
+
+/* ===================================================================
+   COLOUR RHYTHM — the water pages ran four near-white sections in a row
+   after the navy tier band, which is what made them feel like one long
+   scroll of nothing. Every section now alternates against its
+   neighbours, with two dark beats and one orange callout per page, the
+   same language the home page and the heat pump page use.
+   =================================================================== */
+
+/* --- hub: navy hero → cream → navy tiers → ORANGE stages → navy
+       process → cream quote → white FAQ --- */
+.page-filtration .wf-water { background: var(--bg); }
+.page-filtration .wf-stages { background: var(--bg-2); }
+.page-filtration .wf-quote { background: var(--bg); }
+.page-filtration .wf-faq { background: var(--paper); border-top: 1px solid var(--line); }
+
+/* --- tier pages --- */
+.page-filtration .wf-where { background: var(--bg-2); }
+.page-filtration .wf-does { background: var(--bg); }
+.page-filtration .wf-fit { background: var(--paper); }
+.page-filtration .wf-servicing { background: var(--bg-2); }
+.page-filtration .wf-others { background: var(--bg); }
+
+/* --- range page --- */
+.page-filtration .wr-matrix { background: var(--bg); }
+.page-filtration .wr-families { background: var(--bg-2); }
+/* The range page needs its orange beat too — the matrix is a table and
+   boxing that would be odd, so the family cards take it instead. */
+
+/* --- the dark beat: process runs on navy, like the service pages'
+       install stepper, so there's a second anchor point on the page --- */
+
+/* --- the orange callout. Same radius, shadow and inner texture as the
+       home page's 60-second quote panel, so it reads as one design
+       language rather than a second idea. --- */
+.page-filtration .wr-families > .wrap,
+.page-filtration .wf-does > .wrap {
+  position: relative;
+  overflow: hidden;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 28px;
+  padding: 44px 48px 48px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
+              0 8px 24px -14px rgba(5, 10, 48, 0.2);
+}
+.page-filtration .wr-families > .wrap::before,
+.page-filtration .wf-does > .wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.10) 0%, transparent 45%);
+  pointer-events: none;
+}
+.page-filtration .wr-families > .wrap > *,
+.page-filtration .wf-does > .wrap > * { position: relative; }
+
+/* On orange the navy rule and navy headings vanish, so they go white. */
+.page-filtration .wr-families .ds-section-head--hl::before,
+.page-filtration .wf-does .ds-section-head--hl::before { background: #fff; }
+.page-filtration .wr-families .ds-eyebrow,
+.page-filtration .wf-does .ds-eyebrow { color: #fff; }
+.page-filtration .wr-families .ds-eyebrow .ds-dot,
+.page-filtration .wf-does .ds-eyebrow .ds-dot { background: #fff; }
+.page-filtration .wr-families h2,
+.page-filtration .wf-does h2 { color: #fff; }
+.page-filtration .wr-families .ds-section-head p { color: #fff; }
+
+/* Solid white cards inside, not translucent — translucent white on
+   orange looks tidy and is barely legible. */
+.page-filtration .wf-stage {
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wf-does__col--yes,
+.page-filtration .wf-does__col--no {
+  background: #fff;
+  border: 1px solid rgba(5, 10, 48, 0.08);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wf-does__col--yes { border-left: 4px solid var(--sky); }
+.page-filtration .wf-does__col--no { border-left: 4px solid var(--ink-3); }
+.page-filtration .wf-does__note { color: var(--ink-3); }
+
+/* Family cards stay solid white on the orange. */
+.page-filtration .wr-fam {
+  border-top-color: var(--sky);
+  box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
+}
+.page-filtration .wr-source { color: #fff; opacity: 0.9; }
+
+@media (max-width: 640px) {
+    .page-filtration .wr-families > .wrap,
+  .page-filtration .wf-does > .wrap { padding: 28px 20px 30px; border-radius: 20px; }
+}
+
+/* --- FAQ beside a picture, the way the reference paces it. A column of
+       accordions on its own is the driest thing on the page and it's
+       where a reader is most likely to stop. --- */
+.page-filtration .wf-faq__grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 52px;
+  align-items: start;
+}
+.page-filtration .wf-faq--split .wf-faq__list { max-width: none; }
+.page-filtration .wf-faq__aside .ds-section-head { margin-bottom: 24px; }
+.page-filtration .wf-faq__photo {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  padding: 18px;
+  position: sticky;
+  top: 110px;
+}
+.page-filtration .wf-faq__photo img { width: 100%; height: auto; display: block; object-fit: contain; }
+
+@media (max-width: 1000px) {
+  .page-filtration .wf-faq__grid { grid-template-columns: 1fr; gap: 26px; }
+  .page-filtration .wf-faq__photo { position: static; max-width: 480px; }
+}
+
+/* Proof takes the cream ground so it separates from the white FAQ it
+   sits next to on both the hub and the tier pages. */
+.page-filtration .proof { background: var(--bg-2); border-top: 1px solid var(--line); }
+
+/* Team photo beside the FAQ — full-bleed inside its frame rather than
+   the padded `contain` the diagrams use. */
+.page-filtration .wf-faq__photo--team { padding: 0; overflow: hidden; }
+.page-filtration .wf-faq__photo--team img { aspect-ratio: 3 / 2; object-fit: cover; }
+.page-filtration .wf-faq__photo figcaption {
+  padding: 12px 16px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  background: var(--paper);
+}
+
+/* ===================================================================
+   THE FIVE, COMPARED — on the hub rather than buried on /range.
+
+   The reference site's comparison table is the thing that actually
+   helps somebody choose, and ours was one click away where nobody
+   found it. This is the shallow version: five rows, six columns, the
+   "pick it when" column doing most of the work.
+   =================================================================== */
+.page-filtration .wf-compare { background: var(--bg-2); }
+.page-filtration .wf-compare__wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+}
+.page-filtration .wf-compare__table { width: 100%; min-width: 960px; border-collapse: collapse; font-size: 14px; }
+.page-filtration .wf-compare__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-compare__table thead th:first-child { border-left: 0; }
+.page-filtration .wf-compare__pickcol { background: var(--orange) !important; }
+.page-filtration .wf-compare__table tbody th,
+.page-filtration .wf-compare__table tbody td {
+  padding: 16px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  vertical-align: top;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.page-filtration .wf-compare__table tbody th {
+  text-align: left;
+  border-left: 0;
+  font-family: var(--f-display);
+  font-size: 15.5px;
+  color: var(--navy);
+  white-space: nowrap;
+}
+.page-filtration .wf-compare__table tbody th a {
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+}
+.page-filtration .wf-compare__table tbody th a:hover { color: var(--orange); }
+/* The one we lead with gets the tint, so "start here" is visible before
+   anybody reads a word of it. */
+.page-filtration .wf-compare__table tr.is-lead th,
+.page-filtration .wf-compare__table tr.is-lead td { background: rgba(243, 103, 34, 0.06); }
+.page-filtration .wf-compare__tag {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--orange);
+  border-radius: 999px;
+  padding: 3px 9px;
+  width: fit-content;
+}
+.page-filtration .wf-compare__pick {
+  background: rgba(243, 103, 34, 0.05);
+  color: var(--navy) !important;
+  font-weight: 600;
+  min-width: 260px;
+}
+.page-filtration .wf-compare__more { margin: 18px 0 0; }
+.page-filtration .wf-compare__more a {
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.page-filtration .wf-compare__more a:hover { color: var(--orange); }
+
+/* ===================================================================
+   WHOLE-HOME REBUILD — Jake went through the page point by point. This
+   is that list: photos instead of one diagram, the orange box gone, the
+   two lists turned into tables, the range, the model picker, the home
+   page's FAQ shape and the home page's moving reviews.
+   =================================================================== */
+
+/* --- install photos --- */
+.page-filtration .wf-shots { background: var(--bg-2); }
+.page-filtration .wf-shots__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+.page-filtration .wf-shot {
+  margin: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.page-filtration .wf-shot img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; }
+.page-filtration .wf-shot figcaption { padding: 13px 16px 15px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+.page-filtration .wf-shots__fallback {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 26px 30px;
+}
+.page-filtration .wf-shots__fallback svg { width: 100%; height: auto; display: block; }
+.page-filtration .wf-shots__fallback p { margin: 0; font-size: 15px; line-height: 1.65; color: var(--ink-3); font-style: italic; }
+
+/* --- the verdict tables --- */
+.page-filtration .wf-verdict { background: var(--bg); }
+.page-filtration .wf-verdict__wrap {
+  overflow-x: auto;
+  background: var(--paper);
+  border-radius: var(--rad);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+.page-filtration .wf-verdict__table { width: 100%; min-width: 620px; border-collapse: collapse; }
+.page-filtration .wf-verdict__table th {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 22px;
+  color: #fff;
+}
+.page-filtration .wf-verdict__table th.is-yes { background: var(--navy); }
+.page-filtration .wf-verdict__table th.is-no { background: var(--ink-3); }
+.page-filtration .wf-verdict__table td {
+  width: 50%;
+  padding: 20px 22px 22px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  vertical-align: top;
+}
+.page-filtration .wf-verdict__table td:first-child { border-left: 0; }
+.page-filtration .wf-verdict__table ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+.page-filtration .wf-verdict__table li {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding-left: 22px;
+  position: relative;
+}
+.page-filtration .wf-verdict__table td:first-child li::before { content: "✓"; position: absolute; left: 0; color: var(--sky); font-weight: 800; }
+.page-filtration .wf-verdict__table td:last-child li::before { content: "–"; position: absolute; left: 2px; color: var(--ink-3); font-weight: 800; }
+
+/* --- the range --- */
+.page-filtration .wf-range { background: var(--bg-2); }
+.page-filtration .wf-range__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.page-filtration .wf-model {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line-2);
+  border-radius: var(--rad);
+  padding: 24px 22px;
+  position: relative;
+}
+.page-filtration .wf-model.is-common { border-top-color: var(--orange); box-shadow: var(--shadow-sm); }
+.page-filtration .wf-model__tag {
+  position: absolute;
+  top: -11px; left: 22px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.page-filtration .wf-model h3 { font-family: var(--f-display); font-size: 20px; color: var(--navy); margin: 0 0 4px; }
+.page-filtration .wf-model__suits { font-size: 13.5px; color: var(--orange); font-weight: 700; margin: 0 0 16px; }
+.page-filtration .wf-model dl { margin: 0; display: grid; gap: 12px; }
+.page-filtration .wf-model dt {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 3px;
+}
+.page-filtration .wf-model dd { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.page-filtration .wf-range__note {
+  margin: 20px 0 0;
+  max-width: 78ch;
+  font-size: 14.5px;
+  line-height: 1.62;
+  color: var(--ink-2);
+  border-left: 3px solid var(--orange);
+  padding-left: 16px;
+}
+
+/* --- the picker --- */
+.page-filtration .wf-picker { background: var(--paper); }
+.page-filtration .wf-picker__grid { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 48px; align-items: start; }
+.page-filtration .wf-picker__logic { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.page-filtration .wf-picker__logic li {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding-left: 20px;
+  position: relative;
+}
+.page-filtration .wf-picker__logic li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--sky);
+}
+.page-filtration .wf-picker__logic strong { color: var(--navy); }
+
+.fwsel {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 26px 28px 28px;
+}
+.fwsel__progress { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+.fwsel__progress span { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); white-space: nowrap; }
+.fwsel__bar { flex: 1; height: 5px; background: var(--line-2); border-radius: 999px; overflow: hidden; }
+.fwsel__bar div { height: 100%; background: var(--orange); transition: width 0.2s ease; }
+.fwsel__q { border: 0; padding: 0; margin: 0 0 20px; }
+.fwsel__q legend {
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 10px;
+  padding: 0;
+}
+.fwsel__opts { display: flex; gap: 10px; flex-wrap: wrap; }
+.fwsel__opt {
+  background: var(--paper);
+  border: 2px solid var(--line-2);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.fwsel__opt:hover { border-color: var(--navy); }
+.fwsel__opt.is-on { background: var(--navy); border-color: var(--navy); color: #fff; }
+.fwsel__hint { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-3); font-style: italic; }
+.fwsel__result {
+  margin-top: 6px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: var(--rad-sm);
+  padding: 22px 24px;
+}
+.fwsel__reslbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 6px;
+}
+.fwsel__result strong { display: block; font-family: var(--f-display); font-size: 24px; line-height: 1.15; color: var(--orange-2); margin-bottom: 10px; }
+.fwsel__result p { margin: 0 0 16px; font-size: 14.5px; line-height: 1.6; color: rgba(255, 255, 255, 0.82); }
+.fwsel__resacts { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.fwsel__reslink { color: var(--sky-2); font-weight: 700; font-size: 14px; text-decoration: none; }
+.fwsel__reslink:hover { text-decoration: underline; }
+
+@media (max-width: 1000px) {
+  .page-filtration .wf-range__grid { grid-template-columns: repeat(2, 1fr); }
+  .page-filtration .wf-picker__grid { grid-template-columns: 1fr; gap: 26px; }
+  .page-filtration .wf-shots__fallback { grid-template-columns: 1fr; gap: 20px; }
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-shots__grid { grid-template-columns: 1fr; }
+  .page-filtration .wf-range__grid { grid-template-columns: 1fr; }
+  .fwsel { padding: 20px 18px 22px; }
+}
+
+/* --- HOW IT LOOKS. Compact by design: the old block here was a
+       full-width diagram and the thing that actually sells this unit is
+       that it's tidy on a wall, not a rack of exposed housings. --- */
+.page-filtration .wf-look { background: var(--bg-2); padding: 62px 0; }
+/* The picker needs room — squeezed into a 0.85fr column the unit was
+   the size of a postage stamp, which defeats the point of letting people
+   click through the finishes. */
+.page-filtration .wf-look__grid { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 44px; align-items: center; }
+.page-filtration .wf-look__grid h2 { font-size: clamp(24px, 2.9vw, 38px) !important; }
+.page-filtration .wf-look__note { font-size: 15.5px; line-height: 1.68; color: var(--ink-2); margin: 0 0 22px; max-width: 60ch; }
+.page-filtration .wf-look__facts { list-style: none; margin: 0; padding: 0; display: flex; gap: 26px; flex-wrap: wrap; }
+.page-filtration .wf-look__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  line-height: 1;
+}
+.page-filtration .wf-look__facts span { display: block; margin-top: 5px; font-size: 12.5px; color: var(--ink-3); }
+.page-filtration .wf-look__swatches {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 24px 26px 22px;
+}
+.page-filtration .wf-look__swlbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+.page-filtration .wf-look__swrow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px 10px; }
+.page-filtration .wf-swatch { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.page-filtration .wf-swatch i {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(5, 10, 48, 0.14);
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.08);
+}
+.page-filtration .wf-swatch em { font-style: normal; font-size: 10.5px; line-height: 1.25; color: var(--ink-3); text-align: center; }
+.page-filtration .wf-look__swnote { margin: 16px 0 0; font-size: 12.5px; color: var(--ink-3); font-style: italic; }
+
+/* --- WHY PEOPLE PUT ONE IN --- */
+.page-filtration .wf-why { background: var(--bg); }
+.page-filtration .wf-why__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.page-filtration .wf-whycard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--orange);
+  border-radius: var(--rad);
+  padding: 24px 22px;
+}
+.page-filtration .wf-whycard__n {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  color: var(--orange);
+}
+.page-filtration .wf-whycard h3 { font-family: var(--f-display); font-size: 18.5px; line-height: 1.28; color: var(--navy); margin: 8px 0 12px; }
+.page-filtration .wf-whycard ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.page-filtration .wf-whycard li {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  padding-left: 18px;
+  position: relative;
+}
+.page-filtration .wf-whycard li::before {
+  content: ""; position: absolute; left: 0; top: 7px;
+  width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
+}
+
+/* --- THIS ONE vs THE ALTERNATIVE --- */
+.page-filtration .wf-vs { background: var(--paper); }
+.page-filtration .wf-vs__wrap { overflow-x: auto; border-radius: var(--rad); box-shadow: var(--shadow-sm); background: var(--paper); }
+.page-filtration .wf-vs__table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 14.5px; }
+.page-filtration .wf-vs__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  padding: 16px 20px;
+  text-align: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-vs__table thead th:first-child { background: var(--navy); border-left: 0; }
+.page-filtration .wf-vs__table thead th.is-mine { background: var(--orange); }
+.page-filtration .wf-vs__table thead th a { color: #fff; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,0.5); }
+.page-filtration .wf-vs__table tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--ink-2);
+  padding: 15px 20px;
+  border-top: 1px solid var(--line);
+  width: 46%;
+}
+.page-filtration .wf-vs__table tbody td {
+  text-align: center;
+  padding: 15px 20px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+}
+.page-filtration .wf-vs__table tbody td.is-mine { background: rgba(243, 103, 34, 0.05); }
+.page-filtration .wf-vs__tick { color: var(--orange); font-size: 19px; font-weight: 800; }
+.page-filtration .wf-vs__dash { color: var(--line-2); }
+
+@media (max-width: 1000px) {
+  .page-filtration .wf-look__grid { grid-template-columns: 1fr; gap: 28px; }
+  .page-filtration .wf-why__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-why__grid { grid-template-columns: 1fr; }
+  .page-filtration .wf-look__swrow { grid-template-columns: repeat(5, 1fr); gap: 12px 6px; }
+  .page-filtration .wf-swatch i { width: 32px; height: 32px; }
+}
+
+/* ===================================================================
+   THE FLOW Jake asked for: header → everyday benefits → choose your
+   system → compare systems. Puretec's running order, our colours.
+   =================================================================== */
+
+/* --- EVERYDAY BENEFITS. Their five pastel tiles; ours take the brand
+       palette instead, each tile carrying its own tint via --tint. --- */
+.page-filtration .wf-areas { background: var(--bg); }
+
+/* --- CHOOSE YOUR SYSTEM. Navy band so the cards read as products. --- */
+.page-filtration .wf-styles {
+  background:
+    radial-gradient(900px 420px at 85% -10%, rgba(0, 176, 237, 0.16), transparent 60%),
+    linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-filtration .wf-styles__lede { color: rgba(255, 255, 255, 0.78) !important; }
+.page-filtration .wf-styles__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.page-filtration .wf-style {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: var(--rad);
+  overflow: hidden;
+  box-shadow: 0 22px 54px -28px rgba(0, 0, 0, 0.6);
+}
+.page-filtration .wf-style.is-lead { outline: 3px solid var(--orange); outline-offset: 0; }
+.page-filtration .wf-style__photo {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line);
+}
+.page-filtration .wf-style__photo img { width: 100%; height: 100%; object-fit: contain; padding: 16px; }
+.page-filtration .wf-style__body { padding: 20px 22px 24px; display: flex; flex-direction: column; flex: 1; }
+.page-filtration .wf-style__tier {
+  align-self: flex-start;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--orange);
+  color: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+}
+.page-filtration .wf-style h3 { font-family: var(--f-display); font-size: 21px; color: var(--navy); margin: 0 0 3px; }
+.page-filtration .wf-style__style { font-size: 12.5px; color: var(--ink-3); margin-bottom: 12px; }
+.page-filtration .wf-style p { font-size: 14.5px; line-height: 1.6; color: var(--ink-2); margin: 0 0 14px; }
+.page-filtration .wf-style ul { list-style: none; margin: auto 0 0; padding: 14px 0 0; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+.page-filtration .wf-style li { font-size: 13px; line-height: 1.45; color: var(--ink-2); padding-left: 16px; position: relative; }
+.page-filtration .wf-style li::before { content: ""; position: absolute; left: 0; top: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--sky); }
+
+/* --- COMPARE SYSTEMS --- */
+.page-filtration .wf-syscmp { background: var(--bg-2); }
+.page-filtration .wf-syscmp__wrap { overflow-x: auto; background: var(--paper); border-radius: var(--rad); box-shadow: var(--shadow-sm); }
+.page-filtration .wf-syscmp__table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
+.page-filtration .wf-syscmp__table thead th {
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
+  text-align: left;
+  padding: 13px 16px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.page-filtration .wf-syscmp__table thead th:first-child { border-left: 0; }
+.page-filtration .wf-syscmp__table tbody th,
+.page-filtration .wf-syscmp__table tbody td {
+  padding: 15px 16px;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  color: var(--ink-2);
+  vertical-align: middle;
+}
+.page-filtration .wf-syscmp__table tbody th {
+  text-align: left;
+  border-left: 0;
+  font-family: var(--f-display);
+  font-size: 15px;
+  color: var(--navy);
+}
+.page-filtration .wf-syscmp__table .is-mid { text-align: center; }
+.page-filtration .wf-syscmp__yes { color: var(--orange); font-size: 17px; font-weight: 800; }
+.page-filtration .wf-syscmp__no { color: var(--line-2); }
+.page-filtration .wf-syscmp__price { font-family: var(--f-mono); letter-spacing: 0.06em; color: var(--navy); font-weight: 700; }
+
+@media (max-width: 1100px) {
+  .page-filtration .wf-styles__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-styles__grid { grid-template-columns: 1fr; }
+}
+
+/* Model cards now carry four reasons each, so they need more room than
+   the three-line spec cards they replaced. Two across rather than four. */
+.page-filtration .wf-range__grid { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+.page-filtration .wf-model__specs { display: flex; gap: 24px; margin: 0 0 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+.page-filtration .wf-model__specs dt {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 3px;
+}
+.page-filtration .wf-model__specs dd { margin: 0; font-family: var(--f-display); font-size: 17px; font-weight: 700; color: var(--navy); }
+.page-filtration .wf-model__rl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 12px;
+}
+.page-filtration .wf-model__reasons { margin: 0; padding: 0; list-style: none; counter-reset: r; display: grid; gap: 11px; }
+.page-filtration .wf-model__reasons li {
+  counter-increment: r;
+  position: relative;
+  padding-left: 30px;
+  font-size: 14px;
+  line-height: 1.58;
+  color: var(--ink-2);
+}
+.page-filtration .wf-model__reasons li::before {
+  content: counter(r);
+  position: absolute;
+  left: 0; top: 1px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-range__grid { grid-template-columns: 1fr; }
+}
+
+/* ===================================================================
+   Jake's second pass on whole home. Icons on the tiles, a clickable
+   finish picker, photos on the model cards, the mid-page CTA boxed, and
+   the sections that were saying the same thing twice removed.
+   =================================================================== */
+
+/* --- benefit tiles: a way through to the explainer --- */
+.page-filtration .wf-areas__more { margin: 22px 0 0; }
+.page-filtration .wf-areas__more a {
+  font-weight: 700;
+  color: var(--navy);
+  text-decoration: none;
+  border-bottom: 2px solid var(--orange);
+  padding-bottom: 2px;
+}
+.page-filtration .wf-areas__more a:hover { color: var(--orange); }
+
+/* --- finish picker --- */
+.fpick { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 26px; align-items: center; }
+.fpick__stage {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+}
+.fpick__stage svg { width: 100%; height: auto; display: block; }
+.fpick__lbl {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 6px;
+}
+.fpick__name { display: block; font-family: var(--f-display); font-size: 24px; color: var(--navy); margin-bottom: 16px; }
+.fpick__row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.fpick__sw {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(5, 10, 48, 0.16);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.fpick__sw:hover { transform: translateY(-2px); }
+.fpick__sw.is-on { box-shadow: 0 0 0 3px var(--orange); border-color: #fff; }
+.fpick__note { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: var(--ink-2); }
+.fpick__fine { margin: 0; font-size: 12.5px; color: var(--ink-3); font-style: italic; }
+
+/* --- model cards: photo, and tighter --- */
+.page-filtration .wf-model { padding: 20px 20px 22px; }
+.page-filtration .wf-model__shot {
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad-sm);
+  margin-bottom: 14px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px;
+}
+.page-filtration .wf-model__shot img { width: 100%; height: 100%; object-fit: contain; }
+.page-filtration .wf-model h3 { font-size: 19px; }
+.page-filtration .wf-model__reasons li { font-size: 13.5px; line-height: 1.52; }
+
+/* --- picker: photo panel so it reads as a product, not a form --- */
+.page-filtration .wf-picker__shot {
+  margin: 0 0 22px;
+  background: linear-gradient(160deg, var(--bg-2) 0%, #fff 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 18px;
+  aspect-ratio: 4 / 3;
+  display: flex; align-items: center; justify-content: center;
+}
+.page-filtration .wf-picker__shot img { width: 100%; height: 100%; object-fit: contain; }
+
+/* --- boxed CTA, for mid-page where a full-bleed strip cuts the read --- */
+.ctaband--boxed { background: transparent; padding: 0 0 62px; }
+.ctaband--boxed::before { display: none; }
+.ctaband--boxed .ctaband__row {
+  background: var(--orange);
+  border-radius: 24px;
+  padding: 34px 38px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.5), 0 8px 24px -14px rgba(5, 10, 48, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.ctaband--boxed .ctaband__row::before {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+  pointer-events: none;
+}
+.ctaband--boxed .ctaband__row > * { position: relative; }
+
+@media (max-width: 1000px) {
+  .fpick { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .ctaband--boxed .ctaband__row { padding: 24px 20px; border-radius: 18px; }
+}
+
+
+/* ===================================================================
+   Jake's third pass on whole home:
+     · the everyday-benefit tiles as tabs, with a real transition
+     · empty product panels shrunk or dropped
+     · more colour between sections, so the page doesn't read as one
+       long cream scroll
+     · the navy rule down the side of every section head, gone
+   =================================================================== */
+
+/* --- no more navy side bar. The orange dot on the eyebrow is enough of
+       a marker, and Jake didn't want the rule. --- */
+.page-filtration .ds-section-head--hl { padding-left: 0; }
+.page-filtration .ds-section-head--hl::before { display: none; }
+
+/* The benefit tabs moved to design-system.css. They were unscoped but
+   they lived in this file, which only the filtration pages import — so
+   the hot water hire page got the markup and none of the styling. Same
+   failure as .page-home scoping, by a different route. */
+
+/* --- COLOURED BANDS. The middle of the page was cream, cream, cream;
+       these give it a rhythm without adding a single new section. --- */
+.page-filtration .wf-band--sky {
+  background:
+    radial-gradient(760px 300px at 12% 0%, rgba(0, 176, 237, 0.14), transparent 62%),
+    linear-gradient(180deg, #eef8fd 0%, #e4f2fa 100%);
+  border-top: 1px solid rgba(0, 176, 237, 0.16);
+  border-bottom: 1px solid rgba(0, 176, 237, 0.16);
+}
+.page-filtration .wf-band--sand { background: var(--bg-2); }
+.page-filtration .wf-band--peach {
+  background:
+    radial-gradient(720px 300px at 88% 0%, rgba(243, 103, 34, 0.14), transparent 60%),
+    linear-gradient(180deg, #fdf3ec 0%, #fbe9dc 100%);
+  border-top: 1px solid rgba(243, 103, 34, 0.16);
+  border-bottom: 1px solid rgba(243, 103, 34, 0.16);
+}
+.page-filtration .wf-band--paper { background: var(--paper); }
+
+/* a white card, for the bands where the content should sit on something */
+.page-filtration .wf-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--rad);
+  padding: 32px 34px;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.35);
+}
+@media (max-width: 780px) {
+  .page-filtration .wf-card { padding: 22px 20px; }
+}
+
+/* the finish picker reads better on white now the band behind is blue */
+.page-filtration .wf-band--sky .fpick__stage { background: #fff; }
+
+/* the selector needs to lift off the peach */
+.page-filtration .wf-band--peach .fwsel {
+  background: var(--paper);
+  box-shadow: 0 18px 40px -28px rgba(5, 10, 48, 0.4);
+}
+
+/* --- "priced at quote" becomes a navy box rather than a footnote --- */
+.page-filtration .wf-range__note {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+  color: rgba(255, 255, 255, 0.86) !important;
+  border: 0;
+  border-radius: var(--rad);
+  padding: 20px 24px;
+  margin-top: 22px;
+  font-size: 15px;
+  line-height: 1.65;
+  font-style: normal;
+  max-width: none;
+  text-align: left;
+}
+.page-filtration .wf-range__note strong { color: #fff; display: block; margin-bottom: 4px; font-size: 16px; }
+
+/* --- SIZING. The empty product panels were doing nothing but taking
+       up half the fold, so: photos get a shorter frame, and the drawn
+       stand-in gets a slim band rather than a 4:3 hole. --- */
+.page-filtration .wf-style__photo { aspect-ratio: auto; height: 176px; padding: 0; background: #fff; }
+.page-filtration .wf-style__photo img { padding: 12px; }
+.page-filtration .wf-style__body { padding: 18px 20px 20px; }
+.page-filtration .wf-style h3 { font-size: 19px; }
+.page-filtration .wf-style p { font-size: 14px; margin-bottom: 12px; }
+
+.page-filtration .wf-model__shot { aspect-ratio: auto; height: 150px; background: #fff; }
+
+/* No photo yet? A coloured designation strip, which is a design choice
+   rather than a hole where a picture should be. */
+.page-filtration .wf-model__code {
+  height: 62px;
+  margin-bottom: 14px;
+  border-radius: var(--rad-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--f-display);
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background:
+    radial-gradient(240px 90px at 80% 0%, rgba(0, 176, 237, 0.35), transparent 65%),
+    linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+}
+.page-filtration .wf-model.is-common .wf-model__code {
+  background:
+    radial-gradient(240px 90px at 80% 0%, rgba(255, 255, 255, 0.22), transparent 65%),
+    linear-gradient(135deg, var(--orange) 0%, #d8551a 100%);
+}
+
+.page-filtration .wf-picker__shot { aspect-ratio: auto; height: 260px; padding: 14px; }
+
+/* --- the process, across rather than down. Five short steps stacked in
+       a column was a thousand pixels of scrolling for something people
+       skim; as a row it reads in one glance and the page is shorter for
+       it. --- */
+@media (max-width: 1000px) {
+}
+@media (max-width: 560px) {
+}
+
+
+
+/* Product shots arrive on white; a cream mat behind them draws a seam
+   round the photo instead of disappearing under it. */
+.page-filtration .wf-servicing__photo { background: #fff; padding: 10px; }
+
+/* Tier cards: a real photo fills its frame, a diagram sits inside one.
+   Mixing contain-with-padding across both left the three photographed
+   cards cropped differently from each other. */
+.page-filtration .wf-tier__photo--real { padding: 0; background: #fff; }
+.page-filtration .wf-tier__photo--real img { object-fit: cover; }
+
+/* ===================================================================
+   Jake's fourth pass:
+     · the header IS the photo, full bleed, not an inset panel
+     · the F range opens from the FilterWall card instead of being a
+       section of its own further down
+     · "how it looks" off the pale blue and onto the site's own sand
+     · "narrow it down" in the home page's orange panel
+   =================================================================== */
+
+/* --- HEADER: the display shot, full width, scrim over it --- */
+.page-filtration .wf-hero--shot {
+  background-size: cover;
+  /* anchored left so the unit — which sits mid-frame in the photo —
+     lands to the right of the copy rather than behind it */
+  background-position: left center;
+  background-repeat: no-repeat;
+  padding: 84px 0 76px !important;
+}
+.page-filtration .wf-hero__copy { max-width: 560px; }
+.page-filtration .wf-hero__at {
+  list-style: none;
+  margin: 34px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 920px;
+}
+.page-filtration .wf-hero__at strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.15;
+}
+.page-filtration .wf-hero__at span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.7);
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-hero--shot { background-position: 72% center; padding: 56px 0 48px !important; }
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 26px; }
+}
+@media (max-width: 480px) {
+  .page-filtration .wf-hero__at { grid-template-columns: 1fr; }
+}
+
+/* --- the button on the FilterWall card, and the range it opens --- */
+.page-filtration .wf-style__more {
+  appearance: none;
+  margin: 16px 0 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  transition: background 0.15s;
+}
+.page-filtration .wf-style__more:hover { background: var(--orange); }
+.page-filtration .wf-style__more.is-open { background: var(--orange); }
+
+.page-filtration .wf-range__drop {
+  margin-top: 26px;
+  padding: 30px 32px 32px;
+  border-radius: var(--rad);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  animation: wf-drop 0.28s ease both;
+}
+.page-filtration .wf-range__drop[hidden] { display: none; }
+@keyframes wf-drop {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: none; }
+}
+.page-filtration .wf-range__drophead { margin-bottom: 22px; max-width: 62ch; }
+.page-filtration .wf-range__drophead h3 {
+  font-family: var(--f-display);
+  font-size: clamp(22px, 2.4vw, 30px);
+  color: #fff;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.page-filtration .wf-range__drophead p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+}
+.page-filtration .wf-range__drop .wf-model h4 {
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  margin: 0 0 4px;
+}
+@media (max-width: 640px) {
+  .page-filtration .wf-range__drop { padding: 22px 18px 24px; }
+}
+
+/* --- "how it looks" back on the site's own palette. The pale blue was
+       not a colour this site uses anywhere else. --- */
+/* Flat. The orange radial over cream read as a stain rather than a
+   colour, and the swatches in this section need a neutral ground to be
+   worth looking at in the first place. */
+.page-filtration .wf-band--sand {
+  background: var(--bg-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.page-filtration .wf-band--sand .fpick__stage { background: #fff; }
+
+/* --- the picker's orange panel: the selector card goes white on it --- */
+.page-filtration .wf-picker .fwsel {
+  background: var(--paper);
+  border-radius: 20px;
+  box-shadow: 0 24px 50px -22px rgba(5, 10, 48, 0.45);
+}
+
+/* the picker section is the orange panel now, so it takes the panel's
+   cream ground rather than the white it had as a tinted band */
+.page-filtration .wf-picker { background: var(--bg); }
+
+/* ===================================================================
+   Jake's fifth pass: shorter header lede, the two ranges compared,
+   the cartridges section rebuilt, and the process on the home page's
+   numbered steps.
+   =================================================================== */
+
+/* --- PURETEC vs BWT, above the six systems --- */
+.page-filtration .wf-brands {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 30px;
+}
+.page-filtration .wf-brand {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--rad);
+  padding: 24px 26px 26px;
+}
+.page-filtration .wf-brand.is-lead {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(243, 103, 34, 0.55);
+}
+.page-filtration .wf-brand__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.page-filtration .wf-brand__head h3 {
+  font-family: var(--f-display);
+  font-size: 26px;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.page-filtration .wf-brand__head span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.page-filtration .wf-brand.is-lead .wf-brand__head span { background: var(--orange); }
+.page-filtration .wf-brand p {
+  margin: 0 0 16px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+.page-filtration .wf-brand ul {
+  list-style: none;
+  margin: 0;
+  padding: 14px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  display: grid;
+  gap: 7px;
+}
+.page-filtration .wf-brand li {
+  position: relative;
+  padding-left: 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.86);
+}
+.page-filtration .wf-brand li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 7px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sky);
+}
+.page-filtration .wf-brand.is-lead li::before { background: var(--orange); }
+@media (max-width: 760px) {
+  .page-filtration .wf-brands { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* --- CARTRIDGES: the photo carries it, the numbers finish it --- */
+.page-filtration .wf-servicing { background: var(--bg); padding: 88px 0; }
+.page-filtration .wf-serv__grid {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 52px;
+  align-items: center;
+}
+.page-filtration .wf-serv__shot {
+  margin: 0;
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 26px 54px -32px rgba(5, 10, 48, 0.5);
+}
+.page-filtration .wf-serv__shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+}
+.page-filtration .wf-serv__copy h2 {
+  font-family: var(--f-display);
+  font-size: clamp(26px, 3.1vw, 40px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--navy);
+  margin: 12px 0 16px;
+  text-wrap: balance;
+}
+.page-filtration .wf-serv__copy p {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--ink-2);
+  max-width: 56ch;
+}
+.page-filtration .wf-serv__facts {
+  list-style: none;
+  margin: 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.page-filtration .wf-serv__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  color: var(--navy);
+  line-height: 1.15;
+}
+.page-filtration .wf-serv__facts span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+@media (max-width: 900px) {
+  .page-filtration .wf-servicing { padding: 56px 0; }
+  .page-filtration .wf-serv__grid { grid-template-columns: 1fr; gap: 26px; }
+}
+@media (max-width: 520px) {
+  .page-filtration .wf-serv__facts { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* A tier whose range is the whole section — the two softener sizes —
+   renders it open, so it doesn't need the inset panel treatment. */
+.page-filtration .wf-range__drop.is-bare {
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  animation: none;
+}
+
+/* Three models sit three across; the pair layout leaves an orphan. */
+.page-filtration .wf-range__grid:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) {
+  .page-filtration .wf-range__grid:has(> :nth-child(3):last-child) { grid-template-columns: 1fr; }
+}
+
+/* --- STAGES, as a flow rather than three flat cards. The water moves
+       left to right, so the cards read that way: orange stage number,
+       arrow into the next, and the order-matters note underneath. --- */
+.page-filtration .wf-stages .wf-stage {
+  padding: 26px 24px 28px;
+  border-radius: var(--rad);
+  box-shadow: 0 14px 30px -22px rgba(5, 10, 48, 0.35);
+}
+.page-filtration .wf-stage__n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--orange);
+  color: #fff;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+}
+.page-filtration .wf-stage::after {
+  content: "→";
+  position: absolute;
+  right: -22px;
+  top: 42px;
+  color: var(--orange);
+  font-size: 22px;
+  font-weight: 700;
+  z-index: 1;
+}
+.page-filtration .wf-stage:last-child::after { display: none; }
+@media (max-width: 780px) {
+  .page-filtration .wf-stages__row { grid-template-columns: 1fr; }
+  .page-filtration .wf-stage::after { display: none; }
+}
+
+/* the quote panel sits on cream, like the home page's */
+.page-filtration .wf-quote.quotesec { background: var(--bg); }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackLead } from "@/components/Analytics";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -23,6 +24,7 @@ const SERVICES = [
   { id: "heat-pump-installation", t: "🔥 Heat pump hot water", s: "Reclaim · iStore · Thermann" },
   { id: "aircon-servicing-repairs", t: "🔧 Service / repair", s: "All major brands" },
   { id: "gas-plumbing", t: "🔥 Gas / plumbing", s: "Heating, hot water, leaks" },
+  { id: "water-filtration", t: "💧 Water filtration", s: "Whole home · hot water · under sink" },
 ];
 
 const PROPERTY = ["Single-storey home", "Double-storey home", "Apartment", "Commercial / office"];
@@ -90,6 +92,10 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         body: JSON.stringify({ ...form, photo }),
       });
       if (!res.ok) throw new Error(await res.text());
+      // Fired here rather than inferred from a /thanks pageview: a
+      // pageview can't tell you which form produced it, and people can
+      // land on /thanks by accident. No-op when analytics is off.
+      trackLead("quote-form");
       router.push("/thanks");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please call us instead.");
@@ -217,7 +223,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         {step === 4 && (
           <fieldset>
             <legend className="qf-legend">Where do we send your quote?</legend>
-            <p className="qf-sub">We&apos;ll text or call within 2 business hours.</p>
+            <p className="qf-sub">We&apos;ll text or call within 12 business hours.</p>
             <label className="qf-field">
               <span>Full name</span>
               <input

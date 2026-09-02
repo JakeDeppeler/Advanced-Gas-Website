@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { site, suburbs, services } from "@/lib/site";
+import { site, publishedSuburbs, services } from "@/lib/site";
+import { CoverageMap } from "@/components/CoverageMap";
 import "../detail.css";
 
 export const metadata: Metadata = {
-  title: "Service Areas — Pakenham + 75 km",
+  title: "Service Areas, Pakenham + 75 km",
   description:
-    "Aircon, heat pump and gas plumbing installation across Pakenham and within 75 km. Berwick, Officer, Cranbourne, Warragul, Drouin, Phillip Island and more.",
+    "Aircon, heat pump and gas plumbing across Pakenham and within 75 km: Berwick, Officer, Cranbourne, Narre Warren, Dandenong, Drouin, Warragul and between.",
   alternates: { canonical: "/service-areas" },
 };
 
@@ -34,6 +35,21 @@ export default function ServiceAreasPage() {
         </div>
       </section>
 
+      {/* Coverage map, every suburb we install in, plotted on one canvas */}
+      <section className="dp-map" style={{ paddingBottom: 40 }}>
+        <div className="wrap">
+          <div className="ds-section-head" style={{ marginBottom: 24 }}>
+            <span className="ds-eyebrow"><span className="ds-dot" /> Coverage map</span>
+            <h2>Every postcode we install in, on one map.</h2>
+            <p>
+              Orange centre is our Pakenham workshop. Navy dots are every suburb we
+              service. Click any dot, or its name in the list, to jump to that suburb&rsquo;s
+              page. Dashed rings mark 25, 50 and 75 km so you can gauge distance at a glance.</p>
+          </div>
+          <CoverageMap />
+        </div>
+      </section>
+
       <section className="dp-benefits">
         <div className="wrap">
           <div className="ds-section-head">
@@ -41,7 +57,7 @@ export default function ServiceAreasPage() {
             <h2>Local team, local response times.</h2>
           </div>
           <div className="dp-benefits__grid">
-            {suburbs.map((s) => (
+            {publishedSuburbs.map((s) => (
               <Link key={s.slug} href={`/areas/${s.slug}`} className="dp-benefit" style={{ textDecoration: "none", display: "block" }}>
                 <h3 style={{ fontSize: 20 }}>{s.name}</h3>
                 <p style={{ fontFamily: "var(--f-mono)", fontSize: 12, color: "var(--ink-3)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
@@ -72,7 +88,7 @@ export default function ServiceAreasPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Free quote, rebate applied.</h2>
-            <p>Free, no-obligation, replied within 2 business hours.</p>
+            <p>Free, no-obligation, replied within 12 business hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

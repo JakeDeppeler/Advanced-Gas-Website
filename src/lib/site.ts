@@ -1,20 +1,22 @@
 // Single source of truth for business info, services, suburbs.
+// Replace placeholders marked with TODO before going live.
 
 export const site = {
   name: "Advanced Gas & Aircon",
   shortName: "Advanced Gas",
-  legalName: "Advanced Gas & Aircon Pty Ltd",
+  legalName: "Advanced Gas & Airconditioning Services Pty Ltd",
+  acn: "607 575 280",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.advancedgas.com.au",
   phone: "(03) 5947 8000",
   phoneE164: "+61359478000",
   email: "admin@advancedgas.com.au",
   abn: "35 607 575 280",
   licences: {
-    plumbing: "VBA Plumbing Licence #46828",
-    refrigeration: "ARCtick AU59557",
+    plumbing: "Plumbing Licence 46828",
+    refrigeration: "ARC AU59557",
   },
   address: {
-    street: "1 Sierra Cct",
+    street: "1 Sierra Circuit",
     suburb: "Pakenham",
     state: "VIC",
     postcode: "3810",
@@ -22,16 +24,23 @@ export const site = {
   },
   geo: { lat: -38.0703, lng: 145.4842 }, // Pakenham
   hours: [
-    { day: "Mon-Fri", open: "07:00", close: "17:00" },
-    { day: "Sat", open: "08:00", close: "14:00" },
+    { day: "Mon-Fri", open: "08:00", close: "16:00" },
   ],
   social: {
     facebook: "",
-    instagram: "",
-    google: "",
+    // Our install gallery lives here. Product shots on the site are
+    // manufacturer photography — this is where the real, on-the-tools
+    // install work is. Referenced by the "see the real thing" CTAs on
+    // service pages, the tools hub and the brand pages.
+    instagram: "https://www.instagram.com/advancedgasaircon/",
+    // Google Business profile. This is Google's own share short-link — it
+    // redirects to the full Maps listing. Swap in the canonical
+    // google.com/maps/place/... URL if you ever want it to read nicer in
+    // the status bar; the destination is identical either way.
+    google: "https://share.google/Y5gbVEwoMu8dAr7vp",
   },
-  primaryRegion: "South-East Melbourne, Mornington Peninsula & West Gippsland",
-  primaryRegionShort: "South-East Melbourne",
+  primaryRegion: "South-East Victoria & Gippsland",
+  primaryRegionShort: "South-East Vic",
   primaryState: "Victoria",
 } as const;
 
@@ -49,7 +58,7 @@ export const services = [
     name: "Heat Pump Hot Water Installation",
     short: "Heat Pump Installation",
     blurb:
-      "Energy-efficient heat pump hot water systems installed from around $1,780 after VEU rebates. Cut hot water energy use by up to 75%.",
+      "Energy-efficient heat pump hot water installed with the VEU rebate applied at the quote. Cuts hot water energy use by up to 75%.",
     icon: "thermometer",
   },
   {
@@ -57,7 +66,7 @@ export const services = [
     name: "Air Conditioning Service & Repairs",
     short: "Aircon Service & Repairs",
     blurb:
-      "Annual servicing, fault diagnosis and repairs for all major brands — keep your system efficient and under warranty.",
+      "Annual servicing, fault diagnosis and repairs for all major brands, keep your system efficient and under warranty.",
     icon: "wrench",
   },
   {
@@ -72,64 +81,10 @@ export const services = [
 
 export type ServiceSlug = (typeof services)[number]["slug"];
 
-// Based in Pakenham; servicing within ~75 km — covers SE Melbourne corridor
-// (Cardinia, Casey, Dandenong, Greater Dandenong), bayside suburbs out to
-// Brighton & Mornington Peninsula, east through Box Hill / Doncaster /
-// Ringwood / Lilydale / Yarra Ranges, and east to Warragul & Moe.
-// Each suburb becomes a local landing page; sitemap + nav update automatically.
-export const suburbs = [
-  // Pakenham + Cardinia
-  { slug: "pakenham", name: "Pakenham", postcode: "3810" },
-  { slug: "officer", name: "Officer", postcode: "3809" },
-  { slug: "beaconsfield", name: "Beaconsfield", postcode: "3807" },
-  { slug: "bunyip", name: "Bunyip", postcode: "3815" },
-  { slug: "garfield", name: "Garfield", postcode: "3814" },
-  { slug: "nar-nar-goon", name: "Nar Nar Goon", postcode: "3812" },
-  { slug: "emerald", name: "Emerald", postcode: "3782" },
-  { slug: "cockatoo", name: "Cockatoo", postcode: "3781" },
-  { slug: "gembrook", name: "Gembrook", postcode: "3783" },
-  // Casey
-  { slug: "berwick", name: "Berwick", postcode: "3806" },
-  { slug: "narre-warren", name: "Narre Warren", postcode: "3805" },
-  { slug: "cranbourne", name: "Cranbourne", postcode: "3977" },
-  { slug: "clyde-north", name: "Clyde North", postcode: "3978" },
-  { slug: "hampton-park", name: "Hampton Park", postcode: "3976" },
-  { slug: "hallam", name: "Hallam", postcode: "3803" },
-  { slug: "endeavour-hills", name: "Endeavour Hills", postcode: "3802" },
-  // Greater Dandenong / South-East
-  { slug: "dandenong", name: "Dandenong", postcode: "3175" },
-  { slug: "keysborough", name: "Keysborough", postcode: "3173" },
-  { slug: "lyndhurst", name: "Lyndhurst", postcode: "3975" },
-  // Bayside / Frankston / Mornington
-  { slug: "frankston", name: "Frankston", postcode: "3199" },
-  { slug: "carrum-downs", name: "Carrum Downs", postcode: "3201" },
-  { slug: "seaford", name: "Seaford", postcode: "3198" },
-  { slug: "mt-eliza", name: "Mt Eliza", postcode: "3930" },
-  { slug: "mornington", name: "Mornington", postcode: "3931" },
-  { slug: "mentone", name: "Mentone", postcode: "3194" },
-  { slug: "mordialloc", name: "Mordialloc", postcode: "3195" },
-  { slug: "cheltenham", name: "Cheltenham", postcode: "3192" },
-  { slug: "sandringham", name: "Sandringham", postcode: "3191" },
-  { slug: "brighton", name: "Brighton", postcode: "3186" },
-  { slug: "bentleigh", name: "Bentleigh", postcode: "3204" },
-  // Eastern suburbs
-  { slug: "glen-waverley", name: "Glen Waverley", postcode: "3150" },
-  { slug: "mt-waverley", name: "Mt Waverley", postcode: "3149" },
-  { slug: "box-hill", name: "Box Hill", postcode: "3128" },
-  { slug: "doncaster", name: "Doncaster", postcode: "3108" },
-  { slug: "doncaster-east", name: "Doncaster East", postcode: "3109" },
-  { slug: "ringwood", name: "Ringwood", postcode: "3134" },
-  { slug: "croydon", name: "Croydon", postcode: "3136" },
-  // Yarra Ranges
-  { slug: "lilydale", name: "Lilydale", postcode: "3140" },
-  { slug: "mt-evelyn", name: "Mt Evelyn", postcode: "3796" },
-  { slug: "monbulk", name: "Monbulk", postcode: "3793" },
-  { slug: "belgrave", name: "Belgrave", postcode: "3160" },
-  // Gippsland corridor
-  { slug: "drouin", name: "Drouin", postcode: "3818" },
-  { slug: "warragul", name: "Warragul", postcode: "3820" },
-  { slug: "trafalgar", name: "Trafalgar", postcode: "3824" },
-  { slug: "moe", name: "Moe", postcode: "3825" },
-] as const;
-
-export type SuburbSlug = (typeof suburbs)[number]["slug"];
+// Suburb data moved to src/lib/suburbs.ts (rich per-suburb hooks). Re-exported
+// here so existing imports (`import { suburbs } from "@/lib/site"`) keep working.
+// The old list included Korumburra, Leongatha, Wonthaggi, Phillip Island and
+// Inverloch — all >75 km from Pakenham and outside our stated service radius,
+// so they've been dropped in favour of the tighter, denser 75 km catchment.
+export { suburbs, publishedSuburbs } from "./suburbs";
+export type { Suburb, SuburbSlug } from "./suburbs";
