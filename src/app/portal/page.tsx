@@ -74,16 +74,6 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             <div className="pt-card__meta">Open →</div>
           </Link>
         )}
-        {can(user, "overhead") && (
-          <Link href="/portal/overhead" className="pt-tile">
-            <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7" /></svg>
-            </span>
-            <h3>Overhead cost</h3>
-            <p>What every billable hour has to recover, and your charge-out rate.</p>
-            <div className="pt-card__meta">Open →</div>
-          </Link>
-        )}
         {can(user, "manage_users") && (
           <Link href="/portal/admin" className="pt-tile">
             <span className="pt-tile__ico" aria-hidden="true">
