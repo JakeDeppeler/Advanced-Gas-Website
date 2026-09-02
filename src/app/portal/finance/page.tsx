@@ -4,7 +4,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
-import { xeroStatus, getProfitAndLoss, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getProfitAndLossSeries, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -69,12 +69,13 @@ export default async function FinancePage() {
 
 async function ConnectedView({ tenantName }: { tenantName: string | null }) {
   const r = ranges();
-  const [today, week, month, lastMonth, year] = await Promise.all([
+  const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
     getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
+    getProfitAndLossSeries(12),
   ]);
 
   const cards = [
@@ -96,7 +97,7 @@ async function ConnectedView({ tenantName }: { tenantName: string | null }) {
         <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
       )}
 
-      <FinanceOverview month={month} lastMonth={lastMonth} year={year} />
+      <FinanceOverview month={month} lastMonth={lastMonth} year={year} series={series} />
 
       <div className="pt-fin__detailhead">The full breakdown</div>
       <div className="pt-fin__cards">

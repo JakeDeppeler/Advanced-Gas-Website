@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
 type PL = { income: number; expenses: number; netProfit: number } | null;
 
@@ -18,7 +19,7 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
   );
 }
 
-export function FinanceOverview({ month, lastMonth, year }: { month: PL; lastMonth: PL; year: PL }) {
+export function FinanceOverview({ month, lastMonth, year, series }: { month: PL; lastMonth: PL; year: PL; series: MonthPoint[] }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
@@ -92,6 +93,14 @@ export function FinanceOverview({ month, lastMonth, year }: { month: PL; lastMon
           <div><span>Margin</span><strong>{margin !== null ? pct(margin) : "—"}</strong></div>
         </div>
       </section>
+
+      {/* Money in vs money out */}
+      {series.length >= 2 && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Money in vs money out</h2>
+          <MoneyChart points={series} />
+        </section>
+      )}
 
       {/* How we're going */}
       {targetProgress !== null && (
