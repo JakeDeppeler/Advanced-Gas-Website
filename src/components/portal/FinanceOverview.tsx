@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
 type PL = { income: number; expenses: number; netProfit: number } | null;
+
+const TF_OPTS = [{ k: "6m", label: "6M" }, { k: "12m", label: "12M" }, { k: "q", label: "Qtr" }];
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const pct = (n: number) => `${Math.round(n * 100)}%`;
@@ -19,7 +22,7 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
   );
 }
 
-export function FinanceOverview({ month, lastMonth, year, series }: { month: PL; lastMonth: PL; year: PL; series: MonthPoint[] }) {
+export function FinanceOverview({ month, lastMonth, year, series, tf }: { month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
@@ -97,7 +100,14 @@ export function FinanceOverview({ month, lastMonth, year, series }: { month: PL;
       {/* Money in vs money out */}
       {series.length >= 2 && (
         <section className="pt-panel">
-          <h2 className="pt-panel__h">Money in vs money out</h2>
+          <div className="pt-ov__charthead">
+            <h2 className="pt-panel__h">Money in vs money out</h2>
+            <div className="pt-ov__tf">
+              {TF_OPTS.map((o) => (
+                <Link key={o.k} href={`/portal/finance?tf=${o.k}`} scroll={false} className={`pt-ov__tfbtn${tf === o.k ? " is-on" : ""}`}>{o.label}</Link>
+              ))}
+            </div>
+          </div>
           <MoneyChart points={series} />
         </section>
       )}
