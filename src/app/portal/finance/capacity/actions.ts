@@ -38,8 +38,8 @@ export async function saveCapSettings(s: CapSettings): Promise<ActionResult> {
 }
 
 export async function addCrewPerson(input: { name: string; email: string; level: string }): Promise<{ ok: boolean; id?: string; error?: string }> {
-  const me = await requireOverhead();
-  if (!me) return { ok: false, error: "Not allowed." };
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can add someone." };
   if (!input.name.trim()) return { ok: false, error: "Give them a name." };
   if (!isCrewLevel(input.level)) return { ok: false, error: "Pick a level." };
   const email = input.email.trim();

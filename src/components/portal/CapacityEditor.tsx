@@ -149,7 +149,7 @@ export function CapacityEditor({ people, settings, dbReady, canManage }: { peopl
               </div>
             );
           })}
-          {add.open ? (
+          {canManage && (add.open ? (
             <div className="pt-cap__addform">
               <input className="pt-cap__name" placeholder="Name" value={add.name} onChange={(e) => setAdd((a) => ({ ...a, name: e.target.value }))} />
               <input className="pt-cap__addemail" placeholder="Email (optional — for portal login)" value={add.email} onChange={(e) => setAdd((a) => ({ ...a, email: e.target.value }))} />
@@ -161,7 +161,7 @@ export function CapacityEditor({ people, settings, dbReady, canManage }: { peopl
             </div>
           ) : (
             <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setAdd((a) => ({ ...a, open: true }))}>+ Add a person</button>
-          )}
+          ))}
           {add.msg && <div className="pt-inline is-err" style={{ marginTop: 8 }}>{add.msg}</div>}
         </div>
 

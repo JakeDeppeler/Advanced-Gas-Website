@@ -149,8 +149,11 @@ async function plFetch(accessToken: string, tenantId: string, fromDate: string, 
   const map = new Map<string, number>();
   walk(data.Reports?.[0]?.Rows, map);
   const income = pick(map, ["total income", "total operating income", "total trading income", "total revenue"]) ?? 0;
-  const expenses = pick(map, ["total operating expenses", "total expenses", "less operating expenses"]) ?? 0;
-  const netProfit = pick(map, ["net profit", "profit for the period", "total net profit"]) ?? income - expenses;
+  const opExpenses = pick(map, ["total operating expenses", "total expenses", "less operating expenses"]) ?? 0;
+  const netProfit = pick(map, ["net profit", "profit for the period", "total net profit"]) ?? income - opExpenses;
+  // "Money out" = everything that isn't profit (includes cost of sales, not just
+  // operating expenses), so in − out always equals the profit Xero reports.
+  const expenses = income - netProfit;
   return { income, expenses, netProfit };
 }
 
