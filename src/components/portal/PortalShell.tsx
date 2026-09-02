@@ -62,6 +62,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     kind: "group", base: "/portal/finance", label: "Finance", icon: ICON.chart,
     children: [
       { href: "/portal/finance", label: "Overview" },
+      { href: "/portal/finance/quotes", label: "Quotes & win rate" },
       { href: "/portal/finance/capacity", label: "Billable capacity" },
       { href: "/portal/finance/planning", label: "Planning" },
       { href: "/portal/finance/overhead", label: "Overhead cost" },
