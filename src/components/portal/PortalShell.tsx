@@ -58,8 +58,13 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
   ];
   nodes.push({ kind: "link", href: "/portal/me", label: "My file", icon: ICON.user });
   if (can(user, "reports_read")) nodes.push({ kind: "link", href: "/portal/team", label: "Team", icon: ICON.reports });
-  if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/finance", label: "Finance", icon: ICON.chart });
-  if (can(user, "overhead")) nodes.push({ kind: "link", href: "/portal/overhead", label: "Overhead", icon: ICON.bars });
+  if (can(user, "overhead")) nodes.push({
+    kind: "group", base: "/portal/finance", label: "Finance", icon: ICON.chart,
+    children: [
+      { href: "/portal/finance", label: "Overview" },
+      { href: "/portal/finance/overhead", label: "Overhead cost" },
+    ],
+  });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
 
   const [toggled, setToggled] = useState<Record<string, boolean>>({});
@@ -100,7 +105,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
                       href={c.href}
                       target={c.external ? "_blank" : undefined}
                       rel={c.external ? "noopener" : undefined}
-                      className={`pt__child${!c.external && linkActive(c.href) ? " is-on" : ""}`}
+                      className={`pt__child${!c.external && pathname === c.href ? " is-on" : ""}`}
                     >
                       {c.label}{c.external ? " ↗" : ""}
                     </Link>

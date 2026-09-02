@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { xeroStatus, getProfitAndLoss, redirectUri } from "@/lib/portal/xero";
 
@@ -20,6 +21,7 @@ function ranges() {
     today: { label: "Today", from: today, to: today },
     week: { label: "This week", from: iso(new Date(y, m, d - dow)), to: today },
     month: { label: "This month", from: iso(new Date(y, m, 1)), to: today },
+    lastMonth: { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) },
     year: { label: "This year", from: iso(new Date(y, 0, 1)), to: today },
   };
 }
@@ -35,8 +37,8 @@ export default async function FinancePage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Finance</div>
-        <h1>Profit, live from Xero.</h1>
-        <p>Income, expenses and profit for the day, week, month and year — pulled straight from Xero — plus what you need to hit your target.</p>
+        <h1>Where we&rsquo;re at.</h1>
+        <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
       </div>
 
       {status === "not-configured" && (
@@ -49,7 +51,6 @@ export default async function FinancePage() {
             <li>Copy the <strong>Client ID</strong> and generate a <strong>Client Secret</strong>.</li>
             <li>Add them to the server as <code>XERO_CLIENT_ID</code> and <code>XERO_CLIENT_SECRET</code>, then redeploy.</li>
           </ol>
-          <p className="pt-panel__sub">Once that&rsquo;s done this page will show a <strong>Connect Xero</strong> button.</p>
         </section>
       )}
 
@@ -68,10 +69,11 @@ export default async function FinancePage() {
 
 async function ConnectedView({ tenantName }: { tenantName: string | null }) {
   const r = ranges();
-  const [today, week, month, year] = await Promise.all([
+  const [today, week, month, lastMonth, year] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
+    getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
   ]);
 
@@ -81,28 +83,28 @@ async function ConnectedView({ tenantName }: { tenantName: string | null }) {
     { label: r.month.label, pl: month },
     { label: r.year.label, pl: year },
   ];
-
   const anyData = cards.some((c) => c.pl !== null);
 
   return (
     <>
       <div className="pt-fin__bar">
-        <span className="pt-fin__org">Connected to <strong>{tenantName || "Xero"}</strong></span>
+        <span className="pt-fin__org">Live from <strong>{tenantName || "Xero"}</strong></span>
         <form action="/api/xero/disconnect" method="post"><button type="submit" className="pt-btn pt-btn--ghost pt-btn--sm">Disconnect</button></form>
       </div>
 
       {!anyData && (
-        <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again, or check the org has Profit &amp; Loss data.</div>
+        <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
       )}
 
+      <FinanceOverview month={month} lastMonth={lastMonth} year={year} />
+
+      <div className="pt-fin__detailhead">The full breakdown</div>
       <div className="pt-fin__cards">
         {cards.map((c) => (
           <div key={c.label} className="pt-fin__card">
             <div className="pt-fin__cardlabel">{c.label}</div>
             <div className={`pt-fin__profit${c.pl && c.pl.netProfit < 0 ? " is-neg" : ""}`}>{c.pl ? money(c.pl.netProfit) : "—"}</div>
-            <div className="pt-fin__cardsub">
-              {c.pl ? <>Income {money(c.pl.income)} · Costs {money(c.pl.expenses)}</> : "No data"}
-            </div>
+            <div className="pt-fin__cardsub">{c.pl ? <>Income {money(c.pl.income)} · Costs {money(c.pl.expenses)}</> : "No data"}</div>
           </div>
         ))}
       </div>
