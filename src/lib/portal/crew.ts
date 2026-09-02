@@ -86,25 +86,28 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const officeOh = per.reduce((a, x) => a + x.c.officeOh, 0);
   const paidBillHrs = per.reduce((a, x) => a + (x.c.billable ? x.c.paidHrs : 0), 0);
   const denom = totalBillHrs || 1;
-  const sharedOverhead = officeOh + s.vehicles + s.standard;
+  // Overhead is everything except the crew's billable-time wages — that
+  // includes their non-billable time (sick, school, travel, admin), office
+  // staff, vehicles and standard — spread evenly across the billable hours.
+  const sharedOverhead = labourOh + officeOh + s.vehicles + s.standard;
   const sharedPerHr = sharedOverhead / denom;
-  const totalCost = fieldWages + labourOh + officeOh + s.vehicles + s.standard;
+  const totalCost = fieldWages + sharedOverhead;
   const costPerHr = totalCost / denom;
 
   const rates = per.map(({ p, c }) => {
     if (!c.billable || c.billHrs <= 0) return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null };
-    const labourPerHr = c.wageCost / c.billHrs;
+    const labourPerHr = p.costing.wage * (1 + s.oncosts / 100); // just their pay rate; downtime is overhead
     const autoRate = (labourPerHr + sharedPerHr) * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
     return { id: p.id, billHrs: c.billHrs, autoRate, rate };
   });
 
   const layers = [
-    { key: "wages", label: "Field wages (billable time)", annual: fieldWages },
-    { key: "labour", label: "Labour overhead (school, sick, travel, admin)", annual: labourOh },
-    { key: "office", label: "Office & non-billable staff", annual: officeOh },
-    { key: "vehicles", label: "Vehicles", annual: s.vehicles },
-    { key: "standard", label: "Standard (tools, marketing, rent…)", annual: s.standard },
+    { key: "wages", label: "Labour — field wages (billable)", annual: fieldWages },
+    { key: "labour", label: "Overhead — downtime (sick, school, travel, admin)", annual: labourOh },
+    { key: "office", label: "Overhead — office & admin staff", annual: officeOh },
+    { key: "vehicles", label: "Overhead — vehicles", annual: s.vehicles },
+    { key: "standard", label: "Overhead — standard (tools, marketing…)", annual: s.standard },
   ].map((l) => ({ ...l, perHr: l.annual / denom }));
 
   return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per };

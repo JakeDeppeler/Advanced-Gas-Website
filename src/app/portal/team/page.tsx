@@ -5,6 +5,7 @@ import { can, ROLE_LABELS } from "@/lib/portal/caps";
 import { listUsers, dbConfigured } from "@/lib/portal/db";
 import { CREW_LEVELS } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { AddTeamPerson } from "@/components/portal/AddTeamPerson";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team — Team portal" };
@@ -36,6 +37,8 @@ export default async function TeamDirectory() {
       {!ready && (
         <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> The team needs the Supabase keys set on the server.</div>
       )}
+
+      {can(user, "manage_users") && <AddTeamPerson />}
 
       {active.length === 0 ? (
         <div className="pt-rep__empty">No team members yet — add them in Admin → Team &amp; access.</div>
