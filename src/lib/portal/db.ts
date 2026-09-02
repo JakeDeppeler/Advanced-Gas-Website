@@ -48,7 +48,7 @@ async function sb(path: string, init: RequestInit = {}): Promise<Response | null
 
 type UserRow = {
   id: string;
-  email: string;
+  email: string | null;
   name: string;
   role: Role;
   caps: CapMap | null;
@@ -77,7 +77,7 @@ export type CostedUser = PortalUser & {
 function toUser(r: UserRow): CostedUser {
   return {
     id: r.id,
-    email: r.email,
+    email: r.email ?? "",
     name: r.name,
     role: r.role,
     caps: r.caps ?? {},

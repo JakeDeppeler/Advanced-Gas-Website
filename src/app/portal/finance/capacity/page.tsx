@@ -19,7 +19,7 @@ export default async function CapacityPage() {
   const [users, settings] = ready ? await Promise.all([listUsers(), getCapSettings()]) : [[], null];
   const people = users
     .filter((u) => u.active && u.id)
-    .map((u) => ({ id: u.id as string, name: u.name, level: u.level, costing: u.costing }));
+    .map((u) => ({ id: u.id as string, name: u.name, email: u.email, level: u.level, costing: u.costing }));
 
   return (
     <PortalShell user={user}>
@@ -29,7 +29,7 @@ export default async function CapacityPage() {
         <h1>What an hour has to cover.</h1>
         <p>Give each of the crew a level and their numbers. The billable hours, the overhead stack and each person&rsquo;s charge-out rate all fall out — and feed the Job calculator.</p>
       </div>
-      <CapacityEditor people={people} settings={settings ?? DEFAULT_SETTINGS} dbReady={ready} />
+      <CapacityEditor people={people} settings={settings ?? DEFAULT_SETTINGS} dbReady={ready} canManage={can(user, "manage_users")} />
     </PortalShell>
   );
 }

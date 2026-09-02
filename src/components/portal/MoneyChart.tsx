@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export type MonthPoint = { label: string; income: number; expenses: number; netProfit: number };
+export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number };
 
 const W = 800, H = 250;
 const padL = 46, padR = 14, padT = 14, padB = 30;
@@ -11,7 +11,6 @@ const plotH = H - padT - padB;
 
 const full = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
-const shortLabel = (l: string) => l.match(/[A-Za-z]{3,}/)?.[0] ?? l; // the month word (e.g. "Sep")
 
 export function MoneyChart({ points }: { points: MonthPoint[] }) {
   const [hover, setHover] = useState<number | null>(null);
@@ -42,7 +41,7 @@ export function MoneyChart({ points }: { points: MonthPoint[] }) {
       <div className="pt-mc__wrap">
         {hp && (
           <div className="pt-mc__tip" style={{ left: `${hoverLeftPct}%` }}>
-            <div className="pt-mc__tip-h">{hp.label}</div>
+            <div className="pt-mc__tip-h">{hp.full}</div>
             <div className="pt-mc__tip-r"><span className="pt-mc__dot pt-mc__dot--in" />In<strong>{full(hp.income)}</strong></div>
             <div className="pt-mc__tip-r"><span className="pt-mc__dot pt-mc__dot--out" />Out<strong>{full(hp.expenses)}</strong></div>
             <div className="pt-mc__tip-r pt-mc__tip-r--net">Profit<strong className={hp.netProfit < 0 ? "is-neg" : ""}>{full(hp.netProfit)}</strong></div>
@@ -71,7 +70,7 @@ export function MoneyChart({ points }: { points: MonthPoint[] }) {
           <path d={line("income")} fill="none" stroke="#2aa7e0" strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
 
           {points.map((p, i) => (
-            <text key={i} x={x(i)} y={H - 10} textAnchor="middle" className="pt-mc__xtick">{i % Math.ceil(n / 8) === 0 || i === n - 1 ? shortLabel(p.label) : ""}</text>
+            <text key={i} x={x(i)} y={H - 10} textAnchor="middle" className="pt-mc__xtick">{i % Math.ceil(n / 8) === 0 || i === n - 1 ? p.label : ""}</text>
           ))}
 
           {hover !== null && (

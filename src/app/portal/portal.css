@@ -560,6 +560,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 .pt-cap__crewhead { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .pt-cap__name { flex: 1; min-width: 0; border: 1px solid var(--pt-line); border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 14px; font-weight: 700; color: var(--pt-ink); background: var(--pt-surface); }
 .pt-cap__type { flex: 0 0 auto; border: 1px solid var(--pt-line); border-radius: 9px; padding: 8px 10px; font: inherit; font-size: 13px; font-weight: 600; color: var(--pt-ink); background: var(--pt-surface); }
+.pt-cap__del { display: inline-flex; align-items: center; gap: 6px; }
 .pt-cap__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
 .pt-cap__crewsum { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--pt-line); font-size: 12.5px; color: var(--pt-ink-2); flex-wrap: wrap; }
 .pt-cap__crewsum strong { color: var(--pt-ink); }

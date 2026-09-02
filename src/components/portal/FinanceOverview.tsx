@@ -6,7 +6,7 @@ import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
 type PL = { income: number; expenses: number; netProfit: number } | null;
 
-const TF_OPTS = [{ k: "6m", label: "6M" }, { k: "12m", label: "12M" }, { k: "q", label: "Qtr" }];
+const TF_OPTS = [{ k: "7d", label: "7d" }, { k: "4w", label: "4wk" }, { k: "3m", label: "3m" }, { k: "12m", label: "12m" }];
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const pct = (n: number) => `${Math.round(n * 100)}%`;
