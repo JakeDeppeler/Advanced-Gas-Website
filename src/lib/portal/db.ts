@@ -12,6 +12,7 @@
 
 import "server-only";
 import type { PortalUser, Role, CapMap } from "./caps";
+import type { CrewLevel, Costing, CapSettings } from "./crew";
 import { baseMember } from "./team";
 
 const USERS = "portal_users";
@@ -55,9 +56,25 @@ type UserRow = {
   invited_by: string | null;
   created_at: string;
   expectations: string | null;
+  level: string | null;
+  wage: number | null;
+  hrs_week: number | null;
+  leave_days: number | null;
+  ph_days: number | null;
+  sick_days: number | null;
+  school_days: number | null;
+  travel_hrs_week: number | null;
+  admin_hrs_week: number | null;
+  office_hrs_week: number | null;
+  rate_override: number | null;
 };
 
-function toUser(r: UserRow): PortalUser & { invitedBy?: string | null; createdAt?: string; expectations?: string | null } {
+export type CostedUser = PortalUser & {
+  invitedBy?: string | null; createdAt?: string; expectations?: string | null;
+  level: CrewLevel | null; costing: Costing;
+};
+
+function toUser(r: UserRow): CostedUser {
   return {
     id: r.id,
     email: r.email,
@@ -68,6 +85,19 @@ function toUser(r: UserRow): PortalUser & { invitedBy?: string | null; createdAt
     invitedBy: r.invited_by,
     createdAt: r.created_at,
     expectations: r.expectations ?? null,
+    level: (r.level as CrewLevel | null) ?? null,
+    costing: {
+      wage: Number(r.wage ?? 0),
+      hrsWeek: Number(r.hrs_week ?? 0),
+      leaveDays: Number(r.leave_days ?? 0),
+      phDays: Number(r.ph_days ?? 0),
+      sickDays: Number(r.sick_days ?? 0),
+      schoolDays: Number(r.school_days ?? 0),
+      travelHrsWeek: Number(r.travel_hrs_week ?? 0),
+      adminHrsWeek: Number(r.admin_hrs_week ?? 0),
+      officeHrsWeek: Number(r.office_hrs_week ?? 0),
+      rateOverride: r.rate_override == null ? null : Number(r.rate_override),
+    },
   };
 }
 
@@ -140,7 +170,7 @@ const toReview = (r: ReviewRow): Review => ({ id: r.id, userId: r.user_id, perio
 
 /* ---------------- users ---------------- */
 
-export async function getUser(email: string): Promise<(PortalUser & { invitedBy?: string | null; expectations?: string | null }) | null> {
+export async function getUser(email: string): Promise<CostedUser | null> {
   const e = email.trim().toLowerCase();
   const res = await sb(`${USERS}?email=eq.${encodeURIComponent(e)}&select=*`);
   if (!res || !res.ok) return null;
@@ -148,7 +178,7 @@ export async function getUser(email: string): Promise<(PortalUser & { invitedBy?
   return rows[0] ? toUser(rows[0]) : null;
 }
 
-export async function listUsers(): Promise<(PortalUser & { invitedBy?: string | null; createdAt?: string })[]> {
+export async function listUsers(): Promise<CostedUser[]> {
   const res = await sb(`${USERS}?select=*&order=active.desc,name.asc`);
   if (!res || !res.ok) return [];
   const rows = (await res.json()) as UserRow[];
@@ -179,7 +209,7 @@ export async function createUser(input: {
   return { ok: true };
 }
 
-export async function getUserById(id: string): Promise<(PortalUser & { expectations?: string | null }) | null> {
+export async function getUserById(id: string): Promise<CostedUser | null> {
   const res = await sb(`${USERS}?id=eq.${encodeURIComponent(id)}&select=*`);
   if (!res || !res.ok) return null;
   const rows = (await res.json()) as UserRow[];
@@ -214,6 +244,48 @@ export async function deleteUser(id: string): Promise<{ ok: boolean; error?: str
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };
+}
+
+/** Save a person's crew level + costing (managers only). */
+export async function updateCrew(id: string, level: CrewLevel, c: Costing): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`${USERS}?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      level,
+      wage: c.wage, hrs_week: c.hrsWeek, leave_days: c.leaveDays, ph_days: c.phDays,
+      sick_days: c.sickDays, school_days: c.schoolDays, travel_hrs_week: c.travelHrsWeek,
+      admin_hrs_week: c.adminHrsWeek, office_hrs_week: c.officeHrsWeek,
+      rate_override: c.rateOverride ?? null, updated_at: new Date().toISOString(),
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+/* ---------------- settings (business-wide) ---------------- */
+
+export async function getSettings<T>(key: string): Promise<T | null> {
+  const res = await sb(`portal_settings?key=eq.${encodeURIComponent(key)}&select=value`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as { value: T }[];
+  return rows[0] ? rows[0].value : null;
+}
+
+export async function saveSettings(key: string, value: unknown): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_settings?on_conflict=key`, {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ key, value, updated_at: new Date().toISOString() }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status} ${await res.text().catch(() => "")}` };
+  return { ok: true };
+}
+
+export async function getCapSettings(): Promise<CapSettings | null> {
+  return getSettings<CapSettings>("capacity");
 }
 
 /**
