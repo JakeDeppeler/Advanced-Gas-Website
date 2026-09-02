@@ -20,7 +20,7 @@ const TOKEN_URL = "https://identity.xero.com/connect/token";
 const CONNECTIONS_URL = "https://api.xero.com/connections";
 const API_BASE = "https://api.xero.com/api.xro/2.0";
 
-const SCOPES = "openid profile email accounting.reports.read offline_access";
+const SCOPES = "offline_access accounting.reports.read";
 
 export function xeroConfigured(): boolean {
   return !!(process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET);
@@ -36,10 +36,11 @@ export function authorizeUrl(state: string): string {
     response_type: "code",
     client_id: process.env.XERO_CLIENT_ID || "",
     redirect_uri: redirectUri(),
-    scope: SCOPES,
     state,
   });
-  return `${AUTH_URL}?${p.toString()}`;
+  // scope must be space-delimited; encode the spaces as %20 rather than the
+  // '+' URLSearchParams would produce, which some servers reject.
+  return `${AUTH_URL}?${p.toString()}&scope=${encodeURIComponent(SCOPES)}`;
 }
 
 function basicAuth(): string {
