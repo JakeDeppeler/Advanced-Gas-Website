@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { updateCrew, saveSettings, createCrewPerson } from "@/lib/portal/db";
+import { updateCrew, saveSettings, createCrewPerson, deleteUser } from "@/lib/portal/db";
 import { isCrewLevel, defaultsFor, type Costing, type CapSettings } from "@/lib/portal/crew";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -14,6 +14,17 @@ async function requireOverhead() {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return null;
   return me;
+}
+
+export async function removeCrewPerson(input: { userId: string; email?: string | null }): Promise<ActionResult> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can remove someone." };
+  if ((input.email ?? "").trim().toLowerCase() === me.email) return { ok: false, error: "You can't remove yourself." };
+  const res = await deleteUser(input.userId);
+  if (!res.ok) return { ok: false, error: "Couldn't remove them." };
+  revalidatePath("/portal/finance/capacity");
+  revalidatePath("/portal/team");
+  return { ok: true };
 }
 
 export async function saveCapSettings(s: CapSettings): Promise<ActionResult> {

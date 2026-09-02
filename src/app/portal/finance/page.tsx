@@ -4,18 +4,13 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
-import { xeroStatus, getProfitAndLoss, getProfitAndLossSeries, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
-const TF: Record<string, { periods: number; timeframe: "MONTH" | "QUARTER"; label: string }> = {
-  "6m": { periods: 5, timeframe: "MONTH", label: "6 months" },
-  "12m": { periods: 11, timeframe: "MONTH", label: "12 months" },
-  q: { periods: 7, timeframe: "QUARTER", label: "Quarterly" },
-};
 
 function ranges() {
   const now = new Date();
@@ -37,7 +32,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
-  const tf = searchParams?.tf && TF[searchParams.tf] ? searchParams.tf : "12m";
+  const tf: MoneyRange = (MONEY_RANGES as readonly string[]).includes(searchParams?.tf ?? "") ? (searchParams!.tf as MoneyRange) : "12m";
   const { status, tenantName } = await xeroStatus();
 
   return (
@@ -74,16 +69,15 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
   );
 }
 
-async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: string }) {
+async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: MoneyRange }) {
   const r = ranges();
-  const conf = TF[tf] ?? TF["12m"];
   const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
     getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
-    getProfitAndLossSeries(conf.periods, conf.timeframe),
+    getMoneySeries(tf),
   ]);
 
   const cards = [

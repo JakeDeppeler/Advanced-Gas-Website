@@ -3,9 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CREW_LEVELS, LEVEL_BILLABLE, defaultsFor, computeCapacity, type CrewLevel, type Costing, type CapSettings } from "@/lib/portal/crew";
-import { saveCapSettings, saveCrew, addCrewPerson } from "@/app/portal/finance/capacity/actions";
+import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
 
-type Row = { id: string; name: string; level: CrewLevel | ""; costing: Costing };
+type Row = { id: string; name: string; email: string | null; level: CrewLevel | ""; costing: Costing };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -24,13 +24,22 @@ function CapField({ label, value, onChange, post }: { label: string; value: numb
   );
 }
 
-export function CapacityEditor({ people, settings, dbReady }: { people: { id: string; name: string; level: CrewLevel | null; costing: Costing }[]; settings: CapSettings; dbReady: boolean }) {
+export function CapacityEditor({ people, settings, dbReady, canManage }: { people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[]; settings: CapSettings; dbReady: boolean; canManage: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState("");
+  const [delId, setDelId] = useState<string | null>(null);
 
   const [s, setS] = useState<CapSettings>(settings);
-  const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, level: p.level ?? "", costing: { ...p.costing } })));
+  const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
+
+  function removeRow(id: string, email: string | null) {
+    start(async () => {
+      const res = await removeCrewPerson({ userId: id, email });
+      if (res.ok) { setRows((rs) => rs.filter((r) => r.id !== id)); setDelId(null); }
+      else { setMsg(res.error || "Couldn't remove."); setDelId(null); }
+    });
+  }
   const [add, setAdd] = useState<{ open: boolean; name: string; email: string; level: CrewLevel; msg: string }>({ open: false, name: "", email: "", level: "tradesman", msg: "" });
 
   function addPerson() {
@@ -38,7 +47,7 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
     start(async () => {
       const res = await addCrewPerson({ name: add.name, email: add.email, level: add.level });
       if (res.ok && res.id) {
-        setRows((rs) => [...rs, { id: res.id as string, name: add.name.trim(), level: add.level, costing: { ...defaultsFor(add.level) } }]);
+        setRows((rs) => [...rs, { id: res.id as string, name: add.name.trim(), email: add.email.trim() || null, level: add.level, costing: { ...defaultsFor(add.level) } }]);
         setAdd({ open: false, name: "", email: "", level: "tradesman", msg: "" });
       } else {
         setAdd((a) => ({ ...a, msg: res.error || "Couldn't add them." }));
@@ -94,6 +103,14 @@ export function CapacityEditor({ people, settings, dbReady }: { people: { id: st
                     <option value="" disabled>Choose a level…</option>
                     {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
                   </select>
+                  {canManage && (delId === r.id ? (
+                    <span className="pt-cap__del">
+                      <button type="button" className="pt-btn pt-btn--danger pt-btn--sm" disabled={pending} onClick={() => removeRow(r.id, r.email)}>Remove</button>
+                      <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={pending} onClick={() => setDelId(null)}>Cancel</button>
+                    </span>
+                  ) : (
+                    <button type="button" className="pf-x" aria-label={`Remove ${r.name}`} onClick={() => setDelId(r.id)}>×</button>
+                  ))}
                 </div>
                 {r.level === "" ? (
                   <div className="pt-cap__unset">Pick a level to cost this person in.</div>
