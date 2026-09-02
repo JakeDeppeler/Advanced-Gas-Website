@@ -321,6 +321,44 @@ export async function getCapSettings(): Promise<CapSettings | null> {
   return getSettings<CapSettings>("capacity");
 }
 
+/* ---------------- quotes (win-rate tracking) ---------------- */
+
+export type QuoteStatus = "quoted" | "won" | "lost";
+export type Quote = { id: string; amount: number; status: QuoteStatus; customer: string | null; quotedOn: string; createdBy: string | null };
+type QuoteRow = { id: string; amount: number; status: QuoteStatus; customer: string | null; quoted_on: string; created_by: string | null };
+const toQuote = (r: QuoteRow): Quote => ({ id: r.id, amount: Number(r.amount), status: r.status, customer: r.customer, quotedOn: r.quoted_on, createdBy: r.created_by });
+
+export async function listQuotes(limit = 500): Promise<Quote[]> {
+  const res = await sb(`portal_quotes?select=*&order=quoted_on.desc,created_at.desc&limit=${limit}`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as QuoteRow[]).map(toQuote);
+}
+
+export async function createQuote(input: { amount: number; status: QuoteStatus; customer?: string; quotedOn?: string; createdBy?: string }): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const res = await sb("portal_quotes", {
+    method: "POST", headers: { Prefer: "return=representation" },
+    body: JSON.stringify({ amount: input.amount, status: input.status, customer: input.customer || null, quoted_on: input.quotedOn || undefined, source: "manual", created_by: input.createdBy || null }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  const rows = (await res.json()) as { id: string }[];
+  return { ok: true, id: rows[0]?.id };
+}
+
+export async function updateQuoteStatus(id: string, status: QuoteStatus): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_quotes?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status }) });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteQuote(id: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_quotes?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
 /**
  * Resolve an email to the current, live user — the one call auth uses.
  * Owners (see ./team) are always admins and can never be locked out. Anyone

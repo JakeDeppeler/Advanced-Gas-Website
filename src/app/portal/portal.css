@@ -570,6 +570,25 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 .pt-scn__big { font-family: var(--f-display); font-size: 30px; font-weight: 800; color: var(--pt-good); letter-spacing: -0.02em; margin-top: 10px; }
 .pt-scn__big span { font-size: 14px; color: var(--pt-ink-3); font-weight: 600; }
 .pt-scn__big.is-neg { color: #c0392b; }
+
+/* ---- Quotes & win rate ---- */
+.pt-qt__calc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.pt-qt__need { background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); color: #fff; border-radius: 14px; padding: 18px 20px; }
+.pt-qt__needbig { font-family: var(--f-display); font-size: 30px; font-weight: 800; letter-spacing: -0.02em; }
+.pt-qt__needbig span { font-size: 15px; color: #9aa4cf; font-weight: 600; }
+.pt-qt__needsub { font-size: 13px; color: #c3cbe8; margin-top: 6px; }
+.pt-qt__needsub strong { color: #fff; }
+.pt-qt__add { display: grid; grid-template-columns: 130px 1.4fr 150px 130px auto; gap: 8px; align-items: center; }
+.pt-qt__list { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+.pt-qt__row { display: flex; align-items: center; gap: 12px; border: 1px solid var(--pt-line); border-radius: 11px; padding: 10px 14px; flex-wrap: wrap; }
+.pt-qt__amt { font-family: var(--f-display); font-weight: 800; font-size: 15px; color: var(--pt-ink); font-variant-numeric: tabular-nums; min-width: 80px; }
+.pt-qt__cust { flex: 1; min-width: 120px; font-size: 13.5px; color: var(--pt-ink); display: flex; flex-direction: column; }
+.pt-qt__cust em { font-style: normal; font-size: 11.5px; color: var(--pt-ink-3); }
+.pt-qt__pills { display: inline-flex; gap: 4px; }
+.pt-qt__pill { appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 12px; font-weight: 600; color: var(--pt-ink-3); cursor: pointer; }
+.pt-qt__pill.is-on.pt-qt__pill--quoted { background: var(--pt-navy); border-color: var(--pt-navy); color: #fff; }
+.pt-qt__pill.is-on.pt-qt__pill--won { background: #e6f3ec; border-color: #bfe2cd; color: var(--pt-good); }
+.pt-qt__pill.is-on.pt-qt__pill--lost { background: #fbe9e6; border-color: #f0c3bd; color: #b23b2e; }
 .pt-cap__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 12px; }
 .pt-cap__crewsum { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--pt-line); font-size: 12.5px; color: var(--pt-ink-2); flex-wrap: wrap; }
 .pt-cap__crewsum strong { color: var(--pt-ink); }
@@ -658,6 +677,8 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
   .pt-cap__row3 { grid-template-columns: 1fr 1fr; }
   .pt-cap__grid { grid-template-columns: 1fr 1fr; }
   .pt-cap__addform { grid-template-columns: 1fr 1fr; }
+  .pt-qt__calc { grid-template-columns: 1fr; }
+  .pt-qt__add { grid-template-columns: 1fr 1fr; }
   .pf-add { grid-template-columns: 1fr; }
   .pf-reviewform__row { grid-template-columns: 1fr; }
   .pt-fin__needs { grid-template-columns: 1fr; }
