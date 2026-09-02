@@ -20,7 +20,9 @@ const TOKEN_URL = "https://identity.xero.com/connect/token";
 const CONNECTIONS_URL = "https://api.xero.com/connections";
 const API_BASE = "https://api.xero.com/api.xro/2.0";
 
-const SCOPES = "offline_access accounting.reports.read";
+// This app uses Xero's granular scopes, so the P&L report needs the specific
+// accounting.reports.profitandloss.read scope, not the broad accounting.reports.read.
+const SCOPES = "offline_access accounting.reports.profitandloss.read";
 
 export function xeroConfigured(): boolean {
   return !!(process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET);
