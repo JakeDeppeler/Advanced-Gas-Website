@@ -5,14 +5,14 @@ import { useState } from "react";
 export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number };
 
 const W = 800, H = 250;
-const padL = 46, padR = 14, padT = 14, padB = 30;
+const padL = 52, padR = 16, padT = 16, padB = 30;
 const plotW = W - padL - padR;
 const plotH = H - padT - padB;
 
 const full = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
 
-export function MoneyChart({ points }: { points: MonthPoint[] }) {
+export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLabel?: string }) {
   const [hover, setHover] = useState<number | null>(null);
   if (points.length < 2) return null;
 
@@ -25,22 +25,32 @@ export function MoneyChart({ points }: { points: MonthPoint[] }) {
   const area = (key: "income" | "expenses") => `${line(key)} L${x(n - 1).toFixed(1)},${(padT + plotH).toFixed(1)} L${padL.toFixed(1)},${(padT + plotH).toFixed(1)} Z`;
 
   const grid = [0, 0.25, 0.5, 0.75, 1];
-  const last = points[n - 1];
   const band = plotW / (n - 1);
   const hp = hover !== null ? points[hover] : null;
-  const hoverLeftPct = hover !== null ? (x(hover) / W) * 100 : 0;
+
+  // Totals across the whole visible span — more useful than the last point alone.
+  const totalIn = points.reduce((a, p) => a + p.income, 0);
+  const totalOut = points.reduce((a, p) => a + p.expenses, 0);
+  const kept = totalIn - totalOut;
+
+  // Keep the tooltip inside the panel at the first and last points.
+  const rawPct = hover !== null ? (x(hover) / W) * 100 : 50;
+  const tipPct = Math.min(84, Math.max(16, rawPct));
+
+  const every = Math.max(1, Math.ceil(n / 8));
 
   return (
     <div className="pt-mc">
       <div className="pt-mc__legend">
-        <span className="pt-mc__key pt-mc__key--in"><i /> Money in <strong>{full(last.income)}</strong></span>
-        <span className="pt-mc__key pt-mc__key--out"><i /> Money out <strong>{full(last.expenses)}</strong></span>
-        <span className="pt-mc__span">last {n} months</span>
+        <span className="pt-mc__key pt-mc__key--in"><i /> Money in <strong>{full(totalIn)}</strong></span>
+        <span className="pt-mc__key pt-mc__key--out"><i /> Money out <strong>{full(totalOut)}</strong></span>
+        <span className={`pt-mc__kept${kept < 0 ? " is-neg" : ""}`}>Kept <strong>{full(kept)}</strong></span>
+        {spanLabel && <span className="pt-mc__span">{spanLabel}</span>}
       </div>
 
       <div className="pt-mc__wrap">
         {hp && (
-          <div className="pt-mc__tip" style={{ left: `${hoverLeftPct}%` }}>
+          <div className="pt-mc__tip" style={{ left: `${tipPct}%` }}>
             <div className="pt-mc__tip-h">{hp.full}</div>
             <div className="pt-mc__tip-r"><span className="pt-mc__dot pt-mc__dot--in" />In<strong>{full(hp.income)}</strong></div>
             <div className="pt-mc__tip-r"><span className="pt-mc__dot pt-mc__dot--out" />Out<strong>{full(hp.expenses)}</strong></div>
@@ -59,7 +69,7 @@ export function MoneyChart({ points }: { points: MonthPoint[] }) {
             return (
               <g key={g}>
                 <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="#e4e8f0" strokeWidth="1" vectorEffect="non-scaling-stroke" />
-                <text x={padL - 8} y={yy + 3.5} textAnchor="end" className="pt-mc__ytick">{short(val)}</text>
+                <text x={padL - 10} y={yy + 3.5} textAnchor="end" className="pt-mc__ytick">{short(val)}</text>
               </g>
             );
           })}
@@ -70,14 +80,16 @@ export function MoneyChart({ points }: { points: MonthPoint[] }) {
           <path d={line("income")} fill="none" stroke="#2aa7e0" strokeWidth="2.2" vectorEffect="non-scaling-stroke" strokeLinejoin="round" strokeLinecap="round" />
 
           {points.map((p, i) => (
-            <text key={i} x={x(i)} y={H - 10} textAnchor="middle" className="pt-mc__xtick">{i % Math.ceil(n / 8) === 0 || i === n - 1 ? p.label : ""}</text>
+            i % every === 0 || i === n - 1
+              ? <text key={i} x={x(i)} y={H - 10} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} className="pt-mc__xtick">{p.label}</text>
+              : null
           ))}
 
           {hover !== null && (
             <g>
               <line x1={x(hover)} y1={padT} x2={x(hover)} y2={padT + plotH} stroke="#8992ab" strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-              <circle cx={x(hover)} cy={y(points[hover].income)} r="3.5" fill="#2aa7e0" stroke="#fff" strokeWidth="1.5" />
               <circle cx={x(hover)} cy={y(points[hover].expenses)} r="3.5" fill="#e0912a" stroke="#fff" strokeWidth="1.5" />
+              <circle cx={x(hover)} cy={y(points[hover].income)} r="3.5" fill="#2aa7e0" stroke="#fff" strokeWidth="1.5" />
             </g>
           )}
 

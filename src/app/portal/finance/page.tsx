@@ -9,9 +9,6 @@ import { xeroStatus, getProfitAndLoss, getMoneySeries, MONEY_RANGES, type MoneyR
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
-
-
 function ranges() {
   const now = new Date();
   const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
@@ -80,18 +77,13 @@ async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf
     getMoneySeries(tf),
   ]);
 
-  const cards = [
-    { label: r.today.label, pl: today },
-    { label: r.week.label, pl: week },
-    { label: r.month.label, pl: month },
-    { label: r.year.label, pl: year },
-  ];
-  const anyData = cards.some((c) => c.pl !== null);
+  const anyData = [today, week, month, year].some((p) => p !== null);
+  const pulledAt = new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
   return (
-    <>
+    <div className="pt-fin">
       <div className="pt-fin__bar">
-        <span className="pt-fin__org">Live from <strong>{tenantName || "Xero"}</strong></span>
+        <span className="pt-fin__org">Live from <strong>{tenantName || "Xero"}</strong> · read at {pulledAt}</span>
         <form action="/api/xero/disconnect" method="post"><button type="submit" className="pt-btn pt-btn--ghost pt-btn--sm">Disconnect</button></form>
       </div>
 
@@ -99,20 +91,9 @@ async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf
         <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
       )}
 
-      <FinanceOverview month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
-
-      <div className="pt-fin__detailhead">The full breakdown</div>
-      <div className="pt-fin__cards">
-        {cards.map((c) => (
-          <div key={c.label} className="pt-fin__card">
-            <div className="pt-fin__cardlabel">{c.label}</div>
-            <div className={`pt-fin__profit${c.pl && c.pl.netProfit < 0 ? " is-neg" : ""}`}>{c.pl ? money(c.pl.netProfit) : "—"}</div>
-            <div className="pt-fin__cardsub">{c.pl ? <>Income {money(c.pl.income)} · Costs {money(c.pl.expenses)}</> : "No data"}</div>
-          </div>
-        ))}
-      </div>
+      <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
 
       <FinancePlanner yearProfit={year?.netProfit ?? null} />
-    </>
+    </div>
   );
 }
