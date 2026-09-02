@@ -591,6 +591,18 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -26px rgb
 .pt-cap__save .pt-inline.is-err { color: #ff9d8a; }
 
 .pt-teamgroup { margin-bottom: 24px; }
+.pt-tcard { display: flex; flex-direction: column; gap: 12px; }
+.pt-tcard__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.pt-tcard__id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pt-tcard__id strong { font-family: var(--f-display); font-size: 15px; font-weight: 800; color: var(--pt-ink); }
+.pt-tcard__id span { font-size: 12.5px; color: var(--pt-ink-3); word-break: break-all; }
+.pt-tcard__open { font-size: 12.5px; color: var(--pt-accent); text-decoration: none; font-weight: 600; white-space: nowrap; flex: 0 0 auto; }
+.pt-tcard__open:hover { text-decoration: underline; }
+.pt-tcard__ctrls { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 10px; border-top: 1px solid var(--pt-line); }
+.pt-tcard__move { display: inline-flex; gap: 4px; }
+.pt-tcard__move button { appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 8px; width: 30px; height: 30px; font-size: 14px; color: var(--pt-ink-2); cursor: pointer; }
+.pt-tcard__move button:hover:not(:disabled) { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+.pt-tcard__move button:disabled { opacity: 0.4; cursor: default; }
 
 /* ---- Job picker ---- */
 .pt-job__crew { display: flex; flex-direction: column; gap: 6px; }

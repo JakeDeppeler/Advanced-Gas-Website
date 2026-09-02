@@ -3,12 +3,32 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
+import { isCrewLevel } from "@/lib/portal/crew";
 import {
   updateUser, createGoal, updateGoal, deleteGoal,
   createReview, deleteReview, createReport, deleteReport,
 } from "@/lib/portal/db";
 
 export type ActionResult = { ok: boolean; error?: string };
+
+export async function setPersonLevel(input: { userId: string; level: string }): Promise<ActionResult> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Only an admin can change a level." };
+  if (!isCrewLevel(input.level)) return { ok: false, error: "Pick a level." };
+  const res = await updateUser(input.userId, { level: input.level });
+  if (!res.ok) return { ok: false, error: "Couldn't save." };
+  revalidatePath("/portal/team");
+  revalidatePath("/portal/finance/capacity");
+  return { ok: true };
+}
+
+export async function saveTeamOrder(input: { ids: string[] }): Promise<ActionResult> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "manage_users")) return { ok: false, error: "Not allowed." };
+  for (let i = 0; i < input.ids.length; i++) await updateUser(input.ids[i], { sortOrder: i });
+  revalidatePath("/portal/team");
+  return { ok: true };
+}
 
 async function requireWriter() {
   const me = await getPortalUser();
