@@ -19,6 +19,7 @@ export default async function CapacityPage() {
   const [users, settings] = ready ? await Promise.all([listUsers(), getCapSettings()]) : [[], null];
   const people = users
     .filter((u) => u.active && u.id)
+    .sort((a, b) => (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name))
     .map((u) => ({ id: u.id as string, name: u.name, email: u.email, level: u.level, costing: u.costing }));
 
   return (
