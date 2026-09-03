@@ -6,7 +6,12 @@ import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
 type PL = { income: number; expenses: number; netProfit: number } | null;
 
-const TF_OPTS = [{ k: "7d", label: "7d" }, { k: "4w", label: "4wk" }, { k: "3m", label: "3m" }, { k: "12m", label: "12m" }];
+const TF_OPTS = [
+  { k: "7d", label: "7d", span: "Last 7 days, day by day" },
+  { k: "4w", label: "4wk", span: "Last 4 weeks, week by week" },
+  { k: "3m", label: "3m", span: "Last 3 months, month by month" },
+  { k: "12m", label: "12m", span: "Last 12 months, month by month" },
+];
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const pct = (n: number) => `${Math.round(n * 100)}%`;
@@ -22,15 +27,15 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
   );
 }
 
-export function FinanceOverview({ month, lastMonth, year, series, tf }: { month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
+export function FinanceOverview({
+  today, week, month, lastMonth, year, series, tf,
+}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
       const s = localStorage.getItem("ag_profit_target");
       if (s) setTarget(Number(s) || 0);
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
   }, []);
 
   const now = new Date();
@@ -41,26 +46,35 @@ export function FinanceOverview({ month, lastMonth, year, series, tf }: { month:
   const yearProfit = year?.netProfit ?? null;
   const margin = year && year.income > 0 ? year.netProfit / year.income : null;
 
-  // progress to target
   const yearElapsed = Math.min(1, (Date.now() - new Date(now.getFullYear(), 0, 1).getTime()) / (365 * 86_400_000));
   const expectedYTD = target ? target * yearElapsed : null;
-  const targetProgress = target && target > 0 && yearProfit !== null ? Math.max(0, Math.min(1, yearProfit / target)) : null;
   const onPace = expectedYTD !== null && yearProfit !== null ? yearProfit >= expectedYTD : null;
 
-  // signals
+  const cards: { label: string; pl: PL }[] = [
+    { label: "Today", pl: today },
+    { label: "This week", pl: week },
+    { label: "This month", pl: month },
+    { label: "This year", pl: year },
+  ];
+
+  const stats: { label: string; value: string; neg?: boolean }[] = [
+    { label: "In this month", value: month ? money(month.income) : "—" },
+    { label: "Out this month", value: month ? money(month.expenses) : "—" },
+    { label: "Profit this year", value: yearProfit !== null ? money(yearProfit) : "—", neg: yearProfit !== null && yearProfit < 0 },
+    { label: "Margin this year", value: margin !== null ? pct(margin) : "—", neg: margin !== null && margin < 0 },
+  ];
+
   const signals: Signal[] = [];
   if (monthProfit !== null) {
     signals.push(monthProfit >= 0
       ? { tone: "good", text: "In profit this month", value: money(monthProfit) }
       : { tone: "bad", text: "Running at a loss this month", value: money(monthProfit) });
   }
-  if (monthProfit !== null && lastMonth?.netProfit !== undefined && lastMonth) {
+  if (monthProfit !== null && lastMonth && paced !== null) {
     const lm = lastMonth.netProfit;
-    if (paced !== null) {
-      signals.push(paced >= lm
-        ? { tone: "good", text: `Pacing ahead of last month`, value: `${money(paced)} vs ${money(lm)}` }
-        : { tone: "watch", text: `Pacing behind last month`, value: `${money(paced)} vs ${money(lm)}` });
-    }
+    signals.push(paced >= lm
+      ? { tone: "good", text: "Pacing ahead of last month", value: `${money(paced)} vs ${money(lm)}` }
+      : { tone: "watch", text: "Pacing behind last month", value: `${money(paced)} vs ${money(lm)}` });
   }
   if (yearProfit !== null) {
     signals.push(yearProfit >= 0
@@ -80,8 +94,10 @@ export function FinanceOverview({ month, lastMonth, year, series, tf }: { month:
       : { tone: "bad", text: `Behind your ${money(target)} target`, value: expectedYTD !== null && yearProfit !== null ? `${money(expectedYTD - yearProfit)} to catch up` : undefined });
   }
 
+  const spanLabel = TF_OPTS.find((o) => o.k === tf)?.span;
+
   return (
-    <div className="pt-ov">
+    <>
       {/* Where we're at */}
       <section className="pt-ov__now">
         <div className="pt-ov__nowmain">
@@ -91,11 +107,26 @@ export function FinanceOverview({ month, lastMonth, year, series, tf }: { month:
             <div className="pt-ov__nowsub">On pace for ~{money(paced)} this month · last month {money(lastMonth.netProfit)}</div>
           )}
         </div>
-        <div className="pt-ov__nowside">
-          <div><span>This year</span><strong>{yearProfit !== null ? money(yearProfit) : "—"}</strong></div>
-          <div><span>Margin</span><strong>{margin !== null ? pct(margin) : "—"}</strong></div>
-        </div>
+        <dl className="pt-ov__nowside">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <dt>{s.label}</dt>
+              <dd className={s.neg ? "is-neg" : ""}>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
+
+      {/* Profit at a glance */}
+      <div className="pt-fin__cards">
+        {cards.map((c) => (
+          <div key={c.label} className="pt-fin__card">
+            <div className="pt-fin__cardlabel">{c.label}</div>
+            <div className={`pt-fin__profit${c.pl && c.pl.netProfit < 0 ? " is-neg" : ""}`}>{c.pl ? money(c.pl.netProfit) : "—"}</div>
+            <div className="pt-fin__cardsub">{c.pl ? <>In {money(c.pl.income)} · Out {money(c.pl.expenses)}</> : "No data"}</div>
+          </div>
+        ))}
+      </div>
 
       {/* Money in vs money out */}
       {series.length >= 2 && (
@@ -108,19 +139,7 @@ export function FinanceOverview({ month, lastMonth, year, series, tf }: { month:
               ))}
             </div>
           </div>
-          <MoneyChart points={series} />
-        </section>
-      )}
-
-      {/* How we're going */}
-      {targetProgress !== null && (
-        <section className="pt-panel">
-          <h2 className="pt-panel__h">How we&rsquo;re going</h2>
-          <div className="pt-fin__bar2"><span style={{ width: `${targetProgress * 100}%` }} /></div>
-          <div className="pt-fin__progresstxt">
-            <span><strong>{money(yearProfit as number)}</strong> of {money(target as number)} target · {pct(targetProgress)}</span>
-            <span className={onPace ? "pt-fin__hit" : ""}>{onPace ? "On or ahead of pace 👍" : "Behind pace — needs a lift"}</span>
-          </div>
+          <MoneyChart points={series} spanLabel={spanLabel} />
         </section>
       )}
 
@@ -141,6 +160,6 @@ export function FinanceOverview({ month, lastMonth, year, series, tf }: { month:
           )}
         </div>
       </section>
-    </div>
+    </>
   );
 }
