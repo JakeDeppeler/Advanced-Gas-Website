@@ -159,6 +159,18 @@ const nextConfig = {
         destination: "/mitsubishi-pea-m-ducted-v2-v3.webp",
         permanent: true,
       },
+
+      // ---- Press kit retired ----
+      // The media/partner page is gone. It was noindex and unlinked, so
+      // the only way to it was the URL itself — but that URL was handed
+      // to chambers and directories in outreach emails, so it 308s to
+      // /about (the nearest thing: who we are, key facts, contact)
+      // rather than 404ing on someone who was sent it.
+      {
+        source: "/press-kit",
+        destination: "/about",
+        permanent: true,
+      },
     ];
   },
 
