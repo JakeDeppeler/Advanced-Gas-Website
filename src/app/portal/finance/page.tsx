@@ -4,23 +4,26 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
 
+// Every span is anchored to today's date in Melbourne, not the server's UTC
+// clock — before 10am local the two disagree, which is what made "today" read a
+// day behind and, on the first of a month, made "this month" show last month.
 function ranges() {
-  const now = new Date();
-  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  const now = localToday();
+  const y = now.getUTCFullYear(), m = now.getUTCMonth(), d = now.getUTCDate();
   const iso = (dt: Date) => dt.toISOString().slice(0, 10);
   const today = iso(now);
-  const dow = (now.getDay() + 6) % 7; // Monday = 0
+  const dow = (now.getUTCDay() + 6) % 7; // Monday = 0
   return {
     today: { label: "Today", from: today, to: today },
-    week: { label: "This week", from: iso(new Date(y, m, d - dow)), to: today },
-    month: { label: "This month", from: iso(new Date(y, m, 1)), to: today },
-    lastMonth: { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) },
-    year: { label: "This year", from: iso(new Date(y, 0, 1)), to: today },
+    week: { label: "This week", from: iso(new Date(Date.UTC(y, m, d - dow))), to: today },
+    month: { label: "This month", from: iso(new Date(Date.UTC(y, m, 1))), to: today },
+    lastMonth: { from: iso(new Date(Date.UTC(y, m - 1, 1))), to: iso(new Date(Date.UTC(y, m, 0))) },
+    year: { label: "This year", from: iso(new Date(Date.UTC(y, 0, 1))), to: today },
   };
 }
 

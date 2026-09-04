@@ -22,14 +22,25 @@ function reval(id?: string) {
 }
 
 export async function addVehicle(input: {
-  name: string; rego: string; details: string; odometer: number | null; serviceIntervalKm: number | null;
+  name: string; rego: string; details: string;
+  odometer: number | null; serviceIntervalKm: number | null;
+  nextServiceKm: number | null; nextServiceDate: string;
+  purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can add a vehicle." };
   if (!input.name.trim()) return { ok: false, error: "Give the vehicle a name." };
+  // Next service defaults to one interval past the current reading, which is
+  // what you'd work out by hand anyway.
+  const nextServiceKm = input.nextServiceKm ?? (
+    input.serviceIntervalKm !== null ? (input.odometer ?? 0) + input.serviceIntervalKm : null
+  );
   const res = await createVehicle({
     name: input.name, rego: input.rego, details: input.details,
     odometer: input.odometer, serviceIntervalKm: input.serviceIntervalKm,
+    nextServiceKm, nextServiceDate: input.nextServiceDate,
+    purchasePrice: input.purchasePrice, resaleValue: input.resaleValue,
+    lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
   });
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "The database isn't connected yet." : "Couldn't add it." };
   reval();

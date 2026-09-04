@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 
-export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number };
+// `ok` false means Xero didn't answer for that span — worth saying out loud,
+// because a failed read otherwise draws as a real $0 and quietly drags the
+// totals down.
+export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number; ok?: boolean };
 
 const W = 800, H = 250;
 const padL = 52, padR = 16, padT = 16, padB = 30;
@@ -38,6 +41,7 @@ export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLa
   const tipPct = Math.min(84, Math.max(16, rawPct));
 
   const every = Math.max(1, Math.ceil(n / 8));
+  const missing = points.filter((p) => p.ok === false).length;
 
   return (
     <div className="pt-mc">
@@ -47,6 +51,12 @@ export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLa
         <span className={`pt-mc__kept${kept < 0 ? " is-neg" : ""}`}>Kept <strong>{full(kept)}</strong></span>
         {spanLabel && <span className="pt-mc__span">{spanLabel}</span>}
       </div>
+
+      {missing > 0 && (
+        <div className="pt-mc__warn">
+          {missing} of {n} points didn&rsquo;t load from Xero, so the totals are short. Reload in a minute.
+        </div>
+      )}
 
       <div className="pt-mc__wrap">
         {hp && (
