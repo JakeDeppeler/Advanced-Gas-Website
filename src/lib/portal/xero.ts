@@ -84,8 +84,10 @@ export async function getConnections(accessToken: string): Promise<{ tenantId: s
   return arr.map((c) => ({ tenantId: c.tenantId, tenantName: c.tenantName }));
 }
 
+type XeroAuth = { accessToken: string; tenantId: string };
+
 /** A valid access token + tenant, refreshing and re-storing if it's expired. */
-async function validToken(): Promise<{ accessToken: string; tenantId: string } | null> {
+async function resolveToken(): Promise<XeroAuth | null> {
   const integ = await getIntegration("xero");
   if (!integ || !integ.refreshToken || !integ.tenantId) return null;
 
@@ -102,6 +104,20 @@ async function validToken(): Promise<{ accessToken: string; tenantId: string } |
     expiresAt: new Date(Date.now() + t.expires_in * 1000).toISOString(),
   });
   return { accessToken: t.access_token, tenantId: integ.tenantId };
+}
+
+// The finance page asks for several reports at once, so this gets called many
+// times in parallel. Xero rotates the refresh token on every use, so parallel
+// refreshes race and invalidate each other — the first wins, the rest come back
+// 400 and their sections of the page render blank. One refresh is shared by
+// everyone waiting on it.
+let tokenInFlight: Promise<XeroAuth | null> | null = null;
+
+async function validToken(): Promise<XeroAuth | null> {
+  if (!tokenInFlight) {
+    tokenInFlight = resolveToken().finally(() => { tokenInFlight = null; });
+  }
+  return tokenInFlight;
 }
 
 export type XeroStatus = "not-configured" | "not-connected" | "connected";
@@ -138,14 +154,7 @@ function pick(map: Map<string, number>, keys: string[]): number | null {
   return null;
 }
 
-async function plFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<ProfitLoss | null> {
-  const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const data = (await res.json()) as { Reports?: { Rows?: XeroRow[] }[] };
+function parseReport(data: { Reports?: { Rows?: XeroRow[] }[] }): ProfitLoss {
   const map = new Map<string, number>();
   walk(data.Reports?.[0]?.Rows, map);
   const income = pick(map, ["total income", "total operating income", "total trading income", "total revenue"]) ?? 0;
@@ -157,6 +166,178 @@ async function plFetch(accessToken: string, tenantId: string, fromDate: string, 
   return { income, expenses, netProfit };
 }
 
+/* -------- Staying inside Xero's rate limits -------- */
+
+// Xero allows 5 calls in flight at once per organisation. One render of the
+// finance page wants up to seventeen reports — five headline figures plus a
+// point per month on the chart — so firing them all together earned most of
+// them a 429, and a 429 read back as "no data": the blank cards and the flat
+// stretches on the 12-month chart. Every report now queues through a pool,
+// retries once if Xero still pushes back, and repeat date ranges are answered
+// from a short-lived cache rather than asked for again.
+
+const MAX_PARALLEL = 4;
+let running = 0;
+const waiting: (() => void)[] = [];
+
+async function withSlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (running >= MAX_PARALLEL) await new Promise<void>((resolve) => waiting.push(resolve));
+  else running++;
+  try {
+    return await fn();
+  } finally {
+    // Hand the slot straight to whoever is next rather than freeing and
+    // re-taking it, so the count can never drift above the cap.
+    const next = waiting.shift();
+    if (next) next();
+    else running--;
+  }
+}
+
+const REPORT_CACHE_MS = 5 * 60 * 1000;
+const reportCache = new Map<string, { at: number; value: ProfitLoss }>();
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+async function plFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<ProfitLoss | null> {
+  const key = `${tenantId}|${fromDate}|${toDate}`;
+  const hit = reportCache.get(key);
+  if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
+
+  const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
+  const value = await withSlot(async () => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (res.status === 429 && attempt === 0) {
+        // Xero names the wait in whole seconds; cap it so one slow report can't
+        // hold up the whole page.
+        const after = parseInt(res.headers.get("Retry-After") || "", 10);
+        await sleep(Math.min(Number.isNaN(after) ? 2 : after, 5) * 1000);
+        continue;
+      }
+      if (!res.ok) return null;
+      return parseReport((await res.json()) as { Reports?: { Rows?: XeroRow[] }[] });
+    }
+    return null;
+  });
+
+  // Only a real answer is worth keeping — caching a failure would hold the page
+  // blank for five minutes after a single hiccup.
+  if (value) reportCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
+/* -------- The profit & loss itself, line by line -------- */
+
+export type PLLine = { label: string; amount: number };
+export type PLSection = { title: string; kind: "in" | "out" | "summary"; lines: PLLine[]; total: number };
+export type PLDetail = {
+  sections: PLSection[];
+  income: number; costOfSales: number; grossProfit: number | null;
+  operatingExpenses: number; netProfit: number;
+};
+
+const cellNum = (v: string | undefined): number | null => {
+  if (!v) return null;
+  const n = parseFloat(v.replace(/[^0-9.-]/g, ""));
+  return Number.isNaN(n) ? null : n;
+};
+
+// Xero titles its expense sections "Less Operating Expenses"; the "Less" is a
+// bookkeeping convention, not something a reader needs.
+const tidyTitle = (t: string) => t.replace(/^less\s+/i, "").trim();
+
+const sectionKind = (title: string): "in" | "out" => (
+  /income|revenue|sales|profit/i.test(title) && !/cost of sales/i.test(title) ? "in" : "out"
+);
+
+/**
+ * The report broken into its sections rather than flattened to totals.
+ *
+ * Xero nests a P&L as Sections holding Rows (the account lines) and a
+ * SummaryRow (the section total). The profit sections carry no Title of their
+ * own, so their summary row's label stands in for one.
+ */
+function parseDetail(data: { Reports?: { Rows?: XeroRow[] }[] }): PLDetail {
+  const sections: PLSection[] = [];
+  const totals = new Map<string, number>();
+
+  for (const sec of data.Reports?.[0]?.Rows ?? []) {
+    if (sec.RowType !== "Section") continue;
+    const lines: PLLine[] = [];
+    let total: number | null = null;
+    let title = (sec.Title || "").trim();
+
+    for (const r of sec.Rows ?? []) {
+      const label = (r.Cells?.[0]?.Value || "").trim();
+      const amount = cellNum(r.Cells?.[r.Cells.length - 1]?.Value);
+      if (!label || amount === null) continue;
+      if (r.RowType === "SummaryRow") {
+        total = amount;
+        totals.set(label.toLowerCase(), amount);
+        if (!title) title = label;
+      } else {
+        lines.push({ label, amount });
+      }
+    }
+
+    if (!title) continue;
+    if (total === null) {
+      if (!lines.length) continue;
+      total = lines.reduce((a, l) => a + l.amount, 0);
+    }
+    const clean = tidyTitle(title);
+    sections.push({ title: clean, kind: lines.length ? sectionKind(clean) : "summary", lines, total });
+  }
+
+  const at = (keys: string[]): number | null => {
+    for (const k of keys) if (totals.has(k)) return totals.get(k) as number;
+    return null;
+  };
+  const income = at(["total income", "total operating income", "total trading income", "total revenue"]) ?? 0;
+  const costOfSales = at(["total cost of sales", "total less cost of sales"]) ?? 0;
+  const grossProfit = at(["gross profit"]);
+  const operatingExpenses = at(["total operating expenses", "total expenses", "total less operating expenses"]) ?? 0;
+  const netProfit = at(["net profit", "profit for the period", "total net profit"]) ?? income - costOfSales - operatingExpenses;
+
+  return { sections, income, costOfSales, grossProfit, operatingExpenses, netProfit };
+}
+
+async function detailFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<PLDetail | null> {
+  const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
+  return withSlot(async () => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (res.status === 429 && attempt === 0) {
+        const after = parseInt(res.headers.get("Retry-After") || "", 10);
+        await sleep(Math.min(Number.isNaN(after) ? 2 : after, 5) * 1000);
+        continue;
+      }
+      if (!res.ok) return null;
+      return parseDetail((await res.json()) as { Reports?: { Rows?: XeroRow[] }[] });
+    }
+    return null;
+  });
+}
+
+const detailCache = new Map<string, { at: number; value: PLDetail }>();
+
+export async function getPLDetail(fromDate: string, toDate: string): Promise<PLDetail | null> {
+  const tok = await validToken();
+  if (!tok) return null;
+  const key = `${tok.tenantId}|${fromDate}|${toDate}`;
+  const hit = detailCache.get(key);
+  if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
+  const value = await detailFetch(tok.accessToken, tok.tenantId, fromDate, toDate);
+  if (value) detailCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
 export async function getProfitAndLoss(fromDate: string, toDate: string): Promise<ProfitLoss | null> {
   const tok = await validToken();
   if (!tok) return null;
@@ -165,10 +346,26 @@ export async function getProfitAndLoss(fromDate: string, toDate: string): Promis
 
 /* -------- Money in vs money out, over a chosen range (for the chart) -------- */
 
-export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number };
+// `ok` is false when Xero didn't answer for that span. Without it a failed read
+// draws as a genuine $0 month, which is indistinguishable from a quiet month.
+export type MonthPoint = { label: string; full: string; income: number; expenses: number; netProfit: number; ok: boolean };
 
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * Today's calendar date in Melbourne, as a UTC-midnight Date.
+ *
+ * The server runs in UTC, where at 9am in Melbourne it is still yesterday. Left
+ * alone that shifted every range back a day, and on the first of a month it
+ * reported the whole of last month as "this month".
+ */
+export function localToday(): Date {
+  const [y, m, d] = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Australia/Melbourne", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(new Date()).split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d));
+}
 
 export const MONEY_RANGES = ["7d", "4w", "3m", "12m"] as const;
 export type MoneyRange = (typeof MONEY_RANGES)[number];
@@ -177,25 +374,26 @@ export type MoneyRange = (typeof MONEY_RANGES)[number];
 // 4 weeks, monthly for 3 or 12 months — so the data genuinely changes per range
 // rather than leaning on Xero's periods param.
 function buildSpans(range: MoneyRange): { from: string; to: string; label: string; full: string }[] {
-  const today = new Date();
+  const today = localToday();
+  const Y = today.getUTCFullYear(), M = today.getUTCMonth(), D = today.getUTCDate();
   const spans: { from: string; to: string; label: string; full: string }[] = [];
   if (range === "7d") {
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(today); d.setDate(d.getDate() - i);
-      spans.push({ from: isoDate(d), to: isoDate(d), label: `${d.getDate()}/${d.getMonth() + 1}`, full: `${d.getDate()} ${MON[d.getMonth()]}` });
+      const d = new Date(Date.UTC(Y, M, D - i));
+      spans.push({ from: isoDate(d), to: isoDate(d), label: `${d.getUTCDate()}/${d.getUTCMonth() + 1}`, full: `${d.getUTCDate()} ${MON[d.getUTCMonth()]}` });
     }
   } else if (range === "4w") {
     for (let i = 3; i >= 0; i--) {
-      const end = new Date(today); end.setDate(end.getDate() - i * 7);
-      const start = new Date(end); start.setDate(start.getDate() - 6);
-      spans.push({ from: isoDate(start), to: isoDate(end), label: `${end.getDate()}/${end.getMonth() + 1}`, full: `Week to ${end.getDate()} ${MON[end.getMonth()]}` });
+      const end = new Date(Date.UTC(Y, M, D - i * 7));
+      const start = new Date(Date.UTC(Y, M, D - i * 7 - 6));
+      spans.push({ from: isoDate(start), to: isoDate(end), label: `${end.getUTCDate()}/${end.getUTCMonth() + 1}`, full: `Week to ${end.getUTCDate()} ${MON[end.getUTCMonth()]}` });
     }
   } else {
     const months = range === "3m" ? 3 : 12;
     for (let i = months - 1; i >= 0; i--) {
-      const first = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const last = i === 0 ? today : new Date(today.getFullYear(), today.getMonth() - i + 1, 0);
-      spans.push({ from: isoDate(first), to: isoDate(last), label: MON[first.getMonth()], full: `${MON[first.getMonth()]} ${first.getFullYear()}` });
+      const first = new Date(Date.UTC(Y, M - i, 1));
+      const last = i === 0 ? today : new Date(Date.UTC(Y, M - i + 1, 0));
+      spans.push({ from: isoDate(first), to: isoDate(last), label: MON[first.getUTCMonth()], full: `${MON[first.getUTCMonth()]} ${first.getUTCFullYear()}` });
     }
   }
   return spans;
@@ -209,5 +407,6 @@ export async function getMoneySeries(range: MoneyRange): Promise<MonthPoint[]> {
   return spans.map((s, i) => ({
     label: s.label, full: s.full,
     income: results[i]?.income ?? 0, expenses: results[i]?.expenses ?? 0, netProfit: results[i]?.netProfit ?? 0,
+    ok: results[i] !== null,
   }));
 }

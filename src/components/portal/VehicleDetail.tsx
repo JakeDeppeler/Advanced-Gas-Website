@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addLog, removeLog, saveVehicle, removeVehicle } from "@/app/portal/vehicles/actions";
+import { NumField } from "@/components/portal/NumField";
 import type { VehicleLogKind } from "@/lib/portal/db";
 
 export type VehicleView = {
@@ -73,6 +74,10 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
 
   return (
     <div className="pt-veh">
+      {!vehicle.active && (
+        <div className="pt-veh__off"><strong>Off the road.</strong> It stays in the fleet and keeps its history, it just isn&rsquo;t counted as working.</div>
+      )}
+
       {/* stats */}
       <section className="pt-panel pt-veh__stats">
         <div className="pt-veh__stat"><span>Current odometer</span><strong>{km(vehicle.odometer)}</strong></div>
@@ -102,9 +107,9 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
         </div>
         <div className="pt-veh__logform">
           <label className="pt-field"><span>Date</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-          <label className="pt-field"><span>Odometer (km)</span><input inputMode="numeric" value={odo} onChange={(e) => setOdo(e.target.value)} placeholder="e.g. 84300" /></label>
-          {kind === "fuel" && <label className="pt-field"><span>Litres</span><input inputMode="decimal" value={litres} onChange={(e) => setLitres(e.target.value)} placeholder="e.g. 62" /></label>}
-          {(kind === "fuel" || kind === "service" || kind === "damage") && <label className="pt-field"><span>Cost ($)</span><input inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} placeholder="e.g. 120" /></label>}
+          <NumField label="Odometer" value={odo} onChange={setOdo} suffix="km" placeholder="84,300" />
+          {kind === "fuel" && <NumField label="Litres" value={litres} onChange={setLitres} suffix="L" decimal placeholder="62" />}
+          {(kind === "fuel" || kind === "service" || kind === "damage") && <NumField label="Cost" value={cost} onChange={setCost} prefix="$" decimal placeholder="120" />}
         </div>
         <label className="pt-field" style={{ marginTop: 10 }}>
           <span>{kind === "service" ? "What was done" : kind === "damage" ? "What happened" : "Note"} {kind === "reading" ? <em>(optional)</em> : null}</span>
@@ -156,19 +161,21 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                 <label className="pt-field"><span>Name</span><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
                 <label className="pt-field"><span>Rego</span><input value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value })} /></label>
                 <label className="pt-field"><span>Make / model / year</span><input value={f.details} onChange={(e) => setF({ ...f, details: e.target.value })} /></label>
-                <label className="pt-field"><span>Current km</span><input inputMode="numeric" value={f.odometer} onChange={(e) => setF({ ...f, odometer: e.target.value })} /></label>
-                <label className="pt-field"><span>Service interval (km)</span><input inputMode="numeric" value={f.interval} onChange={(e) => setF({ ...f, interval: e.target.value })} /></label>
-                <label className="pt-field"><span>Next service at (km)</span><input inputMode="numeric" value={f.nextKm} onChange={(e) => setF({ ...f, nextKm: e.target.value })} /></label>
+                <NumField label="Current odometer" value={f.odometer} onChange={(v) => setF({ ...f, odometer: v })} suffix="km" />
+                <NumField label="Service every" value={f.interval} onChange={(v) => setF({ ...f, interval: v })} suffix="km" />
+                <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
                 <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
-                <label className="pt-field"><span>Purchase price ($)</span><input inputMode="numeric" value={f.purchase} onChange={(e) => setF({ ...f, purchase: e.target.value })} /></label>
-                <label className="pt-field"><span>Resale value ($)</span><input inputMode="numeric" value={f.resale} onChange={(e) => setF({ ...f, resale: e.target.value })} /></label>
-                <label className="pt-field"><span>Lifespan (years)</span><input inputMode="decimal" value={f.lifespan} onChange={(e) => setF({ ...f, lifespan: e.target.value })} /></label>
-                <label className="pt-field"><span>Fuel use (L/100km)</span><input inputMode="decimal" value={f.fuel} onChange={(e) => setF({ ...f, fuel: e.target.value })} /></label>
-                <label className="pt-switch pt-switch--sm" style={{ alignSelf: "end" }}>
-                  <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} />
-                  <span className="pt-switch__track" aria-hidden="true"><span className="pt-switch__thumb" /></span>
-                  <span className="pt-switch__label">{f.active ? "In service" : "Off the road"}</span>
-                </label>
+                <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
+                <NumField label="Resale value" hint="(at end of life)" value={f.resale} onChange={(v) => setF({ ...f, resale: v })} prefix="$" />
+                <NumField label="Lifespan" value={f.lifespan} onChange={(v) => setF({ ...f, lifespan: v })} suffix="years" decimal />
+                <NumField label="Fuel use" value={f.fuel} onChange={(v) => setF({ ...f, fuel: v })} suffix="L/100km" decimal />
+                <div className="pt-field">
+                  <span>Road status</span>
+                  <div className="pt-seg" role="group" aria-label="Road status">
+                    <button type="button" className={`pt-seg__b${f.active ? " is-on" : ""}`} aria-pressed={f.active} onClick={() => setF({ ...f, active: true })}>On the road</button>
+                    <button type="button" className={`pt-seg__b pt-seg__b--off${f.active ? "" : " is-on"}`} aria-pressed={!f.active} onClick={() => setF({ ...f, active: false })}>Off the road</button>
+                  </div>
+                </div>
               </div>
               <div className="pf-row-end" style={{ justifyContent: "space-between" }}>
                 <button type="button" className="pt-btn pt-btn--danger pt-btn--sm" disabled={pending} onClick={() => start(async () => { const r = await removeVehicle({ id: vehicle.id }); if (r.ok) router.push("/portal/vehicles"); })}>Remove vehicle</button>

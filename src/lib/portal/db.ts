@@ -586,6 +586,7 @@ export async function getVehicle(id: string): Promise<Vehicle | null> {
 export async function createVehicle(input: {
   name: string; rego?: string; details?: string; odometer?: number | null;
   serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; notes?: string;
+  purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const res = await sb("portal_vehicles", {
     method: "POST", headers: { Prefer: "return=minimal" },
@@ -593,6 +594,8 @@ export async function createVehicle(input: {
       name: input.name.trim(), rego: input.rego || null, details: input.details || null,
       odometer: input.odometer ?? null, service_interval_km: input.serviceIntervalKm ?? null,
       next_service_km: input.nextServiceKm ?? null, next_service_date: input.nextServiceDate || null, notes: input.notes || null,
+      purchase_price: input.purchasePrice ?? null, resale_value: input.resaleValue ?? null,
+      lifespan_years: input.lifespanYears ?? null, fuel_l_per_100: input.fuelPer100 ?? null,
     }),
   });
   if (!res) return { ok: false, error: "not-configured" };

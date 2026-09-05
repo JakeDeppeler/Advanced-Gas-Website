@@ -12,6 +12,10 @@ function dateLabel(d: string) {
   return new Date(d).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// Portal headings end in a full stop, but a vehicle name is whatever someone
+// typed — adding one to "Ford Custom (Jackson" just reads as a typo.
+const heading = (name: string) => (/[A-Za-z0-9]$/.test(name.trim()) ? `${name.trim()}.` : name.trim());
+
 export default async function VehiclePage({ params }: { params: { id: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
@@ -26,7 +30,7 @@ export default async function VehiclePage({ params }: { params: { id: string } }
       <div className="pt-head">
         <PortalBack href="/portal/vehicles" label="All vehicles" />
         <div className="pt-head__eyebrow">Vehicles{vehicle.rego ? ` · ${vehicle.rego}` : ""}</div>
-        <h1>{vehicle.name}.</h1>
+        <h1>{heading(vehicle.name)}</h1>
         {vehicle.details && <p>{vehicle.details}</p>}
       </div>
 
