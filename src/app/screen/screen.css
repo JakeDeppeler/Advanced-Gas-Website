@@ -1,0 +1,308 @@
+/* Wall dashboard. Designed for a 1920x1080 panel viewed from 3-4 metres, in a
+   kiosk browser with no pointer and no keyboard.
+
+   Sizing is in vw throughout so the same layout fills a 1080p or 4K panel
+   without a media query — at 1920px, 1vw = 19.2px.
+
+   Palette: dark-only, deliberately. A wall TV runs 12 hours a day and a light
+   board is both fatiguing and worse for burn-in. Data accent is the validated
+   sequential blue; the good/warning/critical trio is the fixed status palette
+   and is never used for anything decorative. */
+
+.screen {
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-muted: #898781;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --track: #2c2c2a;
+
+  --accent: #3987e5;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9vw;
+  padding: 1.2vw;
+  background: var(--plane);
+  color: var(--ink);
+  /* System sans, per the data-viz rule that even the hero figure stays in the
+     UI sans — the site's display face would read as decoration here. */
+  font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+}
+
+/* The marketing chrome lives in the root layout; the board is a full-bleed
+   takeover, so hide it rather than restructuring the app's layout tree. */
+body:has(.screen) .hdr,
+body:has(.screen) .ftr,
+body:has(.screen) .utilbar {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ top bar */
+.screen__bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1vw;
+  padding-bottom: 0.2vw;
+}
+
+.screen__title {
+  font-size: 1.5vw;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.screen__clock {
+  font-size: 1.5vw;
+  font-weight: 600;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen__sources {
+  display: flex;
+  gap: 1.1vw;
+  font-size: 0.95vw;
+  color: var(--ink-muted);
+}
+
+.screen__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35vw;
+}
+
+/* Status is never carried by colour alone — each dot ships with its source
+   name, and a degraded source also spells out its state in the label. */
+.screen__dot {
+  width: 0.6vw;
+  height: 0.6vw;
+  border-radius: 50%;
+  background: var(--good);
+}
+.screen__dot--stale { background: var(--warning); }
+.screen__dot--error { background: var(--critical); }
+.screen__dot--off { background: var(--ink-muted); }
+
+/* -------------------------------------------------------------------- grid */
+.screen__grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 0.9vw;
+  min-height: 0;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.5vw;
+  padding: 1.1vw 1.3vw;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 0.7vw;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tile--wide { grid-column: span 2; }
+
+.tile__label {
+  font-size: 1.15vw;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0.01em;
+}
+
+/* Proportional figures, not tabular — tabular-nums makes a large standalone
+   number look loose at this size. Tabular is reserved for the aligned columns
+   in the suburb list and the clock. */
+.tile__value {
+  font-size: 3.1vw;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.tile__value--hero { font-size: 5.4vw; }
+
+.tile__value--good { color: var(--good); }
+.tile__value--warning { color: var(--warning); }
+.tile__value--critical { color: var(--critical); }
+
+.tile__delta {
+  font-size: 1.05vw;
+  font-weight: 550;
+  color: var(--ink-muted);
+}
+.tile__delta--good { color: var(--good); }
+.tile__delta--bad { color: var(--critical); }
+
+.tile__sub {
+  font-size: 1vw;
+  color: var(--ink-muted);
+}
+
+/* ------------------------------------------------------------------- meter */
+/* Fill carries severity; the unfilled track is a darker step of the same
+   surface family so the state reads across the whole bar. */
+.meter {
+  height: 0.85vw;
+  border-radius: 0.45vw;
+  background: var(--track);
+  overflow: hidden;
+}
+
+.meter__fill {
+  height: 100%;
+  border-radius: 0.45vw;
+  background: var(--accent);
+  transition: width 600ms ease;
+}
+.meter__fill--good { background: var(--good); }
+.meter__fill--warning { background: var(--warning); }
+.meter__fill--critical { background: var(--critical); }
+
+/* -------------------------------------------------------------- suburb bars */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45vw;
+  flex: 1;
+  justify-content: center;
+}
+
+.bars__row {
+  display: grid;
+  grid-template-columns: 7.5vw 1fr 2.2vw;
+  align-items: center;
+  gap: 0.6vw;
+  font-size: 1.05vw;
+}
+
+.bars__name {
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bars__track { height: 0.9vw; }
+
+/* One hue for every bar: length already encodes magnitude, so varying colour
+   per row would imply a second variable that doesn't exist. */
+.bars__fill {
+  height: 100%;
+  border-radius: 0 0.2vw 0.2vw 0;
+  background: var(--accent);
+  min-width: 0.2vw;
+}
+
+.bars__count {
+  text-align: right;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.screen__empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 1.6vw;
+  color: var(--ink-muted);
+  text-align: center;
+  padding: 4vw;
+}
+
+/* --------------------------------------------------------------- rotation */
+/* Past about eight tiles nothing on a 1080p panel stays readable from four
+   metres, so the board cycles pages instead of shrinking. */
+.screen__pages {
+  display: flex;
+  gap: 0.5vw;
+  align-items: center;
+}
+
+.screen__pip {
+  width: 0.55vw;
+  height: 0.55vw;
+  border-radius: 50%;
+  background: var(--track);
+}
+.screen__pip--on { background: var(--ink-2); }
+
+.screen__page {
+  display: contents;
+}
+
+.tile--tall { grid-row: span 2; }
+
+/* --------------------------------------------------- leaderboard / bar list */
+.bars--money .bars__row { grid-template-columns: 8.5vw 1fr 4.6vw; }
+
+.bars--lg .bars__row {
+  font-size: 1.25vw;
+  /* Wide enough for the longest real job-type and technician names —
+     "Heat pump HW" truncated at 9vw. */
+  grid-template-columns: 11.5vw 1fr 5vw;
+}
+.bars--lg .bars__track { height: 1.15vw; }
+
+/* A double-height tile holds the same five rows, so spread them over the extra
+   height rather than centring a tight block in a mostly empty box. */
+.tile--tall .bars {
+  justify-content: space-evenly;
+  gap: 1.2vw;
+}
+
+.bars__rank {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bars__meta {
+  font-size: 0.85vw;
+  color: var(--ink-muted);
+}
+
+/* The hero tile's supporting figures — kept small so the one hero number
+   stays the only thing readable from the far side of the room. */
+.hero__row {
+  display: flex;
+  gap: 2.2vw;
+  align-items: baseline;
+}
+
+.hero__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15vw;
+}
+
+.hero__stat b {
+  font-size: 1.5vw;
+  font-weight: 650;
+}
+
+.hero__stat span {
+  font-size: 0.9vw;
+  color: var(--ink-muted);
+}
+
+.hero__unit {
+  font-size: 2vw;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-left: 0.4vw;
+}

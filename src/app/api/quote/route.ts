@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const runtime = "nodejs";
 
@@ -13,6 +14,8 @@ type Lead = {
   email: string;
   notes: string;
   hp: string;
+  pagePath?: string;
+  utm?: Record<string, string>;
 };
 
 export async function POST(req: Request) {
@@ -26,6 +29,12 @@ export async function POST(req: Request) {
   if (!data.name || !data.phone || !data.service) {
     return new NextResponse("Missing required fields", { status: 400 });
   }
+
+  // Persist first. Email can fail, an inbox can be missed, but a stored lead is
+  // still there tomorrow — and it's what every funnel metric on the dashboard is
+  // computed from. A storage failure must not cost us the notification, so this
+  // never throws.
+  await storeLead(data);
 
   const to = process.env.LEAD_NOTIFICATION_EMAIL;
   const key = process.env.RESEND_API_KEY;
@@ -55,6 +64,33 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+async function storeLead(d: Lead) {
+  if (!supabaseConfigured()) {
+    console.warn("Supabase not configured — lead not persisted, dashboard will undercount");
+    return;
+  }
+
+  try {
+    const { error } = await supabase().from("portal_leads").insert({
+      source: "website",
+      service: d.service,
+      property_type: d.propertyType || null,
+      timing: d.timing || null,
+      suburb: d.suburb || null,
+      postcode: d.postcode || null,
+      name: d.name,
+      phone: d.phone,
+      email: d.email || null,
+      notes: d.notes || null,
+      page_path: d.pagePath || null,
+      utm: d.utm ?? {},
+    });
+    if (error) console.error("Failed to store lead", error.message);
+  } catch (e) {
+    console.error("Failed to store lead", e);
+  }
 }
 
 function format(d: Lead) {
