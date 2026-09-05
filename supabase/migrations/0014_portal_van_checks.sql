@@ -4,7 +4,7 @@
 create table if not exists public.portal_van_checks (
   id           uuid primary key default gen_random_uuid(),
   vehicle_id   uuid not null references public.portal_vehicles(id) on delete cascade,
-  kind         text not null check (kind in ('daily','monthly','stock','plant','bag')),
+  kind         text not null check (kind in ('daily','monthly','stock','plant','bag')), -- widened in 0018
   checked_on   date not null default (now() at time zone 'Australia/Melbourne')::date,
   checked_by   text,
   notes        text,

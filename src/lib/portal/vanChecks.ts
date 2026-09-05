@@ -9,18 +9,22 @@
  * of "same list in every van".
  */
 
-export type CheckKind = "daily" | "monthly" | "stock" | "plant" | "bag";
+export type CheckKind = "weekly" | "monthly" | "stock" | "plant" | "bag";
 
-export const CHECK_KINDS: { k: CheckKind; label: string; short: string; blurb: string; cadence: string }[] = [
-  { k: "daily", label: "Daily van check", short: "Daily", cadence: "Every morning, 6:50am",
-    blurb: "YOU do this one. Ten minutes, on your own, before you leave. Anything wrong goes to the office the same day." },
-  { k: "monthly", label: "Monthly van condition check", short: "Monthly", cadence: "First week of the month, 6:30–7:30am",
-    blurb: "WE do this one, together. Everything comes out of the van, gets checked, gets cleaned, goes back in." },
-  { k: "stock", label: "Van stock count", short: "Stock", cadence: "Counted at the 6:50am check",
-    blurb: "Same list in every van. Order at the minimum, not when it runs out — anything at or under min qty gets ordered that day." },
-  { k: "plant", label: "Power tools & plant", short: "Tools & plant", cadence: "With the monthly check",
+export const CHECK_KINDS: {
+  k: CheckKind; label: string; short: string; blurb: string; cadence: string;
+  /** Whose job it is: the tech whose van it is, or the office. */
+  who: "crew" | "admin";
+}[] = [
+  { k: "weekly", label: "Weekly van check", short: "Weekly", cadence: "Monday morning", who: "crew",
+    blurb: "YOU do this one, on the van you're signed to. Ten minutes on a Monday before you leave. Anything wrong goes to the office the same day." },
+  { k: "stock", label: "Van stock count", short: "Stock", cadence: "Monday, with the weekly check", who: "crew",
+    blurb: "Same list in every van. Update the counts, and anything at or under the minimum gets ordered that day — order at the minimum, not when it runs out." },
+  { k: "monthly", label: "Monthly van condition check", short: "Monthly", cadence: "First week of the month", who: "admin",
+    blurb: "Admin does this one, with photos. A proper look over the van — what's wearing, what's due, what needs booking in." },
+  { k: "plant", label: "Power tools & plant", short: "Tools & plant", cadence: "With the monthly check", who: "admin",
     blurb: "Lives in the van. Missing, damaged or flat goes to the office the same day — don't work around it." },
-  { k: "bag", label: "Tool bag", short: "Tool bag", cadence: "Back in at the end of the job",
+  { k: "bag", label: "Tool bag", short: "Tool bag", cadence: "Back in at the end of the job", who: "crew",
     blurb: "What every tradesman and apprentice carries in the bag. Check it back in at the end of the job." },
 ];
 
@@ -151,13 +155,18 @@ export const TOOL_BAG: CountGroup[] = [
 
 /* -------- Ticked lists: the daily and monthly checks -------- */
 
-export type TickItem = { item: string; looking?: string };
+export type TickItem = {
+  item: string;
+  looking?: string;
+  /** Some things can't be taken on trust — the tyres, the panels, the km on the dash. */
+  photo?: "required" | "optional";
+};
 
-export const DAILY_CHECK: TickItem[] = [
+export const WEEKLY_CHECK: TickItem[] = [
   { item: "Stock counted against the van stock sheet" },
   { item: "Anything at or under min qty flagged to the office" },
-  { item: "Today's jobs reviewed — you know what each one needs" },
-  { item: "Materials for today's jobs loaded" },
+  { item: "This week's jobs reviewed — you know what each one needs" },
+  { item: "Materials for the week's jobs loaded" },
   { item: "Tool bag complete and back in the van" },
   { item: "Batteries charged — drill, impact, test gear" },
   { item: "Gas bottles chained, upright and in date" },
@@ -168,12 +177,10 @@ export const DAILY_CHECK: TickItem[] = [
 ];
 
 export const MONTHLY_CHECK: TickItem[] = [
-  { item: "Everything out", looking: "Van emptied so the floor, shelves and every item can be seen." },
-  { item: "Clean as it goes back", looking: "Anything dirty gets cleaned before it returns to the van." },
-  { item: "Body & panels", looking: "Dents, scratches, mirrors, lights. Damage reported the day it happened." },
-  { item: "Tyres", looking: "Tread, pressure including spare, no sidewall damage." },
+  { item: "Body & panels", looking: "Dents, scratches, mirrors, lights. Damage reported the day it happened.", photo: "required" },
+  { item: "Tyres", looking: "Tread, pressure including spare, no sidewall damage.", photo: "required" },
   { item: "Fluids", looking: "Oil, coolant, brake fluid, washer bottle." },
-  { item: "Service & rego", looking: "Sticker and logbook checked. Office told early if either is close." },
+  { item: "Service & rego", looking: "Sticker and logbook checked, and a photo of the km on the dash. Office told early if either is close.", photo: "required" },
   { item: "Racking & shelving", looking: "Secure, nothing loose, floor clear." },
   { item: "Gas bottle restraints", looking: "Chains and brackets sound, bottles upright." },
   { item: "Fire extinguisher", looking: "In date, charged, mounted, accessible." },
@@ -182,7 +189,7 @@ export const MONTHLY_CHECK: TickItem[] = [
   { item: "Harness & height gear", looking: "In date, no fraying, tagged." },
   { item: "Test gear calibration", looking: "Analyser and manometer in date." },
   { item: "Signage", looking: "Clean and undamaged." },
-  { item: "Wash & interior", looking: "Van washed, cab and rear tidy." },
+  { item: "Wash & interior", looking: "Van washed, cab and rear tidy.", photo: "optional" },
 ];
 
 /** The angles worth having on record, so a month's photos compare with the last. */
@@ -192,7 +199,7 @@ export const countList = (kind: CheckKind): CountGroup[] | null =>
   kind === "stock" ? VAN_STOCK : kind === "plant" ? VAN_PLANT : kind === "bag" ? TOOL_BAG : null;
 
 export const tickList = (kind: CheckKind): TickItem[] | null =>
-  kind === "daily" ? DAILY_CHECK : kind === "monthly" ? MONTHLY_CHECK : null;
+  kind === "weekly" ? WEEKLY_CHECK : kind === "monthly" ? MONTHLY_CHECK : null;
 
 /* -------- What a saved check holds -------- */
 

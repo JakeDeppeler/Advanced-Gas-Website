@@ -15,7 +15,7 @@ export type VehicleView = {
   nextServiceKm: number | null; nextServiceDate: string | null; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; purchasedOn: string | null; condition: VehicleCondition | null;
-  serviceCost: number | null; kmYear: number | null;
+  serviceCost: number | null; kmYear: number | null; assignedTo: string | null;
 };
 export type LogView = {
   id: string; kind: VehicleLogKind; dateLabel: string;
@@ -39,7 +39,9 @@ const toNum = (v: string): number | null => { const n = parseFloat(v.replace(/[^
 
 export type CheckSummary = { kind: string; short: string; when: string | null; by: string | null };
 
-export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; checks: CheckSummary[] }) {
+export type CrewOption = { id: string; name: string };
+
+export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; checks: CheckSummary[]; crew: CrewOption[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const refresh = () => router.refresh();
@@ -64,12 +66,14 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
     owing: vehicle.amountOwing?.toString() ?? "",
     bought: vehicle.purchasedOn ?? "", condition: vehicle.condition,
     serviceCost: vehicle.serviceCost?.toString() ?? "", kmYear: vehicle.kmYear?.toString() ?? "",
+    assignedTo: vehicle.assignedTo ?? "",
   });
 
   const kmToService = vehicle.nextServiceKm !== null && vehicle.odometer !== null ? vehicle.nextServiceKm - vehicle.odometer : null;
   const status = kmToService === null ? null : kmToService <= 0 ? "overdue" : kmToService <= 1000 ? "soon" : "ok";
   const annualDep = vehicle.purchasePrice !== null && vehicle.lifespanYears ? (vehicle.purchasePrice - (vehicle.resaleValue ?? 0)) / vehicle.lifespanYears : null;
   const fin = vehicleFinance(vehicle);
+  const assignedName = crew.find((c) => c.id === vehicle.assignedTo)?.name ?? null;
   const dollars = (v: number) => v.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
   function submitLog() {
@@ -137,7 +141,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
 
       <section className="pt-panel">
         <div className="pt-veh__edithead">
-          <h2 className="pt-panel__h">Stock &amp; checks</h2>
+          <h2 className="pt-panel__h">Stock &amp; checks{assignedName ? <span className="pt-veh__signed">Signed to {assignedName}</span> : null}</h2>
           <Link href={`/portal/vehicles/${vehicle.id}/checks`} className="pt-btn pt-btn--navy pt-btn--sm">Open the sheets →</Link>
         </div>
         <p className="pt-panel__sub">The daily check, the monthly condition check and the stock count — the same sheets that live in the van.</p>
@@ -225,6 +229,13 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
                 <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
                 <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
                 <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => setF({ ...f, bought: e.target.value })} /></label>
+                <label className="pt-field">
+                  <span>Signed to</span>
+                  <select value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })}>
+                    <option value="">Nobody yet</option>
+                    {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </label>
                 <div className="pt-field">
                   <span>Condition when we got it</span>
                   <div className="pt-seg" role="group" aria-label="Condition when bought">
@@ -269,6 +280,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
                     amountOwing: f.owing ? toNum(f.owing) : null,
                     purchasedOn: f.bought, condition: f.condition,
                     serviceCost: f.serviceCost ? toNum(f.serviceCost) : null, kmYear: f.kmYear ? toInt(f.kmYear) : null,
+                    assignedTo: f.assignedTo,
                   });
                   if (r.ok) { setEditing(false); refresh(); }
                 })}>{pending ? "Saving…" : "Save"}</button>

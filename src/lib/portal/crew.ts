@@ -21,6 +21,8 @@ export type Costing = {
   phDays: number;
   sickDays: number;
   schoolDays: number;
+  /** One RDO a month is the standard here — 12 a year, off the tools like leave. */
+  rdoDays: number;
   travelHrsWeek: number;
   adminHrsWeek: number;
   officeHrsWeek: number;
@@ -32,6 +34,13 @@ export type Costing = {
    * real life.
    */
   ownVan: boolean;
+  /**
+   * Overtime and night work as multipliers on the base rate, not dollar
+   * figures — a wage rise carries through without being retyped, and the same
+   * multiplier gives both what they're paid and what the job is charged.
+   */
+  otMult: number;
+  nightMult: number;
   rateOverride?: number | null;
 };
 
@@ -124,19 +133,19 @@ export const CREW_LEVELS: {
   key: CrewLevel; label: string; plural: string; billable: boolean; blurb: string; defaults: Costing;
 }[] = [
   { key: "operations", label: "Operations", plural: "Operations staff", billable: false, blurb: "Runs the business day to day. Full access to everything.",
-    defaults: { wage: 60, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false } },
+    defaults: { wage: 60, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "lead", label: "Lead hand", plural: "Lead hands", billable: true, blurb: "Runs jobs on the tools plus some supervision and office time.",
-    defaults: { wage: 55, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3, ownVan: true } },
+    defaults: { wage: 55, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "tradesman", label: "Tradesman", plural: "Tradesmen", billable: true, blurb: "Fully-qualified, on the tools and billable most of the week.",
-    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 5, adminHrsWeek: 2, officeHrsWeek: 0, ownVan: true } },
+    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 5, adminHrsWeek: 2, officeHrsWeek: 0, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "hybrid", label: "Hybrid (field + office)", plural: "Hybrids", billable: true, blurb: "Splits the week between the tools and the office.",
-    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, travelHrsWeek: 3, adminHrsWeek: 3, officeHrsWeek: 15, ownVan: true } },
+    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 3, adminHrsWeek: 3, officeHrsWeek: 15, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "apprentice", label: "Apprentice", plural: "Apprentices", billable: true, blurb: "On the tools and learning, with trade-school days off.",
-    defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 40, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false } },
+    defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 40, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "office", label: "Office", plural: "Office staff", billable: false, blurb: "Scheduling, reception and keeping jobs moving. Not billable.",
-    defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false } },
+    defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "admin", label: "Admin", plural: "Admin staff", billable: false, blurb: "Accounts, compliance and the paperwork behind the business. Not billable.",
-    defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false } },
+    defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
 ];
 
 export const LEVEL_LABEL: Record<CrewLevel, string> = CREW_LEVELS.reduce((m, l) => { m[l.key] = l.label; return m; }, {} as Record<CrewLevel, string>);
@@ -188,7 +197,7 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
     return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: wageCost, officeOh: 0, billable: false, chargeable: false };
   }
   const hrsPerDay = c.hrsWeek / 5;
-  const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays) * hrsPerDay;
+  const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
   const travelAdminHrs = (c.travelHrsWeek + c.adminHrsWeek) * s.weeksYear;
   const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paidHrs - daysOffHrs));
   const billHrs = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);

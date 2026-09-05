@@ -32,9 +32,16 @@ export type VehicleFinance = {
   sellBy: string | null;
   underwater: boolean;
   pastLife: boolean;
+  /** Nothing owing on it: bought and paid for. */
+  ownedOutright: boolean;
 };
 
 const YEAR_MS = 365.25 * 24 * 60 * 60 * 1000;
+
+/** 500km a week is what the vans actually do, and $2.40 is what fuel costs. */
+export const KM_PER_WEEK = 500;
+export const DEFAULT_KM_YEAR = KM_PER_WEEK * 52;
+export const FUEL_PRICE = 2.4;
 
 export function vehicleFinance(v: VehicleMoney): VehicleFinance {
   const { purchasePrice, lifespanYears, amountOwing } = v;
@@ -66,13 +73,14 @@ export function vehicleFinance(v: VehicleMoney): VehicleFinance {
 
   // A 30,000km service interval and a 10,000km one are worlds apart once the
   // km a year and the price of a service are in front of you.
-  const servicesPerYear = v.kmYear && v.serviceIntervalKm ? v.kmYear / v.serviceIntervalKm : null;
+  const servicesPerYear = v.serviceIntervalKm ? kmAYear(v) / v.serviceIntervalKm : null;
   const servicePerYear = servicesPerYear !== null && v.serviceCost != null ? servicesPerYear * v.serviceCost : null;
 
   return {
     ageYears, lifeLeft, worthNow, equityNow, annualDep, owingPerYearLeft, servicePerYear, servicesPerYear, sellBy,
     underwater: equityNow !== null && equityNow < 0,
     pastLife: lifeLeft !== null && lifeLeft <= 0,
+    ownedOutright: (amountOwing ?? 0) <= 0,
   };
 }
 
@@ -89,8 +97,11 @@ export function years(n: number): string {
 }
 
 
-/** Fuel a year at a given pump price. */
-export function fuelPerYear(v: VehicleMoney, pricePerLitre: number): number | null {
-  if (!v.kmYear || v.fuelPer100 == null) return null;
-  return (v.kmYear / 100) * v.fuelPer100 * pricePerLitre;
+/** The km a year to work from — what's been entered, or the standard 500 a week. */
+export const kmAYear = (v: VehicleMoney): number => v.kmYear || DEFAULT_KM_YEAR;
+
+/** Fuel a year at the pump price. */
+export function fuelPerYear(v: VehicleMoney, pricePerLitre = FUEL_PRICE): number | null {
+  if (v.fuelPer100 == null) return null;
+  return (kmAYear(v) / 100) * v.fuelPer100 * pricePerLitre;
 }

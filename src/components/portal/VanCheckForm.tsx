@@ -4,7 +4,7 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveVanCheck, uploadVanPhoto } from "@/app/portal/vehicles/actions";
 import {
-  CHECK_KINDS, PHOTO_ANGLES, countList, itemKey, shortfalls, tickList,
+  CHECK_KINDS, countList, itemKey, shortfalls, tickList,
   type CheckItems, type CheckKind,
 } from "@/lib/portal/vanChecks";
 
@@ -30,7 +30,7 @@ async function shrink(file: File, max = 1600, quality = 0.82): Promise<File> {
   return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
 }
 
-type Pending = { id: number; label: string; file: File; url: string };
+type Pending = { id: number; label: string; itemKey: string; file: File; url: string };
 
 export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: string; vehicleName: string; kind: CheckKind }) {
   const router = useRouter();
@@ -40,13 +40,13 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
   const [when, setWhen] = useState(() => new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" }));
   const [msg, setMsg] = useState("");
   const [photos, setPhotos] = useState<Pending[]>([]);
-  const [angle, setAngle] = useState(PHOTO_ANGLES[0]);
+  // One hidden file input, retargeted at whichever line asked for the camera.
   const fileRef = useRef<HTMLInputElement>(null);
+  const shootingFor = useRef<{ key: string; label: string } | null>(null);
 
   const def = CHECK_KINDS.find((k) => k.k === kind)!;
   const counts = countList(kind);
   const ticks = tickList(kind);
-  const wantsPhotos = kind === "monthly" || kind === "daily";
 
   const setEntry = (key: string, patch: Partial<CheckItems[string]>) =>
     setItems((prev) => ({ ...prev, [key]: { ...prev[key], ...patch } }));
@@ -61,13 +61,23 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
   const done = ticks ? tickDone : countDone;
   const total = ticks ? tickTotal : countTotal;
   const actionCount = ticks ? ticks.filter((t) => items[itemKey(kind, t.item)]?.state === "action").length : 0;
+  const shotsFor = (key: string) => photos.filter((p) => p.itemKey === key);
+  // Some lines can't be taken on trust. Naming what's missing beats a silent
+  // disabled button.
+  const missingPhotos = (ticks ?? []).filter((t) => t.photo === "required" && shotsFor(itemKey(kind, t.item)).length === 0);
+
+  function shootFor(key: string, label: string) {
+    shootingFor.current = { key, label };
+    fileRef.current?.click();
+  }
 
   async function addPhotos(files: FileList | null) {
-    if (!files?.length) return;
+    const target = shootingFor.current;
+    if (!files?.length || !target) return;
     const next: Pending[] = [];
     for (const f of Array.from(files)) {
       const small = await shrink(f);
-      next.push({ id: Date.now() + next.length, label: angle, file: small, url: URL.createObjectURL(small) });
+      next.push({ id: Date.now() + next.length, label: target.label, itemKey: target.key, file: small, url: URL.createObjectURL(small) });
     }
     setPhotos((p) => [...p, ...next]);
     if (fileRef.current) fileRef.current.value = "";
@@ -83,6 +93,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
         fd.set("checkId", res.id);
         fd.set("vehicleId", vehicleId);
         fd.set("label", p.label);
+        fd.set("itemKey", p.itemKey);
         fd.set("photo", p.file);
         const up = await uploadVanPhoto(fd);
         if (!up.ok) { setMsg(up.error || "The check saved, but a photo didn't."); }
@@ -136,6 +147,25 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
                   {e?.state === "action" && (
                     <input className="pt-vc__note" placeholder="What needs doing?" value={e.note ?? ""} onChange={(ev) => setEntry(key, { note: ev.target.value })} />
                   )}
+
+                  {t.photo && (
+                    <div className="pt-vc__tickshots">
+                      <button
+                        type="button"
+                        className={`pt-vc__shootbtn${t.photo === "required" && shotsFor(key).length === 0 ? " is-needed" : ""}`}
+                        onClick={() => shootFor(key, t.item)}
+                      >
+                        {shotsFor(key).length > 0 ? "Another photo" : t.photo === "required" ? "Photo needed" : "Add a photo"}
+                      </button>
+                      {shotsFor(key).map((p) => (
+                        <figure key={p.id} className="pt-vc__shot pt-vc__shot--sm">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={p.url} alt={p.label} />
+                          <button type="button" className="pf-x" aria-label="Remove photo" onClick={() => setPhotos((ps) => ps.filter((x) => x.id !== p.id))}>×</button>
+                        </figure>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -184,38 +214,17 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
         </section>
       )}
 
-      {wantsPhotos && (
+      {ticks && (
         <section className="pt-panel">
-          <h2 className="pt-panel__h">Photos</h2>
-          <p className="pt-panel__sub">
-            {kind === "monthly"
-              ? "Same angles every month, so this month's van sits next to last month's."
-              : "Only if there's something to show — damage, a mess, something that wasn't there yesterday."}
-          </p>
-          <div className="pt-vc__angles">
-            {PHOTO_ANGLES.map((a) => (
-              <button key={a} type="button" className={`pt-vc__angle${angle === a ? " is-on" : ""}`} onClick={() => setAngle(a)}>{a}</button>
-            ))}
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            multiple
-            className="pt-vc__file"
-            onChange={(e) => addPhotos(e.target.files)}
-          />
-          <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" onClick={() => fileRef.current?.click()}>
-            Take a photo — {angle}
-          </button>
-          {photos.length > 0 && (
+          <h2 className="pt-panel__h">Anything else worth a photo</h2>
+          <p className="pt-panel__sub">Damage, a mess, something that wasn&rsquo;t there last time — anything the photos above don&rsquo;t already cover.</p>
+          <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" onClick={() => shootFor("general", "General")}>Take a photo</button>
+          {shotsFor("general").length > 0 && (
             <div className="pt-vc__shots">
-              {photos.map((p) => (
+              {shotsFor("general").map((p) => (
                 <figure key={p.id} className="pt-vc__shot">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={p.url} alt={p.label} />
-                  <figcaption>{p.label}</figcaption>
                   <button type="button" className="pf-x" aria-label="Remove photo" onClick={() => setPhotos((ps) => ps.filter((x) => x.id !== p.id))}>×</button>
                 </figure>
               ))}
@@ -223,6 +232,16 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
           )}
         </section>
       )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        multiple
+        className="pt-vc__file"
+        onChange={(e) => addPhotos(e.target.files)}
+      />
 
       <section className="pt-panel">
         <h2 className="pt-panel__h">Anything else</h2>
@@ -235,10 +254,14 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
       <div className="pt-cap__savebar">
         {msg && <span className="pt-inline is-err">{msg}</span>}
         <span className="pt-cap__savenote">
-          {actionCount > 0 ? `${actionCount} ${actionCount === 1 ? "thing needs" : "things need"} doing` : short.length > 0 ? `${short.length} to order` : `${done} of ${total} done`}
+          {missingPhotos.length > 0
+            ? `Still needs a photo of: ${missingPhotos.map((t) => t.item.toLowerCase()).join(", ")}`
+            : actionCount > 0 ? `${actionCount} ${actionCount === 1 ? "thing needs" : "things need"} doing`
+            : short.length > 0 ? `${short.length} to order`
+            : `${done} of ${total} done`}
           {photos.length > 0 ? ` · ${photos.length} ${photos.length === 1 ? "photo" : "photos"}` : ""}
         </span>
-        <button type="button" className="pt-btn pt-btn--orange" disabled={pending || done === 0} onClick={submit}>
+        <button type="button" className="pt-btn pt-btn--orange" disabled={pending || done === 0 || missingPhotos.length > 0} onClick={submit}>
           {pending ? "Saving…" : "Finish the check"}
         </button>
       </div>

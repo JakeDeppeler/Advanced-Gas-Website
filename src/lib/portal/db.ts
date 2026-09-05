@@ -69,6 +69,9 @@ type UserRow = {
   travel_hrs_week: number | null;
   admin_hrs_week: number | null;
   own_van: boolean | null;
+  rdo_days: number | null;
+  ot_mult: number | null;
+  night_mult: number | null;
   office_hrs_week: number | null;
   rate_override: number | null;
   sort_order: number | null;
@@ -104,6 +107,11 @@ function toUser(r: UserRow): CostedUser {
       // counted as chargeable, so keep them that way rather than silently
       // dropping their billable hours.
       ownVan: r.own_van ?? true,
+      // Rows written before these columns existed take the standard: an RDO a
+      // month, time and a half, double time at night.
+      rdoDays: Number(r.rdo_days ?? 12),
+      otMult: Number(r.ot_mult ?? 1.5),
+      nightMult: Number(r.night_mult ?? 2),
       officeHrsWeek: Number(r.office_hrs_week ?? 0),
       rateOverride: r.rate_override == null ? null : Number(r.rate_override),
     },
@@ -268,6 +276,7 @@ export async function updateCrew(id: string, level: CrewLevel, c: Costing): Prom
       wage: c.wage, hrs_week: c.hrsWeek, leave_days: c.leaveDays, ph_days: c.phDays,
       sick_days: c.sickDays, school_days: c.schoolDays, travel_hrs_week: c.travelHrsWeek,
       admin_hrs_week: c.adminHrsWeek, office_hrs_week: c.officeHrsWeek, own_van: c.ownVan,
+      rdo_days: c.rdoDays, ot_mult: c.otMult, night_mult: c.nightMult,
       rate_override: c.rateOverride ?? null, updated_at: new Date().toISOString(),
     }),
   });
@@ -294,6 +303,7 @@ export async function createCrewPerson(input: { name: string; email?: string | n
       travel_hrs_week: input.costing.travelHrsWeek, admin_hrs_week: input.costing.adminHrsWeek,
       office_hrs_week: input.costing.officeHrsWeek, rate_override: input.costing.rateOverride ?? null,
       own_van: input.costing.ownVan,
+      rdo_days: input.costing.rdoDays, ot_mult: input.costing.otMult, night_mult: input.costing.nightMult,
     }),
   });
   if (!res) return { ok: false, error: "not-configured" };
@@ -547,6 +557,7 @@ export type Vehicle = {
   condition: VehicleCondition | null;
   serviceCost: number | null;
   kmYear: number | null;
+  assignedTo: string | null;
   purchasePrice: number | null;
   resaleValue: number | null;
   lifespanYears: number | null;
@@ -559,7 +570,7 @@ type VehicleRow = {
   next_service_km: number | null; next_service_date: string | null;
   active: boolean; notes: string | null; status: string | null; amount_owing: number | null;
   purchased_on: string | null; condition: string | null;
-  service_cost: number | null; km_year: number | null;
+  service_cost: number | null; km_year: number | null; assigned_to: string | null;
   purchase_price: number | null; resale_value: number | null; lifespan_years: number | null; fuel_l_per_100: number | null;
 };
 
@@ -575,7 +586,7 @@ const toVehicle = (r: VehicleRow): Vehicle => ({
   nextServiceDate: r.next_service_date, active: r.active, notes: r.notes,
   status: toStatus(r.status, r.active), amountOwing: n(r.amount_owing),
   purchasedOn: r.purchased_on, condition: r.condition === "new" || r.condition === "used" ? r.condition : null,
-  serviceCost: n(r.service_cost), kmYear: n(r.km_year),
+  serviceCost: n(r.service_cost), kmYear: n(r.km_year), assignedTo: r.assigned_to,
   purchasePrice: n(r.purchase_price), resaleValue: n(r.resale_value), lifespanYears: n(r.lifespan_years), fuelPer100: n(r.fuel_l_per_100),
 });
 
@@ -618,7 +629,7 @@ export async function createVehicle(input: {
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
   purchasedOn?: string | null; condition?: VehicleCondition | null;
-  serviceCost?: number | null; kmYear?: number | null;
+  serviceCost?: number | null; kmYear?: number | null; assignedTo?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const status = input.status ?? "on";
   const res = await sb("portal_vehicles", {
@@ -632,6 +643,7 @@ export async function createVehicle(input: {
       amount_owing: input.amountOwing ?? null,
       purchased_on: input.purchasedOn || null, condition: input.condition ?? null,
       service_cost: input.serviceCost ?? null, km_year: input.kmYear ?? null,
+      assigned_to: input.assignedTo || null,
       // active is kept in step with status so anything still reading the flag
       // treats a vehicle that's in for repair as not working.
       status, active: status === "on",
@@ -648,7 +660,7 @@ export async function updateVehicle(id: string, patch: {
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
   purchasedOn?: string | null; condition?: VehicleCondition | null;
-  serviceCost?: number | null; kmYear?: number | null;
+  serviceCost?: number | null; kmYear?: number | null; assignedTo?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.name !== undefined) body.name = patch.name.trim();
@@ -669,6 +681,7 @@ export async function updateVehicle(id: string, patch: {
   if (patch.condition !== undefined) body.condition = patch.condition;
   if (patch.serviceCost !== undefined) body.service_cost = patch.serviceCost;
   if (patch.kmYear !== undefined) body.km_year = patch.kmYear;
+  if (patch.assignedTo !== undefined) body.assigned_to = patch.assignedTo || null;
   if (patch.status !== undefined) { body.status = patch.status; body.active = patch.status === "on"; }
   const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
   if (!res) return { ok: false, error: "not-configured" };
@@ -791,10 +804,10 @@ const toCheck = (r: VanCheckRow): VanCheck => ({
   checkedBy: r.checked_by, notes: r.notes, items: r.items ?? {}, createdAt: r.created_at,
 });
 
-export type VanPhoto = { id: string; checkId: string; vehicleId: string; path: string; label: string | null; createdAt: string };
-type VanPhotoRow = { id: string; check_id: string; vehicle_id: string; path: string; label: string | null; created_at: string };
+export type VanPhoto = { id: string; checkId: string; vehicleId: string; path: string; label: string | null; itemKey: string | null; createdAt: string };
+type VanPhotoRow = { id: string; check_id: string; vehicle_id: string; path: string; label: string | null; item_key: string | null; created_at: string };
 const toPhoto = (r: VanPhotoRow): VanPhoto => ({
-  id: r.id, checkId: r.check_id, vehicleId: r.vehicle_id, path: r.path, label: r.label, createdAt: r.created_at,
+  id: r.id, checkId: r.check_id, vehicleId: r.vehicle_id, path: r.path, label: r.label, itemKey: r.item_key, createdAt: r.created_at,
 });
 
 export async function listVanChecks(vehicleId: string, kind?: CheckKind, limit = 40): Promise<VanCheck[]> {
@@ -855,10 +868,10 @@ export async function listVehiclePhotos(vehicleId: string, limit = 24): Promise<
   return ((await res.json()) as VanPhotoRow[]).map(toPhoto);
 }
 
-export async function createVanPhoto(input: { checkId: string; vehicleId: string; path: string; label?: string | null }): Promise<{ ok: boolean; error?: string }> {
+export async function createVanPhoto(input: { checkId: string; vehicleId: string; path: string; label?: string | null; itemKey?: string | null }): Promise<{ ok: boolean; error?: string }> {
   const res = await sb("portal_van_photos", {
     method: "POST", headers: { Prefer: "return=minimal" },
-    body: JSON.stringify({ check_id: input.checkId, vehicle_id: input.vehicleId, path: input.path, label: input.label || null }),
+    body: JSON.stringify({ check_id: input.checkId, vehicle_id: input.vehicleId, path: input.path, label: input.label || null, item_key: input.itemKey || null }),
   });
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };
@@ -875,4 +888,20 @@ export async function getVanPhoto(id: string): Promise<VanPhoto | null> {
 export async function deleteVanPhotoRow(id: string): Promise<{ ok: boolean }> {
   const res = await sb(`portal_van_photos?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
   return { ok: !!res && res.ok };
+}
+
+
+/** The van signed to someone, if they have one. */
+export async function vehicleFor(userId: string): Promise<Vehicle | null> {
+  const res = await sb(`portal_vehicles?assigned_to=eq.${encodeURIComponent(userId)}&select=*&limit=1`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as VehicleRow[];
+  return rows[0] ? toVehicle(rows[0]) : null;
+}
+
+/** Checks this person completed, newest first. */
+export async function checksBy(name: string, limit = 8): Promise<VanCheck[]> {
+  const res = await sb(`portal_van_checks?checked_by=eq.${encodeURIComponent(name)}&select=*&order=checked_on.desc,created_at.desc&limit=${limit}`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VanCheckRow[]).map(toCheck);
 }
