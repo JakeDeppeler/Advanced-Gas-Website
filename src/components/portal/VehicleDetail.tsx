@@ -15,6 +15,7 @@ export type VehicleView = {
   nextServiceKm: number | null; nextServiceDate: string | null; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; purchasedOn: string | null; condition: VehicleCondition | null;
+  serviceCost: number | null; kmYear: number | null;
 };
 export type LogView = {
   id: string; kind: VehicleLogKind; dateLabel: string;
@@ -62,6 +63,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
     lifespan: vehicle.lifespanYears?.toString() ?? "", fuel: vehicle.fuelPer100?.toString() ?? "",
     owing: vehicle.amountOwing?.toString() ?? "",
     bought: vehicle.purchasedOn ?? "", condition: vehicle.condition,
+    serviceCost: vehicle.serviceCost?.toString() ?? "", kmYear: vehicle.kmYear?.toString() ?? "",
   });
 
   const kmToService = vehicle.nextServiceKm !== null && vehicle.odometer !== null ? vehicle.nextServiceKm - vehicle.odometer : null;
@@ -107,6 +109,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
         {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
         {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{dollars(annualDep)}</strong></div>}
         {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
+        {fin.servicePerYear !== null && <div className="pt-veh__stat"><span>Servicing / yr</span><strong>{dollars(fin.servicePerYear)}</strong></div>}
         {fin.sellBy && <div className="pt-veh__stat"><span>Sell by</span><strong>{fin.sellBy}</strong></div>}
         {fin.lifeLeft !== null && <div className="pt-veh__stat"><span>Life left</span><strong className={fin.pastLife ? "is-neg" : ""}>{fin.pastLife ? `${years(fin.lifeLeft)} over` : years(fin.lifeLeft)}</strong></div>}
         {fin.worthNow !== null && <div className="pt-veh__stat"><span>Worth today</span><strong>{dollars(fin.worthNow)}</strong></div>}
@@ -215,6 +218,8 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
                 <label className="pt-field"><span>Make / model / year</span><input value={f.details} onChange={(e) => setF({ ...f, details: e.target.value })} /></label>
                 <NumField label="Current odometer" value={f.odometer} onChange={(v) => setF({ ...f, odometer: v })} suffix="km" />
                 <NumField label="Service every" value={f.interval} onChange={(v) => setF({ ...f, interval: v })} suffix="km" />
+                <NumField label="A service costs" value={f.serviceCost} onChange={(v) => setF({ ...f, serviceCost: v })} prefix="$" />
+                <NumField label="Km a year" hint="(roughly)" value={f.kmYear} onChange={(v) => setF({ ...f, kmYear: v })} suffix="km" />
                 <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
                 <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
                 <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
@@ -263,6 +268,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: V
                     lifespanYears: f.lifespan ? toNum(f.lifespan) : null, fuelPer100: f.fuel ? toNum(f.fuel) : null,
                     amountOwing: f.owing ? toNum(f.owing) : null,
                     purchasedOn: f.bought, condition: f.condition,
+                    serviceCost: f.serviceCost ? toNum(f.serviceCost) : null, kmYear: f.kmYear ? toInt(f.kmYear) : null,
                   });
                   if (r.ok) { setEditing(false); refresh(); }
                 })}>{pending ? "Saving…" : "Save"}</button>

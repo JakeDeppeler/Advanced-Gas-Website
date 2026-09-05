@@ -15,7 +15,7 @@ const dollars = (n: number) => n.toLocaleString("en-AU", { style: "currency", cu
 const BLANK = {
   name: "", rego: "", details: "",
   odometer: "", interval: "", nextKm: "", nextDate: "",
-  purchase: "", owing: "", resale: "", lifespan: "", fuel: "", bought: "",
+  purchase: "", owing: "", resale: "", lifespan: "", fuel: "", bought: "", serviceCost: "", kmYear: "",
   status: "on" as VehicleStatus,
   condition: null as VehicleCondition | null,
 };
@@ -73,6 +73,8 @@ export function AddVehicleForm() {
       <div className="pt-veh__addgrid">
         <NumField label="Current odometer" value={f.odometer} onChange={set("odometer")} suffix="km" placeholder="84,300" />
         <NumField label="Service every" value={f.interval} onChange={set("interval")} suffix="km" placeholder="10,000" />
+        <NumField label="A service costs" value={f.serviceCost} onChange={set("serviceCost")} prefix="$" placeholder="700" />
+        <NumField label="Km a year" hint="(roughly)" value={f.kmYear} onChange={set("kmYear")} suffix="km" placeholder="30,000" />
         <NumField label="Next service at" hint="(optional)" value={f.nextKm} onChange={set("nextKm")} suffix="km" placeholder="worked out for you" />
         <label className="pt-field"><span>Next service date <em>(optional)</em></span><input type="date" value={f.nextDate} onChange={(e) => set("nextDate")(e.target.value)} /></label>
       </div>
@@ -130,6 +132,7 @@ export function AddVehicleForm() {
               lifespanYears: lifespan, fuelPer100: toNum(f.fuel),
               amountOwing: owing, status: f.status,
               purchasedOn: f.bought, condition: f.condition,
+              serviceCost: toNum(f.serviceCost), kmYear: toInt(f.kmYear),
             });
             if (res.ok) { setF(BLANK); setOpen(false); router.refresh(); }
             else setMsg(res.error || "Couldn't add it.");

@@ -545,6 +545,8 @@ export type Vehicle = {
   amountOwing: number | null;
   purchasedOn: string | null;
   condition: VehicleCondition | null;
+  serviceCost: number | null;
+  kmYear: number | null;
   purchasePrice: number | null;
   resaleValue: number | null;
   lifespanYears: number | null;
@@ -557,6 +559,7 @@ type VehicleRow = {
   next_service_km: number | null; next_service_date: string | null;
   active: boolean; notes: string | null; status: string | null; amount_owing: number | null;
   purchased_on: string | null; condition: string | null;
+  service_cost: number | null; km_year: number | null;
   purchase_price: number | null; resale_value: number | null; lifespan_years: number | null; fuel_l_per_100: number | null;
 };
 
@@ -572,6 +575,7 @@ const toVehicle = (r: VehicleRow): Vehicle => ({
   nextServiceDate: r.next_service_date, active: r.active, notes: r.notes,
   status: toStatus(r.status, r.active), amountOwing: n(r.amount_owing),
   purchasedOn: r.purchased_on, condition: r.condition === "new" || r.condition === "used" ? r.condition : null,
+  serviceCost: n(r.service_cost), kmYear: n(r.km_year),
   purchasePrice: n(r.purchase_price), resaleValue: n(r.resale_value), lifespanYears: n(r.lifespan_years), fuelPer100: n(r.fuel_l_per_100),
 });
 
@@ -614,6 +618,7 @@ export async function createVehicle(input: {
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
   purchasedOn?: string | null; condition?: VehicleCondition | null;
+  serviceCost?: number | null; kmYear?: number | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const status = input.status ?? "on";
   const res = await sb("portal_vehicles", {
@@ -626,6 +631,7 @@ export async function createVehicle(input: {
       lifespan_years: input.lifespanYears ?? null, fuel_l_per_100: input.fuelPer100 ?? null,
       amount_owing: input.amountOwing ?? null,
       purchased_on: input.purchasedOn || null, condition: input.condition ?? null,
+      service_cost: input.serviceCost ?? null, km_year: input.kmYear ?? null,
       // active is kept in step with status so anything still reading the flag
       // treats a vehicle that's in for repair as not working.
       status, active: status === "on",
@@ -642,6 +648,7 @@ export async function updateVehicle(id: string, patch: {
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
   purchasedOn?: string | null; condition?: VehicleCondition | null;
+  serviceCost?: number | null; kmYear?: number | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.name !== undefined) body.name = patch.name.trim();
@@ -660,6 +667,8 @@ export async function updateVehicle(id: string, patch: {
   if (patch.amountOwing !== undefined) body.amount_owing = patch.amountOwing;
   if (patch.purchasedOn !== undefined) body.purchased_on = patch.purchasedOn || null;
   if (patch.condition !== undefined) body.condition = patch.condition;
+  if (patch.serviceCost !== undefined) body.service_cost = patch.serviceCost;
+  if (patch.kmYear !== undefined) body.km_year = patch.kmYear;
   if (patch.status !== undefined) { body.status = patch.status; body.active = patch.status === "on"; }
   const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
   if (!res) return { ok: false, error: "not-configured" };

@@ -12,6 +12,10 @@ export type VehicleMoney = {
   lifespanYears: number | null;
   amountOwing: number | null;
   purchasedOn: string | null;
+  serviceIntervalKm?: number | null;
+  serviceCost?: number | null;
+  kmYear?: number | null;
+  fuelPer100?: number | null;
 };
 
 export type VehicleFinance = {
@@ -21,6 +25,9 @@ export type VehicleFinance = {
   equityNow: number | null;
   annualDep: number | null;
   owingPerYearLeft: number | null;
+  /** Servicing a year: how many services the km calls for, times what one costs. */
+  servicePerYear: number | null;
+  servicesPerYear: number | null;
   /** The month its costed life runs out — when it should be sold on. */
   sellBy: string | null;
   underwater: boolean;
@@ -57,8 +64,13 @@ export function vehicleFinance(v: VehicleMoney): VehicleFinance {
     sellBy = end.toLocaleDateString("en-AU", { timeZone: "UTC", month: "long", year: "numeric" });
   }
 
+  // A 30,000km service interval and a 10,000km one are worlds apart once the
+  // km a year and the price of a service are in front of you.
+  const servicesPerYear = v.kmYear && v.serviceIntervalKm ? v.kmYear / v.serviceIntervalKm : null;
+  const servicePerYear = servicesPerYear !== null && v.serviceCost != null ? servicesPerYear * v.serviceCost : null;
+
   return {
-    ageYears, lifeLeft, worthNow, equityNow, annualDep, owingPerYearLeft, sellBy,
+    ageYears, lifeLeft, worthNow, equityNow, annualDep, owingPerYearLeft, servicePerYear, servicesPerYear, sellBy,
     underwater: equityNow !== null && equityNow < 0,
     pastLife: lifeLeft !== null && lifeLeft <= 0,
   };
@@ -74,4 +86,11 @@ export function years(n: number): string {
   if (y) parts.push(`${y} ${y === 1 ? "year" : "years"}`);
   if (m) parts.push(`${m} ${m === 1 ? "month" : "months"}`);
   return parts.length ? parts.join(" ") : "less than a month";
+}
+
+
+/** Fuel a year at a given pump price. */
+export function fuelPerYear(v: VehicleMoney, pricePerLitre: number): number | null {
+  if (!v.kmYear || v.fuelPer100 == null) return null;
+  return (v.kmYear / 100) * v.fuelPer100 * pricePerLitre;
 }

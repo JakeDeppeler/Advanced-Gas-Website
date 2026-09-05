@@ -3,9 +3,9 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
-import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { PLSummary } from "@/components/portal/PLSummary";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, rangeSpans, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import Link from "next/link";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, ovSpans, localToday, MONEY_RANGES, OV_PERIODS, type MoneyRange, type OvPeriod, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -28,12 +28,13 @@ function ranges() {
   };
 }
 
-export default async function FinancePage({ searchParams }: { searchParams: { tf?: string } }) {
+export default async function FinancePage({ searchParams }: { searchParams: { tf?: string; pl?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   const tf: MoneyRange = (MONEY_RANGES as readonly string[]).includes(searchParams?.tf ?? "") ? (searchParams!.tf as MoneyRange) : "12m";
+  const pl: OvPeriod = OV_PERIODS.some((o) => o.k === searchParams?.pl) ? (searchParams!.pl as OvPeriod) : "month";
   const { status, tenantName } = await xeroStatus();
 
   return (
@@ -65,14 +66,14 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
         </section>
       )}
 
-      {status === "connected" && <ConnectedView tenantName={tenantName ?? null} tf={tf} />}
+      {status === "connected" && <ConnectedView tenantName={tenantName ?? null} tf={tf} plKey={pl} />}
     </PortalShell>
   );
 }
 
-async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: MoneyRange }) {
+async function ConnectedView({ tenantName, tf, plKey }: { tenantName: string | null; tf: MoneyRange; plKey: OvPeriod }) {
   const r = ranges();
-  const pl = rangeSpans(tf);
+  const pl = ovSpans(plKey);
   const [today, week, month, lastMonth, year, series, plNow, plBefore] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
@@ -99,11 +100,20 @@ async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf
       )}
 
       <FinanceOverview
-        today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf}
-        plSummary={plNow ? <PLSummary now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label} /> : null}
+        today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} plKey={plKey}
+        plSummary={plNow ? (
+          <PLSummary
+            now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label}
+            picker={
+              <div className="pt-ov__tf">
+                {OV_PERIODS.map((o) => (
+                  <Link key={o.k} href={`/portal/finance?tf=${tf}&pl=${o.k}`} scroll={false} className={`pt-ov__tfbtn${plKey === o.k ? " is-on" : ""}`}>{o.label}</Link>
+                ))}
+              </div>
+            }
+          />
+        ) : null}
       />
-
-      <FinancePlanner yearProfit={year?.netProfit ?? null} />
     </div>
   );
 }

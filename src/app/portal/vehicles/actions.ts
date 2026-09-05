@@ -31,6 +31,7 @@ export async function addVehicle(input: {
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; status: VehicleStatus;
   purchasedOn: string; condition: VehicleCondition | null;
+  serviceCost: number | null; kmYear: number | null;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can add a vehicle." };
@@ -48,6 +49,7 @@ export async function addVehicle(input: {
     lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
     amountOwing: input.amountOwing, status: input.status,
     purchasedOn: input.purchasedOn, condition: input.condition,
+    serviceCost: input.serviceCost, kmYear: input.kmYear,
   });
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "The database isn't connected yet." : "Couldn't add it." };
   reval();
@@ -60,6 +62,7 @@ export async function saveVehicle(input: {
   nextServiceKm: number | null; nextServiceDate: string; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; purchasedOn: string; condition: VehicleCondition | null;
+  serviceCost: number | null; kmYear: number | null;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };
@@ -69,6 +72,7 @@ export async function saveVehicle(input: {
     nextServiceKm: input.nextServiceKm, nextServiceDate: input.nextServiceDate, status: input.status,
     purchasePrice: input.purchasePrice, resaleValue: input.resaleValue, lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
     amountOwing: input.amountOwing, purchasedOn: input.purchasedOn, condition: input.condition,
+    serviceCost: input.serviceCost, kmYear: input.kmYear,
   });
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   reval(input.id);

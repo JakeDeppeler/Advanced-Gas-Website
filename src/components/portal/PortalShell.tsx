@@ -64,7 +64,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       { href: "/portal/finance/pl", label: "Profit & loss" },
       { href: "/portal/finance/quotes", label: "Quotes & win rate" },
       { href: "/portal/finance/capacity", label: "Costs & capacity" },
-      { href: "/portal/finance/planning", label: "Planning" },
+      { href: "/portal/finance/planning", label: "Future planning" },
     ],
   });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });

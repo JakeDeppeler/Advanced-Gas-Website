@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Delta, SpendList, headlines, money, signed, topSpend, type PLDetail } from "@/components/portal/plParts";
 
 /**
@@ -10,8 +11,8 @@ import { Delta, SpendList, headlines, money, signed, topSpend, type PLDetail } f
  * stated plainly rather than left to be worked out from two cards.
  */
 export function PLSummary({
-  now, before, nowLabel, beforeLabel,
-}: { now: PLDetail; before: PLDetail | null; nowLabel: string; beforeLabel: string }) {
+  now, before, nowLabel, beforeLabel, picker,
+}: { now: PLDetail; before: PLDetail | null; nowLabel: string; beforeLabel: string; picker?: ReactNode }) {
   const heads = headlines(now, before);
   const spend = topSpend(now, 6);
   const moneyOut = now.costOfSales + now.operatingExpenses;
@@ -25,10 +26,11 @@ export function PLSummary({
     <section className="pt-panel">
       <div className="pt-ov__charthead">
         <h2 className="pt-panel__h">Where that money went</h2>
-        <Link href="/portal/finance/pl" className="pt-ov__more">Full statement →</Link>
+        {picker}
       </div>
       <p className="pt-panel__sub">
-        The profit &amp; loss for <strong>{nowLabel}</strong> — the same stretch the chart above is showing{before ? <>, against <strong>{beforeLabel}</strong></> : null}.
+        The profit &amp; loss for <strong>{nowLabel}</strong>{before ? <>, against <strong>{beforeLabel}</strong></> : null}.{" "}
+        <Link href="/portal/finance/pl" className="pt-pl__inline">Full statement →</Link>
       </p>
 
       {atLoss && (

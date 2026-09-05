@@ -417,6 +417,25 @@ export function rangeSpans(range: MoneyRange): { now: PLSpan; before: PLSpan } {
 }
 
 /**
+ * The windows the Finance overview's profit & loss can be read over. Its own
+ * control rather than the chart's — the chart is about the shape of money in
+ * and out, this is about where it went, and you don't always want both looking
+ * at the same stretch.
+ */
+export const OV_PERIODS = [
+  { k: "7d", label: "7d" },
+  { k: "month", label: "This month" },
+  { k: "3m", label: "3m" },
+  { k: "12m", label: "12m" },
+] as const;
+export type OvPeriod = (typeof OV_PERIODS)[number]["k"];
+
+export function ovSpans(key: OvPeriod): { now: PLSpan; before: PLSpan } {
+  if (key === "month") return plSpans("month");
+  return rangeSpans(key);
+}
+
+/**
  * A period paired with the equivalent stretch before it, so the two are
  * genuinely comparable: five days into this month is measured against the
  * first five days of last month, not against a whole one.
