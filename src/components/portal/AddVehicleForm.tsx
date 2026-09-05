@@ -4,14 +4,18 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addVehicle } from "@/app/portal/vehicles/actions";
 import { NumField } from "@/components/portal/NumField";
+import { STATUS_OPTS } from "@/components/portal/vehicleStatus";
+import type { VehicleStatus } from "@/lib/portal/db";
 
 const toInt = (v: string): number | null => { const n = parseInt(v.replace(/[^0-9]/g, ""), 10); return Number.isNaN(n) ? null : n; };
 const toNum = (v: string): number | null => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? null : n; };
+const dollars = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
 const BLANK = {
   name: "", rego: "", details: "",
   odometer: "", interval: "", nextKm: "", nextDate: "",
-  purchase: "", resale: "", lifespan: "", fuel: "",
+  purchase: "", owing: "", resale: "", lifespan: "", fuel: "",
+  status: "on" as VehicleStatus,
 };
 
 export function AddVehicleForm() {
@@ -22,12 +26,15 @@ export function AddVehicleForm() {
   const [msg, setMsg] = useState("");
 
   const set = (k: keyof typeof BLANK) => (v: string) => setF((prev) => ({ ...prev, [k]: v }));
+  const owing = toNum(f.owing);
+  const resale = toNum(f.resale);
 
   // What the running cost of this vehicle works out to, shown while you type so
   // you can see the figure the overhead will pick up.
   const purchase = toNum(f.purchase);
   const lifespan = toNum(f.lifespan);
-  const annualDep = purchase !== null && lifespan ? (purchase - (toNum(f.resale) ?? 0)) / lifespan : null;
+  const annualDep = purchase !== null && lifespan ? (purchase - (resale ?? 0)) / lifespan : null;
+  const equity = owing !== null && resale !== null ? resale - owing : null;
 
   if (!open) {
     return <button type="button" className="pt-btn pt-btn--orange" onClick={() => setOpen(true)}>+ Add a vehicle</button>;
@@ -42,6 +49,20 @@ export function AddVehicleForm() {
         <label className="pt-field"><span>Name</span><input value={f.name} onChange={(e) => set("name")(e.target.value)} placeholder="e.g. Ute 1 — Hilux" /></label>
         <label className="pt-field"><span>Rego</span><input value={f.rego} onChange={(e) => set("rego")(e.target.value)} placeholder="e.g. 1AB 2CD" /></label>
         <label className="pt-field"><span>Make / model / year</span><input value={f.details} onChange={(e) => set("details")(e.target.value)} placeholder="e.g. Toyota Hilux 2022" /></label>
+        <div className="pt-field pt-field--wide">
+          <span>Road status</span>
+          <div className="pt-seg" role="group" aria-label="Road status">
+            {STATUS_OPTS.map((o) => (
+              <button
+                key={o.k}
+                type="button"
+                className={`pt-seg__b pt-seg__b--${o.k}${f.status === o.k ? " is-on" : ""}`}
+                aria-pressed={f.status === o.k}
+                onClick={() => setF((prev) => ({ ...prev, status: o.k }))}
+              >{o.label}</button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="pt-veh__addhead">Servicing</div>
@@ -55,14 +76,16 @@ export function AddVehicleForm() {
       <div className="pt-veh__addhead">Running cost</div>
       <div className="pt-veh__addgrid">
         <NumField label="Purchase price" value={f.purchase} onChange={set("purchase")} prefix="$" placeholder="52,000" />
+        <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={set("owing")} prefix="$" placeholder="28,000" />
         <NumField label="Resale value" hint="(at end of life)" value={f.resale} onChange={set("resale")} prefix="$" placeholder="15,000" />
         <NumField label="Lifespan" value={f.lifespan} onChange={set("lifespan")} suffix="years" decimal placeholder="5" />
         <NumField label="Fuel use" value={f.fuel} onChange={set("fuel")} suffix="L/100km" decimal placeholder="9.5" />
       </div>
 
-      {annualDep !== null && (
+      {(annualDep !== null || equity !== null) && (
         <div className="pt-veh__calc">
-          That&rsquo;s <strong>{annualDep.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 })}</strong> a year in depreciation.
+          {annualDep !== null && <>That&rsquo;s <strong>{dollars(annualDep)}</strong> a year in depreciation. </>}
+          {equity !== null && <>With the finance paid off it&rsquo;s worth <strong>{dollars(equity)}</strong> to us.</>}
         </div>
       )}
 
@@ -79,8 +102,9 @@ export function AddVehicleForm() {
               name: f.name, rego: f.rego, details: f.details,
               odometer: toInt(f.odometer), serviceIntervalKm: toInt(f.interval),
               nextServiceKm: toInt(f.nextKm), nextServiceDate: f.nextDate,
-              purchasePrice: toNum(f.purchase), resaleValue: toNum(f.resale),
-              lifespanYears: toNum(f.lifespan), fuelPer100: toNum(f.fuel),
+              purchasePrice: purchase, resaleValue: resale,
+              lifespanYears: lifespan, fuelPer100: toNum(f.fuel),
+              amountOwing: owing, status: f.status,
             });
             if (res.ok) { setF(BLANK); setOpen(false); router.refresh(); }
             else setMsg(res.error || "Couldn't add it.");

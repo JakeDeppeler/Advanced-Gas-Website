@@ -4,13 +4,15 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addLog, removeLog, saveVehicle, removeVehicle } from "@/app/portal/vehicles/actions";
 import { NumField } from "@/components/portal/NumField";
-import type { VehicleLogKind } from "@/lib/portal/db";
+import { STATUS_LABEL, STATUS_NOTE, STATUS_OPTS } from "@/components/portal/vehicleStatus";
+import type { VehicleLogKind, VehicleStatus } from "@/lib/portal/db";
 
 export type VehicleView = {
   id: string; name: string; rego: string | null; details: string | null;
   odometer: number | null; serviceIntervalKm: number | null;
-  nextServiceKm: number | null; nextServiceDate: string | null; active: boolean;
+  nextServiceKm: number | null; nextServiceDate: string | null; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
+  amountOwing: number | null;
 };
 export type LogView = {
   id: string; kind: VehicleLogKind; dateLabel: string;
@@ -50,14 +52,18 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
   const [f, setF] = useState({
     name: vehicle.name, rego: vehicle.rego ?? "", details: vehicle.details ?? "",
     odometer: vehicle.odometer?.toString() ?? "", interval: vehicle.serviceIntervalKm?.toString() ?? "",
-    nextKm: vehicle.nextServiceKm?.toString() ?? "", nextDate: vehicle.nextServiceDate ?? "", active: vehicle.active,
+    nextKm: vehicle.nextServiceKm?.toString() ?? "", nextDate: vehicle.nextServiceDate ?? "", status: vehicle.status,
     purchase: vehicle.purchasePrice?.toString() ?? "", resale: vehicle.resaleValue?.toString() ?? "",
     lifespan: vehicle.lifespanYears?.toString() ?? "", fuel: vehicle.fuelPer100?.toString() ?? "",
+    owing: vehicle.amountOwing?.toString() ?? "",
   });
 
   const kmToService = vehicle.nextServiceKm !== null && vehicle.odometer !== null ? vehicle.nextServiceKm - vehicle.odometer : null;
   const status = kmToService === null ? null : kmToService <= 0 ? "overdue" : kmToService <= 1000 ? "soon" : "ok";
   const annualDep = vehicle.purchasePrice !== null && vehicle.lifespanYears ? (vehicle.purchasePrice - (vehicle.resaleValue ?? 0)) / vehicle.lifespanYears : null;
+  // What it's actually worth to the business: resale less whatever finance is
+  // still outstanding on it.
+  const equity = vehicle.amountOwing !== null && vehicle.resaleValue !== null ? vehicle.resaleValue - vehicle.amountOwing : null;
   const dollars = (v: number) => v.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
   function submitLog() {
@@ -74,8 +80,11 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
 
   return (
     <div className="pt-veh">
-      {!vehicle.active && (
-        <div className="pt-veh__off"><strong>Off the road.</strong> It stays in the fleet and keeps its history, it just isn&rsquo;t counted as working.</div>
+      {vehicle.status !== "on" && (
+        <div className={`pt-veh__off${vehicle.status === "repair" ? " pt-veh__off--repair" : ""}`}>
+          <strong>{STATUS_LABEL[vehicle.status]}.</strong>
+          <span>{STATUS_NOTE[vehicle.status]}</span>
+        </div>
       )}
 
       {/* stats */}
@@ -94,6 +103,8 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
         {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
         {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{dollars(annualDep)}</strong></div>}
         {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
+        {vehicle.amountOwing !== null && <div className="pt-veh__stat"><span>Still owing</span><strong>{dollars(vehicle.amountOwing)}</strong></div>}
+        {equity !== null && <div className="pt-veh__stat"><span>Worth to us</span><strong className={equity < 0 ? "is-neg" : ""}>{dollars(equity)}</strong></div>}
       </section>
 
       {/* add log */}
@@ -166,14 +177,22 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                 <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
                 <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
                 <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
+                <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
                 <NumField label="Resale value" hint="(at end of life)" value={f.resale} onChange={(v) => setF({ ...f, resale: v })} prefix="$" />
                 <NumField label="Lifespan" value={f.lifespan} onChange={(v) => setF({ ...f, lifespan: v })} suffix="years" decimal />
                 <NumField label="Fuel use" value={f.fuel} onChange={(v) => setF({ ...f, fuel: v })} suffix="L/100km" decimal />
-                <div className="pt-field">
+                <div className="pt-field pt-field--wide">
                   <span>Road status</span>
                   <div className="pt-seg" role="group" aria-label="Road status">
-                    <button type="button" className={`pt-seg__b${f.active ? " is-on" : ""}`} aria-pressed={f.active} onClick={() => setF({ ...f, active: true })}>On the road</button>
-                    <button type="button" className={`pt-seg__b pt-seg__b--off${f.active ? "" : " is-on"}`} aria-pressed={!f.active} onClick={() => setF({ ...f, active: false })}>Off the road</button>
+                    {STATUS_OPTS.map((o) => (
+                      <button
+                        key={o.k}
+                        type="button"
+                        className={`pt-seg__b pt-seg__b--${o.k}${f.status === o.k ? " is-on" : ""}`}
+                        aria-pressed={f.status === o.k}
+                        onClick={() => setF({ ...f, status: o.k })}
+                      >{o.label}</button>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -183,9 +202,10 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                   const r = await saveVehicle({
                     id: vehicle.id, name: f.name, rego: f.rego, details: f.details,
                     odometer: f.odometer ? toInt(f.odometer) : null, serviceIntervalKm: f.interval ? toInt(f.interval) : null,
-                    nextServiceKm: f.nextKm ? toInt(f.nextKm) : null, nextServiceDate: f.nextDate, active: f.active,
+                    nextServiceKm: f.nextKm ? toInt(f.nextKm) : null, nextServiceDate: f.nextDate, status: f.status,
                     purchasePrice: f.purchase ? toNum(f.purchase) : null, resaleValue: f.resale ? toNum(f.resale) : null,
                     lifespanYears: f.lifespan ? toNum(f.lifespan) : null, fuelPer100: f.fuel ? toNum(f.fuel) : null,
+                    amountOwing: f.owing ? toNum(f.owing) : null,
                   });
                   if (r.ok) { setEditing(false); refresh(); }
                 })}>{pending ? "Saving…" : "Save"}</button>

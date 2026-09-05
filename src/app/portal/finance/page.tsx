@@ -4,7 +4,8 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import { PLSummary } from "@/components/portal/PLSummary";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, plSpans, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -71,13 +72,16 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
 
 async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: MoneyRange }) {
   const r = ranges();
-  const [today, week, month, lastMonth, year, series] = await Promise.all([
+  const pl = plSpans("month");
+  const [today, week, month, lastMonth, year, series, plNow, plBefore] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
     getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
     getMoneySeries(tf),
+    getPLDetail(pl.now.from, pl.now.to),
+    getPLDetail(pl.before.from, pl.before.to),
   ]);
 
   const anyData = [today, week, month, year].some((p) => p !== null);
@@ -95,6 +99,8 @@ async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf
       )}
 
       <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
+
+      {plNow && <PLSummary now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label} />}
 
       <FinancePlanner yearProfit={year?.netProfit ?? null} />
     </div>

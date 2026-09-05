@@ -113,7 +113,7 @@
   transition: transform 0.14s, box-shadow 0.14s, border-color 0.14s;
 }
 a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgba(14,27,77,0.5); border-color: #cfd7ea; }
-.pt-card__tag { font-family: var(--f-mono, monospace); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pt-ink-3); font-weight: 600; }
+.pt-card__tag { display: flex; align-items: center; gap: 8px; font-family: var(--f-mono, monospace); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pt-ink-3); font-weight: 600; }
 .pt-card__title { font-family: var(--f-display); font-weight: 700; font-size: 16px; margin: 8px 0 5px; color: var(--pt-ink); letter-spacing: -0.01em; }
 .pt-card__desc { font-size: 13.5px; line-height: 1.5; color: var(--pt-ink-2); margin: 0; }
 .pt-card__meta { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 12px; color: var(--pt-ink-3); font-family: var(--f-mono, monospace); }
@@ -277,6 +277,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-seg__b { appearance: none; border: 0; background: transparent; border-radius: 7px; padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 600; color: var(--pt-ink-2); cursor: pointer; white-space: nowrap; }
 .pt-seg__b:hover { color: var(--pt-ink); }
 .pt-seg__b.is-on { background: var(--pt-good); color: #fff; }
+.pt-seg__b.is-on.pt-seg__b--repair { background: #a9701a; }
 .pt-seg__b.is-on.pt-seg__b--off { background: #b23b2e; }
 .pt-seg__b:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 1px; }
 
@@ -474,6 +475,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-veh__stat { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
 .pt-veh__stat > span { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pt-ink-3); font-weight: 600; }
 .pt-veh__stat > strong { font-family: var(--f-display); font-size: 18px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-veh__stat > strong.is-neg { color: #c0392b; }
 .pt-veh__stat > strong.pt-veh__status { font-family: var(--f-display); font-size: 13px; letter-spacing: 0; padding: 4px 9px; }
 
 .pt-veh__kinds { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
@@ -497,12 +499,18 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 
 .pt-veh__edithead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .pt-veh__editgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 14px 0; align-items: end; }
+.pt-veh__editgrid .pt-field--wide, .pt-veh__addgrid .pt-field--wide { grid-column: 1 / -1; }
 .pt-veh__addgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: end; }
 .pt-veh__addhead { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--pt-ink-3); margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid var(--pt-line); }
 .pt-veh__calc { margin-top: 14px; font-size: 13.5px; color: var(--pt-ink-2); background: var(--pt-bg); border: 1px solid var(--pt-line); border-radius: 10px; padding: 10px 13px; }
 .pt-veh__calc strong { color: var(--pt-ink); font-variant-numeric: tabular-nums; }
 .pt-veh__off { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; font-size: 13.5px; color: #a9701a; background: #fbf1de; border: 1px solid #f0e0c0; border-radius: 12px; padding: 11px 14px; }
 .pt-veh__off strong { color: #8a5a12; }
+.pt-veh__off--repair { color: #a9701a; background: #fbf1de; border-color: #f0e0c0; }
+.pt-veh__pill { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+.pt-veh__pill--on { background: #e6f3ec; color: var(--pt-good); }
+.pt-veh__pill--repair { background: #fbf1de; color: #a9701a; }
+.pt-veh__pill--off { background: #fbe9e6; color: #b23b2e; }
 
 /* ---- Finance (Xero) ---- */
 .pt-fin__steps { margin: 0 0 6px; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; }

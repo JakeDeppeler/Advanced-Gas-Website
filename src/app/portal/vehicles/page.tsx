@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listVehicles, dbConfigured, type Vehicle } from "@/lib/portal/db";
+import { STATUS_LABEL } from "@/components/portal/vehicleStatus";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { AddVehicleForm } from "@/components/portal/AddVehicleForm";
 
@@ -38,8 +39,9 @@ export default async function VehiclesPage() {
   const canManage = can(user, "vehicles");
   const ready = dbConfigured();
   const vehicles = ready ? await listVehicles() : [];
-  const active = vehicles.filter((v) => v.active);
-  const off = vehicles.filter((v) => !v.active);
+  const onRoad = vehicles.filter((v) => v.status === "on");
+  const repair = vehicles.filter((v) => v.status === "repair");
+  const off = vehicles.filter((v) => v.status === "off");
 
   return (
     <PortalShell user={user}>
@@ -59,7 +61,13 @@ export default async function VehiclesPage() {
         <div className="pt-rep__empty">No vehicles yet{canManage ? " — add one above." : "."}</div>
       ) : (
         <>
-          <div className="pt-grid">{active.map((v) => <Card key={v.id} v={v} />)}</div>
+          <div className="pt-grid">{onRoad.map((v) => <Card key={v.id} v={v} />)}</div>
+          {repair.length > 0 && (
+            <>
+              <div className="pt-tm__listhead"><h2 className="pt-panel__h">Getting fixed <span className="pt-tm__count">{repair.length}</span></h2></div>
+              <div className="pt-grid">{repair.map((v) => <Card key={v.id} v={v} />)}</div>
+            </>
+          )}
           {off.length > 0 && (
             <>
               <div className="pt-tm__listhead pt-tm__listhead--muted"><h2 className="pt-panel__h">Off the road <span className="pt-tm__count">{off.length}</span></h2></div>

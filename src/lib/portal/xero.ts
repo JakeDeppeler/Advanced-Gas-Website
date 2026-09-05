@@ -367,6 +367,62 @@ export function localToday(): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
+/* -------- The periods the P&L is read over -------- */
+
+export type PLSpan = { from: string; to: string; label: string };
+export const PL_PERIODS = [
+  { k: "month", label: "This month" },
+  { k: "lastmonth", label: "Last month" },
+  { k: "3m", label: "Last 3 months" },
+  { k: "year", label: "This year" },
+] as const;
+export type PLPeriod = (typeof PL_PERIODS)[number]["k"];
+
+const MONTH_NAME = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/**
+ * A period paired with the equivalent stretch before it, so the two are
+ * genuinely comparable: five days into this month is measured against the
+ * first five days of last month, not against a whole one.
+ */
+export function plSpans(key: PLPeriod): { now: PLSpan; before: PLSpan } {
+  const t = localToday();
+  const y = t.getUTCFullYear(), m = t.getUTCMonth(), d = t.getUTCDate();
+  const monthEnd = (mm: number) => new Date(Date.UTC(y, mm + 1, 0));
+  const named = (mm: number) => {
+    const at = new Date(Date.UTC(y, mm, 1));
+    return `${MONTH_NAME[at.getUTCMonth()]} ${at.getUTCFullYear()}`;
+  };
+
+  if (key === "lastmonth") {
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, m - 1, 1))), to: isoDate(monthEnd(m - 1)), label: named(m - 1) },
+      before: { from: isoDate(new Date(Date.UTC(y, m - 2, 1))), to: isoDate(monthEnd(m - 2)), label: named(m - 2) },
+    };
+  }
+  if (key === "3m") {
+    // Whole months only — a part-finished month would drag the comparison down.
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, m - 3, 1))), to: isoDate(monthEnd(m - 1)), label: "the last 3 full months" },
+      before: { from: isoDate(new Date(Date.UTC(y, m - 6, 1))), to: isoDate(monthEnd(m - 4)), label: "the 3 months before those" },
+    };
+  }
+  if (key === "year") {
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, 0, 1))), to: isoDate(t), label: `${y} so far` },
+      before: { from: isoDate(new Date(Date.UTC(y - 1, 0, 1))), to: isoDate(new Date(Date.UTC(y - 1, m, d))), label: `the same point in ${y - 1}` },
+    };
+  }
+  const sameDay = Math.min(d, monthEnd(m - 1).getUTCDate());
+  return {
+    now: { from: isoDate(new Date(Date.UTC(y, m, 1))), to: isoDate(t), label: `${named(m)}, ${d} ${d === 1 ? "day" : "days"} in` },
+    before: {
+      from: isoDate(new Date(Date.UTC(y, m - 1, 1))), to: isoDate(new Date(Date.UTC(y, m - 1, sameDay))),
+      label: `the first ${sameDay} ${sameDay === 1 ? "day" : "days"} of ${named(m - 1)}`,
+    },
+  };
+}
+
 export const MONEY_RANGES = ["7d", "4w", "3m", "12m"] as const;
 export type MoneyRange = (typeof MONEY_RANGES)[number];
 

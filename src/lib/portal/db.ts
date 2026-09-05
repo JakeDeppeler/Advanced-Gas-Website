@@ -517,6 +517,9 @@ export async function deleteReview(id: string): Promise<{ ok: boolean; error?: s
 
 /* ---------------- vehicles ---------------- */
 
+/** On the road, in for repair, or retired from the fleet. */
+export type VehicleStatus = "on" | "repair" | "off";
+
 export type Vehicle = {
   id: string;
   name: string;
@@ -528,6 +531,8 @@ export type Vehicle = {
   nextServiceDate: string | null;
   active: boolean;
   notes: string | null;
+  status: VehicleStatus;
+  amountOwing: number | null;
   purchasePrice: number | null;
   resaleValue: number | null;
   lifespanYears: number | null;
@@ -538,15 +543,21 @@ type VehicleRow = {
   id: string; name: string; rego: string | null; details: string | null;
   odometer: number | null; service_interval_km: number | null;
   next_service_km: number | null; next_service_date: string | null;
-  active: boolean; notes: string | null;
+  active: boolean; notes: string | null; status: string | null; amount_owing: number | null;
   purchase_price: number | null; resale_value: number | null; lifespan_years: number | null; fuel_l_per_100: number | null;
 };
 
 const n = (v: number | null) => (v == null ? null : Number(v));
+
+/** Rows written before the status column existed only carry the active flag. */
+const toStatus = (raw: string | null, active: boolean): VehicleStatus =>
+  raw === "on" || raw === "repair" || raw === "off" ? raw : active ? "on" : "off";
+
 const toVehicle = (r: VehicleRow): Vehicle => ({
   id: r.id, name: r.name, rego: r.rego, details: r.details, odometer: r.odometer,
   serviceIntervalKm: r.service_interval_km, nextServiceKm: r.next_service_km,
   nextServiceDate: r.next_service_date, active: r.active, notes: r.notes,
+  status: toStatus(r.status, r.active), amountOwing: n(r.amount_owing),
   purchasePrice: n(r.purchase_price), resaleValue: n(r.resale_value), lifespanYears: n(r.lifespan_years), fuelPer100: n(r.fuel_l_per_100),
 });
 
@@ -587,7 +598,9 @@ export async function createVehicle(input: {
   name: string; rego?: string; details?: string; odometer?: number | null;
   serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; notes?: string;
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
+  amountOwing?: number | null; status?: VehicleStatus;
 }): Promise<{ ok: boolean; error?: string }> {
+  const status = input.status ?? "on";
   const res = await sb("portal_vehicles", {
     method: "POST", headers: { Prefer: "return=minimal" },
     body: JSON.stringify({
@@ -596,6 +609,10 @@ export async function createVehicle(input: {
       next_service_km: input.nextServiceKm ?? null, next_service_date: input.nextServiceDate || null, notes: input.notes || null,
       purchase_price: input.purchasePrice ?? null, resale_value: input.resaleValue ?? null,
       lifespan_years: input.lifespanYears ?? null, fuel_l_per_100: input.fuelPer100 ?? null,
+      amount_owing: input.amountOwing ?? null,
+      // active is kept in step with status so anything still reading the flag
+      // treats a vehicle that's in for repair as not working.
+      status, active: status === "on",
     }),
   });
   if (!res) return { ok: false, error: "not-configured" };
@@ -607,6 +624,7 @@ export async function updateVehicle(id: string, patch: {
   name?: string; rego?: string; details?: string; odometer?: number | null;
   serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; active?: boolean; notes?: string;
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
+  amountOwing?: number | null; status?: VehicleStatus;
 }): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.name !== undefined) body.name = patch.name.trim();
@@ -622,6 +640,8 @@ export async function updateVehicle(id: string, patch: {
   if (patch.resaleValue !== undefined) body.resale_value = patch.resaleValue;
   if (patch.lifespanYears !== undefined) body.lifespan_years = patch.lifespanYears;
   if (patch.fuelPer100 !== undefined) body.fuel_l_per_100 = patch.fuelPer100;
+  if (patch.amountOwing !== undefined) body.amount_owing = patch.amountOwing;
+  if (patch.status !== undefined) { body.status = patch.status; body.active = patch.status === "on"; }
   const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };

@@ -5,7 +5,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import {
   createVehicle, updateVehicle, deleteVehicle,
-  createVehicleLog, deleteVehicleLog, type VehicleLogKind,
+  createVehicleLog, deleteVehicleLog, type VehicleLogKind, type VehicleStatus,
 } from "@/lib/portal/db";
 
 export type ActionResult = { ok: boolean; error?: string };
@@ -26,6 +26,7 @@ export async function addVehicle(input: {
   odometer: number | null; serviceIntervalKm: number | null;
   nextServiceKm: number | null; nextServiceDate: string;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
+  amountOwing: number | null; status: VehicleStatus;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can add a vehicle." };
@@ -41,6 +42,7 @@ export async function addVehicle(input: {
     nextServiceKm, nextServiceDate: input.nextServiceDate,
     purchasePrice: input.purchasePrice, resaleValue: input.resaleValue,
     lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
+    amountOwing: input.amountOwing, status: input.status,
   });
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "The database isn't connected yet." : "Couldn't add it." };
   reval();
@@ -50,16 +52,18 @@ export async function addVehicle(input: {
 export async function saveVehicle(input: {
   id: string; name: string; rego: string; details: string;
   odometer: number | null; serviceIntervalKm: number | null;
-  nextServiceKm: number | null; nextServiceDate: string; active: boolean;
+  nextServiceKm: number | null; nextServiceDate: string; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
+  amountOwing: number | null;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };
   const res = await updateVehicle(input.id, {
     name: input.name, rego: input.rego, details: input.details,
     odometer: input.odometer, serviceIntervalKm: input.serviceIntervalKm,
-    nextServiceKm: input.nextServiceKm, nextServiceDate: input.nextServiceDate, active: input.active,
+    nextServiceKm: input.nextServiceKm, nextServiceDate: input.nextServiceDate, status: input.status,
     purchasePrice: input.purchasePrice, resaleValue: input.resaleValue, lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
+    amountOwing: input.amountOwing,
   });
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   reval(input.id);
