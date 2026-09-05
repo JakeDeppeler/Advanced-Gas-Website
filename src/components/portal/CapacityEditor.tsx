@@ -51,6 +51,9 @@ export function CapacityEditor({
   const [msg, setMsg] = useState("");
   const [delId, setDelId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>(initialTab ?? "crew");
+  // Most overhead lines sit at zero once Xero has filled the ones it can; hiding
+  // them turns thirty-odd boxes into the dozen that actually carry money.
+  const [showEmpty, setShowEmpty] = useState(false);
 
   const [s, setS] = useState<CapSettings>({ ...settings, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
@@ -71,6 +74,8 @@ export function CapacityEditor({
   const toFile = unmapped.filter((x) => !countedElsewhere(x.label));
   const elsewhere = unmapped.filter((x) => countedElsewhere(x.label));
   const suggestions = toFile.map((x) => ({ x, key: suggestOverhead(x.label) })).filter((r) => r.key);
+  const filedCount = xeroExpenses.filter((x) => xeroMap[x.label]).length;
+  const emptyCount = OVERHEAD_FIELDS.filter((f) => (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
   function applyAllSuggestions() {
@@ -327,54 +332,49 @@ export function CapacityEditor({
 
       {tab === "overheads" && (
         <>
-          <div className="pt-note">
-            Wages don&rsquo;t belong here — the crew tab already carries every wage, including the time you can&rsquo;t bill and anyone riding along. This is everything else the business has to earn back.
-          </div>
-
           <section className="pt-panel">
             <div className="pt-ov__charthead">
-              <h2 className="pt-panel__h">Pull it from Xero</h2>
-              {xeroExpenses.length > 0 && <span className="pt-cap__grouptotal">{unmapped.length} left</span>}
+              <h2 className="pt-panel__h">From Xero</h2>
+              {xeroExpenses.length > 0 && (
+                <span className="pt-oh__status">
+                  {filedCount} filed · {elsewhere.length} left out{toFile.length > 0 ? ` · ${toFile.length} to file` : ""}
+                </span>
+              )}
             </div>
-            <p className="pt-panel__sub">
-              Every expense account Xero has for the last twelve months, biggest first. File one against an overhead line and that
-              line takes the real figure — no more typing what you think you spend. Wages aren&rsquo;t here to be filed: the crew tab
-              already carries every one.
-            </p>
 
             {xero?.state === "off" && (
               <div className="pt-note pt-note--warn">
-                <strong>Xero isn&rsquo;t connected.</strong> Connect it on the Finance overview and the accounts will list here.
+                <strong>Xero isn&rsquo;t connected.</strong> Connect it on the Finance overview and your accounts will list here.
               </div>
             )}
             {xero?.state === "failed" && (
               <div className="pt-note pt-note--warn">
-                <strong>Xero didn&rsquo;t answer.</strong> The profit &amp; loss report for {xero.span} came back empty — reload in a
-                minute, or disconnect and reconnect from the Finance overview.
+                <strong>Xero didn&rsquo;t answer.</strong> The report for {xero.span} came back empty — reload in a minute, or
+                reconnect from the Finance overview.
               </div>
             )}
             {xero?.state === "empty" && (
               <div className="pt-note pt-note--warn">
-                <strong>The report came back with no expense accounts.</strong> Xero returned {xero.sections.length}{" "}
+                <strong>No expense accounts in the report.</strong> Xero returned {xero.sections.length}{" "}
                 {xero.sections.length === 1 ? "section" : "sections"} for {xero.span}
-                {xero.sections.length > 0 ? <> — {xero.sections.join(", ")}</> : null}. If your expenses live under a heading that
-                isn&rsquo;t listed there, tell me what it&rsquo;s called and I&rsquo;ll teach it to read that shape.
+                {xero.sections.length > 0 ? <> — {xero.sections.join(", ")}</> : null}.
               </div>
             )}
 
-            {suggestions.length > 0 && (
-              <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" style={{ marginBottom: 14 }} onClick={applyAllSuggestions}>
-                File the {suggestions.length} it recognises
-              </button>
-            )}
-
-            {xeroExpenses.length > 0 && (toFile.length === 0 ? (
-                <div className="pf-empty">Every account is filed.</div>
-              ) : (
+            {toFile.length > 0 && (
+              <>
+                <p className="pt-panel__sub">
+                  Twelve months of expense accounts, biggest first. File one and that overhead line takes the real figure.
+                </p>
+                {suggestions.length > 0 && (
+                  <button type="button" className="pt-btn pt-btn--orange pt-btn--sm pt-oh__apply" onClick={applyAllSuggestions}>
+                    File the {suggestions.length} it recognises
+                  </button>
+                )}
                 <div className="pt-cap__xero">
                   {toFile.slice(0, 60).map((x) => (
                     <div key={x.label} className="pt-cap__xerorow">
-                      <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{x.section}</em></span>
+                      <span className="pt-cap__xeroid"><strong>{x.label}</strong></span>
                       <span className="pt-cap__xeroamt">{money(x.amount)}</span>
                       <select className="pt-cap__type" value={suggestOverhead(x.label) ?? ""} onChange={(e) => assign(x.label, e.target.value)}>
                         <option value="">File it under…</option>
@@ -389,87 +389,105 @@ export function CapacityEditor({
                     </div>
                   ))}
                 </div>
-              ))}
+              </>
+            )}
 
-              {elsewhere.length > 0 && (
-                <>
-                  <h3 className="pt-pl__subh" style={{ marginTop: 18 }}>Left out — already counted elsewhere</h3>
-                  <p className="pt-panel__sub">
-                    These aren&rsquo;t overheads to file. Adding them here would charge the same money twice and lift every rate you quote.
-                  </p>
-                  <div className="pt-cap__xero">
-                    {elsewhere.map((x) => (
-                      <div key={x.label} className="pt-cap__xerorow is-out">
-                        <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{countedElsewhere(x.label)}</em></span>
-                        <span className="pt-cap__xeroamt">{money(x.amount)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
+            {xeroExpenses.length > 0 && toFile.length === 0 && (
+              <p className="pt-panel__sub">Everything Xero has is accounted for. The lines below carry the real figures.</p>
+            )}
 
-              {Object.keys(xeroMap).length > 0 && (
-                <>
-                  <h3 className="pt-pl__subh" style={{ marginTop: 18 }}>Already filed</h3>
-                  <div className="pt-cap__xero">
-                    {xeroExpenses.filter((x) => xeroMap[x.label]).map((x) => (
-                      <div key={x.label} className="pt-cap__xerorow is-filed">
-                        <span className="pt-cap__xeroid">
-                          <strong>{x.label}</strong>
-                          <em>{OVERHEAD_FIELDS.find((f) => f.key === xeroMap[x.label])?.label ?? xeroMap[x.label]}</em>
-                        </span>
-                        <span className="pt-cap__xeroamt">{money(x.amount)}</span>
-                        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => assign(x.label, "")}>Unfile</button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-          </section>
-
-          {OVERHEAD_GROUPS.map((g) => {
-            const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
-            const oh = overheadsOf(s);
-            const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);
-            return (
-              <section key={g.key} className="pt-panel">
-                <div className="pt-ov__charthead">
-                  <h2 className="pt-panel__h">{g.label}</h2>
-                  <span className="pt-cap__grouptotal">{money(groupTotal)}<em>/yr</em></span>
-                </div>
-                <p className="pt-panel__sub">{g.blurb}</p>
-                <div className="pt-cap__ohgrid">
-                  {fields.map((f) => {
-                    const accs = accountsFor(f.key);
-                    return (
-                      <label key={f.key} className="pt-cap__f">
-                        <span>{f.label}{f.hint ? <em> {f.hint}</em> : null}</span>
-                        <span className="pt-calc__field">
-                          <span className="pt-calc__pre">$</span>
-                          <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
-                        </span>
-                        {accs.length > 0 && (
-                          <span className="pt-cap__fromxero">
-                            From Xero: {accs.map((a) => a.label).join(", ")}
+            {(filedCount > 0 || elsewhere.length > 0) && (
+              <details className="pt-oh__more">
+                <summary>Review what came from Xero</summary>
+                {elsewhere.length > 0 && (
+                  <>
+                    <h3 className="pt-oh__subh">Left out — already counted elsewhere</h3>
+                    <p className="pt-oh__hint">Adding these would charge the same money twice and lift every rate you quote.</p>
+                    <div className="pt-cap__xero">
+                      {elsewhere.map((x) => (
+                        <div key={x.label} className="pt-cap__xerorow is-out">
+                          <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{countedElsewhere(x.label)}</em></span>
+                          <span className="pt-cap__xeroamt">{money(x.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {filedCount > 0 && (
+                  <>
+                    <h3 className="pt-oh__subh">Filed</h3>
+                    <div className="pt-cap__xero">
+                      {xeroExpenses.filter((x) => xeroMap[x.label]).map((x) => (
+                        <div key={x.label} className="pt-cap__xerorow is-filed">
+                          <span className="pt-cap__xeroid">
+                            <strong>{x.label}</strong>
+                            <em>{OVERHEAD_FIELDS.find((f) => f.key === xeroMap[x.label])?.label ?? xeroMap[x.label]}</em>
                           </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-
+                          <span className="pt-cap__xeroamt">{money(x.amount)}</span>
+                          <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => assign(x.label, "")}>Unfile</button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </details>
+            )}
+          </section>
 
           <section className="pt-panel">
             <div className="pt-ov__charthead">
-              <h2 className="pt-panel__h">Everything to recover</h2>
+              <h2 className="pt-panel__h">What the business costs to run</h2>
               <span className="pt-cap__grouptotal">{money(ohTotal)}<em>/yr</em></span>
             </div>
             <p className="pt-panel__sub">
-              Spread across {hrs(cap.totalBillHrs)} of billable time, that&rsquo;s <strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong> of overhead on every hour you bill, before a wage is paid.
+              Everything except wages — the crew tab already carries every one, including downtime and anyone riding along.
+              Spread across {hrs(cap.totalBillHrs)} of billable time that&rsquo;s{" "}
+              <strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong> on every hour you bill, before a wage is paid.
             </p>
+
+            {emptyCount > 0 && (
+              <label className="pt-oh__toggle">
+                <input type="checkbox" checked={showEmpty} onChange={(e) => setShowEmpty(e.target.checked)} />
+                Show the {emptyCount} lines with nothing in them
+              </label>
+            )}
+
+            <div className="pt-oh__ledger">
+              {OVERHEAD_GROUPS.map((g) => {
+                const oh = overheadsOf(s);
+                const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
+                const shown = showEmpty ? fields : fields.filter((f) => (Number(oh[f.key]) || 0) !== 0);
+                if (shown.length === 0) return null;
+                const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);
+                return (
+                  <div key={g.key} className="pt-oh__group">
+                    <div className="pt-oh__grouph">
+                      <span>{g.label}</span>
+                      <span>{money(groupTotal)}</span>
+                    </div>
+                    {shown.map((f) => {
+                      const accs = accountsFor(f.key);
+                      return (
+                        <label key={f.key} className="pt-oh__row">
+                          <span className="pt-oh__label">
+                            {f.label}
+                            {accs.length > 0 && (
+                              <em title={accs.map((a) => a.label).join(", ")}>
+                                Xero · {accs.length === 1 ? accs[0].label : `${accs.length} accounts`}
+                              </em>
+                            )}
+                          </span>
+                          <span className="pt-oh__amt">
+                            <span>$</span>
+                            <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
           </section>
         </>
       )}
