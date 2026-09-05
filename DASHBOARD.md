@@ -103,6 +103,9 @@ curl -H "Authorization: Bearer $CRON_SECRET" \
   "https://www.advancedgas.com.au/api/sync?reset=1"
 ```
 
+Or run the **Dashboard sync** workflow from the Actions tab with the *reset*
+input ticked.
+
 The export endpoints are paged and each run is capped, so a large backfill takes
 several invocations — the stored continuation token means each run resumes where
 the last stopped. Re-run until every resource reports `exhausted: true`.
@@ -154,9 +157,28 @@ the server's timezone and never an upstream system's. The Xero org is set to
 Australia/Sydney and the HubSpot portal to US/Eastern; trusting either would roll
 "leads today" over mid-afternoon.
 
-**Cron frequency.** `vercel.json` schedules `/api/sync` every 10 minutes, which
-needs a Vercel Pro plan. On Hobby, crons run daily — change the schedule or
-trigger the endpoint from an external scheduler.
+**The sync is scheduled from GitHub Actions, not Vercel.** Vercel's Hobby plan
+permits only daily cron jobs and *rejects the deploy outright* if `vercel.json`
+asks for more — and a once-a-day sync makes a "live" board a day stale. So
+`.github/workflows/dashboard-sync.yml` calls `/api/sync` every 10 minutes
+instead. It needs two repository secrets:
+
+| Secret | Value |
+|---|---|
+| `DASHBOARD_SYNC_URL` | `https://www.advancedgas.com.au/api/sync` |
+| `CRON_SECRET` | the same value set in Vercel |
+
+Caveats worth knowing: GitHub's scheduler is best-effort and can run several
+minutes late at peak, and scheduled workflows are **disabled automatically after
+60 days without repository activity** — if the board silently stops updating
+months from now, check that first.
+
+On a Vercel Pro plan, delete that workflow and put the schedule back in
+`vercel.json`, which is more reliable:
+
+```json
+{ "crons": [{ "path": "/api/sync", "schedule": "*/10 * * * *" }] }
+```
 
 **One source per metric.** ServiceTitan owns leads, jobs, quotes and invoiced
 revenue; Xero owns overdue debtors and receivables. They are deliberately not
