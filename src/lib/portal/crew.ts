@@ -341,7 +341,7 @@ export function crewCombos(
 const COUNTED_ELSEWHERE: { test: RegExp; where: string }[] = [
   { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "The crew tab already carries every wage, on-cost and day off." },
   { test: /^depreciation|amortisation/i, where: "Depreciation on the vans comes from the Vehicles tab." },
-  { test: /^materials|^cost of (sales|goods)|subcontract/i, where: "That's a job cost, not an overhead — it belongs on the job, not on every hour." },
+  { test: /^materials|^cost of (sales|goods)|subcontract|contractor/i, where: "A job cost, not an overhead — it's allowed for in the job it was paid on, so it can't also sit on every hour." },
 ];
 
 export function countedElsewhere(label: string): string | null {
