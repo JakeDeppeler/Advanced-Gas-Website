@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { addLog, removeLog, saveVehicle, removeVehicle } from "@/app/portal/vehicles/actions";
 import { NumField } from "@/components/portal/NumField";
@@ -30,11 +31,14 @@ const KINDS: { key: VehicleLogKind; label: string }[] = [
 const KIND_LABEL: Record<VehicleLogKind, string> = { reading: "Km reading", fuel: "Fuel", service: "Service", damage: "Damage" };
 
 const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
+const dateShort = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short" });
 const money = (n: number | null) => (n === null ? null : n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 2 }));
 const toInt = (v: string): number | null => { const n = parseInt(v.replace(/[^0-9]/g, ""), 10); return Number.isNaN(n) ? null : n; };
 const toNum = (v: string): number | null => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? null : n; };
 
-export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean }) {
+export type CheckSummary = { kind: string; short: string; when: string | null; by: string | null };
+
+export function VehicleDetail({ vehicle, logs, canManage, checks }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; checks: CheckSummary[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const refresh = () => router.refresh();
@@ -127,6 +131,22 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
           )}
         </div>
       )}
+
+      <section className="pt-panel">
+        <div className="pt-veh__edithead">
+          <h2 className="pt-panel__h">Stock &amp; checks</h2>
+          <Link href={`/portal/vehicles/${vehicle.id}/checks`} className="pt-btn pt-btn--navy pt-btn--sm">Open the sheets →</Link>
+        </div>
+        <p className="pt-panel__sub">The daily check, the monthly condition check and the stock count — the same sheets that live in the van.</p>
+        <div className="pt-veh__checks">
+          {checks.map((c) => (
+            <Link key={c.kind} href={`/portal/vehicles/${vehicle.id}/checks/${c.kind}`} className="pt-veh__check">
+              <strong>{c.short}</strong>
+              <span>{c.when ? `${dateShort(c.when)}${c.by ? ` · ${c.by}` : ""}` : "Never done"}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* add log */}
       <section className="pt-panel">

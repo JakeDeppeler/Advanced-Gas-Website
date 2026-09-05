@@ -16,6 +16,7 @@ import { CAPS, roleDefault } from "./caps";
 import type { CrewLevel, Costing, CapSettings, AccessMap } from "./crew";
 import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
+import type { CheckItems, CheckKind } from "./vanChecks";
 
 const USERS = "portal_users";
 const REPORTS = "portal_reports";
@@ -763,4 +764,106 @@ export async function deleteIntegration(provider: string): Promise<{ ok: boolean
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };
+}
+
+
+/* ---------------- van stock & check sheets ---------------- */
+
+export type VanCheck = {
+  id: string; vehicleId: string; kind: CheckKind; checkedOn: string;
+  checkedBy: string | null; notes: string | null; items: CheckItems; createdAt: string;
+};
+type VanCheckRow = {
+  id: string; vehicle_id: string; kind: CheckKind; checked_on: string;
+  checked_by: string | null; notes: string | null; items: CheckItems | null; created_at: string;
+};
+const toCheck = (r: VanCheckRow): VanCheck => ({
+  id: r.id, vehicleId: r.vehicle_id, kind: r.kind, checkedOn: r.checked_on,
+  checkedBy: r.checked_by, notes: r.notes, items: r.items ?? {}, createdAt: r.created_at,
+});
+
+export type VanPhoto = { id: string; checkId: string; vehicleId: string; path: string; label: string | null; createdAt: string };
+type VanPhotoRow = { id: string; check_id: string; vehicle_id: string; path: string; label: string | null; created_at: string };
+const toPhoto = (r: VanPhotoRow): VanPhoto => ({
+  id: r.id, checkId: r.check_id, vehicleId: r.vehicle_id, path: r.path, label: r.label, createdAt: r.created_at,
+});
+
+export async function listVanChecks(vehicleId: string, kind?: CheckKind, limit = 40): Promise<VanCheck[]> {
+  const k = kind ? `&kind=eq.${kind}` : "";
+  const res = await sb(`portal_van_checks?vehicle_id=eq.${encodeURIComponent(vehicleId)}${k}&select=*&order=checked_on.desc,created_at.desc&limit=${limit}`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VanCheckRow[]).map(toCheck);
+}
+
+export async function getVanCheck(id: string): Promise<VanCheck | null> {
+  const res = await sb(`portal_van_checks?id=eq.${encodeURIComponent(id)}&select=*`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as VanCheckRow[];
+  return rows[0] ? toCheck(rows[0]) : null;
+}
+
+/** The most recent sheet of each kind, for the "where this van is at" panel. */
+export async function latestVanChecks(vehicleId: string): Promise<Partial<Record<CheckKind, VanCheck>>> {
+  const all = await listVanChecks(vehicleId, undefined, 200);
+  const out: Partial<Record<CheckKind, VanCheck>> = {};
+  for (const c of all) if (!out[c.kind]) out[c.kind] = c;
+  return out;
+}
+
+export async function createVanCheck(input: {
+  vehicleId: string; kind: CheckKind; checkedOn?: string; checkedBy?: string | null;
+  notes?: string; items: CheckItems;
+}): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const res = await sb("portal_van_checks", {
+    method: "POST",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify({
+      vehicle_id: input.vehicleId, kind: input.kind,
+      checked_on: input.checkedOn || undefined,
+      checked_by: input.checkedBy || null, notes: input.notes || null, items: input.items,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  const rows = (await res.json()) as VanCheckRow[];
+  return { ok: true, id: rows[0]?.id };
+}
+
+export async function deleteVanCheck(id: string): Promise<{ ok: boolean }> {
+  const res = await sb(`portal_van_checks?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  return { ok: !!res && res.ok };
+}
+
+export async function listVanPhotos(checkId: string): Promise<VanPhoto[]> {
+  const res = await sb(`portal_van_photos?check_id=eq.${encodeURIComponent(checkId)}&select=*&order=created_at.asc`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VanPhotoRow[]).map(toPhoto);
+}
+
+export async function listVehiclePhotos(vehicleId: string, limit = 24): Promise<VanPhoto[]> {
+  const res = await sb(`portal_van_photos?vehicle_id=eq.${encodeURIComponent(vehicleId)}&select=*&order=created_at.desc&limit=${limit}`);
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VanPhotoRow[]).map(toPhoto);
+}
+
+export async function createVanPhoto(input: { checkId: string; vehicleId: string; path: string; label?: string | null }): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_van_photos", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ check_id: input.checkId, vehicle_id: input.vehicleId, path: input.path, label: input.label || null }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function getVanPhoto(id: string): Promise<VanPhoto | null> {
+  const res = await sb(`portal_van_photos?id=eq.${encodeURIComponent(id)}&select=*`);
+  if (!res || !res.ok) return null;
+  const rows = (await res.json()) as VanPhotoRow[];
+  return rows[0] ? toPhoto(rows[0]) : null;
+}
+
+export async function deleteVanPhotoRow(id: string): Promise<{ ok: boolean }> {
+  const res = await sb(`portal_van_photos?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  return { ok: !!res && res.ok };
 }

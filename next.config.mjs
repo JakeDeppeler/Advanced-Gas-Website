@@ -6,6 +6,12 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  experimental: {
+    // Van photos go through a server action. They're shrunk to 1600px in the
+    // browser first, which usually lands well under a megabyte, but a detailed
+    // shot of a dent can run over the 1MB default and would fail silently.
+    serverActions: { bodySizeLimit: "6mb" },
+  },
   /**
    * Permanent redirects for URLs that shipped and then moved.
    *
