@@ -36,13 +36,15 @@ function CapField({ label, value, onChange, post }: { label: string; value: numb
 }
 
 export type XeroExpense = { label: string; section: string; amount: number };
+export type XeroState = { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string };
 
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab, xeroExpenses = [],
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero,
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
   xeroExpenses?: XeroExpense[];
+  xero?: XeroState;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -345,18 +347,38 @@ export function CapacityEditor({
             );
           })}
 
-          {xeroExpenses.length > 0 && (
-            <section className="pt-panel">
-              <div className="pt-ov__charthead">
-                <h2 className="pt-panel__h">Pull it from Xero</h2>
-                <span className="pt-cap__grouptotal">{unmapped.length} left</span>
+          <section className="pt-panel">
+            <div className="pt-ov__charthead">
+              <h2 className="pt-panel__h">Pull it from Xero</h2>
+              {xeroExpenses.length > 0 && <span className="pt-cap__grouptotal">{unmapped.length} left</span>}
+            </div>
+            <p className="pt-panel__sub">
+              Every expense account Xero has for the last twelve months, biggest first. File one against an overhead line and that
+              line takes the real figure — no more typing what you think you spend. Wages aren&rsquo;t here to be filed: the crew tab
+              already carries every one.
+            </p>
+
+            {xero?.state === "off" && (
+              <div className="pt-note pt-note--warn">
+                <strong>Xero isn&rsquo;t connected.</strong> Connect it on the Finance overview and the accounts will list here.
               </div>
-              <p className="pt-panel__sub">
-                Every expense account Xero has for the last twelve months, biggest first. File one against an overhead line and that
-                line takes the real figure — no more typing what you think you spend. Wages aren&rsquo;t here to be filed: the crew tab
-                already carries every one.
-              </p>
-              {unmapped.length === 0 ? (
+            )}
+            {xero?.state === "failed" && (
+              <div className="pt-note pt-note--warn">
+                <strong>Xero didn&rsquo;t answer.</strong> The profit &amp; loss report for {xero.span} came back empty — reload in a
+                minute, or disconnect and reconnect from the Finance overview.
+              </div>
+            )}
+            {xero?.state === "empty" && (
+              <div className="pt-note pt-note--warn">
+                <strong>The report came back with no expense accounts.</strong> Xero returned {xero.sections.length}{" "}
+                {xero.sections.length === 1 ? "section" : "sections"} for {xero.span}
+                {xero.sections.length > 0 ? <> — {xero.sections.join(", ")}</> : null}. If your expenses live under a heading that
+                isn&rsquo;t listed there, tell me what it&rsquo;s called and I&rsquo;ll teach it to read that shape.
+              </div>
+            )}
+
+            {xeroExpenses.length > 0 && (unmapped.length === 0 ? (
                 <div className="pf-empty">Every account is filed.</div>
               ) : (
                 <div className="pt-cap__xero">
@@ -377,7 +399,7 @@ export function CapacityEditor({
                     </div>
                   ))}
                 </div>
-              )}
+              ))}
 
               {Object.keys(xeroMap).length > 0 && (
                 <>
@@ -396,8 +418,7 @@ export function CapacityEditor({
                   </div>
                 </>
               )}
-            </section>
-          )}
+          </section>
 
           <section className="pt-panel">
             <div className="pt-ov__charthead">
