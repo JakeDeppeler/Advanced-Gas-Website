@@ -331,40 +331,6 @@ export function CapacityEditor({
             Wages don&rsquo;t belong here — the crew tab already carries every wage, including the time you can&rsquo;t bill and anyone riding along. This is everything else the business has to earn back.
           </div>
 
-          {OVERHEAD_GROUPS.map((g) => {
-            const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
-            const oh = overheadsOf(s);
-            const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);
-            return (
-              <section key={g.key} className="pt-panel">
-                <div className="pt-ov__charthead">
-                  <h2 className="pt-panel__h">{g.label}</h2>
-                  <span className="pt-cap__grouptotal">{money(groupTotal)}<em>/yr</em></span>
-                </div>
-                <p className="pt-panel__sub">{g.blurb}</p>
-                <div className="pt-cap__ohgrid">
-                  {fields.map((f) => {
-                    const accs = accountsFor(f.key);
-                    return (
-                      <label key={f.key} className="pt-cap__f">
-                        <span>{f.label}{f.hint ? <em> {f.hint}</em> : null}</span>
-                        <span className="pt-calc__field">
-                          <span className="pt-calc__pre">$</span>
-                          <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
-                        </span>
-                        {accs.length > 0 && (
-                          <span className="pt-cap__fromxero">
-                            From Xero: {accs.map((a) => a.label).join(", ")}
-                          </span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-
           <section className="pt-panel">
             <div className="pt-ov__charthead">
               <h2 className="pt-panel__h">Pull it from Xero</h2>
@@ -460,6 +426,41 @@ export function CapacityEditor({
                 </>
               )}
           </section>
+
+          {OVERHEAD_GROUPS.map((g) => {
+            const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
+            const oh = overheadsOf(s);
+            const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);
+            return (
+              <section key={g.key} className="pt-panel">
+                <div className="pt-ov__charthead">
+                  <h2 className="pt-panel__h">{g.label}</h2>
+                  <span className="pt-cap__grouptotal">{money(groupTotal)}<em>/yr</em></span>
+                </div>
+                <p className="pt-panel__sub">{g.blurb}</p>
+                <div className="pt-cap__ohgrid">
+                  {fields.map((f) => {
+                    const accs = accountsFor(f.key);
+                    return (
+                      <label key={f.key} className="pt-cap__f">
+                        <span>{f.label}{f.hint ? <em> {f.hint}</em> : null}</span>
+                        <span className="pt-calc__field">
+                          <span className="pt-calc__pre">$</span>
+                          <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
+                        </span>
+                        {accs.length > 0 && (
+                          <span className="pt-cap__fromxero">
+                            From Xero: {accs.map((a) => a.label).join(", ")}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+
 
           <section className="pt-panel">
             <div className="pt-ov__charthead">
