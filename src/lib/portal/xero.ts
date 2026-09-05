@@ -229,6 +229,115 @@ async function plFetch(accessToken: string, tenantId: string, fromDate: string, 
   return value;
 }
 
+/* -------- The profit & loss itself, line by line -------- */
+
+export type PLLine = { label: string; amount: number };
+export type PLSection = { title: string; kind: "in" | "out" | "summary"; lines: PLLine[]; total: number };
+export type PLDetail = {
+  sections: PLSection[];
+  income: number; costOfSales: number; grossProfit: number | null;
+  operatingExpenses: number; netProfit: number;
+};
+
+const cellNum = (v: string | undefined): number | null => {
+  if (!v) return null;
+  const n = parseFloat(v.replace(/[^0-9.-]/g, ""));
+  return Number.isNaN(n) ? null : n;
+};
+
+// Xero titles its expense sections "Less Operating Expenses"; the "Less" is a
+// bookkeeping convention, not something a reader needs.
+const tidyTitle = (t: string) => t.replace(/^less\s+/i, "").trim();
+
+const sectionKind = (title: string): "in" | "out" => (
+  /income|revenue|sales|profit/i.test(title) && !/cost of sales/i.test(title) ? "in" : "out"
+);
+
+/**
+ * The report broken into its sections rather than flattened to totals.
+ *
+ * Xero nests a P&L as Sections holding Rows (the account lines) and a
+ * SummaryRow (the section total). The profit sections carry no Title of their
+ * own, so their summary row's label stands in for one.
+ */
+function parseDetail(data: { Reports?: { Rows?: XeroRow[] }[] }): PLDetail {
+  const sections: PLSection[] = [];
+  const totals = new Map<string, number>();
+
+  for (const sec of data.Reports?.[0]?.Rows ?? []) {
+    if (sec.RowType !== "Section") continue;
+    const lines: PLLine[] = [];
+    let total: number | null = null;
+    let title = (sec.Title || "").trim();
+
+    for (const r of sec.Rows ?? []) {
+      const label = (r.Cells?.[0]?.Value || "").trim();
+      const amount = cellNum(r.Cells?.[r.Cells.length - 1]?.Value);
+      if (!label || amount === null) continue;
+      if (r.RowType === "SummaryRow") {
+        total = amount;
+        totals.set(label.toLowerCase(), amount);
+        if (!title) title = label;
+      } else {
+        lines.push({ label, amount });
+      }
+    }
+
+    if (!title) continue;
+    if (total === null) {
+      if (!lines.length) continue;
+      total = lines.reduce((a, l) => a + l.amount, 0);
+    }
+    const clean = tidyTitle(title);
+    sections.push({ title: clean, kind: lines.length ? sectionKind(clean) : "summary", lines, total });
+  }
+
+  const at = (keys: string[]): number | null => {
+    for (const k of keys) if (totals.has(k)) return totals.get(k) as number;
+    return null;
+  };
+  const income = at(["total income", "total operating income", "total trading income", "total revenue"]) ?? 0;
+  const costOfSales = at(["total cost of sales", "total less cost of sales"]) ?? 0;
+  const grossProfit = at(["gross profit"]);
+  const operatingExpenses = at(["total operating expenses", "total expenses", "total less operating expenses"]) ?? 0;
+  const netProfit = at(["net profit", "profit for the period", "total net profit"]) ?? income - costOfSales - operatingExpenses;
+
+  return { sections, income, costOfSales, grossProfit, operatingExpenses, netProfit };
+}
+
+async function detailFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<PLDetail | null> {
+  const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
+  return withSlot(async () => {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      });
+      if (res.status === 429 && attempt === 0) {
+        const after = parseInt(res.headers.get("Retry-After") || "", 10);
+        await sleep(Math.min(Number.isNaN(after) ? 2 : after, 5) * 1000);
+        continue;
+      }
+      if (!res.ok) return null;
+      return parseDetail((await res.json()) as { Reports?: { Rows?: XeroRow[] }[] });
+    }
+    return null;
+  });
+}
+
+const detailCache = new Map<string, { at: number; value: PLDetail }>();
+
+export async function getPLDetail(fromDate: string, toDate: string): Promise<PLDetail | null> {
+  const tok = await validToken();
+  if (!tok) return null;
+  const key = `${tok.tenantId}|${fromDate}|${toDate}`;
+  const hit = detailCache.get(key);
+  if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
+  const value = await detailFetch(tok.accessToken, tok.tenantId, fromDate, toDate);
+  if (value) detailCache.set(key, { at: Date.now(), value });
+  return value;
+}
+
 export async function getProfitAndLoss(fromDate: string, toDate: string): Promise<ProfitLoss | null> {
   const tok = await validToken();
   if (!tok) return null;

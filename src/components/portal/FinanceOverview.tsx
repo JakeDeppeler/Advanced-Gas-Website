@@ -140,6 +140,7 @@ export function FinanceOverview({
             </div>
           </div>
           <MoneyChart points={series} spanLabel={spanLabel} />
+          <Link href="/portal/finance/pl" className="pt-ov__more">See the full profit &amp; loss, account by account →</Link>
         </section>
       )}
 
