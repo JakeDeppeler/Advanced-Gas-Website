@@ -69,6 +69,7 @@ export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string
   { key: "premRent", group: "premises", label: "Rent or mortgage" },
   { key: "premUtilities", group: "premises", label: "Power, water & gas" },
   { key: "premWaste", group: "premises", label: "Waste & cleaning" },
+  { key: "premRepairs", group: "premises", label: "Repairs & maintenance" },
   { key: "premSecurity", group: "premises", label: "Security & alarms" },
 
   { key: "insLiability", group: "insurance", label: "Public liability" },
@@ -93,6 +94,8 @@ export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string
   { key: "admPhone", group: "admin", label: "Phones & internet" },
   { key: "admBank", group: "admin", label: "Bank, merchant & finance fees" },
   { key: "admTraining", group: "admin", label: "Training & courses" },
+  { key: "admTravel", group: "admin", label: "Travel, meals & accommodation" },
+  { key: "admStaff", group: "admin", label: "Staff amenities & functions" },
   { key: "admUniform", group: "admin", label: "Uniforms & PPE" },
   { key: "admOther", group: "admin", label: "Everything else" },
 ];
@@ -324,4 +327,73 @@ export function crewCombos(
   }
 
   return combos;
+}
+
+
+/* -------- Reading a Xero chart of accounts -------- */
+
+/**
+ * Accounts that must not be filed as overhead, because something else already
+ * counts them. Wages are the dangerous one: the crew tab carries every wage,
+ * including on-costs and downtime, so filing Xero's wage accounts on top would
+ * charge the same money twice and inflate every hourly rate.
+ */
+const COUNTED_ELSEWHERE: { test: RegExp; where: string }[] = [
+  { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "The crew tab already carries every wage, on-cost and day off." },
+  { test: /^depreciation|amortisation/i, where: "Depreciation on the vans comes from the Vehicles tab." },
+  { test: /^materials|^cost of (sales|goods)|subcontract/i, where: "That's a job cost, not an overhead — it belongs on the job, not on every hour." },
+];
+
+export function countedElsewhere(label: string): string | null {
+  return COUNTED_ELSEWHERE.find((r) => r.test.test(label))?.where ?? null;
+}
+
+/**
+ * A first guess at where a Xero account belongs, matched on what the account is
+ * called. Wrong guesses cost a dropdown change; no guess costs forty of them.
+ */
+const SUGGESTIONS: [RegExp, string][] = [
+  [/motor vehicle.*(fuel|petrol|diesel)|^fuel/i, "vehFuel"],
+  [/motor vehicle.*(insur|registration|rego)/i, "vehInsurance"],
+  [/motor vehicle.*(maintenance|repair|service|tyre)/i, "vehService"],
+  [/motor vehicle.*(lease|finance|hire purchase)/i, "vehFinance"],
+  [/motor vehicle|vehicle|toll|parking/i, "vehOther"],
+
+  [/^rent\b|lease.*premises|body corporate/i, "premRent"],
+  [/rates|utilit|electric|power|water|gas bill/i, "premUtilities"],
+  [/clean|rubbish|waste|skip/i, "premWaste"],
+  [/repairs and maintenance|building maintenance/i, "premRepairs"],
+  [/security|alarm|monitor/i, "premSecurity"],
+
+  [/public liability|^insurance$|general insurance/i, "insLiability"],
+  [/tool.*(insur|cover)/i, "insTools"],
+
+  [/membership|accreditation|association/i, "insMemberships"],
+
+  [/^tools|tool purchase|equipment purchase/i, "toolReplace"],
+  [/calibrat|test (gear|equipment)/i, "toolTest"],
+  [/consumable/i, "toolConsumables"],
+  [/plant hire|equipment hire|hire fee/i, "toolHire"],
+
+  [/advertis|google ads|paid media|marketing/i, "mktPaid"],
+  [/website|seo|domain|hosting/i, "mktWeb"],
+  [/signage|wrap|vehicle graphics/i, "mktSignage"],
+  [/gift|donation|sponsor|entertainment|meeting.*client|conference.*client|print.*stationery|printing/i, "mktPrint"],
+  [/lead|referral/i, "mktLeads"],
+
+  [/account(ing|ant)|bookkeep|audit/i, "admAccounting"],
+  [/subscription|software|saas|licence fee.*software/i, "admSoftware"],
+  [/telephone|phone|internet|mobile/i, "admPhone"],
+  [/bank fee|merchant|interest expense|finance charge|card fee/i, "admBank"],
+  [/training|course|apprentice fee/i, "admTraining"],
+  [/licence|license|registration.*(arc|plumb|trade)|filing fee|asic/i, "insLicences"],
+  [/protective clothing|uniform|ppe|first aid|medical/i, "admUniform"],
+  [/travel|accommodation|meals/i, "admTravel"],
+  [/staff.*(amenit|function)|amenities/i, "admStaff"],
+  [/office expense|general expense|sundry|stationery/i, "admOther"],
+];
+
+export function suggestOverhead(label: string): string | null {
+  if (countedElsewhere(label)) return null;
+  return SUGGESTIONS.find(([re]) => re.test(label))?.[1] ?? null;
 }
