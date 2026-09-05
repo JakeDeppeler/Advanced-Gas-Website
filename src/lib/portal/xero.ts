@@ -264,15 +264,19 @@ function parseDetail(data: { Reports?: { Rows?: XeroRow[] }[] }): PLDetail {
   const sections: PLSection[] = [];
   const totals = new Map<string, number>();
 
-  for (const sec of data.Reports?.[0]?.Rows ?? []) {
-    if (sec.RowType !== "Section") continue;
+  // Sections can sit inside sections depending on how an org has its chart of
+  // accounts arranged, so this walks the tree rather than assuming one level.
+  function readSection(sec: XeroRow) {
     const lines: PLLine[] = [];
     let total: number | null = null;
     let title = (sec.Title || "").trim();
 
     for (const r of sec.Rows ?? []) {
-      const label = (r.Cells?.[0]?.Value || "").trim();
-      const amount = cellNum(r.Cells?.[r.Cells.length - 1]?.Value);
+      if (r.RowType === "Section") { readSection(r); continue; }
+      const cells = r.Cells;
+      if (!cells || cells.length < 2) continue;
+      const label = (cells[0]?.Value || "").trim();
+      const amount = cellNum(cells[cells.length - 1]?.Value);
       if (!label || amount === null) continue;
       if (r.RowType === "SummaryRow") {
         total = amount;
@@ -283,13 +287,17 @@ function parseDetail(data: { Reports?: { Rows?: XeroRow[] }[] }): PLDetail {
       }
     }
 
-    if (!title) continue;
+    if (!title) return;
     if (total === null) {
-      if (!lines.length) continue;
+      if (!lines.length) return;
       total = lines.reduce((a, l) => a + l.amount, 0);
     }
     const clean = tidyTitle(title);
     sections.push({ title: clean, kind: lines.length ? sectionKind(clean) : "summary", lines, total });
+  }
+
+  for (const sec of data.Reports?.[0]?.Rows ?? []) {
+    if (sec.RowType === "Section") readSection(sec);
   }
 
   const at = (keys: string[]): number | null => {
@@ -430,6 +438,11 @@ export const OV_PERIODS = [
   { k: "year", label: "Year on year" },
 ] as const;
 export type OvPeriod = (typeof OV_PERIODS)[number]["k"];
+
+/** The last twelve whole-ish months up to today, for reading real spend. */
+export function lastTwelveMonths(): PLSpan {
+  return rangeSpans("12m").now;
+}
 
 export function ovSpans(key: OvPeriod): { now: PLSpan; before: PLSpan } {
   if (key === "month" || key === "year") return plSpans(key);

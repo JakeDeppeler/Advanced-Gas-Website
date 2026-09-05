@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
 import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
-import { xeroStatus, getPLDetail, plSpans } from "@/lib/portal/xero";
+import { xeroStatus, getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
@@ -19,17 +19,32 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   // Last twelve months of expense accounts, so overhead lines can be fed from
-  // what was actually spent rather than typed from memory.
+  // what was actually spent rather than typed from memory. When this comes back
+  // empty the panel has to say why — a silent absence is indistinguishable from
+  // a bug, which is exactly how it read the first time round.
   const { status } = await xeroStatus();
+  const span = lastTwelveMonths();
   let xeroExpenses: { label: string; section: string; amount: number }[] = [];
+  let xero: { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string } = {
+    state: "off", sections: [], span: `${span.from} to ${span.to}`,
+  };
+
   if (status === "connected") {
-    const span = plSpans("year");
-    const detail = await getPLDetail(span.before.from, span.now.to);
-    xeroExpenses = (detail?.sections ?? [])
-      .filter((sec) => sec.kind === "out")
-      .flatMap((sec) => sec.lines.map((l) => ({ label: l.label, section: sec.title, amount: l.amount })))
-      .filter((l) => l.amount > 0)
-      .sort((a, b) => b.amount - a.amount);
+    const detail = await getPLDetail(span.from, span.to);
+    if (!detail) {
+      xero.state = "failed";
+    } else {
+      xeroExpenses = detail.sections
+        .filter((sec) => sec.kind === "out")
+        .flatMap((sec) => sec.lines.map((l) => ({ label: l.label, section: sec.title, amount: l.amount })))
+        .filter((l) => l.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
+      xero = {
+        ...xero,
+        state: xeroExpenses.length ? "ok" : "empty",
+        sections: detail.sections.map((sec) => sec.title),
+      };
+    }
   }
 
   const ready = dbConfigured();
@@ -54,6 +69,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
         canManage={can(user, "manage_users")}
         initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}
         xeroExpenses={xeroExpenses}
+        xero={xero}
       />
     </PortalShell>
   );
