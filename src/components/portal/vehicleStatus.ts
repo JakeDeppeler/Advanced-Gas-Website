@@ -19,3 +19,9 @@ export const STATUS_NOTE: Record<VehicleStatus, string> = {
   repair: "It still counts as part of the fleet — it just isn't available for work right now.",
   off: "It stays in the fleet and keeps its history, it just isn't counted as working.",
 };
+
+/** Bought new, or bought second hand. */
+export const CONDITION_OPTS: { k: "new" | "used"; label: string }[] = [
+  { k: "new", label: "Bought new" },
+  { k: "used", label: "Bought used" },
+];

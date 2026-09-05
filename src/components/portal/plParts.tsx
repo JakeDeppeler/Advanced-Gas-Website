@@ -104,3 +104,36 @@ export function headlines(now: PLDetail, before: PLDetail | null) {
     { label: "Net profit", kind: "in" as const, now: now.netProfit, before: before?.netProfit ?? null },
   ];
 }
+
+export type SpendLine = { label: string; section: string; amount: number; share: number };
+
+/**
+ * The largest money-out accounts, biggest first. When a period runs at a loss
+ * this is the question actually being asked — not what changed, but where it
+ * all went.
+ */
+export function topSpend(d: PLDetail, limit = 6): SpendLine[] {
+  const out = d.sections
+    .filter((s) => s.kind === "out")
+    .flatMap((s) => s.lines.map((l) => ({ label: l.label, section: s.title, amount: l.amount })))
+    .filter((l) => l.amount > 0)
+    .sort((a, b) => b.amount - a.amount);
+  const total = out.reduce((a, l) => a + l.amount, 0) || 1;
+  return out.slice(0, limit).map((l) => ({ ...l, share: l.amount / total }));
+}
+
+export function SpendList({ lines }: { lines: SpendLine[] }) {
+  if (lines.length === 0) return null;
+  return (
+    <div className="pt-pl__spend">
+      {lines.map((l) => (
+        <div key={`${l.section}|${l.label}`} className="pt-pl__spendrow">
+          <span className="pt-pl__spendlabel">{l.label}</span>
+          <span className="pt-pl__spendbar" aria-hidden="true"><i style={{ width: `${Math.max(2, l.share * 100)}%` }} /></span>
+          <span className="pt-pl__spendamt">{money(l.amount)}</span>
+          <span className="pt-pl__spendpct">{Math.round(l.share * 100)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}

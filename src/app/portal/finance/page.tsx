@@ -5,7 +5,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { PLSummary } from "@/components/portal/PLSummary";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, plSpans, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, rangeSpans, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -72,7 +72,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
 
 async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf: MoneyRange }) {
   const r = ranges();
-  const pl = plSpans("month");
+  const pl = rangeSpans(tf);
   const [today, week, month, lastMonth, year, series, plNow, plBefore] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
@@ -98,9 +98,10 @@ async function ConnectedView({ tenantName, tf }: { tenantName: string | null; tf
         <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
       )}
 
-      <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
-
-      {plNow && <PLSummary now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label} />}
+      <FinanceOverview
+        today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf}
+        plSummary={plNow ? <PLSummary now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label} /> : null}
+      />
 
       <FinancePlanner yearProfit={year?.netProfit ?? null} />
     </div>

@@ -520,6 +520,9 @@ export async function deleteReview(id: string): Promise<{ ok: boolean; error?: s
 /** On the road, in for repair, or retired from the fleet. */
 export type VehicleStatus = "on" | "repair" | "off";
 
+/** Whether it came to us new or second hand. */
+export type VehicleCondition = "new" | "used";
+
 export type Vehicle = {
   id: string;
   name: string;
@@ -533,6 +536,8 @@ export type Vehicle = {
   notes: string | null;
   status: VehicleStatus;
   amountOwing: number | null;
+  purchasedOn: string | null;
+  condition: VehicleCondition | null;
   purchasePrice: number | null;
   resaleValue: number | null;
   lifespanYears: number | null;
@@ -544,6 +549,7 @@ type VehicleRow = {
   odometer: number | null; service_interval_km: number | null;
   next_service_km: number | null; next_service_date: string | null;
   active: boolean; notes: string | null; status: string | null; amount_owing: number | null;
+  purchased_on: string | null; condition: string | null;
   purchase_price: number | null; resale_value: number | null; lifespan_years: number | null; fuel_l_per_100: number | null;
 };
 
@@ -558,6 +564,7 @@ const toVehicle = (r: VehicleRow): Vehicle => ({
   serviceIntervalKm: r.service_interval_km, nextServiceKm: r.next_service_km,
   nextServiceDate: r.next_service_date, active: r.active, notes: r.notes,
   status: toStatus(r.status, r.active), amountOwing: n(r.amount_owing),
+  purchasedOn: r.purchased_on, condition: r.condition === "new" || r.condition === "used" ? r.condition : null,
   purchasePrice: n(r.purchase_price), resaleValue: n(r.resale_value), lifespanYears: n(r.lifespan_years), fuelPer100: n(r.fuel_l_per_100),
 });
 
@@ -599,6 +606,7 @@ export async function createVehicle(input: {
   serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; notes?: string;
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
+  purchasedOn?: string | null; condition?: VehicleCondition | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const status = input.status ?? "on";
   const res = await sb("portal_vehicles", {
@@ -610,6 +618,7 @@ export async function createVehicle(input: {
       purchase_price: input.purchasePrice ?? null, resale_value: input.resaleValue ?? null,
       lifespan_years: input.lifespanYears ?? null, fuel_l_per_100: input.fuelPer100 ?? null,
       amount_owing: input.amountOwing ?? null,
+      purchased_on: input.purchasedOn || null, condition: input.condition ?? null,
       // active is kept in step with status so anything still reading the flag
       // treats a vehicle that's in for repair as not working.
       status, active: status === "on",
@@ -625,6 +634,7 @@ export async function updateVehicle(id: string, patch: {
   serviceIntervalKm?: number | null; nextServiceKm?: number | null; nextServiceDate?: string | null; active?: boolean; notes?: string;
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
+  purchasedOn?: string | null; condition?: VehicleCondition | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.name !== undefined) body.name = patch.name.trim();
@@ -641,6 +651,8 @@ export async function updateVehicle(id: string, patch: {
   if (patch.lifespanYears !== undefined) body.lifespan_years = patch.lifespanYears;
   if (patch.fuelPer100 !== undefined) body.fuel_l_per_100 = patch.fuelPer100;
   if (patch.amountOwing !== undefined) body.amount_owing = patch.amountOwing;
+  if (patch.purchasedOn !== undefined) body.purchased_on = patch.purchasedOn || null;
+  if (patch.condition !== undefined) body.condition = patch.condition;
   if (patch.status !== undefined) { body.status = patch.status; body.active = patch.status === "on"; }
   const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body) });
   if (!res) return { ok: false, error: "not-configured" };

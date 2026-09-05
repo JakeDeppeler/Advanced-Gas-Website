@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import {
-  Delta, Mover, headlines, money, rankMovers, signed,
+  Delta, Mover, SpendList, headlines, money, rankMovers, signed, topSpend,
   type PLDetail,
 } from "@/components/portal/plParts";
 
@@ -26,6 +26,8 @@ export function PLStatement({
   });
 
   const heads = headlines(now, before);
+  const spend = topSpend(now, 8);
+  const moneyOut = now.costOfSales + now.operatingExpenses;
   const movers = rankMovers(now, before);
   const shown = allMovers ? movers : movers.slice(0, 8);
 
@@ -44,6 +46,12 @@ export function PLStatement({
         <p className="pt-panel__sub">
           <strong>{nowLabel}</strong>{before ? <>, against <strong>{beforeLabel}</strong>.</> : <>. No comparison period available.</>}
         </p>
+
+        {now.netProfit < 0 && (
+          <div className="pt-pl__loss">
+            <strong>Money out was {money(Math.abs(now.netProfit))} more than money in</strong> over {nowLabel}.
+          </div>
+        )}
 
         <div className="pt-pl__heads">
           {heads.map((h) => (
@@ -83,6 +91,14 @@ export function PLStatement({
           </>
         )}
       </section>
+
+      {spend.length > 0 && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Where the money goes</h2>
+          <p className="pt-panel__sub">The biggest {spend.length} accounts on the money-out side, of {money(moneyOut)} spent over {nowLabel}.</p>
+          <SpendList lines={spend} />
+        </section>
+      )}
 
       <section className="pt-panel">
         <h2 className="pt-panel__h">The full statement</h2>

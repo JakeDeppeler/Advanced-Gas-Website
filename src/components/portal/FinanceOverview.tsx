@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
@@ -28,8 +28,8 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
 }
 
 export function FinanceOverview({
-  today, week, month, lastMonth, year, series, tf,
-}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
+  today, week, month, lastMonth, year, series, tf, plSummary,
+}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string; plSummary?: ReactNode }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
@@ -140,9 +140,10 @@ export function FinanceOverview({
             </div>
           </div>
           <MoneyChart points={series} spanLabel={spanLabel} />
-          <Link href="/portal/finance/pl" className="pt-ov__more">See the full profit &amp; loss, account by account →</Link>
         </section>
       )}
+
+      {plSummary}
 
       {/* Good vs watch */}
       <section className="pt-panel">

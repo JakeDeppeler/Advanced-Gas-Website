@@ -381,6 +381,42 @@ export type PLPeriod = (typeof PL_PERIODS)[number]["k"];
 const MONTH_NAME = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 /**
+ * The exact window the money chart is showing, paired with the one before it,
+ * so the profit & loss on the overview answers for the same stretch of time the
+ * chart above it is drawing rather than a period of its own.
+ */
+export function rangeSpans(range: MoneyRange): { now: PLSpan; before: PLSpan } {
+  const t = localToday();
+  const Y = t.getUTCFullYear(), M = t.getUTCMonth(), D = t.getUTCDate();
+  const day = (n: number) => new Date(Date.UTC(Y, M, D + n));
+  const monthStart = (n: number) => new Date(Date.UTC(Y, M + n, 1));
+  const dayBefore = (d: Date) => new Date(d.getTime() - 86_400_000);
+
+  if (range === "7d") {
+    return {
+      now: { from: isoDate(day(-6)), to: isoDate(t), label: "the last 7 days" },
+      before: { from: isoDate(day(-13)), to: isoDate(day(-7)), label: "the 7 days before those" },
+    };
+  }
+  if (range === "4w") {
+    return {
+      now: { from: isoDate(day(-27)), to: isoDate(t), label: "the last 4 weeks" },
+      before: { from: isoDate(day(-55)), to: isoDate(day(-28)), label: "the 4 weeks before those" },
+    };
+  }
+  if (range === "3m") {
+    return {
+      now: { from: isoDate(monthStart(-2)), to: isoDate(t), label: "the last 3 months" },
+      before: { from: isoDate(monthStart(-5)), to: isoDate(dayBefore(monthStart(-2))), label: "the 3 months before those" },
+    };
+  }
+  return {
+    now: { from: isoDate(monthStart(-11)), to: isoDate(t), label: "the last 12 months" },
+    before: { from: isoDate(monthStart(-23)), to: isoDate(dayBefore(monthStart(-11))), label: "the 12 months before those" },
+  };
+}
+
+/**
  * A period paired with the equivalent stretch before it, so the two are
  * genuinely comparable: five days into this month is measured against the
  * first five days of last month, not against a whole one.
