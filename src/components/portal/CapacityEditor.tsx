@@ -35,11 +35,14 @@ function CapField({ label, value, onChange, post }: { label: string; value: numb
   );
 }
 
+export type XeroExpense = { label: string; section: string; amount: number };
+
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab,
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [],
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
+  xeroExpenses?: XeroExpense[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -47,13 +50,41 @@ export function CapacityEditor({
   const [delId, setDelId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>(initialTab ?? "crew");
 
-  const [s, setS] = useState<CapSettings>({ ...settings, overheads: { ...overheadsOf(settings) } });
+  const [s, setS] = useState<CapSettings>({ ...settings, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
   const [add, setAdd] = useState<{ open: boolean; name: string; email: string; level: CrewLevel; msg: string }>({ open: false, name: "", email: "", level: "tradesman", msg: "" });
 
   const setCosting = (id: string, patch: Partial<Costing>) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, costing: { ...r.costing, ...patch } } : r)));
   const setLevel = (id: string, level: CrewLevel) => setRows((rs) => rs.map((r) => (r.id === id ? { ...r, level, costing: { ...defaultsFor(level), rateOverride: r.costing.rateOverride } } : r)));
   const setOh = (key: string, v: number) => setS((prev) => ({ ...prev, overheads: { ...overheadsOf(prev), [key]: v } }));
+
+  const xeroMap = s.xeroMap ?? {};
+  /** What Xero says a given overhead line came to over the last twelve months. */
+  const xeroTotal = (key: string) =>
+    xeroExpenses.filter((x) => xeroMap[x.label] === key).reduce((a, x) => a + x.amount, 0);
+  const accountsFor = (key: string) => xeroExpenses.filter((x) => xeroMap[x.label] === key);
+  const unmapped = xeroExpenses.filter((x) => !xeroMap[x.label]);
+
+  /**
+   * Assigning an account moves the money as well as the label: the line's figure
+   * becomes what Xero says, right away, and gets saved that way — so the capacity
+   * maths and everything downstream keep reading one set of numbers.
+   */
+  function assign(label: string, key: string) {
+    setS((prev) => {
+      const map = { ...(prev.xeroMap ?? {}) };
+      const was = map[label];
+      if (key) map[label] = key; else delete map[label];
+      const oh = { ...overheadsOf(prev) };
+      const recount = (k: string) => {
+        if (!k) return;
+        oh[k] = xeroExpenses.filter((x) => (x.label === label ? key === k : map[x.label] === k)).reduce((a, x) => a + x.amount, 0);
+      };
+      recount(key);
+      if (was && was !== key) recount(was);
+      return { ...prev, xeroMap: map, overheads: oh };
+    });
+  }
 
   const costed = useMemo(() => rows.filter((r) => r.level !== "").map((r) => ({ id: r.id, name: r.name, level: r.level as CrewLevel, costing: r.costing })), [rows]);
   const cap = useMemo(() => computeCapacity(costed, s), [costed, s]);
@@ -212,6 +243,7 @@ export function CapacityEditor({
                         </div>
 
                         <div className="pt-cap__rates">
+                          {rt?.costPerHr != null && <span className="pt-cap__allin">Costs us <strong>{money2(rt.costPerHr)}</strong>/hr all in</span>}
                           <span>Paid <strong>{money2(r.costing.wage)}</strong> normal</span>
                           <span>Overtime <strong>{money2(r.costing.wage * r.costing.otMult)}</strong></span>
                           <span>Nights <strong>{money2(r.costing.wage * r.costing.nightMult)}</strong></span>
@@ -291,19 +323,81 @@ export function CapacityEditor({
                 </div>
                 <p className="pt-panel__sub">{g.blurb}</p>
                 <div className="pt-cap__ohgrid">
-                  {fields.map((f) => (
-                    <label key={f.key} className="pt-cap__f">
-                      <span>{f.label}{f.hint ? <em> {f.hint}</em> : null}</span>
-                      <span className="pt-calc__field">
-                        <span className="pt-calc__pre">$</span>
-                        <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
-                      </span>
-                    </label>
-                  ))}
+                  {fields.map((f) => {
+                    const accs = accountsFor(f.key);
+                    return (
+                      <label key={f.key} className="pt-cap__f">
+                        <span>{f.label}{f.hint ? <em> {f.hint}</em> : null}</span>
+                        <span className="pt-calc__field">
+                          <span className="pt-calc__pre">$</span>
+                          <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
+                        </span>
+                        {accs.length > 0 && (
+                          <span className="pt-cap__fromxero">
+                            From Xero: {accs.map((a) => a.label).join(", ")}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
                 </div>
               </section>
             );
           })}
+
+          {xeroExpenses.length > 0 && (
+            <section className="pt-panel">
+              <div className="pt-ov__charthead">
+                <h2 className="pt-panel__h">Pull it from Xero</h2>
+                <span className="pt-cap__grouptotal">{unmapped.length} left</span>
+              </div>
+              <p className="pt-panel__sub">
+                Every expense account Xero has for the last twelve months, biggest first. File one against an overhead line and that
+                line takes the real figure — no more typing what you think you spend. Wages aren&rsquo;t here to be filed: the crew tab
+                already carries every one.
+              </p>
+              {unmapped.length === 0 ? (
+                <div className="pf-empty">Every account is filed.</div>
+              ) : (
+                <div className="pt-cap__xero">
+                  {unmapped.slice(0, 40).map((x) => (
+                    <div key={x.label} className="pt-cap__xerorow">
+                      <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{x.section}</em></span>
+                      <span className="pt-cap__xeroamt">{money(x.amount)}</span>
+                      <select className="pt-cap__type" value="" onChange={(e) => assign(x.label, e.target.value)}>
+                        <option value="">File it under…</option>
+                        {OVERHEAD_GROUPS.map((g) => (
+                          <optgroup key={g.key} label={g.label}>
+                            {OVERHEAD_FIELDS.filter((f) => f.group === g.key).map((f) => (
+                              <option key={f.key} value={f.key}>{f.label}</option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {Object.keys(xeroMap).length > 0 && (
+                <>
+                  <h3 className="pt-pl__subh" style={{ marginTop: 18 }}>Already filed</h3>
+                  <div className="pt-cap__xero">
+                    {xeroExpenses.filter((x) => xeroMap[x.label]).map((x) => (
+                      <div key={x.label} className="pt-cap__xerorow is-filed">
+                        <span className="pt-cap__xeroid">
+                          <strong>{x.label}</strong>
+                          <em>{OVERHEAD_FIELDS.find((f) => f.key === xeroMap[x.label])?.label ?? xeroMap[x.label]}</em>
+                        </span>
+                        <span className="pt-cap__xeroamt">{money(x.amount)}</span>
+                        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => assign(x.label, "")}>Unfile</button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          )}
 
           <section className="pt-panel">
             <div className="pt-ov__charthead">

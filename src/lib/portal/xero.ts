@@ -427,11 +427,12 @@ export const OV_PERIODS = [
   { k: "month", label: "This month" },
   { k: "3m", label: "3m" },
   { k: "12m", label: "12m" },
+  { k: "year", label: "Year on year" },
 ] as const;
 export type OvPeriod = (typeof OV_PERIODS)[number]["k"];
 
 export function ovSpans(key: OvPeriod): { now: PLSpan; before: PLSpan } {
-  if (key === "month") return plSpans("month");
+  if (key === "month" || key === "year") return plSpans(key);
   return rangeSpans(key);
 }
 

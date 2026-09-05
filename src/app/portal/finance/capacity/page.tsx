@@ -3,6 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
 import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
+import { xeroStatus, getPLDetail, plSpans } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
@@ -16,6 +17,20 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
+
+  // Last twelve months of expense accounts, so overhead lines can be fed from
+  // what was actually spent rather than typed from memory.
+  const { status } = await xeroStatus();
+  let xeroExpenses: { label: string; section: string; amount: number }[] = [];
+  if (status === "connected") {
+    const span = plSpans("year");
+    const detail = await getPLDetail(span.before.from, span.now.to);
+    xeroExpenses = (detail?.sections ?? [])
+      .filter((sec) => sec.kind === "out")
+      .flatMap((sec) => sec.lines.map((l) => ({ label: l.label, section: sec.title, amount: l.amount })))
+      .filter((l) => l.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+  }
 
   const ready = dbConfigured();
   const [users, settings] = ready ? await Promise.all([listUsers(), getCapSettings()]) : [[], null];
@@ -38,6 +53,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
         dbReady={ready}
         canManage={can(user, "manage_users")}
         initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}
+        xeroExpenses={xeroExpenses}
       />
     </PortalShell>
   );

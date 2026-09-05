@@ -148,8 +148,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
                     <input className="pt-vc__note" placeholder="What needs doing?" value={e.note ?? ""} onChange={(ev) => setEntry(key, { note: ev.target.value })} />
                   )}
 
-                  {t.photo && (
-                    <div className="pt-vc__tickshots">
+                  <div className="pt-vc__tickshots">
                       <button
                         type="button"
                         className={`pt-vc__shootbtn${t.photo === "required" && shotsFor(key).length === 0 ? " is-needed" : ""}`}
@@ -164,8 +163,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
                           <button type="button" className="pf-x" aria-label="Remove photo" onClick={() => setPhotos((ps) => ps.filter((x) => x.id !== p.id))}>×</button>
                         </figure>
                       ))}
-                    </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
