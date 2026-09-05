@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { getVehicle, listVehicleLogs, latestVanChecks } from "@/lib/portal/db";
+import { getVehicle, listVehicleLogs, latestVanChecks, listUsers } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { VehicleDetail } from "@/components/portal/VehicleDetail";
@@ -24,7 +24,8 @@ export default async function VehiclePage({ params }: { params: { id: string } }
   const vehicle = await getVehicle(params.id);
   if (!vehicle) notFound();
 
-  const [logs, latest] = await Promise.all([listVehicleLogs(vehicle.id), latestVanChecks(vehicle.id)]);
+  const [logs, latest, users] = await Promise.all([listVehicleLogs(vehicle.id), latestVanChecks(vehicle.id), listUsers()]);
+  const crew = users.filter((u) => u.active && u.id).map((u) => ({ id: u.id as string, name: u.name }));
   const lastChecks = CHECK_KINDS.map((k) => ({
     kind: k.k,
     short: k.short,
@@ -48,7 +49,7 @@ export default async function VehiclePage({ params }: { params: { id: string } }
           nextServiceKm: vehicle.nextServiceKm, nextServiceDate: vehicle.nextServiceDate, status: vehicle.status,
           purchasePrice: vehicle.purchasePrice, resaleValue: vehicle.resaleValue, lifespanYears: vehicle.lifespanYears, fuelPer100: vehicle.fuelPer100,
           amountOwing: vehicle.amountOwing, purchasedOn: vehicle.purchasedOn, condition: vehicle.condition,
-          serviceCost: vehicle.serviceCost, kmYear: vehicle.kmYear,
+          serviceCost: vehicle.serviceCost, kmYear: vehicle.kmYear, assignedTo: vehicle.assignedTo,
         }}
         logs={logs.map((l) => ({
           id: l.id, kind: l.kind, dateLabel: dateLabel(l.logDate),
@@ -56,6 +57,7 @@ export default async function VehiclePage({ params }: { params: { id: string } }
         }))}
         canManage={can(user, "vehicles")}
         checks={lastChecks}
+        crew={crew}
       />
     </PortalShell>
   );

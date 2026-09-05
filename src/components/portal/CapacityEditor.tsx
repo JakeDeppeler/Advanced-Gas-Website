@@ -199,13 +199,29 @@ export function CapacityEditor({
                         <div className="pt-cap__grid">
                           <CapField label="Hours / week" value={r.costing.hrsWeek} onChange={(v) => setCosting(r.id, { hrsWeek: v })} />
                           <CapField label="Wage $/hr" value={r.costing.wage} onChange={(v) => setCosting(r.id, { wage: v })} />
-                          {!isOffice && <CapField label="Leave (days)" value={r.costing.leaveDays} onChange={(v) => setCosting(r.id, { leaveDays: v })} />}
-                          {!isOffice && <CapField label="Pub. hols (days)" value={r.costing.phDays} onChange={(v) => setCosting(r.id, { phDays: v })} />}
-                          {!isOffice && <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />}
+                          <CapField label="Leave (days)" value={r.costing.leaveDays} onChange={(v) => setCosting(r.id, { leaveDays: v })} />
+                          <CapField label="Pub. hols (days)" value={r.costing.phDays} onChange={(v) => setCosting(r.id, { phDays: v })} />
+                          <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
+                          <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
                           {r.level === "apprentice" && <CapField label="School (days)" value={r.costing.schoolDays} onChange={(v) => setCosting(r.id, { schoolDays: v })} />}
                           {!isOffice && !ridesAlong && <CapField label="Driving hrs/wk" value={r.costing.travelHrsWeek} onChange={(v) => setCosting(r.id, { travelHrsWeek: v })} />}
                           {!isOffice && !ridesAlong && <CapField label="Admin hrs/wk" value={r.costing.adminHrsWeek} onChange={(v) => setCosting(r.id, { adminHrsWeek: v })} />}
                           {r.level === "hybrid" && <CapField label="Office hrs/wk" value={r.costing.officeHrsWeek} onChange={(v) => setCosting(r.id, { officeHrsWeek: v })} />}
+                          <CapField label="Overtime rate" value={r.costing.otMult} onChange={(v) => setCosting(r.id, { otMult: v })} post="×" />
+                          <CapField label="Night rate" value={r.costing.nightMult} onChange={(v) => setCosting(r.id, { nightMult: v })} post="×" />
+                        </div>
+
+                        <div className="pt-cap__rates">
+                          <span>Paid <strong>{money2(r.costing.wage)}</strong> normal</span>
+                          <span>Overtime <strong>{money2(r.costing.wage * r.costing.otMult)}</strong></span>
+                          <span>Nights <strong>{money2(r.costing.wage * r.costing.nightMult)}</strong></span>
+                          {rt?.rate != null && (
+                            <>
+                              <span className="pt-cap__ratesplit">Charged <strong>{money(rt.rate)}</strong></span>
+                              <span>Overtime <strong>{money(rt.rate * r.costing.otMult)}</strong></span>
+                              <span>Nights <strong>{money(rt.rate * r.costing.nightMult)}</strong></span>
+                            </>
+                          )}
                         </div>
 
                         <div className="pt-cap__crewsum">

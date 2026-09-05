@@ -15,12 +15,12 @@ const dollars = (n: number) => n.toLocaleString("en-AU", { style: "currency", cu
 const BLANK = {
   name: "", rego: "", details: "",
   odometer: "", interval: "", nextKm: "", nextDate: "",
-  purchase: "", owing: "", resale: "", lifespan: "", fuel: "", bought: "", serviceCost: "", kmYear: "",
+  purchase: "", owing: "", resale: "", lifespan: "", fuel: "", bought: "", serviceCost: "", kmYear: "", assignedTo: "",
   status: "on" as VehicleStatus,
   condition: null as VehicleCondition | null,
 };
 
-export function AddVehicleForm() {
+export function AddVehicleForm({ crew }: { crew: { id: string; name: string }[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [open, setOpen] = useState(false);
@@ -84,6 +84,13 @@ export function AddVehicleForm() {
         <NumField label="Purchase price" value={f.purchase} onChange={set("purchase")} prefix="$" placeholder="52,000" />
         <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={set("owing")} prefix="$" placeholder="28,000" />
         <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => set("bought")(e.target.value)} /></label>
+        <label className="pt-field">
+          <span>Signed to</span>
+          <select value={f.assignedTo} onChange={(e) => set("assignedTo")(e.target.value)}>
+            <option value="">Nobody yet</option>
+            {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </label>
         <div className="pt-field">
           <span>Condition when we got it</span>
           <div className="pt-seg" role="group" aria-label="Condition when bought">
@@ -132,7 +139,7 @@ export function AddVehicleForm() {
               lifespanYears: lifespan, fuelPer100: toNum(f.fuel),
               amountOwing: owing, status: f.status,
               purchasedOn: f.bought, condition: f.condition,
-              serviceCost: toNum(f.serviceCost), kmYear: toInt(f.kmYear),
+              serviceCost: toNum(f.serviceCost), kmYear: toInt(f.kmYear), assignedTo: f.assignedTo,
             });
             if (res.ok) { setF(BLANK); setOpen(false); router.refresh(); }
             else setMsg(res.error || "Couldn't add it.");
