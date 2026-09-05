@@ -64,7 +64,7 @@ export function AccessEditor({ initial }: { initial: Record<string, string[]> })
       </div>
 
       <p className="pt-calc__note" style={{ color: "var(--pt-ink-3)" }}>
-        Everyone signed in always gets the everyday sections — Handbook, Learning, Information, Tools, Quick quote, Job calculator and their own file.
+        Everyone signed in always gets the everyday sections — Handbook, Learning, Information, Tools, Job calculator and their own file.
         These switches control the gated areas on top. The owner always has full access, and a per-person override in Team &amp; access beats whatever is set here.
       </p>
     </div>

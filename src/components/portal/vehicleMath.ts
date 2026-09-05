@@ -21,6 +21,8 @@ export type VehicleFinance = {
   equityNow: number | null;
   annualDep: number | null;
   owingPerYearLeft: number | null;
+  /** The month its costed life runs out — when it should be sold on. */
+  sellBy: string | null;
   underwater: boolean;
   pastLife: boolean;
 };
@@ -46,8 +48,17 @@ export function vehicleFinance(v: VehicleMoney): VehicleFinance {
   const equityNow = worthNow !== null && amountOwing !== null ? worthNow - amountOwing : null;
   const owingPerYearLeft = amountOwing !== null && lifeLeft !== null && lifeLeft > 0 ? amountOwing / lifeLeft : null;
 
+  // Lifespan runs from the day it was bought, so the sell-by date is simply
+  // that date plus the years it was costed over.
+  let sellBy: string | null = null;
+  if (v.purchasedOn && lifespanYears) {
+    const bought = new Date(`${v.purchasedOn}T00:00:00Z`);
+    const end = new Date(bought.getTime() + lifespanYears * YEAR_MS);
+    sellBy = end.toLocaleDateString("en-AU", { timeZone: "UTC", month: "long", year: "numeric" });
+  }
+
   return {
-    ageYears, lifeLeft, worthNow, equityNow, annualDep, owingPerYearLeft,
+    ageYears, lifeLeft, worthNow, equityNow, annualDep, owingPerYearLeft, sellBy,
     underwater: equityNow !== null && equityNow < 0,
     pastLife: lifeLeft !== null && lifeLeft <= 0,
   };

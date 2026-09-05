@@ -83,7 +83,7 @@ export function AddVehicleForm() {
         <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={set("owing")} prefix="$" placeholder="28,000" />
         <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => set("bought")(e.target.value)} /></label>
         <div className="pt-field">
-          <span>Condition</span>
+          <span>Condition when we got it</span>
           <div className="pt-seg" role="group" aria-label="Condition when bought">
             {CONDITION_OPTS.map((o) => (
               <button
@@ -104,7 +104,7 @@ export function AddVehicleForm() {
       {(fin.annualDep !== null || fin.equityNow !== null) && (
         <div className={`pt-veh__calc${fin.underwater ? " is-warn" : ""}`}>
           {fin.annualDep !== null && <>That&rsquo;s <strong>{dollars(fin.annualDep)}</strong> a year in depreciation. </>}
-          {fin.lifeLeft !== null && !fin.pastLife && <>About <strong>{years(fin.lifeLeft)}</strong> of life left. </>}
+          {fin.lifeLeft !== null && !fin.pastLife && <>About <strong>{years(fin.lifeLeft)}</strong> left{fin.sellBy ? <>, sell by <strong>{fin.sellBy}</strong></> : null}. </>}
           {fin.equityNow !== null && (
             fin.underwater
               ? <>Worth about {dollars(fin.worthNow as number)} today, so we&rsquo;d owe <strong>{dollars(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>

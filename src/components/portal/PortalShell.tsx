@@ -40,7 +40,6 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
         ...HANDBOOK.map((s) => ({ href: `/portal/handbook/${s.letter.toLowerCase()}`, label: `${s.letter} · ${s.title}` })),
       ],
     },
-    { kind: "link", href: "/portal/quote", label: "Quick quote", icon: ICON.quote },
     { kind: "link", href: "/portal/job-calculator", label: "Job calculator", icon: ICON.calc },
     {
       kind: "group", base: "/portal/learning", label: "Learning", icon: ICON.play,
@@ -52,7 +51,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     },
     {
       kind: "group", base: "/portal/tools", label: "Tools", icon: ICON.wrench,
-      children: PORTAL_TOOLS.filter((t) => t.slug !== "quick-quote" && t.slug !== "job-calculator").map((t) => ({ href: t.href, label: t.label, external: t.external })),
+      children: PORTAL_TOOLS.filter((t) => t.slug !== "job-calculator").map((t) => ({ href: t.href, label: t.label, external: t.external })),
     },
     { kind: "link", href: "/portal/vehicles", label: "Vehicles", icon: ICON.truck },
   ];
@@ -64,9 +63,8 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       { href: "/portal/finance", label: "Overview" },
       { href: "/portal/finance/pl", label: "Profit & loss" },
       { href: "/portal/finance/quotes", label: "Quotes & win rate" },
-      { href: "/portal/finance/capacity", label: "Billable capacity" },
+      { href: "/portal/finance/capacity", label: "Costs & capacity" },
       { href: "/portal/finance/planning", label: "Planning" },
-      { href: "/portal/finance/overhead", label: "Overhead cost" },
     ],
   });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });

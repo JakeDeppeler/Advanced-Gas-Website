@@ -22,6 +22,11 @@ export const STATUS_NOTE: Record<VehicleStatus, string> = {
 
 /** Bought new, or bought second hand. */
 export const CONDITION_OPTS: { k: "new" | "used"; label: string }[] = [
-  { k: "new", label: "Bought new" },
-  { k: "used", label: "Bought used" },
+  { k: "new", label: "New" },
+  { k: "used", label: "Used" },
 ];
+
+export const CONDITION_LABEL: Record<"new" | "used", string> = {
+  new: "New when we got it",
+  used: "Used when we got it",
+};

@@ -67,6 +67,7 @@ type UserRow = {
   school_days: number | null;
   travel_hrs_week: number | null;
   admin_hrs_week: number | null;
+  own_van: boolean | null;
   office_hrs_week: number | null;
   rate_override: number | null;
   sort_order: number | null;
@@ -98,6 +99,10 @@ function toUser(r: UserRow): CostedUser {
       schoolDays: Number(r.school_days ?? 0),
       travelHrsWeek: Number(r.travel_hrs_week ?? 0),
       adminHrsWeek: Number(r.admin_hrs_week ?? 0),
+      // Rows written before the column existed: anyone on the tools was being
+      // counted as chargeable, so keep them that way rather than silently
+      // dropping their billable hours.
+      ownVan: r.own_van ?? true,
       officeHrsWeek: Number(r.office_hrs_week ?? 0),
       rateOverride: r.rate_override == null ? null : Number(r.rate_override),
     },
@@ -261,7 +266,7 @@ export async function updateCrew(id: string, level: CrewLevel, c: Costing): Prom
       level,
       wage: c.wage, hrs_week: c.hrsWeek, leave_days: c.leaveDays, ph_days: c.phDays,
       sick_days: c.sickDays, school_days: c.schoolDays, travel_hrs_week: c.travelHrsWeek,
-      admin_hrs_week: c.adminHrsWeek, office_hrs_week: c.officeHrsWeek,
+      admin_hrs_week: c.adminHrsWeek, office_hrs_week: c.officeHrsWeek, own_van: c.ownVan,
       rate_override: c.rateOverride ?? null, updated_at: new Date().toISOString(),
     }),
   });
@@ -287,6 +292,7 @@ export async function createCrewPerson(input: { name: string; email?: string | n
       ph_days: input.costing.phDays, sick_days: input.costing.sickDays, school_days: input.costing.schoolDays,
       travel_hrs_week: input.costing.travelHrsWeek, admin_hrs_week: input.costing.adminHrsWeek,
       office_hrs_week: input.costing.officeHrsWeek, rate_override: input.costing.rateOverride ?? null,
+      own_van: input.costing.ownVan,
     }),
   });
   if (!res) return { ok: false, error: "not-configured" };

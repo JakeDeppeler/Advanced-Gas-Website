@@ -8,9 +8,11 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Billable capacity — Team portal" };
+export const metadata = { title: "Costs & capacity — Team portal" };
 
-export default async function CapacityPage() {
+const TABS = ["crew", "overheads", "rates"] as const;
+
+export default async function CapacityPage({ searchParams }: { searchParams: { t?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
@@ -26,11 +28,17 @@ export default async function CapacityPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
-        <div className="pt-head__eyebrow">Finance · Billable capacity</div>
+        <div className="pt-head__eyebrow">Finance · Costs &amp; capacity</div>
         <h1>What an hour has to cover.</h1>
-        <p>Give each of the crew a level and their numbers. The billable hours, the overhead stack and each person&rsquo;s charge-out rate all fall out — and feed the Job calculator.</p>
+        <p>The crew, every overhead the business carries, and the charge-out rates that fall out of the two. Change anything and the numbers at the top move with it.</p>
       </div>
-      <CapacityEditor people={people} settings={settings ?? DEFAULT_SETTINGS} dbReady={ready} canManage={can(user, "manage_users")} />
+      <CapacityEditor
+        people={people}
+        settings={settings ?? DEFAULT_SETTINGS}
+        dbReady={ready}
+        canManage={can(user, "manage_users")}
+        initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}
+      />
     </PortalShell>
   );
 }

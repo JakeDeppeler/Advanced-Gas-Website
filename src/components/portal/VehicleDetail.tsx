@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addLog, removeLog, saveVehicle, removeVehicle } from "@/app/portal/vehicles/actions";
 import { NumField } from "@/components/portal/NumField";
-import { CONDITION_OPTS, STATUS_LABEL, STATUS_NOTE, STATUS_OPTS } from "@/components/portal/vehicleStatus";
+import { CONDITION_LABEL, CONDITION_OPTS, STATUS_LABEL, STATUS_NOTE, STATUS_OPTS } from "@/components/portal/vehicleStatus";
 import { vehicleFinance, years } from "@/components/portal/vehicleMath";
 import type { VehicleCondition, VehicleLogKind, VehicleStatus } from "@/lib/portal/db";
 
@@ -103,6 +103,7 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
         {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
         {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{dollars(annualDep)}</strong></div>}
         {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
+        {fin.sellBy && <div className="pt-veh__stat"><span>Sell by</span><strong>{fin.sellBy}</strong></div>}
         {fin.lifeLeft !== null && <div className="pt-veh__stat"><span>Life left</span><strong className={fin.pastLife ? "is-neg" : ""}>{fin.pastLife ? `${years(fin.lifeLeft)} over` : years(fin.lifeLeft)}</strong></div>}
         {fin.worthNow !== null && <div className="pt-veh__stat"><span>Worth today</span><strong>{dollars(fin.worthNow)}</strong></div>}
         {vehicle.amountOwing !== null && <div className="pt-veh__stat"><span>Still owing</span><strong>{dollars(vehicle.amountOwing)}</strong></div>}
@@ -111,18 +112,18 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
 
       {(fin.ageYears !== null || vehicle.amountOwing !== null) && (
         <div className={`pt-veh__calc pt-veh__calc--block${fin.underwater || fin.pastLife ? " is-warn" : ""}`}>
-          {vehicle.condition && <>{vehicle.condition === "new" ? "Bought new" : "Bought used"}{fin.ageYears !== null ? ` ${years(fin.ageYears)} ago` : ""}. </>}
-          {!vehicle.condition && fin.ageYears !== null && <>{years(fin.ageYears)} old. </>}
+          {vehicle.condition && <>{CONDITION_LABEL[vehicle.condition]}{fin.ageYears !== null ? `, ${years(fin.ageYears)} ago` : ""}. </>}
+          {!vehicle.condition && fin.ageYears !== null && <>Ours for {years(fin.ageYears)}. </>}
           {fin.pastLife
-            ? <>It&rsquo;s <strong>{years(fin.lifeLeft as number)} past</strong> the {vehicle.lifespanYears} years it was costed over. </>
-            : fin.lifeLeft !== null && <>About <strong>{years(fin.lifeLeft)}</strong> of life left. </>}
+            ? <>It&rsquo;s <strong>{years(fin.lifeLeft as number)} past</strong> the {vehicle.lifespanYears} years it was costed over — it should have gone by {fin.sellBy}. </>
+            : fin.lifeLeft !== null && <>About <strong>{years(fin.lifeLeft)}</strong> left{fin.sellBy ? <> — sell by <strong>{fin.sellBy}</strong></> : null}. </>}
           {fin.equityNow !== null && (
             fin.underwater
               ? <>It&rsquo;s worth about {dollars(fin.worthNow as number)} with {dollars(vehicle.amountOwing as number)} owing, so we owe <strong>{dollars(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
               : <>Worth about {dollars(fin.worthNow as number)} with {dollars(vehicle.amountOwing as number)} owing — <strong>{dollars(fin.equityNow)}</strong> of that is ours.</>
           )}
           {fin.owingPerYearLeft !== null && fin.annualDep !== null && (
-            <> Clearing it inside its remaining life costs <strong>{dollars(fin.owingPerYearLeft)}</strong> a year, against {dollars(fin.annualDep)} a year of value lost.</>
+            <> Clearing what&rsquo;s owing before then costs <strong>{dollars(fin.owingPerYearLeft)}</strong> a year, against {dollars(fin.annualDep)} a year of value lost.</>
           )}
         </div>
       )}
@@ -200,7 +201,7 @@ export function VehicleDetail({ vehicle, logs, canManage }: { vehicle: VehicleVi
                 <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
                 <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => setF({ ...f, bought: e.target.value })} /></label>
                 <div className="pt-field">
-                  <span>Condition</span>
+                  <span>Condition when we got it</span>
                   <div className="pt-seg" role="group" aria-label="Condition when bought">
                     {CONDITION_OPTS.map((o) => (
                       <button
