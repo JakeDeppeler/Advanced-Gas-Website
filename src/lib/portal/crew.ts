@@ -102,6 +102,13 @@ export type CapSettings = {
   /** Kept so older saved settings still add up; superseded by `overheads`. */
   vehicles: number; standard: number;
   overheads?: Record<string, number>;
+  /**
+   * Which Xero expense account feeds which overhead line, keyed by the account
+   * name Xero reports. The mapping is kept, but the resolved dollar figures are
+   * written into `overheads` on save — so everything downstream reads one set
+   * of numbers and never has to know Xero exists.
+   */
+  xeroMap?: Record<string, string>;
 };
 
 export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 25, margin: 40, vehicles: 24000, standard: 60000 };
@@ -133,19 +140,19 @@ export const CREW_LEVELS: {
   key: CrewLevel; label: string; plural: string; billable: boolean; blurb: string; defaults: Costing;
 }[] = [
   { key: "operations", label: "Operations", plural: "Operations staff", billable: false, blurb: "Runs the business day to day. Full access to everything.",
-    defaults: { wage: 60, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 60, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "lead", label: "Lead hand", plural: "Lead hands", billable: true, blurb: "Runs jobs on the tools plus some supervision and office time.",
-    defaults: { wage: 55, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3, ownVan: true, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 55, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 5, officeHrsWeek: 3, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "tradesman", label: "Tradesman", plural: "Tradesmen", billable: true, blurb: "Fully-qualified, on the tools and billable most of the week.",
-    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 5, adminHrsWeek: 2, officeHrsWeek: 0, ownVan: true, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 5, adminHrsWeek: 2, officeHrsWeek: 0, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "hybrid", label: "Hybrid (field + office)", plural: "Hybrids", billable: true, blurb: "Splits the week between the tools and the office.",
-    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 5, schoolDays: 0, rdoDays: 12, travelHrsWeek: 3, adminHrsWeek: 3, officeHrsWeek: 15, ownVan: true, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 45, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 3, adminHrsWeek: 3, officeHrsWeek: 15, ownVan: true, otMult: 1.5, nightMult: 2 } },
   { key: "apprentice", label: "Apprentice", plural: "Apprentices", billable: true, blurb: "On the tools and learning, with trade-school days off.",
-    defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 40, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 40, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "office", label: "Office", plural: "Office staff", billable: false, blurb: "Scheduling, reception and keeping jobs moving. Not billable.",
-    defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "admin", label: "Admin", plural: "Admin staff", billable: false, blurb: "Accounts, compliance and the paperwork behind the business. Not billable.",
-    defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 11, sickDays: 6, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
+    defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
 ];
 
 export const LEVEL_LABEL: Record<CrewLevel, string> = CREW_LEVELS.reduce((m, l) => { m[l.key] = l.label; return m; }, {} as Record<CrewLevel, string>);
@@ -224,11 +231,16 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const costPerHr = totalCost / denom;
 
   const rates = per.map(({ p, c }) => {
-    if (!c.billable || c.billHrs <= 0) return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null };
+    if (!c.billable || c.billHrs <= 0) {
+      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null };
+    }
     const labourPerHr = p.costing.wage * (1 + s.oncosts / 100); // just their pay rate; downtime is overhead
-    const autoRate = (labourPerHr + sharedPerHr) * (1 + s.margin / 100);
+    // What an hour of theirs actually costs the business: their pay plus the
+    // share of everything else that hour has to carry.
+    const costPerHr = labourPerHr + sharedPerHr;
+    const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
-    return { id: p.id, billHrs: c.billHrs, autoRate, rate };
+    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr };
   });
 
   const layers = [

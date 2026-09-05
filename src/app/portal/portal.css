@@ -637,7 +637,11 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-cap__save .pt-inline.is-err { color: #ff9d8a; }
 
 .pt-teamgroup { margin-bottom: 24px; }
-.pt-tcard { display: flex; flex-direction: column; gap: 12px; }
+/* Crew cards carry a name, an email, a level picker and the order arrows —
+   240px squeezed all four, wrapping the email mid-address. */
+.pt-teamgroup .pt-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.pt-tcard { display: flex; flex-direction: column; gap: 14px; padding: 22px 24px 20px; }
+.pt-tcard__id span { word-break: normal; overflow-wrap: anywhere; }
 .pt-tcard__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .pt-tcard__id { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pt-tcard__id strong { font-family: var(--f-display); font-size: 15px; font-weight: 800; color: var(--pt-ink); }
@@ -844,6 +848,19 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-cap__grouptotal { font-family: var(--f-display); font-size: 16px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pt-cap__grouptotal em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--pt-ink-3); }
 
+.pt-cap__fromxero { font-size: 11.5px; color: var(--pt-good); font-weight: 600; }
+.pt-cap__allin { padding-right: 18px; border-right: 1px solid var(--pt-line); }
+.pt-cap__xero { display: flex; flex-direction: column; gap: 7px; }
+.pt-cap__xerorow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(150px, auto); gap: 14px; align-items: center; border: 1px solid var(--pt-line); border-radius: 11px; padding: 10px 13px; }
+.pt-cap__xerorow.is-filed { background: var(--pt-bg); }
+.pt-cap__xeroid { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pt-cap__xeroid strong { font-size: 13.5px; font-weight: 700; color: var(--pt-ink); overflow: hidden; text-overflow: ellipsis; }
+.pt-cap__xeroid em { font-style: normal; font-size: 11.5px; color: var(--pt-ink-3); }
+.pt-cap__xeroamt { font-weight: 700; color: var(--pt-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 640px) {
+  .pt-cap__xerorow { grid-template-columns: minmax(0, 1fr) auto; }
+  .pt-cap__xerorow > select, .pt-cap__xerorow > button { grid-column: 1 / -1; }
+}
 .pt-cap__combos { display: flex; flex-direction: column; gap: 8px; }
 .pt-cap__combo { display: flex; align-items: center; justify-content: space-between; gap: 18px; border: 1px solid var(--pt-line); border-radius: 12px; padding: 13px 16px; }
 .pt-cap__comboid { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
