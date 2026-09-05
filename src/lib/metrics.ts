@@ -2,10 +2,13 @@ import { supabase } from "./supabase";
 import { fetchXeroReceivables } from "./xero";
 import {
   addDays,
-  monthProgress,
+  DEFAULT_WORKING_CALENDAR,
+  isoDateMelbourne,
   startOfDayMelbourne,
   startOfMonthMelbourne,
   startOfWeekMelbourne,
+  workingDaysInMonth,
+  type WorkingCalendar,
 } from "./dates";
 
 // Computes one dashboard snapshot from the local replica. Nothing here calls
@@ -32,6 +35,19 @@ export type Metrics = {
   overdueCount: number | null;
   receivablesTotal: number | null;
   topSuburbs: Array<{ suburb: string; count: number }>;
+
+  // The daily number: what the crew has to turn over, per remaining working
+  // day, to still land on the monthly target. Recomputed every sync, so a big
+  // day visibly lowers tomorrow's bar and a slow one raises it.
+  revenueToday: number;
+  dailyTarget: number | null;
+  workingDaysLeft: number;
+  workingDaysTotal: number;
+  aheadBehind: number | null;
+
+  topJobTypes: Array<{ jobType: string; revenue: number; profit: number | null; jobs: number }>;
+  jobTypeBasis: "profit" | "revenue";
+  salesLeaderboard: Array<{ name: string; sold: number; jobs: number }>;
 };
 
 export type Snapshot = {
@@ -124,12 +140,77 @@ async function serviceTitanMetrics(now: Date) {
 
   const { data: invoices, error: invErr } = await supabase()
     .from("st_invoices")
-    .select("total")
+    .select("total, invoice_date")
     .gte("invoice_date", startOfMonthMelbourne(now).toISOString().slice(0, 10));
   if (invErr) throw new Error(`st_invoices read failed: ${invErr.message}`);
 
   const revenueInvoicedMtd = (invoices ?? []).reduce((s, i) => s + Number(i.total ?? 0), 0);
-  void monthStart;
+
+  const today = isoDateMelbourne(now);
+  const revenueToday = (invoices ?? [])
+    .filter((i) => i.invoice_date === today)
+    .reduce((s, i) => s + Number(i.total ?? 0), 0);
+
+  // Job types, ranked over a 90-day window so a quiet month doesn't reshuffle
+  // the board. Ranked by gross profit where ServiceTitan gave us cost on a
+  // meaningful share of invoices, otherwise by revenue — the tile says which.
+  const { data: profitRows, error: profitErr } = await supabase()
+    .from("st_invoices")
+    .select("job_type, total, cost")
+    .gte("invoice_date", isoDateMelbourne(addDays(now, -90)))
+    .not("job_type", "is", null);
+  if (profitErr) throw new Error(`st_invoices job-type read failed: ${profitErr.message}`);
+
+  const withCost = (profitRows ?? []).filter((r) => r.cost != null).length;
+  const jobTypeBasis: "profit" | "revenue" =
+    profitRows?.length && withCost / profitRows.length >= 0.5 ? "profit" : "revenue";
+
+  const byType = new Map<string, { revenue: number; cost: number; hasCost: boolean; jobs: number }>();
+  for (const r of profitRows ?? []) {
+    const key = String(r.job_type);
+    const acc = byType.get(key) ?? { revenue: 0, cost: 0, hasCost: false, jobs: 0 };
+    acc.revenue += Number(r.total ?? 0);
+    if (r.cost != null) {
+      acc.cost += Number(r.cost);
+      acc.hasCost = true;
+    }
+    acc.jobs += 1;
+    byType.set(key, acc);
+  }
+
+  const topJobTypes = [...byType.entries()]
+    .map(([jobType, v]) => ({
+      jobType,
+      revenue: v.revenue,
+      profit: v.hasCost ? v.revenue - v.cost : null,
+      jobs: v.jobs,
+    }))
+    .sort((a, b) =>
+      jobTypeBasis === "profit" ? (b.profit ?? 0) - (a.profit ?? 0) : b.revenue - a.revenue,
+    )
+    .slice(0, 5);
+
+  // Who has sold the most this month, by the value of estimates they closed.
+  const { data: soldRows, error: soldErr } = await supabase()
+    .from("st_estimates")
+    .select("sold_by, total")
+    .gte("sold_on", monthStart.toISOString())
+    .not("sold_by", "is", null);
+  if (soldErr) throw new Error(`st_estimates leaderboard read failed: ${soldErr.message}`);
+
+  const bySeller = new Map<string, { sold: number; jobs: number }>();
+  for (const r of soldRows ?? []) {
+    const key = String(r.sold_by);
+    const acc = bySeller.get(key) ?? { sold: 0, jobs: 0 };
+    acc.sold += Number(r.total ?? 0);
+    acc.jobs += 1;
+    bySeller.set(key, acc);
+  }
+
+  const salesLeaderboard = [...bySeller.entries()]
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.sold - a.sold)
+    .slice(0, 5);
 
   return {
     jobsCompletedWeek,
@@ -138,6 +219,10 @@ async function serviceTitanMetrics(now: Date) {
     estimatesOpenValue,
     closeRate30d,
     revenueInvoicedMtd,
+    revenueToday,
+    topJobTypes,
+    jobTypeBasis,
+    salesLeaderboard,
   };
 }
 
@@ -149,6 +234,19 @@ async function revenueTarget(): Promise<number | null> {
     .maybeSingle<{ value: { revenueTargetMonthly?: number } }>();
   const t = data?.value?.revenueTargetMonthly;
   return typeof t === "number" && t > 0 ? t : null;
+}
+
+async function workingCalendar(): Promise<WorkingCalendar> {
+  const { data } = await supabase()
+    .from("portal_settings")
+    .select("value")
+    .eq("key", "dashboard")
+    .maybeSingle<{ value: { workingDays?: number[]; holidays?: string[] } }>();
+
+  return {
+    days: data?.value?.workingDays?.length ? data.value.workingDays : DEFAULT_WORKING_CALENDAR.days,
+    holidays: data?.value?.holidays ?? [],
+  };
 }
 
 /** Most recent stored snapshot, used to carry a failed source's last known value. */
@@ -214,6 +312,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       estimatesOpenValue: prev?.estimatesOpenValue ?? 0,
       closeRate30d: prev?.closeRate30d ?? null,
       revenueInvoicedMtd: prev?.revenueInvoicedMtd ?? 0,
+      revenueToday: prev?.revenueToday ?? 0,
+      topJobTypes: prev?.topJobTypes ?? [],
+      jobTypeBasis: prev?.jobTypeBasis ?? "revenue",
+      salesLeaderboard: prev?.salesLeaderboard ?? [],
     };
   }
 
@@ -225,9 +327,19 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   }
 
   const target = await revenueTarget().catch(() => null);
-  const progress = monthProgress(now);
+  const calendar = await workingCalendar().catch(() => DEFAULT_WORKING_CALENDAR);
+  const days = workingDaysInMonth(now, calendar);
+
+  // Pace measured against working days elapsed, not calendar days: being "80%
+  // through the month" means nothing if the remaining days are a long weekend.
+  const progress = days.total > 0 ? days.elapsed / days.total : 0;
   const revenuePacePct =
     target && progress > 0 ? st.revenueInvoicedMtd / (target * progress) : null;
+
+  const remainingToTarget = target ? Math.max(0, target - st.revenueInvoicedMtd) : null;
+  const dailyTarget =
+    remainingToTarget == null ? null : remainingToTarget / Math.max(1, days.remaining);
+  const aheadBehind = target ? st.revenueInvoicedMtd - target * progress : null;
 
   return {
     metrics: {
@@ -235,6 +347,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       ...st,
       revenueTargetMonthly: target,
       revenuePacePct,
+      dailyTarget,
+      workingDaysLeft: days.remaining,
+      workingDaysTotal: days.total,
+      aheadBehind,
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,

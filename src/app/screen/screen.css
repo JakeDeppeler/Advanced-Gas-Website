@@ -224,3 +224,85 @@ body:has(.screen) .utilbar {
   text-align: center;
   padding: 4vw;
 }
+
+/* --------------------------------------------------------------- rotation */
+/* Past about eight tiles nothing on a 1080p panel stays readable from four
+   metres, so the board cycles pages instead of shrinking. */
+.screen__pages {
+  display: flex;
+  gap: 0.5vw;
+  align-items: center;
+}
+
+.screen__pip {
+  width: 0.55vw;
+  height: 0.55vw;
+  border-radius: 50%;
+  background: var(--track);
+}
+.screen__pip--on { background: var(--ink-2); }
+
+.screen__page {
+  display: contents;
+}
+
+.tile--tall { grid-row: span 2; }
+
+/* --------------------------------------------------- leaderboard / bar list */
+.bars--money .bars__row { grid-template-columns: 8.5vw 1fr 4.6vw; }
+
+.bars--lg .bars__row {
+  font-size: 1.25vw;
+  /* Wide enough for the longest real job-type and technician names —
+     "Heat pump HW" truncated at 9vw. */
+  grid-template-columns: 11.5vw 1fr 5vw;
+}
+.bars--lg .bars__track { height: 1.15vw; }
+
+/* A double-height tile holds the same five rows, so spread them over the extra
+   height rather than centring a tight block in a mostly empty box. */
+.tile--tall .bars {
+  justify-content: space-evenly;
+  gap: 1.2vw;
+}
+
+.bars__rank {
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bars__meta {
+  font-size: 0.85vw;
+  color: var(--ink-muted);
+}
+
+/* The hero tile's supporting figures — kept small so the one hero number
+   stays the only thing readable from the far side of the room. */
+.hero__row {
+  display: flex;
+  gap: 2.2vw;
+  align-items: baseline;
+}
+
+.hero__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15vw;
+}
+
+.hero__stat b {
+  font-size: 1.5vw;
+  font-weight: 650;
+}
+
+.hero__stat span {
+  font-size: 0.9vw;
+  color: var(--ink-muted);
+}
+
+.hero__unit {
+  font-size: 2vw;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin-left: 0.4vw;
+}

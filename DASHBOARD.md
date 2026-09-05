@@ -26,6 +26,29 @@ that row. Three reasons:
 `st_*` tables keep the raw ServiceTitan payload in a `raw` jsonb column, so new
 tiles can be added — or metrics backfilled — without re-pulling history.
 
+## The two pages
+
+The board cycles every 20 seconds. Past about eight tiles nothing on a 1080p
+panel stays readable from four metres, so it rotates rather than shrinks.
+
+**Today** leads with the daily number — what the crew has to turn over per
+remaining working day to still land on the monthly target:
+
+```
+needed per day = (monthly target − invoiced so far) ÷ working days remaining
+```
+
+It is recomputed every sync, so a big day visibly lowers tomorrow's bar and a
+slow one raises it. That movement is the point; a static "1/20th of target"
+figure doesn't change anyone's afternoon. Today counts as remaining — the crew
+can still sell today.
+
+Pace is measured against **working days elapsed, not calendar days**. Being
+"80% through the month" means nothing if the days left are a long weekend.
+
+**Performance** carries the leaderboards: who has sold the most this month (by
+value of quotes closed), top job types over 90 days, and top suburbs.
+
 ## Setup
 
 ### 1. Environment variables
@@ -51,15 +74,25 @@ source marked `not-configured`.
 `st_invoices`, `st_estimates`, `st_leads`, `portal_metrics_snapshot`. Existing
 tables are untouched.
 
-### 3. Revenue target
+### 3. Revenue target and working calendar
 
-The hero tile's pace bar needs a monthly target:
+The daily number needs a monthly target and a definition of a working day:
 
 ```sql
 insert into portal_settings (key, value)
-values ('dashboard', '{"revenueTargetMonthly": 240000}'::jsonb)
+values ('dashboard', jsonb_build_object(
+  'revenueTargetMonthly', 240000,
+  -- 1 = Monday … 7 = Sunday. Add 6 if Saturdays count toward the target.
+  'workingDays', jsonb_build_array(1,2,3,4,5),
+  -- Victorian public holidays and any shutdown days, as YYYY-MM-DD.
+  'holidays', jsonb_build_array('2026-11-03','2026-12-25','2026-12-26')
+))
 on conflict (key) do update set value = excluded.value;
 ```
+
+Holidays live here rather than in code so the office can correct them without a
+deploy. An empty list is fine — the number is just slightly optimistic in
+months with a public holiday.
 
 ### 4. First sync
 
@@ -92,10 +125,20 @@ in `raw`. After the first sync, check a real payload and tighten the mappers:
 select raw from st_jobs limit 1;
 ```
 
-Known gaps to close once the payload is confirmed: jobs carry `businessUnitId` and
-`jobTypeId` rather than names, and the service address lives on the location
-record, so `business_unit`, `job_type`, `suburb` and `postcode` stay null until
-those lookups are added.
+`businessUnitId`, `jobTypeId` and `soldById` are handled: they are stored raw and
+resolved to names by `dashboard_resolve_names()` against the `st_technicians`,
+`st_job_types` and `st_business_units` lookup tables, which sync from the ordinary
+list endpoints on every run.
+
+Still to confirm against a real payload: the service address lives on the
+location record rather than the job, so `suburb` and `postcode` on `st_jobs` stay
+null until that lookup is added. (The suburb tile reads website leads, not jobs,
+so it works regardless.)
+
+**Job-type ranking basis.** If ServiceTitan returns a cost on at least half of
+recent invoices, job types are ranked by gross profit; otherwise by revenue, and
+the tile says so on its subtitle. If profit ranking never kicks in, cost is not
+on the invoice export payload and needs pulling from invoice line items.
 
 ## Things worth knowing
 
