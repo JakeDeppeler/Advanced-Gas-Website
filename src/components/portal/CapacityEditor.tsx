@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
-  computeCapacity, crewCombos, defaultsFor, overheadsOf, overheadTotal,
+  computeCapacity, countedElsewhere, crewCombos, defaultsFor, overheadsOf, overheadTotal, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
 } from "@/lib/portal/crew";
 import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
@@ -66,6 +66,24 @@ export function CapacityEditor({
     xeroExpenses.filter((x) => xeroMap[x.label] === key).reduce((a, x) => a + x.amount, 0);
   const accountsFor = (key: string) => xeroExpenses.filter((x) => xeroMap[x.label] === key);
   const unmapped = xeroExpenses.filter((x) => !xeroMap[x.label]);
+  // Wages, depreciation and job materials are already counted somewhere else.
+  // Filing them here would charge the same money twice and lift every rate.
+  const toFile = unmapped.filter((x) => !countedElsewhere(x.label));
+  const elsewhere = unmapped.filter((x) => countedElsewhere(x.label));
+  const suggestions = toFile.map((x) => ({ x, key: suggestOverhead(x.label) })).filter((r) => r.key);
+
+  /** File every account whose name we can place, in one go. */
+  function applyAllSuggestions() {
+    setS((prev) => {
+      const map = { ...(prev.xeroMap ?? {}) };
+      for (const { x, key } of suggestions) map[x.label] = key as string;
+      const oh = { ...overheadsOf(prev) };
+      for (const k of new Set(Object.values(map))) {
+        oh[k] = xeroExpenses.filter((e) => map[e.label] === k).reduce((a, e) => a + e.amount, 0);
+      }
+      return { ...prev, xeroMap: map, overheads: oh };
+    });
+  }
 
   /**
    * Assigning an account moves the money as well as the label: the line's figure
@@ -378,15 +396,21 @@ export function CapacityEditor({
               </div>
             )}
 
-            {xeroExpenses.length > 0 && (unmapped.length === 0 ? (
+            {suggestions.length > 0 && (
+              <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" style={{ marginBottom: 14 }} onClick={applyAllSuggestions}>
+                File the {suggestions.length} it recognises
+              </button>
+            )}
+
+            {xeroExpenses.length > 0 && (toFile.length === 0 ? (
                 <div className="pf-empty">Every account is filed.</div>
               ) : (
                 <div className="pt-cap__xero">
-                  {unmapped.slice(0, 40).map((x) => (
+                  {toFile.slice(0, 60).map((x) => (
                     <div key={x.label} className="pt-cap__xerorow">
                       <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{x.section}</em></span>
                       <span className="pt-cap__xeroamt">{money(x.amount)}</span>
-                      <select className="pt-cap__type" value="" onChange={(e) => assign(x.label, e.target.value)}>
+                      <select className="pt-cap__type" value={suggestOverhead(x.label) ?? ""} onChange={(e) => assign(x.label, e.target.value)}>
                         <option value="">File it under…</option>
                         {OVERHEAD_GROUPS.map((g) => (
                           <optgroup key={g.key} label={g.label}>
@@ -400,6 +424,23 @@ export function CapacityEditor({
                   ))}
                 </div>
               ))}
+
+              {elsewhere.length > 0 && (
+                <>
+                  <h3 className="pt-pl__subh" style={{ marginTop: 18 }}>Left out — already counted elsewhere</h3>
+                  <p className="pt-panel__sub">
+                    These aren&rsquo;t overheads to file. Adding them here would charge the same money twice and lift every rate you quote.
+                  </p>
+                  <div className="pt-cap__xero">
+                    {elsewhere.map((x) => (
+                      <div key={x.label} className="pt-cap__xerorow is-out">
+                        <span className="pt-cap__xeroid"><strong>{x.label}</strong><em>{countedElsewhere(x.label)}</em></span>
+                        <span className="pt-cap__xeroamt">{money(x.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {Object.keys(xeroMap).length > 0 && (
                 <>
