@@ -329,7 +329,7 @@ export const INFO_SECTIONS: InfoSection[] = [
       {
         title: "Every model, every installed price",
         body: [
-          "The full model-by-model price list is in the Quick quote tool (Tools → Quick quote) — pick a model and it shows the installed price with the VEU rebate already applied, ready to read out.",
+          "The full model-by-model price list lives on the public site's pricing pages — installed price with the VEU rebate already applied, ready to read out.",
         ],
       },
     ],
@@ -378,7 +378,6 @@ export const INFO_SECTIONS: InfoSection[] = [
 export type PortalToolLink = { slug: string; label: string; blurb: string; href: string; external?: boolean };
 
 export const PORTAL_TOOLS: PortalToolLink[] = [
-  { slug: "quick-quote", label: "Quick quote", blurb: "Any model’s installed price, VEU applied, ready to read out.", href: "/portal/quote" },
   { slug: "job-calculator", label: "Job calculator", blurb: "Workers × hours on the job → labour, materials and a price.", href: "/portal/job-calculator" },
   { slug: "heat-pump-sizing", label: "Heat pump sizing", blurb: "Size a tank off shower draw-off, not bedroom count.", href: "/portal/tools/heat-pump-sizing" },
   { slug: "veu-rebate-estimator", label: "VEU rebate estimator", blurb: "Ballpark the rebate before a site visit.", href: "/portal/tools/veu-rebate-estimator" },

@@ -367,6 +367,117 @@ export function localToday(): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
 
+/* -------- The periods the P&L is read over -------- */
+
+export type PLSpan = { from: string; to: string; label: string };
+export const PL_PERIODS = [
+  { k: "month", label: "This month" },
+  { k: "lastmonth", label: "Last month" },
+  { k: "3m", label: "Last 3 months" },
+  { k: "year", label: "This year" },
+] as const;
+export type PLPeriod = (typeof PL_PERIODS)[number]["k"];
+
+const MONTH_NAME = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/**
+ * The exact window the money chart is showing, paired with the one before it,
+ * so the profit & loss on the overview answers for the same stretch of time the
+ * chart above it is drawing rather than a period of its own.
+ */
+export function rangeSpans(range: MoneyRange): { now: PLSpan; before: PLSpan } {
+  const t = localToday();
+  const Y = t.getUTCFullYear(), M = t.getUTCMonth(), D = t.getUTCDate();
+  const day = (n: number) => new Date(Date.UTC(Y, M, D + n));
+  const monthStart = (n: number) => new Date(Date.UTC(Y, M + n, 1));
+  const dayBefore = (d: Date) => new Date(d.getTime() - 86_400_000);
+
+  if (range === "7d") {
+    return {
+      now: { from: isoDate(day(-6)), to: isoDate(t), label: "the last 7 days" },
+      before: { from: isoDate(day(-13)), to: isoDate(day(-7)), label: "the 7 days before those" },
+    };
+  }
+  if (range === "4w") {
+    return {
+      now: { from: isoDate(day(-27)), to: isoDate(t), label: "the last 4 weeks" },
+      before: { from: isoDate(day(-55)), to: isoDate(day(-28)), label: "the 4 weeks before those" },
+    };
+  }
+  if (range === "3m") {
+    return {
+      now: { from: isoDate(monthStart(-2)), to: isoDate(t), label: "the last 3 months" },
+      before: { from: isoDate(monthStart(-5)), to: isoDate(dayBefore(monthStart(-2))), label: "the 3 months before those" },
+    };
+  }
+  return {
+    now: { from: isoDate(monthStart(-11)), to: isoDate(t), label: "the last 12 months" },
+    before: { from: isoDate(monthStart(-23)), to: isoDate(dayBefore(monthStart(-11))), label: "the 12 months before those" },
+  };
+}
+
+/**
+ * The windows the Finance overview's profit & loss can be read over. Its own
+ * control rather than the chart's — the chart is about the shape of money in
+ * and out, this is about where it went, and you don't always want both looking
+ * at the same stretch.
+ */
+export const OV_PERIODS = [
+  { k: "7d", label: "7d" },
+  { k: "month", label: "This month" },
+  { k: "3m", label: "3m" },
+  { k: "12m", label: "12m" },
+] as const;
+export type OvPeriod = (typeof OV_PERIODS)[number]["k"];
+
+export function ovSpans(key: OvPeriod): { now: PLSpan; before: PLSpan } {
+  if (key === "month") return plSpans("month");
+  return rangeSpans(key);
+}
+
+/**
+ * A period paired with the equivalent stretch before it, so the two are
+ * genuinely comparable: five days into this month is measured against the
+ * first five days of last month, not against a whole one.
+ */
+export function plSpans(key: PLPeriod): { now: PLSpan; before: PLSpan } {
+  const t = localToday();
+  const y = t.getUTCFullYear(), m = t.getUTCMonth(), d = t.getUTCDate();
+  const monthEnd = (mm: number) => new Date(Date.UTC(y, mm + 1, 0));
+  const named = (mm: number) => {
+    const at = new Date(Date.UTC(y, mm, 1));
+    return `${MONTH_NAME[at.getUTCMonth()]} ${at.getUTCFullYear()}`;
+  };
+
+  if (key === "lastmonth") {
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, m - 1, 1))), to: isoDate(monthEnd(m - 1)), label: named(m - 1) },
+      before: { from: isoDate(new Date(Date.UTC(y, m - 2, 1))), to: isoDate(monthEnd(m - 2)), label: named(m - 2) },
+    };
+  }
+  if (key === "3m") {
+    // Whole months only — a part-finished month would drag the comparison down.
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, m - 3, 1))), to: isoDate(monthEnd(m - 1)), label: "the last 3 full months" },
+      before: { from: isoDate(new Date(Date.UTC(y, m - 6, 1))), to: isoDate(monthEnd(m - 4)), label: "the 3 months before those" },
+    };
+  }
+  if (key === "year") {
+    return {
+      now: { from: isoDate(new Date(Date.UTC(y, 0, 1))), to: isoDate(t), label: `${y} so far` },
+      before: { from: isoDate(new Date(Date.UTC(y - 1, 0, 1))), to: isoDate(new Date(Date.UTC(y - 1, m, d))), label: `the same point in ${y - 1}` },
+    };
+  }
+  const sameDay = Math.min(d, monthEnd(m - 1).getUTCDate());
+  return {
+    now: { from: isoDate(new Date(Date.UTC(y, m, 1))), to: isoDate(t), label: `${named(m)}, ${d} ${d === 1 ? "day" : "days"} in` },
+    before: {
+      from: isoDate(new Date(Date.UTC(y, m - 1, 1))), to: isoDate(new Date(Date.UTC(y, m - 1, sameDay))),
+      label: `the first ${sameDay} ${sameDay === 1 ? "day" : "days"} of ${named(m - 1)}`,
+    },
+  };
+}
+
 export const MONEY_RANGES = ["7d", "4w", "3m", "12m"] as const;
 export type MoneyRange = (typeof MONEY_RANGES)[number];
 

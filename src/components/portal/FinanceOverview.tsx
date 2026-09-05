@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 
@@ -28,8 +28,8 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
 }
 
 export function FinanceOverview({
-  today, week, month, lastMonth, year, series, tf,
-}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
+  today, week, month, lastMonth, year, series, tf, plKey, plSummary,
+}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string; plKey?: string; plSummary?: ReactNode }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
@@ -135,14 +135,15 @@ export function FinanceOverview({
             <h2 className="pt-panel__h">Money in vs money out</h2>
             <div className="pt-ov__tf">
               {TF_OPTS.map((o) => (
-                <Link key={o.k} href={`/portal/finance?tf=${o.k}`} scroll={false} className={`pt-ov__tfbtn${tf === o.k ? " is-on" : ""}`}>{o.label}</Link>
+                <Link key={o.k} href={`/portal/finance?tf=${o.k}${plKey ? `&pl=${plKey}` : ""}`} scroll={false} className={`pt-ov__tfbtn${tf === o.k ? " is-on" : ""}`}>{o.label}</Link>
               ))}
             </div>
           </div>
           <MoneyChart points={series} spanLabel={spanLabel} />
-          <Link href="/portal/finance/pl" className="pt-ov__more">See the full profit &amp; loss, account by account →</Link>
         </section>
       )}
+
+      {plSummary}
 
       {/* Good vs watch */}
       <section className="pt-panel">
