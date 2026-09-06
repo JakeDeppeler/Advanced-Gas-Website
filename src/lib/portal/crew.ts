@@ -339,7 +339,7 @@ export function crewCombos(
  * charge the same money twice and inflate every hourly rate.
  */
 const COUNTED_ELSEWHERE: { test: RegExp; where: string }[] = [
-  { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "The crew tab already carries every wage, on-cost and day off." },
+  { test: /wages|salar|superannuation|workcover|work cover|long service|annual leave|payroll/i, where: "Carried on the crew tab — tech wages as labour on a job, office and director wages as overhead." },
   { test: /^depreciation|amortisation/i, where: "Depreciation on the vans comes from the Vehicles tab." },
   { test: /^materials|^cost of (sales|goods)|subcontract|contractor/i, where: "A job cost, not an overhead — it's allowed for in the job it was paid on, so it can't also sit on every hour." },
 ];

@@ -134,7 +134,13 @@ export function CapacityEditor({
     };
   }, [cap, rateById]);
 
-  const ohTotal = overheadTotal(s);
+  // Two kinds of overhead meet here. The typed and Xero-filed lines are one;
+  // the other comes out of the crew tab — office and admin wages, plus the
+  // crew's own non-billable time — and those are already in the capacity maths,
+  // so they show read-only rather than being added again.
+  const ohTyped = overheadTotal(s);
+  const ohFromCrew = cap.labourOh + cap.officeOh;
+  const ohTotal = ohTyped + ohFromCrew;
   const hasHrs = cap.totalBillHrs > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
   const blended = hasHrs ? cap.costPerHr * (1 + s.margin / 100) : null;
@@ -498,7 +504,8 @@ export function CapacityEditor({
               <span className="pt-cap__grouptotal">{money(ohTotal)}<em>/yr</em></span>
             </div>
             <p className="pt-panel__sub">
-              Everything except wages — the crew tab already carries every one, including downtime and anyone riding along.
+              Everything the business carries except the labour that goes on a job. Office and admin wages are overhead and are in
+              here; so is the crew&rsquo;s own non-billable time. Only the hours a customer pays for are left out.
               Spread across {hrs(cap.totalBillHrs)} of billable time.
             </p>
 
@@ -517,6 +524,38 @@ export function CapacityEditor({
             )}
 
             <div className="pt-oh__ledger">
+              {ohFromCrew > 0 && (
+                <div className="pt-oh__group">
+                  <div className="pt-oh__grouph">
+                    <span>Wages that aren&rsquo;t on a job</span>
+                    <span>
+                      {ohTotal > 0 && <em>{Math.round((ohFromCrew / ohTotal) * 100)}% · </em>}
+                      {money(ohFromCrew)}
+                    </span>
+                  </div>
+                  <div className="pt-oh__line">
+                    <div className="pt-oh__row is-locked">
+                      <span className="pt-oh__label">
+                        Office &amp; admin wages
+                        <em>From the crew tab — everyone not on the tools</em>
+                      </span>
+                      <span className="pt-oh__perhr">{perHour(cap.officeOh)}</span>
+                      <span className="pt-oh__fixed">{money(cap.officeOh)}</span>
+                    </div>
+                  </div>
+                  <div className="pt-oh__line">
+                    <div className="pt-oh__row is-locked">
+                      <span className="pt-oh__label">
+                        Crew time you can&rsquo;t bill
+                        <em>Leave, sick, RDOs, school, travel, admin, and anyone riding with a tech</em>
+                      </span>
+                      <span className="pt-oh__perhr">{perHour(cap.labourOh)}</span>
+                      <span className="pt-oh__fixed">{money(cap.labourOh)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {OVERHEAD_GROUPS.map((g) => {
                 const oh = overheadsOf(s);
                 const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
