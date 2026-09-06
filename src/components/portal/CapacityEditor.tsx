@@ -54,6 +54,12 @@ export function CapacityEditor({
   // Most overhead lines sit at zero once Xero has filled the ones it can; hiding
   // them turns thirty-odd boxes into the dozen that actually carry money.
   const [showEmpty, setShowEmpty] = useState(false);
+  const [openLines, setOpenLines] = useState<Set<string>>(new Set());
+  const toggleLine = (k: string) => setOpenLines((prev) => {
+    const next = new Set(prev);
+    if (next.has(k)) next.delete(k); else next.add(k);
+    return next;
+  });
 
   const [s, setS] = useState<CapSettings>({ ...settings, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
@@ -124,8 +130,12 @@ export function CapacityEditor({
     const rows = cap.per.map(({ p, c }) => ({
       id: p.id, name: p.name, level: p.level,
       paidHrs: c.paidHrs, billHrs: c.billHrs, wageCost: c.wageCost,
-      costPerHr: rateById.get(p.id)?.costPerHr ?? null,
-      note: !LEVEL_BILLABLE[p.level] ? "not billable" : !p.costing.ownVan ? "rides with a tech" : "",
+      wage: p.costing.wage,
+      // What one hour you can actually bill costs in their wages alone. Leave,
+      // sick, RDOs, school and travel are all paid but not billed, so this lands
+      // well above the hourly wage — that gap is the point of showing it.
+      perBillHr: c.billHrs > 0 ? c.wageCost / c.billHrs : null,
+      note: !LEVEL_BILLABLE[p.level] ? "not billable — all overhead" : !p.costing.ownVan ? "rides with a tech — all overhead" : "",
     })).sort((a, b) => b.wageCost - a.wageCost);
     return {
       rows,
@@ -340,31 +350,33 @@ export function CapacityEditor({
                 <span className="pt-cap__grouptotal">{money(crewCost.total)}<em>/yr</em></span>
               </div>
               <p className="pt-panel__sub">
-                Every wage with on-costs on top, whether the hours are billable or not. This is the wage bill — the overheads tab
-                covers everything else.
+                <strong>Real cost</strong> is what one billable hour of theirs costs in wages — the whole year&rsquo;s pay, on-costs
+                included, spread over only the hours a customer pays for. Leave, sick days, RDOs, trade school and driving are all
+                paid and none of them are billed, which is why it lands so far above the hourly wage. Office and admin have no
+                billable hours at all: their wages sit in the overhead instead.
               </p>
               <div className="pt-oh__ledger">
                 <div className="pt-oh__group">
                   <div className="pt-cap__costhead">
-                    <span>Person</span><span>Paid</span><span>Billable</span><span>Per hour</span><span>A year</span>
+                    <span>Person</span><span>Billable hrs</span><span>Paid</span><span>Real cost</span><span>A year</span>
                   </div>
                   {crewCost.rows.map((r) => (
                     <div key={r.id} className="pt-cap__costrow">
                       <span className="pt-cap__costwho">
                         <strong>{r.name}</strong>
-                        <em>{LEVEL_LABEL[r.level]}{r.note ? ` · ${r.note}` : ""}</em>
+                        <em>{LEVEL_LABEL[r.level]} · {hrs(r.paidHrs)} paid{r.note ? ` · ${r.note}` : ""}</em>
                       </span>
-                      <span>{hrs(r.paidHrs)}</span>
                       <span>{r.billHrs > 0 ? hrs(r.billHrs) : "—"}</span>
-                      <span>{r.costPerHr !== null ? money2(r.costPerHr) : "—"}</span>
+                      <span>{money2(r.wage)}</span>
+                      <strong className={r.perBillHr !== null ? "pt-cap__real" : ""}>{r.perBillHr !== null ? money2(r.perBillHr) : "—"}</strong>
                       <strong>{money(r.wageCost)}</strong>
                     </div>
                   ))}
                   <div className="pt-cap__costrow is-total">
-                    <span className="pt-cap__costwho"><strong>The lot</strong></span>
-                    <span>{hrs(crewCost.paidHrs)}</span>
+                    <span className="pt-cap__costwho"><strong>The lot</strong><em>{hrs(crewCost.paidHrs)} paid</em></span>
                     <span>{hrs(cap.totalBillHrs)}</span>
                     <span>—</span>
+                    <strong>—</strong>
                     <strong>{money(crewCost.total)}</strong>
                   </div>
                 </div>
@@ -575,18 +587,31 @@ export function CapacityEditor({
                       const accs = accountsFor(f.key);
                       return (
                         <div key={f.key} className="pt-oh__line">
-                          <label className="pt-oh__row">
-                            <span className="pt-oh__label">{f.label}</span>
+                          <div className="pt-oh__row">
+                            <span className="pt-oh__label">
+                              {accs.length > 0 ? (
+                                <button type="button" className="pt-oh__open" aria-expanded={openLines.has(f.key)} onClick={() => toggleLine(f.key)}>
+                                  <span className={`pt-oh__caret${openLines.has(f.key) ? " is-open" : ""}`} aria-hidden="true">›</span>
+                                  {f.label}
+                                  <em>{accs.length} from Xero</em>
+                                </button>
+                              ) : f.label}
+                            </span>
                             <span className="pt-oh__perhr">{perHour(Number(oh[f.key]) || 0)}</span>
                             <span className="pt-oh__amt">
                               <span>$</span>
-                              <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
+                              <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} aria-label={f.label} />
                             </span>
-                          </label>
-                          {accs.length > 0 && (
+                          </div>
+                          {accs.length > 0 && openLines.has(f.key) && (
                             <div className="pt-oh__accs">
                               {accs.map((a) => (
-                                <span key={a.label}><em>{a.label}</em>{money(a.amount)}</span>
+                                <div key={a.label} className="pt-oh__acc">
+                                  <span>{a.label}</span>
+                                  <span>{perHour(a.amount)}</span>
+                                  <strong>{money(a.amount)}</strong>
+                                  <button type="button" className="pt-oh__unfile" onClick={() => assign(a.label, "")}>Unfile</button>
+                                </div>
                               ))}
                             </div>
                           )}

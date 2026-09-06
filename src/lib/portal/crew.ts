@@ -288,9 +288,19 @@ export function crewCombos(
 
   const solo = CREW_LEVELS
     .filter((l) => l.billable && rateOf(l.key) !== null)
-    .map((l) => ({ key: `solo-${l.key}`, label: `${l.label} on their own`, rate: rateOf(l.key) as number }));
+    .map((l) => ({
+      key: `solo-${l.key}`,
+      label: `${l.label} on their own`,
+      rate: rateOf(l.key) as number,
+      // An apprentice out alone reads dearer than a tradesman, which is right:
+      // the same overhead spreads over fewer billable hours once trade school
+      // is out of the week. It's also why they go out with a tech instead.
+      note: l.key === "apprentice"
+        ? "Dearer than a tradesman on their own — the same overhead lands on fewer billable hours once trade school is out. This is why an apprentice goes out with a tech rather than alone."
+        : undefined,
+    }));
 
-  const combos: CrewCombo[] = [...solo];
+  const combos: CrewCombo[] = solo.map(({ key, label, rate, note }) => ({ key, label, rate, note }));
 
   // Whoever leads a job: the highest-charging level on the tools.
   const lead = solo.length ? solo.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
