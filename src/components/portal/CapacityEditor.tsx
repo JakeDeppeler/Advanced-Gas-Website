@@ -75,6 +75,9 @@ export function CapacityEditor({
   const elsewhere = unmapped.filter((x) => countedElsewhere(x.label));
   const suggestions = toFile.map((x) => ({ x, key: suggestOverhead(x.label) })).filter((r) => r.key);
   const filedCount = xeroExpenses.filter((x) => xeroMap[x.label]).length;
+
+  /** What a yearly figure works out to on each hour you can actually bill. */
+  const perHour = (annual: number) => (hasHrs && annual ? money2(annual / cap.totalBillHrs) : "—");
   const emptyCount = OVERHEAD_FIELDS.filter((f) => (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
@@ -115,6 +118,22 @@ export function CapacityEditor({
   const cap = useMemo(() => computeCapacity(costed, s), [costed, s]);
   const rateById = useMemo(() => new Map(cap.rates.map((x) => [x.id, x])), [cap]);
   const combos = useMemo(() => crewCombos(costed, cap.rates), [costed, cap]);
+  // Every person's wage bill for the year, biggest first, plus why someone's
+  // hours aren't billable when they aren't.
+  const crewCost = useMemo(() => {
+    const rows = cap.per.map(({ p, c }) => ({
+      id: p.id, name: p.name, level: p.level,
+      paidHrs: c.paidHrs, billHrs: c.billHrs, wageCost: c.wageCost,
+      costPerHr: rateById.get(p.id)?.costPerHr ?? null,
+      note: !LEVEL_BILLABLE[p.level] ? "not billable" : !p.costing.ownVan ? "rides with a tech" : "",
+    })).sort((a, b) => b.wageCost - a.wageCost);
+    return {
+      rows,
+      total: rows.reduce((a, r) => a + r.wageCost, 0),
+      paidHrs: rows.reduce((a, r) => a + r.paidHrs, 0),
+    };
+  }, [cap, rateById]);
+
   const ohTotal = overheadTotal(s);
   const hasHrs = cap.totalBillHrs > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
@@ -308,6 +327,45 @@ export function CapacityEditor({
             </section>
           ))}
 
+          {costed.length > 0 && (
+            <section className="pt-panel">
+              <div className="pt-ov__charthead">
+                <h2 className="pt-panel__h">What the crew costs</h2>
+                <span className="pt-cap__grouptotal">{money(crewCost.total)}<em>/yr</em></span>
+              </div>
+              <p className="pt-panel__sub">
+                Every wage with on-costs on top, whether the hours are billable or not. This is the wage bill — the overheads tab
+                covers everything else.
+              </p>
+              <div className="pt-oh__ledger">
+                <div className="pt-oh__group">
+                  <div className="pt-cap__costhead">
+                    <span>Person</span><span>Paid</span><span>Billable</span><span>Per hour</span><span>A year</span>
+                  </div>
+                  {crewCost.rows.map((r) => (
+                    <div key={r.id} className="pt-cap__costrow">
+                      <span className="pt-cap__costwho">
+                        <strong>{r.name}</strong>
+                        <em>{LEVEL_LABEL[r.level]}{r.note ? ` · ${r.note}` : ""}</em>
+                      </span>
+                      <span>{hrs(r.paidHrs)}</span>
+                      <span>{r.billHrs > 0 ? hrs(r.billHrs) : "—"}</span>
+                      <span>{r.costPerHr !== null ? money2(r.costPerHr) : "—"}</span>
+                      <strong>{money(r.wageCost)}</strong>
+                    </div>
+                  ))}
+                  <div className="pt-cap__costrow is-total">
+                    <span className="pt-cap__costwho"><strong>The lot</strong></span>
+                    <span>{hrs(crewCost.paidHrs)}</span>
+                    <span>{hrs(cap.totalBillHrs)}</span>
+                    <span>—</span>
+                    <strong>{money(crewCost.total)}</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
           {canManage && (
             <section className="pt-panel">
               <h2 className="pt-panel__h">Add someone</h2>
@@ -441,9 +499,15 @@ export function CapacityEditor({
             </div>
             <p className="pt-panel__sub">
               Everything except wages — the crew tab already carries every one, including downtime and anyone riding along.
-              Spread across {hrs(cap.totalBillHrs)} of billable time that&rsquo;s{" "}
-              <strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong> on every hour you bill, before a wage is paid.
+              Spread across {hrs(cap.totalBillHrs)} of billable time.
             </p>
+
+            <div className="pt-oh__totals">
+              <div><span>A year</span><strong>{money(ohTotal)}</strong></div>
+              <div><span>A month</span><strong>{money(ohTotal / 12)}</strong></div>
+              <div><span>A week</span><strong>{money(ohTotal / 52)}</strong></div>
+              <div><span>Every billable hour</span><strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong></div>
+            </div>
 
             {emptyCount > 0 && (
               <label className="pt-oh__toggle">
@@ -463,25 +527,31 @@ export function CapacityEditor({
                   <div key={g.key} className="pt-oh__group">
                     <div className="pt-oh__grouph">
                       <span>{g.label}</span>
-                      <span>{money(groupTotal)}</span>
+                      <span>
+                        {ohTotal > 0 && <em>{Math.round((groupTotal / ohTotal) * 100)}% · </em>}
+                        {money(groupTotal)}
+                      </span>
                     </div>
                     {shown.map((f) => {
                       const accs = accountsFor(f.key);
                       return (
-                        <label key={f.key} className="pt-oh__row">
-                          <span className="pt-oh__label">
-                            {f.label}
-                            {accs.length > 0 && (
-                              <em title={accs.map((a) => a.label).join(", ")}>
-                                Xero · {accs.length === 1 ? accs[0].label : `${accs.length} accounts`}
-                              </em>
-                            )}
-                          </span>
-                          <span className="pt-oh__amt">
-                            <span>$</span>
-                            <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
-                          </span>
-                        </label>
+                        <div key={f.key} className="pt-oh__line">
+                          <label className="pt-oh__row">
+                            <span className="pt-oh__label">{f.label}</span>
+                            <span className="pt-oh__perhr">{perHour(Number(oh[f.key]) || 0)}</span>
+                            <span className="pt-oh__amt">
+                              <span>$</span>
+                              <input type="number" min="0" value={oh[f.key] ?? 0} onChange={(e) => setOh(f.key, parse(e.target.value))} />
+                            </span>
+                          </label>
+                          {accs.length > 0 && (
+                            <div className="pt-oh__accs">
+                              {accs.map((a) => (
+                                <span key={a.label}><em>{a.label}</em>{money(a.amount)}</span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
