@@ -18,8 +18,18 @@ function Field({ label, value, onChange, pre, post }: { label: string; value: nu
   );
 }
 
+/** One input in a van column — the label lives in the row, not on the box. */
+function Cell({ value, onChange, pre, post }: { value: number; onChange: (n: number) => void; pre?: string; post?: string }) {
+  return (
+    <span className="pt-scn__cell">
+      {pre && <span>{pre}</span>}
+      <input type="number" min="0" value={value} onChange={(e) => onChange(parse(e.target.value))} />
+      {post && <span>{post}</span>}
+    </span>
+  );
+}
+
 export function ScenarioPlanner({ defaultCharge, defaultCost }: { defaultCharge: number; defaultCost: number }) {
-  // Add a person
   const [charge, setCharge] = useState(defaultCharge || 120);
   const [cost, setCost] = useState(defaultCost || 85);
   const [hrsWeek, setHrsWeek] = useState(30);
@@ -29,93 +39,105 @@ export function ScenarioPlanner({ defaultCharge, defaultCost }: { defaultCharge:
   const runCost = cost * hrsWeek * weeks;
   const contribution = revenue - runCost;
 
-  // Vehicle fuel comparison
-  const [litA, setLitA] = useState(10);
-  const [litB, setLitB] = useState(3);
-  const [kmYear, setKmYear] = useState(30000);
-  const [price, setPrice] = useState(2);
+  // Shared by both vans, so they sit above the comparison rather than inside
+  // one column while the other quietly uses them.
+  const [kmYear, setKmYear] = useState(26000);
+  const [price, setPrice] = useState(2.4);
 
-  const fuelA = (kmYear / 100) * litA * price;
-  const fuelB = (kmYear / 100) * litB * price;
-  const saving = fuelA - fuelB;
+  const [a, setA] = useState({ name: "Ford", lit: 7, interval: 30000, service: 500 });
+  const [b, setB] = useState({ name: "LDV", lit: 10, interval: 10000, service: 850 });
 
-  // Servicing — the one that catches people out. A Ford at 30,000km and $500
-  // and an LDV at 10,000km and $700+ look similar on the lot and are three
-  // times apart on the invoice.
-  const [intA, setIntA] = useState(30000);
-  const [svcA, setSvcA] = useState(500);
-  const [intB, setIntB] = useState(10000);
-  const [svcB, setSvcB] = useState(850);
-
-  const servicesA = intA > 0 ? kmYear / intA : 0;
-  const servicesB = intB > 0 ? kmYear / intB : 0;
-  const servA = servicesA * svcA;
-  const servB = servicesB * svcB;
-  const servSaving = servB - servA;
-
-  // The two together, which is what a van actually costs you to run each year.
-  const runA = fuelA + servA;
-  const runB = fuelB + servB;
+  const run = (v: typeof a) => {
+    const fuel = (kmYear / 100) * v.lit * price;
+    const services = v.interval > 0 ? kmYear / v.interval : 0;
+    const servicing = services * v.service;
+    return { fuel, services, servicing, total: fuel + servicing };
+  };
+  const ra = run(a), rb = run(b);
+  const cheaper = ra.total <= rb.total ? a : b;
+  const gap = Math.abs(ra.total - rb.total);
 
   return (
     <div className="pt-scn">
       <section className="pt-panel">
-        <h2 className="pt-panel__h">Add a tech / van — what does it add?</h2>
-        <p className="pt-panel__sub">Charge and cost default to your blended rates from Billable capacity. What one more billable person puts on the bottom line.</p>
-        <Field label="Charge-out rate" value={charge} onChange={setCharge} pre="$" post="/hr" />
-        <Field label="Their all-in cost" value={cost} onChange={setCost} pre="$" post="/hr" />
-        <Field label="Billable hours / week" value={hrsWeek} onChange={setHrsWeek} post="hrs" />
-        <Field label="Weeks / year" value={weeks} onChange={setWeeks} />
-        <div className="pt-scn__out">
-          <div className="pt-scn__line"><span>Revenue / yr</span><strong>{money(revenue)}</strong></div>
-          <div className="pt-scn__line"><span>Their cost / yr</span><strong>{money(runCost)}</strong></div>
-          <div className={`pt-scn__big${contribution < 0 ? " is-neg" : ""}`}>{money(contribution)}<span> profit / yr</span></div>
-        </div>
-      </section>
-
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Van fuel — thirsty vs economical</h2>
-        <p className="pt-panel__sub">What the fuel economy of a new van is worth over a year — e.g. a 3 L/100 km ute vs one doing 10.</p>
-        <Field label="Van A — fuel use" value={litA} onChange={setLitA} post="L/100km" />
-        <Field label="Van B — fuel use" value={litB} onChange={setLitB} post="L/100km" />
-        <Field label="Kilometres / year" value={kmYear} onChange={setKmYear} post="km" />
-        <Field label="Fuel price" value={price} onChange={setPrice} pre="$" post="/L" />
-        <div className="pt-scn__out">
-          <div className="pt-scn__line"><span>Van A fuel / yr</span><strong>{money(fuelA)}</strong></div>
-          <div className="pt-scn__line"><span>Van B fuel / yr</span><strong>{money(fuelB)}</strong></div>
-          <div className={`pt-scn__big${saving < 0 ? " is-neg" : ""}`}>{money(Math.abs(saving))}<span> {saving >= 0 ? "saved / yr" : "more / yr"}</span></div>
-        </div>
-      </section>
-    
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Van servicing — how often, and what it costs</h2>
+        <h2 className="pt-panel__h">One more person on the tools</h2>
         <p className="pt-panel__sub">
-          The interval matters as much as the price. A Ford serviced every 30,000km at $500 and an LDV every 10,000km at $700–$1,000
-          look alike on the lot; over a year of the same driving they are nowhere near each other. Uses the km a year set above.
+          Charge and cost start from your own blended rates in Costs &amp; capacity. What one more billable person puts on the
+          bottom line once they&rsquo;re paid for.
         </p>
-        <Field label="Van A — service every" value={intA} onChange={setIntA} post="km" />
-        <Field label="Van A — a service costs" value={svcA} onChange={setSvcA} pre="$" />
-        <Field label="Van B — service every" value={intB} onChange={setIntB} post="km" />
-        <Field label="Van B — a service costs" value={svcB} onChange={setSvcB} pre="$" />
-        <div className="pt-scn__out">
-          <div className="pt-scn__line"><span>Van A — {servicesA.toFixed(1)} services / yr</span><strong>{money(servA)}</strong></div>
-          <div className="pt-scn__line"><span>Van B — {servicesB.toFixed(1)} services / yr</span><strong>{money(servB)}</strong></div>
-          <div className="pt-scn__line pt-scn__line--total"><span>Van A is cheaper to service by</span><strong>{money(servSaving)}</strong></div>
-        </div>
-      </section>
-
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Fuel and servicing together</h2>
-        <p className="pt-panel__sub">What each van actually costs to keep on the road for a year, before depreciation and insurance.</p>
-        <div className="pt-scn__out">
-          <div className="pt-scn__line"><span>Van A — fuel {money(fuelA)} + servicing {money(servA)}</span><strong>{money(runA)}</strong></div>
-          <div className="pt-scn__line"><span>Van B — fuel {money(fuelB)} + servicing {money(servB)}</span><strong>{money(runB)}</strong></div>
-          <div className="pt-scn__line pt-scn__line--total">
-            <span>{runA <= runB ? "Van A" : "Van B"} costs less to run by</span>
-            <strong>{money(Math.abs(runA - runB))}</strong>
+        <div className="pt-scn__cols">
+          <div>
+            <Field label="Charge-out rate" value={charge} onChange={setCharge} pre="$" post="/hr" />
+            <Field label="Their all-in cost" value={cost} onChange={setCost} pre="$" post="/hr" />
+            <Field label="Billable hours a week" value={hrsWeek} onChange={setHrsWeek} post="hrs" />
+            <Field label="Weeks a year" value={weeks} onChange={setWeeks} />
+          </div>
+          <div className="pt-scn__out">
+            <div className="pt-scn__line"><span>They bring in</span><strong>{money(revenue)}</strong></div>
+            <div className="pt-scn__line"><span>They cost</span><strong>{money(runCost)}</strong></div>
+            <div className={`pt-scn__big${contribution < 0 ? " is-neg" : ""}`}>{money(contribution)}<span> a year</span></div>
           </div>
         </div>
       </section>
-</div>
+
+      <section className="pt-panel">
+        <h2 className="pt-panel__h">Van against van</h2>
+        <p className="pt-panel__sub">
+          The service interval catches people out more than the price does. A van serviced every 30,000km at $500 and one every
+          10,000km at $850 look alike on the lot; over a year of the same driving they aren&rsquo;t close.
+        </p>
+
+        <div className="pt-scn__shared">
+          <Field label="Kilometres a year" value={kmYear} onChange={setKmYear} post="km" />
+          <Field label="Fuel price" value={price} onChange={setPrice} pre="$" post="/L" />
+        </div>
+
+        <div className="pt-scn__vans">
+          <div className="pt-scn__vanhead">
+            <span />
+            <input className="pt-scn__name" value={a.name} onChange={(e) => setA({ ...a, name: e.target.value })} aria-label="First van" />
+            <input className="pt-scn__name" value={b.name} onChange={(e) => setB({ ...b, name: e.target.value })} aria-label="Second van" />
+          </div>
+
+          <div className="pt-scn__vanrow">
+            <span>Fuel use</span>
+            <Cell value={a.lit} onChange={(v) => setA({ ...a, lit: v })} post="L" />
+            <Cell value={b.lit} onChange={(v) => setB({ ...b, lit: v })} post="L" />
+          </div>
+          <div className="pt-scn__vanrow">
+            <span>Service every</span>
+            <Cell value={a.interval} onChange={(v) => setA({ ...a, interval: v })} post="km" />
+            <Cell value={b.interval} onChange={(v) => setB({ ...b, interval: v })} post="km" />
+          </div>
+          <div className="pt-scn__vanrow">
+            <span>A service costs</span>
+            <Cell value={a.service} onChange={(v) => setA({ ...a, service: v })} pre="$" />
+            <Cell value={b.service} onChange={(v) => setB({ ...b, service: v })} pre="$" />
+          </div>
+
+          <div className="pt-scn__vanrow is-out">
+            <span>Fuel a year</span>
+            <strong>{money(ra.fuel)}</strong>
+            <strong>{money(rb.fuel)}</strong>
+          </div>
+          <div className="pt-scn__vanrow is-out">
+            <span>Servicing a year</span>
+            <strong>{money(ra.servicing)}<em>{ra.services.toFixed(1)} services</em></strong>
+            <strong>{money(rb.servicing)}<em>{rb.services.toFixed(1)} services</em></strong>
+          </div>
+          <div className="pt-scn__vanrow is-total">
+            <span>To keep on the road</span>
+            <strong>{money(ra.total)}</strong>
+            <strong>{money(rb.total)}</strong>
+          </div>
+        </div>
+
+        <div className={`pt-scn__verdict${gap === 0 ? " is-flat" : ""}`}>
+          {gap === 0
+            ? <>Nothing in it — both cost {money(ra.total)} a year.</>
+            : <><strong>{cheaper.name || "The first van"}</strong> costs <strong>{money(gap)}</strong> a year less to run, before depreciation and insurance.</>}
+        </div>
+      </section>
+    </div>
   );
 }
