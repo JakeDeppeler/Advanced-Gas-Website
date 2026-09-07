@@ -24,6 +24,11 @@ export default async function HandbookPage() {
         <p>The company operations manual — everything from who we are to how we quote, run a van and get paid. Pick a shelf to open it.</p>
       </div>
 
+      <Link href="/portal/sops" className="pt-note pt-sop__promo">
+        <strong>Processes &amp; procedures is written and live.</strong> The twenty-odd procedures agreed at the training day — the
+        van checks, the job conversation, the ten standards, the bands. Read them →
+      </Link>
+
       <div className="pt-hb-summary">
         <div className="pt-hb-summary__bar"><span style={{ width: `${pct}%` }} /></div>
         <div className="pt-hb-summary__legend">
