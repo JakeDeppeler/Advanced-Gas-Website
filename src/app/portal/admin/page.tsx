@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { ViewAsPicker } from "@/components/portal/ViewAs";
 
 export const metadata = { title: "Admin — Team portal" };
 
@@ -37,6 +38,7 @@ export default async function AdminHome() {
           <div className="pt-card__meta">Open →</div>
         </Link>
       </div>
+      <ViewAsPicker current={user.viewingAs} />
     </PortalShell>
   );
 }

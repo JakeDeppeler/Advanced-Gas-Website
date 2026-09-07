@@ -7,6 +7,7 @@ import {
   createVehicle, updateVehicle, deleteVehicle,
   createVehicleLog, deleteVehicleLog, type VehicleLogKind, type VehicleStatus, type VehicleCondition,
   createVanCheck, createVanPhoto, deleteVanCheck, getVanPhoto, deleteVanPhotoRow,
+  vehicleFor,
 } from "@/lib/portal/db";
 import { uploadPhoto, deletePhoto } from "@/lib/portal/storage";
 import type { CheckItems, CheckKind } from "@/lib/portal/vanChecks";
@@ -187,5 +188,25 @@ export async function removeVanPhoto(input: { id: string; vehicleId: string }): 
   const res = await deleteVanPhotoRow(input.id);
   if (!res.ok) return { ok: false, error: "Couldn't delete it." };
   revalidatePath(`/portal/vehicles/${input.vehicleId}/checks`);
+  return { ok: true };
+}
+
+
+/** Sign a van to someone from their team file, or take it off them. */
+export async function assignVehicle(input: { userId: string; vehicleId: string }): Promise<ActionResult> {
+  const me = await requireFleet();
+  if (!me) return { ok: false, error: "Only a manager can sign a van to someone." };
+
+  // A person has one van, so signing them a new one takes the old one back
+  // rather than leaving them on two.
+  const held = await vehicleFor(input.userId);
+  if (held && held.id !== input.vehicleId) await updateVehicle(held.id, { assignedTo: null });
+  if (input.vehicleId) {
+    const res = await updateVehicle(input.vehicleId, { assignedTo: input.userId });
+    if (!res.ok) return { ok: false, error: "Couldn't sign it to them." };
+  }
+  revalidatePath("/portal/vehicles");
+  revalidatePath(`/portal/team/${input.userId}`);
+  revalidatePath("/portal/me");
   return { ok: true };
 }
