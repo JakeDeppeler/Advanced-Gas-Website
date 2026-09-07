@@ -12,7 +12,7 @@
 
 import type { Cap } from "./caps";
 
-export type CrewLevel = "operations" | "lead" | "tradesman" | "hybrid" | "apprentice" | "office" | "admin";
+export type CrewLevel = "operations" | "lead" | "tradesman" | "hybrid" | "apprentice" | "office" | "admin" | "adviser";
 
 export type Costing = {
   wage: number;
@@ -154,6 +154,8 @@ export const CREW_LEVELS: {
     defaults: { wage: 22, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 40, rdoDays: 12, travelHrsWeek: 4, adminHrsWeek: 1, officeHrsWeek: 0, ownVan: false, otMult: 1.5, nightMult: 2 } },
   { key: "office", label: "Office", plural: "Office staff", billable: false, blurb: "Scheduling, reception and keeping jobs moving. Not billable.",
     defaults: { wage: 35, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
+  { key: "adviser", label: "Finance adviser", plural: "Finance advisers", billable: false, blurb: "Outside adviser — accountant or bookkeeper. Sees the finance side and nothing else.",
+    defaults: { wage: 0, hrsWeek: 0, leaveDays: 0, phDays: 0, sickDays: 0, schoolDays: 0, rdoDays: 0, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 0, ownVan: false, otMult: 1, nightMult: 1 } },
   { key: "admin", label: "Admin", plural: "Admin staff", billable: false, blurb: "Accounts, compliance and the paperwork behind the business. Not billable.",
     defaults: { wage: 38, hrsWeek: 38, leaveDays: 20, phDays: 13, sickDays: 10, schoolDays: 0, rdoDays: 12, travelHrsWeek: 0, adminHrsWeek: 0, officeHrsWeek: 38, ownVan: false, otMult: 1.5, nightMult: 2 } },
 ];
@@ -175,6 +177,9 @@ export type AccessMap = Record<CrewLevel, Cap[]>;
 
 export const DEFAULT_ACCESS: AccessMap = {
   operations: ["overhead", "manage_users", "reports_read", "reports_write", "vehicles"],
+  // An outside adviser reads the money and nothing else — no team files, no
+  // reports on people, no fleet.
+  adviser: ["overhead"],
   admin: ["overhead", "reports_read", "reports_write", "vehicles"],
   lead: ["reports_read", "reports_write", "vehicles"],
   hybrid: ["vehicles"],
@@ -189,6 +194,10 @@ export function defaultsFor(level: CrewLevel): Costing {
 
 export type PersonCosted = {
   paidHrs: number; billHrs: number; wageCost: number; fieldWages: number; labourOh: number; officeOh: number;
+  /** Hours off that the law gives them — leave, sick, public holidays, RDOs, trade school. */
+  legalHrs: number;
+  /** Hours lost to travel, admin and office time. The part you can actually work on. */
+  flexHrs: number;
   billable: boolean;
   /** Billable level and in their own van — someone a customer actually pays for. */
   chargeable: boolean;
@@ -199,19 +208,24 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const paidHrs = c.hrsWeek * s.weeksYear;
   const wageCost = paidHrs * rate;
   if (!LEVEL_BILLABLE[level]) {
-    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: wageCost, billable: false, chargeable: false };
+    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: wageCost, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
   }
   // Riding with a tech: the customer pays for the tech, not the pair, so none of
   // their hours are billable and their whole wage is carried as overhead.
   if (!c.ownVan) {
-    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: wageCost, officeOh: 0, billable: false, chargeable: false };
+    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: wageCost, officeOh: 0, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
   }
   const hrsPerDay = c.hrsWeek / 5;
   const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
   const travelAdminHrs = (c.travelHrsWeek + c.adminHrsWeek) * s.weeksYear;
   const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paidHrs - daysOffHrs));
   const billHrs = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
-  return { paidHrs, billHrs, wageCost, fieldWages: billHrs * rate, labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate, billable: true, chargeable: true };
+  return {
+    paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,
+    labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate,
+    legalHrs: daysOffHrs, flexHrs: travelAdminHrs + officeHrs,
+    billable: true, chargeable: true,
+  };
 }
 
 export type CrewMember = { id: string; name: string; level: CrewLevel; costing: Costing };
@@ -246,6 +260,21 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr };
   });
 
+  // Two utilisations, because they mean different things. Leave, sick days,
+  // public holidays, RDOs and trade school are entitlements — no amount of
+  // scheduling changes them, so the ceiling is the honest best case. Travel,
+  // admin and office time are the part that is actually in play.
+  const legalHrs = per.reduce((a, x) => a + x.c.legalHrs, 0);
+  const flexHrs = per.reduce((a, x) => a + x.c.flexHrs, 0);
+  const util = {
+    paidHrs: paidBillHrs,
+    legalHrs,
+    flexHrs,
+    ceiling: paidBillHrs > 0 ? (paidBillHrs - legalHrs) / paidBillHrs : 0,
+    actual: paidBillHrs > 0 ? totalBillHrs / paidBillHrs : 0,
+    inPlay: paidBillHrs > 0 ? flexHrs / paidBillHrs : 0,
+  };
+
   const layers = [
     { key: "wages", label: "Labour — field wages (billable)", annual: fieldWages },
     { key: "labour", label: "Overhead — downtime & crew riding along", annual: labourOh },
@@ -253,7 +282,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
 }
 
 

@@ -14,6 +14,7 @@ type Row = { id: string; name: string; email: string | null; level: CrewLevel | 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const hrs = (n: number) => `${Math.round(n).toLocaleString("en-AU")} hrs`;
+const pct = (n: number) => `${Math.round(n * 100)}%`;
 const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ? 0 : n; };
 
 const TABS = [
@@ -661,10 +662,52 @@ export function CapacityEditor({
           </section>
 
           <section className="pt-panel">
+            <h2 className="pt-panel__h">Utilisation — the ceiling, and the part in play</h2>
+            <p className="pt-panel__sub">
+              Two figures, because they mean different things. Leave, sick days, public holidays, RDOs and trade school are
+              entitlements — no amount of scheduling changes them, so the ceiling is the honest best case, not a target you
+              failed to hit. Travel, admin and office time are the part that is actually in play.
+            </p>
+
+            <div className="pt-util">
+              <div className="pt-util__bar" aria-hidden="true">
+                <span className="pt-util__seg pt-util__seg--actual" style={{ width: `${cap.util.actual * 100}%` }} />
+                <span className="pt-util__seg pt-util__seg--play" style={{ width: `${cap.util.inPlay * 100}%` }} />
+                <span className="pt-util__seg pt-util__seg--legal" style={{ width: `${Math.max(0, 1 - cap.util.ceiling) * 100}%` }} />
+              </div>
+              <div className="pt-util__keys">
+                <div className="pt-util__key is-actual">
+                  <strong>{pct(cap.util.actual)}</strong>
+                  <span>Billed</span>
+                  <em>{hrs(cap.totalBillHrs)} a year</em>
+                </div>
+                <div className="pt-util__key is-play">
+                  <strong>{pct(cap.util.inPlay)}</strong>
+                  <span>In play</span>
+                  <em>{hrs(cap.util.flexHrs)} of driving, admin and office time</em>
+                </div>
+                <div className="pt-util__key is-legal">
+                  <strong>{pct(1 - cap.util.ceiling)}</strong>
+                  <span>The law&rsquo;s</span>
+                  <em>{hrs(cap.util.legalHrs)} of leave, sick, holidays, RDOs and school</em>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-util__read">
+              The most you could ever bill is <strong>{pct(cap.util.ceiling)}</strong> — everything above that belongs to the crew
+              by law. You&rsquo;re at <strong>{pct(cap.util.actual)}</strong>, so <strong>{pct(cap.util.inPlay)}</strong> is the
+              ground worth fighting for.
+              {hasHrs && <> Every point of it is about <strong>{hrs(cap.util.paidHrs / 100)}</strong> and{" "}
+              <strong>{money(blended !== null ? (cap.util.paidHrs / 100) * blended : 0)}</strong> of work a year.</>}
+            </div>
+          </section>
+
+          <section className="pt-panel">
             <h2 className="pt-panel__h">The year in numbers</h2>
             <div className="pt-pl__heads">
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Billable hours</span><strong className="pt-pl__headval">{hrs(cap.totalBillHrs)}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Field utilisation</span><strong className="pt-pl__headval">{cap.paidBillHrs ? Math.round((cap.totalBillHrs / cap.paidBillHrs) * 100) : 0}%</strong></div>
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">Utilisation</span><strong className="pt-pl__headval">{pct(cap.util.actual)}<em> of {pct(cap.util.ceiling)}</em></strong></div>
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Total to recover</span><strong className="pt-pl__headval">{money(cap.totalCost)}</strong></div>
               <div className="pt-pl__head"><span className="pt-pl__headlabel">Revenue at that rate</span><strong className="pt-pl__headval">{blended !== null ? money(blended * cap.totalBillHrs) : "—"}</strong></div>
             </div>
