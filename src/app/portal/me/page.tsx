@@ -2,8 +2,9 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { ROLE_LABELS } from "@/lib/portal/caps";
 import Link from "next/link";
-import { getUser, listGoals, listReviews, vehicleFor, checksBy, dbConfigured } from "@/lib/portal/db";
-import { CHECK_KINDS } from "@/lib/portal/vanChecks";
+import { getUser, listGoals, listReviews, dbConfigured } from "@/lib/portal/db";
+import { PersonVan } from "@/components/portal/PersonVan";
+import { personVan } from "@/lib/portal/personVan";
 import { PortalShell } from "@/components/portal/PortalShell";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +22,7 @@ export default async function MyFile() {
   const goals = record?.id ? await listGoals(record.id) : [];
   const reviews = record?.id ? await listReviews(record.id) : [];
   const expectations = record?.expectations ?? null;
-  const van = record?.id ? await vehicleFor(record.id) : null;
-  const myChecks = await checksBy(me.name, 6);
+  const vanView = record?.id ? await personVan(record.id, me.name) : { van: null, checks: [] };
   const c = record?.costing;
 
   return (
@@ -37,37 +37,7 @@ export default async function MyFile() {
         <div className="pt-note">Your file isn&rsquo;t set up yet. Once a manager adds goals or a review, they&rsquo;ll show here.</div>
       )}
 
-      {van && (
-        <section className="pt-panel">
-          <div className="pt-veh__edithead">
-            <h2 className="pt-panel__h">Your van — {van.name}{van.rego ? ` · ${van.rego}` : ""}</h2>
-            <Link href={`/portal/vehicles/${van.id}`} className="pt-btn pt-btn--ghost pt-btn--sm">Open it →</Link>
-          </div>
-          <p className="pt-panel__sub">This one&rsquo;s signed to you — its checks are yours to do.</p>
-          <div className="pt-veh__checks">
-            {CHECK_KINDS.filter((k) => k.who === "crew").map((k) => (
-              <Link key={k.k} href={`/portal/vehicles/${van.id}/checks/${k.k}`} className="pt-veh__check">
-                <strong>{k.short}</strong>
-                <span>{k.cadence}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {myChecks.length > 0 && (
-        <section className="pt-panel">
-          <h2 className="pt-panel__h">Checks you&rsquo;ve done <span className="pt-tm__count">{myChecks.length}</span></h2>
-          <div className="pt-vc__short">
-            {myChecks.map((ch) => (
-              <Link key={ch.id} href={`/portal/vehicles/${ch.vehicleId}/checks`} className="pt-vc__shortrow pt-vc__shortrow--plain">
-                <span><strong>{CHECK_KINDS.find((k) => k.k === ch.kind)?.label ?? ch.kind}</strong></span>
-                <span>{when(ch.checkedOn)}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+      <PersonVan {...vanView} mine />
 
       {c && (
         <section className="pt-panel">

@@ -1167,3 +1167,23 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-sop__foot { border: 1px dashed var(--pt-line); border-radius: 12px; padding: 14px 16px; font-size: 13.5px; line-height: 1.6; color: var(--pt-ink-2); }
 .pt-sop__foot strong { color: var(--pt-ink); }
 .pt-sop__foot a { color: var(--pt-navy); font-weight: 700; }
+
+/* ---- Utilisation: what's yours to win, and what belongs to the crew ---- */
+.pt-util__bar { display: flex; height: 26px; border-radius: 9px; overflow: hidden; background: var(--pt-line); margin-bottom: 14px; }
+.pt-util__seg { display: block; height: 100%; }
+.pt-util__seg--actual { background: var(--pt-good); }
+.pt-util__seg--play { background: #e0912a; }
+.pt-util__seg--legal { background: #9aa4cf; }
+.pt-util__keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.pt-util__key { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 3px solid var(--pt-line); }
+.pt-util__key.is-actual { border-left-color: var(--pt-good); }
+.pt-util__key.is-play { border-left-color: #e0912a; }
+.pt-util__key.is-legal { border-left-color: #9aa4cf; }
+.pt-util__key strong { font-family: var(--f-display); font-size: 24px; font-weight: 800; color: var(--pt-ink); letter-spacing: -0.01em; }
+.pt-util__key > span { font-size: 12.5px; font-weight: 700; color: var(--pt-ink-2); }
+.pt-util__key em { font-style: normal; font-size: 11.5px; line-height: 1.45; color: var(--pt-ink-3); }
+.pt-util__read { margin-top: 18px; padding: 13px 16px; border-radius: 12px; background: var(--pt-bg); border: 1px solid var(--pt-line); font-size: 14px; line-height: 1.6; color: var(--pt-ink-2); }
+.pt-util__read strong { color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-pl__headval em { font-style: normal; font-size: 13px; font-weight: 600; color: var(--pt-ink-3); }
+.pt-pv__tags { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.pt-vc__shortrow--plain em { display: block; font-style: normal; font-size: 11.5px; color: var(--pt-ink-3); margin-top: 1px; }

@@ -5,6 +5,8 @@ import { getUserById, listGoals, listReviews, listReports } from "@/lib/portal/d
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PersonFile } from "@/components/portal/PersonFile";
+import { PersonVan } from "@/components/portal/PersonVan";
+import { personVan } from "@/lib/portal/personVan";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +22,11 @@ export default async function TeamMemberFile({ params }: { params: { id: string 
   const person = await getUserById(params.id);
   if (!person || !person.id) notFound();
 
-  const [goals, reviews, notes] = await Promise.all([
+  const [goals, reviews, notes, vanView] = await Promise.all([
     listGoals(person.id),
     listReviews(person.id),
     listReports({ subjectId: person.id }),
+    personVan(person.id, person.name),
   ]);
 
   return (
@@ -34,6 +37,8 @@ export default async function TeamMemberFile({ params }: { params: { id: string 
         <h1>{person.name}.</h1>
         <p>{person.email}</p>
       </div>
+
+      <PersonVan {...vanView} mine={false} />
 
       <PersonFile
         userId={person.id}

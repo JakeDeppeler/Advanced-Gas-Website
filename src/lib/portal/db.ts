@@ -905,3 +905,17 @@ export async function checksBy(name: string, limit = 8): Promise<VanCheck[]> {
   if (!res || !res.ok) return [];
   return ((await res.json()) as VanCheckRow[]).map(toCheck);
 }
+
+
+/** How many photos each of these checks has, in one round trip. */
+export async function photoCounts(checkIds: string[]): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (checkIds.length === 0) return out;
+  const list = checkIds.map((id) => `"${id}"`).join(",");
+  const res = await sb(`portal_van_photos?check_id=in.(${encodeURIComponent(list)})&select=check_id`);
+  if (!res || !res.ok) return out;
+  for (const r of (await res.json()) as { check_id: string }[]) {
+    out.set(r.check_id, (out.get(r.check_id) ?? 0) + 1);
+  }
+  return out;
+}
