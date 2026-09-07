@@ -40,7 +40,18 @@ export const SOP_INTRO = [
   "None of it is finished. If a procedure does not work on the job, say so and bring the fix with it — see C6. When it changes, it changes for every van, and you will be told what changed and why.",
 ];
 
-export const SOP_VERSION = "Version 1.0 · FY26";
+export const SOP_VERSION = "Version 1.1 · FY26";
+
+/**
+ * C6 says a change gets told to everyone, with what changed and why. This is
+ * that record — newest first.
+ */
+export const SOP_CHANGES: { on: string; what: string }[] = [
+  {
+    on: "Version 1.1",
+    what: "A1 moved from a daily 6:50am check to a weekly one on Monday morning, and the stock count in A4 moved with it. The monthly condition check in A3 is now admin's, done with photos, rather than the whole team together. All three are done in the portal on the van you are signed to.",
+  },
+];
 
 export const SOPS: SopSection[] = [
   {
@@ -48,21 +59,21 @@ export const SOPS: SopSection[] = [
     blurb: "The checks that start and end the day, and how a van stays stocked.",
     sops: [
       {
-        code: "A1", slug: "morning-van-check", title: "The morning van check",
+        code: "A1", slug: "weekly-van-check", title: "The weekly van check",
         doIt: { href: "/portal/vehicles", label: "Do this check" },
         meta: [
-          { k: "Who", v: "Every tradesman and apprentice, on their own van" },
-          { k: "When", v: "Every working day, 6:50am, before leaving the factory" },
+          { k: "Who", v: "Every tradesman and apprentice, on the van they are signed to" },
+          { k: "When", v: "Monday morning, before leaving the factory" },
           { k: "Takes", v: "Ten minutes" },
-          { k: "Record", v: "Van check sheet, or the portal once it is live" },
+          { k: "Record", v: "In the portal, on your van — Vehicles → your van → Weekly" },
         ],
         blocks: [
-          { kind: "note", title: "Purpose", body: "A van that leaves short costs an hour and a customer. This check catches it while the factory is still open." },
+          { kind: "note", title: "Purpose", body: "A van that leaves short costs an hour and a customer. This check catches it on the Monday, while the factory is still open and there is a week to put it right." },
           { kind: "steps", title: "Steps", items: [
             "Count the stock against the van stock list. Do not go from memory.",
             "Anything at or under its minimum gets flagged to the office that morning.",
-            "Review today’s jobs. Know the scope, the gear and the access for each one.",
-            "Load the materials for today’s jobs.",
+            "Review this week’s jobs. Know the scope, the gear and the access for each one.",
+            "Load the materials for the week’s jobs.",
             "Check the tool bag is complete and back in the van.",
             "Check batteries are charged — drill, impact, test gear.",
             "Check gas bottles are chained, upright and in date.",
@@ -71,8 +82,8 @@ export const SOPS: SopSection[] = [
             "Confirm the iPad is charged and logged in.",
           ] },
           { kind: "list", title: "What good looks like", items: [
-            "You leave the factory knowing you will not need a supplier run today.",
-            "Anything short was flagged this morning, not discovered on site.",
+            "You leave the factory knowing you will not need a supplier run this week.",
+            "Anything short was flagged Monday morning, not discovered on site on Thursday.",
           ] },
           { kind: "note", title: "Escalation", body: "Anything missing, damaged or out of date goes to the office the same day. Do not work around it and do not fund it yourself." },
         ],
@@ -101,13 +112,13 @@ export const SOPS: SopSection[] = [
         code: "A3", slug: "monthly-condition-check", title: "The monthly van condition check",
         doIt: { href: "/portal/vehicles", label: "Do this check" },
         meta: [
-          { k: "Who", v: "The whole team, together" },
-          { k: "When", v: "First week of the month, 6:30–7:30am" },
+          { k: "Who", v: "Admin, on each van" },
+          { k: "When", v: "First week of the month" },
           { k: "Takes", v: "One hour" },
-          { k: "Record", v: "Monthly condition check sheet, signed and dated" },
+          { k: "Record", v: "In the portal — Vehicles → the van → Monthly, with photos" },
         ],
         blocks: [
-          { kind: "note", title: "Purpose", body: "The daily check covers stock and tools. This one covers the vehicle itself, and it is done properly with everything out of the van." },
+          { kind: "note", title: "Purpose", body: "The weekly check covers stock and tools. This one covers the vehicle itself. Admin does it, with photos of the panels, the tyres and the km on the dash." },
           { kind: "steps", title: "Steps", items: [
             "Empty the van so the floor, shelves and every item can be seen.",
             "Clean anything dirty before it goes back in.",
@@ -128,14 +139,14 @@ export const SOPS: SopSection[] = [
         doIt: { href: "/portal/vehicles", label: "Count the stock" },
         meta: [
           { k: "Who", v: "The tradesman who runs the van" },
-          { k: "When", v: "Counted daily, ordered as soon as it hits minimum" },
+          { k: "When", v: "Counted Monday with the weekly check, ordered as soon as it hits minimum" },
           { k: "Owner", v: "Jake — ordering and supplier runs" },
           { k: "Record", v: "Van stock list (factory wall and portal)" },
         ],
         blocks: [
           { kind: "list", title: "The rules", items: [
             "Every van carries the same list, so anyone can jump into any van and work.",
-            "As a minimum, it gets ordered that day — not when it runs out mid-job.",
+            "At or under the minimum, it gets ordered that day — not when it runs out mid-job.",
             "If you needed something that is not on the list, tell us. We will add it and keep it stocked.",
             "Never take stock from another van. That breaks someone else’s day. Ring Jake.",
             "Never buy stock out of your own pocket. The business buys it.",

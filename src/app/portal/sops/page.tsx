@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { SOPS, SOP_INTRO, SOP_VERSION } from "@/lib/portal/sops";
+import { SOPS, SOP_CHANGES, SOP_INTRO, SOP_VERSION } from "@/lib/portal/sops";
 
 export const metadata = { title: "Processes & procedures — Team portal" };
 
@@ -24,6 +24,19 @@ export default async function SopsPage() {
         <span>{SOPS.length} sections · {total} procedures</span>
         <span>{SOP_VERSION}</span>
       </div>
+
+      {SOP_CHANGES.length > 0 && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">What changed</h2>
+          <p className="pt-panel__sub">A procedure that changes gets told to everyone, with what changed and why — see C6.</p>
+          {SOP_CHANGES.map((c) => (
+            <div key={c.on} className="pt-sop__change">
+              <strong>{c.on}</strong>
+              <p>{c.what}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <div className="pt-sop__sections">
         {SOPS.map((s) => (
