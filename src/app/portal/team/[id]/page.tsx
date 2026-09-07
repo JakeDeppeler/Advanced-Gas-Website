@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can, ROLE_LABELS } from "@/lib/portal/caps";
-import { getUserById, listGoals, listReviews, listReports } from "@/lib/portal/db";
+import { getUserById, listGoals, listReviews, listReports, listVehicles } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PersonFile } from "@/components/portal/PersonFile";
@@ -28,6 +28,8 @@ export default async function TeamMemberFile({ params }: { params: { id: string 
     listReports({ subjectId: person.id }),
     personVan(person.id, person.name),
   ]);
+  const canFleet = can(me, "vehicles");
+  const vans = canFleet ? (await listVehicles()).map((v) => ({ id: v.id, name: v.name, rego: v.rego })) : [];
 
   return (
     <PortalShell user={me}>
@@ -38,7 +40,7 @@ export default async function TeamMemberFile({ params }: { params: { id: string 
         <p>{person.email}</p>
       </div>
 
-      <PersonVan {...vanView} mine={false} />
+      <PersonVan {...vanView} mine={false} assign={canFleet ? { userId: person.id, vans } : undefined} />
 
       <PersonFile
         userId={person.id}

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { PortalUser } from "@/lib/portal/caps";
 import { can, ROLE_LABELS } from "@/lib/portal/caps";
 import { SOPS } from "@/lib/portal/sops";
+import { ViewAsBanner } from "@/components/portal/ViewAs";
 import { HANDBOOK, LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
 
 type Leaf = { href: string; label: string; external?: boolean };
@@ -143,7 +144,10 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
             <button type="submit" className="pt__logout">Sign out</button>
           </form>
         </header>
-        <main className="pt__content">{children}</main>
+        <main className="pt__content">
+          {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
+          {children}
+        </main>
       </div>
     </div>
   );

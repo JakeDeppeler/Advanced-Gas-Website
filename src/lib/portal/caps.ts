@@ -19,6 +19,8 @@ export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write"
 /** Per-person overrides. Only keys that differ from the role default are stored. */
 export type CapMap = Partial<Record<Cap, boolean>>;
 
+export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles"];
+
 export type PortalUser = {
   id?: string;
   email: string;
@@ -26,6 +28,12 @@ export type PortalUser = {
   role: Role;
   caps: CapMap;
   active: boolean;
+  /**
+   * Set when an admin is previewing the portal as another crew level. It only
+   * ever takes access away — the preview caps are intersected with their real
+   * ones — so nothing here can hand anyone more than they already had.
+   */
+  viewingAs?: string;
 };
 
 export const ROLE_LABELS: Record<Role, string> = {

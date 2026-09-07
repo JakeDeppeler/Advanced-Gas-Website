@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CHECK_KINDS, type CheckKind } from "@/lib/portal/vanChecks";
+import { AssignVan } from "@/components/portal/AssignVan";
 
 export type PersonVanView = {
   van: { id: string; name: string; rego: string | null } | null;
@@ -11,12 +12,22 @@ export type PersonVanView = {
  * block on their own file and on the one a manager opens, so what a tech sees
  * as their job is what an owner sees as the record of it.
  */
-export function PersonVan({ van, checks, mine }: PersonVanView & { mine: boolean }) {
-  if (!van && checks.length === 0) return null;
+export function PersonVan({
+  van, checks, mine, assign,
+}: PersonVanView & { mine: boolean; assign?: { userId: string; vans: { id: string; name: string; rego: string | null }[] } }) {
+  if (!van && checks.length === 0 && !assign) return null;
   const who = mine ? "you" : "them";
 
   return (
     <>
+      {assign && !van && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">No van signed to them</h2>
+          <p className="pt-panel__sub">Sign one and its weekly check, stock count and monthly report become theirs — and show up here.</p>
+          <AssignVan userId={assign.userId} current={null} vans={assign.vans} />
+        </section>
+      )}
+
       {van && (
         <section className="pt-panel">
           <div className="pt-veh__edithead">
@@ -35,6 +46,7 @@ export function PersonVan({ van, checks, mine }: PersonVanView & { mine: boolean
               </Link>
             ))}
           </div>
+          {assign && <AssignVan userId={assign.userId} current={van.id} vans={assign.vans} />}
         </section>
       )}
 
