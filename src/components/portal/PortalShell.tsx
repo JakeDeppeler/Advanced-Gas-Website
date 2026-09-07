@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { PortalUser } from "@/lib/portal/caps";
 import { can, ROLE_LABELS } from "@/lib/portal/caps";
+import { SOPS } from "@/lib/portal/sops";
 import { HANDBOOK, LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
 
 type Leaf = { href: string; label: string; external?: boolean };
@@ -38,6 +39,13 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       children: [
         { href: "/portal/handbook", label: "Overview" },
         ...HANDBOOK.map((s) => ({ href: `/portal/handbook/${s.letter.toLowerCase()}`, label: `${s.letter} · ${s.title}` })),
+      ],
+    },
+    {
+      kind: "group", base: "/portal/sops", label: "Processes", icon: ICON.book,
+      children: [
+        { href: "/portal/sops", label: "Overview" },
+        ...SOPS.map((s) => ({ href: `/portal/sops/${s.slug}`, label: `${s.letter} · ${s.title}` })),
       ],
     },
     { kind: "link", href: "/portal/job-calculator", label: "Job calculator", icon: ICON.calc },
