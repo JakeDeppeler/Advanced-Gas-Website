@@ -27,11 +27,10 @@ export type Costing = {
   adminHrsWeek: number;
   officeHrsWeek: number;
   /**
-   * Whether they run their own van. Someone riding with a tech isn't a second
-   * chargeable body — the customer pays for the tech, not the pair — so their
-   * hours don't become billable hours. Their whole wage lands in overhead and
-   * is recovered through everyone else's rate, which is exactly what happens in
-   * real life.
+   * Whether they can be sent out on their own. An apprentice with a tech is
+   * still billable — the pair goes out at a higher rate than the tech alone —
+   * so their hours count either way. This only says they never go solo, which
+   * is why they never appear as a crew of one.
    */
   ownVan: boolean;
   /**
@@ -57,47 +56,58 @@ export const OVERHEAD_GROUPS = [
 
 export type OverheadGroup = (typeof OVERHEAD_GROUPS)[number]["key"];
 
-export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string; hint?: string }[] = [
-  { key: "vehRego", group: "vehicles", label: "Rego & CTP" },
-  { key: "vehInsurance", group: "vehicles", label: "Vehicle insurance" },
-  { key: "vehFuel", group: "vehicles", label: "Fuel" },
-  { key: "vehService", group: "vehicles", label: "Servicing, tyres & repairs" },
-  { key: "vehFinance", group: "vehicles", label: "Finance & lease payments" },
-  { key: "vehDep", group: "vehicles", label: "Depreciation", hint: "From the Vehicles tab" },
-  { key: "vehOther", group: "vehicles", label: "Everything else on the vehicles" },
+/**
+ * Whether a line grows when another van goes on the road.
+ *
+ * "fixed" is the factory, the office, the accountant, the marketing — put a
+ * fourth van on and none of it moves. "perVan" is everything that arrives with
+ * the van itself: its fuel, its servicing, its insurance, its tools, its phone.
+ * The split is the whole reason another van makes the overhead on every hour
+ * go down instead of up.
+ */
+export type OverheadScale = "fixed" | "perVan";
 
-  { key: "premRent", group: "premises", label: "Rent or mortgage" },
-  { key: "premUtilities", group: "premises", label: "Power, water & gas" },
-  { key: "premWaste", group: "premises", label: "Waste & cleaning" },
-  { key: "premRepairs", group: "premises", label: "Repairs & maintenance" },
-  { key: "premSecurity", group: "premises", label: "Security & alarms" },
+export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string; hint?: string; scale: OverheadScale }[] = [
+  { key: "vehRego", group: "vehicles", label: "Rego & CTP" , scale: "perVan" },
+  { key: "vehInsurance", group: "vehicles", label: "Vehicle insurance" , scale: "perVan" },
+  { key: "vehFuel", group: "vehicles", label: "Fuel" , scale: "perVan" },
+  { key: "vehService", group: "vehicles", label: "Servicing, tyres & repairs" , scale: "perVan" },
+  { key: "vehFinance", group: "vehicles", label: "Finance & lease payments" , scale: "perVan" },
+  { key: "vehDep", group: "vehicles", label: "Depreciation", hint: "From the Vehicles tab" , scale: "perVan" },
+  { key: "vehOther", group: "vehicles", label: "Everything else on the vehicles" , scale: "perVan" },
 
-  { key: "insLiability", group: "insurance", label: "Public liability" },
-  { key: "insWorkers", group: "insurance", label: "Workers compensation" },
-  { key: "insTools", group: "insurance", label: "Tool & plant cover" },
-  { key: "insLicences", group: "insurance", label: "Licences & registrations", hint: "ARC, plumbing, electrical" },
-  { key: "insMemberships", group: "insurance", label: "Memberships & accreditations" },
+  { key: "premRent", group: "premises", label: "Rent or mortgage" , scale: "fixed" },
+  { key: "premUtilities", group: "premises", label: "Power, water & gas" , scale: "fixed" },
+  { key: "premWaste", group: "premises", label: "Waste & cleaning" , scale: "fixed" },
+  { key: "premRepairs", group: "premises", label: "Repairs & maintenance" , scale: "fixed" },
+  { key: "premSecurity", group: "premises", label: "Security & alarms" , scale: "fixed" },
 
-  { key: "toolReplace", group: "tools", label: "Tool replacement & repairs" },
-  { key: "toolTest", group: "tools", label: "Test gear & calibration" },
-  { key: "toolConsumables", group: "tools", label: "Consumables not billed to jobs" },
-  { key: "toolHire", group: "tools", label: "Plant & equipment hire" },
+  { key: "insLiability", group: "insurance", label: "Public liability" , scale: "fixed" },
+  { key: "insWorkers", group: "insurance", label: "Workers compensation" , scale: "perVan" },
+  { key: "insTools", group: "insurance", label: "Tool & plant cover" , scale: "perVan" },
+  { key: "insLicences", group: "insurance", label: "Licences & registrations", hint: "ARC, plumbing, electrical" , scale: "perVan" },
+  { key: "insMemberships", group: "insurance", label: "Memberships & accreditations" , scale: "fixed" },
 
-  { key: "mktPaid", group: "marketing", label: "Paid ads" },
-  { key: "mktWeb", group: "marketing", label: "Website & SEO" },
-  { key: "mktSignage", group: "marketing", label: "Signage & vehicle wraps" },
-  { key: "mktPrint", group: "marketing", label: "Print, merch & sponsorship" },
-  { key: "mktLeads", group: "marketing", label: "Lead & referral fees" },
+  { key: "toolReplace", group: "tools", label: "Tool replacement & repairs" , scale: "perVan" },
+  { key: "toolTest", group: "tools", label: "Test gear & calibration" , scale: "perVan" },
+  { key: "toolConsumables", group: "tools", label: "Consumables not billed to jobs" , scale: "perVan" },
+  { key: "toolHire", group: "tools", label: "Plant & equipment hire" , scale: "fixed" },
 
-  { key: "admAccounting", group: "admin", label: "Accounting & bookkeeping" },
-  { key: "admSoftware", group: "admin", label: "Job & office software" },
-  { key: "admPhone", group: "admin", label: "Phones & internet" },
-  { key: "admBank", group: "admin", label: "Bank, merchant & finance fees" },
-  { key: "admTraining", group: "admin", label: "Training & courses" },
-  { key: "admTravel", group: "admin", label: "Travel, meals & accommodation" },
-  { key: "admStaff", group: "admin", label: "Staff amenities & functions" },
-  { key: "admUniform", group: "admin", label: "Uniforms & PPE" },
-  { key: "admOther", group: "admin", label: "Everything else" },
+  { key: "mktPaid", group: "marketing", label: "Paid ads" , scale: "fixed" },
+  { key: "mktWeb", group: "marketing", label: "Website & SEO" , scale: "fixed" },
+  { key: "mktSignage", group: "marketing", label: "Signage & vehicle wraps" , scale: "fixed" },
+  { key: "mktPrint", group: "marketing", label: "Print, merch & sponsorship" , scale: "fixed" },
+  { key: "mktLeads", group: "marketing", label: "Lead & referral fees" , scale: "fixed" },
+
+  { key: "admAccounting", group: "admin", label: "Accounting & bookkeeping" , scale: "fixed" },
+  { key: "admSoftware", group: "admin", label: "Job & office software" , scale: "perVan" },
+  { key: "admPhone", group: "admin", label: "Phones & internet" , scale: "perVan" },
+  { key: "admBank", group: "admin", label: "Bank, merchant & finance fees" , scale: "fixed" },
+  { key: "admTraining", group: "admin", label: "Training & courses" , scale: "perVan" },
+  { key: "admTravel", group: "admin", label: "Travel, meals & accommodation" , scale: "perVan" },
+  { key: "admStaff", group: "admin", label: "Staff amenities & functions" , scale: "fixed" },
+  { key: "admUniform", group: "admin", label: "Uniforms & PPE" , scale: "perVan" },
+  { key: "admOther", group: "admin", label: "Everything else" , scale: "fixed" },
 ];
 
 export type CapSettings = {
@@ -105,6 +115,8 @@ export type CapSettings = {
   /** Kept so older saved settings still add up; superseded by `overheads`. */
   vehicles: number; standard: number;
   overheads?: Record<string, number>;
+  /** Per-line overrides of whether a line grows with another van. */
+  scales?: Record<string, OverheadScale>;
   /**
    * Which Xero expense account feeds which overhead line, keyed by the account
    * name Xero reports. The mapping is kept, but the resolved dollar figures are
@@ -199,7 +211,7 @@ export type PersonCosted = {
   /** Hours lost to travel, admin and office time. The part you can actually work on. */
   flexHrs: number;
   billable: boolean;
-  /** Billable level and in their own van — someone a customer actually pays for. */
+  /** Billable level — someone a customer pays for, alone or as part of a crew. */
   chargeable: boolean;
 };
 
@@ -209,11 +221,6 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const wageCost = paidHrs * rate;
   if (!LEVEL_BILLABLE[level]) {
     return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: wageCost, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
-  }
-  // Riding with a tech: the customer pays for the tech, not the pair, so none of
-  // their hours are billable and their whole wage is carried as overhead.
-  if (!c.ownVan) {
-    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: wageCost, officeOh: 0, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
   }
   const hrsPerDay = c.hrsWeek / 5;
   const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
@@ -291,75 +298,61 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
 export type CrewCombo = { key: string; label: string; rate: number; note?: string };
 
 /**
- * The charge-out rate for the crew shapes you actually send to jobs.
+ * The charge-out rate for the crew shapes you actually send out.
  *
- * The one worth spelling out: a tech with an apprentice riding along charges
- * the same as the tech on his own. The apprentice's wage is already recovered
- * inside every chargeable hour, so billing for them again would be charging the
- * customer twice for the same cost.
+ * An apprentice is billable but never goes alone, so they show up as part of a
+ * crew rather than as a crew of one — and that crew charges more than the tech
+ * on his own, because there are two people on site doing the work.
  */
 export function crewCombos(
   people: CrewMember[],
   rates: { id: string; rate: number | null }[],
 ): CrewCombo[] {
   const rateById = new Map(rates.map((r) => [r.id, r.rate]));
-  const perLevel = new Map<CrewLevel, { sum: number; n: number }>();
-  for (const p of people) {
-    const r = rateById.get(p.id);
-    if (r == null) continue;
-    const cur = perLevel.get(p.level) ?? { sum: 0, n: 0 };
-    perLevel.set(p.level, { sum: cur.sum + r, n: cur.n + 1 });
-  }
-  const rateOf = (l: CrewLevel) => {
-    const x = perLevel.get(l);
-    return x && x.n ? x.sum / x.n : null;
+  const avg = (list: CrewMember[]) => {
+    const vals = list.map((p) => rateById.get(p.id)).filter((r): r is number => r != null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   };
 
-  const solo = CREW_LEVELS
-    .filter((l) => l.billable && rateOf(l.key) !== null)
-    .map((l) => ({
-      key: `solo-${l.key}`,
-      label: `${l.label} on their own`,
-      rate: rateOf(l.key) as number,
-      // An apprentice out alone reads dearer than a tradesman, which is right:
-      // the same overhead spreads over fewer billable hours once trade school
-      // is out of the week. It's also why they go out with a tech instead.
-      note: l.key === "apprentice"
-        ? "Dearer than a tradesman on their own — the same overhead lands on fewer billable hours once trade school is out. This is why an apprentice goes out with a tech rather than alone."
-        : undefined,
-    }));
+  const billable = people.filter((p) => LEVEL_BILLABLE[p.level] && rateById.get(p.id) != null);
+  const soloLevels = CREW_LEVELS.filter((l) => l.billable && billable.some((p) => p.level === l.key && p.costing.ownVan));
+  const pairedLevels = CREW_LEVELS.filter((l) => l.billable && billable.some((p) => p.level === l.key && !p.costing.ownVan));
 
-  const combos: CrewCombo[] = solo.map(({ key, label, rate, note }) => ({ key, label, rate, note }));
+  const combos: CrewCombo[] = [];
 
-  // Whoever leads a job: the highest-charging level on the tools.
-  const lead = solo.length ? solo.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
+  for (const l of soloLevels) {
+    const r = avg(billable.filter((p) => p.level === l.key && p.costing.ownVan));
+    if (r != null) combos.push({ key: `solo-${l.key}`, label: `${l.label} on their own`, rate: r });
+  }
+
+  // Whoever leads a job: the highest-charging level that can go out alone.
+  const lead = combos.length ? combos.reduce((a, b) => (b.rate > a.rate ? b : a)) : null;
   const leadLevel = lead ? (lead.key.replace("solo-", "") as CrewLevel) : null;
 
-  const ridingAlong = [...new Set(people.filter((p) => LEVEL_BILLABLE[p.level] && !p.costing.ownVan).map((p) => p.level))];
-  if (leadLevel && ridingAlong.length) {
-    for (const rl of ridingAlong) {
+  if (leadLevel) {
+    for (const l of pairedLevels) {
+      const r = avg(billable.filter((p) => p.level === l.key && !p.costing.ownVan));
+      if (r == null) continue;
       combos.push({
-        key: `pair-${leadLevel}-${rl}`,
-        label: `${LEVEL_LABEL[leadLevel]} + ${LEVEL_LABEL[rl].toLowerCase()} riding along`,
-        rate: lead!.rate,
-        note: `Same rate — the ${LEVEL_LABEL[rl].toLowerCase()}'s wage is already inside every chargeable hour, so billing for them again charges the customer twice.`,
+        key: `pair-${leadLevel}-${l.key}`,
+        label: `${LEVEL_LABEL[leadLevel]} + ${LEVEL_LABEL[l.key].toLowerCase()}`,
+        rate: lead!.rate + r,
+        note: `Two on site, so the crew charges more than the ${LEVEL_LABEL[leadLevel].toLowerCase()} alone. The ${LEVEL_LABEL[l.key].toLowerCase()} never goes out on their own, which is why they don't have a rate of their own above.`,
       });
     }
   }
 
-  // Two chargeable people on the one job, each in their own van. With only one
-  // billable level on the books that's two of the same — still a crew shape
-  // that goes out, so it shouldn't be missing from the list.
-  const ranked = solo.slice().sort((a, b) => b.rate - a.rate);
-  const chargeableCount = rates.filter((r) => r.rate != null).length;
-  const pair = ranked.length >= 2 ? [ranked[0], ranked[1]] : chargeableCount >= 2 ? [ranked[0], ranked[0]] : null;
+  // Two people who can each go alone, on the one job.
+  const ranked = combos.filter((c) => c.key.startsWith("solo-")).sort((a, b) => b.rate - a.rate);
+  const soloCount = billable.filter((p) => p.costing.ownVan).length;
+  const pair = ranked.length >= 2 ? [ranked[0], ranked[1]] : soloCount >= 2 ? [ranked[0], ranked[0]] : null;
   if (pair) {
     const lvl = (x: { key: string }) => x.key.replace("solo-", "") as CrewLevel;
     combos.push({
       key: "two-up",
       label: pair[0] === pair[1]
-        ? `Two ${LEVEL_PLURAL[lvl(pair[0])].toLowerCase()}, both charging`
-        : `${LEVEL_LABEL[lvl(pair[0])]} + ${LEVEL_LABEL[lvl(pair[1])].toLowerCase()}, both charging`,
+        ? `Two ${LEVEL_PLURAL[lvl(pair[0])].toLowerCase()}`
+        : `${LEVEL_LABEL[lvl(pair[0])]} + ${LEVEL_LABEL[lvl(pair[1])].toLowerCase()}`,
       rate: pair[0].rate + pair[1].rate,
       note: "Two vans, two chargeable bodies — both rates apply.",
     });
@@ -406,7 +399,6 @@ const SUGGESTIONS: [RegExp, string][] = [
 
   [/public liability|^insurance$|general insurance/i, "insLiability"],
   [/tool.*(insur|cover)/i, "insTools"],
-
   [/membership|accreditation|association/i, "insMemberships"],
 
   [/^tools|tool purchase|equipment purchase/i, "toolReplace"],
@@ -435,4 +427,66 @@ const SUGGESTIONS: [RegExp, string][] = [
 export function suggestOverhead(label: string): string | null {
   if (countedElsewhere(label)) return null;
   return SUGGESTIONS.find(([re]) => re.test(label))?.[1] ?? null;
+}
+
+/* -------- What another van does to the numbers -------- */
+
+/** Whether a line grows with another van — the default, or your override. */
+export const scaleOf = (s: CapSettings, key: string): OverheadScale =>
+  s.scales?.[key] ?? OVERHEAD_FIELDS.find((f) => f.key === key)?.scale ?? "fixed";
+
+export function overheadSplit(s: CapSettings): { fixed: number; perVan: number } {
+  const oh = overheadsOf(s);
+  let fixedTotal = 0, perVanTotal = 0;
+  for (const f of OVERHEAD_FIELDS) {
+    const v = Number(oh[f.key]) || 0;
+    if (scaleOf(s, f.key) === "perVan") perVanTotal += v; else fixedTotal += v;
+  }
+  return { fixed: fixedTotal, perVan: perVanTotal };
+}
+
+export type ScaleRow = {
+  vans: number;
+  billHrs: number;
+  overhead: number;
+  overheadPerHr: number;
+  costPerHr: number;
+  chargeOut: number;
+  revenue: number;
+  isNow: boolean;
+};
+
+/**
+ * What another van does to the numbers.
+ *
+ * The factory, the office and the accountant do not care how many vans are on
+ * the road, so every extra van spreads that fixed cost over more billable
+ * hours. The van's own costs come with it and do not, which is why the line
+ * flattens out rather than falling forever.
+ */
+export function scaleModel(cap: ReturnType<typeof computeCapacity>, s: CapSettings, upTo = 8): ScaleRow[] {
+  const vansNow = cap.per.filter((x) => x.c.chargeable).length;
+  if (vansNow === 0 || cap.totalBillHrs <= 0) return [];
+
+  const split = overheadSplit(s);
+  const hrsEach = cap.totalBillHrs / vansNow;
+  const perVanEach = split.perVan / vansNow;
+  // The crew's own wages and downtime scale with the crew, not with the factory.
+  const crewCostEach = (cap.fieldWages + cap.labourOh) / vansNow;
+
+  const rows: ScaleRow[] = [];
+  for (let n = Math.max(1, vansNow - 2); n <= Math.max(upTo, vansNow + 3); n++) {
+    const billHrs = hrsEach * n;
+    const overhead = split.fixed + cap.officeOh + perVanEach * n;
+    const costPerHr = (overhead + crewCostEach * n) / billHrs;
+    const chargeOut = costPerHr * (1 + s.margin / 100);
+    rows.push({
+      vans: n, billHrs, overhead,
+      overheadPerHr: overhead / billHrs,
+      costPerHr, chargeOut,
+      revenue: chargeOut * billHrs,
+      isNow: n === vansNow,
+    });
+  }
+  return rows;
 }
