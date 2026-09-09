@@ -57,12 +57,15 @@ export type XeroExpense = { label: string; section: string; amount: number };
 export type XeroState = { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string };
 
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero,
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0,
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
   xeroExpenses?: XeroExpense[];
   xero?: XeroState;
+  /** Straight-line depreciation across the fleet, from the Vehicles tab. */
+  fleetDep?: number;
+  vanCount?: number;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -175,7 +178,7 @@ export function CapacityEditor({
 
   const ohTyped = overheadTotal(s);
   const ohFromCrew = cap.labourOh + cap.officeOh;
-  const ohTotal = ohTyped + ohFromCrew;
+  const ohTotal = ohTyped + ohFromCrew + fleetDep;
   const hasHrs = cap.totalBillHrs > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
   const blended = hasHrs ? cap.costPerHr * (1 + s.margin / 100) : null;
@@ -547,11 +550,24 @@ export function CapacityEditor({
             </p>
 
             <div className="pt-oh__totals">
+              <div><span>Typed &amp; from Xero</span><strong>{money(ohTyped)}</strong></div>
+              <div><span>Wages not on a job</span><strong>{money(ohFromCrew)}</strong></div>
+              <div><span>Vehicle depreciation</span><strong>{money(fleetDep)}</strong></div>
+              <div className="is-total"><span>All of it, a year</span><strong>{money(ohTotal)}</strong></div>
+            </div>
+
+            <div className="pt-oh__totals">
               <div><span>A year</span><strong>{money(ohTotal)}</strong></div>
               <div><span>A month</span><strong>{money(ohTotal / 12)}</strong></div>
               <div><span>A week</span><strong>{money(ohTotal / 52)}</strong></div>
               <div><span>Every billable hour</span><strong>{hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}</strong></div>
             </div>
+
+            <p className="pt-oh__hint">
+              Billable hours are counted per van, not per head — {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"} at{" "}
+              {hrs(cap.hrsPerVan)} each. A tech and an apprentice on the one job are on site for one van-hour, not two, so the
+              apprentice lifts the crew&rsquo;s rate instead of adding hours to divide by.
+            </p>
 
             {emptyCount > 0 && (
               <label className="pt-oh__toggle">
@@ -561,35 +577,29 @@ export function CapacityEditor({
             )}
 
             <div className="pt-oh__ledger">
-              {ohFromCrew > 0 && (
+              {(ohFromCrew > 0 || fleetDep > 0) && (
                 <div className="pt-oh__group">
                   <div className="pt-oh__grouph">
-                    <span>Wages that aren&rsquo;t on a job</span>
+                    <span>Comes from elsewhere in the portal</span>
                     <span>
-                      {ohTotal > 0 && <em>{Math.round((ohFromCrew / ohTotal) * 100)}% · </em>}
-                      {money(ohFromCrew)}
+                      {ohTotal > 0 && <em>{Math.round(((ohFromCrew + fleetDep) / ohTotal) * 100)}% · </em>}
+                      {money(ohFromCrew + fleetDep)}
                     </span>
                   </div>
-                  <div className="pt-oh__line">
-                    <div className="pt-oh__row is-locked">
-                      <span className="pt-oh__label">
-                        Office &amp; admin wages
-                        <em>From the crew tab — everyone not on the tools</em>
-                      </span>
-                      <span className="pt-oh__perhr">{perHour(cap.officeOh)}</span>
-                      <span className="pt-oh__fixed">{money(cap.officeOh)}</span>
+                  {[
+                    { k: "office", label: "Office & admin wages", from: "The crew tab — everyone not on the tools", v: cap.officeOh },
+                    { k: "down", label: "Crew time you can’t bill", from: "Leave, sick, RDOs, school, driving and admin", v: cap.labourOh },
+                    { k: "dep", label: "Vehicle depreciation", from: `The Vehicles tab — ${vanCount} ${vanCount === 1 ? "van" : "vans"} on the road`, v: fleetDep },
+                  ].filter((r) => r.v > 0).map((r) => (
+                    <div key={r.k} className="pt-oh__line">
+                      <div className="pt-oh__row is-locked">
+                        <span className="pt-oh__label">{r.label}<em>{r.from}</em></span>
+                        <span />
+                        <span className="pt-oh__perhr">{perHour(r.v)}</span>
+                        <span className="pt-oh__fixed">{money(r.v)}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="pt-oh__line">
-                    <div className="pt-oh__row is-locked">
-                      <span className="pt-oh__label">
-                        Crew time you can&rsquo;t bill
-                        <em>Leave, sick, RDOs, school, travel, admin, and anyone riding with a tech</em>
-                      </span>
-                      <span className="pt-oh__perhr">{perHour(cap.labourOh)}</span>
-                      <span className="pt-oh__fixed">{money(cap.labourOh)}</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               )}
 
