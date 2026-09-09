@@ -4,7 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
-  computeCapacity, countedElsewhere, crewCombos, defaultsFor, overheadsOf, overheadTotal, suggestOverhead,
+  computeCapacity, countedElsewhere, crewCombos, defaultsFor, overheadsOf, overheadSplit, overheadTotal,
+  scaleModel, scaleOf, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
 } from "@/lib/portal/crew";
 import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
@@ -21,8 +22,24 @@ const TABS = [
   { k: "crew", label: "The crew" },
   { k: "overheads", label: "Overheads" },
   { k: "rates", label: "What we charge" },
+  { k: "growth", label: "Another van" },
+  { k: "words", label: "What the words mean" },
 ] as const;
 type Tab = (typeof TABS)[number]["k"];
+
+const GLOSSARY: { term: string; body: string }[] = [
+  { term: "Paid hours", body: "Every hour someone is paid for in a year — 38 a week across 52 weeks is 1,976. It includes leave, sick days, RDOs, public holidays and trade school, because you pay for all of them." },
+  { term: "Billable hours", body: "The hours a customer actually pays for. Paid hours less the days off, less driving, admin and office time. This is the only number the overhead can be divided by, which is why it matters more than headcount." },
+  { term: "Utilisation", body: "Billable hours as a share of paid hours. It has a ceiling below 100% that nobody can beat — leave, sick, RDOs, holidays and school are entitlements. The ceiling is the honest best case; the gap below it is travel, admin and office time, and that is the part worth working on." },
+  { term: "Overhead", body: "Everything the business spends that isn't the labour going on a job. Rent, fuel, insurance, software, marketing, the office wages. It has to be earned back across the billable hours before a wage is paid." },
+  { term: "Fixed overhead", body: "The part that doesn't move when another van goes on the road — the factory, the office, the accountant, the marketing. More vans means the same money spread thinner, which is why the rate can fall." },
+  { term: "Per-van overhead", body: "The part that arrives with each van — its fuel, servicing, insurance, tools and phone. It grows one van at a time, so it never spreads thinner." },
+  { term: "Cost per billable hour", body: "What one hour you can bill actually costs: the wage for it, plus that hour's share of every overhead. Charge below this and the job loses money no matter how it felt on the day." },
+  { term: "Charge-out rate", body: "Cost per billable hour plus the margin. What goes on the quote." },
+  { term: "On-costs", body: "What sits on top of a wage — super, workcover, leave loading. A $45 wage costs more than $45." },
+  { term: "Chargeable", body: "Someone a customer pays for. An apprentice is chargeable, but only as part of a crew — they are never sent out on their own, and the crew charges more than the tradesman would alone." },
+  { term: "Margin", body: "What's left after everything is covered. It isn't profit until the year's overheads have all been earned back." },
+];
 
 function CapField({ label, value, onChange, post }: { label: string; value: number; onChange: (n: number) => void; post?: string }) {
   return (
@@ -149,6 +166,13 @@ export function CapacityEditor({
   // the other comes out of the crew tab — office and admin wages, plus the
   // crew's own non-billable time — and those are already in the capacity maths,
   // so they show read-only rather than being added again.
+  const split = overheadSplit(s);
+  const scale = useMemo(() => scaleModel(cap, s), [cap, s]);
+  const now = scale.find((r) => r.isNow) ?? null;
+  const next = now ? scale.find((r) => r.vans === now.vans + 1) ?? null : null;
+  const setScale = (key: string, v: "fixed" | "perVan") =>
+    setS((prev) => ({ ...prev, scales: { ...(prev.scales ?? {}), [key]: v } }));
+
   const ohTyped = overheadTotal(s);
   const ohFromCrew = cap.labourOh + cap.officeOh;
   const ohTotal = ohTyped + ohFromCrew;
@@ -598,6 +622,12 @@ export function CapacityEditor({
                                 </button>
                               ) : f.label}
                             </span>
+                            <button
+                              type="button"
+                              className={`pt-oh__scale is-${scaleOf(s, f.key)}`}
+                              title="Does this grow when another van goes on the road?"
+                              onClick={() => setScale(f.key, scaleOf(s, f.key) === "fixed" ? "perVan" : "fixed")}
+                            >{scaleOf(s, f.key) === "perVan" ? "Per van" : "Fixed"}</button>
                             <span className="pt-oh__perhr">{perHour(Number(oh[f.key]) || 0)}</span>
                             <span className="pt-oh__amt">
                               <span>$</span>
@@ -713,6 +743,92 @@ export function CapacityEditor({
             </div>
           </section>
         </>
+      )}
+
+      {tab === "growth" && (
+        <>
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">The overhead splits two ways</h2>
+            <p className="pt-panel__sub">
+              The factory, the office, the accountant and the marketing don&rsquo;t care how many vans are on the road — put a
+              fourth one on and none of it moves. Everything else arrives with the van: its fuel, its servicing, its insurance,
+              its tools, its phone. That split is the whole reason another van makes the overhead on every hour go <em>down</em>.
+              Any line on the Overheads tab can be switched between the two.
+            </p>
+            <div className="pt-pl__heads">
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">Fixed — doesn&rsquo;t move</span><strong className="pt-pl__headval">{money(split.fixed + cap.officeOh)}</strong></div>
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">Comes with each van</span><strong className="pt-pl__headval">{money(split.perVan)}</strong></div>
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">Per van, each</span><strong className="pt-pl__headval">{now ? money(split.perVan / now.vans) : "—"}</strong></div>
+              <div className="pt-pl__head"><span className="pt-pl__headlabel">All of it</span><strong className="pt-pl__headval">{money(ohTotal)}</strong></div>
+            </div>
+          </section>
+
+          {scale.length > 0 ? (
+            <>
+              <section className="pt-panel">
+                <div className="pt-ov__charthead">
+                  <h2 className="pt-panel__h">What another van does</h2>
+                  <span className="pt-cap__grouptotal">{now?.vans ?? 0} charging now</span>
+                </div>
+                <p className="pt-panel__sub">
+                  Each row assumes another crew like the ones you have — same hours, same downtime, same van costs.
+                </p>
+                <div className="pt-oh__ledger">
+                  <div className="pt-oh__group">
+                    <div className="pt-cap__scalehead">
+                      <span>Charging</span><span>Billable hrs</span><span>Overhead</span><span>Overhead / hr</span><span>Cost / hr</span><span>Charge-out</span>
+                    </div>
+                    {scale.map((r) => (
+                      <div key={r.vans} className={`pt-cap__scalerow${r.isNow ? " is-now" : ""}`}>
+                        <span className="pt-cap__scaleid"><strong>{r.vans}</strong>{r.isNow && <em>now</em>}</span>
+                        <span>{hrs(r.billHrs)}</span>
+                        <span>{money(r.overhead)}</span>
+                        <strong className="pt-cap__real">{money2(r.overheadPerHr)}</strong>
+                        <span>{money2(r.costPerHr)}</span>
+                        <strong>{money2(r.chargeOut)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              {now && next && (
+                <section className="pt-panel">
+                  <h2 className="pt-panel__h">Putting on one more</h2>
+                  <p className="pt-util__read" style={{ marginTop: 0 }}>
+                    One more charging crew adds <strong>{money(next.overhead - now.overhead)}</strong> of overhead and{" "}
+                    <strong>{hrs(next.billHrs - now.billHrs)}</strong> you can bill. Spread over the lot, the overhead on every
+                    hour drops from <strong>{money2(now.overheadPerHr)}</strong> to <strong>{money2(next.overheadPerHr)}</strong>{" "}
+                    — <strong>{money2(now.overheadPerHr - next.overheadPerHr)}</strong> off every hour the whole crew bills.
+                  </p>
+                  <div className="pt-pl__heads">
+                    <div className="pt-pl__head"><span className="pt-pl__headlabel">They bring in</span><strong className="pt-pl__headval">{money(next.revenue - now.revenue)}</strong></div>
+                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Overhead they add</span><strong className="pt-pl__headval">{money(next.overhead - now.overhead)}</strong></div>
+                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Off every hour</span><strong className="pt-pl__headval">{money2(now.overheadPerHr - next.overheadPerHr)}</strong></div>
+                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Rate could fall to</span><strong className="pt-pl__headval">{money(next.chargeOut)}</strong></div>
+                  </div>
+                </section>
+              )}
+            </>
+          ) : (
+            <div className="pf-empty">Give at least one person a billable level to model this.</div>
+          )}
+        </>
+      )}
+
+      {tab === "words" && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">What the words mean</h2>
+          <p className="pt-panel__sub">So everyone reading these numbers is reading the same thing.</p>
+          <dl className="pt-words">
+            {GLOSSARY.map((g) => (
+              <div key={g.term}>
+                <dt>{g.term}</dt>
+                <dd>{g.body}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
       )}
 
       <div className="pt-cap__savebar">
