@@ -27,8 +27,8 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["k"];
 
-function Stat({ label, value, sub, note, open, onToggle }: {
-  label: string; value: React.ReactNode; sub?: string; note: string; open: boolean; onToggle: () => void;
+function Stat({ label, value, sub, open, onToggle }: {
+  label: string; value: React.ReactNode; sub?: string; open: boolean; onToggle: () => void;
 }) {
   return (
     <div className={`pt-cap__stripcell${open ? " is-open" : ""}`}>
@@ -38,10 +38,21 @@ function Stat({ label, value, sub, note, open, onToggle }: {
       </span>
       <strong>{value}</strong>
       {sub && <small>{sub}</small>}
-      {open && <p className="pt-cap__infobody">{note}</p>}
     </div>
   );
 }
+
+/**
+ * The explanations live outside the strip on purpose. The strip clips its own
+ * corners to stay rounded, and anything absolutely positioned inside it gets
+ * clipped with them — which is why the first version opened into nothing.
+ */
+const STAT_NOTES: Record<string, { label: string; body: string }> = {
+  charge: { label: "What we charge an hour", body: "What a job is quoted at. It is what an hour costs us, plus the margin — the money the business keeps once every wage and every overhead has been paid. Change the margin above and this moves with it." },
+  cost: { label: "What an hour costs us", body: "Everything one hour of work has to pay for before the business makes a cent: the wage for that hour, plus that hour's share of every overhead — the factory, the office wages, the vans, the insurance, the time the crew is paid for but can't bill. Quote below this and the job loses money however it felt on the day." },
+  oh: { label: "Overhead on every hour", body: "The overhead half of what an hour costs. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab." },
+  hrs: { label: "Hours we can bill a year", body: "The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount." },
+};
 
 const GLOSSARY: { term: string; body: string }[] = [
   { term: "Paid hours", body: "Every hour someone is paid for in a year — 38 a week across 52 weeks is 1,976. It includes leave, sick days, RDOs, public holidays and trade school, because you pay for all of them." },
@@ -99,7 +110,7 @@ export function CapacityEditor({
     return next;
   });
 
-  const [s, setS] = useState<CapSettings>({ ...settings, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
+  const [s, setS] = useState<CapSettings>({ ...settings, oncosts: 0, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
   const [add, setAdd] = useState<{ open: boolean; name: string; email: string; level: CrewLevel; msg: string }>({ open: false, name: "", email: "", level: "tradesman", msg: "" });
 
@@ -247,35 +258,40 @@ export function CapacityEditor({
       {!dbReady && <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Costing won&rsquo;t save until the Supabase keys are set.</div>}
 
       {/* the numbers that matter, on every tab */}
+      <div className="pt-cap__stripwrap">
       <div className="pt-cap__strip">
         <Stat
           label="What we charge an hour"
           value={blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}
           sub={`Cost plus ${s.margin}% margin`}
-          note="What a job is quoted at. It is what an hour costs us, plus the margin — the money the business keeps once every wage and every overhead has been paid. Change the margin on the crew tab and this moves with it."
           open={info === "charge"} onToggle={() => setInfo(info === "charge" ? null : "charge")}
         />
         <Stat
           label="What an hour costs us"
           value={show(cap.costPerHr)}
           sub="Before any margin"
-          note="Everything one hour of work has to pay for before the business makes a cent: the wage for that hour, plus that hour's share of every overhead — the factory, the office wages, the vans, the insurance, the time the crew is paid for but can't bill. Quote below this and the job loses money however it felt on the day."
           open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
         />
         <Stat
           label="Overhead on every hour"
           value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
           sub={`${money(ohTotal)} a year`}
-          note="The overhead half of the number to its left. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab."
           open={info === "oh"} onToggle={() => setInfo(info === "oh" ? null : "oh")}
         />
         <Stat
           label="Hours we can bill a year"
           value={hrs(cap.totalBillHrs)}
           sub={`${cap.vanCount} ${cap.vanCount === 1 ? "van" : "vans"} · ${hrs(cap.hrsPerVan)} each`}
-          note="The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount."
           open={info === "hrs"} onToggle={() => setInfo(info === "hrs" ? null : "hrs")}
         />
+      </div>
+      {info && STAT_NOTES[info] && (
+        <div className="pt-cap__infobody" role="note">
+          <strong>{STAT_NOTES[info].label}</strong>
+          <p>{STAT_NOTES[info].body}</p>
+          <button type="button" onClick={() => setInfo(null)} aria-label="Close">×</button>
+        </div>
+      )}
       </div>
 
       <div className="pt-cap__tabs" role="tablist">
@@ -291,23 +307,16 @@ export function CapacityEditor({
             <p className="pt-panel__sub">The settings every person&rsquo;s costing is worked out against.</p>
             <div className="pt-cap__row3">
               <CapField label="Weeks / year" value={s.weeksYear} onChange={(v) => setS({ ...s, weeksYear: v })} />
-              <CapField label="On-costs" value={s.oncosts} onChange={(v) => setS({ ...s, oncosts: v })} post="%" />
               <CapField label="Call-backs" value={s.callbackPct ?? 0} onChange={(v) => setS({ ...s, callbackPct: v })} post="%" />
               <CapField label="Margin" value={s.margin} onChange={(v) => setS({ ...s, margin: v })} post="%" />
             </div>
 
-            <div className="pt-note pt-note--warn">
-              <strong>On-costs is what sits on top of a wage:</strong> superannuation, workers compensation, leave loading and
-              payroll tax. At {s.oncosts}% a ${"{"}45{"}"}/hr wage costs {money2(45 * (1 + s.oncosts / 100))}. Because it is added here, those
-              same things must <strong>not</strong> also be in the business overhead — Xero lists Superannuation and Workcover
-              under Operating Expenses, so if your overhead figure includes them, take them out or you will be paying for super
-              twice and every rate will be too high.
-            </div>
-
             <p className="pt-oh__hint" style={{ marginTop: 10 }}>
-              <strong>Call-backs</strong> are the hours that go back out to fix our own work. They are paid for and never billed,
-              so they come off what can be billed — at {s.callbackPct ?? 0}% that is {hrs(cap.util.paidHrs * ((s.callbackPct ?? 0) / 100))} a
-              year the vans are out but earning nothing.
+              Wages here are the wage itself. Super, workers comp and payroll tax sit in the business overhead alongside the rent
+              and the fuel, so they are counted once there rather than added on top of every wage as well.{" "}
+              <strong>Call-backs</strong> are the hours that go back out to fix our own work — paid for, never billed, so they
+              come off what can be billed. At {s.callbackPct ?? 0}% that is{" "}
+              {hrs(cap.util.paidHrs * ((s.callbackPct ?? 0) / 100))} a year the vans are out and earning nothing.
             </p>
           </section>
 
@@ -540,8 +549,28 @@ export function CapacityEditor({
                   </label>
                   <CapField label="Of that, fixed" value={s.internalFixedPct ?? 55} onChange={(v) => setS({ ...s, internalFixedPct: v })} post="%" />
                 </div>
+                <div className="pt-oh__checklist">
+                  <div className="is-in">
+                    <strong>Put in</strong>
+                    <ul>
+                      <li>The factory, the yard, the power and the rates</li>
+                      <li>Insurance, licences and accreditations</li>
+                      <li>Fuel, servicing, rego and tyres</li>
+                      <li>Tools, software, phones and marketing</li>
+                      <li>Super, workers comp and payroll tax — every wage&rsquo;s on-costs</li>
+                    </ul>
+                  </div>
+                  <div className="is-out">
+                    <strong>Leave out</strong>
+                    <ul>
+                      <li>Depreciation on the vans — comes from the Vehicles tab</li>
+                      <li>Office, admin and operations wages — come from the crew tab</li>
+                      <li>The crew&rsquo;s own wages, billable or not</li>
+                      <li>Materials and contractors — those go on the job</li>
+                    </ul>
+                  </div>
+                </div>
                 <p className="pt-oh__hint">
-                  The factory, the office, the insurance, the marketing — everything except wages, depreciation and job costs.
                   &ldquo;Fixed&rdquo; is the share that would not move if another van went on the road; the rest travels with each
                   van and is what the Another van tab uses.
                 </p>
