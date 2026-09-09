@@ -120,6 +120,16 @@ export type CapSettings = {
   /** Per-line overrides of whether a line grows with another van. */
   scales?: Record<string, OverheadScale>;
   /**
+   * Where the business overhead comes from. "xero" adds up the filed accounts;
+   * "internal" uses one figure you know is right. The wages, the crew's
+   * unbillable time and the vans' depreciation come from the portal either way.
+   */
+  ohSource?: "xero" | "internal";
+  /** The one figure, when the source is internal. */
+  internalOverhead?: number;
+  /** How that figure splits between fixed and per-van, as a percentage fixed. */
+  internalFixedPct?: number;
+  /**
    * Which Xero expense account feeds which overhead line, keyed by the account
    * name Xero reports. The mapping is kept, but the resolved dollar figures are
    * written into `overheads` on save — so everything downstream reads one set
@@ -141,6 +151,7 @@ export function overheadsOf(s: CapSettings): Record<string, number> {
 }
 
 export function overheadTotal(s: CapSettings): number {
+  if (s.ohSource === "internal") return Number(s.internalOverhead) || 0;
   return Object.values(overheadsOf(s)).reduce((a, v) => a + (Number(v) || 0), 0);
 }
 
@@ -468,6 +479,11 @@ export const scaleOf = (s: CapSettings, key: string): OverheadScale =>
   s.scales?.[key] ?? OVERHEAD_FIELDS.find((f) => f.key === key)?.scale ?? "fixed";
 
 export function overheadSplit(s: CapSettings): { fixed: number; perVan: number } {
+  if (s.ohSource === "internal") {
+    const total = Number(s.internalOverhead) || 0;
+    const fixedPct = s.internalFixedPct ?? 55;
+    return { fixed: (total * fixedPct) / 100, perVan: (total * (100 - fixedPct)) / 100 };
+  }
   const oh = overheadsOf(s);
   let fixedTotal = 0, perVanTotal = 0;
   for (const f of OVERHEAD_FIELDS) {

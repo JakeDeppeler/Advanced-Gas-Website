@@ -27,6 +27,22 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["k"];
 
+function Stat({ label, value, sub, note, open, onToggle }: {
+  label: string; value: React.ReactNode; sub?: string; note: string; open: boolean; onToggle: () => void;
+}) {
+  return (
+    <div className={`pt-cap__stripcell${open ? " is-open" : ""}`}>
+      <span>
+        {label}
+        <button type="button" className="pt-cap__info" aria-expanded={open} aria-label={`What ${label.toLowerCase()} means`} onClick={onToggle}>i</button>
+      </span>
+      <strong>{value}</strong>
+      {sub && <small>{sub}</small>}
+      {open && <p className="pt-cap__infobody">{note}</p>}
+    </div>
+  );
+}
+
 const GLOSSARY: { term: string; body: string }[] = [
   { term: "Paid hours", body: "Every hour someone is paid for in a year — 38 a week across 52 weeks is 1,976. It includes leave, sick days, RDOs, public holidays and trade school, because you pay for all of them." },
   { term: "Billable hours", body: "The hours a customer actually pays for. Paid hours less the days off, less driving, admin and office time. This is the only number the overhead can be divided by, which is why it matters more than headcount." },
@@ -75,6 +91,7 @@ export function CapacityEditor({
   // Most overhead lines sit at zero once Xero has filled the ones it can; hiding
   // them turns thirty-odd boxes into the dozen that actually carry money.
   const [showEmpty, setShowEmpty] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
   const [openLines, setOpenLines] = useState<Set<string>>(new Set());
   const toggleLine = (k: string) => setOpenLines((prev) => {
     const next = new Set(prev);
@@ -229,22 +246,34 @@ export function CapacityEditor({
 
       {/* the numbers that matter, on every tab */}
       <div className="pt-cap__strip">
-        <div className="pt-cap__stripcell">
-          <span>Blended charge-out</span>
-          <strong>{blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}</strong>
-        </div>
-        <div className="pt-cap__stripcell">
-          <span>Cost per billable hour</span>
-          <strong>{show(cap.costPerHr)}</strong>
-        </div>
-        <div className="pt-cap__stripcell">
-          <span>Billable hours a year</span>
-          <strong>{hrs(cap.totalBillHrs)}</strong>
-        </div>
-        <div className="pt-cap__stripcell">
-          <span>Overheads a year</span>
-          <strong>{money(ohTotal)}</strong>
-        </div>
+        <Stat
+          label="What we charge an hour"
+          value={blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}
+          sub={`Cost plus ${s.margin}% margin`}
+          note="What a job is quoted at. It is what an hour costs us, plus the margin — the money the business keeps once every wage and every overhead has been paid. Change the margin on the crew tab and this moves with it."
+          open={info === "charge"} onToggle={() => setInfo(info === "charge" ? null : "charge")}
+        />
+        <Stat
+          label="What an hour costs us"
+          value={show(cap.costPerHr)}
+          sub="Before any margin"
+          note="Everything one hour of work has to pay for before the business makes a cent: the wage for that hour, plus that hour's share of every overhead — the factory, the office wages, the vans, the insurance, the time the crew is paid for but can't bill. Quote below this and the job loses money however it felt on the day."
+          open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
+        />
+        <Stat
+          label="Overhead on every hour"
+          value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
+          sub={`${money(ohTotal)} a year`}
+          note="The overhead half of the number to its left. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab."
+          open={info === "oh"} onToggle={() => setInfo(info === "oh" ? null : "oh")}
+        />
+        <Stat
+          label="Hours we can bill a year"
+          value={hrs(cap.totalBillHrs)}
+          sub={`${cap.vanCount} ${cap.vanCount === 1 ? "van" : "vans"} · ${hrs(cap.hrsPerVan)} each`}
+          note="The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount."
+          open={info === "hrs"} onToggle={() => setInfo(info === "hrs" ? null : "hrs")}
+        />
       </div>
 
       <div className="pt-cap__tabs" role="tablist">
@@ -437,6 +466,43 @@ export function CapacityEditor({
       {tab === "overheads" && (
         <>
           <section className="pt-panel">
+            <h2 className="pt-panel__h">Where the business overhead comes from</h2>
+            <p className="pt-panel__sub">
+              Two ways to get the same number. Either add up what Xero says, account by account, or put in the one figure you
+              already know is right. The office wages, the crew&rsquo;s unbillable time and the vans&rsquo; depreciation come from
+              the portal either way — they are never typed twice.
+            </p>
+            <div className="pt-seg" role="group" aria-label="Overhead source">
+              <button type="button" className={`pt-seg__b${(s.ohSource ?? "xero") === "xero" ? " is-on" : ""}`}
+                aria-pressed={(s.ohSource ?? "xero") === "xero"}
+                onClick={() => setS({ ...s, ohSource: "xero" })}>From Xero</button>
+              <button type="button" className={`pt-seg__b pt-seg__b--repair${s.ohSource === "internal" ? " is-on" : ""}`}
+                aria-pressed={s.ohSource === "internal"}
+                onClick={() => setS({ ...s, ohSource: "internal" })}>Our own figure</button>
+            </div>
+
+            {s.ohSource === "internal" && (
+              <>
+                <div className="pt-cap__row3" style={{ marginTop: 16 }}>
+                  <label className="pt-cap__f">
+                    <span>The business overhead, a year</span>
+                    <span className="pt-calc__field">
+                      <span className="pt-calc__pre">$</span>
+                      <input type="number" min="0" value={s.internalOverhead ?? 0} onChange={(e) => setS({ ...s, internalOverhead: parse(e.target.value) })} />
+                    </span>
+                  </label>
+                  <CapField label="Of that, fixed" value={s.internalFixedPct ?? 55} onChange={(v) => setS({ ...s, internalFixedPct: v })} post="%" />
+                </div>
+                <p className="pt-oh__hint">
+                  The factory, the office, the insurance, the marketing — everything except wages, depreciation and job costs.
+                  &ldquo;Fixed&rdquo; is the share that would not move if another van went on the road; the rest travels with each
+                  van and is what the Another van tab uses.
+                </p>
+              </>
+            )}
+          </section>
+
+          <section className="pt-panel">
             <div className="pt-ov__charthead">
               <h2 className="pt-panel__h">From Xero</h2>
               {xeroExpenses.length > 0 && (
@@ -550,7 +616,7 @@ export function CapacityEditor({
             </p>
 
             <div className="pt-oh__totals">
-              <div><span>Typed &amp; from Xero</span><strong>{money(ohTyped)}</strong></div>
+              <div><span>{s.ohSource === "internal" ? "Our own figure" : "Filed from Xero"}</span><strong>{money(ohTyped)}</strong></div>
               <div><span>Wages not on a job</span><strong>{money(ohFromCrew)}</strong></div>
               <div><span>Vehicle depreciation</span><strong>{money(fleetDep)}</strong></div>
               <div className="is-total"><span>All of it, a year</span><strong>{money(ohTotal)}</strong></div>
@@ -574,6 +640,13 @@ export function CapacityEditor({
                 <input type="checkbox" checked={showEmpty} onChange={(e) => setShowEmpty(e.target.checked)} />
                 Show the {emptyCount} lines with nothing in them
               </label>
+            )}
+
+            {s.ohSource === "internal" && (
+              <div className="pt-note">
+                Your own figure of <strong>{money(ohTyped)}</strong> is the one being used. The lines below are still here to fill
+                in when you want the detail back — switch the source above and they take over again.
+              </div>
             )}
 
             <div className="pt-oh__ledger">
