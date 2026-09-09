@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
+import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
+import { vehicleFinance } from "@/components/portal/vehicleMath";
 import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
 import { xeroStatus, getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -48,7 +49,15 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
   }
 
   const ready = dbConfigured();
-  const [users, settings] = ready ? await Promise.all([listUsers(), getCapSettings()]) : [[], null];
+  const [users, settings, vehicles] = ready
+    ? await Promise.all([listUsers(), getCapSettings(), listVehicles()])
+    : [[], null, []];
+
+  // Depreciation belongs in the overhead and belongs to the vans, so it comes
+  // from the fleet rather than being typed in twice.
+  const fleetDep = vehicles
+    .filter((v) => v.status !== "off")
+    .reduce((a, v) => a + (vehicleFinance(v).annualDep ?? 0), 0);
   const people = users
     .filter((u) => u.active && u.id)
     .sort((a, b) => (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name))
@@ -70,6 +79,8 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
         initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}
         xeroExpenses={xeroExpenses}
         xero={xero}
+        fleetDep={fleetDep}
+        vanCount={vehicles.filter((v) => v.status !== "off").length}
       />
     </PortalShell>
   );

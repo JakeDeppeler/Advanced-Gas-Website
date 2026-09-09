@@ -27,10 +27,12 @@ export type Costing = {
   adminHrsWeek: number;
   officeHrsWeek: number;
   /**
-   * Whether they can be sent out on their own. An apprentice with a tech is
-   * still billable — the pair goes out at a higher rate than the tech alone —
-   * so their hours count either way. This only says they never go solo, which
-   * is why they never appear as a crew of one.
+   * Whether they run a van of their own.
+   *
+   * Billable hours are counted per van, not per head — a tech and an apprentice
+   * on the one job are on site for one van-hour, not two, and you cannot bill
+   * two. So only the van earns hours. The apprentice is still paid for by the
+   * customer: they lift the crew's rate rather than adding hours to divide by.
    */
   ownVan: boolean;
   /**
@@ -206,6 +208,8 @@ export function defaultsFor(level: CrewLevel): Costing {
 
 export type PersonCosted = {
   paidHrs: number; billHrs: number; wageCost: number; fieldWages: number; labourOh: number; officeOh: number;
+  /** A ride-along's whole cost, recovered through the crew rate they go out in. */
+  ridesCost: number;
   /** Hours off that the law gives them — leave, sick, public holidays, RDOs, trade school. */
   legalHrs: number;
   /** Hours lost to travel, admin and office time. The part you can actually work on. */
@@ -220,8 +224,14 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const paidHrs = c.hrsWeek * s.weeksYear;
   const wageCost = paidHrs * rate;
   if (!LEVEL_BILLABLE[level]) {
-    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: wageCost, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
+    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: wageCost, ridesCost: 0, legalHrs: 0, flexHrs: 0, billable: false, chargeable: false };
   }
+  // Riding with a tech: no van, so no billable hours of their own. Their cost
+  // comes back through the higher rate the crew goes out at.
+  if (!c.ownVan) {
+    return { paidHrs, billHrs: 0, wageCost, fieldWages: 0, labourOh: 0, officeOh: 0, ridesCost: wageCost, legalHrs: 0, flexHrs: 0, billable: true, chargeable: false };
+  }
+
   const hrsPerDay = c.hrsWeek / 5;
   const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
   const travelAdminHrs = (c.travelHrsWeek + c.adminHrsWeek) * s.weeksYear;
@@ -229,7 +239,7 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const billHrs = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
   return {
     paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,
-    labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate,
+    labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate, ridesCost: 0,
     legalHrs: daysOffHrs, flexHrs: travelAdminHrs + officeHrs,
     billable: true, chargeable: true,
   };
@@ -243,7 +253,8 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const fieldWages = per.reduce((a, x) => a + x.c.fieldWages, 0);
   const labourOh = per.reduce((a, x) => a + x.c.labourOh, 0);
   const officeOh = per.reduce((a, x) => a + x.c.officeOh, 0);
-  const paidBillHrs = per.reduce((a, x) => a + (x.c.billable ? x.c.paidHrs : 0), 0);
+  const paidBillHrs = per.reduce((a, x) => a + (x.c.chargeable ? x.c.paidHrs : 0), 0);
+  const ridesCost = per.reduce((a, x) => a + x.c.ridesCost, 0);
   const denom = totalBillHrs || 1;
   // Overhead is everything except the crew's billable-time wages — that
   // includes their non-billable time (sick, school, travel, admin), office
@@ -251,12 +262,26 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const otherOverhead = overheadTotal(s);
   const sharedOverhead = labourOh + officeOh + otherOverhead;
   const sharedPerHr = sharedOverhead / denom;
+  // A ride-along's cost is deliberately kept out of the shared pool. If it went
+  // in, a tech working on his own would carry an apprentice who wasn't there —
+  // and the pair would charge no more than the tech alone, which is the thing
+  // that was wrong. It comes back as an uplift on the crews they actually go
+  // out in.
   const totalCost = fieldWages + sharedOverhead;
   const costPerHr = totalCost / denom;
 
+  const vanCount = per.filter((x) => x.c.chargeable).length;
+  const hrsPerVan = vanCount > 0 ? totalBillHrs / vanCount : 0;
+
   const rates = per.map(({ p, c }) => {
+    if (c.ridesCost > 0) {
+      // What adding them to a crew has to be worth an hour for the year to add
+      // up: their whole cost, spread over the hours of the one van they're in.
+      const uplift = hrsPerVan > 0 ? (c.ridesCost / hrsPerVan) * (1 + s.margin / 100) : null;
+      return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr: hrsPerVan > 0 ? c.ridesCost / hrsPerVan : null, uplift };
+    }
     if (!c.billable || c.billHrs <= 0) {
-      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null };
+      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null, uplift: null as number | null };
     }
     const labourPerHr = p.costing.wage * (1 + s.oncosts / 100); // just their pay rate; downtime is overhead
     // What an hour of theirs actually costs the business: their pay plus the
@@ -264,7 +289,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     const costPerHr = labourPerHr + sharedPerHr;
     const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
-    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr };
+    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null };
   });
 
   // Two utilisations, because they mean different things. Leave, sick days,
@@ -286,10 +311,11 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     { key: "wages", label: "Labour — field wages (billable)", annual: fieldWages },
     { key: "labour", label: "Overhead — downtime & crew riding along", annual: labourOh },
     { key: "office", label: "Overhead — office & admin staff", annual: officeOh },
+
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, hrsPerVan, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
 }
 
 
@@ -306,17 +332,23 @@ export type CrewCombo = { key: string; label: string; rate: number; note?: strin
  */
 export function crewCombos(
   people: CrewMember[],
-  rates: { id: string; rate: number | null }[],
+  rates: { id: string; rate: number | null; uplift?: number | null }[],
 ): CrewCombo[] {
   const rateById = new Map(rates.map((r) => [r.id, r.rate]));
+  const upliftById = new Map(rates.map((r) => [r.id, r.uplift ?? null]));
   const avg = (list: CrewMember[]) => {
     const vals = list.map((p) => rateById.get(p.id)).filter((r): r is number => r != null);
     return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
   };
 
   const billable = people.filter((p) => LEVEL_BILLABLE[p.level] && rateById.get(p.id) != null);
+  const ridesAlong = people.filter((p) => LEVEL_BILLABLE[p.level] && !p.costing.ownVan && upliftById.get(p.id) != null);
+  const avgUplift = (list: CrewMember[]) => {
+    const vals = list.map((p) => upliftById.get(p.id)).filter((r): r is number => r != null);
+    return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  };
   const soloLevels = CREW_LEVELS.filter((l) => l.billable && billable.some((p) => p.level === l.key && p.costing.ownVan));
-  const pairedLevels = CREW_LEVELS.filter((l) => l.billable && billable.some((p) => p.level === l.key && !p.costing.ownVan));
+  const pairedLevels = CREW_LEVELS.filter((l) => l.billable && ridesAlong.some((p) => p.level === l.key));
 
   const combos: CrewCombo[] = [];
 
@@ -331,13 +363,13 @@ export function crewCombos(
 
   if (leadLevel) {
     for (const l of pairedLevels) {
-      const r = avg(billable.filter((p) => p.level === l.key && !p.costing.ownVan));
-      if (r == null) continue;
+      const up = avgUplift(ridesAlong.filter((p) => p.level === l.key));
+      if (up == null) continue;
       combos.push({
         key: `pair-${leadLevel}-${l.key}`,
         label: `${LEVEL_LABEL[leadLevel]} + ${LEVEL_LABEL[l.key].toLowerCase()}`,
-        rate: lead!.rate + r,
-        note: `Two on site, so the crew charges more than the ${LEVEL_LABEL[leadLevel].toLowerCase()} alone. The ${LEVEL_LABEL[l.key].toLowerCase()} never goes out on their own, which is why they don't have a rate of their own above.`,
+        rate: lead!.rate + up,
+        note: `The van still bills one hour for one hour on site, so the ${LEVEL_LABEL[l.key].toLowerCase()} adds ${Math.round(up)} an hour to the crew rather than a second set of hours. That uplift is what pays for them across the year — a solo ${LEVEL_LABEL[leadLevel].toLowerCase()} does not carry them.`,
       });
     }
   }
