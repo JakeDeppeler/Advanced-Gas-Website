@@ -114,6 +114,14 @@ export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string
 
 export type CapSettings = {
   weeksYear: number; oncosts: number; margin: number;
+  /**
+   * Hours that go back out to fix our own work. They are paid for and never
+   * billed, so they come straight off what can be billed — the surest way to
+   * see what rework actually costs.
+   */
+  callbackPct?: number;
+  /** Model the fleet at a different size without changing the crew. */
+  vansOverride?: number | null;
   /** Kept so older saved settings still add up; superseded by `overheads`. */
   vehicles: number; standard: number;
   overheads?: Record<string, number>;
@@ -138,7 +146,7 @@ export type CapSettings = {
   xeroMap?: Record<string, string>;
 };
 
-export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 25, margin: 40, vehicles: 24000, standard: 60000 };
+export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 25, margin: 40, callbackPct: 0, vehicles: 24000, standard: 60000 };
 
 /**
  * The detailed overheads, seeding the two old catch-all figures into the
@@ -247,11 +255,14 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
   const travelAdminHrs = (c.travelHrsWeek + c.adminHrsWeek) * s.weeksYear;
   const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paidHrs - daysOffHrs));
-  const billHrs = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
+  // Going back to fix our own work is paid time nobody bills for.
+  const beforeCallbacks = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
+  const callbackHrs = beforeCallbacks * ((s.callbackPct ?? 0) / 100);
+  const billHrs = Math.max(0, beforeCallbacks - callbackHrs);
   return {
     paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,
     labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate, ridesCost: 0,
-    legalHrs: daysOffHrs, flexHrs: travelAdminHrs + officeHrs,
+    legalHrs: daysOffHrs, flexHrs: travelAdminHrs + officeHrs + callbackHrs,
     billable: true, chargeable: true,
   };
 }
@@ -281,7 +292,8 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const totalCost = fieldWages + sharedOverhead;
   const costPerHr = totalCost / denom;
 
-  const vanCount = per.filter((x) => x.c.chargeable).length;
+  const realVans = per.filter((x) => x.c.chargeable).length;
+  const vanCount = s.vansOverride && s.vansOverride > 0 ? s.vansOverride : realVans;
   const hrsPerVan = vanCount > 0 ? totalBillHrs / vanCount : 0;
 
   const rates = per.map(({ p, c }) => {
@@ -326,7 +338,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, hrsPerVan, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
 }
 
 
@@ -537,4 +549,15 @@ export function scaleModel(cap: ReturnType<typeof computeCapacity>, s: CapSettin
     });
   }
   return rows;
+}
+
+
+/** What each person who never bills costs to keep, and what that adds to an hour. */
+export function officeCost(cap: ReturnType<typeof computeCapacity>) {
+  const rows = cap.per
+    .filter((x) => !LEVEL_BILLABLE[x.p.level])
+    .map(({ p, c }) => ({ id: p.id, name: p.name, level: p.level, wage: p.costing.wage, cost: c.wageCost }))
+    .sort((a, b) => b.cost - a.cost);
+  const total = rows.reduce((a, r) => a + r.cost, 0);
+  return { rows, total, perHr: cap.totalBillHrs > 0 ? total / cap.totalBillHrs : 0 };
 }

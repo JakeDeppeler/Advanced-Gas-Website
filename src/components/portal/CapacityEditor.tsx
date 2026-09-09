@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
-  computeCapacity, countedElsewhere, crewCombos, defaultsFor, overheadsOf, overheadSplit, overheadTotal,
+  computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleModel, scaleOf, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
 } from "@/lib/portal/crew";
@@ -164,6 +164,8 @@ export function CapacityEditor({
   const combos = useMemo(() => crewCombos(costed, cap.rates), [costed, cap]);
   // Every person's wage bill for the year, biggest first, plus why someone's
   // hours aren't billable when they aren't.
+  const office = useMemo(() => officeCost(cap), [cap]);
+
   const crewCost = useMemo(() => {
     const rows = cap.per.map(({ p, c }) => ({
       id: p.id, name: p.name, level: p.level,
@@ -289,9 +291,24 @@ export function CapacityEditor({
             <p className="pt-panel__sub">The settings every person&rsquo;s costing is worked out against.</p>
             <div className="pt-cap__row3">
               <CapField label="Weeks / year" value={s.weeksYear} onChange={(v) => setS({ ...s, weeksYear: v })} />
-              <CapField label="On-costs (super etc.)" value={s.oncosts} onChange={(v) => setS({ ...s, oncosts: v })} post="%" />
+              <CapField label="On-costs" value={s.oncosts} onChange={(v) => setS({ ...s, oncosts: v })} post="%" />
+              <CapField label="Call-backs" value={s.callbackPct ?? 0} onChange={(v) => setS({ ...s, callbackPct: v })} post="%" />
               <CapField label="Margin" value={s.margin} onChange={(v) => setS({ ...s, margin: v })} post="%" />
             </div>
+
+            <div className="pt-note pt-note--warn">
+              <strong>On-costs is what sits on top of a wage:</strong> superannuation, workers compensation, leave loading and
+              payroll tax. At {s.oncosts}% a ${"{"}45{"}"}/hr wage costs {money2(45 * (1 + s.oncosts / 100))}. Because it is added here, those
+              same things must <strong>not</strong> also be in the business overhead — Xero lists Superannuation and Workcover
+              under Operating Expenses, so if your overhead figure includes them, take them out or you will be paying for super
+              twice and every rate will be too high.
+            </div>
+
+            <p className="pt-oh__hint" style={{ marginTop: 10 }}>
+              <strong>Call-backs</strong> are the hours that go back out to fix our own work. They are paid for and never billed,
+              so they come off what can be billed — at {s.callbackPct ?? 0}% that is {hrs(cap.util.paidHrs * ((s.callbackPct ?? 0) / 100))} a
+              year the vans are out but earning nothing.
+            </p>
           </section>
 
           {rows.length === 0 && <div className="pf-empty">No team members yet — add one below, or in Admin → Team &amp; access.</div>}
@@ -399,6 +416,36 @@ export function CapacityEditor({
               })}
             </section>
           ))}
+
+          {office.rows.length > 0 && (
+            <section className="pt-panel">
+              <div className="pt-ov__charthead">
+                <h2 className="pt-panel__h">What the office costs</h2>
+                <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
+              </div>
+              <p className="pt-panel__sub">
+                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill — <strong>{money2(office.perHr)}</strong>{" "}
+                on top of every billable hour, before a tradesman&rsquo;s own wage.
+              </p>
+              <div className="pt-oh__ledger">
+                <div className="pt-oh__group">
+                  {office.rows.map((r) => (
+                    <div key={r.id} className="pt-oh__line">
+                      <div className="pt-oh__row is-locked">
+                        <span className="pt-oh__label">{r.name}<em>{LEVEL_LABEL[r.level]} · {money2(r.wage)}/hr</em></span>
+                        <span className="pt-oh__perhr">{perHour(r.cost)}</span>
+                        <span className="pt-oh__fixed">{money(r.cost)}</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-oh__grouph" style={{ borderTop: "2px solid var(--pt-line)", borderBottom: 0, paddingTop: 10 }}>
+                    <span>All of them</span>
+                    <span>{money(office.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {costed.length > 0 && (
             <section className="pt-panel">
@@ -615,6 +662,28 @@ export function CapacityEditor({
               Spread across {hrs(cap.totalBillHrs)} of billable time.
             </p>
 
+            <div className="pt-oh__split">
+              <div>
+                <span>Fixed — same at any fleet size</span>
+                <strong>{money(split.fixed + cap.officeOh)}</strong>
+                <em>{ohTotal > 0 ? `${Math.round(((split.fixed + cap.officeOh) / ohTotal) * 100)}% of the lot` : ""}</em>
+              </div>
+              <div>
+                <span>Travels with each van</span>
+                <strong>{money(split.perVan + fleetDep)}</strong>
+                <em>{money((split.perVan + fleetDep) / Math.max(1, cap.vanCount))} a van, across {cap.vanCount}</em>
+              </div>
+              <label className="pt-oh__vans">
+                <span>Model it at</span>
+                <input type="number" min="1" max="30" value={cap.vanCount}
+                  onChange={(e) => setS({ ...s, vansOverride: parse(e.target.value) || null })} />
+                <span>vans</span>
+                {s.vansOverride ? (
+                  <button type="button" onClick={() => setS({ ...s, vansOverride: null })}>back to {cap.realVans}</button>
+                ) : null}
+              </label>
+            </div>
+
             <div className="pt-oh__totals">
               <div><span>{s.ohSource === "internal" ? "Our own figure" : "Filed from Xero"}</span><strong>{money(ohTyped)}</strong></div>
               <div><span>Wages not on a job</span><strong>{money(ohFromCrew)}</strong></div>
@@ -704,13 +773,13 @@ export function CapacityEditor({
                                   <em>{accs.length} from Xero</em>
                                 </button>
                               ) : f.label}
+                              <button
+                                type="button"
+                                className={`pt-oh__scale is-${scaleOf(s, f.key)}`}
+                                title="Does this grow when another van goes on the road?"
+                                onClick={() => setScale(f.key, scaleOf(s, f.key) === "fixed" ? "perVan" : "fixed")}
+                              >{scaleOf(s, f.key) === "perVan" ? "per van" : "fixed"}</button>
                             </span>
-                            <button
-                              type="button"
-                              className={`pt-oh__scale is-${scaleOf(s, f.key)}`}
-                              title="Does this grow when another van goes on the road?"
-                              onClick={() => setScale(f.key, scaleOf(s, f.key) === "fixed" ? "perVan" : "fixed")}
-                            >{scaleOf(s, f.key) === "perVan" ? "Per van" : "Fixed"}</button>
                             <span className="pt-oh__perhr">{perHour(Number(oh[f.key]) || 0)}</span>
                             <span className="pt-oh__amt">
                               <span>$</span>
