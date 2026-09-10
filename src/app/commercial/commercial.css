@@ -31,7 +31,6 @@
 .comm-how__list h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; color: var(--comm-ink); }
 .comm-how__list p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; max-width: 74ch; }
 
-.comm-scope__reach { margin: 26px 0 0; font-size: 14.5px; line-height: 1.6; color: #67718d; max-width: 72ch; }
 
 .comm-cta { padding: 64px 0; }
 .comm-cta__inner { max-width: 760px; }
@@ -63,16 +62,6 @@
 .comm-hero--sub { padding: 44px 0 40px; }
 .comm-back { display: inline-block; margin-bottom: 14px; font-size: 13.5px; font-weight: 700; color: #67718d; text-decoration: none; }
 .comm-back:hover { color: var(--comm-ink); }
-
-/* ---- Welcome-page doors ---- */
-.comm-doors { padding: 40px 0 8px; }
-.comm-doors__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
-.commdoor { display: flex; flex-direction: column; gap: 7px; padding: 24px 24px 20px; border: 1px solid #e2e8f4; border-radius: 16px; background: #fff; text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
-.commdoor:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 20px 40px -28px rgba(14, 27, 77, 0.5); }
-.commdoor h2 { margin: 0; font-size: 20px; letter-spacing: -0.01em; color: var(--comm-ink); }
-.commdoor p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #4a5468; flex: 1 1 auto; }
-.commdoor__go { margin-top: 6px; font-size: 14px; font-weight: 700; color: var(--comm-ink); }
-.commdoor:hover .commdoor__go { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---- Scopes ---- */
 .comm-scopes { display: flex; flex-direction: column; gap: 2px; }
@@ -127,72 +116,32 @@
 .commlogo strong { font-family: var(--f-display, inherit); font-size: 16px; letter-spacing: -0.01em; color: var(--comm-ink); }
 .commlogo span { font-size: 12px; color: #8791ab; }
 
-.comm-scopegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 28px; }
-.commtile { display: flex; flex-direction: column; gap: 7px; padding: 24px 24px 20px; border: 1px solid #e2e8f4; border-radius: 16px; background: #fff; text-decoration: none; color: inherit; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
-.commtile:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 20px 40px -28px rgba(14,27,77,0.5); }
-.commtile__n { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #b9c2d8; font-variant-numeric: tabular-nums; }
-.commtile h3 { margin: 0; font-size: 19px; line-height: 1.25; letter-spacing: -0.01em; color: var(--comm-ink); }
-.commtile p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #4a5468; flex: 1 1 auto; }
-.commtile__suits { margin-top: 6px; font-size: 12px; font-weight: 600; color: #8791ab; }
-.commtile--dark { background: var(--comm-ink); border-color: var(--comm-ink); }
-.commtile--dark h3 { color: #fff; }
-.commtile--dark p { color: #c6cce6; }
-.commtile--dark .commtile__n, .commtile--dark .commtile__suits { color: #9aa4cf; }
-
-
-
 /* ---- Capability strip ---- */
-/* Runs straight off the bottom of the hero, so it stays on the hero's dark
-   ground rather than starting a new band. The track holds two identical rows
-   and shifts exactly half its own width, which puts the second row where the
-   first began — a seamless loop with no JS and no measuring. */
+/* Where the homepage runs its brand chips. Runs straight off the bottom of the
+   hero so it stays on the hero's dark ground rather than starting a new band.
+   The track holds two identical rows and shifts exactly half its own width,
+   which puts the second row where the first began — a seamless loop with no JS
+   and no measuring. */
 .comm-marquee {
   position: relative;
   padding: 16px 0;
   background: var(--comm-ink);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-block: 1px solid rgba(255, 255, 255, 0.14);
   overflow: hidden;
   /* Fades the words out at both edges instead of clipping them mid-letter. */
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
-.comm-marquee__track {
-  display: flex;
-  width: max-content;
-  animation: comm-marquee 58s linear infinite;
-}
+.comm-marquee__track { display: flex; width: max-content; animation: comm-marquee 58s linear infinite; }
 .comm-marquee:hover .comm-marquee__track,
 .comm-marquee:focus-within .comm-marquee__track { animation-play-state: paused; }
-.comm-marquee__row {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+.comm-marquee__row { display: flex; align-items: center; flex: 0 0 auto; list-style: none; margin: 0; padding: 0; }
 .comm-marquee__item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding-right: 14px;
-  white-space: nowrap;
-  font-size: 13.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #d5daf0;
+  display: flex; align-items: center; gap: 14px; padding-right: 14px;
+  white-space: nowrap; font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; color: #d5daf0;
 }
-.comm-marquee__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--orange, #c9781a);
-  opacity: 0.85;
-}
-@keyframes comm-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+.comm-marquee__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange, #c9781a); opacity: 0.85; }
+@keyframes comm-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 /* Motion off: park it and let the reader scroll the row themselves. */
 @media (prefers-reduced-motion: reduce) {
   .comm-marquee { overflow-x: auto; }
@@ -200,23 +149,132 @@
   .comm-marquee__row[aria-hidden="true"] { display: none; }
 }
 
+/* ---- Scope panel ---- */
+/* The homepage's orange quote box, in navy. Orange is the homeowner's
+   "get a price" button; this is the same slot, but the reader is filing an
+   enquiry rather than being sold to, so the panel is evidence-coloured and the
+   orange is spent on the one button that submits. */
+.page-home.page-comm .scopesec { padding: 64px 0; background: var(--bg-2, #f6f8fc); }
+.scopesec__box { background: var(--comm-ink); border-radius: 24px; padding: 40px; }
+.scopesec__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 44px; align-items: stretch; }
+/* The form sets the panel height. Pinning the credentials line to the bottom
+   of the left column closes the box off instead of leaving a hole under it. */
+.scopesec__left { display: flex; flex-direction: column; }
+.scopesec__left h2 { margin: 12px 0 0; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; letter-spacing: -0.02em; }
+.scopesec__lede { margin: 14px 0 0; font-size: 16.5px; line-height: 1.65; color: #c6cce6; max-width: 46ch; }
+.scopesec__points { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 11px; }
+.scopesec__points li { display: flex; gap: 11px; font-size: 15px; line-height: 1.5; color: #dfe3f4; }
+.scopesec .tick { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.scopesec__finep {
+  margin: 24px 0 0; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.16);
+  margin-top: auto;
+  font-family: var(--f-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.7; color: #9aa4cf;
+}
+
+/* ---- Scope form ---- */
+.scopeform { background: #fff; border-radius: 18px; padding: 26px 26px 24px; display: grid; gap: 14px; }
+.scopeform__h { margin: 0; font-size: 22px; letter-spacing: -0.015em; color: var(--comm-ink); }
+.scopeform__sub { margin: -6px 0 4px; font-size: 14.5px; line-height: 1.55; color: #4a5468; }
+.scopeform__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.scopeform label { display: grid; gap: 6px; min-width: 0; }
+.scopeform label > span { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8791ab; }
+.scopeform input,
+.scopeform select,
+.scopeform textarea {
+  width: 100%; padding: 11px 13px; font: inherit; font-size: 15px; color: var(--comm-ink);
+  background: #fff; border: 1px solid #dbe2f0; border-radius: 10px;
+}
+.scopeform textarea { resize: vertical; line-height: 1.55; }
+.scopeform input:focus,
+.scopeform select:focus,
+.scopeform textarea:focus { outline: 2px solid var(--orange, #c9781a); outline-offset: 1px; border-color: transparent; }
+.scopeform__go { justify-self: start; margin-top: 4px; }
+.scopeform__go[disabled] { opacity: 0.6; cursor: progress; }
+.scopeform__fine { margin: 0; font-size: 12.5px; color: #8791ab; }
+.scopeform__err { margin: 0; font-size: 14px; line-height: 1.5; color: #b23b2e; }
+.scopeform--done { text-align: left; padding: 40px 30px; align-content: center; }
+.scopeform__tick {
+  display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px;
+  border-radius: 50%; background: #e8f4ec; color: #2f7d51; font-size: 20px; font-weight: 800;
+}
+.scopeform--done h3 { margin: 0; font-size: 23px; letter-spacing: -0.015em; color: var(--comm-ink); }
+.scopeform--done p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; }
+
+/* ---- What we take on — the bento ---- */
+/* One feature card carrying the only genuinely commercial photograph we have,
+   then five equal ones. Photos are deliberately not faked onto the rest: a
+   roof-space shot of residential flexible duct on a commercial page undoes
+   exactly what the page is trying to establish. */
+.comm-bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
+.combento {
+  display: flex; flex-direction: column; overflow: hidden;
+  border: 1px solid #e2e8f4; border-radius: 18px; background: #fff;
+  text-decoration: none; color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.combento:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 24px 46px -30px rgba(14, 27, 77, 0.55); }
+.combento--xl { grid-row: span 2; grid-column: span 1; }
+.combento__photo {
+  min-height: 210px; flex: 1 1 auto;
+  background: url("/commercial-v3.webp") center 42% / cover no-repeat;
+}
+.combento__body { display: flex; flex-direction: column; gap: 7px; padding: 22px 22px 20px; }
+.combento__n { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #b9c2d8; font-variant-numeric: tabular-nums; }
+.combento h3 { margin: 0; font-size: 19px; line-height: 1.25; letter-spacing: -0.015em; color: var(--comm-ink); }
+.combento p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #4a5468; }
+.combento__list { margin: 4px 0 0; padding-left: 17px; display: grid; gap: 5px; }
+.combento__list li { font-size: 13.5px; line-height: 1.5; color: #5a6478; }
+.combento__suits { margin-top: auto; padding-top: 10px; font-size: 12px; font-weight: 600; color: #8791ab; }
+.combento--urgent { border-color: #f0d3ce; background: #fffaf9; }
+.combento--urgent .combento__n { color: #d09a90; }
+.combento--dark { grid-column: 1 / -1; background: var(--comm-ink); border-color: var(--comm-ink); }
+.combento--dark h3 { color: #fff; }
+.combento--dark p { color: #c6cce6; max-width: 62ch; }
+.combento--dark .combento__n { color: #9aa4cf; }
+.combento__body--wide {
+  flex-direction: row; align-items: center; justify-content: space-between;
+  gap: 26px; padding: 26px 26px 24px;
+}
+.combento__go { flex: 0 0 auto; font-size: 14.5px; font-weight: 700; color: #fff; }
+.combento--dark:hover .combento__go { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Why we get asked back ---- */
+.page-home.page-comm .comm-std { padding: 90px 0; background: var(--bg-2, #f6f8fc); border-block: 1px solid #e2e8f4; }
+.comm-std__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 34px 40px; margin-top: 34px; }
+.commstd__n { font-family: var(--f-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--orange, #c9781a); letter-spacing: 0.06em; margin-bottom: 8px; }
+.commstd h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.015em; color: var(--comm-ink); }
+.commstd p { margin: 0; font-size: 15px; line-height: 1.7; color: #4a5468; }
+
 /* ---- How we work ---- */
-.comm-flow { padding: 60px 0; background: #f6f8fc; border-top: 1px solid #e2e8f4; border-bottom: 1px solid #e2e8f4; }
-.comm-flow__list { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 0; }
-.comm-flow__list li { display: flex; gap: 20px; padding: 24px 0; border-top: 1px solid #dfe6f2; }
-.comm-flow__list li:last-child { border-bottom: 1px solid #dfe6f2; }
-.comm-flow__n { flex: 0 0 auto; font-size: 13px; font-weight: 800; color: #b9c2d8; font-variant-numeric: tabular-nums; padding-top: 4px; }
-.comm-flow__list h3 { margin: 0 0 7px; font-size: 19px; letter-spacing: -0.015em; color: var(--comm-ink); }
-.comm-flow__list p { margin: 0; font-size: 15.5px; line-height: 1.7; color: #4a5468; max-width: 76ch; }
+/* The dark band, where the homepage runs "how it works". Full-width rows
+   rather than the homepage's card row: these steps carry a paragraph each,
+   and a paragraph in a card becomes a wall. */
+.comm-flow { padding: 90px 0; background: var(--comm-ink); }
+.comm-flow__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
+.comm-flow__list { list-style: none; margin: 34px 0 0; padding: 0; display: grid; gap: 0; }
+.comm-flow__list li { display: flex; gap: 22px; padding: 24px 0; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.comm-flow__list li:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
+.comm-flow__n { flex: 0 0 auto; font-family: var(--f-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--orange, #c9781a); padding-top: 5px; }
+.comm-flow__list h3 { margin: 0 0 7px; font-size: 19px; letter-spacing: -0.015em; color: #fff; }
+.comm-flow__list p { margin: 0; font-size: 15.5px; line-height: 1.7; color: #c6cce6; max-width: 76ch; }
 
-/* ---- The standard ---- */
-.comm-std { padding: 60px 0; background: var(--comm-ink); }
-.comm-std .ds-section-head p { color: #c6cce6; }
-.comm-std__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 28px 34px; margin-top: 30px; }
-.comm-std__grid h3 { margin: 0 0 8px; font-size: 17.5px; letter-spacing: -0.01em; color: #fff; }
-.comm-std__grid p { margin: 0; font-size: 15px; line-height: 1.7; color: #c6cce6; }
-.comm-std__close { margin: 34px 0 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.16); font-size: 17px; line-height: 1.6; color: #fff; max-width: 68ch; }
+.comm-area__note { margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #67718d; max-width: 50ch; }
 
+@media (max-width: 1000px) {
+  .comm-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .combento--xl { grid-row: auto; grid-column: span 2; }
+  .combento--xl .combento__photo { min-height: 240px; }
+  .scopesec__grid { grid-template-columns: 1fr; gap: 30px; }
+}
 @media (max-width: 640px) {
+  .page-home.page-comm .scopesec { padding: 44px 0; }
+  .scopesec__box { padding: 24px 20px; border-radius: 18px; }
+  .comm-bento { grid-template-columns: 1fr; }
+  .combento--xl { grid-column: auto; }
+  .combento__body--wide { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .scopeform { padding: 20px 18px; }
+  .scopeform__row { grid-template-columns: 1fr; }
+  .comm-flow { padding: 56px 0; }
   .comm-flow__list li { flex-direction: column; gap: 8px; }
+  .page-home.page-comm .comm-std { padding: 56px 0; }
 }

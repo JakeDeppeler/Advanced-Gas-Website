@@ -1,9 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
+import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
-import { COMM_SCOPES, COMM_CLIENTS, COMM_CAPABILITIES, COMM_PROCESS } from "@/lib/commercial";
+import { faqSchema } from "@/lib/schema";
+import {
+  COMM_SCOPES, COMM_CLIENTS, COMM_CAPABILITIES, COMM_PROCESS,
+  COMM_DOORS, COMM_STANDARD, COMM_FAQS,
+} from "@/lib/commercial";
+import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import "../home.css";
 import "./commercial.css";
+
+// Same treatment as the homepage: the map is below several full sections on
+// every viewport, so its Leaflet chunk and 15KB of CSS stay off the first paint.
+const ServiceAreaMap = dynamic(
+  () => import("@/components/ServiceAreaMap").then((m) => m.ServiceAreaMap),
+  { ssr: false, loading: () => <div className="map__leaflet" aria-hidden="true" /> }
+);
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical Services — Melbourne & Gippsland",
@@ -13,42 +27,21 @@ export const metadata: Metadata = {
 };
 
 /**
- * The commercial front page, built to the same rhythm as the residential one so
- * it reads as the same company — but every section answers a different fear.
- * A homeowner is deciding whether to trust a stranger in their house. A PM is
- * deciding whether letting us on site will make work for them.
+ * The commercial front page, built to the homepage's layout beat for beat so
+ * both sides read as one company: hero, four doors, a trust strip, the enquiry
+ * panel, the work, the standard, the process, where we work, questions, close.
  *
- * The order is deliberate and matches how that decision actually gets made:
- * what we can do (the capability strip, scanned in two seconds) → what we take
- * on → how a job runs from plans to handover → who has already let us on site
- * → the standard we hold it all to. Proof sits after the process, not before,
- * because a logo only means something once you know what we did with it.
+ * What changes is what each band is *for*. A homeowner is deciding whether to
+ * trust a stranger in their house, so the residential page answers with a face,
+ * a rebate and a review. A PM is deciding whether letting us on site will make
+ * work for them, so the same slots carry insurances, a written scope, paperwork
+ * turnaround and the names of people who have already had us through the gate.
  */
-
-const STANDARD = [
-  {
-    h: "Directly employed crews",
-    p: "Our own installers and apprentices — not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did, because it is the same crew.",
-  },
-  {
-    h: "The standard is written down",
-    p: "Twenty procedures covering how a van is stocked, what gets photographed, what gets certified and what happens when something goes wrong. It is not folklore held by whoever has been here longest. Ask to see it.",
-  },
-  {
-    h: "Documented on the day",
-    p: "Photos, forms and notes completed on site, not reconstructed on Friday afternoon. Compliance certificates on completion. If it is not recorded, it is not finished.",
-  },
-  {
-    h: "We will tell you no",
-    p: "If a scope needs something we are not set up to do properly, we say so while you can still do something about it. That is cheaper for both of us than finding out at the halfway mark.",
-  },
-];
 
 export default function CommercialPage() {
   return (
     // page-home is the marketing-page layout scope, not the homepage itself —
-    // the hero and the section rhythm hang off it. Opting in is what makes this
-    // read as the same company rather than a bolted-on section.
+    // the hero and the section rhythm hang off it.
     <div className="page-home page-comm">
       {/* HERO */}
       <section className="hero hero--split comm-top">
@@ -65,7 +58,7 @@ export default function CommercialPage() {
             </p>
 
             <div className="hero__ctas" data-hide-sticky-cta>
-              <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</Link>
+              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</a>
               <Link href="/commercial/capability" className="ds-btn ds-btn--ghost ds-btn--lg">Capability statement</Link>
             </div>
 
@@ -91,7 +84,29 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* CAPABILITY STRIP — the vocabulary check, running under the hero.
+      {/* START HERE — four doors, the commercial half of the homepage fork. */}
+      <section className="ds-section route">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow">Start here</span>
+            <h2>What&rsquo;s the job?</h2>
+          </div>
+          <div className="routebtns">
+            {COMM_DOORS.map((d) => (
+              <Link key={d.href} href={d.href} className="routebtn">
+                <span>{d.label}</span>
+                <span className="routebtn__go" aria-hidden="true">&rarr;</span>
+              </Link>
+            ))}
+          </div>
+          <p className="route__urgent">
+            Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; after hours goes
+            to someone on the tools.
+          </p>
+        </div>
+      </section>
+
+      {/* CAPABILITY STRIP — where the homepage runs its brand chips.
           Two identical rows inside one track: the animation shifts it exactly
           half its width, so the second row lands where the first started and
           the loop has no seam. aria-hidden on the duplicate keeps a screen
@@ -111,43 +126,133 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* WHAT WE TAKE ON */}
-      <section className="ds-section">
+      {/* SCOPE PANEL — the homepage's orange quote box, in navy. */}
+      <section className="scopesec" id="scope">
+        <div className="wrap">
+          <div className="scopesec__box">
+            <div className="scopesec__grid">
+              <div className="scopesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
+                <h2 className="ds-h--on-dark">Send it over and we&rsquo;ll price it.</h2>
+                <p className="scopesec__lede">
+                  We read the drawings before we quote. If something is missing or doesn&rsquo;t add up, we come back and
+                  ask rather than pricing around it and arguing about it later.
+                </p>
+                <ul className="scopesec__points">
+                  <li><span className="tick">✓</span> One price against one written scope</li>
+                  <li><span className="tick">✓</span> Exclusions stated, not buried</li>
+                  <li><span className="tick">✓</span> Variations approved before the work, not with the invoice</li>
+                  <li><span className="tick">✓</span> Paperwork back before anyone turns up</li>
+                </ul>
+                <p className="scopesec__finep">
+                  {site.licences.refrigeration} · {site.licences.plumbing} ·
+                  ABN {site.abn.replace(/ /g, " ")} · $20M public liability ·
+                  SWMS &amp; certificates of currency on request
+                </p>
+              </div>
+              <CommercialScopeForm />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT WE TAKE ON — the homepage's services bento. */}
+      <section className="ds-section" id="scopes">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow">What we take on</span>
-            <h2>Five packages, done properly.</h2>
+            <span className="ds-eyebrow"><span className="ds-dot" /> What we take on</span>
+            <h2>Five packages, carried end to end.</h2>
             <p>
               We&rsquo;re a specialist mechanical, gas and hot water contractor — not a builder. These are the packages
-              we&rsquo;re set up to carry end to end, and the only ones we&rsquo;ll quote.
+              we&rsquo;re set up to own from drawings to handover, and the only ones we&rsquo;ll quote.
             </p>
           </div>
-          <div className="comm-scopegrid">
-            {COMM_SCOPES.map((sc) => (
-              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="commtile">
-                <span className="commtile__n">{sc.n}</span>
-                <h3>{sc.title}</h3>
-                <p>{sc.lede}</p>
-                <span className="commtile__suits">{sc.suits}</span>
+          <div className="comm-bento">
+            {COMM_SCOPES.map((sc, i) => (
+              <Link
+                key={sc.slug}
+                href={`/commercial/services#${sc.slug}`}
+                className={`combento ${i === 0 ? "combento--xl" : ""} ${sc.slug === "breakdowns" ? "combento--urgent" : ""}`}
+              >
+                {i === 0 && <div className="combento__photo" aria-hidden="true" />}
+                <div className="combento__body">
+                  <span className="combento__n">{sc.n}</span>
+                  <h3>{sc.title}</h3>
+                  <p>{sc.lede}</p>
+                  <ul className="combento__list">
+                    {sc.detail.slice(0, i === 0 ? 4 : 2).map((d) => <li key={d}>{d}</li>)}
+                  </ul>
+                  <span className="combento__suits">{sc.suits}</span>
+                </div>
               </Link>
             ))}
-            <Link href="/commercial/capability" className="commtile commtile--dark">
-              <span className="commtile__n">—</span>
-              <h3>Capability statement</h3>
-              <p>ABN, licences, insurances, safety systems, capacity and past projects, on one page.</p>
-              <span className="commtile__suits">Everything procurement asks for</span>
+            {/* Spans the full width so the bento closes flush rather than
+                leaving two empty cells, and because this is the one tile
+                procurement actually goes looking for. */}
+            <Link href="/commercial/capability" className="combento combento--dark">
+              <div className="combento__body combento__body--wide">
+                <div>
+                  <span className="combento__n">—</span>
+                  <h3>Capability statement</h3>
+                  <p>ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.</p>
+                </div>
+                <span className="combento__go">Everything procurement asks for &rarr;</span>
+              </div>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* HOW WE WORK — plans in, handover out */}
+      {/* THE WORK — where the homepage puts reviews. A facility manager doesn't
+          want five stars from a household; they want the name of somebody with
+          a procurement process who already let us on site. */}
+      <section className="comm-work">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Some of the work</span>
+            <h2>Sites we&rsquo;ve been trusted with.</h2>
+            <p>
+              Brands with a procurement process and an auditor don&rsquo;t hand the mechanical package to whoever answers
+              first. These are the ones that have put us on site.
+            </p>
+          </div>
+          <div className="comm-logos">
+            {COMM_CLIENTS.map((c) => (
+              <div key={c.name} className="commlogo">
+                <strong>{c.name}</strong>
+                <span>{c.what}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* THE STANDARD — the homepage's "why us" grid. */}
+      <section className="comm-std">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
+            <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
+          </div>
+          <div className="comm-std__grid">
+            {COMM_STANDARD.map((s) => (
+              <div key={s.n} className="commstd">
+                <div className="commstd__n">/{s.n}</div>
+                <h3>{s.h}</h3>
+                <p>{s.p}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW WE WORK — the homepage's process band. */}
       <section className="comm-flow">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow">How we work</span>
-            <h2>From your plans to a proper handover.</h2>
-            <p>
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
+            <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
+            <p className="comm-flow__lede">
               Most of what goes wrong on a mechanical package goes wrong before anyone picks up a tool — a scope two
               people read differently. So we build the scope with you, in writing, and price against that.
             </p>
@@ -166,68 +271,91 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* PROOF — who has already let us on site */}
-      <section className="comm-work">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow">Some of the work</span>
-            <h2>Sites we&rsquo;ve been trusted with.</h2>
+      {/* WHERE WE WORK */}
+      <section className="area" id="area">
+        <div className="wrap area__grid">
+          <div className="area__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
+            <h2>Based in Pakenham. On site across the south-east.</h2>
             <p>
-              Brands with a procurement process and an auditor don&rsquo;t hand the mechanical package to whoever answers
-              first. These are the ones that have put us on site.
+              The standard service area is 75&nbsp;km, which covers Melbourne&rsquo;s south-east and most of West
+              Gippsland with no travel loading.
             </p>
+            <p className="comm-area__note">
+              We travel further for rollout and contract work — the Westpac branch was in Sale, and the multi-site
+              contracts run wider than the circle. If your sites are spread across the state, ask rather than assuming
+              we&rsquo;re out of range.
+            </p>
+            <a href="#scope" className="ds-btn ds-btn--navy">Send us a scope →</a>
           </div>
-          <div className="comm-logos">
-            {COMM_CLIENTS.map((c) => (
-              <div key={c.name} className="commlogo">
-                <strong>{c.name}</strong>
-                <span>{c.what}</span>
+          <div className="area__right">
+            <div className="map map--live" aria-label="Service area map, 75 km radius from Pakenham 3810">
+              <ServiceAreaMap />
+              <div className="map__badge">
+                <span className="map__badge-eye">Standard radius</span>
+                <span className="map__badge-num">75&nbsp;km</span>
+                <span className="map__badge-note">Further for rollout &amp; contract work</span>
               </div>
-            ))}
+            </div>
           </div>
-          <p className="comm-scope__reach">
-            Based at {site.address.street}, {site.address.suburb}. Standard service area is 75&nbsp;km, and we travel
-            further for rollout and contract work — the Westpac branch was in Sale.
-          </p>
         </div>
       </section>
 
-      {/* THE STANDARD — what all of the above is held to */}
-      <section className="comm-std">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark">Our standard</span>
-            <h2 className="ds-h--on-dark">Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
+      {/* QUESTIONS — the ones that decide whether we get on site. */}
+      <section className="faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Before you put us on a site</span>
+            <h2>Insurances, program, variations and the paperwork.</h2>
+            <p>
+              The questions that actually arrive before a first job. Want the lot on one page?{" "}
+              <Link href="/commercial/capability">Read the capability statement</Link>.
+            </p>
           </div>
-          <div className="comm-std__grid">
-            {STANDARD.map((s) => (
-              <div key={s.h}>
-                <h3>{s.h}</h3>
-                <p>{s.p}</p>
-              </div>
+          <div className="faq__right">
+            {COMM_FAQS.map((f, i) => (
+              <details key={f.q} name="commfaq" {...(i === 0 ? { open: true } : {})}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
             ))}
           </div>
-          <p className="comm-std__close">
-            A bank branch, a vet clinic and a heater changeover in someone&rsquo;s house get the same crew, the same
-            procedures and the same paperwork. That is the whole idea.
-          </p>
         </div>
       </section>
 
       {/* CLOSE */}
-      <section className="comm-cta">
-        <div className="wrap comm-cta__inner">
-          <h2>Send us the scope and we&rsquo;ll price it.</h2>
-          <p>
-            Drawings, a schedule or a site address is enough to start. If you need certificates of currency, SWMS or
-            induction paperwork first, ask and they&rsquo;ll come back the same day.
-          </p>
-          <div className="comm-cta__btns">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</Link>
-            <a href={`tel:${site.phoneE164}`} className="comm-cta__phone">or call <strong>{site.phone}</strong></a>
+      <section className="bigcta bigcta--photo" data-hide-sticky-cta>
+        <div className="wrap bigcta__row">
+          <figure className="bigcta__photo">
+            <img
+              src="/commercial-v3.webp"
+              alt="Packaged rooftop plant being craned into position on a commercial site"
+              width="900"
+              height="675"
+              loading="lazy"
+            />
+          </figure>
+          <div className="bigcta__copy">
+            <h2>Send us the scope and we&rsquo;ll price it.</h2>
+            <p>
+              Drawings, a schedule or a site address is enough to start. If you need certificates of currency, SWMS or
+              induction paperwork first, ask and they&rsquo;ll come back the same day.
+            </p>
+            <div className="bigcta__btns">
+              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</a>
+              <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
+                or call <strong>{site.phone}</strong>
+              </a>
+            </div>
           </div>
         </div>
       </section>
+
+      <Script
+        id="ld-commercial-faq"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema(COMM_FAQS)) }}
+      />
     </div>
   );
 }
