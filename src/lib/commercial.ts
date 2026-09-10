@@ -38,7 +38,7 @@ export const COMM_SCOPES: CommScope[] = [
   {
     slug: "plant-replacement",
     n: "02",
-    title: "Plant replacement on live sites",
+    title: "System replacement on live sites",
     lede: "Swapping end-of-life plant on a building that cannot stop.",
     detail: [
       "Out-of-hours and staged changeovers",
@@ -181,7 +181,7 @@ export const COMM_CAPABILITIES = [
   "Split & multi-head",
   "Controls & zoning",
   "Refrigerant handling — ARC",
-  "Plant replacement",
+  "System replacement",
   "Commissioning & handover",
   "Preventative maintenance",
   "Breakdown response",
@@ -230,7 +230,7 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
  */
 export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
   { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy" },
-  { href: "/commercial/services#plant-replacement", label: "Plant replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky" },
+  { href: "/commercial/services#plant-replacement", label: "System replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky" },
   { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink" },
   { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange" },
 ];

@@ -18,7 +18,7 @@
 .page-home.page-comm .hero__photo { aspect-ratio: 4 / 3; }
 .page-home.page-comm .hero__photo img { object-position: center 45%; }
 
-.comm-work { padding: 60px 0; }
+.comm-work { padding: 90px 0; }
 
 
 .comm-how { padding: 60px 0; }
@@ -106,51 +106,6 @@
    it reads as one company, then answers a different set of fears in each band. */
 
 
-/* Flex rather than grid: the roster is ten names, which never divides evenly
-   into the column count, and empty grid cells leave hairline-bordered gaps
-   that read as missing logos. Flex lets the last row stretch to fill. */
-.comm-logos { display: flex; flex-wrap: wrap; gap: 1px; margin-top: 28px; background: #e2e8f4; border: 1px solid #e2e8f4; border-radius: 14px; overflow: hidden; }
-.commlogo { flex: 1 1 200px; display: flex; flex-direction: column; gap: 3px; padding: 18px 20px; background: #fff; }
-.commlogo strong { font-family: var(--f-display, inherit); font-size: 16px; letter-spacing: -0.01em; color: var(--comm-ink); }
-.commlogo span { font-size: 12px; color: #8791ab; }
-
-/* The lifted panel lands almost on top of the capability strip, which has only
-   16px of its own padding. Give it room so the strip reads as the next thing
-   rather than the panel's own bottom border. */
-.page-comm .route { padding-bottom: 40px; }
-
-/* ---- Capability strip ---- */
-/* Where the homepage runs its brand chips. Runs straight off the bottom of the
-   hero so it stays on the hero's dark ground rather than starting a new band.
-   The track holds two identical rows and shifts exactly half its own width,
-   which puts the second row where the first began — a seamless loop with no JS
-   and no measuring. */
-.comm-marquee {
-  position: relative;
-  padding: 16px 0;
-  background: var(--comm-ink);
-  border-block: 1px solid rgba(255, 255, 255, 0.14);
-  overflow: hidden;
-  /* Fades the words out at both edges instead of clipping them mid-letter. */
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-}
-.comm-marquee__track { display: flex; width: max-content; animation: comm-marquee 58s linear infinite; }
-.comm-marquee:hover .comm-marquee__track,
-.comm-marquee:focus-within .comm-marquee__track { animation-play-state: paused; }
-.comm-marquee__row { display: flex; align-items: center; flex: 0 0 auto; list-style: none; margin: 0; padding: 0; }
-.comm-marquee__item {
-  display: flex; align-items: center; gap: 14px; padding-right: 14px;
-  white-space: nowrap; font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em; color: #d5daf0;
-}
-.comm-marquee__dot { width: 5px; height: 5px; border-radius: 50%; background: var(--orange, #c9781a); opacity: 0.85; }
-@keyframes comm-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-/* Motion off: park it and let the reader scroll the row themselves. */
-@media (prefers-reduced-motion: reduce) {
-  .comm-marquee { overflow-x: auto; }
-  .comm-marquee__track { animation: none; }
-  .comm-marquee__row[aria-hidden="true"] { display: none; }
-}
 
 /* ---- Scope panel ---- */
 /* The homepage's orange quote box, in navy. Orange is the homeowner's
@@ -264,7 +219,7 @@
    would read as a toy, four steps of one colour reads as a system. */
 .combento__block {
   display: flex; align-items: flex-end;
-  min-height: 132px; padding: 0 22px 16px;
+  min-height: 172px; padding: 0 22px 16px;
   border-bottom: 2px solid var(--orange, #f36722);
 }
 .combento__block span {
@@ -281,7 +236,7 @@
     linear-gradient(180deg, rgba(5, 10, 48, 0.1) 40%, rgba(5, 10, 48, 0.72) 100%),
     url("/commercial-v3.webp") center 42% / cover no-repeat;
 }
-.combento--xl .combento__block { flex: 1 1 auto; min-height: 240px; }
+.combento--xl .combento__block { flex: 1 1 auto; min-height: 300px; }
 .combento--xl .combento__body { flex: 0 0 auto; }
 .combento__block--fit-outs span { color: rgba(255, 255, 255, 0.92); }
 /* Photographs where we have one that holds up on a commercial page, with a
@@ -305,7 +260,7 @@
 .combento__block--gas {
   background:
     linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
-    url("/gas-line.webp") 46% 76% / 210% no-repeat;
+    url("/gas-line.webp") 40% 44% / 175% no-repeat;
 }
 .combento__block--plant-replacement span,
 .combento__block--maintenance span,
@@ -325,36 +280,17 @@
   font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #8791ab;
 }
 .combento--urgent { border-color: #ecd9cd; background: #fffaf7; }
-.combento--dark { grid-column: 1 / -1; background: var(--comm-ink); border-color: var(--comm-ink); }
-.combento--dark h3 { color: #fff; }
-.combento--dark p { color: #c6cce6; max-width: 62ch; }
-.combento--dark .combento__n { color: #9aa4cf; }
+.combento--cap { grid-column: 1 / -1; background: var(--orange, #f36722); border-color: var(--orange, #f36722); }
+.combento--cap h3 { color: #fff; }
+.combento--cap p { color: rgba(255, 255, 255, 0.9); max-width: 62ch; }
+.combento--cap .combento__n { color: rgba(255, 255, 255, 0.7); }
+.combento--cap:hover { border-color: #fff; }
 .combento__body--wide {
   flex-direction: row; align-items: center; justify-content: space-between;
   gap: 26px; padding: 26px 26px 24px;
 }
 .combento__go { flex: 0 0 auto; font-size: 14.5px; font-weight: 700; color: #fff; }
-.combento--dark:hover .combento__go { text-decoration: underline; text-underline-offset: 3px; }
-
-/* ---- Why we get asked back ---- */
-.page-home.page-comm .comm-std { padding: 90px 0; background: var(--bg-2, #f6f8fc); border-block: 1px solid #e2e8f4; }
-.comm-std__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 34px 40px; margin-top: 34px; }
-.commstd__n { font-family: var(--f-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--orange, #c9781a); letter-spacing: 0.06em; margin-bottom: 8px; }
-.commstd h3 { margin: 0 0 8px; font-size: 18px; letter-spacing: -0.015em; color: var(--comm-ink); }
-.commstd p { margin: 0; font-size: 15px; line-height: 1.7; color: #4a5468; }
-
-/* ---- How we work ---- */
-/* The dark band, where the homepage runs "how it works". Full-width rows
-   rather than the homepage's card row: these steps carry a paragraph each,
-   and a paragraph in a card becomes a wall. */
-.comm-flow { padding: 90px 0; background: var(--comm-ink); }
-.comm-flow__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
-.comm-flow__list { list-style: none; margin: 34px 0 0; padding: 0; display: grid; gap: 0; }
-.comm-flow__list li { display: flex; gap: 22px; padding: 24px 0; border-top: 1px solid rgba(255, 255, 255, 0.16); }
-.comm-flow__list li:last-child { border-bottom: 1px solid rgba(255, 255, 255, 0.16); }
-.comm-flow__n { flex: 0 0 auto; font-family: var(--f-mono, ui-monospace, monospace); font-size: 12px; font-weight: 700; color: var(--orange, #c9781a); padding-top: 5px; }
-.comm-flow__list h3 { margin: 0 0 7px; font-size: 19px; letter-spacing: -0.015em; color: #fff; }
-.comm-flow__list p { margin: 0; font-size: 15.5px; line-height: 1.7; color: #c6cce6; max-width: 76ch; }
+.combento--cap:hover .combento__go { text-decoration: underline; text-underline-offset: 3px; }
 
 .comm-area__note { margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #67718d; max-width: 50ch; }
 
@@ -373,17 +309,7 @@
   .scopeform { padding: 20px 18px; }
   .scopeform__row { grid-template-columns: 1fr; }
   .comm-flow { padding: 56px 0; }
-  .comm-flow__list li { flex-direction: column; gap: 8px; }
-  .page-home.page-comm .comm-std { padding: 56px 0; }
-}
-
-/* The roster now carries where the work was, which was already in the data and
-   doing nothing. "Westpac" is a logo; "Westpac, branch fit-out, Sale" is a
-   reference. */
-.commlogo em {
-  font-style: normal;
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 10.5px; letter-spacing: 0.03em; color: #a3abc4;
+  .comm-std { padding: 56px 0; }
 }
 
 /* ---- The four figures ---- */
@@ -416,4 +342,123 @@
 }
 @media (max-width: 480px) {
   .comm-facts { grid-template-columns: 1fr; }
+}
+
+/* ---- What we take on ---- */
+/* Dark so the photographs carry the band. On cream the tiles were the page's
+   own colour with a border round it. */
+.comm-take { padding: 90px 0; background: var(--navy-2, #0b1450); }
+.comm-take__lede,
+.comm-take .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
+.comm-take .combento { border-color: transparent; }
+
+/* ---- The wall of names ---- */
+/* Ten names, five across. A name in display type at 22px is a logo we do not
+   have to ask permission to use. */
+.comm-wall {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 34px;
+}
+.commwall {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 132px; padding: 22px 16px; text-align: center;
+  background: #fff; border: 1px solid #e2e8f4; border-radius: 16px;
+  box-shadow: 0 14px 30px -26px rgba(11, 20, 80, 0.4);
+  transition: transform 0.15s, box-shadow 0.18s, border-color 0.15s;
+}
+.commwall:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 26px 46px -28px rgba(11, 20, 80, 0.5); }
+.commwall strong {
+  font-family: var(--f-display, inherit);
+  font-size: 21px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--comm-ink);
+  text-wrap: balance;
+}
+.commwall span { font-size: 13px; line-height: 1.4; color: #4a5468; }
+.commwall em {
+  font-style: normal; margin-top: 2px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: #8791ab;
+}
+.comm-work .comm-facts { margin-top: 28px; }
+
+/* ---- Why we get asked back ---- */
+.comm-std { padding: 96px 0; background: var(--bg-2, #f3efe5); border-block: 1px solid #e2e8f4; }
+.comm-std__grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 56px; align-items: start; }
+.comm-std__photo {
+  position: sticky; top: 110px;
+  margin: 0; border-radius: 22px; overflow: hidden;
+  box-shadow: 0 34px 70px -40px rgba(11, 20, 80, 0.6);
+}
+.comm-std__photo img { display: block; width: 100%; height: auto; }
+.comm-std__chip {
+  position: absolute; left: 18px; bottom: 18px;
+  padding: 9px 14px; border-radius: 999px;
+  background: var(--orange, #f36722); color: #fff;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+.comm-std__copy .ds-section-head { margin-bottom: 8px; }
+.comm-std__list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0; }
+.comm-std__list li { display: flex; gap: 18px; padding: 20px 0; border-top: 1px solid #dfe6f2; }
+.comm-std__list li:last-child { border-bottom: 1px solid #dfe6f2; }
+.comm-std__n {
+  flex: 0 0 auto; padding-top: 4px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 12px; font-weight: 700; color: var(--orange, #f36722);
+}
+.comm-std__list h3 { margin: 0 0 6px; font-size: 18.5px; letter-spacing: -0.015em; color: var(--comm-ink); }
+.comm-std__list p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; max-width: 60ch; }
+
+/* ---- How we work ---- */
+.comm-flow { padding: 96px 0; background: var(--comm-ink); }
+.comm-flow__lede,
+.comm-flow .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
+.comm-steps {
+  list-style: none; margin: 38px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px;
+  counter-reset: none;
+}
+.commstep {
+  position: relative;
+  padding: 26px 24px 24px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 2px solid var(--orange, #f36722);
+  transition: background 0.18s, transform 0.15s;
+}
+.commstep:hover { background: rgba(255, 255, 255, 0.08); transform: translateY(-3px); }
+.commstep__n {
+  display: block;
+  font-family: var(--f-display, inherit);
+  font-size: 40px; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+  color: var(--orange, #f36722);
+}
+.commstep h3 { margin: 14px 0 8px; font-size: 19px; letter-spacing: -0.015em; color: #fff; }
+.commstep p { margin: 0; font-size: 15px; line-height: 1.65; color: #c6cce6; }
+
+/* ---- Technical capabilities, on the statement ---- */
+.cap-caps {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px 24px;
+}
+.cap-caps li { position: relative; padding-left: 16px; font-size: 15px; line-height: 1.5; color: #46506b; }
+.cap-caps li::before {
+  content: ""; position: absolute; left: 0; top: 9px;
+  width: 7px; height: 7px; border-radius: 2px; background: var(--orange, #f36722);
+}
+
+@media (max-width: 1000px) {
+  .comm-wall { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .comm-std__grid { grid-template-columns: 1fr; gap: 30px; }
+  .comm-std__photo { position: static; }
+  .comm-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .comm-take { padding: 56px 0; }
+  .comm-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .commwall { min-height: 108px; padding: 16px 10px; }
+  .commwall strong { font-size: 17px; }
+  .comm-steps { grid-template-columns: 1fr; }
 }

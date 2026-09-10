@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import {
-  COMM_SCOPES, COMM_CLIENTS, COMM_CAPABILITIES, COMM_PROCESS,
+  COMM_SCOPES, COMM_CLIENTS, COMM_PROCESS,
   COMM_DOORS, COMM_STANDARD, COMM_FAQS, COMM_FACTS,
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
@@ -113,27 +113,7 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* CAPABILITY STRIP — where the homepage runs its brand chips.
-          Two identical rows inside one track: the animation shifts it exactly
-          half its width, so the second row lands where the first started and
-          the loop has no seam. aria-hidden on the duplicate keeps a screen
-          reader from hearing the list twice. */}
-      <section className="comm-marquee" aria-label="What we work on">
-        <div className="comm-marquee__track">
-          {[0, 1].map((copy) => (
-            <ul className="comm-marquee__row" key={copy} aria-hidden={copy === 1 ? true : undefined}>
-              {COMM_CAPABILITIES.map((c) => (
-                <li className="comm-marquee__item" key={c}>
-                  <span className="comm-marquee__dot" aria-hidden="true" />
-                  {c}
-                </li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </section>
-
-      {/* SCOPE PANEL — the homepage's orange quote box, in navy. */}
+      {/* SCOPE PANEL — the homepage's orange quote box. */}
       <section className="scopesec" id="scope">
         <div className="wrap">
           <div className="scopesec__box">
@@ -169,13 +149,14 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* WHAT WE TAKE ON — the homepage's services bento. */}
-      <section className="ds-section" id="scopes">
+      {/* WHAT WE TAKE ON — the homepage's services bento, on a dark ground so
+          the photographs carry the section rather than sitting in cream. */}
+      <section className="comm-take" id="scopes">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot" /> What we take on</span>
-            <h2>Five packages, carried end to end.</h2>
-            <p>
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we take on</span>
+            <h2 className="ds-h--on-dark">Five packages, carried end to end.</h2>
+            <p className="comm-take__lede">
               We&rsquo;re a specialist mechanical, gas and hot water contractor — not a builder. These are the packages
               we&rsquo;re set up to own from drawings to handover, and the only ones we&rsquo;ll quote.
             </p>
@@ -200,10 +181,9 @@ export default function CommercialPage() {
                 </div>
               </Link>
             ))}
-            {/* Spans the full width so the bento closes flush rather than
-                leaving two empty cells, and because this is the one tile
-                procurement actually goes looking for. */}
-            <Link href="/commercial/capability" className="combento combento--dark">
+            {/* Spans the full width so the bento closes flush, and orange on the
+                navy ground because this is the tile procurement goes looking for. */}
+            <Link href="/commercial/capability" className="combento combento--cap">
               <div className="combento__body combento__body--wide">
                 <div>
                   <span className="combento__n">—</span>
@@ -219,10 +199,10 @@ export default function CommercialPage() {
 
       {/* THE WORK — where the homepage puts reviews. A facility manager doesn't
           want five stars from a household; they want the name of somebody with
-          a procurement process who already let us on site. */}
+          a procurement process who already let us on site. So: the names, big. */}
       <section className="comm-work">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot" /> Some of the work</span>
             <h2>Sites we&rsquo;ve been trusted with.</h2>
             <p>
@@ -230,9 +210,9 @@ export default function CommercialPage() {
               first. These are the ones that have put us on site.
             </p>
           </div>
-          <div className="comm-logos">
+          <div className="comm-wall">
             {COMM_CLIENTS.map((c) => (
-              <div key={c.name} className="commlogo">
+              <div key={c.name} className="commwall">
                 <strong>{c.name}</strong>
                 <span>{c.what}</span>
                 <em>{c.where}</em>
@@ -255,26 +235,44 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* THE STANDARD — the homepage's "why us" grid. */}
+      {/* THE STANDARD — the homepage's "why us", with the crew in the picture.
+          Six claims about who turns up are stronger next to a photograph of
+          who turns up. */}
       <section className="comm-std">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
-            <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
-          </div>
-          <div className="comm-std__grid">
-            {COMM_STANDARD.map((s) => (
-              <div key={s.n} className="commstd">
-                <div className="commstd__n">/{s.n}</div>
-                <h3>{s.h}</h3>
-                <p>{s.p}</p>
-              </div>
-            ))}
+        <div className="wrap comm-std__grid">
+          <figure className="comm-std__photo">
+            <img
+              src="/team-photo.webp"
+              alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
+              width="900"
+              height="675"
+              loading="lazy"
+            />
+            <figcaption className="comm-std__chip">Directly employed. All of them.</figcaption>
+          </figure>
+          <div className="comm-std__copy">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
+              <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
+            </div>
+            <ol className="comm-std__list">
+              {COMM_STANDARD.map((s) => (
+                <li key={s.n}>
+                  <span className="comm-std__n">{s.n}</span>
+                  <div>
+                    <h3>{s.h}</h3>
+                    <p>{s.p}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
 
-      {/* HOW WE WORK — the homepage's process band. */}
+      {/* HOW WE WORK — the homepage's process band. Six cards rather than a
+          list: each step carries a paragraph, and a paragraph in a row of
+          hairlines reads as terms and conditions. */}
       <section className="comm-flow">
         <div className="wrap">
           <div className="ds-section-head">
@@ -285,14 +283,12 @@ export default function CommercialPage() {
               people read differently. So we build the scope with you, in writing, and price against that.
             </p>
           </div>
-          <ol className="comm-flow__list">
+          <ol className="comm-steps">
             {COMM_PROCESS.map((s) => (
-              <li key={s.n}>
-                <span className="comm-flow__n">{s.n}</span>
-                <div>
-                  <h3>{s.h}</h3>
-                  <p>{s.p}</p>
-                </div>
+              <li key={s.n} className="commstep">
+                <span className="commstep__n">{s.n}</span>
+                <h3>{s.h}</h3>
+                <p>{s.p}</p>
               </li>
             ))}
           </ol>

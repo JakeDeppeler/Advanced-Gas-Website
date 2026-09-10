@@ -391,7 +391,11 @@
 
 
 /* ============== BRANDS STRIP ============== */
-.page-home .brands { padding: 70px 0 50px; background: var(--bg); }
+/* Tight under the lifted panel. It had 70px on top from when it followed a
+   full-height section; under a panel that already carries its own shadow, that
+   read as a hole in the page. */
+.page-home .brands { padding: 30px 0 34px; background: var(--bg); }
+.page-home .quotesec { padding-top: 40px; }
 .page-home .brands__lead {
   display: flex; align-items: center; gap: 18px; margin-bottom: 24px;
   flex-wrap: wrap;

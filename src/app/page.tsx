@@ -11,6 +11,8 @@ import { posts } from "@/lib/blog";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
 import { DoorIcon, type DoorIconKey } from "@/components/DoorIcon";
+import { DoorLink } from "@/components/DoorLink";
+import type { SweepKind } from "@/components/RouteMotion";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -120,8 +122,11 @@ const faqs = [
  * plus the header phone number and the sticky bar — a phone number wants to be
  * a phone number, not a card competing with a category.
  */
-const ROUTE_BUTTONS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
-  { href: "/services/heat-pump-installation", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy" },
+const ROUTE_BUTTONS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string; sweep?: SweepKind }[] = [
+  // The heat pump door fills the screen with water on the way through. It is
+  // the flagship product and the one door where the transition can say what
+  // the thing is — hot water — rather than just that the page changed.
+  { href: "/services/heat-pump-installation", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy", sweep: "water" },
   { href: "/services/air-conditioning-installation", label: "Heating & cooling", sub: "Split, ducted and gas", icon: "climate", tone: "sky" },
   // Orange on this one only, to match the "$$$" chip the rebate carries in the
   // nav. Spending the loudest colour on the thing worth the most money is the
@@ -241,14 +246,14 @@ export default async function HomePage() {
             </div>
             <div className="routebtns">
               {ROUTE_BUTTONS.map((b) => (
-                <Link key={b.href} href={b.href} className={`routebtn routebtn--${b.tone}`}>
+                <DoorLink key={b.href} href={b.href} className={`routebtn routebtn--${b.tone}`} sweep={b.sweep}>
                   <span className="routebtn__ico"><DoorIcon name={b.icon} /></span>
                   <span className="routebtn__txt">
                     <strong>{b.label}</strong>
                     <em>{b.sub}</em>
                   </span>
                   <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-                </Link>
+                </DoorLink>
               ))}
             </div>
             <p className="route__urgent">
