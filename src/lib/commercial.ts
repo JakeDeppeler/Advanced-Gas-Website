@@ -219,3 +219,95 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
     p: "As-builts, O&M manuals, warranties and the commissioning data, in one handover. Then a maintenance contract from there if you want the plant to reach the life it was specified for.",
   },
 ];
+
+/**
+ * The four doors off the top of the commercial page — the same shape as the
+ * residential ones, named for what a PM or an FM is actually holding when they
+ * land here. They go to the scope anchors on the services page rather than to
+ * a form, because at this point the question is "do you do this", not "can I
+ * have a price".
+ */
+export const COMM_DOORS: { href: string; label: string }[] = [
+  { href: "/commercial/services#fit-outs", label: "Fit-outs" },
+  { href: "/commercial/services#plant-replacement", label: "Plant replacement" },
+  { href: "/commercial/services#maintenance", label: "Maintenance" },
+  { href: "/commercial/services#breakdowns", label: "Breakdowns" },
+];
+
+/**
+ * The standard, which is what the residential "why us" grid is for. Six on
+ * that side, six here — the reassurances a facility manager needs are not the
+ * ones a homeowner needs, but there are just as many of them.
+ */
+export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
+  {
+    n: "01",
+    h: "Directly employed crews",
+    p: "Our own installers and apprentices — not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did, because it is the same crew.",
+  },
+  {
+    n: "02",
+    h: "The standard is written down",
+    p: "Twenty procedures covering how a van is stocked, what gets photographed, what gets certified and what happens when something goes wrong. It is not folklore held by whoever has been here longest. Ask to see it.",
+  },
+  {
+    n: "03",
+    h: "Documented on the day",
+    p: "Photos, forms and notes completed on site, not reconstructed on Friday afternoon. Compliance certificates on completion. If it is not recorded, it is not finished.",
+  },
+  {
+    n: "04",
+    h: "Paperwork before site access",
+    p: "SWMS, certificates of currency and inductions back before anyone turns up — usually the same day you ask. Nobody on your side should be chasing us for a document on the morning of the install.",
+  },
+  {
+    n: "05",
+    h: "One contact through the trade",
+    p: "The person who prices it is the person you ring about it. Not a call centre, not a ticket number, not a different name on every email in the chain.",
+  },
+  {
+    n: "06",
+    h: "We will tell you no",
+    p: "If a scope needs something we are not set up to do properly, we say so while you can still do something about it. That is cheaper for both of us than finding out at the halfway mark.",
+  },
+];
+
+/**
+ * The questions that decide whether we get let onto a site. These are the ones
+ * that actually arrive by email before a first job — not the ones that make us
+ * look good.
+ */
+export const COMM_FAQS: { q: string; a: string }[] = [
+  {
+    q: "What insurance do you carry?",
+    a: "$20,000,000 public liability, current workers compensation, comprehensive motor on the full fleet, and tools and plant cover. Certificates of currency go out the same day you ask — you do not need to chase them.",
+  },
+  {
+    q: "Can you meet a builder's program?",
+    a: "Yes, and we will tell you before we quote if we can't. Install windows are coordinated with the head contractor and the other trades, and we work staged, out of hours or over a weekend where a site has to keep trading. What we won't do is take a package we can't resource and then hold up the trades behind us.",
+  },
+  {
+    q: "How do variations work?",
+    a: "One price against one written scope. If the scope changes — and on a live site it usually does — it is repriced and approved in writing before the work happens. You will never get a variation arriving attached to the invoice.",
+  },
+  {
+    q: "Do you supply SWMS and site inductions?",
+    a: "SWMS are supplied before site access, and inductions are completed and returned within 24 hours. If your site uses a particular contractor management system, tell us which one and we'll get set up in it rather than sending you PDFs.",
+  },
+  {
+    q: "Are you licensed for refrigerant and Type A gas work?",
+    a: `ARC refrigerant handling licence ${site.licences.refrigeration} and plumbing licence ${site.licences.plumbing}, both current. Type A appliance installation and servicing, with compliance certificates issued on completion.`,
+  },
+  {
+    q: "How far do you travel?",
+    a: "The standard service area is 75 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work — the Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
+  },
+  {
+    q: "Will you take a one-off job, or is it contract work only?",
+    a: "Both. A single plant replacement is a perfectly good first job, and it's usually how a maintenance contract starts anyway. There's no minimum.",
+  },
+  {
+    q: "Who actually turns up?",
+    a: "Our own people, in our own vans, in our own uniform. If we ever needed to bring in a specialist for part of a package — a crane crew, a balancing contractor on a large system — we'd tell you who and why at quote stage, not on the day.",
+  },
+];

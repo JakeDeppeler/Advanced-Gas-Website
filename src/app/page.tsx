@@ -106,6 +106,26 @@ const faqs = [
 // not a hand-kept subset. Sourced straight from the suburb dataset so the
 // "Where we work" list can never drift out of sync with the pages that
 // actually exist. Nearest-first, so our home patch reads down and out.
+/**
+ * The four doors off the top of the page.
+ *
+ * This was four intent cards — "something's stopped working", "I need something
+ * replaced" and so on. Reading the intent back to someone only helps if they
+ * are still working out what they want; most people arrive already knowing the
+ * name of the thing, and having to read four paragraphs to find it is friction,
+ * not empathy. Four buttons, named for the four things we actually sell.
+ *
+ * The urgent path used to be one of the cards. It is the line underneath now,
+ * plus the header phone number and the sticky bar — a phone number wants to be
+ * a phone number, not a card competing with a category.
+ */
+const ROUTE_BUTTONS: { href: string; label: string }[] = [
+  { href: "/services/heat-pump-installation", label: "Heat pumps" },
+  { href: "/services/air-conditioning-installation", label: "Heating & cooling" },
+  { href: "/rebates", label: "Rebates" },
+  { href: "/services/aircon-servicing-repairs", label: "Servicing" },
+];
+
 const SUBURBS: { name: string; slug: string }[] = [...publishedSuburbs]
   .sort((a, b) => a.distanceKm - b.distanceKm || a.name.localeCompare(b.name))
   .map((s) => ({ name: s.name, slug: s.slug }));
@@ -207,48 +227,25 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* BRAND TRUST STRIP */}
-      {/* The nav is Services, Brands, Pricing, Tools, Areas — every one of them
-          organised around what we have rather than why they came. Nobody wakes
-          up wanting to browse a catalogue; they wake up to a cold house or a
-          dead hot water service. This is the fork that meets them where they
-          are, and it sends each one to the action that suits it rather than
-          asking everybody to get a quote. */}
+      {/* START HERE — four doors, see ROUTE_BUTTONS. */}
       <section className="ds-section route">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow">Start here</span>
             <h2>What&rsquo;s brought you here?</h2>
           </div>
-          <div className="route__grid">
-            <a href={`tel:${site.phoneE164}`} className="routecard routecard--urgent">
-              <span className="routecard__n">01</span>
-              <h3>Something&rsquo;s stopped working</h3>
-              <p>No hot water, no heating, a smell of gas. Phones answered after hours.</p>
-              <span className="routecard__go">Call {site.phone} →</span>
-            </a>
-
-            <a href="#quote" className="routecard">
-              <span className="routecard__n">02</span>
-              <h3>I need something replaced</h3>
-              <p>An old system on its way out, or a new one for a room that&rsquo;s never been right.</p>
-              <span className="routecard__go">Get a fixed quote →</span>
-            </a>
-
-            <Link href="/services#service" className="routecard">
-              <span className="routecard__n">03</span>
-              <h3>It&rsquo;s due a service</h3>
-              <p>Annual service, a CO test before winter, or a system that isn&rsquo;t doing what it used to.</p>
-              <span className="routecard__go">Book a service →</span>
-            </Link>
-
-            <Link href="/commercial" className="routecard routecard--comm">
-              <span className="routecard__n">04</span>
-              <h3>It&rsquo;s a business or a site</h3>
-              <p>Fit-outs, plant replacement and maintenance contracts. Paperwork back the same day.</p>
-              <span className="routecard__go">See the commercial work →</span>
-            </Link>
+          <div className="routebtns">
+            {ROUTE_BUTTONS.map((b) => (
+              <Link key={b.href} href={b.href} className="routebtn">
+                <span>{b.label}</span>
+                <span className="routebtn__go" aria-hidden="true">&rarr;</span>
+              </Link>
+            ))}
           </div>
+          <p className="route__urgent">
+            Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; answered after hours,
+            by someone on the tools.
+          </p>
         </div>
       </section>
 
