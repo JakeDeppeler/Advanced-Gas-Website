@@ -3103,3 +3103,8 @@ input, select, textarea {
   text-decoration-thickness: 1.5px;
 }
 .hero__rebate a:hover { text-decoration-thickness: 2.5px; }
+
+/* The residential/commercial split, inside the mobile drawer. */
+.hdr__drawer-mode { display: flex; gap: 4px; padding: 4px; margin-bottom: 14px; background: var(--bg-2, #f2f5fa); border-radius: 11px; }
+.hdr__drawer-mode a { flex: 1 1 0; text-align: center; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: var(--navy); text-decoration: none; }
+.hdr__drawer-mode a.is-on { background: #fff; font-weight: 700; box-shadow: 0 1px 3px rgba(11,20,80,0.1); }
