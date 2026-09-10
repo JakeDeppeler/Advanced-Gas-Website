@@ -4,6 +4,22 @@
 
 .page-comm { --comm-ink: #0e1b4d; }
 
+/* The commercial front page borrows the marketing layout scope (.page-home) so
+   both sides of the business read as one company. Only the things that are
+   actually different are overridden — the hero image behind the scrim, and the
+   trust strip, which carries insurance and licences rather than a star rating.
+   Compounded selectors so these win regardless of stylesheet order. */
+.page-home.page-comm .hero {
+  background:
+    linear-gradient(180deg, rgba(19,36,84,0.78) 0%, rgba(15,28,72,0.84) 55%, rgba(11,22,60,0.9) 100%),
+    url("/commercial.webp") center 40% / cover no-repeat,
+    linear-gradient(180deg, #1a2c68 0%, #12224e 100%);
+}
+.page-home.page-comm .hero__photo { aspect-ratio: 4 / 3; }
+.page-home.page-comm .hero__photo img { object-position: center 45%; }
+.page-home.page-comm .hero__rebate { color: #c6cce6; }
+.page-home.page-comm .hero__rebate strong { color: #fff; }
+
 .comm-work { padding: 60px 0; }
 .comm-work__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 30px; }
 .commcard { border: 1px solid #e2e8f4; border-radius: 14px; padding: 20px 22px; background: #fff; }
@@ -116,7 +132,7 @@
 
 /* The commercial front page borrows the homepage's hero and section rhythm so
    it reads as one company, then answers a different set of fears in each band. */
-.comm-top .hero__trust .trust-stat strong { color: var(--comm-ink); }
+
 
 .comm-logos { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; margin-top: 28px; background: #e2e8f4; border: 1px solid #e2e8f4; border-radius: 14px; overflow: hidden; }
 .commlogo { display: flex; flex-direction: column; gap: 3px; padding: 18px 20px; background: #fff; }
