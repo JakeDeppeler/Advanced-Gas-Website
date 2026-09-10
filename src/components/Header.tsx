@@ -386,7 +386,29 @@ export function Header() {
     closeTimer.current = setTimeout(() => setActiveMega(null), 300);
   };
 
+  const onCommercial = pathname?.startsWith("/commercial") ?? false;
+
   return (
+    <>
+      {/* Residential and commercial are different readers with different fears,
+          so they get different sites. This says so from the first pixel and
+          lets either one cross over whenever they like — which an interstitial
+          that demands the choice before showing anything cannot do without
+          costing rankings and the visitors who were closest to enquiring. */}
+      <div className="sitemode">
+        <div className="wrap sitemode__row">
+          <span className="sitemode__label">Advanced Gas for</span>
+          <nav className="sitemode__tabs" aria-label="Residential or commercial">
+            <Link href="/" className={`sitemode__tab${onCommercial ? "" : " is-on"}`} aria-current={onCommercial ? undefined : "page"}>
+              Your home
+            </Link>
+            <Link href="/commercial" className={`sitemode__tab${onCommercial ? " is-on" : ""}`} aria-current={onCommercial ? "page" : undefined}>
+              Business &amp; commercial
+            </Link>
+          </nav>
+        </div>
+      </div>
+
     <header className="hdr">
       <div className="wrap hdr__row">
         <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
@@ -486,6 +508,7 @@ export function Header() {
 
       {open && <MobileDrawer close={() => setOpen(false)} />}
     </header>
+    </>
   );
 }
 
