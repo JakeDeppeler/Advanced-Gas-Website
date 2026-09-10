@@ -54,20 +54,20 @@ function HeroQuoteFormSkeleton() {
 export const metadata: Metadata = {
   title: "Heat Pump, Split & Ducted Aircon, Pakenham",
   description:
-    "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled. Free 60-second quote.",
+    "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east and Gippsland. Directly employed crews, VEU rebates handled. Free 60-second quote.",
   alternates: { canonical: "/" },
   // Explicit, now the root no longer carries a homepage title for
   // everything to inherit. The homepage owns its own share card.
   openGraph: {
     title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC | Advanced Gas",
     description:
-      "Family-owned Pakenham specialists in heat pump hot water, split and ducted aircon, gas heating and servicing. VEU rebates handled at the quote.",
+      "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east and Gippsland. Directly employed crews, VEU rebates handled at the quote.",
     url: "/",
   },
   twitter: {
     title: "Heat Pumps, Split Systems & Ducted in Pakenham VIC | Advanced Gas",
     description:
-      "Family-owned Pakenham specialists. VEU rebates handled at the quote, fixed prices, 6-year workmanship warranty.",
+      "One standard, every job. Heating, cooling, gas and hot water across Melbourne's south-east and Gippsland. Directly employed crews, VEU rebates handled at the quote, 6-year workmanship warranty.",
   },
 };
 
@@ -149,10 +149,11 @@ export default async function HomePage() {
             </span>
 
             <h1 className="hero__h1">
-              The team you&rsquo;d want in your house.
+              One standard. Every job.
             </h1>
             <p className="hero__sub">
-              Family owned. Same face on the quote as on the tools. Twelve years and 1,200+ installs across Pakenham, Berwick, Cranbourne &amp; Officer.
+              Heating, cooling, gas and hot water across Melbourne&rsquo;s south-east and Gippsland. Directly employed crews,
+              twelve years on the tools, and the same high standard every time.
             </p>
 
             <div className="hero__ctas" data-hide-sticky-cta>
