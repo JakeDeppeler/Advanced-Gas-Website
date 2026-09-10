@@ -70,6 +70,7 @@ type UserRow = {
   admin_hrs_week: number | null;
   own_van: boolean | null;
   rdo_days: number | null;
+  callback_pct: number | null;
   ot_mult: number | null;
   night_mult: number | null;
   office_hrs_week: number | null;
@@ -112,6 +113,7 @@ function toUser(r: UserRow): CostedUser {
       rdoDays: Number(r.rdo_days ?? 12),
       otMult: Number(r.ot_mult ?? 1.5),
       nightMult: Number(r.night_mult ?? 2),
+      callbackPct: r.callback_pct == null ? null : Number(r.callback_pct),
       officeHrsWeek: Number(r.office_hrs_week ?? 0),
       rateOverride: r.rate_override == null ? null : Number(r.rate_override),
     },
@@ -276,7 +278,7 @@ export async function updateCrew(id: string, level: CrewLevel, c: Costing): Prom
       wage: c.wage, hrs_week: c.hrsWeek, leave_days: c.leaveDays, ph_days: c.phDays,
       sick_days: c.sickDays, school_days: c.schoolDays, travel_hrs_week: c.travelHrsWeek,
       admin_hrs_week: c.adminHrsWeek, office_hrs_week: c.officeHrsWeek, own_van: c.ownVan,
-      rdo_days: c.rdoDays, ot_mult: c.otMult, night_mult: c.nightMult,
+      rdo_days: c.rdoDays, ot_mult: c.otMult, night_mult: c.nightMult, callback_pct: c.callbackPct ?? null,
       rate_override: c.rateOverride ?? null, updated_at: new Date().toISOString(),
     }),
   });
@@ -304,6 +306,7 @@ export async function createCrewPerson(input: { name: string; email?: string | n
       office_hrs_week: input.costing.officeHrsWeek, rate_override: input.costing.rateOverride ?? null,
       own_van: input.costing.ownVan,
       rdo_days: input.costing.rdoDays, ot_mult: input.costing.otMult, night_mult: input.costing.nightMult,
+      callback_pct: input.costing.callbackPct ?? null,
     }),
   });
   if (!res) return { ok: false, error: "not-configured" };

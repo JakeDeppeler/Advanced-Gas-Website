@@ -1282,3 +1282,16 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-lead__bar { flex: 1 1 0; min-width: 2px; min-height: 2px; border-radius: 2px 2px 0 0; background: var(--pt-navy); }
 .pt-lead__bar.is-none { background: var(--pt-line); }
 .pt-lead__axis { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11px; color: var(--pt-ink-3); font-variant-numeric: tabular-nums; }
+
+/* Penalty rates: read by default, edited on purpose. */
+.pt-cap__pen { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--pt-line); }
+.pt-cap__penhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.pt-cap__penhead > span { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-ink-3); }
+.pt-cap__edit { appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 8px; padding: 4px 12px; font: inherit; font-size: 12px; font-weight: 700; color: var(--pt-ink-2); cursor: pointer; }
+.pt-cap__edit:hover { border-color: var(--pt-sky); color: var(--pt-ink); }
+.pt-cap__penrows { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pt-cap__penrows > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; background: var(--pt-bg); }
+.pt-cap__penrows span { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pt-ink-3); }
+.pt-cap__penrows strong { font-family: var(--f-display); font-size: 18px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-cap__penrows em { font-style: normal; font-size: 11.5px; color: var(--pt-ink-3); }
+.pt-pl__headval em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--pt-ink-3); }
