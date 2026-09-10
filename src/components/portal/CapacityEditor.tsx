@@ -104,6 +104,12 @@ export function CapacityEditor({
   const [showEmpty, setShowEmpty] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [openLines, setOpenLines] = useState<Set<string>>(new Set());
+  const [editRates, setEditRates] = useState<Set<string>>(new Set());
+  const toggleRates = (id: string) => setEditRates((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
   const toggleLine = (k: string) => setOpenLines((prev) => {
     const next = new Set(prev);
     if (next.has(k)) next.delete(k); else next.add(k);
@@ -381,22 +387,49 @@ export function CapacityEditor({
                           {!isOffice && !ridesAlong && <CapField label="Driving hrs/wk" value={r.costing.travelHrsWeek} onChange={(v) => setCosting(r.id, { travelHrsWeek: v })} />}
                           {!isOffice && !ridesAlong && <CapField label="Admin hrs/wk" value={r.costing.adminHrsWeek} onChange={(v) => setCosting(r.id, { adminHrsWeek: v })} />}
                           {r.level === "hybrid" && <CapField label="Office hrs/wk" value={r.costing.officeHrsWeek} onChange={(v) => setCosting(r.id, { officeHrsWeek: v })} />}
-                          <CapField label="Overtime rate" value={r.costing.otMult} onChange={(v) => setCosting(r.id, { otMult: v })} post="×" />
-                          <CapField label="Night rate" value={r.costing.nightMult} onChange={(v) => setCosting(r.id, { nightMult: v })} post="×" />
+                        </div>
+
+                        {/* Penalty rates and call-backs live apart from the hours,
+                            and locked. They're set once and then read a hundred
+                            times, so the default state is reading — a number you
+                            can nudge by clicking past it is a number you'll one
+                            day find changed and not know when. */}
+                        <div className="pt-cap__pen">
+                          <div className="pt-cap__penhead">
+                            <span>Penalty rates &amp; call-backs</span>
+                            <button type="button" className="pt-cap__edit" onClick={() => toggleRates(r.id)}>
+                              {editRates.has(r.id) ? "Done" : "Edit"}
+                            </button>
+                          </div>
+
+                          {editRates.has(r.id) ? (
+                            <div className="pt-cap__grid">
+                              <CapField label="Overtime" value={r.costing.otMult} onChange={(v) => setCosting(r.id, { otMult: v })} post="×" />
+                              <CapField label="Nights" value={r.costing.nightMult} onChange={(v) => setCosting(r.id, { nightMult: v })} post="×" />
+                              <CapField
+                                label="Call-backs"
+                                value={r.costing.callbackPct ?? s.callbackPct ?? 0}
+                                onChange={(v) => setCosting(r.id, { callbackPct: v })}
+                                post="%"
+                              />
+                            </div>
+                          ) : (
+                            <div className="pt-cap__penrows">
+                              <div><span>Overtime</span><strong>{r.costing.otMult}×</strong><em>{money2(r.costing.wage * r.costing.otMult)}/hr paid{rt?.rate != null ? ` · ${money(rt.rate * r.costing.otMult)}/hr charged` : ""}</em></div>
+                              <div><span>Nights</span><strong>{r.costing.nightMult}×</strong><em>{money2(r.costing.wage * r.costing.nightMult)}/hr paid{rt?.rate != null ? ` · ${money(rt.rate * r.costing.nightMult)}/hr charged` : ""}</em></div>
+                              <div>
+                                <span>Call-backs</span>
+                                <strong>{r.costing.callbackPct ?? s.callbackPct ?? 0}%</strong>
+                                <em>{r.costing.callbackPct == null ? "the business figure" : `${hrs((rt?.billHrs ?? 0) * ((r.costing.callbackPct ?? 0) / 100))} a year going back out`}</em>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         <div className="pt-cap__rates">
                           {rt?.costPerHr != null && <span className="pt-cap__allin">Costs us <strong>{money2(rt.costPerHr)}</strong>/hr all in</span>}
-                          <span>Paid <strong>{money2(r.costing.wage)}</strong> normal</span>
-                          <span>Overtime <strong>{money2(r.costing.wage * r.costing.otMult)}</strong></span>
-                          <span>Nights <strong>{money2(r.costing.wage * r.costing.nightMult)}</strong></span>
-                          {rt?.rate != null && (
-                            <>
-                              <span className="pt-cap__ratesplit">Charged <strong>{money(rt.rate)}</strong></span>
-                              <span>Overtime <strong>{money(rt.rate * r.costing.otMult)}</strong></span>
-                              <span>Nights <strong>{money(rt.rate * r.costing.nightMult)}</strong></span>
-                            </>
-                          )}
+                          <span>Paid <strong>{money2(r.costing.wage)}</strong>/hr</span>
+                          {rt?.rate != null && <span>Charged <strong>{money(rt.rate)}</strong>/hr</span>}
                         </div>
 
                         <div className="pt-cap__crewsum">

@@ -10,6 +10,8 @@ import { personVan } from "@/lib/portal/personVan";
 
 export const dynamic = "force-dynamic";
 
+const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 function when(iso: string) {
   return new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -39,6 +41,22 @@ export default async function TeamMemberFile({ params }: { params: { id: string 
         <h1>{person.name}.</h1>
         <p>{person.email}</p>
       </div>
+
+      {person.costing && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Their year, and what they&rsquo;re paid outside normal hours</h2>
+          <p className="pt-panel__sub">Set in Costs &amp; capacity. Shown here so a manager doesn&rsquo;t have to go looking.</p>
+          <div className="pt-pl__heads">
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Annual leave</span><strong className="pt-pl__headval">{person.costing.leaveDays} days</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">RDOs</span><strong className="pt-pl__headval">{person.costing.rdoDays} days</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Sick leave</span><strong className="pt-pl__headval">{person.costing.sickDays} days</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Public holidays</span><strong className="pt-pl__headval">{person.costing.phDays} days</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Overtime</span><strong className="pt-pl__headval">{person.costing.otMult}×<em> {money2(person.costing.wage * person.costing.otMult)}/hr</em></strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Nights</span><strong className="pt-pl__headval">{person.costing.nightMult}×<em> {money2(person.costing.wage * person.costing.nightMult)}/hr</em></strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Call-backs</span><strong className="pt-pl__headval">{person.costing.callbackPct ?? 0}%</strong></div>
+          </div>
+        </section>
+      )}
 
       <PersonVan {...vanView} mine={false} assign={canFleet ? { userId: person.id, vans } : undefined} />
 

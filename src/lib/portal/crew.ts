@@ -42,6 +42,13 @@ export type Costing = {
    */
   otMult: number;
   nightMult: number;
+  /**
+   * How much of their time goes back out to fix their own work. Null falls back
+   * to the business-wide figure — a first-year apprentice and a tradesman of
+   * twenty years do not call back at the same rate, and one average hides the
+   * number worth acting on.
+   */
+  callbackPct?: number | null;
   rateOverride?: number | null;
 };
 
@@ -257,7 +264,7 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paidHrs - daysOffHrs));
   // Going back to fix our own work is paid time nobody bills for.
   const beforeCallbacks = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
-  const callbackHrs = beforeCallbacks * ((s.callbackPct ?? 0) / 100);
+  const callbackHrs = beforeCallbacks * ((c.callbackPct ?? s.callbackPct ?? 0) / 100);
   const billHrs = Math.max(0, beforeCallbacks - callbackHrs);
   return {
     paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,

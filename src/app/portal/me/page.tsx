@@ -10,6 +10,8 @@ import { PortalShell } from "@/components/portal/PortalShell";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My file — Team portal" };
 
+const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 function when(iso: string) {
   return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 }
@@ -48,8 +50,9 @@ export default async function MyFile() {
             <div className="pt-pl__head"><span className="pt-pl__headlabel">RDOs</span><strong className="pt-pl__headval">{c.rdoDays} days</strong></div>
             <div className="pt-pl__head"><span className="pt-pl__headlabel">Sick leave</span><strong className="pt-pl__headval">{c.sickDays} days</strong></div>
             <div className="pt-pl__head"><span className="pt-pl__headlabel">Public holidays</span><strong className="pt-pl__headval">{c.phDays} days</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Overtime</span><strong className="pt-pl__headval">{c.otMult}×</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Nights</span><strong className="pt-pl__headval">{c.nightMult}×</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Overtime</span><strong className="pt-pl__headval">{c.otMult}×<em> {money2(c.wage * c.otMult)}/hr</em></strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Nights</span><strong className="pt-pl__headval">{c.nightMult}×<em> {money2(c.wage * c.nightMult)}/hr</em></strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Call-backs</span><strong className="pt-pl__headval">{c.callbackPct ?? 0}%</strong></div>
           </div>
         </section>
       )}
