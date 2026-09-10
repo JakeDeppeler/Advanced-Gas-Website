@@ -72,10 +72,10 @@ export default function CommercialAboutPage() {
 
       <section className="comm-cta">
         <div className="wrap comm-cta__inner">
-          <h2>Send us a scope.</h2>
-          <p>Drawings, a schedule or a site address is enough to start. If you need the certificates first, they&rsquo;re on the capability statement.</p>
+          <h2>Submit a scope for pricing.</h2>
+          <p>Drawings, a mechanical schedule or a site address is sufficient to begin. Licences, insurances and certificates are on the capability statement.</p>
           <div className="comm-cta__btns">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</Link>
+            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</Link>
             <Link href="/commercial/capability" className="comm-cta__phone">or read the <strong>capability statement</strong></Link>
           </div>
         </div>

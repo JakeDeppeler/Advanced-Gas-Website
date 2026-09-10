@@ -536,7 +536,7 @@ export function Header() {
             </span>
           </a>
           <Link href={onCommercial ? "/contact?enquiry=commercial" : "/quote"} className="ds-btn ds-btn--primary">
-            {onCommercial ? "Send us a scope →" : "Get free quote →"}
+            {onCommercial ? "Submit a scope →" : "Get free quote →"}
           </Link>
         </div>
 

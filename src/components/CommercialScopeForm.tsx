@@ -106,8 +106,8 @@ export function CommercialScopeForm() {
 
   return (
     <form className="scopeform" onSubmit={onSubmit} noValidate>
-      <h3 className="scopeform__h">Send us a scope.</h3>
-      <p className="scopeform__sub">Drawings, a mechanical schedule or a site address — whatever you have is enough to start.</p>
+      <h3 className="scopeform__h">Submit a scope.</h3>
+      <p className="scopeform__sub">Drawings, a mechanical schedule or a site address is sufficient to begin.</p>
 
       <input
         type="text"
@@ -167,7 +167,7 @@ export function CommercialScopeForm() {
       {error && <p className="scopeform__err" role="alert">{error}</p>}
 
       <button type="submit" className="ds-btn ds-btn--orange ds-btn--lg scopeform__go" disabled={busy}>
-        {busy ? "Sending…" : "Send us a scope →"}
+        {busy ? "Submitting…" : "Submit a scope →"}
       </button>
       <p className="scopeform__fine">No obligation. We&rsquo;ll tell you quickly if it isn&rsquo;t one for us.</p>
     </form>
