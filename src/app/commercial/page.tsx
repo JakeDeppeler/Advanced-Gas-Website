@@ -30,6 +30,12 @@ const work = [
   { client: "Retirement Villages Constructions", what: "Aged care", where: "Victoria", note: "Heat-pump hot water upgrades across village stock." },
 ];
 
+const doors = [
+  { href: "/commercial/services", h: "What we take on", p: "Fit-outs, plant replacement, maintenance contracts, Type A gas and breakdown response." },
+  { href: "/commercial/capability", h: "Capability statement", p: "ABN, licences, insurances, safety and capacity — everything procurement asks for, on one page." },
+  { href: "/commercial/about", h: "Who you'd be dealing with", p: "Directly employed crews, a written standard, and one person accountable for the package." },
+];
+
 const credentials: [string, string][] = [
   ["Public liability", "$20M"],
   ["Refrigerant handling", site.licences.refrigeration],
@@ -94,11 +100,26 @@ export default function CommercialPage() {
           </p>
           <div className="comm-hero__ctas">
             <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">Or call {site.phone}</a>
+            <Link href="/commercial/capability" className="ds-btn ds-btn--ghost ds-btn--lg">Capability statement →</Link>
           </div>
           <p className="comm-hero__note">
             Certificates of currency, SWMS and induction paperwork supplied on request — usually back the same day.
+            Or call <a href={`tel:${site.phoneE164}`}>{site.phone}</a>.
           </p>
+        </div>
+      </section>
+
+      <section className="comm-doors">
+        <div className="wrap">
+          <div className="comm-doors__grid">
+            {doors.map((d) => (
+              <Link key={d.href} href={d.href} className="commdoor">
+                <h2>{d.h}</h2>
+                <p>{d.p}</p>
+                <span className="commdoor__go">Read on →</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

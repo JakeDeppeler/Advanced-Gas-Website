@@ -148,24 +148,29 @@
    out of flow and pinning it to 50% costs nothing here: the burger
    replaces it before the row gets tight. */
 .hdr__nav {
+  /* In the flow, not absolutely centred. It used to be pinned to the middle of
+     the row, which looked identical while there was room either side and
+     silently drove straight through the phone button the moment a seventh item
+     was added. Flex centring inside the space that's actually left cannot
+     overlap anything. */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .hdr__nav > a,
 .hdr__navtrigger {
   text-decoration: none;
   font-weight: 600;
   color: var(--navy);
-  padding: 10px 14px;
+  padding: 10px 11px;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 14.5px;
   letter-spacing: -0.005em;
+  white-space: nowrap;
   display: inline-flex; align-items: center; gap: 6px;
   transition: color 0.12s, background 0.12s;
   cursor: pointer;
@@ -191,8 +196,8 @@
 .hdr__navtrigger.is-active::after {
   content: "";
   position: absolute;
-  left: 14px;
-  right: 14px;
+  left: 11px;
+  right: 11px;
   bottom: 3px;
   height: 2px;
   background: var(--orange);
@@ -210,7 +215,7 @@
   padding: 2px 6px; border-radius: 4px;
 }
 
-.hdr__cta { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.hdr__cta { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
 .hdr__phone {
   display: flex; align-items: center; gap: 8px;
   text-decoration: none; color: var(--navy);
@@ -1556,8 +1561,9 @@
 }
 
 /* ============== RESPONSIVE ============== */
-/* The nav is out of flow, so the row has to be wide enough for it as
-   well as the two ends. Below this it goes and the burger takes over. */
+/* The nav sits in the flow now, so it shrinks with the row rather than
+   running over the phone button. It still goes at this width, because seven
+   items squeezed to nothing is worse than a burger. */
 @media (max-width: 1260px) {
   .hdr__nav { display: none; }
   .hdr__row { gap: 16px; }
