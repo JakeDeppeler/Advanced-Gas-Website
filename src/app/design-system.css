@@ -3124,22 +3124,68 @@ html[data-route-enter] #main { animation: route-in 0.42s cubic-bezier(0.2, 0.7, 
   to { opacity: 1; transform: none; }
 }
 
-/* The crossing between the two sides of the business. Hi-vis orange, because
-   that is the colour of the side you are going to and the colour of our own
-   shirts. It covers, the route changes underneath it, then it clears. */
+/* Full-screen sweeps. A panel covers the screen, the route changes underneath
+   it, then it clears. Which panel depends on where you are going:
+
+     orange   to the commercial side — hi-vis, the colour of the shirts on
+              site, left to right
+     navy     back to the residential side — right to left, so going back
+              feels like going back
+     water    the heat pump door — fills from the bottom like a tank, with a
+              wave on the top edge, then drains upward and away
+
+   Resting transforms park each kind off the edge it enters from. The timings
+   here must match TIMING in RouteMotion.tsx. */
 .sweep {
   position: fixed;
   inset: 0;
   z-index: 300;
   pointer-events: none;
-  background: linear-gradient(105deg, var(--orange-2, #ff7a36), var(--orange, #f36722) 55%, #d9551a);
-  transform: translateX(-101%);
   will-change: transform;
+  transform: translateX(-101%);
 }
-html[data-sweep="in"] .sweep { animation: sweep-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep="out"] .sweep { animation: sweep-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes sweep-in { from { transform: translateX(-101%); } to { transform: translateX(0); } }
-@keyframes sweep-out { from { transform: translateX(0); } to { transform: translateX(101%); } }
+.sweep__wave { display: none; }
+
+html[data-sweep-kind="orange"] .sweep {
+  background: linear-gradient(105deg, var(--orange-2, #ff7a36), var(--orange, #f36722) 55%, #d9551a);
+}
+html[data-sweep-kind="orange"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="orange"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+html[data-sweep-kind="navy"] .sweep {
+  transform: translateX(101%);
+  background: linear-gradient(255deg, var(--navy-3, #1b234e), var(--navy-2, #0b1450) 55%, var(--navy, #050a30));
+}
+html[data-sweep-kind="navy"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="navy"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+html[data-sweep-kind="water"] .sweep {
+  transform: translateY(101%);
+  background: linear-gradient(180deg, var(--sky-2, #2cc5ff) 0%, var(--sky, #00b0ed) 38%, #0d84b8 100%);
+}
+html[data-sweep-kind="water"] .sweep__wave {
+  display: block;
+  position: absolute;
+  left: 0;
+  top: -118px;
+  width: 200%;
+  height: 120px;
+  fill: var(--sky-2, #2cc5ff);
+  animation: wave-drift 1.6s linear infinite;
+}
+html[data-sweep-kind="water"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.56s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.64s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+
+@keyframes sweep-ltr-in  { from { transform: translateX(-101%); } to { transform: translateX(0); } }
+@keyframes sweep-ltr-out { from { transform: translateX(0); } to { transform: translateX(101%); } }
+@keyframes sweep-rtl-in  { from { transform: translateX(101%); } to { transform: translateX(0); } }
+@keyframes sweep-rtl-out { from { transform: translateX(0); } to { transform: translateX(-101%); } }
+/* The water carries on past the top rather than draining back down: a wave
+   washes over and away, it doesn't reverse. The extra reach on the way out
+   keeps the wave's own height off-screen too. */
+@keyframes sweep-rise-in  { from { transform: translateY(101%); } to { transform: translateY(0); } }
+@keyframes sweep-rise-out { from { transform: translateY(0); } to { transform: translateY(-118%); } }
+@keyframes wave-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 @media (prefers-reduced-motion: reduce) {
   html[data-route-enter] #main { animation: none; }

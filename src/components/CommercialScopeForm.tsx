@@ -20,7 +20,7 @@ import { site } from "@/lib/site";
 
 const PACKAGES = [
   "Tenancy or retail fit-out",
-  "Plant replacement",
+  "System replacement",
   "Scheduled maintenance",
   "Type A gas / hot water",
   "Breakdown or repair",

@@ -417,7 +417,9 @@ export function Header() {
   function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
-    sweepTo(() => router.push(href));
+    // Orange going to the commercial side, navy coming home — the colour of
+    // where you are going, moving in the direction you are going.
+    sweepTo(() => router.push(href), href === "/commercial" ? "orange" : "navy");
   }
 
   return (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { CAPABILITY, COMM_CLIENTS, COMM_SCOPES } from "@/lib/commercial";
+import { CAPABILITY, COMM_CLIENTS, COMM_SCOPES, COMM_CAPABILITIES } from "@/lib/commercial";
 import "../commercial.css";
 
 export const metadata: Metadata = {
@@ -57,6 +57,16 @@ export default function CapabilityPage() {
               {COMM_SCOPES.map((sc) => (
                 <li key={sc.slug}><strong>{sc.title}.</strong> {sc.lede}</li>
               ))}
+            </ul>
+          </div>
+
+          {/* The confirmed list. It used to scroll across the top of the
+              commercial front page; this is where procurement actually goes
+              looking for it, and it prints. */}
+          <div className="capblock">
+            <h2>Technical capabilities</h2>
+            <ul className="cap-caps">
+              {COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}
             </ul>
           </div>
 
