@@ -293,6 +293,23 @@ const NAV: NavItem[] = [
 ];
 
 /**
+ * The nav on the commercial side.
+ *
+ * Two sites means two navs. Leaving the residential one up over there was the
+ * bigger half of the problem: a facility manager reading a capability statement
+ * was being offered split systems, brand pages, a domestic price list and
+ * eighty suburb pages. Plain links, no mega panels — there is nothing here that
+ * needs a panel, and a panel full of residential content would put us straight
+ * back where we started.
+ */
+const COMM_NAV: NavItem[] = [
+  { href: "/commercial/services", label: "What we do" },
+  { href: "/commercial/capability", label: "Capability statement" },
+  { href: "/commercial/about", label: "About us" },
+  { href: "/contact?enquiry=commercial", label: "Contact" },
+];
+
+/**
  * The filtration categories as service-mega rows. Filtration is not a
  * top-level nav item — it lives in the Services tab like everything else
  * we sell.
@@ -423,7 +440,7 @@ export function Header() {
         </Link>
 
         <nav className="hdr__nav" aria-label="Primary">
-          {NAV.map((n) => {
+          {(onCommercial ? COMM_NAV : NAV).map((n) => {
             if (!isMega(n)) {
               const active = isActive(n.href);
               return (
@@ -491,7 +508,9 @@ export function Header() {
               {site.phone}
             </span>
           </a>
-          <Link href="/quote" className="ds-btn ds-btn--primary">Get free quote →</Link>
+          <Link href={onCommercial ? "/contact?enquiry=commercial" : "/quote"} className="ds-btn ds-btn--primary">
+            {onCommercial ? "Send us a scope →" : "Get free quote →"}
+          </Link>
         </div>
 
         <button
@@ -506,7 +525,7 @@ export function Header() {
         </button>
       </div>
 
-      {open && <MobileDrawer close={() => setOpen(false)} />}
+      {open && <MobileDrawer close={() => setOpen(false)} onCommercial={onCommercial} />}
     </header>
     </>
   );
@@ -743,11 +762,17 @@ function AreasMega() {
 
 /* -------------------- Mobile drawer -------------------- */
 
-function MobileDrawer({ close }: { close: () => void }) {
+function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial: boolean }) {
   return (
     <div className="hdr__drawer">
       <div className="wrap hdr__drawer-inner">
-        {NAV.map((n) => {
+        {/* Same split as the desktop nav. A drawer full of split systems on the
+            commercial side would undo the whole point of there being two. */}
+        <div className="hdr__drawer-mode">
+          <Link href="/" onClick={close} className={onCommercial ? "" : "is-on"}>Your home</Link>
+          <Link href="/commercial" onClick={close} className={onCommercial ? "is-on" : ""}>Business &amp; commercial</Link>
+        </div>
+        {(onCommercial ? COMM_NAV : NAV).map((n) => {
           if (!isMega(n)) {
             return (
               <Link
