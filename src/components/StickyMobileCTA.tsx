@@ -75,7 +75,7 @@ export function StickyMobileCTA() {
       {onCommercial ? (
         pathname === "/commercial"
           ? <a href="#scope" className="stickycta__quote">Submit a scope →</a>
-          : <Link href="/contact?enquiry=commercial" className="stickycta__quote">Submit a scope →</Link>
+          : <Link href="/commercial/contact" className="stickycta__quote">Submit a scope →</Link>
       ) : onHome ? (
         <a href="#quote" className="stickycta__quote">Get a fixed quote →</a>
       ) : (

@@ -463,7 +463,7 @@
 .page-home .veu__grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
 }
-.page-home .veu__sub--center { margin-left: auto; margin-right: auto; text-align: center; max-width: 640px; }
+.page-home .veu__sub--center { margin-left: auto; margin-right: auto; text-align: center; max-width: 640px; text-wrap: balance; }
 
 .page-home .fixprice__grid {
   display: grid;
@@ -494,10 +494,12 @@
 .page-home .fixprice__photo--split   { background-image: url("/reclaim-split-back.webp"); }
 .page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.webp"); }
 
-/* Featured "highest quality" card in the middle of the fixed-price row */
+/* Featured "highest quality" card in the middle of the fixed-price row. The
+   orange ring and the deeper shadow do the featuring; it used to also sit 8px
+   higher than its neighbours, which read as three cards that didn't line up
+   rather than one card that mattered more. */
 .page-home .fixprice--feature {
   position: relative;
-  transform: translateY(-8px);
   box-shadow: 0 40px 80px -30px rgba(5,10,48,0.55), 0 0 0 2px var(--orange);
   z-index: 1;
 }
@@ -532,7 +534,6 @@
 
 @media (max-width: 1100px) {
   .page-home .fixprice__grid--3 { grid-template-columns: 1fr; }
-  .page-home .fixprice--feature { transform: none; }
 }
 .page-home .fixprice__body { padding: 26px 26px 28px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
 .page-home .fixprice__eyebrow {
@@ -672,7 +673,6 @@
     min-height: 0;
     margin-top: 4px;
   }
-  .page-home .fixprice--feature { transform: none; }
 }
 .page-home .veu__h {
   font-family: var(--f-display);

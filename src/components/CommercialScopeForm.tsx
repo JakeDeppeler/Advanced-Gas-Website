@@ -62,7 +62,7 @@ export function CommercialScopeForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          service: `Commercial — ${pkg}`,
+          service: `Commercial · ${pkg}`,
           summary,
           name,
           phone,
@@ -85,7 +85,7 @@ export function CommercialScopeForm() {
       return;
     }
 
-    trackLead(`Commercial — ${pkg}`, summary);
+    trackLead(`Commercial · ${pkg}`, summary);
     setSent(true);
     setBusy(false);
   }
@@ -96,7 +96,7 @@ export function CommercialScopeForm() {
         <span className="scopeform__tick" aria-hidden="true">✓</span>
         <h3>Got it{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}.</h3>
         <p>
-          We&rsquo;ll read it properly and come back to you — same day if it landed in business hours. If you need
+          We&rsquo;ll read it properly and come back to you, same day if it landed in business hours. If you need
           certificates of currency, SWMS or induction paperwork in the meantime, reply to the confirmation email and
           they&rsquo;ll go straight back.
         </p>

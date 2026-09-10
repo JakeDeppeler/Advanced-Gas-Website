@@ -115,7 +115,7 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
     group: "Insurance",
     rows: [
       ["Public liability", "$20,000,000"],
-      ["Workers compensation", "Current — certificate of currency on request"],
+      ["Workers compensation", "Current. Certificate of currency on request"],
       ["Motor vehicle", "Comprehensive, full fleet"],
       ["Tools & plant", "Covered"],
     ],
@@ -133,7 +133,7 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
   {
     group: "Capacity",
     rows: [
-      ["Workforce", "Directly employed — installers and apprentices, not subcontracted"],
+      ["Workforce", "Directly employed installers and apprentices, not subcontracted"],
       ["Base", `${site.address.suburb}, VIC`],
       ["Service area", "Melbourne's south-east and Gippsland, and further for contract work"],
       ["Response", "Priority attendance on contracted sites, after hours available"],
@@ -144,13 +144,13 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
 export const COMM_CLIENTS: { name: string; what: string; where: string }[] = [
   { name: "Westpac", what: "Branch fit-out", where: "Sale, Gippsland" },
   { name: "Commonwealth Bank", what: "Branch fit-out", where: "Victoria" },
-  { name: "Kane Constructions", what: "Tier-one builder — subcontract packages", where: "Victoria" },
+  { name: "Kane Constructions", what: "Tier-one builder, subcontract packages", where: "Victoria" },
   { name: "Petbarn", what: "National retail rollout", where: "Multi-site" },
   { name: "Greencross", what: "Vet clinics", where: "Multi-site" },
   { name: "Reece Group", what: "Multi-site service contract", where: "Victoria" },
   { name: "Reliance Worldwide", what: "Industrial service contract", where: "Victoria" },
   { name: "KFC", what: "Hospitality / QSR", where: "Victoria" },
-  { name: "Retirement Villages Constructions", what: "Aged care — heat pump upgrades", where: "Victoria" },
+  { name: "Retirement Villages Constructions", what: "Aged care, heat pump upgrades", where: "Victoria" },
   { name: "Pakenham Springs P.S.", what: "Education", where: "Pakenham" },
 ];
 
@@ -180,7 +180,7 @@ export const COMM_CAPABILITIES = [
   "Heat pump plant",
   "Split & multi-head",
   "Controls & zoning",
-  "Refrigerant handling — ARC",
+  "ARC refrigerant handling",
   "System replacement",
   "Commissioning & handover",
   "Preventative maintenance",
@@ -192,7 +192,7 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
   {
     n: "01",
     h: "We get the plans",
-    p: "Drawings, a mechanical schedule, a site address — whatever you have. We read them properly before we quote, and if something is missing or does not add up we come back and ask rather than pricing around it and arguing later.",
+    p: "Drawings, a mechanical schedule, a site address: whatever you have. We read them properly before we quote, and if something is missing or does not add up we come back and ask rather than pricing around it and arguing later.",
   },
   {
     n: "02",
@@ -202,7 +202,7 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
   {
     n: "03",
     h: "Priced against that scope",
-    p: "One price against one written scope. If the scope changes — and on a live site it usually does — it is repriced and approved before the work happens. No variations arriving with the invoice.",
+    p: "One price against one written scope. If the scope changes, and on a live site it usually does, it is repriced and approved before the work happens. No variations arriving with the invoice.",
   },
   {
     n: "04",
@@ -244,7 +244,7 @@ export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
   {
     n: "01",
     h: "Directly employed crews",
-    p: "Our own installers and apprentices — not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did, because it is the same crew.",
+    p: "Our own installers and apprentices. Not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did, because it is the same crew.",
   },
   {
     n: "02",
@@ -259,7 +259,7 @@ export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
   {
     n: "04",
     h: "Paperwork before site access",
-    p: "SWMS, certificates of currency and inductions back before anyone turns up — usually the same day you ask. Nobody on your side should be chasing us for a document on the morning of the install.",
+    p: "SWMS, certificates of currency and inductions back before anyone turns up, usually the same day you ask. Nobody on your side should be chasing us for a document on the morning of the install.",
   },
   {
     n: "05",
@@ -281,7 +281,7 @@ export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
 export const COMM_FAQS: { q: string; a: string }[] = [
   {
     q: "What insurance do you carry?",
-    a: "$20,000,000 public liability, current workers compensation, comprehensive motor on the full fleet, and tools and plant cover. Certificates of currency go out the same day you ask — you do not need to chase them.",
+    a: "$20,000,000 public liability, current workers compensation, comprehensive motor on the full fleet, and tools and plant cover. Certificates of currency go out the same day you ask. You do not need to chase them.",
   },
   {
     q: "Can you meet a builder's program?",
@@ -289,7 +289,7 @@ export const COMM_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How do variations work?",
-    a: "One price against one written scope. If the scope changes — and on a live site it usually does — it is repriced and approved in writing before the work happens. You will never get a variation arriving attached to the invoice.",
+    a: "One price against one written scope. If the scope changes, and on a live site it usually does, it is repriced and approved in writing before the work happens. You will never get a variation arriving attached to the invoice.",
   },
   {
     q: "Do you supply SWMS and site inductions?",
@@ -301,7 +301,7 @@ export const COMM_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "How far do you travel?",
-    a: "The standard service area is 75 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work — the Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
+    a: "The standard service area is 75 km from Pakenham, which covers Melbourne's south-east. We travel further for rollout and contract work. The Westpac branch was in Sale. If you have multiple sites spread across the state, talk to us about it rather than assuming we're out of range.",
   },
   {
     q: "Will you take a one-off job, or is it contract work only?",
@@ -309,7 +309,7 @@ export const COMM_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Who actually turns up?",
-    a: "Our own people, in our own vans, in our own uniform. If we ever needed to bring in a specialist for part of a package — a crane crew, a balancing contractor on a large system — we'd tell you who and why at quote stage, not on the day.",
+    a: "Our own people, in our own vans, in our own uniform. If we ever needed to bring in a specialist for part of a package, say a crane crew or a balancing contractor on a large system, we'd tell you who and why at quote stage, not on the day.",
   },
 ];
 

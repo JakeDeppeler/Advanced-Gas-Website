@@ -307,7 +307,7 @@ const COMM_NAV: NavItem[] = [
   { href: "/commercial/services", label: "What we do" },
   { href: "/commercial/capability", label: "Capability statement" },
   { href: "/commercial/about", label: "About us" },
-  { href: "/contact?enquiry=commercial", label: "Contact" },
+  { href: "/commercial/contact", label: "Contact" },
 ];
 
 /**
@@ -430,8 +430,10 @@ export function Header() {
           that demands the choice before showing anything cannot do without
           costing rankings and the visitors who were closest to enquiring. */}
       <div className="sitemode">
+        {/* No label any more. The two tabs say what they are; a caption in front
+            of them just made the control smaller to fit the row. Sits in the
+            corner, larger, like the site-wide switch it is. */}
         <div className="wrap sitemode__row">
-          <span className="sitemode__label">Advanced Gas for</span>
           <nav className="sitemode__tabs" aria-label="Residential or commercial">
             <Link
               href="/"
@@ -535,7 +537,7 @@ export function Header() {
               {site.phone}
             </span>
           </a>
-          <Link href={onCommercial ? "/contact?enquiry=commercial" : "/quote"} className="ds-btn ds-btn--primary">
+          <Link href={onCommercial ? "/commercial/contact" : "/quote"} className="ds-btn ds-btn--primary">
             {onCommercial ? "Submit a scope →" : "Get free quote →"}
           </Link>
         </div>

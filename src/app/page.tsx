@@ -257,8 +257,8 @@ export default async function HomePage() {
               ))}
             </div>
             <p className="route__urgent">
-              Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; answered after
-              hours, by someone on the tools.
+              Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. Answered after hours,
+              by someone on the tools.
             </p>
           </div>
         </div>
@@ -340,9 +340,9 @@ export default async function HomePage() {
             </span>
             <h2 className="ds-h--on-dark">The standard doesn&rsquo;t change with the price.</h2>
             <p className="veu__sub veu__sub--center">
-              These are the three jobs we do most, with the VEU rebate already off and GST in. What the number
-              doesn&rsquo;t change is the day itself &mdash; the same crew, the same procedures, the old unit taken away,
-              and the compliance certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
+              These are the three jobs we do most, with the VEU rebate already off and GST in. The number changes.
+              The day doesn&rsquo;t: the same crew, the same procedures, the old unit taken away, and the compliance
+              certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
             </p>
           </div>
 
@@ -526,11 +526,11 @@ export default async function HomePage() {
           </div>
           <div className="why-grid">
             {[
-              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store — not because they were cheapest that week."],
+              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store, not because they were cheapest that week."],
               ["02", "Our own crew, every job", "Directly employed installers and apprentices. Not labour hire, not a different subcontractor each time. The person who quotes it is on site when it goes in."],
               ["03", "The install is the product", "Bracket, drain fall, pipe runs, insulation, commissioning. That's where a good unit becomes a good system or a callback, and it's the part nobody photographs."],
               ["04", "The standard is written down", "Twenty procedures covering how a van is stocked, what gets photographed, what gets tested and what happens when something goes wrong. Not folklore, and not down to who turned up."],
-              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours — keep it for your insurer."],
+              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours. Keep it for your insurer."],
               ["06", "We're still here after", "Six years on our workmanship, manufacturer warranty on the unit, and a call the week after to make sure it's running the way we left it."],
             ].map(([n, t, d]) => (
               <div key={n} className="why">
@@ -719,7 +719,7 @@ export default async function HomePage() {
           </figure>
           <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job sorted.</h2>
-            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 12 business hours. Prefer to talk? Give us a call.</p>
+            <p>A free fixed-price quote with the VEU rebate already applied, usually back to you within 12 business hours. Prefer to talk? Give us a call.</p>
             <div className="bigcta__btns">
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">

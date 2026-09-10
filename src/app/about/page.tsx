@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 const team = [
   { name: "Dean Winbanks", role: "Director · Plumbing Lic. 46828", bio: "20+ years across industrial, commercial and domestic work. Sets the standard every job is measured against, and signs off the works.", photo: "/dean.webp" },
-  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/Photo of jake.webp" },
+  { name: "Jake",           role: "Estimating & Quotes",           bio: "Your first point of contact for pricing, detailed quotes with any rebates worked in, and the numbers explained.", photo: "/jake.webp" },
   { name: "Kellie",         role: "Office & Scheduling",           bio: "Keeps jobs booked, compliance certificates issued and the paperwork moving, so nothing slips and you're never left chasing.", photo: "/kellie.webp" },
   { name: "Jye",            role: "Installer",                     bio: "Directly employed installer, same face on every job, same standard on every visit.", photo: "/jye.webp" },
 ];
@@ -22,7 +22,7 @@ const values = [
   { n: "01", h: "One accountable team", p: "Directly employed installers and apprentices, not a revolving door of subcontractors. The same trusted faces, holding the same standard, on every visit." },
   { n: "02", h: "Fully licensed & insured", p: "$20M public liability, workers' compensation and comprehensive motor cover. Certificates of currency provided on request." },
   { n: "03", h: "Compliance built in", p: "Type A gas, mechanical services and refrigerant handling (ARC AU59557). Compliance certificates issued on completion of every job." },
-  { n: "04", h: "Backed by warranty", p: "Six years on our workmanship, plus the full manufacturer warranties on all equipment we supply and install. The same figure as the terms page and the FAQs — it used to say twelve months here and six years everywhere else, which is the kind of thing that gets quoted back at you in a dispute." },
+  { n: "04", h: "Backed by warranty", p: "Six years on our workmanship, plus the full manufacturer warranties on all equipment we supply and install. The same figure you will find on the terms page and in the FAQs." },
   { n: "05", h: "Commercial install & maintenance", p: "From new installs and tenancy fit-outs to scheduled preventative-maintenance contracts that keep sites compliant and running year-round." },
 ];
 
@@ -187,8 +187,8 @@ export default function AboutPage() {
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>
-            <h2>Want to talk to the family running this thing?</h2>
-            <p>We&apos;re around Mon–Sat. After hours for emergencies.</p>
+            <h2>Talk to the people who set the standard.</h2>
+            <p>The person who quotes your job is the person who stands behind it. Monday to Saturday, and after hours for emergencies.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a free quote →</Link>

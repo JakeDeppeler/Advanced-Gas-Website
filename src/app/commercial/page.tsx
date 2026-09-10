@@ -21,7 +21,7 @@ const ServiceAreaMap = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Commercial HVAC, Gas & Mechanical Services — Melbourne & Gippsland",
+  title: "Commercial HVAC, Gas & Mechanical Services, Melbourne & Gippsland",
   description:
     "Commercial mechanical services, Type A gas and hot water across Melbourne's south-east and Gippsland. VRV/VRF, air balancing, plant replacement and maintenance. $20M public liability, ARC AU59557, SWMS supplied.",
   alternates: { canonical: "/commercial" },
@@ -64,7 +64,7 @@ export default function CommercialPage() {
             </div>
 
             <p className="hero__rebate">
-              SWMS, certificates of currency and inductions supplied before site access — usually back the same day.
+              SWMS, certificates of currency and inductions supplied before site access, usually back the same day.
             </p>
 
             <div className="hero__trust">
@@ -106,8 +106,8 @@ export default function CommercialPage() {
               ))}
             </div>
             <p className="route__urgent">
-              Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; after hours
-              goes to someone on the tools.
+              Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. After hours goes
+              to someone on the tools.
             </p>
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function CommercialPage() {
                 <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
                 <h2 className="ds-h--on-dark">We read the drawings before we quote.</h2>
                 <p className="scopesec__lede">
-                  Send through what you have &mdash; drawings, a mechanical schedule or a site address. If something is
+                  Send through what you have: drawings, a mechanical schedule or a site address. If something is
                   missing or doesn&rsquo;t add up, we come back and ask rather than pricing around it and arguing about it
                   later.
                 </p>
@@ -135,7 +135,7 @@ export default function CommercialPage() {
                 <p className="scopesec__note">
                   Jake reads every commercial enquiry himself. If it&rsquo;s one for us you&rsquo;ll hear back the same
                   day with either a price or the two questions we need answered first. If it isn&rsquo;t one for us,
-                  you&rsquo;ll hear that just as quickly &mdash; while you&rsquo;ve still got time to go elsewhere.
+                  you&rsquo;ll hear that just as quickly, while you&rsquo;ve still got time to go elsewhere.
                 </p>
 
                 <p className="scopesec__finep">
@@ -158,7 +158,7 @@ export default function CommercialPage() {
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we take on</span>
             <h2 className="ds-h--on-dark">Five packages, carried end to end.</h2>
             <p className="comm-take__lede">
-              We&rsquo;re a specialist mechanical, gas and hot water contractor — not a builder. These are the packages
+              We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. These are the packages
               we&rsquo;re set up to own from drawings to handover, and the only ones we&rsquo;ll quote.
             </p>
           </div>
@@ -187,7 +187,6 @@ export default function CommercialPage() {
             <Link href="/commercial/capability" className="combento combento--cap">
               <div className="combento__body combento__body--wide">
                 <div>
-                  <span className="combento__n">—</span>
                   <h3>Capability statement</h3>
                   <p>ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.</p>
                 </div>
@@ -280,7 +279,7 @@ export default function CommercialPage() {
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
             <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
             <p className="comm-flow__lede">
-              Most of what goes wrong on a mechanical package goes wrong before anyone picks up a tool — a scope two
+              Most of what goes wrong on a mechanical package goes wrong before anyone picks up a tool: a scope two
               people read differently. So we build the scope with you, in writing, and price against that.
             </p>
           </div>
@@ -307,7 +306,7 @@ export default function CommercialPage() {
               Gippsland with no travel loading.
             </p>
             <p className="comm-area__note">
-              We travel further for rollout and contract work — the Westpac branch was in Sale, and the multi-site
+              We travel further for rollout and contract work. The Westpac branch was in Sale, and the multi-site
               contracts run wider than the circle. If your sites are spread across the state, ask rather than assuming
               we&rsquo;re out of range.
             </p>
