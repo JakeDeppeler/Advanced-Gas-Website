@@ -162,20 +162,15 @@ export default async function HomePage() {
               </a>
             </div>
 
-            {/* The rebate, as its own thing. It used to be an item in the
-                top nav with an orange badge on it; the nav is five items
-                now and this is where that prominence went. A slow sheen
-                rather than anything that blinks — it has to catch the eye
-                on a plumbing site without behaving like an ad. */}
-            <Link href="/rebates" className="rebatecta">
-              <span className="rebatecta__sheen" aria-hidden="true" />
-              <span className="rebatecta__amt">Up to $2,700</span>
-              <span className="rebatecta__txt">
-                off a heat pump with the VEU rebate.{" "}
-                <b>See if you qualify</b>
-              </span>
-              <span className="rebatecta__go" aria-hidden="true">→</span>
-            </Link>
+            {/* The rebate used to be a third button here, animated, sending
+                people to another page at the very moment they were closest to
+                enquiring. It is a reason to get a quote, not an alternative to
+                one, so it sits under the buttons as a line — the hook survives,
+                the competing ask does not. */}
+            <p className="hero__rebate">
+              Up to <strong>$2,700</strong> off a heat pump with the VEU rebate, applied to your quote.{" "}
+              <Link href="/rebates">See if you qualify</Link>
+            </p>
 
             <div className="hero__trust">
               <div className="trust-rating">
@@ -313,7 +308,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
                 <p className="fixprice__note">Price assumes a power point within 2&nbsp;metres of the current system. A new circuit is $350, quoted on the site visit.</p>
-                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the R290 &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
               </div>
             </article>
 
@@ -337,7 +332,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
                 </div>
                 <p className="fixprice__note">Reclaim CO₂ Split, glass-lined or stainless, tall or squat, in 160 / 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
-                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the split &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
               </div>
             </article>
 
@@ -360,7 +355,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-num">Message for quote</span>
                   <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
                 </div>
-                <a href="#quote" className="ds-btn ds-btn--orange">Enquire about the ducted &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
               </div>
             </article>
           </div>
@@ -663,7 +658,7 @@ export default async function HomePage() {
             <h2>Let&rsquo;s get your job sorted.</h2>
             <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 12 business hours. Prefer to talk? Give us a call.</p>
             <div className="bigcta__btns">
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
                 or call <strong>{site.phone}</strong>
               </a>

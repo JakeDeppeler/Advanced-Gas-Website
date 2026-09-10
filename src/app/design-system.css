@@ -3044,3 +3044,21 @@ input, select, textarea {
   .quotesec__points li { font-size: 13.5px; }
   .quotesec__finep { font-size: 10.5px; }
 }
+
+/* The rebate as a supporting line under the hero buttons, not a third button
+   competing with them. Loud enough to be read, quiet enough not to pull. */
+.hero__rebate {
+  margin: 14px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2, #4a5468);
+}
+.hero__rebate strong { color: var(--navy, #0e1b4d); font-weight: 800; }
+.hero__rebate a {
+  color: var(--navy, #0e1b4d);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+}
+.hero__rebate a:hover { text-decoration-thickness: 2.5px; }
