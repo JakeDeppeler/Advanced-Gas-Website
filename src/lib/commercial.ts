@@ -163,11 +163,14 @@ export const COMM_CLIENTS: { name: string; what: string; where: string }[] = [
  * are not.
  *
  * Anything here has to be something we genuinely do. A capability claimed and
- * then declined at tender is worse than one never claimed.
+ * then declined at tender is worse than one never claimed — so the list is
+ * confirmed with Jake line by line before anything is added to it, rather than
+ * padded out with things that sound good on a mechanical schedule.
  */
 export const COMM_CAPABILITIES = [
   "VRV / VRF systems",
-  "Ducted & packaged plant",
+  "Ducted systems",
+  "Packaged rooftop units",
   "Air balancing",
   "Mechanical ventilation",
   "Kitchen & exhaust ventilation",
