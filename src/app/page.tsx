@@ -207,6 +207,50 @@ export default async function HomePage() {
       </section>
 
       {/* BRAND TRUST STRIP */}
+      {/* The nav is Services, Brands, Pricing, Tools, Areas — every one of them
+          organised around what we have rather than why they came. Nobody wakes
+          up wanting to browse a catalogue; they wake up to a cold house or a
+          dead hot water service. This is the fork that meets them where they
+          are, and it sends each one to the action that suits it rather than
+          asking everybody to get a quote. */}
+      <section className="ds-section route">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow">Start here</span>
+            <h2>What&rsquo;s brought you here?</h2>
+          </div>
+          <div className="route__grid">
+            <a href={`tel:${site.phoneE164}`} className="routecard routecard--urgent">
+              <span className="routecard__n">01</span>
+              <h3>Something&rsquo;s stopped working</h3>
+              <p>No hot water, no heating, a smell of gas. Phones answered after hours.</p>
+              <span className="routecard__go">Call {site.phone} →</span>
+            </a>
+
+            <a href="#quote" className="routecard">
+              <span className="routecard__n">02</span>
+              <h3>I need something replaced</h3>
+              <p>An old system on its way out, or a new one for a room that&rsquo;s never been right.</p>
+              <span className="routecard__go">Get a fixed quote →</span>
+            </a>
+
+            <Link href="/services#service" className="routecard">
+              <span className="routecard__n">03</span>
+              <h3>It&rsquo;s due a service</h3>
+              <p>Annual service, a CO test before winter, or a system that isn&rsquo;t doing what it used to.</p>
+              <span className="routecard__go">Book a service →</span>
+            </Link>
+
+            <Link href="/commercial" className="routecard routecard--comm">
+              <span className="routecard__n">04</span>
+              <h3>It&rsquo;s a business or a site</h3>
+              <p>Fit-outs, plant replacement and maintenance contracts. Paperwork back the same day.</p>
+              <span className="routecard__go">See the commercial work →</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       <section className="brands">
         <div className="wrap">
           <div className="brands__lead">

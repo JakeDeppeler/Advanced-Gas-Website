@@ -1778,3 +1778,73 @@
   .page-home .tips__grid { gap: 12px; }
   .page-home .tipcard__photo { aspect-ratio: 16 / 8; }
 }
+
+/* ---- "What's brought you here?" — the fork under the hero ----
+   Four doors, one per reason people actually arrive, each ending in the action
+   that suits it rather than sending everyone to the same form. Deliberately
+   plain: this is a signpost, and a signpost that competes with the hero for
+   attention has failed at being a signpost. */
+.route { padding: 52px 0 8px; }
+.route__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+  margin-top: 26px;
+}
+.routecard {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 22px 22px 20px;
+  border: 1px solid #e2e8f4;
+  border-radius: 16px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+.routecard:hover {
+  transform: translateY(-3px);
+  border-color: #cfd7ea;
+  box-shadow: 0 20px 40px -28px rgba(14, 27, 77, 0.5);
+}
+.routecard__n {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #b9c2d8;
+  font-variant-numeric: tabular-nums;
+}
+.routecard h3 {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--navy, #0e1b4d);
+}
+.routecard p {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #4a5468;
+  flex: 1 1 auto;
+}
+.routecard__go {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy, #0e1b4d);
+}
+.routecard:hover .routecard__go { text-decoration: underline; text-underline-offset: 3px; }
+
+/* The broken-thing door is the one with a clock on it. */
+.routecard--urgent { border-color: #f0d3ce; background: #fffaf9; }
+.routecard--urgent .routecard__n { color: #d09a90; }
+.routecard--urgent .routecard__go { color: #b23b2e; }
+
+.routecard--comm { background: #f7f9fd; }
+
+@media (max-width: 560px) {
+  .route { padding: 36px 0 4px; }
+  .routecard { padding: 18px 18px 16px; }
+}
