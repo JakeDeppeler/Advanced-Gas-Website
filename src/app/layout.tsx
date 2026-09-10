@@ -5,6 +5,7 @@ import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { Analytics } from "@/components/Analytics";
+import { CallTracking } from "@/components/CallTracking";
 import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
@@ -150,6 +151,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             banner. Google Analytics sits alongside it and only loads
             when NEXT_PUBLIC_GA_ID is set. */}
         <VercelAnalytics />
+        <CallTracking />
         <Analytics />
       </body>
     </html>
