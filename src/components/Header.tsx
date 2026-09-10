@@ -286,6 +286,10 @@ const NAV: NavItem[] = [
   { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
+  // A plain link rather than a mega panel, and deliberately last. A commercial
+  // buyer is a different reader with different fears, so the nav's job here is
+  // only to say the door exists — the page behind it does the arguing.
+  { href: "/commercial", label: "Commercial" },
 ];
 
 /**
