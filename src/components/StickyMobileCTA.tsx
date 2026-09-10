@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { site } from "@/lib/site";
@@ -21,6 +23,7 @@ import { site } from "@/lib/site";
  * Hidden entirely above 900px via CSS.
  */
 export function StickyMobileCTA() {
+  const onHome = usePathname() === "/";
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -64,9 +67,11 @@ export function StickyMobileCTA() {
           <strong>{site.phone}</strong>
         </span>
       </a>
-      <Link href="/quote" className="stickycta__quote">
-        Free quote →
-      </Link>
+      {onHome ? (
+        <a href="#quote" className="stickycta__quote">Get a fixed quote →</a>
+      ) : (
+        <Link href="/quote" className="stickycta__quote">Get a fixed quote →</Link>
+      )}
     </div>
   );
 }
