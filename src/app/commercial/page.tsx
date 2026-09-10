@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { COMM_SCOPES, COMM_CLIENTS } from "@/lib/commercial";
+import "../home.css";
 import "./commercial.css";
 
 export const metadata: Metadata = {
@@ -35,7 +36,10 @@ const process = [
 
 export default function CommercialPage() {
   return (
-    <div className="page-comm">
+    // page-home is the marketing-page layout scope, not the homepage itself —
+    // the hero, the fork and the section rhythm all hang off it. Opting in is
+    // what makes this read as the same company rather than a bolted-on section.
+    <div className="page-home page-comm">
       {/* HERO */}
       <section className="hero hero--split comm-top">
         <div className="wrap hero__grid">
