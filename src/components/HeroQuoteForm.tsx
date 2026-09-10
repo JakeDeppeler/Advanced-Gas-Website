@@ -1,5 +1,7 @@
 "use client";
 
+import { readUtm, trackLead } from "@/lib/track";
+
 import { useEffect, useMemo, useState } from "react";
 import { site } from "@/lib/site";
 
@@ -458,6 +460,9 @@ export function HeroQuoteForm() {
           },
           name, phone, email, postcode, address, notes,
           photos, hp,
+          // Which page this form was filled in on, and what brought them here.
+          pagePath: typeof window !== "undefined" ? window.location.pathname : undefined,
+          utm: readUtm(),
         }),
       });
       // `res.ok` was never checked and the catch swallowed everything,
@@ -465,6 +470,7 @@ export function HeroQuoteForm() {
       // got it". The one thing a quote form must never do is tell
       // somebody their enquiry arrived when it didn't.
       if (!res.ok) throw new Error(`Quote POST failed: ${res.status}`);
+      trackLead(service, summary());
       setDone(true);
     } catch (err) {
       console.error(err);

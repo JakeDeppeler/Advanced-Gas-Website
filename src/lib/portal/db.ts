@@ -919,3 +919,32 @@ export async function photoCounts(checkIds: string[]): Promise<Map<string, numbe
   }
   return out;
 }
+
+
+/* ---------------- website leads ---------------- */
+
+export type WebLead = {
+  id: string; kind: "quote" | "call"; service: string | null;
+  pagePath: string | null; postcode: string | null; suburb: string | null;
+  source: string | null; utm: Record<string, string>; createdAt: string;
+};
+type WebLeadRow = {
+  id: string; kind: string; service: string | null; page_path: string | null;
+  postcode: string | null; suburb: string | null; source: string | null;
+  utm: Record<string, string> | null; created_at: string;
+};
+
+/** Enquiries since a date, newest first. Nothing personal comes back. */
+export async function listWebLeads(since: string, limit = 2000): Promise<WebLead[]> {
+  const res = await sb(
+    `portal_leads?created_at=gte.${encodeURIComponent(since)}` +
+    `&select=id,kind,service,page_path,postcode,suburb,source,utm,created_at` +
+    `&order=created_at.desc&limit=${limit}`,
+  );
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as WebLeadRow[]).map((r) => ({
+    id: r.id, kind: r.kind === "call" ? "call" : "quote", service: r.service,
+    pagePath: r.page_path, postcode: r.postcode, suburb: r.suburb, source: r.source,
+    utm: r.utm ?? {}, createdAt: r.created_at,
+  }));
+}

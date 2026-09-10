@@ -1276,3 +1276,9 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-oh__checklist strong { display: block; margin-bottom: 7px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 800; color: var(--pt-ink-3); }
 .pt-oh__checklist ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
 .pt-oh__checklist li { font-size: 13px; line-height: 1.5; color: var(--pt-ink-2); }
+
+/* ---- Website leads ---- */
+.pt-lead__bars { display: flex; align-items: flex-end; gap: 2px; height: 120px; padding-top: 6px; }
+.pt-lead__bar { flex: 1 1 0; min-width: 2px; min-height: 2px; border-radius: 2px 2px 0 0; background: var(--pt-navy); }
+.pt-lead__bar.is-none { background: var(--pt-line); }
+.pt-lead__axis { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11px; color: var(--pt-ink-3); font-variant-numeric: tabular-nums; }

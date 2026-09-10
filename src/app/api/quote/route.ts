@@ -24,6 +24,9 @@ type Lead = {
   photos?: Photo[];
   photo?: Photo | null; // legacy single-photo
   hp?: string;
+  /** The page the form was filled in on, and what brought them there. */
+  pagePath?: string;
+  utm?: Record<string, string>;
   propertyType?: string; timing?: string; suburb?: string;
 };
 
@@ -105,7 +108,7 @@ export async function POST(req: Request) {
 
   // Everything below can fail, so the lead goes to the database first.
   // Email is a notification; this is the record.
-  const stored = await storeLead(data, summaryLine, allPhotos.length);
+  const stored = await storeLead(data, summaryLine, allPhotos.length, data.pagePath, data.utm);
 
   if (!key) {
     // This used to return ok:true. On a deployment with no key that
@@ -170,9 +173,9 @@ export async function POST(req: Request) {
  *
  * A no-op when the env vars aren't set, so local and preview builds
  * don't need a database to run the form. See
- * supabase/migrations/0001_leads.sql for the table.
+ * supabase/migrations/0019_portal_leads_capture.sql for the table.
  */
-async function storeLead(data: Lead, summary: string, photoCount: number): Promise<boolean> {
+async function storeLead(data: Lead, summary: string, photoCount: number, pagePath?: string, utm?: Record<string, string>): Promise<boolean> {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
@@ -180,7 +183,7 @@ async function storeLead(data: Lead, summary: string, photoCount: number): Promi
     return false;
   }
   try {
-    const res = await fetch(`${url}/rest/v1/leads`, {
+    const res = await fetch(`${url}/rest/v1/portal_leads`, {
       method: "POST",
       headers: {
         apikey: key,
@@ -189,6 +192,12 @@ async function storeLead(data: Lead, summary: string, photoCount: number): Promi
         Prefer: "return=minimal",
       },
       body: JSON.stringify({
+        kind: "quote",
+        // Which page produced it, and what brought them there. Without these two
+        // there is no way to tell which of seventy-odd pages actually earns
+        // anything, which was the whole point of recording leads at all.
+        page_path: pagePath || null,
+        utm: utm ?? {},
         service: data.service,
         headline: headline(data),
         summary,
