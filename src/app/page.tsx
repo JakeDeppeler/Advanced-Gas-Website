@@ -228,24 +228,26 @@ export default async function HomePage() {
       </section>
 
       {/* START HERE — four doors, see ROUTE_BUTTONS. */}
-      <section className="ds-section route">
+      <section className="route">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow">Start here</span>
-            <h2>What&rsquo;s brought you here?</h2>
+          <div className="route__panel">
+            <div className="ds-section-head ds-section-head--center">
+              <span className="ds-eyebrow">Start here</span>
+              <h2>What&rsquo;s brought you here?</h2>
+            </div>
+            <div className="routebtns">
+              {ROUTE_BUTTONS.map((b) => (
+                <Link key={b.href} href={b.href} className="routebtn">
+                  <span>{b.label}</span>
+                  <span className="routebtn__go" aria-hidden="true">&rarr;</span>
+                </Link>
+              ))}
+            </div>
+            <p className="route__urgent">
+              Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; answered after
+              hours, by someone on the tools.
+            </p>
           </div>
-          <div className="routebtns">
-            {ROUTE_BUTTONS.map((b) => (
-              <Link key={b.href} href={b.href} className="routebtn">
-                <span>{b.label}</span>
-                <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-              </Link>
-            ))}
-          </div>
-          <p className="route__urgent">
-            Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; answered after hours,
-            by someone on the tools.
-          </p>
         </div>
       </section>
 

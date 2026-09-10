@@ -85,24 +85,26 @@ export default function CommercialPage() {
       </section>
 
       {/* START HERE — four doors, the commercial half of the homepage fork. */}
-      <section className="ds-section route">
+      <section className="route">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow">Start here</span>
-            <h2>What&rsquo;s the job?</h2>
+          <div className="route__panel">
+            <div className="ds-section-head ds-section-head--center">
+              <span className="ds-eyebrow">Start here</span>
+              <h2>What&rsquo;s the job?</h2>
+            </div>
+            <div className="routebtns">
+              {COMM_DOORS.map((d) => (
+                <Link key={d.href} href={d.href} className="routebtn">
+                  <span>{d.label}</span>
+                  <span className="routebtn__go" aria-hidden="true">&rarr;</span>
+                </Link>
+              ))}
+            </div>
+            <p className="route__urgent">
+              Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; after hours
+              goes to someone on the tools.
+            </p>
           </div>
-          <div className="routebtns">
-            {COMM_DOORS.map((d) => (
-              <Link key={d.href} href={d.href} className="routebtn">
-                <span>{d.label}</span>
-                <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-              </Link>
-            ))}
-          </div>
-          <p className="route__urgent">
-            Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; after hours goes
-            to someone on the tools.
-          </p>
         </div>
       </section>
 
@@ -174,9 +176,10 @@ export default function CommercialPage() {
                 href={`/commercial/services#${sc.slug}`}
                 className={`combento ${i === 0 ? "combento--xl" : ""} ${sc.slug === "breakdowns" ? "combento--urgent" : ""}`}
               >
-                {i === 0 && <div className="combento__photo" aria-hidden="true" />}
+                <div className={`combento__block combento__block--${sc.slug}`} aria-hidden="true">
+                  <span>{sc.n}</span>
+                </div>
                 <div className="combento__body">
-                  <span className="combento__n">{sc.n}</span>
                   <h3>{sc.title}</h3>
                   <p>{sc.lede}</p>
                   <ul className="combento__list">

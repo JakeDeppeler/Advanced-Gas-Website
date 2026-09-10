@@ -23,7 +23,12 @@ import { site } from "@/lib/site";
  * Hidden entirely above 900px via CSS.
  */
 export function StickyMobileCTA() {
-  const onHome = usePathname() === "/";
+  const pathname = usePathname();
+  const onHome = pathname === "/";
+  // The commercial side has its own ask. "Get a fixed quote" is the wrong words
+  // for a PM sending a mechanical package, and it pointed at the residential
+  // quote form, which walks them through brand and size for a split system.
+  const onCommercial = pathname?.startsWith("/commercial") ?? false;
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -67,7 +72,11 @@ export function StickyMobileCTA() {
           <strong>{site.phone}</strong>
         </span>
       </a>
-      {onHome ? (
+      {onCommercial ? (
+        pathname === "/commercial"
+          ? <a href="#scope" className="stickycta__quote">Send us a scope →</a>
+          : <Link href="/contact?enquiry=commercial" className="stickycta__quote">Send us a scope →</Link>
+      ) : onHome ? (
         <a href="#quote" className="stickycta__quote">Get a fixed quote →</a>
       ) : (
         <Link href="/quote" className="stickycta__quote">Get a fixed quote →</Link>
