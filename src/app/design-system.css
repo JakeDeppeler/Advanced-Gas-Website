@@ -3087,20 +3087,26 @@ input, select, textarea {
 }
 
 /* The rebate as a supporting line under the hero buttons, not a third button
-   competing with them. Loud enough to be read, quiet enough not to pull. */
+   competing with them. Loud enough to be read, quiet enough not to pull.
+
+   Both heroes that carry this line sit on a photograph behind a dark scrim, so
+   the palette is the light one. It was inheriting the body ink and rendering
+   as dark grey on a dark hero — legible only if you already knew it was there,
+   which is a poor state for the biggest single number on the page. */
 .hero__rebate {
   margin: 14px 0 0;
   font-size: 15px;
   line-height: 1.55;
-  color: var(--ink-2, #4a5468);
+  color: rgba(255, 255, 255, 0.88);
 }
-.hero__rebate strong { color: var(--navy, #0e1b4d); font-weight: 800; }
+.hero__rebate strong { color: #fff; font-weight: 800; }
 .hero__rebate a {
-  color: var(--navy, #0e1b4d);
+  color: #fff;
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--orange, #f36722);
 }
 .hero__rebate a:hover { text-decoration-thickness: 2.5px; }
 

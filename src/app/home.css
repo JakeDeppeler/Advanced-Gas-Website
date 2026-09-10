@@ -1780,11 +1780,37 @@
 }
 
 /* ---- "What's brought you here?" — the fork under the hero ----
-   Four doors, one per thing we sell. Deliberately plain: this is a signpost,
-   and a signpost that competes with the hero for attention has failed at being
-   a signpost. Four equal columns rather than auto-fit, because these are four
-   peers and an odd last row would read as a ranking. */
-.route { padding: 52px 0 8px; }
+   Four doors, one per thing we sell.
+
+   The panel is lifted so it overlaps the bottom edge of the hero rather than
+   starting a new band beneath it. Two reasons: the hero had a dead strip of
+   scrim below the trust bar doing nothing, and a signpost that begins a fresh
+   full-height section reads as a second page rather than the next thing to do.
+   Sitting it over the seam ties the two together and pulls the buttons up into
+   the first screen on a laptop.
+
+   Four equal columns rather than auto-fit, because these are four peers and an
+   odd last row would read as a ranking. */
+.route {
+  position: relative;
+  z-index: 2;
+  margin-top: -78px;
+  padding: 0 0 8px;
+}
+.route__panel {
+  /* White rather than the page ground: the panel has to read as raised against
+     the dark hero above it AND the cream section below, and cream-on-cream at
+     the bottom edge just looks like the border came loose. */
+  background: #fff;
+  border: 1px solid var(--line, #ebe6d8);
+  border-radius: 24px;
+  padding: 30px 34px 26px;
+  box-shadow: 0 44px 90px -56px rgba(11, 20, 80, 0.65);
+}
+/* Smaller than a normal section head — the hero above it has to stay the
+   loudest thing on the screen. */
+.route .ds-section-head { margin-bottom: 0; }
+.route .ds-section-head h2 { font-size: clamp(24px, 3vw, 34px); margin: 6px 0 0; }
 .routebtns {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1827,9 +1853,14 @@
 
 @media (max-width: 860px) {
   .routebtns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .route { margin-top: -56px; }
+  .route__panel { padding: 26px 22px 22px; }
 }
 @media (max-width: 560px) {
-  .route { padding: 36px 0 4px; }
+  /* No overlap on a phone. The hero already ends tight against the fold and
+     lifting the panel over it just crops the trust bar. */
+  .route { margin-top: 0; padding: 30px 0 4px; }
+  .route__panel { padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; }
   .routecard { padding: 18px 18px 16px; }
   .routebtn { padding: 17px 18px; font-size: 16.5px; }
 }
