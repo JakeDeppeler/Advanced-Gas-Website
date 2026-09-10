@@ -156,7 +156,7 @@ const services: Service[] = [
     ],
     photo: "/commercial.webp",
     photoAlt: "Commercial fit-out mechanical services",
-    primaryCta: { label: "Get a tender →", href: "/contact" },
+    primaryCta: { label: "See the commercial work →", href: "/commercial" },
   },
   {
     id: "emergency",

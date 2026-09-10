@@ -59,6 +59,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/water-filtration/range`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/services`, changeFrequency: "monthly", priority: 0.85 },
+    { url: `${base}/commercial`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/brands`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/pricing`, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/privacy`, changeFrequency: "yearly", priority: 0.2 },
