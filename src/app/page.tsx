@@ -432,12 +432,12 @@ export default async function HomePage() {
               </div>
             </Link>
 
-            <Link href="/services#commercial" className="bcard bcard--dark">
+            <Link href="/commercial" className="bcard bcard--dark">
               <div className="bcard__photo bcard__photo--commercial" />
               <div className="bcard__body">
                 <span className="bcard__num">07</span>
                 <h3>Commercial fit-out</h3>
-                <p>Cafés, offices, gyms. Aircon, hot water and gas, one PM, one invoice.</p>
+                <p>Bank branches, national retail, tier-one builders. One PM, one invoice, all the paperwork.</p>
               </div>
             </Link>
 

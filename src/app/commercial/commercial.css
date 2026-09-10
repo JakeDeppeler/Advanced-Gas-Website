@@ -1,0 +1,53 @@
+/* Commercial page. Cooler and squarer than the residential pages on purpose:
+   the reader is a facility manager or a builder's PM, not a homeowner, and the
+   job of the page is evidence rather than warmth. */
+
+.page-comm { --comm-ink: #0e1b4d; }
+
+.comm-hero { padding: 64px 0 52px; background: linear-gradient(165deg, #f6f8fc, #eef2f9); border-bottom: 1px solid #e2e8f4; }
+.comm-hero__inner { max-width: 860px; }
+.comm-hero h1 { margin: 10px 0 0; font-size: clamp(30px, 5vw, 52px); line-height: 1.08; letter-spacing: -0.02em; color: var(--comm-ink); }
+.comm-hero__sub { margin: 16px 0 0; font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: #46506b; max-width: 68ch; }
+.comm-hero__ctas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.comm-hero__note { margin: 16px 0 0; font-size: 14px; color: #67718d; }
+
+.comm-work { padding: 60px 0; }
+.comm-work__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 30px; }
+.commcard { border: 1px solid #e2e8f4; border-radius: 14px; padding: 20px 22px; background: #fff; }
+.commcard h3 { margin: 0; font-size: 19px; letter-spacing: -0.01em; color: var(--comm-ink); }
+.commcard__meta { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 7px 0 10px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #8791ab; }
+.commcard__meta span + span::before { content: "· "; }
+.commcard p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #4a5468; }
+
+.comm-creds { padding: 56px 0; background: var(--comm-ink); }
+.comm-creds__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1px; margin: 28px 0 0; background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; overflow: hidden; }
+.comm-creds__grid > div { padding: 18px 20px; background: var(--comm-ink); }
+.comm-creds__grid dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #9aa4cf; margin-bottom: 5px; }
+.comm-creds__grid dd { margin: 0; font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+
+.comm-how { padding: 60px 0; }
+.comm-how__list { list-style: none; margin: 30px 0 0; padding: 0; display: grid; gap: 2px; }
+.comm-how__list li { display: flex; gap: 18px; padding: 22px 0; border-top: 1px solid #e2e8f4; }
+.comm-how__list li:last-child { border-bottom: 1px solid #e2e8f4; }
+.comm-how__n { flex: 0 0 auto; font-size: 13px; font-weight: 800; color: #b9c2d8; font-variant-numeric: tabular-nums; padding-top: 3px; }
+.comm-how__list h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -0.01em; color: var(--comm-ink); }
+.comm-how__list p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; max-width: 74ch; }
+
+.comm-scope { padding: 56px 0; background: #f6f8fc; border-top: 1px solid #e2e8f4; }
+.comm-scope__list { list-style: none; margin: 26px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 26px; }
+.comm-scope__list li { position: relative; padding-left: 22px; font-size: 15.5px; line-height: 1.55; color: #37405a; }
+.comm-scope__list li::before { content: ""; position: absolute; left: 0; top: 9px; width: 8px; height: 8px; border-radius: 2px; background: var(--orange, #c9781a); }
+.comm-scope__reach { margin: 26px 0 0; font-size: 14.5px; line-height: 1.6; color: #67718d; max-width: 72ch; }
+
+.comm-cta { padding: 64px 0; }
+.comm-cta__inner { max-width: 760px; }
+.comm-cta h2 { margin: 0; font-size: clamp(26px, 4vw, 38px); letter-spacing: -0.02em; color: var(--comm-ink); }
+.comm-cta p { margin: 14px 0 0; font-size: 16.5px; line-height: 1.65; color: #4a5468; }
+.comm-cta__btns { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 26px; }
+.comm-cta__phone { font-size: 16px; color: var(--comm-ink); text-decoration: none; }
+.comm-cta__phone strong { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .comm-hero { padding: 44px 0 38px; }
+  .comm-how__list li { flex-direction: column; gap: 8px; }
+}
