@@ -59,7 +59,7 @@ export default function CommercialPage() {
             </p>
 
             <div className="hero__ctas" data-hide-sticky-cta>
-              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</a>
+              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--lg">Submit a scope →</a>
               <Link href="/commercial/capability" className="ds-btn ds-btn--ghost ds-btn--lg">Capability statement</Link>
             </div>
 
@@ -120,10 +120,11 @@ export default function CommercialPage() {
             <div className="scopesec__grid">
               <div className="scopesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
-                <h2 className="ds-h--on-dark">Send it over and we&rsquo;ll price it.</h2>
+                <h2 className="ds-h--on-dark">We read the drawings before we quote.</h2>
                 <p className="scopesec__lede">
-                  We read the drawings before we quote. If something is missing or doesn&rsquo;t add up, we come back and
-                  ask rather than pricing around it and arguing about it later.
+                  Send through what you have &mdash; drawings, a mechanical schedule or a site address. If something is
+                  missing or doesn&rsquo;t add up, we come back and ask rather than pricing around it and arguing about it
+                  later.
                 </p>
                 <ul className="scopesec__points">
                   <li><span className="tick">✓</span> One price against one written scope</li>
@@ -310,7 +311,7 @@ export default function CommercialPage() {
               contracts run wider than the circle. If your sites are spread across the state, ask rather than assuming
               we&rsquo;re out of range.
             </p>
-            <a href="#scope" className="ds-btn ds-btn--navy">Send us a scope →</a>
+            <a href="#scope" className="ds-btn ds-btn--navy">Submit a scope →</a>
           </div>
           <div className="area__right">
             <div className="map map--live" aria-label="Service area map, 75 km radius from Pakenham 3810">
@@ -360,13 +361,13 @@ export default function CommercialPage() {
             />
           </figure>
           <div className="bigcta__copy">
-            <h2>Send us the scope and we&rsquo;ll price it.</h2>
+            <h2>Submit a scope for pricing.</h2>
             <p>
-              Drawings, a schedule or a site address is enough to start. If you need certificates of currency, SWMS or
-              induction paperwork first, ask and they&rsquo;ll come back the same day.
+              Drawings, a mechanical schedule or a site address is sufficient to begin. Certificates of currency, SWMS
+              and induction documentation are available on request and returned the same day.
             </p>
             <div className="bigcta__btns">
-              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</a>
+              <a href="#scope" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
                 or call <strong>{site.phone}</strong>
               </a>

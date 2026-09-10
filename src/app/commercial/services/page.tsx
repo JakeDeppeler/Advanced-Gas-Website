@@ -56,7 +56,7 @@ export default function CommercialServicesPage() {
             at someone who is. That&rsquo;s cheaper for both of us than finding out halfway through.
           </p>
           <div className="comm-cta__btns">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</Link>
+            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</Link>
             <a href={`tel:${site.phoneE164}`} className="comm-cta__phone">or call <strong>{site.phone}</strong></a>
           </div>
         </div>
