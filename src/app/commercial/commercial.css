@@ -157,21 +157,57 @@
    "get a price" button; this is the same slot, but the reader is filing an
    enquiry rather than being sold to, so the panel is evidence-coloured and the
    orange is spent on the one button that submits. */
-.page-home.page-comm .scopesec { padding: 64px 0; background: var(--bg-2, #f6f8fc); }
-.scopesec__box { background: var(--comm-ink); border-radius: 24px; padding: 40px; }
+.page-home.page-comm .scopesec { padding: 72px 0; background: var(--bg-2, #f3efe5); }
+/* Orange, the same as the residential quote box. It was navy, which was
+   technically consistent with the rest of this page and quietly wrong: this is
+   the one block on the page asking for something, and on the residential side
+   the orange box IS the ask. Making it navy meant the enquiry panel looked like
+   another content section. */
+.scopesec__box {
+  position: relative;
+  overflow: hidden;
+  background: var(--orange, #f36722);
+  color: #fff;
+  border-radius: 28px;
+  padding: 46px 48px;
+  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
+              0 8px 24px -14px rgba(5, 10, 48, 0.2);
+}
+.scopesec__box::before {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
+}
+.scopesec__grid { position: relative; }
 .scopesec__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 44px; align-items: stretch; }
 /* The form sets the panel height. Pinning the credentials line to the bottom
    of the left column closes the box off instead of leaving a hole under it. */
 .scopesec__left { display: flex; flex-direction: column; }
 .scopesec__left h2 { margin: 12px 0 0; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; letter-spacing: -0.02em; }
-.scopesec__lede { margin: 14px 0 0; font-size: 16.5px; line-height: 1.65; color: #c6cce6; max-width: 46ch; }
-.scopesec__points { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 11px; }
-.scopesec__points li { display: flex; gap: 11px; font-size: 15px; line-height: 1.5; color: #dfe3f4; }
-.scopesec .tick { background: rgba(255, 255, 255, 0.18); color: #fff; }
+.scopesec__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.6; color: rgba(255, 255, 255, 0.92); max-width: 44ch; }
+.scopesec__points { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 12px; }
+.scopesec__points li { display: flex; gap: 11px; font-size: 15.5px; line-height: 1.5; color: #fff; }
+.scopesec .tick { background: rgba(255, 255, 255, 0.24); color: #fff; }
+.scopesec__note {
+  margin: 26px 0 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: rgba(5, 10, 48, 0.14);
+  font-size: 14.5px; line-height: 1.65; color: #fff;
+  max-width: 46ch;
+}
+.scopesec .scopeform__go {
+  background: var(--navy, #050a30);
+  border-color: var(--navy, #050a30);
+}
+.scopesec .scopeform__go:hover { background: var(--navy-2, #0b1450); }
 .scopesec__finep {
-  margin: 24px 0 0; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.16);
+  margin: 26px 0 0; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.28);
   margin-top: auto;
-  font-family: var(--f-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.7; color: #9aa4cf;
+  font-family: var(--f-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.7;
+  color: rgba(255, 255, 255, 0.82);
 }
 
 /* ---- Scope form ---- */
@@ -215,7 +251,8 @@
   text-decoration: none; color: inherit;
   transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.combento:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 24px 46px -30px rgba(14, 27, 77, 0.55); }
+.combento { box-shadow: 0 2px 0 rgba(11, 20, 80, 0.03), 0 18px 34px -28px rgba(11, 20, 80, 0.4); }
+.combento:hover { transform: translateY(-4px); border-color: #cfd7ea; box-shadow: 0 30px 56px -30px rgba(14, 27, 77, 0.6); }
 .combento--xl { grid-row: span 2; grid-column: span 1; }
 
 /* Colour blocks where the residential bento has photographs.
@@ -227,7 +264,7 @@
    would read as a toy, four steps of one colour reads as a system. */
 .combento__block {
   display: flex; align-items: flex-end;
-  min-height: 104px; padding: 0 22px 16px;
+  min-height: 132px; padding: 0 22px 16px;
   border-bottom: 2px solid var(--orange, #f36722);
 }
 .combento__block span {
@@ -247,19 +284,46 @@
 .combento--xl .combento__block { flex: 1 1 auto; min-height: 240px; }
 .combento--xl .combento__body { flex: 0 0 auto; }
 .combento__block--fit-outs span { color: rgba(255, 255, 255, 0.92); }
-.combento__block--plant-replacement { background: linear-gradient(150deg, #0b1450, #050a30); }
-.combento__block--maintenance       { background: linear-gradient(150deg, #16255f, #0b1450); }
-.combento__block--gas               { background: linear-gradient(150deg, #22305e, #1b234e); }
+/* Photographs where we have one that holds up on a commercial page, with a
+   navy scrim over it so a photo tile and a colour tile still read as the same
+   set. The condenser, the stripped rooftop unit and the trench are all our own
+   work; what they are not is a bank branch, so they are cropped to the plant
+   rather than the building. */
+.combento__block--plant-replacement {
+  background:
+    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
+    url("/ducted-condenser.webp") center 38% / cover no-repeat;
+}
+.combento__block--maintenance {
+  background:
+    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
+    url("/evap-cooler-service.webp") center 62% / cover no-repeat;
+}
+/* Cropped hard into the machine and the trench. Wider, the shot is a suburban
+   back lawn with a paling fence, which says the wrong thing on this page even
+   though the excavator is ours and the work is the same work. */
+.combento__block--gas {
+  background:
+    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
+    url("/gas-line.webp") 46% 76% / 210% no-repeat;
+}
+.combento__block--plant-replacement span,
+.combento__block--maintenance span,
+.combento__block--gas span { color: rgba(255, 255, 255, 0.92); }
 /* The odd one out, and it should look it — this is the package you reach for
    when something has already gone wrong. */
 .combento__block--breakdowns        { background: linear-gradient(150deg, #8a4419, #63300f); }
 .combento__body { display: flex; flex-direction: column; gap: 7px; padding: 20px 22px 20px; flex: 1 1 auto; }
 .combento__n { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #b9c2d8; font-variant-numeric: tabular-nums; }
-.combento h3 { margin: 0; font-size: 19px; line-height: 1.25; letter-spacing: -0.015em; color: var(--comm-ink); }
-.combento p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #4a5468; }
-.combento__list { margin: 4px 0 0; padding-left: 17px; display: grid; gap: 5px; }
-.combento__list li { font-size: 13.5px; line-height: 1.5; color: #5a6478; }
-.combento__suits { margin-top: auto; padding-top: 10px; font-size: 12px; font-weight: 600; color: #8791ab; }
+.combento h3 { margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.02em; color: var(--comm-ink); }
+.combento p { margin: 0; font-size: 15.5px; line-height: 1.6; color: #46506b; }
+.combento__list { margin: 6px 0 0; padding-left: 17px; display: grid; gap: 6px; }
+.combento__list li { font-size: 14.5px; line-height: 1.5; color: #5a6478; }
+.combento__suits {
+  margin-top: auto; padding-top: 12px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #8791ab;
+}
 .combento--urgent { border-color: #ecd9cd; background: #fffaf7; }
 .combento--dark { grid-column: 1 / -1; background: var(--comm-ink); border-color: var(--comm-ink); }
 .combento--dark h3 { color: #fff; }
@@ -311,4 +375,45 @@
   .comm-flow { padding: 56px 0; }
   .comm-flow__list li { flex-direction: column; gap: 8px; }
   .page-home.page-comm .comm-std { padding: 56px 0; }
+}
+
+/* The roster now carries where the work was, which was already in the data and
+   doing nothing. "Westpac" is a logo; "Westpac, branch fit-out, Sale" is a
+   reference. */
+.commlogo em {
+  font-style: normal;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10.5px; letter-spacing: 0.03em; color: #a3abc4;
+}
+
+/* ---- The four figures ---- */
+.comm-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 22px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 26px 54px -34px rgba(11, 20, 80, 0.6);
+}
+.commfact { padding: 26px 24px 24px; background: var(--comm-ink); }
+.commfact strong {
+  display: block;
+  font-family: var(--f-display, inherit);
+  font-size: clamp(30px, 4vw, 42px); font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+  color: #fff;
+}
+.commfact span {
+  display: block; margin-top: 7px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--orange, #f36722);
+}
+.commfact p { margin: 12px 0 0; font-size: 14px; line-height: 1.6; color: #c6cce6; }
+
+@media (max-width: 860px) {
+  .comm-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .comm-facts { grid-template-columns: 1fr; }
 }

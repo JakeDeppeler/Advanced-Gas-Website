@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { sweepTo } from "@/components/RouteMotion";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
@@ -373,6 +374,7 @@ function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -405,6 +407,19 @@ export function Header() {
 
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
 
+  /**
+   * Crossing between the two sides of the business. This is the one navigation
+   * on the site where the reader genuinely changes context — different services,
+   * different prices, different person reading — so it gets the orange sweep
+   * rather than the ordinary page-enter. Modified clicks (new tab, new window)
+   * are left alone.
+   */
+  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    sweepTo(() => router.push(href));
+  }
+
   return (
     <>
       {/* Residential and commercial are different readers with different fears,
@@ -416,17 +431,27 @@ export function Header() {
         <div className="wrap sitemode__row">
           <span className="sitemode__label">Advanced Gas for</span>
           <nav className="sitemode__tabs" aria-label="Residential or commercial">
-            <Link href="/" className={`sitemode__tab${onCommercial ? "" : " is-on"}`} aria-current={onCommercial ? undefined : "page"}>
+            <Link
+              href="/"
+              className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
+              aria-current={onCommercial ? undefined : "page"}
+              onClick={(e) => crossOver(e, "/")}
+            >
               Your home
             </Link>
-            <Link href="/commercial" className={`sitemode__tab${onCommercial ? " is-on" : ""}`} aria-current={onCommercial ? "page" : undefined}>
+            <Link
+              href="/commercial"
+              className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
+              aria-current={onCommercial ? "page" : undefined}
+              onClick={(e) => crossOver(e, "/commercial")}
+            >
               Business &amp; commercial
             </Link>
           </nav>
         </div>
       </div>
 
-    <header className="hdr">
+    <header className={`hdr${onCommercial ? " hdr--comm" : ""}`}>
       <div className="wrap hdr__row">
         <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
           <img
