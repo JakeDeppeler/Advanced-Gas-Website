@@ -1,128 +1,103 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { COMM_SCOPES, COMM_CLIENTS } from "@/lib/commercial";
 import "./commercial.css";
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical Services — Melbourne & Gippsland",
   description:
-    "Commercial HVAC, Type A gas, hot water and mechanical services across Melbourne's south-east and Gippsland. Bank branches, national retail rollouts, tier-one builders. $20M public liability, ARC AU59557, SWMS supplied.",
+    "Commercial mechanical services, Type A gas and hot water across Melbourne's south-east and Gippsland. Bank branches, national retail rollouts, tier-one builders. $20M public liability, ARC AU59557, SWMS supplied.",
   alternates: { canonical: "/commercial" },
 };
 
 /**
- * The commercial page exists because a facility manager and a homeowner are
- * afraid of different things. A homeowner worries about being ripped off and
- * about who is in their house. A commercial buyer worries about compliance,
- * delays and having to manage you. Same company, same standard, different
- * evidence — so this page leads with the work and the paperwork, not the
- * reviews.
+ * The commercial front page, built to the same rhythm as the residential one so
+ * it reads as the same company — but every section answers a different fear.
+ * A homeowner is deciding whether to trust a stranger in their house. A PM is
+ * deciding whether letting us on site will make work for them.
  */
 
-const work = [
-  { client: "Westpac", what: "Branch fit-out", where: "Sale, Gippsland", note: "Full mechanical services on an operating bank branch — staged so the branch kept trading." },
-  { client: "Petbarn", what: "National retail rollout", where: "Multi-site", note: "Store fit-outs to a national brand's specification, delivered to the builder's programme." },
-  { client: "Greencross", what: "Vet clinics", where: "Multi-site", note: "Climate control for clinics, where temperature stability is a welfare requirement, not a comfort one." },
-  { client: "Commonwealth Bank", what: "Branch fit-out", where: "Victoria", note: "Mechanical services on a branch refurbishment." },
-  { client: "Kane Constructions", what: "Tier-one builder", where: "Victoria", note: "Subcontract mechanical packages, coordinated to a head contractor's programme." },
-  { client: "Reece Group", what: "Multi-site service contract", where: "Victoria", note: "Scheduled maintenance across branches." },
-  { client: "Reliance Worldwide", what: "Industrial service contract", where: "Victoria", note: "Planned maintenance on an operating manufacturing site." },
-  { client: "Retirement Villages Constructions", what: "Aged care", where: "Victoria", note: "Heat-pump hot water upgrades across village stock." },
+const routes = [
+  { href: "/commercial/services#fit-outs", n: "01", h: "A fit-out to program", p: "New tenancy or a retail rollout, delivered to the builder's dates." },
+  { href: "/commercial/services#plant-replacement", n: "02", h: "Plant at end of life", p: "Swapping it out on a site that can't stop trading." },
+  { href: "/commercial/services#maintenance", n: "03", h: "Sites to keep compliant", p: "Scheduled maintenance across as many sites as you have." },
+  { href: "/commercial/services#breakdowns", n: "04", h: "Something's stopped", p: "Breakdown response, after hours, on contracted sites." },
 ];
 
-const doors = [
-  { href: "/commercial/services", h: "What we take on", p: "Fit-outs, plant replacement, maintenance contracts, Type A gas and breakdown response." },
-  { href: "/commercial/capability", h: "Capability statement", p: "ABN, licences, insurances, safety and capacity — everything procurement asks for, on one page." },
-  { href: "/commercial/about", h: "Who you'd be dealing with", p: "Directly employed crews, a written standard, and one person accountable for the package." },
-];
-
-const credentials: [string, string][] = [
-  ["Public liability", "$20M"],
-  ["Refrigerant handling", site.licences.refrigeration],
-  ["Plumbing licence", site.licences.plumbing],
-  ["Type A gas", "Appliance servicing & installation"],
-  ["SWMS", "Supplied before site access"],
-  ["Site inductions", "Paperwork back within 24 hrs"],
-  ["Workers compensation", "Current, certificate on request"],
-  ["ABN", site.abn],
-];
-
-const how = [
-  {
-    n: "01",
-    h: "One number, one line of accountability",
-    p: "A single point of contact through the trade — not a call centre and not a different subcontractor each visit. If it goes wrong, one person owns it.",
-  },
-  {
-    n: "02",
-    h: "Directly employed, not brokered out",
-    p: "Our own installers and apprentices, working to a written standard. Every van carries the same stock list and the same tools, so the crew that turns up on week three works the same way as the crew in week one.",
-  },
-  {
-    n: "03",
-    h: "Documented, every job",
-    p: "Photos, forms and notes completed on the day, against the job. Compliance certificates issued on completion. If it isn't recorded, it isn't finished.",
-  },
-  {
-    n: "04",
-    h: "Programmed around your build",
-    p: "Install windows coordinated with the builder and the other trades. Staged works for sites that have to keep trading while we're in them.",
-  },
-  {
-    n: "05",
-    h: "Maintenance after handover",
-    p: "Scheduled preventative maintenance contracts, so the site stays compliant and the plant lasts what it's supposed to.",
-  },
-];
-
-const scopes = [
-  "Ducted and split system air conditioning",
-  "Mechanical services and ventilation",
-  "Type A gas — installation, servicing and compliance",
-  "Commercial hot water, including heat pump plant",
-  "Tenancy and retail fit-outs",
-  "Plant replacement on operating sites",
-  "Scheduled preventative maintenance",
-  "Breakdown response on contracted sites",
+const process = [
+  ["01", "Send the scope", "Drawings, a schedule or a site address. We'll tell you quickly if it isn't one for us."],
+  ["02", "Paperwork first", "SWMS, certificates of currency and inductions back within 24 hours — before anyone turns up."],
+  ["03", "Priced, then built", "A price against the scope. If the scope changes, it's repriced and approved before the work happens."],
+  ["04", "One contact throughout", "A single person through the trade. Not a call centre, not a ticket number."],
+  ["05", "Signed off and handed over", "Commissioned, certified, as-builts and O&M. Maintenance from there if you want it."],
 ];
 
 export default function CommercialPage() {
   return (
     <div className="page-comm">
-      <section className="comm-hero">
-        <div className="wrap comm-hero__inner">
-          <span className="ds-eyebrow">Commercial &amp; industrial</span>
-          <h1>Bank branches, national retail, tier-one builders.</h1>
-          <p className="comm-hero__sub">
-            We do mechanical services, Type A gas and commercial hot water across Melbourne&rsquo;s south-east and Gippsland.
-            Directly employed crews working to a written standard, full compliance paperwork, and one person accountable for the
-            package.
-          </p>
-          <div className="comm-hero__ctas">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</Link>
-            <Link href="/commercial/capability" className="ds-btn ds-btn--ghost ds-btn--lg">Capability statement →</Link>
+      {/* HERO */}
+      <section className="hero hero--split comm-top">
+        <div className="wrap hero__grid">
+          <div className="hero__copy">
+            <span className="hero__badge">
+              <span className="ds-dot" />
+              Commercial &amp; industrial
+            </span>
+            <h1 className="hero__h1">One standard. Every site.</h1>
+            <p className="hero__sub">
+              Mechanical services, Type A gas and commercial hot water across Melbourne&rsquo;s south-east and Gippsland.
+              Directly employed crews, a written standard, and one person accountable for the package.
+            </p>
+
+            <div className="hero__ctas" data-hide-sticky-cta>
+              <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--lg">Send us a scope →</Link>
+              <Link href="/commercial/capability" className="ds-btn ds-btn--ghost ds-btn--lg">Capability statement</Link>
+            </div>
+
+            <p className="hero__rebate">
+              SWMS, certificates of currency and inductions supplied before site access — usually back the same day.
+            </p>
+
+            <div className="hero__trust">
+              <div className="trust-stat"><strong>$20M</strong><span>public liability</span></div>
+              <div className="trust-divider" />
+              <div className="trust-stat"><strong>12 yrs</strong><span>trading</span></div>
+              <div className="trust-divider" />
+              <div className="trust-stat"><strong>Direct</strong><span>employed crews</span></div>
+            </div>
           </div>
-          <p className="comm-hero__note">
-            Certificates of currency, SWMS and induction paperwork supplied on request — usually back the same day.
-            Or call <a href={`tel:${site.phoneE164}`}>{site.phone}</a>.
-          </p>
+
+          <div className="hero__photo" aria-hidden="true">
+            <picture>
+              <source media="(max-width: 760px)" srcSet="/commercial.webp" />
+              <img src="/commercial.webp" alt="" width={1200} height={1400} fetchPriority="high" decoding="async" />
+            </picture>
+          </div>
         </div>
       </section>
 
-      <section className="comm-doors">
+      {/* WHAT'S BROUGHT YOU HERE */}
+      <section className="ds-section route">
         <div className="wrap">
-          <div className="comm-doors__grid">
-            {doors.map((d) => (
-              <Link key={d.href} href={d.href} className="commdoor">
-                <h2>{d.h}</h2>
-                <p>{d.p}</p>
-                <span className="commdoor__go">Read on →</span>
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow">Start here</span>
+            <h2>What&rsquo;s brought you here?</h2>
+          </div>
+          <div className="route__grid">
+            {routes.map((r) => (
+              <Link key={r.href} href={r.href} className="routecard">
+                <span className="routecard__n">{r.n}</span>
+                <h3>{r.h}</h3>
+                <p>{r.p}</p>
+                <span className="routecard__go">See how we do it →</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
+      {/* THE WORK — proof band */}
       <section className="comm-work">
         <div className="wrap">
           <div className="ds-section-head">
@@ -133,55 +108,58 @@ export default function CommercialPage() {
               These are the ones that have put us on site.
             </p>
           </div>
-          <div className="comm-work__grid">
-            {work.map((w) => (
-              <article key={w.client} className="commcard">
-                <h3>{w.client}</h3>
-                <div className="commcard__meta">
-                  <span>{w.what}</span>
-                  <span>{w.where}</span>
-                </div>
-                <p>{w.note}</p>
-              </article>
+          <div className="comm-logos">
+            {COMM_CLIENTS.map((c) => (
+              <div key={c.name} className="commlogo">
+                <strong>{c.name}</strong>
+                <span>{c.what}</span>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* SCOPES — the services grid */}
+      <section className="ds-section">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow">What we take on</span>
+            <h2>Five packages, done properly.</h2>
+            <p>We&rsquo;re a specialist mechanical, gas and hot water contractor — not a builder. These are the ones we&rsquo;re set up for.</p>
+          </div>
+          <div className="comm-scopegrid">
+            {COMM_SCOPES.map((sc) => (
+              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="commtile">
+                <span className="commtile__n">{sc.n}</span>
+                <h3>{sc.title}</h3>
+                <p>{sc.lede}</p>
+                <span className="commtile__suits">{sc.suits}</span>
+              </Link>
+            ))}
+            <Link href="/commercial/capability" className="commtile commtile--dark">
+              <span className="commtile__n">—</span>
+              <h3>Capability statement</h3>
+              <p>ABN, licences, insurances, safety systems, capacity and past projects, on one page.</p>
+              <span className="commtile__suits">Everything procurement asks for</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW A JOB RUNS */}
       <section className="comm-creds">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow">The paperwork</span>
-            <h2 className="ds-h--on-dark">Everything you&rsquo;ll be asked to file before we set foot on site.</h2>
+            <span className="ds-eyebrow">How a job runs</span>
+            <h2 className="ds-h--on-dark">Five steps, and the paperwork comes first.</h2>
           </div>
-          <dl className="comm-creds__grid">
-            {credentials.map(([k, v]) => (
-              <div key={k}>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      <section className="comm-how">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow">How we run a job</span>
-            <h2>One standard, every van, every visit.</h2>
-            <p>
-              The thing that makes a contractor easy to work with isn&rsquo;t size, it&rsquo;s whether they do the same thing every
-              time. Ours is written down.
-            </p>
-          </div>
-          <ol className="comm-how__list">
-            {how.map((h) => (
-              <li key={h.n}>
-                <span className="comm-how__n">{h.n}</span>
+          <ol className="comm-steps">
+            {process.map(([n, h, p]) => (
+              <li key={n}>
+                <span className="comm-steps__n">{n}</span>
                 <div>
-                  <h3>{h.h}</h3>
-                  <p>{h.p}</p>
+                  <h3>{h}</h3>
+                  <p>{p}</p>
                 </div>
               </li>
             ))}
@@ -189,28 +167,45 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      <section className="comm-scope">
+      {/* WHY US */}
+      <section className="ds-section">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow">Scopes we take</span>
-            <h2>What we can price.</h2>
+            <span className="ds-eyebrow">Why us</span>
+            <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
           </div>
-          <ul className="comm-scope__list">
-            {scopes.map((sc) => <li key={sc}>{sc}</li>)}
-          </ul>
+          <div className="comm-why">
+            <div>
+              <h3>Directly employed</h3>
+              <p>Our own installers and apprentices — not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did.</p>
+            </div>
+            <div>
+              <h3>The standard is written down</h3>
+              <p>Twenty procedures covering how a van is stocked, what gets photographed, what gets certified and what happens when something goes wrong. Ask to see it.</p>
+            </div>
+            <div>
+              <h3>Documented, every job</h3>
+              <p>Photos, forms and notes completed on the day. Compliance certificates on completion. If it isn&rsquo;t recorded, it isn&rsquo;t finished.</p>
+            </div>
+            <div>
+              <h3>We&rsquo;ll say no</h3>
+              <p>If a scope needs something we&rsquo;re not set up to do properly, we&rsquo;ll say so early — cheaper for both of us than finding out at the halfway mark.</p>
+            </div>
+          </div>
           <p className="comm-scope__reach">
-            Based at {site.address.street}, {site.address.suburb}. Standard service area is 75 km, and we travel further for
+            Based at {site.address.street}, {site.address.suburb}. Standard service area is 75&nbsp;km, and we travel further for
             rollout and contract work — the Westpac branch was in Sale.
           </p>
         </div>
       </section>
 
+      {/* CLOSE */}
       <section className="comm-cta">
         <div className="wrap comm-cta__inner">
           <h2>Send us the scope and we&rsquo;ll price it.</h2>
           <p>
-            Drawings, a schedule or a site address is enough to start. If you need our certificates of currency, SWMS or
-            induction paperwork first, ask and they&rsquo;ll come back the same day.
+            Drawings, a schedule or a site address is enough to start. If you need certificates of currency, SWMS or induction
+            paperwork first, ask and they&rsquo;ll come back the same day.
           </p>
           <div className="comm-cta__btns">
             <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Send us a scope →</Link>

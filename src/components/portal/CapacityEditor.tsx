@@ -20,7 +20,7 @@ const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ?
 
 const TABS = [
   { k: "crew", label: "The crew" },
-  { k: "overheads", label: "Overheads" },
+  { k: "overheads", label: "What it costs" },
   { k: "rates", label: "What we charge" },
   { k: "growth", label: "Another van" },
   { k: "words", label: "What the words mean" },
@@ -184,7 +184,7 @@ export function CapacityEditor({
   const office = useMemo(() => officeCost(cap), [cap]);
 
   const crewCost = useMemo(() => {
-    const rows = cap.per.map(({ p, c }) => ({
+    const rows = cap.per.filter(({ p }) => LEVEL_BILLABLE[p.level]).map(({ p, c }) => ({
       id: p.id, name: p.name, level: p.level,
       paidHrs: c.paidHrs, billHrs: c.billHrs, wageCost: c.wageCost,
       wage: p.costing.wage,
@@ -222,11 +222,17 @@ export function CapacityEditor({
   // Grouped so the crew reads as the team does — all the apprentices together,
   // all the tradesmen together — rather than one flat list.
   const grouped = useMemo(() => {
-    const order = [...CREW_LEVELS.map((l) => l.key), ""] as (CrewLevel | "")[];
+    const order = [...CREW_LEVELS.filter((l) => l.billable).map((l) => l.key), ""] as (CrewLevel | "")[];
     return order
       .map((lv) => ({ level: lv, rows: rows.filter((r) => r.level === lv) }))
       .filter((g) => g.rows.length > 0);
   }, [rows]);
+
+  /** Office, admin and operations — a cost to carry, not a crew to schedule. */
+  const officeRows = useMemo(
+    () => rows.filter((r) => r.level !== "" && !LEVEL_BILLABLE[r.level as CrewLevel]),
+    [rows],
+  );
 
   function removeRow(id: string, email: string | null) {
     start(async () => {
@@ -310,7 +316,10 @@ export function CapacityEditor({
         <>
           <section className="pt-panel">
             <h2 className="pt-panel__h">How the year works</h2>
-            <p className="pt-panel__sub">The settings every person&rsquo;s costing is worked out against.</p>
+            <p className="pt-panel__sub">
+              The settings every person&rsquo;s costing is worked out against. This tab is the people on the tools — office and
+              admin sit under <strong>What it costs</strong>, because they carry no billable hours.
+            </p>
             <div className="pt-cap__row3">
               <CapField label="Weeks / year" value={s.weeksYear} onChange={(v) => setS({ ...s, weeksYear: v })} />
               <CapField label="Call-backs" value={s.callbackPct ?? 0} onChange={(v) => setS({ ...s, callbackPct: v })} post="%" />
@@ -459,36 +468,6 @@ export function CapacityEditor({
             </section>
           ))}
 
-          {office.rows.length > 0 && (
-            <section className="pt-panel">
-              <div className="pt-ov__charthead">
-                <h2 className="pt-panel__h">What the office costs</h2>
-                <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
-              </div>
-              <p className="pt-panel__sub">
-                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill — <strong>{money2(office.perHr)}</strong>{" "}
-                on top of every billable hour, before a tradesman&rsquo;s own wage.
-              </p>
-              <div className="pt-oh__ledger">
-                <div className="pt-oh__group">
-                  {office.rows.map((r) => (
-                    <div key={r.id} className="pt-oh__line">
-                      <div className="pt-oh__row is-locked">
-                        <span className="pt-oh__label">{r.name}<em>{LEVEL_LABEL[r.level]} · {money2(r.wage)}/hr</em></span>
-                        <span className="pt-oh__perhr">{perHour(r.cost)}</span>
-                        <span className="pt-oh__fixed">{money(r.cost)}</span>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="pt-oh__grouph" style={{ borderTop: "2px solid var(--pt-line)", borderBottom: 0, paddingTop: 10 }}>
-                    <span>All of them</span>
-                    <span>{money(office.total)}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          )}
-
           {costed.length > 0 && (
             <section className="pt-panel">
               <div className="pt-ov__charthead">
@@ -554,6 +533,51 @@ export function CapacityEditor({
 
       {tab === "overheads" && (
         <>
+          <div className="pt-note">
+            Everything the business carries except the crew on the tools — their wages are on the crew tab. Office and admin
+            wages, the vans, and every other overhead sit here, because none of them bill an hour and all of them have to be
+            earned back across the hours that do.
+          </div>
+
+          {officeRows.length > 0 && (
+            <section className="pt-panel">
+              <div className="pt-ov__charthead">
+                <h2 className="pt-panel__h">The office</h2>
+                <span className="pt-cap__grouptotal">{money(office.total)}<em>/yr</em></span>
+              </div>
+              <p className="pt-panel__sub">
+                Nobody here bills an hour, so every dollar of it lands on the hours the vans do bill —{" "}
+                <strong>{money2(office.perHr)}</strong> on top of every billable hour, before a tradesman&rsquo;s own wage.
+              </p>
+
+              {officeRows.map((r) => {
+                const cost = office.rows.find((x) => x.id === r.id)?.cost ?? 0;
+                return (
+                  <div key={r.id} className="pt-cap__crew">
+                    <div className="pt-cap__crewhead">
+                      <span className="pt-cap__name pt-cap__name--ro">{r.name}</span>
+                      <select className="pt-cap__type" value={r.level} onChange={(e) => setLevel(r.id, e.target.value as CrewLevel)}>
+                        {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
+                      </select>
+                      <span className="pt-cap__grouptotal">{money(cost)}<em>/yr</em></span>
+                    </div>
+                    <div className="pt-cap__grid">
+                      <CapField label="Hours / week" value={r.costing.hrsWeek} onChange={(v) => setCosting(r.id, { hrsWeek: v })} />
+                      <CapField label="Wage $/hr" value={r.costing.wage} onChange={(v) => setCosting(r.id, { wage: v })} />
+                      <CapField label="Leave (days)" value={r.costing.leaveDays} onChange={(v) => setCosting(r.id, { leaveDays: v })} />
+                      <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
+                      <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
+                      <CapField label="Pub. hols (days)" value={r.costing.phDays} onChange={(v) => setCosting(r.id, { phDays: v })} />
+                    </div>
+                    <div className="pt-cap__crewsum">
+                      <span>{perHour(cost)} on every billable hour</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </section>
+          )}
+
           <section className="pt-panel">
             <h2 className="pt-panel__h">Where the business overhead comes from</h2>
             <p className="pt-panel__sub">
