@@ -10,6 +10,7 @@
  */
 
 import { site } from "./site";
+import type { DoorIconKey } from "@/components/DoorIcon";
 
 export type CommScope = {
   slug: string;
@@ -227,11 +228,11 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
  * a form, because at this point the question is "do you do this", not "can I
  * have a price".
  */
-export const COMM_DOORS: { href: string; label: string }[] = [
-  { href: "/commercial/services#fit-outs", label: "Fit-outs" },
-  { href: "/commercial/services#plant-replacement", label: "Plant replacement" },
-  { href: "/commercial/services#maintenance", label: "Maintenance" },
-  { href: "/commercial/services#breakdowns", label: "Breakdowns" },
+export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
+  { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy" },
+  { href: "/commercial/services#plant-replacement", label: "Plant replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky" },
+  { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink" },
+  { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange" },
 ];
 
 /**
@@ -310,4 +311,19 @@ export const COMM_FAQS: { q: string; a: string }[] = [
     q: "Who actually turns up?",
     a: "Our own people, in our own vans, in our own uniform. If we ever needed to bring in a specialist for part of a package — a crane crew, a balancing contractor on a large system — we'd tell you who and why at quote stage, not on the day.",
   },
+];
+
+/**
+ * The four figures a procurement team writes down.
+ *
+ * Deliberately not "1,200 installs" or "4.9 stars" — those are the residential
+ * numbers and they answer a homeowner's question. These answer the only ones
+ * that decide whether a package gets awarded: are you covered, can you be let
+ * on site, how fast does the paperwork come back, and who actually turns up.
+ */
+export const COMM_FACTS: { n: string; k: string; p: string }[] = [
+  { n: "12", k: "years trading", p: "Same family, same name, same base in Pakenham since 2014." },
+  { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
+  { n: "24hr", k: "paperwork turnaround", p: "SWMS, certificates and site inductions returned before anyone turns up." },
+  { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
 ];

@@ -3114,3 +3114,86 @@ input, select, textarea {
 .hdr__drawer-mode { display: flex; gap: 4px; padding: 4px; margin-bottom: 14px; background: var(--bg-2, #f2f5fa); border-radius: 11px; }
 .hdr__drawer-mode a { flex: 1 1 0; text-align: center; padding: 9px 10px; border-radius: 8px; font-size: 13.5px; font-weight: 600; color: var(--navy); text-decoration: none; }
 .hdr__drawer-mode a.is-on { background: #fff; font-weight: 700; box-shadow: 0 1px 3px rgba(11,20,80,0.1); }
+
+/* ---- Motion between pages ---- */
+/* A page arrives rather than replacing the last one instantly. Short, and only
+   on navigation — never on first load, where it would just delay the paint. */
+html[data-route-enter] #main { animation: route-in 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes route-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* The crossing between the two sides of the business. Hi-vis orange, because
+   that is the colour of the side you are going to and the colour of our own
+   shirts. It covers, the route changes underneath it, then it clears. */
+.sweep {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  background: linear-gradient(105deg, var(--orange-2, #ff7a36), var(--orange, #f36722) 55%, #d9551a);
+  transform: translateX(-101%);
+  will-change: transform;
+}
+html[data-sweep="in"] .sweep { animation: sweep-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep="out"] .sweep { animation: sweep-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes sweep-in { from { transform: translateX(-101%); } to { transform: translateX(0); } }
+@keyframes sweep-out { from { transform: translateX(0); } to { transform: translateX(101%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-route-enter] #main { animation: none; }
+  .sweep { display: none; }
+}
+
+/* ---- The commercial header ---- */
+/* Hi-vis orange the moment you cross over. It is a real trade colour rather
+   than a decoration — it is the colour of the shirts on site — and it is the
+   loudest possible signal that this is a different side of the business, with
+   different services, different prices and a different reader.
+
+   Everything in the bar is re-coloured against it rather than left to inherit:
+   navy nav links on orange are the kind of thing that passes a build and fails
+   a person. */
+.hdr--comm {
+  background: linear-gradient(100deg, var(--orange, #f36722), #e4590f 62%, #d1500c);
+  border-bottom-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+/* The logo is a colour lockup on white; a white plate keeps it legible and
+   stops it looking like it was dropped on the wrong background. */
+.hdr--comm .hdr__logo-img {
+  background: #fff;
+  border-radius: 10px;
+  padding: 5px 9px;
+}
+.hdr--comm .hdr__nav > a,
+.hdr--comm .hdr__navtrigger { color: #fff; }
+.hdr--comm .hdr__nav > a:hover,
+.hdr--comm .hdr__navtrigger:hover { color: #fff; background: rgba(0, 0, 0, 0.14); }
+.hdr--comm .hdr__nav > a.is-active,
+.hdr--comm .hdr__navtrigger.is-active { color: #fff; }
+.hdr--comm .hdr__nav > a.is-active::after,
+.hdr--comm .hdr__navtrigger.is-active::after { background: #fff; }
+
+.hdr--comm .hdr__phone {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.1);
+}
+.hdr--comm .hdr__phone:hover { background: rgba(0, 0, 0, 0.22); border-color: #fff; }
+.hdr--comm .hdr__phone svg { color: #fff; }
+.hdr--comm .hdr__phone em { color: rgba(255, 255, 255, 0.8); }
+
+/* Orange on orange would vanish, so the commercial call to action inverts:
+   the navy is the accent here. */
+.hdr--comm .hdr__cta .ds-btn--primary,
+.hdr--comm .hdr__cta .ds-btn--orange {
+  background: var(--navy, #050a30);
+  color: #fff;
+  border-color: var(--navy, #050a30);
+}
+.hdr--comm .hdr__cta .ds-btn--primary:hover,
+.hdr--comm .hdr__cta .ds-btn--orange:hover { background: var(--navy-2, #0b1450); }
+
+.hdr--comm .hdr__burger { color: #fff; border-color: rgba(255, 255, 255, 0.55); }

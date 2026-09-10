@@ -6,9 +6,10 @@ import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import {
   COMM_SCOPES, COMM_CLIENTS, COMM_CAPABILITIES, COMM_PROCESS,
-  COMM_DOORS, COMM_STANDARD, COMM_FAQS,
+  COMM_DOORS, COMM_STANDARD, COMM_FAQS, COMM_FACTS,
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
+import { DoorIcon } from "@/components/DoorIcon";
 import "../home.css";
 import "./commercial.css";
 
@@ -94,8 +95,12 @@ export default function CommercialPage() {
             </div>
             <div className="routebtns">
               {COMM_DOORS.map((d) => (
-                <Link key={d.href} href={d.href} className="routebtn">
-                  <span>{d.label}</span>
+                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
+                  <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
+                  <span className="routebtn__txt">
+                    <strong>{d.label}</strong>
+                    <em>{d.sub}</em>
+                  </span>
                   <span className="routebtn__go" aria-hidden="true">&rarr;</span>
                 </Link>
               ))}
@@ -146,6 +151,12 @@ export default function CommercialPage() {
                   <li><span className="tick">✓</span> Variations approved before the work, not with the invoice</li>
                   <li><span className="tick">✓</span> Paperwork back before anyone turns up</li>
                 </ul>
+                <p className="scopesec__note">
+                  Jake reads every commercial enquiry himself. If it&rsquo;s one for us you&rsquo;ll hear back the same
+                  day with either a price or the two questions we need answered first. If it isn&rsquo;t one for us,
+                  you&rsquo;ll hear that just as quickly &mdash; while you&rsquo;ve still got time to go elsewhere.
+                </p>
+
                 <p className="scopesec__finep">
                   {site.licences.refrigeration} · {site.licences.plumbing} ·
                   ABN {site.abn.replace(/ /g, " ")} · $20M public liability ·
@@ -224,6 +235,20 @@ export default function CommercialPage() {
               <div key={c.name} className="commlogo">
                 <strong>{c.name}</strong>
                 <span>{c.what}</span>
+                <em>{c.where}</em>
+              </div>
+            ))}
+          </div>
+
+          {/* The four figures procurement actually writes down. Deliberately not
+              the residential numbers — installs done and a star rating answer a
+              homeowner's question, not a builder's. */}
+          <div className="comm-facts">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k} className="commfact">
+                <strong>{f.n}</strong>
+                <span>{f.k}</span>
+                <p>{f.p}</p>
               </div>
             ))}
           </div>

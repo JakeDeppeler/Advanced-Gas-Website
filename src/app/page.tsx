@@ -10,6 +10,7 @@ import { faqSchema } from "@/lib/schema";
 import { posts } from "@/lib/blog";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
+import { DoorIcon, type DoorIconKey } from "@/components/DoorIcon";
 import "./home.css";
 
 // Defer Leaflet + its 15KB CSS off the initial paint. The map is below the
@@ -119,11 +120,14 @@ const faqs = [
  * plus the header phone number and the sticky bar — a phone number wants to be
  * a phone number, not a card competing with a category.
  */
-const ROUTE_BUTTONS: { href: string; label: string }[] = [
-  { href: "/services/heat-pump-installation", label: "Heat pumps" },
-  { href: "/services/air-conditioning-installation", label: "Heating & cooling" },
-  { href: "/rebates", label: "Rebates" },
-  { href: "/services/aircon-servicing-repairs", label: "Servicing" },
+const ROUTE_BUTTONS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
+  { href: "/services/heat-pump-installation", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy" },
+  { href: "/services/air-conditioning-installation", label: "Heating & cooling", sub: "Split, ducted and gas", icon: "climate", tone: "sky" },
+  // Orange on this one only, to match the "$$$" chip the rebate carries in the
+  // nav. Spending the loudest colour on the thing worth the most money is the
+  // whole reason to have a loud colour.
+  { href: "/rebates", label: "Rebates", sub: "Up to $2,700 off", icon: "rebate", tone: "orange" },
+  { href: "/services/aircon-servicing-repairs", label: "Servicing", sub: "Annual service & CO test", icon: "service", tone: "ink" },
 ];
 
 const SUBURBS: { name: string; slug: string }[] = [...publishedSuburbs]
@@ -237,8 +241,12 @@ export default async function HomePage() {
             </div>
             <div className="routebtns">
               {ROUTE_BUTTONS.map((b) => (
-                <Link key={b.href} href={b.href} className="routebtn">
-                  <span>{b.label}</span>
+                <Link key={b.href} href={b.href} className={`routebtn routebtn--${b.tone}`}>
+                  <span className="routebtn__ico"><DoorIcon name={b.icon} /></span>
+                  <span className="routebtn__txt">
+                    <strong>{b.label}</strong>
+                    <em>{b.sub}</em>
+                  </span>
                   <span className="routebtn__go" aria-hidden="true">&rarr;</span>
                 </Link>
               ))}
@@ -323,11 +331,13 @@ export default async function HomePage() {
           <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow ds-eyebrow--on-dark">
               <span className="ds-dot ds-dot--orange" />
-              Fixed-price installs
+              What a proper install costs
             </span>
-            <h2 className="ds-h--on-dark">Three of our most popular jobs, locked-in prices.</h2>
+            <h2 className="ds-h--on-dark">The standard doesn&rsquo;t change with the price.</h2>
             <p className="veu__sub veu__sub--center">
-              What you see is what you pay. VEU rebate already applied, GST included, compliance certificate and warranty pack emailed within 24&nbsp;hrs of install.
+              These are the three jobs we do most, with the VEU rebate already off and GST in. What the number
+              doesn&rsquo;t change is the day itself &mdash; the same crew, the same procedures, the old unit taken away,
+              and the compliance certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
             </p>
           </div>
 
@@ -502,17 +512,21 @@ export default async function HomePage() {
       <section className="whyus">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Why Pakenham locals call us first</span>
-            <h2>The boring stuff done properly. The friendly stuff done genuinely.</h2>
+            <span className="ds-eyebrow"><span className="ds-dot" /> One standard, every job</span>
+            <h2>Anyone can hang a unit on a wall. The standard is everything around it.</h2>
+            <p>
+              The box is the same wherever you buy it. What changes is who installs it, what they do when nobody&rsquo;s
+              watching, and whether it still runs the way it should in five years.
+            </p>
           </div>
           <div className="why-grid">
             {[
-              ["01", "Family-owned, locally run", "Started in a Pakenham garage in 2014. Same family answering the phone, doing the quote and standing behind the work today."],
-              ["02", "Reece trade partner", "Direct supply means real stock, real warranties and no margin-stacking middlemen between you and the gear."],
-              ["03", "Rebate paperwork, sorted", "We're VEU accredited. Eligibility, certificates, STCs, all handled inside the quote. You sign once and it's done."],
-              ["04", "Tickets & licences current", "Licensed gasfitter + ARC refrigeration handling licence. Every install gets a compliance certificate emailed within 24 hrs."],
-              ["05", "Fixed quotes, no surprises", "What we quote on day one is what you pay on install day. Variations only with your written OK first."],
-              ["06", "Same-week install slots", "Most heat pump and split jobs go in within 5–7 days of accepting the quote. Emergencies same day."],
+              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store — not because they were cheapest that week."],
+              ["02", "Our own crew, every job", "Directly employed installers and apprentices. Not labour hire, not a different subcontractor each time. The person who quotes it is on site when it goes in."],
+              ["03", "The install is the product", "Bracket, drain fall, pipe runs, insulation, commissioning. That's where a good unit becomes a good system or a callback, and it's the part nobody photographs."],
+              ["04", "The standard is written down", "Twenty procedures covering how a van is stocked, what gets photographed, what gets tested and what happens when something goes wrong. Not folklore, and not down to who turned up."],
+              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours — keep it for your insurer."],
+              ["06", "We're still here after", "Six years on our workmanship, manufacturer warranty on the unit, and a call the week after to make sure it's running the way we left it."],
             ].map(([n, t, d]) => (
               <div key={n} className="why">
                 <div className="why__num">/{n}</div>
