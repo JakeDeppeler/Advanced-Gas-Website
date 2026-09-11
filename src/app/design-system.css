@@ -3199,6 +3199,92 @@ html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-o
 @keyframes sweep-rise-out { from { transform: translateY(0); } to { transform: translateY(-118%); } }
 @keyframes wave-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
+/* ---- The four commercial door sweeps ---- */
+/* Each is the shape of the job behind it. All four cover the screen the same
+   way in the end, so the route change is always hidden; what differs is what
+   you watch while it happens. */
+.sweep__crane, .sweep__build, .sweep__sched, .sweep__van { display: none; }
+
+/* Crane: hoist line pays out, the load drops, the load becomes the panel. */
+html[data-sweep-kind="crane"] .sweep { transform: translateY(-101%); background: var(--navy-2, #0b1450); }
+html[data-sweep-kind="crane"] .sweep__crane { display: block; position: absolute; inset: 0; }
+.sweep__line {
+  position: absolute; left: 50%; top: 0; width: 3px; height: 0;
+  background: rgba(255, 255, 255, 0.5); transform: translateX(-50%);
+}
+.sweep__hook {
+  position: absolute; left: 50%; top: 0; width: 26px; height: 26px;
+  margin-left: -13px; border: 3px solid var(--orange, #f36722);
+  border-radius: 0 0 14px 14px; border-top-color: transparent;
+}
+.sweep__load {
+  position: absolute; left: 50%; top: 0; width: 190px; height: 76px;
+  margin-left: -95px; border-radius: 6px;
+  background: #e9edf7; box-shadow: inset 0 -10px 0 rgba(11, 20, 80, 0.18);
+}
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep { animation: crane-cover 0.62s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep__line { animation: crane-line 0.4s cubic-bezier(0.4, 0, 0.4, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep__hook,
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep__load { animation: crane-drop 0.4s cubic-bezier(0.4, 0, 0.4, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="out"] .sweep { animation: sweep-up-out 0.52s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes crane-cover { from { transform: translateY(-101%); } to { transform: translateY(0); } }
+@keyframes crane-line { from { height: 0; } to { height: 46vh; } }
+@keyframes crane-drop { from { transform: translateY(-90px); } to { transform: translateY(44vh); } }
+
+/* Build: a girder slides in and sets, then the wall follows it. */
+html[data-sweep-kind="build"] .sweep { transform: translateX(-101%); background: var(--navy, #050a30); }
+html[data-sweep-kind="build"] .sweep__build {
+  display: flex; flex-direction: column; gap: 14px; justify-content: center;
+  position: absolute; inset: 0; padding: 0 12vw;
+}
+.sweep__build span { height: 14px; border-radius: 3px; background: var(--orange, #f36722); transform: scaleX(0); transform-origin: left center; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.52s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span { animation: girder 0.34s cubic-bezier(0.3, 0.8, 0.3, 1) forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span:nth-child(2) { animation-delay: 0.08s; opacity: 0.65; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span:nth-child(3) { animation-delay: 0.16s; opacity: 0.35; }
+html[data-sweep-kind="build"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.48s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes girder { to { transform: scaleX(1); } }
+
+/* Schedule: a service sheet ticking itself off, top to bottom. */
+html[data-sweep-kind="schedule"] .sweep { transform: translateY(101%); background: var(--navy-3, #1b234e); }
+html[data-sweep-kind="schedule"] .sweep__sched {
+  display: flex; flex-direction: column; gap: 22px; justify-content: center;
+  position: absolute; inset: 0; padding: 0 16vw;
+}
+.sweep__row { display: flex; align-items: center; gap: 18px; color: var(--orange, #f36722); }
+.sweep__row svg { width: 26px; height: 26px; flex: 0 0 auto; stroke-dasharray: 26; stroke-dashoffset: 26; }
+.sweep__row i { display: block; height: 10px; border-radius: 3px; background: rgba(255, 255, 255, 0.22); flex: 1 1 auto; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.56s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row svg { animation: tick 0.24s ease-out forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(2) svg { animation-delay: 0.1s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(3) svg { animation-delay: 0.2s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(4) svg { animation-delay: 0.3s; }
+html[data-sweep-kind="schedule"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.46s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes tick { to { stroke-dashoffset: 0; } }
+
+/* Call-out: the van arrives, beacon already going. */
+html[data-sweep-kind="callout"] .sweep { transform: translateX(101%); background: #7c2d12; }
+html[data-sweep-kind="callout"] .sweep__van {
+  display: block; position: absolute; top: 50%; left: 50%;
+  width: 260px; margin: -70px 0 0 -130px; color: #fff;
+}
+.sweep__van svg { width: 100%; height: auto; display: block; }
+.sweep__beacon {
+  position: absolute; left: 22px; top: -10px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--orange-2, #ff7a36);
+}
+html[data-sweep-kind="callout"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.54s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+html[data-sweep-kind="callout"][data-sweep="in"] .sweep__van { animation: van-in 0.46s cubic-bezier(0.3, 0.9, 0.3, 1) forwards; }
+html[data-sweep-kind="callout"][data-sweep="in"] .sweep__beacon { animation: beacon 0.34s linear infinite; }
+html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes van-in { from { transform: translateX(60vw); } to { transform: translateX(0); } }
+@keyframes beacon {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255, 122, 54, 0.7); }
+  50% { opacity: 0.55; box-shadow: 0 0 0 12px rgba(255, 122, 54, 0); }
+}
+
+@keyframes sweep-up-out { from { transform: translateY(0); } to { transform: translateY(-101%); } }
+
 @media (prefers-reduced-motion: reduce) {
   html[data-route-enter] #main { animation: none; }
   .sweep { display: none; }
@@ -3243,9 +3329,13 @@ html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-o
    under two navy strips reads as a mistake rather than a mode. Each strip
    takes a slightly different step of the same orange so the stack still has
    depth instead of becoming one flat slab. */
+/* One orange, not three steps of it. Three tones reads as three bars that
+   don't match rather than one top that changed mode, which is exactly what it
+   looked like. The strips are separated by their hairline borders and by the
+   header's own shadow, which is enough. */
 .utilbar--comm {
-  background: #b8480f;
-  border-bottom-color: rgba(0, 0, 0, 0.16);
+  background: var(--orange, #f36722);
+  border-bottom-color: rgba(0, 0, 0, 0.13);
 }
 .utilbar--comm .util-pill { color: rgba(255, 255, 255, 0.92); }
 .utilbar--comm .util-pill svg { color: #fff; }
@@ -3256,13 +3346,13 @@ html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-o
 .utilbar--comm .util-dot--red { background: #ffd9c6; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2); }
 
 .sitemode--comm {
-  background: #cc5210;
-  border-bottom-color: rgba(0, 0, 0, 0.14);
+  background: var(--orange, #f36722);
+  border-bottom-color: rgba(0, 0, 0, 0.13);
 }
 .sitemode--comm .sitemode__tabs { background: rgba(0, 0, 0, 0.16); }
 .sitemode--comm .sitemode__tab { color: rgba(255, 255, 255, 0.85); }
 .sitemode--comm .sitemode__tab:hover { color: #fff; background: rgba(0, 0, 0, 0.18); }
-.sitemode--comm .sitemode__tab.is-on { background: #fff; color: #b8480f; }
+.sitemode--comm .sitemode__tab.is-on { background: #fff; color: #c04d0d; }
 .sitemode--comm .conds__status { color: rgba(255, 255, 255, 0.8); }
 .sitemode--comm .conds__status.is-open { color: #fff; }
 .sitemode--comm .conds__temp { color: rgba(255, 255, 255, 0.8); }
@@ -3278,9 +3368,9 @@ html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-o
    navy nav links on orange are the kind of thing that passes a build and fails
    a person. */
 .hdr--comm {
-  background: linear-gradient(100deg, var(--orange, #f36722), #e4590f 62%, #d1500c);
-  border-bottom-color: rgba(0, 0, 0, 0.18);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  background: var(--orange, #f36722);
+  border-bottom-color: rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 /* The logo is a colour lockup on white; a white plate keeps it legible and
    stops it looking like it was dropped on the wrong background. */

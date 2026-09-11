@@ -10,6 +10,7 @@ import {
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { DoorIcon } from "@/components/DoorIcon";
+import { DoorLink } from "@/components/DoorLink";
 import "../home.css";
 import "./commercial.css";
 
@@ -95,14 +96,14 @@ export default function CommercialPage() {
             </div>
             <div className="routebtns">
               {COMM_DOORS.map((d) => (
-                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
+                <DoorLink key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`} sweep={d.sweep}>
                   <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
                   <span className="routebtn__txt">
                     <strong>{d.label}</strong>
                     <em>{d.sub}</em>
                   </span>
                   <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-                </Link>
+                </DoorLink>
               ))}
             </div>
             <p className="route__urgent">
@@ -120,11 +121,11 @@ export default function CommercialPage() {
             <div className="scopesec__grid">
               <div className="scopesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
-                <h2 className="ds-h--on-dark">We read the drawings before we quote.</h2>
+                <h2 className="ds-h--on-dark">Tell us what you&rsquo;re not being told.</h2>
                 <p className="scopesec__lede">
-                  Send through what you have: drawings, a mechanical schedule or a site address. If something is
-                  missing or doesn&rsquo;t add up, we come back and ask rather than pricing around it and arguing about it
-                  later.
+                  Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another,
+                  and whoever notices last pays for it. We read the drawings properly, find the gap, and put it in the
+                  scope in writing before anyone signs anything.
                 </p>
                 <ul className="scopesec__points">
                   <li><span className="tick">✓</span> One price against one written scope</li>
@@ -133,9 +134,9 @@ export default function CommercialPage() {
                   <li><span className="tick">✓</span> Paperwork back before anyone turns up</li>
                 </ul>
                 <p className="scopesec__note">
-                  Jake reads every commercial enquiry himself. If it&rsquo;s one for us you&rsquo;ll hear back the same
-                  day with either a price or the two questions we need answered first. If it isn&rsquo;t one for us,
-                  you&rsquo;ll hear that just as quickly, while you&rsquo;ve still got time to go elsewhere.
+                  Jake reads every commercial enquiry himself, and you&rsquo;ll hear back the same day on two things:
+                  whether it&rsquo;s one for us, and the date the priced scope will land. A breakdown is hours. A
+                  fit-out is not. What you won&rsquo;t get is silence while we work out which.
                 </p>
 
                 <p className="scopesec__finep">
@@ -156,44 +157,34 @@ export default function CommercialPage() {
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we take on</span>
-            <h2 className="ds-h--on-dark">Five packages, carried end to end.</h2>
+            <h2 className="ds-h--on-dark">Ten packages, carried end to end.</h2>
             <p className="comm-take__lede">
-              We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. These are the packages
-              we&rsquo;re set up to own from drawings to handover, and the only ones we&rsquo;ll quote.
+              We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
+              package we own from the drawings through to handover, with our own crew on it. Nothing here gets passed
+              to somebody else once you&rsquo;ve signed.
             </p>
           </div>
-          <div className="comm-bento">
-            {COMM_SCOPES.map((sc, i) => (
-              <Link
-                key={sc.slug}
-                href={`/commercial/services#${sc.slug}`}
-                className={`combento ${i === 0 ? "combento--xl" : ""} ${sc.slug === "breakdowns" ? "combento--urgent" : ""}`}
-              >
-                <div className={`combento__block combento__block--${sc.slug}`} aria-hidden="true">
-                  <span>{sc.n}</span>
-                </div>
-                <div className="combento__body">
-                  <h3>{sc.title}</h3>
-                  <p>{sc.lede}</p>
-                  <ul className="combento__list">
-                    {sc.detail.slice(0, i === 0 ? 4 : 2).map((d) => <li key={d}>{d}</li>)}
-                  </ul>
-                  <span className="combento__suits">{sc.suits}</span>
-                </div>
+          <div className="comm-grid">
+            {COMM_SCOPES.map((sc) => (
+              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="commpack">
+                <span className="commpack__n">{sc.n}</span>
+                <h3>{sc.title}</h3>
+                <p>{sc.lede}</p>
+                <ul>
+                  {sc.detail.map((d) => <li key={d}>{d}</li>)}
+                </ul>
+                <span className="commpack__suits">{sc.suits}</span>
               </Link>
             ))}
-            {/* Spans the full width so the bento closes flush, and orange on the
-                navy ground because this is the tile procurement goes looking for. */}
-            <Link href="/commercial/capability" className="combento combento--cap">
-              <div className="combento__body combento__body--wide">
-                <div>
-                  <h3>Capability statement</h3>
-                  <p>ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.</p>
-                </div>
-                <span className="combento__go">Everything procurement asks for &rarr;</span>
-              </div>
-            </Link>
           </div>
+
+          <Link href="/commercial/capability" className="commpack__cap">
+            <div>
+              <strong>Capability statement</strong>
+              <span>ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.</span>
+            </div>
+            <span className="commpack__go">Everything procurement asks for &rarr;</span>
+          </Link>
         </div>
       </section>
 
@@ -235,37 +226,34 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* THE STANDARD — the homepage's "why us", with the crew in the picture.
-          Six claims about who turns up are stronger next to a photograph of
-          who turns up. */}
+      {/* THE STANDARD — the homepage's "why us". Six points at equal weight in
+          a grid, rather than six rows of prose stacked beside a photograph that
+          ran out of picture halfway down. The photo becomes one cell of the
+          grid, so it is part of the argument instead of a column beside it. */}
       <section className="comm-std">
-        <div className="wrap comm-std__grid">
-          <figure className="comm-std__photo">
-            <img
-              src="/team-photo.webp"
-              alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
-              width="900"
-              height="675"
-              loading="lazy"
-            />
-            <figcaption className="comm-std__chip">Directly employed. All of them.</figcaption>
-          </figure>
-          <div className="comm-std__copy">
-            <div className="ds-section-head">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
-              <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
-            </div>
-            <ol className="comm-std__list">
-              {COMM_STANDARD.map((s) => (
-                <li key={s.n}>
-                  <span className="comm-std__n">{s.n}</span>
-                  <div>
-                    <h3>{s.h}</h3>
-                    <p>{s.p}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
+            <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
+          </div>
+          <div className="comm-std__grid">
+            <figure className="commstd commstd--photo">
+              <img
+                src="/team-photo.webp"
+                alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
+                width="900"
+                height="675"
+                loading="lazy"
+              />
+              <figcaption>Directly employed. All of them.</figcaption>
+            </figure>
+            {COMM_STANDARD.map((st) => (
+              <div key={st.n} className="commstd">
+                <span className="commstd__n">{st.n}</span>
+                <h3>{st.h}</h3>
+                <p>{st.p}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

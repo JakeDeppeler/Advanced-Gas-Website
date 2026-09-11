@@ -11,6 +11,7 @@
 
 import { site } from "./site";
 import type { DoorIconKey } from "@/components/DoorIcon";
+import type { SweepKind } from "@/components/RouteMotion";
 
 export type CommScope = {
   slug: string;
@@ -31,58 +32,113 @@ export const COMM_SCOPES: CommScope[] = [
       "Ductwork, plant, controls and commissioning as one package",
       "Coordinated with the head contractor and the other trades",
       "Staged so a trading site keeps trading",
-      "As-builts, compliance certificates and O&M on handover",
     ],
     suits: "Builders, national retail rollouts, tenancy coordinators",
   },
   {
-    slug: "plant-replacement",
+    slug: "base-build",
     n: "02",
+    title: "Base build mechanical",
+    lede: "The mechanical package on a new build, from the schedule through to handover.",
+    detail: [
+      "Priced from the drawings and the mechanical schedule",
+      "Plant, ductwork, ventilation and controls as one trade",
+      "As-builts, O&M manuals and commissioning data at handover",
+    ],
+    suits: "Builders, developers, project managers",
+  },
+  {
+    slug: "plant-replacement",
+    n: "03",
     title: "System replacement on live sites",
     lede: "Swapping end-of-life plant on a building that cannot stop.",
     detail: [
       "Out-of-hours and staged changeovers",
       "Temporary cooling where the site cannot go without",
-      "Crane and access coordination",
       "Old plant decommissioned, degassed and disposed of to spec",
     ],
     suits: "Facility managers, building owners, asset managers",
   },
   {
     slug: "maintenance",
-    n: "03",
-    title: "Scheduled maintenance contracts",
+    n: "04",
+    title: "Scheduled maintenance",
     lede: "Planned preventative maintenance that keeps a site compliant and the plant alive.",
     detail: [
       "Service schedules built around the asset, not a calendar template",
       "Condition reports and photographs against every visit",
-      "Statutory and compliance items tracked and flagged before they fall due",
-      "One contact, one invoice, across as many sites as you have",
+      "Statutory items tracked and flagged before they fall due",
     ],
     suits: "Multi-site retail, aged care, education, industrial",
   },
   {
     slug: "gas",
-    n: "04",
-    title: "Type A gas & commercial hot water",
-    lede: "Gas appliance installation, servicing and compliance, and commercial hot water plant.",
+    n: "05",
+    title: "Type A & Type B gas",
+    lede: "Gas appliance installation, servicing and compliance, domestic through to industrial.",
     detail: [
       "Type A appliance installation and servicing",
+      "Type B industrial appliance work",
       "Gas line design, sizing and pressure testing",
-      "Commercial hot water including heat pump plant",
-      "Compliance certificates issued on completion",
     ],
     suits: "Hospitality, aged care, industrial, education",
   },
   {
+    slug: "hot-water",
+    n: "06",
+    title: "Commercial hot water",
+    lede: "Hot water plant sized for a building rather than a household.",
+    detail: [
+      "Continuous flow banks, storage and recirculation",
+      "Heat pump plant where the running cost decides it",
+      "Tempering, compliance and certificates on completion",
+    ],
+    suits: "Hospitality, accommodation, aged care, gyms",
+  },
+  {
+    slug: "evaporative",
+    n: "07",
+    title: "Commercial evaporative cooling",
+    lede: "High-volume evaporative cooling for spaces that can't be sealed and chilled.",
+    detail: [
+      "Warehouses, workshops and production floors",
+      "Roof and ground-mounted units, ducted or direct",
+      "Relief air designed in, not left to the roller door",
+    ],
+    suits: "Warehousing, manufacturing, workshops",
+  },
+  {
+    slug: "ventilation",
+    n: "08",
+    title: "Ventilation & kitchen exhaust",
+    lede: "Supply, exhaust and make-up air, including commercial kitchens.",
+    detail: [
+      "Kitchen canopies, exhaust and make-up air",
+      "Carpark, plant room and amenities ventilation",
+      "Ducted to the standard, not to whatever fits",
+    ],
+    suits: "Hospitality, QSR, industrial, carparks",
+  },
+  {
+    slug: "commissioning",
+    n: "09",
+    title: "Air balancing & commissioning",
+    lede: "Systems proved against the design figures and handed over with the numbers.",
+    detail: [
+      "Air balanced to the mechanical schedule",
+      "Controls and zoning set up and demonstrated",
+      "Commissioning data and certificates in the handover pack",
+    ],
+    suits: "Consultants, builders, building owners",
+  },
+  {
     slug: "breakdowns",
-    n: "05",
+    n: "10",
     title: "Breakdown response",
     lede: "A number that gets answered when the plant stops on a Friday afternoon.",
     detail: [
       "Priority response on contracted sites",
       "After-hours attendance",
-      "Fault diagnosis reported in writing, not over the phone and forgotten",
       "Make-safe, then a priced repair before the work goes ahead",
     ],
     suits: "Anyone with a site that cannot be closed",
@@ -228,13 +284,12 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
  * a form, because at this point the question is "do you do this", not "can I
  * have a price".
  */
-export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
-  { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy" },
-  { href: "/commercial/services#plant-replacement", label: "System replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky" },
-  { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink" },
-  { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange" },
+export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string; sweep: SweepKind }[] = [
+  { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy", sweep: "build" },
+  { href: "/commercial/services#plant-replacement", label: "System replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky", sweep: "crane" },
+  { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink", sweep: "schedule" },
+  { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange", sweep: "callout" },
 ];
-
 /**
  * The standard, which is what the residential "why us" grid is for. Six on
  * that side, six here — the reassurances a facility manager needs are not the
@@ -324,6 +379,6 @@ export const COMM_FAQS: { q: string; a: string }[] = [
 export const COMM_FACTS: { n: string; k: string; p: string }[] = [
   { n: "12", k: "years trading", p: "Same family, same name, same base in Pakenham since 2014." },
   { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
-  { n: "24hr", k: "paperwork turnaround", p: "SWMS, certificates and site inductions returned before anyone turns up." },
+  { n: "Before site", k: "paperwork returned", p: "SWMS, certificates of currency and site inductions land before anyone turns up. If they are not back, we are not on site." },
   { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
 ];

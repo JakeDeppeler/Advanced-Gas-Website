@@ -188,6 +188,40 @@
 .scopeform__go[disabled] { opacity: 0.6; cursor: progress; }
 .scopeform__fine { margin: 0; font-size: 12.5px; color: #8791ab; }
 .scopeform__err { margin: 0; font-size: 14px; line-height: 1.5; color: #b23b2e; }
+
+/* Attachments. A mechanical schedule is a PDF and a set of plans is usually a
+   big one, so this is a real upload rather than "email them separately". */
+.scopeform__files { display: grid; gap: 8px; }
+.scopeform__fileslabel { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #8791ab; }
+.scopeform__fileinput { display: none; }
+.scopeform__attach {
+  justify-self: start;
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 11px 16px;
+  font: inherit; font-size: 14.5px; font-weight: 700;
+  color: var(--comm-ink); background: #fff;
+  border: 1px dashed #c3cde2; border-radius: 10px; cursor: pointer;
+  transition: border-color 0.14s, background 0.14s, color 0.14s;
+}
+.scopeform__attach:hover { border-color: var(--orange, #f36722); color: var(--orange, #f36722); background: #fffaf7; }
+.scopeform__attach svg { flex: 0 0 auto; }
+.scopeform__filehint { font-size: 12.5px; line-height: 1.5; color: #8791ab; }
+.scopeform__filelist { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 6px; }
+.scopeform__filelist li {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px 9px 12px;
+  background: #f6f8fc; border: 1px solid #e2e8f4; border-radius: 9px;
+  font-size: 13.5px; color: var(--comm-ink);
+}
+.scopeform__filename { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scopeform__filesize { flex: 0 0 auto; font-family: var(--f-mono, ui-monospace, monospace); font-size: 11.5px; color: #8791ab; }
+.scopeform__filelist button {
+  flex: 0 0 auto; width: 24px; height: 24px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 6px; background: transparent;
+  font-size: 18px; line-height: 1; color: #8791ab; cursor: pointer;
+}
+.scopeform__filelist button:hover { background: #e7ecf6; color: #b23b2e; }
 .scopeform--done { text-align: left; padding: 40px 30px; align-content: center; }
 .scopeform__tick {
   display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px;
@@ -195,124 +229,6 @@
 }
 .scopeform--done h3 { margin: 0; font-size: 23px; letter-spacing: -0.015em; color: var(--comm-ink); }
 .scopeform--done p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; }
-
-/* ---- What we take on — the bento ---- */
-/* One feature card carrying the only genuinely commercial photograph we have,
-   then five equal ones. Photos are deliberately not faked onto the rest: a
-   roof-space shot of residential flexible duct on a commercial page undoes
-   exactly what the page is trying to establish. */
-.comm-bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 30px; }
-.combento {
-  display: flex; flex-direction: column; overflow: hidden;
-  border: 1px solid #e2e8f4; border-radius: 18px; background: #fff;
-  text-decoration: none; color: inherit;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-}
-.combento { box-shadow: 0 2px 0 rgba(11, 20, 80, 0.03), 0 18px 34px -28px rgba(11, 20, 80, 0.4); }
-.combento:hover { transform: translateY(-4px); border-color: #cfd7ea; box-shadow: 0 30px 56px -30px rgba(14, 27, 77, 0.6); }
-.combento--xl { grid-row: span 2; grid-column: span 1; }
-
-/* Colour blocks where the residential bento has photographs.
-   We have two genuinely commercial shots, and padding the rest out with
-   residential roof-space pictures would undo what this page is establishing.
-   So the same block rhythm is carried in colour instead — a tonal ladder down
-   the house navy, with one warm tone reserved for the package that is different
-   in kind rather than degree. Restraint is the point: five unrelated colours
-   would read as a toy, four steps of one colour reads as a system. */
-.combento__block {
-  display: flex; align-items: flex-end;
-  min-height: 172px; padding: 0 22px 16px;
-  border-bottom: 2px solid var(--orange, #f36722);
-}
-.combento__block span {
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 34px; font-weight: 700; letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.34);
-  font-variant-numeric: tabular-nums; line-height: 1;
-}
-/* The one card that gets the photograph. Same block, same rule, same number
-   position — so six tiles read as one set rather than one photo and five
-   consolation prizes. */
-.combento__block--fit-outs {
-  background:
-    linear-gradient(180deg, rgba(5, 10, 48, 0.1) 40%, rgba(5, 10, 48, 0.72) 100%),
-    url("/commercial-v3.webp") center 42% / cover no-repeat;
-}
-.combento--xl .combento__block { flex: 1 1 auto; min-height: 300px; }
-.combento--xl .combento__body { flex: 0 0 auto; }
-.combento__block--fit-outs span { color: rgba(255, 255, 255, 0.92); }
-/* Photographs where we have one that holds up on a commercial page, with a
-   navy scrim over it so a photo tile and a colour tile still read as the same
-   set. The condenser, the stripped rooftop unit and the trench are all our own
-   work; what they are not is a bank branch, so they are cropped to the plant
-   rather than the building. */
-.combento__block--plant-replacement {
-  background:
-    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
-    url("/ducted-condenser.webp") center 38% / cover no-repeat;
-}
-.combento__block--maintenance {
-  background:
-    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
-    url("/evap-cooler-service.webp") center 62% / cover no-repeat;
-}
-/* Cropped hard into the machine and the trench. Wider, the shot is a suburban
-   back lawn with a paling fence, which says the wrong thing on this page even
-   though the excavator is ours and the work is the same work. */
-.combento__block--gas {
-  background:
-    linear-gradient(180deg, rgba(5, 10, 48, 0.18) 35%, rgba(5, 10, 48, 0.78) 100%),
-    url("/gas-line.webp") 40% 44% / 175% no-repeat;
-}
-.combento__block--plant-replacement span,
-.combento__block--maintenance span,
-.combento__block--gas span { color: rgba(255, 255, 255, 0.92); }
-/* The odd one out, and it should look it — this is the package you reach for
-   when something has already gone wrong. */
-.combento__block--breakdowns        { background: linear-gradient(150deg, #8a4419, #63300f); }
-.combento__body { display: flex; flex-direction: column; gap: 7px; padding: 20px 22px 20px; flex: 1 1 auto; }
-.combento__n { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; color: #b9c2d8; font-variant-numeric: tabular-nums; }
-.combento h3 { margin: 0; font-size: 21px; line-height: 1.2; letter-spacing: -0.02em; color: var(--comm-ink); }
-.combento p { margin: 0; font-size: 15.5px; line-height: 1.6; color: #46506b; }
-.combento__list { margin: 6px 0 0; padding-left: 17px; display: grid; gap: 6px; }
-.combento__list li { font-size: 14.5px; line-height: 1.5; color: #5a6478; }
-.combento__suits {
-  margin-top: auto; padding-top: 12px;
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #8791ab;
-}
-.combento--urgent { border-color: #ecd9cd; background: #fffaf7; }
-.combento--cap { grid-column: 1 / -1; background: var(--orange, #f36722); border-color: var(--orange, #f36722); }
-.combento--cap h3 { color: #fff; }
-.combento--cap p { color: rgba(255, 255, 255, 0.9); max-width: 62ch; }
-.combento--cap .combento__n { color: rgba(255, 255, 255, 0.7); }
-.combento--cap:hover { border-color: #fff; }
-.combento__body--wide {
-  flex-direction: row; align-items: center; justify-content: space-between;
-  gap: 26px; padding: 26px 26px 24px;
-}
-.combento__go { flex: 0 0 auto; font-size: 14.5px; font-weight: 700; color: #fff; }
-.combento--cap:hover .combento__go { text-decoration: underline; text-underline-offset: 3px; }
-
-.comm-area__note { margin: 0 0 24px; font-size: 15px; line-height: 1.65; color: #67718d; max-width: 50ch; }
-
-@media (max-width: 1000px) {
-  .comm-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .combento--xl { grid-row: auto; grid-column: span 2; }
-  .combento--xl .combento__block { min-height: 180px; }
-  .scopesec__grid { grid-template-columns: 1fr; gap: 30px; }
-}
-@media (max-width: 640px) {
-  .page-home.page-comm .scopesec { padding: 44px 0; }
-  .scopesec__box { padding: 24px 20px; border-radius: 18px; }
-  .comm-bento { grid-template-columns: 1fr; }
-  .combento--xl { grid-column: auto; }
-  .combento__body--wide { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .scopeform { padding: 20px 18px; }
-  .scopeform__row { grid-template-columns: 1fr; }
-  .comm-flow { padding: 56px 0; }
-  .comm-std { padding: 56px 0; }
-}
 
 /* ---- The four figures ---- */
 .comm-facts {
@@ -346,14 +262,6 @@
   .comm-facts { grid-template-columns: 1fr; }
 }
 
-/* ---- What we take on ---- */
-/* Dark so the photographs carry the band. On cream the tiles were the page's
-   own colour with a border round it. */
-.comm-take { padding: 90px 0; background: var(--navy-2, #0b1450); }
-.comm-take__lede,
-.comm-take .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
-.comm-take .combento { border-color: transparent; }
-
 /* ---- The wall of names ---- */
 /* Ten names, five across. A name in display type at 22px is a logo we do not
    have to ask permission to use. */
@@ -383,34 +291,6 @@
   font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: #8791ab;
 }
 .comm-work .comm-facts { margin-top: 28px; }
-
-/* ---- Why we get asked back ---- */
-.comm-std { padding: 96px 0; background: var(--bg-2, #f3efe5); border-block: 1px solid #e2e8f4; }
-.comm-std__grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 56px; align-items: start; }
-.comm-std__photo {
-  position: sticky; top: 110px;
-  margin: 0; border-radius: 22px; overflow: hidden;
-  box-shadow: 0 34px 70px -40px rgba(11, 20, 80, 0.6);
-}
-.comm-std__photo img { display: block; width: 100%; height: auto; }
-.comm-std__chip {
-  position: absolute; left: 18px; bottom: 18px;
-  padding: 9px 14px; border-radius: 999px;
-  background: var(--orange, #f36722); color: #fff;
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase;
-}
-.comm-std__copy .ds-section-head { margin-bottom: 8px; }
-.comm-std__list { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0; }
-.comm-std__list li { display: flex; gap: 18px; padding: 20px 0; border-top: 1px solid #dfe6f2; }
-.comm-std__list li:last-child { border-bottom: 1px solid #dfe6f2; }
-.comm-std__n {
-  flex: 0 0 auto; padding-top: 4px;
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 12px; font-weight: 700; color: var(--orange, #f36722);
-}
-.comm-std__list h3 { margin: 0 0 6px; font-size: 18.5px; letter-spacing: -0.015em; color: var(--comm-ink); }
-.comm-std__list p { margin: 0; font-size: 15px; line-height: 1.65; color: #4a5468; max-width: 60ch; }
 
 /* ---- How we work ---- */
 .comm-flow { padding: 96px 0; background: var(--comm-ink); }
@@ -497,4 +377,97 @@
 
 @media (max-width: 900px) {
   .commcontact__grid { grid-template-columns: 1fr; }
+}
+
+/* ---- What we take on ---- */
+/* Dark ground, ten packages at identical weight. No feature tile and no
+   photographs: the point of this section is that all of it is ours, and a
+   bigger card beside smaller ones argues the opposite. */
+.comm-take { padding: 90px 0; background: var(--navy-2, #0b1450); }
+.comm-take__lede,
+.comm-take .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
+.comm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 12px;
+  margin-top: 34px;
+}
+.commpack {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 24px 22px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 2px solid var(--orange, #f36722);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  text-decoration: none; color: inherit;
+  transition: background 0.16s, transform 0.15s, border-color 0.16s;
+}
+.commpack:hover {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.28);
+  border-top-color: var(--orange, #f36722);
+}
+.commpack__n {
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.1em; color: var(--orange, #f36722);
+}
+.commpack h3 { margin: 0; font-size: 19px; line-height: 1.22; letter-spacing: -0.02em; color: #fff; }
+.commpack p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #c6cce6; }
+.commpack ul { margin: 4px 0 0; padding-left: 16px; display: grid; gap: 5px; }
+.commpack li { font-size: 13.5px; line-height: 1.5; color: #a9b2d4; }
+.commpack__suits {
+  margin-top: auto; padding-top: 12px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: #8a93bd;
+}
+/* The statement sits under the grid as one bar, not as an eleventh package. */
+.commpack__cap {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  margin-top: 12px; padding: 22px 26px;
+  border-radius: 16px; background: var(--orange, #f36722);
+  text-decoration: none; color: #fff;
+  transition: filter 0.16s;
+}
+.commpack__cap:hover { filter: brightness(1.06); }
+.commpack__cap strong { display: block; font-size: 19px; letter-spacing: -0.015em; }
+.commpack__cap span { display: block; margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.92); max-width: 64ch; }
+.commpack__go { flex: 0 0 auto; font-size: 14.5px; font-weight: 700; }
+.commpack__cap:hover .commpack__go { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Why we get asked back ---- */
+/* One grid. The photograph is a cell in it rather than a column beside it, so
+   it stops being a tall picture that runs out halfway down six paragraphs. */
+.comm-std { padding: 96px 0; background: var(--bg-2, #f3efe5); border-block: 1px solid #e2e8f4; }
+.comm-std__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 14px;
+  margin-top: 36px;
+}
+.commstd {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 26px 24px 24px;
+  background: #fff; border: 1px solid #e2e8f4; border-radius: 16px;
+}
+.commstd__n {
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: var(--orange, #f36722);
+}
+.commstd h3 { margin: 0; font-size: 18px; letter-spacing: -0.015em; color: var(--comm-ink); }
+.commstd p { margin: 0; font-size: 14.5px; line-height: 1.65; color: #4a5468; }
+.commstd--photo { position: relative; margin: 0; padding: 0; overflow: hidden; border-color: transparent; min-height: 220px; }
+.commstd--photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.commstd--photo figcaption {
+  position: absolute; left: 16px; bottom: 16px;
+  padding: 8px 14px; border-radius: 999px;
+  background: var(--orange, #f36722); color: #fff;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase;
+}
+
+@media (max-width: 640px) {
+  .comm-take { padding: 56px 0; }
+  .comm-std { padding: 56px 0; }
+  .commpack__cap { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
