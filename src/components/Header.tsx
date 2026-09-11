@@ -459,7 +459,15 @@ export function Header() {
 
     <header className={`hdr${onCommercial ? " hdr--comm" : ""}`}>
       <div className="wrap hdr__row">
-        <Link href="/" className="hdr__logo" aria-label={`${site.name} home`}>
+        {/* On the commercial side the logo goes to the commercial home, not the
+            residential one. Clicking a logo means "start again", and starting
+            again should not also mean "and you are now shopping for a split
+            system" — the switch above is how you cross over. */}
+        <Link
+          href={onCommercial ? "/commercial" : "/"}
+          className="hdr__logo"
+          aria-label={`${site.name} ${onCommercial ? "commercial home" : "home"}`}
+        >
           <img
             src="/advanced-gas-logo.webp"
             alt={`${site.name} logo`}

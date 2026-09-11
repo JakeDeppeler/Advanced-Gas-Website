@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { trackLead, readUtm } from "@/lib/track";
 import { site } from "@/lib/site";
 
@@ -17,6 +17,35 @@ import { site } from "@/lib/site";
  * without a site address can't be priced, and a scope without a program date
  * can't be resourced.
  */
+
+/**
+ * Drawings, not photographs. A mechanical schedule is a PDF and a set of plans
+ * is usually a big one, so the cap is per-file and the total is checked too:
+ * the whole enquiry goes to the API as one JSON body, and Vercel will refuse
+ * it silently past a few megabytes.
+ */
+const MAX_FILE_BYTES = 8 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 18 * 1024 * 1024;
+const ACCEPT = ".pdf,.dwg,.dxf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.heic,.zip";
+
+function readAsBase64(file: File) {
+  return new Promise<{ name: string; type: string; data: string }>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve({
+      name: file.name,
+      type: file.type || "application/octet-stream",
+      data: String(r.result).split(",")[1] ?? "",
+    });
+    r.onerror = () => reject(new Error(`Could not read ${file.name}`));
+    r.readAsDataURL(file);
+  });
+}
+
+function niceSize(bytes: number) {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
 
 const PACKAGES = [
   "Tenancy or retail fit-out",
@@ -37,6 +66,8 @@ export function CommercialScopeForm() {
   const [timing, setTiming] = useState("");
   const [notes, setNotes] = useState("");
   const [hp, setHp] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,13 +79,29 @@ export function CommercialScopeForm() {
       setError("A name and a phone number, and we can come back to you.");
       return;
     }
+    const total = files.reduce((n, f) => n + f.size, 0);
+    if (total > MAX_TOTAL_BYTES) {
+      setError(`That's ${niceSize(total)} of attachments, and the form tops out at ${niceSize(MAX_TOTAL_BYTES)}. Send the rest to ${site.email} and we'll match it up.`);
+      return;
+    }
+
     setBusy(true);
+
+    let encoded: { name: string; type: string; data: string }[] = [];
+    try {
+      encoded = await Promise.all(files.map(readAsBase64));
+    } catch {
+      setError(`One of those files couldn't be read. Email them to ${site.email} instead and we'll pick it up from there.`);
+      setBusy(false);
+      return;
+    }
 
     const summary = [
       company.trim() && `Company: ${company.trim()}`,
       `Package: ${pkg}`,
       siteAddr.trim() && `Site: ${siteAddr.trim()}`,
       timing.trim() && `Program: ${timing.trim()}`,
+      encoded.length && `${encoded.length} file${encoded.length === 1 ? "" : "s"} attached`,
     ].filter(Boolean).join(" · ");
 
     try {
@@ -71,6 +118,7 @@ export function CommercialScopeForm() {
           notes: [company.trim() && `Company: ${company.trim()}`, timing.trim() && `Program: ${timing.trim()}`, notes.trim()]
             .filter(Boolean).join("\n"),
           hp,
+          photos: encoded,
           pagePath: typeof window !== "undefined" ? window.location.pathname : "/commercial",
           utm: readUtm(),
         }),
@@ -107,7 +155,7 @@ export function CommercialScopeForm() {
   return (
     <form className="scopeform" onSubmit={onSubmit} noValidate>
       <h3 className="scopeform__h">Submit a scope.</h3>
-      <p className="scopeform__sub">Drawings, a mechanical schedule or a site address is sufficient to begin.</p>
+      <p className="scopeform__sub">Drawings, a mechanical schedule or a site address is sufficient to begin. Attach the plans if you have them.</p>
 
       <input
         type="text"
@@ -164,10 +212,60 @@ export function CommercialScopeForm() {
         <textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Plant on the schedule, what's there now, anything that decides it. If you have drawings, say so and we'll send you somewhere to upload them." />
       </label>
 
+      <div className="scopeform__files">
+        <span className="scopeform__fileslabel">Drawings &amp; schedules</span>
+        <input
+          ref={fileInput}
+          type="file"
+          multiple
+          accept={ACCEPT}
+          className="scopeform__fileinput"
+          onChange={(e) => {
+            const picked = Array.from(e.target.files ?? []);
+            const tooBig = picked.filter((f) => f.size > MAX_FILE_BYTES);
+            if (tooBig.length) {
+              setError(`${tooBig.map((f) => f.name).join(", ")} ${tooBig.length === 1 ? "is" : "are"} over ${niceSize(MAX_FILE_BYTES)}. Email ${site.email} and we'll take ${tooBig.length === 1 ? "it" : "them"} that way.`);
+            } else {
+              setError(null);
+            }
+            setFiles((cur) => [...cur, ...picked.filter((f) => f.size <= MAX_FILE_BYTES)]);
+            // Cleared so picking the same file twice still fires a change.
+            if (fileInput.current) fileInput.current.value = "";
+          }}
+        />
+        <button type="button" className="scopeform__attach" onClick={() => fileInput.current?.click()}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21.4 11.05 12.25 20.2a5.5 5.5 0 0 1-7.78-7.78l9.2-9.19a3.67 3.67 0 0 1 5.18 5.18l-9.2 9.19a1.83 1.83 0 0 1-2.59-2.59l8.5-8.49" />
+          </svg>
+          Attach files
+        </button>
+        <span className="scopeform__filehint">
+          Plans, a mechanical schedule, a photo of the plant. PDF, DWG, Office or image, up to {niceSize(MAX_FILE_BYTES)} each.
+        </span>
+
+        {files.length > 0 && (
+          <ul className="scopeform__filelist">
+            {files.map((f, i) => (
+              <li key={`${f.name}-${i}`}>
+                <span className="scopeform__filename">{f.name}</span>
+                <span className="scopeform__filesize">{niceSize(f.size)}</span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${f.name}`}
+                  onClick={() => setFiles((cur) => cur.filter((_, n) => n !== i))}
+                >
+                  &times;
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {error && <p className="scopeform__err" role="alert">{error}</p>}
 
       <button type="submit" className="ds-btn ds-btn--orange ds-btn--lg scopeform__go" disabled={busy}>
-        {busy ? "Submitting…" : "Submit a scope →"}
+        {busy ? (files.length ? "Uploading…" : "Submitting…") : "Submit a scope →"}
       </button>
       <p className="scopeform__fine">No obligation. We&rsquo;ll tell you quickly if it isn&rsquo;t one for us.</p>
     </form>
