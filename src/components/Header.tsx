@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { sweepTo } from "@/components/RouteMotion";
+import { LocalConditions } from "@/components/LocalConditions";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
@@ -287,10 +288,9 @@ const NAV: NavItem[] = [
   { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
-  // A plain link rather than a mega panel, and deliberately last. A commercial
-  // buyer is a different reader with different fears, so the nav's job here is
-  // only to say the door exists — the page behind it does the arguing.
-  { href: "/commercial", label: "Commercial" },
+  // No Commercial item. The switch above the header is the door to that side of
+  // the business now, and it is a bigger, clearer one than a seventh nav link
+  // that reads as just another service.
 ];
 
 /**
@@ -429,11 +429,13 @@ export function Header() {
           lets either one cross over whenever they like — which an interstitial
           that demands the choice before showing anything cannot do without
           costing rankings and the visitors who were closest to enquiring. */}
-      <div className="sitemode">
+      <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
         {/* No label any more. The two tabs say what they are; a caption in front
-            of them just made the control smaller to fit the row. Sits in the
-            corner, larger, like the site-wide switch it is. */}
+            of them just made the control smaller to fit the row. The switch
+            sits in the corner, and the run of empty strip beside it carries
+            what it is doing outside and whether anyone is in the office. */}
         <div className="wrap sitemode__row">
+          <LocalConditions />
           <nav className="sitemode__tabs" aria-label="Residential or commercial">
             <Link
               href="/"

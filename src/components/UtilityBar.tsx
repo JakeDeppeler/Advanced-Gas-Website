@@ -1,8 +1,21 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { site } from "@/lib/site";
 
+/**
+ * The thin strip above everything.
+ *
+ * A client component only so it can read the path. The commercial side turns
+ * the whole top of the page hi-vis orange, and that has to include this bar
+ * and the switch below it — an orange header under two navy strips reads as a
+ * mistake rather than a mode.
+ */
 export function UtilityBar() {
+  const pathname = usePathname();
+  const onCommercial = pathname?.startsWith("/commercial") ?? false;
   return (
-    <div className="utilbar">
+    <div className={`utilbar${onCommercial ? " utilbar--comm" : ""}`}>
       <div className="wrap utilbar__row">
         <div className="utilbar__left">
           <span className="util-pill">

@@ -82,7 +82,10 @@
 .sitemode__row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  /* The conditions take the left, the switch takes the corner. flex-end pushed
+     both to the right and sat the temperature against the tabs. */
+  justify-content: space-between;
+  gap: 16px;
   min-height: 54px;
 }
 .sitemode__tabs {
@@ -111,7 +114,7 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 @media (max-width: 640px) {
-  .sitemode__row { justify-content: stretch; min-height: 50px; padding-block: 6px; }
+  .sitemode__row { justify-content: stretch; gap: 0; min-height: 50px; padding-block: 6px; }
   .sitemode__tabs { width: 100%; }
   .sitemode__tab { flex: 1 1 0; text-align: center; padding: 8px 10px 9px; font-size: 14px; }
 }
@@ -3200,6 +3203,70 @@ html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-o
   html[data-route-enter] #main { animation: none; }
   .sweep { display: none; }
 }
+
+/* ---- Live conditions, in the switch strip ---- */
+/* The open/closed half always renders; the temperature appears only if
+   Open-Meteo answered. Both are sized so neither arriving nor failing moves
+   anything else in the row. */
+.conds { display: flex; align-items: center; gap: 16px; min-height: 24px; }
+.conds__status {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.62);
+}
+.conds__dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+.conds__status.is-open { color: rgba(255, 255, 255, 0.9); }
+.conds__status.is-open .conds__dot {
+  background: #43d17f;
+  box-shadow: 0 0 0 3px rgba(67, 209, 127, 0.22);
+}
+.conds__temp {
+  display: inline-flex; align-items: baseline; gap: 7px;
+  font-size: 12.5px; color: rgba(255, 255, 255, 0.62);
+}
+.conds__temp strong {
+  font-family: var(--f-display);
+  font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -0.01em;
+}
+.conds__sky { color: rgba(255, 255, 255, 0.45); }
+@media (max-width: 720px) {
+  /* The tabs go full-width down here, so the conditions would only push them
+     into a second row. */
+  .conds { display: none; }
+}
+
+/* ---- The commercial top ---- */
+/* The whole top goes hi-vis, not just the header: an orange header sitting
+   under two navy strips reads as a mistake rather than a mode. Each strip
+   takes a slightly different step of the same orange so the stack still has
+   depth instead of becoming one flat slab. */
+.utilbar--comm {
+  background: #b8480f;
+  border-bottom-color: rgba(0, 0, 0, 0.16);
+}
+.utilbar--comm .util-pill { color: rgba(255, 255, 255, 0.92); }
+.utilbar--comm .util-pill svg { color: #fff; }
+.utilbar--comm .util-pill--quiet { color: rgba(255, 255, 255, 0.68); }
+.utilbar--comm .util-link,
+.utilbar--comm .util-tel { color: #fff; }
+.utilbar--comm .util-tel svg { color: #fff; }
+.utilbar--comm .util-dot--red { background: #ffd9c6; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2); }
+
+.sitemode--comm {
+  background: #cc5210;
+  border-bottom-color: rgba(0, 0, 0, 0.14);
+}
+.sitemode--comm .sitemode__tabs { background: rgba(0, 0, 0, 0.16); }
+.sitemode--comm .sitemode__tab { color: rgba(255, 255, 255, 0.85); }
+.sitemode--comm .sitemode__tab:hover { color: #fff; background: rgba(0, 0, 0, 0.18); }
+.sitemode--comm .sitemode__tab.is-on { background: #fff; color: #b8480f; }
+.sitemode--comm .conds__status { color: rgba(255, 255, 255, 0.8); }
+.sitemode--comm .conds__status.is-open { color: #fff; }
+.sitemode--comm .conds__temp { color: rgba(255, 255, 255, 0.8); }
+.sitemode--comm .conds__sky { color: rgba(255, 255, 255, 0.6); }
 
 /* ---- The commercial header ---- */
 /* Hi-vis orange the moment you cross over. It is a real trade colour rather

@@ -44,7 +44,7 @@ export default function CommercialContactPage() {
             <div className="commcontact__card">
               <h3>Call the office</h3>
               <a className="commcontact__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <span className="commcontact__sub">Monday to Friday, 7am to 3:30pm. After hours goes to someone on the tools.</span>
+              <span className="commcontact__sub">{site.hours[0].day.replace("-", " to ")}, {site.hours[0].open} to {site.hours[0].close}. After hours goes to someone on the tools.</span>
             </div>
 
             <div className="commcontact__card">
