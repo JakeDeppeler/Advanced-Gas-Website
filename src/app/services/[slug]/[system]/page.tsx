@@ -389,7 +389,7 @@ export default function SystemPage({
                 </p>
                 <ul className="quotesec__points">
                   <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
-                  <li><span className="tick tick--on-orange">✓</span> Fixed price, confirmed in writing</li>
+                  <li><span className="tick tick--on-orange">✓</span> Price confirmed in writing before we start</li>
                   <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
                 </ul>
                 {siblings.length > 0 && (

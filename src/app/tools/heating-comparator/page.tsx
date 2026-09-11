@@ -81,7 +81,7 @@ export default function HeatingComparatorPage() {
             <p>Send us the current heater. We&rsquo;ll quote the reverse-cycle upgrade with rebate applied.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

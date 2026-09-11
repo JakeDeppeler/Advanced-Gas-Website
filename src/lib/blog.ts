@@ -108,7 +108,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Second, not checking Solar Homes eligibility. The $1,000 hot water rebate has strict criteria, owner-occupier, combined household income under $150k, property value under $3M, no prior HW/battery Solar Homes rebate at the address, existing hot water system at least 3 years old, but if you tick all five boxes, that $1,000 is yours. Roughly half the Pakenham households we quote qualify and don't know it." },
       { type: "p", text: "Third, comparing sticker prices without the $400 Australian Made bonus in the sum. Reclaim, Thermann and Dux all qualify for it. iStore is designed here and built in China, so it doesn't. That can turn a unit that looks $200 ahead on the shelf into one that lands $200 behind on the invoice, and it can just as easily go the other way once the VEU number is applied. The only figure worth comparing is the one at the bottom of the quote." },
       { type: "h2", text: "What to do next" },
-      { type: "p", text: "Get us out for a 20-minute site check. We'll size the unit properly for your household, work out your Solar Homes eligibility on the spot, and email you a fixed-price quote within 12 hours with all the rebates already applied. No chase, no surprise invoice on the day." },
+      { type: "p", text: "Get us out for a 20-minute site check. We'll size the unit properly for your household, work out your Solar Homes eligibility on the spot, and email you a written quote within 12 hours with all the rebates already applied. No chase, no surprise invoice on the day." },
     ],
   },
   {
@@ -462,7 +462,7 @@ export const posts: BlogPost[] = [
       { type: "p", text: "Third, ignoring Solar Homes eligibility. If you're an owner-occupier under $150k combined income with the property under $3M, there's another $1,000 rebate available on top of VEU. Half the Melbourne households we quote qualify and don't know it. See our VEU rebate guide for the full checklist." },
 
       { type: "h2", text: "What happens on quote day" },
-      { type: "p", text: "We come out for a 20-minute site check: measure the tank space, check the outdoor position for the compressor, look at the switchboard, confirm your Solar Homes eligibility on the spot. You get a fixed-price quote emailed within 12 hours with all rebates already applied. If you accept, we book you in, usually within the week." },
+      { type: "p", text: "We come out for a 20-minute site check: measure the tank space, check the outdoor position for the compressor, look at the switchboard, confirm your Solar Homes eligibility on the spot. You get a written quote emailed within 12 hours with all rebates already applied. If you accept, we book you in, usually within the week." },
       { type: "p", text: "No obligation to accept. If our number's higher than a competitor, we'll show you where the difference is." },
     ],
   },
@@ -720,7 +720,7 @@ export const posts: BlogPost[] = [
       ] },
       { type: "p", text: "Not same-day (need parts or council permits):" },
       { type: "ul", items: [
-        "Complete heat pump replacement, usually 1-3 days for a fixed-price quote then 5-7 days for install",
+        "Complete heat pump replacement, usually 1-3 days for a written quote then 5-7 days for install",
         "Complete ducted heater replacement, 3-7 days",
         "New gas connection or meter upgrade",
       ] },

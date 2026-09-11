@@ -67,7 +67,7 @@ export default function PreviewPage() {
               Family owned. Same face on the quote as on the tools. Twelve years, 1,200+ installs.
             </p>
             <div className="pv-hero__ctas">
-              <a href="#quote" className="pv-btn pv-btn--orange">Get a fixed quote →</a>
+              <a href="#quote" className="pv-btn pv-btn--orange">Get a quote →</a>
               <a href={`tel:${site.phoneE164}`} className="pv-btn pv-btn--ghost">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />
@@ -108,7 +108,7 @@ export default function PreviewPage() {
         {/* QUOTE card */}
         <div className="pv-card" id="quote">
           <div className="pv-eye"><span className="pv-eye__dot" /> 60-second quote</div>
-          <h2 className="pv-h">Fixed price back within 12&nbsp;hrs.</h2>
+          <h2 className="pv-h">Written quote back within 12&nbsp;hrs.</h2>
           <p className="pv-lede">Tell us what you need, we&rsquo;ll price it straight. Rebates already applied, no chasing.</p>
 
           <div className="pv-qcard">
@@ -174,8 +174,8 @@ export default function PreviewPage() {
 
         {/* FIXED PRICE card */}
         <div className="pv-card">
-          <div className="pv-eye pv-eye--orange"><span className="pv-eye__dot" /> Fixed-price installs</div>
-          <h2 className="pv-h">Three popular jobs, locked-in.</h2>
+          <div className="pv-eye pv-eye--orange"><span className="pv-eye__dot" /> What a proper install costs</div>
+          <h2 className="pv-h">Three popular jobs, priced in writing.</h2>
           <p className="pv-lede">VEU rebate applied, GST included, warranty pack in 24&nbsp;hrs.</p>
           <div className="pv-fp">
             <article className="pv-fp-item">
@@ -301,7 +301,7 @@ export default function PreviewPage() {
           <ol className="pv-proc">
             {[
               [1, "You get in touch", "Fill the form or call, tell us what you need.", "~ 5 min"],
-              [2, "Quote back within 12 hrs", "Fixed-price quote straight to your inbox.", "within 12 hrs"],
+              [2, "Quote back within 12 hrs", "Written quote straight to your inbox.", "within 12 hrs"],
               [3, "Site visit if needed", "For ducted and tricky retrofits we pop out.", "when required"],
               [4, "We install & show you how", "Clean install, old unit gone, walk-through.", "install day"],
               [5, "Follow-up next week", "Quick call to make sure all is running right.", "week after"],

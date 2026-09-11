@@ -29,7 +29,7 @@ export function generateMetadata({
   // products sharing a title. The suffix gives way, not the content.
   return seoMeta({
     title: product.name,
-    description: `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Fixed-price quote, 6-year workmanship warranty.`,
+    description: `${product.name} (${product.model}) installed across Melbourne's south-east. ${product.bestFor}. ${product.veuEligible ? "VEU rebate eligible." : ""} Written quote, 6-year workmanship warranty.`,
     canonical: `/brands/${brand.slug}/${product.slug}`,
     image: product.photo ?? brand.photo,
     absolute: true,
@@ -85,10 +85,10 @@ export default function ProductPage({
           </div>
           <h1>{product.name}</h1>
           <p className="dp-hero__sub">
-            <strong>Best for:</strong> {product.bestFor}. Installed across Melbourne&rsquo;s south-east, {product.veuEligible ? "VEU rebate eligible where the property qualifies, " : ""}fixed-price quote inside 12 business hours.
+            <strong>Best for:</strong> {product.bestFor}. Installed across Melbourne&rsquo;s south-east, {product.veuEligible ? "VEU rebate eligible where the property qualifies, " : ""}written quote inside 12 business hours.
           </p>
           <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
               Or call {site.phone}
             </a>
@@ -123,7 +123,7 @@ export default function ProductPage({
                 <p>
                   {product.installedPriceFrom
                     ? <strong>{product.installedPriceFrom}</strong>
-                    : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Fixed price within 12 business hours.</span></>
+                    : <><strong>Message for quote</strong><br /><span style={{ fontSize: 13, color: "var(--ink-3)" }}>Written quote within 12 business hours.</span></>
                   }
                 </p>
               </div>
@@ -132,7 +132,7 @@ export default function ProductPage({
                 <p>{product.veuEligible ? "Eligible · we handle the paperwork." : "Not applicable to this unit."}</p>
               </div>
               <div className="product-hero__spec-cta">
-                <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+                <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
               </div>
             </div>
           </div>

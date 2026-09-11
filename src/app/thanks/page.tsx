@@ -46,7 +46,7 @@ export default function ThanksPage() {
         </h1>
         <p style={{ marginTop: 18, fontSize: 18, color: "var(--ink-2)", maxWidth: 560, marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
           Your quote request is in. One of our licensed team will text or call you within
-          {" "}<strong style={{ color: "var(--navy)" }}>12 business hours</strong> with a fixed price (rebate already applied) and the next available install slot.
+          {" "}<strong style={{ color: "var(--navy)" }}>12 business hours</strong> with a written quote (rebate already applied) and the next available install slot.
         </p>
         <div style={{ marginTop: 32, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 12 }}>
           <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--orange ds-btn--lg">

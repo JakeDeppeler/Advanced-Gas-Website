@@ -600,7 +600,7 @@ function ServicesMega() {
           <span>Every model, filterable</span>
         </Link>
         <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
-          Get a fixed quote →
+          Get a quote →
         </Link>
       </div>
 
@@ -697,7 +697,7 @@ function PricingMega() {
         <div className="mega__cta-sub">Every number is the installed price with the rebate already off it.</div>
         <div className="mega__toolsbtns">
           <Link href="/range" className="ds-btn ds-btn--ghost">The full range →</Link>
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
         </div>
       </div>
     </div>
@@ -732,7 +732,7 @@ function ToolsMega() {
         {/* The price list gets a button as well as a card. It's the
             destination the menu is named after, and a row in a grid of
             eleven is easy to read past. */}
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
       </div>
     </div>
   );
@@ -758,7 +758,7 @@ function CompanyMega() {
       </div>
       <div className="mega__toolsfoot">
         <div className="mega__cta-sub">Family owned since 2014 · same face on the quote as on the tools.</div>
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
       </div>
     </div>
   );

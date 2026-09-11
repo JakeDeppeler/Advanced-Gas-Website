@@ -74,7 +74,7 @@ export default function RunningCostCalculatorPage() {
             <p>Send us the room and the current unit. We&rsquo;ll quote the swap fixed.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

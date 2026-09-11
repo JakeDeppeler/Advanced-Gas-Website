@@ -305,7 +305,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // ------------------------------------------------------------------
     metaTitle: "Air Conditioning Installation Pakenham & Berwick",
     metaDescription:
-      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Fixed-price quotes in 12 hrs, 6-year workmanship warranty.",
+      "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Written quotes in 12 hrs, 6-year workmanship warranty.",
     heroFacts: [
       { v: "Same day", k: "A single wall split, start to finish" },
       { v: "ARCtick", k: "AU59557 — legally required, and we hold it" },
@@ -314,7 +314,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Air conditioning, installed properly",
     intro:
-      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Fixed-price quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
+      "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {
       heading: "Why these two brands, and which one is yours.",
       blurb:
@@ -347,7 +347,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     steps: [
       { title: "Room-by-room heat-load calc", detail: "We walk the home, check ceiling height, window aspect and insulation, then compute the actual kW load. Nothing gets guessed, a 5 kW room quote sizes to a 5 kW unit, not a 7." },
-      { title: "Written fixed-price quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. No 'from $X' bait." },
+      { title: "Written quote in 12 hrs", detail: "Back to you inside 12 business hours with the model number, capacity, line-set length, controller spec, warranty position and total installed price. No 'from $X' bait." },
       { title: "Order stock, book install day", detail: "Mitsubishi warehouse in Melbourne is same-day on common stock. We confirm your install day the moment the unit lands with us." },
       { title: "Install day, usually one visit", detail: "Single-split back-to-back is 3-4 hours on site. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside." },
       { title: "Test, commission, walk-through", detail: "We run it up, check refrigerant pressures, walk you through the remote and MELCloud Wi-Fi setup. You sign the job card when you're satisfied, not before." },
@@ -1101,7 +1101,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     pricing: [],
     steps: [
       { title: "Site inspection, no charge", detail: "We walk the existing tank position, check pipe entry, electrical supply, drainage, and outdoor placement for split-system heat pumps. On the same visit we confirm VEU eligibility and photograph the old unit for the rebate application." },
-      { title: "Written fixed-price quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },
+      { title: "Written quote in 12 hrs", detail: "Back to you the same business day with model number, capacity, VEU rebate value, tank + heat-pump warranty and the installed price after rebate. No 'from $X', the number on the quote is the number on the invoice." },
       { title: "We lodge the VEU application", detail: "Approved accredited-provider paperwork submitted the day you accept the quote. The rebate is applied to your invoice, not something you chase back six months later." },
       { title: "Install day, usually same-day swap", detail: "AIO swap into an existing electric or gas storage tank position is 3–5 hours. Split heat pump with a new tank position is 5–7 hours. Old tank drained, disconnected, loaded up." },
       { title: "Commission, temper, hand over", detail: "Tempering valve to AS/NZS 3500, isolation valves in, dedicated circuit tested. We wait for hot water at the tap, then walk you through the controller and timer settings." },
@@ -1470,7 +1470,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // ------------------------------------------------------------------
     metaTitle: "Aircon Service & Repair, All Brands, Same Day",
     metaDescription:
-      "Annual aircon service and same-day repairs across Melbourne's south-east, Mitsubishi, Daikin, Fujitsu, Panasonic, Kaden, LG. Fixed pricing, ARCtick-licensed, service records kept.",
+      "Annual aircon service and same-day repairs across Melbourne's south-east, Mitsubishi, Daikin, Fujitsu, Panasonic, Kaden, LG. Pricing in writing, ARCtick-licensed, service records kept.",
     heroPhoto: "/evap-cooler-service.webp",
     heroPhotoAlt: "Evaporative cooler being serviced on a roof",
     heroFacts: [
@@ -1481,7 +1481,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Aircon service, repair & tune-up",
     intro:
-      "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and fixed-price quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
+      "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and written quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
     whyThese: {
       heading: "Why we service brands we'd never sell you.",
       blurb:
@@ -1499,7 +1499,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "All major brands serviced", d: "Mitsubishi Electric, Daikin, Fujitsu, Panasonic, LG, Kaden, Braemar. Even ones we don't install." , line: "Including the ones we don't install", icon: "snowflake" },
       { t: "Keeps your warranty valid", d: "Most manufacturers require annual service to keep warranty in force. We lodge a service report direct with the maker in your name." , line: "We lodge the report in your name", icon: "shield" },
       { t: "Same-day breakdown attendance", d: "Aircon down in a heatwave? We aim to be on-site same-day across Pakenham, Berwick, Officer, Cranbourne and out to Warragul." , line: "Across the corridor, in a heatwave", icon: "clock" },
-      { t: "Fixed pricing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before we open a wallet." , line: "You know the number before we start", icon: "tag" },
+      { t: "Priced in writing before we touch anything", d: "Diagnostic, gas top-up, capacitor swap, board replacement, all quoted in writing before we open a wallet." , line: "You know the number before we start", icon: "tag" },
       { t: "Refrigerant leak repair (not just top-up)", d: "If you're losing gas, it's a leak, we find it and fix it. Yearly re-gassing is a bandaid; we'd rather do the job once properly." , line: "Find the leak, not just refill it", icon: "gauge" },
       { t: "Coil clean that actually cleans", d: "Chemical coil clean, full disassembly on the indoor for ducted, condenser wash on the outdoor. Not a wipe-down with a rag." , line: "Pulled apart and washed, not wiped", icon: "wrench" },
     ],
@@ -1515,7 +1515,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { title: "Book the visit, one call, no menu", detail: "Call and book with the person you'll see, Chaz or Jake picks up, quotes the service fee, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
       { title: "We arrive with the parts", detail: "Common consumables, capacitors, thermistors, PCB relays, refrigerant, filters, live on the truck. Most service jobs are one-visit fixes because we're not driving back for a $12 part." },
       { title: "Service on the day", detail: "Filter clean, coil chemical clean (indoor + outdoor), refrigerant pressure check, capacitor + fan motor test, drain flush, thermistor calibration. Written service report before we leave." },
-      { title: "Diagnose + written quote for any repair", detail: "If a component needs replacing we quote it in writing before we touch it. Fixed pricing, no hourly creep. Fee is waived if you accept the repair the same day." },
+      { title: "Diagnose + written quote for any repair", detail: "If a component needs replacing we quote it in writing before we touch it. Pricing in writing, no hourly creep. Fee is waived if you accept the repair the same day." },
       { title: "Service record lodged with the manufacturer", detail: "We upload the service report direct to Mitsubishi, Daikin, Fujitsu etc so your warranty record stays clean and any future claim goes through without a fight." },
       { title: "12-month reminder", detail: "We drop you a text 11 months later so the annual is booked before the heatwave. Skip it if you don't want it, it's a one-line opt-out." },
     ],
@@ -1817,7 +1817,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Gas heating, hot water & plumbing",
     intro:
-      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, fixed-price quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
+      "From a same-day Brivis Wombat replacement to a Thermann continuous-flow hot water swap, our VBA-licensed gas fitters and plumbers handle the lot across every postcode within 75 km of Pakenham. Same-day emergency call-outs for no-hot-water, gas leaks or CO alarms, written quotes on planned work back in 12 business hours, and full compliance certificates on every job.",
     whyThese: {
       heading: "Why Brivis and Kaden for gas, and why the star rating matters more than the price.",
       blurb:

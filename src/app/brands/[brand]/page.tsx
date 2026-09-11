@@ -44,7 +44,7 @@ export function generateMetadata({ params }: { params: { brand: string } }): Met
   if (!brand) notFound();
   return seoMeta({
     title: `${brand.name} Installer, Melbourne South-East`,
-    description: `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Fixed-price quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`,
+    description: `Licensed ${brand.name} installer across Melbourne's south-east. ${brand.productLabel}. Written quotes, VEU rebates handled where eligible, 6-year workmanship warranty.`,
     canonical: `/brands/${brand.slug}`,
     image: brand.photo,
   });

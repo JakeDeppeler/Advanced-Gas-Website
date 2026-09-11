@@ -197,10 +197,10 @@ export default function ReclaimComparePage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Ready to lock in the right Reclaim?</h2>
-            <p>We&rsquo;ll spec the model, apply the VEU rebate and quote it fixed.</p>
+            <p>We&rsquo;ll spec the model, apply the VEU rebate and quote it in writing.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

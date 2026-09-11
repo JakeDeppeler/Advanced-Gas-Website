@@ -235,7 +235,7 @@ export default function ToolsHubPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Rather just have us size / quote it?</h2>
-            <p>Send the room dimensions or a photo of the fault code. We&rsquo;ll come back with a fixed price.</p>
+            <p>Send the room dimensions or a photo of the fault code. We&rsquo;ll come back with a written price.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>

@@ -447,7 +447,7 @@ const brandCatalogue: Brand[] = [
     },
     steps: [
       { title: "Look at what's there", detail: "We check the existing unit, the ductwork, the return-air and the cupboard or pad it sits on. Nine times out of ten only the heater has failed and everything around it gets reused — which is the whole reason a Brivis swap stays cheap." },
-      { title: "Written fixed-price quote — with the honest comparison", detail: "Model, star rating, output and the total installed price in writing. If the old unit is past 12–15 years we put a reverse-cycle ducted price next to it, so you decide with both running costs in front of you rather than on the spot." },
+      { title: "Written quote — with the honest comparison", detail: "Model, star rating, output and the total installed price in writing. If the old unit is past 12–15 years we put a reverse-cycle ducted price next to it, so you decide with both running costs in front of you rather than on the spot." },
       { title: "Stock ordered, day booked", detail: "Rinnai's Melbourne warehouse is quick on Brivis stock, so we confirm your install day the moment the unit lands with us rather than pencilling one in and hoping." },
       { title: "Old unit out, new one in", detail: "We pull the failed heater and drop the like-for-like into the same footprint — internal cupboard or external cabinet — reusing the existing ducts, controller wiring and, on an outdoor job, the existing pad and gas line. Most swaps are done in a day." },
       { title: "Commission and set the controller", detail: "We fire it up, check the burner and gas pressure, run a carbon monoxide test, and set up the Brivis Networker wall controller with you before we leave." },
@@ -947,7 +947,7 @@ const brandCatalogue: Brand[] = [
 
     steps: [
       { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, then compute the actual kW. A 5 kW room gets a 5 kW unit, not a 7 kW one somebody had on the truck." },
-      { title: "Written fixed-price quote in 12 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
+      { title: "Written quote in 12 hours", detail: "Model number, capacity, line-set length, controller spec, warranty position and the total installed price. No \u2018from $X\u2019, and no allowance that turns into a variation later." },
       { title: "Stock ordered, day booked", detail: "Mitsubishi's Melbourne warehouse is same-day on common stock. We confirm your install day the moment the unit lands with us rather than pencilling one in and hoping." },
       { title: "Install day", detail: "Single split back-to-back is three to four hours. Multi-head or ducted is a full day. Drop sheets down, dust extraction on the wall cut, conduit colour-matched outside, fresh copper every time." },
       { title: "Commission and walk through", detail: "We run it up, check refrigerant pressures against spec, and set up the remote and MELCloud with you. You sign the job card when you're happy with it, not before." },
@@ -1577,7 +1577,7 @@ const brandCatalogue: Brand[] = [
     },
     steps: [
       { title: "Site visit and tank choice", detail: "We look at where the tank and the outdoor heat pump can go, check your hot-water demand and how hard the water is, and settle the tank: glass-lined or stainless, 160 through 400 L, or an ECO R290 all-in-one where the split won't fit." },
-      { title: "Fixed-price quote after the VEU rebate", detail: "A written fixed-price quote — model, tank finish, capacity, warranty position and the total after the VEU rebate is taken off, not a 'from $X'. The rebate is assigned to us and already in the number you see." },
+      { title: "Written quote after the VEU rebate", detail: "A written quote — model, tank finish, capacity, warranty position and the total after the VEU rebate is taken off, not a 'from $X'. The rebate is assigned to us and already in the number you see." },
       { title: "Old unit removed", detail: "On the day we drain, disconnect and take away the old gas or electric storage unit, and cap or make good the gas point if you're coming off gas." },
       { title: "Set the split heat pump and tank", detail: "We stand the tank, mount the outdoor CO₂ heat pump on a level pad or bracket, run the insulated pipework between them and plumb it into the house. Fresh fittings, not whatever was there." },
       { title: "Tempering valve and PV diverter", detail: "A tempering valve goes on so the water leaves the tap at a safe temperature, and where you've got solar we fit the PV-diverter kit so the compressor fires on your surplus rather than the grid." },
@@ -2294,7 +2294,7 @@ const brandCatalogue: Brand[] = [
     },
     steps: [
       { title: "We size it to the house, not the truck", detail: "How many of you there are, what's there now and where it lives — a couple on one bathroom is a different unit to five people back-to-back. An all-in-one where there's no outdoor spot, a split where the tank and heat pump want to live apart, or the G-series continuous flow for a straight gas swap." },
-      { title: "Written fixed-price quote", detail: "Model, capacity, install position and the total installed price, with the VEU rebate and the Australian-made bonus already taken off rather than promised later. No 'from $X' that turns into a variation on the day." },
+      { title: "Written quote", detail: "Model, capacity, install position and the total installed price, with the VEU rebate and the Australian-made bonus already taken off rather than promised later. No 'from $X' that turns into a variation on the day." },
       { title: "Unit and parts over the counter", detail: "Because it's Reece's own brand we pull the unit and the common fittings over the counter at the local store, usually same-day. That's the difference between booking your changeover this week and waiting on a delivery." },
       { title: "Old unit out, new one in", detail: "We drain and pull the old tank or heater, cart it away, and set the Thermann on a proper base or wall pad. Fresh water connections, and a new tempering valve fitted so the hot water leaves the unit at a safe 50° at the tap." },
       { title: "Commission and hand over", detail: "We fill it, fire it up, check it's making hot water to spec and walk you through the controller. On a heat pump we set the run timer for the cheap part of the day, or onto your solar if you've got it." },
@@ -2988,7 +2988,7 @@ const brandCatalogue: Brand[] = [
     steps: [
       { title: "Room-by-room heat load", detail: "We walk the house, measure ceiling height, window aspect and insulation, and compute the actual kW room by room. A 5 kW room gets a 5 kW unit — whether that ends up a split, a head off a multi or a zone off the ducted — not a 7 kW one somebody had on the truck." },
       { title: "The whole house, scoped in one go", detail: "The reason to go Kaden is doing the lot in one visit, so we scope every room at once: which rooms take a split, which want a multi-head off a single condenser, and whether ducted works out cheaper than five heads. You see the whole plan before you commit to any of it." },
-      { title: "Written fixed-price quote", detail: "Model numbers, capacities, line-set lengths, controller spec, warranty position and one installed total. No ‘from $X’, and no allowance that turns into a variation on the day. Because Kaden is Reece-exclusive the stock is never far away, so the day we book is a day we can keep." },
+      { title: "Written quote", detail: "Model numbers, capacities, line-set lengths, controller spec, warranty position and one installed total. No ‘from $X’, and no allowance that turns into a variation on the day. Because Kaden is Reece-exclusive the stock is never far away, so the day we book is a day we can keep." },
       { title: "Install day", detail: "A single split back-to-back is three to four hours; a multi-head or ducted is a full day; a whole house is one or two. Drop sheets down, dust extraction on every wall cut, conduit colour-matched outside, fresh copper every time — same standard as anything else we fit." },
       { title: "Commission and walk through", detail: "We run each system up, check refrigerant pressures against spec, and set up the remotes and the Kaden app with you. You sign the job card when you are happy with it, not before." },
       { title: "Compliance and warranty inside 24 hours", detail: "Electrical and refrigeration compliance certificates emailed by end of business the next day, and the manufacturer warranty registered in your name at the same time so the record is clean for any future claim." },
