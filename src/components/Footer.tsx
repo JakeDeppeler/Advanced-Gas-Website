@@ -34,7 +34,7 @@ export function Footer() {
             </Link>
             <p className="ftr__tag">
               Family-run gas, hot water &amp; aircon specialists across South-East Vic and Gippsland.
-              Locally owned. Same-day quotes. Fixed prices. No surprises.
+              Locally owned. Same-day quotes. Prices in writing. No surprises.
             </p>
 
             <ul className="ftr__nap">
@@ -142,7 +142,7 @@ export function Footer() {
               <li><Link href="/reviews">Reviews</Link></li>
               <li><Link href="/service-areas">All service areas</Link></li>
               <li><Link href="/contact">Contact</Link></li>
-              <li><Link href="/quote">Get a fixed quote</Link></li>
+              <li><Link href="/quote">Get a quote</Link></li>
               <li><a href={`tel:${site.phoneE164}`}>Call {site.phone}</a></li>
             </ul>
           </div>

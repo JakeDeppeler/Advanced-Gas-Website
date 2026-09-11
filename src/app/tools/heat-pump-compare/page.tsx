@@ -75,10 +75,10 @@ export default function HeatPumpComparePage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Made your pick?</h2>
-            <p>Send us the model and we&rsquo;ll quote it fixed with the VEU rebate applied.</p>
+            <p>Send us the model and we&rsquo;ll quote it in writing with the VEU rebate applied.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

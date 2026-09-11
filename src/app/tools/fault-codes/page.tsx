@@ -54,7 +54,7 @@ export default function FaultCodesPage() {
             </h2>
             <p style={{ fontSize: 14.5, lineHeight: 1.55, color: "var(--ink-2)", margin: "0 0 14px", maxWidth: "60ch" }}>
               We service every major brand. Send us the code, the brand and (ideally) a photo of the
-              wall controller. We&rsquo;ll come back with what it means and a fixed-price
+              wall controller. We&rsquo;ll come back with what it means and a written
               service quote.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

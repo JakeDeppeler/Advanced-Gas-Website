@@ -38,7 +38,7 @@ function HeroQuoteFormSkeleton() {
   return (
     <div className="qcard" aria-hidden="true">
       <div className="qcard__ribbon"><span className="qcard__ribbon-dot" /> 60-second quote</div>
-      <h3 className="qcard__h">Get a fixed quote in 60&nbsp;seconds.</h3>
+      <h3 className="qcard__h">Get a quote in 60&nbsp;seconds.</h3>
       <p className="qcard__sub">Loading the quote form…</p>
       <div className="qcard__progress" aria-hidden="true">
         <i className="is-on" /><i /><i /><i />
@@ -78,6 +78,10 @@ const faqs = [
   {
     q: "How much is the VEU rebate, really?",
     a: "It depends on your existing hot water unit, your home and the new unit going in. Most Pakenham households we install for see between $2,400 and $3,200 off, and we apply it at the quote stage so you don't pay it then claim it back. We'll give you the exact number after a 20-minute site check.",
+  },
+  {
+    q: "Is the quote fixed?",
+    a: "It's in writing, and it only changes if the job does. If we open a wall or a roof space and find something the site check couldn't show, we stop, price the difference and get your approval before going on. You won't see a number on the invoice that you didn't see first.",
   },
   {
     q: "Am I eligible if I'm a renter or in a unit?",
@@ -186,7 +190,7 @@ export default async function HomePage() {
             </p>
 
             <div className="hero__ctas" data-hide-sticky-cta>
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</a>
               <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
                 Or call {site.phone}
               </a>
@@ -257,8 +261,8 @@ export default async function HomePage() {
               ))}
             </div>
             <p className="route__urgent">
-              Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> &mdash; answered after
-              hours, by someone on the tools.
+              Something stopped working? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. Answered after hours,
+              by someone on the tools.
             </p>
           </div>
         </div>
@@ -305,7 +309,7 @@ export default async function HomePage() {
             <div className="quotesec__grid">
               <div className="quotesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> 60-second quote</span>
-                <h2>Fixed-price quote back within 12&nbsp;hours.</h2>
+                <h2>Written quote back within 12&nbsp;hours.</h2>
                 <p className="quotesec__lede">
                   Tell us what you need, we&rsquo;ll quote it straight. Rebates applied, GST included, no chasing.
                 </p>
@@ -313,6 +317,7 @@ export default async function HomePage() {
                   <li><span className="tick tick--on-orange">✓</span> No obligation, no pushy call-back</li>
                   <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
                   <li><span className="tick tick--on-orange">✓</span> VEU rebate handled in the quote</li>
+                  <li><span className="tick tick--on-orange">✓</span> The price only changes if the job does, and you approve it first</li>
                   <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
                 </ul>
                 <p className="quotesec__finep">
@@ -340,9 +345,9 @@ export default async function HomePage() {
             </span>
             <h2 className="ds-h--on-dark">The standard doesn&rsquo;t change with the price.</h2>
             <p className="veu__sub veu__sub--center">
-              These are the three jobs we do most, with the VEU rebate already off and GST in. What the number
-              doesn&rsquo;t change is the day itself &mdash; the same crew, the same procedures, the old unit taken away,
-              and the compliance certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
+              These are the three jobs we do most, with the VEU rebate already off and GST in. The number changes.
+              The day doesn&rsquo;t: the same crew, the same procedures, the old unit taken away, and the compliance
+              certificate and warranty pack emailed within 24&nbsp;hours, whichever one you pick.
             </p>
           </div>
 
@@ -367,7 +372,7 @@ export default async function HomePage() {
                   <span className="fixprice__price-lbl">fully installed, inc GST</span>
                 </div>
                 <p className="fixprice__note">Price assumes a power point within 2&nbsp;metres of the current system. A new circuit is $350, quoted on the site visit.</p>
-                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a quote &rarr;</a>
               </div>
             </article>
 
@@ -388,10 +393,10 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
+                  <span className="fixprice__price-lbl">written quote back in 12 hrs</span>
                 </div>
                 <p className="fixprice__note">Reclaim CO₂ Split, glass-lined or stainless, tall or squat, in 160 / 250 / 315 / 400 L. We&rsquo;ll spec the model and confirm the price with the VEU rebate applied.</p>
-                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a quote &rarr;</a>
               </div>
             </article>
 
@@ -412,15 +417,15 @@ export default async function HomePage() {
                 </ul>
                 <div className="fixprice__price">
                   <span className="fixprice__price-num">Message for quote</span>
-                  <span className="fixprice__price-lbl">fixed price back in 12 hrs</span>
+                  <span className="fixprice__price-lbl">written quote back in 12 hrs</span>
                 </div>
-                <a href="#quote" className="ds-btn ds-btn--orange">Get a fixed quote &rarr;</a>
+                <a href="#quote" className="ds-btn ds-btn--orange">Get a quote &rarr;</a>
               </div>
             </article>
           </div>
 
           <p className="fixprice__foot">
-            After something different? We install every major brand, <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it fixed.
+            After something different? We install every major brand, <a href="#quote">tell us what you&rsquo;re after</a> and we&rsquo;ll quote it in writing.
           </p>
         </div>
       </section>
@@ -526,11 +531,11 @@ export default async function HomePage() {
           </div>
           <div className="why-grid">
             {[
-              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store — not because they were cheapest that week."],
+              ["01", "Brands we'd put in our own homes", "Reclaim, Mitsubishi Electric, Kaden, Brivis. Chosen because they last and because parts are in every Reece store, not because they were cheapest that week."],
               ["02", "Our own crew, every job", "Directly employed installers and apprentices. Not labour hire, not a different subcontractor each time. The person who quotes it is on site when it goes in."],
               ["03", "The install is the product", "Bracket, drain fall, pipe runs, insulation, commissioning. That's where a good unit becomes a good system or a callback, and it's the part nobody photographs."],
               ["04", "The standard is written down", "Twenty procedures covering how a van is stocked, what gets photographed, what gets tested and what happens when something goes wrong. Not folklore, and not down to who turned up."],
-              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours — keep it for your insurer."],
+              ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours. Keep it for your insurer."],
               ["06", "We're still here after", "Six years on our workmanship, manufacturer warranty on the unit, and a call the week after to make sure it's running the way we left it."],
             ].map(([n, t, d]) => (
               <div key={n} className="why">
@@ -553,7 +558,7 @@ export default async function HomePage() {
           <ol className="steps">
             {[
               [1, "You get in touch", "Fill out the quote form or give us a call, tell us what you’re after.", "~ 5 min"],
-              [2, "Quote back within 12 hrs", "We send a fixed-price quote back within 12 hours. Straight to your inbox.", "within 12 hrs"],
+              [2, "Quote back within 12 hrs", "We send a written quote back within 12 hours. Straight to your inbox.", "within 12 hrs"],
               [3, "Site visit if needed", "For bigger jobs (ducted, tricky retrofits) we’ll pop out for a proper look.", "when required"],
               [4, "Any questions? Ask away", "We’ll walk you through the gear, timing and paperwork before you commit.", "before install"],
               [5, "We install & show you how", "Clean install, old unit gone, and we walk you through operating your new system.", "install day"],
@@ -719,9 +724,9 @@ export default async function HomePage() {
           </figure>
           <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job sorted.</h2>
-            <p>A free fixed-price quote with the VEU rebate already applied &mdash; usually back to you within 12 business hours. Prefer to talk? Give us a call.</p>
+            <p>A free written quote with the VEU rebate already applied, usually back to you within 12 business hours. The price only changes if the job does, and you approve the new number before we start. Prefer to talk? Give us a call.</p>
             <div className="bigcta__btns">
-              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a fixed quote →</a>
+              <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
                 or call <strong>{site.phone}</strong>
               </a>

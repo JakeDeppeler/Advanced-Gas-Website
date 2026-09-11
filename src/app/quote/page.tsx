@@ -22,7 +22,7 @@ export default function QuotePage() {
           </div>
           <h1>
             Tell us what you need.<br />
-            Get a <span className="accent">fixed price</span>.
+            Get a <span className="accent">written price</span>.
           </h1>
           <p className="dp-hero__sub">
             60 seconds, no obligation, no spam. We reply with a written quote within

@@ -307,7 +307,7 @@ const COMM_NAV: NavItem[] = [
   { href: "/commercial/services", label: "What we do" },
   { href: "/commercial/capability", label: "Capability statement" },
   { href: "/commercial/about", label: "About us" },
-  { href: "/contact?enquiry=commercial", label: "Contact" },
+  { href: "/commercial/contact", label: "Contact" },
 ];
 
 /**
@@ -430,8 +430,10 @@ export function Header() {
           that demands the choice before showing anything cannot do without
           costing rankings and the visitors who were closest to enquiring. */}
       <div className="sitemode">
+        {/* No label any more. The two tabs say what they are; a caption in front
+            of them just made the control smaller to fit the row. Sits in the
+            corner, larger, like the site-wide switch it is. */}
         <div className="wrap sitemode__row">
-          <span className="sitemode__label">Advanced Gas for</span>
           <nav className="sitemode__tabs" aria-label="Residential or commercial">
             <Link
               href="/"
@@ -535,7 +537,7 @@ export function Header() {
               {site.phone}
             </span>
           </a>
-          <Link href={onCommercial ? "/contact?enquiry=commercial" : "/quote"} className="ds-btn ds-btn--primary">
+          <Link href={onCommercial ? "/commercial/contact" : "/quote"} className="ds-btn ds-btn--primary">
             {onCommercial ? "Submit a scope →" : "Get free quote →"}
           </Link>
         </div>
@@ -598,7 +600,7 @@ function ServicesMega() {
           <span>Every model, filterable</span>
         </Link>
         <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
-          Get a fixed quote →
+          Get a quote →
         </Link>
       </div>
 
@@ -695,7 +697,7 @@ function PricingMega() {
         <div className="mega__cta-sub">Every number is the installed price with the rebate already off it.</div>
         <div className="mega__toolsbtns">
           <Link href="/range" className="ds-btn ds-btn--ghost">The full range →</Link>
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
         </div>
       </div>
     </div>
@@ -730,7 +732,7 @@ function ToolsMega() {
         {/* The price list gets a button as well as a card. It's the
             destination the menu is named after, and a row in a grid of
             eleven is easy to read past. */}
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
       </div>
     </div>
   );
@@ -756,7 +758,7 @@ function CompanyMega() {
       </div>
       <div className="mega__toolsfoot">
         <div className="mega__cta-sub">Family owned since 2014 · same face on the quote as on the tools.</div>
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
       </div>
     </div>
   );

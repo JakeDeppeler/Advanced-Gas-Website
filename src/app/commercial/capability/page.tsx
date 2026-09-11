@@ -28,7 +28,7 @@ export default function CapabilityPage() {
           <h1>{site.legalName}</h1>
           <p className="comm-hero__sub">
             Commercial mechanical services, Type A gas and hot water across Melbourne&rsquo;s south-east and Gippsland.
-            Everything below is current and can be evidenced — certificates of currency and licence copies on request.
+            Everything below is current and can be evidenced. Certificates of currency and licence copies on request.
           </p>
           <div className="cap-contact">
             <div><dt>Phone</dt><dd><a href={`tel:${site.phoneE164}`}>{site.phone}</a></dd></div>
@@ -81,7 +81,7 @@ export default function CapabilityPage() {
 
           <p className="cap-foot">
             Prepared by {site.name}. ABN {site.abn}. This statement is maintained online at{" "}
-            <strong>{site.url.replace(/^https?:\/\//, "")}/commercial/capability</strong> — the version you are reading is the
+            <strong>{site.url.replace(/^https?:\/\//, "")}/commercial/capability</strong>. The version you are reading is the
             current one, which is the advantage of it not being a PDF in somebody&rsquo;s downloads folder.
           </p>
         </div>
@@ -92,7 +92,7 @@ export default function CapabilityPage() {
           <h2>Need it on file?</h2>
           <p>Print this page to PDF and it comes out as a one-document statement. Or ask and we&rsquo;ll send the certificates through.</p>
           <div className="comm-cta__btns">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Request the certificates →</Link>
+            <Link href="/commercial/contact" className="ds-btn ds-btn--orange ds-btn--xl">Request the certificates →</Link>
             <a href={`tel:${site.phoneE164}`} className="comm-cta__phone">or call <strong>{site.phone}</strong></a>
           </div>
         </div>

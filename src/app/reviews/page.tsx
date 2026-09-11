@@ -47,7 +47,7 @@ export default async function ReviewsPage() {
             than bury the review.
           </p>
           <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
               Or call {site.phone}
             </a>

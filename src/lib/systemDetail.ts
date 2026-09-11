@@ -120,7 +120,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     },
     steps: [
       { title: "Site visit, and we walk the room", detail: "We look at the wall you want it on, the wall it should probably go on, and where the outdoor unit can sit. Ten minutes, and it's the difference between a good install and a cheap one." },
-      { title: "Fixed price in writing", detail: "The unit, the position, the line-set length, and anything extra the site needs — a longer run, a dedicated circuit, a bracket instead of a slab. No day-of surprises." },
+      { title: "The price in writing", detail: "The unit, the position, the line-set length, and anything extra the site needs — a longer run, a dedicated circuit, a bracket instead of a slab. No day-of surprises." },
       { title: "Drop sheets, then the bracket", detail: "Floor covered before anything else. Indoor bracket levelled and fixed into studs, not just plasterboard anchors." },
       { title: "Core hole and line-set", detail: "One clean core through the wall on a slight fall, insulated line-set, drain and cable through together, conduit colour-matched outside." },
       { title: "Vacuum, charge, commission", detail: "Pulled down to a proper vacuum and held, not just flashed. Charge checked against the data plate, superheat and subcool measured, and it runs while we watch it." },
@@ -178,7 +178,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     steps: [
       { title: "Room-by-room walk-through", detail: "Every room that's getting a head, plus how you actually live in the house — which rooms run together, which are used at night. That decides the outdoor unit size more than floor area does." },
       { title: "Outdoor unit position, first", detail: "A multi outdoor unit is bigger and heavier than a single, and everything runs back to it. Where it can legally and sensibly sit sets the pipe routes for the whole job, so we settle it before anything else." },
-      { title: "Fixed price, per head and total", detail: "You see what each head costs and what the outdoor unit costs, so if the fifth bedroom can wait a year you can make that call with real numbers." },
+      { title: "Price per head and total, in writing", detail: "You see what each head costs and what the outdoor unit costs, so if the fifth bedroom can wait a year you can make that call with real numbers." },
       { title: "Day one, pipe runs", detail: "The bulk of a multi install is pipework. Runs get set out, cored and insulated, usually with the outdoor unit set and the heads bracketed by the end of the day." },
       { title: "Day two, heads and commissioning", detail: "Indoor units hung, connections made, whole system pulled into vacuum as one, charged and commissioned. Every head tested individually and then together." },
       { title: "Handover, one remote at a time", detail: "Each head has its own controller and they're easy to mix up. We label them, run through each one with you, and email the compliance paperwork the next business day." },
@@ -233,7 +233,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     steps: [
       { title: "Roof space check, before anything else", detail: "How much clearance there is, where the indoor unit can sit, whether we can get duct runs to the far bedrooms. On some houses this conversation ends with us recommending multi-head instead, and that's a better outcome than finding out on install day." },
       { title: "Heat load and zone plan", detail: "Room by room, with orientation, glazing and ceiling height in it. You get a zone layout drawn up and the reasoning behind the grouping before you commit to anything." },
-      { title: "Fixed price with the zoning in it", detail: "Zones are quoted as part of the system, not as an upsell after you've signed. If the budget only stretches to four zones today we'll design the system so more can be added later." },
+      { title: "Zoning priced into the number", detail: "Zones are quoted as part of the system, not as an upsell after you've signed. If the budget only stretches to four zones today we'll design the system so more can be added later." },
       { title: "Day one, indoor unit and trunk duct", detail: "Indoor unit set and hung in the roof, main trunk duct run, outdoor condenser positioned and set. The heavy part of the job." },
       { title: "Day two, branches, outlets and zone motors", detail: "Branch runs to each outlet, ceiling grilles cut in and fitted square, zone motors installed and wired back to the controller." },
       { title: "Commission, balance and set the zones up", detail: "Airflow balanced across the outlets so the far bedroom gets what it's supposed to. Controller programmed, each zone tested, and we walk you through the schedule so it's running your way before we leave." },
@@ -277,7 +277,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     steps: [
       { title: "Roof and ceiling check", detail: "Pitch, structure, where the unit can be supported and where the drops can land. Also whether there's an existing evap penetration we can reuse, which saves a lot on a changeover." },
       { title: "Sizing on air changes, not kilowatts", detail: "Evap is sized by how many times an hour it can replace the air in the house. That's a different calculation from refrigerated and it's why an undersized evap feels like a fan rather than a cooler." },
-      { title: "Fixed price, including the water connection", detail: "Water supply to the roof and the drain-down line are part of the job and part of the number, not an extra discovered on the day." },
+      { title: "Water connection priced in", detail: "Water supply to the roof and the drain-down line are part of the job and part of the number, not an extra discovered on the day." },
       { title: "Install day", detail: "Unit set and flashed into the roof, ductwork and drops run, ceiling outlets cut and fitted, water and power connected. Most changeovers are a single day." },
       { title: "Commission and set the controller", detail: "Water level and bleed rate set, pump and fan checked through the speed range, controller programmed. We run it with you and show you what open windows do to it, because that's the part people get wrong." },
       { title: "Winter shutdown talk", detail: "Evap units want draining and covering for winter, and starting up before summer rather than during it. We tell you what to do and when, and we'll do it as a pre-summer service if you'd rather not go up there." },
@@ -459,7 +459,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     steps: [
       { title: "Photo of the existing unit and the wall", detail: "Most continuous-flow swaps can be priced from a picture of what's there now and where it's mounted. Send it through and you'll have a number the same business day." },
       { title: "Gas line and outlets checked", detail: "What else is on the gas run, and how many outlets you use at once. Those two things decide the unit size and whether the existing line is up to it — both worked out before you commit." },
-      { title: "Fixed price with both controllers in it", detail: "Indoor and outdoor controllers are part of the quote, not an accessory added later. So is the old unit's removal." },
+      { title: "Both controllers priced in", detail: "Indoor and outdoor controllers are part of the quote, not an accessory added later. So is the old unit's removal." },
       { title: "Old unit off, new unit on", detail: "Old tank drained and disconnected, or old continuous-flow unit removed. New unit bracketed, plumbed and gas-connected. Where a tank is being replaced, the pipework usually needs a small rework to suit." },
       { title: "Gas pressure test, then hot water at the tap", detail: "Pressure tested to AS/NZS 5601, unit commissioned, temperature set, and we run hot water at the actual taps rather than declaring it done at the unit." },
       { title: "Certificate and warranty registration", detail: "Gas compliance certificate emailed within 24 hours and the manufacturer warranty registered in your name at the same time." },

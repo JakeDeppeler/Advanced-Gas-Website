@@ -57,7 +57,7 @@ export default async function GalleryPage() {
             unit we&rsquo;re quoting; this page is the actual work.
           </p>
           <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
               Or call {site.phone}
             </a>
@@ -172,7 +172,7 @@ export default async function GalleryPage() {
             <p>Free, no-obligation quote back within 12 business hours. VEU rebate already applied.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

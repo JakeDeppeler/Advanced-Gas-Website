@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     template: `%s${TITLE_SUFFIX}`,
   },
   description:
-    "Pakenham aircon and heat pump specialists. VEU rebates handled at the quote. Same-week installs, fixed prices, 6-year workmanship warranty.",
+    "Pakenham aircon and heat pump specialists. VEU rebates handled at the quote. Same-week installs, prices in writing, 6-year workmanship warranty.",
   keywords: [
     "aircon installation Pakenham",
     "heat pump installation Pakenham",

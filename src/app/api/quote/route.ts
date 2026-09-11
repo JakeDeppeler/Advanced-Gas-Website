@@ -345,7 +345,7 @@ function fallbackCustomerText(d: Lead, summary: string) {
     `  ${summary}`,
     ``,
     `What happens next:`,
-    `  1. We'll price it and email a fixed quote back within 12 hrs.`,
+    `  1. We'll price it and email a written quote back within 12 hrs.`,
     `  2. For bigger jobs (ducted, tricky retrofits) we'll pop out for a site check.`,
     `  3. Any questions before you commit? Just reply to this email.`,
     ``,
@@ -506,7 +506,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
       <td style="background:${NAVY};padding:32px 32px 26px;color:#ffffff;">
         <div style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.55);font-family:'Courier New',monospace;">Advanced Gas &amp; Aircon</div>
         <div style="font-size:26px;font-weight:800;margin-top:8px;line-height:1.15;">Thanks ${escapeHtml(first)}, we've got your quote request.</div>
-        <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-top:12px;line-height:1.55;">One of the team will be back to you within <strong style="color:#ffffff;">12 business hours</strong> with a fixed-price quote. If it's urgent, ring us on <a href="tel:+61359478000" style="color:${ORANGE};text-decoration:none;font-weight:700;">(03) 5947 8000</a>.</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.80);margin-top:12px;line-height:1.55;">One of the team will be back to you within <strong style="color:#ffffff;">12 business hours</strong> with a written quote. If it's urgent, ring us on <a href="tel:+61359478000" style="color:${ORANGE};text-decoration:none;font-weight:700;">(03) 5947 8000</a>.</div>
       </td>
     </tr>
     <tr>
@@ -523,7 +523,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
         <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${INK_3};margin-bottom:12px;">What happens next</div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           ${[
-            ["01", "Quote back in 12 hrs", "Fixed price emailed to you, VEU rebate already applied."],
+            ["01", "Quote back in 12 hrs", "Written quote emailed to you, VEU rebate already applied."],
             ["02", "Site visit if needed", "For bigger jobs we'll pop out for a proper look before we quote."],
             ["03", "Install &amp; walkthrough", "Clean install, old unit gone, we show you how the new one runs."],
           ].map(([n, t, d]) => `

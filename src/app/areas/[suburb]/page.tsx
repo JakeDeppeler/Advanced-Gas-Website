@@ -35,7 +35,7 @@ export function generateMetadata({ params }: { params: { suburb: string } }): Me
   if (!sub) notFound();
   return seoMeta({
     title: `Aircon, Heat Pump & Gas ${sub.name} ${sub.postcode}`,
-    description: `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, fixed-price quotes, 6-year workmanship warranty.`,
+    description: `Licensed aircon, heat pump hot water and gas plumbing in ${sub.name} ${sub.postcode}. ${sub.commonInstall.charAt(0).toUpperCase()}${sub.commonInstall.slice(1)}. VEU rebates handled, written quotes, 6-year workmanship warranty.`,
     canonical: `/areas/${sub.slug}`,
     // Absolute so the suffix gives way, not the postcode. A long suburb
     // name (Beaconsfield Upper) pushed the title past 60 and the clamp
@@ -102,13 +102,13 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
               We&rsquo;re based in Pakenham and we travel to {sub.name} ({sub.postcode}) for booked work,
               about {sub.driveMin ? `${sub.driveMin[0]}\u2013${sub.driveMin[1]} minutes` : "an hour"} each way.
               That makes us the right call for a planned install and the wrong call for a 2 am burst pipe,
-              and we&rsquo;d rather say so than find out on the night. Fixed-price quotes after a site visit,
+              and we&rsquo;d rather say so than find out on the night. Written quotes after a site visit,
               VEU rebates applied at the quote, same 6-year workmanship warranty as everyone else gets.
             </p>
           ) : (
             <p className="dp-hero__sub">
               Licensed plumbing and refrigeration team working in {sub.name} ({sub.postcode}) since 2014.
-              You&rsquo;ll usually find us {sub.landmark}. Fixed-price quotes, same-week installs, and VEU rebates handled end-to-end.
+              You&rsquo;ll usually find us {sub.landmark}. Written quotes, same-week installs, and VEU rebates handled end-to-end.
             </p>
           )}
           <div className="dp-hero__ctas">

@@ -61,7 +61,7 @@ export default function HeatPumpsPage() {
             Five brands, real installed prices, warranty length, refrigerant type and where the parts actually come from. Plus six red flags for the fly-by-night importer brands that sell you a &ldquo;bargain&rdquo; on Facebook Marketplace and disappear before the warranty kicks in.
           </p>
           <div className="dp-hero__ctas" style={{ marginTop: 20 }}>
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a fixed-price quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a written quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
               Or call {site.phone}
             </a>
@@ -259,7 +259,7 @@ export default function HeatPumpsPage() {
             <p>Free, no obligation, VEU rebate applied at the quote. Usually back within 12 hours.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my fixed-price quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

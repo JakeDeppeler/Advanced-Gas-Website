@@ -201,7 +201,7 @@ export default function FaultCodePage({ params }: { params: Params }) {
                 Call {site.phone}
               </a>
               <p className="fd-card__fine">
-                Fixed price quoted in writing before we touch anything. Call-out waived
+                Written quoted in writing before we touch anything. Call-out waived
                 if the repair goes ahead the same day.
               </p>
             </div>

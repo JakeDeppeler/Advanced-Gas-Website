@@ -13,7 +13,7 @@ import { site } from "@/lib/site";
  * Smart-hide: the bar disappears whenever the primary hero CTAs are on
  * screen (or when the user is within 400px of the bottom-of-page final
  * CTA). Prevents the double-up where the user sees the hero "Get a
- * fixed quote" AND the sticky "Free quote" at the same time.
+ * written quote" AND the sticky "Free quote" at the same time.
  *
  * Detection uses IntersectionObserver keyed on `data-hide-sticky-cta`
  * attributes — any element on the page carrying that attribute is
@@ -25,7 +25,7 @@ import { site } from "@/lib/site";
 export function StickyMobileCTA() {
   const pathname = usePathname();
   const onHome = pathname === "/";
-  // The commercial side has its own ask. "Get a fixed quote" is the wrong words
+  // The commercial side has its own ask. "Get a quote" is the wrong words
   // for a PM sending a mechanical package, and it pointed at the residential
   // quote form, which walks them through brand and size for a split system.
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
@@ -75,11 +75,11 @@ export function StickyMobileCTA() {
       {onCommercial ? (
         pathname === "/commercial"
           ? <a href="#scope" className="stickycta__quote">Submit a scope →</a>
-          : <Link href="/contact?enquiry=commercial" className="stickycta__quote">Submit a scope →</Link>
+          : <Link href="/commercial/contact" className="stickycta__quote">Submit a scope →</Link>
       ) : onHome ? (
-        <a href="#quote" className="stickycta__quote">Get a fixed quote →</a>
+        <a href="#quote" className="stickycta__quote">Get a quote →</a>
       ) : (
-        <Link href="/quote" className="stickycta__quote">Get a fixed quote →</Link>
+        <Link href="/quote" className="stickycta__quote">Get a quote →</Link>
       )}
     </div>
   );

@@ -123,7 +123,7 @@ export default function HeatPumpSizingPage() {
               on the site visit.
             </p>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 16 }}>
-              <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+              <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
               <Link href="/tools/heat-pump-compare" className="ds-btn ds-btn--ghost">
                 Compare heat pump brands →
               </Link>
@@ -157,10 +157,10 @@ export default function HeatPumpSizingPage() {
         <div className="wrap bigcta__row">
           <div>
             <h2>Want us to check the sizing properly?</h2>
-            <p>Free site visit, fixed quote back in 12 business hours, VEU rebate already applied.</p>
+            <p>Free site visit, written quote back in 12 business hours, VEU rebate already applied.</p>
           </div>
           <div className="bigcta__btns">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my fixed quote →</Link>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>

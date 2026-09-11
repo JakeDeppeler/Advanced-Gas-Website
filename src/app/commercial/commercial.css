@@ -58,7 +58,9 @@
 .comm-hero__note { margin: 16px 0 0; font-size: 14px; color: #67718d; }
 .comm-hero__note a { color: var(--comm-ink); font-weight: 600; }
 .comm-hero--sub { padding: 44px 0 40px; }
-.comm-back { display: inline-block; margin-bottom: 14px; font-size: 13.5px; font-weight: 700; color: #67718d; text-decoration: none; }
+/* Block, not inline-block: as an inline it sat on the same line as the eyebrow
+   that follows it and the two ran together as "← CommercialCONTACT". */
+.comm-back { display: block; width: max-content; margin-bottom: 14px; font-size: 13.5px; font-weight: 700; color: #67718d; text-decoration: none; }
 .comm-back:hover { color: var(--comm-ink); }
 
 /* ---- Scopes ---- */
@@ -461,4 +463,38 @@
   .commwall { min-height: 108px; padding: 16px 10px; }
   .commwall strong { font-size: 17px; }
   .comm-steps { grid-template-columns: 1fr; }
+}
+
+/* ---- Commercial contact ---- */
+.commcontact { padding: 44px 0 80px; }
+.commcontact__grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 26px; align-items: start; }
+/* The scope form carries its own white card, built for the orange panel on the
+   front page. Out here on cream it needs an edge of its own. */
+.commcontact .scopeform { border: 1px solid #e2e8f4; box-shadow: 0 24px 50px -36px rgba(11, 20, 80, 0.45); }
+.commcontact__side { display: grid; gap: 12px; }
+.commcontact__card {
+  padding: 22px 22px 20px;
+  background: #fff; border: 1px solid #e2e8f4; border-radius: 16px;
+}
+.commcontact__card h3 {
+  margin: 0 0 8px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8791ab;
+}
+.commcontact__phone {
+  display: block;
+  font-family: var(--f-display, inherit);
+  font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+  color: var(--comm-ink); text-decoration: none;
+}
+.commcontact__phone:hover { color: var(--orange, #f36722); }
+.commcontact__mail { display: block; font-size: 17px; font-weight: 700; color: var(--comm-ink); text-decoration: none; word-break: break-all; }
+.commcontact__mail:hover { text-decoration: underline; text-underline-offset: 3px; }
+.commcontact__sub { display: block; margin-top: 8px; font-size: 14px; line-height: 1.55; color: #67718d; }
+.commcontact__card p { margin: 0; font-size: 14.5px; line-height: 1.6; color: #46506b; }
+.commcontact__card a:not(.commcontact__phone):not(.commcontact__mail) { color: var(--comm-ink); font-weight: 600; }
+.commcontact__card--quiet { background: transparent; border-style: dashed; }
+
+@media (max-width: 900px) {
+  .commcontact__grid { grid-template-columns: 1fr; }
 }

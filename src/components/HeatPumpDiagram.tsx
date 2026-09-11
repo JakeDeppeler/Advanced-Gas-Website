@@ -216,7 +216,7 @@ export function HeatPumpDiagram({
                 </p>
                 <div className="hpd__cost-cta">
                   <Link href="/tools/hot-water-savings" className="ds-btn ds-btn--orange">Work out your own savings →</Link>
-                  <Link href="/quote" className="hpd__size-link">Or get a fixed quote →</Link>
+                  <Link href="/quote" className="hpd__size-link">Or get a quote →</Link>
                 </div>
               </div>
             </div>
@@ -238,7 +238,7 @@ export function HeatPumpDiagram({
                   <p>{SIZES[size].note}</p>
                 </div>
                 <div className="hpd__size-cta">
-                  <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote →</Link>
+                  <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
                   <Link href="/tools/heat-pump-sizing" className="hpd__size-link">Full sizing calculator →</Link>
                 </div>
                 <p className="hpd__size-note">A guide off household size. We confirm it on the site visit against how you actually use hot water.</p>

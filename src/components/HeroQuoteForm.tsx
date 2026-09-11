@@ -529,7 +529,7 @@ export function HeroQuoteForm() {
         Free quote · usually replied within 12 hrs
       </div>
 
-      <h2 className="qcard__h">Get a fixed-price quote</h2>
+      <h2 className="qcard__h">Get a written quote</h2>
       <p className="qcard__sub">Tick every option you&rsquo;d consider, we&rsquo;ll price the lot.</p>
 
       {/* progress */}

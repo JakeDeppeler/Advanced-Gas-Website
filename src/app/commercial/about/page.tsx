@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "About — Commercial Mechanical Services, Pakenham VIC",
+  title: "About, Commercial Mechanical Services, Pakenham VIC",
   description:
     "Directly employed crews, a written standard and one line of accountability. Commercial mechanical services from Pakenham across Melbourne's south-east and Gippsland.",
   alternates: { canonical: "/commercial/about" },
@@ -14,7 +14,7 @@ const points = [
   {
     n: "01",
     h: "Directly employed, not brokered out",
-    p: "Our own installers and apprentices. Not a labour hire roster and not a different subcontractor each visit, which means the crew on week three works the way the crew on week one did — and the person you complained to has authority over the person who caused it.",
+    p: "Our own installers and apprentices. Not a labour hire roster and not a different subcontractor each visit, which means the crew on week three works the way the crew on week one did, and the person you complained to has authority over the person who caused it.",
   },
   {
     n: "02",
@@ -48,7 +48,7 @@ export default function CommercialAboutPage() {
           <h1>The easy contractor to have on site.</h1>
           <p className="comm-hero__sub">
             Twelve years out of {site.address.suburb}, working across Melbourne&rsquo;s south-east and Gippsland. What makes a
-            contractor easy to work with isn&rsquo;t size — it&rsquo;s whether they do the same thing every time, and whether the
+            contractor easy to work with isn&rsquo;t size. It&rsquo;s whether they do the same thing every time, and whether the
             paperwork turns up without being chased.
           </p>
         </div>
@@ -75,7 +75,7 @@ export default function CommercialAboutPage() {
           <h2>Submit a scope for pricing.</h2>
           <p>Drawings, a mechanical schedule or a site address is sufficient to begin. Licences, insurances and certificates are on the capability statement.</p>
           <div className="comm-cta__btns">
-            <Link href="/contact?enquiry=commercial" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</Link>
+            <Link href="/commercial/contact" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</Link>
             <Link href="/commercial/capability" className="comm-cta__phone">or read the <strong>capability statement</strong></Link>
           </div>
         </div>

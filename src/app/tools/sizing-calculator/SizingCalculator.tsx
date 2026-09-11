@@ -248,7 +248,7 @@ export function SizingCalculator() {
         </div>
 
         <div className="tool-result__cta">
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a fixed quote for this room →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote for this room →</Link>
           <Link href="/brands" className="ds-btn ds-btn--ghost">See models at {result.recommended}&nbsp;kW →</Link>
         </div>
 
