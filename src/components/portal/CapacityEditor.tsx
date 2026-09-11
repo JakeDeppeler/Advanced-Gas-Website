@@ -7,6 +7,7 @@ import {
   computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleModel, scaleOf, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
+  WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
 } from "@/lib/portal/crew";
 import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
 
@@ -268,6 +269,34 @@ export function CapacityEditor({
   return (
     <div className="pt-cap">
       {!dbReady && <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Costing won&rsquo;t save until the Supabase keys are set.</div>}
+
+      {/* Which way the work is being done. Same crew, same wages — what changes
+          is how much of a paid day survives travel and between-jobs admin, and
+          therefore what an hour has to be charged at. Sits above the numbers
+          because it changes every one of them. */}
+      <div className="pt-cap__mode">
+        <div className="pt-cap__modetabs" role="group" aria-label="How the work is done">
+          {WORK_MODES.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              className={`pt-cap__modetab${modeOf(s) === m.key ? " is-on" : ""}`}
+              aria-pressed={modeOf(s) === m.key}
+              onClick={() => setS({ ...s, mode: m.key })}
+            >
+              <strong>{m.label}</strong>
+              <span>{m.blurb}</span>
+            </button>
+          ))}
+        </div>
+        {modeOf(s) === "onsite" && (
+          <p className="pt-cap__modenote">
+            On a commercial site the crew drives in once and stays, so travel and between-jobs admin mostly stop.
+            Nobody is paid differently; there is simply more of the day left to bill, which is why the hourly rate
+            below is lower than the mobile one. The two percentages are on the <strong>What it costs</strong> tab.
+          </p>
+        )}
+      </div>
 
       {/* the numbers that matter, on every tab */}
       <div className="pt-cap__stripwrap">
@@ -538,6 +567,51 @@ export function CapacityEditor({
             wages, the vans, and every other overhead sit here, because none of them bill an hour and all of them have to be
             earned back across the hours that do.
           </div>
+
+          {/* The two numbers that separate a mobile week from a site week. Both
+              start as assumptions and are meant to be replaced with figures off
+              a real job. */}
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">Travel &amp; admin, by how the work is done</h2>
+            <p className="pt-panel__sub">
+              Each person&rsquo;s travel and admin hours live on their own card. These two dials say how much of that
+              survives in each mode, so one set of crew figures covers both. Mobile is 100% of what&rsquo;s on the card,
+              which is why nothing moves until you change it.
+            </p>
+            <div className="pt-cap__modegrid">
+              {WORK_MODES.map((m) => {
+                const a = assumptionsFor(s, m.key as WorkMode);
+                const set = (patch: Partial<typeof a>) =>
+                  setS({ ...s, modes: { ...(s.modes ?? {}), [m.key]: { ...a, ...patch } } });
+                return (
+                  <div key={m.key} className={`pt-cap__modecard${modeOf(s) === m.key ? " is-on" : ""}`}>
+                    <h3>{m.label}</h3>
+                    <label>
+                      <span>Travel kept</span>
+                      <input
+                        type="number" min={0} max={100} step={5} value={a.travelPct}
+                        onChange={(e) => set({ travelPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                      />
+                      <em>%</em>
+                    </label>
+                    <label>
+                      <span>Admin kept</span>
+                      <input
+                        type="number" min={0} max={100} step={5} value={a.adminPct}
+                        onChange={(e) => set({ adminPct: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })}
+                      />
+                      <em>%</em>
+                    </label>
+                    <p className="pt-cap__modehint">
+                      {m.key === "mobile"
+                        ? "A residential week as costed on the crew tab."
+                        : `Default is a guess: ${MODE_DEFAULTS.onsite.travelPct}% travel, ${MODE_DEFAULTS.onsite.adminPct}% admin. Put real figures in off a site job.`}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           {officeRows.length > 0 && (
             <section className="pt-panel">

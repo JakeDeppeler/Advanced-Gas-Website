@@ -119,8 +119,66 @@ export const OVERHEAD_FIELDS: { key: string; group: OverheadGroup; label: string
   { key: "admOther", group: "admin", label: "Everything else" , scale: "fixed" },
 ];
 
+/**
+ * How the work reaches the customer, which is the thing that decides how much
+ * of a paid day can actually be billed.
+ *
+ *   mobile  A residential week. Four or five jobs a day, and a drive and a
+ *           pack-up between every one of them.
+ *   onsite  A commercial site. The crew drives there once in the morning, works
+ *           the day, and drives home. Same crew, same wage, same hours — but
+ *           the travel and the between-jobs admin mostly stop, so more of the
+ *           day is billable and every hour carries less overhead.
+ *
+ * This is the whole reason commercial work can be charged out at a different
+ * number without paying anyone differently.
+ */
+export type WorkMode = "mobile" | "onsite";
+
+export type ModeAssumptions = {
+  /**
+   * How much of each person's usual travel survives in this mode, as a
+   * percentage. A percentage rather than a flat figure so the difference
+   * between an apprentice's week and a senior tech's week is kept.
+   */
+  travelPct: number;
+  /** The same, for the admin time between jobs. */
+  adminPct: number;
+  /** Callbacks in this mode. Null falls back to the site-wide figure. */
+  callbackPct?: number | null;
+};
+
+export const WORK_MODES: { key: WorkMode; label: string; blurb: string }[] = [
+  { key: "mobile", label: "Mobile / residential", blurb: "Several jobs a day, a drive between each." },
+  { key: "onsite", label: "On site / commercial", blurb: "One site, there for the day or the week." },
+];
+
+/**
+ * Starting assumptions, not measured figures. The mobile mode is deliberately
+ * 100% of whatever is on each person's card, so nothing changes for anyone who
+ * never touches this. The on-site numbers are a first guess and are meant to be
+ * replaced with real ones off a job.
+ */
+export const MODE_DEFAULTS: Record<WorkMode, ModeAssumptions> = {
+  mobile: { travelPct: 100, adminPct: 100, callbackPct: null },
+  onsite: { travelPct: 30, adminPct: 70, callbackPct: null },
+};
+
+export function modeOf(s: CapSettings): WorkMode {
+  return s.mode === "onsite" ? "onsite" : "mobile";
+}
+
+export function assumptionsFor(s: CapSettings, mode: WorkMode = modeOf(s)): ModeAssumptions {
+  return { ...MODE_DEFAULTS[mode], ...(s.modes?.[mode] ?? {}) };
+}
+
 export type CapSettings = {
   weeksYear: number; oncosts: number; margin: number;
+  /** Which way the work is being done. Absent means mobile, so saved settings
+   *  from before this existed behave exactly as they did. */
+  mode?: WorkMode;
+  /** Per-mode overrides of the starting assumptions. */
+  modes?: Partial<Record<WorkMode, ModeAssumptions>>;
   /**
    * Hours that go back out to fix our own work. They are paid for and never
    * billed, so they come straight off what can be billed — the surest way to
@@ -260,11 +318,16 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
 
   const hrsPerDay = c.hrsWeek / 5;
   const daysOffHrs = (c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays) * hrsPerDay;
-  const travelAdminHrs = (c.travelHrsWeek + c.adminHrsWeek) * s.weeksYear;
+  // Travel and between-jobs admin are the two things that change when the crew
+  // is parked on one site instead of crossing the shire five times a day.
+  // Everything else about the person is identical.
+  const m = assumptionsFor(s);
+  const travelAdminHrs =
+    (c.travelHrsWeek * (m.travelPct / 100) + c.adminHrsWeek * (m.adminPct / 100)) * s.weeksYear;
   const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paidHrs - daysOffHrs));
   // Going back to fix our own work is paid time nobody bills for.
   const beforeCallbacks = Math.max(0, paidHrs - daysOffHrs - travelAdminHrs - officeHrs);
-  const callbackHrs = beforeCallbacks * ((c.callbackPct ?? s.callbackPct ?? 0) / 100);
+  const callbackHrs = beforeCallbacks * ((c.callbackPct ?? m.callbackPct ?? s.callbackPct ?? 0) / 100);
   const billHrs = Math.max(0, beforeCallbacks - callbackHrs);
   return {
     paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,
