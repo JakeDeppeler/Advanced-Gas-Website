@@ -3200,22 +3200,56 @@ html[data-sweep-kind="house"] .sweep__place { display: block; }
 html[data-sweep-kind="building"] .sweep__tower { display: block; }
 html[data-sweep-kind="house"] .sweep__house { display: block; }
 
-html[data-sweep-kind="building"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.54s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep-kind="building"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-html[data-sweep-kind="house"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.54s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep-kind="house"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-sweep-kind="building"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.82s cubic-bezier(0.45, 0, 0.15, 1) forwards; }
+html[data-sweep-kind="building"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.82s cubic-bezier(0.6, 0, 0.3, 1) forwards; }
+html[data-sweep-kind="house"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.82s cubic-bezier(0.45, 0, 0.15, 1) forwards; }
+html[data-sweep-kind="house"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.82s cubic-bezier(0.6, 0, 0.3, 1) forwards; }
 /* The drawing builds itself: every stroke is dashed to its own length and the
    dash offset runs out, so the walls and the roof draw on rather than fade in. */
 html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path,
 html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path {
   stroke-dasharray: 340; stroke-dashoffset: 340;
-  animation: draw-on 0.44s 0.14s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
+  animation: draw-on 0.5s 0.3s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
 }
 html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path:nth-child(2),
 html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path:nth-child(2) { animation-delay: 0.24s; }
 html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path:nth-child(3),
 html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path:nth-child(3) { animation-delay: 0.32s; }
 @keyframes draw-on { to { stroke-dashoffset: 0; } }
+
+/* Heat pumps: the page fills like a tank. Sky-blue water rises with a wave on
+   the leading edge, and the unit itself draws on in front of it — tank,
+   compressor, fan, then the level coming up inside, clipped to the tank so it
+   reads as filling rather than as a rectangle sliding up. */
+.sweep__hp { display: none; }
+html[data-sweep-kind="water"] .sweep {
+  display: grid; place-items: center;
+  transform: translateY(101%);
+  background: linear-gradient(180deg, var(--sky-2, #2cc5ff) 0%, var(--sky, #00b0ed) 38%, #0d84b8 100%);
+  color: #fff;
+}
+html[data-sweep-kind="water"] .sweep__wave {
+  display: block;
+  position: absolute; left: 0; top: -118px;
+  width: 200%; height: 120px;
+  fill: var(--sky-2, #2cc5ff);
+  animation: wave-drift 1.6s linear infinite;
+}
+html[data-sweep-kind="water"] .sweep__hp { display: block; }
+.sweep__hp svg { width: min(30vw, 190px); height: auto; }
+.sweep__hp .w1 { stroke-dasharray: 560; stroke-dashoffset: 560; }
+.sweep__hp .w2 { stroke-dasharray: 270; stroke-dashoffset: 270; }
+.sweep__hp .w3 { stroke-dasharray: 100; stroke-dashoffset: 100; }
+.sweep__hp .w4 { stroke: var(--orange, #f36722); stroke-dasharray: 10; stroke-dashoffset: 10; }
+.sweep__hp .w5 { fill: rgba(255, 255, 255, 0.3); stroke: none; transform-origin: 100px 244px; transform: scaleY(0); }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.7s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep__hp .w1 { animation: draw 0.4s 0.24s ease-out forwards; }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep__hp .w2 { animation: draw 0.3s 0.5s ease-out forwards; }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep__hp .w3 { animation: draw 0.22s 0.68s ease-out forwards; }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep__hp .w4 { animation: draw 0.1s 0.84s ease-out forwards; }
+html[data-sweep-kind="water"][data-sweep="in"] .sweep__hp .w5 { animation: fill-up 0.5s 0.62s cubic-bezier(0.3, 0.8, 0.3, 1) forwards; }
+html[data-sweep-kind="water"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.7s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes fill-up { to { transform: scaleY(1); } }
 
 /* Heating and cooling: the house in section. A plan view was the same drawing
    as the commercial fit-out door, which made the two doors interchangeable —
@@ -3229,7 +3263,7 @@ html[data-sweep-kind="climate"] .sweep {
   color: var(--sky-2, #2cc5ff);
 }
 html[data-sweep-kind="climate"] .sweep__home { display: block; }
-.sweep__home svg { width: min(66vw, 540px); height: auto; }
+.sweep__home svg { width: min(72vw, 620px); height: auto; }
 .sweep__home .h1 { stroke-dasharray: 340; stroke-dashoffset: 340; }
 .sweep__home .h2 { stroke-dasharray: 520; stroke-dashoffset: 520; }
 .sweep__home .h3 { stroke: rgba(255, 255, 255, 0.3); stroke-dasharray: 380; stroke-dashoffset: 380; }
@@ -3237,7 +3271,9 @@ html[data-sweep-kind="climate"] .sweep__home { display: block; }
 .sweep__home .h5 { stroke-dasharray: 560; stroke-dashoffset: 560; }
 .sweep__home .h6 { opacity: 0; }
 .sweep__home .h6 rect { fill: var(--sky-2, #2cc5ff); stroke: none; }
-.sweep__home .h7 { opacity: 0; stroke: var(--sky-2, #2cc5ff); }
+.sweep__home .h7 { opacity: 0; }
+.sweep__home .h7--warm { stroke: var(--orange-2, #ff7a36); }
+.sweep__home .h7--cool { stroke: var(--sky-2, #2cc5ff); }
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.5s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h1 { animation: draw 0.3s 0.16s ease-out forwards; }
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h2 { animation: draw 0.3s 0.36s ease-out forwards; }
@@ -3245,7 +3281,12 @@ html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h3 { animation: d
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h4 { animation: draw 0.22s 0.66s ease-out forwards; }
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h5 { animation: draw 0.36s 0.78s ease-out forwards; }
 html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h6 { animation: pop 0.2s 1.06s ease-out forwards; }
-html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h7 { animation: airflow 0.6s 1.14s ease-out forwards; }
+/* The air does not arrive once and stop: it fades in, then keeps drifting down
+   out of the outlets for as long as the panel is up. That is the difference
+   between a diagram of a system and a system that is on. */
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h7 { animation: airflow 0.5s 1.1s ease-out forwards, air-drift 1.1s 1.6s ease-in-out infinite; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__home .h7--cool { animation-delay: 1.2s, 1.7s; }
+@keyframes air-drift { 0%, 100% { transform: translateY(0); opacity: 0.85; } 50% { transform: translateY(7px); opacity: 0.45; } }
 html[data-sweep-kind="climate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.62s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
 @keyframes airflow { from { opacity: 0; transform: translateY(-8px); } to { opacity: 0.85; transform: none; } }
 
@@ -3295,29 +3336,37 @@ html[data-sweep-kind="service"] .sweep {
   color: #e9edf7;
 }
 html[data-sweep-kind="service"] .sweep__gauge { display: block; }
-.sweep__gauge svg { width: min(34vw, 230px); height: auto; }
-.sweep__gauge .g1 { stroke-dasharray: 560; stroke-dashoffset: 560; }
-.sweep__gauge .g2 { stroke-dasharray: 460; stroke-dashoffset: 460; }
+.sweep__gauge svg { width: min(44vw, 300px); height: auto; }
+.sweep__gauge .g1 { stroke-dasharray: 620; stroke-dashoffset: 620; }
+/* The zones: most of the dial is in range, the top of it is not. */
+.sweep__gauge .g6 { stroke: rgba(67, 209, 127, 0.55); stroke-dasharray: 260; stroke-dashoffset: 260; }
+.sweep__gauge .g7 { stroke: rgba(255, 122, 54, 0.6); stroke-dasharray: 140; stroke-dashoffset: 140; }
 .sweep__gauge .g3 { opacity: 0; }
+/* The reading, confirmed: a tick on a disc once the needle has settled. */
+.sweep__gauge .g8 { opacity: 0; transform-origin: 120px 120px; transform: scale(0.6); }
+.sweep__gauge .g8 circle { fill: #43d17f; }
+.sweep__gauge .g8 path { stroke: var(--navy, #050a30); }
 /* The needle starts at the bottom of the dial and sweeps up to pressure. */
 .sweep__gauge .g4 {
   stroke: var(--orange, #f36722);
-  transform-origin: 110px 110px;
+  transform-origin: 120px 120px;
   transform: rotate(-120deg);
   opacity: 0;
 }
 .sweep__gauge .g5 { stroke: var(--orange, #f36722); opacity: 0; }
 html[data-sweep-kind="service"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
 html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g1 { animation: draw 0.4s 0.16s ease-out forwards; }
-html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g2 { animation: draw 0.3s 0.36s ease-out forwards; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g6 { animation: draw 0.34s 0.34s ease-out forwards; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g7 { animation: draw 0.2s 0.6s ease-out forwards; }
 html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g3 { animation: fadein 0.2s 0.5s ease-out forwards; }
 html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g5 { animation: fadein 0.16s 0.58s ease-out forwards; }
-html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g4 { animation: needle 0.52s 0.6s cubic-bezier(0.3, 0.9, 0.35, 1) forwards; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g4 { animation: needle 0.56s 0.7s cubic-bezier(0.3, 0.9, 0.35, 1) forwards; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep__gauge .g8 { animation: pop 0.22s 1.28s cubic-bezier(0.3, 0.9, 0.35, 1) forwards; }
 html[data-sweep-kind="service"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.62s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 @keyframes needle {
   from { transform: rotate(-120deg); opacity: 0; }
   10% { opacity: 1; }
-  to { transform: rotate(72deg); opacity: 1; }
+  to { transform: rotate(38deg); opacity: 1; }
 }
 
 /* ---- The four commercial door sweeps ---- */
@@ -3354,7 +3403,7 @@ html[data-sweep-kind="crane"][data-sweep="in"] .sweep__hook,
 html[data-sweep-kind="crane"][data-sweep="in"] .sweep__load { animation: crane-drop 0.9s 0.1s cubic-bezier(0.35, 0, 0.35, 1) forwards; }
 /* Coming in it behaves like a load on a line; going out it was snapping away in
    half the time, which made the whole thing feel like it had been cut short. */
-html[data-sweep-kind="crane"][data-sweep="out"] .sweep { animation: sweep-up-out 1s cubic-bezier(0.5, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="out"] .sweep { animation: sweep-up-out 1.3s cubic-bezier(0.55, 0, 0.2, 1) forwards; }
 @keyframes crane-cover { from { transform: translateY(-101%); } to { transform: translateY(0); } }
 @keyframes crane-line { from { height: 0; } to { height: 46vh; } }
 @keyframes crane-drop { from { transform: translateY(-90px); } to { transform: translateY(44vh); } }

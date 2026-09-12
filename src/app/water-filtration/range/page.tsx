@@ -25,7 +25,7 @@ import "../filtration.css";
 export const metadata: Metadata = {
   title: pageTitle("The Full Water Filtration Range"),
   description: metaDescription(
-    "Every water filtration type we fit, and exactly what each one removes — sediment, hardness, chlorine, PFAS, lead, bacteria. Whole house, under sink, softeners and UV, compared in one table.",
+    "Every water filtration type we fit, and exactly what each one removes: sediment, hardness, chlorine, PFAS, lead, bacteria. Whole house, under sink, softeners and UV, compared in one table.",
   ),
   keywords: [
     "water filter comparison australia",

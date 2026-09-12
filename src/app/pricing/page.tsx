@@ -212,7 +212,7 @@ export default function PricingPage() {
                 <ValueRow label="Right-size heat-load calc (not guessed)"  cheap={false} us={true} prem={true} />
                 <ValueRow label="Genuine brand-name unit (not grey import)" cheap="?" us={true} prem={true} />
                 <ValueRow label="Follow-up call the week after install"     cheap={false} us={true} prem={false} />
-                <ValueRow label="Local tradies, not fly-in / fly-out"       cheap={false} us={true} prem={false} />
+                <ValueRow label="Our own local crew, not fly-in / fly-out"       cheap={false} us={true} prem={false} />
                 <ValueRow label="Owner-operator answers the phone"          cheap={false} us={true} prem={false} />
                 <ValueRow label="Showroom overhead baked into price"        cheap={false} us={false} prem={true} inverse />
                 <ValueRow label="Salesperson commission on top"             cheap={false} us={false} prem={true} inverse />
@@ -360,7 +360,7 @@ export default function PricingPage() {
                   </tr>
                   <tr>
                     <td><strong>Emergency call-out (after hours, weekends)</strong></td>
-                    <td>Same-day attendance for gas leaks, no-hot-water, CO alarms. On-call tradie, not overseas call centre.</td>
+                    <td>Same-day attendance for gas leaks, no-hot-water, CO alarms. Someone on the tools, not an overseas call centre.</td>
                     <td className="pricing-block__pricecell"><strong>$220</strong> + parts</td>
                   </tr>
                 </tbody>

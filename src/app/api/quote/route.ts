@@ -346,10 +346,10 @@ function fallbackCustomerText(d: Lead, summary: string) {
     ``,
     `What happens next:`,
     `  1. We'll price it and email a written quote back within 12 hrs.`,
-    `  2. For bigger jobs (ducted, tricky retrofits) we'll pop out for a site check.`,
+    `  2. For bigger jobs (ducted, tricky retrofits) we'll come out for a site check.`,
     `  3. Any questions before you commit? Just reply to this email.`,
     ``,
-    `If it's urgent, call (03) 5947 8000, you'll speak to a real tradie.`,
+    `If it's urgent, call (03) 5947 8000, you'll speak to someone on the tools.`,
     ``,
     `Cheers,`,
     `The Advanced Gas & Aircon team`,
@@ -524,7 +524,7 @@ function renderCustomerEmail(d: Lead, summary: string): string {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           ${[
             ["01", "Quote back in 12 hrs", "Written quote emailed to you, VEU rebate already applied."],
-            ["02", "Site visit if needed", "For bigger jobs we'll pop out for a proper look before we quote."],
+            ["02", "Site visit if needed", "For bigger jobs we'll come out for a proper look before we quote."],
             ["03", "Install &amp; walkthrough", "Clean install, old unit gone, we show you how the new one runs."],
           ].map(([n, t, d]) => `
           <tr>

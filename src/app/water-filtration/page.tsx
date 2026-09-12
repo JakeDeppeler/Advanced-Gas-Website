@@ -26,7 +26,7 @@ const TILE_META: Record<string, { icon: string; tint: string; line: string }> = 
   "Sediment, rust and silt": { icon: "flow", tint: "#00699A", line: "Grit in the cistern, marks in the washing" },
   "Taste and odour": { icon: "kettle", tint: "#2E7D6B", line: "Almost always why somebody starts looking" },
   "Biological, on tank and rainwater": { icon: "tank", tint: "#C2540F", line: "A real consideration on tank water, not on mains" },
-  "Hardness and scale": { icon: "basin", tint: "#5A5F7A", line: "The honest one — Melbourne water is soft" },
+  "Hardness and scale": { icon: "basin", tint: "#5A5F7A", line: "The honest one. Melbourne water is soft" },
 };
 const WATER_TILES = IN_YOUR_WATER.map((w) => ({
   area: w.what,
@@ -326,7 +326,7 @@ export default function WaterFiltrationPage() {
                   physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
                 </p>
                 <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water, the symptom is the useful part</li>
                   <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
                   <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
                 </ul>

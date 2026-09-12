@@ -82,7 +82,7 @@ const WHEN = [
     tint: "#C2540F",
     line: "The minimum standards don't pause while you decide",
     detail:
-      "Hot water at a tenanted property is not optional and the clock does not stop for a supply delay. A temporary unit keeps water running while the permanent replacement is arranged — book both, because this buys time rather than solving it.",
+      "Hot water at a tenanted property is not optional and the clock does not stop for a supply delay. A temporary unit keeps water running while the permanent replacement is arranged: book both, because this buys time rather than solving it.",
   },
   {
     area: "Comparing properly",
@@ -176,7 +176,7 @@ export default function TemporaryHotWaterPage() {
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> When it's worth it</span>
             <h2>What the hire actually buys you.</h2>
             <p>
-              Not hot water — you'd get that from a replacement too. What it buys is the time to
+              Not hot water, you'd get that from a replacement too. What it buys is the time to
               choose the replacement without a cold shower setting the deadline.
             </p>
           </div>

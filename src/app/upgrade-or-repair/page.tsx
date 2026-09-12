@@ -92,10 +92,10 @@ const SIGNS = [
 ];
 
 const REPAIR_INSTEAD = [
-  "It's under about six years old and the fault is a component — an element, a thermostat, a capacitor, a sensor",
+  "It's under about six years old and the fault is a component: an element, a thermostat, a capacitor, a sensor",
   "A gas heater that won't light, where it's an igniter or a flame sense rod. Both are stocked parts and both are a one-visit fix",
   "An aircon that isn't cooling because the filters and coil are filthy. That's a service, not a system",
-  "A hot water system with a spent anode but a sound tank — an anode change is cheap and it genuinely buys years",
+  "A hot water system with a spent anode but a sound tank, an anode change is cheap and it genuinely buys years",
   "Anything still inside its manufacturer warranty. Ring the manufacturer before you ring us, and we'll tell you that on the phone for free",
 ];
 
@@ -283,7 +283,7 @@ export default function UpgradeOrRepairPage() {
               </div>
               <div className="ug-num">
                 <strong>${REBATE_FACTS.maxRental.toLocaleString()}</strong>
-                <span>up to, rentals — no Solar Homes, everything else applies</span>
+                <span>up to, rentals, no Solar Homes, everything else applies</span>
               </div>
               <div className="ug-num">
                 <strong>${REBATE_FACTS.ausMade}</strong>

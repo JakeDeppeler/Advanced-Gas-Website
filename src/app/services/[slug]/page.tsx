@@ -587,7 +587,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 </p>
                 <ul className="quotesec__points">
                   <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
-                  <li><span className="tick tick--on-orange">✓</span> No obligation and no pushy call-back</li>
+                  <li><span className="tick tick--on-orange">✓</span> No obligation, and no sales call afterwards</li>
                   <li><span className="tick tick--on-orange">✓</span> Emergency? Call {site.phone} instead</li>
                 </ul>
                 <div className="quotesec__chips">

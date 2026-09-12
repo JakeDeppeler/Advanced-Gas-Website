@@ -16,7 +16,7 @@ export default function ContactPage() {
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Contact us</span>
           <h1>Tell us what you need. <em>We&apos;ll come back within 12 hours.</em></h1>
-          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75 km. The bloke who quotes is the bloke who installs.</p>
+          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75 km. The person who quotes is the person who installs.</p>
         </div>
       </section>
 

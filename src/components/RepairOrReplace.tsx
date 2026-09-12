@@ -84,7 +84,7 @@ export function RepairOrReplace() {
         <span className="ror__lbl">Repair or replace?</span>
         <h3>Put the number next to the alternative.</h3>
         <p>
-          Three things and it does the sum we&rsquo;d do on the phone. Runs in your browser —
+          Three things and it does the sum we&rsquo;d do on the phone. Runs in your browser,
           nothing recorded, nothing sent.
         </p>
       </div>

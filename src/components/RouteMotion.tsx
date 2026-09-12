@@ -41,15 +41,20 @@ export type SweepKind =
  *  design-system.css — the hold is what stops the old page showing under the
  *  panel on a slow route change. */
 const TIMING: Record<SweepKind, [number, number, number]> = {
-  building: [540, 130, 460],
-  house: [540, 130, 460],
-  water: [560, 120, 640],
+  // The crossing is the one navigation where the reader genuinely changes
+  // context, so it is the one that can afford to be unhurried. Both halves
+  // long, both halves eased, nothing snapping.
+  building: [820, 220, 820],
+  house: [820, 220, 820],
+  water: [1100, 200, 700],
   // The drawn ones need time to draw. A duct layout that appears fully formed
   // in half a second is a picture, not a drawing, and the drawing is the point.
-  climate: [1200, 180, 620],
+  climate: [1300, 200, 680],
   rebate: [900, 200, 520],
-  service: [1100, 180, 620],
-  crane: [1250, 180, 1000],
+  service: [1200, 200, 680],
+  // In and out at the same pace. A load that comes down slowly and then whips
+  // away reads as a mistake, not a lift.
+  crane: [1250, 200, 1300],
   build: [1150, 170, 560],
   schedule: [1050, 200, 560],
   callout: [1150, 180, 620],
@@ -102,6 +107,21 @@ export function RouteMotion() {
       <svg className="sweep__wave" viewBox="0 0 2880 120" preserveAspectRatio="none">
         <path d="M0,70 C240,120 480,20 720,70 C960,120 1200,20 1440,70 C1680,120 1920,20 2160,70 C2400,120 2640,20 2880,70 L2880,120 L0,120 Z" />
       </svg>
+      {/* The heat pump itself, drawn on as the water rises behind it: the tank,
+          the compressor on top, the fan, and the level coming up inside. */}
+      <div className="sweep__hp">
+        <svg viewBox="0 0 200 260" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <defs>
+            <clipPath id="hp-tank"><rect x="46" y="86" width="108" height="158" rx="16" /></clipPath>
+          </defs>
+          <rect className="w1" x="46" y="86" width="108" height="158" rx="16" />
+          <rect className="w2" x="62" y="26" width="76" height="52" rx="10" />
+          <circle className="w3" cx="100" cy="52" r="15" />
+          <path className="w3" d="M100 37v30M85 52h30" />
+          <path className="w4" d="M100 78v8" />
+          <rect className="w5" x="46" y="86" width="108" height="158" clipPath="url(#hp-tank)" />
+        </svg>
+      </div>
 
       {/* Crossing over: a building goes up on the way to commercial, a house on
           the way home. Same mechanism, different roof. */}
@@ -138,8 +158,11 @@ export function RouteMotion() {
             <rect x="68" y="182" width="28" height="11" rx="2" />
             <rect x="224" y="182" width="28" height="11" rx="2" />
           </g>
-          <g className="h7">
-            <path d="M74 162v14M86 162v14M234 162v14M246 162v14M76 204v10M88 204v10M232 204v10M244 204v10" strokeWidth="3.5" />
+          <g className="h7 h7--warm">
+            <path d="M74 162v14M86 162v14M76 204v10M88 204v10" strokeWidth="3.5" />
+          </g>
+          <g className="h7 h7--cool">
+            <path d="M234 162v14M246 162v14M232 204v10M244 204v10" strokeWidth="3.5" />
           </g>
         </svg>
       </div>
@@ -157,14 +180,20 @@ export function RouteMotion() {
           spinning was decoration; this is the actual moment of a service, and
           it draws itself like the rest of them. */}
       <div className="sweep__gauge">
-        <svg viewBox="0 0 220 220" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <circle className="g1" cx="110" cy="110" r="88" strokeWidth="5" />
-          <circle className="g2" cx="110" cy="110" r="72" strokeWidth="2.5" opacity="0.35" />
+        <svg viewBox="0 0 240 240" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle className="g1" cx="120" cy="120" r="98" strokeWidth="5" />
+          {/* The zones: most of the dial is fine, the top of it is not. */}
+          <path className="g6" d="M46 162A82 82 0 0 1 166 46" strokeWidth="10" />
+          <path className="g7" d="M166 46A82 82 0 0 1 194 162" strokeWidth="10" />
           <g className="g3" strokeWidth="4">
-            <path d="M110 30v14M52 52l10 10M30 110h14M52 168l10-10M110 190v-14M168 168l-10-10M190 110h-14M168 52l-10 10" />
+            <path d="M120 34v14M59 59l10 10M34 120h14M59 181l10-10M120 206v-14M181 181l-10-10M206 120h-14M181 59l-10 10" />
           </g>
-          <path className="g4" d="M110 110 74 62" strokeWidth="6" />
-          <circle className="g5" cx="110" cy="110" r="9" strokeWidth="5" />
+          <path className="g4" d="M120 120 82 70" strokeWidth="7" />
+          <circle className="g5" cx="120" cy="120" r="10" strokeWidth="5" />
+          <g className="g8">
+            <circle cx="120" cy="120" r="30" strokeWidth="0" />
+            <path d="M104 121l11 11 21-24" strokeWidth="6" />
+          </g>
         </svg>
       </div>
 

@@ -45,7 +45,7 @@ import { useMemo, useState } from "react";
  */
 
 const SPECIFIC_HEAT = 4.186; // kJ per kg per °C
-const USABLE_FRACTION = 0.8; // stratification — you can't use the last 20%
+const USABLE_FRACTION = 0.8; // stratification, you can't use the last 20%
 
 /** Tank sizes we actually install, with the closest matching models. */
 /**

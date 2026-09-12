@@ -97,7 +97,7 @@ const faqs = [
   },
   {
     q: "Do you do emergencies on weekends?",
-    a: "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to a real on-call tradie, not an overseas call centre.",
+    a: "Yes. Gas leak, no hot water, smoking flue, call the main number any time. After hours goes to someone on the tools, not an overseas call centre.",
   },
   {
     q: "What's the warranty?",
@@ -311,10 +311,10 @@ export default async function HomePage() {
                 <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> 60-second quote</span>
                 <h2>Written quote back within 12&nbsp;hours.</h2>
                 <p className="quotesec__lede">
-                  Tell us what you need, we&rsquo;ll quote it straight. Rebates applied, GST included, no chasing.
+                  Tell us what you need and we&rsquo;ll price it properly. Rebate applied, GST included, nothing to chase.
                 </p>
                 <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> No obligation, no pushy call-back</li>
+                  <li><span className="tick tick--on-orange">✓</span> No obligation, and no sales call afterwards</li>
                   <li><span className="tick tick--on-orange">✓</span> Same person quotes as installs</li>
                   <li><span className="tick tick--on-orange">✓</span> VEU rebate handled in the quote</li>
                   <li><span className="tick tick--on-orange">✓</span> The price only changes if the job does, and you approve it first</li>
@@ -723,7 +723,7 @@ export default async function HomePage() {
             />
           </figure>
           <div className="bigcta__copy">
-            <h2>Let&rsquo;s get your job sorted.</h2>
+            <h2>Let&rsquo;s get your job done properly.</h2>
             <p>A free written quote with the VEU rebate already applied, usually back to you within 12 business hours. The price only changes if the job does, and you approve the new number before we start. Prefer to talk? Give us a call.</p>
             <div className="bigcta__btns">
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</a>

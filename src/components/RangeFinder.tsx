@@ -71,7 +71,7 @@ function recommend(job: Job, size: Size): Rec {
     return {
       heading: "A reverse-cycle split",
       body:
-        "For one room or a few, a reverse-cycle split heats as well as it cools and costs a fraction of gas to run — it moves heat rather than burning something to make it. Nothing else we fit beats it at this size.",
+        "For one room or a few, a reverse-cycle split heats as well as it cools and costs a fraction of gas to run, it moves heat rather than burning something to make it. Nothing else we fit beats it at this size.",
       href: "/services/air-conditioning-installation/split",
       cta: "Split system installation",
       filter: "Split system",
@@ -163,14 +163,14 @@ export function RangeFinder() {
             <p>{rec.body}</p>
             <Link href={rec.href} className="ds-btn ds-btn--orange">{rec.cta} →</Link>
             <p className="rfind__fine">
-              A category, not a model number — picking between two tank sizes is a conversation
+              A category, not a model number, picking between two tank sizes is a conversation
               about when everybody showers, and no dropdown settles that honestly.
             </p>
           </div>
         ) : (
           <p className="rfind__waiting">
             {job === "water"
-              ? "Pick a size to see the answer — or just press Water filtration above."
+              ? "Pick a size to see the answer, or just press Water filtration above."
               : "Answer both and we'll name one."}
           </p>
         )}

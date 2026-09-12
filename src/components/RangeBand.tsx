@@ -50,7 +50,7 @@ export function RangeBand({
           <Link href="/range" className="ds-btn ds-btn--orange ds-btn--lg">
             See the full range →
           </Link>
-          <span>Every model we install — filter by brand, system type or rebate.</span>
+          <span>Every model we install, filter by brand, system type or rebate.</span>
         </div>
       </div>
     </section>

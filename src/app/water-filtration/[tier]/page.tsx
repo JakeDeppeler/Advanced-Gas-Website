@@ -334,7 +334,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                   physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
                 </p>
                 <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water, the symptom is the useful part</li>
                   <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
                   <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
                 </ul>

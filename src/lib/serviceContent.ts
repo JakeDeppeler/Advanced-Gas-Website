@@ -308,7 +308,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Written quotes in 12 hrs, 6-year workmanship warranty.",
     heroFacts: [
       { v: "Same day", k: "A single wall split, start to finish" },
-      { v: "ARCtick", k: "AU59557 — legally required, and we hold it" },
+      { v: "ARCtick", k: "AU59557: legally required, and we hold it" },
       { v: "6-year", k: "Workmanship, on top of the manufacturer's" },
       { v: "Heat-load first", k: "Room by room, before we quote a size" },
     ],
@@ -359,25 +359,25 @@ export const serviceContent: Record<string, ServiceContent> = {
         catalogue: [],
         label: "Reverse cycle air conditioning",
         blurb:
-          "One machine that both heats and cools — a heat pump on the wall or in the roof. It's the cheapest way to heat a Melbourne home, it's now VEU-rebate eligible, and it comes in three shapes: a split for a room, multi-head for a few, ducted for the whole house.",
+          "One machine that both heats and cools, a heat pump on the wall or in the roof. It's the cheapest way to heat a Melbourne home, it's now VEU-rebate eligible, and it comes in three shapes: a split for a room, multi-head for a few, ducted for the whole house.",
         photo: { src: "/Kaden Indoor.jpg", alt: "A reverse-cycle wall split heating and cooling a living room", scene: true },
         brands: ["Mitsubishi Electric", "Kaden"],
         priceFrom: "from $2,199 installed",
         intro:
-          "Reverse cycle just means one air conditioner that heats as well as it cools. In summer it pulls heat out of the house; in winter it runs the same cycle backwards and pulls warmth from the outside air in — which is why it's a heat pump, and why it costs about a third of gas ducted to run for the same warmth. One head on the wall does a room, ducted in the roof does the whole home, and it's now the upgrade the VEU rebate is written for.",
+          "Reverse cycle just means one air conditioner that heats as well as it cools. In summer it pulls heat out of the house; in winter it runs the same cycle backwards and pulls warmth from the outside air in, which is why it's a heat pump, and why it costs about a third of gas ducted to run for the same warmth. One head on the wall does a room, ducted in the roof does the whole home, and it's now the upgrade the VEU rebate is written for.",
         benefitTiles: [
           {
             t: "One machine, both seasons",
             line: "Heats in winter, cools in summer",
             detail:
-              "A reverse-cycle unit runs the refrigeration cycle both ways — cooling the house in February and warming it in July off the same box on the wall. No separate heater, no second system to service, no gas line to run.",
+              "A reverse-cycle unit runs the refrigeration cycle both ways, cooling the house in February and warming it in July off the same box on the wall. No separate heater, no second system to service, no gas line to run.",
             icon: "snowflake",
           },
           {
             t: "About a third of gas to run",
             line: "A heat pump moves heat, it doesn't burn anything",
             detail:
-              "Because it moves heat rather than making it, a reverse-cycle system delivers roughly three units of warmth for every unit of electricity. On a Melbourne winter it runs at a fraction of the cost of gas ducted for the same rooms — and that gap widens every time the gas price does.",
+              "Because it moves heat rather than making it, a reverse-cycle system delivers roughly three units of warmth for every unit of electricity. On a Melbourne winter it runs at a fraction of the cost of gas ducted for the same rooms, and that gap widens every time the gas price does.",
             icon: "flow",
           },
           {
@@ -398,7 +398,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "No flue, no CO test",
             line: "Nothing burns, so there's nothing to leak",
             detail:
-              "There's no combustion, no flue and no carbon monoxide — so none of the annual gas-heater safety testing, and none of the cracked-heat-exchanger risk that comes with an ageing gas ducted unit.",
+              "There's no combustion, no flue and no carbon monoxide: so none of the annual gas-heater safety testing, and none of the cracked-heat-exchanger risk that comes with an ageing gas ducted unit.",
             icon: "clock",
           },
           {
@@ -410,9 +410,9 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
         points: [
-          "One system that both heats and cools — a heat pump, not a gas heater",
+          "One system that both heats and cools: a heat pump, not a gas heater",
           "Around a third of the running cost of gas ducted for the same warmth",
-          "VEU rebate eligible — applied at the quote where the property qualifies",
+          "VEU rebate eligible, applied at the quote where the property qualifies",
           "Split for a room, multi-head for a few, ducted for the whole home",
           "No flue, no gas line, no annual carbon-monoxide test",
           "Mitsubishi Electric or Kaden, 6-year workmanship warranty on every job",
@@ -423,14 +423,14 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Homes going all-electric, or chasing the VEU rebate before it changes",
         ],
         watchOut: [
-          "The right shape depends on the house — a split, a multi-head and a ducted system solve different problems, so the sizing conversation comes first",
+          "The right shape depends on the house: a split, a multi-head and a ducted system solve different problems, so the sizing conversation comes first",
           "Whole-home ducted needs roof space and access; where that's tight, a couple of splits or a multi-head gets you there instead",
         ],
         faqs: [
           { q: "What does “reverse cycle” actually mean?", a: "It's an air conditioner that works both ways. In summer it moves heat out of the house to cool it; in winter it reverses and moves heat from the outside air into the house to warm it. That makes it a heat pump, and it's why one unit covers both jobs instead of a separate heater and cooler." },
           { q: "Is reverse cycle really cheaper than gas heating?", a: "Yes, and by a wide margin on a Melbourne winter. A heat pump delivers roughly three units of heat per unit of electricity, so for the same warmth it costs about a third of what gas ducted does to run. The saving grows every time gas prices rise." },
-          { q: "Split or ducted — which do I need?", a: "A split heats and cools the room it's in, so it's the answer for a bedroom, a living room or a granny flat. Ducted puts one system in the roof and vents every room, zoned so you're not paying to condition empty bedrooms. Three or four rooms without going ducted is where a multi-head fits. We size it to your house at the quote." },
-          { q: "Does it actually heat in a cold Melbourne winter?", a: "Yes. Modern reverse-cycle systems hold their rated heating output down to around 2 °C and keep working well below that — the Mitsubishi Hyper Heating range in particular is built for it. For the frost pockets up in the hills we spec the cold-climate models rather than a standard unit." },
+          { q: "Split or ducted: which do I need?", a: "A split heats and cools the room it's in, so it's the answer for a bedroom, a living room or a granny flat. Ducted puts one system in the roof and vents every room, zoned so you're not paying to condition empty bedrooms. Three or four rooms without going ducted is where a multi-head fits. We size it to your house at the quote." },
+          { q: "Does it actually heat in a cold Melbourne winter?", a: "Yes. Modern reverse-cycle systems hold their rated heating output down to around 2 °C and keep working well below that, the Mitsubishi Hyper Heating range in particular is built for it. For the frost pockets up in the hills we spec the cold-climate models rather than a standard unit." },
           { q: "Is reverse cycle eligible for the VEU rebate?", a: "In most cases, yes. Reverse-cycle upgrades are a core Victorian Energy Upgrades activity, especially replacing an old gas or electric heater. Where your property qualifies we handle the paperwork and take the rebate straight off the installed price at the quote." },
           { q: "How much does a reverse-cycle system cost?", a: "A single split starts from around $2,199 installed; a whole-home ducted system is a bigger job. Because the range is so wide we quote it to your house rather than a 'from' number, and the VEU rebate comes off where it applies. The written quote is the number you pay." },
         ],
@@ -488,7 +488,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "One morning",
             line: "Back-to-back install in three to four hours",
             detail:
-              "Most splits go in back-to-back — the head on the inside of a wall, the outdoor unit directly behind it — which is one core hole and no work in the roof. In and out in a morning, without you taking a day off work.",
+              "Most splits go in back-to-back, the head on the inside of a wall, the outdoor unit directly behind it, which is one core hole and no work in the roof. In and out in a morning, without you taking a day off work.",
             icon: "clock",
           },
           {
@@ -523,7 +523,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "We take the mess",
             line: "Cored, sealed, drop sheets down, rubbish gone",
             detail:
-              "The wall penetration is core-drilled and sealed rather than hammered through. Drop sheets go down inside, and everything we bring in — including the old unit if there is one — leaves with us.",
+              "The wall penetration is core-drilled and sealed rather than hammered through. Drop sheets go down inside, and everything we bring in, including the old unit if there is one, leaves with us.",
             icon: "truck",
           },
         ],
@@ -619,7 +619,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Mix the head types",
             line: "Wall, floor console or bulkhead on the one system",
             detail:
-              "The heads don't have to match. A wall unit in the bedrooms, a floor console under a window where there's no wall height, a bulkhead where you'd rather see nothing — all running off the same outdoor unit.",
+              "The heads don't have to match. A wall unit in the bedrooms, a floor console under a window where there's no wall height, a bulkhead where you'd rather see nothing, all running off the same outdoor unit.",
             icon: "ruler",
           },
           {
@@ -734,7 +734,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "The duct design first",
             line: "We size the trunk and the branches, not just the unit",
             detail:
-              "Most ducted complaints are a duct problem, not a unit problem — the back bedroom gets nothing because the branch feeding it was never sized. We design the run before we quote the box.",
+              "Most ducted complaints are a duct problem, not a unit problem, the back bedroom gets nothing because the branch feeding it was never sized. We design the run before we quote the box.",
             icon: "ruler",
           },
           {
@@ -833,7 +833,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "Roof-mounted", k: "Nothing at ground level, nothing on the walls" },
             { v: "Ceiling vents", k: "One per room, same as ducted" },
-            { v: "Needs windows", k: "Cracked open — it pushes air through the house" },
+            { v: "Needs windows", k: "Cracked open, it pushes air through the house" },
             { v: "Water + power", k: "A supply line to the roof and a dedicated circuit" },
           ],
         },
@@ -870,7 +870,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Cooling only",
             line: "Pair it with gas ducted for winter",
             detail:
-              "There's no heating side to an evaporative unit. If you want one system for both, this isn't it — a ducted reverse-cycle is, and we'll price that instead.",
+              "There's no heating side to an evaporative unit. If you want one system for both, this isn't it: a ducted reverse-cycle is, and we'll price that instead.",
             icon: "flame",
           },
           {
@@ -998,7 +998,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       photoScene: true,
       facts: [
         { v: "~1.8 m tall", k: "A 270 L all-in-one, on the old tank's slab" },
-        { v: "Two pieces", k: "On a split — tank on the wall, compressor beside it" },
+        { v: "Two pieces", k: "On a split: tank on the wall, compressor beside it" },
         { v: "37 dBA", k: "The Reclaim CO₂, quiet enough for a bedroom wall" },
         { v: "Shady side", k: "Sited away from bedrooms and the neighbour's fence" },
       ],
@@ -1029,7 +1029,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     h1: "Heat pump hot water, installed properly",
     intro:
-      "Nobody wakes up wanting a heat pump. You wake up with a dead tank and a decision to make. Here's the case for making it this one, which brands we'd fit in our own houses and why, and what the job actually looks like — with the rebate already in the number.",
+      "Nobody wakes up wanting a heat pump. You wake up with a dead tank and a decision to make. Here's the case for making it this one, which brands we'd fit in our own houses and why, and what the job actually looks like, with the rebate already in the number.",
     installPhotos: {
       heading: "Heat pumps we've put in.",
       blurb:
@@ -1040,7 +1040,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       // something worth saying. The grid handles the rest.
       // ------------------------------------------------------------------
       shots: [
-        { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, tank and outdoor unit against a brick wall", caption: "Reclaim CO₂ split — tank and outdoor unit, separate" },
+        { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, tank and outdoor unit against a brick wall", caption: "Reclaim CO₂ split: tank and outdoor unit, separate" },
         { src: "/reclaim-spit-close-up.webp", alt: "Close-up of a Reclaim CO₂ heat pump tank base and pipework on a concrete pad", caption: "New pad poured, pipework re-run and lagged" },
         { src: "/reclaim-split-back.webp", alt: "Reclaim heat pump tank and outdoor unit installed beside a brick wall", caption: "Tight side access, unit still gets its airflow" },
         { src: "/reclaim-split-stand-back-shot-left-side.webp", alt: "Reclaim CO₂ split heat pump viewed from the left side of the house", caption: "Same job, from the other side" },
@@ -1158,7 +1158,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         },
         label: "Split heat pump hot water",
         blurb:
-          "Compressor outside, tank against the wall, a pair of lines between them. It is the better performer in the cold and the one with the tank options — stainless or glass-lined, 160 to 400 litres — because the tank isn't carrying a compressor on top of it.",
+          "Compressor outside, tank against the wall, a pair of lines between them. It is the better performer in the cold and the one with the tank options: stainless or glass-lined, 160 to 400 litres, because the tank isn't carrying a compressor on top of it.",
         photo: { src: "/reclaim-split-stand-back-shot.webp", alt: "Reclaim CO₂ split heat pump, compressor and tank against a brick wall", scene: true },
         brands: ["Reclaim Energy"],
         benefitTiles: [
@@ -1180,14 +1180,14 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Tank choices",
             line: "Stainless or glass-lined, 160 to 400 litres",
             detail:
-              "Stainless has no anode to swap and nothing to rust — the duplex tank steps up to 2205 duplex or 316-grade for the hardest water. Glass-lined is the cheaper way in. Sizes from 160 up to 400 litres, so a couple and a family of six both get the right one.",
+              "Stainless has no anode to swap and nothing to rust, the duplex tank steps up to 2205 duplex or 316-grade for the hardest water. Glass-lined is the cheaper way in. Sizes from 160 up to 400 litres, so a couple and a family of six both get the right one.",
             icon: "tank",
           },
           {
             t: "Two compressors to pick from",
             line: "Reclaim's own 5 kW, or the Panasonic 4 and 6 kW",
             detail:
-              "Reclaim's own CO₂ heat pump is 5 kW. The Panasonic pairing comes in 4 kW and 6 kW, which is what you want when recovery speed is the deciding factor rather than tank volume — a big household running the tank down twice a day.",
+              "Reclaim's own CO₂ heat pump is 5 kW. The Panasonic pairing comes in 4 kW and 6 kW, which is what you want when recovery speed is the deciding factor rather than tank volume, a big household running the tank down twice a day.",
             icon: "heatpump",
           },
           {
@@ -1223,7 +1223,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           "Reclaim CO₂ split in stainless, glass-lined, Earthworker stainless and squat variants",
           "Panasonic CO₂ pairing in 4 kW and 6 kW where recovery speed decides it",
           "Tank sizes 160 / 250 / 315 / 400 L",
-          "Compressor outside, tank against the wall — needs both spots",
+          "Compressor outside, tank against the wall, needs both spots",
           "PV-diverter kit available for houses with solar",
           "VEU rebate applied at the quote, up to $2,700",
           "Tempering valve fitted, outlets held at 50 °C",
@@ -1273,10 +1273,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           photo: "/270L-istore-heatpump.webp",
           photoAlt: "iStore 270 L all-in-one heat pump",
           facts: [
-            { v: "~1.8 m tall", k: "On a 270 L — taller than the tank it replaces" },
+            { v: "~1.8 m tall", k: "On a 270 L, taller than the tank it replaces" },
             { v: "One footprint", k: "Nothing separate to place or plumb" },
             { v: "180 – 285 L", k: "The sizes that cover most households" },
-            { v: "Existing slab", k: "Where it will take the weight — we check on the day" },
+            { v: "Existing slab", k: "Where it will take the weight, we check on the day" },
           ],
         },
         servicing: {
@@ -1293,7 +1293,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         },
         label: "All-in-one heat pump hot water",
         blurb:
-          "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump — which is why it's where the rebate goes furthest and where most straight electric swaps end up.",
+          "Compressor and tank in a single shell. One thing to place, one thing to plumb, and the simplest way into a heat pump, which is why it's where the rebate goes furthest and where most straight electric swaps end up.",
         photo: { src: "/thermann-heat-pump.webp", alt: "Thermann all-in-one heat pump hot water unit against a brick wall", scene: true },
         brands: ["Reclaim Energy", "iStore", "Thermann"],
         benefitTiles: [
@@ -1301,7 +1301,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "One thing on the wall",
             line: "Compressor and tank in a single shell",
             detail:
-              "Nothing separate to find a spot for. If the old tank's position is the only place a hot water unit can go at your place, this is the one that fits it — a split needs somewhere for the compressor as well.",
+              "Nothing separate to find a spot for. If the old tank's position is the only place a hot water unit can go at your place, this is the one that fits it, a split needs somewhere for the compressor as well.",
             icon: "tank",
           },
           {
@@ -1315,14 +1315,14 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Two brands, identical guts",
             line: "Reclaim ECO R290 and Thermann ECO R290",
             detail:
-              "These are the same tank and heat-pump platform with two badges on it. Pick on brand preference or on which one Reece can get you this week — not on spec, because there isn't a difference to find.",
+              "These are the same tank and heat-pump platform with two badges on it. Pick on brand preference or on which one Reece can get you this week: not on spec, because there isn't a difference to find.",
             icon: "heatpump",
           },
           {
             t: "R290 propane",
             line: "Natural refrigerant, very low global-warming potential",
             detail:
-              "R290 is propane — a natural refrigerant with a global-warming potential in the single digits, against several hundred for the synthetics it replaces. Efficient, and the right side of where the regulations are heading.",
+              "R290 is propane, a natural refrigerant with a global-warming potential in the single digits, against several hundred for the synthetics it replaces. Efficient, and the right side of where the regulations are heading.",
             icon: "flow",
           },
           {
@@ -1355,7 +1355,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
         ],
         points: [
-          "Reclaim ECO R290 and Thermann ECO R290 — same platform, two badges",
+          "Reclaim ECO R290 and Thermann ECO R290: same platform, two badges",
           "iStore 180 L and 270 L, where the VEU rebate reaches furthest",
           "200 L and 285 L on the R290 platform",
           "One shell: nothing separate to place or plumb",
@@ -1366,7 +1366,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         ],
         priceFrom: "from $2,150 inc GST",
         intro:
-          "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest — and it's where the VEU rebate reaches furthest on a straight electric swap.",
+          "An all-in-one puts the compressor on top of the tank in a single shell. There is one thing to place and one thing to plumb, which makes it the simplest way into a heat pump and the cheapest, and it's where the VEU rebate reaches furthest on a straight electric swap.",
         faqs: [
           {
             q: "Is an all-in-one worse than a split?",
@@ -1438,7 +1438,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     looks: {
       heading: "What a service visit actually looks like.",
       note:
-        "Sixty to ninety minutes, one van, one person you have met before. We are not there to sell you a system — most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
+        "Sixty to ninety minutes, one van, one person you have met before. We are not there to sell you a system: most of the time the answer is that it is dirty rather than dying, and we would rather tell you that and be the people you ring in five years.",
       photo: "/evap cooler service close ip.jpg",
       photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
       photoScene: true,
@@ -1509,7 +1509,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { tier: "Multi-split bundle service (3+ units)", price: "$140 ea", includes: "Everything in the split system service, Charged per extra unit at the same address, One visit rather than a second call-out", group: "Annual service", photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp", priceKey: "Per extra unit" },
       { tier: "Ducted aircon · annual service", price: "$390", includes: "Return-air filter, coil clean, gas pressure check, zone controller test, damper motor test", group: "Annual service", photo: "/ducted-split.webp", priceKey: "Per visit", photoScene: true },
       { tier: "Standard call-out (business hours)", price: "$120", includes: "Attend site, Diagnose the fault, Repair quoted in writing before we touch it, Fee waived if the repair goes ahead the same day", group: "Call-out", priceKey: "Call-out fee" },
-      { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, An on-call tradie rather than an overseas call-centre, Diagnosis and a written repair quote on the spot", group: "Call-out", priceKey: "Call-out fee" },
+      { tier: "Emergency call-out (after-hours / weekend)", price: "$220 + parts", includes: "Same-day attendance, Someone on the tools rather than an overseas call-centre, Diagnosis and a written repair quote on the spot", group: "Call-out", priceKey: "Call-out fee" },
     ],
     steps: [
       { title: "Book the visit, one call, no menu", detail: "Call and book with the person you'll see, Chaz or Jake picks up, quotes the service fee, and books a window that suits you. No press-1 hold music, no third-party dispatcher." },
@@ -1561,7 +1561,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Tray drained and flushed",
             line: "Checked for leaks while it's empty",
             detail:
-              "A winter's worth of sediment comes out of the tray, and it gets checked for leaks while it's empty — which is the only time you can see one before it finds your ceiling.",
+              "A winter's worth of sediment comes out of the tray, and it gets checked for leaks while it's empty, which is the only time you can see one before it finds your ceiling.",
             icon: "valve",
           },
           {
@@ -1666,7 +1666,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Filters and return air",
             line: "Washed or replaced, path checked",
             detail:
-              "Filters washed or replaced, and the return-air path checked — a strangled return does the same damage as a blocked filter and nobody ever looks at it.",
+              "Filters washed or replaced, and the return-air path checked, a strangled return does the same damage as a blocked filter and nobody ever looks at it.",
             icon: "flow",
           },
           {
@@ -1774,7 +1774,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     looks: {
       heading: "Where the heater actually goes.",
       note:
-        "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have already been decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler — the unit is about the size of a briefcase, on an outside wall.",
+        "A gas ducted heater lives in one of three places: a cupboard inside, a slab against an outside wall, or up in the roof. Which one you have already been decided years ago by whoever built the house, and a like-for-like replacement goes back where the old one came out. Hot water is simpler: the unit is about the size of a briefcase, on an outside wall.",
       photo: "/gas-ducted-install.webp",
       photoAlt: "Gas ducted heater installed in a roof space with flue and ductwork",
       photoScene: true,
@@ -1836,7 +1836,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Gas ducted retrofit, done weekly", d: "The default heater in most homes built 1990–2015 in the corridor. We replace one nearly every week, Brivis Wombat, Buffalo and Kaden gas ducted all covered." , line: "We replace one most weeks in this corridor", icon: "flame" },
       { t: "Thermann G-series continuous flow", d: "Our default gas continuous-flow hot water, a Reece-exclusive brand (not Rinnai), Australian-designed, 12-yr heat-exchanger warranty." , line: "12-year heat exchanger, through Reece", icon: "tank" },
       { t: "Gas leak detection + safe-to-stay", d: "Electronic leak detector, pressure-drop test, safe-to-stay written verification. We don't just tell you 'seems OK'." , line: "Tested and made safe, not sniffed at", icon: "alarm" },
-      { t: "Emergency call-outs, on-call tradie", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." , line: "Nights and weekends, a real person", icon: "phone" },
+      { t: "Emergency call-outs, someone on the tools", d: "Same-day across the corridor for gas leaks, no hot water, CO alarms. Answered by us, not an overseas call-centre." , line: "Nights and weekends, a real person", icon: "phone" },
       { t: "Old unit removed same visit", d: "Old Brivis, old Vulcan tank, old Rinnai continuous flow, off the pad and to the metal recycler on install day. No hard-rubbish wait." , line: "Disconnected, removed and gone", icon: "truck" },
       { t: "Puretec water filtration", d: "Whole-home on the incoming main, a protection filter on the hot water cold inlet, or an under-sink unit for drinking water. Fitted by a licensed plumber, not a handyman." , line: "Whole house, under sink, softeners and tank", icon: "tap" },
     ],
@@ -1872,7 +1872,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             { v: "Three positions", k: "Internal cupboard, external slab, or in the roof" },
             { v: "Ceiling vents", k: "One per room, usually the existing ones" },
             { v: "3 – 4 hours", k: "A straight swap, same day" },
-            { v: "Ducts reused", k: "Where they're sound — we check before we quote" },
+            { v: "Ducts reused", k: "Where they're sound, we check before we quote" },
           ],
         },
         servicing: {
@@ -2030,7 +2030,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             t: "Thermann or Rinnai",
             line: "G-series made for Reece, or Rinnai",
             detail:
-              "Thermann G-series is our default — Australian-designed, Reece distribution, 12-year heat exchanger. Rinnai where you'd rather stay with what's there.",
+              "Thermann G-series is our default. Australian-designed, Reece distribution, 12-year heat exchanger. Rinnai where you'd rather stay with what's there.",
             icon: "flame",
           },
           {
@@ -2221,7 +2221,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           photoScene: true,
           facts: [
             { v: "Same day", k: "Connected on the day in most cases" },
-            { v: "Whole house", k: "Not one tap — every outlet works" },
+            { v: "Whole house", k: "Not one tap, every outlet works" },
             { v: "$30 / day", k: "While it is on site" },
             { v: "$350", k: "Set-up and removal, waived if we do the job" },
           ],

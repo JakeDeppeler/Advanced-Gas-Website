@@ -58,7 +58,7 @@ export async function POST(req: Request) {
           <p style="margin:0 0 14px;">Thanks for subscribing. We'll send a short email when the Victorian Energy Upgrades (VEU) rebate values change, plus the odd seasonal tip for keeping your gear running.</p>
           <p style="margin:0 0 14px;"><strong>One email a month, max.</strong> Local stuff only. Unsubscribe anytime.</p>
           <p style="margin:0 0 22px;">If you ever need a quote in the meantime, just call <a href="tel:${site.phoneE164}" style="color:#f36722;font-weight:700;text-decoration:none;">${site.phone}</a>.</p>
-          <p style="margin:0;color:#5b6680;font-size:13px;">— ${site.name} · Pakenham VIC</p>
+          <p style="margin:0;color:#5b6680;font-size:13px;">${site.name} · Pakenham VIC</p>
         </div>`,
       text: [
         "You're in.",
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
         "",
         `If you ever need a quote in the meantime, just call ${site.phone}.`,
         "",
-        `— ${site.name} · Pakenham VIC`,
+        `${site.name} · Pakenham VIC`,
       ].join("\n"),
     });
   } else {

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { CAPABILITY, COMM_CLIENTS, COMM_SCOPES, COMM_CAPABILITIES } from "@/lib/commercial";
+import { CAPABILITY, COMM_CLIENTS, COMM_SCOPES, COMM_CAPABILITIES, COMM_FACTS } from "@/lib/commercial";
+import { PrintButton } from "@/components/PrintButton";
 import "../commercial.css";
 
 export const metadata: Metadata = {
@@ -21,19 +22,54 @@ export const metadata: Metadata = {
 export default function CapabilityPage() {
   return (
     <div className="page-comm page-cap">
-      <section className="comm-hero comm-hero--sub">
-        <div className="wrap comm-hero__inner">
-          <Link href="/commercial" className="comm-back comm-back--print">← Commercial</Link>
+      {/* On screen this opens like every other commercial page. In print the
+          hero and the panel drop out (see the print rules) and the document
+          starts at the first table, which is where a filed copy should start. */}
+      <section className="comm-sub comm-sub--photo cap-hide-print">
+        <div className="wrap comm-sub__inner">
+          <Link href="/commercial" className="comm-back">← Commercial</Link>
           <span className="ds-eyebrow">Capability statement</span>
           <h1>{site.legalName}</h1>
-          <p className="comm-hero__sub">
+          <p className="comm-sub__lede">
             Commercial mechanical services, Type A gas and hot water across Melbourne&rsquo;s south-east and Gippsland.
             Everything below is current and can be evidenced. Certificates of currency and licence copies on request.
           </p>
-          <div className="cap-contact">
-            <div><dt>Phone</dt><dd><a href={`tel:${site.phoneE164}`}>{site.phone}</a></dd></div>
-            <div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div>
-            <div><dt>Address</dt><dd>{site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</dd></div>
+        </div>
+      </section>
+
+      <section className="comm-panelsec cap-hide-print">
+        <div className="wrap">
+          <div className="comm-panel">
+            <div className="comm-panel__row">
+              <dl className="cap-contact" style={{ margin: 0, padding: 0, border: 0, flex: "1 1 auto" }}>
+                <div><dt>Phone</dt><dd><a href={`tel:${site.phoneE164}`}>{site.phone}</a></dd></div>
+                <div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div>
+                <div><dt>Address</dt><dd>{site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</dd></div>
+              </dl>
+              <PrintButton />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The print header: what a filed copy opens with instead of the hero. */}
+      <section className="cap-printhead">
+        <div className="wrap">
+          <h1>{site.legalName}</h1>
+          <p>Capability statement. {site.phone} · {site.email} · {site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</p>
+        </div>
+      </section>
+
+      <section className="cap-figures cap-hide-print">
+        <div className="wrap">
+          <div className="comm-facts">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k} className="commfact">
+                <strong>{f.n}</strong>
+                <span>{f.k}</span>
+                <p>{f.p}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

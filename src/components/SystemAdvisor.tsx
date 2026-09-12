@@ -35,7 +35,7 @@ export function SystemAdvisor({ service }: { service: string }) {
             sand above the box and then this one inside it. */}
         <span className="advisor__lbl">Narrow it down</span>
         <h2>Which one is right for my&nbsp;home?</h2>
-        <p>{cfg.lede} Runs in your browser — nothing recorded, nothing sent.</p>
+        <p>{cfg.lede} Runs in your browser, nothing recorded, nothing sent.</p>
       </div>
 
       {cfg.questions.map((q, qi) => (

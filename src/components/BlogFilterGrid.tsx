@@ -37,7 +37,7 @@ export function BlogFilterGrid({ posts, categories, hideOnAll }: Props) {
 
       <div className="bl-grid">
         {filtered.length === 0 ? (
-          <p className="bl-grid__empty">No posts in this category yet — pick another tag above.</p>
+          <p className="bl-grid__empty">No posts in this category yet, pick another tag above.</p>
         ) : (
           filtered.map((p, i) => (
             <Link

@@ -23,8 +23,8 @@ const DAYS_PER_YEAR = 365;
 
 // Efficiencies / COPs used to convert delivered heat → input energy.
 const EFFICIENCY: Record<string, number> = {
-  "gas-storage":          0.75, // 75% — 5-star storage
-  "gas-continuous":       0.85, // 85% — modern continuous flow
+  "gas-storage":          0.75, // 75%, 5-star storage
+  "gas-continuous":       0.85, // 85%, modern continuous flow
   "electric-storage":     1.00, // element is 100% efficient
   "electric-off-peak":    1.00, // same, but cheaper rate
   "solar-electric-boost": 1.00, // when boosting only

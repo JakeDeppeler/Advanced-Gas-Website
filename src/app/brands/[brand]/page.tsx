@@ -338,7 +338,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       {brand.advisorService === "gas-plumbing" && <GasSavingsChart />}
 
       {/* Product range.
-          Single-product brands (e.g. Zonemate — the Milieu zoning system is
+          Single-product brands (e.g. Zonemate, the Milieu zoning system is
           their only product) get the full product detail rendered inline
           instead of a compare grid holding one lonely card. Everyone else
           gets the grouped grid with per-card compare checkboxes. */}
@@ -525,7 +525,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 </span>
                 <h2>Quote for a {brand.name} system.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 12 business hours — with the model,
+                  60 seconds, no obligation, replied within 12 business hours, with the model,
                   the installed price and any rebate you qualify for, in writing.
                 </p>
                 <ul className="quotesec__points">

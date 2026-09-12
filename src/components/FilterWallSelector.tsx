@@ -45,7 +45,7 @@ export function FilterWallSelector() {
       result = {
         name,
         why: big
-          ? `${prot ? "The larger unit with ScaleProtect. " : "The larger unit. "}Two or more bathrooms means simultaneous outlets, so you want the 55 L/min flow and the 20" cartridge — it lasts longer between changes as well.`
+          ? `${prot ? "The larger unit with ScaleProtect. " : "The larger unit. "}Two or more bathrooms means simultaneous outlets, so you want the 55 L/min flow and the 20" cartridge, it lasts longer between changes as well.`
           : `${prot ? "The compact unit with ScaleProtect. " : "The compact unit. "}One or two bathrooms rarely draws more than 30 L/min, so the smaller housing keeps the cost down without becoming the bottleneck.`,
       };
     }

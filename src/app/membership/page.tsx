@@ -28,7 +28,7 @@ const tiers: Tier[] = [
     name: "Bronze",
     price: "$TBC",
     cadence: "/ year",
-    blurb: "The basics, sorted. Annual service done on time, no chasing.",
+    blurb: "The basics, done properly. Annual service done on time, no chasing.",
     features: [
       { label: "1 annual gas appliance service", detail: "incl. CO testing + written report" },
       { label: "$30 off standard service rate" },
@@ -47,7 +47,7 @@ const tiers: Tier[] = [
     features: [
       { label: "Annual gas service at member rate $250 + GST" },
       { label: "Annual aircon filter clean / inspection" },
-      { label: "Priority booking — front of the queue" },
+      { label: "Priority booking, front of the queue" },
       { label: "10% off parts on any repair" },
       { label: "Same-day callback on emergencies" },
     ],
@@ -65,7 +65,7 @@ const tiers: Tier[] = [
       { label: "Waived after-hours make-safe fee", detail: "(normally $500 + GST)" },
       { label: "15% off parts on repairs" },
       { label: "Annual heat pump efficiency check" },
-      { label: "Dedicated tradie on your account" },
+      { label: "A dedicated technician on your account" },
     ],
     cta: { label: "Talk about Gold", href: "/contact" },
   },

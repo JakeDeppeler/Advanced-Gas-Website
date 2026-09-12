@@ -51,7 +51,7 @@ const AIRCON: AdvisorConfig = {
       ask: "Is there roof space above the ceiling?",
       options: [
         { id: "yes", label: "Yes, there's room up there" },
-        { id: "no", label: "No — flat roof, or it's too tight" },
+        { id: "no", label: "No: flat roof, or it's too tight" },
         { id: "unsure", label: "Not sure" },
       ],
     },
@@ -72,7 +72,7 @@ const AIRCON: AdvisorConfig = {
       answer: {
         heading: "A split system.",
         body:
-          "One room, one head, one outdoor unit. Cheapest to buy, cheapest to run, quickest to get in — most go in back-to-back in a single morning. Nothing else we fit beats it for a single room.",
+          "One room, one head, one outdoor unit. Cheapest to buy, cheapest to run, quickest to get in, most go in back-to-back in a single morning. Nothing else we fit beats it for a single room.",
         href: "/services/air-conditioning-installation/split",
         cta: "Split system installation",
       },
@@ -124,7 +124,7 @@ const AIRCON: AdvisorConfig = {
       answer: {
         heading: "Ducted, like for like.",
         body:
-          "A failed ducted unit is usually a straight swap that reuses the existing ductwork and drops, which keeps it well below the cost of a fresh install. Worth checking what actually failed first — sometimes it's the board, not the unit.",
+          "A failed ducted unit is usually a straight swap that reuses the existing ductwork and drops, which keeps it well below the cost of a fresh install. Worth checking what actually failed first: sometimes it's the board, not the unit.",
         href: "/services/air-conditioning-installation/ducted",
         cta: "Ducted installation",
         note: "If it's under ten years old, get it looked at before you replace it.",
@@ -208,7 +208,7 @@ const HOT_WATER: AdvisorConfig = {
       answer: {
         heading: "A heat pump, and size it up.",
         body:
-          "Five or more people is where recovery rate starts to matter more than tank size — you want it making hot water again fast, not just holding a lot of it. Reclaim's CO₂ split holds its output on a cold morning, which is exactly when a big household runs the tank down.",
+          "Five or more people is where recovery rate starts to matter more than tank size, you want it making hot water again fast, not just holding a lot of it. Reclaim's CO₂ split holds its output on a cold morning, which is exactly when a big household runs the tank down.",
         href: "/services/heat-pump-installation",
         cta: "Heat pump installation",
         note: "Up to $2,700 off with the VEU rebate, applied at the quote.",
@@ -219,7 +219,7 @@ const HOT_WATER: AdvisorConfig = {
       answer: {
         heading: "A heat pump, easily.",
         body:
-          "Swapping electric resistance for a heat pump is the biggest running-cost drop available on this site — roughly a third to a quarter of the power for the same hot water. It's also where the VEU rebate is worth the most, because the thing you're replacing is the worst.",
+          "Swapping electric resistance for a heat pump is the biggest running-cost drop available on this site, roughly a third to a quarter of the power for the same hot water. It's also where the VEU rebate is worth the most, because the thing you're replacing is the worst.",
         href: "/services/heat-pump-installation",
         cta: "Heat pump installation",
         note: "Up to $2,700 off with the VEU rebate, applied at the quote.",
@@ -240,7 +240,7 @@ const HOT_WATER: AdvisorConfig = {
   fallback: {
     heading: "A heat pump, most likely.",
     body:
-      "For most households in this corridor a heat pump is the right answer on running cost, and the VEU rebate takes a serious bite out of the install. Where it isn't — a tight spot, or no rebate eligibility — we'll say so.",
+      "For most households in this corridor a heat pump is the right answer on running cost, and the VEU rebate takes a serious bite out of the install. Where it isn't: a tight spot, or no rebate eligibility, we'll say so.",
     href: "/services/heat-pump-installation",
     cta: "Heat pump installation",
   },
@@ -265,14 +265,14 @@ const GAS: AdvisorConfig = {
       options: [
         { id: "new", label: "Under 10 years" },
         { id: "old", label: "Over 10 years" },
-        { id: "unknown", label: "No idea — it came with the house" },
+        { id: "unknown", label: "No idea, it came with the house" },
       ],
     },
     {
       id: "when",
       ask: "How urgent?",
       options: [
-        { id: "now", label: "Today — no heat or no hot water" },
+        { id: "now", label: "Today, no heat or no hot water" },
         { id: "soon", label: "This week" },
         { id: "planning", label: "Just planning ahead" },
       ],
@@ -295,7 +295,7 @@ const GAS: AdvisorConfig = {
       answer: {
         heading: "Get it CO tested, then price the replacement.",
         body:
-          "Over ten years old, the honest sequence is a carbon monoxide test first — that's a safety question, not a sales one — and then a replacement price so you can decide with numbers in front of you rather than in a cold house in June.",
+          "Over ten years old, the honest sequence is a carbon monoxide test first: that's a safety question, not a sales one, and then a replacement price so you can decide with numbers in front of you rather than in a cold house in June.",
         href: "/services/gas-plumbing/gas-service",
         cta: "Gas heater service & CO test",
         note: "A ducted swap reuses the existing ducts and drops, which keeps it well under a fresh install.",
@@ -388,7 +388,7 @@ const SERVICING: AdvisorConfig = {
       answer: {
         heading: "Get it diagnosed before you spend anything.",
         body:
-          "Over ten years old and not cooling, the question isn't what the repair costs — it's whether the repair is worth it. We diagnose for a fixed fee and tell you which side of that line you're on, including when the answer is replace it.",
+          "Over ten years old and not cooling, the question isn't what the repair costs, it's whether the repair is worth it. We diagnose for a fixed fee and tell you which side of that line you're on, including when the answer is replace it.",
         href: "/upgrade-or-repair",
         cta: "Repair or replace?",
         note: "A ten-year-old system on old refrigerant can cost more to re-gas than it's worth.",
@@ -399,7 +399,7 @@ const SERVICING: AdvisorConfig = {
       answer: {
         heading: "A diagnosis, then a repair.",
         body:
-          "Not cooling on a unit this age is usually a fixable fault — a capacitor, a board, a sensor, or a genuine refrigerant leak. We find the leak rather than topping it up and sending you an invoice every summer.",
+          "Not cooling on a unit this age is usually a fixable fault: a capacitor, a board, a sensor, or a genuine refrigerant leak. We find the leak rather than topping it up and sending you an invoice every summer.",
         href: "/services/aircon-servicing-repairs",
         cta: "Aircon service & repair",
       },
@@ -409,7 +409,7 @@ const SERVICING: AdvisorConfig = {
       answer: {
         heading: "A proper coil clean.",
         body:
-          "Musty smell is biological growth on the indoor coil and in the drain tray. It needs the unit pulled apart and washed, not wiped over with a cloth — which is the difference between a real service and a quick look.",
+          "Musty smell is biological growth on the indoor coil and in the drain tray. It needs the unit pulled apart and washed, not wiped over with a cloth, which is the difference between a real service and a quick look.",
         href: "/services/aircon-servicing-repairs",
         cta: "Aircon service & repair",
       },
@@ -419,7 +419,7 @@ const SERVICING: AdvisorConfig = {
       answer: {
         heading: "A blocked drain, most likely.",
         body:
-          "Water dripping from an indoor head is almost always a blocked condensate drain, and it's a same-visit fix. Worth doing quickly — the water has to go somewhere and plasterboard is expensive.",
+          "Water dripping from an indoor head is almost always a blocked condensate drain, and it's a same-visit fix. Worth doing quickly, the water has to go somewhere and plasterboard is expensive.",
         href: "/services/aircon-servicing-repairs",
         cta: "Aircon service & repair",
         note: "Turn it off in the meantime so it stops making water.",
@@ -439,7 +439,7 @@ const SERVICING: AdvisorConfig = {
   fallback: {
     heading: "A service will find it.",
     body:
-      "Most of what people ring about turns up in a proper service — a clean, a pressure check and a look at the electricals. If it's something bigger you'll know the number before we touch it.",
+      "Most of what people ring about turns up in a proper service, a clean, a pressure check and a look at the electricals. If it's something bigger you'll know the number before we touch it.",
     href: "/services/aircon-servicing-repairs",
     cta: "Aircon service & repair",
   },

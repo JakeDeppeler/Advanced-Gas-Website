@@ -34,7 +34,7 @@ export const blogPosts: BlogPost[] = [
     title: "Reclaim vs iStore vs Thermann: which heat pump is right for your house?",
     metaTitle: "Reclaim vs iStore vs Thermann Heat Pumps Compared (2026)",
     metaDescription:
-      "Honest 2026 comparison of Reclaim, iStore and Thermann heat pump hot water — sizing, warranty, noise, real-world running cost in SE Melbourne households.",
+      "Honest 2026 comparison of Reclaim, iStore and Thermann heat pump hot water: sizing, warranty, noise, real-world running cost in SE Melbourne households.",
     category: "Heat pumps",
     categoryShort: "Heat pumps",
     date: "4 May 2026",
@@ -88,17 +88,17 @@ export const blogPosts: BlogPost[] = [
         html:
           "Heat pumps recover heat slower than gas instantaneous units, so the rule of thumb is roughly <strong>70 litres per person per day</strong> for hot showers, dishwashing and the odd bath. Undersize it and you'll run out before the last kid is bathed; oversize it and you've paid for capacity you'll never use.",
       },
-      { kind: "h2", text: "Noise — the dealbreaker most people miss" },
+      { kind: "h2", text: "Noise, the dealbreaker most people miss" },
       {
         kind: "p",
         html:
-          "Heat pumps run a compressor outside, like an aircon condenser. <strong>Thermann sits at around 48 dB at 1 metre</strong> — about as loud as a quiet conversation. <strong>Reclaim is 37 dB</strong>, which is whisper territory. If your unit will live near a bedroom window or close to the neighbour's fence, the extra grand on a Reclaim buys you a lot of peace.",
+          "Heat pumps run a compressor outside, like an aircon condenser. <strong>Thermann sits at around 48 dB at 1 metre</strong>, about as loud as a quiet conversation. <strong>Reclaim is 37 dB</strong>, which is whisper territory. If your unit will live near a bedroom window or close to the neighbour's fence, the extra grand on a Reclaim buys you a lot of peace.",
       },
       { kind: "h2", text: "Solar pairing: where iStore quietly wins" },
       {
         kind: "p",
         html:
-          "If you've got solar PV, your hot water can effectively run on free energy. iStore's app lets you schedule the unit to only run between 10am and 3pm — the daytime hours your roof is generating. Reclaim can do the same with a basic timer, but iStore's interface is friendlier.",
+          "If you've got solar PV, your hot water can effectively run on free energy. iStore's app lets you schedule the unit to only run between 10am and 3pm, the daytime hours your roof is generating. Reclaim can do the same with a basic timer, but iStore's interface is friendlier.",
       },
       {
         kind: "p",
@@ -143,16 +143,16 @@ export const blogPosts: BlogPost[] = [
     iso: "2026-04-28",
     readingMinutes: 7,
     excerpt:
-      "Real numbers — not \"from $XXX\" marketing — for a 270L Thermann install in Pakenham, with the rebate applied.",
+      "Real numbers: not \"from $XXX\" marketing: for a 270L Thermann install in Pakenham, with the rebate applied.",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "Heat pump hot water unit installed against an exterior wall",
     body: [
       {
         kind: "p",
         html:
-          "Heat pump pricing is the most-asked, most-misunderstood number in the trade. Every installer's website says <em>\"from $XXX\"</em> — but the asterisk hides whether that's after rebate, before rebate, eligible household, or just plain marketing fiction. Here's the unvarnished version for a typical Pakenham install in 2026.",
+          "Heat pump pricing is the most-asked, most-misunderstood number in the trade. Every installer's website says <em>\"from $XXX\"</em>: but the asterisk hides whether that's after rebate, before rebate, eligible household, or just plain marketing fiction. Here's the unvarnished version for a typical Pakenham install in 2026.",
       },
-      { kind: "h2", text: "A real 270L Thermann quote — line by line" },
+      { kind: "h2", text: "A real 270L Thermann quote, line by line" },
       {
         kind: "table",
         headers: ["Item", "Price"],
@@ -170,13 +170,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "That's the number for an eligible household — typically an existing gas or electric storage tank being swapped for a Thermann 270L heat pump in Pakenham 3810. Take that as a reference; your number moves based on the existing system, how far the new unit lives from the cylinder pad, and the price of certificates the week we lodge.",
+          "That's the number for an eligible household, typically an existing gas or electric storage tank being swapped for a Thermann 270L heat pump in Pakenham 3810. Take that as a reference; your number moves based on the existing system, how far the new unit lives from the cylinder pad, and the price of certificates the week we lodge.",
       },
       { kind: "h2", text: "Why \"from $33\" claims are dodgy" },
       {
         kind: "p",
         html:
-          "You'll see a lot of <em>from $33</em> ads. That figure exists only at the absolute edge of eligibility — usually electric storage swap, concession card holder, maximum certificate count, and a backyard installer cutting their margin to win the lead. <strong>It's not the typical number.</strong> The Pakenham median sits between $1,500 and $3,500 after rebate, depending on brand.",
+          "You'll see a lot of <em>from $33</em> ads. That figure exists only at the absolute edge of eligibility: usually electric storage swap, concession card holder, maximum certificate count, and a backyard installer cutting their margin to win the lead. <strong>It's not the typical number.</strong> The Pakenham median sits between $1,500 and $3,500 after rebate, depending on brand.",
       },
       { kind: "h2", text: "Brand-by-brand after-rebate range" },
       {
@@ -206,7 +206,7 @@ export const blogPosts: BlogPost[] = [
         kind: "callout",
         title: "Important",
         html:
-          "We lock the rebate value into your written quote. If certificate prices drop between quote and install, that's our problem — not yours.",
+          "We lock the rebate value into your written quote. If certificate prices drop between quote and install, that's our problem, not yours.",
       },
       { kind: "h2", text: "Payback in real numbers" },
       {
@@ -279,13 +279,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Mitsubishi Electric is the gold standard, but <strong>Kaden punches well above its price</strong> for everyday Australian conditions. We've installed 800+ Kadens in SE Melbourne; failure rate is comparable to mid-range Daikin. Pay the premium if you want whisper-quiet operation or app control — not because you've been told the cheaper unit will die.",
+          "Mitsubishi Electric is the gold standard, but <strong>Kaden punches well above its price</strong> for everyday Australian conditions. We've installed 800+ Kadens in SE Melbourne; failure rate is comparable to mid-range Daikin. Pay the premium if you want whisper-quiet operation or app control, not because you've been told the cheaper unit will die.",
       },
       { kind: "h3", text: "3. \"Quote includes a 10-year warranty\"" },
       {
         kind: "p",
         html:
-          "Most split systems carry a <strong>5-year manufacturer warranty</strong>. \"10 years\" usually means 5 years on the compressor and 5 on parts — the marketing reads as one number. Always ask for the written warranty terms.",
+          "Most split systems carry a <strong>5-year manufacturer warranty</strong>. \"10 years\" usually means 5 years on the compressor and 5 on parts, the marketing reads as one number. Always ask for the written warranty terms.",
       },
       { kind: "h2", text: "Position matters more than capacity" },
       {
@@ -296,7 +296,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "ul",
         items: [
-          "Clear airflow — not blocked by wardrobe doors or curtain pelmets",
+          "Clear airflow, not blocked by wardrobe doors or curtain pelmets",
           "300+ mm clearance from the ceiling for return air",
           "A position that throws air <strong>across</strong> the room, not into a corner",
           "Outdoor condenser within ~10 m pipe run for full efficiency",
@@ -348,7 +348,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Carbon monoxide is the gas-safety risk that doesn't announce itself. It's colourless, odourless, slightly lighter than air — and at concentrations as low as 70 parts per million it can put a healthy adult to sleep. Most CO incidents in Victorian homes trace back to one source: an <strong>ageing ducted gas heater with a cracked or blocked heat exchanger</strong>.",
+          "Carbon monoxide is the gas-safety risk that doesn't announce itself. It's colourless, odourless, slightly lighter than air, and at concentrations as low as 70 parts per million it can put a healthy adult to sleep. Most CO incidents in Victorian homes trace back to one source: an <strong>ageing ducted gas heater with a cracked or blocked heat exchanger</strong>.",
       },
       { kind: "h2", text: "Why CO testing matters" },
       {
@@ -367,7 +367,7 @@ export const blogPosts: BlogPost[] = [
         items: [
           "<strong>Atmospheric CO</strong> in the supply-air stream (measured with a calibrated meter near the diffusers)",
           "<strong>Flue CO</strong> at the appliance flue outlet to verify combustion is clean",
-          "<strong>Flue draft</strong> — pulling air outwards, not stalling",
+          "<strong>Flue draft</strong>: pulling air outwards, not stalling",
           "<strong>Heat exchanger integrity</strong> via a smoke test or visual inspection",
           "<strong>Gas pressure</strong> at the appliance against manufacturer spec",
           "<strong>Return-air dampers and seals</strong> for negative pressure leaks",
@@ -387,13 +387,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Any of those? Stop using the heater and ring us — or any licensed gas fitter. Same-day callout if the symptoms are active.",
+          "Any of those? Stop using the heater and ring us, or any licensed gas fitter. Same-day callout if the symptoms are active.",
       },
       { kind: "h2", text: "Our service rate" },
       {
         kind: "p",
         html:
-          "Flat <strong>$280 + GST</strong> for an annual gas heater service across SE Melbourne (or <strong>$250 + GST</strong> for members). Includes the full CO test, written report with photos, gas pressure check and combustion analysis — everything an insurance assessor or property manager will ask for.",
+          "Flat <strong>$280 + GST</strong> for an annual gas heater service across SE Melbourne (or <strong>$250 + GST</strong> for members). Includes the full CO test, written report with photos, gas pressure check and combustion analysis, everything an insurance assessor or property manager will ask for.",
       },
     ],
     faqs: [
@@ -416,27 +416,27 @@ export const blogPosts: BlogPost[] = [
     title: "Heat pumps + solar PV: the daytime-charge trick that drops bills to zero",
     metaTitle: "Heat Pump + Solar Daytime Schedule — Free Hot Water Hack",
     metaDescription:
-      "How to schedule a Reclaim or iStore heat pump to run during solar production hours — the cheapest hot water setup in the country.",
+      "How to schedule a Reclaim or iStore heat pump to run during solar production hours, the cheapest hot water setup in the country.",
     category: "Heat pumps",
     categoryShort: "Heat pumps",
     date: "2 Apr 2026",
     iso: "2026-04-02",
     readingMinutes: 11,
     excerpt:
-      "How to schedule a Reclaim or iStore unit to run during the day on excess solar — the cheapest hot water in the country.",
+      "How to schedule a Reclaim or iStore unit to run during the day on excess solar, the cheapest hot water in the country.",
     photo: "/thermann-heat-pump.jpg",
     photoAlt: "Heat pump hot water unit installed near a residential solar setup",
     body: [
       {
         kind: "p",
         html:
-          "Here's a number that surprises people: a household with rooftop solar PV and a properly scheduled heat pump pays <strong>roughly $0–$15 a year</strong> for hot water. Not a typo. The trick is timing — and it's one we set up free on every install if we know you have solar.",
+          "Here's a number that surprises people: a household with rooftop solar PV and a properly scheduled heat pump pays <strong>roughly $0–$15 a year</strong> for hot water. Not a typo. The trick is timing, and it's one we set up free on every install if we know you have solar.",
       },
       { kind: "h2", text: "Why daytime matters" },
       {
         kind: "p",
         html:
-          "A heat pump uses electricity to compress refrigerant, which then transfers heat into your hot water tank. It runs for about 4–6 hours per day in total to keep a 270L tank warm. If those hours land during peak time (5–9pm) on grid power, you pay 35–45 c/kWh. If they land during solar production (10am–3pm), you pay <strong>0 c/kWh</strong> — your panels are making more than the unit pulls.",
+          "A heat pump uses electricity to compress refrigerant, which then transfers heat into your hot water tank. It runs for about 4–6 hours per day in total to keep a 270L tank warm. If those hours land during peak time (5–9pm) on grid power, you pay 35–45 c/kWh. If they land during solar production (10am–3pm), you pay <strong>0 c/kWh</strong>, your panels are making more than the unit pulls.",
       },
       {
         kind: "p",
@@ -454,7 +454,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Reclaim has a hardware timer on the controller — set the run window 10am–4pm. The CO₂ refrigerant is slightly more efficient on cold mornings, but for solar timing the same logic applies.",
+          "Reclaim has a hardware timer on the controller, set the run window 10am–4pm. The CO₂ refrigerant is slightly more efficient on cold mornings, but for solar timing the same logic applies.",
       },
       { kind: "h3", text: "Thermann" },
       {
@@ -488,7 +488,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "On overcast Pakenham days the heat pump still runs in the scheduled window, just pulling more grid power. Even at full grid rate it costs less than a gas tank — you'll still come out ahead.",
+          "On overcast Pakenham days the heat pump still runs in the scheduled window, just pulling more grid power. Even at full grid rate it costs less than a gas tank, you'll still come out ahead.",
       },
       { kind: "h3", text: "Should I export solar instead and pay grid for hot water?" },
       {
@@ -517,14 +517,14 @@ export const blogPosts: BlogPost[] = [
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     metaTitle: "Failed Hot Water Tank — Replace Gas or Upgrade to Heat Pump?",
     metaDescription:
-      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths — including the $2,600 VEU rebate question.",
+      "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,600 VEU rebate question.",
     category: "Hot water",
     categoryShort: "Hot water",
     date: "25 Mar 2026",
     iso: "2026-03-25",
     readingMinutes: 5,
     excerpt:
-      "When the gas tank goes you've got 48 hours to decide. Here's the maths — including the $2,600 rebate question.",
+      "When the gas tank goes you've got 48 hours to decide. Here's the maths: including the $2,600 rebate question.",
     photo: "/gas-hot-water-change-over.png",
     photoAlt: "Same-day hot water swap in progress",
     body: [
@@ -566,7 +566,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "We carry the common gas tank sizes (135L and 175L) on the truck for emergency same-day replacements. Heat pumps need ordering and certifying, so expect 3–5 days for a heat pump swap — but we'll fit a temporary hot water solution while you wait.",
+          "We carry the common gas tank sizes (135L and 175L) on the truck for emergency same-day replacements. Heat pumps need ordering and certifying, so expect 3–5 days for a heat pump swap, but we'll fit a temporary hot water solution while you wait.",
       },
       {
         kind: "p",
@@ -594,7 +594,7 @@ export const blogPosts: BlogPost[] = [
     title: "Replacing ducted gas heating with reverse-cycle: the honest cost-benefit",
     metaTitle: "Ducted Gas to Reverse-Cycle — Real SE Melbourne Cost-Benefit",
     metaDescription:
-      "Most SE Melbourne homes save $1,400+ a year switching from ducted gas heating to reverse-cycle. But not all — here's how to work out if your house is one of the winners.",
+      "Most SE Melbourne homes save $1,400+ a year switching from ducted gas heating to reverse-cycle. But not all, here's how to work out if your house is one of the winners.",
     category: "Aircon",
     categoryShort: "Aircon",
     date: "18 Mar 2026",
@@ -608,7 +608,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Across south-east Melbourne, gas heating is on the way out. New gas connections are banned in new builds. Existing units are pushing 15–25 years old. And reverse-cycle is now cheaper per kWh of heat delivered — even before the VEU rebate.",
+          "Across south-east Melbourne, gas heating is on the way out. New gas connections are banned in new builds. Existing units are pushing 15–25 years old. And reverse-cycle is now cheaper per kWh of heat delivered, even before the VEU rebate.",
       },
       {
         kind: "p",
@@ -622,19 +622,19 @@ export const blogPosts: BlogPost[] = [
           "<strong>Older gas unit (10+ years)</strong> with 60–70% efficiency",
           "<strong>Insulated home</strong> with R3+ ceiling and reasonable double-glazing",
           "<strong>Open-plan living</strong> that doesn't need every zone heated equally",
-          "<strong>You also want cooling</strong> — one system, both seasons",
-          "<strong>You have or will get solar</strong> — daytime heating becomes near-free",
-          "<strong>VEU rebate applies</strong> — up to $5,000 off the install",
+          "<strong>You also want cooling</strong>: one system, both seasons",
+          "<strong>You have or will get solar</strong>, daytime heating becomes near-free",
+          "<strong>VEU rebate applies</strong>: up to $5,000 off the install",
         ],
       },
       { kind: "h2", text: "Where ducted gas still makes sense" },
       {
         kind: "ul",
         items: [
-          "<strong>Very large home (300m²+)</strong> with high ceilings — gas heats fast cheaply on cold snaps",
+          "<strong>Very large home (300m²+)</strong> with high ceilings, gas heats fast cheaply on cold snaps",
           "<strong>No roof space</strong> for the outdoor condenser",
-          "<strong>Recently replaced gas unit (under 5 years old, 90%+ efficiency)</strong> — payback period is too long",
-          "<strong>Holiday house</strong> with low use — fixed costs swing in favour of gas",
+          "<strong>Recently replaced gas unit (under 5 years old, 90%+ efficiency)</strong>, payback period is too long",
+          "<strong>Holiday house</strong> with low use, fixed costs swing in favour of gas",
         ],
       },
       { kind: "h2", text: "The numbers for a typical Pakenham home" },
@@ -663,7 +663,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Usually yes — most existing ducts are oversized for gas and work fine with reverse-cycle. We test airflow during the survey. If ducts are damaged or undersized, you'll get the rough cost up front.",
+          "Usually yes, most existing ducts are oversized for gas and work fine with reverse-cycle. We test airflow during the survey. If ducts are damaged or undersized, you'll get the rough cost up front.",
       },
       { kind: "h3", text: "Do I need to zone it?" },
       {
@@ -675,7 +675,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Modern inverter reverse-cycle units run efficiently down to -10°C. In Pakenham's coldest mornings (-2 to +2°C) you might see capacity drop 15% — still adequate for a properly sized system. Coastal Mornington Peninsula and Brighton: no issue at all.",
+          "Modern inverter reverse-cycle units run efficiently down to -10°C. In Pakenham's coldest mornings (-2 to +2°C) you might see capacity drop 15%, still adequate for a properly sized system. Coastal Mornington Peninsula and Brighton: no issue at all.",
       },
       { kind: "h2", text: "Our recommendation" },
       {
@@ -723,7 +723,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Most landlords assume the VEU rebate is owner-occupier only. <strong>It's not.</strong> Investment and rental properties are eligible too — and for a self-managing landlord with a portfolio of three or four properties, that's $7,000–$10,000 of rebate value sitting on the table.",
+          "Most landlords assume the VEU rebate is owner-occupier only. <strong>It's not.</strong> Investment and rental properties are eligible too: and for a self-managing landlord with a portfolio of three or four properties, that's $7,000–$10,000 of rebate value sitting on the table.",
       },
       {
         kind: "p",
@@ -734,12 +734,12 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "ol",
         items: [
-          "<strong>Existing hot water unit?</strong> Gas storage, electric storage or continuous flow gas all qualify. Mains-pressure HW only — not header tanks.",
+          "<strong>Existing hot water unit?</strong> Gas storage, electric storage or continuous flow gas all qualify. Mains-pressure HW only, not header tanks.",
           "<strong>Property in Victoria?</strong> VEU is state-wide. Postcodes 3000–3999.",
           "<strong>Power supply adequate?</strong> Single-phase 15A circuit available, or upgradeable.",
           "<strong>Outdoor space for heat pump?</strong> ~700 × 700 mm of clearance, not against a bedroom window.",
-          "<strong>Tenant consent?</strong> Required for the install date. Most tenants happily agree — hot water improves for them too.",
-          "<strong>Sub-metered electricity?</strong> The energy efficiency gain accrues to whoever pays the power bill — confirm before you decide who benefits.",
+          "<strong>Tenant consent?</strong> Required for the install date. Most tenants happily agree, hot water improves for them too.",
+          "<strong>Sub-metered electricity?</strong> The energy efficiency gain accrues to whoever pays the power bill, confirm before you decide who benefits.",
         ],
       },
       {
@@ -764,13 +764,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Speak to your accountant — but typically: the rebate reduces the deductible cost base of the new unit (you can't depreciate the rebated amount), and the rest is depreciable as a capital item over its effective life. Most landlords are still net positive after depreciation.",
+          "Speak to your accountant, but typically: the rebate reduces the deductible cost base of the new unit (you can't depreciate the rebated amount), and the rest is depreciable as a capital item over its effective life. Most landlords are still net positive after depreciation.",
       },
       { kind: "h3", text: "Will it add to property value?" },
       {
         kind: "p",
         html:
-          "Yes — modestly. \"Energy efficient hot water\" appears on most rental ads now. The bigger value is in <strong>reduced tenant complaints</strong> from old units breaking down.",
+          "Yes, modestly. \"Energy efficient hot water\" appears on most rental ads now. The bigger value is in <strong>reduced tenant complaints</strong> from old units breaking down.",
       },
       { kind: "h2", text: "For property managers: paperwork we provide" },
       {
@@ -787,7 +787,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "We work with several PM agencies across SE Melbourne and have the rental paperwork sorted — just tell us you're a PM when you call and we'll route accordingly.",
+          "We work with several PM agencies across SE Melbourne and have the rental paperwork sorted, just tell us you're a PM when you call and we'll route accordingly.",
       },
     ],
     faqs: [
@@ -824,7 +824,7 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Your split system has a service life of 12–15 years. Or 6 years if you ignore it. Five minutes of basic maintenance every three months is the difference between those two numbers — and it keeps your manufacturer warranty intact. Here's the checklist.",
+          "Your split system has a service life of 12–15 years. Or 6 years if you ignore it. Five minutes of basic maintenance every three months is the difference between those two numbers, and it keeps your manufacturer warranty intact. Here's the checklist.",
       },
       { kind: "h2", text: "1. Vacuum the indoor filters (2 minutes)" },
       {
@@ -836,13 +836,13 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "p",
         html:
-          "Behind the filters you'll see thin aluminium fins. Run a soft brush or a microfibre cloth gently across them to clear dust. Don't bend them — straighten any bent fins with a fin comb if you've got one.",
+          "Behind the filters you'll see thin aluminium fins. Run a soft brush or a microfibre cloth gently across them to clear dust. Don't bend them, straighten any bent fins with a fin comb if you've got one.",
       },
       { kind: "h2", text: "3. Check the condensate drain (30 seconds)" },
       {
         kind: "p",
         html:
-          "Find where the small white pipe exits the wall outside. In cooling mode, water should drip steadily from this when the unit is running. <strong>If nothing comes out</strong> on a humid day, the drain is blocked — call us before the indoor unit floods.",
+          "Find where the small white pipe exits the wall outside. In cooling mode, water should drip steadily from this when the unit is running. <strong>If nothing comes out</strong> on a humid day, the drain is blocked, call us before the indoor unit floods.",
       },
       { kind: "h2", text: "4. Clear the outdoor condenser (1 minute)" },
       {
@@ -860,11 +860,11 @@ export const blogPosts: BlogPost[] = [
       {
         kind: "ul",
         items: [
-          "Coil fins look black or oily (mould — needs chemical clean)",
+          "Coil fins look black or oily (mould, needs chemical clean)",
           "Outdoor unit makes a new grinding or rattling noise",
-          "Cooling capacity has dropped noticeably — usually refrigerant loss (leak — needs licensed repair, not just a top-up)",
+          "Cooling capacity has dropped noticeably: usually refrigerant loss (leak: needs licensed repair, not just a top-up)",
           "Water dripping from the indoor head into the room",
-          "Anything you're not sure about — better to ask",
+          "Anything you're not sure about, better to ask",
         ],
       },
       {
