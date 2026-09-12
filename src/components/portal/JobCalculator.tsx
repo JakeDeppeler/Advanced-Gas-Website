@@ -5,12 +5,19 @@ import { CREW_LEVELS, LEVEL_LABEL, type CrewLevel } from "@/lib/portal/crew";
 
 export type CrewRate = {
   id: string; name: string; level: CrewLevel;
-  /** null when they ride with a tech — on the job, but not a chargeable body. */
   /** Charge-out on a mobile day. Null means they ride with a tech. */
   rate: number | null;
   /** The same person on a day parked on one site: less travel out of the paid
    *  day, so the hour recovers more and the rate comes down. */
   rateOnsite: number | null;
+  /**
+   * For someone who rides with a tech: what they add to the crew for every
+   * hour they are on the job. Their wage and nothing else, since the tech's
+   * hour is already carrying the overhead. It is not zero, which is what this
+   * calculator used to charge for them.
+   */
+  uplift: number | null;
+  upliftOnsite: number | null;
 };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
@@ -53,10 +60,22 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
 
   // Resolve once, at the top: below this point nothing needs to know which mode
   // is on, which is what keeps the pricing maths in one shape.
-  const priced: CrewRate[] = crew.map((c) => ({ ...c, rate: onsite ? c.rateOnsite : c.rate }));
+  const priced = crew.map((c) => {
+    const rate = onsite ? c.rateOnsite : c.rate;
+    const uplift = onsite ? c.upliftOnsite : c.uplift;
+    return {
+      ...c, rate, uplift,
+      // Everybody on the job has an hour worth something. A tech's is their
+      // rate; an apprentice's is the wage they add to the crew. Charging the
+      // apprentice nothing, which is what this did, priced a two-hander at the
+      // tech on his own and left their whole year unrecovered.
+      charge: rate ?? uplift ?? null,
+      rides: rate === null,
+    };
+  });
   const modeCost = onsite ? costPerHrOnsite : costPerHr;
-  const chargeable = priced.filter((c) => c.rate !== null);
-  const ridealong = priced.filter((c) => c.rate === null);
+  const chargeable = priced.filter((c) => c.charge !== null);
+  const ridealong = priced.filter((c) => c.rides && c.uplift !== null);
 
   function pickJob(k: JobKey) {
     setJob(k);
@@ -75,11 +94,15 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
 
   const lines = chargeable
     .filter((c) => sel[c.id] !== undefined)
-    .map((c) => ({ ...c, hrs: sel[c.id] || 0, total: (c.rate as number) * (sel[c.id] || 0) }));
+    .map((c) => ({ ...c, hrs: sel[c.id] || 0, total: (c.charge as number) * (sel[c.id] || 0) }));
 
   const onSiteHrs = lines.reduce((a, l) => a + l.hrs, 0) + manualHrs;
   const billedTravel = chargeTravel ? travelHrs : 0;
-  const topRate = lines.length ? Math.max(...lines.map((l) => l.rate as number)) : manualRate;
+  // Travel is charged at the dearest rate on the job, and a ride-along's uplift
+  // is not a rate anybody drives at.
+  const topRate = lines.some((l) => !l.rides)
+    ? Math.max(...lines.filter((l) => !l.rides).map((l) => l.charge as number))
+    : manualRate;
 
   const crewLabour = lines.reduce((a, l) => a + l.total, 0);
   const travelLabour = billedTravel * topRate;
@@ -182,22 +205,29 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
                 <div className="pt-job__grouph">{LEVEL_LABEL[g.level]}</div>
                 <div className="pt-job__crew">
                   {g.people.map((c) => {
-                    const rides = c.rate === null;
+                    const rides = c.rides;
                     const on = sel[c.id] !== undefined;
+                    const noPrice = c.charge === null;
                     return (
                       <div key={c.id} className={`pt-job__row${on ? " is-on" : ""}${rides ? " is-rides" : ""}`}>
                         <label className="pt-job__pick">
-                          <input type="checkbox" checked={on} disabled={rides} onChange={(e) => toggle(c.id, e.target.checked)} />
+                          <input type="checkbox" checked={on} disabled={noPrice} onChange={(e) => toggle(c.id, e.target.checked)} />
                           <span className="pt-job__who">
                             <strong>{c.name}</strong>
-                            <span>{rides ? "Rides with a tech — not charged separately" : `${money(c.rate as number)}/hr`}</span>
+                            <span>
+                              {noPrice
+                                ? "No figure yet, set their numbers in Costs & capacity"
+                                : rides
+                                  ? `${money(c.charge as number)}/hr on top of the tech`
+                                  : `${money(c.charge as number)}/hr`}
+                            </span>
                           </span>
                         </label>
-                        {on && !rides && (
+                        {on && !noPrice && (
                           <span className="pt-job__hrs">
                             <input type="number" min="0" step="0.5" value={sel[c.id]} onChange={(e) => setHrs(c.id, parse(e.target.value))} />
                             <span>hrs</span>
-                            <strong>{money((c.rate as number) * (sel[c.id] || 0))}</strong>
+                            <strong>{money((c.charge as number) * (sel[c.id] || 0))}</strong>
                           </span>
                         )}
                       </div>
@@ -209,7 +239,11 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           )}
           {ridealong.length > 0 && (
             <p className="pt-calc__hint pt-job__ridenote">
-              Sending {ridealong.map((r) => r.name).join(" or ")} out with a tech doesn&rsquo;t change the price — their wage is already recovered inside the tech&rsquo;s rate, so billing for them charges the customer twice.
+              {ridealong.map((r) => r.name).join(" and ")} {ridealong.length === 1 ? "rides" : "ride"} with a tech rather
+              than taking a van out, so {ridealong.length === 1 ? "they add" : "they each add"} a wage to the crew and
+              nothing else. No second van, no second set of overheads: the tech&rsquo;s hour is already carrying those.
+              Leaving {ridealong.length === 1 ? "them" : "them"} off a job {ridealong.length === 1 ? "they were" : "they were"} on
+              prices it as the tech on his own.
             </p>
           )}
         </div>

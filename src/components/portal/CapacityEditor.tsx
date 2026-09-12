@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
-  scaleOf, suggestOverhead,
+  scaleOf, suggestOverhead, ridesAlongAlways,
   type CapSettings, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
 } from "@/lib/portal/crew";
@@ -322,7 +322,8 @@ export function CapacityEditor({
       return {
         label: `${lead.label} + ${rider.label.toLowerCase()}`,
         rate: (lead.charge as number) + (rider.uplift as number),
-        note: `What the pair is quoted at. The ${rider.label.toLowerCase()} rides with the ${lead.label.toLowerCase()} rather than taking a van out, so the van still bills one hour for one hour on site and they add ${money(rider.uplift as number)} an hour to the crew rather than a second set of hours. That uplift is what pays for them across the year; a solo ${lead.label.toLowerCase()} does not carry them.`,
+        parts: `${money(lead.charge as number)} + ${money(rider.uplift as number)}`,
+        note: `${money(lead.charge as number)} for the ${lead.label.toLowerCase()}, which carries the overhead, plus ${money(rider.uplift as number)} for the ${rider.label.toLowerCase()}, which is their wage and nothing else. They ride in the car rather than taking a van out, so there is no second van, no second set of overheads and no second set of hours: the van still bills one hour for one hour on site. Their part is their wage for the year recovered over the hours that van can bill, which is why it is more than what they are paid on the clock and less than a rate.`,
       };
     }
     const second = solo[1];
@@ -331,13 +332,15 @@ export function CapacityEditor({
       return {
         label: `Two ${LEVEL_PLURAL[lead.key].toLowerCase()}`,
         rate: (lead.charge as number) * 2,
+        parts: `${money(lead.charge as number)} + ${money(lead.charge as number)}`,
         note: "Two vans and two chargeable bodies on the one job, so both rates apply. This is not a discount for turning up together; it is twice the work getting done.",
       };
     }
     return {
       label: `${lead.label} + ${second.label.toLowerCase()}`,
       rate: (lead.charge as number) + (second.charge as number),
-      note: `What the pair is quoted at when both are on the one job. They each have a van and each bill their own hours, so both rates apply: ${money(lead.charge as number)} for the ${lead.label.toLowerCase()} and ${money(second.charge as number)} for the ${second.label.toLowerCase()}.`,
+      parts: `${money(lead.charge as number)} + ${money(second.charge as number)}`,
+      note: `What the pair is quoted at when both are on the one job. They each take a van out and each bill their own hours, so both rates apply and each one carries its own share of the overhead: ${money(lead.charge as number)} for the ${lead.label.toLowerCase()} and ${money(second.charge as number)} for the ${second.label.toLowerCase()}. Two vans on a job that only needs one is the thing to check here.`,
     };
   }, [levelHours]);
 
@@ -442,7 +445,7 @@ export function CapacityEditor({
           <Stat
             label={crewPrice.label}
             value={hasHrs ? <>{money(crewPrice.rate)}<em>/hr</em></> : "—"}
-            sub="Charged for the pair, on one job"
+            sub={crewPrice.parts}
             open={info === "crew"} onToggle={() => setInfo(info === "crew" ? null : "crew")}
           />
         )}
@@ -563,7 +566,16 @@ export function CapacityEditor({
                       <div className="pt-cap__unset">Pick a level to cost this person in.</div>
                     ) : (
                       <>
-                        {!isOffice && (
+                        {!isOffice && ridesAlongAlways(r.level as CrewLevel) && (
+                          <div className="pt-cap__van">
+                            <span className="pt-cap__vannote">
+                              <strong>Rides with a tech.</strong> A {LEVEL_LABEL[r.level as CrewLevel].toLowerCase()} is
+                              never sent out on their own, so they are never a van of their own. They add their wage to
+                              the crew rate and nothing else: the tech&rsquo;s hour is already carrying the overhead.
+                            </span>
+                          </div>
+                        )}
+                        {!isOffice && !ridesAlongAlways(r.level as CrewLevel) && (
                           <div className="pt-cap__van">
                             <div className="pt-seg" role="group" aria-label="Van">
                               <button type="button" className={`pt-seg__b${r.costing.ownVan ? " is-on" : ""}`} aria-pressed={r.costing.ownVan} onClick={() => setCosting(r.id, { ownVan: true })}>Own van</button>
@@ -581,7 +593,7 @@ export function CapacityEditor({
                                 overhead, which turns a wage into a full rate.
                                 Worth saying at the switch rather than leaving
                                 it to be worked out from the tiles up top. */}
-                            {r.costing.ownVan && !defaultsFor(r.level as CrewLevel).ownVan && (
+                            {r.costing.ownVan && !defaultsFor(r.level as CrewLevel).ownVan && !ridesAlongAlways(r.level as CrewLevel) && (
                               <span className="pt-cap__vanwarn">
                                 A {LEVEL_LABEL[r.level as CrewLevel].toLowerCase()} with their own van is costed as
                                 another van on the road: their own billable hours, and their hour carrying a share of
