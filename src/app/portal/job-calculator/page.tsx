@@ -35,13 +35,27 @@ export default async function JobCalculatorPage() {
     const capOnsite = computeCapacity(people, { ...base, mode: "onsite" });
     const mob = new Map(capMobile.rates.map((r) => [r.id, r.rate]));
     const ons = new Map(capOnsite.rates.map((r) => [r.id, r.rate]));
+    // What someone riding with a tech adds to the crew for every hour they are
+    // on the job. The calculator used to charge nothing for them, which priced
+    // a two-hander at the tech on his own.
+    const mobUp = new Map(capMobile.rates.map((r) => [r.id, r.uplift]));
+    const onsUp = new Map(capOnsite.rates.map((r) => [r.id, r.uplift]));
     const round = (v: number | null | undefined) => (v != null ? Math.round(v) : null);
-    // Anyone riding with a tech still comes through, listed but not chargeable —
-    // seeing them greyed out is how the rule reads on the page.
+    // Anyone riding with a tech comes through with their uplift instead of a
+    // rate, so a job they were on is priced with them on it.
     crew = people.map((p) => ({
       id: p.id, name: p.name, level: p.level,
       rate: round(mob.get(p.id)),
       rateOnsite: round(ons.get(p.id)),
+      uplift: round(mobUp.get(p.id)),
+      upliftOnsite: round(onsUp.get(p.id)),
+      // A wage does not change with the mode: the same hour of their time
+      // costs the same whether the van drove five jobs or parked on one. The
+      // charge is that wage with the margin on it, because the margin goes on
+      // what the crew costs, both bodies in it.
+      wage: Math.round(p.costing.wage * (1 + base.oncosts / 100) * 100) / 100,
+      wageCharge:
+        Math.round(p.costing.wage * (1 + base.oncosts / 100) * (1 + base.margin / 100) * 100) / 100,
     }));
     costPerHr = capMobile.totalBillHrs > 0 ? capMobile.costPerHr : null;
     costPerHrOnsite = capOnsite.totalBillHrs > 0 ? capOnsite.costPerHr : null;

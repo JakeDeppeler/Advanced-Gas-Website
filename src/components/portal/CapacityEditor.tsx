@@ -3,9 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
+  CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
-  scaleOf, suggestOverhead,
+  scaleOf, suggestOverhead, alwaysSupervised,
   type CapSettings, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
 } from "@/lib/portal/crew";
@@ -178,6 +178,7 @@ export function CapacityEditor({
   const costed = useMemo(() => rows.filter((r) => r.level !== "").map((r) => ({ id: r.id, name: r.name, level: r.level as CrewLevel, costing: r.costing })), [rows]);
   const cap = useMemo(() => computeCapacity(costed, s), [costed, s]);
   const rateById = useMemo(() => new Map(cap.rates.map((x) => [x.id, x])), [cap]);
+  const perById = useMemo(() => new Map(cap.per.map((x) => [x.p.id, x.c])), [cap]);
   const combos = useMemo(() => crewCombos(costed, cap.rates), [costed, cap]);
   // Every person's wage bill for the year, biggest first, plus why someone's
   // hours aren't billable when they aren't.
@@ -192,7 +193,7 @@ export function CapacityEditor({
       // sick, RDOs, school and travel are all paid but not billed, so this lands
       // well above the hourly wage — that gap is the point of showing it.
       perBillHr: c.billHrs > 0 ? c.wageCost / c.billHrs : null,
-      note: !LEVEL_BILLABLE[p.level] ? "not billable — all overhead" : !p.costing.ownVan ? "rides with a tech — all overhead" : "",
+      note: !LEVEL_BILLABLE[p.level] ? "not billable, all overhead" : !p.costing.ownVan ? "rides with a tech, recovered as an uplift on the crew rate" : "",
     })).sort((a, b) => b.wageCost - a.wageCost);
     return {
       rows,
@@ -219,14 +220,16 @@ export function CapacityEditor({
   /** The fixed notes, plus one written on the spot for each crew level. */
   const noteFor = (key: string) => {
     if (STAT_NOTES[key]) return STAT_NOTES[key];
+    const cp = crewPrices.find((c) => `crew:${c.key}` === key);
+    if (cp) return { label: cp.label, body: cp.note };
     const lv = levelHours.find((l) => `lvl:${l.key}` === key);
     if (!lv) return null;
     const who = lv.label.toLowerCase();
     return {
       label: `${lv.label}'s hour`,
-      body: lv.ridesAlong
-        ? `A ${who} rides with a tech rather than taking a van out, so they bill no hours of their own. Their cost is deliberately left out of the shared overhead, or a tech working on his own would carry a ${who} who wasn't there. This is their whole cost for the year spread over the hours of the van they ride in, and it comes back as an uplift on the crew rate over on What we charge.`
-        : `What one hour of a ${who}'s time costs before any margin: the wage for that hour with on-costs on top, plus that hour's share of every overhead. It is the blended figure beside it worked out for this level on its own, so you can see which way a crew shape moves the cost.`,
+      body: lv.wageOnly || lv.ridesAlong
+        ? `A cost, not a rate. A ${who} is never quoted on their own, so this figure never goes on a job by itself: it goes into a crew, and the margin goes on the crew. Just the wage, and no overhead: there is no second van and no second set of overheads, and the tech's hour is already carrying them for that job. Charging it again on the ${who} would be charging it twice. The reason it is not simply their hourly rate is the year: you pay them ${money2(lv.wagePerHr)} an hour with on-costs, for ${hrs(lv.paidHrs)} of the year, and they bill none of those hours themselves because the van does. So the ${hrs(cap.hrsPerVan)} that van can bill has to recover the lot, and that is this figure. It comes back as an uplift on the crew rate over on What we charge, not as overhead.`
+        : `${money2(lv.wagePerHr)} an hour is what you pay a ${who} with on-costs, and that is the wage half of this tile. The other ${money2(Math.max(0, lv.perHr - lv.wagePerHr))} is that hour's share of the overhead, which they carry because they take a van out. The hours you pay for but cannot bill are in there too: of the ${hrs(lv.paidHrs)} a year, ${hrs(lv.billHrs)} are billable, and the leave, public holidays, sick days, RDOs, travel and admin that make up the difference are carried as overhead rather than loaded back onto the wage.`,
     };
   };
 
@@ -251,20 +254,87 @@ export function CapacityEditor({
       .map((l) => {
         const mine = costed.filter((p) => p.level === l.key);
         if (!mine.length) return null;
-        const vals = mine
-          .map((p) => rateById.get(p.id)?.costPerHr)
-          .filter((v): v is number => v != null);
-        if (!vals.length) return null;
+        // A level that spends a serious part of its week in the office does not
+        // get a tile. Those office hours are already counted as overhead, in
+        // the tile four along, so putting the same person up as a crew hour
+        // reads their desk time twice: once as the overhead every hour carries
+        // and once as the hour itself. A quarter of the week is the line.
+        const deskHeavy =
+          mine.every((p) => p.costing.hrsWeek > 0 && p.costing.officeHrsWeek / p.costing.hrsWeek >= 0.25);
+        if (deskHeavy) return null;
+        const mean = (pick: (r: NonNullable<ReturnType<typeof rateById.get>>) => number | null | undefined) => {
+          const vals = mine
+            .map((p) => { const r = rateById.get(p.id); return r ? pick(r) : null; })
+            .filter((v): v is number => v != null);
+          return vals.length ? vals.reduce((a, v) => a + v, 0) / vals.length : null;
+        };
+        const perHr = mean((r) => r.costPerHr);
+        if (perHr == null) return null;
+        // The wage on the clock, and how much of the year it is actually
+        // possible to bill. The gap between the two is the whole answer to
+        // "how is an apprentice sixty dollars an hour".
+        const wagePerHr =
+          mine.reduce((a, p) => a + p.costing.wage * (1 + s.oncosts / 100), 0) / mine.length;
+        const paidHrs = mine.reduce((a, p) => a + (perById.get(p.id)?.paidHrs ?? 0), 0);
+        const billHrs = mine.reduce((a, p) => a + (perById.get(p.id)?.billHrs ?? 0), 0);
         return {
           key: l.key,
           label: l.label,
           count: mine.length,
-          perHr: vals.reduce((a, v) => a + v, 0) / vals.length,
+          // An apprentice's hour is their wage. Not a share of the overhead on
+          // top: whoever they are on the job with is already carrying that, and
+          // charging it twice is how a two-hander ends up at two full rates.
+          perHr: alwaysSupervised(l.key) ? wagePerHr : perHr,
+          wageOnly: alwaysSupervised(l.key),
+          wagePerHr,
+          paidHrs,
+          billHrs,
+          // What they go out at, so a crew price can be added up from the same
+          // figures the tiles are showing. A ride-along has no rate of their
+          // own; what they add to the crew is the uplift.
+          charge: mean((r) => r.rate),
+          uplift: mean((r) => r.uplift),
           ridesAlong: mine.every((p) => !p.costing.ownVan),
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
-  }, [costed, rateById]);
+  }, [costed, rateById, perById, s.oncosts]);
+
+  // The two numbers you actually quote off: a tradesman on his own, and the
+  // same tradesman with an apprentice alongside him. The only difference
+  // between them is the apprentice's wage. There is no second van in it, no
+  // second set of overheads and no second rate, because the tradesman's hour
+  // is already carrying all of that for the job they are both standing on.
+  const crewPrices = useMemo(() => {
+    const solo = levelHours
+      .filter((l) => !l.wageOnly && l.charge != null)
+      .sort((a, b) => (b.charge as number) - (a.charge as number));
+    if (!solo.length) return [] as { key: string; label: string; rate: number; parts: string; note: string }[];
+    const lead = solo[0];
+    const leadRate = lead.charge as number;
+    // No tile for the lead on their own: with the charge on the face and the
+    // cost underneath, that is now the same tile as their level, to the cent.
+    // The comparison still reads across, because their level tile is sitting
+    // immediately to the left of this one.
+    const out: { key: string; label: string; rate: number; cost: number; parts: string; note: string }[] = [];
+    const mate = levelHours.find((l) => l.wageOnly);
+    if (mate) {
+      const pairCost = lead.perHr + mate.wagePerHr;
+      out.push({
+        key: "pair",
+        label: `${lead.label} + ${mate.label.toLowerCase()}`,
+        // Both bodies costed, then the margin once over the pair. Adding the
+        // wage onto an already-margined rate left the apprentice's time
+        // earning nothing, and it only worked at all because their wage was
+        // being treated as a charge of its own.
+        rate: pairCost * (1 + s.margin / 100),
+        cost: pairCost,
+        parts: `Charged · costs ${money2(pairCost)}`,
+        note: `Both of them costed, then the margin once over the pair. The ${lead.label.toLowerCase()}'s hour costs ${money2(lead.perHr)}, the ${mate.label.toLowerCase()}'s wage with on-costs is ${money2(mate.wagePerHr)}, which is ${money2(pairCost)} on the job, and ${s.margin}% on top of that is this figure. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that. The ${mate.label.toLowerCase()} is never charged out on their own, which is why their own tile is a cost and not a rate: they only ever go on a quote inside a crew.`,
+      });
+    }
+    return out;
+  }, [levelHours]);
 
   /** Office, admin and operations — a cost to carry, not a crew to schedule. */
   const officeRows = useMemo(
@@ -344,23 +414,39 @@ export function CapacityEditor({
         <Stat
           label="What we charge an hour"
           value={blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}
-          sub={`Cost plus ${s.margin}% margin`}
+          sub={`Charged · cost plus ${s.margin}% margin`}
           open={info === "charge"} onToggle={() => setInfo(info === "charge" ? null : "charge")}
         />
         <Stat
           label="What an hour costs us"
           value={show(cap.costPerHr)}
-          sub="Blended, before any margin"
+          sub="Costs us · blended, before margin"
           open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
         />
         {levelHours.map((l) => (
           <Stat
             key={l.key}
             label={`${l.label}'s hour`}
-            value={show(l.perHr)}
-            sub={l.ridesAlong ? "Over the van's hours" : "Wage plus overhead share"}
+            // Charged on the face, costs us underneath. Both numbers, every
+            // tile, so nothing on this strip has to be asked about.
+            value={show(l.wageOnly ? l.perHr : (l.charge ?? l.perHr))}
+            sub={
+              l.wageOnly
+                ? "Cost only · never charged out alone"
+                : `Charged · costs ${show(l.perHr)}`
+            }
             open={info === `lvl:${l.key}`}
             onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
+          />
+        ))}
+        {crewPrices.map((c) => (
+          <Stat
+            key={c.key}
+            label={c.label}
+            value={hasHrs ? <>{money(c.rate)}<em>/hr</em></> : "—"}
+            sub={c.parts}
+            open={info === `crew:${c.key}`}
+            onToggle={() => setInfo(info === `crew:${c.key}` ? null : `crew:${c.key}`)}
           />
         ))}
         <Stat
@@ -488,9 +574,24 @@ export function CapacityEditor({
                             </div>
                             <span className="pt-cap__vannote">
                               {r.costing.ownVan
-                                ? "Charged out at their own rate."
-                                : "Not charged — the customer pays for the tech. Their wage is carried as overhead."}
+                                ? "Charged out at their own rate, and their hour carries a share of the overhead."
+                                : "Not charged out on their own. Their wage comes back as an uplift on the crew rate, not as overhead: the tech's hour is already paying for that."}
                             </span>
+                            {/* The setting that surprises people. A level that
+                                normally rides along, ticked as having a van,
+                                becomes another van on the road: its own
+                                billable hours and its own share of the
+                                overhead, which turns a wage into a full rate.
+                                Worth saying at the switch rather than leaving
+                                it to be worked out from the tiles up top. */}
+                            {r.costing.ownVan && !defaultsFor(r.level as CrewLevel).ownVan && (
+                              <span className="pt-cap__vanwarn">
+                                A {LEVEL_LABEL[r.level as CrewLevel].toLowerCase()} with their own van is costed as
+                                another van on the road: their own billable hours, and their hour carrying a share of
+                                the overhead. That is what turns their wage into a full rate. If they ride with a
+                                tech, switch it across and their hour becomes the wage alone.
+                              </span>
+                            )}
                           </div>
                         )}
 

@@ -312,6 +312,19 @@ export type PersonCosted = {
   chargeable: boolean;
 };
 
+/**
+ * Levels that never work unsupervised, so their hour is a wage rather than a
+ * rate: an apprentice is on the job with a tradesman, and the tradesman's hour
+ * is the one carrying the overhead for it.
+ *
+ * This changes how a figure is READ, not what the business owns. The fleet is
+ * the fleet: the number of vans does not go up or down with who is sitting in
+ * one, so nothing here touches the van count or the hours it can bill.
+ */
+export function alwaysSupervised(level: CrewLevel): boolean {
+  return level === "apprentice";
+}
+
 export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): PersonCosted {
   const rate = c.wage * (1 + s.oncosts / 100);
   const paidHrs = c.hrsWeek * s.weeksYear;
