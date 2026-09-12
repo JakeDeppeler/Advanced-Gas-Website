@@ -50,8 +50,12 @@ export default async function JobCalculatorPage() {
       uplift: round(mobUp.get(p.id)),
       upliftOnsite: round(onsUp.get(p.id)),
       // A wage does not change with the mode: the same hour of their time
-      // costs the same whether the van drove five jobs or parked on one.
+      // costs the same whether the van drove five jobs or parked on one. The
+      // charge is that wage with the margin on it, because the margin goes on
+      // what the crew costs, both bodies in it.
       wage: Math.round(p.costing.wage * (1 + base.oncosts / 100) * 100) / 100,
+      wageCharge:
+        Math.round(p.costing.wage * (1 + base.oncosts / 100) * (1 + base.margin / 100) * 100) / 100,
     }));
     costPerHr = capMobile.totalBillHrs > 0 ? capMobile.costPerHr : null;
     costPerHrOnsite = capOnsite.totalBillHrs > 0 ? capOnsite.costPerHr : null;

@@ -227,8 +227,8 @@ export function CapacityEditor({
     const who = lv.label.toLowerCase();
     return {
       label: `${lv.label}'s hour`,
-      body: lv.ridesAlong
-        ? `Just the wage, and no overhead: there is no second van and no second set of overheads, and the tech's hour is already carrying them for that job. Charging it again on the ${who} would be charging it twice. The reason it is not simply their hourly rate is the year: you pay them ${money2(lv.wagePerHr)} an hour with on-costs, for ${hrs(lv.paidHrs)} of the year, and they bill none of those hours themselves because the van does. So the ${hrs(cap.hrsPerVan)} that van can bill has to recover the lot, and that is this figure. It comes back as an uplift on the crew rate over on What we charge, not as overhead.`
+      body: lv.wageOnly || lv.ridesAlong
+        ? `A cost, not a rate. A ${who} is never quoted on their own, so this figure never goes on a job by itself: it goes into a crew, and the margin goes on the crew. Just the wage, and no overhead: there is no second van and no second set of overheads, and the tech's hour is already carrying them for that job. Charging it again on the ${who} would be charging it twice. The reason it is not simply their hourly rate is the year: you pay them ${money2(lv.wagePerHr)} an hour with on-costs, for ${hrs(lv.paidHrs)} of the year, and they bill none of those hours themselves because the van does. So the ${hrs(cap.hrsPerVan)} that van can bill has to recover the lot, and that is this figure. It comes back as an uplift on the crew rate over on What we charge, not as overhead.`
         : `${money2(lv.wagePerHr)} an hour is what you pay a ${who} with on-costs, and that is the wage half of this tile. The other ${money2(Math.max(0, lv.perHr - lv.wagePerHr))} is that hour's share of the overhead, which they carry because they take a van out. The hours you pay for but cannot bill are in there too: of the ${hrs(lv.paidHrs)} a year, ${hrs(lv.billHrs)} are billable, and the leave, public holidays, sick days, RDOs, travel and admin that make up the difference are carried as overhead rather than loaded back onto the wage.`,
     };
   };
@@ -319,13 +319,18 @@ export function CapacityEditor({
     const out: { key: string; label: string; rate: number; cost: number; parts: string; note: string }[] = [];
     const mate = levelHours.find((l) => l.wageOnly);
     if (mate) {
+      const pairCost = lead.perHr + mate.wagePerHr;
       out.push({
         key: "pair",
         label: `${lead.label} + ${mate.label.toLowerCase()}`,
-        rate: leadRate + mate.wagePerHr,
-        cost: lead.perHr + mate.wagePerHr,
-        parts: `Charged · costs ${money2(lead.perHr + mate.wagePerHr)}`,
-        note: `The tile to the left with ${money2(mate.wagePerHr)} added. The ${lead.label.toLowerCase()} hour at ${money(leadRate)} charged, plus the ${mate.label.toLowerCase()}'s wage of ${money2(mate.wagePerHr)} with on-costs. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that for the job. Worth knowing what this figure is made of: the first half is a charge and the second half is a cost at no margin, so the ${mate.label.toLowerCase()}'s time is quoted at exactly what it costs and earns nothing. At ${s.margin}% it would be ${money2(mate.wagePerHr * (1 + s.margin / 100))} instead, ${money(leadRate + mate.wagePerHr * (1 + s.margin / 100))} for the pair.`,
+        // Both bodies costed, then the margin once over the pair. Adding the
+        // wage onto an already-margined rate left the apprentice's time
+        // earning nothing, and it only worked at all because their wage was
+        // being treated as a charge of its own.
+        rate: pairCost * (1 + s.margin / 100),
+        cost: pairCost,
+        parts: `Charged · costs ${money2(pairCost)}`,
+        note: `Both of them costed, then the margin once over the pair. The ${lead.label.toLowerCase()}'s hour costs ${money2(lead.perHr)}, the ${mate.label.toLowerCase()}'s wage with on-costs is ${money2(mate.wagePerHr)}, which is ${money2(pairCost)} on the job, and ${s.margin}% on top of that is this figure. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that. The ${mate.label.toLowerCase()} is never charged out on their own, which is why their own tile is a cost and not a rate: they only ever go on a quote inside a crew.`,
       });
     }
     return out;
@@ -427,7 +432,7 @@ export function CapacityEditor({
             value={show(l.wageOnly ? l.perHr : (l.charge ?? l.perHr))}
             sub={
               l.wageOnly
-                ? `Wage, charged at cost · costs ${show(l.perHr)}`
+                ? "Cost only · never charged out alone"
                 : `Charged · costs ${show(l.perHr)}`
             }
             open={info === `lvl:${l.key}`}

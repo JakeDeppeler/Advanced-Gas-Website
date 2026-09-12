@@ -24,6 +24,8 @@ export type CrewRate = {
    * they are standing next to is carrying the overhead for it.
    */
   wage: number | null;
+  /** That wage with the margin on it: what their hour goes on a quote at. */
+  wageCharge: number | null;
 };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
@@ -77,7 +79,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
       // riding along adds their uplift. Everyone else adds their rate. This
       // used to charge nothing at all for the first two, which priced a
       // two-hander at the tech on his own.
-      charge: alwaysSupervised(c.level) ? c.wage : (rate ?? uplift ?? null),
+      charge: alwaysSupervised(c.level) ? c.wageCharge : (rate ?? uplift ?? null),
       wageOnly: alwaysSupervised(c.level),
       rides: rate === null,
     };
@@ -227,7 +229,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
                               {noPrice
                                 ? "No figure yet, set their numbers in Costs & capacity"
                                 : c.wageOnly
-                                  ? `${money2(c.charge as number)}/hr, their wage on top of the tradesman`
+                                  ? `${money2(c.charge as number)}/hr on top of the tradesman · wage ${money2(c.wage as number)} plus margin`
                                   : rides
                                     ? `${money(c.charge as number)}/hr on top of the tech`
                                     : `${money(c.charge as number)}/hr`}
@@ -250,9 +252,10 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           )}
           {ridealong.length > 0 && (
             <p className="pt-calc__hint pt-job__ridenote">
-              {ridealong.map((r) => r.name).join(" and ")} adds a wage to the job and nothing else: no second van, no
-              second share of the overhead and no margin on it, because the tradesman on the job is already carrying
-              all of that. Leaving them off a job they were on prices it as the tradesman on his own.
+              {ridealong.map((r) => r.name).join(" and ")} adds a wage to the job and nothing else: no second van and
+              no second share of the overhead, because the tradesman on the job is already carrying those. The margin
+              goes on it the same as it does on the tradesman&rsquo;s hour, since it is the crew being quoted, not two
+              separate people. Leaving them off a job they were on prices it as the tradesman on his own.
             </p>
           )}
         </div>
