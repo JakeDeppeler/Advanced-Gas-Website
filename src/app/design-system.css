@@ -3193,51 +3193,71 @@ html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path:nth-child(3
 html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path:nth-child(3) { animation-delay: 0.32s; }
 @keyframes draw-on { to { stroke-dashoffset: 0; } }
 
-/* Climate: warm air in from one side, cool from the other, meeting in the middle. */
-.sweep__climate { display: none; }
+/* Heating and cooling: the whole-home layout, drawing itself. Walls first, then
+   the plant, then the runs out to every room, then the outlets. Slow on purpose
+   — a drawing that appears fully formed is a picture, and the drawing is the
+   point. */
+.sweep__plan { display: none; }
 html[data-sweep-kind="climate"] .sweep {
   display: grid; place-items: center;
   transform: translateY(101%);
-  background: linear-gradient(160deg, #c2521a 0%, #7a3a6e 48%, var(--sky, #00b0ed) 100%);
-  color: #fff;
+  background: linear-gradient(165deg, #12224e, var(--navy, #050a30));
+  color: var(--sky-2, #2cc5ff);
 }
-html[data-sweep-kind="climate"] .sweep__climate { display: block; position: absolute; inset: 0; }
-.sweep__stream { position: absolute; left: 0; right: 0; height: 12px; border-radius: 99px; opacity: 0.55; }
-.sweep__stream--warm { top: 34%; background: linear-gradient(90deg, transparent, #ffb27a, transparent); }
-.sweep__stream--cool { top: 62%; background: linear-gradient(90deg, transparent, #9fe6ff, transparent); }
-.sweep__flake { position: absolute; left: 50%; top: 50%; width: 74px; height: 74px; margin: -37px 0 0 -37px; }
-html[data-sweep-kind="climate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.54s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
-html[data-sweep-kind="climate"][data-sweep="in"] .sweep__stream--warm { animation: stream-r 0.6s 0.08s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
-html[data-sweep-kind="climate"][data-sweep="in"] .sweep__stream--cool { animation: stream-l 0.6s 0.16s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
-html[data-sweep-kind="climate"][data-sweep="in"] .sweep__flake { animation: flake 0.6s 0.2s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
-html[data-sweep-kind="climate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.48s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
-@keyframes stream-r { from { transform: translateX(-45%); opacity: 0; } to { transform: none; opacity: 0.55; } }
-@keyframes stream-l { from { transform: translateX(45%); opacity: 0; } to { transform: none; opacity: 0.55; } }
-@keyframes flake { from { transform: rotate(-90deg) scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+html[data-sweep-kind="climate"] .sweep__plan { display: block; }
+.sweep__plan svg { width: min(64vw, 520px); height: auto; }
+.sweep__plan .p1 { stroke-dasharray: 850; stroke-dashoffset: 850; }
+.sweep__plan .p2 { stroke: rgba(255, 255, 255, 0.34); stroke-dasharray: 400; stroke-dashoffset: 400; }
+.sweep__plan .p3 { stroke: var(--orange, #f36722); stroke-dasharray: 180; stroke-dashoffset: 180; }
+.sweep__plan .p4 { stroke-dasharray: 620; stroke-dashoffset: 620; }
+.sweep__plan .p5 { opacity: 0; }
+.sweep__plan .p5 rect { fill: var(--sky-2, #2cc5ff); stroke: none; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.5s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__plan .p1 { animation: draw 0.42s 0.16s ease-out forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__plan .p2 { animation: draw 0.3s 0.44s ease-out forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__plan .p3 { animation: draw 0.24s 0.6s ease-out forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__plan .p4 { animation: draw 0.42s 0.72s ease-out forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__plan .p5 { animation: pop 0.22s 1.02s ease-out forwards; }
+html[data-sweep-kind="climate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.56s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
 
-/* Rebate: the money coming off, falling out of the top of the screen. */
-.sweep__rebate { display: none; }
+/* Rebate: what it actually is. The quote total, the rebate line landing under
+   it, then a smaller number where the big one was. Falling dollar signs said
+   "money"; this says "off your quote", which is the thing being promised. */
+.sweep__quote { display: none; }
 html[data-sweep-kind="rebate"] .sweep {
-  display: block;
+  display: grid; place-items: center;
   transform: translateY(101%);
-  background: linear-gradient(180deg, #1f7a4d, #105835);
+  background: linear-gradient(165deg, #12224e, var(--navy, #050a30));
 }
-html[data-sweep-kind="rebate"] .sweep__rebate {
-  display: flex; justify-content: space-around; align-items: center;
-  position: absolute; inset: 0; padding: 0 8vw;
-}
-.sweep__rebate span {
+html[data-sweep-kind="rebate"] .sweep__quote {
+  display: grid; justify-items: end; gap: 6px;
   font-family: var(--f-display, inherit);
-  font-size: clamp(38px, 7vw, 84px); font-weight: 800; color: rgba(255, 255, 255, 0.9);
+  text-align: right;
 }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.54s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span { animation: coin 0.5s cubic-bezier(0.3, 0.85, 0.3, 1) both; }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(2) { animation-delay: 0.06s; }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(3) { animation-delay: 0.12s; }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(4) { animation-delay: 0.18s; }
-html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(5) { animation-delay: 0.24s; }
-html[data-sweep-kind="rebate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.47s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
-@keyframes coin { from { transform: translateY(-70px); opacity: 0; } to { transform: none; opacity: 1; } }
+.sweep__q1 {
+  font-size: clamp(34px, 6vw, 62px); font-weight: 800; color: rgba(255, 255, 255, 0.5);
+  position: relative;
+}
+.sweep__q1::after {
+  content: ""; position: absolute; left: -4%; right: -4%; top: 52%;
+  height: 4px; border-radius: 4px; background: var(--orange, #f36722);
+  transform: scaleX(0); transform-origin: left center;
+}
+.sweep__q2 { font-size: clamp(14px, 1.8vw, 19px); font-weight: 700; color: var(--orange, #f36722); opacity: 0; }
+.sweep__qrule { width: 100%; height: 2px; background: rgba(255, 255, 255, 0.22); transform: scaleX(0); transform-origin: right center; }
+.sweep__q3 { font-size: clamp(40px, 7.5vw, 80px); font-weight: 800; color: #fff; opacity: 0; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.5s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__q1 { animation: fadeup 0.26s 0.16s ease-out both; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__q1::after { animation: strike 0.28s 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__q2 { animation: fadeup 0.26s 0.5s ease-out forwards; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__qrule { animation: strike 0.22s 0.64s ease-out forwards; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__q3 { animation: fadeup 0.3s 0.72s cubic-bezier(0.3, 0.85, 0.3, 1) forwards; }
+html[data-sweep-kind="rebate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.52s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes strike { to { transform: scaleX(1); } }
+@keyframes fadeup { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
 /* Service: the spanner turning onto the nut. */
 .sweep__service { display: none; }
@@ -3301,49 +3321,81 @@ html[data-sweep-kind="crane"] .sweep__crane { display: block; position: absolute
   border-radius: 0 0 14px 14px; border-top-color: transparent;
 }
 .sweep__load {
-  position: absolute; left: 50%; top: 0; width: 190px; height: 76px;
+  /* Hung below the hook rather than over it: at top:0 the two shared an origin
+     and the 190px load simply covered the 26px hook. */
+  position: absolute; left: 50%; top: 24px; width: 190px; height: 76px;
   margin-left: -95px; border-radius: 6px;
   background: #e9edf7; box-shadow: inset 0 -10px 0 rgba(11, 20, 80, 0.18);
 }
-html[data-sweep-kind="crane"][data-sweep="in"] .sweep { animation: crane-cover 0.62s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
-html[data-sweep-kind="crane"][data-sweep="in"] .sweep__line { animation: crane-line 0.4s cubic-bezier(0.4, 0, 0.4, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep { animation: crane-cover 1.24s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep__line { animation: crane-line 0.9s 0.1s cubic-bezier(0.35, 0, 0.35, 1) forwards; }
+/* Slow, and eased like a load on a line: it gets moving, then settles rather
+   than stopping dead. A crane that takes half a second is a lift nobody would
+   stand under. */
 html[data-sweep-kind="crane"][data-sweep="in"] .sweep__hook,
-html[data-sweep-kind="crane"][data-sweep="in"] .sweep__load { animation: crane-drop 0.4s cubic-bezier(0.4, 0, 0.4, 1) forwards; }
-html[data-sweep-kind="crane"][data-sweep="out"] .sweep { animation: sweep-up-out 0.52s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="in"] .sweep__load { animation: crane-drop 0.9s 0.1s cubic-bezier(0.35, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="crane"][data-sweep="out"] .sweep { animation: sweep-up-out 0.62s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
 @keyframes crane-cover { from { transform: translateY(-101%); } to { transform: translateY(0); } }
 @keyframes crane-line { from { height: 0; } to { height: 46vh; } }
 @keyframes crane-drop { from { transform: translateY(-90px); } to { transform: translateY(44vh); } }
 
-/* Build: a girder slides in and sets, then the wall follows it. */
-html[data-sweep-kind="build"] .sweep { transform: translateX(-101%); background: var(--navy, #050a30); }
-html[data-sweep-kind="build"] .sweep__build {
-  display: flex; flex-direction: column; gap: 14px; justify-content: center;
-  position: absolute; inset: 0; padding: 0 12vw;
+/* Fit-out: the mechanical layout drawing itself. Plant at one end, trunk duct
+   across, branches to the outlets. This is the drawing a tenancy package
+   actually starts from, so it is the drawing the door opens with. */
+.sweep__duct { display: none; }
+html[data-sweep-kind="build"] .sweep {
+  display: grid; place-items: center;
+  transform: translateX(-101%);
+  background: linear-gradient(105deg, #12224e, var(--navy, #050a30));
+  color: var(--sky-2, #2cc5ff);
 }
-.sweep__build span { height: 14px; border-radius: 3px; background: var(--orange, #f36722); transform: scaleX(0); transform-origin: left center; }
-html[data-sweep-kind="build"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.52s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span { animation: girder 0.34s cubic-bezier(0.3, 0.8, 0.3, 1) forwards; }
-html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span:nth-child(2) { animation-delay: 0.08s; opacity: 0.65; }
-html[data-sweep-kind="build"][data-sweep="in"] .sweep__build span:nth-child(3) { animation-delay: 0.16s; opacity: 0.35; }
-html[data-sweep-kind="build"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.48s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-@keyframes girder { to { transform: scaleX(1); } }
+html[data-sweep-kind="build"] .sweep__duct { display: block; }
+.sweep__duct svg { width: min(68vw, 560px); height: auto; }
+.sweep__duct .d1 { stroke: var(--orange, #f36722); stroke-dasharray: 210; stroke-dashoffset: 210; }
+.sweep__duct .d2 { stroke-dasharray: 210; stroke-dashoffset: 210; }
+.sweep__duct .d3 { stroke-dasharray: 330; stroke-dashoffset: 330; }
+.sweep__duct .d4 { opacity: 0; }
+.sweep__duct .d4 rect { fill: var(--sky-2, #2cc5ff); stroke: none; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.5s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__duct .d1 { animation: draw 0.3s 0.18s ease-out forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__duct .d2 { animation: draw 0.36s 0.42s ease-out forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__duct .d3 { animation: draw 0.34s 0.66s ease-out forwards; }
+html[data-sweep-kind="build"][data-sweep="in"] .sweep__duct .d4 { animation: pop 0.22s 0.96s ease-out forwards; }
+html[data-sweep-kind="build"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.56s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
-/* Schedule: a service sheet ticking itself off, top to bottom. */
-html[data-sweep-kind="schedule"] .sweep { transform: translateY(101%); background: var(--navy-3, #1b234e); }
-html[data-sweep-kind="schedule"] .sweep__sched {
-  display: flex; flex-direction: column; gap: 22px; justify-content: center;
-  position: absolute; inset: 0; padding: 0 16vw;
+/* Maintenance: the clipboard, filling itself in. Board, clip, then each row
+   ticking in turn — the pace of someone actually working down a service sheet
+   rather than four ticks appearing at once. */
+.sweep__board { display: none; }
+html[data-sweep-kind="schedule"] .sweep {
+  display: grid; place-items: center;
+  transform: translateY(101%);
+  background: linear-gradient(165deg, var(--navy-3, #1b234e), var(--navy, #050a30));
+  color: #e9edf7;
 }
-.sweep__row { display: flex; align-items: center; gap: 18px; color: var(--orange, #f36722); }
-.sweep__row svg { width: 26px; height: 26px; flex: 0 0 auto; stroke-dasharray: 26; stroke-dashoffset: 26; }
-.sweep__row i { display: block; height: 10px; border-radius: 3px; background: rgba(255, 255, 255, 0.22); flex: 1 1 auto; }
-html[data-sweep-kind="schedule"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.56s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
-html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row svg { animation: tick 0.24s ease-out forwards; }
-html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(2) svg { animation-delay: 0.1s; }
-html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(3) svg { animation-delay: 0.2s; }
-html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__row:nth-child(4) svg { animation-delay: 0.3s; }
-html[data-sweep-kind="schedule"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.46s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
-@keyframes tick { to { stroke-dashoffset: 0; } }
+html[data-sweep-kind="schedule"] .sweep__board { display: block; }
+.sweep__board svg { width: min(38vw, 230px); height: auto; }
+.sweep__board .b-body { stroke-dasharray: 700; stroke-dashoffset: 700; }
+.sweep__board .b-clip { stroke: var(--orange, #f36722); stroke-dasharray: 180; stroke-dashoffset: 180; }
+.sweep__board .b-row { opacity: 0; }
+.sweep__board .b-tick { stroke: var(--orange, #f36722); stroke-dasharray: 30; stroke-dashoffset: 30; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.5s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-body { animation: draw 0.36s 0.16s ease-out forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-clip { animation: draw 0.22s 0.42s ease-out forwards; }
+/* Opacity only, no transform. `fadeup` ends on `transform: none`, and a CSS
+   transform overrides an element's SVG transform attribute — so animating it
+   wiped each row's translate() and stacked all four on top of the clip. */
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row { animation: fadein 0.2s ease-out forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(1) { animation-delay: 0.5s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(2) { animation-delay: 0.62s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(3) { animation-delay: 0.74s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(4) { animation-delay: 0.86s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-tick { animation: draw 0.18s ease-out forwards; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(1) .b-tick { animation-delay: 0.6s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(2) .b-tick { animation-delay: 0.72s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(3) .b-tick { animation-delay: 0.84s; }
+html[data-sweep-kind="schedule"][data-sweep="in"] .sweep__board .b-row:nth-of-type(4) .b-tick { animation-delay: 0.96s; }
+html[data-sweep-kind="schedule"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.56s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
 
 /* Call-out: the van arrives, beacon already going. */
 html[data-sweep-kind="callout"] .sweep { transform: translateX(101%); background: #7c2d12; }

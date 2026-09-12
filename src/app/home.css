@@ -76,8 +76,17 @@
      32px side padding `.wrap` gives every other section — so the hero
      copy started a third of an inch left of the rest of the page, and
      left of the header logo once that was aligned to the same column. */
-  padding: 88px 32px 96px;
-  min-height: 640px;
+  /* Sized off the viewport, not off a fixed number. The fork underneath is the
+     whole point of the top of the page and it was landing below the fold on
+     every laptop — 132px under on a 900px screen, 262px on a 1366x768. The
+     hero keeps its presence on a big monitor and gives the room back on a
+     small one. */
+  /* The bottom padding is the panel's landing room, so it does not scale with
+     the viewport the way the top does — on a big monitor the panel still lifts
+     78px and needs 96px of scrim under the trust strip to lift into. The short
+     -viewport blocks below trim it in step with a smaller overlap. */
+  padding: clamp(30px, 4.4vh, 88px) 32px 96px;
+  min-height: clamp(400px, 52vh, 640px);
 }
 .page-home .hero__copy {
   display: flex;
@@ -1792,6 +1801,38 @@
 
   .page-home .tips__grid { gap: 12px; }
   .page-home .tipcard__photo { aspect-ratio: 16 / 8; }
+}
+
+/* Short screens: the hero gives up some of its own scale so the fork clears the
+   fold. Everything is still there, it is just not shouting quite as loudly on a
+   768px laptop as it does on a 27-inch monitor. */
+@media (min-width: 861px) and (max-height: 940px) {
+  .page-home .hero__copy { gap: 14px; }
+  .page-home .hero__h1 { font-size: clamp(32px, 3.7vw, 50px); }
+  .page-home .hero__sub { font-size: 16px; }
+  .page-home .hero__photo { max-height: 390px; }
+  /* The overlap comes almost all the way off. On a tall screen the panel can
+     sit 78px over the hero because there is dead scrim under the trust strip
+     to sit on; once the hero is compressed that space is the trust strip
+     itself, and the panel was cutting the rating in half. */
+  .page-home .hero__grid { padding-bottom: 46px; }
+  .page-home .route { margin-top: -22px; }
+  .page-home .route__panel { padding: 20px 30px 18px; }
+  .page-home .route .ds-section-head h2 { font-size: clamp(21px, 2.2vw, 27px); }
+  .page-home .routebtn { padding: 12px 15px; }
+  .page-home .route__urgent { margin-top: 12px; font-size: 14px; }
+}
+@media (min-width: 861px) and (max-height: 820px) {
+  .page-home .hero__copy { gap: 11px; }
+  .page-home .hero__h1 { font-size: clamp(29px, 3vw, 40px); }
+  .page-home .hero__sub { font-size: 15px; }
+  .page-home .hero__photo { max-height: 300px; }
+  .page-home .hero__trust { padding-block: 9px; }
+  .page-home .hero__rebate { font-size: 14px; }
+  .page-home .hero__grid { padding-bottom: 30px; }
+  .page-home .route { margin-top: -14px; }
+  .page-home .route__urgent { margin-top: 10px; font-size: 13.5px; }
+  .page-home .routebtn__txt strong { font-size: 15.5px; }
 }
 
 /* ---- "What's brought you here?" — the fork under the hero ----
