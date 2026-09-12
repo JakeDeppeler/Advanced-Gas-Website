@@ -47,8 +47,6 @@ function Stat({ label, value, sub, open, onToggle }: {
  * clipped with them — which is why the first version opened into nothing.
  */
 const STAT_NOTES: Record<string, { label: string; body: string }> = {
-  charge: { label: "What we charge an hour", body: "What a job is quoted at. It is what an hour costs us, plus the margin — the money the business keeps once every wage and every overhead has been paid. Change the margin above and this moves with it." },
-  cost: { label: "What an hour costs us", body: "Everything one hour of work has to pay for before the business makes a cent: the wage for that hour, plus that hour's share of every overhead — the factory, the office wages, the vans, the insurance, the time the crew is paid for but can't bill. Quote below this and the job loses money however it felt on the day." },
   oh: { label: "Overhead on every hour", body: "The overhead half of what an hour costs. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab." },
   hrs: { label: "Hours we can bill a year", body: "The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount." },
 };
@@ -220,8 +218,22 @@ export function CapacityEditor({
   /** The fixed notes, plus one written on the spot for each crew level. */
   const noteFor = (key: string) => {
     if (STAT_NOTES[key]) return STAT_NOTES[key];
-    const cp = crewPrices.find((c) => `crew:${c.key}` === key);
-    if (cp) return { label: cp.label, body: cp.note };
+    const row = stripRows.find((r) => r.key === key);
+    if (row) {
+      const trade = levelHours.find((l) => l.key === "tradesman") ?? levelHours.filter((l) => !l.wageOnly)[0];
+      const mate = levelHours.find((l) => l.wageOnly);
+      const who = trade ? trade.label.toLowerCase() : "tradesman";
+      const app = mate ? mate.label.toLowerCase() : "apprentice";
+      const bodies = key.startsWith("pair")
+        ? `A ${who} and ${/^[aeiou]/.test(app) ? "an" : "a"} ${app} on the one job. The ${app} adds their wage with on-costs and nothing else: no second van and no second share of the overhead, because the ${who} standing next to them is already carrying those. They are never quoted on their own.`
+        : `One ${who} on the job: the wage for that hour, plus that hour's share of every overhead the business carries.`;
+      return {
+        label: row.label,
+        body: key.endsWith("-charge")
+          ? `${bodies} This is that cost with the ${s.margin}% margin on top, which is what goes on the quote. The margin goes on once, over everybody on the job, not on one of them.`
+          : `${bodies} This is what it costs before any margin. Quote below it and the job loses money however it felt on the day.`,
+      };
+    }
     const lv = levelHours.find((l) => `lvl:${l.key}` === key);
     if (!lv) return null;
     const who = lv.label.toLowerCase();
@@ -300,41 +312,32 @@ export function CapacityEditor({
       .filter((x): x is NonNullable<typeof x> => x !== null);
   }, [costed, rateById, perById, s.oncosts]);
 
-  // The two numbers you actually quote off: a tradesman on his own, and the
-  // same tradesman with an apprentice alongside him. The only difference
-  // between them is the apprentice's wage. There is no second van in it, no
-  // second set of overheads and no second rate, because the tradesman's hour
-  // is already carrying all of that for the job they are both standing on.
-  const crewPrices = useMemo(() => {
-    const solo = levelHours
-      .filter((l) => !l.wageOnly && l.charge != null)
-      .sort((a, b) => (b.charge as number) - (a.charge as number));
-    if (!solo.length) return [] as { key: string; label: string; rate: number; parts: string; note: string }[];
-    const lead = solo[0];
-    const leadRate = lead.charge as number;
-    // No tile for the lead on their own: with the charge on the face and the
-    // cost underneath, that is now the same tile as their level, to the cent.
-    // The comparison still reads across, because their level tile is sitting
-    // immediately to the left of this one.
-    const out: { key: string; label: string; rate: number; cost: number; parts: string; note: string }[] = [];
+  // The strip is six numbers and no more. It had grown a tile per crew level
+  // on top of two blended figures, which meant nine tiles, two of them showing
+  // the same dollar amount as each other and none of them saying whether they
+  // were a cost or a charge. These are the ones that get used: one body and
+  // two bodies, each at cost and then with the margin on it, then the overhead
+  // and the hours everything else divides by.
+  const stripRows = useMemo(() => {
+    const trade =
+      levelHours.find((l) => l.key === "tradesman") ??
+      levelHours.filter((l) => !l.wageOnly).sort((a, b) => b.perHr - a.perHr)[0];
+    if (!trade) return [] as { key: string; label: string; value: number; sub: string }[];
     const mate = levelHours.find((l) => l.wageOnly);
+    const m = 1 + s.margin / 100;
+    const rows = [
+      { key: "trade-cost", label: `${trade.label} + overhead`, value: trade.perHr, sub: "Costs us" },
+      { key: "trade-charge", label: `${trade.label} + overhead + ${s.margin}%`, value: trade.perHr * m, sub: "What we charge" },
+    ];
     if (mate) {
-      const pairCost = lead.perHr + mate.wagePerHr;
-      out.push({
-        key: "pair",
-        label: `${lead.label} + ${mate.label.toLowerCase()}`,
-        // Both bodies costed, then the margin once over the pair. Adding the
-        // wage onto an already-margined rate left the apprentice's time
-        // earning nothing, and it only worked at all because their wage was
-        // being treated as a charge of its own.
-        rate: pairCost * (1 + s.margin / 100),
-        cost: pairCost,
-        parts: `Charged · costs ${money2(pairCost)}`,
-        note: `Both of them costed, then the margin once over the pair. The ${lead.label.toLowerCase()}'s hour costs ${money2(lead.perHr)}, the ${mate.label.toLowerCase()}'s wage with on-costs is ${money2(mate.wagePerHr)}, which is ${money2(pairCost)} on the job, and ${s.margin}% on top of that is this figure. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that. The ${mate.label.toLowerCase()} is never charged out on their own, which is why their own tile is a cost and not a rate: they only ever go on a quote inside a crew.`,
-      });
+      const pair = trade.perHr + mate.wagePerHr;
+      rows.push(
+        { key: "pair-cost", label: `${trade.label} + ${mate.label.toLowerCase()} + overhead`, value: pair, sub: "Costs us" },
+        { key: "pair-charge", label: `${trade.label} + ${mate.label.toLowerCase()} + overhead + ${s.margin}%`, value: pair * m, sub: "What we charge" },
+      );
     }
-    return out;
-  }, [levelHours]);
+    return rows;
+  }, [levelHours, s.margin]);
 
   /** Office, admin and operations — a cost to carry, not a crew to schedule. */
   const officeRows = useMemo(
@@ -411,42 +414,14 @@ export function CapacityEditor({
       {/* the numbers that matter, on every tab */}
       <div className="pt-cap__stripwrap">
       <div className="pt-cap__strip">
-        <Stat
-          label="What we charge an hour"
-          value={blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}
-          sub={`Charged · cost plus ${s.margin}% margin`}
-          open={info === "charge"} onToggle={() => setInfo(info === "charge" ? null : "charge")}
-        />
-        <Stat
-          label="What an hour costs us"
-          value={show(cap.costPerHr)}
-          sub="Costs us · blended, before margin"
-          open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
-        />
-        {levelHours.map((l) => (
+        {stripRows.map((r) => (
           <Stat
-            key={l.key}
-            label={`${l.label}'s hour`}
-            // Charged on the face, costs us underneath. Both numbers, every
-            // tile, so nothing on this strip has to be asked about.
-            value={show(l.wageOnly ? l.perHr : (l.charge ?? l.perHr))}
-            sub={
-              l.wageOnly
-                ? "Cost only · never charged out alone"
-                : `Charged · costs ${show(l.perHr)}`
-            }
-            open={info === `lvl:${l.key}`}
-            onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
-          />
-        ))}
-        {crewPrices.map((c) => (
-          <Stat
-            key={c.key}
-            label={c.label}
-            value={hasHrs ? <>{money(c.rate)}<em>/hr</em></> : "—"}
-            sub={c.parts}
-            open={info === `crew:${c.key}`}
-            onToggle={() => setInfo(info === `crew:${c.key}` ? null : `crew:${c.key}`)}
+            key={r.key}
+            label={r.label}
+            value={hasHrs ? <>{money2(r.value)}<em>/hr</em></> : "—"}
+            sub={r.sub}
+            open={info === r.key}
+            onToggle={() => setInfo(info === r.key ? null : r.key)}
           />
         ))}
         <Stat
