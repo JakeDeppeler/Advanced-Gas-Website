@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
+  CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleOf, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
@@ -219,6 +219,13 @@ export function CapacityEditor({
   /** The fixed notes, plus one written on the spot for each crew level. */
   const noteFor = (key: string) => {
     if (STAT_NOTES[key]) return STAT_NOTES[key];
+    if (key === "crew" && crewPrice) {
+      return {
+        label: crewPrice.label,
+        body: crewPrice.note
+          ?? "What the pair is charged at when both of them are on the one job. The tiles to the left are what one person's hour costs us; this is the quote.",
+      };
+    }
     const lv = levelHours.find((l) => `lvl:${l.key}` === key);
     if (!lv) return null;
     const who = lv.label.toLowerCase();
@@ -251,20 +258,77 @@ export function CapacityEditor({
       .map((l) => {
         const mine = costed.filter((p) => p.level === l.key);
         if (!mine.length) return null;
-        const vals = mine
-          .map((p) => rateById.get(p.id)?.costPerHr)
-          .filter((v): v is number => v != null);
-        if (!vals.length) return null;
+        // A level that spends a serious part of its week in the office does not
+        // get a tile. Those office hours are already counted as overhead, in
+        // the tile four along, so putting the same person up as a crew hour
+        // reads their desk time twice: once as the overhead every hour carries
+        // and once as the hour itself. A quarter of the week is the line.
+        const deskHeavy =
+          mine.every((p) => p.costing.hrsWeek > 0 && p.costing.officeHrsWeek / p.costing.hrsWeek >= 0.25);
+        if (deskHeavy) return null;
+        const mean = (pick: (r: NonNullable<ReturnType<typeof rateById.get>>) => number | null | undefined) => {
+          const vals = mine
+            .map((p) => { const r = rateById.get(p.id); return r ? pick(r) : null; })
+            .filter((v): v is number => v != null);
+          return vals.length ? vals.reduce((a, v) => a + v, 0) / vals.length : null;
+        };
+        const perHr = mean((r) => r.costPerHr);
+        if (perHr == null) return null;
         return {
           key: l.key,
           label: l.label,
           count: mine.length,
-          perHr: vals.reduce((a, v) => a + v, 0) / vals.length,
+          perHr,
+          // What they go out at, so a crew price can be added up from the same
+          // figures the tiles are showing. A ride-along has no rate of their
+          // own; what they add to the crew is the uplift.
+          charge: mean((r) => r.rate),
+          uplift: mean((r) => r.uplift),
           ridesAlong: mine.every((p) => !p.costing.ownVan),
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
   }, [costed, rateById]);
+
+  // What a two-hander goes out at. The tiles either side of this are what one
+  // person's hour costs; this is what the pair is charged, which is the number
+  // you are actually quoting when two of them turn up.
+  //
+  // Built from the tiles rather than from crewCombos, which ranks every
+  // billable level by rate and so pairs the two dearest — and on this crew
+  // that put a tradesman next to the field-and-office role, which is the one
+  // deliberately left out up here. A crew is the people who turn up.
+  const crewPrice = useMemo(() => {
+    const solo = levelHours
+      .filter((l) => !l.ridesAlong && l.charge != null)
+      .sort((a, b) => (b.charge as number) - (a.charge as number));
+    if (!solo.length) return null;
+    const lead = solo[0];
+    const rider = levelHours
+      .filter((l) => l.ridesAlong && l.uplift != null)
+      .sort((a, b) => (b.uplift as number) - (a.uplift as number))[0];
+    if (rider) {
+      return {
+        label: `${lead.label} + ${rider.label.toLowerCase()}`,
+        rate: (lead.charge as number) + (rider.uplift as number),
+        note: `What the pair is quoted at. The ${rider.label.toLowerCase()} rides with the ${lead.label.toLowerCase()} rather than taking a van out, so the van still bills one hour for one hour on site and they add ${money(rider.uplift as number)} an hour to the crew rather than a second set of hours. That uplift is what pays for them across the year; a solo ${lead.label.toLowerCase()} does not carry them.`,
+      };
+    }
+    const second = solo[1];
+    if (!second) {
+      if (solo.length === 1 && lead.count < 2) return null;
+      return {
+        label: `Two ${LEVEL_PLURAL[lead.key].toLowerCase()}`,
+        rate: (lead.charge as number) * 2,
+        note: "Two vans and two chargeable bodies on the one job, so both rates apply. This is not a discount for turning up together; it is twice the work getting done.",
+      };
+    }
+    return {
+      label: `${lead.label} + ${second.label.toLowerCase()}`,
+      rate: (lead.charge as number) + (second.charge as number),
+      note: `What the pair is quoted at when both are on the one job. They each have a van and each bill their own hours, so both rates apply: ${money(lead.charge as number)} for the ${lead.label.toLowerCase()} and ${money(second.charge as number)} for the ${second.label.toLowerCase()}.`,
+    };
+  }, [levelHours]);
 
   /** Office, admin and operations — a cost to carry, not a crew to schedule. */
   const officeRows = useMemo(
@@ -363,6 +427,14 @@ export function CapacityEditor({
             onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
           />
         ))}
+        {crewPrice && (
+          <Stat
+            label={crewPrice.label}
+            value={hasHrs ? <>{money(crewPrice.rate)}<em>/hr</em></> : "—"}
+            sub="Charged for the pair, on one job"
+            open={info === "crew"} onToggle={() => setInfo(info === "crew" ? null : "crew")}
+          />
+        )}
         <Stat
           label="Overhead on every hour"
           value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
