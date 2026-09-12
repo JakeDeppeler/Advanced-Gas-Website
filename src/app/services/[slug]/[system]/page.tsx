@@ -141,7 +141,7 @@ export default function SystemPage({
               <span className="ds-dot" /> {svc.short} · Pakenham &amp; within 75 km
             </div>
             {/* The last word carries the accent, the way the filtration hub
-                does it — "Split system air CONDITIONING". Breaks a long
+                does it, "Split system air CONDITIONING". Breaks a long
                 flat headline into something with a shape to it. */}
             <h1>
               {system.label.split(" ").slice(0, -1).join(" ")}{" "}
@@ -341,7 +341,7 @@ export default function SystemPage({
       )}
 
       {/* Upgrade + rebate, right before the prices. Skipped on the
-          systems where a ten-year rule doesn't apply — see
+          systems where a ten-year rule doesn't apply, see
           nudgeForSystem(). */}
       {nudgeForSystem(system.id) && (
         <div className="wrap">
@@ -369,7 +369,7 @@ export default function SystemPage({
       <RangeBand
         eyebrow="The brands"
         heading={`Who makes the ${system.label.toLowerCase()} we fit.`}
-        blurb="Every model, spec and installed price sits on the brand page. One press each — or open the full list and filter it yourself."
+        blurb="Every model, spec and installed price sits on the brand page. One press each, or open the full list and filter it yourself."
         brands={systemBrands}
       />
 

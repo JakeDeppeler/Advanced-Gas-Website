@@ -27,10 +27,10 @@ const COST = [
 const COST_MAX = 1344;
 
 const SIZES = [
-  { people: "1–2 people", litres: "160–200 L", note: "A couple or a unit — a smaller tank recovers fast enough to keep up." },
+  { people: "1–2 people", litres: "160–200 L", note: "A couple or a unit, a smaller tank recovers fast enough to keep up." },
   { people: "3–4 people", litres: "250–280 L", note: "The usual family, and the size we fit most." },
   { people: "4–5 people", litres: "315 L", note: "A busy household, or back-to-back showers in the morning." },
-  { people: "6+ people", litres: "400 L", note: "A big family or acreage — the most stored volume in the range." },
+  { people: "6+ people", litres: "400 L", note: "A big family or acreage, the most stored volume in the range." },
 ];
 
 function SplitSvg() {

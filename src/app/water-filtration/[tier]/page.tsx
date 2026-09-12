@@ -60,7 +60,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <Script id={`wf-crumbs-${t.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
 
       {/* The hero is the photo. Full bleed behind the copy with a navy
-          scrim over it, rather than a panel off to one side — Jake wanted
+          scrim over it, rather than a panel off to one side. Jake wanted
           the display shot to be the header, not an inset. */}
       <section
         className={`wf-hero wf-hero--tier${t.heroPhoto && hasAsset(t.heroPhoto) ? " wf-hero--shot" : ""}`}
@@ -223,7 +223,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
         <CtaBand
           boxed
           heading={`Not sure ${t.label.toLowerCase()} is the one you need?`}
-          blurb="Tell us the symptom — taste, smell, grit, dry skin, tank water — and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
+          blurb="Tell us the symptom: taste, smell, grit, dry skin, tank water, and we'll tell you which fitting addresses it. Including when the answer is a cheaper one."
           cta="Ask us which one"
         />
       )}
@@ -262,7 +262,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       )}
 
       {/* CARTRIDGES. Photo carrying the point — the cover open with the
-          three cartridges in it — then the heading, one paragraph, and
+          three cartridges in it: then the heading, one paragraph, and
           the three numbers that actually answer "how much of a
           commitment is this". The card-with-a-letterboxed-diagram it
           replaces was a layout looking for content. */}
@@ -334,7 +334,7 @@ export default function TierPage({ params }: { params: { tier: string } }) {
                   physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
                 </p>
                 <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water, the symptom is the useful part</li>
                   <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
                   <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
                 </ul>

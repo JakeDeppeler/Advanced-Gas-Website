@@ -110,7 +110,7 @@ const services: Service[] = [
     eyebrow: "05 · Service & safety",
     eyebrowOrange: true,
     h2: "Annual gas appliance servicing + CO testing, $280 + GST.",
-    lede: "The boring stuff that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
+    lede: "The work that keeps your warranty intact, your bills sensible, and your family safe from carbon monoxide. One flat rate, no time-on-tools games.",
     specs: [["Price", "$280 + GST"], ["Time on site", "~60 min"], ["Report", "PDF emailed"], ["Best every", "2 yrs"]],
     bullets: [
       "Visual inspection & safety check",
@@ -163,7 +163,7 @@ const services: Service[] = [
     num: "08",
     eyebrow: "08 · 24/7 emergency",
     h2: "Gas leak? No hot water? Smoking flue? We answer the phone.",
-    lede: "After-hours calls go to a real on-call tradie, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
+    lede: "After-hours calls go to someone on the tools, not an overseas call centre. Pakenham locals only, sorry, we can't cover all of Melbourne overnight.",
     specs: [["Coverage", "Pakenham + 75km"], ["Response", "within 12 hrs"], ["After-hours", "$380 call-out · $260/hr after"], ["Call diversion", "no"]],
     bullets: [
       "Smell gas? Leave the property, open windows, then call us",
@@ -186,7 +186,7 @@ export default function ServicesHubPage() {
             Eight services · one trusted local crew
           </div>
           <h1>Everything gas, aircon &amp; hot water, installed, serviced, certified.</h1>
-          <p>One family-run team for the whole job. Same tradies, same paperwork trail, same warranty whether you&apos;re swapping a hot water unit or fitting out a café from scratch.</p>
+          <p>One directly employed team for the whole job. Same people, same paperwork trail, same warranty whether you&apos;re swapping a hot water unit or fitting out a café from scratch.</p>
           <div className="sv-tabs">
             {services.map((s) => (
               <a key={s.id} className="sv-tab" href={`#${s.id}`}>

@@ -47,7 +47,7 @@ function recommend(job: Job, size: Size): Rec {
   }
   if (job === "hotwater") {
     return {
-      heading: size === "room" ? "An all-in-one heat pump" : "A heat pump — split or all-in-one",
+      heading: size === "room" ? "An all-in-one heat pump" : "A heat pump, split or all-in-one",
       body:
         size === "room"
           ? "One or two people means a 180–200 L all-in-one, which is the cheapest way in and where the VEU rebate reaches furthest. One shell, one spot, usually a same-day swap."
@@ -60,7 +60,7 @@ function recommend(job: Job, size: Size): Rec {
   if (job === "heat") {
     if (size === "house") {
       return {
-        heading: "Ducted — reverse-cycle or gas",
+        heading: "Ducted, reverse-cycle or gas",
         body:
           "Whole-house heating is a ducted job. Reverse-cycle does your cooling as well and runs cheaper; gas ducted is the cheaper install and the straight swap if there's already one in the roof. We'll price both.",
         href: "/services/gas-plumbing/gas-ducted",
@@ -71,7 +71,7 @@ function recommend(job: Job, size: Size): Rec {
     return {
       heading: "A reverse-cycle split",
       body:
-        "For one room or a few, a reverse-cycle split heats as well as it cools and costs a fraction of gas to run — it moves heat rather than burning something to make it. Nothing else we fit beats it at this size.",
+        "For one room or a few, a reverse-cycle split heats as well as it cools and costs a fraction of gas to run, it moves heat rather than burning something to make it. Nothing else we fit beats it at this size.",
       href: "/services/air-conditioning-installation/split",
       cta: "Split system installation",
       filter: "Split system",
@@ -163,14 +163,14 @@ export function RangeFinder() {
             <p>{rec.body}</p>
             <Link href={rec.href} className="ds-btn ds-btn--orange">{rec.cta} →</Link>
             <p className="rfind__fine">
-              A category, not a model number — picking between two tank sizes is a conversation
+              A category, not a model number, picking between two tank sizes is a conversation
               about when everybody showers, and no dropdown settles that honestly.
             </p>
           </div>
         ) : (
           <p className="rfind__waiting">
             {job === "water"
-              ? "Pick a size to see the answer — or just press Water filtration above."
+              ? "Pick a size to see the answer, or just press Water filtration above."
               : "Answer both and we'll name one."}
           </p>
         )}

@@ -73,7 +73,7 @@ export function PricingTabs({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search every model — brand, model number, size…"
+          placeholder="Search every model: brand, model number, size…"
           aria-label="Search the price list"
           className="pricing-search__input"
         />

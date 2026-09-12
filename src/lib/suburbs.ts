@@ -1624,7 +1624,7 @@ export const suburbs: Suburb[] = [
     ],
     nearby: ["ringwood", "ringwood-east", "ringwood-north"],
     whyLocal:
-      "Croydon is a planned-work suburb for us and we book it that way. Where we are worth the drive is when you want a heat pump quoted properly — the right tank size for your household rather than whatever is in the van, the rebate applied at the quote instead of chased afterwards, and a straight answer on whether Reclaim, iStore or Thermann actually suits your setup. Where we are not worth it is a burst pipe at midnight.",
+      "Croydon is a planned-work suburb for us and we book it that way. Where we are worth the drive is when you want a heat pump quoted properly: the right tank size for your household rather than whatever is in the van, the rebate applied at the quote instead of chased afterwards, and a straight answer on whether Reclaim, iStore or Thermann actually suits your setup. Where we are not worth it is a burst pipe at midnight.",
     commonProblems: [
       "A lot of the flat central streets still run original electric storage, which is the appliance the VEU scheme was most obviously written to remove",
       "Townhouse infill along the station corridor comes with tight setbacks and body corporate rules, so unit placement is decided before capacity is",

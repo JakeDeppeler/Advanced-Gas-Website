@@ -33,7 +33,7 @@ export function captureUtm(): void {
     if (Object.keys(found).length === 0) return;
     if (!found.referrer && document.referrer) found.referrer = document.referrer.slice(0, 200);
     sessionStorage.setItem(UTM_STORE, JSON.stringify(found));
-  } catch { /* private mode, or storage full — not worth breaking a page over */ }
+  } catch { /* private mode, or storage full, not worth breaking a page over */ }
 }
 
 export function readUtm(): Record<string, string> {

@@ -136,8 +136,8 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             </div>
           )}
           {/* Authored figures where the brand has them. The derived set
-              below counts things — "1 system types in the range" was a
-              real render — so it's the fallback, not the default. */}
+              below counts things, "1 system types in the range" was a
+              real render, so it's the fallback, not the default. */}
           <ul className="dp-hero__at">
             {brand.heroFacts ? (
               brand.heroFacts.map((f) => (
@@ -321,7 +321,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       {/* The key-feature list and the manufacturer-resources box used
           to be a two-column band here. Once the list became the tiles
           above, the band was 340px of navy holding one small box beside
-          an empty column — the gap in the screenshot. Both now sit in
+          an empty column, the gap in the screenshot. Both now sit in
           "Why this brand", which is where they were always about. */}
 
       {/* HOW A HEAT PUMP WORKS — the schematic + 3-step explainer, on the
@@ -338,7 +338,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       {brand.advisorService === "gas-plumbing" && <GasSavingsChart />}
 
       {/* Product range.
-          Single-product brands (e.g. Zonemate — the Milieu zoning system is
+          Single-product brands (e.g. Zonemate, the Milieu zoning system is
           their only product) get the full product detail rendered inline
           instead of a compare grid holding one lonely card. Everyone else
           gets the grouped grid with per-card compare checkboxes. */}
@@ -457,7 +457,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
 
       {/* Our own install photography, when a brand has any wired up in
           brandGallery.ts. The manufacturer-render fallback that used to
-          live here is gone — the live Instagram section below shows the
+          live here is gone, the live Instagram section below shows the
           actual work, which is what that fallback was apologising for. */}
       {installs.length > 0 && (
         <section className="brand-gallery">
@@ -489,7 +489,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
       />
 
       {/* HOW THE JOB RUNS — the numbered navy band, brand-specific. Full
-          size, matching the filtration and service pages — the compact
+          size, matching the filtration and service pages, the compact
           strip read as an afterthought next to them. */}
       {brand.steps && brand.steps.length > 0 && (
         <section className="process">
@@ -525,7 +525,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
                 </span>
                 <h2>Quote for a {brand.name} system.</h2>
                 <p className="quotesec__lede">
-                  60 seconds, no obligation, replied within 12 business hours — with the model,
+                  60 seconds, no obligation, replied within 12 business hours, with the model,
                   the installed price and any rebate you qualify for, in writing.
                 </p>
                 <ul className="quotesec__points">

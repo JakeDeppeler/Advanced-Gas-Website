@@ -173,7 +173,7 @@ export const IN_YOUR_WATER = [
   },
   {
     what: "Hardness and scale",
-    why: "Here's the honest one. Melbourne's mains water is soft — among the softest of any major Australian city — so scale is not the problem here that it is in Adelaide or Perth. Bore water is a different story.",
+    why: "Here's the honest one. Melbourne's mains water is soft, among the softest of any major Australian city, so scale is not the problem here that it is in Adelaide or Perth. Bore water is a different story.",
     fix: "Usually nothing, and we'll tell you that. If you're on bore water it's a separate conversation and a different bit of equipment.",
   },
 ] as const;
@@ -301,7 +301,7 @@ export const SYSTEM_STYLES: SystemStyle[] = [
     tier: "High sediment",
     style: "Wall mounted, self-cleaning",
     blurb:
-      "Flushes its own mesh to waste instead of using a cartridge you replace. Sediment only — but where the sediment load is high it saves you a cartridge every few months.",
+      "Flushes its own mesh to waste instead of using a cartridge you replace. Sediment only, but where the sediment load is high it saves you a cartridge every few months.",
     facts: ["Manual or automatic", "20 mm to 150 mm", "Sediment only", "Mains or tank"],
     photo: "/bwt-backwash.webp",
   },
@@ -421,7 +421,7 @@ export const TIERS: FiltrationTier[] = [
     ],
     finish: {
       note:
-        "This is the part most filtration gets wrong. A whole-house unit lives on an outside wall where you and the neighbours look at it for the next decade, so the FilterWall is a flat aluminium cover rather than a rack of exposed housings — and it comes in ten finishes so it can disappear against a fence, a render or a weatherboard. Five neutrals and five custom colours. Worth knowing before you choose: the custom five carry a 2-year finish warranty rather than the full term, and Buttercup Cream is F5 and F6 only.",
+        "This is the part most filtration gets wrong. A whole-house unit lives on an outside wall where you and the neighbours look at it for the next decade, so the FilterWall is a flat aluminium cover rather than a rack of exposed housings, and it comes in ten finishes so it can disappear against a fence, a render or a weatherboard. Five neutrals and five custom colours. Worth knowing before you choose: the custom five carry a 2-year finish warranty rather than the full term, and Buttercup Cream is F5 and F6 only.",
       swatches: [
         { name: "Buttercup Cream", hex: "#EFD9B0" },
         { name: "Stone White", hex: "#E7E4DA" },
@@ -463,7 +463,7 @@ export const TIERS: FiltrationTier[] = [
         cartridge: '10 inch',
         reasons: [
           "The compact one. A house with one or two bathrooms rarely draws more than 30 L/min, so you aren't paying for capacity you'll never use.",
-          "Three stages, not one — coarse sediment, fine sediment, then a carbon block for the chlorine, taste and smell.",
+          "Three stages, not one: coarse sediment, fine sediment, then a carbon block for the chlorine, taste and smell.",
           "Same aluminium cover and the same ten finishes as the bigger units. You don't trade the look for the smaller size.",
           "Ten-year warranty, and a cartridge change you can do yourself in about ten minutes.",
         ],
@@ -477,7 +477,7 @@ export const TIERS: FiltrationTier[] = [
         cartridge: '10 inch',
         reasons: [
           "Everything the F3 does, with ScaleProtect taking the place of one of the sediment stages.",
-          "The one to pick if you can see scale — on the kettle element, the shower screen or the tap outlets.",
+          "The one to pick if you can see scale: on the kettle element, the shower screen or the tap outlets.",
           "Scale is hardest on the hot water system and the dishwasher, which is where it costs real money rather than just looking untidy.",
           "Identical footprint and finishes to the F3, so the only thing that changes is what's inside the housing.",
         ],
@@ -492,7 +492,7 @@ export const TIERS: FiltrationTier[] = [
         common: true,
         reasons: [
           "Built for simultaneous outlets. Two showers and the washing machine at once is where a 30 L/min unit becomes the bottleneck.",
-          "Bigger cartridges mean longer between changes — more media doing the same job, so it lasts rather than just flowing faster.",
+          "Bigger cartridges mean longer between changes: more media doing the same job, so it lasts rather than just flowing faster.",
           "Three stages with a bypass, so we can isolate it for a cartridge change without shutting the water off to the house.",
           "The one we fit most often on a family home in this corridor, and the one we'd put in our own.",
         ],
@@ -505,7 +505,7 @@ export const TIERS: FiltrationTier[] = [
         flow: "55 L/min",
         cartridge: '20 x 4.5 inch',
         reasons: [
-          "The F5 with ScaleProtect in place of the coarse sediment stage — same capacity, scale handled as well.",
+          "The F5 with ScaleProtect in place of the coarse sediment stage: same capacity, scale handled as well.",
           "The pick for a big house where scale is visible and there's a hot water system and a dishwasher worth protecting.",
           "No capacity trade. Still 55 L/min and still the big cartridges, so nothing is given up for the scale protection.",
           "Top of the F range. The one to choose if you'd rather do this once and not think about it again.",
@@ -517,7 +517,7 @@ export const TIERS: FiltrationTier[] = [
     intro:
       "Whole-home filtration goes on the water main where it enters the house, before it splits off to anything else. That is the whole difference between it and a jug or an under-sink unit: the shower runs on filtered water, the washing machine does, the dishwasher does, the hot water system does. If your complaint is that the water smells like a swimming pool in the shower, or that whites are coming out of the wash looking tired, this is the fitting that fixes it, and it fixes it once for the whole house instead of one tap at a time.",
     heroSub:
-      "One unit on the incoming main, so the shower, the washing machine, the dishwasher and the hot water system all run on filtered water — not just the kitchen tap.",
+      "One unit on the incoming main, so the shower, the washing machine, the dishwasher and the hot water system all run on filtered water, not just the kitchen tap.",
     treats: [
       "Chlorine taste and smell, everywhere in the house rather than at one tap",
       "Sediment, rust, silt and grit, including the burst of it that follows mains work in the street",
@@ -526,7 +526,7 @@ export const TIERS: FiltrationTier[] = [
       "The sediment load that would otherwise end up inside your hot water system",
     ],
     doesNotTreat: [
-      "Hardness. This is not a water softener and we won't sell it as one — Melbourne mains water is already soft",
+      "Hardness. This is not a water softener and we won't sell it as one. Melbourne mains water is already soft",
       "Dissolved salts. That's reverse osmosis, which is a different machine and almost never warranted here",
       "Anything at the same fineness an under-sink unit manages, because a whole-house housing has to pass the flow rate for a whole house",
     ],
@@ -621,18 +621,18 @@ export const TIERS: FiltrationTier[] = [
           "One sediment cartridge on the cold feed, which on Melbourne mains is usually the whole job.",
           'Two sizes: 10" jumbo for most homes, 20" where the flow or the time between changes matters.',
           "The cheapest to buy and the cheapest to run, because there is exactly one cartridge in it.",
-          "The one we fit most — the builds below are for water that actually needs them.",
+          "The one we fit most, the builds below are for water that actually needs them.",
         ],
       },
       {
         name: "Twin",
-        suits: "Gritty supplies — coarse then fine",
+        suits: "Gritty supplies, coarse then fine",
         handles: "Sediment, staged",
         flow: "Full mains flow",
         cartridge: "Two jumbo stages in series",
         photo: "/bwt-jumbo-twin-sediment.webp",
         reasons: [
-          "Two sediment stages in series — a coarse cartridge doing the heavy lifting, a fine one behind it.",
+          "Two sediment stages in series: a coarse cartridge doing the heavy lifting, a fine one behind it.",
           "The staging is the point: the fine cartridge lasts, because the coarse one has already eaten the worst of it.",
           "The pick on an old main, after repeated street works, or where a single cartridge was loading up too fast.",
           "Same housings as the single, so it can start as one and become this if the water turns out to warrant it.",
@@ -649,7 +649,7 @@ export const TIERS: FiltrationTier[] = [
           "Three stages stepping down in grade, for water that arrives with real material in it.",
           "Built for tank and bore supplies, where the sediment load is a fact of the source rather than an event in the street.",
           "Each stage protects the one behind it, so the set lasts far longer than any single cartridge would on the same water.",
-          "If the water is this dirty, the backwash filter is the other honest option — and we will price both.",
+          "If the water is this dirty, the backwash filter is the other honest option, and we will price both.",
         ],
       },
     ],
@@ -713,7 +713,7 @@ export const TIERS: FiltrationTier[] = [
       "The narrow-passage blockage that shortens a continuous-flow heat exchanger's life",
     ],
     doesNotTreat: [
-      "Taste and smell at the tap. This filter is upstream of the hot water only — if taste is the problem you want whole-home or under-sink",
+      "Taste and smell at the tap. This filter is upstream of the hot water only, if taste is the problem you want whole-home or under-sink",
       "Anything on the cold side. Cold taps are completely untouched by it",
       "A rotten-egg smell on the hot taps, which is almost always the sacrificial anode reacting in the tank and needs an anode change, not a filter",
     ],
@@ -809,7 +809,7 @@ export const TIERS: FiltrationTier[] = [
         tint: "#2E7D6B",
         line: "Ice and chilled water off proper filtration",
         detail:
-          "If the fridge is close enough to run a line to, it comes off the same filter — which ends the manufacturer's own cartridge subscription, at their prices, on their schedule.",
+          "If the fridge is close enough to run a line to, it comes off the same filter: which ends the manufacturer's own cartridge subscription, at their prices, on their schedule.",
       },
       {
         area: "Cooking",
@@ -833,7 +833,7 @@ export const TIERS: FiltrationTier[] = [
       "A cartridge and a tap is what most kitchens want. The other two are for a fridge line and for the small number of households with a contaminant a cartridge cannot reach.",
     modelsHeading: "Three cartridges, and which one you'd want.",
     modelsLede:
-      "Same kit, same tap, same fitting. The only thing that changes is how fine the cartridge is — and finer is not automatically better.",
+      "Same kit, same tap, same fitting. The only thing that changes is how fine the cartridge is, and finer is not automatically better.",
     systems: [
       {
         brand: "Puretec",
@@ -841,7 +841,7 @@ export const TIERS: FiltrationTier[] = [
         tier: "Essential",
         style: "Single cartridge, dedicated tap",
         blurb:
-          "One cartridge under the sink feeding a small filtered tap beside the mixer. Complete kit — cartridge, head, bracket, braided hose, dual check valve and bush.",
+          "One cartridge under the sink feeding a small filtered tap beside the mixer. Complete kit: cartridge, head, bracket, braided hose, dual check valve and bush.",
         facts: ["0.5, 1.0 or 5 micron", "Sediment, taste, chlorine, lead, cysts", "1 yr parts & labour, 3 yr parts"],
         photo: "/puretec-inline-filter-kit.webp",
         lead: true,
@@ -877,7 +877,7 @@ export const TIERS: FiltrationTier[] = [
         reasons: [
           "The finest of the three, so it reaches cysts and lead that a coarser cartridge lets through.",
           "The one to pick where the complaint is a specific contaminant rather than a general taste.",
-          "Same kit, same fitting, same tap — the only thing that changes is what is inside.",
+          "Same kit, same fitting, same tap, the only thing that changes is what is inside.",
           "Shortest life of the three, because a finer cartridge loads up faster on the same water.",
         ],
       },
@@ -891,7 +891,7 @@ export const TIERS: FiltrationTier[] = [
         reasons: [
           "The middle one, and the one we fit most on Melbourne mains water.",
           "Fine enough for taste, chlorine and the contaminants that matter, without the short life of the 0.5.",
-          "Good flow at the tap — a finer cartridge on a low-pressure kitchen can feel slow.",
+          "Good flow at the tap, a finer cartridge on a low-pressure kitchen can feel slow.",
           "The default unless there is a reason on your water to go finer or coarser.",
         ],
       },
@@ -914,7 +914,7 @@ export const TIERS: FiltrationTier[] = [
     blurb:
       "A filter under the kitchen sink feeding either a small dedicated tap or a three-way mixer. Filtered drinking water without a jug in the fridge or a case of bottles in the boot.",
     intro:
-      "An under-sink filter does one job properly: the water you drink and cook with. Because it only has to treat a few litres a day it can use a finer cartridge than a whole-home unit, so it takes taste and odour further. You either get a separate small tap next to the mixer, or a three-way mixer that gives you hot, cold and filtered from the one spout — the neater option, and the one most people choose once they've seen both. It will also feed a fridge and ice maker if the fridge is close enough, which quietly ends the cartridge subscription the fridge manufacturer would rather you kept paying.",
+      "An under-sink filter does one job properly: the water you drink and cook with. Because it only has to treat a few litres a day it can use a finer cartridge than a whole-home unit, so it takes taste and odour further. You either get a separate small tap next to the mixer, or a three-way mixer that gives you hot, cold and filtered from the one spout, the neater option, and the one most people choose once they've seen both. It will also feed a fridge and ice maker if the fridge is close enough, which quietly ends the cartridge subscription the fridge manufacturer would rather you kept paying.",
     heroSub:
       "One filter under the sink doing a finer job on the few litres a day you actually drink, feeding a dedicated tap or a three-way mixer.",
     treats: [
@@ -989,7 +989,7 @@ export const TIERS: FiltrationTier[] = [
     servicingPhotoAlt: "Puretec Hybrid with the cover off, showing two cartridges and the UV lamp",
     systemsHeading: "Covered or open, and how much of it you see.",
     systemsLede:
-      "All three are the same idea — sediment, carbon and UV in one unit on the tank line. What changes is whether it lives behind an aluminium cover and how much cartridge is in it. Sizing is set at the quote, once we know the roof, the tank and how many people are on it.",
+      "All three are the same idea, sediment, carbon and UV in one unit on the tank line. What changes is whether it lives behind an aluminium cover and how much cartridge is in it. Sizing is set at the quote, once we know the roof, the tank and how many people are on it.",
     systems: [
       {
         brand: "Puretec",
@@ -1025,7 +1025,7 @@ export const TIERS: FiltrationTier[] = [
     ],
 
     heroFacts: [
-      { v: "Sediment first", k: "Then carbon, then UV — the order is not optional" },
+      { v: "Sediment first", k: "Then carbon, then UV, the order is not optional" },
       { v: "UV last", k: "It cannot work through water that is still cloudy" },
       { v: "Rain cartridges", k: "Different media from the mains-water versions" },
       { v: "Lamp yearly", k: "A UV lamp keeps glowing long after it stops working" },
@@ -1087,7 +1087,7 @@ export const TIERS: FiltrationTier[] = [
     treats: [
       "Sediment, grit, leaf matter and roof debris carried in from the tank",
       "Organics that give tank water its taste and colour",
-      "The biological side — bacteria, protozoa and cysts — through the UV stage",
+      "The biological side: bacteria, protozoa and cysts, through the UV stage",
       "Cloudiness, which has to go before UV can work at all",
     ],
     doesNotTreat: [
@@ -1109,7 +1109,7 @@ export const TIERS: FiltrationTier[] = [
       "Sediment loads on tank water are far higher than mains, so cartridges get changed more often and that is a running cost worth planning for",
     ],
     servicing:
-      "Cartridges more often than a mains-fed system — how often depends on your roof and your tank, and we will give you a realistic interval after we have seen it. UV lamp annually. We will roll both into one visit if you would rather not track them.",
+      "Cartridges more often than a mains-fed system, how often depends on your roof and your tank, and we will give you a realistic interval after we have seen it. UV lamp annually. We will roll both into one visit if you would rather not track them.",
     faqs: [
       {
         q: "Is tank water safe to drink without treatment?",
@@ -1134,7 +1134,7 @@ export const TIERS: FiltrationTier[] = [
     ],
     metaTitle: "Rainwater & Tank Filtration With UV",
     metaDescription:
-      "Tank water filtration and UV for properties through the Dandenong Ranges and the townships east of Pakenham. Sediment, carbon, then UV — in that order, for a reason.",
+      "Tank water filtration and UV for properties through the Dandenong Ranges and the townships east of Pakenham. Sediment, carbon, then UV: in that order, for a reason.",
     keywords: [
       "rainwater filtration melbourne",
       "tank water filter and uv",
@@ -1243,14 +1243,14 @@ export const RANGE: RangeCategory[] = [
     slug: "backwash-filters",
     name: "Backwash filters",
     blurb:
-      "A sediment filter that cleans itself. Instead of a cartridge you replace, the mesh is flushed backwards to waste, either by hand or automatically. Sediment only — it does nothing for taste, chlorine or hardness.",
+      "A sediment filter that cleans itself. Instead of a cartridge you replace, the mesh is flushed backwards to waste, either by hand or automatically. Sediment only: it does nothing for taste, chlorine or hardness.",
     treats: ["sediment"],
     location: ["whole-house"],
     source: ["mains", "rain"],
     warranty: "1 year parts and labour, 3 years parts",
     tier: "whole-home",
     note:
-      "The right answer where sediment load is high enough that cartridges would be a nuisance — bore water, tank water, or a property on the end of an old main. On clean Melbourne mains a cartridge system is usually cheaper and does more.",
+      "The right answer where sediment load is high enough that cartridges would be a nuisance: bore water, tank water, or a property on the end of an old main. On clean Melbourne mains a cartridge system is usually cheaper and does more.",
     products: [
       { code: "1909268", name: "Avanti Manual Backwash Filter 25 mm" },
       { code: "1909269", name: "Avanti Manual Backwash Filter 50 mm" },
@@ -1273,14 +1273,14 @@ export const RANGE: RangeCategory[] = [
     slug: "twin-systems",
     name: "Twin cartridge systems (whole house)",
     blurb:
-      "Two cartridges in series on the incoming main — sediment first, carbon second. This is the standard whole-house setup and the one most Melbourne homes actually want, because chlorine taste and smell is the thing people notice.",
+      "Two cartridges in series on the incoming main, sediment first, carbon second. This is the standard whole-house setup and the one most Melbourne homes actually want, because chlorine taste and smell is the thing people notice.",
     treats: ["sediment", "taste", "chlorine"],
     location: ["whole-house"],
     source: ["mains", "rain"],
     warranty: "1 year parts and labour, 3 years parts",
     tier: "whole-home",
     note:
-      "House and Rain versions use different cartridges for different water. Jumbo 20\" flows better and lasts longer between changes than 10\" — worth the difference on a family home.",
+      "House and Rain versions use different cartridges for different water. Jumbo 20\" flows better and lasts longer between changes than 10\", worth the difference on a family home.",
     products: [
       { code: "1911268", name: '10" Jumbo Twin House System, with cartridges (mains)' },
       { code: "1911267", name: '20" Jumbo Twin House System, with cartridges (mains)' },
@@ -1303,7 +1303,7 @@ export const RANGE: RangeCategory[] = [
     warranty: "1 year parts and labour, 3 years parts",
     tier: "under-sink",
     note:
-      "Kits come complete — cartridge, filter head, bracket, stainless braided hose, dual check valve and the bush. 0.5 micron is the finest and 5 micron the longest-lasting; most kitchens are best on 1.0.",
+      "Kits come complete: cartridge, filter head, bracket, stainless braided hose, dual check valve and the bush. 0.5 micron is the finest and 5 micron the longest-lasting; most kitchens are best on 1.0.",
     products: [
       { code: "1910992", name: "Inline Water Filter Kit, 0.5 micron" },
       { code: "1910993", name: "Inline Water Filter Kit, 1.0 micron" },
@@ -1318,7 +1318,7 @@ export const RANGE: RangeCategory[] = [
     treats: ["sediment", "hardness", "tds", "taste", "chlorine", "pharma", "pfas", "lead", "cyst", "bacteria"],
     location: ["under-sink"],
     source: ["mains"],
-    warranty: "See brochure — check with us at quote",
+    warranty: "See brochure, check with us at quote",
     tier: "under-sink",
     note:
       "Genuinely warranted where there is a measured contaminant a cartridge cannot reach. Not warranted because a website frightened you about tap water. It sends several litres to drain for every litre it makes, and it strips minerals as well as contaminants.",

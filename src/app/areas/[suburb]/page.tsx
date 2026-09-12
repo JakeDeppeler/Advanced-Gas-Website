@@ -94,7 +94,7 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
           </h1>
           {/* Outer-ring suburbs get a different opening. We can't claim to
               be around the corner in Ringwood and the map says so, so the
-              honest version runs instead — and it's the stronger pitch,
+              honest version runs instead, and it's the stronger pitch,
               because a booked install genuinely doesn't care how far the
               van came. See `outerRing` in lib/suburbs.ts. */}
           {sub.outerRing ? (

@@ -562,3 +562,150 @@
 @media (max-width: 900px) {
   .comm-who__top { grid-template-columns: 1fr; gap: 26px; }
 }
+
+/* ---- Sub-pages, brought up to the front page ---- */
+/* The inside pages open the way the front page does: the site photograph
+   behind a navy scrim, then a raised panel overlapping the seam that carries
+   whatever that page is for — the jump list, the four figures, the three ways
+   to reach us. Same bones as the homepage fork, so a reader who has seen one
+   page of the site has seen the shape of all of them. */
+.comm-sub--photo {
+  padding: 66px 0 124px;
+  background:
+    linear-gradient(180deg, rgba(19, 36, 84, 0.82) 0%, rgba(11, 22, 60, 0.9) 60%, rgba(5, 10, 48, 0.95) 100%),
+    url("/commercial.webp") center 38% / cover no-repeat,
+    var(--navy, #050a30);
+}
+.comm-panelsec { position: relative; z-index: 2; margin-top: -78px; padding: 0 0 12px; }
+.comm-panel {
+  background: #fff;
+  border: 1px solid #e2e8f4;
+  border-radius: 22px;
+  padding: 26px 30px 24px;
+  box-shadow: 0 44px 90px -56px rgba(11, 20, 80, 0.65);
+}
+.comm-panel__eyebrow {
+  display: block; margin-bottom: 12px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #8791ab;
+}
+/* The four figures can be the panel on their own: a dark band overlapping a
+   dark photograph reads as a plinth, and it is the most emphatic thing on the
+   about page. */
+.comm-panelsec .comm-facts { margin-top: 0; box-shadow: 0 44px 90px -50px rgba(11, 20, 80, 0.8); }
+
+/* Jump list inside a white panel: navy chips rather than the ghost ones the
+   dark hero used. */
+.comm-panel .comm-jump { margin: 0; }
+.comm-panel .comm-jump a {
+  border-color: #dbe2f0; color: var(--comm-ink);
+  background: #f6f8fc;
+}
+.comm-panel .comm-jump a:hover { background: var(--comm-ink); border-color: var(--comm-ink); color: #fff; }
+
+/* Three ways to reach us, as doors. Same block-colour language as the fork. */
+.comm-quick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.commquick {
+  display: flex; align-items: center; gap: 13px;
+  padding: 16px 16px 16px 15px;
+  border: 1px solid #e2e8f4; border-radius: 15px; background: #fff;
+  text-decoration: none; color: var(--comm-ink);
+  transition: transform 0.14s, border-color 0.15s, box-shadow 0.18s;
+}
+.commquick:hover { transform: translateY(-3px); border-color: #cfd7ea; box-shadow: 0 22px 44px -26px rgba(11, 20, 80, 0.55); }
+.commquick__ico {
+  flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 11px; color: #fff;
+}
+.commquick--navy .commquick__ico { background: #0b1450; }
+.commquick--orange .commquick__ico { background: #d9551a; }
+.commquick--ink .commquick__ico { background: #1b234e; }
+.commquick__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.commquick__txt strong { font-family: var(--f-display, inherit); font-size: 16px; font-weight: 800; letter-spacing: -0.015em; }
+.commquick__txt em { font-style: normal; font-size: 12.5px; color: #67718d; }
+.commquick__go { margin-left: auto; color: #8791ab; }
+
+/* Contact: the form and the cards sit on a dark band so the page has the
+   same light/dark rhythm as the rest, and the white form reads as the ask. */
+.commcontact--dark { background: var(--navy-2, #0b1450); padding: 64px 0 80px; }
+.commcontact--dark .commcontact__card { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.14); }
+.commcontact--dark .commcontact__card h3 { color: #9aa4cf; }
+.commcontact--dark .commcontact__phone,
+.commcontact--dark .commcontact__mail { color: #fff; }
+.commcontact--dark .commcontact__phone:hover { color: var(--orange-2, #ff7a36); }
+.commcontact--dark .commcontact__sub,
+.commcontact--dark .commcontact__card p { color: #c6cce6; }
+.commcontact--dark .commcontact__card a:not(.commcontact__phone):not(.commcontact__mail) { color: #fff; }
+.commcontact--dark .commcontact__card--quiet { border-style: dashed; background: transparent; }
+.commcontact--dark .scopeform { border: 0; }
+
+/* The commercial closing panel, in the site's own colour rather than the
+   generic orange the residential pages use. */
+.page-comm .bigcta { background: var(--comm-ink); }
+.page-comm .bigcta::before { opacity: 0.5; }
+
+/* The print action on the capability statement. */
+.comm-print {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 11px 18px; border-radius: 10px;
+  font: inherit; font-size: 14.5px; font-weight: 700;
+  color: #fff; background: var(--comm-ink); border: 1px solid var(--comm-ink);
+  cursor: pointer;
+}
+.comm-print:hover { background: #142351; }
+.comm-panel__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+
+@media (max-width: 900px) {
+  .comm-sub--photo { padding: 52px 0 100px; }
+  .comm-panelsec { margin-top: -60px; }
+  .comm-quick { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .comm-panel { padding: 20px 18px 18px; border-radius: 18px; }
+  .comm-panelsec { margin-top: -44px; }
+}
+
+/* Capability statement: the figures band on screen, and a plain header that
+   exists only on paper. */
+.cap-figures { padding: 28px 0 0; }
+.cap-printhead { display: none; }
+@media print {
+  .cap-printhead { display: block; padding: 0 0 14px; border-bottom: 2px solid #000; margin-bottom: 18px; }
+  .cap-printhead h1 { margin: 0; font-size: 22pt; }
+  .cap-printhead p { margin: 6px 0 0; font-size: 10.5pt; color: #333; }
+  .comm-panelsec, .cap-figures, .comm-sub { display: none !important; }
+}
+
+/* The closing panel's photo layout lives in home.css, scoped to .page-home, so
+   on the commercial sub-pages the figure had no layout and the panel rendered
+   as a tall empty block with the copy sitting at the bottom of it. Mirrored
+   here for .page-comm, one to one. */
+.page-comm .bigcta--photo .bigcta__row {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 48px;
+  align-items: center;
+}
+.page-comm .bigcta__photo {
+  margin: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 3px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 30px 60px -28px rgba(5, 10, 48, 0.6);
+}
+.page-comm .bigcta__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.page-comm .bigcta--photo .bigcta__copy { text-align: left; }
+.page-comm .bigcta--photo .bigcta__btns {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 22px;
+}
+.page-comm .bigcta h2 { color: #fff; }
+@media (max-width: 860px) {
+  .page-comm .bigcta--photo .bigcta__row { grid-template-columns: 1fr; gap: 22px; }
+  .page-comm .bigcta__photo { aspect-ratio: 16 / 10; max-height: 240px; }
+}

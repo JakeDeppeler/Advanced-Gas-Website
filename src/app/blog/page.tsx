@@ -9,7 +9,7 @@ import "./blog.css";
 export const metadata: Metadata = {
   title: "Guides, VEU Rebates, Heat Pumps & Aircon",
   description:
-    "Plain-English guides on VEU rebates, heat pump sizing, aircon selection, gas safety and saving on energy bills. Written by Pakenham tradies, not marketers.",
+    "Plain-English guides on VEU rebates, heat pump sizing, aircon selection, gas safety and saving on energy bills. Written by the people on the tools in Pakenham, not marketers.",
   alternates: { canonical: "/blog" },
 };
 
@@ -32,7 +32,7 @@ export default function BlogPage() {
       <section className="bl-hero">
         <div className="wrap">
           <span className="ds-eyebrow"><span className="ds-dot" /> Guides &amp; articles</span>
-          <h1>Plain-English answers, <em>written by tradies.</em></h1>
+          <h1>Plain-English answers, <em>written by the people on the tools.</em></h1>
           <p>Real questions we get on jobs, written up properly. No fluff, no SEO slop, actual answers from people who&apos;ve fitted the unit on your neighbour&apos;s roof.</p>
           <div className="bl-cats">
             {cats.map((c, i) => (

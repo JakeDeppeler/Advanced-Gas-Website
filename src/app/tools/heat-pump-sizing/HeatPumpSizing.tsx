@@ -45,7 +45,7 @@ import { useMemo, useState } from "react";
  */
 
 const SPECIFIC_HEAT = 4.186; // kJ per kg per °C
-const USABLE_FRACTION = 0.8; // stratification — you can't use the last 20%
+const USABLE_FRACTION = 0.8; // stratification, you can't use the last 20%
 
 /** Tank sizes we actually install, with the closest matching models. */
 /**
@@ -154,7 +154,7 @@ const SYSTEMS: SystemPreset[] = [
  * actually move the answer are on screen.
  */
 const FIXED = {
-  tankTempC: 60,          // 60 °C minimum by law — Legionella control
+  tankTempC: 60,          // 60 °C minimum by law. Legionella control
   mixedTempC: 41,         // comfortable shower
   mainsTempC: 15,         // Melbourne winter mains
   showerFlowLpm: 9,       // 3-star head

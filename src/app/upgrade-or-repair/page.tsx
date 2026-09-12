@@ -48,7 +48,7 @@ const FAQS = [
   },
   {
     q: "Is it worth regassing an old air conditioner?",
-    a: "Not usually, and here's the honest reason: aircon doesn't consume refrigerant. If it's low, it has leaked, so a regas without finding the leak is paying to fill a bucket with a hole in it. On an R22 unit — anything roughly fifteen years or older — the gas itself is phased out and expensive, which usually settles the argument on its own.",
+    a: "Not usually, and here's the honest reason: aircon doesn't consume refrigerant. If it's low, it has leaked, so a regas without finding the leak is paying to fill a bucket with a hole in it. On an R22 unit: anything roughly fifteen years or older: the gas itself is phased out and expensive, which usually settles the argument on its own.",
   },
   {
     q: "Does the VEU rebate need my old system to be broken?",
@@ -56,7 +56,7 @@ const FAQS = [
   },
   {
     q: "How much is the VEU rebate worth?",
-    a: `Up to about $${REBATE_FACTS.maxStacked.toLocaleString()} on heat pump hot water for an owner-occupier with everything stacked — VEEC, STC, the $${REBATE_FACTS.ausMade} Australian Made bonus on eligible brands, and the $${REBATE_FACTS.vicSolar.toLocaleString()} Solar Homes rebate if you qualify. Rentals get up to about $${REBATE_FACTS.maxRental.toLocaleString()}, because Solar Homes is owner-occupier only. We apply it at the quote rather than making you chase it.`,
+    a: `Up to about $${REBATE_FACTS.maxStacked.toLocaleString()} on heat pump hot water for an owner-occupier with everything stacked. VEEC, STC, the $${REBATE_FACTS.ausMade} Australian Made bonus on eligible brands, and the $${REBATE_FACTS.vicSolar.toLocaleString()} Solar Homes rebate if you qualify. Rentals get up to about $${REBATE_FACTS.maxRental.toLocaleString()}, because Solar Homes is owner-occupier only. We apply it at the quote rather than making you chase it.`,
   },
   {
     q: "What if you tell me to replace it and I don't believe you?",
@@ -79,7 +79,7 @@ const SIGNS = [
   },
   {
     t: "The running costs have crept up and nothing else changed",
-    d: "Efficiency drops as things age — sediment in a tank, a coil that's lost capacity, a heater burning more gas to hold the same temperature. It rarely shows up as a fault. It shows up on the bill.",
+    d: "Efficiency drops as things age: sediment in a tank, a coil that's lost capacity, a heater burning more gas to hold the same temperature. It rarely shows up as a fault. It shows up on the bill.",
   },
   {
     t: "Parts are on back-order",
@@ -92,10 +92,10 @@ const SIGNS = [
 ];
 
 const REPAIR_INSTEAD = [
-  "It's under about six years old and the fault is a component — an element, a thermostat, a capacitor, a sensor",
+  "It's under about six years old and the fault is a component: an element, a thermostat, a capacitor, a sensor",
   "A gas heater that won't light, where it's an igniter or a flame sense rod. Both are stocked parts and both are a one-visit fix",
   "An aircon that isn't cooling because the filters and coil are filthy. That's a service, not a system",
-  "A hot water system with a spent anode but a sound tank — an anode change is cheap and it genuinely buys years",
+  "A hot water system with a spent anode but a sound tank, an anode change is cheap and it genuinely buys years",
   "Anything still inside its manufacturer warranty. Ring the manufacturer before you ring us, and we'll tell you that on the phone for free",
 ];
 
@@ -124,7 +124,7 @@ export default function UpgradeOrRepairPage() {
             loud that sometimes the right answer is
             "fix it and keep going", because there's no invoice in it. So here's the whole
             argument in public: how long these things actually last, where repair spend stops
-            earning its keep, when we'd tell you to repair instead — and why the VEU rebate
+            earning its keep, when we'd tell you to repair instead, and why the VEU rebate
             happens to be worth the most at exactly the moment your system hits the line.
           </p>
           <div className="pg-ctas">
@@ -254,7 +254,7 @@ export default function UpgradeOrRepairPage() {
                 The Victorian Energy Upgrades program pays to get old, inefficient appliances
                 out of houses. That's the whole design of it. Which means the appliance the
                 scheme values most is precisely the one you're standing in front of wondering
-                whether to repair — the ten-year-old gas or electric tank, the 3-star ducted
+                whether to repair, the ten-year-old gas or electric tank, the 3-star ducted
                 heater, the aircon running phased-out refrigerant.
               </p>
               <p>
@@ -283,7 +283,7 @@ export default function UpgradeOrRepairPage() {
               </div>
               <div className="ug-num">
                 <strong>${REBATE_FACTS.maxRental.toLocaleString()}</strong>
-                <span>up to, rentals — no Solar Homes, everything else applies</span>
+                <span>up to, rentals, no Solar Homes, everything else applies</span>
               </div>
               <div className="ug-num">
                 <strong>${REBATE_FACTS.ausMade}</strong>

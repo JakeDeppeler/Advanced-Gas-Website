@@ -18,13 +18,13 @@ const BASE_LOAD_W_PER_M2 = 150;
 const STANDARD_MODEL_SIZES_KW = [2.5, 3.5, 5.0, 7.1, 8.0, 9.4, 10.5, 12.5, 14, 16] as const;
 
 const ORIENTATION_FACTOR: Record<string, number> = {
-  N: 1.00,   // North-facing — moderate sun
+  N: 1.00,   // North-facing, moderate sun
   NE: 1.05,
   E: 1.05,   // Morning sun
   SE: 1.00,
-  S: 0.95,   // South-facing — coolest
+  S: 0.95,   // South-facing, coolest
   SW: 1.10,
-  W: 1.15,   // Afternoon sun — hottest
+  W: 1.15,   // Afternoon sun, hottest
   NW: 1.10,
 };
 
@@ -37,7 +37,7 @@ const INSULATION_FACTOR: Record<string, number> = {
 const GLAZING_FACTOR: Record<string, number> = {
   small: 1.00,      // Windows <10% of wall area
   medium: 1.10,     // 10-20%
-  large: 1.20,      // >20% — feature windows, sliding doors
+  large: 1.20,      // >20%, feature windows, sliding doors
 };
 
 type FormState = {

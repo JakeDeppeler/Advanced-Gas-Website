@@ -21,7 +21,7 @@ const HOUSE_RULES = [
     d: "That's the whole brand list. If a unit has a reputation for warranty claims or parts you can't get in a hurry, it doesn't go on the quote, no matter what margin is on it.",
   },
   {
-    t: "The bloke who quotes it is the bloke who installs it",
+    t: "The person who quotes it is the person who installs it",
     d: "No sales rep, no subcontractor you've never met turning up on the day. Nothing gets lost between the quote and the install because it's the same person.",
   },
   {

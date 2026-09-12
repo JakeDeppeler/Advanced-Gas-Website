@@ -33,7 +33,7 @@ const DEFAULTS: FormState = {
   cop: 4.0,             // Modern inverter split ≈ 4.0
   hoursPerDay: 6,
   daysPerWeek: 6,
-  daysPerYear: 200,     // Rough Melbourne — heat months + cool months
+  daysPerYear: 200,     // Rough Melbourne, heat months + cool months
   rateCents: 32,        // ~AGL / EnergyAustralia peak c/kWh (mid-2026)
 };
 

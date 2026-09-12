@@ -98,7 +98,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         },
         {
           t: "Height and throw",
-          d: "A wall split throws air along the ceiling and lets it fall. It needs clear run in front of it — no bulkhead, no tall wardrobe, no pelmet in the way. Mounted too low it short-cycles against its own return air and reads the room wrong.",
+          d: "A wall split throws air along the ceiling and lets it fall. It needs clear run in front of it: no bulkhead, no tall wardrobe, no pelmet in the way. Mounted too low it short-cycles against its own return air and reads the room wrong.",
         },
         {
           t: "Not directly over the bed",
@@ -120,7 +120,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     },
     steps: [
       { title: "Site visit, and we walk the room", detail: "We look at the wall you want it on, the wall it should probably go on, and where the outdoor unit can sit. Ten minutes, and it's the difference between a good install and a cheap one." },
-      { title: "The price in writing", detail: "The unit, the position, the line-set length, and anything extra the site needs — a longer run, a dedicated circuit, a bracket instead of a slab. No day-of surprises." },
+      { title: "The price in writing", detail: "The unit, the position, the line-set length, and anything extra the site needs: a longer run, a dedicated circuit, a bracket instead of a slab. No day-of surprises." },
       { title: "Drop sheets, then the bracket", detail: "Floor covered before anything else. Indoor bracket levelled and fixed into studs, not just plasterboard anchors." },
       { title: "Core hole and line-set", detail: "One clean core through the wall on a slight fall, insulated line-set, drain and cable through together, conduit colour-matched outside." },
       { title: "Vacuum, charge, commission", detail: "Pulled down to a proper vacuum and held, not just flashed. Charge checked against the data plate, superheat and subcool measured, and it runs while we watch it." },
@@ -153,7 +153,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       items: [
         {
           t: "One head calling means the compressor runs",
-          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. On a single split serving the same room the situation is identical — the difference is that people expect more independence from a multi than it actually gives.",
+          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. On a single split serving the same room the situation is identical, the difference is that people expect more independence from a multi than it actually gives.",
         },
         {
           t: "Capacity is shared, not multiplied",
@@ -176,7 +176,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         "If the house has usable roof space and you want genuinely independent rooms, ducted with proper zoning is the better answer and we'll say so. Multi-head is for the houses where that isn't on the table.",
     },
     steps: [
-      { title: "Room-by-room walk-through", detail: "Every room that's getting a head, plus how you actually live in the house — which rooms run together, which are used at night. That decides the outdoor unit size more than floor area does." },
+      { title: "Room-by-room walk-through", detail: "Every room that's getting a head, plus how you actually live in the house, which rooms run together, which are used at night. That decides the outdoor unit size more than floor area does." },
       { title: "Outdoor unit position, first", detail: "A multi outdoor unit is bigger and heavier than a single, and everything runs back to it. Where it can legally and sensibly sit sets the pipe routes for the whole job, so we settle it before anything else." },
       { title: "Price per head and total, in writing", detail: "You see what each head costs and what the outdoor unit costs, so if the fifth bedroom can wait a year you can make that call with real numbers." },
       { title: "Day one, pipe runs", detail: "The bulk of a multi install is pipework. Runs get set out, cored and insulated, usually with the outdoor unit set and the heads bracketed by the end of the day." },
@@ -224,7 +224,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         },
         {
           t: "Then you only condition what you're using",
-          d: "Bedrooms off during the day, living off overnight. That's where the running-cost difference comes from — not from the star rating on the box, from the system spending its day heating three rooms instead of nine.",
+          d: "Bedrooms off during the day, living off overnight. That's where the running-cost difference comes from: not from the star rating on the box, from the system spending its day heating three rooms instead of nine.",
         },
       ],
       note:
@@ -260,7 +260,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       eyebrow: "Evap vs refrigerated",
       heading: "Evap is brilliant here about eighty per cent of the time.",
       blurb:
-        "Evaporative cooling gets dismissed by people selling refrigerated and oversold by people selling evap. The truth is it depends entirely on the weather and the house, and Melbourne's south-east is genuinely good evap country — right up until a humid February week when it isn't.",
+        "Evaporative cooling gets dismissed by people selling refrigerated and oversold by people selling evap. The truth is it depends entirely on the weather and the house, and Melbourne's south-east is genuinely good evap country, right up until a humid February week when it isn't.",
       layout: "table",
       columns: ["Evaporative", "Refrigerated"],
       items: [
@@ -307,7 +307,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         { t: "Filters out and cleaned", d: "The one thing you could do yourself, and the one that causes the most call-outs when nobody does. We clean them, and we show you how so you can do it between services." },
         { t: "Indoor coil chemical clean", d: "Not a wipe. A proper coil cleaner through the fins, which is where the black dust and the smell live. A blocked coil is the most common reason a system that used to be fine has stopped cooling properly." },
         { t: "Blower wheel and drain", d: "Blower wheel checked and cleaned, condensate tray and drain flushed. A blocked drain is what turns into water down the wall in January." },
-        { t: "Refrigerant pressures, both sides", d: "Measured against ambient, not glanced at. Low pressure means a leak, because aircon doesn't consume gas — and finding the leak matters more than topping it up." },
+        { t: "Refrigerant pressures, both sides", d: "Measured against ambient, not glanced at. Low pressure means a leak, because aircon doesn't consume gas, and finding the leak matters more than topping it up." },
         { t: "Electricals under load", d: "Capacitor tested, contactor checked, current draw compared to the data plate. A capacitor drifting out of spec is cheap to replace now and a dead compressor later." },
         { t: "Thermistors and controls", d: "Sensor readings checked against actual temperature. A thermistor reading two degrees out makes a perfectly healthy system behave like a faulty one." },
         { t: "Outdoor coil and clearances", d: "Coil washed down, fins checked, and we clear whatever has grown or been stacked around it. A condenser that can't breathe loses capacity on exactly the days you need it." },
@@ -348,7 +348,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         "That's the whole reason evap servicing is a different job from aircon servicing. A split system sits in a wall being mildly ignored. An evap unit sits on a roof through eight months of rain, sun and leaf litter with water in it, and then you ask it to start on the first hot day.",
       layout: "cards",
       items: [
-        { t: "Pads, and what's grown in them", d: "Cooling pads collect mineral scale from the water and organic growth from everything else. Scaled pads cool less and smell, and there's a point where cleaning stops helping and they need replacing — usually every three to five years." },
+        { t: "Pads, and what's grown in them", d: "Cooling pads collect mineral scale from the water and organic growth from everything else. Scaled pads cool less and smell, and there's a point where cleaning stops helping and they need replacing, usually every three to five years." },
         { t: "The water distribution system", d: "Pump, spreaders and the small holes that spread water evenly across the pads. Blocked spreaders mean dry patches, dry patches mean warm air straight through, and it's the most common reason an evap 'stopped working properly'." },
         { t: "Reservoir, float and bleed", d: "The tank drained and cleaned out, float valve set to the right level, and the bleed rate checked. Bleed too little and it scales up; bleed too much and you're pouring water down the drain all summer." },
         { t: "Fan, bearings and belt", d: "The bit that sat still all winter. Bearings, belt tension where there is one, and current draw. A motor that's straining in November is a motor that fails in January." },
@@ -365,7 +365,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { title: "Run it and check the outlets", detail: "System run up and airflow checked at the ceiling outlets, so you know the cooling actually reaches the rooms rather than just the roof space." },
     ],
     pricingNote:
-      "Evap servicing is quoted on the unit and the roof rather than off a fixed list — pad replacement and roof access are the two things that move it. Ask when you book and you'll get a number before we come out.",
+      "Evap servicing is quoted on the unit and the roof rather than off a fixed list, pad replacement and roof access are the two things that move it. Ask when you book and you'll get a number before we come out.",
   },
 
   /* ------------------------------------------------------------------
@@ -383,14 +383,14 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       eyebrow: "Stars are the whole decision",
       heading: "A 3-star and a 6-star heat the same house to the same temperature.",
       blurb:
-        "The difference is what they burn to do it, every winter, for the next fifteen years. That makes the star rating a payback calculation rather than a preference — and the answer genuinely changes depending on how long you're staying in the house.",
+        "The difference is what they burn to do it, every winter, for the next fifteen years. That makes the star rating a payback calculation rather than a preference, and the answer genuinely changes depending on how long you're staying in the house.",
       layout: "table",
       columns: ["3-star", "6-star"],
       items: [
         { t: "Up-front", d: "The cheapest ducted heater we'll quote, and a real saving on the day. || Meaningfully more, and the gap is the whole argument." },
         { t: "Gas burned", d: "Roughly a third more for the same heat delivered. || Roughly a third less, every hour it runs." },
         { t: "Where it pays back", d: "Never, on running cost. It pays back only if you're selling soon. || Over the years you stay, and faster in a house that runs the heater a lot." },
-        { t: "House you're selling in two years", d: "Usually the right call. You won't be paying the bills. || Hard to justify — you're buying savings for the next owner." },
+        { t: "House you're selling in two years", d: "Usually the right call. You won't be paying the bills. || Hard to justify, you're buying savings for the next owner." },
         { t: "House you're staying in", d: "The expensive option wearing a cheap price tag. || Usually the right call, and it's the one we'd fit in our own place." },
         { t: "Comfort", d: "Identical. Same output, same warm house. || Identical. Quieter fans on the higher models, but that's a spec thing rather than a star thing." },
       ],
@@ -410,13 +410,13 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { tier: "Brivis Buffalo higher-spec replacement", price: "from $5,600", includes: "Everything in the Wombat replacement, A quieter fan, A longer service life", group: "Gas ducted heating", photo: "/Brivis Buffalo Outdorr.jpg" },
     ],
     pricingNote:
-      "Kaden gas ducted drops onto an existing Brivis or Braemar footprint and prices similarly. Duct rework, a new gas run where the existing line is undersized, and cavity alterations are the three things that add — all quoted before the day.",
+      "Kaden gas ducted drops onto an existing Brivis or Braemar footprint and prices similarly. Duct rework, a new gas run where the existing line is undersized, and cavity alterations are the three things that add, all quoted before the day.",
   },
 
   "gas-plumbing/continuous-flow": {
     specs: [
       { label: "Flow rate", value: "Typically 26 L/min" },
-      { label: "Tank losses", value: "None — there's no tank" },
+      { label: "Tank losses", value: "None, there's no tank" },
       { label: "Time on site", value: "3 – 5 hours" },
       { label: "Warranty", value: "12-yr heat exchanger (Thermann)" },
       { label: "Controllers", value: "Indoor + outdoor included" },
@@ -430,7 +430,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       items: [
         {
           t: "It never runs out",
-          d: "This part is completely true and it's the main reason people switch. Four showers back to back, a bath after, dishes at the same time — the unit heats water as it passes through, so there's no tank to empty. On a full house it's transformative.",
+          d: "This part is completely true and it's the main reason people switch. Four showers back to back, a bath after, dishes at the same time, the unit heats water as it passes through, so there's no tank to empty. On a full house it's transformative.",
         },
         {
           t: "There's still a delay at the tap",
@@ -458,7 +458,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     },
     steps: [
       { title: "Photo of the existing unit and the wall", detail: "Most continuous-flow swaps can be priced from a picture of what's there now and where it's mounted. Send it through and you'll have a number the same business day." },
-      { title: "Gas line and outlets checked", detail: "What else is on the gas run, and how many outlets you use at once. Those two things decide the unit size and whether the existing line is up to it — both worked out before you commit." },
+      { title: "Gas line and outlets checked", detail: "What else is on the gas run, and how many outlets you use at once. Those two things decide the unit size and whether the existing line is up to it, both worked out before you commit." },
       { title: "Both controllers priced in", detail: "Indoor and outdoor controllers are part of the quote, not an accessory added later. So is the old unit's removal." },
       { title: "Old unit off, new unit on", detail: "Old tank drained and disconnected, or old continuous-flow unit removed. New unit bracketed, plumbed and gas-connected. Where a tank is being replaced, the pipework usually needs a small rework to suit." },
       { title: "Gas pressure test, then hot water at the tap", detail: "Pressure tested to AS/NZS 5601, unit commissioned, temperature set, and we run hot water at the actual taps rather than declaring it done at the unit." },
@@ -491,9 +491,9 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         { t: "Burner and igniter serviced", d: "Cleaned, checked and adjusted. Flame sense rod cleaned, because a dirty one is the most common no-heat call-out we get and it's five minutes at a service." },
         { t: "Gas pressure, standing and working", d: "Measured at the appliance against the data plate, both with the burner off and under load. Wrong pressure burns wrong, and burning wrong is what makes carbon monoxide." },
         { t: "Combustion analysis with a calibrated analyser", d: "This is the test. The analyser samples the flue gases while the unit runs and reads what's actually coming out. Calibrated, and the calibration date is on our gear." },
-        { t: "Spillage test", d: "Checking combustion products are going up the flue rather than into the room. Done under the conditions that make spillage worst — exhaust fans on, house closed up." },
+        { t: "Spillage test", d: "Checking combustion products are going up the flue rather than into the room. Done under the conditions that make spillage worst, exhaust fans on, house closed up." },
         { t: "Safety controls tested", d: "Overheat switches, roll-out sensor and the fan proving circuit. These are the parts that shut the heater down before it hurts anyone, and they're worth knowing still work." },
-        { t: "Written report, with the numbers on it", d: "The actual readings, not a tick. If we find carbon monoxide we disconnect the appliance and tell you exactly what we found — that isn't an upsell, it's the law and the right call." },
+        { t: "Written report, with the numbers on it", d: "The actual readings, not a tick. If we find carbon monoxide we disconnect the appliance and tell you exactly what we found, that isn't an upsell, it's the law and the right call." },
       ],
       note:
         "Energy Safe Victoria recommends every gas heater is serviced at least every two years. Past ten years old we'd say annually, because that's the age where heat exchangers start to fail.",
@@ -522,7 +522,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
     ],
     steps: [
       { title: "We look at both spots", detail: "A split needs somewhere for the tank and somewhere for the compressor with air around it. We walk both before quoting, because finding out on install day is how a job turns into two visits." },
-      { title: "Tank sized on the household", detail: "Not on the old tank's size. How many of you there are and when you all shower decides it, and recovery rate matters as much as volume — which is where the Panasonic 6 kW pairing earns its keep." },
+      { title: "Tank sized on the household", detail: "Not on the old tank's size. How many of you there are and when you all shower decides it, and recovery rate matters as much as volume, which is where the Panasonic 6 kW pairing earns its keep." },
       { title: "Rebate worked out at the quote", detail: "The VEU figure depends on what's being replaced. It comes off the quoted price so the number you see is the number you pay." },
       { title: "Old unit out, new tank in", detail: "Drained, disconnected and taken to a metal recycler on the same visit. New tempering valve so the outlets hold at 50 °C." },
       { title: "Compressor sited and run", detail: "Lines run between the two, pressure tested, and the compressor levelled on anti-vibration mounts. Where it goes is a decision we make with you, not for you." },
@@ -558,7 +558,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       { tier: "Thermann ECO R290", price: "$2,538", includes: "Supply and install, Tempering valve fitted, The same platform as the Reclaim ECO, Old unit taken away and the VEU rebate applied", group: "All-in-one", photo: "/thermann_integrated_heat_pump_02.jpg", priceKey: "Inc GST" },
     ],
     pricingNote:
-      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it and that is $350. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform — what differs is supply, not spec.",
+      "All three are inc GST, after the VEU rebate for a Victorian owner-occupier at current VEEC prices. One thing that can add to them: if there is no power point within two metres of the existing system, the unit needs a circuit run to it and that is $350. We check on the site visit and it goes on the written quote, never onto the invoice afterwards. Reclaim ECO and Thermann ECO are the same platform: what differs is supply, not spec.",
   },
   "gas-plumbing/temporary-hot-water": {
     specs: [
@@ -575,21 +575,21 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         "When a tank dies you're suddenly being asked to spend serious money today, with cold showers as the deadline. That's the worst possible way to buy a hot water system and it's exactly how people end up with the wrong one. Here's how the week goes instead.",
       layout: "steps",
       items: [
-        { t: "Day 0 — it fails", d: "You ring us. We come out, look at what's actually gone, and tell you whether it's repairable. If it's a component rather than the cylinder, we fix it and none of the rest of this applies." },
-        { t: "Day 0 — temporary unit connected", d: "Same visit, in most cases. It plumbs into the existing hot water line where the old unit was, so every outlet in the house works normally again. Hot showers tonight." },
-        { t: "Days 1–3 — you actually compare", d: "Three real quotes, read properly, at a normal pace. Heat pump versus gas, what the VEU rebate is worth on each, what your roof and your household actually suit. The comparison you'd never make standing in a cold bathroom." },
-        { t: "Days 3–7 — the right unit, not the available one", d: "This is the bit the hire really pays for. Without it you take whoever can come today with whatever is on the truck. With it you can wait for the unit that suits the house, or for a rebate approval to come through." },
-        { t: "Install day — temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the $350 set-up and removal is waived, so all you've paid is the days you actually used." },
+        { t: "Day 0, it fails", d: "You ring us. We come out, look at what's actually gone, and tell you whether it's repairable. If it's a component rather than the cylinder, we fix it and none of the rest of this applies." },
+        { t: "Day 0: temporary unit connected", d: "Same visit, in most cases. It plumbs into the existing hot water line where the old unit was, so every outlet in the house works normally again. Hot showers tonight." },
+        { t: "Days 1–3: you actually compare", d: "Three real quotes, read properly, at a normal pace. Heat pump versus gas, what the VEU rebate is worth on each, what your roof and your household actually suit. The comparison you'd never make standing in a cold bathroom." },
+        { t: "Days 3–7: the right unit, not the available one", d: "This is the bit the hire really pays for. Without it you take whoever can come today with whatever is on the truck. With it you can wait for the unit that suits the house, or for a rebate approval to come through." },
+        { t: "Install day, temporary unit goes with us", d: "Disconnected and taken away the same day the new system goes in. If we're doing the replacement, the $350 set-up and removal is waived, so all you've paid is the days you actually used." },
         { t: "If you go elsewhere", d: "You pay the $350, which covers the two trips and the gear, and we take it away with no hard feelings. We'd rather you had hot water and chose properly than felt cornered." },
       ],
       note:
-        "The daily rate keeps running until the new system goes in, so this buys time rather than replacing the decision. If your existing system can be repaired for less than the hire will cost, we'll tell you that instead — it happens more often than you'd think.",
+        "The daily rate keeps running until the new system goes in, so this buys time rather than replacing the decision. If your existing system can be repaired for less than the hire will cost, we'll tell you that instead, it happens more often than you'd think.",
     },
     steps: [
-      { title: "Ring us — same day across the corridor", detail: "Pakenham, Officer, Berwick, Beaconsfield, Narre Warren and Cranbourne, usually same day if you ring in the morning." },
+      { title: "Ring us: same day across the corridor", detail: "Pakenham, Officer, Berwick, Beaconsfield, Narre Warren and Cranbourne, usually same day if you ring in the morning." },
       { title: "We diagnose what failed first", detail: "Before anything gets hired. An element, a thermostat or a valve on a young tank is a repair, and hiring a temporary unit to stand next to a fixable system would be us taking your money for nothing." },
       { title: "Somewhere sensible to put it", detail: "It needs a spot and a water and power or gas point to run from. We check that on the same visit rather than turning up with it and improvising." },
-      { title: "Connected to the house line", detail: "Plumbed into the existing hot water line where the old unit was, so it feeds every outlet rather than one tap. It's a temporary unit — it does the job, and it isn't pretty." },
+      { title: "Connected to the house line", detail: "Plumbed into the existing hot water line where the old unit was, so it feeds every outlet rather than one tap. It's a temporary unit, it does the job, and it isn't pretty." },
       { title: "You decide, at your own pace", detail: "No pressure and no deadline. Ask us for the comparison and you'll get gas and heat pump side by side with the rebate applied, and an honest steer on which suits your house." },
       { title: "Swap day", detail: "New system installed, temporary unit disconnected and loaded up the same day. Set-up and removal fee waived if the replacement is ours." },
     ],

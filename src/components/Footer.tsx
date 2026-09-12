@@ -33,8 +33,8 @@ export function Footer() {
               </span>
             </Link>
             <p className="ftr__tag">
-              Family-run gas, hot water &amp; aircon specialists across South-East Vic and Gippsland.
-              Locally owned. Same-day quotes. Prices in writing. No surprises.
+              Heating, cooling, gas and hot water across Melbourne&rsquo;s south-east and Gippsland.
+              Directly employed crews. Prices in writing. One standard, every job.
             </p>
 
             <ul className="ftr__nap">
@@ -206,7 +206,7 @@ export function Footer() {
         <div className="ftr__areas">
           <h4>Servicing across South-East Vic &amp; Gippsland</h4>
           {/* WEB-019: this listed all 73 published suburbs on every
-              page — 73 links of boilerplate repeated site-wide, which
+              page, 73 links of boilerplate repeated site-wide, which
               dilutes internal link equity and reads to Google as a
               footer stuffed with keywords. Cut to the core hubs we most
               want to rank for, plus the link to the full list. One strong

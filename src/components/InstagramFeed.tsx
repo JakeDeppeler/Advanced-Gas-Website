@@ -60,7 +60,7 @@ export function InstagramFeed({
                 className="igf__cell"
               >
                 {/* Instagram CDN URLs are signed and expire, so next/image
-                    optimisation would break on stale entries — plain img
+                    optimisation would break on stale entries, plain img
                     keeps it resilient. */}
                 <img
                   src={p.image}

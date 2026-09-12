@@ -79,7 +79,7 @@ export default function FaultCodesPage() {
             <p style={{ fontSize: 14.5, lineHeight: 1.55, color: "rgba(255,255,255,0.82)", margin: "0 0 14px", maxWidth: "62ch" }}>
               Past about ten years on hot water and gas heating, and twelve on aircon, a
               significant repair usually costs more per remaining year than a replacement
-              does — and it&rsquo;s the same point at which the VEU rebate is worth the most.
+              does, and it&rsquo;s the same point at which the VEU rebate is worth the most.
               If yours is young and the fault is a component, we&rsquo;ll fix it and say so.
             </p>
             <Link href="/upgrade-or-repair" className="ds-btn ds-btn--orange">

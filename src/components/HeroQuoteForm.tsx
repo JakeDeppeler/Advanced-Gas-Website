@@ -838,7 +838,7 @@ export function HeroQuoteForm() {
         )}
 
         {currentStep === "water-why" && (
-          <StepBlock title="What have you noticed?" hint="The symptom is the useful part — it usually decides which unit.">
+          <StepBlock title="What have you noticed?" hint="The symptom is the useful part, it usually decides which unit.">
             <div className="qgrid qgrid--3">
               {WATER_WHY.map(w => (
                 <OptCard key={w.id} multi checked={waterWhy.includes(w.id)}

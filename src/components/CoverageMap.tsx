@@ -25,7 +25,7 @@ export function CoverageMap({ highlight }: { highlight?: string }) {
       {/* Suburb legend — full list of every published suburb, always
           visible next to the map so users can jump straight to any
           page without hunting for a pin. Same list Google reads for
-          crawling — every /areas/[slug] link is in the initial HTML. */}
+          crawling, every /areas/[slug] link is in the initial HTML. */}
       <div className="covmap__legend">
         <div className="covmap__legend-lbl">All {publishedSuburbs.length} suburbs we install in</div>
         <ul>

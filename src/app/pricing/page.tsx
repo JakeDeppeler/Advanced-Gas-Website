@@ -124,7 +124,7 @@ export default function PricingPage() {
 
       {/* ================= What every price includes =================
           Frame what the number means before the visitor sees a single
-          price — a plain checklist of what's in it, then the two honest
+          price, a plain checklist of what's in it, then the two honest
           caveats (extras get quoted; the rebate is already applied). */}
       <section className="pricing-note">
         <div className="wrap">
@@ -168,7 +168,7 @@ export default function PricingPage() {
 
       {/* ================= Value comparison block =================
           "We're not the cheapest. Here's what you're actually paying
-          for". A navy centrepiece — three-column comparison against a
+          for". A navy centrepiece, three-column comparison against a
           cheap fly-in-fly-out operator vs a premium show-room chain. */}
       <section className="pricing-value">
         <div className="wrap">
@@ -212,7 +212,7 @@ export default function PricingPage() {
                 <ValueRow label="Right-size heat-load calc (not guessed)"  cheap={false} us={true} prem={true} />
                 <ValueRow label="Genuine brand-name unit (not grey import)" cheap="?" us={true} prem={true} />
                 <ValueRow label="Follow-up call the week after install"     cheap={false} us={true} prem={false} />
-                <ValueRow label="Local tradies, not fly-in / fly-out"       cheap={false} us={true} prem={false} />
+                <ValueRow label="Our own local crew, not fly-in / fly-out"       cheap={false} us={true} prem={false} />
                 <ValueRow label="Owner-operator answers the phone"          cheap={false} us={true} prem={false} />
                 <ValueRow label="Showroom overhead baked into price"        cheap={false} us={false} prem={true} inverse />
                 <ValueRow label="Salesperson commission on top"             cheap={false} us={false} prem={true} inverse />
@@ -239,7 +239,7 @@ export default function PricingPage() {
 
       {/* ================= The full price list =================
           One table per category behind a filter. Every block stays in
-          the HTML — the tabs only hide what you didn't ask for, so the
+          the HTML, the tabs only hide what you didn't ask for, so the
           page still ranks for all of it. */}
       <section className="pricing-body">
         <div className="wrap">
@@ -360,7 +360,7 @@ export default function PricingPage() {
                   </tr>
                   <tr>
                     <td><strong>Emergency call-out (after hours, weekends)</strong></td>
-                    <td>Same-day attendance for gas leaks, no-hot-water, CO alarms. On-call tradie, not overseas call centre.</td>
+                    <td>Same-day attendance for gas leaks, no-hot-water, CO alarms. Someone on the tools, not an overseas call centre.</td>
                     <td className="pricing-block__pricecell"><strong>$220</strong> + parts</td>
                   </tr>
                 </tbody>

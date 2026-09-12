@@ -49,7 +49,7 @@ function clamp(input: string, max: number): string {
   // A single word longer than the budget is a pathological case; take
   // the hard cut rather than returning an empty string.
   const trimmed = lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut;
-  return trimmed.replace(/[\s,·|\-–—:;.]+$/, "");
+  return trimmed.replace(/[\s,·|\-–, :;.]+$/, "");
 }
 
 /**

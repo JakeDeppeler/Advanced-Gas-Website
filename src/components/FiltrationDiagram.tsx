@@ -125,7 +125,7 @@ export function FiltrationDiagram({ tier }: { tier: string }) {
       <Canister x={148} y={222} label="Filter" />
 
       {/* Manifold inside the house feeding three risers, rather than three
-          loose verticals — the old version ran a pipe straight through
+          loose verticals, the old version ran a pipe straight through
           the front door, which read as a mistake. */}
       <path d="M256 246 H274 V218" {...PIPE} strokeWidth={4} strokeOpacity={0.8} />
       <path d="M274 218 H406" stroke={SKY} strokeWidth="4" strokeLinecap="round" fill="none" strokeOpacity="0.8" />

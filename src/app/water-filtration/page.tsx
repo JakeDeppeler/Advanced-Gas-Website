@@ -26,7 +26,7 @@ const TILE_META: Record<string, { icon: string; tint: string; line: string }> = 
   "Sediment, rust and silt": { icon: "flow", tint: "#00699A", line: "Grit in the cistern, marks in the washing" },
   "Taste and odour": { icon: "kettle", tint: "#2E7D6B", line: "Almost always why somebody starts looking" },
   "Biological, on tank and rainwater": { icon: "tank", tint: "#C2540F", line: "A real consideration on tank water, not on mains" },
-  "Hardness and scale": { icon: "basin", tint: "#5A5F7A", line: "The honest one — Melbourne water is soft" },
+  "Hardness and scale": { icon: "basin", tint: "#5A5F7A", line: "The honest one. Melbourne water is soft" },
 };
 const WATER_TILES = IN_YOUR_WATER.map((w) => ({
   area: w.what,
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 const HUB_FAQS = [
   {
     q: "Which water filter do I actually need?",
-    a: "Work backwards from what you've noticed. Taste in your drinking water only, under-sink. Chlorine smell in the shower, grit in the cistern, or tank water, whole home. Protecting a new hot water system, the cold inlet filter. If you're not sure, tell us the symptom and we'll tell you which one addresses it — including when the answer is none of them.",
+    a: "Work backwards from what you've noticed. Taste in your drinking water only, under-sink. Chlorine smell in the shower, grit in the cistern, or tank water, whole home. Protecting a new hot water system, the cold inlet filter. If you're not sure, tell us the symptom and we'll tell you which one addresses it, including when the answer is none of them.",
   },
   {
     q: "Is Melbourne water bad?",
@@ -283,7 +283,7 @@ export default function WaterFiltrationPage() {
           <p className="wf-stages__note">
             Order matters and it isn&rsquo;t arbitrary. Sediment goes first so it doesn&rsquo;t
             clog the carbon behind it. UV goes last because ultraviolet light can&rsquo;t work
-            through cloudy water — a UV lamp fitted ahead of the filters is a lamp doing very
+            through cloudy water, a UV lamp fitted ahead of the filters is a lamp doing very
             little.
           </p>
         </div>
@@ -326,7 +326,7 @@ export default function WaterFiltrationPage() {
                   physically has to go. A &ldquo;from $X&rdquo; with none of that behind it is bait.
                 </p>
                 <ul className="quotesec__points">
-                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water — the symptom is the useful part</li>
+                  <li><span className="tick tick--on-orange">✓</span> Taste, smell, grit, dry skin, tank water, the symptom is the useful part</li>
                   <li><span className="tick tick--on-orange">✓</span> A real figure with the reasoning attached</li>
                   <li><span className="tick tick--on-orange">✓</span> Including the times the answer is a cheaper unit, or nothing at all</li>
                 </ul>
