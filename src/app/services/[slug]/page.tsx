@@ -38,7 +38,7 @@ const CHOOSE_HEAD: Record<string, { h2: string; lede: string }> = {
   "air-conditioning-installation": {
     h2: "Four shapes. One of them is your house.",
     lede:
-      "Before anyone talks model numbers, the choice is what shape the system takes \u2014 one room or the whole house, on the wall or in the roof, refrigerated or evaporative. Everything else follows from that.",
+      "Before anyone talks model numbers, the choice is what shape the system takes: one room or the whole house, on the wall or in the roof, refrigerated or evaporative. Everything else follows from that.",
   },
   "heat-pump-installation": {
     h2: "One shell, or two pieces?",
@@ -53,7 +53,7 @@ const CHOOSE_HEAD: Record<string, { h2: string; lede: string }> = {
   "gas-plumbing": {
     h2: "Heating, hot water, or the gas itself.",
     lede:
-      "Three trades on one licence, so this page covers all of them. Start with the one that brought you here \u2014 each has its own page with the models, the prices and the honest limits.",
+      "Three trades on one licence, so this page covers all of them. Start with the one that brought you here. Each has its own page with the models, the prices and the honest limits.",
   },
 };
 

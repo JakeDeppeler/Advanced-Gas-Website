@@ -327,7 +327,7 @@ export function BrandCompare({ brand }: Props) {
                     {sy.facts.map((f) => (
                       <li key={f.lead}>
                         <strong>{f.lead}</strong>
-                        {f.note && <> &mdash; {f.note}</>}
+                        {f.note && <> · {f.note}</>}
                       </li>
                     ))}
                   </ul>

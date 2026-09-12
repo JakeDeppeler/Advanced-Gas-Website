@@ -148,7 +148,7 @@ export function HeatPumpDiagram({
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How it works</span>
             <h2 className="ds-h--on-dark">How a heat pump makes your hot water.</h2>
             <p>
-              {who} doesn&rsquo;t burn anything or run an element &mdash; it moves heat that&rsquo;s already in
+              {who} doesn&rsquo;t burn anything or run an element. It moves heat that&rsquo;s already in
               the air into your tank, which is why it does the same job on a fraction of the power.
             </p>
           </div>
@@ -166,7 +166,7 @@ export function HeatPumpDiagram({
                   <figure className="hpd__unit">
                     <span className="hpd__tag">All-in-one</span>
                     <div className="hpd__svg"><AllInOneSvg /></div>
-                    <p className="hpd__cap">Tank and heat pump in one shell &mdash; nothing to place outside.</p>
+                    <p className="hpd__cap">Tank and heat pump in one shell, nothing to place outside.</p>
                   </figure>
                 )}
                 {showSplit && (
@@ -185,8 +185,8 @@ export function HeatPumpDiagram({
               </div>
 
               <ol className="hpd__steps">
-                <li><span className="hpd__num">1</span><div><strong>Pull heat from the air</strong><p>A fan draws air across the evaporator, where the refrigerant soaks up the warmth &mdash; even a cold morning has heat to give.</p></div></li>
-                <li><span className="hpd__num">2</span><div><strong>Concentrate it</strong><p>The compressor squeezes that refrigerant, and squeezing it makes it hot &mdash; hotter than shower temperature.</p></div></li>
+                <li><span className="hpd__num">1</span><div><strong>Pull heat from the air</strong><p>A fan draws air across the evaporator, where the refrigerant soaks up the warmth, even a cold morning has heat to give.</p></div></li>
+                <li><span className="hpd__num">2</span><div><strong>Concentrate it</strong><p>The compressor squeezes that refrigerant, and squeezing it makes it hot, hotter than shower temperature.</p></div></li>
                 <li><span className="hpd__num">3</span><div><strong>Pass it to the water</strong><p>The heat exchanger hands the heat to the water. Cold in the bottom, hot out the top.</p></div></li>
               </ol>
             </div>
@@ -212,7 +212,7 @@ export function HeatPumpDiagram({
                 </div>
                 <p className="hpd__cost-note">
                   Indicative running cost per year on 200 L/day, current Victorian tariffs. Your figure depends on
-                  usage, tariff and whether you have solar &mdash; we run the numbers for your place at the quote.
+                  usage, tariff and whether you have solar. We run the numbers for your place at the quote.
                 </p>
                 <div className="hpd__cost-cta">
                   <Link href="/tools/hot-water-savings" className="ds-btn ds-btn--orange">Work out your own savings →</Link>

@@ -133,7 +133,7 @@ export default function PricingPage() {
             <h2>Every price is the whole job.</h2>
             <p>
               No teaser &ldquo;from&rdquo; figure that balloons on the invoice. The number you see
-              below is the unit, the labour, the standard install and the rebate &mdash; here&rsquo;s
+              below is the unit, the labour, the standard install and the rebate. Here&rsquo;s
               exactly what that covers.
             </p>
           </div>
@@ -155,11 +155,11 @@ export default function PricingPage() {
             <div className="pricing-note__side">
               <div className="pricing-note__card">
                 <div className="pricing-note__lbl">We quote extras, never surprise you</div>
-                <p>Some sites need more than a standard install &mdash; a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, trenching to move an LPG bottle. It all goes in the written quote before you commit, so nothing lands on the invoice that wasn&rsquo;t on the quote.</p>
+                <p>Some sites need more than a standard install: a longer pipe run, first-floor roof access, salt-tolerant coating near the coast, trenching to move an LPG bottle. It all goes in the written quote before you commit, so nothing lands on the invoice that wasn&rsquo;t on the quote.</p>
               </div>
               <div className="pricing-note__card pricing-note__card--rebate">
                 <div className="pricing-note__lbl">The VEU rebate&rsquo;s already in it</div>
-                <p>You don&rsquo;t pay it up-front then chase it back &mdash; it comes straight off at the quote. The Solar Homes bonus (+$1,000) is available for eligible owner-occupier households.</p>
+                <p>You don&rsquo;t pay it up-front then chase it back. It comes straight off at the quote. The Solar Homes bonus (+$1,000) is available for eligible owner-occupier households.</p>
               </div>
             </div>
           </div>

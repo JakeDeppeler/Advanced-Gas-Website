@@ -935,7 +935,7 @@ export function HeroQuoteForm() {
 
         {sendFailed && (
           <div className="qfail" role="alert">
-            <strong>That didn&rsquo;t send.</strong> Nothing you typed has been lost &mdash; press
+            <strong>That didn&rsquo;t send.</strong> Nothing you typed has been lost. Press
             the button again, or ring us on{" "}
             <a href={`tel:${site.phoneE164}`}>{site.phone}</a> and we&rsquo;ll take the details
             over the phone.

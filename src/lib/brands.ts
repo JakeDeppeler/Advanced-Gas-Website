@@ -788,7 +788,7 @@ const brandCatalogue: Brand[] = [
        brand with sixteen models and therefore the one the old grid
        served worst. --- */
     heroSub:
-      "The brand we quote first on any air conditioning job, and the one we still get parts for in year twelve. Sixteen models across five shapes \u2014 start with the shape.",
+      "The brand we quote first on any air conditioning job, and the one we still get parts for in year twelve. Sixteen models across five shapes. Start with the shape.",
     fitsWhere:
       "Wall splits in weatherboards with no roof space, ducted in the Clyde North and Officer new-builds, Hyper Heating in the hills where the cold mornings are real.",
     heroFacts: [
@@ -804,7 +804,7 @@ const brandCatalogue: Brand[] = [
         t: "It doesn't break",
         line: "Under 1% failure rate across everything we've put in",
         detail:
-          "That number is ours, not a brochure's \u2014 it's what our own call-back book says across the units we've installed. It's the whole argument. A unit that never brings us back is worth more to you and to us than a cheaper one that does, and it is the reason Mitsubishi gets quoted before anything else.",
+          "That number is ours, not a brochure's. It's what our own call-back book says across the units we've installed. It's the whole argument. A unit that never brings us back is worth more to you and to us than a cheaper one that does, and it is the reason Mitsubishi gets quoted before anything else.",
         icon: "shield",
       },
       {
@@ -832,7 +832,7 @@ const brandCatalogue: Brand[] = [
         t: "Quiet enough for a bedroom",
         line: "From 19 dBA on the smaller wall splits",
         detail:
-          "The MSZ-AP25 runs at 19 dBA on low \u2014 quieter than a library, and quiet enough that it isn't the thing that wakes you. Worth knowing before somebody talks you into an oversized unit that will short-cycle all night.",
+          "The MSZ-AP25 runs at 19 dBA on low, quieter than a library, and quiet enough that it isn't the thing that wakes you. Worth knowing before somebody talks you into an oversized unit that will short-cycle all night.",
         icon: "people",
       },
       {
@@ -846,19 +846,19 @@ const brandCatalogue: Brand[] = [
 
     systemsHeading: "Five shapes. Start here, not with a model number.",
     systemsLede:
-      "Sixteen models is a lot to read through, and nobody chooses between an MSZ-AP50 and an MSZ-AP60 first. You choose a shape \u2014 one room or the whole house, on the wall or in the roof \u2014 and the model follows from the heat load.",
+      "Sixteen models is a lot to read through, and nobody chooses between an MSZ-AP50 and an MSZ-AP60 first. You choose a shape, one room or the whole house, on the wall or in the roof, and the model follows from the heat load.",
     systems: [
       {
         id: "wall-split",
         label: "MSZ-AP wall splits",
         blurb:
-          "One outdoor unit, one indoor head on the wall. Our default for a bedroom, a living room or a granny flat, and the quickest thing we fit \u2014 most go in back-to-back in a single morning.",
+          "One outdoor unit, one indoor head on the wall. Our default for a bedroom, a living room or a granny flat, and the quickest thing we fit. Most go in back-to-back in a single morning.",
         photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
         photoAlt: "Mitsubishi Electric MSZ-AP wall-mounted split system",
         priceFrom: "from $2,199 installed",
         facts: [
           { lead: "Six sizes", note: "2.5 kW for a bedroom up to 8.0 kW for large open-plan" },
-          { lead: "19 dBA on low", note: "On the AP25 \u2014 quiet enough to sleep next to" },
+          { lead: "19 dBA on low", note: "On the AP25, quiet enough to sleep next to" },
           { lead: "One morning", note: "Back-to-back install in three to four hours" },
           { lead: "Hyper Heating option", note: "Full rated heat down to -15\u00b0 for hills postcodes" },
         ],
@@ -868,7 +868,7 @@ const brandCatalogue: Brand[] = [
         id: "multi-head",
         label: "MXZ multi-head",
         blurb:
-          "One outdoor unit running two to six indoor heads. The answer when you want three bedrooms done but there is only room \u2014 or only body-corporate permission \u2014 for a single condenser outside.",
+          "One outdoor unit running two to six indoor heads. The answer when you want three bedrooms done but there is only room, or only body-corporate permission, for a single condenser outside.",
         photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp",
         photoAlt: "Mitsubishi MXZ multi-head outdoor condenser",
         priceFrom: "from $6,500 installed",
@@ -900,7 +900,7 @@ const brandCatalogue: Brand[] = [
         id: "console",
         label: "MFZ-KW floor console",
         blurb:
-          "A wall split that sits at floor level instead of up near the ceiling. For rooms where there is nothing to mount high on \u2014 full-height glass, a heritage cornice, a wall of joinery \u2014 and for anyone who wants the heat coming out at ankle height in winter.",
+          "A wall split that sits at floor level instead of up near the ceiling. For rooms with nothing to mount high on, such as full-height glass, a heritage cornice or a wall of joinery, and for anyone who wants the heat coming out at ankle height in winter.",
         photo: "/mitsubishi-mfz-kw-floor-console-v2.webp",
         photoAlt: "Mitsubishi MFZ-KW floor-standing console unit",
         priceFrom: "Priced at quote",
@@ -916,7 +916,7 @@ const brandCatalogue: Brand[] = [
         id: "controls",
         label: "Controllers and zoning",
         blurb:
-          "The wired wall controller and the native ducted zone controller. Not an upsell \u2014 on a ducted job the zoning is what decides whether the system costs sense to run, and it goes in as part of the install.",
+          "The wired wall controller and the native ducted zone controller. Not an upsell. On a ducted job the zoning is what decides whether the system costs sense to run, and it goes in as part of the install.",
         photo: "/mitsubishi-par-41maa-controller-v2.webp",
         photoAlt: "Mitsubishi PAR-41MAA wired wall controller",
         priceFrom: "Included in the install",
@@ -935,9 +935,9 @@ const brandCatalogue: Brand[] = [
       photo: "/duct-work.webp",
       photoAlt: "Insulated ducted air conditioning runs through a Melbourne roof space",
       body:
-        "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like \u2014 whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
+        "Anyone can sell you a system. The part that decides whether it was a good decision is what the next fifteen years look like: whether it holds its output, whether the parts still exist, and whether somebody can get to it. That last one is a decision made on install day, not on service day.",
       facts: [
-        "A decade-old MSZ-AP still makes its rated output \u2014 we measure them on annual services and they hold",
+        "A decade-old MSZ-AP still makes its rated output: we measure them on annual services and they hold",
         "Common indoor and outdoor parts come out of the Melbourne warehouse same-day",
         "Annual service is $220 on a split, $390 on a ducted, and we text you eleven months later so it gets booked",
         "We lodge the service report with Mitsubishi, so the warranty record stays clean for any future claim",
@@ -957,7 +957,7 @@ const brandCatalogue: Brand[] = [
     faqs: [
       {
         q: "Is Mitsubishi Electric actually worth the extra over a budget brand?",
-        a: "On a bedroom split the gap is a few hundred dollars, and the honest answer is that it usually pays for itself the first time something goes wrong \u2014 or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
+        a: "On a bedroom split the gap is a few hundred dollars, and the honest answer is that it usually pays for itself the first time something goes wrong, or rather, the first time it doesn't. Under 1% of the ones we've installed have come back to us. Where it clearly matters is year eight onwards: a budget unit with no parts left is a whole new system, and that is a five-figure difference on a ducted job.",
       },
       {
         q: "What's the difference between MSZ-AP and Hyper Heating?",
@@ -969,7 +969,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "Can I control it from my phone?",
-        a: "Yes \u2014 a MELCloud Wi-Fi module clips into any indoor unit in the range, including the cheapest one. You get scheduling, geofencing and a usage history. It's a module rather than a model tier, so you don't have to buy up to get it.",
+        a: "Yes. A MELCloud Wi-Fi module clips into any indoor unit in the range, including the cheapest one. You get scheduling, geofencing and a usage history. It's a module rather than a model tier, so you don't have to buy up to get it.",
       },
       {
         q: "How long does a Mitsubishi install take?",
@@ -977,7 +977,7 @@ const brandCatalogue: Brand[] = [
       },
       {
         q: "What warranty do I get?",
-        a: "Five years manufacturer parts and labour on the unit, registered in your name the day after we install it. On top of that we carry six years on our own workmanship, which covers the install rather than the box \u2014 brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong.",
+        a: "Five years manufacturer parts and labour on the unit, registered in your name the day after we install it. On top of that we carry six years on our own workmanship, which covers the install rather than the box: brackets, line-set, drainage, penetrations, the things that are our fault if they go wrong.",
       },
       {
         q: "Can you service a Mitsubishi you didn't install?",

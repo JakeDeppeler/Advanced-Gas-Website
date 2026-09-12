@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/lib/site";
 import { HeatPumpComparator } from "@/components/HeatPumpComparator";
+import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import "../detail.css";
 import "./heat-pumps.css";
 
@@ -49,65 +51,136 @@ export default function HeatPumpsPage() {
   return (
     <div className="page-heatpumps page-detail">
       {/* HERO */}
-      <section className="dp-hero">
-        <div className="wrap">
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> The honest heat pump guide · Pakenham locals
+      <section className="hp-hero">
+        <div className="wrap hp-hero__grid">
+          <div className="hp-hero__copy">
+            <span className="hp-hero__eye"><span className="ds-dot" /> Hot water</span>
+            <h1>Hot water for about a quarter of the running cost.</h1>
+            <p className="hp-hero__sub">
+              A heat pump doesn&rsquo;t burn anything and it doesn&rsquo;t run an element. It moves warmth out of the
+              air into your tank, the way a fridge does in reverse. Same hot showers, a fraction of the power.
+            </p>
+            <div className="hp-hero__ctas">
+              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote &rarr;</Link>
+              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
+                Or call {site.phone}
+              </a>
+            </div>
+            <p className="hp-hero__rebate">
+              The VEU rebate comes off at the quote, not after.{" "}
+              <Link href="/rebates">See what you qualify for</Link>
+            </p>
           </div>
-          <h1>
-            Every heat pump we install, <span className="accent">compared honestly</span>, plus what to avoid.
-          </h1>
-          <p className="dp-hero__sub">
-            Five brands, real installed prices, warranty length, refrigerant type and where the parts actually come from. Plus six red flags for the fly-by-night importer brands that sell you a &ldquo;bargain&rdquo; on Facebook Marketplace and disappear before the warranty kicks in.
-          </p>
-          <div className="dp-hero__ctas" style={{ marginTop: 20 }}>
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a written quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-              Or call {site.phone}
-            </a>
+          <div className="hp-hero__photo">
+            <Image
+              src="/reclaim-split-stand-back-shot-left-side.webp"
+              alt="A Reclaim split heat pump we installed: tank against the brick wall with the compressor beside it"
+              fill
+              sizes="(max-width: 900px) 100vw, 40vw"
+              style={{ objectFit: "cover" }}
+              priority
+            />
           </div>
         </div>
       </section>
 
-      {/* WHY HEAT PUMP */}
+      {/* PICK A STYLE */}
+      <section className="hp-pick">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Start here</span>
+            <h2>There are two kinds. Which one suits your place?</h2>
+          </div>
+          <div className="hp-pick__grid">
+            <a className="hp-pick__card" href="#all-in-one">
+              <span className="hp-pick__photo">
+                <Image
+                  src="/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp"
+                  alt="An all-in-one heat pump, with the compressor sitting on top of the tank"
+                  fill
+                  sizes="(max-width: 900px) 50vw, 260px"
+                  style={{ objectFit: "contain" }}
+                />
+              </span>
+              <span className="hp-pick__body">
+                <strong>All-in-one</strong>
+                <span className="hp-pick__d">Tank and compressor in the one unit. Goes where the old tank was.</span>
+                <span className="hp-pick__meta">From $2,610 installed</span>
+              </span>
+              <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <a className="hp-pick__card" href="#split">
+              <span className="hp-pick__photo">
+                <Image
+                  src="/reclaim-split-back.webp"
+                  alt="A split heat pump we installed: the tank against the wall with the compressor as a separate outdoor unit beside it"
+                  fill
+                  sizes="(max-width: 900px) 50vw, 260px"
+                  style={{ objectFit: "cover", objectPosition: "center 62%" }}
+                />
+              </span>
+              <span className="hp-pick__body">
+                <strong>Split system</strong>
+                <span className="hp-pick__d">Compressor outside, on its own. Quieter at the tank and better in a cold snap.</span>
+                <span className="hp-pick__meta">From $5,340 installed</span>
+              </span>
+              <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
+            </a>
+
+            <Link className="hp-pick__card hp-pick__card--ask" href="/quote">
+              <span className="hp-pick__body">
+                <strong>Not sure which one?</strong>
+                <span className="hp-pick__d">
+                  Tell us how many people are in the house and where the old tank sits. We&rsquo;ll size it and put
+                  it in writing.
+                </span>
+                <span className="hp-pick__meta">Free, no obligation</span>
+              </span>
+              <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* THE SHORT VERSION */}
       <section className="hp-why">
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow"><span className="ds-dot" /> The short version</span>
-            <h2>Heat pumps beat gas storage tanks on running cost, by a factor of 4.</h2>
-            <p>A modern heat pump moves heat instead of making it. It uses ~500 W of power to deliver ~2 kW of hot-water heating: a coefficient of performance around 4:1. A gas storage tank burns gas at 70&ndash;85% efficiency. That&rsquo;s the whole story.</p>
+            <h2>Why people change over.</h2>
+            <p>A heat pump uses about 500&nbsp;W of power to deliver about 2&nbsp;kW of heating into the tank. A gas storage tank burns gas at 70&nbsp;&ndash;&nbsp;85% efficiency and loses the rest up the flue. That is the whole argument.</p>
           </div>
           <div className="hp-why__grid">
             <div className="hp-why__stat">
               <strong>~73%</strong>
-              <span>Cut in hot water running cost vs gas storage</span>
+              <span>Less to run than a gas storage tank</span>
             </div>
             <div className="hp-why__stat">
               <strong>$2,605</strong>
-              <span>Combined rebate stack (VEEC + STC + Aus-Made + Solar Homes)</span>
+              <span>VEU rebate on an eligible unit, taken off at the quote</span>
             </div>
             <div className="hp-why__stat">
-              <strong>2–4 yrs</strong>
-              <span>Payback vs like-for-like gas tank replacement</span>
-            </div>
-            <div className="hp-why__stat">
-              <strong>12–15 yr</strong>
-              <span>Typical unit lifespan on a properly installed system</span>
+              <strong>12&ndash;15 yrs</strong>
+              <span>What a properly installed unit should last</span>
             </div>
           </div>
         </div>
       </section>
+
+      {/* HOW IT WORKS */}
+      <HeatPumpDiagram />
 
       {/* AIO vs SPLIT */}
       <section className="hp-styles">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> First fork in the road</span>
-            <h2>All-in-one or split, what&rsquo;s the difference?</h2>
-            <p>Every heat pump comes in one of two configurations. Your house layout, your budget and the noise you can tolerate at the tank end are the deciding factors.</p>
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The detail</span>
+            <h2>All-in-one or split, side by side.</h2>
+            <p>Your house layout, your budget, and how much noise you can live with at the tank end. That is what decides it.</p>
           </div>
           <div className="hp-styles__grid">
-            <article className="hp-style">
+            <article className="hp-style" id="all-in-one">
               <div className="hp-style__head">
                 <span className="hp-style__eye">All-in-one (plug-in)</span>
                 <h3>Tank + compressor in one unit</h3>
@@ -129,7 +202,7 @@ export default function HeatPumpsPage() {
               </div>
             </article>
 
-            <article className="hp-style hp-style--feature">
+            <article className="hp-style hp-style--feature" id="split">
               <span className="hp-style__badge">Premium</span>
               <div className="hp-style__head">
                 <span className="hp-style__eye">Split system</span>

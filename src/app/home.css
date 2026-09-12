@@ -86,7 +86,15 @@
      78px and needs 96px of scrim under the trust strip to lift into. The short
      -viewport blocks below trim it in step with a smaller overlap. */
   padding: clamp(30px, 4.4vh, 88px) 32px 96px;
-  min-height: clamp(400px, 52vh, 640px);
+  /* The hero is sized so the fold lands on the fork, not past it. At 52vh it
+     capped at 640px and a big monitor got a short hero with a band of dead
+     white under the panel: everything on the page was visible at once and
+     nothing was the first thing. The arithmetic behind the 330px is the
+     furniture between the top of the window and the bottom of the panel:
+     the switch strip and header above the hero (142px), less the panel's
+     lift over the seam (78px), plus the panel's own height (~262px). So the
+     panel's last line finishes at the fold and the fork is what you see. */
+  min-height: clamp(400px, calc(100vh - 330px), 1120px);
 }
 .page-home .hero__copy {
   display: flex;
@@ -1806,6 +1814,22 @@
 /* Short screens: the hero gives up some of its own scale so the fork clears the
    fold. Everything is still there, it is just not shouting quite as loudly on a
    768px laptop as it does on a 27-inch monitor. */
+/* Tall screens: the hero has the room, so it uses it. Without this the
+   heading and photo stay at laptop scale in a 1100px-tall box and the extra
+   height reads as padding rather than presence.
+
+   1060px, not 1000px: the larger type and photo come to about 718px of
+   content, and below a 1060px window that is taller than the box the fold
+   arithmetic above asks for, so the hero grows past its own budget and
+   pushes the panel's last line under the fold. */
+@media (min-width: 861px) and (min-height: 1060px) {
+  .page-home .hero__h1 { font-size: clamp(52px, 4.9vw, 76px); }
+  .page-home .hero__sub { font-size: clamp(17px, 1.45vw, 21px); }
+  .page-home .hero__copy { gap: 26px; max-width: 620px; }
+  .page-home .hero__photo { max-height: 760px; }
+  .page-home .hero__grid { gap: 64px; }
+}
+
 @media (min-width: 861px) and (max-height: 940px) {
   .page-home .hero__copy { gap: 14px; }
   .page-home .hero__h1 { font-size: clamp(32px, 3.7vw, 50px); }
@@ -1815,7 +1839,7 @@
      sit 78px over the hero because there is dead scrim under the trust strip
      to sit on; once the hero is compressed that space is the trust strip
      itself, and the panel was cutting the rating in half. */
-  .page-home .hero__grid { padding-bottom: 46px; }
+  .page-home .hero__grid { padding-bottom: 46px; min-height: clamp(380px, calc(100vh - 380px), 560px); }
   .page-home .route { margin-top: -22px; }
   .page-home .route__panel { padding: 20px 30px 18px; }
   .page-home .route .ds-section-head h2 { font-size: clamp(21px, 2.2vw, 27px); }
@@ -1829,7 +1853,7 @@
   .page-home .hero__photo { max-height: 300px; }
   .page-home .hero__trust { padding-block: 9px; }
   .page-home .hero__rebate { font-size: 14px; }
-  .page-home .hero__grid { padding-bottom: 30px; }
+  .page-home .hero__grid { padding-bottom: 30px; min-height: clamp(360px, calc(100vh - 370px), 430px); }
   .page-home .route { margin-top: -14px; }
   .page-home .route__urgent { margin-top: 10px; font-size: 13.5px; }
   .page-home .routebtn__txt strong { font-size: 15.5px; }

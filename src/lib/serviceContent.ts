@@ -441,7 +441,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "A shoebox on the wall and a box outside.",
           note:
-            "The indoor head goes high on the wall, usually above a door or a bed. Outside, the condenser sits on brackets or a ground stand down the side of the house. What decides whether it looks tidy is the run between them \u2014 and that is entirely down to who fits it.",
+            "The indoor head goes high on the wall, usually above a door or a bed. Outside, the condenser sits on brackets or a ground stand down the side of the house. What decides whether it looks tidy is the run between them, and that is entirely down to who fits it.",
           photo: "/ducted-condenser.webp",
           photoAlt: "The outdoor condenser on a levelled stand beside the house",
           photoScene: true,
@@ -599,7 +599,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           photo: "/mitsubishi-mxz-multi-split-condenser-v2.webp",
           photoAlt: "Mitsubishi MXZ multi-head outdoor condenser",
           body:
-            "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists \u2014 there is no sense charging a full call-out per head when we are already standing in the house.",
+            "The saving on a multi-head shows up again at service time: one outdoor unit to clean rather than four. The indoor heads still each need doing, which is why the bundle rate exists. There is no sense charging a full call-out per head when we are already standing in the house.",
           facts: [
             { v: "$220 then $140", k: "the first unit, then each one after it that day" },
             { v: "One coil clean", k: "the outdoor unit covers every head running off it" },
@@ -827,7 +827,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "A box on the roof and vents in the ceiling.",
           note:
-            "An evaporative cooler is the unit you can see from the street \u2014 a squat box on the roof, usually toward the back. Inside there is a vent per room and a small controller on the wall. There is no outdoor unit down the side of the house, which is why it suits homes with no room for one.",
+            "An evaporative cooler is the unit you can see from the street, a squat box on the roof, usually toward the back. Inside there is a vent per room and a small controller on the wall. There is no outdoor unit down the side of the house, which is why it suits homes with no room for one.",
           photo: "/classic_evap_product_image.jpg",
           photoAlt: "Evaporative cooler unit and its wall controller",
           facts: [
@@ -838,7 +838,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           ],
         },
         servicing: {
-          heading: "Pads, pump, float \u2014 and the first hot day.",
+          heading: "Pads, pump, float, and the first hot day.",
           photo: "/evap cooler service close ip.jpg",
           photoAlt: "Evaporative cooler opened up on a roof, pads and tray visible",
           photoScene: true,
@@ -1012,7 +1012,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         "A heat pump is a fridge running backwards into a tank, and the tank is the part that decides how long you own it. Glass-lined tanks carry a sacrificial anode that has to be replaced or the tank goes; stainless has no anode and nothing to rust. That one difference is most of the gap between a ten-year system and a twenty-year one.",
       facts: [
         { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
-        { v: "No anode", k: "on stainless \u2014 which is what the 15-year warranty is" },
+        { v: "No anode", k: "on stainless, which is what the 15-year warranty is" },
         { v: "-10\u00b0", k: "where a CO\u2082 unit still makes its rated heat" },
       ],
     },
@@ -1149,10 +1149,10 @@ export const serviceContent: Record<string, ServiceContent> = {
           photoAlt: "Reclaim CO₂ heat pump compressor and pipework, close up",
           photoScene: true,
           body:
-            "Glass-lined tanks carry a sacrificial anode that corrodes so the steel doesn't. Replace it around year five and the tank lasts; skip it and the tank goes. Stainless has no anode at all, which is what the fifteen-year warranty is actually about \u2014 not a better weld, an absent failure mode.",
+            "Glass-lined tanks carry a sacrificial anode that corrodes so the steel doesn't. Replace it around year five and the tank lasts; skip it and the tank goes. Stainless has no anode at all, which is what the fifteen-year warranty is actually about: not a better weld, an absent failure mode.",
           facts: [
             { v: "Year five", k: "when a glass-lined tank wants its anode replaced" },
-            { v: "No anode", k: "on stainless \u2014 what the 15-year warranty actually is" },
+            { v: "No anode", k: "on stainless, what the 15-year warranty actually is" },
             { v: "-10\u00b0", k: "where CO\u2082 still makes its rated heat" },
           ],
         },
@@ -1287,7 +1287,7 @@ export const serviceContent: Record<string, ServiceContent> = {
             "There is less to an all-in-one than to a split, and that cuts both ways: fewer things to go wrong, and one shell to replace when the tank eventually does. The anode rule is the same as anywhere else, and it is still the thing most owners have never heard of.",
           facts: [
             { v: "Year five", k: "anode checked on every unit that has one" },
-            { v: "Clear air", k: "R290 needs it \u2014 not a sealed cupboard" },
+            { v: "Clear air", k: "R290 needs it, not a sealed cupboard" },
             { v: "6 + 3 years", k: "tank and compressor, plus six years from us" },
           ],
         },
@@ -1646,7 +1646,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           photo: "/mitsubishi-msz-ap-wall-split-v2-v3.webp",
           photoAlt: "Wall split indoor head, opened for a filter and coil clean",
           body:
-            "A service is worth having twice over: the machine runs better, and there is now a document saying somebody competent looked at it. The second one is what a manufacturer asks for when you claim in year four \u2014 and it is why a cash-in-hand clean is worth less than it looks.",
+            "A service is worth having twice over: the machine runs better, and there is now a document saying somebody competent looked at it. The second one is what a manufacturer asks for when you claim in year four, and it is why a cash-in-hand clean is worth less than it looks.",
           facts: [
             { v: "12 months", k: "on any part we supply, six years on the labour" },
             { v: "Fee waived", k: "if the repair goes ahead the same day" },
@@ -1884,7 +1884,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           facts: [
             { v: "$280 + GST", k: "a full service with a calibrated CO analyser" },
             { v: "Every 2 years", k: "and annually once it is past ten" },
-            { v: "Condemned", k: "on the spot if the exchanger is cracked \u2014 that's the law" },
+            { v: "Condemned", k: "on the spot if the exchanger is cracked, that's the law" },
           ],
         },
         brands: ["Brivis", "Kaden"],
@@ -1987,7 +1987,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "About the size of a briefcase.",
           note:
-            "A continuous flow unit hangs on an outside wall and is roughly the size of a briefcase \u2014 which is the whole point, because it replaces a tank the size of a person. There are two controllers, one inside and one out, and they are the only part of it you interact with.",
+            "A continuous flow unit hangs on an outside wall and is roughly the size of a briefcase, which is the whole point, because it replaces a tank the size of a person. There are two controllers, one inside and one out, and they are the only part of it you interact with.",
           photo: "/thermann-contineues-flow-standing-back.webp",
           photoAlt: "Thermann continuous flow unit on an outside wall, stood back",
           photoScene: true,
@@ -2108,7 +2108,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         looks: {
           heading: "An hour and a half, and a calibrated analyser.",
           note:
-            "Most of a gas heater service happens at the unit \u2014 in the cupboard, on the slab or up in the roof. The part that matters is the combustion test: a probe in the flue and a calibrated analyser reading what is actually coming out, rather than a look at the flame and a guess.",
+            "Most of a gas heater service happens at the unit: in the cupboard, on the slab or up in the roof. The part that matters is the combustion test: a probe in the flue and a calibrated analyser reading what is actually coming out, rather than a look at the flame and a guess.",
           photo: "/Brivis Compact Classic Indoor Gas Heater.jpg",
           photoAlt: "Brivis Compact Classic internal gas ducted heater",
           facts: [
@@ -2124,7 +2124,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           photoAlt: "Gas line work in progress on a residential property",
           photoScene: true,
           body:
-            "That interval is not ours \u2014 it is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
+            "That interval is not ours. It is what the manufacturers and the regulator both say, and it exists because heat exchangers crack with age and thermal cycling. A heater that has run twenty Melbourne winters has earned an annual look at it.",
           facts: [
             { v: "$280 + GST", k: "with the combustion analysis included, not extra" },
             { v: "AS/NZS 5601", k: "the standard the pressure and spillage test is to" },
@@ -2231,7 +2231,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           photo: "/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg",
           photoAlt: "Thermann gas storage hot water unit",
           body:
-            "Nothing about a hire unit is yours to look after. If it stops we come out and sort it at no charge, and when the new system goes in we disconnect it and take it away on the same day. There is no obligation to use us for the replacement, and we mean that \u2014 it is a different conversation.",
+            "Nothing about a hire unit is yours to look after. If it stops we come out and sort it at no charge, and when the new system goes in we disconnect it and take it away on the same day. There is no obligation to use us for the replacement, and we mean that. It is a different conversation.",
           facts: [
             { v: "No charge", k: "if it faults while it's on site, we fix or swap it" },
             { v: "Same day", k: "disconnected and collected when the new one goes in" },

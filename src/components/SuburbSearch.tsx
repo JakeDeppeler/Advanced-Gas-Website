@@ -52,7 +52,7 @@ export function SuburbSearch({ suburbs }: { suburbs: { name: string; slug: strin
         </div>
       ) : (
         <p className="subsearch__none">
-          &ldquo;{q}&rdquo; isn&rsquo;t on the list &mdash; but we often travel further for booked work.{" "}
+          &ldquo;{q}&rdquo; isn&rsquo;t on the list, but we often travel further for booked work.{" "}
           <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a> and we&rsquo;ll tell you straight.
         </p>
       )}
