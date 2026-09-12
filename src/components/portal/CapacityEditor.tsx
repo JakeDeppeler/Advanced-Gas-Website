@@ -312,21 +312,20 @@ export function CapacityEditor({
     if (!solo.length) return [] as { key: string; label: string; rate: number; parts: string; note: string }[];
     const lead = solo[0];
     const leadRate = lead.charge as number;
-    const out = [{
-      key: "solo",
-      label: `${lead.label} on their own`,
-      rate: leadRate,
-      parts: `Charged · cost plus ${s.margin}% margin`,
-      note: `A charge, not a cost. What that hour costs is on their own tile: their wage plus its share of every overhead the business carries. This is that figure with the ${s.margin}% margin on top, which is what goes on a quote.`,
-    }];
+    // No tile for the lead on their own: with the charge on the face and the
+    // cost underneath, that is now the same tile as their level, to the cent.
+    // The comparison still reads across, because their level tile is sitting
+    // immediately to the left of this one.
+    const out: { key: string; label: string; rate: number; cost: number; parts: string; note: string }[] = [];
     const mate = levelHours.find((l) => l.wageOnly);
     if (mate) {
       out.push({
         key: "pair",
         label: `${lead.label} + ${mate.label.toLowerCase()}`,
         rate: leadRate + mate.wagePerHr,
-        parts: `Charged · ${money(leadRate)} + ${money2(mate.wagePerHr)} wage`,
-        note: `The ${lead.label.toLowerCase()} hour at ${money(leadRate)} charged, plus the ${mate.label.toLowerCase()}'s wage of ${money2(mate.wagePerHr)} with on-costs. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that for the job. Worth knowing what this figure is made of: the first half is a charge and the second half is a cost at no margin, so the ${mate.label.toLowerCase()}'s time is quoted at exactly what it costs and earns nothing. At ${s.margin}% it would be ${money2(mate.wagePerHr * (1 + s.margin / 100))} instead, ${money(leadRate + mate.wagePerHr * (1 + s.margin / 100))} for the pair.`,
+        cost: lead.perHr + mate.wagePerHr,
+        parts: `Charged · costs ${money2(lead.perHr + mate.wagePerHr)}`,
+        note: `The tile to the left with ${money2(mate.wagePerHr)} added. The ${lead.label.toLowerCase()} hour at ${money(leadRate)} charged, plus the ${mate.label.toLowerCase()}'s wage of ${money2(mate.wagePerHr)} with on-costs. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that for the job. Worth knowing what this figure is made of: the first half is a charge and the second half is a cost at no margin, so the ${mate.label.toLowerCase()}'s time is quoted at exactly what it costs and earns nothing. At ${s.margin}% it would be ${money2(mate.wagePerHr * (1 + s.margin / 100))} instead, ${money(leadRate + mate.wagePerHr * (1 + s.margin / 100))} for the pair.`,
       });
     }
     return out;
@@ -423,8 +422,14 @@ export function CapacityEditor({
           <Stat
             key={l.key}
             label={`${l.label}'s hour`}
-            value={show(l.perHr)}
-            sub={l.wageOnly || l.ridesAlong ? "Costs us · their wage with on-costs" : "Costs us · wage plus overhead share"}
+            // Charged on the face, costs us underneath. Both numbers, every
+            // tile, so nothing on this strip has to be asked about.
+            value={show(l.wageOnly ? l.perHr : (l.charge ?? l.perHr))}
+            sub={
+              l.wageOnly
+                ? `Wage, charged at cost · costs ${show(l.perHr)}`
+                : `Charged · costs ${show(l.perHr)}`
+            }
             open={info === `lvl:${l.key}`}
             onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
           />
