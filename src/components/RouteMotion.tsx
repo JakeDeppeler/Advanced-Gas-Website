@@ -44,12 +44,14 @@ const TIMING: Record<SweepKind, [number, number, number]> = {
   building: [540, 130, 460],
   house: [540, 130, 460],
   water: [560, 120, 640],
-  climate: [540, 120, 480],
-  rebate: [540, 130, 470],
+  // The drawn ones need time to draw. A duct layout that appears fully formed
+  // in half a second is a picture, not a drawing, and the drawing is the point.
+  climate: [1150, 170, 560],
+  rebate: [900, 200, 520],
   service: [540, 130, 470],
-  crane: [620, 120, 520],
-  build: [520, 120, 480],
-  schedule: [560, 140, 460],
+  crane: [1250, 180, 620],
+  build: [1150, 170, 560],
+  schedule: [1050, 200, 560],
   callout: [540, 120, 500],
 };
 
@@ -119,18 +121,30 @@ export function RouteMotion() {
         </svg>
       </div>
 
-      {/* Climate: warm air one way, cool the other, meeting in the middle. */}
-      <div className="sweep__climate">
-        <span className="sweep__stream sweep__stream--warm" />
-        <span className="sweep__stream sweep__stream--cool" />
-        <svg className="sweep__flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-          <path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1" />
+      {/* Heating and cooling: the whole-home layout. The plan drawn, the plant
+          set, then the runs branching out to every room. */}
+      <div className="sweep__plan">
+        <svg viewBox="0 0 300 210" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path className="p1" d="M14 46h272v150H14z" />
+          <path className="p2" d="M118 46v66M118 148v48M198 112v84M14 112h104M198 112h88" />
+          <rect className="p3" x="132" y="14" width="50" height="34" rx="5" />
+          <path className="p4" d="M157 48v34M157 82H66v22M157 82h96v22M157 82v82M157 164H70M157 164h84" />
+          <g className="p5">
+            <rect x="54" y="102" width="24" height="12" rx="2" />
+            <rect x="241" y="102" width="24" height="12" rx="2" />
+            <rect x="58" y="158" width="24" height="12" rx="2" />
+            <rect x="229" y="158" width="24" height="12" rx="2" />
+          </g>
         </svg>
       </div>
 
-      {/* Rebate: the number coming off the price. */}
-      <div className="sweep__rebate">
-        {[0, 1, 2, 3, 4].map((i) => <span key={i}>$</span>)}
+      {/* Rebate: what it actually is. The quote total, then the rebate line
+          landing under it, then a smaller number where the big one was. */}
+      <div className="sweep__quote">
+        <span className="sweep__q1">$5,324</span>
+        <span className="sweep__q2">VEU rebate &minus;$2,700</span>
+        <span className="sweep__qrule" />
+        <span className="sweep__q3">$2,624</span>
       </div>
 
       {/* Service: a spanner turning onto the nut. */}
@@ -147,19 +161,36 @@ export function RouteMotion() {
         <span className="sweep__load" />
       </div>
 
-      {/* Build: a girder slides in and sets. */}
-      <div className="sweep__build"><span /><span /><span /></div>
+      {/* Fit-out: the mechanical layout drawing itself. Plant at one end, trunk
+          duct across, branches off it to the outlets — the drawing a tenancy
+          package actually starts from. */}
+      <div className="sweep__duct">
+        <svg viewBox="0 0 300 170" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect className="d1" x="14" y="60" width="52" height="46" rx="4" />
+          <path className="d2" d="M66 83h206" />
+          <path className="d3" d="M112 83V38h34M180 83V38h34M146 83v46h34M236 83v46h30" />
+          <g className="d4">
+            <rect x="140" y="26" width="26" height="14" rx="2" />
+            <rect x="208" y="26" width="26" height="14" rx="2" />
+            <rect x="174" y="124" width="26" height="14" rx="2" />
+            <rect x="260" y="124" width="26" height="14" rx="2" />
+          </g>
+        </svg>
+      </div>
 
-      {/* Schedule: a service sheet ticking itself off. */}
-      <div className="sweep__sched">
-        {[0, 1, 2, 3].map((i) => (
-          <span className="sweep__row" key={i}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12.5l5.5 5.5L20 6" />
-            </svg>
-            <i />
-          </span>
-        ))}
+      {/* Maintenance: the clipboard, filling itself in. */}
+      <div className="sweep__board">
+        <svg viewBox="0 0 180 230" fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect className="b-body" x="10" y="24" width="160" height="196" rx="12" stroke="currentColor" strokeWidth="5" />
+          <rect className="b-clip" x="62" y="6" width="56" height="30" rx="8" stroke="currentColor" strokeWidth="5" fill="none" />
+          {[0, 1, 2, 3].map((i) => (
+            <g className="b-row" key={i} transform={`translate(0 ${64 + i * 40})`}>
+              <rect x="32" y="-11" width="22" height="22" rx="5" stroke="currentColor" strokeWidth="4" />
+              <path className="b-tick" d="M36 0l6 7 12-14" stroke="currentColor" strokeWidth="5" />
+              <path d="M68 0h78" stroke="currentColor" strokeWidth="5" opacity="0.35" />
+            </g>
+          ))}
+        </svg>
       </div>
 
       {/* Call-out: a van arrives, and the beacon is already going. */}
