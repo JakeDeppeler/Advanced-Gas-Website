@@ -123,7 +123,7 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Will any of these work down to 0 °C overnight?",
-        a: "All three operate fine at Pakenham's typical winter lows (-2 to +4 °C). Reclaim's CO₂ refrigerant holds efficiency better below zero — meaningful in Warragul or up at Olinda, marginal in central Pakenham.",
+        a: "All three operate fine at Pakenham's typical winter lows (-2 to +4 °C). Reclaim's CO₂ refrigerant holds efficiency better below zero: meaningful in Warragul or up at Olinda, marginal in central Pakenham.",
       },
       {
         q: "Can I switch brands mid-quote?",
@@ -134,7 +134,7 @@ export const blogPosts: BlogPost[] = [
   {
     slug: "heat-pump-cost-veu-rebate-2026",
     title: "What does a heat pump actually cost after the VEU rebate in 2026?",
-    metaTitle: "Heat Pump Cost After VEU Rebate 2026 — Real Pakenham Numbers",
+    metaTitle: "Heat Pump Cost After VEU Rebate 2026. Real Pakenham Numbers",
     metaDescription:
       "Real, indicative 2026 pricing for a 270L Thermann, iStore and Reclaim heat pump installed in Pakenham, with the Victorian Energy Upgrades (VEU) rebate already applied.",
     category: "Costs & savings",
@@ -218,7 +218,7 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Does the rebate cover the whole install?",
-        a: "Almost — for an electric storage swap with concession the rebate can cover 90% of the install. For the typical gas storage swap it's about 50–60%. We confirm the exact figure in your written quote before you sign anything.",
+        a: "Almost, for an electric storage swap with concession the rebate can cover 90% of the install. For the typical gas storage swap it's about 50–60%. We confirm the exact figure in your written quote before you sign anything.",
       },
       {
         q: "Are STCs separate from VEU?",
@@ -226,14 +226,14 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Can I claim the rebate myself?",
-        a: "Technically yes, but only if you're a VEU-accredited provider. We are — that's why we do the paperwork and just deduct the rebate at quote. Saves you the chase.",
+        a: "Technically yes, but only if you're a VEU-accredited provider. We are, that's why we do the paperwork and just deduct the rebate at quote. Saves you the chase.",
       },
     ],
   },
   {
     slug: "split-system-sizing-bedroom",
     title: "How to size a split system for your bedroom (and not get oversold)",
-    metaTitle: "Split System Sizing Guide — Bedrooms, SE Melbourne",
+    metaTitle: "Split System Sizing Guide. Bedrooms, SE Melbourne",
     metaDescription:
       "The 2.5 kW vs 3.5 kW vs 5 kW question, demystified. Real sizing table for SE Melbourne bedrooms, plus the upsell traps to watch.",
     category: "Aircon",
@@ -317,7 +317,7 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Can a single split system cool two bedrooms?",
-        a: "Through a closed wall — no. Air won't redistribute without ducts. A multi-head system splits one outdoor unit between 2–4 indoor heads (one per room). Usually cheaper than two separate splits if both rooms need cooling.",
+        a: "Through a closed wall, no. Air won't redistribute without ducts. A multi-head system splits one outdoor unit between 2–4 indoor heads (one per room). Usually cheaper than two separate splits if both rooms need cooling.",
       },
       {
         q: "What about heating with the same unit?",
@@ -325,14 +325,14 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Do I need a permit?",
-        a: "Not for a standard split system install in a freehold home. Strata properties usually need owners' corporation sign-off — we provide the install drawings if needed.",
+        a: "Not for a standard split system install in a freehold home. Strata properties usually need owners' corporation sign-off, we provide the install drawings if needed.",
       },
     ],
   },
   {
     slug: "co-testing-ducted-heaters",
     title: "Carbon monoxide testing on ducted heaters: why every 2 years matters",
-    metaTitle: "Carbon Monoxide Testing on Ducted Gas Heaters — Why & How Often",
+    metaTitle: "Carbon Monoxide Testing on Ducted Gas Heaters. Why & How Often",
     metaDescription:
       "What CO is, how it builds up in older ducted gas heaters, what licensed plumbers test for on a service, and why this isn't a corner you can cut.",
     category: "Gas safety",
@@ -407,14 +407,14 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Do CO alarms make this unnecessary?",
-        a: "No. CO alarms warn you when concentrations are already dangerous. Annual servicing prevents leaks in the first place. Both layers, please — alarms cost $40 at Bunnings.",
+        a: "No. CO alarms warn you when concentrations are already dangerous. Annual servicing prevents leaks in the first place. Both layers, please, alarms cost $40 at Bunnings.",
       },
     ],
   },
   {
     slug: "heat-pump-solar-pv-daytime-charge",
     title: "Heat pumps + solar PV: the daytime-charge trick that drops bills to zero",
-    metaTitle: "Heat Pump + Solar Daytime Schedule — Free Hot Water Hack",
+    metaTitle: "Heat Pump + Solar Daytime Schedule. Free Hot Water Hack",
     metaDescription:
       "How to schedule a Reclaim or iStore heat pump to run during solar production hours, the cheapest hot water setup in the country.",
     category: "Heat pumps",
@@ -500,7 +500,7 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Can I do this with a gas instantaneous heater instead?",
-        a: "No — gas instantaneous heaters don't store hot water. The daytime-charge trick only works with heat pumps (or electric storage tanks).",
+        a: "No, gas instantaneous heaters don't store hot water. The daytime-charge trick only works with heat pumps (or electric storage tanks).",
       },
       {
         q: "Does it shorten the heat pump's life?",
@@ -508,14 +508,14 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Do I need a battery?",
-        a: "No. The daytime-charge trick works without batteries — that's the elegance of it. If you have a battery, even better, but it's not required.",
+        a: "No. The daytime-charge trick works without batteries, that's the elegance of it. If you have a battery, even better, but it's not required.",
       },
     ],
   },
   {
     slug: "hot-water-tank-replace-or-upgrade",
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
-    metaTitle: "Failed Hot Water Tank — Replace Gas or Upgrade to Heat Pump?",
+    metaTitle: "Failed Hot Water Tank. Replace Gas or Upgrade to Heat Pump?",
     metaDescription:
       "When your gas storage tank fails you've got 48 hours to decide. Here's the maths: including the $2,600 VEU rebate question.",
     category: "Hot water",
@@ -577,7 +577,7 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Do I lose my rebate if I do the gas swap first?",
-        a: "No — VEU eligibility applies whenever you eventually upgrade. But you'll have spent ~$2k on a gas tank you're then replacing in a few years.",
+        a: "No. VEU eligibility applies whenever you eventually upgrade. But you'll have spent ~$2k on a gas tank you're then replacing in a few years.",
       },
       {
         q: "How long does a temporary hot water setup last?",
@@ -585,14 +585,14 @@ export const blogPosts: BlogPost[] = [
       },
       {
         q: "Will my gas bill drop if I switch?",
-        a: "If hot water is your only gas appliance, your gas account can usually be disconnected — saving the supply charge (~$300/year). We can advise on whether to keep gas connected for heating/cooking.",
+        a: "If hot water is your only gas appliance, your gas account can usually be disconnected, saving the supply charge (~$300/year). We can advise on whether to keep gas connected for heating/cooking.",
       },
     ],
   },
   {
     slug: "ducted-gas-to-reverse-cycle",
     title: "Replacing ducted gas heating with reverse-cycle: the honest cost-benefit",
-    metaTitle: "Ducted Gas to Reverse-Cycle — Real SE Melbourne Cost-Benefit",
+    metaTitle: "Ducted Gas to Reverse-Cycle. Real SE Melbourne Cost-Benefit",
     metaDescription:
       "Most SE Melbourne homes save $1,400+ a year switching from ducted gas heating to reverse-cycle. But not all, here's how to work out if your house is one of the winners.",
     category: "Aircon",
@@ -692,7 +692,7 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Will my house feel different to heat?",
-        a: "Reverse-cycle heats slower than gas — about 20 minutes to reach setpoint instead of 5. But the air feels gentler (less drying), and once at temperature, modulation keeps it more consistent.",
+        a: "Reverse-cycle heats slower than gas, about 20 minutes to reach setpoint instead of 5. But the air feels gentler (less drying), and once at temperature, modulation keeps it more consistent.",
       },
       {
         q: "Can I keep gas for cooktop only?",
@@ -707,7 +707,7 @@ export const blogPosts: BlogPost[] = [
   {
     slug: "veu-rentals-landlord-checklist",
     title: "VEU eligibility for rentals: a checklist landlords can hand to their PM",
-    metaTitle: "VEU Rebate for Rental Properties — Landlord & PM Checklist",
+    metaTitle: "VEU Rebate for Rental Properties. Landlord & PM Checklist",
     metaDescription:
       "Landlords ask us this every week. One-page checklist your property manager can use to confirm VEU rebate eligibility for a rental in 5 minutes.",
     category: "VEU rebates",
@@ -793,11 +793,11 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Can I do this on a Section 32 sale prep?",
-        a: "Yes — the rebate is timed to install date, not ownership. Some vendors install before settlement to boost the property's energy rating disclosure.",
+        a: "Yes, the rebate is timed to install date, not ownership. Some vendors install before settlement to boost the property's energy rating disclosure.",
       },
       {
         q: "What if the tenant refuses access?",
-        a: "Under Victorian rental law you have 7 days' notice rights for hot water replacement. If still refused, you can defer the upgrade — the rebate doesn't expire on a per-property basis.",
+        a: "Under Victorian rental law you have 7 days' notice rights for hot water replacement. If still refused, you can defer the upgrade, the rebate doesn't expire on a per-property basis.",
       },
       {
         q: "Do I need to be VEU-registered as a landlord?",
@@ -808,7 +808,7 @@ export const blogPosts: BlogPost[] = [
   {
     slug: "split-system-quarterly-maintenance",
     title: "5 things you should clean on your split system every quarter",
-    metaTitle: "Split System DIY Maintenance — 5 Quarterly Tasks",
+    metaTitle: "Split System DIY Maintenance, 5 Quarterly Tasks",
     metaDescription:
       "The DIY maintenance that doubles the life of your aircon and keeps the manufacturer warranty intact. Five minutes of work every three months.",
     category: "Aircon",
@@ -876,15 +876,15 @@ export const blogPosts: BlogPost[] = [
     faqs: [
       {
         q: "Do I need to wash the filters or just vacuum?",
-        a: "Vacuum is fine for most quarterly cleans. Wash once a year with warm water and a mild detergent — dry fully before reseating. Don't use solvents or scrub abrasively.",
+        a: "Vacuum is fine for most quarterly cleans. Wash once a year with warm water and a mild detergent, dry fully before reseating. Don't use solvents or scrub abrasively.",
       },
       {
         q: "How often should I do a deep clean?",
-        a: "Once a year, by a licensed service tech. Smell, mould or asthma flares from running the unit? Bring that forward — chemical coil clean takes care of biofilm.",
+        a: "Once a year, by a licensed service tech. Smell, mould or asthma flares from running the unit? Bring that forward, chemical coil clean takes care of biofilm.",
       },
       {
         q: "Does running the fan-only mode help?",
-        a: "Yes — at the end of a cooling session, run fan-only for 10 minutes. Dries out the coil and slows mould growth on the indoor unit.",
+        a: "Yes, at the end of a cooling session, run fan-only for 10 minutes. Dries out the coil and slows mould growth on the indoor unit.",
       },
     ],
   },

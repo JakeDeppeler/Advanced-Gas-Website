@@ -67,7 +67,7 @@ export const metadata: Metadata = {
 const HUB_FAQS = [
   {
     q: "Which water filter do I actually need?",
-    a: "Work backwards from what you've noticed. Taste in your drinking water only, under-sink. Chlorine smell in the shower, grit in the cistern, or tank water, whole home. Protecting a new hot water system, the cold inlet filter. If you're not sure, tell us the symptom and we'll tell you which one addresses it — including when the answer is none of them.",
+    a: "Work backwards from what you've noticed. Taste in your drinking water only, under-sink. Chlorine smell in the shower, grit in the cistern, or tank water, whole home. Protecting a new hot water system, the cold inlet filter. If you're not sure, tell us the symptom and we'll tell you which one addresses it, including when the answer is none of them.",
   },
   {
     q: "Is Melbourne water bad?",
@@ -283,7 +283,7 @@ export default function WaterFiltrationPage() {
           <p className="wf-stages__note">
             Order matters and it isn&rsquo;t arbitrary. Sediment goes first so it doesn&rsquo;t
             clog the carbon behind it. UV goes last because ultraviolet light can&rsquo;t work
-            through cloudy water — a UV lamp fitted ahead of the filters is a lamp doing very
+            through cloudy water, a UV lamp fitted ahead of the filters is a lamp doing very
             little.
           </p>
         </div>

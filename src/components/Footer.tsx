@@ -206,7 +206,7 @@ export function Footer() {
         <div className="ftr__areas">
           <h4>Servicing across South-East Vic &amp; Gippsland</h4>
           {/* WEB-019: this listed all 73 published suburbs on every
-              page — 73 links of boilerplate repeated site-wide, which
+              page, 73 links of boilerplate repeated site-wide, which
               dilutes internal link equity and reads to Google as a
               footer stuffed with keywords. Cut to the core hubs we most
               want to rank for, plus the link to the full list. One strong

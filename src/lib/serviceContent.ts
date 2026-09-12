@@ -472,7 +472,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         benefitTiles: [
           {
             t: "Sized to the room",
-            line: "2.5, 5.0 or 7.1 kW — not whatever's on the truck",
+            line: "2.5, 5.0 or 7.1 kW, not whatever's on the truck",
             detail:
               "2.5 kW for bedrooms, 5.0 kW for living, 7.1 kW for large open-plan. An oversized unit short-cycles: it hits the set point, stops, and never runs long enough to actually dehumidify. It costs more to buy and more to run, so the size is a decision, not a default.",
             icon: "ruler",
@@ -500,7 +500,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             t: "Run it from your phone",
-            line: "Wi-Fi on both — MELCloud on Mitsubishi, the Kaden app on Kaden",
+            line: "Wi-Fi on both. MELCloud on Mitsubishi, the Kaden app on Kaden",
             detail:
               "Turn it on from the car on the way home, or check somebody hasn't left it running. Both brands do it: MELCloud on the Mitsubishi, the Kaden app on the Kaden. Either way we set it up and test it on your phone on install day rather than leaving a QR code on the box for you to work out.",
             icon: "remote",
@@ -557,7 +557,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           { q: "Can I run it from my phone?", a: "Yes. Mitsubishi's MELCloud module adds Wi-Fi to any indoor unit in the range. We set it up and walk you through it before we leave." },
           {
             q: "Where does the outdoor unit go?",
-            a: "As close to the indoor head as the pipe run allows, on a wall bracket or a ground stand, somewhere it can breathe and somewhere you are not sitting next to it. We walk the outside of the house with you before anything is drilled — it is the decision that is hardest to undo.",
+            a: "As close to the indoor head as the pipe run allows, on a wall bracket or a ground stand, somewhere it can breathe and somewhere you are not sitting next to it. We walk the outside of the house with you before anything is drilled, it is the decision that is hardest to undo.",
           },
           {
             q: "Will it heat as well as it cools?",
@@ -565,11 +565,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "How noisy is it, inside and out?",
-            a: "The indoor head on low is quieter than a fridge. The outdoor unit is the one worth thinking about — it is the reason we ask where the bedroom windows are and where the neighbour's are, and why we would rather move it three metres at quote time than have you ring us about it in February.",
+            a: "The indoor head on low is quieter than a fridge. The outdoor unit is the one worth thinking about: it is the reason we ask where the bedroom windows are and where the neighbour's are, and why we would rather move it three metres at quote time than have you ring us about it in February.",
           },
           {
             q: "Do I need one per room?",
-            a: "One per room you actually want conditioned, yes — a split heats and cools the room it is in and not the one down the hall. If the answer is turning into three or four heads, a multi-head or ducted system is usually the cheaper and tidier way to get there, and we will say so rather than quote you four splits.",
+            a: "One per room you actually want conditioned, yes, a split heats and cools the room it is in and not the one down the hall. If the answer is turning into three or four heads, a multi-head or ducted system is usually the cheaper and tidier way to get there, and we will say so rather than quote you four splits.",
           },
           {
             q: "What happens to my old unit?",
@@ -1235,7 +1235,7 @@ export const serviceContent: Record<string, ServiceContent> = {
         faqs: [
           {
             q: "What's the difference between split and all-in-one?",
-            a: "A split has the compressor outside and the tank separate, so the tank can be any size and any material and the compressor can go where it has air. An all-in-one is a single shell — simpler to place, fewer options, and the compressor sits on top of the tank. If you have room for both parts, a split is usually the better system.",
+            a: "A split has the compressor outside and the tank separate, so the tank can be any size and any material and the compressor can go where it has air. An all-in-one is a single shell: simpler to place, fewer options, and the compressor sits on top of the tank. If you have room for both parts, a split is usually the better system.",
           },
           {
             q: "Why CO₂ instead of R32 or R290?",
@@ -1243,11 +1243,11 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "Stainless or glass-lined?",
-            a: "Stainless has no sacrificial anode to replace and nothing to rust, so it's the one to pick if you'd rather not think about it again. Glass-lined is cheaper up front and needs the anode checked. On hard or bore water, stainless — and the 2205 duplex tank for the worst of it.",
+            a: "Stainless has no sacrificial anode to replace and nothing to rust, so it's the one to pick if you'd rather not think about it again. Glass-lined is cheaper up front and needs the anode checked. On hard or bore water, stainless, and the 2205 duplex tank for the worst of it.",
           },
           {
             q: "How big a tank do I need?",
-            a: "Roughly: 160–250 L for one or two people, 250–315 L for a family of three or four, 315–400 L for five or more. Recovery rate matters as much as volume though, which is where the Panasonic 6 kW pairing earns its place — a smaller tank that refills fast can beat a bigger one that doesn't.",
+            a: "Roughly: 160–250 L for one or two people, 250–315 L for a family of three or four, 315–400 L for five or more. Recovery rate matters as much as volume though, which is where the Panasonic 6 kW pairing earns its place, a smaller tank that refills fast can beat a bigger one that doesn't.",
           },
           {
             q: "Will it work with my solar?",
@@ -1255,7 +1255,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "How loud is it?",
-            a: "37 dBA at one metre on the Reclaim compressor — quieter than a fridge. It can sit near a bedroom window without being the reason somebody rings us in February.",
+            a: "37 dBA at one metre on the Reclaim compressor, quieter than a fridge. It can sit near a bedroom window without being the reason somebody rings us in February.",
           },
           {
             q: "What's the warranty?",
@@ -1373,12 +1373,12 @@ export const serviceContent: Record<string, ServiceContent> = {
             a: "Not worse, different. A split performs better in the cold and gives you the tank options; an all-in-one is simpler, cheaper and only needs one spot. If your old tank's position is the only place a unit can go, the all-in-one is the right system and the split isn't an option at all.",
           },
           {
-            q: "Reclaim ECO or Thermann ECO — which one?",
+            q: "Reclaim ECO or Thermann ECO, which one?",
             a: "They are the same tank and heat-pump platform with different badges on them. Identical guts. Pick on brand preference or on which one Reece has in stock, and don't let anyone tell you one out-specs the other.",
           },
           {
             q: "Why is iStore cheaper?",
-            a: "It's a more basic unit, and it takes the VEU rebate further than anything else we fit — which is what makes the installed number so low. It's the right call when the rebate is what decides the job. It won't hold output on a cold morning the way a CO₂ split will.",
+            a: "It's a more basic unit, and it takes the VEU rebate further than anything else we fit, which is what makes the installed number so low. It's the right call when the rebate is what decides the job. It won't hold output on a cold morning the way a CO₂ split will.",
           },
           {
             q: "Is R290 propane safe?",
@@ -1386,7 +1386,7 @@ export const serviceContent: Record<string, ServiceContent> = {
           },
           {
             q: "What size do I need?",
-            a: "180–200 L for one or two people, 270–285 L for three or four. Five or more and you're better off on a split with a bigger tank and a faster recovery rate — we'll tell you that rather than sell you an undersized all-in-one.",
+            a: "180–200 L for one or two people, 270–285 L for three or four. Five or more and you're better off on a split with a bigger tank and a faster recovery rate, we'll tell you that rather than sell you an undersized all-in-one.",
           },
           {
             q: "How long does it take?",

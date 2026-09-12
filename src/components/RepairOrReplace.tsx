@@ -65,14 +65,14 @@ export function RepairOrReplace() {
       verdict = {
         call: "repair",
         heading: "Repair it.",
-        body: `The repair works out well under what a replacement costs per year, and the system has life left in it. Get it fixed and put the money back in your pocket — we'd tell you the same thing on the phone.`,
+        body: `The repair works out well under what a replacement costs per year, and the system has life left in it. Get it fixed and put the money back in your pocket, we'd tell you the same thing on the phone.`,
         sums,
       };
     } else {
       verdict = {
         call: "borderline",
         heading: "It's close. Get both prices.",
-        body: `On these numbers there's not much in it, which means the deciding factor is something the calculator can't see — whether the fault is the expensive part or a cheap one, and what condition the rest of it is in. Worth having both figures in front of you before you commit.`,
+        body: `On these numbers there's not much in it, which means the deciding factor is something the calculator can't see, whether the fault is the expensive part or a cheap one, and what condition the rest of it is in. Worth having both figures in front of you before you commit.`,
         sums,
       };
     }
@@ -161,7 +161,7 @@ export function RepairOrReplace() {
             </div>
             <p className="ror__fine">
               A guide, not a quote. It can&rsquo;t see which part failed, and that&rsquo;s often the
-              thing that decides it — so we look before we tell you either way.
+              thing that decides it, so we look before we tell you either way.
             </p>
           </div>
         ) : (

@@ -81,7 +81,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
     setError(null);
     if (!form.name || !form.phone) return setError("Name and phone are required.");
     if (photoFile && photoFile.size > MAX_PHOTO_BYTES) {
-      return setError("Photo is over 4 MB — please pick a smaller image or send it later.");
+      return setError("Photo is over 4 MB, please pick a smaller image or send it later.");
     }
     setSubmitting(true);
     try {

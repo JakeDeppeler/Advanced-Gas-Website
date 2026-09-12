@@ -426,7 +426,7 @@ export function Header() {
     <>
       {/* Residential and commercial are different readers with different fears,
           so they get different sites. This says so from the first pixel and
-          lets either one cross over whenever they like — which an interstitial
+          lets either one cross over whenever they like, which an interstitial
           that demands the choice before showing anything cannot do without
           costing rankings and the visitors who were closest to enquiring. */}
       <div className={`sitemode${onCommercial ? " sitemode--comm" : ""}`}>
@@ -435,7 +435,22 @@ export function Header() {
             sits in the corner, and the run of empty strip beside it carries
             what it is doing outside and whether anyone is in the office. */}
         <div className="wrap sitemode__row">
-          <LocalConditions />
+          {/* One strip, not two. The utility bar above this used to carry the
+              location, the hours, the ABN, the emergency line and the phone
+              number, then this strip carried the conditions and the switch,
+              then the header carried the phone again. Three bars before the
+              page started. The ABN and hours live in the footer where
+              procurement looks for them; the phone is in the header; what is
+              left up here is the live stuff and the one link that cannot wait. */}
+          <div className="sitemode__left">
+            <LocalConditions />
+            <span className="sitemode__loc">Pakenham VIC, within 75&nbsp;km</span>
+          </div>
+          <div className="sitemode__right">
+            <a className="sitemode__emerg" href={onCommercial ? `tel:${site.phoneE164}` : "/contact#emergency"}>
+              <span className="sitemode__emergdot" aria-hidden="true" />
+              24/7 emergency gas &amp; hot water
+            </a>
           <nav className="sitemode__tabs" aria-label="Residential or commercial">
             <Link
               href="/"
@@ -454,6 +469,7 @@ export function Header() {
               Business &amp; commercial
             </Link>
           </nav>
+          </div>
         </div>
       </div>
 
@@ -462,7 +478,7 @@ export function Header() {
         {/* On the commercial side the logo goes to the commercial home, not the
             residential one. Clicking a logo means "start again", and starting
             again should not also mean "and you are now shopping for a split
-            system" — the switch above is how you cross over. */}
+            system", the switch above is how you cross over. */}
         <Link
           href={onCommercial ? "/commercial" : "/"}
           className="hdr__logo"
@@ -575,7 +591,7 @@ export function Header() {
 function ServicesMega() {
   /* Two panes: the categories down the left, the active category's
      services on the right. The flat version rendered every service at
-     once — nineteen photo cards plus a popular row — which had stopped
+     once, nineteen photo cards plus a popular row, which had stopped
      being a menu and started being a page. Now you scan five words,
      land on the one that matches your problem, and see three or four
      choices instead of nineteen. */

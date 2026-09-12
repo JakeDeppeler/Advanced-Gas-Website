@@ -4,7 +4,7 @@ import { site } from "@/lib/site";
 import "./membership.css";
 
 export const metadata: Metadata = {
-  title: "Membership — discounted servicing & priority response",
+  title: "Membership, discounted servicing & priority response",
   description:
     "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 75 km.",
   alternates: { canonical: "/membership" },
@@ -43,7 +43,7 @@ const tiers: Tier[] = [
     price: "$TBC",
     cadence: "/ year",
     highlight: true,
-    blurb: "Most households pick this one — better discounts and priority callbacks.",
+    blurb: "Most households pick this one, better discounts and priority callbacks.",
     features: [
       { label: "Annual gas service at member rate $250 + GST" },
       { label: "Annual aircon filter clean / inspection" },
@@ -58,7 +58,7 @@ const tiers: Tier[] = [
     name: "Gold",
     price: "$TBC",
     cadence: "/ year",
-    blurb: "Multi-system households and landlords — total cover.",
+    blurb: "Multi-system households and landlords, total cover.",
     features: [
       { label: "Up to 3 annual services (gas, aircon, hot water)" },
       { label: "Member service rates on every job" },
@@ -74,15 +74,15 @@ const tiers: Tier[] = [
 const faqs = [
   {
     q: "What does the membership cover?",
-    a: "Discounted annual servicing across the gear we install — gas appliances, aircon, hot water and heat pumps. Each tier sets the discount on call-outs, the number of services included per year, and how quickly you jump the queue.",
+    a: "Discounted annual servicing across the gear we install: gas appliances, aircon, hot water and heat pumps. Each tier sets the discount on call-outs, the number of services included per year, and how quickly you jump the queue.",
   },
   {
     q: "Is there a contract?",
-    a: "12 months at a time, paid up-front or monthly. Cancel at the end of the term — no auto-rollover surprises.",
+    a: "12 months at a time, paid up-front or monthly. Cancel at the end of the term, no auto-rollover surprises.",
   },
   {
     q: "Can I switch tiers mid-year?",
-    a: "Yes — pay the pro-rata difference and we upgrade you immediately. Downgrades apply at renewal.",
+    a: "Yes, pay the pro-rata difference and we upgrade you immediately. Downgrades apply at renewal.",
   },
   {
     q: "Does it cover parts and repairs?",

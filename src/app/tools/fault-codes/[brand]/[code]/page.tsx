@@ -177,7 +177,7 @@ export default function FaultCodePage({ params }: { params: Params }) {
             <p>
               That depends almost entirely on how old the unit is. Past about ten years on
               hot water and gas heating, and twelve on aircon, a significant repair usually
-              costs more per remaining year than a replacement does — and it&rsquo;s the same
+              costs more per remaining year than a replacement does, and it&rsquo;s the same
               point at which the VEU rebate is worth the most, because old inefficient
               appliances are exactly what the scheme pays to remove. If yours is young and
               the fault is a component, we&rsquo;ll fix it and say so.

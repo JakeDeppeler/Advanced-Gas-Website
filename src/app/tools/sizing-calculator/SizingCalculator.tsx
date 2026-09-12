@@ -37,7 +37,7 @@ const INSULATION_FACTOR: Record<string, number> = {
 const GLAZING_FACTOR: Record<string, number> = {
   small: 1.00,      // Windows <10% of wall area
   medium: 1.10,     // 10-20%
-  large: 1.20,      // >20% — feature windows, sliding doors
+  large: 1.20,      // >20%, feature windows, sliding doors
 };
 
 type FormState = {

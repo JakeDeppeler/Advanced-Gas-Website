@@ -42,15 +42,15 @@ export const metadata: Metadata = {
 const FAQS = [
   {
     q: "Which water filter removes the most?",
-    a: "Reverse osmosis, by a distance — it's the only thing on this page that reaches dissolved salts, PFAS and pharmaceuticals. That doesn't make it the right choice. It's slow, it sends several litres to drain for every litre it makes, it strips minerals along with contaminants, and it only feeds one tap. Most households are better served by a whole-house twin system and an under-sink cartridge.",
+    a: "Reverse osmosis, by a distance, it's the only thing on this page that reaches dissolved salts, PFAS and pharmaceuticals. That doesn't make it the right choice. It's slow, it sends several litres to drain for every litre it makes, it strips minerals along with contaminants, and it only feeds one tap. Most households are better served by a whole-house twin system and an under-sink cartridge.",
   },
   {
     q: "What removes PFAS from drinking water?",
-    a: "Of the systems we fit, reverse osmosis is the one rated for PFAS and PFOA. Standard sediment and carbon cartridges are not, and we won't tell you otherwise. If PFAS is your actual concern, start by finding out whether it's present in your supply — for most Melbourne mains connections it isn't a live issue.",
+    a: "Of the systems we fit, reverse osmosis is the one rated for PFAS and PFOA. Standard sediment and carbon cartridges are not, and we won't tell you otherwise. If PFAS is your actual concern, start by finding out whether it's present in your supply, for most Melbourne mains connections it isn't a live issue.",
   },
   {
     q: "Do I need whole house and under sink?",
-    a: "Plenty of people run both, and they do different jobs. Whole house handles sediment and chlorine everywhere — shower, washing machine, hot water system. Under sink runs a finer cartridge on the water you actually drink, which is how it reaches lead and cysts. If budget only stretches to one, tell us the symptom and we'll tell you which one addresses it.",
+    a: "Plenty of people run both, and they do different jobs. Whole house handles sediment and chlorine everywhere: shower, washing machine, hot water system. Under sink runs a finer cartridge on the water you actually drink, which is how it reaches lead and cysts. If budget only stretches to one, tell us the symptom and we'll tell you which one addresses it.",
   },
   {
     q: "What's the difference between BWT and Puretec?",
@@ -58,7 +58,7 @@ const FAQS = [
   },
   {
     q: "Are these Reece codes I can order myself?",
-    a: "They're the TRS codes, so yes, they're real. We've published them because we'd rather you could check our pricing against the trade catalogue than take it on faith. Bear in mind filtration ties into your potable supply, which brings backflow protection into it — it's licensed plumbing work, not a weekend job.",
+    a: "They're the TRS codes, so yes, they're real. We've published them because we'd rather you could check our pricing against the trade catalogue than take it on faith. Bear in mind filtration ties into your potable supply, which brings backflow protection into it: it's licensed plumbing work, not a weekend job.",
   },
 ];
 
@@ -173,7 +173,7 @@ export default function RangePage() {
 
       <CtaBand
         heading="Still not sure which row you're in?"
-        blurb="Send us the symptom and we'll point at the line on this table that matches it — including when the honest answer is that you don't need any of them."
+        blurb="Send us the symptom and we'll point at the line on this table that matches it, including when the honest answer is that you don't need any of them."
         cta="Ask us which one"
       />
 

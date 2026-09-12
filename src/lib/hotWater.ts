@@ -20,7 +20,7 @@ export const USABLE_FRACTION = 0.8;
 
 /** House defaults. Melbourne mains, a 3-star head, a normal shower. */
 export const HW_DEFAULTS = {
-  tankTempC: 60,   // 60 °C minimum by law — Legionella control
+  tankTempC: 60,   // 60 °C minimum by law. Legionella control
   mixedTempC: 41,  // comfortable shower
   mainsTempC: 15,  // Melbourne winter mains sits 12-15 °C
   showerFlowLpm: 9,

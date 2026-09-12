@@ -130,7 +130,7 @@ const ROUTE_BUTTONS: { href: string; label: string; sub: string; icon: DoorIconK
   // The heat pump door fills the screen with water on the way through. It is
   // the flagship product and the one door where the transition can say what
   // the thing is — hot water — rather than just that the page changed.
-  { href: "/services/heat-pump-installation", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy", sweep: "water" },
+  { href: "/heat-pumps", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy", sweep: "water" },
   { href: "/services/air-conditioning-installation", label: "Heating & cooling", sub: "Split, ducted and gas", icon: "climate", tone: "sky", sweep: "climate" },
   // Orange on this one only, to match the "$$$" chip the rebate carries in the
   // nav. Spending the loudest colour on the thing worth the most money is the
@@ -167,7 +167,7 @@ export default async function HomePage() {
     <div className="page-home">
       {/* HERO — full-bleed team photo, cinematic overlay.
           The hero photo is a real <img> (not a CSS background). Chrome
-          heavily deprioritises CSS backgrounds for LCP scoring — the
+          heavily deprioritises CSS backgrounds for LCP scoring, the
           image was landing well after FCP on mobile. Rendering it as an
           <img> with fetchpriority=high plus a responsive srcset lets
           the browser hint discover it during initial HTML scan, and
@@ -176,10 +176,6 @@ export default async function HomePage() {
       <section className="hero hero--split">
         <div className="wrap hero__grid">
           <div className="hero__copy">
-            <span className="hero__badge">
-              <span className="ds-dot" />
-              Pakenham locals since 2014
-            </span>
 
             <h1 className="hero__h1">
               One standard. Every job.
@@ -191,15 +187,12 @@ export default async function HomePage() {
 
             <div className="hero__ctas" data-hide-sticky-cta>
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</a>
-              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-                Or call {site.phone}
-              </a>
             </div>
 
             {/* The rebate used to be a third button here, animated, sending
                 people to another page at the very moment they were closest to
                 enquiring. It is a reason to get a quote, not an alternative to
-                one, so it sits under the buttons as a line — the hook survives,
+                one, so it sits under the buttons as a line, the hook survives,
                 the competing ask does not. */}
             <p className="hero__rebate">
               Up to <strong>$2,700</strong> off a heat pump with the VEU rebate, applied to your quote.{" "}
@@ -322,8 +315,8 @@ export default async function HomePage() {
                 </ul>
                 <p className="quotesec__finep">
                   {/* Never literals again. These were dummy values from the
-                      build — a false ARC number is a regulatory problem,
-                      not a typo — and the real ones were already sitting
+                      build, a false ARC number is a regulatory problem,
+                      not a typo, and the real ones were already sitting
                       in lib/site.ts unused. */}
                   Licensed gasfitter · {site.licences.refrigeration} · VEU-accredited provider ·
                   ABN {site.abn.replace(/ /g, "\u00a0")}.

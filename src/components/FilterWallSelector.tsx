@@ -34,7 +34,7 @@ export function FilterWallSelector() {
   if (done) {
     if (source === "tank") {
       result = {
-        name: "Not a FilterWall — you want tank filtration with UV",
+        name: "Not a FilterWall, you want tank filtration with UV",
         why: "Rainwater has a different problem set: sediment and organics off the roof, plus the biological side. Filtration then UV, in that order, is the answer. A FilterWall is built for mains water.",
         href: "/water-filtration/rainwater-uv",
       };

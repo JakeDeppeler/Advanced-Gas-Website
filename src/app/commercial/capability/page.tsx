@@ -6,7 +6,7 @@ import { PrintButton } from "@/components/PrintButton";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "Capability Statement — Advanced Gas & Air Conditioning Services",
+  title: "Capability Statement. Advanced Gas & Air Conditioning Services",
   description:
     "Capability statement: ABN, licences, insurances, safety systems, capacity and past projects. Commercial mechanical services across Melbourne's south-east and Gippsland.",
   alternates: { canonical: "/commercial/capability" },

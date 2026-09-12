@@ -13,7 +13,6 @@ import { localBusinessSchema } from "@/lib/schema";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
-import { UtilityBar } from "@/components/UtilityBar";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
 import { Reveal } from "@/components/Reveal";
@@ -128,7 +127,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <ScrollToTop />
         <ChromeGate>
-          <UtilityBar />
           <Header />
         </ChromeGate>
         <RouteMotion />

@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       from,
       to: recipients,
       subject: "Newsletter signup",
-      text: `New newsletter signup: ${data.email}\n\n— Sent from ${site.url}`,
+      text: `New newsletter signup: ${data.email}\n\n. Sent from ${site.url}`,
     });
 
     // 2) Welcome email to the subscriber
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       from,
       to: [data.email],
       replyTo: recipients[0],
-      subject: "You're on the list — Advanced Gas updates",
+      subject: "You're on the list. Advanced Gas updates",
       html: `
         <div style="font-family:system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#0b1450;max-width:520px;margin:0 auto;padding:24px;">
           <h1 style="font-size:22px;margin:0 0 16px;">You're in.</h1>

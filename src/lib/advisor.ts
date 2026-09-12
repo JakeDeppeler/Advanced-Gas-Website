@@ -90,7 +90,7 @@ const AIRCON: AdvisorConfig = {
     {
       when: ["few", null, null],
       answer: {
-        heading: "Multi-head, probably — but ask about ducted.",
+        heading: "Multi-head, probably, but ask about ducted.",
         body:
           "For two or three rooms a multi-head is usually the answer. With roof space available though, the gap to a small ducted system is often smaller than people expect, and ducted disappears into the ceiling instead of putting a head on three walls.",
         href: "/services/air-conditioning-installation/multi",
@@ -106,7 +106,7 @@ const AIRCON: AdvisorConfig = {
           "Ducted needs somewhere to run the ducts and without roof space that's off the table. A five-port multi-head covers most homes, and it can go in a room at a time as the budget allows.",
         href: "/services/air-conditioning-installation/multi",
         cta: "Multi-head installation",
-        note: "Flat roof or a concrete ceiling? Ring us — there are bulkhead options and they depend entirely on the house.",
+        note: "Flat roof or a concrete ceiling? Ring us, there are bulkhead options and they depend entirely on the house.",
       },
     },
     {

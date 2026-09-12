@@ -173,7 +173,7 @@ export const IN_YOUR_WATER = [
   },
   {
     what: "Hardness and scale",
-    why: "Here's the honest one. Melbourne's mains water is soft — among the softest of any major Australian city — so scale is not the problem here that it is in Adelaide or Perth. Bore water is a different story.",
+    why: "Here's the honest one. Melbourne's mains water is soft, among the softest of any major Australian city, so scale is not the problem here that it is in Adelaide or Perth. Bore water is a different story.",
     fix: "Usually nothing, and we'll tell you that. If you're on bore water it's a separate conversation and a different bit of equipment.",
   },
 ] as const;
@@ -626,7 +626,7 @@ export const TIERS: FiltrationTier[] = [
       },
       {
         name: "Twin",
-        suits: "Gritty supplies — coarse then fine",
+        suits: "Gritty supplies, coarse then fine",
         handles: "Sediment, staged",
         flow: "Full mains flow",
         cartridge: "Two jumbo stages in series",
@@ -1318,7 +1318,7 @@ export const RANGE: RangeCategory[] = [
     treats: ["sediment", "hardness", "tds", "taste", "chlorine", "pharma", "pfas", "lead", "cyst", "bacteria"],
     location: ["under-sink"],
     source: ["mains"],
-    warranty: "See brochure — check with us at quote",
+    warranty: "See brochure, check with us at quote",
     tier: "under-sink",
     note:
       "Genuinely warranted where there is a measured contaminant a cartridge cannot reach. Not warranted because a website frightened you about tap water. It sends several litres to drain for every litre it makes, and it strips minerals as well as contaminants.",

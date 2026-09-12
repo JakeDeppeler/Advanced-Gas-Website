@@ -124,7 +124,7 @@ export default function PricingPage() {
 
       {/* ================= What every price includes =================
           Frame what the number means before the visitor sees a single
-          price — a plain checklist of what's in it, then the two honest
+          price, a plain checklist of what's in it, then the two honest
           caveats (extras get quoted; the rebate is already applied). */}
       <section className="pricing-note">
         <div className="wrap">
@@ -168,7 +168,7 @@ export default function PricingPage() {
 
       {/* ================= Value comparison block =================
           "We're not the cheapest. Here's what you're actually paying
-          for". A navy centrepiece — three-column comparison against a
+          for". A navy centrepiece, three-column comparison against a
           cheap fly-in-fly-out operator vs a premium show-room chain. */}
       <section className="pricing-value">
         <div className="wrap">
@@ -239,7 +239,7 @@ export default function PricingPage() {
 
       {/* ================= The full price list =================
           One table per category behind a filter. Every block stays in
-          the HTML — the tabs only hide what you didn't ask for, so the
+          the HTML, the tabs only hide what you didn't ask for, so the
           page still ranks for all of it. */}
       <section className="pricing-body">
         <div className="wrap">

@@ -416,8 +416,8 @@ export default async function ServicePage({ params }: { params: { slug: string }
           the systems, so they moved onto the cards in "Choose your
           system": press a card's button and its sizes and installed
           prices open under the grid. What is left below is the handful
-          of rows that belong to no single system — gas fitting, an
-          after-hours call-out — which would otherwise have vanished off
+          of rows that belong to no single system, gas fitting, an
+          after-hours call-out, which would otherwise have vanished off
           the site with the section, plus the scope columns, which are
           about the service rather than any one system. */}
       {(otherPricing.length > 0 || content.included || content.excluded || content.typical) && (

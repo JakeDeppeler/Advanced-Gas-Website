@@ -154,7 +154,7 @@ const SYSTEMS: SystemPreset[] = [
  * actually move the answer are on screen.
  */
 const FIXED = {
-  tankTempC: 60,          // 60 °C minimum by law — Legionella control
+  tankTempC: 60,          // 60 °C minimum by law. Legionella control
   mixedTempC: 41,         // comfortable shower
   mainsTempC: 15,         // Melbourne winter mains
   showerFlowLpm: 9,       // 3-star head

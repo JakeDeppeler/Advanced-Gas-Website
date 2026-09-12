@@ -98,7 +98,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         },
         {
           t: "Height and throw",
-          d: "A wall split throws air along the ceiling and lets it fall. It needs clear run in front of it — no bulkhead, no tall wardrobe, no pelmet in the way. Mounted too low it short-cycles against its own return air and reads the room wrong.",
+          d: "A wall split throws air along the ceiling and lets it fall. It needs clear run in front of it: no bulkhead, no tall wardrobe, no pelmet in the way. Mounted too low it short-cycles against its own return air and reads the room wrong.",
         },
         {
           t: "Not directly over the bed",
@@ -153,7 +153,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       items: [
         {
           t: "One head calling means the compressor runs",
-          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. On a single split serving the same room the situation is identical — the difference is that people expect more independence from a multi than it actually gives.",
+          d: "Turn on the bedroom at 2 am and the outdoor unit starts for that one room. It modulates down, so it isn't running flat out, but it is running. On a single split serving the same room the situation is identical, the difference is that people expect more independence from a multi than it actually gives.",
         },
         {
           t: "Capacity is shared, not multiplied",
@@ -224,7 +224,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
         },
         {
           t: "Then you only condition what you're using",
-          d: "Bedrooms off during the day, living off overnight. That's where the running-cost difference comes from — not from the star rating on the box, from the system spending its day heating three rooms instead of nine.",
+          d: "Bedrooms off during the day, living off overnight. That's where the running-cost difference comes from: not from the star rating on the box, from the system spending its day heating three rooms instead of nine.",
         },
       ],
       note:
@@ -430,7 +430,7 @@ export const SYSTEM_DETAIL: Record<string, SystemDetail> = {
       items: [
         {
           t: "It never runs out",
-          d: "This part is completely true and it's the main reason people switch. Four showers back to back, a bath after, dishes at the same time — the unit heats water as it passes through, so there's no tank to empty. On a full house it's transformative.",
+          d: "This part is completely true and it's the main reason people switch. Four showers back to back, a bath after, dishes at the same time, the unit heats water as it passes through, so there's no tank to empty. On a full house it's transformative.",
         },
         {
           t: "There's still a delay at the tap",

@@ -47,7 +47,7 @@ function recommend(job: Job, size: Size): Rec {
   }
   if (job === "hotwater") {
     return {
-      heading: size === "room" ? "An all-in-one heat pump" : "A heat pump — split or all-in-one",
+      heading: size === "room" ? "An all-in-one heat pump" : "A heat pump, split or all-in-one",
       body:
         size === "room"
           ? "One or two people means a 180–200 L all-in-one, which is the cheapest way in and where the VEU rebate reaches furthest. One shell, one spot, usually a same-day swap."
@@ -60,7 +60,7 @@ function recommend(job: Job, size: Size): Rec {
   if (job === "heat") {
     if (size === "house") {
       return {
-        heading: "Ducted — reverse-cycle or gas",
+        heading: "Ducted, reverse-cycle or gas",
         body:
           "Whole-house heating is a ducted job. Reverse-cycle does your cooling as well and runs cheaper; gas ducted is the cheaper install and the straight swap if there's already one in the roof. We'll price both.",
         href: "/services/gas-plumbing/gas-ducted",

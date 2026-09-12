@@ -142,7 +142,7 @@ export function RouteMotion() {
       </div>
 
       {/* Heating and cooling: the house in section. A plan view was the same
-          drawing as the commercial fit-out door — this is unmistakably a home:
+          drawing as the commercial fit-out door, this is unmistakably a home:
           roof, rooms, the unit in the roof space, flexible duct down to a
           ceiling outlet in each room, then the air arriving. */}
       <div className="sweep__home">
@@ -205,7 +205,7 @@ export function RouteMotion() {
       </div>
 
       {/* Fit-out: the mechanical layout drawing itself. Plant at one end, trunk
-          duct across, branches off it to the outlets — the drawing a tenancy
+          duct across, branches off it to the outlets, the drawing a tenancy
           package actually starts from. */}
       <div className="sweep__duct">
         <svg viewBox="0 0 300 170" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

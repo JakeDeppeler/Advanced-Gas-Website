@@ -212,7 +212,7 @@ export default function CommercialPage() {
           </div>
 
           {/* The four figures procurement actually writes down. Deliberately not
-              the residential numbers — installs done and a star rating answer a
+              the residential numbers, installs done and a star rating answer a
               homeowner's question, not a builder's. */}
           <div className="comm-facts">
             {COMM_FACTS.map((f) => (

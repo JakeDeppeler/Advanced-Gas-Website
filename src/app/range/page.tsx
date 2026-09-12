@@ -26,7 +26,7 @@ import "./range.css";
  */
 
 export const metadata: Metadata = {
-  title: pageTitle("The full range — every model we install"),
+  title: pageTitle("The full range, every model we install"),
   description: metaDescription(
     "Every air conditioner, heat pump, gas heater and hot water system we install, filterable by brand, system type and VEU rebate eligibility. Installed prices where we publish them.",
   ),
@@ -134,7 +134,7 @@ export default function RangePage() {
             </h1>
             <p className="dp-hero__sub">
               Every model we fit, in one list. Filter it by brand, by what the system actually is,
-              or by whether it takes the VEU rebate — then open the one you want for specs and an
+              or by whether it takes the VEU rebate, then open the one you want for specs and an
               installed price.
             </p>
           </div>
@@ -155,7 +155,7 @@ export default function RangePage() {
 
       {/* Nobody should have to pick a model number off a list. This is
           the way out of the grid for somebody who knows what they want
-          and not what it's called — the filter rail has a search field
+          and not what it's called, the filter rail has a search field
           for that too, and this is the same question asked properly. */}
       <section className="quotesec" id="quote">
         <div className="wrap">
@@ -168,7 +168,7 @@ export default function RangePage() {
                 <h2>Tell us the room, not the model.</h2>
                 <p className="quotesec__lede">
                   Ninety-odd models is a lot to read. Two questions and we&rsquo;ll point you at the
-                  right kind of system — then send the room through and you&rsquo;ll get the model
+                  right kind of system, then send the room through and you&rsquo;ll get the model
                   and what it costs installed, including when a cheaper one does the job.
                 </p>
                 <RangeFinder />
