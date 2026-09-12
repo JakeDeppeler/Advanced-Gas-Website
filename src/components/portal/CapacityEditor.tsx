@@ -316,8 +316,8 @@ export function CapacityEditor({
       key: "solo",
       label: `${lead.label} on their own`,
       rate: leadRate,
-      parts: "One body, one van",
-      note: `What one ${lead.label.toLowerCase()} is quoted at for an hour on site: what that hour costs, which is their wage plus its share of every overhead the business carries, and then the margin on top. It is the same figure as their tile, and it is the number every other price on this page is built off.`,
+      parts: `Charged · cost plus ${s.margin}% margin`,
+      note: `A charge, not a cost. What that hour costs is on their own tile: their wage plus its share of every overhead the business carries. This is that figure with the ${s.margin}% margin on top, which is what goes on a quote.`,
     }];
     const mate = levelHours.find((l) => l.wageOnly);
     if (mate) {
@@ -325,8 +325,8 @@ export function CapacityEditor({
         key: "pair",
         label: `${lead.label} + ${mate.label.toLowerCase()}`,
         rate: leadRate + mate.wagePerHr,
-        parts: `${money(leadRate)} + ${money2(mate.wagePerHr)} wage`,
-        note: `The same ${lead.label.toLowerCase()} hour, ${money(leadRate)}, plus the ${mate.label.toLowerCase()}'s wage of ${money2(mate.wagePerHr)} with on-costs. Nothing else goes on: no second van, no second share of the overhead and no margin on the wage, because the ${lead.label.toLowerCase()} standing next to them is already carrying all of it for that job. The difference between these two tiles is exactly what the second body costs you.`,
+        parts: `Charged · ${money(leadRate)} + ${money2(mate.wagePerHr)} wage`,
+        note: `The ${lead.label.toLowerCase()} hour at ${money(leadRate)} charged, plus the ${mate.label.toLowerCase()}'s wage of ${money2(mate.wagePerHr)} with on-costs. Nothing else goes on: no second van and no second share of the overhead, because the ${lead.label.toLowerCase()} standing next to them is already carrying that for the job. Worth knowing what this figure is made of: the first half is a charge and the second half is a cost at no margin, so the ${mate.label.toLowerCase()}'s time is quoted at exactly what it costs and earns nothing. At ${s.margin}% it would be ${money2(mate.wagePerHr * (1 + s.margin / 100))} instead, ${money(leadRate + mate.wagePerHr * (1 + s.margin / 100))} for the pair.`,
       });
     }
     return out;
@@ -410,13 +410,13 @@ export function CapacityEditor({
         <Stat
           label="What we charge an hour"
           value={blended !== null ? <>{money(blended)}<em>/hr</em></> : "—"}
-          sub={`Cost plus ${s.margin}% margin`}
+          sub={`Charged · cost plus ${s.margin}% margin`}
           open={info === "charge"} onToggle={() => setInfo(info === "charge" ? null : "charge")}
         />
         <Stat
           label="What an hour costs us"
           value={show(cap.costPerHr)}
-          sub="Blended, before any margin"
+          sub="Costs us · blended, before margin"
           open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
         />
         {levelHours.map((l) => (
@@ -424,7 +424,7 @@ export function CapacityEditor({
             key={l.key}
             label={`${l.label}'s hour`}
             value={show(l.perHr)}
-            sub={l.wageOnly || l.ridesAlong ? "Their wage, with on-costs" : "Wage plus overhead share"}
+            sub={l.wageOnly || l.ridesAlong ? "Costs us · their wage with on-costs" : "Costs us · wage plus overhead share"}
             open={info === `lvl:${l.key}`}
             onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
           />
