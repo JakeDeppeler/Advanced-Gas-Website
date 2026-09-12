@@ -46,13 +46,13 @@ const TIMING: Record<SweepKind, [number, number, number]> = {
   water: [560, 120, 640],
   // The drawn ones need time to draw. A duct layout that appears fully formed
   // in half a second is a picture, not a drawing, and the drawing is the point.
-  climate: [1150, 170, 560],
+  climate: [1200, 180, 620],
   rebate: [900, 200, 520],
-  service: [540, 130, 470],
-  crane: [1250, 180, 620],
+  service: [1100, 180, 620],
+  crane: [1250, 180, 1000],
   build: [1150, 170, 560],
   schedule: [1050, 200, 560],
-  callout: [540, 120, 500],
+  callout: [1150, 180, 620],
 };
 
 export function sweepTo(go: () => void, kind: SweepKind = "building"): void {
@@ -121,19 +121,25 @@ export function RouteMotion() {
         </svg>
       </div>
 
-      {/* Heating and cooling: the whole-home layout. The plan drawn, the plant
-          set, then the runs branching out to every room. */}
-      <div className="sweep__plan">
-        <svg viewBox="0 0 300 210" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path className="p1" d="M14 46h272v150H14z" />
-          <path className="p2" d="M118 46v66M118 148v48M198 112v84M14 112h104M198 112h88" />
-          <rect className="p3" x="132" y="14" width="50" height="34" rx="5" />
-          <path className="p4" d="M157 48v34M157 82H66v22M157 82h96v22M157 82v82M157 164H70M157 164h84" />
-          <g className="p5">
-            <rect x="54" y="102" width="24" height="12" rx="2" />
-            <rect x="241" y="102" width="24" height="12" rx="2" />
-            <rect x="58" y="158" width="24" height="12" rx="2" />
-            <rect x="229" y="158" width="24" height="12" rx="2" />
+      {/* Heating and cooling: the house in section. A plan view was the same
+          drawing as the commercial fit-out door — this is unmistakably a home:
+          roof, rooms, the unit in the roof space, flexible duct down to a
+          ceiling outlet in each room, then the air arriving. */}
+      <div className="sweep__home">
+        <svg viewBox="0 0 320 230" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path className="h1" d="M18 96 160 20l142 76" />
+          <path className="h2" d="M40 96v114h240V96M40 210h240" />
+          <path className="h3" d="M40 150h240M118 150v60M212 150v60" />
+          <rect className="h4" x="132" y="56" width="56" height="30" rx="4" />
+          <path className="h5" d="M160 86v22M160 108H80v38M160 108h80v38M160 108v82M160 190H82M160 190h76" />
+          <g className="h6">
+            <rect x="66" y="140" width="28" height="11" rx="2" />
+            <rect x="226" y="140" width="28" height="11" rx="2" />
+            <rect x="68" y="182" width="28" height="11" rx="2" />
+            <rect x="224" y="182" width="28" height="11" rx="2" />
+          </g>
+          <g className="h7">
+            <path d="M74 162v14M86 162v14M234 162v14M246 162v14M76 204v10M88 204v10M232 204v10M244 204v10" strokeWidth="3.5" />
           </g>
         </svg>
       </div>
@@ -147,10 +153,18 @@ export function RouteMotion() {
         <span className="sweep__q3">$2,624</span>
       </div>
 
-      {/* Service: a spanner turning onto the nut. */}
-      <div className="sweep__service">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-          <path d="M14.6 6.3a1 1 0 0 0 0 1.4l1.7 1.7a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.8 3.8z" />
+      {/* Servicing: the gauge going on and the needle coming up. A spanner
+          spinning was decoration; this is the actual moment of a service, and
+          it draws itself like the rest of them. */}
+      <div className="sweep__gauge">
+        <svg viewBox="0 0 220 220" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle className="g1" cx="110" cy="110" r="88" strokeWidth="5" />
+          <circle className="g2" cx="110" cy="110" r="72" strokeWidth="2.5" opacity="0.35" />
+          <g className="g3" strokeWidth="4">
+            <path d="M110 30v14M52 52l10 10M30 110h14M52 168l10-10M110 190v-14M168 168l-10-10M190 110h-14M168 52l-10 10" />
+          </g>
+          <path className="g4" d="M110 110 74 62" strokeWidth="6" />
+          <circle className="g5" cx="110" cy="110" r="9" strokeWidth="5" />
         </svg>
       </div>
 
@@ -193,15 +207,23 @@ export function RouteMotion() {
         </svg>
       </div>
 
-      {/* Call-out: a van arrives, and the beacon is already going. */}
-      <div className="sweep__van">
-        <span className="sweep__beacon" />
-        <svg viewBox="0 0 120 60" fill="currentColor" aria-hidden="true">
-          <path d="M4 40V18a4 4 0 0 1 4-4h50v26H4zm58-26h20l14 16v10H62V14z" />
-          <circle cx="26" cy="44" r="7" />
-          <circle cx="84" cy="44" r="7" />
+      {/* Breakdown: the van, drawn rather than stamped. It was a filled shape
+          sliding across while everything else on the site drew itself, which
+          made it the one door that looked like it came from somewhere else. */}
+      <div className="sweep__callout">
+        <svg viewBox="0 0 300 170" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path className="v1" d="M18 118V54a8 8 0 0 1 8-8h140v72" />
+          <path className="v2" d="M166 60h44l32 36v22" />
+          <path className="v3" d="M18 118h22M78 118h64M178 118h30M242 118h22" />
+          <circle className="v4" cx="59" cy="118" r="19" />
+          <circle className="v5" cx="222" cy="118" r="19" />
+          <g className="v6">
+            <rect x="96" y="26" width="34" height="16" rx="6" strokeWidth="5" />
+            <path d="M88 16l-8-10M138 16l8-10M113 12V0" strokeWidth="4" />
+          </g>
         </svg>
       </div>
+
     </div>
   );
 }
