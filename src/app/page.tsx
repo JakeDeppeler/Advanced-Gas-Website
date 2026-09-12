@@ -131,12 +131,12 @@ const ROUTE_BUTTONS: { href: string; label: string; sub: string; icon: DoorIconK
   // the flagship product and the one door where the transition can say what
   // the thing is — hot water — rather than just that the page changed.
   { href: "/services/heat-pump-installation", label: "Heat pumps", sub: "Rebate applied at the quote", icon: "heatpump", tone: "navy", sweep: "water" },
-  { href: "/services/air-conditioning-installation", label: "Heating & cooling", sub: "Split, ducted and gas", icon: "climate", tone: "sky" },
+  { href: "/services/air-conditioning-installation", label: "Heating & cooling", sub: "Split, ducted and gas", icon: "climate", tone: "sky", sweep: "climate" },
   // Orange on this one only, to match the "$$$" chip the rebate carries in the
   // nav. Spending the loudest colour on the thing worth the most money is the
   // whole reason to have a loud colour.
-  { href: "/rebates", label: "Rebates", sub: "Up to $2,700 off", icon: "rebate", tone: "orange" },
-  { href: "/services/aircon-servicing-repairs", label: "Servicing", sub: "Annual service & CO test", icon: "service", tone: "ink" },
+  { href: "/rebates", label: "Rebates", sub: "Up to $2,700 off", icon: "rebate", tone: "orange", sweep: "rebate" },
+  { href: "/services/aircon-servicing-repairs", label: "Servicing", sub: "Annual service & CO test", icon: "service", tone: "ink", sweep: "service" },
 ];
 
 const SUBURBS: { name: string; slug: string }[] = [...publishedSuburbs]

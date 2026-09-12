@@ -156,8 +156,8 @@ export default function CommercialPage() {
       <section className="comm-take" id="scopes">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we take on</span>
-            <h2 className="ds-h--on-dark">Ten packages, carried end to end.</h2>
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we do</span>
+            <h2 className="ds-h--on-dark">Everything mechanical, gas and hot water, under one trade.</h2>
             <p className="comm-take__lede">
               We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
               package we own from the drawings through to handover, with our own crew on it. Nothing here gets passed
@@ -226,18 +226,22 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* THE STANDARD — the homepage's "why us". Six points at equal weight in
-          a grid, rather than six rows of prose stacked beside a photograph that
-          ran out of picture halfway down. The photo becomes one cell of the
-          grid, so it is part of the argument instead of a column beside it. */}
+      {/* THE STANDARD — the homepage's "why us". The crew photograph sits
+          beside the argument rather than inside the grid of points: it is the
+          evidence for the first claim, so it belongs next to the sentence that
+          makes it, not filed as one card among six. */}
       <section className="comm-std">
         <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
-            <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
-          </div>
-          <div className="comm-std__grid">
-            <figure className="commstd commstd--photo">
+          <div className="comm-std__top">
+            <div className="comm-std__intro">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
+              <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
+              <p>
+                Every one of these is checkable. Ask for the procedures, ask who is turning up, ask for the paperwork
+                before we are on site. The answer should be the same one you got last time.
+              </p>
+            </div>
+            <figure className="comm-std__photo">
               <img
                 src="/team-photo.webp"
                 alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
@@ -247,6 +251,8 @@ export default function CommercialPage() {
               />
               <figcaption>Directly employed. All of them.</figcaption>
             </figure>
+          </div>
+          <div className="comm-std__grid">
             {COMM_STANDARD.map((st) => (
               <div key={st.n} className="commstd">
                 <span className="commstd__n">{st.n}</span>

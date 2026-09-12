@@ -3158,18 +3158,101 @@ html[data-route-enter] #main { animation: route-in 0.42s cubic-bezier(0.2, 0.7, 
 }
 .sweep__wave { display: none; }
 
-html[data-sweep-kind="orange"] .sweep {
-  background: linear-gradient(105deg, var(--orange-2, #ff7a36), var(--orange, #f36722) 55%, #d9551a);
+/* Crossing over. A building goes up on the way to commercial and a house comes
+   up on the way home, so the transition says which side you have landed on
+   before the page has finished arriving. One drawing, two roofs. */
+.sweep__place { display: none; }
+.sweep__place svg { width: 200px; height: 150px; stroke: currentColor; }
+.sweep__house, .sweep__tower { display: none; }
+html[data-sweep-kind="building"] .sweep,
+html[data-sweep-kind="house"] .sweep {
+  display: grid; place-items: center;
+  transform: translateX(-101%);
 }
-html[data-sweep-kind="orange"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep-kind="orange"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-sweep-kind="building"] .sweep { background: linear-gradient(105deg, var(--orange-2, #ff7a36), var(--orange, #f36722) 60%, #d9551a); color: #fff; }
+html[data-sweep-kind="house"] .sweep { transform: translateX(101%); background: linear-gradient(255deg, var(--navy-3, #1b234e), var(--navy-2, #0b1450) 55%, var(--navy, #050a30)); color: var(--orange, #f36722); }
+html[data-sweep-kind="building"] .sweep__place,
+html[data-sweep-kind="house"] .sweep__place { display: block; }
+html[data-sweep-kind="building"] .sweep__tower { display: block; }
+html[data-sweep-kind="house"] .sweep__house { display: block; }
 
-html[data-sweep-kind="navy"] .sweep {
-  transform: translateX(101%);
-  background: linear-gradient(255deg, var(--navy-3, #1b234e), var(--navy-2, #0b1450) 55%, var(--navy, #050a30));
+html[data-sweep-kind="building"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.54s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="building"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-sweep-kind="house"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.54s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="house"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.46s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+/* The drawing builds itself: every stroke is dashed to its own length and the
+   dash offset runs out, so the walls and the roof draw on rather than fade in. */
+html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path,
+html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path {
+  stroke-dasharray: 340; stroke-dashoffset: 340;
+  animation: draw-on 0.44s 0.14s cubic-bezier(0.3, 0.8, 0.3, 1) forwards;
 }
-html[data-sweep-kind="navy"][data-sweep="in"] .sweep { animation: sweep-rtl-in 0.3s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
-html[data-sweep-kind="navy"][data-sweep="out"] .sweep { animation: sweep-rtl-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path:nth-child(2),
+html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path:nth-child(2) { animation-delay: 0.24s; }
+html[data-sweep-kind="building"][data-sweep="in"] .sweep__place path:nth-child(3),
+html[data-sweep-kind="house"][data-sweep="in"] .sweep__place path:nth-child(3) { animation-delay: 0.32s; }
+@keyframes draw-on { to { stroke-dashoffset: 0; } }
+
+/* Climate: warm air in from one side, cool from the other, meeting in the middle. */
+.sweep__climate { display: none; }
+html[data-sweep-kind="climate"] .sweep {
+  display: grid; place-items: center;
+  transform: translateY(101%);
+  background: linear-gradient(160deg, #c2521a 0%, #7a3a6e 48%, var(--sky, #00b0ed) 100%);
+  color: #fff;
+}
+html[data-sweep-kind="climate"] .sweep__climate { display: block; position: absolute; inset: 0; }
+.sweep__stream { position: absolute; left: 0; right: 0; height: 12px; border-radius: 99px; opacity: 0.55; }
+.sweep__stream--warm { top: 34%; background: linear-gradient(90deg, transparent, #ffb27a, transparent); }
+.sweep__stream--cool { top: 62%; background: linear-gradient(90deg, transparent, #9fe6ff, transparent); }
+.sweep__flake { position: absolute; left: 50%; top: 50%; width: 74px; height: 74px; margin: -37px 0 0 -37px; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.54s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__stream--warm { animation: stream-r 0.6s 0.08s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__stream--cool { animation: stream-l 0.6s 0.16s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+html[data-sweep-kind="climate"][data-sweep="in"] .sweep__flake { animation: flake 0.6s 0.2s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+html[data-sweep-kind="climate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.48s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes stream-r { from { transform: translateX(-45%); opacity: 0; } to { transform: none; opacity: 0.55; } }
+@keyframes stream-l { from { transform: translateX(45%); opacity: 0; } to { transform: none; opacity: 0.55; } }
+@keyframes flake { from { transform: rotate(-90deg) scale(0.4); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Rebate: the money coming off, falling out of the top of the screen. */
+.sweep__rebate { display: none; }
+html[data-sweep-kind="rebate"] .sweep {
+  display: block;
+  transform: translateY(101%);
+  background: linear-gradient(180deg, #1f7a4d, #105835);
+}
+html[data-sweep-kind="rebate"] .sweep__rebate {
+  display: flex; justify-content: space-around; align-items: center;
+  position: absolute; inset: 0; padding: 0 8vw;
+}
+.sweep__rebate span {
+  font-family: var(--f-display, inherit);
+  font-size: clamp(38px, 7vw, 84px); font-weight: 800; color: rgba(255, 255, 255, 0.9);
+}
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep { animation: sweep-rise-in 0.54s cubic-bezier(0.55, 0, 0.25, 1) forwards; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span { animation: coin 0.5s cubic-bezier(0.3, 0.85, 0.3, 1) both; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(2) { animation-delay: 0.06s; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(3) { animation-delay: 0.12s; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(4) { animation-delay: 0.18s; }
+html[data-sweep-kind="rebate"][data-sweep="in"] .sweep__rebate span:nth-child(5) { animation-delay: 0.24s; }
+html[data-sweep-kind="rebate"][data-sweep="out"] .sweep { animation: sweep-rise-out 0.47s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes coin { from { transform: translateY(-70px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Service: the spanner turning onto the nut. */
+.sweep__service { display: none; }
+html[data-sweep-kind="service"] .sweep {
+  display: grid; place-items: center;
+  transform: translateX(-101%);
+  background: linear-gradient(105deg, var(--navy-3, #1b234e), var(--navy, #050a30));
+  color: var(--orange, #f36722);
+}
+html[data-sweep-kind="service"] .sweep__service { display: block; }
+.sweep__service svg { width: 110px; height: 110px; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep { animation: sweep-ltr-in 0.54s cubic-bezier(0.65, 0, 0.35, 1) forwards; }
+html[data-sweep-kind="service"][data-sweep="in"] .sweep__service { animation: turn 0.56s 0.1s cubic-bezier(0.3, 0.8, 0.3, 1) both; }
+html[data-sweep-kind="service"][data-sweep="out"] .sweep { animation: sweep-ltr-out 0.47s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+@keyframes turn { from { transform: rotate(-80deg) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
 html[data-sweep-kind="water"] .sweep {
   transform: translateY(101%);
@@ -3367,13 +3450,22 @@ html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-
    Everything in the bar is re-coloured against it rather than left to inherit:
    navy nav links on orange are the kind of thing that passes a build and fails
    a person. */
+/* Dark, not orange. White nav links on hi-vis orange are legible in the sense
+   that you can make them out, and not in the sense that anyone wants to read
+   them — and this is the bar carrying every link on the side of the business
+   that cares most about looking exact. The two strips above stay orange, so
+   crossing over still announces itself; the header underneath them is the part
+   that has to be read. */
 .hdr--comm {
-  background: var(--orange, #f36722);
-  border-bottom-color: rgba(0, 0, 0, 0.16);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  background: var(--navy, #050a30);
+  border-bottom-color: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
 }
-/* The logo is a colour lockup on white; a white plate keeps it legible and
-   stops it looking like it was dropped on the wrong background. */
+/* The logo file has an opaque white background baked in, so on a dark bar it
+   is a white rectangle whatever we do. Given that, the plate is the honest
+   choice: rounded and padded it reads as a deliberate tile, and removing it
+   only turned the same white into a hard-edged block. A reversed logo file
+   would let this go away entirely. */
 .hdr--comm .hdr__logo-img {
   background: #fff;
   border-radius: 10px;
@@ -3382,30 +3474,33 @@ html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-
 .hdr--comm .hdr__nav > a,
 .hdr--comm .hdr__navtrigger { color: #fff; }
 .hdr--comm .hdr__nav > a:hover,
-.hdr--comm .hdr__navtrigger:hover { color: #fff; background: rgba(0, 0, 0, 0.14); }
+.hdr--comm .hdr__navtrigger:hover { color: var(--orange-2, #ff7a36); background: transparent; }
 .hdr--comm .hdr__nav > a.is-active,
 .hdr--comm .hdr__navtrigger.is-active { color: #fff; }
+.hdr--comm .hdr__nav > a.is-active { color: var(--orange-2, #ff7a36); }
 .hdr--comm .hdr__nav > a.is-active::after,
-.hdr--comm .hdr__navtrigger.is-active::after { background: #fff; }
+.hdr--comm .hdr__navtrigger.is-active::after { background: var(--orange-2, #ff7a36); }
 
 .hdr--comm .hdr__phone {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
 }
-.hdr--comm .hdr__phone:hover { background: rgba(0, 0, 0, 0.22); border-color: #fff; }
-.hdr--comm .hdr__phone svg { color: #fff; }
+.hdr--comm .hdr__phone:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.6); }
+.hdr--comm .hdr__phone svg { color: var(--orange, #f36722); }
 .hdr--comm .hdr__phone em { color: rgba(255, 255, 255, 0.8); }
 
 /* Orange on orange would vanish, so the commercial call to action inverts:
    the navy is the accent here. */
+/* The CTA goes back to orange now the bar behind it is dark. It was inverted to
+   navy only because navy-on-orange was the only readable option. */
 .hdr--comm .hdr__cta .ds-btn--primary,
 .hdr--comm .hdr__cta .ds-btn--orange {
-  background: var(--navy, #050a30);
+  background: var(--orange, #f36722);
   color: #fff;
-  border-color: var(--navy, #050a30);
+  border-color: var(--orange, #f36722);
 }
 .hdr--comm .hdr__cta .ds-btn--primary:hover,
-.hdr--comm .hdr__cta .ds-btn--orange:hover { background: var(--navy-2, #0b1450); }
+.hdr--comm .hdr__cta .ds-btn--orange:hover { background: var(--orange-2, #ff7a36); }
 
-.hdr--comm .hdr__burger { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+.hdr--comm .hdr__burger { color: #fff; border-color: rgba(255, 255, 255, 0.3); }

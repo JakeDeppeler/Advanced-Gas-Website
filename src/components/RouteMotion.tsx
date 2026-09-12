@@ -28,7 +28,10 @@ import { usePathname } from "next/navigation";
  */
 
 export type SweepKind =
-  | "orange" | "navy" | "water"
+  /** Crossing between the two sides: a building going out, a house coming back. */
+  | "building" | "house"
+  /** Residential doors, one per thing we sell. */
+  | "water" | "climate" | "rebate" | "service"
   /** Commercial doors. Each one is the shape of the job behind it: a hook and
    *  load dropping down the screen, a girder sliding across, a checklist
    *  ticking itself off, a van arriving. */
@@ -38,16 +41,19 @@ export type SweepKind =
  *  design-system.css — the hold is what stops the old page showing under the
  *  panel on a slow route change. */
 const TIMING: Record<SweepKind, [number, number, number]> = {
-  orange: [300, 130, 420],
-  navy: [300, 130, 420],
+  building: [540, 130, 460],
+  house: [540, 130, 460],
   water: [560, 120, 640],
+  climate: [540, 120, 480],
+  rebate: [540, 130, 470],
+  service: [540, 130, 470],
   crane: [620, 120, 520],
   build: [520, 120, 480],
   schedule: [560, 140, 460],
   callout: [540, 120, 500],
 };
 
-export function sweepTo(go: () => void, kind: SweepKind = "orange"): void {
+export function sweepTo(go: () => void, kind: SweepKind = "building"): void {
   if (typeof document === "undefined") return go();
   const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   if (reduce) return go();
@@ -94,6 +100,45 @@ export function RouteMotion() {
       <svg className="sweep__wave" viewBox="0 0 2880 120" preserveAspectRatio="none">
         <path d="M0,70 C240,120 480,20 720,70 C960,120 1200,20 1440,70 C1680,120 1920,20 2160,70 C2400,120 2640,20 2880,70 L2880,120 L0,120 Z" />
       </svg>
+
+      {/* Crossing over: a building goes up on the way to commercial, a house on
+          the way home. Same mechanism, different roof. */}
+      <div className="sweep__place">
+        <svg viewBox="0 0 200 150" fill="none" aria-hidden="true">
+          {/* house */}
+          <g className="sweep__house">
+            <path d="M28 72 100 22l72 50" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M44 68v58h112V68" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M86 126V94h28v32" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+          {/* building */}
+          <g className="sweep__tower">
+            <path d="M46 126V34h108v92" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M72 58h12M116 58h12M72 84h12M116 84h12M72 110h12M116 110h12" strokeWidth="9" strokeLinecap="round" />
+          </g>
+        </svg>
+      </div>
+
+      {/* Climate: warm air one way, cool the other, meeting in the middle. */}
+      <div className="sweep__climate">
+        <span className="sweep__stream sweep__stream--warm" />
+        <span className="sweep__stream sweep__stream--cool" />
+        <svg className="sweep__flake" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1" />
+        </svg>
+      </div>
+
+      {/* Rebate: the number coming off the price. */}
+      <div className="sweep__rebate">
+        {[0, 1, 2, 3, 4].map((i) => <span key={i}>$</span>)}
+      </div>
+
+      {/* Service: a spanner turning onto the nut. */}
+      <div className="sweep__service">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M14.6 6.3a1 1 0 0 0 0 1.4l1.7 1.7a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9l-3.8 3.8z" />
+        </svg>
+      </div>
 
       {/* Crane: the hoist line drops, the load lands, the whole thing covers. */}
       <div className="sweep__crane">

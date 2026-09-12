@@ -6,7 +6,11 @@ import { CREW_LEVELS, LEVEL_LABEL, type CrewLevel } from "@/lib/portal/crew";
 export type CrewRate = {
   id: string; name: string; level: CrewLevel;
   /** null when they ride with a tech — on the job, but not a chargeable body. */
+  /** Charge-out on a mobile day. Null means they ride with a tech. */
   rate: number | null;
+  /** The same person on a day parked on one site: less travel out of the paid
+   *  day, so the hour recovers more and the rate comes down. */
+  rateOnsite: number | null;
 };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
@@ -30,8 +34,12 @@ type JobKey = (typeof JOBS)[number]["k"];
 
 type MatLine = { id: number; what: string; cost: number; qty: number };
 
-export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[]; costPerHr: number | null; calloutFee: number }) {
+export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: {
+  crew: CrewRate[]; costPerHr: number | null; costPerHrOnsite: number | null; calloutFee: number;
+}) {
   const [job, setJob] = useState<JobKey>("custom");
+  // Per job, not per portal. Most jobs are mobile, so that is the default.
+  const [onsite, setOnsite] = useState(false);
   const [sel, setSel] = useState<Record<string, number>>({});
   const [travelHrs, setTravelHrs] = useState(0);
   const [chargeTravel, setChargeTravel] = useState(true);
@@ -43,8 +51,12 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
   const [markup, setMarkup] = useState(20);
   const [discount, setDiscount] = useState(0);
 
-  const chargeable = crew.filter((c) => c.rate !== null);
-  const ridealong = crew.filter((c) => c.rate === null);
+  // Resolve once, at the top: below this point nothing needs to know which mode
+  // is on, which is what keeps the pricing maths in one shape.
+  const priced: CrewRate[] = crew.map((c) => ({ ...c, rate: onsite ? c.rateOnsite : c.rate }));
+  const modeCost = onsite ? costPerHrOnsite : costPerHr;
+  const chargeable = priced.filter((c) => c.rate !== null);
+  const ridealong = priced.filter((c) => c.rate === null);
 
   function pickJob(k: JobKey) {
     setJob(k);
@@ -86,7 +98,7 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
   // What the job costs us: every hour anyone spends on it — travel included,
   // charged or not — at the true cost of an hour, plus materials at cost.
   const jobHours = onSiteHrs + travelHrs;
-  const ourCost = costPerHr !== null ? jobHours * costPerHr + matCost : null;
+  const ourCost = modeCost !== null ? jobHours * modeCost + matCost : null;
   const profit = ourCost !== null ? discounted - ourCost : null;
   const marginPct = profit !== null && discounted > 0 ? (profit / discounted) * 100 : null;
 
@@ -97,12 +109,15 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
   const setMat = (id: number, patch: Partial<MatLine>) => setMats((m) => m.map((x) => (x.id === id ? { ...x, ...patch } : x)));
   const delMat = (id: number) => setMats((m) => (m.length === 1 ? m : m.filter((x) => x.id !== id)));
 
+  // Grouped from the resolved list, not the raw one: this is what renders each
+  // person's rate, so grouping the unresolved crew would show mobile rates
+  // while the job was priced on site.
   const byLevel = useMemo(() => {
     const order = CREW_LEVELS.map((l) => l.key);
     return order
-      .map((lv) => ({ level: lv, people: crew.filter((c) => c.level === lv) }))
+      .map((lv) => ({ level: lv, people: priced.filter((c) => c.level === lv) }))
       .filter((g) => g.people.length > 0);
-  }, [crew]);
+  }, [priced]);
 
   return (
     <div className="pt-calc">
@@ -131,6 +146,29 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
               <span>Call-out fee</span>
               <span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={callout} onChange={(e) => setCallout(parse(e.target.value))} /></span>
             </div>
+          )}
+        </div>
+
+        {/* Per job, because it is a property of the job and not of the business.
+            A tenancy fit-out and a Tuesday of split-system swaps are costed off
+            the same crew but not off the same day. */}
+        <div className="pt-calc__panel">
+          <h3 className="pt-calc__h">Where the day goes</h3>
+          <p className="pt-calc__hint">
+            Several jobs with a drive between each, or one site for the day. A site day loses less of itself to travel,
+            so every hour recovers more and the rates below come down with it.
+          </p>
+          <div className="pt-seg" role="group" aria-label="Where the day goes">
+            <button type="button" className={`pt-seg__b${onsite ? "" : " is-on"}`} aria-pressed={!onsite} onClick={() => setOnsite(false)}>Mobile</button>
+            <button type="button" className={`pt-seg__b${onsite ? " is-on" : ""}`} aria-pressed={onsite} onClick={() => setOnsite(true)}>On site</button>
+          </div>
+          {modeCost !== null && costPerHr !== null && costPerHrOnsite !== null && (
+            <p className="pt-calc__hint" style={{ marginTop: 10 }}>
+              An hour costs us <strong>{money2(modeCost)}</strong> this way
+              {costPerHr !== costPerHrOnsite && (
+                <> &mdash; {money2(Math.abs(costPerHr - costPerHrOnsite))} {onsite ? "less" : "more"} than the other.</>
+              )}
+            </p>
           )}
         </div>
 
@@ -184,7 +222,7 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
             <button type="button" className={`pt-seg__b pt-seg__b--repair${chargeTravel ? "" : " is-on"}`} aria-pressed={!chargeTravel} onClick={() => setChargeTravel(false)}>Wear it</button>
           </div>
           {!chargeTravel && travelHrs > 0 && (
-            <p className="pt-calc__hint" style={{ marginTop: 8 }}>Still costs us {costPerHr !== null ? money(travelHrs * costPerHr) : "time"} — it comes out of the job&rsquo;s profit below.</p>
+            <p className="pt-calc__hint" style={{ marginTop: 8 }}>Still costs us {modeCost !== null ? money(travelHrs * modeCost) : "time"} — it comes out of the job&rsquo;s profit below.</p>
           )}
         </div>
 
@@ -241,7 +279,7 @@ export function JobCalculator({ crew, costPerHr, calloutFee }: { crew: CrewRate[
         {ourCost !== null ? (
           <div className={`pt-job__worth${profit !== null && profit < 0 ? " is-bad" : marginPct !== null && marginPct < 15 ? " is-thin" : ""}`}>
             <div className="pt-job__worth-h">Is it worth doing</div>
-            <div className="pt-job__worthrow"><span>{jobHours} hrs at {money2(costPerHr as number)} + materials</span><strong>{money(ourCost)}</strong></div>
+            <div className="pt-job__worthrow"><span>{jobHours} hrs at {money2(modeCost as number)} + materials</span><strong>{money(ourCost)}</strong></div>
             <div className="pt-job__worthrow"><span>You keep (ex GST)</span><strong>{money(profit as number)}</strong></div>
             <div className="pt-job__worthrow pt-job__worthrow--total">
               <span>Margin</span>

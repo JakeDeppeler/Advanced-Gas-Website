@@ -419,7 +419,7 @@ export function Header() {
     e.preventDefault();
     // Orange going to the commercial side, navy coming home — the colour of
     // where you are going, moving in the direction you are going.
-    sweepTo(() => router.push(href), href === "/commercial" ? "orange" : "navy");
+    sweepTo(() => router.push(href), href === "/commercial" ? "building" : "house");
   }
 
   return (
