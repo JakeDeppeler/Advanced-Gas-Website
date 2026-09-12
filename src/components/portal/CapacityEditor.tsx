@@ -216,6 +216,20 @@ export function CapacityEditor({
   const show = (n: number) => (hasHrs ? money2(n) : "—");
   const blended = hasHrs ? cap.costPerHr * (1 + s.margin / 100) : null;
 
+  /** The fixed notes, plus one written on the spot for each crew level. */
+  const noteFor = (key: string) => {
+    if (STAT_NOTES[key]) return STAT_NOTES[key];
+    const lv = levelHours.find((l) => `lvl:${l.key}` === key);
+    if (!lv) return null;
+    const who = lv.label.toLowerCase();
+    return {
+      label: `${lv.label}'s hour`,
+      body: lv.ridesAlong
+        ? `A ${who} rides with a tech rather than taking a van out, so they bill no hours of their own. Their cost is deliberately left out of the shared overhead, or a tech working on his own would carry a ${who} who wasn't there. This is their whole cost for the year spread over the hours of the van they ride in, and it comes back as an uplift on the crew rate over on What we charge.`
+        : `What one hour of a ${who}'s time costs before any margin: the wage for that hour with on-costs on top, plus that hour's share of every overhead. It is the blended figure beside it worked out for this level on its own, so you can see which way a crew shape moves the cost.`,
+    };
+  };
+
   // Grouped so the crew reads as the team does — all the apprentices together,
   // all the tradesmen together — rather than one flat list.
   const grouped = useMemo(() => {
@@ -224,6 +238,33 @@ export function CapacityEditor({
       .map((lv) => ({ level: lv, rows: rows.filter((r) => r.level === lv) }))
       .filter((g) => g.rows.length > 0);
   }, [rows]);
+
+  // What an hour of each kind of person costs, broken out of the blended figure
+  // beside it. The two are not the same kind of number and the tiles say so.
+  // Someone with their own van carries a share of the overhead in their hour.
+  // Someone who rides along does not: their cost is deliberately kept out of
+  // the shared pool, or a tech working on his own would carry an apprentice who
+  // wasn't there. Their figure is their whole cost over the hours of the van
+  // they ride in, and it comes back as an uplift on the crew rate.
+  const levelHours = useMemo(() => {
+    return CREW_LEVELS.filter((l) => l.billable)
+      .map((l) => {
+        const mine = costed.filter((p) => p.level === l.key);
+        if (!mine.length) return null;
+        const vals = mine
+          .map((p) => rateById.get(p.id)?.costPerHr)
+          .filter((v): v is number => v != null);
+        if (!vals.length) return null;
+        return {
+          key: l.key,
+          label: l.label,
+          count: mine.length,
+          perHr: vals.reduce((a, v) => a + v, 0) / vals.length,
+          ridesAlong: mine.every((p) => !p.costing.ownVan),
+        };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+  }, [costed, rateById]);
 
   /** Office, admin and operations — a cost to carry, not a crew to schedule. */
   const officeRows = useMemo(
@@ -309,9 +350,19 @@ export function CapacityEditor({
         <Stat
           label="What an hour costs us"
           value={show(cap.costPerHr)}
-          sub="Before any margin"
+          sub="Blended, before any margin"
           open={info === "cost"} onToggle={() => setInfo(info === "cost" ? null : "cost")}
         />
+        {levelHours.map((l) => (
+          <Stat
+            key={l.key}
+            label={`${l.label}'s hour`}
+            value={show(l.perHr)}
+            sub={l.ridesAlong ? "Over the van's hours" : "Wage plus overhead share"}
+            open={info === `lvl:${l.key}`}
+            onToggle={() => setInfo(info === `lvl:${l.key}` ? null : `lvl:${l.key}`)}
+          />
+        ))}
         <Stat
           label="Overhead on every hour"
           value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
@@ -325,10 +376,10 @@ export function CapacityEditor({
           open={info === "hrs"} onToggle={() => setInfo(info === "hrs" ? null : "hrs")}
         />
       </div>
-      {info && STAT_NOTES[info] && (
+      {info && noteFor(info) && (
         <div className="pt-cap__infobody" role="note">
-          <strong>{STAT_NOTES[info].label}</strong>
-          <p>{STAT_NOTES[info].body}</p>
+          <strong>{noteFor(info)!.label}</strong>
+          <p>{noteFor(info)!.body}</p>
           <button type="button" onClick={() => setInfo(null)} aria-label="Close">×</button>
         </div>
       )}
