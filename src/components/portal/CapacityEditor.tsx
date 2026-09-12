@@ -5,26 +5,24 @@ import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
   computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
-  scaleModel, scaleOf, suggestOverhead,
+  scaleOf, suggestOverhead,
   type CapSettings, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
 } from "@/lib/portal/crew";
 import { saveCapSettings, saveCrew, addCrewPerson, removeCrewPerson } from "@/app/portal/finance/capacity/actions";
+import { money, money2, hrs, pct } from "@/lib/portal/format";
 
 type Row = { id: string; name: string; email: string | null; level: CrewLevel | ""; costing: Costing };
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
-const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const hrs = (n: number) => `${Math.round(n).toLocaleString("en-AU")} hrs`;
-const pct = (n: number) => `${Math.round(n * 100)}%`;
 const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ? 0 : n; };
 
 const TABS = [
   { k: "crew", label: "The crew" },
   { k: "overheads", label: "What it costs" },
   { k: "rates", label: "What we charge" },
-  { k: "growth", label: "Another van" },
-  { k: "words", label: "What the words mean" },
+  // "Another van" moved to Finance -> Future planning: it is a question about
+  // next year, and it was the only tab here that wasn't about today.
+  // "What the words mean" is the disclosure in the corner of the tab row.
 ] as const;
 type Tab = (typeof TABS)[number]["k"];
 
@@ -118,6 +116,7 @@ export function CapacityEditor({
   });
 
   const [s, setS] = useState<CapSettings>({ ...settings, oncosts: 0, overheads: { ...overheadsOf(settings) }, xeroMap: { ...(settings.xeroMap ?? {}) } });
+  const onSite = modeOf(s) === "onsite";
   const [rows, setRows] = useState<Row[]>(people.map((p) => ({ id: p.id, name: p.name, email: p.email, level: p.level ?? "", costing: { ...p.costing } })));
   const [add, setAdd] = useState<{ open: boolean; name: string; email: string; level: CrewLevel; msg: string }>({ open: false, name: "", email: "", level: "tradesman", msg: "" });
 
@@ -207,9 +206,6 @@ export function CapacityEditor({
   // crew's own non-billable time — and those are already in the capacity maths,
   // so they show read-only rather than being added again.
   const split = overheadSplit(s);
-  const scale = useMemo(() => scaleModel(cap, s), [cap, s]);
-  const now = scale.find((r) => r.isNow) ?? null;
-  const next = now ? scale.find((r) => r.vans === now.vans + 1) ?? null : null;
   const setScale = (key: string, v: "fixed" | "perVan") =>
     setS((prev) => ({ ...prev, scales: { ...(prev.scales ?? {}), [key]: v } }));
 
@@ -335,10 +331,33 @@ export function CapacityEditor({
       )}
       </div>
 
-      <div className="pt-cap__tabs" role="tablist">
-        {TABS.map((t) => (
-          <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} className={`pt-cap__tab${tab === t.k ? " is-on" : ""}`} onClick={() => setTab(t.k)}>{t.label}</button>
-        ))}
+      <div className="pt-cap__tabrow">
+        <div className="pt-cap__tabs" role="tablist">
+          {TABS.map((t) => (
+            <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} className={`pt-cap__tab${tab === t.k ? " is-on" : ""}`} onClick={() => setTab(t.k)}>{t.label}</button>
+          ))}
+        </div>
+        {/* The glossary is a reference, not a view of the business. It was
+            sitting in the tab row as though it were a fifth thing to look at;
+            it is a thing to look up, so it opens in the corner and closes
+            again. */}
+        <details className="pt-cap__gloss">
+          <summary>What the words mean</summary>
+          <div className="pt-cap__glossbody">
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">What the words mean</h2>
+          <p className="pt-panel__sub">So everyone reading these numbers is reading the same thing.</p>
+          <dl className="pt-words">
+            {GLOSSARY.map((g) => (
+              <div key={g.term}>
+                <dt>{g.term}</dt>
+                <dd>{g.body}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+          </div>
+        </details>
       </div>
 
       {tab === "crew" && (
@@ -364,6 +383,13 @@ export function CapacityEditor({
             </p>
           </section>
 
+          {onSite && (
+            <div className="pt-note">
+              <strong>On site.</strong> Driving and between-jobs admin are off the cards, because on a site day the mode
+              is already answering for them. Switch back to <strong>Mobile</strong> to set them; the figures are kept
+              either way and both modes are costed off the same ones.
+            </div>
+          )}
           {rows.length === 0 && <div className="pf-empty">No team members yet — add one below, or in Admin → Team &amp; access.</div>}
 
           {grouped.map((g) => (
@@ -422,8 +448,13 @@ export function CapacityEditor({
                           <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
                           <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
                           {r.level === "apprentice" && <CapField label="School (days)" value={r.costing.schoolDays} onChange={(v) => setCosting(r.id, { schoolDays: v })} />}
-                          {!isOffice && !ridesAlong && <CapField label="Driving hrs/wk" value={r.costing.travelHrsWeek} onChange={(v) => setCosting(r.id, { travelHrsWeek: v })} />}
-                          {!isOffice && !ridesAlong && <CapField label="Admin hrs/wk" value={r.costing.adminHrsWeek} onChange={(v) => setCosting(r.id, { adminHrsWeek: v })} />}
+                          {/* On site these two are the fields the mode is
+                              already answering, and a driving figure on a card
+                              for a day nobody drives is just something else to
+                              get wrong. Kept on the mobile card, which is where
+                              they are costed from. */}
+                          {!isOffice && !ridesAlong && !onSite && <CapField label="Driving hrs/wk" value={r.costing.travelHrsWeek} onChange={(v) => setCosting(r.id, { travelHrsWeek: v })} />}
+                          {!isOffice && !ridesAlong && !onSite && <CapField label="Admin hrs/wk" value={r.costing.adminHrsWeek} onChange={(v) => setCosting(r.id, { adminHrsWeek: v })} />}
                           {r.level === "hybrid" && <CapField label="Office hrs/wk" value={r.costing.officeHrsWeek} onChange={(v) => setCosting(r.id, { officeHrsWeek: v })} />}
                         </div>
 
@@ -1057,91 +1088,6 @@ export function CapacityEditor({
         </>
       )}
 
-      {tab === "growth" && (
-        <>
-          <section className="pt-panel">
-            <h2 className="pt-panel__h">The overhead splits two ways</h2>
-            <p className="pt-panel__sub">
-              The factory, the office, the accountant and the marketing don&rsquo;t care how many vans are on the road — put a
-              fourth one on and none of it moves. Everything else arrives with the van: its fuel, its servicing, its insurance,
-              its tools, its phone. That split is the whole reason another van makes the overhead on every hour go <em>down</em>.
-              Any line on the Overheads tab can be switched between the two.
-            </p>
-            <div className="pt-pl__heads">
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Fixed — doesn&rsquo;t move</span><strong className="pt-pl__headval">{money(split.fixed + cap.officeOh)}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Comes with each van</span><strong className="pt-pl__headval">{money(split.perVan)}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Per van, each</span><strong className="pt-pl__headval">{now ? money(split.perVan / now.vans) : "—"}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">All of it</span><strong className="pt-pl__headval">{money(ohTotal)}</strong></div>
-            </div>
-          </section>
-
-          {scale.length > 0 ? (
-            <>
-              <section className="pt-panel">
-                <div className="pt-ov__charthead">
-                  <h2 className="pt-panel__h">What another van does</h2>
-                  <span className="pt-cap__grouptotal">{now?.vans ?? 0} charging now</span>
-                </div>
-                <p className="pt-panel__sub">
-                  Each row assumes another crew like the ones you have — same hours, same downtime, same van costs.
-                </p>
-                <div className="pt-oh__ledger">
-                  <div className="pt-oh__group">
-                    <div className="pt-cap__scalehead">
-                      <span>Charging</span><span>Billable hrs</span><span>Overhead</span><span>Overhead / hr</span><span>Cost / hr</span><span>Charge-out</span>
-                    </div>
-                    {scale.map((r) => (
-                      <div key={r.vans} className={`pt-cap__scalerow${r.isNow ? " is-now" : ""}`}>
-                        <span className="pt-cap__scaleid"><strong>{r.vans}</strong>{r.isNow && <em>now</em>}</span>
-                        <span>{hrs(r.billHrs)}</span>
-                        <span>{money(r.overhead)}</span>
-                        <strong className="pt-cap__real">{money2(r.overheadPerHr)}</strong>
-                        <span>{money2(r.costPerHr)}</span>
-                        <strong>{money2(r.chargeOut)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              {now && next && (
-                <section className="pt-panel">
-                  <h2 className="pt-panel__h">Putting on one more</h2>
-                  <p className="pt-util__read" style={{ marginTop: 0 }}>
-                    One more charging crew adds <strong>{money(next.overhead - now.overhead)}</strong> of overhead and{" "}
-                    <strong>{hrs(next.billHrs - now.billHrs)}</strong> you can bill. Spread over the lot, the overhead on every
-                    hour drops from <strong>{money2(now.overheadPerHr)}</strong> to <strong>{money2(next.overheadPerHr)}</strong>{" "}
-                    — <strong>{money2(now.overheadPerHr - next.overheadPerHr)}</strong> off every hour the whole crew bills.
-                  </p>
-                  <div className="pt-pl__heads">
-                    <div className="pt-pl__head"><span className="pt-pl__headlabel">They bring in</span><strong className="pt-pl__headval">{money(next.revenue - now.revenue)}</strong></div>
-                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Overhead they add</span><strong className="pt-pl__headval">{money(next.overhead - now.overhead)}</strong></div>
-                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Off every hour</span><strong className="pt-pl__headval">{money2(now.overheadPerHr - next.overheadPerHr)}</strong></div>
-                    <div className="pt-pl__head"><span className="pt-pl__headlabel">Rate could fall to</span><strong className="pt-pl__headval">{money(next.chargeOut)}</strong></div>
-                  </div>
-                </section>
-              )}
-            </>
-          ) : (
-            <div className="pf-empty">Give at least one person a billable level to model this.</div>
-          )}
-        </>
-      )}
-
-      {tab === "words" && (
-        <section className="pt-panel">
-          <h2 className="pt-panel__h">What the words mean</h2>
-          <p className="pt-panel__sub">So everyone reading these numbers is reading the same thing.</p>
-          <dl className="pt-words">
-            {GLOSSARY.map((g) => (
-              <div key={g.term}>
-                <dt>{g.term}</dt>
-                <dd>{g.body}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
 
       <div className="pt-cap__savebar">
         {msg && <span className={`pt-inline ${msg === "Saved." ? "is-ok" : "is-err"}`}>{msg}</span>}
