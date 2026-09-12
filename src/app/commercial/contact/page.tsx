@@ -24,12 +24,12 @@ export const metadata: Metadata = {
 export default function CommercialContactPage() {
   return (
     <div className="page-comm page-commcontact">
-      <section className="comm-hero comm-hero--sub">
-        <div className="wrap comm-hero__inner">
+      <section className="comm-sub">
+        <div className="wrap comm-sub__inner">
           <Link href="/commercial" className="comm-back">← Commercial</Link>
           <span className="ds-eyebrow">Contact</span>
           <h1>Submit a scope, or ask a question.</h1>
-          <p className="comm-hero__sub">
+          <p className="comm-sub__lede">
             Drawings, a mechanical schedule or a site address is sufficient to begin. If you need certificates of
             currency, SWMS or induction documentation before anything else, ask and they come back the same day.
           </p>

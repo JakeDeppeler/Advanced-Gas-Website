@@ -5,46 +5,49 @@ import { COMM_SCOPES } from "@/lib/commercial";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "Commercial Services — Fit-outs, Plant Replacement, Maintenance",
+  title: "Commercial Services, Fit-outs, System Replacement, Maintenance",
   description:
-    "Commercial mechanical services across Melbourne's south-east and Gippsland: tenancy fit-outs, plant replacement on live sites, scheduled maintenance contracts, Type A gas and breakdown response.",
+    "Commercial mechanical services across Melbourne's south-east and Gippsland: tenancy fit-outs, base build, system replacement on live sites, scheduled maintenance, Type A and Type B gas, commercial hot water, evaporative cooling, ventilation, air balancing and breakdown response.",
   alternates: { canonical: "/commercial/services" },
 };
 
 export default function CommercialServicesPage() {
   return (
     <div className="page-comm">
-      <section className="comm-hero comm-hero--sub">
-        <div className="wrap comm-hero__inner">
+      <section className="comm-sub">
+        <div className="wrap comm-sub__inner">
           <Link href="/commercial" className="comm-back">← Commercial</Link>
-          <span className="ds-eyebrow">What we take on</span>
-          <h1>Five things, done properly.</h1>
-          <p className="comm-hero__sub">
-            We don&rsquo;t claim to be a mechanical contractor that does everything. These are the packages we take, the ones
-            we&rsquo;re set up for, and the ones we&rsquo;ll price honestly or tell you we&rsquo;re not the right outfit for.
+          <span className="ds-eyebrow">What we do</span>
+          <h1>Ten packages, and the detail behind each one.</h1>
+          <p className="comm-sub__lede">
+            We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
+            package we own from the drawings through to handover, with our own crew on it. If a scope needs something
+            that isn&rsquo;t on this page, the honest answer is usually that we&rsquo;re not the right outfit for it.
           </p>
+          {/* Ten anchors is a lot of scrolling to find the one you came for. */}
+          <nav className="comm-jump" aria-label="Jump to a package">
+            {COMM_SCOPES.map((sc) => (
+              <a key={sc.slug} href={`#${sc.slug}`}>{sc.title}</a>
+            ))}
+          </nav>
         </div>
       </section>
 
-      <section className="comm-how">
-        <div className="wrap">
-          <div className="comm-scopes">
-            {COMM_SCOPES.map((sc) => (
-              <article key={sc.slug} className="commscope" id={sc.slug}>
-                <div className="commscope__head">
-                  <span className="commscope__n">{sc.n}</span>
-                  <div>
-                    <h2>{sc.title}</h2>
-                    <p className="commscope__lede">{sc.lede}</p>
-                  </div>
-                </div>
-                <ul className="commscope__list">
-                  {sc.detail.map((d) => <li key={d}>{d}</li>)}
-                </ul>
-                <p className="commscope__suits"><strong>Suits</strong> {sc.suits}</p>
-              </article>
-            ))}
-          </div>
+      <section className="comm-full">
+        <div className="wrap comm-full__grid">
+          {COMM_SCOPES.map((sc) => (
+            <article key={sc.slug} className="commfull" id={sc.slug}>
+              <div>
+                <span className="commfull__n">{sc.n}</span>
+                <h2>{sc.title}</h2>
+                <p className="commfull__lede">{sc.lede}</p>
+              </div>
+              <ul className="commfull__list">
+                {sc.detail.map((d) => <li key={d}>{d}</li>)}
+              </ul>
+              <p className="commfull__suits">Suits {sc.suits}</p>
+            </article>
+          ))}
         </div>
       </section>
 
