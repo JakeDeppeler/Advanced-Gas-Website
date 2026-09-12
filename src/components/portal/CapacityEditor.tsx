@@ -287,9 +287,12 @@ export function CapacityEditor({
         </div>
         {modeOf(s) === "onsite" && (
           <p className="pt-cap__modenote">
-            On a commercial site the crew drives in once and stays, so travel and between-jobs admin mostly stop.
-            Nobody is paid differently; there is simply more of the day left to bill, which is why the hourly rate
-            below is lower than the mobile one. The two percentages are on the <strong>What it costs</strong> tab.
+            On a commercial site the day is working time. The between-jobs admin is a mobile problem, five jobs
+            each with a sheet and a phone call at the end of it, and on one site that happens once for the whole
+            job rather than once an hour, so it is costed at nothing. Travel stays at a third: they still drive in
+            of a morning and home of an afternoon, it is just one trip instead of five. Nobody is paid differently;
+            there is simply more of the day left to bill, which is why the hourly rate below is lower than the
+            mobile one. Both percentages are on the <strong>What it costs</strong> tab.
           </p>
         )}
       </div>
@@ -636,7 +639,7 @@ export function CapacityEditor({
                     <p className="pt-cap__modehint">
                       {m.key === "mobile"
                         ? "A residential week as costed on the crew tab."
-                        : `Default is a guess: ${MODE_DEFAULTS.onsite.travelPct}% travel, ${MODE_DEFAULTS.onsite.adminPct}% admin. Put real figures in off a site job.`}
+                        : `Default is ${MODE_DEFAULTS.onsite.travelPct}% travel and ${MODE_DEFAULTS.onsite.adminPct}% admin: the drive in and home, and no between-jobs paperwork. Put real figures in off a site job.`}
                     </p>
                   </div>
                 );

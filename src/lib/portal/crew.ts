@@ -156,12 +156,21 @@ export const WORK_MODES: { key: WorkMode; label: string; blurb: string }[] = [
 /**
  * Starting assumptions, not measured figures. The mobile mode is deliberately
  * 100% of whatever is on each person's card, so nothing changes for anyone who
- * never touches this. The on-site numbers are a first guess and are meant to be
- * replaced with real ones off a job.
+ * never touches this.
+ *
+ * On site the admin is zero: the between-jobs paperwork is a mobile problem.
+ * It exists because a mobile day is five jobs, and every one of them has a
+ * sheet, a photo, a signature and a phone call at the end of it. A crew on one
+ * commercial site does that once for the whole job, not once an hour, so the
+ * day is working time.
+ *
+ * Travel stays at 30% rather than zero because they still drive in of a
+ * morning and home of an afternoon. It is one trip instead of five, not no
+ * trip. Both figures are editable per mode on the What it costs tab.
  */
 export const MODE_DEFAULTS: Record<WorkMode, ModeAssumptions> = {
   mobile: { travelPct: 100, adminPct: 100, callbackPct: null },
-  onsite: { travelPct: 30, adminPct: 70, callbackPct: null },
+  onsite: { travelPct: 30, adminPct: 0, callbackPct: null },
 };
 
 export function modeOf(s: CapSettings): WorkMode {
