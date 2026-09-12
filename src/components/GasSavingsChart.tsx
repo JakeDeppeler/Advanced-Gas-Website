@@ -21,7 +21,7 @@ export function GasSavingsChart() {
             <h2>What a higher star rating saves you.</h2>
             <p>
               Every extra star on a gas ducted heater is less gas burnt for the same warmth. Here&rsquo;s the
-              yearly saving against a 1-star heater &mdash; the gap that decides whether the efficient model
+              yearly saving against a 1-star heater, the gap that decides whether the efficient model
               pays for itself in a house you heat all winter.
             </p>
           </div>
@@ -45,7 +45,7 @@ export function GasSavingsChart() {
 
           <p className="gsc__note">
             Estimated saving per year against a 1-star gas ducted heater on standard Melbourne usage. Indicative
-            only &mdash; your saving depends on the house, the ductwork and how many hours you run it. We put the
+            only. Your saving depends on the house, the ductwork and how many hours you run it. We put the
             running-cost numbers next to the install price on the quote.
           </p>
         </div>

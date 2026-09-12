@@ -2,10 +2,137 @@
 
 .page-heatpumps { background: var(--bg); }
 
+/* ---- HERO ----
+   The page a "Heat pumps" click lands on, so it opens the way the front page
+   does: one line on what the thing is, one button, and a photograph of a real
+   install rather than a brochure render. The old hero opened on three lines
+   about honest comparison and red flags, which is the argument you make to
+   someone already shopping, not the first thing you say to someone who has
+   only just heard the words "heat pump". */
+.page-heatpumps .hp-hero {
+  position: relative;
+  color: #fff;
+  background:
+    radial-gradient(ellipse 800px 460px at 12% 0%, rgba(243,103,34,0.12) 0%, transparent 62%),
+    radial-gradient(ellipse 640px 380px at 92% 100%, rgba(0,176,237,0.10) 0%, transparent 58%),
+    linear-gradient(180deg, #1a2c68 0%, #12224e 62%, #0e1c45 100%);
+  overflow: hidden;
+}
+.page-heatpumps .hp-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 56px;
+  align-items: center;
+  padding: clamp(34px, 4.4vh, 76px) 32px clamp(40px, 4.4vh, 78px);
+}
+.page-heatpumps .hp-hero__copy { display: flex; flex-direction: column; gap: 20px; max-width: 580px; }
+.page-heatpumps .hp-hero__eye {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+}
+.page-heatpumps .hp-hero h1 {
+  font-family: var(--f-display); font-weight: 900;
+  font-size: clamp(34px, 4.3vw, 60px);
+  line-height: 1.03; letter-spacing: -0.03em; margin: 0; color: #fff;
+  text-wrap: balance;
+  text-shadow: 0 4px 32px rgba(5,10,48,0.35);
+}
+.page-heatpumps .hp-hero__sub {
+  font-size: clamp(15.5px, 1.3vw, 18.5px);
+  line-height: 1.55; margin: 0; color: rgba(255,255,255,0.88); max-width: 540px;
+}
+.page-heatpumps .hp-hero__ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 2px; }
+.page-heatpumps .hp-hero__ctas .ds-btn--ghost {
+  color: #fff; border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.06);
+}
+.page-heatpumps .hp-hero__ctas .ds-btn--ghost:hover { background: rgba(255,255,255,0.13); border-color: #fff; }
+.page-heatpumps .hp-hero__rebate { margin: 2px 0 0; font-size: 14.5px; color: rgba(255,255,255,0.8); }
+.page-heatpumps .hp-hero__rebate a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.page-heatpumps .hp-hero__photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  max-height: 520px;
+  align-self: center;
+  justify-self: end;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 30px 60px -22px rgba(0,0,0,0.6);
+  background: var(--navy-2);
+}
+
+/* ---- PICK A STYLE ----
+   The fork, in the same shape as the one on the front page: the choice comes
+   before the argument. Photographs rather than icons, because the difference
+   between the two is a physical one you can see in a second. */
+.page-heatpumps .hp-pick { padding: 76px 0 26px; background: var(--bg); }
+.page-heatpumps .hp-pick__grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+}
+.page-heatpumps .hp-pick__card {
+  display: flex; flex-direction: column; gap: 16px;
+  background: #fff; border: 1px solid var(--line); border-radius: 18px;
+  padding: 22px 22px 20px;
+  text-decoration: none; color: inherit;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.page-heatpumps .hp-pick__card:hover,
+.page-heatpumps .hp-pick__card:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--orange);
+  box-shadow: 0 22px 44px -24px rgba(11,22,60,0.4);
+}
+.page-heatpumps .hp-pick__photo {
+  position: relative; display: block;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px; overflow: hidden;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+.page-heatpumps .hp-pick__body { display: flex; flex-direction: column; gap: 7px; }
+.page-heatpumps .hp-pick__body strong {
+  font-family: var(--f-display); font-size: 21px; letter-spacing: -0.01em; color: var(--navy);
+}
+.page-heatpumps .hp-pick__d { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.page-heatpumps .hp-pick__meta {
+  margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--orange);
+}
+.page-heatpumps .hp-pick__go {
+  position: absolute; right: 20px; bottom: 18px;
+  font-size: 18px; color: var(--orange);
+  transition: transform 0.18s ease;
+}
+.page-heatpumps .hp-pick__card:hover .hp-pick__go { transform: translateX(4px); }
+/* The third card has no photograph, so it takes the tone instead: it is the
+   answer for someone who cannot tell the two apart yet, which is most people. */
+.page-heatpumps .hp-pick__card--ask {
+  background: var(--navy); border-color: var(--navy);
+  justify-content: center;
+}
+.page-heatpumps .hp-pick__card--ask .hp-pick__body strong { color: #fff; }
+.page-heatpumps .hp-pick__card--ask .hp-pick__d { color: rgba(255,255,255,0.8); }
+.page-heatpumps .hp-pick__card--ask .hp-pick__meta { color: var(--sky-2); }
+
+@media (max-width: 980px) {
+  .page-heatpumps .hp-hero__grid { grid-template-columns: 1fr; gap: 28px; padding: 30px 20px 34px; }
+  .page-heatpumps .hp-hero__photo { justify-self: start; max-width: 320px; aspect-ratio: 4 / 5; }
+  .page-heatpumps .hp-pick__grid { grid-template-columns: 1fr 1fr; }
+  .page-heatpumps .hp-pick__card--ask { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .page-heatpumps .hp-pick { padding: 52px 0 56px; }
+  .page-heatpumps .hp-pick__grid { grid-template-columns: 1fr; }
+  .page-heatpumps .hp-hero__photo { max-width: 100%; aspect-ratio: 4 / 3; }
+}
+
 /* WHY */
-.page-heatpumps .hp-why { padding: 100px 0; background: var(--bg); }
+.page-heatpumps .hp-why { padding: 64px 0 92px; background: var(--bg); }
 .page-heatpumps .hp-why__grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
   margin-top: 40px;
 }
 .page-heatpumps .hp-why__stat {

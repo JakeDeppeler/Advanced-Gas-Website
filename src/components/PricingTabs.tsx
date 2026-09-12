@@ -114,7 +114,7 @@ export function PricingTabs({
 
       {searching && matches === 0 && (
         <p className="pricing-tabs__noresults">
-          No models match &ldquo;{query.trim()}&rdquo;. Try a brand, a model number or a size &mdash; or{" "}
+          No models match &ldquo;{query.trim()}&rdquo;. Try a brand, a model number or a size, or{" "}
           <button type="button" className="pricing-tabs__noresults-clear" onClick={() => setQuery("")}>clear the search</button>.
         </p>
       )}
