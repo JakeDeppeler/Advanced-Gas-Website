@@ -49,6 +49,9 @@ export default async function JobCalculatorPage() {
       rateOnsite: round(ons.get(p.id)),
       uplift: round(mobUp.get(p.id)),
       upliftOnsite: round(onsUp.get(p.id)),
+      // A wage does not change with the mode: the same hour of their time
+      // costs the same whether the van drove five jobs or parked on one.
+      wage: Math.round(p.costing.wage * (1 + base.oncosts / 100) * 100) / 100,
     }));
     costPerHr = capMobile.totalBillHrs > 0 ? capMobile.costPerHr : null;
     costPerHrOnsite = capOnsite.totalBillHrs > 0 ? capOnsite.costPerHr : null;

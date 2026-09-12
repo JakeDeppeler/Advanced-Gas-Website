@@ -313,26 +313,19 @@ export type PersonCosted = {
 };
 
 /**
- * An apprentice is never a van of their own, however the card is ticked.
+ * Levels that never work unsupervised, so their hour is a wage rather than a
+ * rate: an apprentice is on the job with a tradesman, and the tradesman's hour
+ * is the one carrying the overhead for it.
  *
- * They cannot be sent out unsupervised, so there is no job where an apprentice
- * is the chargeable body: they are in the car with the tradesman. Ticking them
- * as having a van used to cost them as another van on the road, with their own
- * billable hours and their own share of the overhead, which turned a wage into
- * a full rate and put a two-hander at two full rates. Normalised here, at the
- * one place every figure is worked out from, so the crew tab, the rates, the
- * combos and the job calculator cannot disagree about it.
+ * This changes how a figure is READ, not what the business owns. The fleet is
+ * the fleet: the number of vans does not go up or down with who is sitting in
+ * one, so nothing here touches the van count or the hours it can bill.
  */
-export function ridesAlongAlways(level: CrewLevel): boolean {
+export function alwaysSupervised(level: CrewLevel): boolean {
   return level === "apprentice";
 }
 
-export function effectiveCosting(level: CrewLevel, c: Costing): Costing {
-  return ridesAlongAlways(level) && c.ownVan ? { ...c, ownVan: false } : c;
-}
-
-export function calcPerson(level: CrewLevel, raw: Costing, s: CapSettings): PersonCosted {
-  const c = effectiveCosting(level, raw);
+export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): PersonCosted {
   const rate = c.wage * (1 + s.oncosts / 100);
   const paidHrs = c.hrsWeek * s.weeksYear;
   const wageCost = paidHrs * rate;
@@ -368,8 +361,7 @@ export function calcPerson(level: CrewLevel, raw: Costing, s: CapSettings): Pers
 
 export type CrewMember = { id: string; name: string; level: CrewLevel; costing: Costing };
 
-export function computeCapacity(raw: CrewMember[], s: CapSettings) {
-  const people = raw.map((p) => ({ ...p, costing: effectiveCosting(p.level, p.costing) }));
+export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const per = people.map((p) => ({ p, c: calcPerson(p.level, p.costing, s) }));
   const totalBillHrs = per.reduce((a, x) => a + x.c.billHrs, 0);
   const fieldWages = per.reduce((a, x) => a + x.c.fieldWages, 0);
@@ -454,10 +446,9 @@ export type CrewCombo = { key: string; label: string; rate: number; note?: strin
  * on his own, because there are two people on site doing the work.
  */
 export function crewCombos(
-  raw: CrewMember[],
+  people: CrewMember[],
   rates: { id: string; rate: number | null; uplift?: number | null }[],
 ): CrewCombo[] {
-  const people = raw.map((p) => ({ ...p, costing: effectiveCosting(p.level, p.costing) }));
   const rateById = new Map(rates.map((r) => [r.id, r.rate]));
   const upliftById = new Map(rates.map((r) => [r.id, r.uplift ?? null]));
   const avg = (list: CrewMember[]) => {

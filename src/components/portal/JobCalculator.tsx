@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CREW_LEVELS, LEVEL_LABEL, type CrewLevel } from "@/lib/portal/crew";
+import { CREW_LEVELS, LEVEL_LABEL, alwaysSupervised, type CrewLevel } from "@/lib/portal/crew";
 
 export type CrewRate = {
   id: string; name: string; level: CrewLevel;
@@ -18,6 +18,12 @@ export type CrewRate = {
    */
   uplift: number | null;
   upliftOnsite: number | null;
+  /**
+   * Their wage with on-costs. For a level that never works unsupervised this
+   * is what they add to a job and the whole of what they add: the tradesman
+   * they are standing next to is carrying the overhead for it.
+   */
+  wage: number | null;
 };
 
 const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
@@ -65,17 +71,20 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
     const uplift = onsite ? c.upliftOnsite : c.uplift;
     return {
       ...c, rate, uplift,
-      // Everybody on the job has an hour worth something. A tech's is their
-      // rate; an apprentice's is the wage they add to the crew. Charging the
-      // apprentice nothing, which is what this did, priced a two-hander at the
-      // tech on his own and left their whole year unrecovered.
-      charge: rate ?? uplift ?? null,
+      // Everybody on the job has an hour worth something, and it is not the
+      // same kind of figure for everybody. An apprentice adds their wage,
+      // because whoever they are with is carrying the overhead. Somebody
+      // riding along adds their uplift. Everyone else adds their rate. This
+      // used to charge nothing at all for the first two, which priced a
+      // two-hander at the tech on his own.
+      charge: alwaysSupervised(c.level) ? c.wage : (rate ?? uplift ?? null),
+      wageOnly: alwaysSupervised(c.level),
       rides: rate === null,
     };
   });
   const modeCost = onsite ? costPerHrOnsite : costPerHr;
   const chargeable = priced.filter((c) => c.charge !== null);
-  const ridealong = priced.filter((c) => c.rides && c.uplift !== null);
+  const ridealong = priced.filter((c) => (c.rides || c.wageOnly) && c.charge !== null);
 
   function pickJob(k: JobKey) {
     setJob(k);
@@ -100,8 +109,8 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
   const billedTravel = chargeTravel ? travelHrs : 0;
   // Travel is charged at the dearest rate on the job, and a ride-along's uplift
   // is not a rate anybody drives at.
-  const topRate = lines.some((l) => !l.rides)
-    ? Math.max(...lines.filter((l) => !l.rides).map((l) => l.charge as number))
+  const topRate = lines.some((l) => !l.rides && !l.wageOnly)
+    ? Math.max(...lines.filter((l) => !l.rides && !l.wageOnly).map((l) => l.charge as number))
     : manualRate;
 
   const crewLabour = lines.reduce((a, l) => a + l.total, 0);
@@ -217,9 +226,11 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
                             <span>
                               {noPrice
                                 ? "No figure yet, set their numbers in Costs & capacity"
-                                : rides
-                                  ? `${money(c.charge as number)}/hr on top of the tech`
-                                  : `${money(c.charge as number)}/hr`}
+                                : c.wageOnly
+                                  ? `${money2(c.charge as number)}/hr, their wage on top of the tradesman`
+                                  : rides
+                                    ? `${money(c.charge as number)}/hr on top of the tech`
+                                    : `${money(c.charge as number)}/hr`}
                             </span>
                           </span>
                         </label>
@@ -239,11 +250,9 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           )}
           {ridealong.length > 0 && (
             <p className="pt-calc__hint pt-job__ridenote">
-              {ridealong.map((r) => r.name).join(" and ")} {ridealong.length === 1 ? "rides" : "ride"} with a tech rather
-              than taking a van out, so {ridealong.length === 1 ? "they add" : "they each add"} a wage to the crew and
-              nothing else. No second van, no second set of overheads: the tech&rsquo;s hour is already carrying those.
-              Leaving {ridealong.length === 1 ? "them" : "them"} off a job {ridealong.length === 1 ? "they were" : "they were"} on
-              prices it as the tech on his own.
+              {ridealong.map((r) => r.name).join(" and ")} adds a wage to the job and nothing else: no second van, no
+              second share of the overhead and no margin on it, because the tradesman on the job is already carrying
+              all of that. Leaving them off a job they were on prices it as the tradesman on his own.
             </p>
           )}
         </div>
