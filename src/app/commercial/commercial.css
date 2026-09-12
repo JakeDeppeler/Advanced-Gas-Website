@@ -485,3 +485,80 @@
   .comm-std { padding: 56px 0; }
   .commpack__cap { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
+
+/* ---- Sub-page hero, dark ---- */
+/* The inside pages opened on a pale grey-blue gradient while the front page
+   opened on a dark photograph, so crossing from one to the other felt like
+   leaving the site. Same ground, same weight of type. The capability statement
+   keeps the pale one on purpose: it is a document and it prints. */
+.comm-sub {
+  position: relative;
+  padding: 54px 0 58px;
+  background:
+    linear-gradient(180deg, rgba(19, 36, 84, 0.9) 0%, rgba(11, 22, 60, 0.95) 100%),
+    var(--navy, #050a30);
+  color: #fff;
+}
+.comm-sub__inner { max-width: 900px; }
+.comm-sub .comm-back { color: rgba(255, 255, 255, 0.6); }
+.comm-sub .comm-back:hover { color: #fff; }
+.comm-sub .ds-eyebrow { color: rgba(255, 255, 255, 0.85); }
+.comm-sub h1 {
+  margin: 12px 0 0;
+  font-size: clamp(30px, 4.6vw, 52px);
+  line-height: 1.05; letter-spacing: -0.03em; color: #fff;
+  text-wrap: balance;
+}
+.comm-sub__lede { margin: 18px 0 0; font-size: clamp(16px, 2vw, 19px); line-height: 1.6; color: #c6cce6; max-width: 68ch; }
+/* Jump chips, for a page that is a long list of anchors. */
+.comm-jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 26px 0 0; }
+.comm-jump a {
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 13px; font-weight: 600; color: #dfe3f4; text-decoration: none;
+  transition: background 0.14s, border-color 0.14s, color 0.14s;
+}
+.comm-jump a:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.5); color: #fff; }
+
+/* ---- Services: the ten scopes in full ---- */
+.comm-full { padding: 70px 0 80px; }
+.comm-full__grid { display: grid; gap: 14px; }
+.commfull {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px;
+  padding: 30px 32px;
+  background: #fff; border: 1px solid #e2e8f4; border-radius: 18px;
+  border-left: 3px solid var(--orange, #f36722);
+  scroll-margin-top: 110px;
+}
+.commfull__n {
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.1em; color: var(--orange, #f36722);
+}
+.commfull h2 { margin: 8px 0 0; font-size: clamp(21px, 2.4vw, 27px); letter-spacing: -0.02em; color: var(--comm-ink); }
+.commfull__lede { margin: 10px 0 0; font-size: 16px; line-height: 1.6; color: #4a5468; }
+.commfull__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; align-content: start; }
+.commfull__list li { position: relative; padding-left: 24px; font-size: 15px; line-height: 1.55; color: #46506b; }
+.commfull__list li::before {
+  content: ""; position: absolute; left: 0; top: 8px;
+  width: 9px; height: 9px; border-radius: 2px; background: var(--orange, #f36722);
+}
+.commfull__suits {
+  grid-column: 1 / -1; margin: 0; padding-top: 16px; border-top: 1px solid #eef1f7;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: #8791ab;
+}
+@media (max-width: 820px) {
+  .commfull { grid-template-columns: 1fr; gap: 18px; padding: 24px 22px; }
+}
+
+/* ---- About: the crew, the figures, the points ---- */
+.comm-who { padding: 70px 0; }
+.comm-who__top { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; }
+.comm-who__photo { position: relative; margin: 0; overflow: hidden; border-radius: 20px; aspect-ratio: 4 / 3; box-shadow: 0 34px 70px -42px rgba(11, 20, 80, 0.6); }
+.comm-who__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.comm-who__copy h2 { margin: 0; font-size: clamp(26px, 3.2vw, 38px); line-height: 1.1; letter-spacing: -0.025em; color: var(--comm-ink); text-wrap: balance; }
+.comm-who__copy p { margin: 16px 0 0; font-size: 16.5px; line-height: 1.7; color: #4a5468; }
+.comm-who .comm-facts { margin-top: 40px; }
+@media (max-width: 900px) {
+  .comm-who__top { grid-template-columns: 1fr; gap: 26px; }
+}

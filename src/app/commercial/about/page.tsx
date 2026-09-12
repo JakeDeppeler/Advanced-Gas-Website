@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { COMM_STANDARD, COMM_FACTS } from "@/lib/commercial";
 import "../commercial.css";
 
 export const metadata: Metadata = {
@@ -10,63 +11,79 @@ export const metadata: Metadata = {
   alternates: { canonical: "/commercial/about" },
 };
 
-const points = [
-  {
-    n: "01",
-    h: "Directly employed, not brokered out",
-    p: "Our own installers and apprentices. Not a labour hire roster and not a different subcontractor each visit, which means the crew on week three works the way the crew on week one did, and the person you complained to has authority over the person who caused it.",
-  },
-  {
-    n: "02",
-    h: "The standard is written down",
-    p: "Twenty procedures covering how a van is stocked, how a job is set up, what gets photographed, what gets certified and what happens when something goes wrong. Most contractors will tell you they have standards. Ask to see ours.",
-  },
-  {
-    n: "03",
-    h: "One person accountable",
-    p: "A single contact through the trade. Not a call centre, not a ticket number, and not three people who each think one of the others has it.",
-  },
-  {
-    n: "04",
-    h: "Paperwork treated as part of the job",
-    p: "SWMS before site access, inductions back within 24 hours, compliance certificates on completion, photographs and forms against every job and retained. If it isn't recorded, we don't consider it finished.",
-  },
-  {
-    n: "05",
-    h: "We say no to work we're not right for",
-    p: "We're a specialist mechanical, gas and hot water contractor, not a builder. If a scope needs something we're not set up to do properly we'll say so early, which is cheaper for everyone than finding out at the halfway mark.",
-  },
-];
-
 export default function CommercialAboutPage() {
   return (
     <div className="page-comm">
-      <section className="comm-hero comm-hero--sub">
-        <div className="wrap comm-hero__inner">
+      <section className="comm-sub">
+        <div className="wrap comm-sub__inner">
           <Link href="/commercial" className="comm-back">← Commercial</Link>
           <span className="ds-eyebrow">Who you&rsquo;d be dealing with</span>
           <h1>The easy contractor to have on site.</h1>
-          <p className="comm-hero__sub">
-            Twelve years out of {site.address.suburb}, working across Melbourne&rsquo;s south-east and Gippsland. What makes a
-            contractor easy to work with isn&rsquo;t size. It&rsquo;s whether they do the same thing every time, and whether the
-            paperwork turns up without being chased.
+          <p className="comm-sub__lede">
+            Twelve years out of {site.address.suburb}, working across Melbourne&rsquo;s south-east and Gippsland. What
+            makes a contractor easy to work with isn&rsquo;t size. It&rsquo;s whether they do the same thing every time,
+            and whether the paperwork turns up without being chased.
           </p>
         </div>
       </section>
 
-      <section className="comm-how">
+      {/* The crew, then the four figures. Both were on the front page and
+          neither was here, which left the page that is actually about us as
+          the one with nothing in it but paragraphs. */}
+      <section className="comm-who">
         <div className="wrap">
-          <ol className="comm-how__list">
-            {points.map((pt) => (
-              <li key={pt.n}>
-                <span className="comm-how__n">{pt.n}</span>
-                <div>
-                  <h2>{pt.h}</h2>
-                  <p>{pt.p}</p>
-                </div>
-              </li>
+          <div className="comm-who__top">
+            <figure className="comm-who__photo">
+              <img
+                src="/team-photo.webp"
+                alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
+                width="900"
+                height="675"
+                loading="lazy"
+              />
+            </figure>
+            <div className="comm-who__copy">
+              <h2>A family business that got good at the boring part.</h2>
+              <p>
+                We started in a Pakenham garage in 2014 and the same family still answers the phone. What changed is
+                everything around the work: the procedures got written down, the paperwork stopped being an afterthought,
+                and the crews became people we employ rather than people we book.
+              </p>
+              <p>
+                That is the whole difference on a commercial site. A builder does not need a contractor who is big. They
+                need one who turns up when the program says, sends the documents before anyone asks, and does the job the
+                same way on the last floor as on the first.
+              </p>
+            </div>
+          </div>
+
+          <div className="comm-facts">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k} className="commfact">
+                <strong>{f.n}</strong>
+                <span>{f.k}</span>
+                <p>{f.p}</p>
+              </div>
             ))}
-          </ol>
+          </div>
+        </div>
+      </section>
+
+      <section className="comm-std">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot" /> How we work</span>
+            <h2>Six things we do the same way every time.</h2>
+          </div>
+          <div className="comm-std__grid">
+            {COMM_STANDARD.map((st) => (
+              <div key={st.n} className="commstd">
+                <span className="commstd__n">{st.n}</span>
+                <h3>{st.h}</h3>
+                <p>{st.p}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
