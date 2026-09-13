@@ -239,14 +239,28 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* START HERE — four doors, see ROUTE_BUTTONS. */}
-      <section className="route">
+      {/* START HERE — four doors, see ROUTE_BUTTONS.
+
+          The card is two sections rather than one so the fold can fall inside
+          it. The heading half is the last thing in the first screen and lands
+          on the bottom edge of the window; the doors begin immediately under
+          it, off-screen until you scroll. They read as one card because they
+          share the ground and the border, and the join carries neither. */}
+      <section className="route route--head" data-no-reveal>
         <div className="wrap">
-          <div className="route__panel">
+          <div className="route__panel route__panel--head">
             <div className="ds-section-head ds-section-head--center">
               <span className="ds-eyebrow">Start here</span>
               <h2>What&rsquo;s brought you here?</h2>
             </div>
+          </div>
+        </div>
+      </section>
+      </div>
+
+      <section className="route route--body" data-no-reveal>
+        <div className="wrap">
+          <div className="route__panel route__panel--body">
             <div className="routebtns">
               {ROUTE_BUTTONS.map((b) => (
                 <DoorLink key={b.href} href={b.href} className={`routebtn routebtn--${b.tone}`} sweep={b.sweep}>
@@ -266,7 +280,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-      </div>
 
       <section className="brands">
         <div className="wrap">

@@ -1887,7 +1887,7 @@
   /* Beats the clamp on .page-home .hero__grid and the two short-window blocks
      by specificity, whatever order they end up in. */
   .page-home .firstscreen .hero__grid { flex: 1 1 auto; min-height: 0; }
-  .page-home .firstscreen .route { flex: 0 0 auto; }
+  .page-home .firstscreen .route--head { flex: 0 0 auto; }
 }
 
 /* ---- "What's brought you here?" — the fork under the hero ----
@@ -1920,6 +1920,29 @@
 }
 /* Smaller than a normal section head — the hero above it has to stay the
    loudest thing on the screen. */
+/* ---- The card, split so the fold can fall inside it ----
+   The heading half ends the first screen and the doors start under it. They
+   have to read as one card, so: same ground, same border colour, and the join
+   carries no border and no padding on either side of it. The shadow belongs to
+   the lower half only, since it falls downwards and would otherwise be cast
+   across the doors from the middle of the card. */
+/* Two classes deep, and after the short-window blocks above, because those
+   set .page-home .route and .page-home .route__panel and would otherwise put
+   a margin or a padding back into the join. */
+.page-home .route--head { padding-bottom: 0; }
+.page-home .route--body { margin-top: 0; padding-top: 0; }
+.page-home .route__panel--head {
+  border-bottom: 0;
+  border-radius: 24px 24px 0 0;
+  padding-bottom: 0;
+  box-shadow: none;
+}
+.page-home .route__panel--body {
+  border-top: 0;
+  border-radius: 0 0 24px 24px;
+  padding-top: 22px;
+}
+
 .route .ds-section-head { margin-bottom: 0; }
 .route .ds-section-head h2 { font-size: clamp(24px, 3vw, 34px); margin: 6px 0 0; }
 .routebtns {
