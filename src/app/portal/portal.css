@@ -1422,3 +1422,60 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   .pt-cap__gloss > summary { width: 100%; justify-content: space-between; }
   .pt-cap__glossbody { position: static; width: auto; max-height: none; margin-top: 8px; box-shadow: none; }
 }
+
+
+/* ---- Working backwards from the year's revenue ----
+   A table rather than a row of cards: the same five questions asked of a day,
+   a week and a year, and the comparison across the row is the point. */
+.pt-tgt__fields { display: flex; flex-wrap: wrap; gap: 14px 22px; margin: 4px 0 22px; }
+.pt-tgt__tablewrap { overflow-x: auto; }
+.pt-tgt__table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pt-tgt__table th, .pt-tgt__table td { text-align: right; padding: 12px 14px; border-bottom: 1px solid var(--pt-line); white-space: nowrap; }
+.pt-tgt__table thead th { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--pt-ink-3); border-bottom-width: 2px; }
+.pt-tgt__table thead th:first-child, .pt-tgt__table tbody th { text-align: left; }
+.pt-tgt__table tbody th { font-weight: 400; }
+.pt-tgt__table tbody th strong { display: block; font-size: 14.5px; font-weight: 700; color: var(--pt-ink); }
+.pt-tgt__table tbody th span { display: block; font-size: 12px; color: var(--pt-ink-3); margin-top: 2px; white-space: normal; }
+.pt-tgt__table tbody td { font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); }
+/* The quoting line is the one people forget, so it does not look like the rest. */
+.pt-tgt__table tr.is-key td, .pt-tgt__table tr.is-key th { background: #fff6f0; }
+.pt-tgt__table tr.is-key td { color: var(--pt-accent); }
+
+.pt-tgt__check { margin-top: 20px; padding: 14px 16px; border-radius: 12px; background: #eef7f1; border: 1px solid #cfe6d9; }
+.pt-tgt__check.is-over { background: #fbf1de; border-color: #f0e0c0; }
+/* Direct child only: the sentence underneath has its own <strong>s in it and
+   blocking those broke it onto one line per figure. */
+.pt-tgt__check > strong { display: block; font-size: 15px; color: #1f7a4d; margin-bottom: 4px; }
+.pt-tgt__check.is-over > strong { color: #a9701a; }
+.pt-tgt__check p strong { color: var(--pt-ink); font-weight: 800; }
+.pt-tgt__check p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--pt-ink-2); }
+
+.pt-tgt__save { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.pt-tgt__save .pt-btn { background: var(--pt-navy); color: #fff; }
+.pt-tgt__msg { font-size: 13px; font-weight: 700; color: var(--pt-good); }
+.pt-tgt__note { font-size: 12.5px; color: var(--pt-ink-3); }
+
+@media (max-width: 560px) {
+  .pt-tgt__table th, .pt-tgt__table td { padding: 10px 8px; }
+  .pt-tgt__table tbody td { font-size: 15px; }
+}
+
+/* The mix table: editable cells, so it is narrower type and tighter padding
+   than the summary above it, and a row that is not in play is dimmed rather
+   than hidden so it stays obvious there is a row there to fill in. */
+.pt-tgt__scope { margin: 16px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--pt-ink-2); }
+.pt-tgt__scope strong { color: var(--pt-ink); }
+.pt-tgt__mix { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--pt-line); }
+.pt-tgt__h3 { font-family: var(--f-display); font-size: 17px; font-weight: 800; margin: 0 0 6px; color: var(--pt-ink); }
+.pt-tgt__sub { margin: 0 0 16px; font-size: 13.5px; line-height: 1.6; color: var(--pt-ink-2); max-width: 70ch; }
+.pt-tgt__table--mix th, .pt-tgt__table--mix td { padding: 8px 10px; }
+.pt-tgt__table--mix tbody td { font-size: 15px; }
+.pt-tgt__table--mix tbody tr.is-off td, .pt-tgt__table--mix tbody tr.is-off th { opacity: 0.55; }
+.pt-tgt__name { width: 100%; min-width: 170px; border: 1px solid transparent; border-radius: 8px; background: transparent; font: inherit; font-size: 14px; font-weight: 700; color: var(--pt-ink); padding: 6px 8px; }
+.pt-tgt__name:hover { border-color: var(--pt-line); }
+.pt-tgt__name:focus { border-color: var(--pt-sky); outline: none; background: #fff; }
+.pt-tgt__cell { width: 108px; }
+.pt-tgt__cell input { width: 100%; text-align: right; }
+.pt-tgt__actual { appearance: none; border: 0; background: transparent; padding: 4px 0 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--pt-accent); cursor: pointer; text-align: left; }
+.pt-tgt__actual:hover { text-decoration: underline; }
+.pt-tgt__warn { margin: 14px 0 0; font-size: 13px; line-height: 1.55; color: #a9701a; background: #fbf1de; border: 1px solid #f0e0c0; border-radius: 10px; padding: 10px 12px; }

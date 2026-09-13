@@ -32,6 +32,12 @@ export function Reveal() {
     // grid arrives in sequence rather than as one block.
     const targets = new Set<Element>();
     root.querySelectorAll("section").forEach((sec) => {
+      // Opt-out, for the two halves of the fork's card. The top half is the
+      // last thing on the first screen and the doors are directly under it,
+      // and on a tall window the join sits close enough to the 90% line that
+      // one half would animate and the other would not, splitting a card that
+      // is meant to read as one.
+      if (sec.hasAttribute("data-no-reveal")) return;
       const box = sec.getBoundingClientRect();
       if (box.top < window.innerHeight * 0.9) return; // above the fold, leave alone
       targets.add(sec);
