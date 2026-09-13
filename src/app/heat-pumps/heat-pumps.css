@@ -645,3 +645,21 @@
 @media (max-width: 560px) {
   .page-heatpumps .hpc__picker { grid-template-columns: 1fr; }
 }
+
+/* ---- When gas is still right ----
+   The page sells heat pumps and it should, but a chooser that only argues one
+   way is a pitch. Three cases where we would fit gas, on the same page, so the
+   argument reads as an argument rather than a brochure. */
+.page-heatpumps .hp-gas { padding: 72px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.page-heatpumps .hp-gas__row { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); gap: 48px; align-items: start; }
+.page-heatpumps .hp-gas__copy h2 { font-family: var(--f-display); font-size: clamp(24px, 2.7vw, 34px); font-weight: 900; letter-spacing: -0.02em; margin: 10px 0 12px; color: var(--navy); }
+.page-heatpumps .hp-gas__copy p { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-2); }
+.page-heatpumps .hp-gas__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.page-heatpumps .hp-gas__list li { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--orange); border-radius: 14px; padding: 16px 18px; font-size: 14.5px; line-height: 1.6; color: var(--ink-2); }
+.page-heatpumps .hp-gas__list strong { display: block; font-family: var(--f-display); font-size: 16.5px; color: var(--navy); margin-bottom: 4px; }
+@media (max-width: 900px) {
+  .page-heatpumps .hp-gas { padding: 52px 0; }
+  .page-heatpumps .hp-gas__row { grid-template-columns: 1fr; gap: 24px; }
+}
+/* Four choices now, so the row is four across and pairs up on a tablet. */
+@media (min-width: 981px) { .page-heatpumps .hp-pick__grid { grid-template-columns: repeat(4, 1fr); } }

@@ -17,12 +17,14 @@ const num = (n: number | null, dp = 1) =>
  * quoted to win it. The last one is the one that gets forgotten, and it is the
  * only one with a lead time on it.
  */
-export function RevenuePlanner({ initial, cap, actual, canSave }: {
+export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave }: {
   initial: Targets | null;
   cap: Capacity | null;
   /** What the quote book says has actually happened. */
-  actual: { winRate: number | null; avgJob: number | null; won: number };
-  canSave: boolean;
+  actual: { winRate: number | null; avgJob: number | null; won: number; quotesPerWeek?: number | null };
+  /** Revenue banked so far this calendar year, from the filed accounts. */
+  ytd?: number | null;
+  canSave?: boolean;
 }) {
   const [t, setT] = useState<Targets>(() => {
     const base = initial ?? {
@@ -50,36 +52,56 @@ export function RevenuePlanner({ initial, cap, actual, canSave }: {
   const load = plan.load;
   const over = load != null && load > 1;
 
-  const rows: { k: string; label: string; note: string; day: string; week: string; year: string }[] = [
+  // Where the year is up to, and what the rest of it has to look like as a
+  // result. A target divided by fifty-two is a plan on the first of January
+  // and a fiction by March.
+  const now = new Date();
+  const yearEnd = new Date(now.getFullYear(), 11, 31);
+  const daysLeft = Math.max(1, Math.ceil((yearEnd.getTime() - now.getTime()) / 86_400_000));
+  const weeksLeft = daysLeft / 7;
+  const behind = ytd != null ? Math.max(0, t.revenue - ytd) : null;
+  const neededWeek = behind != null ? behind / weeksLeft : null;
+  const pace = ytd != null && t.revenue > 0 ? ytd / t.revenue : null;
+  const yearGone = 1 - daysLeft / 365;
+
+  // The quoting pace, which is the one with a lead time on it: what has to go
+  // out against what actually has been.
+  const quotesNeeded = plan.week.quotes;
+  const quotesActual = actual.quotesPerWeek ?? null;
+
+  const month = planTargets({ ...t, daysWeek: t.daysWeek }, cap);
+  const perMonth = (n: number | null) => (n == null ? null : (n * (cap?.weeksYear ?? 52)) / 12);
+  const rows: { k: string; label: string; note: string; day: string; week: string; mth: string; year: string }[] = [
     {
       k: "rev", label: "Work finished", note: "Invoiced, not quoted",
-      day: money(plan.day.revenue), week: money(plan.week.revenue), year: money(plan.year.revenue),
+      day: money(plan.day.revenue), week: money(plan.week.revenue), mth: money(perMonth(plan.week.revenue) as number), year: money(plan.year.revenue),
     },
     {
       k: "hrs", label: "Hours on the tools", note: "That money at the charge-out rate",
-      day: num(plan.day.hours), week: num(plan.week.hours), year: num(plan.year.hours, 0),
+      day: num(plan.day.hours), week: num(plan.week.hours), mth: num(perMonth(plan.week.hours), 0), year: num(plan.year.hours, 0),
     },
     {
       k: "jobs", label: "Jobs", note: `At ${money(t.avgJob)} a job`,
-      day: num(plan.day.jobs), week: num(plan.week.jobs), year: num(plan.year.jobs, 0),
+      day: num(plan.day.jobs), week: num(plan.week.jobs), mth: num(perMonth(plan.week.jobs), 0), year: num(plan.year.jobs, 0),
     },
     {
       k: "quoted", label: "Quotes out", note: `To win that at a ${t.winRate}% win rate`,
-      day: money(plan.day.quoted ?? 0), week: money(plan.week.quoted ?? 0), year: money(plan.year.quoted ?? 0),
+      day: money(plan.day.quoted ?? 0), week: money(plan.week.quoted ?? 0), mth: money(perMonth(plan.week.quoted) ?? 0), year: money(plan.year.quoted ?? 0),
     },
     {
       k: "count", label: "Quotes written", note: "The same money as a number of quotes",
-      day: num(plan.day.quotes), week: num(plan.week.quotes), year: num(plan.year.quotes, 0),
+      day: num(plan.day.quotes), week: num(plan.week.quotes), mth: num(perMonth(plan.week.quotes), 0), year: num(plan.year.quotes, 0),
     },
   ];
 
   return (
     <section className="pt-panel pt-tgt">
-      <h2 className="pt-panel__h">What that means for a week.</h2>
+      <h2 className="pt-panel__h">The numbers behind it.</h2>
       <p className="pt-panel__sub">
-        Set the year&rsquo;s revenue and this works backwards: the work that has to be finished, the hours that takes
-        out of the crew&rsquo;s week, and the quoting it takes to win it. The quoting is the one with a lead time, so
-        it is the one worth watching.
+        Set the year&rsquo;s revenue and the rest works backwards from it. <strong>Average job is what you invoice</strong>,
+        not what is left after costs: it is the figure with the margin already in it, because that is what a customer
+        pays and what divides into a revenue target. The quoting is the line with a lead time on it, so it is the one
+        worth watching.
       </p>
 
       <div className="pt-tgt__fields">
@@ -102,7 +124,7 @@ export function RevenuePlanner({ initial, cap, actual, canSave }: {
           )}
         </label>
         <label className="pt-cap__f">
-          <span>Average job</span>
+          <span>Average job <em className="pt-tgt__hint">· what you invoice</em></span>
           <span className="pt-calc__field"><span className="pt-calc__pre">$</span>
             <input inputMode="numeric" value={t.avgJob ? t.avgJob.toLocaleString("en-AU") : ""} onChange={(e) => set({ avgJob: parse(e.target.value) })} />
           </span>
@@ -123,18 +145,52 @@ export function RevenuePlanner({ initial, cap, actual, canSave }: {
       <div className="pt-tgt__tablewrap">
         <table className="pt-tgt__table">
           <thead>
-            <tr><th>To hit it</th><th>Each day</th><th>Each week</th><th>The year</th></tr>
+            <tr><th>To hit it</th><th>Each day</th><th>Each week</th><th>Each month</th><th>The year</th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.k} className={r.k === "quoted" ? "is-key" : undefined}>
                 <th scope="row"><strong>{r.label}</strong><span>{r.note}</span></th>
-                <td>{r.day}</td><td>{r.week}</td><td>{r.year}</td>
+                <td>{r.day}</td><td>{r.week}</td><td>{r.mth}</td><td>{r.year}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {ytd != null && (
+        <div className="pt-tgt__track">
+          <div className="pt-tgt__trackbar">
+            <i style={{ width: `${Math.min(100, (pace ?? 0) * 100)}%` }} />
+            <b style={{ left: `${Math.min(100, yearGone * 100)}%` }} title="Where the year is up to" />
+          </div>
+          <p>
+            <strong>{money(ytd)}</strong> invoiced so far, which is{" "}
+            <strong>{Math.round((pace ?? 0) * 100)}%</strong> of the target with{" "}
+            <strong>{Math.round((1 - yearGone) * 100)}%</strong> of the year left.{" "}
+            {behind != null && neededWeek != null && (
+              <>That leaves <strong>{money(behind)}</strong> to invoice across {Math.round(weeksLeft)} weeks, which is{" "}
+              <strong>{money(neededWeek)}</strong> a week from here rather than the {money(plan.week.revenue)} an even
+              year would have asked for.</>
+            )}
+          </p>
+        </div>
+      )}
+
+      {quotesNeeded != null && quotesActual != null && (
+        <div className={`pt-tgt__check${quotesActual < quotesNeeded ? " is-over" : ""}`}>
+          <strong>
+            {quotesActual < quotesNeeded ? "Not enough quotes are going out." : "The quoting is keeping up."}
+          </strong>
+          <p>
+            The target needs <strong>{num(quotesNeeded)} quotes a week</strong> and over the last twelve weeks{" "}
+            <strong>{num(quotesActual)}</strong> a week have actually been written.{" "}
+            {quotesActual < quotesNeeded
+              ? `That is ${num(quotesNeeded - quotesActual)} a week short, and it is the figure with a lead time on it: a quiet week of quoting shows up as a quiet month of work.`
+              : "Nothing to fix here, which is the one part of this that cannot be caught up later."}
+          </p>
+        </div>
+      )}
 
       <p className="pt-tgt__scope">
         Every figure above is the <strong>whole business</strong>, not one person.

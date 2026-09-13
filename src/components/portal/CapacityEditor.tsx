@@ -48,6 +48,8 @@ function Stat({ label, value, sub, open, onToggle }: {
  */
 const STAT_NOTES: Record<string, { label: string; body: string }> = {
   oh: { label: "Overhead on every hour", body: "The overhead half of what an hour costs. Every hour you bill has to carry this much of the factory, the office, the vans and the marketing before a single wage is paid. Put another van on and the fixed part of it spreads thinner — see the Another van tab." },
+  ceiling: { label: "The year at full tilt", body: "Every hour the crew can bill, sold at what we charge. Not a forecast and not a target: it is the ceiling, the most this crew can invoice in a year without another van or a higher rate. A revenue target above this number is a hiring decision, not a scheduling one." },
+  breakeven: { label: "What the year costs to run", body: "Every wage for billable time plus every overhead the business carries, added up for the year. Invoice this much and the business breaks even; the gap between it and the tile beside it is what is left at full tilt, before tax." },
   hrs: { label: "Hours we can bill a year", body: "The hours a customer actually pays for, across the year. Counted per van, not per head — a tech and an apprentice on the one job are on site for one van-hour, not two. Everything above divides by this number, which is why it matters more than headcount." },
 };
 
@@ -435,6 +437,18 @@ export function CapacityEditor({
           value={hrs(cap.totalBillHrs)}
           sub={`${cap.vanCount} ${cap.vanCount === 1 ? "van" : "vans"} · ${hrs(cap.hrsPerVan)} each`}
           open={info === "hrs"} onToggle={() => setInfo(info === "hrs" ? null : "hrs")}
+        />
+        <Stat
+          label="The year at full tilt"
+          value={hasHrs ? money(cap.totalBillHrs * cap.costPerHr * (1 + s.margin / 100)) : "—"}
+          sub="Every billable hour, sold"
+          open={info === "ceiling"} onToggle={() => setInfo(info === "ceiling" ? null : "ceiling")}
+        />
+        <Stat
+          label="What the year costs to run"
+          value={hasHrs ? money(cap.totalCost) : "—"}
+          sub="Break even. Wages and every overhead"
+          open={info === "breakeven"} onToggle={() => setInfo(info === "breakeven" ? null : "breakeven")}
         />
       </div>
       {info && noteFor(info) && (
