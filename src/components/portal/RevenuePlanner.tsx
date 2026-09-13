@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { money } from "@/lib/portal/format";
-import { planTargets, DEFAULT_TARGETS, type Targets, type Capacity } from "@/lib/portal/targets";
+import { planTargets, planTypes, DEFAULT_TARGETS, DEFAULT_JOB_TYPES, type Targets, type Capacity, type JobType } from "@/lib/portal/targets";
 import { saveTargets } from "@/app/portal/finance/planning/actions";
 
 const parse = (v: string) => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? 0 : n; };
@@ -17,14 +17,28 @@ const num = (n: number | null, dp = 1) =>
  * quoted to win it. The last one is the one that gets forgotten, and it is the
  * only one with a lead time on it.
  */
-export function RevenuePlanner({ initial, cap, canSave }: {
-  initial: Targets | null; cap: Capacity | null; canSave: boolean;
+export function RevenuePlanner({ initial, cap, actual, canSave }: {
+  initial: Targets | null;
+  cap: Capacity | null;
+  /** What the quote book says has actually happened. */
+  actual: { winRate: number | null; avgJob: number | null; won: number };
+  canSave: boolean;
 }) {
-  const [t, setT] = useState<Targets>(initial ?? DEFAULT_TARGETS);
+  const [t, setT] = useState<Targets>(() => {
+    const base = initial ?? {
+      ...DEFAULT_TARGETS,
+      winRate: actual.winRate ?? DEFAULT_TARGETS.winRate,
+      avgJob: actual.avgJob ?? DEFAULT_TARGETS.avgJob,
+    };
+    return { ...base, jobTypes: base.jobTypes?.length ? base.jobTypes : DEFAULT_JOB_TYPES };
+  });
   const [saving, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
 
   const plan = useMemo(() => planTargets(t, cap), [t, cap]);
+  const mix = useMemo(() => planTypes(t, cap?.weeksYear ?? 52), [t, cap]);
+  const setType = (id: string, patch: Partial<JobType>) =>
+    set({ jobTypes: (t.jobTypes ?? []).map((j) => (j.id === id ? { ...j, ...patch } : j)) });
   const set = (patch: Partial<Targets>) => { setT((p) => ({ ...p, ...patch })); setMsg(null); };
 
   const save = () =>
@@ -76,17 +90,27 @@ export function RevenuePlanner({ initial, cap, canSave }: {
           </span>
         </label>
         <label className="pt-cap__f">
-          <span>Win rate</span>
+          <span>Quote to win rate</span>
           <span className="pt-calc__field">
             <input type="number" min={1} max={100} value={t.winRate} onChange={(e) => set({ winRate: parse(e.target.value) })} />
             <span className="pt-calc__post">%</span>
           </span>
+          {actual.winRate != null && (
+            <button type="button" className="pt-tgt__actual" onClick={() => set({ winRate: actual.winRate as number })}>
+              Your actual is {actual.winRate}% &mdash; use it
+            </button>
+          )}
         </label>
         <label className="pt-cap__f">
           <span>Average job</span>
           <span className="pt-calc__field"><span className="pt-calc__pre">$</span>
             <input inputMode="numeric" value={t.avgJob ? t.avgJob.toLocaleString("en-AU") : ""} onChange={(e) => set({ avgJob: parse(e.target.value) })} />
           </span>
+          {actual.avgJob != null && (
+            <button type="button" className="pt-tgt__actual" onClick={() => set({ avgJob: actual.avgJob as number })}>
+              {money(actual.avgJob)} across {actual.won} won &mdash; use it
+            </button>
+          )}
         </label>
         <label className="pt-cap__f">
           <span>Days a week</span>
@@ -112,6 +136,19 @@ export function RevenuePlanner({ initial, cap, canSave }: {
         </table>
       </div>
 
+      <p className="pt-tgt__scope">
+        Every figure above is the <strong>whole business</strong>, not one person.
+        {plan.vans != null && plan.week.hours != null && (
+          <> Across {plan.vans} {plan.vans === 1 ? "van" : "vans"} that is{" "}
+            <strong>{num(plan.week.hours / plan.vans)} hours</strong> a week each, or{" "}
+            <strong>{num(plan.week.hours / plan.vans / Math.max(1, t.daysWeek))}</strong> a day.
+            {plan.week.jobs != null && (
+              <> At {money(t.avgJob)} a job, {num(plan.week.jobs / plan.vans / Math.max(1, t.daysWeek))} jobs a day per van.</>
+            )}
+          </>
+        )}
+      </p>
+
       {plan.hoursAvailableWeek != null && (
         <div className={`pt-tgt__check${over ? " is-over" : ""}`}>
           <strong>
@@ -130,6 +167,67 @@ export function RevenuePlanner({ initial, cap, canSave }: {
           </p>
         </div>
       )}
+
+      <div className="pt-tgt__mix">
+        <h3 className="pt-tgt__h3">By the kind of work</h3>
+        <p className="pt-tgt__sub">
+          One average ticket puts a heater service and a multi-head in the same box with a factor of ten between them.
+          Put what each kind is worth and what share of the year&rsquo;s money it brings in, off last year&rsquo;s
+          invoices, and the week gets broken up properly. Leave a row at zero and it sits out.
+        </p>
+
+        <div className="pt-tgt__tablewrap">
+          <table className="pt-tgt__table pt-tgt__table--mix">
+            <thead>
+              <tr>
+                <th>Kind of work</th><th>Average</th><th>Share of revenue</th>
+                <th>Jobs a week</th><th>Jobs a day</th><th>Quotes a week</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(t.jobTypes ?? []).map((j) => {
+                const line = mix?.lines.find((l) => l.id === j.id) ?? null;
+                return (
+                  <tr key={j.id} className={line ? undefined : "is-off"}>
+                    <th scope="row">
+                      <input
+                        className="pt-tgt__name"
+                        value={j.name}
+                        onChange={(e) => setType(j.id, { name: e.target.value })}
+                        aria-label="Kind of work"
+                      />
+                    </th>
+                    <td>
+                      <span className="pt-calc__field pt-tgt__cell"><span className="pt-calc__pre">$</span>
+                        <input inputMode="numeric" value={j.value ? j.value.toLocaleString("en-AU") : ""}
+                          placeholder="0" onChange={(e) => setType(j.id, { value: parse(e.target.value) })} />
+                      </span>
+                    </td>
+                    <td>
+                      <span className="pt-calc__field pt-tgt__cell">
+                        <input type="number" min={0} max={100} value={j.share || ""} placeholder="0"
+                          onChange={(e) => setType(j.id, { share: parse(e.target.value) })} />
+                        <span className="pt-calc__post">%</span>
+                      </span>
+                    </td>
+                    <td>{line ? num(line.jobsWeek) : "—"}</td>
+                    <td>{line ? num(line.jobsDay) : "—"}</td>
+                    <td>{line ? num(line.quotesWeek) : "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {mix && Math.round(mix.shareTotal) !== 100 && (
+          <p className="pt-tgt__warn">
+            The shares add up to {Math.round(mix.shareTotal)}%, not 100%. The rows still price out on their own, but
+            together they are {mix.shareTotal > 100 ? "claiming more than" : "leaving"}{" "}
+            {money(Math.abs(t.revenue * (mix.shareTotal - 100) / 100))} of the year{mix.shareTotal > 100 ? "." : " unaccounted for."}
+          </p>
+        )}
+      </div>
 
       {canSave && (
         <div className="pt-tgt__save">
