@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { services, suburbs, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
@@ -220,23 +221,14 @@ export default async function ServicePage({ params }: { params: { slug: string }
 
   return (
     <div className="page-detail">
-      {/* HEADER — the photo full bleed behind the copy, the figures along
-          the bottom. Same shape as the filtration pages: the inset photo
-          panel it replaces read as a picture pinned beside the text
-          rather than a header. */}
-      <section
-        className={`dp-hero${content.heroPhoto && hasAsset(content.heroPhoto) ? " dp-hero--shot" : ""}`}
-        style={
-          content.heroPhoto && hasAsset(content.heroPhoto)
-            ? {
-                backgroundImage:
-                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.12) 38%, rgba(9,17,52,0.72) 100%), ` +
-                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.36) 52%, rgba(9,17,52,0.08) 76%), ` +
-                  `url("${resolveAsset(content.heroPhoto)}")`,
-              }
-            : undefined
-        }
-      >
+      {/* HEADER — copy one side, the photograph the other.
+          It used to be the photo full bleed behind the copy. Every install
+          shot we own is a portrait taken on a phone, and a portrait stretched
+          across a 2:1 header shows a horizontal slice of itself: on this page
+          that slice was half a compressor and a lot of brick, which reads as
+          a stock texture rather than a job we did. Shown whole, at the shape
+          it was taken, it reads as the thing it is. */}
+      <section className={`dp-hero${content.heroPhoto && hasAsset(content.heroPhoto) ? " dp-hero--split" : ""}`}>
         <div className="wrap">
           <nav className="dp-crumbs" aria-label="Breadcrumb">
             <Link href="/">Home</Link>
@@ -246,6 +238,7 @@ export default async function ServicePage({ params }: { params: { slug: string }
             <span className="cur">{svc.short}</span>
           </nav>
 
+          <div className="dp-hero__grid">
           <div className="dp-hero__copy">
             <div className="ds-eyebrow ds-eyebrow--on-dark">
               <span className="ds-dot" />
@@ -259,6 +252,20 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 Or call {site.phone}
               </a>
             </div>
+          </div>
+
+          {content.heroPhoto && hasAsset(content.heroPhoto) && (
+            <div className="dp-hero__frame">
+              <Image
+                src={resolveAsset(content.heroPhoto) as string}
+                alt={content.heroPhotoAlt ?? ""}
+                fill
+                sizes="(max-width: 980px) 100vw, 40vw"
+                style={{ objectFit: "cover" }}
+                priority
+              />
+            </div>
+          )}
           </div>
 
           {content.heroFacts && (

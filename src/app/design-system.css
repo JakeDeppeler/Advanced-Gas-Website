@@ -1026,21 +1026,24 @@
 .ds-btn--ghost-on-dark:hover { background: rgba(255,255,255,0.08); border-color: #fff; }
 
 /* ============== EYEBROW + SECTION HEAD ============== */
+/* The little label above a section heading. It is a signpost, not a heading:
+   at 12px with a 7px dot and a 4px glow around it, it was competing with the
+   line it introduces. Smaller, tighter, and the dot's halo pulled in. */
 .ds-eyebrow {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--navy);
   font-weight: 500;
 }
 .ds-eyebrow--on-dark { color: rgba(255,255,255,0.85); }
 .ds-dot {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--sky);
-  box-shadow: 0 0 0 4px rgba(0,176,237,0.18);
+  width: 5px; height: 5px; border-radius: 50%; background: var(--sky);
+  box-shadow: 0 0 0 3px rgba(0,176,237,0.16);
 }
-.ds-dot--orange { background: var(--orange); box-shadow: 0 0 0 4px rgba(243,103,34,0.22); }
+.ds-dot--orange { background: var(--orange); box-shadow: 0 0 0 3px rgba(243,103,34,0.2); }
 
 .ds-section-head { max-width: 760px; margin-bottom: 56px; }
 .ds-section-head--center { margin: 0 auto 56px; text-align: center; }
