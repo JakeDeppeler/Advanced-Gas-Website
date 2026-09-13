@@ -895,7 +895,13 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
    and the hairlines between cells are drawn inside each cell. */
 .pt-cap__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 0; background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); border: 1px solid var(--pt-line); border-radius: 16px; overflow: hidden; }
 .pt-cap__stripcell { display: flex; flex-direction: column; gap: 4px; padding: 15px 18px; box-shadow: inset -1px 0 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(255,255,255,0.11); }
-.pt-cap__stripcell > span { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: #9aa4cf; }
+/* Labels are different lengths and wrap to different numbers of lines, so
+   stacking from the top put every figure at its own height and the row read
+   as ragged. The grid already stretches the cells to match, so pushing the
+   figure and its sub-line to the bottom of the cell lands them all on one
+   line however many lines the label above took. */
+.pt-cap__stripcell > strong { margin-top: auto; }
+.pt-cap__stripcell > span { font-size: 12px; letter-spacing: 0; font-weight: 700; color: #9aa4cf; line-height: 1.35; }
 .pt-cap__stripcell > strong { font-family: var(--f-display); font-size: 22px; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .pt-cap__stripcell > strong em { font-style: normal; font-size: 13px; font-weight: 600; color: #9aa4cf; margin-left: 2px; }
 
@@ -1288,10 +1294,10 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-oh__totals > div.is-total strong { color: #fff; }
 
 /* Stat strip: the label carries its own explanation. */
-.pt-cap__stripcell > span { display: flex; align-items: center; gap: 7px; }
+.pt-cap__stripcell > span { display: flex; align-items: flex-start; gap: 7px; }
 .pt-cap__stripcell small { font-size: 11px; color: #9aa4cf; font-weight: 500; }
 
-.pt-cap__info { flex: 0 0 auto; appearance: none; width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: #9aa4cf; font-family: var(--f-display); font-size: 10px; font-weight: 800; font-style: italic; line-height: 1; cursor: pointer; padding: 0; }
+.pt-cap__info { flex: 0 0 auto; margin-top: 1px; appearance: none; width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); background: transparent; color: #9aa4cf; font-family: var(--f-display); font-size: 10px; font-weight: 800; font-style: italic; line-height: 1; cursor: pointer; padding: 0; }
 .pt-cap__info:hover { border-color: #fff; color: #fff; }
 /* Sits outside the strip, which clips its own corners, so it can't be cut off. */
 .pt-cap__stripwrap { position: relative; }

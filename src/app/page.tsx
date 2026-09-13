@@ -173,6 +173,12 @@ export default async function HomePage() {
           the browser hint discover it during initial HTML scan, and
           the LCP candidate becomes the image itself with a clear
           measurement. */}
+      {/* The hero and the fork are one screen. The fork's job is to be the
+          last thing on it, sitting on the bottom edge, so the wrapper is the
+          height of the window and the hero takes whatever the fork does not.
+          Sizing the hero off a guess at the fork's height, which is what this
+          did before, lands differently on every window. */}
+      <div className="firstscreen">
       <section className="hero hero--split">
         <div className="wrap hero__grid">
           <div className="hero__copy">
@@ -260,6 +266,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      </div>
 
       <section className="brands">
         <div className="wrap">

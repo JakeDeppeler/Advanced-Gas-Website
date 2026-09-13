@@ -1813,7 +1813,12 @@
 
 /* Short screens: the hero gives up some of its own scale so the fork clears the
    fold. Everything is still there, it is just not shouting quite as loudly on a
-   768px laptop as it does on a 27-inch monitor. */
+   768px laptop as it does on a 27-inch monitor.
+
+   The ceiling is 999px rather than 940 because the hero's own content was the
+   binding constraint on a 945px window and pushed the fork's last line under
+   the fold. Compacting a little earlier costs nothing now that the hero is a
+   flex child: whatever it gives up, it takes straight back as slack. */
 /* Tall screens: the hero has the room, so it uses it. Without this the
    heading and photo stay at laptop scale in a 1100px-tall box and the extra
    height reads as padding rather than presence.
@@ -1830,7 +1835,7 @@
   .page-home .hero__grid { gap: 64px; }
 }
 
-@media (min-width: 861px) and (max-height: 940px) {
+@media (min-width: 861px) and (max-height: 999px) {
   .page-home .hero__copy { gap: 14px; }
   .page-home .hero__h1 { font-size: clamp(32px, 3.7vw, 50px); }
   .page-home .hero__sub { font-size: 16px; }
@@ -1857,6 +1862,32 @@
   .page-home .route { margin-top: -14px; }
   .page-home .route__urgent { margin-top: 10px; font-size: 13.5px; }
   .page-home .routebtn__txt strong { font-size: 15.5px; }
+}
+
+/* ---- The first screen: hero on top, fork on the bottom edge ----
+   The fork is the last thing on the opening screen and it should finish on
+   the bottom of the window, not somewhere above it with a band of white
+   underneath. Sizing the hero off an assumed fork height got close on the
+   windows I measured and missed on others, because the fork's height depends
+   on how its copy wraps.
+
+   So the two of them are one flex column the height of the window, and the
+   hero takes whatever is left after the fork has had what it needs. Nothing
+   is assumed about the fork. The one number here is the furniture above it,
+   the switch strip and the header, which is fixed by their own CSS. */
+:root { --chrome-h: 142px; }
+
+@media (min-width: 861px) {
+  .page-home .firstscreen {
+    min-height: calc(100dvh - var(--chrome-h));
+    display: flex;
+    flex-direction: column;
+  }
+  .page-home .firstscreen .hero { flex: 1 1 auto; display: flex; flex-direction: column; }
+  /* Beats the clamp on .page-home .hero__grid and the two short-window blocks
+     by specificity, whatever order they end up in. */
+  .page-home .firstscreen .hero__grid { flex: 1 1 auto; min-height: 0; }
+  .page-home .firstscreen .route { flex: 0 0 auto; }
 }
 
 /* ---- "What's brought you here?" — the fork under the hero ----
