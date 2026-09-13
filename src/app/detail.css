@@ -2631,6 +2631,59 @@
    =================================================================== */
 
 /* --- header: the photo full bleed --- */
+/* ---- Service hero: copy one side, the photograph the other ----
+   Every install shot we own is a portrait taken on a phone. Stretched across
+   a 2:1 header a portrait shows a horizontal slice of itself, which on the
+   hot water page was half a compressor and a lot of brick. Framed at the
+   shape it was taken, it reads as a job rather than a texture, and the copy
+   no longer needs a scrim heavy enough to fight the picture.
+
+   .dp-hero--shot stays as it is for the system detail pages, which have not
+   been through yet. */
+.page-detail .dp-hero--split {
+  background:
+    radial-gradient(ellipse 820px 460px at 10% 0%, rgba(243,103,34,0.11) 0%, transparent 62%),
+    radial-gradient(ellipse 640px 380px at 92% 100%, rgba(0,176,237,0.10) 0%, transparent 58%),
+    linear-gradient(180deg, #1a2c68 0%, #12224e 62%, #0e1c45 100%);
+  padding: 52px 0 56px;
+  overflow: hidden;
+}
+.page-detail .dp-hero--split .dp-crumbs { margin-bottom: 18px; }
+.page-detail .dp-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 56px;
+  align-items: center;
+}
+.page-detail .dp-hero--split .dp-hero__copy { max-width: 620px; }
+/* The photograph is taller than the copy beside it, so the figures underneath
+   need less air above them than they did when they followed the copy alone. */
+/* The 960px cap was set when the row followed a 600px column of copy under a
+   full-bleed photo. Under two columns it stopped short of the picture above it
+   and read as a rule that had come up short. */
+.page-detail .dp-hero--split .dp-hero__at { margin-top: 26px; padding-top: 18px; max-width: none; }
+.page-detail .dp-hero__frame {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  justify-self: end;
+  aspect-ratio: 4 / 5;
+  max-height: 470px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 30px 60px -22px rgba(0,0,0,0.6);
+  background: var(--navy-2);
+}
+@media (max-width: 980px) {
+  .page-detail .dp-hero__grid { grid-template-columns: 1fr; gap: 26px; }
+  .page-detail .dp-hero__frame { justify-self: start; max-width: 320px; }
+}
+@media (max-width: 640px) {
+  .page-detail .dp-hero--split { padding: 30px 0 38px; }
+  .page-detail .dp-hero__frame { max-width: 100%; aspect-ratio: 4 / 3; }
+}
+
 .page-detail .dp-hero--shot {
   background-size: cover;
   background-position: left center;
