@@ -268,7 +268,12 @@ export default function PricingPage() {
                       <h2>{c.label}</h2>
                       <p>{c.desc}</p>
                     </div>
-                    <span className="pricing-block__count">{list.length} models</span>
+                    <div className="pricing-block__headside">
+                      <span className="pricing-block__count">{list.length} models</span>
+                      <Link href="/quote" className="ds-btn ds-btn--ghost pricing-block__ask">
+                        Price my {c.label.toLowerCase()} &rarr;
+                      </Link>
+                    </div>
                   </div>
 
                   <div className="pricing-block__tablewrap">
@@ -298,7 +303,7 @@ export default function PricingPage() {
                             <td className="pricing-block__pricecell">
                               {r.price
                                 ? <strong>{r.price}</strong>
-                                : <Link href="/quote" className="pricing-block__poa">Message for quote →</Link>}
+                                : <span className="pricing-block__poa">On quote</span>}
                             </td>
                             <td className="pricing-block__linkcell">
                               <Link href={`/brands/${r.brandSlug}/${r.productSlug}`}>Details →</Link>
