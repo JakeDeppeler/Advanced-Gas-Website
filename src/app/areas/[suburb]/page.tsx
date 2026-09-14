@@ -12,6 +12,7 @@ import "../../detail.css";
 import { UpgradeNudge } from "@/components/UpgradeNudge";
 import { nudgeForSuburbText } from "@/lib/upgradeAngle";
 import { seoMeta } from "@/lib/seo";
+import { PageHero } from "@/components/PageHero";
 
 // Client-only Leaflet map — lazy loaded so the tiles + CSS never sit in
 // the suburb page's initial critical path. Placeholder keeps the layout
@@ -66,59 +67,45 @@ export default function SuburbPage({ params }: { params: { suburb: string } }) {
   return (
     <div className="page-detail page-suburb">
       {/* ------------------ Hero with scrimmed background photo ------------------ */}
-      <section className="dp-hero suburb-hero">
-        <div className="suburb-hero__pic" aria-hidden="true">
-          <img
-            src="/team-photo.webp"
-            alt={`Advanced Gas & Aircon crew on a job near ${sub.name}`}
-            width="1800"
-            height="1200"
-            fetchPriority="high"
-          />
-        </div>
-        <div className="suburb-hero__scrim" aria-hidden="true" />
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <Link href="/service-areas">Service Areas</Link>
-            <span className="sep">/</span>
-            <span className="cur">{sub.name}</span>
-          </nav>
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot" />
-            {sub.name} · VIC {sub.postcode} · {sub.council}
-          </div>
-          <h1>
-            Aircon, heat pump &amp; gas plumbing in <span className="accent">{sub.name}</span>.
-          </h1>
-          {/* Outer-ring suburbs get a different opening. We can't claim to
-              be around the corner in Ringwood and the map says so, so the
-              honest version runs instead, and it's the stronger pitch,
-              because a booked install genuinely doesn't care how far the
-              van came. See `outerRing` in lib/suburbs.ts. */}
-          {sub.outerRing ? (
-            <p className="dp-hero__sub">
+      <PageHero
+        variant="sell"
+        photo="/team-photo.webp"
+        photoAlt={`Advanced Gas & Aircon crew on a job near ${sub.name}`}
+        crumbs={[
+          { href: "/", label: "Home" },
+          { href: "/service-areas", label: "Service Areas" },
+          { label: sub.name },
+        ]}
+        eyebrow={`${sub.name} · VIC ${sub.postcode} · ${sub.council}`}
+        title={<>Aircon, heat pump &amp; gas plumbing in <span className="accent">{sub.name}</span>.</>}
+        sub={
+          /* Outer-ring suburbs get a different opening. We can't claim to be
+             around the corner in Ringwood and the map says so, so the honest
+             version runs instead, and it is the stronger pitch, because a
+             booked install genuinely doesn't care how far the van came.
+             See `outerRing` in lib/suburbs.ts. */
+          sub.outerRing ? (
+            <>
               We&rsquo;re based in Pakenham and we travel to {sub.name} ({sub.postcode}) for booked work,
               about {sub.driveMin ? `${sub.driveMin[0]}\u2013${sub.driveMin[1]} minutes` : "an hour"} each way.
               That makes us the right call for a planned install and the wrong call for a 2 am burst pipe,
               and we&rsquo;d rather say so than find out on the night. Written quotes after a site visit,
               VEU rebates applied at the quote, same 6-year workmanship warranty as everyone else gets.
-            </p>
+            </>
           ) : (
-            <p className="dp-hero__sub">
+            <>
               Licensed plumbing and refrigeration team working in {sub.name} ({sub.postcode}) since 2014.
               You&rsquo;ll usually find us {sub.landmark}. Written quotes, same-week installs, and VEU rebates handled end-to-end.
-            </p>
-          )}
-          <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my {sub.name} quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">
-              Or call {site.phone}
-            </a>
-          </div>
-        </div>
-      </section>
+            </>
+          )
+        }
+        ctas={
+          <>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get my {sub.name} quote &rarr;</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost ds-btn--lg">Or call {site.phone}</a>
+          </>
+        }
+      />
 
       {/* ------------------ Local knowledge strip ------------------ */}
       <section className="dp-local">

@@ -14,6 +14,14 @@ type Gtag = (...args: unknown[]) => void;
 
 /** The five UTM keys, kept from the first page of the visit. */
 const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+/**
+ * The click IDs the ad platforms add themselves. These matter more than the
+ * UTM tags, because they turn up whether or not somebody remembered to tag
+ * the ad: a Facebook ad that was never tagged still arrives with fbclid on
+ * the URL, and without this it was indistinguishable from somebody typing
+ * the address in.
+ */
+const CLICK_IDS = ["fbclid", "gclid", "gbraid", "wbraid", "msclkid", "ttclid"];
 const UTM_STORE = "ag_utm";
 
 /**
@@ -24,14 +32,30 @@ const UTM_STORE = "ag_utm";
 export function captureUtm(): void {
   if (typeof window === "undefined") return;
   try {
+    // Don't overwrite what the first page of the visit already recorded. They
+    // land on an ad's landing page and enquire from somewhere else, and the
+    // second page has no query string on it.
+    if (sessionStorage.getItem(UTM_STORE)) return;
+
     const q = new URLSearchParams(window.location.search);
     const found: Record<string, string> = {};
     for (const k of UTM_KEYS) {
       const v = q.get(k);
       if (v) found[k] = v.slice(0, 120);
     }
+    for (const k of CLICK_IDS) {
+      if (q.has(k)) found[k] = "1"; // that it exists is the whole signal
+    }
+    // The referrer goes in whether or not anything was tagged. Without it an
+    // untagged Facebook click and somebody typing the address in were the
+    // same record, which is how paid traffic disappears into "direct".
+    if (document.referrer) {
+      try {
+        const h = new URL(document.referrer).hostname.replace(/^www\./, "");
+        if (h && h !== window.location.hostname.replace(/^www\./, "")) found.referrer = h.slice(0, 120);
+      } catch { /* a referrer that isn't a URL is not worth a thrown error */ }
+    }
     if (Object.keys(found).length === 0) return;
-    if (!found.referrer && document.referrer) found.referrer = document.referrer.slice(0, 200);
     sessionStorage.setItem(UTM_STORE, JSON.stringify(found));
   } catch { /* private mode, or storage full, not worth breaking a page over */ }
 }

@@ -8,9 +8,9 @@ import "../detail.css";
 import "./heat-pumps.css";
 
 export const metadata: Metadata = {
-  title: "Heat Pump Guide, Reclaim, Thermann, iStore",
+  title: "Hot Water: Heat Pump or Gas, Pakenham",
   description:
-    "The honest guide to heat pump hot water in Pakenham: the brands we install, what an installed price looks like after the VEU rebate, and what to watch for.",
+    "Every way we make hot water: heat pump all-in-one, heat pump split and gas continuous flow. What each one suits, what the VEU rebate does to the price, and when gas is still the right answer.",
   alternates: { canonical: "/heat-pumps" },
 };
 
@@ -55,10 +55,11 @@ export default function HeatPumpsPage() {
         <div className="wrap hp-hero__grid">
           <div className="hp-hero__copy">
             <span className="hp-hero__eye"><span className="ds-dot" /> Hot water</span>
-            <h1>Hot water for about a quarter of the running cost.</h1>
+            <h1>Hot water: heat pump, or gas.</h1>
             <p className="hp-hero__sub">
-              A heat pump doesn&rsquo;t burn anything and it doesn&rsquo;t run an element. It moves warmth out of the
-              air into your tank, the way a fridge does in reverse. Same hot showers, a fraction of the power.
+              Three ways to make it and one of them suits your place better than the other two. A heat pump moves
+              warmth out of the air instead of burning anything, which is about a quarter of the running cost and
+              where the rebate goes. Gas continuous flow never runs out and needs no tank. Here is which is which.
             </p>
             <div className="hp-hero__ctas">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote &rarr;</Link>
@@ -89,7 +90,7 @@ export default function HeatPumpsPage() {
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Start here</span>
-            <h2>There are two kinds. Which one suits your place?</h2>
+            <h2>Three ways to make it. Which suits your place?</h2>
           </div>
           <div className="hp-pick__grid">
             <a className="hp-pick__card" href="#all-in-one">
@@ -128,6 +129,24 @@ export default function HeatPumpsPage() {
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
             </a>
 
+            <Link className="hp-pick__card" href="/services/gas-plumbing/continuous-flow">
+              <span className="hp-pick__photo">
+                <Image
+                  src="/thermann-contineues-flow-standing-back.webp"
+                  alt="A Thermann gas continuous flow unit we installed on an outside brick wall"
+                  fill
+                  sizes="(max-width: 900px) 50vw, 260px"
+                  style={{ objectFit: "cover", objectPosition: "center 45%" }}
+                />
+              </span>
+              <span className="hp-pick__body">
+                <strong>Gas continuous flow</strong>
+                <span className="hp-pick__d">No tank at all, on an outside wall. Never runs out, and nothing is kept hot waiting for you.</span>
+                <span className="hp-pick__meta">No rebate on gas</span>
+              </span>
+              <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
+            </Link>
+
             <Link className="hp-pick__card hp-pick__card--ask" href="/quote">
               <span className="hp-pick__body">
                 <strong>Not sure which one?</strong>
@@ -165,6 +184,38 @@ export default function HeatPumpsPage() {
               <span>What a properly installed unit should last</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* WHEN GAS IS STILL RIGHT */}
+      <section className="hp-gas">
+        <div className="wrap hp-gas__row">
+          <div className="hp-gas__copy">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The other answer</span>
+            <h2>When gas is still the right call.</h2>
+            <p>
+              Most of what we fit now is a heat pump, because the rebate and the running cost make the argument for us.
+              It is not every house. These are the ones where we would put gas in, and we will say so at the quote
+              rather than sell you the dearer thing.
+            </p>
+          </div>
+          <ul className="hp-gas__list">
+            <li>
+              <strong>Nowhere to put a tank</strong>
+              A townhouse with a metre of side access and no slab. Continuous flow hangs on the wall and takes the
+              space of a briefcase.
+            </li>
+            <li>
+              <strong>The hot water never stops</strong>
+              A full house of teenagers, four showers back to back and a bath after. A tank of any kind runs out
+              eventually; this does not.
+            </li>
+            <li>
+              <strong>The rebate does not reach you</strong>
+              No existing electric or gas storage tank to replace, or the address has claimed before. Without the VEU
+              behind it the gap between the two narrows a long way.
+            </li>
+          </ul>
         </div>
       </section>
 

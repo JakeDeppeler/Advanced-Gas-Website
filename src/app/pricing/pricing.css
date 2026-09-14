@@ -267,15 +267,17 @@
   font-weight: 800;
   letter-spacing: -0.01em;
 }
+/* Not a link any more. A row without a price should say so quietly and let the
+   one ask at the top of the block do the asking. */
 .pricing-block__poa {
   font-family: var(--f-display);
   font-size: 12.5px;
-  color: var(--orange);
+  color: var(--ink-3, #8992ab);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
 }
-.pricing-block__poa:hover { text-decoration: underline; text-underline-offset: 3px; }
+
 .pricing-block__linkcell {
   text-align: right;
 }
@@ -672,4 +674,11 @@
 @media (max-width: 640px) {
   .pricing-tabs { gap: 6px; margin-bottom: 20px; }
   .pricing-tabs__tab { font-size: 12.5px; padding: 8px 13px; }
+}
+
+/* One ask per block, beside the heading, instead of one on every row. */
+.pricing-block__headside { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+.pricing-block__ask { font-size: 14px; padding: 9px 16px; white-space: nowrap; }
+@media (max-width: 700px) {
+  .pricing-block__headside { width: 100%; justify-content: flex-start; }
 }

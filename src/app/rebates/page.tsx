@@ -6,6 +6,7 @@ import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
 import "../detail.css";
 import "./rebates.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title:
@@ -194,49 +195,23 @@ export default function RebatesPage() {
   return (
     <div className="page-detail page-rebates">
       {/* HERO — the shared navy detail-page header */}
-      <section className="dp-hero">
-        <div className="wrap">
-          <div className="dp-hero__copy">
-            <div className="ds-eyebrow ds-eyebrow--on-dark">
-              <span className="ds-dot" /> Victorian Energy Upgrades · Accredited installer
-            </div>
-            <h1>
-              The VEU rebate is real. <span className="accent">We do the paperwork.</span> You get the hot water.
-            </h1>
-            <p className="dp-hero__sub">
-              The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean,
-              efficient gear. We're a VEU-accredited installer in Pakenham, we apply the rebate at quote
-              stage so there's no chase, no claim form, no waiting.
-            </p>
-
-            <div className="dp-hero__ctas">
-              <a href="#calc" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate →</a>
-              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
-                Or talk to a human
-              </a>
-            </div>
-
-            <ul className="dp-hero__at">
-              <li>
-                <strong>up to $2,600</strong>
-                <span>heat pump hot water</span>
-              </li>
-              <li>
-                <strong>up to $5,000</strong>
-                <span>split &amp; ducted aircon</span>
-              </li>
-              <li>
-                <strong>~73%</strong>
-                <span>cut to running costs</span>
-              </li>
-              <li>
-                <strong>$0 chase</strong>
-                <span>we apply it at the quote</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Victorian Energy Upgrades · Accredited installer"
+        title={<>The VEU rebate is real. <span className="accent">We do the paperwork.</span> You get the hot water.</>}
+        sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}
+        ctas={
+          <>
+            <a href="#calc" className="ds-btn ds-btn--orange ds-btn--lg">Check my rebate &rarr;</a>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">Or talk to a human</a>
+          </>
+        }
+        facts={[
+          { v: "up to $2,600", k: "heat pump hot water" },
+          { v: "up to $5,000", k: "split & ducted aircon" },
+          { v: "~73%", k: "cut to running costs" },
+          { v: "$0 chase", k: "we apply it at the quote" },
+        ]}
+      />
 
       {/* ELIGIBILITY + CALC */}
       <section className="rb-tool" id="calc">

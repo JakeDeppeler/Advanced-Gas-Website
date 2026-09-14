@@ -8,6 +8,7 @@ import { breadcrumbSchema } from "@/lib/schema";
 import "../detail.css";
 import "../brands/[brand]/brand.css";
 import "./pricing.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Price List, Every System, Fully Installed",
@@ -74,53 +75,12 @@ export default function PricingPage() {
 
   return (
     <div className="page-detail page-pricing">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <span className="cur">Pricing</span>
-          </nav>
-          <div className="dp-hero__eyebrow">
-            <span className="ds-dot" /> Fully-installed price list
-          </div>
-          <h1>
-            Every system we install · <span className="accent">real installed prices</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            Fully-installed prices for every model we install across Melbourne&rsquo;s south-east.
-            All prices include labour, standard install, disposal of the old unit, compliance
-            certificate, and the VEU rebate applied where the unit qualifies. No hidden
-            extras · the number below is the number on your quote, and the number on the
-            invoice.
-          </p>
-          <div className="dp-hero__ctas">
-            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a quote →</Link>
-            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
-              Or call {site.phone}
-            </a>
-          </div>
-
-          <ul className="dp-hero__at">
-            <li>
-              <strong>Installed price</strong>
-              <span>labour, disposal &amp; cert in the number</span>
-            </li>
-            <li>
-              <strong>VEU applied</strong>
-              <span>at the quote, not chased back</span>
-            </li>
-            <li>
-              <strong>Written quote</strong>
-              <span>back within 12 business hours, and it only moves if the job does</span>
-            </li>
-            <li>
-              <strong>6-yr warranty</strong>
-              <span>on our workmanship, every job</span>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <PageHero
+        crumbs={[{ href: "/", label: "Home" }, { label: "Pricing" }]}
+        eyebrow="Fully-installed price list"
+        title={<>Every system we install · <span className="accent">real installed prices</span>.</>}
+        sub={<>Fully-installed prices for every model we install across Melbourne&rsquo;s south-east. The VEU rebate is already off where it applies, and what a price does and does not cover is spelled out under each table.</>}
+      />
 
       {/* ================= What every price includes =================
           Frame what the number means before the visitor sees a single
@@ -268,7 +228,12 @@ export default function PricingPage() {
                       <h2>{c.label}</h2>
                       <p>{c.desc}</p>
                     </div>
-                    <span className="pricing-block__count">{list.length} models</span>
+                    <div className="pricing-block__headside">
+                      <span className="pricing-block__count">{list.length} models</span>
+                      <Link href="/quote" className="ds-btn ds-btn--ghost pricing-block__ask">
+                        Price my {c.label.toLowerCase()} &rarr;
+                      </Link>
+                    </div>
                   </div>
 
                   <div className="pricing-block__tablewrap">
@@ -298,7 +263,7 @@ export default function PricingPage() {
                             <td className="pricing-block__pricecell">
                               {r.price
                                 ? <strong>{r.price}</strong>
-                                : <Link href="/quote" className="pricing-block__poa">Message for quote →</Link>}
+                                : <span className="pricing-block__poa">On quote</span>}
                             </td>
                             <td className="pricing-block__linkcell">
                               <Link href={`/brands/${r.brandSlug}/${r.productSlug}`}>Details →</Link>

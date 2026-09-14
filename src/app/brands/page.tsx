@@ -6,6 +6,7 @@ import { SafeImg } from "@/components/SafeImg";
 import "../detail.css";
 import "./[brand]/brand.css";
 import "./brands-hub.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Brands We Install, and Why We Install Them",
@@ -116,34 +117,12 @@ export default function BrandsIndex() {
 
   return (
     <div className="page-detail page-brand page-brand-hub">
-      <section className="dp-hero brands-hub-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <span className="cur">Brands</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Brands we install</div>
-          <h1>
-            {brands.length} brands, <span className="accent">{totalModels} models</span> · every one we install, honestly reviewed.
-          </h1>
-          <p className="dp-hero__sub">
-            We install what works, not what we&rsquo;re paid to install. Every brand below is one
-            we&rsquo;ve put into enough Melbourne homes to have a real opinion on. Tap a brand
-            for the full range and our take on each individual model.
-          </p>
-          <div className="brands-hub-hero__jump" aria-label="Jump to category">
-            {BRAND_GROUPS.map((g) => (
-              <a key={g.slug} href={`#${g.slug}`} className="brands-hub-hero__jumpchip">
-                {g.label}
-                <span className="brands-hub-hero__jumpcount">
-                  {g.brandSlugs.reduce((sum, sl) => sum + (brands.find((b) => b.slug === sl)?.products.length ?? 0), 0)}
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PageHero
+        crumbs={[{ href: "/", label: "Home" }, { label: "Brands" }]}
+        eyebrow="Brands we install"
+        title={<>{brands.length} brands, <span className="accent">{totalModels} models</span> · every one we install.</>}
+        sub={<>We install what works, not what we&rsquo;re paid to install. Every brand below is one we&rsquo;ve put into enough Melbourne homes to have a real opinion on. Tap a brand for the full range and our take on each individual model.</>}
+      />
 
       {BRAND_GROUPS.map((group) => {
         const groupBrands = group.brandSlugs

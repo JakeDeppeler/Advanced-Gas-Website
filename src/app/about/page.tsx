@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./about.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "About, Family-Owned Pakenham HVAC Specialists",
@@ -41,13 +42,11 @@ const clients = [
 export default function AboutPage() {
   return (
     <div className="page-about">
-      <section className="ab-hero">
-        <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Family owned · Pakenham · Victoria</span>
-          <h1>HVAC, gas &amp; mechanical services, <em>one licensed roof.</em></h1>
-          <p>Advanced Gas &amp; Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne&rsquo;s South-East and West Gippsland. Design, installation and maintenance across residential, commercial and industrial Victoria.</p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Family owned · Pakenham · Victoria"
+        title={<>HVAC, gas &amp; mechanical services, <em>one licensed roof.</em></>}
+        sub={<>Advanced Gas &amp; Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne&rsquo;s south-east and Gippsland with directly employed crews.</>}
+      />
 
       <section className="ab-frame">
         <div className="wrap">

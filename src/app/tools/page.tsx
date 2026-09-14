@@ -4,6 +4,7 @@ import { site } from "@/lib/site";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import "../detail.css";
 import "./tools.css";
+import { PageHero } from "@/components/PageHero";
 
 /**
  * /tools hub — free calculators + reference material that pull organic
@@ -172,24 +173,12 @@ const TOOLS: {
 export default function ToolsHubPage() {
   return (
     <div className="page-detail page-tools">
-      <section className="dp-hero">
-        <div className="wrap">
-          <nav className="dp-crumbs" aria-label="Breadcrumb">
-            <Link href="/">Home</Link>
-            <span className="sep">/</span>
-            <span className="cur">Tools</span>
-          </nav>
-          <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tools</div>
-          <h1>
-            Aircon &amp; heat pump <span className="accent">tools you can use right now</span>.
-          </h1>
-          <p className="dp-hero__sub">
-            Three free calculators and reference tools we use ourselves on quote day. Work out
-            what size aircon fits your room, what it&rsquo;ll cost to run, or what that flashing
-            fault code on your existing unit actually means.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        crumbs={[{ href: "/", label: "Home" }, { label: "Tools" }]}
+        eyebrow="Free tools"
+        title={<>Aircon &amp; heat pump <span className="accent">tools you can use right now</span>.</>}
+        sub={<>Three free calculators and reference tools we use ourselves on quote day. Work out what size aircon fits your room, what it&rsquo;ll cost to run, or what that flashing fault code on your existing unit actually means.</>}
+      />
 
       <section className="tools-grid-sec">
         <div className="wrap">

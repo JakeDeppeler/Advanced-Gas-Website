@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { site } from "@/lib/site";
 import { ContactForm } from "@/components/ContactForm";
 import "./contact.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Contact, Free quote in 12 hours",
@@ -12,13 +13,11 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="page-contact">
-      <section className="ct-hero">
-        <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Contact us</span>
-          <h1>Tell us what you need. <em>We&apos;ll come back within 12 hours.</em></h1>
-          <p>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75 km. The person who quotes is the person who installs.</p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Contact us"
+        title={<>Tell us what you need. <em>We&rsquo;ll come back within 12 hours.</em></>}
+        sub={<>Free, no-obligation quote, VEU rebate already worked into the number. Pakenham &amp; within 75&nbsp;km. The person who quotes it is the person who installs it.</>}
+      />
 
       <section className="ct-grid-wrap" id="form">
         <div className="wrap ct-grid">

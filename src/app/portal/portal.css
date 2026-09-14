@@ -893,7 +893,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
    the row as a grey slab. The gradient sits under the whole strip now, so a
    short last row reads as empty space in the panel instead of a broken one,
    and the hairlines between cells are drawn inside each cell. */
-.pt-cap__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 0; background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); border: 1px solid var(--pt-line); border-radius: 16px; overflow: hidden; }
+.pt-cap__strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); border: 1px solid var(--pt-line); border-radius: 16px; overflow: hidden; }
 .pt-cap__stripcell { display: flex; flex-direction: column; gap: 4px; padding: 15px 18px; box-shadow: inset -1px 0 0 rgba(255,255,255,0.11), inset 0 -1px 0 rgba(255,255,255,0.11); }
 /* Labels are different lengths and wrap to different numbers of lines, so
    stacking from the top put every figure at its own height and the row read
@@ -1479,3 +1479,20 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-tgt__actual { appearance: none; border: 0; background: transparent; padding: 4px 0 0; font: inherit; font-size: 12px; font-weight: 700; color: var(--pt-accent); cursor: pointer; text-align: left; }
 .pt-tgt__actual:hover { text-decoration: underline; }
 .pt-tgt__warn { margin: 14px 0 0; font-size: 13px; line-height: 1.55; color: #a9701a; background: #fbf1de; border: 1px solid #f0e0c0; border-radius: 10px; padding: 10px 12px; }
+
+/* Eight numbers, two rows of four. Fixed at four rather than auto-fitting,
+   because the pairs read across: what an hour costs then what it is charged
+   at, one body then two, the year's ceiling then the year's break-even. */
+@media (max-width: 900px) { .pt-cap__strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .pt-cap__strip { grid-template-columns: 1fr; } }
+
+/* Where the year is up to. The bar is revenue banked; the marker is how much
+   of the calendar has gone, so being behind is visible rather than arithmetic. */
+.pt-tgt__track { margin-top: 20px; }
+.pt-tgt__trackbar { position: relative; height: 12px; border-radius: 999px; background: var(--pt-line); overflow: visible; }
+.pt-tgt__trackbar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--pt-sky), var(--pt-good)); }
+.pt-tgt__trackbar b { position: absolute; top: -5px; width: 2px; height: 22px; background: var(--pt-ink); border-radius: 2px; }
+.pt-tgt__track p { margin: 10px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--pt-ink-2); }
+.pt-tgt__track p strong { color: var(--pt-ink); }
+.pt-tgt__hint { font-style: normal; font-weight: 500; color: var(--pt-ink-3); text-transform: none; letter-spacing: 0; }
+.pt-lead__chan tbody th span:empty { display: none; }
