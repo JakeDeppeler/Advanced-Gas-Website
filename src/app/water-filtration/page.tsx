@@ -10,6 +10,7 @@ import { QuoteForm } from "@/components/QuoteForm";
 import { assetOrFallback, hasAsset, resolveAsset } from "@/lib/publicAsset";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import "./filtration.css";
+import { PageHero } from "@/components/PageHero";
 
 /** The header photo. Same shot the whole-home page leads with, because it
  *  is the one that shows what a tidy install looks like. */
@@ -104,48 +105,26 @@ export default function WaterFiltrationPage() {
 
       {/* HERO — the display shot full bleed, same as the category pages.
           Copy on a scrim, the figures along the bottom. */}
-      <section
-        className={`wf-hero${hasAsset(HERO_PHOTO) ? " wf-hero--shot" : ""}`}
-        style={
-          hasAsset(HERO_PHOTO)
-            ? {
-                backgroundImage:
-                  `linear-gradient(180deg, rgba(9,17,52,0.45) 0%, rgba(9,17,52,0.10) 38%, rgba(9,17,52,0.70) 100%), ` +
-                  `linear-gradient(100deg, rgba(9,17,52,0.95) 0%, rgba(9,17,52,0.90) 30%, rgba(9,17,52,0.34) 50%, rgba(9,17,52,0.06) 74%), ` +
-                  `url("${resolveAsset(HERO_PHOTO)}")`,
-              }
-            : undefined
+      <PageHero
+        variant="sell"
+        photo={HERO_PHOTO}
+        photoAlt="A Puretec whole-house filter wall we installed, cartridges and bypass"
+        eyebrow="Puretec &amp; BWT · installed by licensed plumbers"
+        title={<>Water filtration, <em>done at the right point</em> in the house.</>}
+        sub={<>Whole house on the incoming main is the one that changes the most for the most people. The other four solve narrower problems, and which one you want depends entirely on what you&rsquo;ve actually noticed.</>}
+        ctas={
+          <>
+            <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a filtration quote &rarr;</Link>
+            <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">Or call {site.phone}</a>
+          </>
         }
-      >
-        <div className="wrap">
-          <div className="wf-hero__copy">
-            <div className="ds-eyebrow ds-eyebrow--on-dark wf-eyebrow">
-              <span className="ds-dot" />
-              Puretec &amp; BWT · installed by licensed plumbers
-            </div>
-            <h1>
-              Water filtration, <em>done at the right point</em> in the house.
-            </h1>
-            <p className="wf-hero__sub">
-              Whole house on the incoming main is the one that changes the most for the most
-              people. The other four solve narrower problems, and which one you want depends
-              entirely on what you&rsquo;ve actually noticed.
-            </p>
-            <div className="pg-ctas">
-              <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a filtration quote →</Link>
-              <a href={`tel:${site.phoneE164}`} className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
-                Or talk it through
-              </a>
-            </div>
-          </div>
-          <ul className="wf-hero__at">
-            <li><strong>Puretec &amp; BWT</strong><span>Cartridges you can actually get</span></li>
-            <li><strong>Licensed plumbers</strong><span>Backflow protection done properly</span></li>
-            <li><strong>6-year workmanship</strong><span>Same warranty as everything else we fit</span></li>
-            <li><strong>Tank &amp; rainwater</strong><span>Filtration plus UV through the hills</span></li>
-          </ul>
-        </div>
-      </section>
+        facts={[
+          { v: "Puretec & BWT", k: "Cartridges you can actually get" },
+          { v: "Licensed plumbers", k: "Backflow protection done properly" },
+          { v: "6-year workmanship", k: "Same warranty as everything else we fit" },
+          { v: "Tank & rainwater", k: "Filtration plus UV through the hills" },
+        ]}
+      />
 
       {/* WHAT'S IN YOUR WATER — before we sell anything */}
       <section className="wf-water wf-band wf-band--sand">

@@ -112,11 +112,7 @@
   opacity: 0.6;
   border-style: dashed;
   cursor: default;
-}
-
-/* ============== SUBURB HERO WITH BACKGROUND PHOTO ============== */
-.page-suburb .suburb-hero { position: relative; overflow: hidden; }
-.suburb-hero__pic {
+}.suburb-hero__pic {
   position: absolute; inset: 0; z-index: 0;
   display: block;
 }
@@ -132,10 +128,7 @@
   background:
     linear-gradient(180deg, rgba(5,10,48,0.68) 0%, rgba(5,10,48,0.82) 100%),
     linear-gradient(90deg, rgba(5,10,48,0.6) 0%, rgba(5,10,48,0.2) 55%, rgba(5,10,48,0.05) 100%);
-}
-.page-suburb .suburb-hero > .wrap { position: relative; z-index: 2; }
-
-/* ============== SUBURB "WHY LOCAL" + PROBLEMS SECTION ============== */
+}/* ============== SUBURB "WHY LOCAL" + PROBLEMS SECTION ============== */
 .suburb-local {
   background: var(--paper);
   border-top: 1px solid var(--line);

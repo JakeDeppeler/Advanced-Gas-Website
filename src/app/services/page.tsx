@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./services-hub.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Services, Heat Pumps, Aircon, Gas & Hot Water",
@@ -179,23 +180,14 @@ const services: Service[] = [
 export default function ServicesHubPage() {
   return (
     <div className="page-services">
-      <section className="sv-hero">
-        <div className="wrap">
-          <div className="sv-hero__eyebrow">
-            <span className="ds-dot" />
-            Eight services · one trusted local crew
-          </div>
-          <h1>Everything gas, aircon &amp; hot water, installed, serviced, certified.</h1>
-          <p>One directly employed team for the whole job. Same people, same paperwork trail, same warranty whether you&apos;re swapping a hot water unit or fitting out a café from scratch.</p>
-          <div className="sv-tabs">
-            {services.map((s) => (
-              <a key={s.id} className="sv-tab" href={`#${s.id}`}>
-                <span>{s.num}</span> {s.eyebrow.split(" · ")[1] ?? s.eyebrow}
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Eight services · one trusted local crew"
+        title={<>Everything gas, aircon &amp; hot water, installed, serviced, certified.</>}
+        sub={<>One directly employed team for the whole job. Same people, same paperwork trail, same warranty whether you&rsquo;re swapping a heater or fitting out a site.</>}
+        chips={services.map((s) => (
+          <a key={s.id} href={`#${s.id}`}>{s.eyebrow.split(" · ")[1] ?? s.eyebrow}</a>
+        ))}
+      />
 
       {services.map((s) => (
         <section key={s.id} className="sv" id={s.id}>

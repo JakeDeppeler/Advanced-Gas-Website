@@ -3605,3 +3605,155 @@ html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-
 .hdr--comm .hdr__cta .ds-btn--orange:hover { background: var(--orange-2, #ff7a36); }
 
 .hdr--comm .hdr__burger { color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+
+
+/* ============================================================
+   PAGE HERO — the two openings this site has
+   ============================================================
+   See components/PageHero.tsx for why there are two rather than ten.
+   Everything below is shared by both; the sell variant adds a column and
+   a frame. One ground, one type scale, one set of spacings, so two pages
+   in a row read as the same company.
+   ============================================================ */
+
+.phero {
+  position: relative;
+  color: #fff;
+  background:
+    radial-gradient(ellipse 820px 460px at 10% 0%, rgba(243,103,34,0.11) 0%, transparent 62%),
+    radial-gradient(ellipse 640px 380px at 92% 100%, rgba(0,176,237,0.10) 0%, transparent 58%),
+    linear-gradient(180deg, #1a2c68 0%, #12224e 62%, #0e1c45 100%);
+  overflow: hidden;
+}
+.phero--index { padding: 52px 0 56px; }
+.phero--sell  { padding: 52px 0 56px; }
+
+.phero__crumbs {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.phero__crumbs a { color: rgba(255,255,255,0.72); text-decoration: none; }
+.phero__crumbs a:hover { color: var(--sky-2); }
+.phero__crumbs .sep { margin-right: 8px; color: rgba(255,255,255,0.34); }
+.phero__crumbs .cur { color: #fff; }
+
+.phero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 56px;
+  align-items: center;
+}
+/* ch on a flex container resolves against the body size, not the heading's, so
+   62ch here was about 500px and folded the h1 into five lines. The heading gets
+   the room on an index page, where nothing sits beside it; the paragraph keeps
+   its own measure. */
+.phero__copy { display: flex; flex-direction: column; gap: 18px; }
+.phero--index .phero__copy { max-width: 900px; }
+.phero--sell .phero__copy { max-width: 620px; }
+
+.phero__eye {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.82);
+}
+.phero__h1 {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(32px, 4.2vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: #fff;
+  text-wrap: balance;
+  text-shadow: 0 4px 32px rgba(5,10,48,0.3);
+}
+.phero__h1 .accent { color: var(--orange-2, #ff8a45); }
+.phero__h1 em { font-style: italic; color: var(--orange-2, #ff8a45); }
+.phero__sub {
+  font-size: clamp(15.5px, 1.3vw, 18.5px);
+  line-height: 1.58;
+  color: rgba(255,255,255,0.86);
+  margin: 0;
+  max-width: 62ch;
+}
+.phero__ctas { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 2px; }
+.phero__ctas .ds-btn--ghost,
+.phero__ctas .ds-btn--ghost-on-dark {
+  color: #fff;
+  border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.06);
+}
+.phero__ctas .ds-btn--ghost:hover,
+.phero__ctas .ds-btn--ghost-on-dark:hover { background: rgba(255,255,255,0.13); border-color: #fff; }
+
+/* The photograph, at the shape it was taken. Every install shot we own is a
+   portrait off a phone, which is why this is a frame and not a backdrop. */
+.phero__frame {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  justify-self: end;
+  aspect-ratio: 4 / 5;
+  max-height: 470px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 30px 60px -22px rgba(0,0,0,0.6);
+  background: var(--navy-2);
+}
+
+/* A row of jump links or filters, for pages that route. */
+.phero__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+.phero__chips a,
+.phero__chips span {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.phero__chips a:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.42); }
+.phero__chips .is-active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+.phero__facts {
+  list-style: none;
+  margin: 30px 0 0;
+  padding: 20px 0 0;
+  border-top: 1px solid rgba(255,255,255,0.16);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.phero__facts strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: clamp(17px, 1.7vw, 21px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.phero__facts span { display: block; font-size: 12.5px; line-height: 1.45; color: rgba(255,255,255,0.68); margin-top: 3px; }
+
+@media (max-width: 980px) {
+  .phero__grid { grid-template-columns: 1fr; gap: 26px; }
+  .phero__frame { justify-self: start; max-width: 320px; }
+  .phero__facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .phero--index, .phero--sell { padding: 30px 0 38px; }
+  .phero__frame { max-width: 100%; aspect-ratio: 4 / 3; }
+  .phero__facts { gap: 14px; margin-top: 24px; }
+}

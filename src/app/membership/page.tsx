@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./membership.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Membership, discounted servicing & priority response",
@@ -93,19 +94,12 @@ const faqs = [
 export default function MembershipPage() {
   return (
     <div className="page-membership">
-      <section className="mb-hero">
-        <div className="wrap">
-          <span className="ds-eyebrow ds-eyebrow--on-dark">
-            <span className="ds-dot ds-dot--orange" /> Membership
-          </span>
-          <h1>
-            Servicing done <em>before</em> it becomes a problem.
-          </h1>
-          <p>
-            Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay. Members get priority booking, discounted service rates and waived after-hours fees.
-          </p>
-        </div>
-      </section>
+      <PageHero
+        dot="orange"
+        eyebrow="Membership"
+        title={<>Servicing done <em>before</em> it becomes a problem.</>}
+        sub={<>Three tiers, one promise: your gear keeps working, your callouts get answered first, and the price you see is the price you pay.</>}
+      />
 
       <section className="mb-tiers">
         <div className="wrap">

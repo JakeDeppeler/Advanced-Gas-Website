@@ -1,10 +1,3 @@
-/* /brands hub — grouped category shelves with richer per-brand cards.
-   Layered on top of brand.css (which already styles individual brand
-   pages) so the visual language stays consistent across both routes. */
-
-.page-brand-hub .brands-hub-hero {
-  padding-bottom: 44px;
-}
 .brands-hub-hero__jump {
   display: flex;
   flex-wrap: wrap;

@@ -1,16 +1,6 @@
 /* Blog page, scoped to .page-blog */
 
-.page-blog { background: var(--bg); }
-
-.page-blog .bl-hero { background: var(--bg); padding: 60px 0 40px; border-bottom: 1px solid var(--line); }
-.page-blog .bl-hero h1 {
-  font-family: var(--f-display); font-weight: 900;
-  font-size: clamp(40px, 5vw, 70px); line-height: 1; letter-spacing: -0.025em;
-  margin: 20px 0 16px; color: var(--navy); text-wrap: balance; max-width: 880px;
-}
-.page-blog .bl-hero h1 em { font-style: italic; color: var(--orange); }
-.page-blog .bl-hero p { font-size: 18px; color: var(--ink-2); max-width: 620px; margin: 0 0 28px; }
-.page-blog .bl-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.page-blog { background: var(--bg); }.page-blog .bl-cats { display: flex; flex-wrap: wrap; gap: 6px; }
 .page-blog .bl-cat {
   display: inline-block; font-family: var(--f-mono); font-size: 12px;
   letter-spacing: 0.04em; padding: 7px 14px; border-radius: 999px;

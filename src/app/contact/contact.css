@@ -1,17 +1,6 @@
 /* Contact page, scoped to .page-contact */
 
-.page-contact { background: var(--bg); }
-
-.page-contact .ct-hero { background: var(--bg); padding: 60px 0 40px; }
-.page-contact .ct-hero h1 {
-  font-family: var(--f-display); font-weight: 900;
-  font-size: clamp(40px, 5vw, 70px); line-height: 1; letter-spacing: -0.025em;
-  margin: 20px 0 16px; color: var(--navy); text-wrap: balance; max-width: 880px;
-}
-.page-contact .ct-hero h1 em { font-style: italic; color: var(--orange); }
-.page-contact .ct-hero p { font-size: 18px; color: var(--ink-2); max-width: 620px; margin: 0; }
-
-.page-contact .ct-grid-wrap { padding: 32px 0 100px; background: var(--bg); }
+.page-contact { background: var(--bg); }.page-contact .ct-grid-wrap { padding: 32px 0 100px; background: var(--bg); }
 .page-contact .ct-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 32px; align-items: start; }
 
 .page-contact .ct-form {

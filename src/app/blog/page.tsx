@@ -5,6 +5,7 @@ import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { posts, AUTHORS, type BlogPost } from "@/lib/blog";
 import "./blog.css";
+import { PageHero } from "@/components/PageHero";
 
 export const metadata: Metadata = {
   title: "Guides, VEU Rebates, Heat Pumps & Aircon",
@@ -29,18 +30,14 @@ export default function BlogPage() {
 
   return (
     <div className="page-blog">
-      <section className="bl-hero">
-        <div className="wrap">
-          <span className="ds-eyebrow"><span className="ds-dot" /> Guides &amp; articles</span>
-          <h1>Plain-English answers, <em>written by the people on the tools.</em></h1>
-          <p>Real questions we get on jobs, written up properly. No fluff, no SEO slop, actual answers from people who&apos;ve fitted the unit on your neighbour&apos;s roof.</p>
-          <div className="bl-cats">
-            {cats.map((c, i) => (
-              <span key={c} className={`bl-cat${i === 0 ? " is-active" : ""}`}>{c}</span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Guides &amp; articles"
+        title={<>Plain-English answers, <em>written by the people on the tools.</em></>}
+        sub={<>Real questions we get on jobs, written up properly. No fluff, no SEO slop, actual answers from people who&rsquo;ve fitted the gear.</>}
+        chips={cats.map((c, k) => (
+          <span key={c} className={k === 0 ? "is-active" : undefined}>{c}</span>
+        ))}
+      />
 
       <section className="bl-feat">
         <div className="wrap">
