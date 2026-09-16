@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { WebLead } from "@/lib/portal/db";
 import { classifyLead, CHANNEL_ORDER, type Channel } from "@/lib/portal/leadSource";
+import { BANDS, type AreaRow, type Band } from "@/lib/portal/leadArea";
 
 const RANGES = [
   { d: 30, label: "30 days" },
@@ -23,7 +24,12 @@ function rank<T extends string>(rows: { k: T }[], top = 8): { k: T; n: number; s
     .slice(0, top);
 }
 
-export function LeadsBoard({ leads, days }: { leads: WebLead[]; days: number }) {
+export function LeadsBoard({ leads, days, area }: {
+  leads: WebLead[];
+  days: number;
+  /** Where they came from, worked out on the server. */
+  area: { rows: AreaRow[]; byBand: Record<Band, number>; total: number };
+}) {
   const quotes = leads.filter((l) => l.kind === "quote");
   const calls = leads.filter((l) => l.kind === "call");
 
@@ -92,6 +98,8 @@ export function LeadsBoard({ leads, days }: { leads: WebLead[]; days: number }) 
             <div className="pt-cap__stripcell"><span>Facebook ads</span><strong>{fbN}</strong><small>{fbAny - fbN > 0 ? `${fbAny - fbN} more from Facebook, untagged` : "by click ID or tag"}</small></div>
             <div className="pt-cap__stripcell"><span>Form vs phone</span><strong>{quotes.length}<em> / </em>{calls.length}</strong><small>written enquiry, then a tap</small></div>
             <div className="pt-cap__stripcell"><span>Source unknown</span><strong>{unknownN}</strong><small>{Math.round((unknownN / leads.length) * 100)}% arrived with nothing on them</small></div>
+            <div className="pt-cap__stripcell"><span>Over 45 min away</span><strong>{area.byBand.haul}</strong><small>{Math.round((area.byBand.haul / Math.max(1, area.total)) * 100)}% of the lot, before a tool comes out</small></div>
+            <div className="pt-cap__stripcell"><span>Half an hour or less</span><strong>{area.byBand.core}</strong><small>the patch, where a callout costs nothing</small></div>
           </div>
 
           <section className="pt-panel">
@@ -185,6 +193,57 @@ export function LeadsBoard({ leads, days }: { leads: WebLead[]; days: number }) 
                 {unknownN} of {leads.length} arrived with nothing on them at all: no tag, no click ID, no referring
                 site. Some of that is people typing the address in or coming back to a bookmark. Some of it is a
                 browser stripping the referrer. Tag the links in your ads and that number comes down.
+              </p>
+            )}
+          </section>
+
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">How far away they are</h2>
+            <p className="pt-panel__sub">
+              In drive time, not kilometres. A radius is a circle and Melbourne is not: thirty-six kilometres
+              south-east is half an hour down the highway, and thirty-six north-west is an hour in traffic. The site
+              advertises 75&nbsp;km, which reaches past the city, so this is the honest read of how far the van
+              actually goes.
+            </p>
+
+            <div className="pt-lead__bands">
+              {BANDS.map((b) => {
+                const n = area.byBand[b.key];
+                return (
+                  <div key={b.key} className={`pt-lead__band is-${b.key}`}>
+                    <strong>{n}</strong>
+                    <span>{b.label}</span>
+                    <small>{b.note}</small>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-tgt__tablewrap" style={{ marginTop: 22 }}>
+              <table className="pt-tgt__table pt-lead__chan">
+                <thead>
+                  <tr><th>Suburb</th><th>Drive</th><th>Distance</th><th>Enquiries</th><th>Form</th><th>Phone</th></tr>
+                </thead>
+                <tbody>
+                  {area.rows.slice(0, 14).map((r) => (
+                    <tr key={`${r.name}-${r.band}`} className={r.band === "haul" ? "is-key" : undefined}>
+                      <th scope="row">
+                        <strong>{r.name}</strong>
+                        <span>{r.postcode ?? ""}</span>
+                      </th>
+                      <td>{r.driveMax != null ? `${r.driveMax} min` : "—"}</td>
+                      <td>{r.km != null ? `${r.km} km` : "—"}</td>
+                      <td>{r.n}</td>
+                      <td>{r.quotes}</td>
+                      <td>{r.calls}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {area.rows.length > 14 && (
+              <p className="pt-tgt__note" style={{ marginTop: 12 }}>
+                Showing the fourteen busiest of {area.rows.length} places.
               </p>
             )}
           </section>

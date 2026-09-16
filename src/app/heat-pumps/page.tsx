@@ -89,11 +89,11 @@ export default function HeatPumpsPage() {
       <section className="hp-pick">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Start here</span>
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Hot water</span>
             <h2>Three ways to make it. Which suits your place?</h2>
           </div>
           <div className="hp-pick__grid">
-            <a className="hp-pick__card" href="#all-in-one">
+            <Link className="hp-pick__card" href="/services/heat-pump-installation/all-in-one">
               <span className="hp-pick__photo">
                 <Image
                   src="/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp"
@@ -109,9 +109,9 @@ export default function HeatPumpsPage() {
                 <span className="hp-pick__meta">From $2,610 installed</span>
               </span>
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
 
-            <a className="hp-pick__card" href="#split">
+            <Link className="hp-pick__card" href="/services/heat-pump-installation/split-heat-pump">
               <span className="hp-pick__photo">
                 <Image
                   src="/reclaim-split-back.webp"
@@ -127,7 +127,7 @@ export default function HeatPumpsPage() {
                 <span className="hp-pick__meta">From $5,340 installed</span>
               </span>
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
 
             <Link className="hp-pick__card" href="/services/gas-plumbing/continuous-flow">
               <span className="hp-pick__photo">

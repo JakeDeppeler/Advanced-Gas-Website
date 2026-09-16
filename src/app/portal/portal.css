@@ -1496,3 +1496,18 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-tgt__track p strong { color: var(--pt-ink); }
 .pt-tgt__hint { font-style: normal; font-weight: 500; color: var(--pt-ink-3); text-transform: none; letter-spacing: 0; }
 .pt-lead__chan tbody th span:empty { display: none; }
+
+/* How far away an enquiry is, in drive time. Four bands, coloured by what each
+   one costs to attend rather than by how many there are. */
+.pt-lead__bands { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.pt-lead__band { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--pt-line); background: var(--pt-surface); }
+.pt-lead__band strong { display: block; font-family: var(--f-display); font-size: 26px; font-weight: 800; line-height: 1.1; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-lead__band span { display: block; font-size: 13px; font-weight: 700; color: var(--pt-ink-2); margin-top: 3px; }
+.pt-lead__band small { display: block; font-size: 11.5px; line-height: 1.45; color: var(--pt-ink-3); margin-top: 5px; }
+.pt-lead__band.is-core { background: #e6f1ea; border-color: #cfe6d9; }
+.pt-lead__band.is-core strong { color: #1f7a4d; }
+.pt-lead__band.is-haul { background: #fbf1de; border-color: #f0e0c0; }
+.pt-lead__band.is-haul strong { color: #a9701a; }
+.pt-lead__band.is-unknown { background: var(--pt-bg); }
+@media (max-width: 860px) { .pt-lead__bands { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .pt-lead__bands { grid-template-columns: 1fr; } }
