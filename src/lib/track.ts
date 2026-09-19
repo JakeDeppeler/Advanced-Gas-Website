@@ -55,7 +55,13 @@ export function captureUtm(): void {
         if (h && h !== window.location.hostname.replace(/^www\./, "")) found.referrer = h.slice(0, 120);
       } catch { /* a referrer that isn't a URL is not worth a thrown error */ }
     }
-    if (Object.keys(found).length === 0) return;
+    // The page the visit started on, always. It is the other half of the
+    // question "which pages earn": pagePath on a lead says where somebody
+    // filled the form in, which is nearly always /quote, and says nothing
+    // about the page that convinced them. A guide that never takes an enquiry
+    // itself but lands a third of the paid traffic is doing a job, and
+    // without this it looked like it was doing nothing.
+    found.landing = window.location.pathname.slice(0, 200);
     sessionStorage.setItem(UTM_STORE, JSON.stringify(found));
   } catch { /* private mode, or storage full, not worth breaking a page over */ }
 }

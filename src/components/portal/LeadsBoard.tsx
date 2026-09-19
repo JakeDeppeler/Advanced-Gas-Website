@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { WebLead } from "@/lib/portal/db";
 import { classifyLead, CHANNEL_ORDER, type Channel } from "@/lib/portal/leadSource";
 import { BANDS, type AreaRow, type Band } from "@/lib/portal/leadArea";
+import type { PageReport } from "@/lib/portal/leadPages";
 
 const RANGES = [
   { d: 30, label: "30 days" },
@@ -12,7 +13,6 @@ const RANGES = [
 ];
 
 const day = (iso: string) => iso.slice(0, 10);
-const pretty = (p: string | null) => (!p || p === "/" ? "Home" : p.replace(/^\//, "").replace(/-/g, " "));
 
 function rank<T extends string>(rows: { k: T }[], top = 8): { k: T; n: number; share: number }[] {
   const m = new Map<T, number>();
@@ -24,11 +24,31 @@ function rank<T extends string>(rows: { k: T }[], top = 8): { k: T; n: number; s
     .slice(0, top);
 }
 
-export function LeadsBoard({ leads, days, area }: {
+/**
+ * Melbourne time, not the reader's. Everything in the table is stored in UTC
+ * and the only clock that matters is the one in the van.
+ */
+const MEL = "Australia/Melbourne";
+const melParts = (iso: string) => {
+  const f = new Intl.DateTimeFormat("en-AU", { timeZone: MEL, weekday: "short", hour: "2-digit", hour12: false });
+  const parts = f.formatToParts(new Date(iso));
+  const wd = parts.find((x) => x.type === "weekday")?.value ?? "";
+  const hr = Number(parts.find((x) => x.type === "hour")?.value ?? "0");
+  return { wd, hr };
+};
+const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+/** The hours somebody is on the tools. Anything outside is a call nobody is
+ *  standing next to a phone for. */
+const OPEN_FROM = 7, OPEN_TO = 16;
+
+export function LeadsBoard({ leads, days, area, pages: pageReport }: {
   leads: WebLead[];
   days: number;
   /** Where they came from, worked out on the server. */
   area: { rows: AreaRow[]; byBand: Record<Band, number>; total: number };
+  /** Which pages earn and which sit there, worked out on the server: it reads
+   *  the sitemap, which pulls in every suburb and brand module. */
+  pages: PageReport;
 }) {
   const quotes = leads.filter((l) => l.kind === "quote");
   const calls = leads.filter((l) => l.kind === "call");
@@ -44,8 +64,21 @@ export function LeadsBoard({ leads, days, area }: {
   const peak = Math.max(1, ...series.map(([, n]) => n));
   const perWeek = leads.length / (days / 7);
 
-  const pages = rank(leads.map((l) => ({ k: pretty(l.pagePath) })));
   const services = rank(quotes.filter((l) => l.service).map((l) => ({ k: l.service as string })));
+
+  // When they come in, in Melbourne time. Day of the week says which days are
+  // worth being reachable on; the open/closed split says whether the after-
+  // hours line is carrying real work or just voicemail.
+  const clock = leads.map((l) => melParts(l.createdAt));
+  const byDow = DOW.map((d) => ({ d, n: clock.filter((c) => c.wd === d).length }));
+  const dowPeak = Math.max(1, ...byDow.map((x) => x.n));
+  const afterHours = clock.filter((c) => c.hr < OPEN_FROM || c.hr >= OPEN_TO).length;
+  const weekend = clock.filter((c) => c.wd === "Sat" || c.wd === "Sun").length;
+  const byHour = Array.from({ length: 24 }, (_, h) => ({ h, n: clock.filter((c) => c.hr === h).length }));
+  const hourPeak = Math.max(1, ...byHour.map((x) => x.n));
+
+  const earning = pageReport.rows.filter((r) => r.n > 0);
+  const topPage = earning[0];
 
   // Every lead sorted into one channel, and the quote-vs-call split kept for
   // each: a source that only ever produces phone taps is a different kind of
@@ -96,8 +129,10 @@ export function LeadsBoard({ leads, days, area }: {
             <div className="pt-cap__stripcell"><span>A week</span><strong>{perWeek.toFixed(1)}</strong><small>on average</small></div>
             <div className="pt-cap__stripcell"><span>From paid ads</span><strong>{paidN}</strong><small>{Math.round((paidN / leads.length) * 100)}% of the lot</small></div>
             <div className="pt-cap__stripcell"><span>Facebook ads</span><strong>{fbN}</strong><small>{fbAny - fbN > 0 ? `${fbAny - fbN} more from Facebook, untagged` : "by click ID or tag"}</small></div>
-            <div className="pt-cap__stripcell"><span>Form vs phone</span><strong>{quotes.length}<em> / </em>{calls.length}</strong><small>written enquiry, then a tap</small></div>
             <div className="pt-cap__stripcell"><span>Source unknown</span><strong>{unknownN}</strong><small>{Math.round((unknownN / leads.length) * 100)}% arrived with nothing on them</small></div>
+            <div className="pt-cap__stripcell"><span>Pages earning</span><strong>{pageReport.earningPages}</strong><small>of {pageReport.totalPages} pages on the site</small></div>
+            <div className="pt-cap__stripcell"><span>Busiest page</span><strong>{topPage ? topPage.n : 0}</strong><small>{topPage ? topPage.title : "nothing yet"}</small></div>
+            <div className="pt-cap__stripcell"><span>Outside 7–4</span><strong>{afterHours}</strong><small>{Math.round((afterHours / leads.length) * 100)}% came in when nobody is on the tools</small></div>
             <div className="pt-cap__stripcell"><span>Over 45 min away</span><strong>{area.byBand.haul}</strong><small>{Math.round((area.byBand.haul / Math.max(1, area.total)) * 100)}% of the lot, before a tool comes out</small></div>
             <div className="pt-cap__stripcell"><span>Half an hour or less</span><strong>{area.byBand.core}</strong><small>the patch, where a callout costs nothing</small></div>
           </div>
@@ -113,18 +148,169 @@ export function LeadsBoard({ leads, days, area }: {
           </section>
 
           <section className="pt-panel">
-            <h2 className="pt-panel__h">Which pages bring them</h2>
-            <p className="pt-panel__sub">The page the enquiry came from. This is the list that says which of seventy-odd pages earns anything.</p>
-            <div className="pt-pl__spend">
-              {pages.map((p) => (
-                <div key={p.k} className="pt-pl__spendrow">
-                  <span className="pt-pl__spendlabel">{p.k}</span>
-                  <span className="pt-pl__spendbar" aria-hidden="true"><i style={{ width: `${Math.max(2, p.share * 100)}%` }} /></span>
-                  <span className="pt-pl__spendamt">{p.n}</span>
-                  <span className="pt-pl__spendpct">{Math.round(p.share * 100)}%</span>
+            <h2 className="pt-panel__h">Which part of the site earns</h2>
+            <p className="pt-panel__sub">
+              Every page on the site, sorted into the ten things it could be, against the enquiries that came out of
+              it. <strong>Per page</strong> is the column that matters: it is the only one that lets a section of
+              seventy-three suburb pages be compared with a section of one, and it is the number that says whether a
+              whole programme of pages is pulling its weight.
+            </p>
+            <div className="pt-tgt__tablewrap">
+              <table className="pt-tgt__table pt-lead__chan">
+                <thead>
+                  <tr><th>Section</th><th>Pages</th><th>Earning</th><th>Enquiries</th><th>Per page</th><th>Form</th><th>Phone</th></tr>
+                </thead>
+                <tbody>
+                  {[...pageReport.sections].sort((a, b) => b.perPage - a.perPage || b.n - a.n).map((sec) => (
+                    <tr key={sec.key} className={sec.n === 0 && sec.pages > 3 ? "is-key" : undefined}>
+                      <th scope="row">
+                        <strong>{sec.label}</strong>
+                        <span>{sec.note}</span>
+                      </th>
+                      <td>{sec.pages}</td>
+                      <td>{sec.earning}</td>
+                      <td>{sec.n}</td>
+                      <td>{sec.perPage ? sec.perPage.toFixed(2) : "—"}</td>
+                      <td>{sec.quotes}</td>
+                      <td>{sec.calls}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">The pages that earn</h2>
+            <p className="pt-panel__sub">
+              The page the enquiry was made on. Expect <strong>Get a quote</strong> near the top and do not read much
+              into it: it is the page the form lives on, not the page that convinced anybody. The list under it —
+              where the visit started — is the one that says what did the convincing.
+            </p>
+            {earning.length === 0 ? (
+              <div className="pf-empty">No page has produced an enquiry in this window.</div>
+            ) : (
+              <div className="pt-tgt__tablewrap">
+                <table className="pt-tgt__table pt-lead__chan">
+                  <thead>
+                    <tr><th>Page</th><th>Enquiries</th><th>Share</th><th>Form</th><th>Phone</th></tr>
+                  </thead>
+                  <tbody>
+                    {earning.slice(0, 20).map((r) => (
+                      <tr key={r.path}>
+                        <th scope="row">
+                          <strong>{r.title}</strong>
+                          <span>{r.sectionLabel} · {r.path}</span>
+                        </th>
+                        <td>{r.n}</td>
+                        <td>{Math.round(r.share * 100)}%</td>
+                        <td>{r.quotes}</td>
+                        <td>{r.calls}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {earning.length > 20 && (
+              <p className="pt-tgt__note" style={{ marginTop: 12 }}>
+                Showing the twenty busiest of {earning.length} pages that produced something.
+              </p>
+            )}
+          </section>
+
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">Where the visit started</h2>
+            <p className="pt-panel__sub">
+              The first page of the visit, for the visits that ended in an enquiry. A guide that never takes an
+              enquiry itself but lands a third of the traffic that does is earning its keep, and until this was
+              recorded it looked like it was doing nothing at all.
+            </p>
+            {pageReport.landingsKnown === 0 ? (
+              <div className="pf-empty">
+                Not recorded yet. Landing pages started being captured on the deploy that added this panel, so this
+                fills in from the next enquiry onwards — the older leads in this window have no landing page on them
+                and never will.
+              </div>
+            ) : (
+              <>
+                <div className="pt-pl__spend" style={{ marginTop: 12 }}>
+                  {pageReport.landings.map((x) => (
+                    <div key={x.path} className="pt-pl__spendrow">
+                      <span className="pt-pl__spendlabel">{x.title}</span>
+                      <span className="pt-pl__spendbar" aria-hidden="true"><i style={{ width: `${Math.max(2, x.share * 100)}%` }} /></span>
+                      <span className="pt-pl__spendamt">{x.n}</span>
+                      <span className="pt-pl__spendpct">{Math.round(x.share * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+                {pageReport.landingsKnown < leads.length && (
+                  <p className="pt-tgt__note" style={{ marginTop: 12 }}>
+                    {pageReport.landingsKnown} of {leads.length} enquiries in this window have a landing page on them.
+                    The rest were recorded before this was captured.
+                  </p>
+                )}
+              </>
+            )}
+          </section>
+
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">The pages that earn nothing</h2>
+            <p className="pt-panel__sub">
+              {pageReport.silentCount} of {pageReport.totalPages} pages produced no enquiry in this window. Named
+              below are the ones where that is worth knowing: services, prices, hot water, commercial, water
+              filtration, the calculators. Suburb pages, brand pages, guides and fault codes are counted but not
+              listed — there are hundreds of them, and somebody looking up what E5 means is not shopping.
+            </p>
+            <p className="pt-tgt__warn">
+              Read this carefully. It counts enquiries, not visits, so a page with nothing against it is either a page
+              nobody read or a page everybody read and nobody acted on — and from here the two look the same. Take a
+              name off this list and go and look it up in Vercel Analytics before concluding anything. A page with
+              traffic and no enquiries needs rewriting. A page with no traffic needs linking to.
+            </p>
+            {pageReport.silent.length === 0 ? (
+              <div className="pf-empty">Every page in those sections produced at least one enquiry.</div>
+            ) : (
+              <div className="pt-lead__silent">
+                {pageReport.silent.map((x) => (
+                  <a key={x.path} href={x.path} target="_blank" rel="noreferrer" className="pt-lead__silentrow">
+                    <b>{x.title}</b>
+                    <span>{x.sectionLabel}</span>
+                    <em>{x.path}</em>
+                  </a>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="pt-panel">
+            <h2 className="pt-panel__h">When they come in</h2>
+            <p className="pt-panel__sub">
+              Melbourne time. The working day is 7am to 4pm, so everything outside those bars is somebody enquiring
+              when there is nobody standing next to a phone — {afterHours} of {leads.length} of them, and {weekend} on
+              a weekend.
+            </p>
+            <div className="pt-lead__dow">
+              {byDow.map((d) => (
+                <div key={d.d} className="pt-lead__dowcell">
+                  <span className="pt-lead__dowbar"><i style={{ height: `${(d.n / dowPeak) * 100}%` }} /></span>
+                  <strong>{d.n}</strong>
+                  <small>{d.d}</small>
                 </div>
               ))}
             </div>
+            <div className="pt-lead__hours">
+              {byHour.map((x) => (
+                <span
+                  key={x.h}
+                  className={`pt-lead__hour${x.h >= OPEN_FROM && x.h < OPEN_TO ? " is-open" : ""}`}
+                  title={`${String(x.h).padStart(2, "0")}:00 · ${x.n}`}
+                >
+                  <i style={{ height: `${(x.n / hourPeak) * 100}%` }} />
+                </span>
+              ))}
+            </div>
+            <div className="pt-lead__axis"><span>midnight</span><span>noon</span><span>midnight</span></div>
           </section>
 
           <div className="pt-fin__cards" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>

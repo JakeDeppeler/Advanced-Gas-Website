@@ -4,6 +4,7 @@ import { serviceContent } from "@/lib/serviceContent";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
+import { posts } from "@/lib/blog";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -124,6 +125,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ]);
 
+  // The blog posts themselves. Only /blog was in here, so fifteen guides — the
+  // heat-pump-versus-gas explainer among them — were live, linked from the
+  // index, and never submitted. Found by the section rollup on the portal's
+  // website-leads page, which counts pages per section against the sitemap and
+  // reported the guides as one page.
+  const postUrls: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${base}/blog/${post.slug}`,
+    changeFrequency: "monthly" as const,
+    priority: 0.55,
+  }));
+
   return [...staticUrls, ...serviceUrls, ...faultUrls,
-    ...systemUrls, ...suburbUrls, ...brandUrls];
+    ...systemUrls, ...suburbUrls, ...brandUrls, ...postUrls];
 }

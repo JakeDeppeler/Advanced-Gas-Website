@@ -9,7 +9,13 @@ import { SOPS } from "@/lib/portal/sops";
 import { ViewAsBanner } from "@/components/portal/ViewAs";
 import { HANDBOOK, LEARNING_TRACKS, INFO_SECTIONS, PORTAL_TOOLS } from "@/lib/portal/content";
 
-type Leaf = { href: string; label: string; external?: boolean };
+type Leaf = {
+  href: string; label: string; external?: boolean;
+  /** Other routes this item should light up for. Future planning owns the
+   *  quotes page now — that page is a tab inside it, not a sibling — and
+   *  without this the sidebar goes blank while you are standing on it. */
+  also?: string[];
+};
 type NavNode =
   | { kind: "link"; href: string; label: string; icon: string }
   | { kind: "group"; base: string; label: string; icon: string; children: Leaf[] };
@@ -73,9 +79,11 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       { href: "/portal/finance/pl", label: "Profit & loss" },
       { href: "/portal/finance/capacity", label: "Costs & capacity" },
       { href: "/portal/finance/leads", label: "Website leads" },
-      { href: "/portal/finance/quotes", label: "Quotes & win rate" },
       { href: "/portal/finance/targets", label: "Targets" },
-      { href: "/portal/finance/planning", label: "Future planning" },
+      // Quotes & win rate is not a sibling any more. It is a question about
+      // work that has not happened yet — what is out, what comes back — which
+      // is the same question Future planning asks, so it is a tab inside it.
+      { href: "/portal/finance/planning", label: "Future planning", also: ["/portal/finance/quotes"] },
     ],
   });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
@@ -118,7 +126,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
                       href={c.href}
                       target={c.external ? "_blank" : undefined}
                       rel={c.external ? "noopener" : undefined}
-                      className={`pt__child${!c.external && pathname === c.href ? " is-on" : ""}`}
+                      className={`pt__child${!c.external && (pathname === c.href || (c.also ?? []).includes(pathname)) ? " is-on" : ""}`}
                     >
                       {c.label}{c.external ? " ↗" : ""}
                     </Link>
