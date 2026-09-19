@@ -114,14 +114,6 @@ export function searchCorpus(): Hit[] {
 }
 
 /**
- * Match on whole words, scored by where the word turned up.
- *
- * Deliberately not fuzzy. On a site like this a near-miss is worse than no
- * match: somebody searching "ducted" should not be shown "Drouin" because the
- * letters line up, and a wrong answer confidently presented is how people stop
- * trusting a search box.
- */
-/**
  * The same thing, spelled the way people type it.
  *
  * Half the site says "air conditioning" and every customer says "aircon", so
@@ -149,6 +141,14 @@ const KIND_WEIGHT: Record<Hit["kind"], number> = {
   Brand: 8, Guide: 0, Suburb: 0,
 };
 
+/**
+ * Match on whole words, scored by where the word turned up.
+ *
+ * Deliberately not fuzzy. On a site like this a near-miss is worse than no
+ * match: somebody searching "ducted" should not be shown "Drouin" because the
+ * letters line up, and a wrong answer confidently presented is how people stop
+ * trusting a search box.
+ */
 export function searchSite(query: string, limit = 24): Hit[] {
   const q = normalise(query);
   if (q.length < 2) return [];
