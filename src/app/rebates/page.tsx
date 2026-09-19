@@ -196,6 +196,9 @@ export default function RebatesPage() {
     <div className="page-detail page-rebates">
       {/* HERO — the shared navy detail-page header */}
       <PageHero
+        variant="sell"
+        photo="/reclaim-split-back.webp"
+        photoAlt="A Reclaim split heat pump we installed under the VEU rebate, tank and compressor against a brick wall"
         eyebrow="Victorian Energy Upgrades · Accredited installer"
         title={<>The VEU rebate is real. <span className="accent">We do the paperwork.</span> You get the hot water.</>}
         sub={<>The Victorian Government pays you to swap old gas, electric or inefficient cooling for clean, efficient gear. We&rsquo;re a VEU-accredited installer in Pakenham, and we apply the rebate at quote stage so there&rsquo;s no chase, no claim form, no waiting.</>}

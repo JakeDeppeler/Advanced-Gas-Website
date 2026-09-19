@@ -312,6 +312,8 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "6-year", k: "Workmanship, on top of the manufacturer's" },
       { v: "Heat-load first", k: "Room by room, before we quote a size" },
     ],
+    heroPhoto: "/ducted-condenser.webp",
+    heroPhotoAlt: "A Kaden ducted condenser we installed on a stand against a brick wall",
     h1: "Air conditioning, installed properly",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
@@ -1090,7 +1092,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { t: "Licensed plumbing + tempering valve", d: "Full drainage rework, tempering valve to AS/NZS 3500, isolation valves + electrical connection on a dedicated circuit, done by our licensed plumber, not a sub-contractor." , line: "A plumbing job, done by plumbers", icon: "shield" },
       { t: "Old tank taken away same visit", d: "Gas storage, electric storage or old heat pump, off the pad, out the gate and to an ARC-approved recycler on install day. No waiting for hard rubbish." , line: "Disconnected, removed and gone", icon: "truck" },
     ],
-    brands: ["Reclaim Energy", "iStore", "Thermann", "Sanden", "Rheem AmbiHeat"],
+    brands: ["Reclaim Energy", "iStore", "Thermann", "Rheem AmbiHeat"],
     /**
      * Empty on purpose. Every heat pump price is a per-system row in
      * lib/systemDetail.ts, and the cards in "Choose your system" render
@@ -1479,7 +1481,7 @@ export const serviceContent: Record<string, ServiceContent> = {
       { v: "Every brand", k: "Including the ones we don't install" },
       { v: "12 months", k: "On any part we supply" },
     ],
-    h1: "Aircon service, repair & tune-up",
+    h1: "Aircon service, repair and breakdowns",
     intro:
       "Keep your aircon running efficiently, and your manufacturer warranty valid, with annual servicing from ARCtick-licensed refrigeration technicians. We service every major brand across every postcode within 75 km of Pakenham, splits, multi-head and ducted, with same-day breakdown attendance and written quotes before any parts are ordered. The service record we file lodges direct with the manufacturer so your warranty stays intact.",
     whyThese: {

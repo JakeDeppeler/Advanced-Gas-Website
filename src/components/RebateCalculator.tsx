@@ -14,7 +14,7 @@ import { site } from "@/lib/site";
  *   − VEEC + STC + VIC Solar (if eligible) + Aus-Made (if brand eligible)
  *   = customer final price inc GST
  *
- * Australian Made $400 rebate applies to Reclaim, Thermann and Dux.
+ * Australian Made $400 rebate applies to Reclaim and Thermann, both built by Dux at Moss Vale.
  * VIC Solar Homes $1,000 rebate has eligibility criteria (owner-occupier,
  * combined household income < $150k, property value < $3M, no prior HW /
  * battery Solar Homes rebate at the address, existing HW system 3+ yrs
@@ -97,16 +97,6 @@ const HP_BRANDS: Brand[] = [
       { id: "istore-275", name: "iStore 275 L", desc: "3–5 person homes", rrp: 2800, install: "split" },
     ],
   },
-  {
-    id: "dux",
-    t: "Dux",
-    s: "Australian made",
-    ausMade: true,
-    products: [
-      { id: "dux-250", name: "Dux Airoheat 250 L", desc: "3–4 person homes", rrp: 3200, install: "split" },
-      { id: "dux-315", name: "Dux Airoheat 315 L", desc: "4–5 person homes", rrp: 3600, install: "split" },
-    ],
-  },
   ];
 
 const AC_BRANDS = [
@@ -179,7 +169,7 @@ export function RebateCalculator() {
             onClick={() => pickCategory("hp")}
           >
             <span className="rb-calc__card-t">Heat pump hot water</span>
-            <span className="rb-calc__card-s">Reclaim · Thermann · Dux · iStore</span>
+            <span className="rb-calc__card-s">Reclaim · Thermann · iStore</span>
           </button>
           <button
             type="button"

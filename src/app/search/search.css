@@ -1,0 +1,58 @@
+/* Search results. A list, not cards: somebody here is scanning for one line
+   and wants the next page, so every row is the same shape and the path is
+   visible because it tells you where you are about to land. */
+.page-search .sr { padding: 44px 0 90px; background: var(--bg); }
+
+.page-search .sr__form {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  padding-bottom: 26px; border-bottom: 1px solid var(--line);
+}
+.page-search .sr__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.page-search .sr__form input {
+  flex: 1 1 320px;
+  font: inherit; font-size: 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+}
+.page-search .sr__form input:focus { outline: 2px solid var(--sky); outline-offset: 1px; border-color: var(--sky); }
+
+.page-search .sr__common { margin-top: 26px; }
+.page-search .sr__commonlbl {
+  display: block; font-family: var(--f-mono); font-size: 10.5px;
+  letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px;
+}
+.page-search .sr__chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.page-search .sr__chips a {
+  padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
+  background: #fff; color: var(--navy); font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.page-search .sr__chips a:hover { border-color: var(--orange); color: var(--orange); }
+
+.page-search .sr__none { margin-top: 34px; max-width: 60ch; }
+.page-search .sr__none h2 { font-family: var(--f-display); font-size: 22px; margin: 0 0 8px; color: var(--navy); }
+.page-search .sr__none p { margin: 0; color: var(--ink-2); line-height: 1.6; }
+
+.page-search .sr__group { margin-top: 38px; }
+.page-search .sr__groupname {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; font-weight: 700;
+}
+.page-search .sr__groupname span {
+  font-size: 10.5px; padding: 2px 7px; border-radius: 999px;
+  background: var(--bg-2); color: var(--ink-3); letter-spacing: 0;
+}
+.page-search .sr__list { list-style: none; margin: 0; padding: 0; }
+.page-search .sr__list li { border-top: 1px solid var(--line); }
+.page-search .sr__list a {
+  display: grid; gap: 3px; padding: 16px 4px; text-decoration: none; color: inherit;
+}
+.page-search .sr__list a:hover strong { color: var(--orange); }
+.page-search .sr__list strong { font-family: var(--f-display); font-size: 17.5px; color: var(--navy); }
+.page-search .sr__list span { font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+.page-search .sr__list em {
+  font-style: normal; font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3);
+}
