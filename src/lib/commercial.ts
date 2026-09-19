@@ -11,7 +11,6 @@
 
 import { site } from "./site";
 import type { DoorIconKey } from "@/components/DoorIcon";
-import type { SweepKind } from "@/components/RouteMotion";
 
 export type CommScope = {
   slug: string;
@@ -284,11 +283,11 @@ export const COMM_PROCESS: { n: string; h: string; p: string }[] = [
  * a form, because at this point the question is "do you do this", not "can I
  * have a price".
  */
-export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string; sweep: SweepKind }[] = [
-  { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy", sweep: "build" },
-  { href: "/commercial/services#plant-replacement", label: "System replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky", sweep: "crane" },
-  { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink", sweep: "schedule" },
-  { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange", sweep: "callout" },
+export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorIconKey; tone: string }[] = [
+  { href: "/commercial/services#fit-outs", label: "Fit-outs", sub: "To the builder's program", icon: "fitout", tone: "navy" },
+  { href: "/commercial/services#plant-replacement", label: "System replacement", sub: "On a site that can't stop", icon: "plant", tone: "sky" },
+  { href: "/commercial/services#maintenance", label: "Maintenance", sub: "Across every site you have", icon: "maintenance", tone: "ink" },
+  { href: "/commercial/services#breakdowns", label: "Breakdowns", sub: "Priority response, after hours", icon: "breakdown", tone: "orange" },
 ];
 /**
  * The standard, which is what the residential "why us" grid is for. Six on
