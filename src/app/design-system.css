@@ -3550,6 +3550,10 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .hdr__search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 @media (max-width: 1240px) { .hdr__search input { width: 84px; } }
 @media (max-width: 1080px) { .hdr__search { display: none; } }
+/* ...except inside the drawer, where it is the first thing and full width. */
+.hdr__drawer-search { margin-bottom: 14px; }
+.hdr__drawer-search .hdr__search { display: flex; width: 100%; }
+.hdr__drawer-search .hdr__search input { width: 100%; font-size: 16px; }
 
 /* The suggestion list under the header search. Anchored to the form, which is
    why the form is the positioned element. */

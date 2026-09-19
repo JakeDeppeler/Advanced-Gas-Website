@@ -779,6 +779,14 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
   return (
     <div className="hdr__drawer">
       <div className="wrap hdr__drawer-inner">
+        {/* The search box, which until now existed only above 1080px — that is,
+            on no phone at all. It is the one control that gets somebody to the
+            right page in one move without knowing how the menu is organised,
+            and it was hidden from the readers who need it most. First thing in
+            the drawer, full width. */}
+        <div className="hdr__drawer-search">
+          <HeaderSearch />
+        </div>
         {/* Same split as the desktop nav. A drawer full of split systems on the
             commercial side would undo the whole point of there being two. */}
         <div className="hdr__drawer-mode">
