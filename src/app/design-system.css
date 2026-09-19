@@ -3782,3 +3782,44 @@ html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-
 .hdr__search input::-webkit-search-cancel-button { -webkit-appearance: none; }
 @media (max-width: 1240px) { .hdr__search input { width: 84px; } }
 @media (max-width: 1080px) { .hdr__search { display: none; } }
+
+/* The suggestion list under the header search. Anchored to the form, which is
+   why the form is the positioned element. */
+.hdr__search { position: relative; }
+.hdr__sugg {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: -1px; right: -1px;
+  min-width: 300px;
+  z-index: 70;
+  background: #fff;
+  border: 1px solid var(--line, #e6e2d6);
+  border-radius: 14px;
+  box-shadow: 0 26px 50px -22px rgba(11,20,80,0.4);
+  padding: 6px;
+  overflow: hidden;
+}
+.hdr__suggrow {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  width: 100%;
+  appearance: none; border: 0; background: transparent;
+  font: inherit; text-align: left; cursor: pointer;
+  padding: 9px 11px;
+  border-radius: 9px;
+  color: var(--navy);
+}
+.hdr__suggrow.is-active { background: var(--bg-2, #f6f3ea); }
+.hdr__suggt { font-size: 14px; font-weight: 700; }
+.hdr__suggk {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--ink-3, #8992ab); flex: 0 0 auto;
+}
+.hdr__suggall {
+  display: block; width: 100%;
+  appearance: none; border: 0; border-top: 1px solid var(--line, #e6e2d6);
+  background: transparent; cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 700; color: var(--orange);
+  text-align: left; padding: 10px 11px 8px; margin-top: 4px;
+}
+.hdr__suggall:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hdr__suggnone { margin: 0; padding: 10px 11px; font-size: 13px; color: var(--ink-3, #8992ab); }

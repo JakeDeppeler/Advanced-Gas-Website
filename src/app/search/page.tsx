@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: true },
 };
 
-const ORDER: Hit["kind"][] = ["Service", "Hot water", "Page", "Tool", "Brand", "Filtration", "Guide", "Suburb"];
+const ORDER: Hit["kind"][] = ["Service", "System", "Hot water", "Page", "Tool", "Brand", "Filtration", "Guide", "Suburb"];
 
 /** The things people most often arrive looking for, when they have not searched yet. */
 const COMMON = [
