@@ -7,6 +7,7 @@ import { services, suburbs, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, serviceSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
+import { HotWaterPicker } from "@/components/HotWaterPicker";
 import { InstagramCTA } from "@/components/InstagramCTA";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProofStrip } from "@/components/ProofStrip";
@@ -301,6 +302,16 @@ export default async function ServicePage({ params }: { params: { slug: string }
           />
         </div>
       </section>
+
+      {/* The four ways we make hot water, on the page about making hot water.
+          Same component as the hot water hub, so the two pages cannot end up
+          offering different things. */}
+      {params.slug === "heat-pump-installation" && (
+        <HotWaterPicker
+          eyebrow="Every way we do it"
+          heading="Four ways to make hot water. Which suits your place?"
+        />
+      )}
 
       {/* CHOOSE YOUR SYSTEM — the filtration section, on the service
           pages. Replaces the "Systems we install" list of links: the

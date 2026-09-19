@@ -248,8 +248,8 @@ export default function ServicesHubPage() {
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>
-            <h2>One quote. One crew. One handshake.</h2>
-            <p>Free quote, VEU rebate already applied, usually back within 12 hours.</p>
+            <h2>One crew for the whole job, and one number on the quote.</h2>
+            <p>Free, no obligation, VEU rebate already off it, and usually back within 12 hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Start my free quote →</Link>
