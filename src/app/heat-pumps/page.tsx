@@ -18,7 +18,7 @@ const warningSigns = [
   {
     n: "01",
     t: "Brand you've never heard of on a marketplace listing",
-    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad, walk away. Reclaim, Thermann, iStore and Dux all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
+    d: "If the brand only exists on Amazon, eBay or an obscure Facebook Marketplace ad, walk away. Reclaim, Thermann and iStore all have real Australian offices, distributors and service networks. Random importer brands typically don't.",
   },
   {
     n: "02",
@@ -89,11 +89,11 @@ export default function HeatPumpsPage() {
       <section className="hp-pick">
         <div className="wrap">
           <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Start here</span>
-            <h2>Three ways to make it. Which suits your place?</h2>
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Hot water</span>
+            <h2>Four ways to make it. Which suits your place?</h2>
           </div>
           <div className="hp-pick__grid">
-            <a className="hp-pick__card" href="#all-in-one">
+            <Link className="hp-pick__card" href="/services/heat-pump-installation/all-in-one">
               <span className="hp-pick__photo">
                 <Image
                   src="/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp"
@@ -109,9 +109,9 @@ export default function HeatPumpsPage() {
                 <span className="hp-pick__meta">From $2,610 installed</span>
               </span>
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
 
-            <a className="hp-pick__card" href="#split">
+            <Link className="hp-pick__card" href="/services/heat-pump-installation/split-heat-pump">
               <span className="hp-pick__photo">
                 <Image
                   src="/reclaim-split-back.webp"
@@ -127,7 +127,7 @@ export default function HeatPumpsPage() {
                 <span className="hp-pick__meta">From $5,340 installed</span>
               </span>
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
-            </a>
+            </Link>
 
             <Link className="hp-pick__card" href="/services/gas-plumbing/continuous-flow">
               <span className="hp-pick__photo">
@@ -142,6 +142,24 @@ export default function HeatPumpsPage() {
               <span className="hp-pick__body">
                 <strong>Gas continuous flow</strong>
                 <span className="hp-pick__d">No tank at all, on an outside wall. Never runs out, and nothing is kept hot waiting for you.</span>
+                <span className="hp-pick__meta">No rebate on gas</span>
+              </span>
+              <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
+            </Link>
+
+            <Link className="hp-pick__card" href="/services/gas-plumbing">
+              <span className="hp-pick__photo">
+                <Image
+                  src="/Web_1200x900-Thermann-4-Star-Hot-Water-Unit-135ltr-Natural-Gas.jpg"
+                  alt="A Thermann gas storage hot water tank"
+                  fill
+                  sizes="(max-width: 900px) 50vw, 260px"
+                  style={{ objectFit: "contain" }}
+                />
+              </span>
+              <span className="hp-pick__body">
+                <strong>Gas storage</strong>
+                <span className="hp-pick__d">A tank kept hot on gas. The straight swap when a tank has died and nothing else about the house is changing.</span>
                 <span className="hp-pick__meta">No rebate on gas</span>
               </span>
               <span className="hp-pick__go" aria-hidden="true">&rarr;</span>
@@ -170,18 +188,20 @@ export default function HeatPumpsPage() {
             <h2>Why people change over.</h2>
             <p>A heat pump uses about 500&nbsp;W of power to deliver about 2&nbsp;kW of heating into the tank. A gas storage tank burns gas at 70&nbsp;&ndash;&nbsp;85% efficiency and loses the rest up the flue. That is the whole argument.</p>
           </div>
-          <div className="hp-why__grid">
-            <div className="hp-why__stat">
-              <strong>~73%</strong>
-              <span>Less to run than a gas storage tank</span>
-            </div>
-            <div className="hp-why__stat">
-              <strong>$2,605</strong>
-              <span>VEU rebate on an eligible unit, taken off at the quote</span>
-            </div>
-            <div className="hp-why__stat">
-              <strong>12&ndash;15 yrs</strong>
-              <span>What a properly installed unit should last</span>
+          <div className="hp-why__box">
+            <div className="hp-why__grid">
+              <div className="hp-why__stat">
+                <strong>~73%</strong>
+                <span>Less to run than a gas storage tank</span>
+              </div>
+              <div className="hp-why__stat">
+                <strong>$2,605</strong>
+                <span>VEU rebate on an eligible unit, taken off at the quote</span>
+              </div>
+              <div className="hp-why__stat">
+                <strong>12&ndash;15 yrs</strong>
+                <span>What a properly installed unit should last</span>
+              </div>
             </div>
           </div>
         </div>
@@ -299,7 +319,7 @@ export default function HeatPumpsPage() {
             <span className="ds-eyebrow ds-eyebrow--on-dark">
               <span className="ds-dot ds-dot--orange" /> Save your money
             </span>
-            <h2 className="ds-h--on-dark">Six red flags of the &ldquo;bargain&rdquo; heat pump.</h2>
+            <h2 className="ds-h--on-dark">Six things that should stop you buying.</h2>
             <p style={{ color: "rgba(255,255,255,0.78)" }}>
               Every year we get called out to fix (or replace) heat pumps from importer brands that sell out and vanish. Someone bought a &ldquo;$999 special&rdquo; on Facebook, it dies at year three, and there&rsquo;s nobody to warranty it because the ABN was cancelled 18 months ago. Here&rsquo;s what to look for before you hand anyone money.
             </p>
@@ -307,10 +327,18 @@ export default function HeatPumpsPage() {
 
           <div className="hp-warn__grid">
             {warningSigns.map((w) => (
-              <div key={w.n} className="hp-warn__card">
-                <span className="hp-warn__num">/{w.n}</span>
-                <h3>{w.t}</h3>
-                <p>{w.d}</p>
+              <div key={w.n} className="hp-warn__item">
+                <span className="hp-warn__mark" aria-hidden="true">
+                  <svg viewBox="0 0 20 18" width="18" height="16" role="presentation">
+                    <path d="M10 1.6 18.6 16.4H1.4Z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+                    <path d="M10 7v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <circle cx="10" cy="13.4" r="0.9" fill="currentColor" />
+                  </svg>
+                </span>
+                <div>
+                  <h3>{w.t}</h3>
+                  <p>{w.d}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -356,7 +384,7 @@ export default function HeatPumpsPage() {
               <strong>315 L</strong>
               <ul>
                 <li>Reclaim CO₂ split 315 L (glass or stainless)</li>
-                <li>Dux Airoheat 315 L</li>
+                <li>Thermann 315 L, where a split will not fit</li>
               </ul>
             </div>
             <div className="hp-sizing__card">
@@ -379,8 +407,8 @@ export default function HeatPumpsPage() {
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>
-            <h2>Ready for a straight-talking quote?</h2>
-            <p>Free, no obligation, VEU rebate applied at the quote. Usually back within 12 hours.</p>
+            <h2>Get it priced properly.</h2>
+            <p>A written quote after we have seen the job, with the VEU rebate already taken off the number. No obligation, and back with you inside 12 hours.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get my written quote →</Link>

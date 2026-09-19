@@ -131,23 +131,6 @@ const UNITS: Unit[] = [
     price: 2910,
     priceLabel: "$2,910",
   },
-  {
-    id: "dux-315",
-    brand: "Dux",
-    model: "Airoheat 315 L",
-    style: "AIO",
-    tank: "315 L",
-    people: "4 to 5",
-    origin: "Australian made",
-    ausMade: true,
-    warrantyLabel: "7 yr tank",
-    warrantyYears: 7,
-    refrigerant: "R134a",
-    wifi: "Add-on",
-    photo: "/thermann-heat-pump.webp",
-    price: 3600,
-    priceLabel: "from $3,600",
-  },
   ];
 
 const MAX = 3;

@@ -370,7 +370,7 @@ export const suburbs: Suburb[] = [
     name: "Warragul",
     postcode: "3820",
     distanceKm: 48,
-    driveMin: [35, 50],
+    driveMin: [30, 40],
     published: true,
     council: "Baw Baw Shire Council",
     landmark: "the West Gippsland Arts Centre and the Warragul CBD around Queen Street",

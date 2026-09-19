@@ -192,7 +192,7 @@ const SERVICES_MEGA: {
     {
       href: "/services/aircon-servicing-repairs/evap",
       label: "Evap cooler service",
-      sub: "Pre-summer clean, water tune-up",
+      sub: "Pre-summer clean, pads and pump",
       photo: "/evap-cooler-service.webp",
       photoAlt: "Roof-mounted evaporative cooler service",
     },
@@ -362,7 +362,7 @@ const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string; lead
   { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑", tool: true },
   { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡", tool: true },
   { href: "/tools/hot-water-savings",        label: "Hot water savings",     sub: "Gas / electric → heat pump payback",   icon: "♨", tool: true },
-  { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann / Sanden", icon: "◆", tool: true },
+  { href: "/tools/heat-pump-compare",        label: "Heat pump compare",     sub: "Reclaim / iStore / Thermann", icon: "◆", tool: true },
   { href: "/tools/heating-comparator",       label: "Gas vs reverse-cycle",  sub: "Winter running cost + payback",        icon: "❄", tool: true },
   { href: "/tools/system-comparison",        label: "System comparison",     sub: "Split · multi · ducted · gas · evap",  icon: "≡", tool: true },
   { href: "/tools/fault-codes",              label: "Fault code lookup",     sub: "Every major brand, searchable",        icon: "!", tool: true },
@@ -554,6 +554,18 @@ export function Header() {
         </nav>
 
         <div className="hdr__cta">
+          {/* A plain form, on purpose. It posts to /search, which matches on the
+              server: the suburb and brand data is a lot of prose and none of it
+              needs to reach the browser so somebody can type "ducted". It also
+              means the search works before any JavaScript has run. */}
+          <form className="hdr__search" action="/search" method="get" role="search">
+            <label className="hdr__searchlbl" htmlFor="hdr-q">Search</label>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m20 20-3.2-3.2" />
+            </svg>
+            <input id="hdr-q" name="q" type="search" placeholder="Search" autoComplete="off" />
+          </form>
           <a href={`tel:${site.phoneE164}`} className="hdr__phone" aria-label={`Call ${site.name}`}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" />

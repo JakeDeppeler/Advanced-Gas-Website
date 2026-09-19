@@ -29,7 +29,7 @@ export default function HeatPumpComparePage() {
             Heat pump <span className="accent">side-by-side</span>.
           </h1>
           <p className="dp-hero__sub">
-            Every heat pump hot water brand we service, Reclaim, iStore, Thermann, Sanden and Rheem, 
+            Every heat pump hot water brand we service, Reclaim, iStore and Thermann and Rheem, 
             with the specs a real buyer cares about: refrigerant, COP, capacity, warranty, price band,
             made-in and what it&rsquo;s best for. Pick 2-5 to compare side-by-side.
           </p>
@@ -59,7 +59,7 @@ export default function HeatPumpComparePage() {
               <p>
                 <strong>Tank warranty</strong> is the single best long-term signal, stainless (15 yr) beats
                 enamel/glass (10 yr) beats standard. <strong>Made-in</strong> matters for parts availability
-, Australian-made or Aus-designed brands (Reclaim, Sanden) have local parts pipelines,
+, Australian-made or Aus-designed brands (Reclaim) have local parts pipelines,
                 imported units can be slower.
               </p>
               <p>

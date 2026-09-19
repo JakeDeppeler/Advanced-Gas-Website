@@ -3757,3 +3757,28 @@ html[data-sweep-kind="callout"][data-sweep="out"] .sweep { animation: sweep-rtl-
   .phero__frame { max-width: 100%; aspect-ratio: 4 / 3; }
   .phero__facts { gap: 14px; margin-top: 24px; }
 }
+
+/* ---- Header search ----
+   A form, not a widget. It narrows on small desktops before it disappears on
+   mobile, where the menu already carries everything it would find. */
+.hdr__search {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 12px;
+  height: 42px;
+  border: 1px solid var(--line, #e6e2d6);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-3, #8992ab);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.hdr__search:focus-within { border-color: var(--sky); box-shadow: 0 0 0 3px rgba(0,176,237,0.16); color: var(--navy); }
+.hdr__searchlbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hdr__search input {
+  border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 14px; color: var(--navy);
+  width: 118px; padding: 0;
+}
+.hdr__search input::placeholder { color: var(--ink-3, #8992ab); }
+.hdr__search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+@media (max-width: 1240px) { .hdr__search input { width: 84px; } }
+@media (max-width: 1080px) { .hdr__search { display: none; } }
