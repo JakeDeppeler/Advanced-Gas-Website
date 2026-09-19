@@ -1,4 +1,5 @@
 import { services, suburbs } from "@/lib/site";
+import { serviceContent } from "@/lib/serviceContent";
 import { brands } from "@/lib/brands";
 import { posts } from "@/lib/blog";
 import { TIERS } from "@/lib/waterFiltration";
@@ -15,7 +16,7 @@ import { TIERS } from "@/lib/waterFiltration";
 export type Hit = {
   title: string;
   path: string;
-  kind: "Service" | "Hot water" | "Brand" | "Suburb" | "Guide" | "Tool" | "Page" | "Filtration";
+  kind: "Service" | "System" | "Hot water" | "Brand" | "Suburb" | "Guide" | "Tool" | "Page" | "Filtration";
   blurb: string;
   /** Extra words worth matching that are not in the title or blurb. */
   terms?: string;
@@ -59,6 +60,20 @@ export function searchCorpus(): Hit[] {
       blurb: s.blurb,
       terms: s.short,
     });
+
+    // The thing people actually search for is the system, not the service:
+    // "ducted", "multi head", "evap". Each one has its own page and none of
+    // them were in here, so "aircon" returned the parent and nothing under it.
+    for (const sys of serviceContent[s.slug]?.systems ?? []) {
+      if (!sys.label) continue;
+      out.push({
+        title: sys.label,
+        path: `/services/${s.slug}/${sys.id}`,
+        kind: "System",
+        blurb: sys.blurb ?? "",
+        terms: `${s.short} ${s.name} ${(sys.brands ?? []).join(" ")} ${sys.id.replace(/-/g, " ")}`,
+      });
+    }
   }
 
   for (const b of brands) {
@@ -106,19 +121,51 @@ export function searchCorpus(): Hit[] {
  * letters line up, and a wrong answer confidently presented is how people stop
  * trusting a search box.
  */
+/**
+ * The same thing, spelled the way people type it.
+ *
+ * Half the site says "air conditioning" and every customer says "aircon", so
+ * a search for one has to find the other. Both sides of the match are run
+ * through this, which is cheaper and more predictable than a synonym list
+ * consulted at query time.
+ */
+function normalise(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/air[\s-]?conditioning|air[\s-]?con\b|\ba\/?c\b/g, "aircon")
+    .replace(/reverse[\s-]?cycle/g, "reversecycle")
+    .replace(/multi[\s-]?head/g, "multihead")
+    .replace(/heat[\s-]?pump/g, "heatpump")
+    .replace(/hot[\s-]?water/g, "hotwater")
+    .replace(/evaporative|evap\b/g, "evap")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+const KIND_WEIGHT: Record<Hit["kind"], number> = {
+  Service: 30, System: 30, "Hot water": 26,
+  Page: 16, Tool: 16, Filtration: 14,
+  Brand: 8, Guide: 0, Suburb: 0,
+};
+
 export function searchSite(query: string, limit = 24): Hit[] {
-  const q = query.trim().toLowerCase();
+  const q = normalise(query);
   if (q.length < 2) return [];
   const words = q.split(/\s+/).filter((w) => w.length > 1);
   if (!words.length) return [];
 
   const scored = searchCorpus().map((h) => {
-    const title = h.title.toLowerCase();
-    const blurb = h.blurb.toLowerCase();
-    const terms = (h.terms ?? "").toLowerCase();
-    const path = h.path.toLowerCase();
+    const title = normalise(h.title);
+    const blurb = normalise(h.blurb);
+    const terms = normalise(h.terms ?? "");
+    const path = normalise(h.path);
 
-    let score = 0;
+    // What the page is counts for something. Searching "aircon" should put
+    // the split, the multi-head and the ducted page above an article that
+    // happens to have the word in its headline: somebody typing a service
+    // name is shopping, not reading.
+    let score = KIND_WEIGHT[h.kind] ?? 0;
     for (const w of words) {
       if (title === w) score += 120;
       else if (title.startsWith(w)) score += 70;

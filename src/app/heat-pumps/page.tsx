@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { site } from "@/lib/site";
+import { site, suburbs } from "@/lib/site";
+import { serviceContent } from "@/lib/serviceContent";
+import { BenefitTiles } from "@/components/BenefitTiles";
+import { QuoteForm } from "@/components/QuoteForm";
+import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { HeatPumpComparator } from "@/components/HeatPumpComparator";
 import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import "../detail.css";
@@ -47,7 +51,14 @@ const warningSigns = [
   },
 ];
 
+const TILE_TINTS = ["sky", "orange", "navy", "sand", "sky", "orange"] as const;
+
 export default function HeatPumpsPage() {
+  // The service page already holds what is in every job, how the job runs and
+  // the questions people ask. This page is the hot water hub above it, so it
+  // reads the same content rather than growing a second copy that drifts.
+  const hw = serviceContent["heat-pump-installation"];
+
   return (
     <div className="page-heatpumps page-detail">
       {/* HERO */}
@@ -207,6 +218,26 @@ export default function HeatPumpsPage() {
         </div>
       </section>
 
+      {/* WHAT IS IN EVERY JOB — the band the aircon installation page opens
+          its argument with, and the thing this page never said. */}
+      <section className="dp-benefits">
+        <div className="wrap">
+          <div className="ds-section-head">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Everyday benefits</span>
+            <h2>Every hot water job we do, done properly.</h2>
+          </div>
+          <BenefitTiles
+            benefits={hw.benefits.map((b, i) => ({
+              area: b.t,
+              icon: b.icon,
+              tint: TILE_TINTS[i % TILE_TINTS.length],
+              line: b.line,
+              detail: b.d,
+            }))}
+          />
+        </div>
+      </section>
+
       {/* WHEN GAS IS STILL RIGHT */}
       <section className="hp-gas">
         <div className="wrap hp-gas__row">
@@ -242,64 +273,6 @@ export default function HeatPumpsPage() {
       {/* HOW IT WORKS */}
       <HeatPumpDiagram />
 
-      {/* AIO vs SPLIT */}
-      <section className="hp-styles">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> The detail</span>
-            <h2>All-in-one or split, side by side.</h2>
-            <p>Your house layout, your budget, and how much noise you can live with at the tank end. That is what decides it.</p>
-          </div>
-          <div className="hp-styles__grid">
-            <article className="hp-style" id="all-in-one">
-              <div className="hp-style__head">
-                <span className="hp-style__eye">All-in-one (plug-in)</span>
-                <h3>Tank + compressor in one unit</h3>
-              </div>
-              <ul className="hp-style__pros">
-                <li>Smallest footprint, fits where the old tank was</li>
-                <li>Simplest install, plug into an existing power point</li>
-                <li>Lowest up-front cost ($2,610 fully installed)</li>
-                <li>Every AIO we install comes with Wi-Fi built in</li>
-              </ul>
-              <ul className="hp-style__cons">
-                <li>Compressor sits on top of the tank, slightly noisier close-up</li>
-                <li>Fewer size options (200 L or 300 L for most brands)</li>
-                <li>R290 refrigerant, works well but derates below 5&nbsp;°C</li>
-              </ul>
-              <div className="hp-style__foot">
-                <span>Best for</span>
-                <strong>1–4 person households where the current tank sits somewhere the family doesn&rsquo;t hang around at 3&nbsp;am.</strong>
-              </div>
-            </article>
-
-            <article className="hp-style hp-style--feature" id="split">
-              <span className="hp-style__badge">Premium</span>
-              <div className="hp-style__head">
-                <span className="hp-style__eye">Split system</span>
-                <h3>Compressor separated from the tank</h3>
-              </div>
-              <ul className="hp-style__pros">
-                <li>Compressor sits outside, the tank end is silent</li>
-                <li>CO₂ refrigerant runs hot even in Melbourne winters</li>
-                <li>Stainless steel tank option carries a 15-year warranty</li>
-                <li>Sizes from 250 L up to 400 L, Wi-Fi standard</li>
-                <li>Reclaim CO₂ split is the quietest heat pump we sell, 37 dB</li>
-              </ul>
-              <ul className="hp-style__cons">
-                <li>~$2,500 more expensive up front vs AIO</li>
-                <li>Two units to place, needs an outdoor spot for the compressor</li>
-                <li>Only Reclaim offers this style in the brands we install</li>
-              </ul>
-              <div className="hp-style__foot">
-                <span>Best for</span>
-                <strong>3+ person households, solar-paired homes, luxury builds and anyone who wants the quietest, longest-lived option.</strong>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
       {/* INTERACTIVE COMPARATOR */}
       <section className="hp-compare hp-compare--interactive">
         <div className="wrap">
@@ -311,6 +284,27 @@ export default function HeatPumpsPage() {
           <HeatPumpComparator />
         </div>
       </section>
+
+      {/* HOW THE JOB RUNS */}
+      {hw.steps && hw.steps.length > 0 && (
+        <section className="process">
+          <div className="wrap">
+            <div className="ds-section-head">
+              <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How the job runs</span>
+              <h2 className="ds-h--on-dark">A hot water changeover, step by step.</h2>
+            </div>
+            <ol className="steps">
+              {hw.steps.map((st, i) => (
+                <li key={st.title} className="step">
+                  <span className="step__num">{i + 1}</span>
+                  <h3>{st.title}</h3>
+                  <p>{st.detail}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
 
       {/* WARNING */}
       <section className="hp-warn">
@@ -402,6 +396,65 @@ export default function HeatPumpsPage() {
           </p>
         </div>
       </section>
+
+      {/* QUOTE FORM — on the page, the way the service pages carry it.
+          Somebody who has read this far should not have to go and find it. */}
+      <section className="dp-quote quotesec" id="quote">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange">
+                  <span className="ds-dot ds-dot--on-orange" /> Free quote
+                </span>
+                <h2>Quote for hot water.</h2>
+                <p className="quotesec__lede">
+                  60 seconds, no obligation, replied within 12 business hours. The VEU rebate is applied and GST is
+                  included, so the number you get is the number you pay.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">&#10003;</span> Same person quotes as installs</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> No obligation, and no sales call afterwards</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> No hot water right now? Call {site.phone} instead</li>
+                </ul>
+                <div className="quotesec__chips">
+                  {suburbs.slice(0, 8).map((sb) => (
+                    <Link key={sb.slug} href={`/areas/${sb.slug}`}>{sb.name}</Link>
+                  ))}
+                </div>
+              </div>
+              <QuoteForm presetService="heat-pump-installation" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="dp-faq faq">
+        <div className="wrap faq__grid">
+          <div className="faq__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Common questions</span>
+            <h2>Quick honest answers.</h2>
+            <p>
+              If your question isn&rsquo;t here,{" "}
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", textUnderlineOffset: 2 }}>
+                call {site.phone}
+              </a>
+              .
+            </p>
+          </div>
+          <div className="faq__right">
+            {hw.faqs.map((f, i) => (
+              <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <ReviewMarquee heading="Reviews from households across the south-east." />
 
       {/* BIG CTA */}
       <section className="bigcta">
