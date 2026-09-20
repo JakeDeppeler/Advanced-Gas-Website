@@ -273,7 +273,12 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-hb-card__chev { flex: 0 0 auto; color: var(--pt-ink-3); }
 
 /* back link on sub-pages */
-.pt-back { display: inline-flex; align-items: center; gap: 4px; color: var(--pt-ink-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 10px; transition: color 0.14s; }
+/* Block-level, not inline. As an inline-flex it shared a line with the
+   eyebrow that follows it, so every portal sub-page rendered
+   "< Finance" and "FINANCE · COSTS & CAPACITY" butted together with no
+   gap and their baselines 6px apart. width: fit-content keeps the hover
+   target on the words rather than the whole row. */
+.pt-back { display: flex; width: fit-content; align-items: center; gap: 4px; color: var(--pt-ink-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 10px; transition: color 0.14s; }
 .pt-back:hover { color: var(--pt-accent); }
 .pt-back svg { flex: 0 0 auto; }
 
