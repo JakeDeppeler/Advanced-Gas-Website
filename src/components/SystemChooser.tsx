@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 
@@ -102,7 +103,13 @@ export function SystemChooser({
               <article className={`wf-style${(c.current ?? i === 0) ? " is-lead" : ""}`} key={c.id}>
                 {c.photo && (
                   <div className={`wf-style__photo${c.photoScene ? " is-scene" : ""}`}>
-                    <img src={c.photo} alt={c.photoAlt} loading="lazy" width="600" height="450" />
+                    <Image
+                      src={encodeURI(c.photo)}
+                      alt={c.photoAlt}
+                      width={600}
+                      height={450}
+                      sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
+                    />
                   </div>
                 )}
                 <div className="wf-style__body">

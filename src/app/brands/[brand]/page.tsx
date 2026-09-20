@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { brands, findBrand, productPhoto } from "@/lib/brands";
@@ -435,12 +436,12 @@ export default async function BrandPage({ params }: { params: { brand: string } 
         <section className="brand-serv">
           <div className="wrap brand-serv__grid">
             <figure className="brand-serv__shot">
-              <img
-                src={brand.servicing.photo}
+              <Image
+                src={encodeURI(brand.servicing.photo)}
                 alt={brand.servicing.photoAlt}
-                loading="lazy"
-                width="900"
-                height="900"
+                width={900}
+                height={900}
+                sizes="(max-width: 980px) 100vw, 600px"
               />
             </figure>
             <div className="brand-serv__copy">
@@ -470,7 +471,13 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             <div className="brand-gallery__grid">
               {installs.map((g) => (
                 <figure key={g.src} className="brand-gallery__cell">
-                  <img src={g.src} alt={g.alt} loading="lazy" width="480" height="360" />
+                  <Image
+                    src={encodeURI(g.src)}
+                    alt={g.alt}
+                    fill
+                    sizes="(max-width: 700px) 50vw, 400px"
+                    style={{ objectFit: "contain" }}
+                  />
                   {g.caption && <figcaption>{g.caption}</figcaption>}
                 </figure>
               ))}

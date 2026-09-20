@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useRef, useState } from "react";
 
@@ -65,7 +66,13 @@ export function SystemStyles({
           <article className={`wf-style${sy.lead ? " is-lead" : ""}`} key={sy.name}>
             {sy.photo && (
               <div className="wf-style__photo">
-                <img src={sy.photo} alt={`${sy.brand} ${sy.name}`} loading="lazy" width="600" height="450" />
+                <Image
+                  src={encodeURI(sy.photo)}
+                  alt={`${sy.brand} ${sy.name}`}
+                  width={600}
+                  height={450}
+                  sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
+                />
               </div>
             )}
             <div className="wf-style__body">
@@ -120,7 +127,13 @@ export function SystemStyles({
                 {m.common && <span className="wf-model__tag">Most common here</span>}
                 {m.photo ? (
                   <div className="wf-model__shot">
-                    <img src={m.photo} alt={m.name} loading="lazy" width="400" height="300" />
+                    <Image
+                      src={encodeURI(m.photo)}
+                      alt={m.name}
+                      width={400}
+                      height={300}
+                      sizes="(max-width: 620px) 45vw, 220px"
+                    />
                   </div>
                 ) : (
                   <div className="wf-model__code" aria-hidden="true">{m.name.split(" ").pop()}</div>

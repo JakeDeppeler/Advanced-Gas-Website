@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
@@ -100,10 +101,14 @@ export default function CommercialPage() {
           </div>
 
           <div className="hero__photo" aria-hidden="true">
-            <picture>
-              <source media="(max-width: 760px)" srcSet="/commercial.webp" />
-              <img src="/commercial.webp" alt="" width={1200} height={1400} fetchPriority="high" decoding="async" />
-            </picture>
+            <Image
+              src="/commercial.webp"
+              alt=""
+              width={1200}
+              height={1400}
+              sizes="(max-width: 980px) 100vw, 46vw"
+              priority
+            />
           </div>
         </div>
       </section>
@@ -295,12 +300,12 @@ export default function CommercialPage() {
               </p>
             </div>
             <figure className="comm-std__photo">
-              <img
+              <Image
                 src="/team-photo.webp"
-                alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot"
-                width="900"
-                height="675"
-                loading="lazy"
+                alt="The Advanced Gas &amp; Aircon crew with the vans at the Pakenham depot"
+                fill
+                sizes="(max-width: 980px) 100vw, 520px"
+                style={{ objectFit: "cover" }}
               />
               <figcaption>Directly employed. All of them.</figcaption>
             </figure>
@@ -404,12 +409,12 @@ export default function CommercialPage() {
       <section className="bigcta bigcta--photo" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
-            <img
+            <Image
               src="/commercial-v3.webp"
               alt="Packaged rooftop plant being craned into position on a commercial site"
-              width="900"
-              height="675"
-              loading="lazy"
+              fill
+              sizes="(max-width: 900px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
             />
           </figure>
           <div className="bigcta__copy">

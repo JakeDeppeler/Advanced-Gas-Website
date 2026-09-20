@@ -200,7 +200,13 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <div className="svc-shots__grid">
           {content.installPhotos.shots.map((sh) => (
             <figure className="svc-shot" key={sh.src}>
-              <img src={sh.src} alt={sh.alt} loading="lazy" width="600" height="750" />
+              <Image
+                src={encodeURI(sh.src)}
+                alt={sh.alt}
+                width={600}
+                height={750}
+                sizes="(max-width: 620px) 50vw, (max-width: 900px) 45vw, 400px"
+              />
               {sh.caption && <figcaption>{sh.caption}</figcaption>}
             </figure>
           ))}
@@ -345,12 +351,12 @@ export default async function ServicePage({ params }: { params: { slug: string }
               </ul>
             </div>
             <figure className={`svc-look__shot${content.looks.photoScene ? " is-scene" : ""}`}>
-              <img
-                src={content.looks.photo}
+              <Image
+                src={encodeURI(content.looks.photo)}
                 alt={content.looks.photoAlt}
-                loading="lazy"
-                width="900"
-                height="900"
+                width={900}
+                height={900}
+                sizes="(max-width: 980px) 100vw, 600px"
               />
             </figure>
           </div>
@@ -382,12 +388,12 @@ export default async function ServicePage({ params }: { params: { slug: string }
         <section className="svc-serv">
           <div className="wrap svc-serv__grid">
             <figure className={`svc-serv__shot${content.servicing.photoScene ? " is-scene" : ""}`}>
-              <img
-                src={content.servicing.photo}
+              <Image
+                src={encodeURI(content.servicing.photo)}
                 alt={content.servicing.photoAlt}
-                loading="lazy"
-                width="900"
-                height="900"
+                width={900}
+                height={900}
+                sizes="(max-width: 980px) 100vw, 600px"
               />
             </figure>
             <div className="svc-serv__copy">
@@ -459,7 +465,13 @@ export default async function ServicePage({ params }: { params: { slug: string }
                     <article className="wf-style dp-price" key={p.tier}>
                       {shot ? (
                         <div className={`wf-style__photo${p.photoScene ? " is-scene" : ""}`}>
-                          <img src={shot} alt={p.tier} loading="lazy" width="600" height="450" />
+                          <Image
+                            src={encodeURI(shot)}
+                            alt={p.tier}
+                            width={600}
+                            height={450}
+                            sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
+                          />
                         </div>
                       ) : (
                         <div className="wf-style__photo dp-price__noshot" aria-hidden="true">
@@ -555,7 +567,14 @@ export default async function ServicePage({ params }: { params: { slug: string }
                 </ul>
               </div>
               <figure className="svc-why__photo">
-                <img src={content.whyFirst.photo.src} alt={content.whyFirst.photo.alt} width="800" height="1000" loading="eager" />
+                <Image
+                  src={encodeURI(content.whyFirst.photo.src)}
+                  alt={content.whyFirst.photo.alt}
+                  width={800}
+                  height={1000}
+                  sizes="(max-width: 980px) 100vw, 480px"
+                  priority
+                />
               </figure>
             </div>
 
