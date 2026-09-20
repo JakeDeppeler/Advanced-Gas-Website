@@ -118,7 +118,7 @@ export function QuotesBoard({ quotes, dbReady, revenueTarget, avgJob: avgJobSett
 
         <div className="pt-qt__list">
           {quotes.length === 0 ? (
-            <div className="pf-empty">No quotes logged yet.</div>
+            <div className="pf-empty">{dbReady ? "No quotes logged yet." : "Quotes can’t be read right now — this is empty, the quote book isn’t."}</div>
           ) : quotes.map((q) => (
             <div key={q.id} className="pt-qt__row">
               <span className="pt-qt__amt">{money(q.amount)}</span>

@@ -69,9 +69,12 @@ const openLabel = (t: string) => {
   return m ? `${hr}:${String(m).padStart(2, "0")}${suffix}` : `${hr}${suffix}`;
 };
 
-export function LeadsBoard({ leads, days, area, pages: pageReport }: {
+export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
   leads: WebLead[];
   days: number;
+  /** False when the database is unreachable — an empty list then means "we
+   *  cannot tell", which is a different sentence from "nobody enquired". */
+  dbReady: boolean;
   /** Where they came from, worked out on the server. */
   area: { rows: AreaRow[]; byBand: Record<Band, number>; total: number };
   /** Which pages earn and which sit there, worked out on the server: it reads
@@ -145,8 +148,20 @@ export function LeadsBoard({ leads, days, area, pages: pageReport }: {
 
       {leads.length === 0 ? (
         <div className="pt-note">
-          <strong>Nothing recorded yet.</strong> Tracking went live just now, so this fills in as enquiries come through. Give it a
-          few days before reading anything into it.
+          {dbReady ? (
+            <>
+              {/* "Tracking went live just now" was true the week it shipped and
+                  gets less true every day after. What matters is the window
+                  being read, which is on screen above. */}
+              <strong>Nothing in the last {days} days.</strong> Enquiries land here as they come through — widen the
+              window above, or give it a few days before reading anything into it.
+            </>
+          ) : (
+            <>
+              <strong>Leads can&rsquo;t be read right now.</strong> This is empty because the database is unreachable,
+              not because nobody enquired.
+            </>
+          )}
         </div>
       ) : (
         <>

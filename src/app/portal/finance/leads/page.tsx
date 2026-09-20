@@ -18,7 +18,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
 
   const days = [30, 90, 365].includes(Number(searchParams?.d)) ? Number(searchParams!.d) : 30;
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
-  const leads = dbConfigured() ? await listWebLeads(since) : [];
+  const ready = dbConfigured();
+  const leads = ready ? await listWebLeads(since) : [];
   // Sorted on the server: suburbs.ts is a large module and has no business in
   // the browser bundle just to work out a drive time.
   const area = groupByArea(leads.map((l) => ({ suburb: l.suburb, postcode: l.postcode, kind: l.kind })));
@@ -34,7 +35,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
         <h1>What the website brings in.</h1>
         <p>Every quote request and every phone tap: which part of the site earns and which sits there, the page the visit started on, the channel that sent them, how far away they are in drive time rather than kilometres, and what hour of the day they turn up. Nothing here is a customer&rsquo;s details; the enquiry itself still goes to the inbox.</p>
       </div>
-      <LeadsBoard leads={leads} days={days} area={area} pages={pages} />
+      <LeadsBoard leads={leads} days={days} area={area} pages={pages} dbReady={ready} />
     </PortalShell>
   );
 }
