@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { groupFamilies } from "@/lib/productFamilies";
+import { ProductFamilyCard, type FamilyCardItem } from "@/components/ProductFamilyCard";
 import { useMemo, useState } from "react";
-import { SafeImg } from "@/components/SafeImg";
 
 /**
  * The full range, filterable — the Kaden / Puretec product-listing shape
@@ -28,6 +29,12 @@ export type RangeItem = {
   category: string;
   categoryLabel: string;
   capacity?: string;
+  /** The product's own specific label — "CO₂ split heat pump · stainless
+   *  tank", not the filter group "Split heat pump". Families key off this,
+   *  because the filter groups are deliberately coarse: keyed on the group,
+   *  Reclaim's glass-lined and stainless tanks would collapse into one card
+   *  offering 160 L twice. */
+  familyLabel?: string;
   veuEligible: boolean;
   installedPriceFrom?: string;
   bestFor: string;
@@ -111,6 +118,21 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
     });
   }, [items, brands, cats, rebate, q]);
 
+  // Families are built from what survived the filters, not from the whole
+  // catalogue, so narrowing to "VEU eligible" leaves a family showing only the
+  // sizes that actually qualify rather than chips that lie.
+  const families = useMemo(
+    () => groupFamilies<FamilyCardItem>(
+      shown.map((i) => ({
+        ...i,
+        href: i.href ?? `/brands/${i.brandSlug}/${i.slug}`,
+      })),
+      (i) => `${i.brand}|${i.familyLabel ?? i.categoryLabel}`,
+      (i) => i.familyLabel ?? i.categoryLabel,
+    ),
+    [shown],
+  );
+
   const toggle = (list: string[], set: (v: string[]) => void, id: string) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
@@ -181,7 +203,9 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
 
       <div className="rex__main">
         <div className="rex__count" aria-live="polite">
-          Showing {shown.length} of {items.length} models
+          Showing {families.length === shown.length
+            ? `${shown.length} of ${items.length} models`
+            : `${families.length} products · ${shown.length} of ${items.length} sizes`}
         </div>
 
         {shown.length === 0 ? (
@@ -191,29 +215,7 @@ export function RangeExplorer({ items }: { items: RangeItem[] }) {
           </p>
         ) : (
           <div className="rex__grid">
-            {shown.map((it) => (
-              <Link
-                key={`${it.brand}-${it.name}`}
-                href={it.href ?? `/brands/${it.brandSlug}/${it.slug}`}
-                className="rexcard"
-                style={{ ["--card-accent" as string]: it.accent }}
-              >
-                <span className="rexcard__brand">{it.brand}</span>
-                <div className="rexcard__shot">
-                  <SafeImg src={it.photo} fallback={it.photoFallback} alt={it.name} loading="lazy" width="320" height="240" />
-                </div>
-                <h3>{it.name}</h3>
-                <span className="rexcard__model">{it.model}</span>
-                <p>{it.bestFor}</p>
-                <div className="rexcard__foot">
-                  <span className="rexcard__cat">{it.categoryLabel}</span>
-                  {it.veuEligible && <span className="rexcard__veu">VEU</span>}
-                </div>
-                {it.installedPriceFrom && (
-                  <span className="rexcard__price">{it.installedPriceFrom} installed</span>
-                )}
-              </Link>
-            ))}
+            {families.map((f) => <ProductFamilyCard key={f.key} family={f} />)}
           </div>
         )}
       </div>
