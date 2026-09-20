@@ -3946,3 +3946,66 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
    photograph, the same position it held on the per-model cards it replaced. */
 .pfam { position: relative; }
 .pfam__extra { position: absolute; top: 10px; right: 10px; z-index: 2; }
+/* Sizes you read rather than pick. A gas ducted heater is one model in four
+   outputs and one page covers all four, because the choice between them is
+   made on the roof with a tape measure. Same shape as the selectable chips so
+   the card reads consistently, but flat, unclickable and never orange — a chip
+   that looks pressable and is not is worse than no chip. */
+.pfam__chips--static { gap: 4px; }
+.pfam__chip--static {
+  cursor: default;
+  background: var(--bg-2, #f3efe5);
+  border-color: transparent;
+  color: var(--ink-2);
+  font-weight: 600;
+  padding: 6px 9px;
+}
+.pfam__sizenote {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+
+/* ---- Rail mega rows ---- */
+/* The Services menu's right-hand pane, for menus whose items have a glyph
+   rather than a photograph of the job. A calculator does not photograph. */
+.megarows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: start; }
+.megarow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.14s, background 0.14s;
+}
+.megarow:hover { border-color: #c8d2e6; background: var(--bg-2, #f3efe5); }
+.megarow__ico {
+  flex: 0 0 auto;
+  width: 30px; height: 30px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--bg-2, #f3efe5);
+  color: var(--ink-3);
+  font-size: 14px;
+}
+.megarow__body { min-width: 0; display: block; }
+.megarow__body b { display: block; font-family: var(--f-display); font-size: 15px; letter-spacing: -0.012em; color: var(--navy); }
+.megarow__body > span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.megarow__go { flex: 0 0 auto; margin-left: auto; color: #c3cada; transition: color 0.14s, transform 0.14s; }
+.megarow:hover .megarow__go { color: var(--orange); transform: translateX(2px); }
+/* The one row in each menu that is the answer people came for. */
+.megarow--lead { border-color: var(--orange); background: rgba(243, 103, 34, 0.06); }
+.megarow--lead .megarow__ico { background: var(--orange); color: #fff; }
+.megarow--lead:hover { background: rgba(243, 103, 34, 0.12); border-color: var(--orange); }
+.megarow__note { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
+
+@media (max-width: 1100px) {
+  .megarows { grid-template-columns: 1fr; }
+}

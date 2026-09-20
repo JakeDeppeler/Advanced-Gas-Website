@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { SafeImg } from "@/components/SafeImg";
-import { variantLabel, type Family, type FamilyMember } from "@/lib/productFamilies";
+import { staticSizes, variantLabel, type Family, type FamilyMember } from "@/lib/productFamilies";
 
 export type FamilyCardItem = FamilyMember & {
   brand: string;
@@ -49,6 +49,10 @@ export function ProductFamilyCard({
     .map((m, idx) => ({ idx, label: m.chipLabel ?? variantLabel(m.capacity), href: m.href }))
     .filter((c) => c.label);
   const showChips = chips.length > 1;
+  // Only when there is no selector. Two rows of chips that look alike and
+  // behave differently — one you pick from, one you read — is the kind of
+  // thing that makes people stop trusting a control.
+  const sizes = showChips ? null : staticSizes(active.capacity);
 
   return (
     <div className="pfam" style={{ ["--card-accent" as string]: active.accent }}>
@@ -84,6 +88,17 @@ export function ProductFamilyCard({
               </button>
             ))}
           </div>
+        ) : sizes ? (
+          <>
+            <div className="pfam__chips pfam__chips--static">
+              {sizes.map((z) => (
+                <span key={z} className="pfam__chip pfam__chip--static">{z}</span>
+              ))}
+            </div>
+            <span className="pfam__sizenote">
+              {sizes.length} sizes &middot; we size it to the house
+            </span>
+          </>
         ) : (
           <span className="pfam__model">{active.model}</span>
         )}
