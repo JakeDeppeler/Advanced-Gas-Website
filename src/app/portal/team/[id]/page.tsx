@@ -7,10 +7,10 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { PersonFile } from "@/components/portal/PersonFile";
 import { PersonVan } from "@/components/portal/PersonVan";
 import { personVan } from "@/lib/portal/personVan";
+import { money2 } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
 
-const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function when(iso: string) {
   return new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });

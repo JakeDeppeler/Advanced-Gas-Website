@@ -8,6 +8,7 @@ import { NumField } from "@/components/portal/NumField";
 import { CONDITION_LABEL, CONDITION_OPTS, STATUS_LABEL, STATUS_NOTE, STATUS_OPTS } from "@/components/portal/vehicleStatus";
 import { vehicleFinance, years } from "@/components/portal/vehicleMath";
 import type { VehicleCondition, VehicleLogKind, VehicleStatus } from "@/lib/portal/db";
+import { money, money2 } from "@/lib/portal/format";
 
 export type VehicleView = {
   id: string; name: string; rego: string | null; details: string | null;
@@ -33,7 +34,12 @@ const KIND_LABEL: Record<VehicleLogKind, string> = { reading: "Km reading", fuel
 
 const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
 const dateShort = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short" });
-const money = (n: number | null) => (n === null ? null : n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 2 }));
+/** Log rows keep their cents — a fuel docket has them and rounding a receipt
+ *  to the dollar makes it stop matching the paperwork. The stat strip above
+ *  uses whole dollars (see `money` from format.ts): nobody wants depreciation
+ *  per year to the cent. Both now come from one place instead of two local
+ *  declarations that happened to disagree on the same screen. */
+const logMoney = (n: number | null) => (n === null ? null : money2(n));
 const toInt = (v: string): number | null => { const n = parseInt(v.replace(/[^0-9]/g, ""), 10); return Number.isNaN(n) ? null : n; };
 const toNum = (v: string): number | null => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? null : n; };
 
@@ -74,7 +80,6 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
   const annualDep = vehicle.purchasePrice !== null && vehicle.lifespanYears ? (vehicle.purchasePrice - (vehicle.resaleValue ?? 0)) / vehicle.lifespanYears : null;
   const fin = vehicleFinance(vehicle);
   const assignedName = crew.find((c) => c.id === vehicle.assignedTo)?.name ?? null;
-  const dollars = (v: number) => v.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
   function submitLog() {
     setMsg("");
@@ -111,14 +116,14 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
           )}
         </div>
         {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
-        {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{dollars(annualDep)}</strong></div>}
+        {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{money(annualDep)}</strong></div>}
         {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
-        {fin.servicePerYear !== null && <div className="pt-veh__stat"><span>Servicing / yr</span><strong>{dollars(fin.servicePerYear)}</strong></div>}
+        {fin.servicePerYear !== null && <div className="pt-veh__stat"><span>Servicing / yr</span><strong>{money(fin.servicePerYear)}</strong></div>}
         {fin.sellBy && <div className="pt-veh__stat"><span>Sell by</span><strong>{fin.sellBy}</strong></div>}
         {fin.lifeLeft !== null && <div className="pt-veh__stat"><span>Life left</span><strong className={fin.pastLife ? "is-neg" : ""}>{fin.pastLife ? `${years(fin.lifeLeft)} over` : years(fin.lifeLeft)}</strong></div>}
-        {fin.worthNow !== null && <div className="pt-veh__stat"><span>Worth today</span><strong>{dollars(fin.worthNow)}</strong></div>}
-        {vehicle.amountOwing !== null && <div className="pt-veh__stat"><span>Still owing</span><strong>{dollars(vehicle.amountOwing)}</strong></div>}
-        {fin.equityNow !== null && <div className="pt-veh__stat"><span>Equity</span><strong className={fin.underwater ? "is-neg" : ""}>{dollars(fin.equityNow)}</strong></div>}
+        {fin.worthNow !== null && <div className="pt-veh__stat"><span>Worth today</span><strong>{money(fin.worthNow)}</strong></div>}
+        {vehicle.amountOwing !== null && <div className="pt-veh__stat"><span>Still owing</span><strong>{money(vehicle.amountOwing)}</strong></div>}
+        {fin.equityNow !== null && <div className="pt-veh__stat"><span>Equity</span><strong className={fin.underwater ? "is-neg" : ""}>{money(fin.equityNow)}</strong></div>}
       </section>
 
       {(fin.ageYears !== null || vehicle.amountOwing !== null) && (
@@ -130,11 +135,11 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
             : fin.lifeLeft !== null && <>About <strong>{years(fin.lifeLeft)}</strong> left{fin.sellBy ? <> — sell by <strong>{fin.sellBy}</strong></> : null}. </>}
           {fin.equityNow !== null && (
             fin.underwater
-              ? <>It&rsquo;s worth about {dollars(fin.worthNow as number)} with {dollars(vehicle.amountOwing as number)} owing, so we owe <strong>{dollars(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
-              : <>Worth about {dollars(fin.worthNow as number)} with {dollars(vehicle.amountOwing as number)} owing — <strong>{dollars(fin.equityNow)}</strong> of that is ours.</>
+              ? <>It&rsquo;s worth about {money(fin.worthNow as number)} with {money(vehicle.amountOwing as number)} owing, so we owe <strong>{money(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
+              : <>Worth about {money(fin.worthNow as number)} with {money(vehicle.amountOwing as number)} owing — <strong>{money(fin.equityNow)}</strong> of that is ours.</>
           )}
           {fin.owingPerYearLeft !== null && fin.annualDep !== null && (
-            <> Clearing what&rsquo;s owing before then costs <strong>{dollars(fin.owingPerYearLeft)}</strong> a year, against {dollars(fin.annualDep)} a year of value lost.</>
+            <> Clearing what&rsquo;s owing before then costs <strong>{money(fin.owingPerYearLeft)}</strong> a year, against {money(fin.annualDep)} a year of value lost.</>
           )}
         </div>
       )}
@@ -195,7 +200,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
                     <strong>{l.dateLabel}</strong>
                     {l.odometer !== null && <span>{km(l.odometer)}</span>}
                     {l.litres !== null && <span>{l.litres} L</span>}
-                    {money(l.cost) && <span>{money(l.cost)}</span>}
+                    {logMoney(l.cost) && <span>{logMoney(l.cost)}</span>}
                   </div>
                   {l.detail && <div className="pt-veh__logdetail">{l.detail}</div>}
                   {l.createdBy && <div className="pt-veh__logby">— {l.createdBy}</div>}

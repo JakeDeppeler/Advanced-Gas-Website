@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
+import { money, pct } from "@/lib/portal/format";
 
 type PL = { income: number; expenses: number; netProfit: number } | null;
 
@@ -13,8 +14,6 @@ const TF_OPTS = [
   { k: "12m", label: "12m", span: "Last 12 months, month by month" },
 ];
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
-const pct = (n: number) => `${Math.round(n * 100)}%`;
 
 type Signal = { tone: "good" | "watch" | "bad"; text: string; value?: string };
 

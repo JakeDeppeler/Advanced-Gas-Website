@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { money } from "@/lib/portal/format";
 
 export type ProfitPoint = { label: string; full: string; netProfit: number; ok?: boolean };
 
@@ -9,7 +10,6 @@ const padL = 52, padR = 16, padT = 18, padB = 30;
 const plotW = W - padL - padR;
 const plotH = H - padT - padB;
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
 
 /**

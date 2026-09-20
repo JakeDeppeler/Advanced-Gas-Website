@@ -7,10 +7,10 @@ import { NumField } from "@/components/portal/NumField";
 import { CONDITION_OPTS, STATUS_OPTS } from "@/components/portal/vehicleStatus";
 import { vehicleFinance, years } from "@/components/portal/vehicleMath";
 import type { VehicleCondition, VehicleStatus } from "@/lib/portal/db";
+import { money } from "@/lib/portal/format";
 
 const toInt = (v: string): number | null => { const n = parseInt(v.replace(/[^0-9]/g, ""), 10); return Number.isNaN(n) ? null : n; };
 const toNum = (v: string): number | null => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? null : n; };
-const dollars = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
 const BLANK = {
   name: "", rego: "", details: "",
@@ -112,12 +112,12 @@ export function AddVehicleForm({ crew }: { crew: { id: string; name: string }[] 
 
       {(fin.annualDep !== null || fin.equityNow !== null) && (
         <div className={`pt-veh__calc${fin.underwater ? " is-warn" : ""}`}>
-          {fin.annualDep !== null && <>That&rsquo;s <strong>{dollars(fin.annualDep)}</strong> a year in depreciation. </>}
+          {fin.annualDep !== null && <>That&rsquo;s <strong>{money(fin.annualDep)}</strong> a year in depreciation. </>}
           {fin.lifeLeft !== null && !fin.pastLife && <>About <strong>{years(fin.lifeLeft)}</strong> left{fin.sellBy ? <>, sell by <strong>{fin.sellBy}</strong></> : null}. </>}
           {fin.equityNow !== null && (
             fin.underwater
-              ? <>Worth about {dollars(fin.worthNow as number)} today, so we&rsquo;d owe <strong>{dollars(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
-              : <>Worth about {dollars(fin.worthNow as number)} today, <strong>{dollars(fin.equityNow)}</strong> of it ours.</>
+              ? <>Worth about {money(fin.worthNow as number)} today, so we&rsquo;d owe <strong>{money(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
+              : <>Worth about {money(fin.worthNow as number)} today, <strong>{money(fin.equityNow)}</strong> of it ours.</>
           )}
         </div>
       )}
