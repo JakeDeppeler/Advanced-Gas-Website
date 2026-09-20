@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { site } from "@/lib/site";
+import { site, openingHoursShort } from "@/lib/site";
 import { ContactForm } from "@/components/ContactForm";
 import "./contact.css";
 import { PageHero } from "@/components/PageHero";
@@ -27,7 +27,7 @@ export default function ContactPage() {
             <div className="ct-card">
               <h3>Call us</h3>
               <a className="ct-card__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <span className="ct-card__sub">Mon–Fri · 8am – 4pm</span>
+              <span className="ct-card__sub">Mon–Fri · {openingHoursShort()}</span>
             </div>
 
             <div className="ct-card ct-card--red" id="emergency">

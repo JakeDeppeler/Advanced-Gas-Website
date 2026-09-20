@@ -366,7 +366,7 @@ export default function PreviewPage() {
 
         <div className="pv-foot">
           <strong>Advanced Gas &amp; Airconditioning Services Pty Ltd</strong><br />
-          Pakenham VIC · Mon-Fri 8am-4pm
+          Pakenham VIC · Mon–Fri 7am–3:30pm
         </div>
 
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { site } from "@/lib/site";
 import type { WebLead } from "@/lib/portal/db";
 import { classifyLead, CHANNEL_ORDER, type Channel } from "@/lib/portal/leadSource";
 import { BANDS, type AreaRow, type Band } from "@/lib/portal/leadArea";
@@ -30,16 +31,43 @@ function rank<T extends string>(rows: { k: T }[], top = 8): { k: T; n: number; s
  */
 const MEL = "Australia/Melbourne";
 const melParts = (iso: string) => {
-  const f = new Intl.DateTimeFormat("en-AU", { timeZone: MEL, weekday: "short", hour: "2-digit", hour12: false });
+  const f = new Intl.DateTimeFormat("en-AU", { timeZone: MEL, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false });
   const parts = f.formatToParts(new Date(iso));
   const wd = parts.find((x) => x.type === "weekday")?.value ?? "";
   const hr = Number(parts.find((x) => x.type === "hour")?.value ?? "0");
-  return { wd, hr };
+  const mi = Number(parts.find((x) => x.type === "minute")?.value ?? "0");
+  return { wd, hr, min: hr * 60 + mi };
 };
 const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-/** The hours somebody is on the tools. Anything outside is a call nobody is
- *  standing next to a phone for. */
-const OPEN_FROM = 7, OPEN_TO = 16;
+/**
+ * The hours somebody is on the tools, read from site.ts so the site, the job
+ * calculator and this report cannot drift apart again.
+ *
+ * Counted in minutes, not hours. The business closes at 15:30, and bucketing
+ * by the hour forces a choice between calling the whole 15:00 hour open (which
+ * counted every 15:45 enquiry as in-hours — the bug this replaces) or calling
+ * it all closed (which writes off half an hour of real work time). With the
+ * timestamp already in hand there is no reason to round at all.
+ *
+ * The bar chart below still draws in hours, because a chart of 1,440 minutes
+ * is not a chart. Its shading marks the hours the business is open for any
+ * part of, which is a fair thing for a bar to say and a bad thing for a count
+ * to say.
+ */
+const toMins = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + (m || 0);
+};
+const OPEN_MIN = toMins(site.hours[0].open);
+const CLOSE_MIN = toMins(site.hours[0].close);
+const OPEN_FROM = Math.floor(OPEN_MIN / 60);
+const OPEN_TO = Math.ceil(CLOSE_MIN / 60);
+const openLabel = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  const suffix = h >= 12 ? "pm" : "am";
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  return m ? `${hr}:${String(m).padStart(2, "0")}${suffix}` : `${hr}${suffix}`;
+};
 
 export function LeadsBoard({ leads, days, area, pages: pageReport }: {
   leads: WebLead[];
@@ -72,7 +100,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport }: {
   const clock = leads.map((l) => melParts(l.createdAt));
   const byDow = DOW.map((d) => ({ d, n: clock.filter((c) => c.wd === d).length }));
   const dowPeak = Math.max(1, ...byDow.map((x) => x.n));
-  const afterHours = clock.filter((c) => c.hr < OPEN_FROM || c.hr >= OPEN_TO).length;
+  const afterHours = clock.filter((c) => c.min < OPEN_MIN || c.min >= CLOSE_MIN).length;
   const weekend = clock.filter((c) => c.wd === "Sat" || c.wd === "Sun").length;
   const byHour = Array.from({ length: 24 }, (_, h) => ({ h, n: clock.filter((c) => c.hr === h).length }));
   const hourPeak = Math.max(1, ...byHour.map((x) => x.n));
@@ -286,7 +314,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport }: {
           <section className="pt-panel">
             <h2 className="pt-panel__h">When they come in</h2>
             <p className="pt-panel__sub">
-              Melbourne time. The working day is 7am to 4pm, so everything outside those bars is somebody enquiring
+              Melbourne time. The working day is {openLabel(site.hours[0].open)} to {openLabel(site.hours[0].close)}, so everything outside it is somebody enquiring
               when there is nobody standing next to a phone — {afterHours} of {leads.length} of them, and {weekend} on
               a weekend.
             </p>
