@@ -56,7 +56,8 @@ const PACKAGES = [
   "Not sure yet",
 ];
 
-export function CommercialScopeForm() {
+export function CommercialScopeForm({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" } = {}) {
+  const Heading = headingLevel;
   const [company, setCompany] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -154,7 +155,7 @@ export function CommercialScopeForm() {
 
   return (
     <form className="scopeform" onSubmit={onSubmit} noValidate>
-      <h3 className="scopeform__h">Submit a scope.</h3>
+      <Heading className="scopeform__h">Submit a scope.</Heading>
       <p className="scopeform__sub">Drawings, a mechanical schedule or a site address is sufficient to begin. Attach the plans if you have them.</p>
 
       <input
