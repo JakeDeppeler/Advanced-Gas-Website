@@ -421,9 +421,10 @@
 }
 .mega__servicecard:hover { background: var(--bg-2); border-color: var(--line); }
 .mega__servicecard-photo {
-  /* 52 → 72 → 96. In the two-pane mega there are four cards on screen
-     instead of nineteen, so the photo can be the size it deserves. */
-  width: 96px; height: 96px;
+  /* 52 → 72 → 96 → 78. Back down a little when the grid went to three
+     columns: the card has to hold a photograph and two lines of text in a
+     third of the pane rather than half of it. */
+  width: 78px; height: 78px;
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
@@ -2934,8 +2935,11 @@ input, select, textarea {
 }
 .megasvc__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
+  /* Three, not two. Two columns of a 96px thumbnail beside two short lines
+     left about three hundred pixels of nothing on the end of every card, and
+     a five-item category filled half the pane. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 10px;
   align-content: start;
   animation: megasvcIn 0.16s ease both;
 }
@@ -4018,9 +4022,10 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .megarow--lead:hover { background: rgba(243, 103, 34, 0.12); border-color: var(--orange); }
 .megarow__note { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
 
-/* The rail menus that are lists rather than galleries. Services keeps the
-   wide panel: it has photographs in it and up to five of them. */
-.megasvc--list { width: min(820px, calc(100vw - 32px)); }
+/* Same width as Services. Every dropdown on the site is now one panel size,
+   so moving between them does not resize the thing you are pointing at — the
+   menu stays put and only its contents change. The rows run the full width of
+   the pane rather than sitting in a column with dead space beside them. */
 
 /* Size chips that are links to the one page behind them. Same treatment as
    the pickable chips on hover, because they are clickable and should look it;
@@ -4042,3 +4047,54 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .pfam:hover .pfam__price span { transform: translateX(3px); }
 .pfam__specs { font-size: 13px; color: var(--ink-3); text-decoration: none; }
 .pfam__specs:hover { color: var(--navy); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ============== CROSSING BETWEEN THE TWO SIDES ============== */
+/* See SiteCross. A panel covers the screen, the route changes underneath it,
+   then it clears. Orange on the way to the commercial side — the colour of the
+   shirts on site — moving left to right; navy coming home, moving right to
+   left, so going back feels like going back.
+ *
+ * The timings here must match COVER / HOLD / CLEAR in SiteCross.tsx. */
+.cross {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  /* Parked off the edge it enters from, and invisible, until asked. */
+  transform: translateX(-101%);
+  visibility: hidden;
+}
+html[data-cross] .cross { visibility: visible; pointer-events: auto; }
+html[data-cross-dir="to-commercial"] .cross { background: var(--orange); color: #fff; }
+html[data-cross-dir="to-home"] .cross { background: var(--navy); color: #fff; }
+
+@keyframes cross-ltr-in  { from { transform: translateX(-101%); } to { transform: translateX(0); } }
+@keyframes cross-ltr-out { from { transform: translateX(0); } to { transform: translateX(101%); } }
+@keyframes cross-rtl-in  { from { transform: translateX(101%); } to { transform: translateX(0); } }
+@keyframes cross-rtl-out { from { transform: translateX(0); } to { transform: translateX(-101%); } }
+
+html[data-cross-dir="to-commercial"][data-cross="in"] .cross  { animation: cross-ltr-in 0.72s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-cross-dir="to-commercial"][data-cross="out"] .cross { animation: cross-ltr-out 0.68s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-cross-dir="to-home"][data-cross="in"] .cross  { animation: cross-rtl-in 0.72s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+html[data-cross-dir="to-home"][data-cross="out"] .cross { animation: cross-rtl-out 0.68s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+/* The drawing. A house on the way home, a building on the way to commercial —
+   one or the other, never both, so the direction is legible rather than just
+   "something happened". */
+.cross__art { width: min(180px, 42vw); opacity: 0; }
+.cross__art svg { width: 100%; height: auto; display: block; }
+.cross__house, .cross__tower { display: none; }
+html[data-cross-dir="to-commercial"] .cross__tower { display: block; }
+html[data-cross-dir="to-home"] .cross__house { display: block; }
+html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out forwards; }
+@keyframes cross-art {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cross { display: none; }
+}

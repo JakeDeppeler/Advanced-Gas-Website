@@ -671,61 +671,6 @@
 }
 .comm-proof__figs dd { margin: 3px 0 0; font-size: 12.5px; line-height: 1.4; color: #5a6480; }
 
-/* ---- The packages, as a schedule ---- */
-/* Eight cards with nested bullet lists became eight rows. A reader comparing
-   eight packages needs them easy to scan down, not impressive one at a time —
-   and the numbers down the left are the thing that makes it read as a
-   schedule rather than a menu. */
-.comm-packs { padding: 74px 0 64px; }
-.comm-packs .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 66ch; }
-.packlist { list-style: none; margin: 34px 0 0; padding: 0; border-top: 1px solid #dde4f0; }
-.packlist li { border-bottom: 1px solid #dde4f0; }
-.packrow {
-  display: grid;
-  grid-template-columns: 46px minmax(0, 0.9fr) minmax(0, 1.5fr) 24px;
-  align-items: start;
-  gap: 0 24px;
-  padding: 22px 0;
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.14s ease;
-}
-.packrow:hover { background: #f6f8fc; }
-.packrow__n {
-  font-family: var(--f-mono);
-  font-size: 12px;
-  color: var(--orange, #f36722);
-  padding-top: 4px;
-}
-.packrow__head strong {
-  display: block;
-  font-family: var(--f-display);
-  font-size: 19px;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-  color: var(--comm-ink);
-}
-.packrow__suits {
-  display: block;
-  margin-top: 7px;
-  font-family: var(--f-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.5;
-  color: #8791ab;
-}
-.packrow__lede { display: block; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
-.packrow__detail {
-  display: block;
-  margin-top: 7px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: #6b7590;
-}
-.packrow__go { justify-self: end; padding-top: 4px; color: #b9c1d6; transition: color 0.14s, transform 0.14s; }
-.packrow:hover .packrow__go { color: var(--orange, #f36722); transform: translateX(3px); }
-
 /* The capability statement. A line with a rule under it, not an orange slab. */
 .comm-caplink {
   display: flex;
@@ -827,9 +772,7 @@
 
 @media (max-width: 900px) {
   .comm-scope__grid { grid-template-columns: 1fr; gap: 34px; }
-  .packrow { grid-template-columns: 34px minmax(0, 1fr) 20px; gap: 0 16px; }
-  .packrow__body { grid-column: 2 / 3; margin-top: 10px; }
-}
+    }
 @media (max-width: 640px) {
   .comm-proof { padding: 30px 0 34px; }
   .comm-packs { padding: 52px 0 46px; }
@@ -878,3 +821,43 @@
 }
 .page-comm .commstep h3 { margin: 8px 0 8px; font-size: 18px; }
 .page-comm .commstep p { font-size: 14.5px; line-height: 1.6; }
+
+
+/* ---- The packages, as the home page's cards ---- */
+/* Four across like the home bento, but every card the same size: on the home
+   page the big one is the heat pump because that is the thing most worth
+   selling to a household. Ten mechanical packages have no such order — a
+   builder wants the one that matches their scope, and making one of them
+   twice the size argues for it against a reader who already knows what they
+   need. */
+.page-comm .bento--packs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.page-comm .bcard--pack { background: #fff; }
+.page-comm .bcard--pack .bcard__body { padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 0; height: 100%; }
+.page-comm .bcard--pack .bcard__num {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--orange, #f36722);
+}
+.page-comm .bcard--pack h3 {
+  margin: 8px 0 0;
+  font-family: var(--f-display);
+  font-size: 18px;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: var(--comm-ink);
+}
+.page-comm .bcard--pack p { margin: 8px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
+.page-comm .packcard__suits {
+  display: block;
+  margin-top: auto;
+  padding-top: 16px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: #8791ab;
+}
+@media (max-width: 1100px) { .page-comm .bento--packs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px)  { .page-comm .bento--packs { grid-template-columns: 1fr; } }
