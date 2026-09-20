@@ -4,6 +4,8 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { SafeImg } from "@/components/SafeImg";
+import { groupFamilies } from "@/lib/productFamilies";
+import { ProductFamilyCard, type FamilyCardItem } from "@/components/ProductFamilyCard";
 import { productPhoto, type Brand, type Product } from "@/lib/brands";
 
 /**
@@ -86,61 +88,66 @@ export function BrandCompare({ brand }: Props) {
     [brand.products],
   );
 
-  /** One product card. Shared by both shapes so the grid never drifts. */
-  const card = (p: Product) => {
-    const photo = productPhoto(p, brand);
-    const isSelected = selected.includes(p.slug);
-    const disabled = !isSelected && selected.length >= MAX_COMPARE;
-    return (
-      <div key={p.slug} className={`brand-card brand-card--compareable${isSelected ? " is-compared" : ""}`}>
-        <label
-          className={`brand-card__compare${disabled ? " is-disabled" : ""}`}
-          onClick={(e) => e.stopPropagation()}
-          title={disabled ? `Max ${MAX_COMPARE} products at a time` : isSelected ? "Remove from compare" : "Add to compare"}
-        >
-          <input
-            type="checkbox"
-            checked={isSelected}
-            disabled={disabled}
-            onChange={() => toggle(p.slug)}
-            aria-label={`Compare ${p.name}`}
-          />
-          <span className="brand-card__compare-box" aria-hidden="true">
-            {isSelected ? "✓" : "+"}
-          </span>
-          <span className="brand-card__compare-lbl">Compare</span>
-        </label>
-        <Link href={`/brands/${brand.slug}/${p.slug}`} className="brand-card__link">
-          <div className="brand-card__photo">
-            {p.veuEligible && (
-              <span className="brand-card__pill--rebate brand-card__pill--overlay">VEU rebate</span>
-            )}
-            <SafeImg src={photo.src} fallback={photo.fallback} alt={photo.alt} loading="lazy" width="480" height="360" />
-          </div>
-          <div className="brand-card__inner">
-            <div className="brand-card__head">
-              <h4>{p.name}</h4>
-              <span className="brand-card__model">{p.model}</span>
-            </div>
-            {p.capacity && <div className="brand-card__cap">{p.capacity}</div>}
-            <p className="brand-card__take">{p.ourTake}</p>
-            <div className="brand-card__foot">
-              <span className={`brand-card__price${p.installedPriceFrom ? " brand-card__price--real" : ""}`}>
-                {p.installedPriceFrom ? (
-                  <>
-                    <em>from</em> {p.installedPriceFrom}
-                  </>
-                ) : (
-                  "Message for quote"
-                )}
-              </span>
-              <span className="brand-card__go" aria-hidden="true">→</span>
-            </div>
-          </div>
-        </Link>
-      </div>
-    );
-  };
+  /**
+   * One card per family, sizes as chips — the same card the range page uses.
+   *
+   * The groups here were already keyed on categoryLabel, which is the family
+   * key, so every group was already a family; it was just being rendered one
+   * member at a time. Kaden's page put four multi-heads in a row that differed
+   * only in how many heads they ran.
+   *
+   * Compare survives it. The tick hangs off whichever size the chips have
+   * landed on, so you pick 5.0 kW and tick that, rather than the row of
+   * near-identical cards each carrying their own tick.
+   */
+  const familyCards = (list: Product[]) =>
+    groupFamilies<FamilyCardItem>(
+      list.map((p) => {
+        const photo = productPhoto(p, brand);
+        return {
+          slug: p.slug,
+          name: p.name,
+          model: p.model,
+          brand: brand.name,
+          categoryLabel: p.categoryLabel,
+          capacity: p.capacity,
+          installedPriceFrom: p.installedPriceFrom,
+          veuEligible: p.veuEligible,
+          bestFor: p.bestFor,
+          photo: photo.src,
+          photoFallback: photo.fallback,
+          accent: brand.accent,
+          href: `/brands/${brand.slug}/${p.slug}`,
+        };
+      }),
+      (i) => i.categoryLabel,
+      (i) => i.categoryLabel,
+    ).map((f) => (
+      <ProductFamilyCard
+        key={f.key}
+        family={f}
+        extra={(active) => {
+          const isSelected = selected.includes(active.slug);
+          const disabled = !isSelected && selected.length >= MAX_COMPARE;
+          return (
+            <label
+              className={`brand-card__compare${disabled ? " is-disabled" : ""}`}
+              title={disabled ? `Max ${MAX_COMPARE} products at a time` : isSelected ? "Remove from compare" : "Add to compare"}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                disabled={disabled}
+                onChange={() => toggle(active.slug)}
+                aria-label={`Compare ${active.name}`}
+              />
+              <span className="brand-card__compare-box" aria-hidden="true">{isSelected ? "\u2713" : "+"}</span>
+              <span className="brand-card__compare-lbl">Compare</span>
+            </label>
+          );
+        }}
+      />
+    ));
 
   /** The compare drawer and its modal. Rendered by whichever shape the
    *  brand's range takes, so the selection behaves the same in both. */
@@ -365,15 +372,16 @@ export function BrandCompare({ brand }: Props) {
                 <h3>{openGroup.label}</h3>
                 <p>
                   {openGroup.models.length}{" "}
-                  {openGroup.models.length === 1 ? "model" : "models"}. Tap through for the spec
+                  {openGroup.models.length === 1 ? "model" : "sizes"}. Pick a size for its spec
                   sheet and our take, or tick <strong>Compare</strong> on two to four of them.
                 </p>
               </div>
               <div className="brand-group__grid">
-                {openGroup.models
-                  .map((slug) => bySlug.get(slug))
-                  .filter((p): p is Product => Boolean(p))
-                  .map(card)}
+                {familyCards(
+                  openGroup.models
+                    .map((slug) => bySlug.get(slug))
+                    .filter((p): p is Product => Boolean(p)),
+                )}
               </div>
             </>
           )}
@@ -386,19 +394,21 @@ export function BrandCompare({ brand }: Props) {
 
   return (
     <>
-      {groupOrder.map((groupName) => (
-        <div key={groupName} className="brand-group">
-          <h3 className="brand-group__title">
-            <span className="brand-group__title-txt">{groupName}</span>
-            <span className="brand-group__count">
-              {grouped[groupName].length} {grouped[groupName].length === 1 ? "model" : "models"}
-            </span>
-          </h3>
+      {/* One grid, not one per category.
+          The category headings were doing real work when each category held
+          four near-identical cards — they were the only thing telling you the
+          run of Kaden multi-heads had ended and the ducted units had started.
+          Now each category IS one card, and the card's own name says which
+          category it is, so the heading above it repeated it and the grid
+          under it held a single item in a five-column layout with four empty
+          cells beside it. */}
+      {(
+        <div className="brand-group">
           <div className="brand-group__grid">
-            {grouped[groupName].map(card)}
+            {familyCards(groupOrder.flatMap((g) => grouped[g]))}
           </div>
         </div>
-      ))}
+      )}
 
       {drawer}
     </>

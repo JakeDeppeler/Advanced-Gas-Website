@@ -1978,7 +1978,11 @@
    cards. Fit stretches the two it has across the row. */
 .page-brand .wf-range__drop .brand-group__grid {
   margin: 0;
-  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  /* auto-fill, not auto-fit. Now that a shape collapses to one card with its
+     sizes as chips, auto-fit's habit of eating the empty tracks left that one
+     card stretched across the whole panel, with a wall-split photograph
+     floating in the middle of thirteen hundred pixels. */
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
 }
 /* Which means a two-model shape gets two very wide cards, and a photo
    panel on a fixed aspect ratio then balloons to half a screen. Fix the

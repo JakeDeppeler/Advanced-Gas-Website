@@ -3818,3 +3818,131 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   .hp-pick { padding: 52px 0 56px; }
   .hp-pick__grid { grid-template-columns: 1fr; }
 }
+
+/* ============== PRODUCT FAMILY CARD ============== */
+/* One card per family, sizes as chips. Used on /range and on every brand hub,
+   which are the two places that list the catalogue and were both listing it
+   one model at a time: six Mitsubishi wall splits in a row carrying the same
+   photograph and the same two sentences, differing in a number.
+ *
+ * The structure is borrowed openly from a manufacturer catalogue — product
+ * shot on white, name, a row of capacity chips, then the facts — because that
+ * is the shape somebody comparing sizes already knows how to read. The palette
+ * is ours: navy type, one orange chip, our cream ground under the grid. */
+.pfam {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line-2, #d8d2c1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+.pfam:hover {
+  border-color: #c2c9da;
+  box-shadow: 0 18px 40px -30px rgba(5, 10, 48, 0.5);
+  transform: translateY(-2px);
+}
+
+/* The photograph gets room. Manufacturer shots are cut-outs on white, so the
+   card's own white is the background and the image just sits in it. */
+.pfam__shot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 168px;
+  padding: 18px;
+  background: #fff;
+  border-bottom: 1px solid var(--line, #ebe6d8);
+}
+.pfam__shot img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+
+.pfam__body { display: flex; flex-direction: column; gap: 0; padding: 16px 18px 18px; flex: 1 1 auto; }
+.pfam__brand {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.pfam__name { margin: 5px 0 0; font-family: var(--f-display); font-size: 17px; line-height: 1.2; letter-spacing: -0.015em; }
+.pfam__name a { color: var(--navy); text-decoration: none; }
+.pfam__name a:hover { color: var(--orange); }
+.pfam__model { margin-top: 5px; font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); }
+
+/* The chips. Real buttons, not links, because they change what this card is
+   showing rather than navigating — the card's own links go to the model. */
+.pfam__chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 11px 0 0; }
+.pfam__chip {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-2, #d8d2c1);
+  background: #fff;
+  color: var(--ink-2);
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.pfam__chip:hover { border-color: var(--orange); color: var(--navy); }
+.pfam__chip.is-on { background: var(--orange); border-color: var(--orange); color: #fff; }
+.pfam__chip:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+
+.pfam__fit { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); }
+
+.pfam__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; }
+.pfam__cat {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--bg-2, #f3efe5);
+  color: var(--ink-2);
+}
+.pfam__veu {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--orange);
+  color: #fff;
+}
+
+.pfam__go {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+.pfam__go strong { font-family: var(--f-display); font-size: 15.5px; color: var(--navy); }
+.pfam__go span { color: var(--orange); font-weight: 700; transition: transform 0.14s; }
+.pfam:hover .pfam__go span { transform: translateX(3px); }
+/* Which model the chips have landed on. Small and last: it is the answer to
+   "what am I actually looking at now", which only matters once you have
+   chosen a size. */
+.pfam__which {
+  margin-top: 6px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 560px) {
+  .pfam__shot { height: 132px; padding: 14px; }
+  .pfam__body { padding: 14px 15px 16px; }
+}
+/* The Compare tick, when a page hangs one on the card. Top-right, over the
+   photograph, the same position it held on the per-model cards it replaced. */
+.pfam { position: relative; }
+.pfam__extra { position: absolute; top: 10px; right: 10px; z-index: 2; }

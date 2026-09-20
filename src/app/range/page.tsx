@@ -51,6 +51,7 @@ const catalogue: RangeItem[] = brands.flatMap((b) =>
       model: p.model,
       category: p.category,
       categoryLabel: rangeFilterType(p.category, p.categoryLabel),
+      familyLabel: p.categoryLabel,
       capacity: p.capacity,
       veuEligible: p.veuEligible,
       installedPriceFrom: p.installedPriceFrom,
