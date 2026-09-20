@@ -426,10 +426,13 @@ export function CapacityEditor({
             onToggle={() => setInfo(info === r.key ? null : r.key)}
           />
         ))}
+        {/* With no billable hours the figure is unknown, so the sub-line says
+            what is missing rather than quoting the annual total as if it were
+            the answer to a question the tile just declined to answer. */}
         <Stat
           label="Overhead on every hour"
           value={hasHrs ? money2(ohTotal / cap.totalBillHrs) : "—"}
-          sub={`${money(ohTotal)} a year`}
+          sub={hasHrs ? `${money(ohTotal)} a year` : "Add the crew to see this"}
           open={info === "oh"} onToggle={() => setInfo(info === "oh" ? null : "oh")}
         />
         <Stat
@@ -559,7 +562,7 @@ export function CapacityEditor({
                           <div className="pt-cap__van">
                             <div className="pt-seg" role="group" aria-label="Van">
                               <button type="button" className={`pt-seg__b${r.costing.ownVan ? " is-on" : ""}`} aria-pressed={r.costing.ownVan} onClick={() => setCosting(r.id, { ownVan: true })}>Own van</button>
-                              <button type="button" className={`pt-seg__b pt-seg__b--repair${r.costing.ownVan ? "" : " is-on"}`} aria-pressed={!r.costing.ownVan} onClick={() => setCosting(r.id, { ownVan: false })}>Rides with a tech</button>
+                              <button type="button" className={`pt-seg__b${r.costing.ownVan ? "" : " is-on"}`} aria-pressed={!r.costing.ownVan} onClick={() => setCosting(r.id, { ownVan: false })}>Rides with a tech</button>
                             </div>
                             <span className="pt-cap__vannote">
                               {r.costing.ownVan
@@ -838,7 +841,7 @@ export function CapacityEditor({
               <button type="button" className={`pt-seg__b${(s.ohSource ?? "xero") === "xero" ? " is-on" : ""}`}
                 aria-pressed={(s.ohSource ?? "xero") === "xero"}
                 onClick={() => setS({ ...s, ohSource: "xero" })}>From Xero</button>
-              <button type="button" className={`pt-seg__b pt-seg__b--repair${s.ohSource === "internal" ? " is-on" : ""}`}
+              <button type="button" className={`pt-seg__b${s.ohSource === "internal" ? " is-on" : ""}`}
                 aria-pressed={s.ohSource === "internal"}
                 onClick={() => setS({ ...s, ohSource: "internal" })}>Our own figure</button>
             </div>

@@ -1,0 +1,11 @@
+{
+  // There was no ESLint config in this repo, so `npm run lint` had never
+  // linted anything — `next lint` just offered to set one up and exited 0.
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Typographic apostrophes in JSX copy. Thirty-one of them, all rendering
+    // correctly, and as an error they would fail `next build` on Vercel.
+    // Kept visible as a warning rather than switched off.
+    "react/no-unescaped-entities": "warn"
+  }
+}

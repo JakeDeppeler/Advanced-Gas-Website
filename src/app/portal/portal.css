@@ -314,7 +314,13 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-seg { display: inline-flex; align-self: flex-start; gap: 3px; padding: 3px; border: 1px solid var(--pt-line); border-radius: 10px; background: var(--pt-bg); }
 .pt-seg__b { appearance: none; border: 0; background: transparent; border-radius: 7px; padding: 7px 14px; font: inherit; font-size: 13px; font-weight: 600; color: var(--pt-ink-2); cursor: pointer; white-space: nowrap; }
 .pt-seg__b:hover { color: var(--pt-ink); }
-.pt-seg__b.is-on { background: var(--pt-good); color: #fff; }
+/* Navy is what "you picked this" looks like everywhere else in the portal
+   (.pt-veh__kind, .pt-vc__angle, .pt-job__job, .pt-va__pick), so it is the
+   default here too. Green stays reserved for a state that is actually good,
+   which is opt-in per control rather than whatever happens to be selected. */
+.pt-seg__b.is-on { background: var(--pt-navy); color: #fff; }
+.pt-seg__b.is-on.pt-seg__b--good,
+.pt-seg__b.is-on.pt-seg__b--on { background: var(--pt-good); }
 .pt-seg__b.is-on.pt-seg__b--repair { background: #a9701a; }
 .pt-seg__b.is-on.pt-seg__b--off { background: #b23b2e; }
 .pt-seg__b:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 1px; }
@@ -736,7 +742,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 /* chart time-frame switch */
 .pt-ov__charthead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .pt-ov__tf { display: inline-flex; gap: 2px; background: var(--pt-bg); border: 1px solid var(--pt-line); border-radius: 9px; padding: 2px; }
-.pt-ov__tfbtn { padding: 5px 12px; border-radius: 7px; font-size: 12.5px; font-weight: 600; color: var(--pt-ink-2); text-decoration: none; }
+.pt-ov__tfbtn { padding: 5px 12px; border-radius: 7px; font-size: 12.5px; font-weight: 600; color: var(--pt-ink-2); text-decoration: none; font-variant-numeric: tabular-nums; }
 .pt-ov__tfbtn:hover { color: var(--pt-ink); }
 .pt-ov__tfbtn.is-on { background: var(--pt-surface); color: var(--pt-navy); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
