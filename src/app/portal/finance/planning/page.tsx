@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
+import { listUsers, getCapSettings, getSettings, dbConfigured } from "@/lib/portal/db";
 import { computeCapacity, overheadSplit, overheadTotal, scaleModel, DEFAULT_SETTINGS, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
@@ -10,6 +10,7 @@ import { ScenarioPlanner } from "@/components/portal/ScenarioPlanner";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { VanScaling } from "@/components/portal/VanScaling";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
+import { DEFAULT_TARGETS, type Targets } from "@/lib/portal/targets";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Planning — Team portal" };
@@ -28,6 +29,11 @@ export default async function PlanningPage() {
         t.toISOString().slice(0, 10),
       ))?.netProfit ?? null
     : null;
+
+  // The same days-a-week the Targets page works to, so "per day" means the
+  // same thing on both screens.
+  const targets = dbConfigured() ? await getSettings<Targets>("targets") : null;
+  const daysWeek = targets?.daysWeek ?? DEFAULT_TARGETS.daysWeek;
 
   let charge = 0, cost = 0;
 
@@ -59,7 +65,7 @@ export default async function PlanningPage() {
         <p>The profit you&rsquo;re aiming at and how the year is tracking against it, then the what-ifs: what another billable person adds, and what a more economical van saves. Revenue, and what it takes each week to get there, has its own page under <strong>Targets</strong>. Nothing here changes your live numbers.</p>
       </div>
       <PlanningTabs current="/portal/finance/planning" />
-      <FinancePlanner yearProfit={yearProfit} />
+      <FinancePlanner yearProfit={yearProfit} daysWeek={daysWeek} />
       <ScenarioPlanner defaultCharge={charge} defaultCost={cost} />
       {scale.length > 0 && (
         <VanScaling scale={scale} split={split} officeOh={officeOh} ohTotal={ohTotal} />
