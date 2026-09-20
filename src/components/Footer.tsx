@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site, services, publishedSuburbs } from "@/lib/site";
+import { site, services, publishedSuburbs, openingHours } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
 /** The suburbs the footer links from every page. The core hubs we most
@@ -54,7 +54,7 @@ export function Footer() {
               </li>
               <li>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                <span>Mon–Fri 8am–4pm · 24/7 emergency call-out</span>
+                <span>{openingHours()} · 24/7 emergency call-out</span>
               </li>
             </ul>
 

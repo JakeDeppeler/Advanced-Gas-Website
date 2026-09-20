@@ -220,7 +220,26 @@ export type CapSettings = {
   xeroMap?: Record<string, string>;
 };
 
-export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 25, margin: 40, callbackPct: 0, vehicles: 24000, standard: 60000 };
+/**
+ * The fallback every costing screen uses when nothing has been saved yet.
+ *
+ * `oncosts` is 0 on purpose, and it matters. Super, workers comp and payroll
+ * tax sit in the business overhead alongside the rent and the fuel, so they
+ * are already counted once there; adding them to the wage as well counts them
+ * twice. CapacityEditor has always enforced that by forcing `oncosts: 0` when
+ * it loads — but this default still said 25, and the Job calculator, Targets
+ * and Future planning all reach for it with `settings ?? DEFAULT_SETTINGS`.
+ *
+ * So with nothing saved, one tradesman cost $144.82/hr on Costs & capacity and
+ * $163.44/hr on the Job calculator. Same crew, same settings, $18.62 apart,
+ * and no screen said which one was lying.
+ *
+ * `margin` is left at 40 deliberately pending a decision — every figure worked
+ * through with Jake this month used 20%, and if that is the real number this
+ * belongs at 20. Changing it silently would move every charge-out rate on
+ * three screens, so it waits for an answer rather than a guess.
+ */
+export const DEFAULT_SETTINGS: CapSettings = { weeksYear: 52, oncosts: 0, margin: 40, callbackPct: 0, vehicles: 24000, standard: 60000 };
 
 /**
  * The detailed overheads, seeding the two old catch-all figures into the

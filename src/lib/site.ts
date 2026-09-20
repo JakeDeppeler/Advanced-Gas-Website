@@ -23,8 +23,21 @@ export const site = {
     country: "AU",
   },
   geo: { lat: -38.0703, lng: 145.4842 }, // Pakenham
+  /**
+   * On the tools 7:00 to 15:30, Monday to Friday.
+   *
+   * This said 08:00–16:00 and it was wrong in the place it matters most: it
+   * feeds openingHours in the LocalBusiness schema, so it is the figure Google
+   * shows beside the listing. Meanwhile the job calculator priced call-outs
+   * from 7:00–15:30 and the portal's lead report counted "after hours" from
+   * 16:00, so the same business kept three sets of hours and only one of them
+   * was ever right.
+   *
+   * Anything outside these is a call-out. The after-hours line is separate and
+   * always answered — see contact#emergency.
+   */
   hours: [
-    { day: "Mon-Fri", open: "08:00", close: "16:00" },
+    { day: "Mon-Fri", open: "07:00", close: "15:30" },
   ],
   social: {
     facebook: "",
@@ -86,5 +99,30 @@ export type ServiceSlug = (typeof services)[number]["slug"];
 // The old list included Korumburra, Leongatha, Wonthaggi, Phillip Island and
 // Inverloch — all >75 km from Pakenham and outside our stated service radius,
 // so they've been dropped in favour of the tighter, denser 75 km catchment.
+/**
+ * The opening hours as a person reads them, from the one record above.
+ *
+ * Every place that printed these by hand had drifted: the footer, the contact
+ * page, the handbook (twice) and the preview page all said 8am–4pm, the job
+ * calculator said 7–3:30, and the lead report counted after-hours from 4. Six
+ * hand-written copies of one fact, and the only one Google read was wrong.
+ */
+const clock = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  const suffix = h >= 12 ? "pm" : "am";
+  const hr = h % 12 === 0 ? 12 : h % 12;
+  return m ? `${hr}:${String(m).padStart(2, "0")}${suffix}` : `${hr}${suffix}`;
+};
+/** "Mon–Fri 7am–3:30pm" */
+export const openingHours = (): string => {
+  const h = site.hours[0];
+  return `${h.day.replace("-", "\u2013")} ${clock(h.open)}\u2013${clock(h.close)}`;
+};
+/** "7am – 3:30pm", without the days. */
+export const openingHoursShort = (): string => {
+  const h = site.hours[0];
+  return `${clock(h.open)} \u2013 ${clock(h.close)}`;
+};
+
 export { suburbs, publishedSuburbs } from "./suburbs";
 export type { Suburb, SuburbSlug } from "./suburbs";

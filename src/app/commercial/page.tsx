@@ -21,9 +21,9 @@ const ServiceAreaMap = dynamic(
 );
 
 export const metadata: Metadata = {
-  title: "Commercial HVAC, Gas & Mechanical Services, Melbourne & Gippsland",
+  title: "Commercial HVAC, Gas & Mechanical, Melbourne",
   description:
-    "Commercial mechanical services, Type A gas and hot water across Melbourne's south-east and Gippsland. VRV/VRF, air balancing, plant replacement and maintenance. $20M public liability, ARC AU59557, SWMS supplied.",
+    "Commercial mechanical, Type A gas and hot water across Melbourne's south-east. Fit-outs, plant replacement, maintenance. $20M public liability, SWMS supplied.",
   alternates: { canonical: "/commercial" },
 };
 

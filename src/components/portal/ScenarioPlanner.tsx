@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { money } from "@/lib/portal/format";
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ? 0 : n; };
 
 function Field({ label, value, onChange, pre, post }: { label: string; value: number; onChange: (n: number) => void; pre?: string; post?: string }) {

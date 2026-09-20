@@ -6,11 +6,11 @@ import { getUser, listGoals, listReviews, dbConfigured } from "@/lib/portal/db";
 import { PersonVan } from "@/components/portal/PersonVan";
 import { personVan } from "@/lib/portal/personVan";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { money2 } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "My file — Team portal" };
 
-const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function when(iso: string) {
   return new Date(`${iso.slice(0, 10)}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });

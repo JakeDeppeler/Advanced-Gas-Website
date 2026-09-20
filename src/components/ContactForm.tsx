@@ -130,7 +130,7 @@ export function ContactForm() {
           <label>Best time to call</label>
           <select value={bestTime} onChange={(e) => setBestTime(e.target.value)}>
             <option>Anytime in business hours</option>
-            <option>Morning (8am–12pm)</option>
+            <option>Morning (7am–12pm)</option>
             <option>Afternoon (12pm–5pm)</option>
             <option>Evening (after 5pm)</option>
           </select>

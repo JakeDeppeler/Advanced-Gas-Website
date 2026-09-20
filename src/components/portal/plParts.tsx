@@ -1,3 +1,4 @@
+import { money } from "@/lib/portal/format";
 /**
  * The pieces the profit & loss statement and its overview summary both need.
  *
@@ -13,7 +14,10 @@ export type PLDetail = {
   operatingExpenses: number; netProfit: number;
 };
 
-export const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
+/* Imported and re-exported, not redefined. The P&L components import `money`
+   from here, and there is no reason for that to be a different function to the
+   one every other screen uses. */
+export { money };
 export const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}${money(Math.abs(n))}`;
 
 export function pctChange(now: number, before: number): string | null {

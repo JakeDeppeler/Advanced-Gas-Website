@@ -7,12 +7,12 @@ import { FUEL_PRICE, KM_PER_WEEK, fuelPerYear, kmAYear, vehicleFinance } from "@
 import { STATUS_LABEL } from "@/components/portal/vehicleStatus";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { AddVehicleForm } from "@/components/portal/AddVehicleForm";
+import { money } from "@/lib/portal/format";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vehicles — Team portal" };
 
 const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
 /** What the fleet is worth, what's owed on it, and what a year of it costs. */
 function fleetTotals(vehicles: Vehicle[]) {

@@ -558,7 +558,7 @@
 .cap-printhead { display: none; }
 @media print {
   .cap-printhead { display: block; padding: 0 0 14px; border-bottom: 2px solid #000; margin-bottom: 18px; }
-  .cap-printhead h1 { margin: 0; font-size: 22pt; }
+  .cap-printhead__name { margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 22pt; line-height: 1.1; color: #000; }
   .cap-printhead p { margin: 6px 0 0; font-size: 10.5pt; color: #333; }
   .comm-panelsec, .cap-figures, .comm-sub { display: none !important; }
 }

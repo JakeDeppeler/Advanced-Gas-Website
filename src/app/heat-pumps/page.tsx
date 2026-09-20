@@ -16,7 +16,7 @@ import { TILE_TINTS } from "@/lib/tileTints";
 export const metadata: Metadata = {
   title: "Hot Water: Heat Pump or Gas, Pakenham",
   description:
-    "Every way we make hot water: heat pump all-in-one, heat pump split and gas continuous flow. What each one suits, what the VEU rebate does to the price, and when gas is still the right answer.",
+    "Heat pump all-in-one, heat pump split, gas continuous flow and gas storage. What each suits, and what the VEU rebate does to the price.",
   alternates: { canonical: "/heat-pumps" },
 };
 

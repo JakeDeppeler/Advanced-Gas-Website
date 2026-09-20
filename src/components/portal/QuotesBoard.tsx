@@ -3,12 +3,11 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addQuote, setStatus, removeQuote } from "@/app/portal/finance/quotes/actions";
+import { money, pct } from "@/lib/portal/format";
 
 export type QuoteView = { id: string; amount: number; status: "quoted" | "won" | "lost"; customer: string | null; when: string };
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 const parse = (v: string) => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? 0 : n; };
-const pct = (n: number) => `${Math.round(n * 100)}%`;
 const STATUS_LABEL = { quoted: "Quoted", won: "Won", lost: "Lost" } as const;
 
 export function QuotesBoard({ quotes, dbReady }: { quotes: QuoteView[]; dbReady: boolean }) {

@@ -10,7 +10,7 @@ import { PageHero } from "@/components/PageHero";
 export const metadata: Metadata = {
   title: "Guides, VEU Rebates, Heat Pumps & Aircon",
   description:
-    "Plain-English guides on VEU rebates, heat pump sizing, aircon selection, gas safety and saving on energy bills. Written by the people on the tools in Pakenham, not marketers.",
+    "Plain-English guides on VEU rebates, heat pump sizing, aircon selection and gas safety. Written by the people on the tools in Pakenham, not marketers.",
   alternates: { canonical: "/blog" },
 };
 

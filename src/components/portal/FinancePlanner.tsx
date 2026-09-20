@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { money } from "@/lib/portal/format";
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
 
 function daysLeftInYear(): number {
   const now = new Date();

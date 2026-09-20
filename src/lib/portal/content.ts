@@ -184,7 +184,7 @@ export const INFO: InfoBlock[] = [
     rows: [
       { k: "Address", v: "1 Sierra Circuit, Pakenham VIC 3810" },
       { k: "Office", v: "(03) 5947 8000" },
-      { k: "Hours", v: "Mon–Fri, 8:00am–4:00pm" },
+      { k: "Hours", v: "Mon–Fri, 7:00am–3:30pm" },
     ],
   },
 ];
@@ -364,7 +364,7 @@ export const INFO_SECTIONS: InfoSection[] = [
         rows: [
           { k: "Address", v: "1 Sierra Circuit, Pakenham VIC 3810" },
           { k: "Office", v: "(03) 5947 8000" },
-          { k: "Hours", v: "Mon–Fri, 8:00am–4:00pm" },
+          { k: "Hours", v: "Mon–Fri, 7:00am–3:30pm" },
         ],
       },
     ],

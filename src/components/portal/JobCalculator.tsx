@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CREW_LEVELS, LEVEL_LABEL, alwaysSupervised, type CrewLevel } from "@/lib/portal/crew";
+import { money, money2 } from "@/lib/portal/format";
 
 export type CrewRate = {
   id: string; name: string; level: CrewLevel;
@@ -28,8 +29,6 @@ export type CrewRate = {
   wageCharge: number | null;
 };
 
-const money = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
-const money2 = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ? 0 : n; };
 
 /**
