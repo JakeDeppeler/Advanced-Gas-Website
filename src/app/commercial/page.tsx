@@ -142,34 +142,70 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* WHO HAS ALREADY LET US IN — was six thousand pixels down, under three
-          sections of our own claims about ourselves. It is the only thing on
-          this page a reader cannot dispute, so it goes first. Names and
-          figures on one rail, quietly: a logo wall shouts, a list of accounts
-          states. */}
-      <section className="comm-proof">
+      {/* WHO HAS ALREADY LET US IN — the home page's brand strip, carrying
+          client names instead of manufacturer names. Same slot, same
+          treatment: the thing directly under the fork on both sides of the
+          business is the row of names that says other people already trust
+          this. It was a bare list of text on white with hairlines under it,
+          which read as an unstyled table rather than a credential. */}
+      <section className="brands comm-clients">
         <div className="wrap">
-          <p className="comm-proof__lede">
-            Brands with a procurement process and an auditor don&rsquo;t hand the mechanical package to whoever answers
-            first. These are the ones that have put us on site.
-          </p>
-          <ul className="comm-proof__names">
+          <div className="brands__lead">
+            <span className="brands__label">On site for</span>
+            <span className="brands__rule" />
+            <span className="brands__partner">
+              Brands with a procurement process and an auditor
+            </span>
+          </div>
+          <div className="brands__grid">
             {COMM_CLIENTS.map((c) => (
-              <li key={c.name}>
-                <strong>{c.name}</strong>
-                <span>{c.what}</span>
-                <em>{c.where}</em>
-              </li>
-            ))}
-          </ul>
-          <dl className="comm-proof__figs">
-            {COMM_FACTS.map((f) => (
-              <div key={f.k}>
-                <dt>{f.n}</dt>
-                <dd>{f.k}</dd>
+              <div key={c.name} className="brand-chip">
+                <span className="brand-chip__name">{c.name}</span>
+                <span className="brand-chip__type">{c.what}</span>
               </div>
             ))}
-          </dl>
+          </div>
+        </div>
+      </section>
+
+      {/* SCOPE PANEL — the home page's orange quote box, with a scope form in
+          it instead of a quote form.
+      
+          This has now been both things. It started orange, I made it paper on
+          the grounds that the loudest colour on the site behind the most
+          serious control read as a sales pitch, and that was the wrong call
+          for a reason I should have seen: on the residential side the orange
+          box IS the ask. It is the one band on the page that changes colour,
+          and it changes colour precisely where the page stops explaining and
+          starts asking. Taking it out of the commercial page did not make that
+          page more serious, it made it a wall of cream with no beat in it. */}
+      <section className="quotesec comm-scopesec" id="scope">
+        <div className="wrap">
+          <div className="quotesec__box">
+            <div className="quotesec__grid">
+              <div className="quotesec__left">
+                <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> Priced against a written scope</span>
+                <h2>Tell us what you&rsquo;re not being told.</h2>
+                <p className="quotesec__lede">
+                  Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another,
+                  and whoever notices last pays for it. We find the gap and put it in the scope, in writing, before
+                  anyone signs.
+                </p>
+                <ul className="quotesec__points">
+                  <li><span className="tick tick--on-orange">&#10003;</span> One price against one written scope</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> Exclusions stated, not buried</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> Variations approved before the work, not with the invoice</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> SWMS and certificates back before anyone turns up</li>
+                  <li><span className="tick tick--on-orange">&#10003;</span> Jake reads every commercial enquiry himself</li>
+                </ul>
+                <p className="quotesec__finep">
+                  {site.licences.refrigeration} &middot; {site.licences.plumbing} &middot;
+                  ABN {site.abn.replace(/ /g, "\u00a0")} &middot; $20M public liability
+                </p>
+              </div>
+              <CommercialScopeForm />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -210,51 +246,36 @@ export default function CommercialPage() {
             ))}
           </div>
 
-          <Link href="/commercial/capability" className="comm-caplink">
+        </div>
+      </section>
+
+      {/* THE FIGURES — where the home page puts its rebate band: one dark
+          band of big numbers in the middle of the page, so the eye has
+          somewhere to land between two runs of cards. The four figures were
+          four hairline items at the bottom of a text list, which is where a
+          number goes to be ignored. */}
+      <section className="comm-figs">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Before you put us on a site</span>
+            <h2 className="ds-h--on-dark">The four things procurement writes down.</h2>
+          </div>
+          <div className="comm-figs__grid">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k} className="commfig">
+                <strong>{f.n}</strong>
+                <span>{f.k}</span>
+                <p>{f.p}</p>
+              </div>
+            ))}
+          </div>
+          <Link href="/commercial/capability" className="comm-caplink comm-caplink--dark">
             <span>
               <strong>Capability statement</strong>
               ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.
             </span>
             <span className="comm-caplink__go">Everything procurement asks for &rarr;</span>
           </Link>
-        </div>
-      </section>
-
-      {/* SCOPE PANEL — the argument and the form. It used to sit inside a
-          floor-to-ceiling orange band; the form is the most important control
-          on the page and the loudest possible ground made it look like the
-          least serious thing on it. Paper now, with the form in a plain
-          bordered card and the licences set as a specification block. */}
-      <section className="comm-scope" id="scope">
-        <div className="wrap comm-scope__grid">
-          <div className="comm-scope__left">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
-            <h2>Tell us what you&rsquo;re not being told.</h2>
-            <p className="comm-scope__lede">
-              Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another,
-              and whoever notices last pays for it. We read the drawings properly, find the gap, and put it in the
-              scope in writing before anyone signs anything.
-            </p>
-            <ul className="comm-scope__points">
-              <li>One price against one written scope</li>
-              <li>Exclusions stated, not buried</li>
-              <li>Variations approved before the work, not with the invoice</li>
-              <li>Paperwork back before anyone turns up</li>
-            </ul>
-            <p className="comm-scope__note">
-              Jake reads every commercial enquiry himself, and you&rsquo;ll hear back the same day on two things:
-              whether it&rsquo;s one for us, and the date the priced scope will land. A breakdown is hours. A
-              fit-out is not. What you won&rsquo;t get is silence while we work out which.
-            </p>
-            <dl className="comm-scope__creds">
-              <div><dt>Refrigeration</dt><dd>{site.licences.refrigeration}</dd></div>
-              <div><dt>Plumbing</dt><dd>{site.licences.plumbing}</dd></div>
-              <div><dt>ABN</dt><dd>{site.abn}</dd></div>
-              <div><dt>Public liability</dt><dd>$20M</dd></div>
-            </dl>
-            <p className="comm-scope__fine">SWMS &amp; certificates of currency on request, usually back the same day.</p>
-          </div>
-          <CommercialScopeForm />
         </div>
       </section>
 
