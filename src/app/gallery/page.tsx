@@ -13,6 +13,7 @@ import { AlbumGrid } from "@/components/AlbumGrid";
 import { brands as allBrands } from "@/lib/brands";
 import "../detail.css";
 import "./gallery.css";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Install Gallery, Real Jobs Round Here",
@@ -140,7 +141,17 @@ export default async function GalleryPage() {
               <div className="gal-grid">
                 {g.shots.map((s) => (
                   <figure key={s.src} className="gal-cell">
-                    <img src={s.src} alt={s.alt} loading="lazy" width="600" height="450" />
+                    {/* Through the optimiser. Eighteen install photographs
+                        were being served at full size; two of them have spaces
+                        in the filename, which the optimiser rejects unless the
+                        path is encoded. */}
+                    <Image
+                      src={encodeURI(s.src)}
+                      alt={s.alt}
+                      width={600}
+                      height={450}
+                      sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
+                    />
                     <figcaption>
                       {s.caption}
                       {s.suburb && <span className="gal-cell__suburb">{s.suburb}</span>}
