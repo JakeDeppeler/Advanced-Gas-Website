@@ -732,13 +732,24 @@ export default async function HomePage() {
           </figure>
           <div className="bigcta__copy">
             <h2>Let&rsquo;s get your job done properly.</h2>
-            <p>A free written quote with the VEU rebate already applied, usually back to you within 12 business hours. The price only changes if the job does, and you approve the new number before we start. Prefer to talk? Give us a call.</p>
+            <p>Tell us what you need and we come back in writing. No doorstep pressure, no number invented on the spot.</p>
+            {/* The paragraph used to carry all three of these in a run of
+                prose. They are the terms of the deal, and terms get read when
+                they are set out and skipped when they are buried. */}
+            <ul className="bigcta__facts">
+              <li><strong>Free written quote</strong> inside 12 business hours</li>
+              <li><strong>VEU rebate</strong> already taken off the price</li>
+              <li><strong>Price only moves</strong> if the job does, and you approve it first</li>
+            </ul>
             <div className="bigcta__btns">
               <a href="#quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a quote →</a>
               <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
                 or call <strong>{site.phone}</strong>
               </a>
             </div>
+            <p className="bigcta__creds">
+              ARC AU59557 &middot; Plumbing Licence 46828 &middot; ABN 35 607 575 280 &middot; Family owned in Pakenham since 2014
+            </p>
           </div>
         </div>
       </section>
