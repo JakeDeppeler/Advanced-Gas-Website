@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   description:
     "Become a member for discounted annual servicing, priority same-week response, and waived call-out fees across Pakenham and within 75 km.",
   alternates: { canonical: "/membership" },
+  // Placeholder pricing ($TBC on all three tiers). Take this out with the
+  // real numbers — and add the page to sitemap.ts at the same time.
+  robots: { index: false, follow: false },
 };
 
 type Tier = {
