@@ -1075,55 +1075,197 @@
 .ph-tag--dark { background: rgba(255,255,255,0.85); color: var(--navy); }
 
 /* ============== BIG CTA ============== */
+/* The closing panel on twenty-nine pages.
+ *
+ * It was a full-bleed band of solid orange, floor to ceiling, with a
+ * white-bordered photograph floating on it and a navy button. Orange at that
+ * area is the loudest thing a page can do and it was the last thing every page
+ * did — the visual equivalent of raising your voice on the way out. It read
+ * like a discount flyer, which is a problem for a contractor asking to be
+ * trusted with a mechanical package.
+ *
+ * Now it is a contained navy panel sitting on the page's own ground, with a
+ * hairline of orange across the top and the orange spent on one button. A
+ * panel with air around it reads as considered; a band that slices the page
+ * reads as an interruption. The navy also has to stop short of the footer,
+ * which is navy too — hence the panel rather than another full-bleed slab, and
+ * the cream gap underneath it.
+ */
 .bigcta {
-  padding: 80px 0;
-  background: var(--orange);
+  padding: 56px 0 84px;
+  background: transparent;
   color: #fff;
-  position: relative;
-  overflow: hidden;
-}
-.bigcta::before {
-  content: "";
-  position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 50px 50px;
-  mask-image: radial-gradient(80% 60% at 50% 50%, #000, transparent 80%);
 }
 .bigcta__row {
   position: relative;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 48px; flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 40px 56px;
+  padding: 52px 56px;
+  background: var(--navy);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 34px 70px -46px rgba(5, 10, 48, 0.75);
 }
+/* The one piece of orange, and it is two pixels tall. */
+.bigcta__row::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  z-index: 3; /* above the photograph, so the rule frames the whole panel
+                 rather than starting halfway across it */
+  background: linear-gradient(90deg, var(--orange), var(--orange-2) 55%, var(--sky));
+}
+/* A faint grid, at a third of the strength it used to be. On solid orange it
+   was decoration; on navy at this weight it is just depth. */
+.bigcta__row::after {
+  content: "";
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(90% 70% at 20% 0%, #000, transparent 75%);
+}
+.bigcta__row > * { position: relative; z-index: 1; }
+
 .bigcta h2 {
   font-family: var(--f-display);
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-size: clamp(27px, 3.1vw, 40px);
   font-weight: 800;
   letter-spacing: -0.02em;
-  line-height: 1.05;
-  margin: 0 0 8px;
-  max-width: 700px;
+  line-height: 1.06;
+  margin: 0 0 10px;
+  max-width: 660px;
   color: #fff;
   text-wrap: balance;
 }
-.bigcta p { margin: 0; color: rgba(255,255,255,0.85); font-size: 17px; }
-.bigcta__btns { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.bigcta p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 16.5px;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+/* What actually happens next, as three facts rather than a paragraph.
+   A buyer deciding whether to enquire is scanning for terms, not prose. */
+.bigcta__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 30px;
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.bigcta__facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.9);
+}
+.bigcta__facts li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--orange);
+  transform: translateY(-2px);
+}
+.bigcta__facts strong { font-weight: 700; color: #fff; }
+
+/* The licences, small, last, in the mono face. The single cheapest signal a
+   trade site has that there is a real registered business behind it — and the
+   one thing a procurement reader looks for before anything else on the page. */
+.bigcta__creds {
+  margin: 26px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bigcta__btns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+}
 .bigcta__btns .ds-btn--orange {
-  background: var(--navy); color: #fff; box-shadow: 0 4px 0 #000;
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 4px 0 #a8410f;
 }
-.bigcta__btns .ds-btn--orange:hover { background: var(--navy-2); }
-.bigcta__phone { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 15px; }
-.bigcta__phone strong { font-family: var(--f-display); }
-.bigcta__textus {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--f-display); font-weight: 700; font-size: 16px;
-  color: #fff; text-decoration: none;
-  padding: 12px 22px; border-radius: 12px;
-  border: 1.5px solid rgba(255,255,255,0.55);
-  transition: background .15s, border-color .15s;
+.bigcta__btns .ds-btn--orange:hover { background: var(--orange-2); box-shadow: 0 5px 0 #a8410f; }
+.bigcta__phone { color: rgba(255, 255, 255, 0.72); text-decoration: none; font-size: 15px; }
+.bigcta__phone:hover { color: #fff; }
+.bigcta__phone strong { font-family: var(--f-display); color: #fff; }
+
+/* The photo variant. The frame is gone: the photograph runs to the edge of the
+   panel and is cropped by it, rather than floating in the middle of a colour
+   field inside a white border. This used to live in home.css under a
+   .page-home prefix, which is why the three commercial pages using the same
+   markup got none of it and laid out wrong. */
+.bigcta--photo .bigcta__row {
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.18fr);
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
 }
-.bigcta__textus:hover { background: rgba(255,255,255,0.14); border-color: #fff; }
+.bigcta__photo {
+  margin: 0;
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+}
+.bigcta__photo img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* The photograph resolves into the navy instead of stopping against it. Only
+   the last third, so the crew's faces stay out of it. */
+.bigcta__photo::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 62%, rgba(5, 10, 48, 0.55) 88%, var(--navy));
+}
+.bigcta--photo .bigcta__copy { padding: 52px 56px; text-align: left; }
+.bigcta--photo .bigcta__btns {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 26px;
+}
+
+@media (max-width: 980px) {
+  .bigcta__row { grid-template-columns: 1fr; padding: 40px 32px; }
+  .bigcta__btns { align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 16px; }
+  .bigcta--photo .bigcta__row { grid-template-columns: 1fr; }
+  .bigcta__photo { min-height: 0; aspect-ratio: 16 / 9; }
+  .bigcta__photo::after { background: linear-gradient(180deg, transparent 62%, rgba(5, 10, 48, 0.55) 88%, var(--navy)); }
+  .bigcta--photo .bigcta__copy { padding: 36px 32px 40px; }
+}
+@media (max-width: 560px) {
+  .bigcta { padding: 40px 0 60px; }
+  .bigcta__row { padding: 32px 22px; border-radius: 18px; }
+  .bigcta--photo .bigcta__copy { padding: 28px 22px 32px; }
+  /* One fact per line, and the bold part is not a column: at this width
+     "Price only moves" and its qualifier were setting themselves as two
+     ragged columns beside each other. */
+  .bigcta__facts { display: grid; gap: 9px; }
+  .bigcta__facts li { display: block; text-indent: -15px; padding-left: 15px; }
+  .bigcta__facts li::before { display: inline-block; margin-right: 9px; text-indent: 0; }
+}
 
 /* ============== FOOTER ============== */
 .ftr {

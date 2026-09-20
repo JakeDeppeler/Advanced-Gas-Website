@@ -28,15 +28,38 @@ export const metadata: Metadata = {
 };
 
 /**
- * The commercial front page, built to the homepage's layout beat for beat so
- * both sides read as one company: hero, four doors, a trust strip, the enquiry
- * panel, the work, the standard, the process, where we work, questions, close.
+ * The commercial front page.
  *
- * What changes is what each band is *for*. A homeowner is deciding whether to
- * trust a stranger in their house, so the residential page answers with a face,
- * a rebate and a review. A PM is deciding whether letting us on site will make
- * work for them, so the same slots carry insurances, a written scope, paperwork
- * turnaround and the names of people who have already had us through the gate.
+ * It used to be the homepage's layout beat for beat, which was the wrong
+ * instinct twice over. Structurally it meant eight sections in a row of
+ * eyebrow, enormous heading, paragraph, grid of identical cards — the same
+ * shape eight times, so nothing on the page had any rank. Visually it meant
+ * alternating full-bleed colour bands, including a floor-to-ceiling orange one
+ * wrapped around the enquiry form. Orange at that area is the loudest thing a
+ * page can do, and doing it behind the single most important control on the
+ * page made the most serious moment look like the least serious.
+ *
+ * A facility manager or a head contractor is not browsing. They are checking
+ * whether putting us on site will make work for them, and they read in a
+ * specific order: who else has let you in, what exactly do you take on, what
+ * are your insurances, how do you handle variations. So the page is built as a
+ * capability document rather than a brochure:
+ *
+ *   · The client names move from six thousand pixels down to directly under
+ *     the hero. They are the strongest thing on the page and they were filed
+ *     below three sections of our own claims about ourselves.
+ *   · The eight packages become a specification list rather than eight cards
+ *     with nested bullets. A schedule reads as a schedule.
+ *   · The standard becomes a numbered list with rules between the items, so
+ *     it reads as terms rather than as more marketing tiles.
+ *   · One dark band on the page — the process — instead of four.
+ *   · No orange grounds anywhere. Orange is a rule, a numeral and one button.
+ *
+ * The "What's the job?" fork is gone. Four doors to four anchors on
+ * /commercial/services, directly above a section that lists all eight packages
+ * and links to the same anchors, was the page asking the same question twice.
+ * It earns its place on the residential side, where the visitor genuinely may
+ * not know what they want.
  */
 
 export default function CommercialPage() {
@@ -85,143 +108,118 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* START HERE — four doors, the commercial half of the homepage fork. */}
-      <section className="route">
+      {/* WHO HAS ALREADY LET US IN — was six thousand pixels down, under three
+          sections of our own claims about ourselves. It is the only thing on
+          this page a reader cannot dispute, so it goes first. Names and
+          figures on one rail, quietly: a logo wall shouts, a list of accounts
+          states. */}
+      <section className="comm-proof">
         <div className="wrap">
-          <div className="route__panel">
-            <div className="ds-section-head ds-section-head--center">
-              <span className="ds-eyebrow">Start here</span>
-              <h2>What&rsquo;s the job?</h2>
-            </div>
-            <div className="routebtns">
-              {COMM_DOORS.map((d) => (
-                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
-                  <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
-                  <span className="routebtn__txt">
-                    <strong>{d.label}</strong>
-                    <em>{d.sub}</em>
-                  </span>
-                  <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-                </Link>
-              ))}
-            </div>
-            <p className="route__urgent">
-              Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. After hours goes
-              to someone on the tools.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* SCOPE PANEL — the homepage's orange quote box. */}
-      <section className="scopesec" id="scope">
-        <div className="wrap">
-          <div className="scopesec__box">
-            <div className="scopesec__grid">
-              <div className="scopesec__left">
-                <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
-                <h2 className="ds-h--on-dark">Tell us what you&rsquo;re not being told.</h2>
-                <p className="scopesec__lede">
-                  Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another,
-                  and whoever notices last pays for it. We read the drawings properly, find the gap, and put it in the
-                  scope in writing before anyone signs anything.
-                </p>
-                <ul className="scopesec__points">
-                  <li><span className="tick">✓</span> One price against one written scope</li>
-                  <li><span className="tick">✓</span> Exclusions stated, not buried</li>
-                  <li><span className="tick">✓</span> Variations approved before the work, not with the invoice</li>
-                  <li><span className="tick">✓</span> Paperwork back before anyone turns up</li>
-                </ul>
-                <p className="scopesec__note">
-                  Jake reads every commercial enquiry himself, and you&rsquo;ll hear back the same day on two things:
-                  whether it&rsquo;s one for us, and the date the priced scope will land. A breakdown is hours. A
-                  fit-out is not. What you won&rsquo;t get is silence while we work out which.
-                </p>
-
-                <p className="scopesec__finep">
-                  {site.licences.refrigeration} · {site.licences.plumbing} ·
-                  ABN {site.abn.replace(/ /g, " ")} · $20M public liability ·
-                  SWMS &amp; certificates of currency on request
-                </p>
+          <p className="comm-proof__lede">
+            Brands with a procurement process and an auditor don&rsquo;t hand the mechanical package to whoever answers
+            first. These are the ones that have put us on site.
+          </p>
+          <ul className="comm-proof__names">
+            {COMM_CLIENTS.map((c) => (
+              <li key={c.name}>
+                <strong>{c.name}</strong>
+                <span>{c.what}</span>
+                <em>{c.where}</em>
+              </li>
+            ))}
+          </ul>
+          <dl className="comm-proof__figs">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k}>
+                <dt>{f.n}</dt>
+                <dd>{f.k}</dd>
               </div>
-              <CommercialScopeForm />
-            </div>
-          </div>
+            ))}
+          </dl>
         </div>
       </section>
 
-      {/* WHAT WE TAKE ON — the homepage's services bento, on a dark ground so
-          the photographs carry the section rather than sitting in cream. */}
-      <section className="comm-take" id="scopes">
+      {/* WHAT WE TAKE ON — a schedule, not eight cards. Each row is a package,
+          who it suits, and what is in it; the detail lives on the services
+          page, which every row links to. On paper rather than a navy band,
+          because a reader comparing eight things needs them to be easy to read
+          rather than impressive to look at. */}
+      <section className="comm-packs" id="scopes">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> What we do</span>
-            <h2 className="ds-h--on-dark">Everything mechanical, gas and hot water, under one trade.</h2>
-            <p className="comm-take__lede">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What we do</span>
+            <h2>Everything mechanical, gas and hot water, under one trade.</h2>
+            <p>
               We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
               package we own from the drawings through to handover, with our own crew on it. Nothing here gets passed
               to somebody else once you&rsquo;ve signed.
             </p>
           </div>
-          <div className="comm-grid">
-            {COMM_SCOPES.map((sc) => (
-              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="commpack">
-                <span className="commpack__n">{sc.n}</span>
-                <h3>{sc.title}</h3>
-                <p>{sc.lede}</p>
-                <ul>
-                  {sc.detail.map((d) => <li key={d}>{d}</li>)}
-                </ul>
-                <span className="commpack__suits">{sc.suits}</span>
-              </Link>
-            ))}
-          </div>
 
-          <Link href="/commercial/capability" className="commpack__cap">
-            <div>
+          <ol className="packlist">
+            {COMM_SCOPES.map((sc) => (
+              <li key={sc.slug}>
+                <Link href={`/commercial/services#${sc.slug}`} className="packrow">
+                  <span className="packrow__n">{sc.n}</span>
+                  <span className="packrow__head">
+                    <strong>{sc.title}</strong>
+                    <span className="packrow__suits">{sc.suits}</span>
+                  </span>
+                  <span className="packrow__body">
+                    <span className="packrow__lede">{sc.lede}</span>
+                    <span className="packrow__detail">{sc.detail.join(" · ")}</span>
+                  </span>
+                  <span className="packrow__go" aria-hidden="true">&rarr;</span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+
+          <Link href="/commercial/capability" className="comm-caplink">
+            <span>
               <strong>Capability statement</strong>
-              <span>ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.</span>
-            </div>
-            <span className="commpack__go">Everything procurement asks for &rarr;</span>
+              ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.
+            </span>
+            <span className="comm-caplink__go">Everything procurement asks for &rarr;</span>
           </Link>
         </div>
       </section>
 
-      {/* THE WORK — where the homepage puts reviews. A facility manager doesn't
-          want five stars from a household; they want the name of somebody with
-          a procurement process who already let us on site. So: the names, big. */}
-      <section className="comm-work">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Some of the work</span>
-            <h2>Sites we&rsquo;ve been trusted with.</h2>
-            <p>
-              Brands with a procurement process and an auditor don&rsquo;t hand the mechanical package to whoever answers
-              first. These are the ones that have put us on site.
+      {/* SCOPE PANEL — the argument and the form. It used to sit inside a
+          floor-to-ceiling orange band; the form is the most important control
+          on the page and the loudest possible ground made it look like the
+          least serious thing on it. Paper now, with the form in a plain
+          bordered card and the licences set as a specification block. */}
+      <section className="comm-scope" id="scope">
+        <div className="wrap comm-scope__grid">
+          <div className="comm-scope__left">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Priced against a written scope</span>
+            <h2>Tell us what you&rsquo;re not being told.</h2>
+            <p className="comm-scope__lede">
+              Every mechanical package has a gap in it somewhere. The plans say one thing, the site says another,
+              and whoever notices last pays for it. We read the drawings properly, find the gap, and put it in the
+              scope in writing before anyone signs anything.
             </p>
+            <ul className="comm-scope__points">
+              <li>One price against one written scope</li>
+              <li>Exclusions stated, not buried</li>
+              <li>Variations approved before the work, not with the invoice</li>
+              <li>Paperwork back before anyone turns up</li>
+            </ul>
+            <p className="comm-scope__note">
+              Jake reads every commercial enquiry himself, and you&rsquo;ll hear back the same day on two things:
+              whether it&rsquo;s one for us, and the date the priced scope will land. A breakdown is hours. A
+              fit-out is not. What you won&rsquo;t get is silence while we work out which.
+            </p>
+            <dl className="comm-scope__creds">
+              <div><dt>Refrigeration</dt><dd>{site.licences.refrigeration}</dd></div>
+              <div><dt>Plumbing</dt><dd>{site.licences.plumbing}</dd></div>
+              <div><dt>ABN</dt><dd>{site.abn}</dd></div>
+              <div><dt>Public liability</dt><dd>$20M</dd></div>
+            </dl>
+            <p className="comm-scope__fine">SWMS &amp; certificates of currency on request, usually back the same day.</p>
           </div>
-          <div className="comm-wall">
-            {COMM_CLIENTS.map((c) => (
-              <div key={c.name} className="commwall">
-                <strong>{c.name}</strong>
-                <span>{c.what}</span>
-                <em>{c.where}</em>
-              </div>
-            ))}
-          </div>
-
-          {/* The four figures procurement actually writes down. Deliberately not
-              the residential numbers, installs done and a star rating answer a
-              homeowner's question, not a builder's. */}
-          <div className="comm-facts">
-            {COMM_FACTS.map((f) => (
-              <div key={f.k} className="commfact">
-                <strong>{f.n}</strong>
-                <span>{f.k}</span>
-                <p>{f.p}</p>
-              </div>
-            ))}
-          </div>
+          <CommercialScopeForm />
         </div>
       </section>
 
@@ -251,15 +249,21 @@ export default function CommercialPage() {
               <figcaption>Directly employed. All of them.</figcaption>
             </figure>
           </div>
-          <div className="comm-std__grid">
+          {/* A numbered list with a rule between each item, not six identical
+              tiles. These are commitments you could be held to, and a list
+              with rules through it reads as terms; a grid of cards reads as
+              features. */}
+          <ol className="stdlist">
             {COMM_STANDARD.map((st) => (
-              <div key={st.n} className="commstd">
-                <span className="commstd__n">{st.n}</span>
-                <h3>{st.h}</h3>
-                <p>{st.p}</p>
-              </div>
+              <li key={st.n}>
+                <span className="stdlist__n">{st.n}</span>
+                <div>
+                  <h3>{st.h}</h3>
+                  <p>{st.p}</p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </div>
       </section>
 

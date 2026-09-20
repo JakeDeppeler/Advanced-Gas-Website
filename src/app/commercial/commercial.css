@@ -110,62 +110,6 @@
 
 
 /* ---- Scope panel ---- */
-/* The homepage's orange quote box, in navy. Orange is the homeowner's
-   "get a price" button; this is the same slot, but the reader is filing an
-   enquiry rather than being sold to, so the panel is evidence-coloured and the
-   orange is spent on the one button that submits. */
-.page-home.page-comm .scopesec { padding: 72px 0; background: var(--bg-2, #f3efe5); }
-/* Orange, the same as the residential quote box. It was navy, which was
-   technically consistent with the rest of this page and quietly wrong: this is
-   the one block on the page asking for something, and on the residential side
-   the orange box IS the ask. Making it navy meant the enquiry panel looked like
-   another content section. */
-.scopesec__box {
-  position: relative;
-  overflow: hidden;
-  background: var(--orange, #f36722);
-  color: #fff;
-  border-radius: 28px;
-  padding: 46px 48px;
-  box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.55),
-              0 8px 24px -14px rgba(5, 10, 48, 0.2);
-}
-.scopesec__box::before {
-  content: "";
-  position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.16) 0%, transparent 55%),
-    radial-gradient(ellipse at bottom right, rgba(5, 10, 48, 0.12) 0%, transparent 45%);
-}
-.scopesec__grid { position: relative; }
-.scopesec__grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 44px; align-items: stretch; }
-/* The form sets the panel height. Pinning the credentials line to the bottom
-   of the left column closes the box off instead of leaving a hole under it. */
-.scopesec__left { display: flex; flex-direction: column; }
-.scopesec__left h2 { margin: 12px 0 0; font-size: clamp(26px, 3.4vw, 36px); line-height: 1.1; letter-spacing: -0.02em; }
-.scopesec__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.6; color: rgba(255, 255, 255, 0.92); max-width: 44ch; }
-.scopesec__points { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 12px; }
-.scopesec__points li { display: flex; gap: 11px; font-size: 15.5px; line-height: 1.5; color: #fff; }
-.scopesec .tick { background: rgba(255, 255, 255, 0.24); color: #fff; }
-.scopesec__note {
-  margin: 26px 0 0;
-  padding: 16px 18px;
-  border-radius: 12px;
-  background: rgba(5, 10, 48, 0.14);
-  font-size: 14.5px; line-height: 1.65; color: #fff;
-  max-width: 46ch;
-}
-.scopesec .scopeform__go {
-  background: var(--navy, #050a30);
-  border-color: var(--navy, #050a30);
-}
-.scopesec .scopeform__go:hover { background: var(--navy-2, #0b1450); }
-.scopesec__finep {
-  margin: 26px 0 0; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.28);
-  margin-top: auto;
-  font-family: var(--f-mono, ui-monospace, monospace); font-size: 11.5px; line-height: 1.7;
-  color: rgba(255, 255, 255, 0.82);
-}
 
 /* ---- Scope form ---- */
 .scopeform { background: #fff; border-radius: 18px; padding: 26px 26px 24px; display: grid; gap: 14px; }
@@ -338,7 +282,6 @@
   .comm-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .comm-take { padding: 56px 0; }
   .comm-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .commwall { min-height: 108px; padding: 16px 10px; }
   .commwall strong { font-size: 17px; }
@@ -380,60 +323,6 @@
 }
 
 /* ---- What we take on ---- */
-/* Dark ground, ten packages at identical weight. No feature tile and no
-   photographs: the point of this section is that all of it is ours, and a
-   bigger card beside smaller ones argues the opposite. */
-.comm-take { padding: 90px 0; background: var(--navy-2, #0b1450); }
-.comm-take__lede,
-.comm-take .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
-.comm-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
-  gap: 12px;
-  margin-top: 34px;
-}
-.commpack {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 24px 22px 22px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-top: 2px solid var(--orange, #f36722);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.045);
-  text-decoration: none; color: inherit;
-  transition: background 0.16s, transform 0.15s, border-color 0.16s;
-}
-.commpack:hover {
-  background: rgba(255, 255, 255, 0.09);
-  transform: translateY(-3px);
-  border-color: rgba(255, 255, 255, 0.28);
-  border-top-color: var(--orange, #f36722);
-}
-.commpack__n {
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 11px; letter-spacing: 0.1em; color: var(--orange, #f36722);
-}
-.commpack h3 { margin: 0; font-size: 19px; line-height: 1.22; letter-spacing: -0.02em; color: #fff; }
-.commpack p { margin: 0; font-size: 14.5px; line-height: 1.55; color: #c6cce6; }
-.commpack ul { margin: 4px 0 0; padding-left: 16px; display: grid; gap: 5px; }
-.commpack li { font-size: 13.5px; line-height: 1.5; color: #a9b2d4; }
-.commpack__suits {
-  margin-top: auto; padding-top: 12px;
-  font-family: var(--f-mono, ui-monospace, monospace);
-  font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: #8a93bd;
-}
-/* The statement sits under the grid as one bar, not as an eleventh package. */
-.commpack__cap {
-  display: flex; align-items: center; justify-content: space-between; gap: 24px;
-  margin-top: 12px; padding: 22px 26px;
-  border-radius: 16px; background: var(--orange, #f36722);
-  text-decoration: none; color: #fff;
-  transition: filter 0.16s;
-}
-.commpack__cap:hover { filter: brightness(1.06); }
-.commpack__cap strong { display: block; font-size: 19px; letter-spacing: -0.015em; }
-.commpack__cap span { display: block; margin-top: 4px; font-size: 14.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.92); max-width: 64ch; }
-.commpack__go { flex: 0 0 auto; font-size: 14.5px; font-weight: 700; }
-.commpack__cap:hover .commpack__go { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---- Why we get asked back ---- */
 /* One grid. The photograph is a cell in it rather than a column beside it, so
@@ -481,9 +370,7 @@
 }
 
 @media (max-width: 640px) {
-  .comm-take { padding: 56px 0; }
   .comm-std { padding: 56px 0; }
-  .commpack__cap { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 
 /* ---- Sub-page hero, dark ---- */
@@ -709,3 +596,285 @@
   .page-comm .bigcta--photo .bigcta__row { grid-template-columns: 1fr; gap: 22px; }
   .page-comm .bigcta__photo { aspect-ratio: 16 / 10; max-height: 240px; }
 }
+
+/* ==========================================================================
+   REDESIGN: the front page as a capability document
+   ========================================================================== */
+/* One rule governs the whole page: orange is a rule, a numeral and a button.
+   It is never a ground. The page used to alternate navy, orange, cream, cream,
+   navy, cream, and the reader got no signal from any of it because every band
+   shouted equally. Now there is exactly one dark section — the process — and
+   everything else sits on paper, which is what makes the dark one mean
+   something when it arrives. */
+
+/* ---- The proof rail ---- */
+/* Directly under the hero. Names and figures, set small and quiet: a wall of
+   logos asks to be admired, a list of accounts simply states who has already
+   signed us in. */
+.comm-proof {
+  padding: 40px 0 46px;
+  background: #fff;
+  border-bottom: 1px solid #e6ebf5;
+}
+.comm-proof__lede {
+  margin: 0 0 22px;
+  max-width: 62ch;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: #4a5468;
+}
+.comm-proof__names {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0;
+  border-top: 1px solid #e6ebf5;
+}
+.comm-proof__names li {
+  padding: 16px 20px 16px 0;
+  border-bottom: 1px solid #e6ebf5;
+}
+.comm-proof__names strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--comm-ink);
+}
+.comm-proof__names span { display: block; margin-top: 2px; font-size: 13px; line-height: 1.45; color: #5a6480; }
+.comm-proof__names em {
+  display: block;
+  margin-top: 5px;
+  font-style: normal;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8791ab;
+}
+.comm-proof__figs {
+  margin: 26px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 18px 28px;
+}
+.comm-proof__figs div { border-left: 2px solid var(--orange, #f36722); padding-left: 14px; }
+.comm-proof__figs dt {
+  font-family: var(--f-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--comm-ink);
+  line-height: 1.1;
+}
+.comm-proof__figs dd { margin: 3px 0 0; font-size: 12.5px; line-height: 1.4; color: #5a6480; }
+
+/* ---- The packages, as a schedule ---- */
+/* Eight cards with nested bullet lists became eight rows. A reader comparing
+   eight packages needs them easy to scan down, not impressive one at a time —
+   and the numbers down the left are the thing that makes it read as a
+   schedule rather than a menu. */
+.comm-packs { padding: 74px 0 64px; }
+.comm-packs .ds-section-head p { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 66ch; }
+.packlist { list-style: none; margin: 34px 0 0; padding: 0; border-top: 1px solid #dde4f0; }
+.packlist li { border-bottom: 1px solid #dde4f0; }
+.packrow {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 0.9fr) minmax(0, 1.5fr) 24px;
+  align-items: start;
+  gap: 0 24px;
+  padding: 22px 0;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.14s ease;
+}
+.packrow:hover { background: #f6f8fc; }
+.packrow__n {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--orange, #f36722);
+  padding-top: 4px;
+}
+.packrow__head strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 19px;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: var(--comm-ink);
+}
+.packrow__suits {
+  display: block;
+  margin-top: 7px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: #8791ab;
+}
+.packrow__lede { display: block; font-size: 15px; line-height: 1.55; color: var(--ink-2); }
+.packrow__detail {
+  display: block;
+  margin-top: 7px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #6b7590;
+}
+.packrow__go { justify-self: end; padding-top: 4px; color: #b9c1d6; transition: color 0.14s, transform 0.14s; }
+.packrow:hover .packrow__go { color: var(--orange, #f36722); transform: translateX(3px); }
+
+/* The capability statement. A line with a rule under it, not an orange slab. */
+.comm-caplink {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding: 20px 22px;
+  border: 1px solid #dde4f0;
+  border-left: 3px solid var(--orange, #f36722);
+  border-radius: 12px;
+  background: #f6f8fc;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.14s, background 0.14s;
+}
+.comm-caplink:hover { background: #eef2f9; border-color: #c8d2e6; border-left-color: var(--orange, #f36722); }
+.comm-caplink strong {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 17px;
+  letter-spacing: -0.015em;
+  color: var(--comm-ink);
+  margin-bottom: 3px;
+}
+.comm-caplink span { font-size: 14px; line-height: 1.55; color: #4a5468; max-width: 66ch; }
+.comm-caplink__go { flex: 0 0 auto; font-family: var(--f-display); font-size: 14px; font-weight: 700; color: var(--orange, #f36722); }
+.comm-caplink:hover .comm-caplink__go { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- The scope panel ---- */
+.comm-scope { padding: 70px 0 76px; background: var(--bg-2, #f3efe5); border-block: 1px solid #e2e8f4; }
+.comm-scope__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr); gap: 52px; align-items: start; }
+.comm-scope__left h2 { margin: 12px 0 0; font-size: clamp(26px, 3.2vw, 36px); line-height: 1.1; letter-spacing: -0.02em; color: var(--comm-ink); }
+.comm-scope__lede { margin: 14px 0 0; font-size: 16.5px; line-height: 1.6; color: var(--ink-2); max-width: 48ch; }
+.comm-scope__points { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 0; border-top: 1px solid #d9dfec; }
+.comm-scope__points li {
+  padding: 11px 0 11px 26px;
+  border-bottom: 1px solid #d9dfec;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--comm-ink);
+  position: relative;
+}
+.comm-scope__points li::before {
+  content: "";
+  position: absolute;
+  left: 4px; top: 18px;
+  width: 9px; height: 5px;
+  border-left: 2px solid var(--orange, #f36722);
+  border-bottom: 2px solid var(--orange, #f36722);
+  transform: rotate(-45deg);
+}
+.comm-scope__note {
+  margin: 22px 0 0;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #dde4f0;
+  border-radius: 12px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: #4a5468;
+}
+/* The licences as a specification block. A procurement reader is looking for
+   exactly these four things and looking for them in a list, not in a sentence
+   set in eleven-pixel grey at the bottom of a panel. */
+.comm-scope__creds {
+  margin: 24px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0;
+  border-top: 1px solid #d9dfec;
+}
+.comm-scope__creds div { padding: 12px 16px 12px 0; border-bottom: 1px solid #d9dfec; }
+.comm-scope__creds dt {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8791ab;
+}
+.comm-scope__creds dd { margin: 4px 0 0; font-family: var(--f-display); font-size: 15px; font-weight: 700; color: var(--comm-ink); }
+.comm-scope__fine { margin: 14px 0 0; font-size: 12.5px; line-height: 1.55; color: #6b7590; }
+/* The form is on paper now, so it needs an edge of its own. */
+.comm-scope .scopeform { border: 1px solid #dde4f0; box-shadow: 0 18px 44px -32px rgba(5, 10, 48, 0.45); }
+
+/* ---- The standard, as terms ---- */
+.stdlist { list-style: none; margin: 40px 0 0; padding: 0; border-top: 1px solid #d9dfec; }
+.stdlist li {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 0 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid #d9dfec;
+}
+.stdlist__n { font-family: var(--f-mono); font-size: 12px; color: var(--orange, #f36722); padding-top: 3px; }
+.stdlist h3 { margin: 0; font-family: var(--f-display); font-size: 18px; line-height: 1.25; letter-spacing: -0.02em; color: var(--comm-ink); }
+.stdlist p { margin: 6px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); max-width: 78ch; }
+
+@media (max-width: 900px) {
+  .comm-scope__grid { grid-template-columns: 1fr; gap: 34px; }
+  .packrow { grid-template-columns: 34px minmax(0, 1fr) 20px; gap: 0 16px; }
+  .packrow__body { grid-column: 2 / 3; margin-top: 10px; }
+}
+@media (max-width: 640px) {
+  .comm-proof { padding: 30px 0 34px; }
+  .comm-packs { padding: 52px 0 46px; }
+  .comm-scope { padding: 48px 0 54px; }
+  .stdlist li { grid-template-columns: 30px minmax(0, 1fr); gap: 0 12px; }
+}
+
+/* ---- Heading scale ---- */
+/* The site's section headings run to 56px, which is right on a page selling a
+   split system to a household: the heading IS the argument and there are four
+   of them on the page. This reader has a mechanical schedule open in another
+   window and is working down a list. Nine headings at 56px, each one three
+   lines deep, is the page raising its voice at somebody who is already
+   reading. Down to 40, which is still clearly a heading and stops the page
+   sounding like an advertisement. */
+.page-comm .ds-section-head h2,
+.page-comm .comm-scope__left h2,
+.page-comm .comm-std__intro h2,
+.page-comm .faq__left h2,
+.page-comm .area__left h2 {
+  font-size: clamp(27px, 3vw, 40px);
+  line-height: 1.1;
+}
+.page-comm .ds-section-head p,
+.page-comm .comm-std__intro p { font-size: 16.5px; }
+
+/* ---- The process, quieter ---- */
+/* The step numbers were set at 40px in the display face and the step titles at
+   19px, so on every card the loudest element was the number — the one piece of
+   information the reader already has, because the cards are in order and
+   numbered down the left of the page twice already. The number is a label.
+   It goes back to being one. */
+.page-comm .commstep {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 2px solid var(--orange, #f36722);
+  padding: 22px 24px 24px;
+}
+.page-comm .commstep:hover { transform: none; background: rgba(255, 255, 255, 0.08); }
+.page-comm .commstep__n {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--orange, #f36722);
+}
+.page-comm .commstep h3 { margin: 8px 0 8px; font-size: 18px; }
+.page-comm .commstep p { font-size: 14.5px; line-height: 1.6; }
