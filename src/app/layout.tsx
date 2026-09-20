@@ -16,6 +16,7 @@ import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
 import { PageEnter } from "@/components/PageEnter";
+import { SiteCross } from "@/components/SiteCross";
 import { Reveal } from "@/components/Reveal";
 
 const manrope = Manrope({
@@ -131,6 +132,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </ChromeGate>
         <main id="main" className="flex-1">{children}</main>
         <PageEnter />
+        <SiteCross />
         <Reveal />
         <ChromeGate>
           <Footer />

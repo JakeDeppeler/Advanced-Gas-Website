@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { LocalConditions } from "@/components/LocalConditions";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { crossTo } from "@/components/SiteCross";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
@@ -371,6 +372,7 @@ function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -402,6 +404,18 @@ export function Header() {
   };
 
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
+
+  /**
+   * Crossing between the two sides of the business. The one navigation on the
+   * site that gets a transition, because it is the one where the reader
+   * genuinely changes context. Modified clicks — new tab, new window — are
+   * left alone so the tab still behaves like a link when somebody wants it to.
+   */
+  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    crossTo(() => router.push(href), href === "/commercial" ? "to-commercial" : "to-home");
+  }
 
   return (
     <>
@@ -437,6 +451,7 @@ export function Header() {
               href="/"
               className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
               aria-current={onCommercial ? undefined : "page"}
+              onClick={(e) => crossOver(e, "/")}
             >
               Your home
             </Link>
@@ -444,6 +459,7 @@ export function Header() {
               href="/commercial"
               className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
               aria-current={onCommercial ? "page" : undefined}
+              onClick={(e) => crossOver(e, "/commercial")}
             >
               Business &amp; commercial
             </Link>
@@ -591,7 +607,7 @@ function RailMega({ groups, rail, foot }: {
   const g = groups[active];
 
   return (
-    <div className="megasvc megasvc--list">
+    <div className="megasvc">
       <div className="megasvc__rail" role="tablist" aria-label="Sections">
         {groups.map((grp, i) => (
           <button
@@ -669,19 +685,15 @@ function ServicesMega() {
             <span aria-hidden="true">→</span>
           </button>
         ))}
-        {/* The two things that used to be their own nav items. A line each
-            at the bottom of the rail, which is where somebody who has just
-            read the categories is looking anyway. */}
+        {/* One destination, not two. There were two links here — the range
+            and the brands — pointing at two indexes of the same catalogue,
+            one by what the thing is and one by who made it. The range is the
+            one with the sizes and the prices on it, so it is the one that
+            stays. Brands is still its own page, in the footer and in search. */}
         <Link href="/range" className="megasvc__range">
           <div>
             <b>The full range</b>
-            <span>Every model, filterable</span>
-          </div>
-        </Link>
-        <Link href="/brands" className="megasvc__range megasvc__range--quiet">
-          <div>
-            <b>Brands we fit</b>
-            <span>And what we think of each</span>
+            <span>Every model and size, with prices</span>
           </div>
         </Link>
         <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">

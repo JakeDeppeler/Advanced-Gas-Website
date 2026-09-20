@@ -108,6 +108,40 @@ export default function CommercialPage() {
         </div>
       </section>
 
+      {/* START HERE — the home page's fork, in the home page's markup, so the
+          two sides of the business read as one company. It was pulled out when
+          this page was rebuilt as a capability document, on the grounds that
+          the four doors pointed at four anchors the package list already
+          linked. True, and beside the point: the fork is the first thing a
+          reader meets on the residential side, and crossing over to find it
+          missing makes the commercial side feel like somebody else's site. */}
+      <section className="route">
+        <div className="wrap">
+          <div className="route__panel">
+            <div className="ds-section-head ds-section-head--center">
+              <span className="ds-eyebrow">Start here</span>
+              <h2>What&rsquo;s the job?</h2>
+            </div>
+            <div className="routebtns">
+              {COMM_DOORS.map((d) => (
+                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
+                  <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
+                  <span className="routebtn__txt">
+                    <strong>{d.label}</strong>
+                    <em>{d.sub}</em>
+                  </span>
+                  <span className="routebtn__go" aria-hidden="true">&rarr;</span>
+                </Link>
+              ))}
+            </div>
+            <p className="route__urgent">
+              Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. After hours goes
+              to someone on the tools.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* WHO HAS ALREADY LET US IN — was six thousand pixels down, under three
           sections of our own claims about ourselves. It is the only thing on
           this page a reader cannot dispute, so it goes first. Names and
@@ -146,7 +180,7 @@ export default function CommercialPage() {
           rather than impressive to look at. */}
       <section className="comm-packs" id="scopes">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What we do</span>
             <h2>Everything mechanical, gas and hot water, under one trade.</h2>
             <p>
@@ -156,24 +190,25 @@ export default function CommercialPage() {
             </p>
           </div>
 
-          <ol className="packlist">
+          {/* The home page's card grid, in the home page's classes — this page
+              carries `page-home` as its layout scope, so .bcard is already
+              styled. No photographs on them: there are three genuinely
+              commercial shots on this site and ten packages, and filling the
+              gap with domestic install photos would be the one thing a
+              facility manager would notice. The number does the work the
+              photograph does on the home page. */}
+          <div className="bento bento--packs">
             {COMM_SCOPES.map((sc) => (
-              <li key={sc.slug}>
-                <Link href={`/commercial/services#${sc.slug}`} className="packrow">
-                  <span className="packrow__n">{sc.n}</span>
-                  <span className="packrow__head">
-                    <strong>{sc.title}</strong>
-                    <span className="packrow__suits">{sc.suits}</span>
-                  </span>
-                  <span className="packrow__body">
-                    <span className="packrow__lede">{sc.lede}</span>
-                    <span className="packrow__detail">{sc.detail.join(" · ")}</span>
-                  </span>
-                  <span className="packrow__go" aria-hidden="true">&rarr;</span>
-                </Link>
-              </li>
+              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="bcard bcard--pack">
+                <div className="bcard__body">
+                  <span className="bcard__num">{sc.n}</span>
+                  <h3>{sc.title}</h3>
+                  <p>{sc.lede}</p>
+                  <span className="packcard__suits">{sc.suits}</span>
+                </div>
+              </Link>
             ))}
-          </ol>
+          </div>
 
           <Link href="/commercial/capability" className="comm-caplink">
             <span>
