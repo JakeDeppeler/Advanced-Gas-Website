@@ -498,17 +498,17 @@
 }
 .page-home .fixprice__photo {
   position: relative;
+  overflow: hidden;
   aspect-ratio: 4 / 5;
   border-bottom: 1px solid var(--line);
   background-color: #ffffff;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
-.page-home .fixprice__photo--reclaim { background-image: url("/reclaim-split-back.webp"); }
-.page-home .fixprice__photo--aio     { background-image: url("/thermann-heat-pump.webp"); }
-.page-home .fixprice__photo--split   { background-image: url("/reclaim-split-back.webp"); }
-.page-home .fixprice__photo--ducted  { background-image: url("/reclaim-mitsubishi.webp"); }
+/* These were CSS background-images, which meant the full-size .webp came
+   down whatever size the card rendered at — and a background cannot be
+   lazy-loaded, resized or served as AVIF. The photos are next/image now
+   and the boxes just hold them. */
+.page-home .fixprice__photo img { object-fit: cover; }
+.page-home .fixprice__photo--aio img { object-fit: contain; padding: 18px; }
 
 /* Featured "highest quality" card in the middle of the fixed-price row. The
    orange ring and the deeper shadow do the featuring; it used to also sit 8px
@@ -831,36 +831,37 @@
 .page-home .bcard--xl { grid-column: span 2; grid-row: span 2; }
 .page-home .bcard__photo {
   position: relative;
+  overflow: hidden;
   background-color: var(--bg-2);
   border-bottom: 1px solid var(--line);
   min-height: 200px;
-  padding: 14px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 .page-home .bcard--xl .bcard__photo {
   min-height: 520px;
-  background-size: contain;
   background-color: #f4f0e6;
 }
-.page-home .bcard__photo--heatpump  { background-image: url("/thermann-heat-pump.webp"); }
-.page-home .bcard__photo--split     { background-image: url("/kaden-indoor.webp"); }
-.page-home .bcard__photo--ducted    { background-image: url("/ducted-condenser.webp"); }
-.page-home .bcard__photo--gas       { background-image: url("/gas-ducted-install.webp"); }
-.page-home .bcard__photo--service   { background-image: url("/evap-cooler-service.webp"); }
-.page-home .bcard__photo--hotwater  { background-image: url("/gas-hot-water-changeover.webp"); }
-.page-home .bcard__photo--commercial {
-  background-image:
-    linear-gradient(180deg, rgba(11,20,80,0.15), rgba(11,20,80,0.35)),
-    url("/duct-work.webp");
-  border-bottom-color: rgba(255,255,255,0.1);
+/* Same conversion as the fixed-price row above: the eight photos in this
+   bento were background-images, so the homepage was pulling down eight
+   full-size originals for boxes about 290px wide. They are next/image now.
+   The two tinted cards keep their wash as an ::after over the top, because
+   a background-image would sit behind the photo rather than on it. */
+.page-home .bcard__photo img { object-fit: cover; }
+.page-home .bcard--xl .bcard__photo img { object-fit: contain; padding: 14px; }
+.page-home .bcard__photo--commercial,
+.page-home .bcard__photo--emergency { border-bottom-color: rgba(255,255,255,0.1); }
+.page-home .bcard__photo--emergency { border-bottom-color: rgba(255,255,255,0.15); }
+.page-home .bcard__photo--commercial::after,
+.page-home .bcard__photo--emergency::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
-.page-home .bcard__photo--emergency {
-  background-image:
-    linear-gradient(180deg, rgba(193,54,42,0.10), rgba(225,74,58,0.25)),
-    url("/gas-line-safe.webp");
-  border-bottom-color: rgba(255,255,255,0.15);
+.page-home .bcard__photo--commercial::after {
+  background: linear-gradient(180deg, rgba(11,20,80,0.15), rgba(11,20,80,0.35));
+}
+.page-home .bcard__photo--emergency::after {
+  background: linear-gradient(180deg, rgba(193,54,42,0.10), rgba(225,74,58,0.25));
 }
 
 .page-home .bcard__body { padding: 22px 22px 22px; flex: 1; display: flex; flex-direction: column; }

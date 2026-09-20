@@ -366,7 +366,9 @@ export default async function HomePage() {
                 <span className="fixprice__badge fixprice__badge--value">Most installed</span>
                 <span className="fixprice__badge fixprice__badge--aus">Australian made</span>
               </div>
-              <div className="fixprice__photo fixprice__photo--aio" />
+              <div className="fixprice__photo fixprice__photo--aio">
+                <Image src="/Reclaim-EcoAIO-Products-NewLogo-600PX-400x631-1.webp" alt="Reclaim ECO R290 all-in-one heat pump hot water units, 200 L and 300 L" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 390px" />
+              </div>
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · All-in-one</span>
                 <h3>Reclaim R290 all-in-one, fully installed</h3>
@@ -390,7 +392,9 @@ export default async function HomePage() {
                 <span className="fixprice__badge fixprice__badge--top">Highest quality</span>
                 <span className="fixprice__badge fixprice__badge--aus">Australian made</span>
               </div>
-              <div className="fixprice__photo fixprice__photo--split" />
+              <div className="fixprice__photo fixprice__photo--split">
+                <Image src="/reclaim-split-back.webp" alt="Reclaim CO&#8322; split heat pump tank and outdoor unit installed beside a brick wall" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 390px" />
+              </div>
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Heat pump hot water · Split</span>
                 <h3>Reclaim CO&#8322; split heat pump, fully installed</h3>
@@ -414,7 +418,9 @@ export default async function HomePage() {
                 <span className="fixprice__badge fixprice__badge--quality">High quality</span>
                 <span className="fixprice__badge fixprice__badge--best">Best product</span>
               </div>
-              <div className="fixprice__photo fixprice__photo--ducted" />
+              <div className="fixprice__photo fixprice__photo--ducted">
+                <Image src="/reclaim-mitsubishi.webp" alt="Mitsubishi Electric ducted condenser installed beside a Reclaim heat pump" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 390px" />
+              </div>
               <div className="fixprice__body">
                 <span className="fixprice__eyebrow">Ducted aircon</span>
                 <h3>18&nbsp;kW Mitsubishi Electric ducted system</h3>
@@ -450,7 +456,9 @@ export default async function HomePage() {
 
           <div className="bento">
             <Link href="/services#heatpump" className="bcard bcard--xl bcard--feature">
-              <div className="bcard__photo bcard__photo--heatpump" />
+              <div className="bcard__photo bcard__photo--heatpump">
+                <Image src="/thermann-heat-pump.webp" alt="Thermann heat pump hot water system installed on a paved area" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 90vw, 600px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">01</span>
                 <h3>Heat pump hot water</h3>
@@ -460,7 +468,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/services#split" className="bcard">
-              <div className="bcard__photo bcard__photo--split" />
+              <div className="bcard__photo bcard__photo--split">
+                <Image src="/kaden-indoor.webp" alt="Kaden wall split indoor head installed in a living room" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">02</span>
                 <h3>Split systems</h3>
@@ -469,7 +479,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/services#ducted" className="bcard">
-              <div className="bcard__photo bcard__photo--ducted" />
+              <div className="bcard__photo bcard__photo--ducted">
+                <Image src="/ducted-condenser.webp" alt="Ducted system outdoor condenser installed beside a house" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">03</span>
                 <h3>Ducted aircon</h3>
@@ -478,7 +490,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/services#gas-heating" className="bcard">
-              <div className="bcard__photo bcard__photo--gas" />
+              <div className="bcard__photo bcard__photo--gas">
+                <Image src="/gas-ducted-install.webp" alt="Gas ducted heater in a roof space, where the service and CO test happen" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">04</span>
                 <h3>Gas &amp; ducted gas heating</h3>
@@ -487,7 +501,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/services#service" className="bcard bcard--accent">
-              <div className="bcard__photo bcard__photo--service" />
+              <div className="bcard__photo bcard__photo--service">
+                <Image src="/evap-cooler-service.webp" alt="Evaporative cooler mounted on a tiled roof" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">05</span>
                 <h3>Service &amp; safety check</h3>
@@ -497,7 +513,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/services#hotwater" className="bcard">
-              <div className="bcard__photo bcard__photo--hotwater" />
+              <div className="bcard__photo bcard__photo--hotwater">
+                <Image src="/gas-hot-water-changeover.webp" alt="Gas hot water changeover in progress on an external wall" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">06</span>
                 <h3>Hot water, gas &amp; electric</h3>
@@ -506,7 +524,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/commercial" className="bcard bcard--dark">
-              <div className="bcard__photo bcard__photo--commercial" />
+              <div className="bcard__photo bcard__photo--commercial">
+                <Image src="/duct-work.webp" alt="Insulated flex ductwork run through a roof space" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">07</span>
                 <h3>Commercial fit-out</h3>
@@ -515,7 +535,9 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/contact#emergency" className="bcard bcard--emergency" id="emergency">
-              <div className="bcard__photo bcard__photo--emergency" />
+              <div className="bcard__photo bcard__photo--emergency">
+                <Image src="/gas-line-safe.webp" alt="Excavator trenching for a new gas line" fill sizes="(max-width: 700px) 100vw, (max-width: 1100px) 45vw, 300px" />
+              </div>
               <div className="bcard__body">
                 <span className="bcard__num">08</span>
                 <h3>Emergency call-outs</h3>

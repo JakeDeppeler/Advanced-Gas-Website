@@ -15,10 +15,16 @@
 .page-contact .ct-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 .page-contact .ct-field { display: flex; flex-direction: column; gap: 6px; }
 .page-contact .ct-field--full { grid-column: 1 / -1; }
-.page-contact .ct-field label {
+/* .ct-field__lbl is the heading over the checkbox chips. It cannot be a
+   <label>: a label names one control, and that group has seven. It is a
+   span with role="group"/aria-labelledby on the field instead, and it
+   takes the same type as the real labels beside it. */
+.page-contact .ct-field label,
+.page-contact .ct-field__lbl {
   font-family: var(--f-display); font-weight: 700; font-size: 13.5px; color: var(--navy);
 }
-.page-contact .ct-field label em { font-style: normal; color: var(--orange); }
+.page-contact .ct-field label em,
+.page-contact .ct-field__lbl em { font-style: normal; color: var(--orange); }
 .page-contact .ct-field input,
 .page-contact .ct-field select,
 .page-contact .ct-field textarea {
