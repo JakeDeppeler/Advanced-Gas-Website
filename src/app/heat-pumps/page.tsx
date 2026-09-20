@@ -11,6 +11,7 @@ import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import { HotWaterPicker } from "@/components/HotWaterPicker";
 import "../detail.css";
 import "./heat-pumps.css";
+import { TILE_TINTS } from "@/lib/tileTints";
 
 export const metadata: Metadata = {
   title: "Hot Water: Heat Pump or Gas, Pakenham",
@@ -52,7 +53,6 @@ const warningSigns = [
   },
 ];
 
-const TILE_TINTS = ["sky", "orange", "navy", "sand", "sky", "orange"] as const;
 
 export default function HeatPumpsPage() {
   // The service page already holds what is in every job, how the job runs and

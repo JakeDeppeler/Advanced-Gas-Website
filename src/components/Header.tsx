@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { sweepTo } from "@/components/RouteMotion";
 import { LocalConditions } from "@/components/LocalConditions";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { site } from "@/lib/site";
 import { brands } from "@/lib/brands";
@@ -36,7 +35,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "brands" | "areas" | "pricing" | "tools" | "company";
+      kind: "services" | "areas" | "pricing" | "company";
     };
 
 /**
@@ -271,27 +270,35 @@ const AREAS_MEGA = {
 };
 
 /**
- * Five items, all of them dropdowns, in the order somebody actually
- * asks the questions: what do you do, what gear, what does it cost, do
- * you come here, who are you. The quote button answers the sixth.
+ * Four items, in the order somebody actually asks the questions: what
+ * do you do, what does it cost, do you come here, who are you.
  *
- * It was eight. Tools and Rebates were both "help me work out what
- * I'll pay", so they live under Pricing now — the VEU rebate leads that
- * menu in orange, which is more prominence than it had as one item
- * among eight. Contact went because the phone number and the quote
- * button sit two inches to the right of where it used to be; it's still
- * in the About menu and the footer.
+ * It was eight, then six, and six was still two too many. The two that
+ * went are the two that were not questions a customer asks:
+ *
+ *   Brands  is the answer to "what gear do you fit", which is a part of
+ *           "what do you do". It is in the Services menu now, one line
+ *           under the categories, and on its own page as before.
+ *   Tools   is nine calculators, and every one of them exists to answer
+ *           "what will this cost me". They sit under Pricing, which is
+ *           where somebody looking for them was already going.
+ *
+ * Fewer items is not the only gain. Six dropdowns plus a search box, a
+ * phone number and a quote button needed 1260px of header, so any
+ * browser window narrower than that — which is most laptops with
+ * anything docked beside them — got a burger and no nav at all. Four
+ * items fit in 1080, so the real nav survives on screens that were
+ * losing it.
+ *
+ * No Commercial item. The switch above the header is the door to that
+ * side of the business, and it is a bigger, clearer one than a fifth
+ * nav link that reads as just another service.
  */
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
-  { label: "Brands", trigger: "brands", href: "/brands", kind: "brands" },
   { label: "Pricing", trigger: "pricing", href: "/pricing", kind: "pricing" },
-  { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
-  // No Commercial item. The switch above the header is the door to that side of
-  // the business now, and it is a bigger, clearer one than a seventh nav link
-  // that reads as just another service.
 ];
 
 /**
@@ -375,7 +382,6 @@ function isMega(n: NavItem): n is Extract<NavItem, { kind: string }> {
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [activeMega, setActiveMega] = useState<string | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -407,21 +413,6 @@ export function Header() {
   };
 
   const onCommercial = pathname?.startsWith("/commercial") ?? false;
-
-  /**
-   * Crossing between the two sides of the business. This is the one navigation
-   * on the site where the reader genuinely changes context — different services,
-   * different prices, different person reading — so it gets the orange sweep
-   * rather than the ordinary page-enter. Modified clicks (new tab, new window)
-   * are left alone.
-   */
-  function crossOver(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-    e.preventDefault();
-    // Orange going to the commercial side, navy coming home — the colour of
-    // where you are going, moving in the direction you are going.
-    sweepTo(() => router.push(href), href === "/commercial" ? "building" : "house");
-  }
 
   return (
     <>
@@ -457,7 +448,6 @@ export function Header() {
               href="/"
               className={`sitemode__tab${onCommercial ? "" : " is-on"}`}
               aria-current={onCommercial ? undefined : "page"}
-              onClick={(e) => crossOver(e, "/")}
             >
               Your home
             </Link>
@@ -465,7 +455,6 @@ export function Header() {
               href="/commercial"
               className={`sitemode__tab${onCommercial ? " is-on" : ""}`}
               aria-current={onCommercial ? "page" : undefined}
-              onClick={(e) => crossOver(e, "/commercial")}
             >
               Business &amp; commercial
             </Link>
@@ -542,10 +531,8 @@ export function Header() {
                 {isOpen && (
                   <div className={`mega mega--${n.kind}`} role="menu">
                     {n.kind === "services" && <ServicesMega />}
-                    {n.kind === "brands" && <BrandsMega />}
                     {n.kind === "areas" && <AreasMega />}
                     {n.kind === "pricing" && <PricingMega />}
-                    {n.kind === "tools" && <ToolsMega />}
                     {n.kind === "company" && <CompanyMega />}
                   </div>
                 )}
@@ -623,9 +610,20 @@ function ServicesMega() {
             <span aria-hidden="true">→</span>
           </button>
         ))}
+        {/* The two things that used to be their own nav items. A line each
+            at the bottom of the rail, which is where somebody who has just
+            read the categories is looking anyway. */}
         <Link href="/range" className="megasvc__range">
-          <b>The full range</b>
-          <span>Every model, filterable</span>
+          <div>
+            <b>The full range</b>
+            <span>Every model, filterable</span>
+          </div>
+        </Link>
+        <Link href="/brands" className="megasvc__range megasvc__range--quiet">
+          <div>
+            <b>Brands we fit</b>
+            <span>And what we think of each</span>
+          </div>
         </Link>
         <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
           Get a quote →
@@ -660,44 +658,20 @@ function ServicesMega() {
   );
 }
 
-function BrandsMega() {
-  // Clean text-only cards (matches the iheatandcool competitor look): brand
-  // name bold + one-word category subtitle, no photos. Photos looked cluttered
-  // in the dropdown, especially when all fallbacks landed on the same install
-  // shot. This reads much cleaner and scans faster.
-  const brandSubtitle: Record<string, string> = {
-    "mitsubishi-electric": "Air Conditioning",
-    "reclaim":             "CO₂ Heat Pumps",
-    "thermann":            "Heat Pump · Gas · Solar",
-    "istore":              "Heat Pump Hot Water",
-    "kaden":               "Split · Ducted · Gas · Evap",
-    "zonemate":            "Ducted Zoning",
-    "brivis":              "Gas Ducted Heating",
-  };
-  return (
-    <div className="mega__brands">
-      <div className="mega__brands-head">
-        <div className="mega__collabel">Every brand we install</div>
-        <Link href="/brands" className="mega__brands-all">See all {brands.length} brands →</Link>
-      </div>
-      <div className="mega__brands-cleangrid">
-        {brands.map((b) => (
-          <Link
-            key={b.slug}
-            href={`/brands/${b.slug}`}
-            role="menuitem"
-            className="mega__brandtile"
-            style={{ ["--card-accent" as string]: b.accent }}
-          >
-            <b>{b.name}</b>
-            <span>{brandSubtitle[b.slug] ?? b.tagline}</span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
+/**
+ * Pricing, and underneath it the nine calculators that used to be their
+ * own nav item.
+ *
+ * They belong together. Every one of those tools exists to answer "what
+ * will this cost me" — a rebate estimate, a running cost, a payback
+ * period — which is the same question the price list answers, just from
+ * the other end. As a separate menu called "Tools" they read as a
+ * curiosity; here they read as the working-out.
+ *
+ * Cards for the five destinations, a plain list for the calculators. A
+ * calculator is a link you click once and leave; it does not need a
+ * card with a subtitle competing with the price list for attention.
+ */
 function PricingMega() {
   return (
     <div className="mega__tools mega__pricing">
@@ -721,46 +695,28 @@ function PricingMega() {
           </Link>
         ))}
       </div>
+
+      <div className="mega__calcs">
+        <div className="mega__calcshead">
+          <div className="mega__collabel">Work it out yourself</div>
+          <Link href="/tools" className="mega__toolsall">All {TOOLS_MEGA.length} calculators →</Link>
+        </div>
+        <div className="mega__calcgrid">
+          {TOOLS_MEGA.map((t) => (
+            <Link key={t.href} href={t.href} role="menuitem" className="mega__calc">
+              <span className="mega__calcicon" aria-hidden="true">{t.icon}</span>
+              {t.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <div className="mega__toolsfoot">
         <div className="mega__cta-sub">Every number is the installed price with the rebate already off it.</div>
         <div className="mega__toolsbtns">
           <Link href="/range" className="ds-btn ds-btn--ghost">The full range →</Link>
           <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ToolsMega() {
-  return (
-    <div className="mega__tools">
-      <div className="mega__toolshead">
-        <div className="mega__collabel">Free tools &amp; calculators</div>
-        <Link href="/tools" className="mega__toolsall">See all {TOOLS_MEGA.length} tools →</Link>
-      </div>
-      <div className="mega__toolsgrid">
-        {TOOLS_MEGA.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            role="menuitem"
-            className={`mega__toolcard${t.lead ? " mega__toolcard--lead" : ""}`}
-          >
-            <span className="mega__toolicon" aria-hidden="true">{t.icon}</span>
-            <div className="mega__toolbody">
-              <b>{t.label}</b>
-              <span>{t.sub}</span>
-            </div>
-          </Link>
-        ))}
-      </div>
-      <div className="mega__toolsfoot">
-        <div className="mega__cta-sub">Prefer a real quote? We&rsquo;ll answer inside 12 business hours.</div>
-        {/* The price list gets a button as well as a card. It's the
-            destination the menu is named after, and a row in a grid of
-            eleven is easy to read past. */}
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
       </div>
     </div>
   );
@@ -823,6 +779,14 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
   return (
     <div className="hdr__drawer">
       <div className="wrap hdr__drawer-inner">
+        {/* The search box, which until now existed only above 1080px — that is,
+            on no phone at all. It is the one control that gets somebody to the
+            right page in one move without knowing how the menu is organised,
+            and it was hidden from the readers who need it most. First thing in
+            the drawer, full width. */}
+        <div className="hdr__drawer-search">
+          <HeaderSearch />
+        </div>
         {/* Same split as the desktop nav. A drawer full of split systems on the
             commercial side would undo the whole point of there being two. */}
         <div className="hdr__drawer-mode">
@@ -875,10 +839,9 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
                       <span>{p.sub}</span>
                     </Link>
                   ))}
-                </div>
-              )}
-              {n.kind === "brands" && (
-                <div className="hdr__drawer-col">
+                  {/* Brands, which used to be a nav item of its own. Last in
+                      the list on purpose: nobody scrolling a phone for "ducted
+                      heating" should have to get past them first. */}
                   <div className="hdr__drawer-collabel">Every brand we install</div>
                   {brands.map((b) => (
                     <Link
@@ -947,11 +910,7 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
                       </span>
                     </Link>
                   ))}
-                </div>
-              )}
-              {n.kind === "tools" && (
-                <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Prices, rebates &amp; calculators</div>
+                  <div className="hdr__drawer-collabel">Work it out yourself</div>
                   {TOOLS_MEGA.map((t) => (
                     <Link
                       key={t.href}

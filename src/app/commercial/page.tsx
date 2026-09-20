@@ -10,7 +10,6 @@ import {
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { DoorIcon } from "@/components/DoorIcon";
-import { DoorLink } from "@/components/DoorLink";
 import "../home.css";
 import "./commercial.css";
 
@@ -96,14 +95,14 @@ export default function CommercialPage() {
             </div>
             <div className="routebtns">
               {COMM_DOORS.map((d) => (
-                <DoorLink key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`} sweep={d.sweep}>
+                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
                   <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
                   <span className="routebtn__txt">
                     <strong>{d.label}</strong>
                     <em>{d.sub}</em>
                   </span>
                   <span className="routebtn__go" aria-hidden="true">&rarr;</span>
-                </DoorLink>
+                </Link>
               ))}
             </div>
             <p className="route__urgent">

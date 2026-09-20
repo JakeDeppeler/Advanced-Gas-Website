@@ -5,6 +5,7 @@ import { listUsers, getCapSettings, dbConfigured } from "@/lib/portal/db";
 import { computeCapacity, overheadSplit, overheadTotal, scaleModel, DEFAULT_SETTINGS, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
+import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { ScenarioPlanner } from "@/components/portal/ScenarioPlanner";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { VanScaling } from "@/components/portal/VanScaling";
@@ -57,6 +58,7 @@ export default async function PlanningPage() {
         <h1>Where we&rsquo;re headed.</h1>
         <p>The profit you&rsquo;re aiming at and how the year is tracking against it, then the what-ifs: what another billable person adds, and what a more economical van saves. Revenue, and what it takes each week to get there, has its own page under <strong>Targets</strong>. Nothing here changes your live numbers.</p>
       </div>
+      <PlanningTabs current="/portal/finance/planning" />
       <FinancePlanner yearProfit={yearProfit} />
       <ScenarioPlanner defaultCharge={charge} defaultCost={cost} />
       {scale.length > 0 && (

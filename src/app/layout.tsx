@@ -15,8 +15,8 @@ import { Footer } from "@/components/Footer";
 import { StickyMobileCTA } from "@/components/StickyMobileCTA";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { TITLE_SUFFIX } from "@/lib/seo";
+import { PageEnter } from "@/components/PageEnter";
 import { Reveal } from "@/components/Reveal";
-import { RouteMotion } from "@/components/RouteMotion";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -129,8 +129,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ChromeGate>
           <Header />
         </ChromeGate>
-        <RouteMotion />
         <main id="main" className="flex-1">{children}</main>
+        <PageEnter />
         <Reveal />
         <ChromeGate>
           <Footer />
