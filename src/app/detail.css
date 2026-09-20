@@ -2637,7 +2637,7 @@
   background:
     radial-gradient(ellipse 820px 460px at 10% 0%, rgba(243,103,34,0.11) 0%, transparent 62%),
     radial-gradient(ellipse 640px 380px at 92% 100%, rgba(0,176,237,0.10) 0%, transparent 58%),
-    linear-gradient(180deg, #1a2c68 0%, #12224e 62%, #0e1c45 100%);
+    var(--ground);
   padding: 52px 0 56px;
   overflow: hidden;
 }
