@@ -203,7 +203,7 @@ export default function ProductPage({
       {relatedProducts.length > 0 && (
         <section className="product-related">
           <div className="wrap">
-            <h3 className="product-related__lbl">Related models</h3>
+            <h2 className="product-related__lbl">Related models</h2>
             <div className="product-related__grid">
               {relatedProducts.map(({ brand: b, product: p }) => (
                 <Link key={`${b.slug}-${p.slug}`} href={`/brands/${b.slug}/${p.slug}`} className="product-related__card">

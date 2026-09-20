@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
-import { brands } from "@/lib/brands";
+import { brands, visibleProducts } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import "../detail.css";
 import "./[brand]/brand.css";
@@ -113,7 +113,7 @@ const BRAND_PITCH: Record<string, {
 };
 
 export default function BrandsIndex() {
-  const totalModels = brands.reduce((sum, b) => sum + b.products.length, 0);
+  const totalModels = brands.reduce((sum, b) => sum + visibleProducts(b).length, 0);
 
   return (
     <div className="page-detail page-brand page-brand-hub">
@@ -143,7 +143,7 @@ export default function BrandsIndex() {
                   // than hand-maintained — so a brand picking up a new
                   // product type shows it here automatically.
                   const categories = Array.from(
-                    new Set(b.products.map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel)),
+                    new Set(visibleProducts(b).map((p) => CATEGORY_CHIP[p.category] ?? p.categoryLabel)),
                   ).slice(0, 5);
                   return (
                     <Link
@@ -188,7 +188,7 @@ export default function BrandsIndex() {
 
                       <div className="bhc__foot">
                         <span className="bhc__count">
-                          {b.products.length} model{b.products.length === 1 ? "" : "s"}
+                          {visibleProducts(b).length} model{visibleProducts(b).length === 1 ? "" : "s"}
                         </span>
                         <span className="bhc__cta">View full range →</span>
                       </div>

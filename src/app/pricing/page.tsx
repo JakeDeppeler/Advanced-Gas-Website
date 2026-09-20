@@ -3,7 +3,7 @@ import Link from "next/link";
 import { PricingTabs } from "@/components/PricingTabs";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands } from "@/lib/brands";
+import { brands, visibleProducts } from "@/lib/brands";
 import { breadcrumbSchema } from "@/lib/schema";
 import "../detail.css";
 import "../brands/[brand]/brand.css";
@@ -57,7 +57,7 @@ export default function PricingPage() {
   };
   const rows: Record<string, Row[]> = {};
   for (const b of brands) {
-    for (const p of b.products) {
+    for (const p of visibleProducts(b)) {
       const arr = rows[p.category] ||= [];
       arr.push({
         brand: b.name,

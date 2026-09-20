@@ -101,7 +101,9 @@ export default function RangePage() {
             <span className="ds-dot" />
             Every type we fit, and what each one actually removes
           </div>
-          <h1>The full range.</h1>
+          {/* Not just "The full range." — /range claims that name, and two
+              pages on one site should not answer to the same heading. */}
+          <h1>The full filtration range.</h1>
           <p className="wf-hero__sub">
             Every filtration product page on the internet claims to make your water better and
             almost none of them says what it doesn&rsquo;t do. This is the table that does.

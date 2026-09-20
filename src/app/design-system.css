@@ -1389,7 +1389,7 @@
   border-radius: var(--rad);
   padding: 26px 26px 22px;
 }
-.ftr__news h4 {
+.ftr__news h3 {
   font-family: var(--f-display);
   font-size: 18px;
   font-weight: 800;
@@ -1900,7 +1900,7 @@ input, select, textarea {
   .ftr__signature-name b { font-size: 19px; }
   .ftr__signature-name span { font-size: 13px; }
   .ftr__news { padding: 20px; }
-  .ftr__news h4 { font-size: 16px; }
+  .ftr__news h3 { font-size: 16px; }
   .ftr__cols { grid-template-columns: 1fr 1fr; gap: 24px 16px; padding: 32px 0; }
   .ftr__badges { padding: 20px 0; gap: 8px; }
   .ftr__badges li { padding: 7px 10px; }

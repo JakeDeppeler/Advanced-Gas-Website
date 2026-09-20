@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, categoryPhoto, rangeFilterType } from "@/lib/brands";
+import { brands, categoryPhoto, rangeFilterType, visibleProducts } from "@/lib/brands";
 import { TIERS, SYSTEM_STYLES } from "@/lib/waterFiltration";
 import { breadcrumbSchema } from "@/lib/schema";
 import { pageTitle, metaDescription } from "@/lib/seo";
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 const catalogue: RangeItem[] = brands.flatMap((b) =>
-  b.products.map((p) => {
+  visibleProducts(b).map((p) => {
     const fallback = categoryPhoto[p.category];
     return {
       slug: p.slug,

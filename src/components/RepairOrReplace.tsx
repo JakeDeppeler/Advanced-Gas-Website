@@ -82,7 +82,7 @@ export function RepairOrReplace() {
     <div className="ror">
       <div className="ror__head">
         <span className="ror__lbl">Repair or replace?</span>
-        <h3>Put the number next to the alternative.</h3>
+        <h2>Put the number next to the alternative.</h2>
         <p>
           Three things and it does the sum we&rsquo;d do on the phone. Runs in your browser,
           nothing recorded, nothing sent.

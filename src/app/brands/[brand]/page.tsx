@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
-import { brands, findBrand, productPhoto } from "@/lib/brands";
+import { brands, findBrand, productPhoto, visibleProducts } from "@/lib/brands";
 import { SafeImg } from "@/components/SafeImg";
 import { BrandCompare } from "@/components/BrandCompare";
 import { ProductTabs } from "@/components/ProductTabs";
@@ -67,7 +67,12 @@ export default async function BrandPage({ params }: { params: { brand: string } 
   // "Founded 1971 · Melbourne · …" → "1971". No year in the sentence
   // means no figure, rather than a figure that is really a paragraph.
   const estYear = brand.established?.match(/\b(19|20)\d{2}\b/)?.[0];
-  const categoryCount = new Set(brand.products.map((pr) => pr.category)).size;
+  // Everything on this page counts and lists from here rather than from
+  // products, which still holds retired models so their old URLs
+  // keep redirecting. Reading the raw list was putting a retired Reclaim
+  // in the model count, the category chips, /range and the price list.
+  const products = visibleProducts(brand);
+  const categoryCount = new Set(products.map((pr) => pr.category)).size;
 
   const crumbs = breadcrumbSchema([
     { name: "Home", url: site.url },
@@ -150,7 +155,7 @@ export default async function BrandPage({ params }: { params: { brand: string } 
             ) : (
             <>
             <li>
-              <strong>{brand.products.length}</strong>
+              <strong>{products.length}</strong>
               <span>{brand.name} models we install</span>
             </li>
             {/* `established` is a sentence, not a year — "Designed and
@@ -343,42 +348,42 @@ export default async function BrandPage({ params }: { params: { brand: string } 
           their only product) get the full product detail rendered inline
           instead of a compare grid holding one lonely card. Everyone else
           gets the grouped grid with per-card compare checkboxes. */}
-      {brand.products.length === 1 ? (
+      {products.length === 1 ? (
         <section className="brand-range brand-range--single">
           <div className="wrap">
             <div className="ds-section-head">
               <span className="ds-eyebrow"><span className="ds-dot" /> The {brand.name} system</span>
-              <h2>{brand.products[0].name}</h2>
-              <p>{brand.products[0].bestFor}.</p>
+              <h2>{products[0].name}</h2>
+              <p>{products[0].bestFor}.</p>
             </div>
 
             <div className="brand-single">
               <div className="brand-single__pic">
                 {(() => {
-                  const ph = productPhoto(brand.products[0], brand);
+                  const ph = productPhoto(products[0], brand);
                   return <SafeImg src={ph.src} fallback={ph.fallback} alt={ph.alt} width="800" height="600" loading="lazy" />;
                 })()}
               </div>
               <div className="brand-single__body">
-                <div className="brand-single__model">{brand.products[0].model}</div>
-                {brand.products[0].capacity && (
-                  <div className="brand-single__cap">{brand.products[0].capacity}</div>
+                <div className="brand-single__model">{products[0].model}</div>
+                {products[0].capacity && (
+                  <div className="brand-single__cap">{products[0].capacity}</div>
                 )}
-                <p>{brand.products[0].ourTake}</p>
-                <Link href={`/brands/${brand.slug}/${brand.products[0].slug}`} className="ds-btn ds-btn--orange">
+                <p>{products[0].ourTake}</p>
+                <Link href={`/brands/${brand.slug}/${products[0].slug}`} className="ds-btn ds-btn--orange">
                   Full spec sheet &amp; pricing →
                 </Link>
               </div>
             </div>
 
             <ProductTabs
-              specs={brand.products[0].specs}
-              features={brand.products[0].features && brand.products[0].features.length > 0
-                ? brand.products[0].features
+              specs={products[0].specs}
+              features={products[0].features && products[0].features.length > 0
+                ? products[0].features
                 : (brand.keyFeatures ?? [])}
-              whyWeInstall={brand.products[0].whyWeInstall && brand.products[0].whyWeInstall.length > 0
-                ? brand.products[0].whyWeInstall
-                : [brand.products[0].ourTake, brand.ourTake].filter(Boolean) as string[]}
+              whyWeInstall={products[0].whyWeInstall && products[0].whyWeInstall.length > 0
+                ? products[0].whyWeInstall
+                : [products[0].ourTake, brand.ourTake].filter(Boolean) as string[]}
               brandName={brand.name}
               brandWarranty={brand.warranty}
             />
