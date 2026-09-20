@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addQuote, setStatus, removeQuote } from "@/app/portal/finance/quotes/actions";
 import { money, pct } from "@/lib/portal/format";
@@ -10,7 +10,20 @@ export type QuoteView = { id: string; amount: number; status: "quoted" | "won" |
 const parse = (v: string) => { const n = parseFloat(v.replace(/[^0-9.]/g, "")); return Number.isNaN(n) ? 0 : n; };
 const STATUS_LABEL = { quoted: "Quoted", won: "Won", lost: "Lost" } as const;
 
-export function QuotesBoard({ quotes, dbReady }: { quotes: QuoteView[]; dbReady: boolean }) {
+/**
+ * `revenueTarget` and `avgJob` come from the same Targets record the Targets
+ * page writes. They used to be this component's own numbers, kept in
+ * localStorage — so the business had two revenue targets and two average
+ * jobs, on two tabs of one section, saved per browser. This tab said quote
+ * $1.25M a year and Targets said $3.75M, because one was working from
+ * $500,000 and the other from $1,500,000.
+ */
+export function QuotesBoard({ quotes, dbReady, revenueTarget, avgJob: avgJobSetting }: {
+  quotes: QuoteView[];
+  dbReady: boolean;
+  revenueTarget: number;
+  avgJob: number;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
 
@@ -28,19 +41,13 @@ export function QuotesBoard({ quotes, dbReady }: { quotes: QuoteView[]; dbReady:
     return { quoted$, won$, lost$, wonN, lostN, winRateDollar, winRateCount, totalQuoted$: quoted$ + won$ + lost$ };
   }, [quotes]);
 
-  // target calculator
-  const [target, setTarget] = useState(500000);
-  const [avgJob, setAvgJob] = useState(3500);
+  // Target calculator. Starts from the business's real figures; editing
+  // either is a what-if for this visit and is deliberately not saved, because
+  // saving it here is what let the two screens drift apart.
+  const [target, setTarget] = useState(revenueTarget);
+  const [avgJob, setAvgJob] = useState(avgJobSetting);
   const [winRate, setWinRate] = useState(Math.round(agg.winRateDollar * 100) || 40);
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    try {
-      const t = localStorage.getItem("ag_quote_target"); if (t) setTarget(Number(t) || 0);
-      const a = localStorage.getItem("ag_quote_avgjob"); if (a) setAvgJob(Number(a) || 0);
-    } catch { /* ignore */ }
-    setReady(true);
-  }, []);
-  useEffect(() => { if (ready) try { localStorage.setItem("ag_quote_target", String(target)); localStorage.setItem("ag_quote_avgjob", String(avgJob)); } catch { /* ignore */ } }, [target, avgJob, ready]);
+  const touched = target !== revenueTarget || avgJob !== avgJobSetting;
 
   const wr = winRate / 100;
   const quoteToIssue = wr > 0 ? target / wr : 0;
@@ -69,11 +76,15 @@ export function QuotesBoard({ quotes, dbReady }: { quotes: QuoteView[]; dbReady:
       {/* target calculator */}
       <section className="pt-panel">
         <h2 className="pt-panel__h">What do we need to quote?</h2>
-        <p className="pt-panel__sub">At your win rate, how much work you need to quote to hit a revenue target. Win rate defaults to your actual (below) — override it to plan.</p>
+        <p className="pt-panel__sub">
+          At your win rate, how much work you need to quote to hit a revenue target. The target and the
+          average job start from <strong>Targets</strong>; the win rate starts from your actual, below.
+          {touched ? " Changed here, it is a what-if — it doesn't save." : ""}
+        </p>
         <div className="pt-qt__calc">
-          <label className="pt-cap__f"><span>Revenue target (year)</span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={ready ? target : ""} onChange={(e) => setTarget(parse(e.target.value))} /></span></label>
+          <label className="pt-cap__f"><span>Revenue target (year)</span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input inputMode="numeric" value={target ? target.toLocaleString("en-AU") : ""} onChange={(e) => setTarget(parse(e.target.value))} /></span></label>
           <label className="pt-cap__f"><span>Win rate</span><span className="pt-calc__field"><input type="number" min="0" max="100" value={winRate} onChange={(e) => setWinRate(parse(e.target.value))} /><span className="pt-calc__post">%</span></span></label>
-          <label className="pt-cap__f"><span>Average job</span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input type="number" min="0" value={ready ? avgJob : ""} onChange={(e) => setAvgJob(parse(e.target.value))} /></span></label>
+          <label className="pt-cap__f"><span>Average job</span><span className="pt-calc__field"><span className="pt-calc__pre">$</span><input inputMode="numeric" value={avgJob ? avgJob.toLocaleString("en-AU") : ""} onChange={(e) => setAvgJob(parse(e.target.value))} /></span></label>
         </div>
         <div className="pt-qt__need">
           <div className="pt-qt__needbig">{money(quoteToIssue)}<span> of quotes / yr</span></div>
