@@ -36,8 +36,16 @@ export function NewsletterForm() {
         aria-hidden="true"
         style={{ position: "absolute", left: "-9999px" }}
       />
+      {/* A placeholder is not a label: it disappears the moment you type and
+          a screen reader is not obliged to read it. This field is on every
+          page of the site, so it was the most-repeated unlabelled control we
+          had. No visible label because the copy above the form already says
+          what it is — an aria-label instead. */}
       <input
         type="email"
+        name="email"
+        autoComplete="email"
+        aria-label="Your email address, for seasonal service reminders"
         placeholder="your.email@example.com"
         required
         value={email}

@@ -80,28 +80,28 @@ export function ContactForm() {
 
       <div className="ct-row">
         <div className="ct-field">
-          <label>Your name <em>*</em></label>
-          <input type="text" required placeholder="Sam Taylor" value={name} onChange={(e) => setName(e.target.value)} />
+          <label htmlFor="ct-name">Your name <em>*</em></label>
+          <input id="ct-name" name="name" autoComplete="name" type="text" required placeholder="Sam Taylor" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="ct-field">
-          <label>Phone <em>*</em></label>
-          <input type="tel" required placeholder="0400 000 000" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <label htmlFor="ct-phone">Phone <em>*</em></label>
+          <input id="ct-phone" name="phone" autoComplete="tel" type="tel" required placeholder="0400 000 000" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
       </div>
 
       <div className="ct-row">
         <div className="ct-field">
-          <label>Email</label>
-          <input type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label htmlFor="ct-email">Email</label>
+          <input id="ct-email" name="email" autoComplete="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="ct-field">
-          <label>Suburb <em>*</em></label>
-          <input type="text" required placeholder="Pakenham, Officer, Berwick…" value={suburb} onChange={(e) => setSuburb(e.target.value)} />
+          <label htmlFor="ct-suburb">Suburb <em>*</em></label>
+          <input id="ct-suburb" name="suburb" autoComplete="address-level2" type="text" required placeholder="Pakenham, Officer, Berwick…" value={suburb} onChange={(e) => setSuburb(e.target.value)} />
         </div>
       </div>
 
-      <div className="ct-field ct-field--full">
-        <label>What do you need? <em>*</em></label>
+      <div className="ct-field ct-field--full" role="group" aria-labelledby="ct-need">
+        <span className="ct-field__lbl" id="ct-need">What do you need? <em>*</em></span>
         <div className="ct-chips">
           {CHIPS.map(([id, label]) => (
             <label key={id} className="ct-chip">
@@ -118,8 +118,8 @@ export function ContactForm() {
 
       <div className="ct-row" style={{ marginTop: 14 }}>
         <div className="ct-field">
-          <label>Property type</label>
-          <select value={propType} onChange={(e) => setPropType(e.target.value)}>
+          <label htmlFor="ct-proptype">Property type</label>
+          <select id="ct-proptype" name="propertyType" value={propType} onChange={(e) => setPropType(e.target.value)}>
             <option>Owner-occupier</option>
             <option>Rental / landlord</option>
             <option>Tenant</option>
@@ -127,8 +127,8 @@ export function ContactForm() {
           </select>
         </div>
         <div className="ct-field">
-          <label>Best time to call</label>
-          <select value={bestTime} onChange={(e) => setBestTime(e.target.value)}>
+          <label htmlFor="ct-besttime">Best time to call</label>
+          <select id="ct-besttime" name="bestTime" value={bestTime} onChange={(e) => setBestTime(e.target.value)}>
             <option>Anytime in business hours</option>
             <option>Morning (7am–12pm)</option>
             <option>Afternoon (12pm–5pm)</option>
@@ -138,8 +138,10 @@ export function ContactForm() {
       </div>
 
       <div className="ct-field ct-field--full" style={{ marginTop: 14 }}>
-        <label>Anything else? (optional)</label>
+        <label htmlFor="ct-notes">Anything else? (optional)</label>
         <textarea
+          id="ct-notes"
+          name="notes"
           placeholder="e.g. ducted gas heater is making a clunking sound, looking to replace before winter, house is 4 bed, 2 bath, single storey."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
