@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HeroQuoteForm } from "@/components/HeroQuoteForm";
-import { site } from "@/lib/site";
+import Link from "next/link";
+import { site, openingHours } from "@/lib/site";
 import "../detail.css";
 import "../home.css";
 
@@ -57,9 +58,21 @@ export default function QuotePage() {
                 </li>
               ))}
             </ul>
+            {/* Said "Mon–Sat" while the one record on the site says Mon–Fri.
+                An eighth hand-written copy of the opening hours, found after
+                the other seven were consolidated. */}
             <p style={{ marginTop: 24, fontSize: 14, color: "var(--ink-3)" }}>
               Prefer to talk? Call{" "}
-              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a>, Mon–Sat.
+              <a href={`tel:${site.phoneE164}`} style={{ color: "var(--navy)", fontWeight: 700 }}>{site.phone}</a>,{" "}
+              {openingHours()}. After hours goes to someone on the tools.
+            </p>
+            {/* Deliberately one quiet line, not a block of cards. This page has
+                one job and it is the form on the right; a reader who is not
+                ready yet needs a way out, not a reason to leave. */}
+            <p style={{ marginTop: 14, fontSize: 13.5, color: "var(--ink-3)" }}>
+              Not sure what you need yet?{" "}
+              <Link href="/range" style={{ color: "var(--navy)", fontWeight: 700 }}>See the full range</Link>{" "}or{" "}
+              <Link href="/tools/sizing-calculator" style={{ color: "var(--navy)", fontWeight: 700 }}>work out the size</Link>.
             </p>
           </div>
 

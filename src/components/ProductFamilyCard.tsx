@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SafeImg } from "@/components/SafeImg";
+import Image from "next/image";
 import { staticSizes, variantLabel, type Family, type FamilyMember } from "@/lib/productFamilies";
 
 export type FamilyCardItem = FamilyMember & {
@@ -58,13 +58,21 @@ export function ProductFamilyCard({
     <div className="pfam" style={{ ["--card-accent" as string]: active.accent }}>
       {extra && <div className="pfam__extra">{extra(active)}</div>}
       <Link href={active.href} className="pfam__shot" tabIndex={-1} aria-hidden="true">
-        <SafeImg
-          src={active.photo}
-          fallback={active.photoFallback}
+        {/* Through the optimiser, not a raw <img>. This card is on /range 48
+            times and on every brand page, and none of those shots were being
+            resized or served as AVIF.
+        
+            The paths need encoding: forty-six of the eighty-four product
+            photos have spaces in their filenames ("Kaden KSI V3 wall split
+            system.jpg"), which a browser tolerates on a plain <img> and the
+            image optimiser does not. That is the reason these were never
+            converted. */}
+        <Image
+          src={encodeURI(active.photo)}
           alt=""
-          loading="lazy"
-          width="320"
-          height="240"
+          fill
+          sizes="(max-width: 560px) 45vw, (max-width: 1100px) 30vw, 220px"
+          style={{ objectFit: "contain" }}
         />
       </Link>
 

@@ -128,3 +128,32 @@
   .page-contact .ct-row { grid-template-columns: 1fr; }
   .page-contact .ct-form { padding: 24px; }
 }
+
+/* ---- Where to go from here ---- */
+/* The page had no internal links at all. Three, as a plain row of rules —
+   this is the end of a contact page, not a place for another card grid. */
+.ct-next { padding: 54px 0 68px; border-top: 1px solid var(--line); }
+.ct-nextrow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 0 30px;
+}
+.ct-nextrow li { border-top: 2px solid var(--orange); }
+.ct-nextrow a {
+  display: grid;
+  gap: 5px;
+  padding: 16px 0 4px;
+  text-decoration: none;
+  color: inherit;
+}
+.ct-nextrow strong {
+  font-family: var(--f-display);
+  font-size: 16.5px;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+}
+.ct-nextrow a:hover strong { color: var(--orange); }
+.ct-nextrow span { font-size: 14px; line-height: 1.5; color: var(--ink-2); }

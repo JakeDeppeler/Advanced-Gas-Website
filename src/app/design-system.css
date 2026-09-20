@@ -3858,15 +3858,17 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 /* The photograph gets room. Manufacturer shots are cut-outs on white, so the
    card's own white is the background and the image just sits in it. */
 .pfam__shot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* `position: relative` because the photograph is a next/image with `fill`,
+     which positions against the nearest positioned ancestor. The padding
+     insets it so a cut-out does not touch the card's edges. */
+  position: relative;
+  display: block;
   height: 168px;
   padding: 18px;
   background: #fff;
   border-bottom: 1px solid var(--line, #ebe6d8);
 }
-.pfam__shot img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; }
+.pfam__shot img { padding: 18px; }
 
 .pfam__body { display: flex; flex-direction: column; gap: 0; padding: 16px 18px 18px; flex: 1 1 auto; }
 .pfam__brand {
