@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useMemo, useState } from "react";
 import { Lightbox } from "@/components/Lightbox";
@@ -75,12 +76,12 @@ export function AlbumGrid({
               onClick={() => setOpen({ album, index: 0 })}
             >
               <span className="albums__pic">
-                <img
-                  src={cover.type === "video" ? (cover.poster ?? cover.src) : cover.src}
+                <Image
+                  src={encodeURI(cover.type === "video" ? (cover.poster ?? cover.src) : cover.src)}
                   alt={cover.alt}
-                  loading="lazy"
-                  width="600"
-                  height="450"
+                  width={600}
+                  height={450}
+                  sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
                 />
                 {album.items.length > 1 && (
                   <span className="albums__badge">{album.items.length} photos</span>

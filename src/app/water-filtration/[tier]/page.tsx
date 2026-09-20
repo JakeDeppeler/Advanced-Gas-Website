@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
@@ -269,16 +270,16 @@ export default function TierPage({ params }: { params: { tier: string } }) {
       <section className="wf-servicing">
         <div className="wrap wf-serv__grid">
           <figure className="wf-serv__shot">
-            <img
-              src={assetOrFallback(t.servicingPhoto ?? t.diagram, t.diagram)}
+            <Image
+              src={encodeURI(assetOrFallback(t.servicingPhoto ?? t.diagram, t.diagram))}
               alt={
                 t.servicingPhoto && hasAsset(t.servicingPhoto)
                   ? t.servicingPhotoAlt ?? t.productPhotoAlt
                   : `Diagram: ${t.fitsWhere}`
               }
-              loading="lazy"
-              width="900"
-              height="620"
+              width={900}
+              height={620}
+              sizes="(max-width: 980px) 100vw, 600px"
             />
           </figure>
           <div className="wf-serv__copy">

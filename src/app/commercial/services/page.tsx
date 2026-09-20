@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/lib/site";
 import { COMM_SCOPES, COMM_PROCESS } from "@/lib/commercial";
 import "../commercial.css";
@@ -87,7 +88,13 @@ export default function CommercialServicesPage() {
       <section className="bigcta bigcta--photo" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
-            <img src="/commercial-v3.webp" alt="Packaged rooftop plant being craned into position on a commercial site" width="900" height="675" loading="lazy" />
+            <Image
+              src="/commercial-v3.webp"
+              alt="Packaged rooftop plant being craned into position on a commercial site"
+              fill
+              sizes="(max-width: 900px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
+            />
           </figure>
           <div className="bigcta__copy">
             <h2>Not sure it&rsquo;s one of ours?</h2>

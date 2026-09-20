@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
@@ -703,7 +704,13 @@ export default async function HomePage() {
             {posts.slice(0, 3).map((p) => (
               <Link key={p.slug} href={`/blog/${p.slug}`} className="tipcard">
                 <div className="tipcard__photo">
-                  <img src={p.photo} alt={p.photoAlt} loading="lazy" width="480" height="300" />
+                  <Image
+                    src={encodeURI(p.photo)}
+                    alt={p.photoAlt}
+                    fill
+                    sizes="(max-width: 620px) 100vw, (max-width: 900px) 50vw, 400px"
+                    style={{ objectFit: "cover" }}
+                  />
                   <span className="tipcard__tag">{p.cat}</span>
                 </div>
                 <div className="tipcard__body">
@@ -722,12 +729,12 @@ export default async function HomePage() {
       <section className="bigcta bigcta--photo" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
-            <img
+            <Image
               src="/team-photo.webp"
-              alt="The Advanced Gas & Aircon crew on site in Pakenham"
-              width="900"
-              height="675"
-              loading="lazy"
+              alt="The Advanced Gas &amp; Aircon crew on site in Pakenham"
+              fill
+              sizes="(max-width: 900px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
             />
           </figure>
           <div className="bigcta__copy">

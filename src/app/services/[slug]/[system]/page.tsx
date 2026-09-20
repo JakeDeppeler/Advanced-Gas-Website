@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { services, site } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
@@ -162,12 +163,13 @@ export default function SystemPage({
               page still shows the thing it's about. */}
           {!system.photo?.scene && system.photo?.src && hasAsset(system.photo.src) && (
             <div className="dp-hero__inset">
-              <img
-                src={resolveAsset(system.photo.src)!}
+              <Image
+                src={encodeURI(resolveAsset(system.photo.src)!)}
                 alt={system.photo.alt}
-                width="760"
-                height="570"
-                fetchPriority="high"
+                width={760}
+                height={570}
+                sizes="(max-width: 980px) 100vw, 500px"
+                priority
               />
             </div>
           )}
@@ -269,7 +271,13 @@ export default function SystemPage({
               </ul>
             </div>
             <figure className={`svc-look__shot${system.looks.photoScene ? " is-scene" : ""}`}>
-              <img src={system.looks.photo} alt={system.looks.photoAlt} loading="lazy" width="900" height="900" />
+              <Image
+                src={encodeURI(system.looks.photo)}
+                alt={system.looks.photoAlt}
+                width={900}
+                height={900}
+                sizes="(max-width: 980px) 100vw, 600px"
+              />
             </figure>
           </div>
         </section>
@@ -302,7 +310,13 @@ export default function SystemPage({
         <section className="svc-serv">
           <div className="wrap svc-serv__grid">
             <figure className={`svc-serv__shot${system.servicing.photoScene ? " is-scene" : ""}`}>
-              <img src={system.servicing.photo} alt={system.servicing.photoAlt} loading="lazy" width="900" height="900" />
+              <Image
+                src={encodeURI(system.servicing.photo)}
+                alt={system.servicing.photoAlt}
+                width={900}
+                height={900}
+                sizes="(max-width: 980px) 100vw, 600px"
+              />
             </figure>
             <div className="svc-serv__copy">
               <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Keeping it working</span>

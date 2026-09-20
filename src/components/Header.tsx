@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { LocalConditions } from "@/components/LocalConditions";
 import { usePathname, useRouter } from "next/navigation";
 import { crossTo } from "@/components/SiteCross";
@@ -479,13 +480,14 @@ export function Header() {
           className="hdr__logo"
           aria-label={`${site.name} ${onCommercial ? "commercial home" : "home"}`}
         >
-          <img
+          <Image
             src="/advanced-gas-logo.webp"
             alt={`${site.name} logo`}
-            width="280"
-            height="140"
+            width={280}
+            height={140}
             className="hdr__logo-img"
-            fetchPriority="high"
+            sizes="(max-width: 640px) 88px, 120px"
+            priority
           />
         </Link>
 

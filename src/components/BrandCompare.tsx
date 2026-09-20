@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
@@ -324,7 +325,13 @@ export function BrandCompare({ brand }: Props) {
             return (
               <article className={`wf-style${i === 0 ? " is-lead" : ""}`} key={sy.id}>
                 <div className={`wf-style__photo${sy.photoScene ? " is-scene" : ""}`}>
-                  <img src={sy.photo} alt={sy.photoAlt} loading="lazy" width="600" height="450" />
+                  <Image
+                    src={encodeURI(sy.photo)}
+                    alt={sy.photoAlt}
+                    width={600}
+                    height={450}
+                    sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
+                  />
                 </div>
                 <div className="wf-style__body">
                   {sy.priceFrom && <span className="wf-style__tier">{sy.priceFrom}</span>}

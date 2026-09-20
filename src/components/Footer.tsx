@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { site, services, publishedSuburbs, openingHours } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
 
@@ -24,11 +25,12 @@ export function Footer() {
                   so we sit it inside a padded white plate so it reads
                   cleanly against the footer's navy. */}
               <span className="ftr__logo-plate">
-                <img
+                <Image
                   src="/advanced-gas-logo.webp"
                   alt={`${site.name} logo`}
-                  width="240"
-                  height="120"
+                  width={240}
+                  height={120}
+                  sizes="120px"
                 />
               </span>
             </Link>

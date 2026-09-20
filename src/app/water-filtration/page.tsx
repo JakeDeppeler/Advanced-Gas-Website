@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
@@ -160,12 +161,12 @@ export default function WaterFiltrationPage() {
                 {/* Manufacturer shot where we have one; our own diagram of
                     where the fitting goes while we don't. */}
                 <div className={`wf-tier__photo${hasAsset(t.productPhoto) ? " wf-tier__photo--real" : ""}`}>
-                  <img
-                    src={assetOrFallback(t.productPhoto, t.diagram)}
+                  <Image
+                    src={encodeURI(assetOrFallback(t.productPhoto, t.diagram))}
                     alt={hasAsset(t.productPhoto) ? t.productPhotoAlt : `Diagram: ${t.fitsWhere}`}
-                    loading="lazy"
-                    width="600"
-                    height="400"
+                    width={600}
+                    height={400}
+                    sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 380px"
                   />
                 </div>
                 <div className="wf-tier__body">

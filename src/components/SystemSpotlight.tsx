@@ -1,4 +1,5 @@
 import type { SystemSpotlight as Spotlight } from "@/lib/systemDetail";
+import Image from "next/image";
 
 /**
  * The one section that makes a system page about that system.
@@ -55,7 +56,13 @@ export function SystemSpotlight({ spotlight }: { spotlight: Spotlight }) {
           <div className="sysspot__split">
             {photo && (
               <div className="sysspot__photo">
-                <img src={photo.src} alt={photo.alt} loading="lazy" width="600" height="600" />
+                <Image
+                  src={encodeURI(photo.src)}
+                  alt={photo.alt}
+                  width={600}
+                  height={600}
+                  sizes="(max-width: 900px) 100vw, 460px"
+                />
               </div>
             )}
             <ul className="sysspot__list">

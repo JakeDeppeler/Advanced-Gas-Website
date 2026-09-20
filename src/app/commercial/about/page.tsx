@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { site } from "@/lib/site";
 import { COMM_STANDARD, COMM_FACTS, COMM_CLIENTS } from "@/lib/commercial";
 import "../commercial.css";
@@ -47,7 +48,13 @@ export default function CommercialAboutPage() {
         <div className="wrap">
           <div className="comm-who__top">
             <figure className="comm-who__photo">
-              <img src="/team-photo.webp" alt="The Advanced Gas & Aircon crew with the vans at the Pakenham depot" width="900" height="675" loading="lazy" />
+              <Image
+                src="/team-photo.webp"
+                alt="The Advanced Gas &amp; Aircon crew with the vans at the Pakenham depot"
+                width={900}
+                height={675}
+                sizes="(max-width: 980px) 100vw, 560px"
+              />
             </figure>
             <div className="comm-who__copy">
               <h2>A family business that got good at the boring part.</h2>
@@ -107,7 +114,13 @@ export default function CommercialAboutPage() {
       <section className="bigcta bigcta--photo" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
-            <img src="/commercial-v3.webp" alt="Packaged rooftop plant being craned into position on a commercial site" width="900" height="675" loading="lazy" />
+            <Image
+              src="/commercial-v3.webp"
+              alt="Packaged rooftop plant being craned into position on a commercial site"
+              fill
+              sizes="(max-width: 900px) 100vw, 50vw"
+              style={{ objectFit: "cover" }}
+            />
           </figure>
           <div className="bigcta__copy">
             <h2>Submit a scope for pricing.</h2>
