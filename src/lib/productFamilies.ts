@@ -48,7 +48,7 @@ export type Family<T extends FamilyMember> = {
  * 3.2 kW heating", "4.0 kW combined · 2 indoor heads", "160 L glass-lined
  * tank". The chip needs the number and its unit and nothing else.
  *
- * Some products already carry several sizes in one row — "15 · 20 · 25 · 30 kW
+ * Some products already carry several sizes in one row — "15 · 20 · 26 · 30 kW
  * output" is one page covering four heaters. Those become a range chip rather
  * than a chip showing only the smallest, which would be a lie about what the
  * page behind it sells.
@@ -56,7 +56,7 @@ export type Family<T extends FamilyMember> = {
 export function variantLabel(capacity?: string): string | null {
   if (!capacity) return null;
 
-  // A multi-size row, two ways of writing it: "15 · 20 · 25 · 30 kW output",
+  // A multi-size row, two ways of writing it: "15 · 20 · 26 · 30 kW output",
   // and "10 kW / 12.5 kW / 14 kW cooling". The second has to be told apart
   // from "2.5 kW cooling / 3.2 kW heating", which is ONE size described twice
   // — the tell is whether a word sits between the figures. Nothing between
@@ -101,6 +101,46 @@ function richLabel(capacity?: string): string | null {
   // Tank before compressor: it is the figure a customer shops on.
   parts.sort((a) => (a.endsWith("L") ? -1 : 1));
   return parts.length ? parts.join(" \u00b7 ") : null;
+}
+
+/**
+ * The sizes a single product is sold in, when one page covers several.
+ *
+ * A gas ducted heater is one model in four outputs — "15 · 20 · 26 · 30 kW
+ * output" — and an evaporative cooler is one model in three roof units. There
+ * is one page for each because the choice between them is made on the roof
+ * with a tape measure, not on a website. So these cannot be chips you pick;
+ * they are chips that tell you the sizes exist, which is the question somebody
+ * reading a heater card is actually asking.
+ *
+ * Deliberately only matches a list at the very start of the string. "2.5 kW
+ * cooling / 3.2 kW heating" is one size described twice and must not come back
+ * as two.
+ */
+export function staticSizes(capacity?: string): string[] | null {
+  if (!capacity) return null;
+
+  // "15 · 20 · 26 · 30 kW output"
+  const nums = /^\s*([\d.]+(?:\s*[·•]\s*[\d.]+)+)\s*(kW|L)\b/i.exec(capacity);
+  if (nums) {
+    const unit = nums[2];
+    return nums[1].split(/[·•]/).map((n) => `${n.trim()} ${unit}`);
+  }
+
+  // "10 kW / 12.5 kW / 14 kW cooling" — repeated unit, nothing between.
+  if (/^\s*[\d.]+\s*(kW|L)\s*(?:\/\s*[\d.]+\s*\1\s*)+/i.test(capacity)) {
+    const all = [...capacity.matchAll(/([\d.]+)\s*(kW|L)\b/gi)];
+    if (all.length > 1) return all.map((m) => `${m[1]} ${m[2]}`);
+  }
+
+  // "Small · Medium · Large roof units"
+  const words_ = /^\s*([A-Z][a-z-]+(?:\s*[·•]\s*[A-Z][a-z-]+)+)\s/.exec(capacity);
+  if (words_) {
+    const parts = words_[1].split(/[·•]/).map((w) => w.trim()).filter(Boolean);
+    if (parts.length > 1) return parts;
+  }
+
+  return null;
 }
 
 /** The number a chip sorts on. Falls back to 0 so unsized rows lead. */

@@ -334,13 +334,6 @@ const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
   photoFallback: t.diagram,
 }));
 
-const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[] = [
-  { href: "/about",     label: "About us",   sub: "The family, the team, how we work", icon: "◈" },
-  { href: "/gallery",   label: "Gallery",    sub: "Real installs · before & after",    icon: "◉" },
-  { href: "/reviews",   label: "Reviews",    sub: "4.9/5 on Google",            icon: "★" },
-  { href: "/blog",      label: "Blog",       sub: "Guides, rebates + buying advice",   icon: "✎" },
-  { href: "/contact",   label: "Contact",    sub: "Phone, email, where we are",        icon: "✆" },
-];
 
 /**
  * The Pricing menu. The first two rows are the destinations people came
@@ -351,19 +344,15 @@ const COMPANY_MEGA: { href: string; label: string; sub: string; icon: string }[]
  * nav before this menu existed, and losing that entirely would have
  * been a real cost; here it gets a full orange card instead.
  */
-/**
- * The Pricing menu. Five destinations, all of them about what a job
- * costs: the price list itself, the rebate, the two things that compare
- * prices, and the range with every installed price on it.
- */
-const PRICING_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean }[] = [
-  { href: "/rebates",                    label: "VEU rebates",        sub: "What you get off, and who qualifies",  icon: "$", lead: true },
-  { href: "/pricing",                    label: "Full price list",    sub: "Every model, installed price",         icon: "≡" },
-  { href: "/tools/veu-rebate-estimator", label: "Compare pricing",    sub: "Your postcode → what you'd pay",       icon: "◆" },
-  { href: "/range",                      label: "The full range",     sub: "Every model we install, filterable",   icon: "⌂" },
-  { href: "/tools/hot-water-savings",    label: "What it costs to run", sub: "Payback on a heat pump swap",        icon: "⚡" },
-];
 
+/**
+ * Every public calculator.
+ *
+ * The menu renders them from PRICING_GROUPS now, which sorts them by the
+ * question they answer rather than listing them flat. This stays as the one
+ * enumeration of the lot, which is what the rail's "All N calculators" counts
+ * — a hardcoded number there goes stale the first time a tool is added.
+ */
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean; tool?: boolean }[] = [
   { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$", tool: true },
   { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂", tool: true },
@@ -577,6 +566,76 @@ export function Header() {
 
 /* -------------------- Mega panels -------------------- */
 
+type RailItem = { href: string; label: string; sub: string; icon?: string; lead?: boolean };
+type RailGroup = { label: string; items: RailItem[] };
+
+/**
+ * The Services menu's shape, for the menus that are not Services.
+ *
+ * Pricing and About were both a flat grid: fourteen cards under one heading,
+ * and five. Services solved that problem already — categories down the left,
+ * the one you are pointing at on the right — and solving it twice in two
+ * different ways is how a site ends up with three kinds of dropdown.
+ *
+ * The difference is the cards. Services has a photograph of every job; a
+ * calculator and a reviews page have a glyph, so this renders rows rather than
+ * photo cards. Same rail, same two-pane split, same behaviour on hover and
+ * keyboard.
+ */
+function RailMega({ groups, rail, foot }: {
+  groups: RailGroup[];
+  rail?: React.ReactNode;
+  foot?: React.ReactNode;
+}) {
+  const [active, setActive] = useState(0);
+  const g = groups[active];
+
+  return (
+    <div className="megasvc">
+      <div className="megasvc__rail" role="tablist" aria-label="Sections">
+        {groups.map((grp, i) => (
+          <button
+            key={grp.label}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            className={`megasvc__railbtn${i === active ? " is-on" : ""}`}
+            onMouseEnter={() => setActive(i)}
+            onFocus={() => setActive(i)}
+            onClick={() => setActive(i)}
+          >
+            {grp.label}
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        ))}
+        {rail}
+      </div>
+
+      <div className="megasvc__pane">
+        <div className="megarows" key={g.label}>
+          {g.items.map((it) => (
+            <Link
+              key={it.href}
+              href={it.href}
+              role="menuitem"
+              className={`megarow${it.lead ? " megarow--lead" : ""}`}
+            >
+              {it.icon && <span className="megarow__ico" aria-hidden="true">{it.icon}</span>}
+              <span className="megarow__body">
+                <b>{it.label}</b>
+                <span>{it.sub}</span>
+              </span>
+              <span className="megarow__go" aria-hidden="true">&rarr;</span>
+            </Link>
+          ))}
+        </div>
+        {foot}
+      </div>
+    </div>
+  );
+}
+
+
 function ServicesMega() {
   /* Two panes: the categories down the left, the active category's
      services on the right. The flat version rendered every service at
@@ -659,92 +718,146 @@ function ServicesMega() {
 }
 
 /**
- * Pricing, and underneath it the nine calculators that used to be their
- * own nav item.
+ * Pricing, in the Services menu's shape.
  *
- * They belong together. Every one of those tools exists to answer "what
- * will this cost me" — a rebate estimate, a running cost, a payback
- * period — which is the same question the price list answers, just from
- * the other end. As a separate menu called "Tools" they read as a
- * curiosity; here they read as the working-out.
+ * It was fourteen items under one heading: five price cards, then nine
+ * calculators as a strip of chips under a rule. Everything reachable, nothing
+ * ranked — a reader after a rebate figure had to read past the running-cost
+ * calculators to find it.
  *
- * Cards for the five destinations, a plain list for the calculators. A
- * calculator is a link you click once and leave; it does not need a
- * card with a subtitle competing with the price list for attention.
+ * Four groups instead, in the order the question gets asked: what does it
+ * cost, what comes off it, what does it cost to run, and what size do I need.
+ * Fault codes are the one thing that left; it is a lookup, not a price, and it
+ * lives in the Services menu under Service & repair where somebody with a
+ * flashing light is already looking.
  */
+const PRICING_GROUPS: RailGroup[] = [
+  {
+    label: "Prices",
+    items: [
+      { href: "/pricing", label: "Full price list", sub: "Every model, installed price", icon: "\u2261" },
+      { href: "/range", label: "The full range", sub: "Every model we install, filterable", icon: "\u2302" },
+      { href: "/tools/veu-rebate-estimator", label: "Compare pricing", sub: "Your postcode \u2192 what you\u2019d pay", icon: "\u25c6" },
+    ],
+  },
+  {
+    label: "Rebates",
+    items: [
+      { href: "/rebates", label: "VEU rebates", sub: "What you get off, and who qualifies", icon: "$", lead: true },
+      { href: "/tools/veu-rebate-estimator", label: "VEU rebate estimator", sub: "Postcode \u2192 rebate range", icon: "$" },
+    ],
+  },
+  {
+    label: "Running costs",
+    items: [
+      { href: "/tools/hot-water-savings", label: "Hot water savings", sub: "Gas or electric \u2192 heat pump payback", icon: "\u2668" },
+      { href: "/tools/running-cost-calculator", label: "Running cost", sub: "What it costs a day, a week, a year", icon: "\u26a1" },
+      { href: "/tools/heating-comparator", label: "Gas vs reverse-cycle", sub: "Winter running cost and payback", icon: "\u2744" },
+    ],
+  },
+  {
+    label: "What size",
+    items: [
+      { href: "/tools/sizing-calculator", label: "Aircon sizing", sub: "Room dimensions \u2192 kW recommended", icon: "\u2302" },
+      { href: "/tools/heat-pump-sizing", label: "Heat pump sizing", sub: "Showers \u2192 tank size and reheat time", icon: "\u25d1" },
+      { href: "/tools/heat-pump-compare", label: "Heat pump compare", sub: "Reclaim, iStore and Thermann", icon: "\u25c6" },
+      { href: "/tools/system-comparison", label: "System comparison", sub: "Split \u00b7 multi \u00b7 ducted \u00b7 gas \u00b7 evap", icon: "\u2261" },
+    ],
+  },
+];
+
 function PricingMega() {
   return (
-    <div className="mega__tools mega__pricing">
-      <div className="mega__toolshead">
-        <div className="mega__collabel">What a job costs</div>
-        <Link href="/pricing" className="mega__toolsall">Open the full price list →</Link>
-      </div>
-      <div className="mega__toolsgrid">
-        {PRICING_MEGA.map((t) => (
-          <Link
-            key={t.href}
-            href={t.href}
-            role="menuitem"
-            className={`mega__toolcard${t.lead ? " mega__toolcard--lead" : ""}`}
-          >
-            <span className="mega__toolicon" aria-hidden="true">{t.icon}</span>
-            <div className="mega__toolbody">
-              <b>{t.label}</b>
-              <span>{t.sub}</span>
+    <RailMega
+      groups={PRICING_GROUPS}
+      rail={
+        <>
+          <Link href="/pricing" className="megasvc__range">
+            <div>
+              <b>Open the full price list</b>
+              <span>Installed prices, rebate already off</span>
             </div>
           </Link>
-        ))}
-      </div>
-
-      <div className="mega__calcs">
-        <div className="mega__calcshead">
-          <div className="mega__collabel">Work it out yourself</div>
-          <Link href="/tools" className="mega__toolsall">All {TOOLS_MEGA.length} calculators →</Link>
+          <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
+            Get a quote &rarr;
+          </Link>
+        </>
+      }
+      foot={
+        <div className="megasvc__foot">
+          <span className="megasvc__footlabel">Worth knowing</span>
+          <span className="megarow__note">
+            Every number is the installed price with the rebate already off it.
+          </span>
+          <Link href="/tools" className="megasvc__poplink">All {TOOLS_MEGA.length} calculators</Link>
         </div>
-        <div className="mega__calcgrid">
-          {TOOLS_MEGA.map((t) => (
-            <Link key={t.href} href={t.href} role="menuitem" className="mega__calc">
-              <span className="mega__calcicon" aria-hidden="true">{t.icon}</span>
-              {t.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      <div className="mega__toolsfoot">
-        <div className="mega__cta-sub">Every number is the installed price with the rebate already off it.</div>
-        <div className="mega__toolsbtns">
-          <Link href="/range" className="ds-btn ds-btn--ghost">The full range →</Link>
-          <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
-        </div>
-      </div>
-    </div>
+      }
+    />
   );
 }
 
+/**
+ * About, in the same shape.
+ *
+ * Five rows in a grid became three groups, and the groups pulled in
+ * destinations that were previously only reachable from inside other pages.
+ * "Who we are" was already five links to five different kinds of thing —
+ * the company, photographs, ratings, articles and a phone number — under one
+ * heading that only honestly described the first of them.
+ */
+const COMPANY_GROUPS: RailGroup[] = [
+  {
+    label: "Who we are",
+    items: [
+      { href: "/about", label: "About us", sub: "The family, the team, how we work", icon: "\u25c8" },
+      { href: "/reviews", label: "Reviews", sub: "4.9/5 on Google", icon: "\u2605" },
+      { href: "/gallery", label: "Gallery", sub: "Real installs \u00b7 before and after", icon: "\u25c9" },
+    ],
+  },
+  {
+    label: "Guides & advice",
+    items: [
+      { href: "/blog", label: "The blog", sub: "Guides, rebates and buying advice", icon: "\u270e" },
+      { href: "/heat-pumps", label: "Heat pump or gas?", sub: "The hot water fork, with the numbers", icon: "\u2668" },
+      { href: "/upgrade-or-repair", label: "Repair or replace?", sub: "The 10-year rule, and the rebate", icon: "\u21ba" },
+    ],
+  },
+  {
+    label: "Talk to us",
+    items: [
+      { href: "/contact", label: "Contact", sub: "Phone, email, where we are", icon: "\u2706" },
+      { href: "/contact#emergency", label: "24/7 emergency", sub: "Gas leak, no hot water, CO alarm", icon: "!", lead: true },
+      { href: "/quote", label: "Get a quote", sub: "In writing, inside 12 business hours", icon: "\u2261" },
+    ],
+  },
+];
+
 function CompanyMega() {
   return (
-    <div className="mega__tools">
-      <div className="mega__toolshead">
-        <div className="mega__collabel">Who we are</div>
-        <Link href="/gallery" className="mega__toolsall">See our install gallery →</Link>
-      </div>
-      <div className="mega__toolsgrid">
-        {COMPANY_MEGA.map((c) => (
-          <Link key={c.href} href={c.href} role="menuitem" className="mega__toolcard">
-            <span className="mega__toolicon" aria-hidden="true">{c.icon}</span>
-            <div className="mega__toolbody">
-              <b>{c.label}</b>
-              <span>{c.sub}</span>
+    <RailMega
+      groups={COMPANY_GROUPS}
+      rail={
+        <>
+          <Link href="/gallery" className="megasvc__range">
+            <div>
+              <b>See our install gallery</b>
+              <span>Photographs from real jobs</span>
             </div>
           </Link>
-        ))}
-      </div>
-      <div className="mega__toolsfoot">
-        <div className="mega__cta-sub">Family owned since 2014 · same face on the quote as on the tools.</div>
-        <Link href="/quote" className="ds-btn ds-btn--orange">Get a quote →</Link>
-      </div>
-    </div>
+          <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
+            Get a quote &rarr;
+          </Link>
+        </>
+      }
+      foot={
+        <div className="megasvc__foot">
+          <span className="megasvc__footlabel">Since 2014</span>
+          <span className="megarow__note">
+            Family owned in Pakenham. The same face on the quote as on the tools.
+          </span>
+        </div>
+      }
+    />
   );
 }
 
@@ -874,56 +987,51 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
                   ))}
                 </>
               )}
+              {/* The same groups the desktop panel renders, in the same
+                  order. They used to be two separate lists and drifted. */}
               {n.kind === "company" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">Who we are</div>
-                  {COMPANY_MEGA.map((c) => (
-                    <Link
-                      key={c.href}
-                      href={c.href}
-                      onClick={close}
-                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
-                    >
-                      <span className="hdr__drawer-toolicon" aria-hidden="true">{c.icon}</span>
-                      <span className="hdr__drawer-toolbody">
-                        <b>{c.label}</b>
-                        <span>{c.sub}</span>
-                      </span>
-                    </Link>
+                  {COMPANY_GROUPS.map((grp) => (
+                    <div key={grp.label}>
+                      <div className="hdr__drawer-collabel">{grp.label}</div>
+                      {grp.items.map((c) => (
+                        <Link
+                          key={c.href}
+                          href={c.href}
+                          onClick={close}
+                          className={`hdr__drawer-sublink hdr__drawer-sublink--tool${c.lead ? " is-lead" : ""}`}
+                        >
+                          <span className="hdr__drawer-toolicon" aria-hidden="true">{c.icon}</span>
+                          <span className="hdr__drawer-toolbody">
+                            <b>{c.label}</b>
+                            <span>{c.sub}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
               {n.kind === "pricing" && (
                 <div className="hdr__drawer-col">
-                  <div className="hdr__drawer-collabel">What a job costs</div>
-                  {PRICING_MEGA.map((t) => (
-                    <Link
-                      key={t.href}
-                      href={t.href}
-                      onClick={close}
-                      className={`hdr__drawer-sublink hdr__drawer-sublink--tool${t.lead ? " is-lead" : ""}`}
-                    >
-                      <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
-                      <span className="hdr__drawer-toolbody">
-                        <b>{t.label}</b>
-                        <span>{t.sub}</span>
-                      </span>
-                    </Link>
-                  ))}
-                  <div className="hdr__drawer-collabel">Work it out yourself</div>
-                  {TOOLS_MEGA.map((t) => (
-                    <Link
-                      key={t.href}
-                      href={t.href}
-                      onClick={close}
-                      className="hdr__drawer-sublink hdr__drawer-sublink--tool"
-                    >
-                      <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
-                      <span className="hdr__drawer-toolbody">
-                        <b>{t.label}</b>
-                        <span>{t.sub}</span>
-                      </span>
-                    </Link>
+                  {PRICING_GROUPS.map((grp) => (
+                    <div key={grp.label}>
+                      <div className="hdr__drawer-collabel">{grp.label}</div>
+                      {grp.items.map((t) => (
+                        <Link
+                          key={`${grp.label}-${t.href}`}
+                          href={t.href}
+                          onClick={close}
+                          className={`hdr__drawer-sublink hdr__drawer-sublink--tool${t.lead ? " is-lead" : ""}`}
+                        >
+                          <span className="hdr__drawer-toolicon" aria-hidden="true">{t.icon}</span>
+                          <span className="hdr__drawer-toolbody">
+                            <b>{t.label}</b>
+                            <span>{t.sub}</span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   ))}
                 </div>
               )}
