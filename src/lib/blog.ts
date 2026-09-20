@@ -4,14 +4,16 @@
 export type BlogPost = {
   slug: string;
   cat: string;
-  date: string;
   read: string;
   /** The editorial headline. Used as the on-page H1, where length is
    *  fine. */
   title: string;
-  /** ISO 8601 publication date, for Article schema and dateModified
-   *  discipline. WEB-013: the visible label was a human string ("August
-   *  2026", "Updated this week") with no machine date behind it. */
+  /** ISO 8601 publication date. The only date a post carries: /blog and
+   *  /blog/[slug] both format the visible label from this (and from
+   *  updatedISO), and Article schema reads the same field, so what a reader
+   *  sees and what Google is told cannot drift apart. WEB-013 replaced the
+   *  hand-written label; the dead `date` field it left behind, which had gone
+   *  on saying "Updated this week" long after the update, is gone with it. */
   publishedISO: string;
   /** ISO 8601, only where the post has genuinely been revised. */
   updatedISO?: string;
@@ -81,7 +83,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "VEU Rebate 2026: The Pakenham Guide",
     cat: "VEU rebates",
-    date: "Updated this week",
     read: "14 min read",
     title: "The complete Pakenham guide to the VEU rebate in 2026",
     blurb: "What it is, what's actually changed in 2026, the real maximum you can claim on a heat pump or aircon, and the 3 mistakes most homeowners make on the application.",
@@ -117,7 +118,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Reclaim vs iStore vs Thermann Heat Pumps",
     cat: "Heat pumps",
-    date: "4 May 2026",
     read: "10 min read",
     title: "Reclaim vs iStore vs Thermann: which heat pump is right for your house?",
     blurb: "Honest comparison of the three brands we actually install, with sizing advice for 2 / 3 / 5-person households.",
@@ -149,7 +149,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Heat Pump Cost After the VEU Rebate, 2026",
     cat: "Costs",
-    date: "28 Apr 2026",
     read: "7 min read",
     title: "What does a heat pump actually cost after the VEU rebate in 2026?",
     blurb: "Real numbers, not \"from $XXX\" marketing, for a 270L Reclaim install in Pakenham, with the VEU rebate applied.",
@@ -190,7 +189,6 @@ export const posts: BlogPost[] = [
     author: "jake",
     seoTitle: "How to Size a Split System, No Upsell",
     cat: "Aircon",
-    date: "19 Apr 2026",
     read: "9 min read",
     title: "How to size a split system for your bedroom (and not get oversold)",
     blurb: "The 2.5kW vs 3.5kW vs 5kW question, demystified. Includes a quick room-size table for SE Melbourne homes.",
@@ -223,7 +221,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Carbon Monoxide Testing, Ducted Heaters",
     cat: "Gas safety",
-    date: "11 Apr 2026",
     read: "6 min read",
     title: "Carbon monoxide testing on ducted heaters: why every 2 years matters",
     blurb: "What CO is, how it builds up in old units, what we test for on a service, and why this isn't a corner you can cut.",
@@ -256,7 +253,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Heat Pumps + Solar PV: The Daytime Trick",
     cat: "Solar pairing",
-    date: "2 Apr 2026",
     read: "11 min read",
     title: "Heat pumps + solar PV: the daytime-charge trick that drops bills to zero",
     blurb: "How to schedule a Reclaim or iStore unit to run in the middle of the day on your own solar export, which is about as cheap as hot water gets.",
@@ -285,7 +281,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Tank Failed? Replace or Go Heat Pump",
     cat: "Hot water",
-    date: "25 Mar 2026",
     read: "5 min read",
     title: "Hot water tank failed? Replace like-for-like, or upgrade to heat pump?",
     blurb: "When the gas tank goes you've got 48 hours to decide. Here's the maths, including the heat pump rebate question.",
@@ -319,7 +314,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Ducted Gas to Reverse-Cycle: The Numbers",
     cat: "Aircon",
-    date: "18 Mar 2026",
     read: "12 min read",
     title: "Replacing ducted gas heating with reverse-cycle: the honest cost-benefit",
     blurb: "Most homes save $1,400+ a year. But not all of them. Here's how to work out if your house is one of the winners.",
@@ -347,7 +341,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "VEU for Rentals: A Landlord Checklist",
     cat: "VEU rebates",
-    date: "10 Mar 2026",
     read: "8 min read",
     title: "VEU eligibility for rentals: a checklist landlords can hand to their PM",
     blurb: "Landlords ask us this every week. Here's a one-page checklist your property manager can use to confirm eligibility in 5 minutes.",
@@ -381,7 +374,6 @@ export const posts: BlogPost[] = [
     author: "jake",
     seoTitle: "5 Things to Clean on Your Split System",
     cat: "Maintenance",
-    date: "2 Mar 2026",
     read: "4 min read",
     title: "5 things you should clean on your split system every quarter",
     blurb: "The DIY maintenance that doubles the life of your aircon and keeps your warranty intact. Five minutes of work.",
@@ -413,7 +405,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Heat Pump Hot Water Melbourne, 2026 Guide",
     cat: "Heat pumps",
-    date: "August 2026",
     read: "16 min read",
     title: "Heat pump hot water Melbourne: the complete 2026 guide",
     blurb: "How heat pumps work, what they actually cost in Melbourne after the VEU rebate, which brand suits which household, and the mistakes we see people make every week.",
@@ -473,7 +464,6 @@ export const posts: BlogPost[] = [
     author: "jake",
     seoTitle: "Split System Installation Melbourne 2026",
     cat: "Aircon",
-    date: "August 2026",
     read: "12 min read",
     title: "Split system installation Melbourne: the 2026 buyer's guide",
     blurb: "Sizing, brand pick, install day, and the parts of a proper install that never show up on a quote.",
@@ -548,7 +538,6 @@ export const posts: BlogPost[] = [
     author: "jake",
     seoTitle: "Ducted Aircon Melbourne: Cost & Install",
     cat: "Ducted aircon",
-    date: "August 2026",
     read: "14 min read",
     title: "Ducted aircon Melbourne, cost, install, and what to spec in 2026",
     blurb: "Sizing a ducted system for a Melbourne family home, retrofit vs new-build install, zoning with Zonemate, and what a $9,000 quote should actually get you.",
@@ -615,7 +604,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Gas Heating & Hot Water Melbourne",
     cat: "Gas plumbing",
-    date: "August 2026",
     read: "11 min read",
     title: "Gas heating & hot water Melbourne, repair, replace, or switch?",
     blurb: "Brivis, Braemar, Rinnai and Rheem, what still makes sense on gas in Melbourne in 2026, and when it's time to move to heat pump or reverse-cycle.",
@@ -671,7 +659,6 @@ export const posts: BlogPost[] = [
     author: "dean",
     seoTitle: "Emergency Hot Water & Gas Repair Melbourne",
     cat: "Emergency",
-    date: "August 2026",
     read: "6 min read",
     title: "Emergency hot water & gas repair Melbourne, what to do first",
     blurb: "No hot water on a Sunday morning? Gas smell in the laundry? Here's the two-minute checklist before you ring us at 3am.",

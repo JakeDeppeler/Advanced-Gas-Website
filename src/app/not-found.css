@@ -1,0 +1,75 @@
+/* The 404 is a real entry point — a stale Google result, a link in an old
+   quote email, a typo — so it is built like a page rather than a dead end:
+   the six places people are actually trying to reach, and the phone number
+   for the half of them who are standing next to something that isn't
+   working. */
+.nf {
+  padding: 96px 0 84px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.nf__head { max-width: 680px; }
+.nf__num {
+  font-family: var(--f-display);
+  font-weight: 900;
+  font-size: clamp(72px, 11vw, 132px);
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  color: var(--navy);
+  margin: 0;
+}
+.nf__lead {
+  margin: 18px 0 0;
+  font-size: clamp(19px, 2.2vw, 23px);
+  line-height: 1.45;
+  color: var(--ink);
+  font-weight: 600;
+  text-wrap: balance;
+}
+.nf__sub { margin: 10px 0 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+
+.nf__calls { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+/* Where people were going */
+.nf__go { padding: 64px 0 76px; }
+.nf__golist {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  grid-template-columns: repeat(3, 1fr);
+}
+.nf__golist li { background: var(--paper, #fff); }
+.nf__golist a {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 22px 22px 24px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.nf__golist a:hover { background: #fff8f4; }
+.nf__golist strong {
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+}
+.nf__golist a:hover strong { color: var(--orange); }
+.nf__golist span { font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+
+@media (max-width: 900px) {
+  .nf__golist { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .nf { padding: 64px 0 56px; }
+  .nf__go { padding: 44px 0 56px; }
+  .nf__golist { grid-template-columns: 1fr; }
+}

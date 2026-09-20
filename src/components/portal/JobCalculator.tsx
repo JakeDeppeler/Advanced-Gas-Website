@@ -172,7 +172,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           <p className="pt-calc__hint">Business hours are 7am to 3:30pm. Anything outside that is a call-out.</p>
           <div className="pt-seg" role="group" aria-label="When">
             <button type="button" className={`pt-seg__b${afterHours ? "" : " is-on"}`} aria-pressed={!afterHours} onClick={() => setAfterHours(false)}>Business hours</button>
-            <button type="button" className={`pt-seg__b pt-seg__b--repair${afterHours ? " is-on" : ""}`} aria-pressed={afterHours} onClick={() => setAfterHours(true)}>After hours</button>
+            <button type="button" className={`pt-seg__b${afterHours ? " is-on" : ""}`} aria-pressed={afterHours} onClick={() => setAfterHours(true)}>After hours</button>
           </div>
           {afterHours && (
             <div className="pt-calc__row" style={{ marginTop: 12 }}>
@@ -264,7 +264,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           <div className="pt-calc__row"><span>Time on the road <em>(both ways)</em></span><span className="pt-calc__field"><input type="number" min="0" step="0.25" value={travelHrs} onChange={(e) => setTravelHrs(parse(e.target.value))} /><span className="pt-calc__post">hrs</span></span></div>
           <div className="pt-seg" role="group" aria-label="Travel charging" style={{ marginTop: 10 }}>
             <button type="button" className={`pt-seg__b${chargeTravel ? " is-on" : ""}`} aria-pressed={chargeTravel} onClick={() => setChargeTravel(true)}>Charge it</button>
-            <button type="button" className={`pt-seg__b pt-seg__b--repair${chargeTravel ? "" : " is-on"}`} aria-pressed={!chargeTravel} onClick={() => setChargeTravel(false)}>Wear it</button>
+            <button type="button" className={`pt-seg__b${chargeTravel ? "" : " is-on"}`} aria-pressed={!chargeTravel} onClick={() => setChargeTravel(false)}>Wear it</button>
           </div>
           {!chargeTravel && travelHrs > 0 && (
             <p className="pt-calc__hint" style={{ marginTop: 8 }}>Still costs us {modeCost !== null ? money(travelHrs * modeCost) : "time"} — it comes out of the job&rsquo;s profit below.</p>

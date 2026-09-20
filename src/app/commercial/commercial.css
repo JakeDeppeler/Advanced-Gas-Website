@@ -685,6 +685,7 @@
   border-top: 2px solid var(--orange, #f36722);
 }
 .page-comm .commfig strong {
+  font-variant-numeric: tabular-nums;
   display: block;
   font-family: var(--f-display);
   font-size: 34px;

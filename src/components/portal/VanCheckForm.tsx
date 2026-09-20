@@ -141,7 +141,7 @@ export function VanCheckForm({ vehicleId, vehicleName, kind }: { vehicleId: stri
                     </div>
                   </div>
                   <div className="pt-seg pt-vc__tickseg" role="group" aria-label={t.item}>
-                    <button type="button" className={`pt-seg__b${e?.state === "ok" ? " is-on" : ""}`} aria-pressed={e?.state === "ok"} onClick={() => setEntry(key, { state: e?.state === "ok" ? null : "ok" })}>OK</button>
+                    <button type="button" className={`pt-seg__b pt-seg__b--good${e?.state === "ok" ? " is-on" : ""}`} aria-pressed={e?.state === "ok"} onClick={() => setEntry(key, { state: e?.state === "ok" ? null : "ok" })}>OK</button>
                     <button type="button" className={`pt-seg__b pt-seg__b--off${e?.state === "action" ? " is-on" : ""}`} aria-pressed={e?.state === "action"} onClick={() => setEntry(key, { state: e?.state === "action" ? null : "action" })}>Needs doing</button>
                   </div>
                   {e?.state === "action" && (
