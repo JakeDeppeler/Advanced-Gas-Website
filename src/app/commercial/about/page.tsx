@@ -5,9 +5,9 @@ import { COMM_STANDARD, COMM_FACTS, COMM_CLIENTS } from "@/lib/commercial";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "About, Commercial Mechanical Services, Pakenham VIC",
+  title: "About Our Commercial Division",
   description:
-    "Directly employed crews, a written standard and one line of accountability. Commercial mechanical services from Pakenham across Melbourne's south-east and Gippsland.",
+    "Directly employed crews, a written standard, one line of accountability. Commercial mechanical from Pakenham across Melbourne's south-east.",
   alternates: { canonical: "/commercial/about" },
 };
 

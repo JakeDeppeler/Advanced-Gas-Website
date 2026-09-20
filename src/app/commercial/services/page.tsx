@@ -5,9 +5,9 @@ import { COMM_SCOPES, COMM_PROCESS } from "@/lib/commercial";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "Commercial Services, Fit-outs, System Replacement, Maintenance",
+  title: "Commercial Fit-outs, Plant & Maintenance",
   description:
-    "Commercial mechanical services across Melbourne's south-east and Gippsland: tenancy fit-outs, base build, system replacement on live sites, scheduled maintenance, Type A and Type B gas, commercial hot water, evaporative cooling, ventilation, air balancing and breakdown response.",
+    "Ten mechanical packages across Melbourne's south-east: tenancy fit-outs, base build, plant replacement on live sites, maintenance and breakdown response.",
   alternates: { canonical: "/commercial/services" },
 };
 

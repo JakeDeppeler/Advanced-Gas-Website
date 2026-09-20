@@ -7,7 +7,7 @@ import { allBrandProductPairs, findProduct, findBrand, productPhoto } from "@/li
 import { SafeImg } from "@/components/SafeImg";
 import { ProductTabs } from "@/components/ProductTabs";
 import { ShowerDelivery } from "@/components/ShowerDelivery";
-import { breadcrumbSchema } from "@/lib/schema";
+import { breadcrumbSchema, productSchema } from "@/lib/schema";
 import "../../../detail.css";
 import "../brand.css";
 import { absoluteTitle, metaDescription, seoMeta } from "@/lib/seo";
@@ -236,6 +236,33 @@ export default function ProductPage({
       </section>
 
       <Script id={`ld-crumbs-${brand.slug}-${product.slug}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(crumbs) }} />
+      {/* The page said what it was to a reader and nothing to a crawler: a
+          breadcrumb and the sitewide business record, which made this a page
+          about Advanced Gas rather than a page about this model. */}
+      <Script
+        id={`ld-product-${brand.slug}-${product.slug}`}
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(
+            productSchema(
+              {
+                name: product.name,
+                model: product.model,
+                slug: product.slug,
+                brandName: brand.name,
+                categoryLabel: product.categoryLabel,
+                bestFor: product.bestFor,
+                capacity: product.capacity,
+                refrigerant: product.refrigerant,
+                photo: productPhoto(product, brand).src,
+                specs: product.specs,
+                installedPriceFrom: product.installedPriceFrom,
+              },
+              brand.slug,
+            ),
+          ),
+        }}
+      />
     </div>
   );
 }

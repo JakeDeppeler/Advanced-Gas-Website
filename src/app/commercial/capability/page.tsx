@@ -6,9 +6,9 @@ import { PrintButton } from "@/components/PrintButton";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "Capability Statement. Advanced Gas & Air Conditioning Services",
+  title: "Capability Statement, Commercial Mechanical",
   description:
-    "Capability statement: ABN, licences, insurances, safety systems, capacity and past projects. Commercial mechanical services across Melbourne's south-east and Gippsland.",
+    "ABN, licences, insurances, safety systems, capacity and past projects, on one page. Commercial mechanical across Melbourne's south-east.",
   alternates: { canonical: "/commercial/capability" },
 };
 
@@ -52,10 +52,14 @@ export default function CapabilityPage() {
         </div>
       </section>
 
-      {/* The print header: what a filed copy opens with instead of the hero. */}
+      {/* The print header: what a filed copy opens with instead of the hero.
+          Not an h1. It is hidden on screen and only shown by the print rules,
+          but a crawler reads the DOM and not the stylesheet, so this page was
+          shipping two identical h1s — the only page on the site that did. It
+          is styled to look like the heading it replaces when printed. */}
       <section className="cap-printhead">
         <div className="wrap">
-          <h1>{site.legalName}</h1>
+          <p className="cap-printhead__name">{site.legalName}</p>
           <p>Capability statement. {site.phone} · {site.email} · {site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</p>
         </div>
       </section>

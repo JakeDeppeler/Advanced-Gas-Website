@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Script from "next/script";
+import Link from "next/link";
 import { site } from "@/lib/site";
 import { faqSchema, breadcrumbSchema } from "@/lib/schema";
 import { RebateCalculator } from "@/components/RebateCalculator";
@@ -338,6 +339,44 @@ export default function RebatesPage() {
             <a href={`tel:${site.phoneE164}`} className="bigcta__phone">
               or call <strong>{site.phone}</strong>
             </a>
+          </div>
+        </div>
+      </section>
+
+      {/* WHERE TO GO NEXT
+          This page had exactly one internal link in its whole body, and it
+          ranks and converts. A reader who has just worked out they qualify had
+          nowhere to go except the quote form — no way to see what the rebate
+          actually buys, no way to check their own postcode, no way to read the
+          argument for a heat pump over gas. Link equity aside, that is a
+          reader left holding a decision with nothing to make it on. */}
+      <section className="rb-next">
+        <div className="wrap">
+          <div className="ds-section-head ds-section-head--center">
+            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Next</span>
+            <h2>Now you know it applies.</h2>
+          </div>
+          <div className="rb-nextgrid">
+            <Link href="/range" className="rb-nextcard">
+              <strong>See what it buys</strong>
+              <span>Every model and size we install, with the rebate already off the price.</span>
+              <em>The full range &rarr;</em>
+            </Link>
+            <Link href="/tools/veu-rebate-estimator" className="rb-nextcard">
+              <strong>Check your postcode</strong>
+              <span>The rebate moves with where you live and what you are replacing.</span>
+              <em>Rebate estimator &rarr;</em>
+            </Link>
+            <Link href="/heat-pumps" className="rb-nextcard">
+              <strong>Heat pump or gas?</strong>
+              <span>The four ways to make hot water, and which suits your place.</span>
+              <em>Compare them &rarr;</em>
+            </Link>
+            <Link href="/tools/hot-water-savings" className="rb-nextcard">
+              <strong>What you get back</strong>
+              <span>Your current bill against a heat pump, and how long it takes to pay for itself.</span>
+              <em>Savings calculator &rarr;</em>
+            </Link>
           </div>
         </div>
       </section>

@@ -55,7 +55,7 @@ function HeroQuoteFormSkeleton() {
 export const metadata: Metadata = {
   title: "Heat Pump, Split & Ducted Aircon, Pakenham",
   description:
-    "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east and Gippsland. Directly employed crews, VEU rebates handled. Free 60-second quote.",
+    "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east. Own crews, VEU rebate handled, free written quote.",
   alternates: { canonical: "/" },
   // Explicit, now the root no longer carries a homepage title for
   // everything to inherit. The homepage owns its own share card.
