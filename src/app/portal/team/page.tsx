@@ -42,7 +42,11 @@ export default async function TeamDirectory() {
       {canManage && <AddTeamPerson />}
 
       {people.length === 0 ? (
-        <div className="pt-rep__empty">No team members yet — add them above.</div>
+        <div className="pt-rep__empty">
+          {ready
+            ? "No team members yet — add them above."
+            : "The team can’t be read right now, so this is empty rather than the team being empty."}
+        </div>
       ) : (
         <TeamBoard initial={people} canManage={canManage} />
       )}

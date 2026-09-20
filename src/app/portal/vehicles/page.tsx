@@ -120,7 +120,11 @@ export default async function VehiclesPage() {
       {canManage && <div style={{ marginBottom: 18 }}><AddVehicleForm crew={crew} /></div>}
 
       {vehicles.length === 0 ? (
-        <div className="pt-rep__empty">No vehicles yet{canManage ? " — add one above." : "."}</div>
+        <div className="pt-rep__empty">
+          {ready
+            ? <>No vehicles yet{canManage ? " — add one above." : "."}</>
+            : <>The fleet can&rsquo;t be read right now, so this is empty rather than the fleet being empty.</>}
+        </div>
       ) : (
         <>
           <div className="pt-grid">{onRoad.map((v) => <Card key={v.id} v={v} who={v.assignedTo ? nameOf.get(v.assignedTo) ?? null : null} />)}</div>
