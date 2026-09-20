@@ -3,6 +3,7 @@ import { site, openingHoursShort } from "@/lib/site";
 import { ContactForm } from "@/components/ContactForm";
 import "./contact.css";
 import { PageHero } from "@/components/PageHero";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Contact, Free quote in 12 hours",
@@ -69,6 +70,35 @@ export default function ContactPage() {
               </div>
             </div>
           </aside>
+        </div>
+      </section>
+
+      {/* A contact page is a set of details, and this one had no way out of it
+          at all — no link to the suburbs we cover, the emergency line or the
+          quote form, which are the three things somebody on this page is
+          usually one step away from wanting. */}
+      <section className="ct-next">
+        <div className="wrap">
+          <ul className="ct-nextrow">
+            <li>
+              <Link href="/service-areas">
+                <strong>Do you come to me?</strong>
+                <span>Every suburb we work in, with drive times from Pakenham</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact#emergency">
+                <strong>Gas leak or no hot water?</strong>
+                <span>The after-hours line, answered by someone on the tools</span>
+              </Link>
+            </li>
+            <li>
+              <Link href="/quote">
+                <strong>Just want a price?</strong>
+                <span>A written quote back inside 12 business hours</span>
+              </Link>
+            </li>
+          </ul>
         </div>
       </section>
     </div>

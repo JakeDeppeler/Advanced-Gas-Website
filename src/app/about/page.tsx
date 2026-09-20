@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { site, openingHours } from "@/lib/site";
 import "./about.css";
 import { PageHero } from "@/components/PageHero";
 
@@ -183,11 +183,28 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* One internal link in the whole page, and it was the quote button. A
+          reader who has just read who we are is deciding whether to believe
+          it; the three pages that answer that are the reviews, the photographs
+          and the licences. */}
+      <section className="ab-next">
+        <div className="wrap">
+          <ul className="ab-nextrow">
+            <li><Link href="/reviews"><strong>What customers said</strong><span>4.9 out of 5, across the south-east</span></Link></li>
+            <li><Link href="/gallery"><strong>Work we have done</strong><span>Real installs, before and after</span></Link></li>
+            <li><Link href="/services"><strong>What we take on</strong><span>Heating, cooling, gas and hot water</span></Link></li>
+            <li><Link href="/service-areas"><strong>Where we work</strong><span>Every suburb, with drive times</span></Link></li>
+          </ul>
+        </div>
+      </section>
+
       <section className="bigcta">
         <div className="wrap bigcta__row">
           <div>
             <h2>Talk to the people who set the standard.</h2>
-            <p>The person who quotes your job is the person who stands behind it. Monday to Saturday, and after hours for emergencies.</p>
+            {/* "Monday to Saturday" — the ninth hand-written copy of the
+                opening hours, and the third that contradicted the record. */}
+            <p>The person who quotes your job is the person who stands behind it. {openingHours()}, and after hours for emergencies.</p>
           </div>
           <div className="bigcta__btns">
             <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--xl">Get a free quote →</Link>
