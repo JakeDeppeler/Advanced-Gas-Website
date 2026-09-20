@@ -30,9 +30,9 @@ import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { BenefitTiles } from "@/components/BenefitTiles";
 import { faqSchema } from "@/lib/schema";
+import { TILE_TINTS } from "@/lib/tileTints";
 
 /** The tile palette, same five every other page rotates through. */
-const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 
 
 export function generateStaticParams() {

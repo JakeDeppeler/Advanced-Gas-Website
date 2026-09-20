@@ -28,9 +28,9 @@ import { ADVISORS } from "@/lib/advisor";
 import { systemDetail } from "@/lib/systemDetail";
 import { systemCatalogue } from "@/lib/systemCatalogue";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
+import { TILE_TINTS } from "@/lib/tileTints";
 
 /** The tile palette, same five the filtration pages rotate through. */
-const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 
 /** "Choose your system" — the heading and the line under it, per service.
  *  Written rather than generated: "Choose your air conditioning

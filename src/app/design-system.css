@@ -2627,10 +2627,16 @@ input, select, textarea {
   flex-direction: column;
   align-items: flex-start;
   position: relative;
-  opacity: 0.62;
+  /* Not 0.62. At that depth an unselected tile reads as one that has not
+     finished loading rather than one you have not clicked, and on a strip
+     where four of five are always unselected that is most of what you see.
+     The selected tile is already separated by the lift, the shadow and the
+     notch into the panel below, none of which any other tile has, so the
+     dimming only has to be a supporting signal. */
+  opacity: 0.82;
   transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
 }
-.bentile:hover { opacity: 0.85; }
+.bentile:hover { opacity: 1; }
 .bentile.is-on {
   opacity: 1;
   transform: translateY(-3px);

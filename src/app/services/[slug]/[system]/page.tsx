@@ -20,9 +20,9 @@ import { HeatPumpDiagram } from "@/components/HeatPumpDiagram";
 import { ADVISORS } from "@/lib/advisor";
 
 /** The tile palette, same five the rest of the site rotates through. */
-const TILE_TINTS = ["#0B1450", "#00699A", "#2E7D6B", "#C2540F", "#5A5F7A"];
 import { ReviewMarquee } from "@/components/ReviewMarquee";
 import { hasAsset, resolveAsset } from "@/lib/publicAsset";
+import { TILE_TINTS } from "@/lib/tileTints";
 
 
 /**
