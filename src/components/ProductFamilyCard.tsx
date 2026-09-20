@@ -90,9 +90,13 @@ export function ProductFamilyCard({
           </div>
         ) : sizes ? (
           <>
+            {/* Links, not dead text. One page covers all four outputs, so every
+                chip goes to the same place — but a chip you cannot click when
+                the chips on the next card along all work reads as broken, and
+                the page behind it is where the sizes are set out anyway. */}
             <div className="pfam__chips pfam__chips--static">
               {sizes.map((z) => (
-                <span key={z} className="pfam__chip pfam__chip--static">{z}</span>
+                <Link key={z} href={active.href} className="pfam__chip pfam__chip--static">{z}</Link>
               ))}
             </div>
             <span className="pfam__sizenote">
@@ -110,14 +114,23 @@ export function ProductFamilyCard({
           {active.veuEligible && <span className="pfam__veu">VEU</span>}
         </div>
 
-        <Link href={active.href} className="pfam__go">
-          {active.installedPriceFrom ? (
-            <><strong>{active.installedPriceFrom}</strong> installed</>
-          ) : (
-            <>See the specs</>
-          )}
-          <span aria-hidden="true">&rarr;</span>
-        </Link>
+        {/* The price where we publish one, and a way to get one where we do
+            not. "See the specs" was the honest label and the useless one: a
+            reader on a product card is asking what it costs, and sending them
+            to a spec sheet answers a question they did not ask. */}
+        {active.installedPriceFrom ? (
+          <Link href={active.href} className="pfam__go">
+            <span><strong>{active.installedPriceFrom}</strong> installed</span>
+            <span aria-hidden="true">&rarr;</span>
+          </Link>
+        ) : (
+          <div className="pfam__go pfam__go--ask">
+            <Link href="/quote" className="pfam__price">
+              Get a price <span aria-hidden="true">&rarr;</span>
+            </Link>
+            <Link href={active.href} className="pfam__specs">Specs</Link>
+          </div>
+        )}
         {showChips && <span className="pfam__which">{active.model}</span>}
       </div>
     </div>

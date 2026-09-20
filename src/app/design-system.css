@@ -23,6 +23,13 @@
   --ink-3: #5d5d64; /* WCAG AA on --bg cream (6.4:1); was #7a7a82 which failed AA at 4.3:1 */
   --line: #ebe6d8;
   --line-2: #d8d2c1;
+  /* The one dark ground.
+     There were five copies of a lighter, purpler blue — #1a2c68 → #12224e —
+     across the heroes, while every dark PANEL on the site was built from
+     --navy. So the pricing page put a #1a2c68 header directly above a #050a30
+     box and you could see the join. One token, matched to the panels, and the
+     five copies read from it. */
+  --ground: linear-gradient(160deg, var(--navy) 0%, var(--navy-2) 100%);
 
   --f-display: var(--font-display);
   --f-body: var(--font-sans);
@@ -3538,7 +3545,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   background:
     radial-gradient(ellipse 820px 460px at 10% 0%, rgba(243,103,34,0.11) 0%, transparent 62%),
     radial-gradient(ellipse 640px 380px at 92% 100%, rgba(0,176,237,0.10) 0%, transparent 58%),
-    linear-gradient(180deg, #1a2c68 0%, #12224e 62%, #0e1c45 100%);
+    var(--ground);
   overflow: hidden;
 }
 .phero--index { padding: 52px 0 56px; }
@@ -3972,7 +3979,12 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 /* ---- Rail mega rows ---- */
 /* The Services menu's right-hand pane, for menus whose items have a glyph
    rather than a photograph of the job. A calculator does not photograph. */
-.megarows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-content: start; }
+/* One column, not two. Two columns of rows across a 1240px panel made a menu
+   that had to be read in a Z: eyes across, back, across again, for four items.
+   A menu is a list and reads down. The panel narrows to suit, so the rows are
+   a sane measure rather than a name at one end and an arrow eleven hundred
+   pixels away at the other. */
+.megarows { display: grid; grid-template-columns: 1fr; gap: 7px; align-content: start; }
 .megarow {
   display: flex;
   align-items: flex-start;
@@ -4006,6 +4018,27 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .megarow--lead:hover { background: rgba(243, 103, 34, 0.12); border-color: var(--orange); }
 .megarow__note { font-size: 13px; line-height: 1.5; color: var(--ink-2); }
 
-@media (max-width: 1100px) {
-  .megarows { grid-template-columns: 1fr; }
+/* The rail menus that are lists rather than galleries. Services keeps the
+   wide panel: it has photographs in it and up to five of them. */
+.megasvc--list { width: min(820px, calc(100vw - 32px)); }
+
+/* Size chips that are links to the one page behind them. Same treatment as
+   the pickable chips on hover, because they are clickable and should look it;
+   never the orange "selected" state, because there is nothing to select. */
+.pfam__chip--static { text-decoration: none; display: inline-flex; align-items: center; }
+.pfam__chip--static:hover { background: #fff; border-color: var(--orange); color: var(--navy); }
+
+/* The foot when we do not publish a price for the thing: ask for one, with
+   the spec sheet beside it rather than instead of it. */
+.pfam__go--ask { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pfam__price {
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--orange);
+  text-decoration: none;
 }
+.pfam__price span { transition: transform 0.14s; display: inline-block; }
+.pfam:hover .pfam__price span { transform: translateX(3px); }
+.pfam__specs { font-size: 13px; color: var(--ink-3); text-decoration: none; }
+.pfam__specs:hover { color: var(--navy); text-decoration: underline; text-underline-offset: 3px; }

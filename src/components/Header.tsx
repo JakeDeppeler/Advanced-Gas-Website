@@ -591,7 +591,7 @@ function RailMega({ groups, rail, foot }: {
   const g = groups[active];
 
   return (
-    <div className="megasvc">
+    <div className="megasvc megasvc--list">
       <div className="megasvc__rail" role="tablist" aria-label="Sections">
         {groups.map((grp, i) => (
           <button
@@ -735,8 +735,12 @@ const PRICING_GROUPS: RailGroup[] = [
   {
     label: "Prices",
     items: [
-      { href: "/pricing", label: "Full price list", sub: "Every model, installed price", icon: "\u2261" },
-      { href: "/range", label: "The full range", sub: "Every model we install, filterable", icon: "\u2302" },
+      // The range leads, and is the orange one. It is the page that carries
+      // every model with its sizes and its price, which makes it the answer
+      // to "what do you sell and what does it cost" — the price list is the
+      // same information as a table for somebody who wants a table.
+      { href: "/range", label: "The full range", sub: "Every model and size, with prices", icon: "\u2302", lead: true },
+      { href: "/pricing", label: "Full price list", sub: "The same numbers, as a table", icon: "\u2261" },
       { href: "/tools/veu-rebate-estimator", label: "Compare pricing", sub: "Your postcode \u2192 what you\u2019d pay", icon: "\u25c6" },
     ],
   },
@@ -772,10 +776,10 @@ function PricingMega() {
       groups={PRICING_GROUPS}
       rail={
         <>
-          <Link href="/pricing" className="megasvc__range">
+          <Link href="/range" className="megasvc__range">
             <div>
-              <b>Open the full price list</b>
-              <span>Installed prices, rebate already off</span>
+              <b>Open the full range</b>
+              <span>Every model, every size, filterable</span>
             </div>
           </Link>
           <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">

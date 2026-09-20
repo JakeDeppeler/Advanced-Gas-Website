@@ -13,7 +13,7 @@
   background:
     linear-gradient(180deg, rgba(19,36,84,0.78) 0%, rgba(15,28,72,0.84) 55%, rgba(11,22,60,0.9) 100%),
     url("/commercial.webp") center 40% / cover no-repeat,
-    linear-gradient(180deg, #1a2c68 0%, #12224e 100%);
+    var(--ground);
 }
 .page-home.page-comm .hero__photo { aspect-ratio: 4 / 3; }
 .page-home.page-comm .hero__photo img { object-position: center 45%; }
