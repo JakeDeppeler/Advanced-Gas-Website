@@ -299,7 +299,7 @@
   padding: 22px 22px 20px;
   background: #fff; border: 1px solid #e2e8f4; border-radius: 16px;
 }
-.commcontact__card h3 {
+.commcontact__card h2 {
   margin: 0 0 8px;
   font-family: var(--f-mono, ui-monospace, monospace);
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8791ab;
@@ -516,7 +516,7 @@
    same light/dark rhythm as the rest, and the white form reads as the ask. */
 .commcontact--dark { background: var(--navy-2, #0b1450); padding: 64px 0 80px; }
 .commcontact--dark .commcontact__card { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.14); }
-.commcontact--dark .commcontact__card h3 { color: #9aa4cf; }
+.commcontact--dark .commcontact__card h2 { color: #9aa4cf; }
 .commcontact--dark .commcontact__phone,
 .commcontact--dark .commcontact__mail { color: #fff; }
 .commcontact--dark .commcontact__phone:hover { color: var(--orange-2, #ff7a36); }

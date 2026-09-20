@@ -5,9 +5,9 @@ import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import "../commercial.css";
 
 export const metadata: Metadata = {
-  title: "Contact, Commercial Mechanical Services, Pakenham VIC",
+  title: "Submit a Commercial Scope, Pakenham VIC",
   description:
-    "Submit a scope for pricing, or ask for certificates of currency, SWMS and induction documentation. Commercial mechanical services across Melbourne's south-east and Gippsland.",
+    "Submit a scope for pricing, or ask for certificates of currency, SWMS and induction docs. Commercial mechanical across Melbourne's south-east and Gippsland.",
   alternates: { canonical: "/commercial/contact" },
 };
 
@@ -71,23 +71,23 @@ export default function CommercialContactPage() {
 
       <section className="commcontact commcontact--dark">
         <div className="wrap commcontact__grid">
-          <CommercialScopeForm />
+          <CommercialScopeForm headingLevel="h2" />
 
           <aside className="commcontact__side">
             <div className="commcontact__card">
-              <h3>Call the office</h3>
+              <h2>Call the office</h2>
               <a className="commcontact__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
               <span className="commcontact__sub">{site.hours[0].day.replace("-", " to ")}, {site.hours[0].open} to {site.hours[0].close}. After hours goes to someone on the tools.</span>
             </div>
 
             <div className="commcontact__card">
-              <h3>Email</h3>
+              <h2>Email</h2>
               <a className="commcontact__mail" href={`mailto:${site.email}`}>{site.email}</a>
               <span className="commcontact__sub">Drawings and schedules can come straight through as attachments.</span>
             </div>
 
             <div className="commcontact__card">
-              <h3>Paperwork</h3>
+              <h2>Paperwork</h2>
               <p>
                 Certificates of currency, SWMS and induction documentation are returned the same day you ask. Licences,
                 insurances and past projects are on the <Link href="/commercial/capability">capability statement</Link>,
@@ -96,7 +96,7 @@ export default function CommercialContactPage() {
             </div>
 
             <div className="commcontact__card commcontact__card--quiet">
-              <h3>Based at</h3>
+              <h2>Based at</h2>
               <p>{site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}. Standard service area 75&nbsp;km, further for rollout and contract work.</p>
             </div>
           </aside>
