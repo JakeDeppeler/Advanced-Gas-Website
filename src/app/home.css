@@ -2157,3 +2157,6 @@
   .page-home:not(.page-comm) .reveal .brands__rule,
   .page-home:not(.page-comm) .reveal.is-revealed .brands__rule { transform: none; transition: none; }
 }
+
+/* The journey's lede, under the process heading. */
+.page-home .process__lede { margin: 14px 0 0; font-size: 17px; line-height: 1.65; color: #c6cce6; max-width: 66ch; }
