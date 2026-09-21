@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * A job as one scroll: a drawing that holds while the beats move past it.
@@ -21,6 +21,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
  *    at the middle of the viewport decides which beat is live
  *  · leave a blank panel if the observer never fires: the first scene is the
  *    initial state, so a failure looks like a static illustration
+ *
+ * One beat can be followed by an `interlude` — a panel that interrupts the
+ * run rather than continuing it. It exists because the journey is long, and
+ * the one place on the page where somebody can actually act sits below all of
+ * it. The interlude is not observed and holds no scene, so the drawing and
+ * the beat count are unaffected by it.
  */
 
 export type JourneyBeat = {
@@ -43,10 +49,14 @@ export function ScrollJourney({
   beats,
   renderScene,
   renderExtra,
+  interlude,
 }: {
   beats: readonly JourneyBeat[];
   renderScene: (scene: string) => ReactNode;
   renderExtra?: (extra: string) => ReactNode;
+  /** A panel dropped in after the beat at `after` (0-based). Not a beat:
+   *  no scene, no dot, and the observer never sees it. */
+  interlude?: { after: number; node: ReactNode };
 }) {
   const [active, setActive] = useState(0);
   const refs = useRef<(HTMLLIElement | null)[]>([]);
@@ -97,22 +107,29 @@ export function ScrollJourney({
 
       <ol className="cj__beats">
         {beats.map((b, i) => (
-          <li
-            key={b.n}
-            ref={(el) => { refs.current[i] = el; }}
-            className={`cjbeat${i === active ? " is-on" : ""}`}
-          >
-            <div className="cjbeat__rail" aria-hidden="true"><span /></div>
-            <div className="cjbeat__body">
-              <span className="cjbeat__kick">
-                <b>{b.n}</b> {b.kicker}
-              </span>
-              <h3>{b.h}</h3>
-              <p>{b.p}</p>
-              {b.extra && renderExtra ? <div className="cjbeat__extra">{renderExtra(b.extra)}</div> : null}
-              <p className="cjbeat__why">{b.why}</p>
-            </div>
-          </li>
+          <Fragment key={b.n}>
+            <li
+              ref={(el) => { refs.current[i] = el; }}
+              className={`cjbeat${i === active ? " is-on" : ""}`}
+            >
+              <div className="cjbeat__rail" aria-hidden="true"><span /></div>
+              <div className="cjbeat__body">
+                <span className="cjbeat__kick">
+                  <b>{b.n}</b> {b.kicker}
+                </span>
+                <h3>{b.h}</h3>
+                <p>{b.p}</p>
+                {b.extra && renderExtra ? <div className="cjbeat__extra">{renderExtra(b.extra)}</div> : null}
+                <p className="cjbeat__why">{b.why}</p>
+              </div>
+            </li>
+            {interlude && interlude.after === i ? (
+              <li className="cjband">
+                <div className="cjbeat__rail cjbeat__rail--band" aria-hidden="true"><span /></div>
+                <div className="cjband__body">{interlude.node}</div>
+              </li>
+            ) : null}
+          </Fragment>
         ))}
       </ol>
     </div>

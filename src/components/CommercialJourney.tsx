@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { COMM_JOURNEY, COMM_CLIENTS, COMM_SCOPES, COMM_FACTS, COMM_STANDARD } from "@/lib/commercial";
 import { ScrollJourney } from "@/components/ScrollJourney";
+import { CommercialScopeBand } from "@/components/CommercialScopeBand";
 import { CountUp } from "@/components/CountUp";
 
 /**
@@ -451,6 +452,11 @@ export function CommercialJourney() {
       beats={COMM_JOURNEY}
       renderScene={(k) => <Scene kind={k} />}
       renderExtra={(k) => <Extra kind={k} />}
+      // After beat 05 — the one that answers insurances, licences and SWMS.
+      // That is the beat where somebody stops reading to check whether we
+      // clear their gate, and the point at which having to scroll past seven
+      // more beats to find the form is the page's problem rather than theirs.
+      interlude={{ after: 4, node: <CommercialScopeBand /> }}
     />
   );
 }
