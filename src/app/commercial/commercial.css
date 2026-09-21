@@ -693,7 +693,10 @@
   line-height: 1;
   color: #fff;
 }
-.page-comm .commfig span {
+/* Direct child only. As a descendant selector this also caught the spans
+   inside the counting figure, so 12 / $20M / 100% rendered in the label's
+   10.5px mono instead of the 34px display face. */
+.page-comm .commfig > span {
   display: block;
   margin-top: 7px;
   font-family: var(--f-mono);
@@ -892,7 +895,7 @@
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 0 22px;
-  min-height: 62vh;
+  min-height: 50vh;
   align-content: center;
   padding: 18px 0;
 }
@@ -984,12 +987,12 @@
   .cjbeat:first-child { padding-top: 34px; }
   .cj__frame { max-width: 460px; margin: 0 auto; width: 100%; }
   .cj__dots { max-width: 460px; margin: 0 auto; width: 100%; }
-  .cjbeat { min-height: 54vh; grid-template-columns: 14px minmax(0, 1fr); gap: 0 16px; }
+  .cjbeat { min-height: 46vh; grid-template-columns: 14px minmax(0, 1fr); gap: 0 16px; }
   .cjbeat p { max-width: none; }
 }
 @media (max-width: 560px) {
   .cj__frame { border-radius: 14px; }
-  .cjbeat { min-height: 50vh; }
+  .cjbeat { min-height: 44vh; }
   .cjbeat h3 { font-size: 23px; }
 }
 
@@ -1117,4 +1120,118 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+
+/* ===================================================================
+   THE REST OF THE PAGE, MOVING LIKE THE JOURNEY DOES
+
+   The journey set the language: things draw in from the left, repeated
+   items arrive in sequence rather than as one slab, and the orange is
+   what leads. This applies that to every other band so the page reads
+   as one piece of work instead of one animated section bolted onto a
+   static page.
+
+   It all hangs off `.reveal` / `.is-revealed`, which components/Reveal.tsx
+   already puts on every section — so the same contract holds: if the
+   observer never runs, nothing is ever hidden and the page renders
+   finished.
+   =================================================================== */
+
+/* ---- a section head announces itself with a rule, not a fade ---- */
+.page-comm .ds-section-head { position: relative; }
+.page-comm .reveal .ds-eyebrow { opacity: 0; transform: translateY(6px); }
+.page-comm .reveal.is-revealed .ds-eyebrow {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.page-comm .reveal .ds-section-head > h2 { opacity: 0; transform: translateY(14px); }
+.page-comm .reveal.is-revealed .ds-section-head > h2 {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.55s ease 0.08s, transform 0.55s cubic-bezier(0.25, 1, 0.4, 1) 0.08s;
+}
+
+/* ---- repeated items arrive in sequence ----
+   One rule for every card family on the page, sequenced off --i set on
+   the element, so a family with nine members sequences as far as it
+   needs to instead of stopping at the sixth like the site-wide rule. */
+.page-comm .reveal .routebtn,
+.page-comm .reveal .brand-chip,
+.page-comm .reveal .bcard--pack,
+.page-comm .reveal .commfig,
+.page-comm .reveal .faq__right details {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-comm .reveal.is-revealed .routebtn,
+.page-comm .reveal.is-revealed .brand-chip,
+.page-comm .reveal.is-revealed .bcard--pack,
+.page-comm .reveal.is-revealed .commfig,
+.page-comm .reveal.is-revealed .faq__right details {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.5s ease,
+    transform 0.55s cubic-bezier(0.25, 1, 0.4, 1);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* The orange rule on a figure card draws across as the card lands, the
+   same move the schedule in "why we get asked back" makes. */
+.page-comm .commfig {
+  border-top-color: transparent;
+  position: relative;
+}
+.page-comm .commfig::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--orange, #f36722);
+  transform-origin: left center;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: calc(var(--i, 0) * 70ms + 140ms);
+}
+.page-comm .reveal:not(.is-revealed) .commfig::before { transform: scaleX(0); }
+
+/* ---- the figures count up to themselves ----
+   The ghost holds the finished string so the card never reflows while
+   the digits are changing; the live copy sits on top of it. */
+.countup { position: relative; display: inline-block; }
+.countup__ghost { visibility: hidden; }
+.countup__live { position: absolute; inset: 0; }
+
+/* ---- the client names, which are the credential ---- */
+.page-comm .reveal .brands__rule { transform: scaleX(0); transform-origin: left center; }
+.page-comm .reveal.is-revealed .brands__rule {
+  transform: none;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-comm .reveal .ds-eyebrow,
+  .page-comm .reveal .ds-section-head > h2,
+  .page-comm .reveal .routebtn,
+  .page-comm .reveal .brand-chip,
+  .page-comm .reveal .bcard--pack,
+  .page-comm .reveal .commfig,
+  .page-comm .reveal .faq__right details,
+  .page-comm .reveal.is-revealed .ds-eyebrow,
+  .page-comm .reveal.is-revealed .ds-section-head > h2,
+  .page-comm .reveal.is-revealed .routebtn,
+  .page-comm .reveal.is-revealed .brand-chip,
+  .page-comm .reveal.is-revealed .bcard--pack,
+  .page-comm .reveal.is-revealed .commfig,
+  .page-comm .reveal.is-revealed .faq__right details {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .page-comm .commfig::before,
+  .page-comm .reveal:not(.is-revealed) .commfig::before { transform: none; transition: none; }
+  .page-comm .reveal .brands__rule,
+  .page-comm .reveal.is-revealed .brands__rule { transform: none; transition: none; }
 }

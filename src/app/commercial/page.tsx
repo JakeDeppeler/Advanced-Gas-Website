@@ -11,6 +11,7 @@ import {
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { CommercialJourney } from "@/components/CommercialJourney";
+import { CountUp } from "@/components/CountUp";
 import { DoorIcon } from "@/components/DoorIcon";
 import "../home.css";
 import "./commercial.css";
@@ -129,8 +130,8 @@ export default function CommercialPage() {
               <h2>What&rsquo;s the job?</h2>
             </div>
             <div className="routebtns">
-              {COMM_DOORS.map((d) => (
-                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`}>
+              {COMM_DOORS.map((d, i) => (
+                <Link key={d.href} href={d.href} className={`routebtn routebtn--${d.tone}`} style={{ ["--i" as string]: i }}>
                   <span className="routebtn__ico"><DoorIcon name={d.icon} /></span>
                   <span className="routebtn__txt">
                     <strong>{d.label}</strong>
@@ -164,8 +165,8 @@ export default function CommercialPage() {
             </span>
           </div>
           <div className="brands__grid">
-            {COMM_CLIENTS.map((c) => (
-              <div key={c.name} className="brand-chip">
+            {COMM_CLIENTS.map((c, i) => (
+              <div key={c.name} className="brand-chip" style={{ ["--i" as string]: i }}>
                 <span className="brand-chip__name">{c.name}</span>
                 <span className="brand-chip__type">{c.what}</span>
               </div>
@@ -240,8 +241,8 @@ export default function CommercialPage() {
               facility manager would notice. The number does the work the
               photograph does on the home page. */}
           <div className="bento bento--packs">
-            {COMM_SCOPES.map((sc) => (
-              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="bcard bcard--pack">
+            {COMM_SCOPES.map((sc, i) => (
+              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="bcard bcard--pack" style={{ ["--i" as string]: i }}>
                 <div className="bcard__body">
                   <span className="bcard__num">{sc.n}</span>
                   <h3>{sc.title}</h3>
@@ -267,9 +268,9 @@ export default function CommercialPage() {
             <h2 className="ds-h--on-dark">The four things procurement writes down.</h2>
           </div>
           <div className="comm-figs__grid">
-            {COMM_FACTS.map((f) => (
-              <div key={f.k} className="commfig">
-                <strong>{f.n}</strong>
+            {COMM_FACTS.map((f, i) => (
+              <div key={f.k} className="commfig" style={{ ["--i" as string]: i }}>
+                <strong><CountUp value={f.n} /></strong>
                 <span>{f.k}</span>
                 <p>{f.p}</p>
               </div>
@@ -397,7 +398,7 @@ export default function CommercialPage() {
           </div>
           <div className="faq__right">
             {COMM_FAQS.map((f, i) => (
-              <details key={f.q} name="commfaq" {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="commfaq" style={{ ["--i" as string]: i }} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
