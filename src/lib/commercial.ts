@@ -403,12 +403,35 @@ export type CommBeat = {
   p: string;
   /** Why it matters that it is us. One line, no paragraph. */
   why: string;
-  scene: "enquiry" | "plans" | "frame" | "duct" | "commission" | "handover" | "fitout" | "open";
+  scene:
+    | "clients" | "schedule" | "enquiry" | "plans" | "procurement" | "frame"
+    | "duct" | "crew" | "commission" | "handover" | "fitout" | "open";
+  /** Keys a block of real content in CommercialJourney.tsx, for the beats
+   *  that carry a list rather than a paragraph. */
+  extra?: "clients" | "packages" | "figures" | "standard";
 };
 
 export const COMM_JOURNEY: CommBeat[] = [
   {
     n: "01",
+    kicker: "Who already lets us on site",
+    h: "Banks, national retail, tier-one builders.",
+    p: "Places with a procurement process and an auditor, where the paperwork is checked before the trade is. They are the reason the rest of this page reads the way it does.",
+    why: "Nobody on this list took a chance on us. They checked first.",
+    scene: "clients",
+    extra: "clients",
+  },
+  {
+    n: "02",
+    kicker: "What we take on",
+    h: "Mechanical, gas and hot water, under one trade.",
+    p: "We are a specialist contractor rather than a builder. Every one of these is a package we own from the drawings through to handover, with our own crew on it.",
+    why: "Nothing here gets passed to somebody else once you have signed.",
+    scene: "schedule",
+    extra: "packages",
+  },
+  {
+    n: "03",
     kicker: "The enquiry",
     h: "You send us what you\u2019ve got.",
     p: "Drawings, a mechanical schedule, a site address, a photo of the plant that died on Friday. Whatever is in your hand is enough to start a conversation.",
@@ -416,7 +439,7 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "enquiry",
   },
   {
-    n: "02",
+    n: "04",
     kicker: "The plans",
     h: "We read them before we price them.",
     p: "Line by line, against the reflected ceiling plan and the schedule. Where the drawings leave a gap we tell you what we have assumed.",
@@ -424,7 +447,16 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "plans",
   },
   {
-    n: "03",
+    n: "05",
+    kicker: "Before you put us on a site",
+    h: "The four things procurement writes down.",
+    p: "Asked for on every first job, so they are answered here rather than three emails into it. The capability statement carries the rest on one page you can file.",
+    why: "Back the same day you ask. Usually within the hour.",
+    scene: "procurement",
+    extra: "figures",
+  },
+  {
+    n: "06",
     kicker: "The build",
     h: "We turn up when the program says.",
     p: "Install windows coordinated with the head contractor and the trades either side of us. Staged, out of hours or over a weekend if the site has to keep trading.",
@@ -432,15 +464,24 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "frame",
   },
   {
-    n: "04",
+    n: "07",
     kicker: "The install",
     h: "Hard duct, ducted splits, plant set and run.",
     p: "Spiral and rectangular run to the drawings, indoor units in the ceiling void, condensers craned and set on their pads, refrigerant and condensate run properly.",
-    why: "Our own installers. Not labour hire, not a different sub each visit.",
+    why: "Every penetration sealed and photographed as we go.",
     scene: "duct",
   },
   {
-    n: "05",
+    n: "08",
+    kicker: "Why we get asked back",
+    h: "Size isn\u2019t the credential. Doing the same thing every time is.",
+    p: "Every one of these is checkable. Ask for the procedures, ask who is turning up, ask for the paperwork before we are on site. The answer should be the same one you got last time.",
+    why: "Our own installers and apprentices. Not labour hire, not a different sub each visit.",
+    scene: "crew",
+    extra: "standard",
+  },
+  {
+    n: "09",
     kicker: "The inspection",
     h: "Balanced to the design figures.",
     p: "Air balanced to what was specified rather than to whatever falls out of the system. Readings taken and recorded on the day, defects closed before handover instead of after it.",
@@ -448,7 +489,7 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "commission",
   },
   {
-    n: "06",
+    n: "10",
     kicker: "The handover",
     h: "As-builts, O&Ms, warranties. One package.",
     p: "Compliance certificates issued, commissioning data attached, the lot handed over together. A maintenance contract from there if you want the plant to reach the life it was specified for.",
@@ -456,7 +497,7 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "handover",
   },
   {
-    n: "07",
+    n: "11",
     kicker: "The fit-out",
     h: "Ceilings close and the shop goes in.",
     p: "Grilles sit where the ceiling plan said they would, penetrations are sealed and photographed, and nothing of ours is holding up your date.",
@@ -464,7 +505,7 @@ export const COMM_JOURNEY: CommBeat[] = [
     scene: "fitout",
   },
   {
-    n: "08",
+    n: "12",
     kicker: "Open for trade",
     h: "Doors open. Nobody mentions the air conditioning.",
     p: "Which is the entire point of the trade. Staff are not complaining, customers are not walking out, and the plant is running at the duty it was drawn for.",

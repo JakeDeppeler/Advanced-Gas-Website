@@ -4402,3 +4402,113 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
   font-weight: 600;
   letter-spacing: 0.04em;
 }
+
+/* ---- Beats that carry a list rather than a paragraph ----
+   Four sections of the commercial page live inside the run now — the
+   clients, the packages, the figures procurement writes down and the
+   standard — so each needs a compact form that fits the beat column
+   without turning it back into the card grid it came from. */
+.cjbeat__extra { margin-top: 20px; }
+.cjx { list-style: none; margin: 0; padding: 0; }
+
+.cjx--chips,
+.cjx--packs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 24px;
+}
+.cjx--chips li,
+.cjx--packs li {
+  padding: 9px 0 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.cjx--chips b {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.cjx--chips span {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+.cjx--packs a {
+  display: block;
+  font-size: 14.5px;
+  line-height: 1.35;
+  color: #dfe4f5;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.cjx--packs a:hover { color: var(--orange-2, #ff7a36); }
+
+.cjx--figs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin: 0;
+}
+.cjx--figs dt {
+  font-family: var(--f-display);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.cjx--figs dd {
+  margin: 6px 0 0;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--orange-2, #ff7a36);
+}
+.cjx__link {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--orange-2, #ff7a36);
+  text-decoration: none;
+}
+.cjx__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.cjx--std li {
+  padding: 11px 0 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.cjx--std b {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #fff;
+}
+.cjx--std span {
+  display: block;
+  margin-top: 3px;
+  /* Matched to the beat's paragraphs. Full column width is about 65
+     characters at this size, which is a longer line than anything else
+     in the beat and reads as a different column. */
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #c6cce6;
+}
+
+@media (max-width: 620px) {
+  .cjx--chips,
+  .cjx--packs,
+  .cjx--figs { grid-template-columns: 1fr; }
+  .cjx--figs { gap: 14px; }
+}

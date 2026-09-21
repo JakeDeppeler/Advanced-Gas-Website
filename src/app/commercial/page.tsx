@@ -5,10 +5,7 @@ import Script from "next/script";
 import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
-import {
-  COMM_SCOPES, COMM_CLIENTS,
-  COMM_DOORS, COMM_STANDARD, COMM_FAQS, COMM_FACTS,
-} from "@/lib/commercial";
+import { COMM_DOORS, COMM_FAQS } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { CommercialJourney } from "@/components/CommercialJourney";
 import { CountUp } from "@/components/CountUp";
@@ -149,28 +146,62 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* WHO HAS ALREADY LET US IN — the home page's brand strip, carrying
-          client names instead of manufacturer names. Same slot, same
-          treatment: the thing directly under the fork on both sides of the
-          business is the row of names that says other people already trust
-          this. It was a bare list of text on white with hairlines under it,
-          which read as an unstyled table rather than a credential. */}
-      <section className="brands comm-clients">
+      {/* THE PAGE.
+
+          Not a section any more. Four bands that used to sit around this one
+          — who already lets us on site, what we take on, the four things
+          procurement writes down, and why we get asked back — are beats
+          inside it now, so the credentials arrive at the point in the job
+          where they matter rather than as a stack of boxes somebody has to
+          assemble into an argument themselves.
+
+          Twelve beats, hero to handover to open doors. The drawing holds
+          while they move past it, and each one ends on the line that says
+          why it matters that we are the ones doing it.
+
+          What is left outside it is what cannot be a drawing: the fork at
+          the top, the map, the scope form, the questions and the close. */}
+      <section className="comm-flow">
         <div className="wrap">
-          <div className="brands__lead">
-            <span className="brands__label">On site for</span>
-            <span className="brands__rule" />
-            <span className="brands__partner">
-              Brands with a procurement process and an auditor
-            </span>
+          <div className="ds-section-head">
+            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
+            <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
+            <p className="comm-flow__lede">
+              Who already lets us on site, what we take on, and then the whole job from the first email to the day
+              the doors open. Everything we are holding ourselves to, at the point in the job where it matters.
+            </p>
           </div>
-          <div className="brands__grid">
-            {COMM_CLIENTS.map((c, i) => (
-              <div key={c.name} className="brand-chip" style={{ ["--i" as string]: i }}>
-                <span className="brand-chip__name">{c.name}</span>
-                <span className="brand-chip__type">{c.what}</span>
+          <CommercialJourney />
+        </div>
+      </section>
+
+      {/* WHERE WE WORK */}
+      <section className="area" id="area">
+        <div className="wrap area__grid">
+          <div className="area__left">
+            <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
+            <h2>Based in Pakenham. On site anywhere in Victoria.</h2>
+            <p>
+              <strong>For the right job we travel.</strong> Rollouts, multi-site contracts and packages worth putting a
+              crew on the road for &mdash; the Westpac branch was in Sale, and the contract work runs the width of the
+              state. If your sites are spread, ask. The answer is usually yes.
+            </p>
+            <p className="comm-area__note">
+              The circle is where the vans are every day: Melbourne&rsquo;s south-east and most of West Gippsland, no
+              travel loading, same-week response. It is where we are cheapest to have on site, not the edge of where
+              we&rsquo;ll go.
+            </p>
+            <a href="#scope" className="ds-btn ds-btn--primary">Submit a scope →</a>
+          </div>
+          <div className="area__right">
+            <div className="map map--live" aria-label="Map of Victoria, with the 75 km daily service radius marked around Pakenham 3810">
+              <ServiceAreaMap view="victoria" />
+              <div className="map__badge">
+                <span className="map__badge-eye">Vans here daily</span>
+                <span className="map__badge-num">75&nbsp;km</span>
+                <span className="map__badge-note">Anywhere in Victoria for the right job</span>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
@@ -224,175 +255,6 @@ export default function CommercialPage() {
                 </p>
               </div>
               <CommercialScopeForm />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* WHAT WE TAKE ON — a schedule, not eight cards. Each row is a package,
-          who it suits, and what is in it; the detail lives on the services
-          page, which every row links to. On paper rather than a navy band,
-          because a reader comparing eight things needs them to be easy to read
-          rather than impressive to look at. */}
-      <section className="comm-packs" id="scopes">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> What we do</span>
-            <h2>Everything mechanical, gas and hot water, under one trade.</h2>
-            <p>
-              We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
-              package we own from the drawings through to handover, with our own crew on it. Nothing here gets passed
-              to somebody else once you&rsquo;ve signed.
-            </p>
-          </div>
-
-          {/* The home page's card grid, in the home page's classes — this page
-              carries `page-home` as its layout scope, so .bcard is already
-              styled. No photographs on them: there are three genuinely
-              commercial shots on this site and ten packages, and filling the
-              gap with domestic install photos would be the one thing a
-              facility manager would notice. The number does the work the
-              photograph does on the home page. */}
-          <div className="bento bento--packs">
-            {COMM_SCOPES.map((sc, i) => (
-              <Link key={sc.slug} href={`/commercial/services#${sc.slug}`} className="bcard bcard--pack" style={{ ["--i" as string]: i }}>
-                <div className="bcard__body">
-                  <span className="bcard__num">{sc.n}</span>
-                  <h3>{sc.title}</h3>
-                  <p>{sc.lede}</p>
-                  <span className="packcard__suits">{sc.suits}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* THE FIGURES — where the home page puts its rebate band: one dark
-          band of big numbers in the middle of the page, so the eye has
-          somewhere to land between two runs of cards. The four figures were
-          four hairline items at the bottom of a text list, which is where a
-          number goes to be ignored. */}
-      <section className="comm-figs">
-        <div className="wrap">
-          <div className="ds-section-head ds-section-head--center">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> Before you put us on a site</span>
-            <h2 className="ds-h--on-dark">The four things procurement writes down.</h2>
-          </div>
-          <div className="comm-figs__grid">
-            {COMM_FACTS.map((f, i) => (
-              <div key={f.k} className="commfig" style={{ ["--i" as string]: i }}>
-                <strong><CountUp value={f.n} /></strong>
-                <span>{f.k}</span>
-                <p>{f.p}</p>
-              </div>
-            ))}
-          </div>
-          <Link href="/commercial/capability" className="comm-caplink comm-caplink--dark">
-            <span>
-              <strong>Capability statement</strong>
-              ABN, licences, insurances, safety systems, capacity and past projects, on one page you can file.
-            </span>
-            <span className="comm-caplink__go">Everything procurement asks for &rarr;</span>
-          </Link>
-        </div>
-      </section>
-
-      {/* THE STANDARD — the homepage's "why us". The crew photograph sits
-          beside the argument rather than inside the grid of points: it is the
-          evidence for the first claim, so it belongs next to the sentence that
-          makes it, not filed as one card among six. */}
-      <section className="comm-std">
-        <div className="wrap">
-          <div className="comm-std__top">
-            <div className="comm-std__intro">
-              <span className="ds-eyebrow"><span className="ds-dot" /> Why we get asked back</span>
-              <h2>Size isn&rsquo;t the credential. Doing the same thing every time is.</h2>
-              <p>
-                Every one of these is checkable. Ask for the procedures, ask who is turning up, ask for the paperwork
-                before we are on site. The answer should be the same one you got last time.
-              </p>
-            </div>
-            <figure className="comm-std__photo">
-              <Image
-                src="/team-photo.webp"
-                alt="The Advanced Gas &amp; Aircon crew with the vans at the Pakenham depot"
-                fill
-                sizes="(max-width: 980px) 100vw, 520px"
-                style={{ objectFit: "cover" }}
-              />
-              <figcaption>Directly employed. All of them.</figcaption>
-            </figure>
-          </div>
-          {/* A numbered list with a rule between each item, not six identical
-              tiles. These are commitments you could be held to, and a list
-              with rules through it reads as terms; a grid of cards reads as
-              features. */}
-          <ol className="stdlist">
-            {COMM_STANDARD.map((st, i) => (
-              <li key={st.n} style={{ ["--i" as string]: i }}>
-                <span className="stdlist__n">{st.n}</span>
-                <div>
-                  <h3>{st.h}</h3>
-                  <p>{st.p}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* THE JOURNEY — the centre of the page.
-
-          This was six cards in a grid. A grid hands the reader a pile of
-          features and asks them to assemble the story; the people reading
-          this run programs for a living, so they get one. The drawing holds
-          while the beats move past it, and each beat ends on the single line
-          that says why it matters that we are the ones doing it. That is the
-          "why us" argument, distributed through the job rather than stacked
-          in a box of its own. */}
-      <section className="comm-flow">
-        <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
-            <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
-            <p className="comm-flow__lede">
-              Most of what goes wrong on a mechanical package goes wrong before anyone picks up a tool: a scope two
-              people read differently. Here is the whole job, start to open doors, and what we are holding ourselves
-              to at each stage.
-            </p>
-          </div>
-          <CommercialJourney />
-        </div>
-      </section>
-
-      {/* WHERE WE WORK */}
-      <section className="area" id="area">
-        <div className="wrap area__grid">
-          <div className="area__left">
-            <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>Based in Pakenham. On site anywhere in Victoria.</h2>
-            <p>
-              <strong>For the right job we travel.</strong> Rollouts, multi-site contracts and packages worth putting a
-              crew on the road for &mdash; the Westpac branch was in Sale, and the contract work runs the width of the
-              state. If your sites are spread, ask. The answer is usually yes.
-            </p>
-            <p className="comm-area__note">
-              The circle is where the vans are every day: Melbourne&rsquo;s south-east and most of West Gippsland, no
-              travel loading, same-week response. It is where we are cheapest to have on site, not the edge of where
-              we&rsquo;ll go.
-            </p>
-            <a href="#scope" className="ds-btn ds-btn--primary">Submit a scope →</a>
-          </div>
-          <div className="area__right">
-            <div className="map map--live" aria-label="Map of Victoria, with the 75 km daily service radius marked around Pakenham 3810">
-              <ServiceAreaMap view="victoria" />
-              <div className="map__badge">
-                <span className="map__badge-eye">Vans here daily</span>
-                <span className="map__badge-num">75&nbsp;km</span>
-                <span className="map__badge-note">Anywhere in Victoria for the right job</span>
-              </div>
             </div>
           </div>
         </div>
