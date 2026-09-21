@@ -2042,3 +2042,118 @@
   .routecard { padding: 18px 18px 16px; }
   .routebtn { padding: 17px 18px; font-size: 16.5px; }
 }
+
+/* ===================================================================
+   THE HOME PAGE MOVES LIKE THE COMMERCIAL ONE
+
+   Same language, same contract: things lift in sequence, rules draw
+   from the left, the orange leads, and every one of these hangs off
+   the `.reveal` / `.is-revealed` pair components/Reveal.tsx already
+   sets — so if the observer never runs, nothing is ever hidden and
+   the page renders finished.
+
+   Scoped `:not(.page-comm)` because the commercial page borrows
+   `.page-home` as its layout scope and has its own copy of this with
+   its own timings; without the guard both would apply to it.
+   =================================================================== */
+
+/* ---- a section head announces itself ---- */
+.page-home:not(.page-comm) .reveal .ds-eyebrow { opacity: 0; transform: translateY(6px); }
+.page-home:not(.page-comm) .reveal.is-revealed .ds-eyebrow {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.25, 1, 0.4, 1);
+}
+.page-home:not(.page-comm) .reveal .ds-section-head > h2 { opacity: 0; transform: translateY(14px); }
+.page-home:not(.page-comm) .reveal.is-revealed .ds-section-head > h2 {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.55s ease 0.08s, transform 0.55s cubic-bezier(0.25, 1, 0.4, 1) 0.08s;
+}
+
+/* ---- repeated items arrive in sequence ----
+   Sequenced off --i where the markup maps a list, and off nth-child
+   where the cards are written out by hand. Capped at nine, because past
+   that the last card is waiting long enough to feel broken. */
+.page-home:not(.page-comm) .reveal .why,
+.page-home:not(.page-comm) .reveal .step,
+.page-home:not(.page-comm) .reveal .tipcard,
+.page-home:not(.page-comm) .reveal .brand-chip,
+.page-home:not(.page-comm) .reveal .faq__right details,
+.page-home:not(.page-comm) .reveal .bento > .bcard,
+.page-home:not(.page-comm) .reveal .fixprice__grid > .fixprice {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.page-home:not(.page-comm) .reveal.is-revealed .why,
+.page-home:not(.page-comm) .reveal.is-revealed .step,
+.page-home:not(.page-comm) .reveal.is-revealed .tipcard,
+.page-home:not(.page-comm) .reveal.is-revealed .brand-chip,
+.page-home:not(.page-comm) .reveal.is-revealed .faq__right details,
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard,
+.page-home:not(.page-comm) .reveal.is-revealed .fixprice__grid > .fixprice {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.5s ease,
+    transform 0.55s cubic-bezier(0.25, 1, 0.4, 1);
+  transition-delay: calc(min(var(--i, 0), 9) * 65ms);
+}
+/* The bento and the fixed-price row are hand-written, so their order
+   comes from the DOM rather than from a map. */
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(1),
+.page-home:not(.page-comm) .reveal.is-revealed .fixprice__grid > .fixprice:nth-child(1) { transition-delay: 0ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(2),
+.page-home:not(.page-comm) .reveal.is-revealed .fixprice__grid > .fixprice:nth-child(2) { transition-delay: 65ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(3),
+.page-home:not(.page-comm) .reveal.is-revealed .fixprice__grid > .fixprice:nth-child(3) { transition-delay: 130ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(4) { transition-delay: 195ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(5) { transition-delay: 260ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(6) { transition-delay: 325ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(7) { transition-delay: 390ms; }
+.page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard:nth-child(n + 8) { transition-delay: 455ms; }
+
+/* ---- the rule over the brand names draws across ---- */
+.page-home:not(.page-comm) .reveal .brands__rule { transform: scaleX(0); transform-origin: left center; }
+.page-home:not(.page-comm) .reveal.is-revealed .brands__rule {
+  transform: none;
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The chips run as a marquee on a phone, where a stagger would fight the
+   scroll and the duplicated second copy would arrive out of order. */
+@media (max-width: 900px) {
+  .page-home:not(.page-comm) .reveal .brand-chip,
+  .page-home:not(.page-comm) .reveal.is-revealed .brand-chip {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-home:not(.page-comm) .reveal .ds-eyebrow,
+  .page-home:not(.page-comm) .reveal .ds-section-head > h2,
+  .page-home:not(.page-comm) .reveal .why,
+  .page-home:not(.page-comm) .reveal .step,
+  .page-home:not(.page-comm) .reveal .tipcard,
+  .page-home:not(.page-comm) .reveal .brand-chip,
+  .page-home:not(.page-comm) .reveal .faq__right details,
+  .page-home:not(.page-comm) .reveal .bento > .bcard,
+  .page-home:not(.page-comm) .reveal .fixprice__grid > .fixprice,
+  .page-home:not(.page-comm) .reveal.is-revealed .ds-eyebrow,
+  .page-home:not(.page-comm) .reveal.is-revealed .ds-section-head > h2,
+  .page-home:not(.page-comm) .reveal.is-revealed .why,
+  .page-home:not(.page-comm) .reveal.is-revealed .step,
+  .page-home:not(.page-comm) .reveal.is-revealed .tipcard,
+  .page-home:not(.page-comm) .reveal.is-revealed .brand-chip,
+  .page-home:not(.page-comm) .reveal.is-revealed .faq__right details,
+  .page-home:not(.page-comm) .reveal.is-revealed .bento > .bcard,
+  .page-home:not(.page-comm) .reveal.is-revealed .fixprice__grid > .fixprice {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .page-home:not(.page-comm) .reveal .brands__rule,
+  .page-home:not(.page-comm) .reveal.is-revealed .brands__rule { transform: none; transition: none; }
+}
