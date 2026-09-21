@@ -4261,7 +4261,7 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 0 22px;
-  min-height: 50vh;
+  min-height: 42vh;
   align-content: center;
   padding: 18px 0;
 }
@@ -4353,12 +4353,12 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
   .cjbeat:first-child { padding-top: 34px; }
   .cj__frame { max-width: 460px; margin: 0 auto; width: 100%; }
   .cj__dots { max-width: 460px; margin: 0 auto; width: 100%; }
-  .cjbeat { min-height: 46vh; grid-template-columns: 14px minmax(0, 1fr); gap: 0 16px; }
+  .cjbeat { min-height: 40vh; grid-template-columns: 14px minmax(0, 1fr); gap: 0 16px; }
   .cjbeat p { max-width: none; }
 }
 @media (max-width: 560px) {
   .cj__frame { border-radius: 14px; }
-  .cjbeat { min-height: 44vh; }
+  .cjbeat { min-height: 38vh; }
   .cjbeat h3 { font-size: 23px; }
 }
 
