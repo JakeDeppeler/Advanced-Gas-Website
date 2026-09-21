@@ -68,7 +68,7 @@ export default function CommercialPage() {
     // the hero and the section rhythm hang off it.
     <div className="page-home page-comm">
       {/* HERO */}
-      <section className="hero hero--split comm-top">
+      <section className="hero hero--split comm-top" data-stop="hero">
         <div className="wrap hero__grid">
           <div className="hero__copy">
             <span className="hero__badge">
@@ -119,7 +119,7 @@ export default function CommercialPage() {
           linked. True, and beside the point: the fork is the first thing a
           reader meets on the residential side, and crossing over to find it
           missing makes the commercial side feel like somebody else's site. */}
-      <section className="route">
+      <section className="route" data-stop="fork">
         <div className="wrap">
           <div className="route__panel">
             <div className="ds-section-head ds-section-head--center">
@@ -161,7 +161,7 @@ export default function CommercialPage() {
 
           What is left outside it is what cannot be a drawing: the fork at
           the top, the map, the scope form, the questions and the close. */}
-      <section className="comm-flow">
+      <section className="comm-flow" data-stop="journey">
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
@@ -176,7 +176,7 @@ export default function CommercialPage() {
       </section>
 
       {/* WHERE WE WORK */}
-      <section className="area" id="area">
+      <section className="area" id="area" data-stop="area">
         <div className="wrap area__grid">
           <div className="area__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
@@ -217,7 +217,7 @@ export default function CommercialPage() {
           and it changes colour precisely where the page stops explaining and
           starts asking. Taking it out of the commercial page did not make that
           page more serious, it made it a wall of cream with no beat in it. */}
-      <section className="quotesec comm-scopesec" id="scope">
+      <section className="quotesec comm-scopesec" id="scope" data-stop="scope">
         <div className="wrap">
           <div className="quotesec__box">
             <div className="quotesec__grid">
@@ -261,7 +261,7 @@ export default function CommercialPage() {
       </section>
 
       {/* QUESTIONS — the ones that decide whether we get on site. */}
-      <section className="faq">
+      <section className="faq" data-stop="faq">
         <div className="wrap faq__grid">
           <div className="faq__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Before you put us on a site</span>
@@ -283,7 +283,7 @@ export default function CommercialPage() {
       </section>
 
       {/* CLOSE */}
-      <section className="bigcta bigcta--photo" data-hide-sticky-cta>
+      <section className="bigcta bigcta--photo" data-stop="close" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
             <Image
