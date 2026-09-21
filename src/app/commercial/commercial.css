@@ -613,7 +613,11 @@
    builder wants the one that matches their scope, and making one of them
    twice the size argues for it against a reader who already knows what they
    need. */
-.page-comm .bento--packs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+/* Ten packages. In four columns that is 4/4/2, and the last row sits with
+   two empty tracks looking like something failed to load. Five columns is
+   two full rows of five. */
+.page-comm .bento--packs { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1360px) { .page-comm .bento--packs { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .page-comm .bcard--pack { background: #fff; }
 .page-comm .bcard--pack .bcard__body { padding: 20px 20px 18px; display: flex; flex-direction: column; gap: 0; height: 100%; }
 .page-comm .bcard--pack .bcard__num {
@@ -1230,4 +1234,56 @@
   .page-comm .reveal:not(.is-revealed) .commfig::before { transform: none; transition: none; }
   .page-comm .reveal .brands__rule,
   .page-comm .reveal.is-revealed .brands__rule { transform: none; transition: none; }
+}
+
+/* ---- What happens after you press the button ----
+   Sits in the gap under the ticks, where the orange column ran out of
+   things to say four hundred pixels before the form column did. The
+   fine print is pushed to the bottom of the column with it, so the
+   panel reads top and bottom rather than top-heavy. */
+/* The shared rule aligns both columns to the top, which on the residential
+   page is right because the two are a similar height. Here the form is much
+   the taller, so the left column has to stretch before margin-top: auto can
+   push the closing blocks to the bottom of it. */
+.page-comm .quotesec__grid { align-items: stretch; }
+.page-comm .quotesec__left { display: flex; flex-direction: column; }
+.page-comm .scopenext {
+  margin-top: auto;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+.page-comm .scopenext__lbl {
+  display: block;
+  font-family: var(--f-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.page-comm .scopenext ol {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.page-comm .scopenext li {
+  display: grid;
+  grid-template-columns: 104px minmax(0, 1fr);
+  gap: 0 14px;
+  align-items: baseline;
+}
+.page-comm .scopenext b {
+  font-family: var(--f-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.page-comm .scopenext span { font-size: 14.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.92); }
+.page-comm .quotesec__finep { margin-top: 22px; }
+
+@media (max-width: 900px) {
+  .page-comm .scopenext { margin-top: 26px; }
+  .page-comm .scopenext li { grid-template-columns: 1fr; gap: 2px; }
 }

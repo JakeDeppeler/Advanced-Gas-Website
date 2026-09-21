@@ -94,9 +94,9 @@ export default function CommercialPage() {
             </p>
 
             <div className="hero__trust">
-              <div className="trust-stat"><strong>$20M</strong><span>public liability</span></div>
+              <div className="trust-stat"><strong><CountUp value="$20M" /></strong><span>public liability</span></div>
               <div className="trust-divider" />
-              <div className="trust-stat"><strong>12 yrs</strong><span>trading</span></div>
+              <div className="trust-stat"><strong><CountUp value="12 yrs" /></strong><span>trading</span></div>
               <div className="trust-divider" />
               <div className="trust-stat"><strong>Direct</strong><span>employed crews</span></div>
             </div>
@@ -205,6 +205,19 @@ export default function CommercialPage() {
                   <li><span className="tick tick--on-orange">&#10003;</span> SWMS and certificates back before anyone turns up</li>
                   <li><span className="tick tick--on-orange">&#10003;</span> Jake reads every commercial enquiry himself</li>
                 </ul>
+                {/* Four hundred pixels of empty orange sat under the ticks,
+                    because the form column is much the taller of the two. The
+                    gap is worth something: what happens after you press the
+                    button is the thing somebody wants to know at the moment
+                    they are deciding whether to. */}
+                <div className="scopenext">
+                  <span className="scopenext__lbl">After you send it</span>
+                  <ol>
+                    <li><b>Today</b><span>Read by the person who will price it, not a queue.</span></li>
+                    <li><b>Inside a day</b><span>Questions back if the scope has a gap in it.</span></li>
+                    <li><b>Then</b><span>One price against one written scope, exclusions stated.</span></li>
+                  </ol>
+                </div>
                 <p className="quotesec__finep">
                   {site.licences.refrigeration} &middot; {site.licences.plumbing} &middot;
                   ABN {site.abn.replace(/ /g, "\u00a0")} &middot; $20M public liability
@@ -370,11 +383,11 @@ export default function CommercialPage() {
               travel loading, same-week response. It is where we are cheapest to have on site, not the edge of where
               we&rsquo;ll go.
             </p>
-            <a href="#scope" className="ds-btn ds-btn--navy">Submit a scope →</a>
+            <a href="#scope" className="ds-btn ds-btn--primary">Submit a scope →</a>
           </div>
           <div className="area__right">
-            <div className="map map--live" aria-label="Service area map, 75 km radius from Pakenham 3810">
-              <ServiceAreaMap />
+            <div className="map map--live" aria-label="Map of Victoria, with the 75 km daily service radius marked around Pakenham 3810">
+              <ServiceAreaMap view="victoria" />
               <div className="map__badge">
                 <span className="map__badge-eye">Vans here daily</span>
                 <span className="map__badge-num">75&nbsp;km</span>
