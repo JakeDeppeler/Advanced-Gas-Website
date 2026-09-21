@@ -136,7 +136,6 @@
   border-radius: var(--rad);
   overflow: hidden;
   margin-bottom: 22px;
-  scroll-margin-top: 160px;
   box-shadow: 0 18px 40px -34px rgba(5, 10, 48, 0.4);
 }
 .pricing-block__head {

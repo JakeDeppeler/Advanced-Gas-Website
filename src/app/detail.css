@@ -1536,7 +1536,6 @@
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: var(--rad);
-  scroll-margin-top: 110px;
 }
 .page-detail .svc-system--flip .svc-system__media { order: 2; }
 

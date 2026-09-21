@@ -47,7 +47,6 @@
 .brands-hub-group {
   padding: 60px 0 40px;
   background: var(--bg);
-  scroll-margin-top: 90px;
 }
 .brands-hub-group:nth-of-type(even) { background: var(--paper); }
 .brands-hub-group__head {
