@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { CountUp } from "@/components/CountUp";
+import { HomeJourney } from "@/components/HomeJourney";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
@@ -580,34 +581,30 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* PROCESS */}
+      {/* THE JOURNEY — the job from the other side of the front door.
+
+          This was six cards in a grid, which is the same shape as the four
+          sections above it, so it had no rank on the page and read as another
+          list of features. Somebody deciding whether to let a trade into their
+          house is following a story, so they get one: the drawing holds while
+          the beats move past it, and each beat ends on the line that says why
+          it matters that it is us. Same component as the commercial page's
+          plans-to-open-doors run, different drawings — a phone, a quote, a van
+          in a driveway, a head unit on a lounge room wall. */}
       <section className="process">
         <div className="wrap">
           <div className="ds-section-head">
             <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How it works</span>
             <h2 className="ds-h--on-dark">Simple, honest, no runaround.</h2>
+            <p className="process__lede">
+              From the photo you send us to the week after it is in. Six steps, and what we are holding ourselves to
+              at each of them.
+            </p>
           </div>
-          <ol className="steps">
-            {[
-              [1, "You get in touch", "Fill out the quote form or give us a call, tell us what you’re after.", "~ 5 min"],
-              [2, "Quote back within 12 hrs", "We send a written quote back within 12 hours. Straight to your inbox.", "within 12 hrs"],
-              [3, "Site visit if needed", "For bigger jobs (ducted, tricky retrofits) we’ll pop out for a proper look.", "when required"],
-              [4, "Any questions? Ask away", "We’ll walk you through the gear, timing and paperwork before you commit.", "before install"],
-              [5, "We install & show you how", "Clean install, old unit gone, and we walk you through operating your new system.", "install day"],
-              [6, "Follow-up next week", "Quick call the following week to make sure everything’s running the way it should.", "week after"],
-            ].map(([n, t, d, time], i) => (
-              <li key={n as number} className="step" style={{ ["--i" as string]: i }}>
-                <span className="step__num">{n}</span>
-                <h3>{t}</h3>
-                <p>{d}</p>
-                <span className="step__time">{time}</span>
-              </li>
-            ))}
-          </ol>
+          <HomeJourney />
         </div>
       </section>
 
-      {/* SERVICE AREA */}
       <section className="area" id="area">
         <div className="wrap area__grid">
           <div className="area__left">

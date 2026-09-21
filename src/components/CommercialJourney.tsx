@@ -1,31 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { COMM_JOURNEY } from "@/lib/commercial";
+import { ScrollJourney } from "@/components/ScrollJourney";
 
 /**
- * The commercial job as one scroll, plans to open doors.
+ * The drawings for the commercial journey. The shell that sticks them and
+ * tracks the scroll is ScrollJourney, which the home page uses too.
  *
- * What it replaced was six cards in a grid. A grid presents features and asks
- * the reader to assemble the story; a builder already reads a program, so the
- * page gives them one. The drawing sticks while the beats scroll past it, and
- * each beat carries a single line on why it matters that we are the ones doing
- * it — the argument for us sits inside the job instead of in a box further
- * down.
- *
- * The scenes are drawn from the trade rather than from an icon set: a
- * reflected ceiling plan with the standard cross-in-a-square diffuser symbol,
- * a spiral spine with branch drops, a condenser on its pad. This audience
- * spends its day looking at exactly these, and a generic glyph would read as
- * a marketing site that has never been on a site.
- *
- * Three things it will not do:
- *  · animate for `prefers-reduced-motion: reduce` — the scenes still change,
- *    because which scene is showing is information, but nothing moves
- *  · depend on a scroll listener — one IntersectionObserver over a thin band
- *    at the middle of the viewport decides which beat is live
- *  · leave a blank panel if the observer never fires: the first scene is the
- *    initial state, so a failure looks like a static illustration
+ * These are drawn from the trade rather than from an icon set: a reflected
+ * ceiling plan with the standard cross-in-a-square diffuser symbol, a spiral
+ * spine with branch drops, a condenser on its pad. This audience spends its
+ * day looking at exactly these, and a generic glyph would read as a marketing
+ * site that has never been on a site.
  */
 
 const STROKE = { fill: "none", strokeLinecap: "round", strokeLinejoin: "round" } as const;
@@ -300,72 +286,5 @@ function Scene({ kind }: { kind: string }) {
 }
 
 export function CommercialJourney() {
-  const [active, setActive] = useState(0);
-  const beats = useRef<(HTMLLIElement | null)[]>([]);
-
-  useEffect(() => {
-    const nodes = beats.current.filter(Boolean) as HTMLLIElement[];
-    if (!nodes.length) return;
-
-    // A thin band across the middle of the window. Whichever beat is crossing
-    // it is the live one — no scroll handler, and no dependency on how tall
-    // any individual beat happens to be.
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (!e.isIntersecting) return;
-          const i = nodes.indexOf(e.target as HTMLLIElement);
-          if (i >= 0) setActive(i);
-        });
-      },
-      { rootMargin: "-46% 0px -46% 0px", threshold: 0 },
-    );
-
-    nodes.forEach((n) => io.observe(n));
-    return () => io.disconnect();
-  }, []);
-
-  return (
-    <div className="cj">
-      <div className="cj__stage" aria-hidden="true">
-        <div className="cj__frame">
-          {COMM_JOURNEY.map((b, i) => (
-            <svg
-              key={b.n}
-              viewBox="0 0 340 220"
-              className={`cjscene${i === active ? " is-on" : ""}`}
-              role="presentation"
-            >
-              <Scene kind={b.scene} />
-            </svg>
-          ))}
-        </div>
-        <div className="cj__dots">
-          {COMM_JOURNEY.map((b, i) => (
-            <span key={b.n} className={`cj__dot${i === active ? " is-on" : ""}${i < active ? " is-done" : ""}`} />
-          ))}
-        </div>
-      </div>
-
-      <ol className="cj__beats">
-        {COMM_JOURNEY.map((b, i) => (
-          <li
-            key={b.n}
-            ref={(el) => { beats.current[i] = el; }}
-            className={`cjbeat${i === active ? " is-on" : ""}`}
-          >
-            <div className="cjbeat__rail" aria-hidden="true"><span /></div>
-            <div className="cjbeat__body">
-              <span className="cjbeat__kick">
-                <b>{b.n}</b> {b.kicker}
-              </span>
-              <h3>{b.h}</h3>
-              <p>{b.p}</p>
-              <p className="cjbeat__why">{b.why}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
+  return <ScrollJourney beats={COMM_JOURNEY} renderScene={(k) => <Scene kind={k} />} />;
 }
