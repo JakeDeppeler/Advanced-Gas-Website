@@ -1175,42 +1175,106 @@
 @keyframes cp-from-left { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: none; } }
 @keyframes cp-from-right { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: none; } }
 
-/* ---- the line down the edge ----
-   One continuous mark from the top of the page to the bottom of it,
-   filling as you go. It is the thing that says the hero, the journey
-   and the close are the same run rather than three ideas stacked. */
+/* ---- the frame ----
+   Two lines, one down each edge of the screen, filling as you go. They
+   are fixed and they sit above the header, so the mark runs from the top
+   of the window to the bottom of it whatever part of the page you are on
+   — the point being that the hero, the journey and the close are one run
+   rather than three ideas stacked, and that the run does not start below
+   the header or stop above the footer.
+
+   One element per line-pair rather than four pseudo-elements: the bars
+   are two background layers pinned left and right of a full-viewport box,
+   so a single scaleY drives both of them in step. */
 @supports (animation-timeline: scroll()) {
-  /* A track behind the fill, or the orange reads as a stray mark in the
-     corner rather than as how far through you are. */
-  .page-comm::before {
-    content: "";
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 3px;
-    height: 100vh;
-    background: rgba(11, 20, 80, 0.14);
-    z-index: 59;
-    pointer-events: none;
-  }
-  .page-comm::after {
-    content: "";
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 3px;
-    height: 100vh;
-    background: var(--orange, #f36722);
-    transform-origin: top center;
-    transform: scaleY(0);
-    animation: cp-progress linear both;
-    animation-timeline: scroll(root);
-    z-index: 60;
-    pointer-events: none;
-  }
-  @media (prefers-reduced-motion: reduce) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* A track behind the fill, or the orange reads as a stray mark in the
+       corner rather than as how far through you are. */
     .page-comm::before,
-    .page-comm::after { display: none; }
+    .page-comm::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-repeat: no-repeat;
+      background-size: 3px 100%;
+    }
+    .page-comm::before {
+      background-image:
+        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14)),
+        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14));
+      background-position: left top, right top;
+      z-index: 59;
+    }
+    .page-comm::after {
+      background-image:
+        linear-gradient(var(--orange, #f36722), var(--orange, #f36722)),
+        linear-gradient(var(--orange, #f36722), var(--orange, #f36722));
+      background-position: left top, right top;
+      transform-origin: top center;
+      transform: scaleY(0);
+      animation: cp-progress linear both;
+      animation-timeline: scroll(root);
+      z-index: 60;
+    }
+
+    /* ---- the header is part of it ----
+       The same fill, laid along the bottom edge of the header. Nothing
+       about the header's height changes, because the sticky drawing in
+       the journey and the page's scroll-padding are both measured off
+       it — this only replaces a static rule with a moving one. */
+    body:has(.page-comm) .hdr::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--orange, #f36722);
+      transform-origin: left center;
+      transform: scaleX(0);
+      animation: cp-progress-x linear both;
+      animation-timeline: scroll(root);
+      pointer-events: none;
+    }
   }
 }
+
+/* ---- the footer is part of it ----
+   The page used to simply end. Now the last thing it does is arrive:
+   the footer's content lifts as it comes up, and the columns land one
+   after another, so the run finishes on a move instead of a stop. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Siblings, never a parent and its child — two nested lifts compound
+       into one that overshoots, and two nested fades multiply into a
+       block that never reaches full opacity. */
+    body:has(.page-comm) .ftr__top,
+    body:has(.page-comm) .ftr__col,
+    body:has(.page-comm) .ftr__badges,
+    body:has(.page-comm) .ftr__bottom {
+      animation-name: cp-lift-sm;
+      animation-timeline: view();
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-duration: 1ms;
+      animation-range-start: entry 0%;
+      animation-range-end: entry 46%;
+    }
+    body:has(.page-comm) .ftr__col:nth-child(1) { animation-range-start: entry 2%;  animation-range-end: entry 44%; }
+    body:has(.page-comm) .ftr__col:nth-child(2) { animation-range-start: entry 8%;  animation-range-end: entry 50%; }
+    body:has(.page-comm) .ftr__col:nth-child(3) { animation-range-start: entry 14%; animation-range-end: entry 56%; }
+    body:has(.page-comm) .ftr__col:nth-child(4) { animation-range-start: entry 20%; animation-range-end: entry 62%; }
+  }
+}
+
 @keyframes cp-progress { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes cp-progress-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes cp-lift-sm { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+/* The rails are decoration; on a phone they are also 6px of a 390px
+   screen sitting over the content edge, so they thin out. */
+@media (max-width: 620px) {
+  .page-comm::before,
+  .page-comm::after { background-size: 2px 100%; }
+}
