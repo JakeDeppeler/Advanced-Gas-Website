@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { CountUp } from "@/components/CountUp";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
@@ -205,14 +206,14 @@ export default async function HomePage() {
               <div className="trust-rating">
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>
                 <div className="trust-rating__txt">
-                  <strong>4.9 / 5</strong>
+                  <strong><CountUp value="4.9 / 5" /></strong>
                   <span>Google reviews</span>
                 </div>
               </div>
               <div className="trust-divider" />
-              <div className="trust-stat"><strong>1,200+</strong><span>installs done</span></div>
+              <div className="trust-stat"><strong><CountUp value="1,200+" /></strong><span>installs done</span></div>
               <div className="trust-divider" />
-              <div className="trust-stat"><strong>12 yrs</strong><span>local trading</span></div>
+              <div className="trust-stat"><strong><CountUp value="12 yrs" /></strong><span>local trading</span></div>
             </div>
           </div>
 
@@ -300,7 +301,7 @@ export default async function HomePage() {
               // is hidden in CSS — otherwise seven chips in a seven-column
               // grid render as two identical rows.
               return [...BRANDS_STRIP, ...BRANDS_STRIP].map(([name, type], i) => (
-                <div key={`${name}-${i}`} className="brand-chip" aria-hidden={i >= BRANDS_STRIP.length}>
+                <div key={`${name}-${i}`} className="brand-chip" style={{ ["--i" as string]: i }} aria-hidden={i >= BRANDS_STRIP.length}>
                   <span className="brand-chip__name">{name}</span>
                   <span className="brand-chip__type">{type}</span>
                 </div>
@@ -568,8 +569,8 @@ export default async function HomePage() {
               ["04", "The standard is written down", "Twenty procedures covering how a van is stocked, what gets photographed, what gets tested and what happens when something goes wrong. Not folklore, and not down to who turned up."],
               ["05", "Certified and documented", "Licensed gasfitter, ARC refrigerant licence. Photos taken on the day and a compliance certificate emailed within 24 hours. Keep it for your insurer."],
               ["06", "We're still here after", "Six years on our workmanship, manufacturer warranty on the unit, and a call the week after to make sure it's running the way we left it."],
-            ].map(([n, t, d]) => (
-              <div key={n} className="why">
+            ].map(([n, t, d], i) => (
+              <div key={n} className="why" style={{ ["--i" as string]: i }}>
                 <div className="why__num">/{n}</div>
                 <h3>{t}</h3>
                 <p>{d}</p>
@@ -594,8 +595,8 @@ export default async function HomePage() {
               [4, "Any questions? Ask away", "We’ll walk you through the gear, timing and paperwork before you commit.", "before install"],
               [5, "We install & show you how", "Clean install, old unit gone, and we walk you through operating your new system.", "install day"],
               [6, "Follow-up next week", "Quick call the following week to make sure everything’s running the way it should.", "week after"],
-            ].map(([n, t, d, time]) => (
-              <li key={n as number} className="step">
+            ].map(([n, t, d, time], i) => (
+              <li key={n as number} className="step" style={{ ["--i" as string]: i }}>
                 <span className="step__num">{n}</span>
                 <h3>{t}</h3>
                 <p>{d}</p>
@@ -702,7 +703,7 @@ export default async function HomePage() {
           </div>
           <div className="faq__right">
             {faqs.map((f, i) => (
-              <details key={f.q} name="faq" {...(i === 0 ? { open: true } : {})}>
+              <details key={f.q} name="faq" style={{ ["--i" as string]: i }} {...(i === 0 ? { open: true } : {})}>
                 <summary>{f.q}</summary>
                 <p>{f.a}</p>
               </details>
@@ -723,8 +724,8 @@ export default async function HomePage() {
             <Link href="/blog" className="tips__all">Read the blog →</Link>
           </div>
           <div className="tips__grid">
-            {posts.slice(0, 3).map((p) => (
-              <Link key={p.slug} href={`/blog/${p.slug}`} className="tipcard">
+            {posts.slice(0, 3).map((p, i) => (
+              <Link key={p.slug} href={`/blog/${p.slug}`} className="tipcard" style={{ ["--i" as string]: i }}>
                 <div className="tipcard__photo">
                   <Image
                     src={encodeURI(p.photo)}

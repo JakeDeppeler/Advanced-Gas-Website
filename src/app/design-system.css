@@ -4116,3 +4116,17 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
 @media (prefers-reduced-motion: reduce) {
   .cross { display: none; }
 }
+
+/* ============================================================
+   COUNTING FIGURES — components/CountUp.tsx
+
+   A ghost holding the finished string sizes the element, and the
+   live copy sits on top of it, so nothing reflows while the digits
+   are changing. Global because the component is on the home page
+   and the commercial page; it first shipped inside commercial.css
+   and the home page loads neither that file nor its styles, so both
+   copies rendered and every figure read "1,200+1,163+".
+   ============================================================ */
+.countup { position: relative; display: inline-block; }
+.countup__ghost { visibility: hidden; }
+.countup__live { position: absolute; inset: 0; white-space: nowrap; }

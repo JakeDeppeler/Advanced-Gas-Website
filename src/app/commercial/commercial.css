@@ -1197,12 +1197,8 @@
 }
 .page-comm .reveal:not(.is-revealed) .commfig::before { transform: scaleX(0); }
 
-/* ---- the figures count up to themselves ----
-   The ghost holds the finished string so the card never reflows while
-   the digits are changing; the live copy sits on top of it. */
-.countup { position: relative; display: inline-block; }
-.countup__ghost { visibility: hidden; }
-.countup__live { position: absolute; inset: 0; }
+/* The counting figures are styled globally — see design-system.css. The
+   component is on two pages now, so its styles cannot live on one of them. */
 
 /* ---- the client names, which are the credential ---- */
 .page-comm .reveal .brands__rule { transform: scaleX(0); transform-origin: left center; }
