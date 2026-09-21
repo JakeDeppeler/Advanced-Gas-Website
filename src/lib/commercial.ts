@@ -297,33 +297,33 @@ export const COMM_DOORS: { href: string; label: string; sub: string; icon: DoorI
 export const COMM_STANDARD: { n: string; h: string; p: string }[] = [
   {
     n: "01",
-    h: "Directly employed crews",
-    p: "Our own installers and apprentices. Not labour hire, not a different subcontractor each visit. The crew in week three works the way the crew in week one did, because it is the same crew.",
+    h: "Our own crews",
+    p: "Directly employed installers and apprentices. The crew in week three is the crew from week one.",
   },
   {
     n: "02",
     h: "The standard is written down",
-    p: "Twenty procedures covering how a van is stocked, what gets photographed, what gets certified and what happens when something goes wrong. It is not folklore held by whoever has been here longest. Ask to see it.",
+    p: "Twenty procedures, not folklore held by whoever has been here longest. Ask to see them.",
   },
   {
     n: "03",
     h: "Documented on the day",
-    p: "Photos, forms and notes completed on site, not reconstructed on Friday afternoon. Compliance certificates on completion. If it is not recorded, it is not finished.",
+    p: "Photos, forms and certificates finished on site. Not reconstructed on a Friday afternoon.",
   },
   {
     n: "04",
-    h: "Paperwork before site access",
-    p: "SWMS, certificates of currency and inductions back before anyone turns up, usually the same day you ask. Nobody on your side should be chasing us for a document on the morning of the install.",
+    h: "Paperwork before boots",
+    p: "SWMS, certificates of currency and inductions back the same day you ask for them.",
   },
   {
     n: "05",
-    h: "One contact through the trade",
-    p: "The person who prices it is the person you ring about it. Not a call centre, not a ticket number, not a different name on every email in the chain.",
+    h: "One contact, start to finish",
+    p: "Whoever prices it is who you ring about it. Not a call centre, not a ticket number.",
   },
   {
     n: "06",
     h: "We will tell you no",
-    p: "If a scope needs something we are not set up to do properly, we say so while you can still do something about it. That is cheaper for both of us than finding out at the halfway mark.",
+    p: "If a scope needs something we cannot do properly, you hear it while you can still act on it.",
   },
 ];
 
@@ -380,4 +380,95 @@ export const COMM_FACTS: { n: string; k: string; p: string }[] = [
   { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
   { n: "Before site", k: "paperwork returned", p: "SWMS, certificates of currency and site inductions land before anyone turns up. If they are not back, we are not on site." },
   { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
+];
+
+/**
+ * The job, start to finish, as one scroll.
+ *
+ * This replaced a grid of six cards. A grid says "here are our features"; a
+ * builder reads a program. Each beat carries what happens, and then the one
+ * line that says why it matters that we are the ones doing it — the argument
+ * for us is inside the job rather than parked in a box further down the page.
+ *
+ * `scene` keys an illustration in CommercialJourney.tsx. They are drawn from
+ * the trade on purpose: a reflected ceiling plan, a spiral duct spine, a
+ * condenser on a pad. Nobody in this industry needs a generic icon of a
+ * lightbulb explaining what a fit-out is.
+ */
+export type CommBeat = {
+  n: string;
+  /** The stage, in the words a site runs on. */
+  kicker: string;
+  h: string;
+  p: string;
+  /** Why it matters that it is us. One line, no paragraph. */
+  why: string;
+  scene: "enquiry" | "plans" | "frame" | "duct" | "commission" | "handover" | "fitout" | "open";
+};
+
+export const COMM_JOURNEY: CommBeat[] = [
+  {
+    n: "01",
+    kicker: "The enquiry",
+    h: "You send us what you\u2019ve got.",
+    p: "Drawings, a mechanical schedule, a site address, a photo of the plant that died on Friday. Whatever is in your hand is enough to start a conversation.",
+    why: "Read by the person who will price it, the day it lands.",
+    scene: "enquiry",
+  },
+  {
+    n: "02",
+    kicker: "The plans",
+    h: "We read them before we price them.",
+    p: "Line by line, against the reflected ceiling plan and the schedule. Where the drawings leave a gap we tell you what we have assumed.",
+    why: "Exclusions stated on the page, not found later in an argument.",
+    scene: "plans",
+  },
+  {
+    n: "03",
+    kicker: "The build",
+    h: "We turn up when the program says.",
+    p: "Install windows coordinated with the head contractor and the trades either side of us. Staged, out of hours or over a weekend if the site has to keep trading.",
+    why: "SWMS and inductions back before anyone is on site, not on the morning.",
+    scene: "frame",
+  },
+  {
+    n: "04",
+    kicker: "The install",
+    h: "Hard duct, ducted splits, plant set and run.",
+    p: "Spiral and rectangular run to the drawings, indoor units in the ceiling void, condensers craned and set on their pads, refrigerant and condensate run properly.",
+    why: "Our own installers. Not labour hire, not a different sub each visit.",
+    scene: "duct",
+  },
+  {
+    n: "05",
+    kicker: "The inspection",
+    h: "Balanced to the design figures.",
+    p: "Air balanced to what was specified rather than to whatever falls out of the system. Readings taken and recorded on the day, defects closed before handover instead of after it.",
+    why: "If it is not recorded, it is not finished.",
+    scene: "commission",
+  },
+  {
+    n: "06",
+    kicker: "The handover",
+    h: "As-builts, O&Ms, warranties. One package.",
+    p: "Compliance certificates issued, commissioning data attached, the lot handed over together. A maintenance contract from there if you want the plant to reach the life it was specified for.",
+    why: "One contact the whole way through. Whoever priced it is who you ring.",
+    scene: "handover",
+  },
+  {
+    n: "07",
+    kicker: "The fit-out",
+    h: "Ceilings close and the shop goes in.",
+    p: "Grilles sit where the ceiling plan said they would, penetrations are sealed and photographed, and nothing of ours is holding up your date.",
+    why: "Nobody on your side chasing us for a document.",
+    scene: "fitout",
+  },
+  {
+    n: "08",
+    kicker: "Open for trade",
+    h: "Doors open. Nobody mentions the air conditioning.",
+    p: "Which is the entire point of the trade. Staff are not complaining, customers are not walking out, and the plant is running at the duty it was drawn for.",
+    why: "And on your next site, you already know how we work.",
+    scene: "open",
+  },
 ];

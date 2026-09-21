@@ -6,10 +6,11 @@ import dynamic from "next/dynamic";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import {
-  COMM_SCOPES, COMM_CLIENTS, COMM_PROCESS,
+  COMM_SCOPES, COMM_CLIENTS,
   COMM_DOORS, COMM_STANDARD, COMM_FAQS, COMM_FACTS,
 } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
+import { CommercialJourney } from "@/components/CommercialJourney";
 import { DoorIcon } from "@/components/DoorIcon";
 import "../home.css";
 import "./commercial.css";
@@ -315,8 +316,8 @@ export default function CommercialPage() {
               with rules through it reads as terms; a grid of cards reads as
               features. */}
           <ol className="stdlist">
-            {COMM_STANDARD.map((st) => (
-              <li key={st.n}>
+            {COMM_STANDARD.map((st, i) => (
+              <li key={st.n} style={{ ["--i" as string]: i }}>
                 <span className="stdlist__n">{st.n}</span>
                 <div>
                   <h3>{st.h}</h3>
@@ -328,9 +329,15 @@ export default function CommercialPage() {
         </div>
       </section>
 
-      {/* HOW WE WORK — the homepage's process band. Six cards rather than a
-          list: each step carries a paragraph, and a paragraph in a row of
-          hairlines reads as terms and conditions. */}
+      {/* THE JOURNEY — the centre of the page.
+
+          This was six cards in a grid. A grid hands the reader a pile of
+          features and asks them to assemble the story; the people reading
+          this run programs for a living, so they get one. The drawing holds
+          while the beats move past it, and each beat ends on the single line
+          that says why it matters that we are the ones doing it. That is the
+          "why us" argument, distributed through the job rather than stacked
+          in a box of its own. */}
       <section className="comm-flow">
         <div className="wrap">
           <div className="ds-section-head">
@@ -338,18 +345,11 @@ export default function CommercialPage() {
             <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
             <p className="comm-flow__lede">
               Most of what goes wrong on a mechanical package goes wrong before anyone picks up a tool: a scope two
-              people read differently. So we build the scope with you, in writing, and price against that.
+              people read differently. Here is the whole job, start to open doors, and what we are holding ourselves
+              to at each stage.
             </p>
           </div>
-          <ol className="comm-steps">
-            {COMM_PROCESS.map((s) => (
-              <li key={s.n} className="commstep">
-                <span className="commstep__n">{s.n}</span>
-                <h3>{s.h}</h3>
-                <p>{s.p}</p>
-              </li>
-            ))}
-          </ol>
+          <CommercialJourney />
         </div>
       </section>
 
@@ -358,15 +358,16 @@ export default function CommercialPage() {
         <div className="wrap area__grid">
           <div className="area__left">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
-            <h2>Based in Pakenham. On site across the south-east.</h2>
+            <h2>Based in Pakenham. On site anywhere in Victoria.</h2>
             <p>
-              The standard service area is 75&nbsp;km, which covers Melbourne&rsquo;s south-east and most of West
-              Gippsland with no travel loading.
+              <strong>For the right job we travel.</strong> Rollouts, multi-site contracts and packages worth putting a
+              crew on the road for &mdash; the Westpac branch was in Sale, and the contract work runs the width of the
+              state. If your sites are spread, ask. The answer is usually yes.
             </p>
             <p className="comm-area__note">
-              We travel further for rollout and contract work. The Westpac branch was in Sale, and the multi-site
-              contracts run wider than the circle. If your sites are spread across the state, ask rather than assuming
-              we&rsquo;re out of range.
+              The circle is where the vans are every day: Melbourne&rsquo;s south-east and most of West Gippsland, no
+              travel loading, same-week response. It is where we are cheapest to have on site, not the edge of where
+              we&rsquo;ll go.
             </p>
             <a href="#scope" className="ds-btn ds-btn--navy">Submit a scope →</a>
           </div>
@@ -374,9 +375,9 @@ export default function CommercialPage() {
             <div className="map map--live" aria-label="Service area map, 75 km radius from Pakenham 3810">
               <ServiceAreaMap />
               <div className="map__badge">
-                <span className="map__badge-eye">Standard radius</span>
+                <span className="map__badge-eye">Vans here daily</span>
                 <span className="map__badge-num">75&nbsp;km</span>
-                <span className="map__badge-note">Further for rollout &amp; contract work</span>
+                <span className="map__badge-note">Anywhere in Victoria for the right job</span>
               </div>
             </div>
           </div>
