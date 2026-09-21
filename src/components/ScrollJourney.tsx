@@ -32,14 +32,21 @@ export type JourneyBeat = {
   /** Why it matters that it is us. One line, no paragraph. */
   why: string;
   scene: string;
+  /** Keys a block of real content for beats that carry more than a
+   *  paragraph — a list of clients, the packages, the figures. Rendered
+   *  between the body and the why-line, so the beat still lands on its
+   *  argument. */
+  extra?: string;
 };
 
 export function ScrollJourney({
   beats,
   renderScene,
+  renderExtra,
 }: {
   beats: readonly JourneyBeat[];
   renderScene: (scene: string) => ReactNode;
+  renderExtra?: (extra: string) => ReactNode;
 }) {
   const [active, setActive] = useState(0);
   const refs = useRef<(HTMLLIElement | null)[]>([]);
@@ -102,6 +109,7 @@ export function ScrollJourney({
               </span>
               <h3>{b.h}</h3>
               <p>{b.p}</p>
+              {b.extra && renderExtra ? <div className="cjbeat__extra">{renderExtra(b.extra)}</div> : null}
               <p className="cjbeat__why">{b.why}</p>
             </div>
           </li>

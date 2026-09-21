@@ -1,7 +1,9 @@
 "use client";
 
-import { COMM_JOURNEY } from "@/lib/commercial";
+import Link from "next/link";
+import { COMM_JOURNEY, COMM_CLIENTS, COMM_SCOPES, COMM_FACTS, COMM_STANDARD } from "@/lib/commercial";
 import { ScrollJourney } from "@/components/ScrollJourney";
+import { CountUp } from "@/components/CountUp";
 
 /**
  * The drawings for the commercial journey. The shell that sticks them and
@@ -63,6 +65,100 @@ function Shopfront({ lit }: { lit: boolean }) {
 
 function Scene({ kind }: { kind: string }) {
   switch (kind) {
+    /* ---------- who already lets us on site ---------- */
+    case "clients":
+      return (
+        <>
+          <path d="M14 182 H326" className="cj-line cj-draw" strokeWidth="2.2" pathLength={1} {...STROKE} />
+          {/* a bank branch */}
+          <g className="cj-rise" style={{ ["--d" as string]: "0.16s" }}>
+            <path d="M20 182 V104 h66 v78" className="cj-line" strokeWidth="2.2" {...STROKE} />
+            <path d="M20 122 h66" className="cj-line-2" strokeWidth="1.6" {...STROKE} />
+            <rect x="30" y="108" width="46" height="7" rx="3.5" className="cj-accent-f" />
+            <path d="M44 182 V150 h18 v32" className="cj-line-2" strokeWidth="1.8" {...STROKE} />
+          </g>
+          {/* a retail tenancy */}
+          <g className="cj-rise" style={{ ["--d" as string]: "0.28s" }}>
+            <path d="M98 182 V116 h66 v66" className="cj-line" strokeWidth="2.2" {...STROKE} />
+            <path d="M94 132 h74" className="cj-line-2" strokeWidth="2" {...STROKE} />
+            <rect x="108" y="142" width="46" height="26" rx="2" className="cj-line-2" strokeWidth="1.6" {...STROKE} />
+          </g>
+          {/* a warehouse, with plant on the roof */}
+          <g className="cj-rise" style={{ ["--d" as string]: "0.4s" }}>
+            <path d="M176 182 V110 h66 v72" className="cj-line" strokeWidth="2.2" {...STROKE} />
+            <path d="M192 182 V142 h34 v40 M192 154 h34 M192 166 h34" className="cj-line-2" strokeWidth="1.6" {...STROKE} />
+            <rect x="196" y="92" width="26" height="18" rx="3" className="cj-accent" strokeWidth="1.8" {...STROKE} />
+          </g>
+          {/* a clinic */}
+          <g className="cj-rise" style={{ ["--d" as string]: "0.52s" }}>
+            <path d="M254 182 V122 h66 v60" className="cj-line" strokeWidth="2.2" {...STROKE} />
+            <path d="M287 136 v22 M276 147 h22" className="cj-sky" strokeWidth="2.6" {...STROKE} />
+          </g>
+        </>
+      );
+
+    /* ---------- what we take on ---------- */
+    case "schedule":
+      return (
+        <>
+          <rect x="52" y="26" width="236" height="168" rx="4" className="cj-line cj-draw" strokeWidth="2.2" pathLength={1} {...STROKE} />
+          <path d="M52 56 H288" className="cj-line cj-draw" strokeWidth="1.8" pathLength={1} style={{ ["--d" as string]: "0.14s" }} {...STROKE} />
+          <path d="M214 56 V194" className="cj-line-2 cj-draw" strokeWidth="1.4" pathLength={1} style={{ ["--d" as string]: "0.24s" }} {...STROKE} />
+          <rect x="66" y="37" width="72" height="7" rx="3.5" className="cj-line-2-f cj-rise" style={{ ["--d" as string]: "0.3s" }} />
+          {[0, 1, 2, 3, 4].map((r) => (
+            <g key={r} className="cj-rise" style={{ ["--d" as string]: `${0.4 + r * 0.07}s` }}>
+              <path d={`M66 ${76 + r * 24} h${[112, 88, 128, 96, 116][r]}`} className={r === 2 ? "cj-accent" : "cj-line-2"} strokeWidth="5" {...STROKE} />
+              <path d={`M228 ${76 + r * 24} h${[38, 28, 44, 32, 24][r]}`} className="cj-line-2" strokeWidth="5" {...STROKE} />
+            </g>
+          ))}
+        </>
+      );
+
+    /* ---------- what procurement writes down ---------- */
+    case "procurement":
+      return (
+        <>
+          {/* tabs */}
+          {[0, 1, 2, 3].map((t) => (
+            <rect
+              key={t}
+              x={70 + t * 52}
+              y={t === 1 ? 44 : 52}
+              width="44"
+              height={t === 1 ? 26 : 18}
+              rx="4"
+              className={`${t === 1 ? "cj-accent-f" : "cj-line-2-f"} cj-rise`}
+              style={{ ["--d" as string]: `${0.2 + t * 0.07}s` }}
+            />
+          ))}
+          <rect x="60" y="68" width="220" height="118" rx="6" className="cj-line cj-draw" strokeWidth="2.2" pathLength={1} {...STROKE} />
+          <path d="M80 96 h108 M80 116 h132 M80 136 h86" className="cj-line-2 cj-draw" strokeWidth="1.8" pathLength={1} style={{ ["--d" as string]: "0.55s" }} {...STROKE} />
+          <g className="cj-pop" style={{ ["--d" as string]: "0.78s" }}>
+            <circle cx="232" cy="150" r="20" className="cj-accent" strokeWidth="2.2" {...STROKE} />
+            <path d="M223 150 l6 6 13-14" className="cj-accent" strokeWidth="2.6" {...STROKE} />
+          </g>
+        </>
+      );
+
+    /* ---------- our own crew ---------- */
+    case "crew":
+      return (
+        <>
+          <path d="M14 182 H326" className="cj-line cj-draw" strokeWidth="2.2" pathLength={1} {...STROKE} />
+          <g className="cj-rise" style={{ ["--d" as string]: "0.2s" }}>
+            <path d="M24 168 V104 h92 l26 30 v34 z" className="cj-line" strokeWidth="2.4" {...STROKE} />
+            <path d="M116 110 h18 l14 18 h-32 z" className="cj-line-2" strokeWidth="1.8" {...STROKE} />
+            <path d="M38 128 h60" className="cj-accent" strokeWidth="4" {...STROKE} />
+            <circle cx="50" cy="170" r="11" className="cj-line" strokeWidth="2.4" {...STROKE} />
+            <circle cx="126" cy="170" r="11" className="cj-line" strokeWidth="2.4" {...STROKE} />
+          </g>
+          <Person x={192} y={182} h={52} d={0.62} />
+          <Person x={224} y={182} h={48} d={0.72} />
+          <Person x={256} y={182} h={54} d={0.82} />
+          <Person x={288} y={182} h={46} d={0.92} />
+        </>
+      );
+
     /* ---------- 01 · the enquiry lands ---------- */
     case "enquiry":
       return (
@@ -285,6 +381,76 @@ function Scene({ kind }: { kind: string }) {
   }
 }
 
+/**
+ * The beats that carry a list rather than a paragraph. Four sections of the
+ * page used to be these; they are inside the run now, so the credentials
+ * arrive where they are relevant instead of as bands of their own.
+ */
+function Extra({ kind }: { kind: string }) {
+  switch (kind) {
+    case "clients":
+      return (
+        <ul className="cjx cjx--chips">
+          {COMM_CLIENTS.map((c) => (
+            <li key={c.name}>
+              <b>{c.name}</b>
+              <span>{c.what}</span>
+            </li>
+          ))}
+        </ul>
+      );
+
+    case "packages":
+      return (
+        <ul className="cjx cjx--packs">
+          {COMM_SCOPES.map((sc) => (
+            <li key={sc.slug}>
+              <Link href={`/commercial/services#${sc.slug}`}>{sc.title}</Link>
+            </li>
+          ))}
+        </ul>
+      );
+
+    case "figures":
+      return (
+        <>
+          <dl className="cjx cjx--figs">
+            {COMM_FACTS.map((f) => (
+              <div key={f.k}>
+                <dt><CountUp value={f.n} /></dt>
+                <dd>{f.k}</dd>
+              </div>
+            ))}
+          </dl>
+          <Link href="/commercial/capability" className="cjx__link">
+            Everything procurement asks for, on one page &rarr;
+          </Link>
+        </>
+      );
+
+    case "standard":
+      return (
+        <ol className="cjx cjx--std">
+          {COMM_STANDARD.map((st) => (
+            <li key={st.n}>
+              <b>{st.h}</b>
+              <span>{st.p}</span>
+            </li>
+          ))}
+        </ol>
+      );
+
+    default:
+      return null;
+  }
+}
+
 export function CommercialJourney() {
-  return <ScrollJourney beats={COMM_JOURNEY} renderScene={(k) => <Scene kind={k} />} />;
+  return (
+    <ScrollJourney
+      beats={COMM_JOURNEY}
+      renderScene={(k) => <Scene kind={k} />}
+      renderExtra={(k) => <Extra kind={k} />}
+    />
+  );
 }
