@@ -1036,3 +1036,181 @@
   .page-comm .scopenext { margin-top: 26px; }
   .page-comm .scopenext li { grid-template-columns: 1fr; gap: 2px; }
 }
+
+/* ===================================================================
+   THE WHOLE PAGE SCROLLS AS ONE
+
+   The journey band moved and everything around it sat still, so the
+   page read as one animated section with normal sections either side
+   of it. Every band is scroll-linked now: the motion is tied to where
+   the section actually is in the window rather than fired once when it
+   first appears, so the screen keeps moving the whole way down.
+
+   Built on CSS scroll-driven animations — compositor-run, no
+   JavaScript. Where they are not supported the whole block is skipped
+   and the page keeps the site-wide Reveal it has always had, which is
+   why the reveal is only stood down inside @supports.
+
+   Each band gets a different move on purpose. One move repeated seven
+   times is a tic; seven different ones read as passing through a
+   sequence of places.
+
+   Two things that cost an hour and are worth writing down:
+   `animation-timeline` does not inherit, so it has to be set on the
+   element that carries the animation rather than on its section; and
+   the `animation-range` shorthand silently dropped the pair here, so
+   these use the start/end longhands.
+   =================================================================== */
+/* `clip`, not `hidden`, on everything a scroll-linked animation lives
+   inside. Hidden makes the element a scroll container, and a view()
+   timeline resolves against the nearest one — so the hero's photograph
+   was being measured against the hero, which never scrolls, and sat
+   perfectly still. Third time this exact trap has cost an hour. */
+.page-comm .comm-top.hero,
+.page-comm .comm-top .hero__photo,
+.page-comm [data-stop="close"] .wrap,
+.page-comm [data-stop="close"] .bigcta__photo { overflow: clip; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* The JS reveal fires once and is done. Scroll-linked motion does the
+       same job better here, so it steps aside rather than fighting it. */
+    .page-comm .reveal,
+    .page-comm .reveal.is-revealed {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
+    .page-comm .comm-top .hero__photo,
+    .page-comm .comm-top .hero__copy,
+    .page-comm [data-stop="fork"] .route__panel,
+    .page-comm [data-stop="area"] .area__left,
+    .page-comm [data-stop="area"] .area__right,
+    .page-comm [data-stop="scope"] .quotesec__box,
+    .page-comm [data-stop="faq"] .faq__left,
+    .page-comm [data-stop="faq"] .faq__right,
+    .page-comm [data-stop="close"] .bigcta__photo,
+    .page-comm [data-stop="close"] .bigcta__copy {
+      animation-timeline: view();
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-duration: 1ms; /* ignored on a view timeline, needed for Safari's fallback */
+    }
+
+    /* 01 · the hero does not arrive, it leaves. The photograph hangs back
+       as the copy scrolls off, so the first thing the page does is move. */
+    .page-comm .comm-top .hero__photo {
+      animation-name: cp-hang;
+      animation-range-start: exit 0%;
+      animation-range-end: exit 100%;
+    }
+    .page-comm .comm-top .hero__copy {
+      animation-name: cp-recede;
+      animation-range-start: exit 0%;
+      animation-range-end: exit 95%;
+    }
+
+    /* 02 · the fork is already on screen when the page loads, so an entry
+       animation would be over before anybody saw it. It drifts up on the
+       way past instead, which is the move the hero is making above it. */
+    .page-comm [data-stop="fork"] .route__panel {
+      animation-name: cp-rise-past;
+      animation-range-start: cover 0%;
+      animation-range-end: cover 100%;
+    }
+
+    /* 04 · where we work opens from the middle, copy one way, map the other */
+    .page-comm [data-stop="area"] .area__left {
+      animation-name: cp-from-left;
+      animation-range-start: entry 8%;
+      animation-range-end: entry 64%;
+    }
+    .page-comm [data-stop="area"] .area__right {
+      animation-name: cp-from-right;
+      animation-range-start: entry 8%;
+      animation-range-end: entry 70%;
+    }
+
+    /* 05 · the ask grows into the page rather than sliding past it */
+    .page-comm [data-stop="scope"] .quotesec__box {
+      animation-name: cp-grow;
+      animation-range-start: entry 4%;
+      animation-range-end: entry 60%;
+    }
+
+    /* 06 · the questions stack up */
+    .page-comm [data-stop="faq"] .faq__left {
+      animation-name: cp-from-left;
+      animation-range-start: entry 8%;
+      animation-range-end: entry 62%;
+    }
+    .page-comm [data-stop="faq"] .faq__right {
+      animation-name: cp-lift;
+      animation-range-start: entry 8%;
+      animation-range-end: entry 68%;
+    }
+
+    /* 07 · the close holds its photograph back the way the hero did, so
+       the page finishes on the move it opened with. */
+    .page-comm [data-stop="close"] .bigcta__photo {
+      animation-name: cp-drift-in;
+      animation-range-start: entry 0%;
+      animation-range-end: exit 100%;
+    }
+    .page-comm [data-stop="close"] .bigcta__copy {
+      animation-name: cp-lift;
+      animation-range-start: entry 10%;
+      animation-range-end: entry 72%;
+    }
+  }
+}
+
+@keyframes cp-rise-past { from { transform: translateY(34px); } to { transform: translateY(-34px); } }
+@keyframes cp-hang { from { transform: none; } to { transform: translateY(-64px) scale(1.05); } }
+@keyframes cp-drift-in { from { transform: translateY(46px) scale(1.08); } to { transform: translateY(-30px) scale(1.08); } }
+@keyframes cp-recede { from { transform: none; opacity: 1; } to { transform: translateY(28px); opacity: 0.4; } }
+@keyframes cp-lift { from { opacity: 0; transform: translateY(52px); } to { opacity: 1; transform: none; } }
+@keyframes cp-grow { from { opacity: 0; transform: translateY(40px) scale(0.965); } to { opacity: 1; transform: none; } }
+@keyframes cp-from-left { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: none; } }
+@keyframes cp-from-right { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: none; } }
+
+/* ---- the line down the edge ----
+   One continuous mark from the top of the page to the bottom of it,
+   filling as you go. It is the thing that says the hero, the journey
+   and the close are the same run rather than three ideas stacked. */
+@supports (animation-timeline: scroll()) {
+  /* A track behind the fill, or the orange reads as a stray mark in the
+     corner rather than as how far through you are. */
+  .page-comm::before {
+    content: "";
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100vh;
+    background: rgba(11, 20, 80, 0.14);
+    z-index: 59;
+    pointer-events: none;
+  }
+  .page-comm::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100vh;
+    background: var(--orange, #f36722);
+    transform-origin: top center;
+    transform: scaleY(0);
+    animation: cp-progress linear both;
+    animation-timeline: scroll(root);
+    z-index: 60;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .page-comm::before,
+    .page-comm::after { display: none; }
+  }
+}
+@keyframes cp-progress { from { transform: scaleY(0); } to { transform: scaleY(1); } }
