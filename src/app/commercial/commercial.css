@@ -1071,109 +1071,183 @@
 .page-comm [data-stop="close"] .wrap,
 .page-comm [data-stop="close"] .bigcta__photo { overflow: clip; }
 
+/* ---- the moves ----
+
+   Every move on this page is one number: `--mp` for something arriving
+   (0 = not yet, 1 = here) and `--mq` for something being scrolled past
+   (0 = untouched, 1 = fully by). Each element writes its own transform
+   in terms of that number, and something drives the number.
+
+   Two things drive it. Where the browser has scroll-driven animations,
+   CSS scrubs it against the scroll position and no JavaScript runs at
+   all. Where it does not — which as of writing includes a great many of
+   the iPhones this site is read on — CommercialMotion.tsx sets the same
+   number from a rAF-throttled scroll handler. One set of rules, one
+   appearance, whatever is rendering it.
+
+   The initial values are the resting state on purpose: `--mp` starts at
+   1 and `--mq` at 0, so a page where neither driver runs — no
+   JavaScript, no scroll-driven support, reduced motion — is a normal
+   page with everything visible, rather than a blank one waiting for an
+   animation that is never coming.
+
+   `data-m` on an element says which driver and which position in a
+   stagger; the transform itself is chosen by the element's own selector
+   below. That split is what stops the JavaScript needing to know
+   anything about how a given band looks. The two properties and the
+   two keyframes they animate are declared in design-system.css. */
+
+/* `clip`, not `hidden`, on everything a scroll-linked animation lives
+   inside. Hidden makes the element a scroll container, and a view()
+   timeline resolves against the nearest one — so the hero's photograph
+   was being measured against the hero, which never scrolls, and sat
+   perfectly still. Third time this exact trap has cost an hour. */
+.page-comm .comm-top.hero,
+.page-comm .comm-top .hero__photo,
+.page-comm [data-stop="close"] .wrap,
+.page-comm [data-stop="close"] .bigcta__photo { overflow: clip; }
+
+/* ---- what each band does ----
+   These are unconditional: with --mp at 1 and --mq at 0 they compute to
+   the resting state, so they cost nothing when nothing is driving them. */
+
+/* 01 · the hero does not arrive, it leaves. The photograph hangs back as
+   the copy scrolls off, so the first thing the page does is move. */
+.page-comm .comm-top .hero__photo {
+  transform: translateY(calc(var(--mq) * -64px)) scale(calc(1 + var(--mq) * 0.05));
+}
+.page-comm .comm-top .hero__copy {
+  transform: translateY(calc(var(--mq) * 28px));
+  opacity: calc(1 - var(--mq) * 0.6);
+}
+
+/* 02 · the fork is already on screen at load, so an arrival would be over
+   before anybody saw it. The panel drifts past instead — transform only,
+   so the doors inside it can carry their own opacity without the two
+   fades multiplying. */
+.page-comm [data-stop="fork"] .route__panel {
+  transform: translateY(calc(34px - var(--mq) * 68px));
+}
+/* The four doors do NOT arrive. They sit at y=799 in a 900px window — in
+   the first screenful — and a staggered arrival there leaves the last of
+   them blank on first paint, which is the one thing scroll motion must
+   never do. The panel's drift carries them instead. Same reason the site
+   reveal skips anything above the fold. */
+
+/* 03 · the journey band had nothing at all: the drawing and the beats
+   moved, the heading over them sat still. */
+.page-comm [data-stop="journey"] .ds-eyebrow,
+.page-comm [data-stop="journey"] .ds-section-head > h2,
+.page-comm [data-stop="journey"] .comm-flow__lede {
+  opacity: var(--mp);
+  transform: translateY(calc((1 - var(--mp)) * 34px));
+}
+
+/* 04 · where we work opens from the middle, copy one way, map the other */
+.page-comm [data-stop="area"] .area__left {
+  opacity: var(--mp);
+  transform: translateX(calc((1 - var(--mp)) * -44px));
+}
+.page-comm [data-stop="area"] .area__right {
+  opacity: var(--mp);
+  transform: translateX(calc((1 - var(--mp)) * 44px));
+}
+
+/* 05 · the ask grows into the page rather than sliding past it */
+.page-comm [data-stop="scope"] .quotesec__box {
+  opacity: var(--mp);
+  transform: translateY(calc((1 - var(--mp)) * 40px)) scale(calc(0.965 + var(--mp) * 0.035));
+}
+
+/* 06 · the questions stack up, one row at a time rather than as a slab */
+.page-comm [data-stop="faq"] .faq__left {
+  opacity: var(--mp);
+  transform: translateX(calc((1 - var(--mp)) * -44px));
+}
+/* The rows are not listed here. They already arrive in sequence, off --i,
+   through the reveal rules further up this file — and that path works in
+   every browser, so there is nothing for this one to add. Two rules on one
+   element's opacity is also a fight this one loses: `.is-revealed` carries
+   a class more than these selectors do, which is exactly why the rows read
+   as fully arrived no matter where the page was scrolled. */
+
+/* 07 · the close holds its photograph back the way the hero did, so the
+   page finishes on the move it opened with. */
+.page-comm [data-stop="close"] .bigcta__photo {
+  transform: translateY(calc(46px - var(--mq) * 76px)) scale(1.08);
+}
+.page-comm [data-stop="close"] .bigcta__copy {
+  opacity: var(--mp);
+  transform: translateY(calc((1 - var(--mp)) * 52px));
+}
+
+/* ---- the reveal steps aside ----
+   The JS reveal fires once and is done; the scroll-linked motion above
+   does the same job better. This has to cover both drivers, or in the
+   fallback the section's own fade and the element's fade multiply into a
+   block that never quite reaches full opacity. Only the section is
+   neutralised — the `--i` child staggers further up still run, and still
+   run everywhere. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    /* The JS reveal fires once and is done. Scroll-linked motion does the
-       same job better here, so it steps aside rather than fighting it. */
     .page-comm .reveal,
-    .page-comm .reveal.is-revealed {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
+    .page-comm .reveal.is-revealed { opacity: 1; transform: none; transition: none; }
+  }
+}
+html[data-motion="js"] .page-comm .reveal,
+html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: none; transition: none; }
 
-    .page-comm .comm-top .hero__photo,
-    .page-comm .comm-top .hero__copy,
-    .page-comm [data-stop="fork"] .route__panel,
-    .page-comm [data-stop="area"] .area__left,
-    .page-comm [data-stop="area"] .area__right,
-    .page-comm [data-stop="scope"] .quotesec__box,
-    .page-comm [data-stop="faq"] .faq__left,
-    .page-comm [data-stop="faq"] .faq__right,
-    .page-comm [data-stop="close"] .bigcta__photo,
-    .page-comm [data-stop="close"] .bigcta__copy {
+/* ---- the CSS driver ----
+   Ranges are duplicated in CommercialMotion.tsx, which is the price of
+   having the same choreography in browsers without scroll-driven
+   animations. They are kept to four shapes so there are four numbers to
+   keep in step, not forty: an arrival, an arrival offset by its place in
+   a stagger, a pass-by across the whole cover range, and an exit. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    .page-comm [data-m] {
       animation-timeline: view();
       animation-fill-mode: both;
       animation-timing-function: linear;
-      animation-duration: 1ms; /* ignored on a view timeline, needed for Safari's fallback */
+      animation-duration: 1ms; /* ignored on a view timeline, needed as a fallback */
     }
+    .page-comm [data-m^="arrive"] { animation-name: cp-arrive; }
+    .page-comm [data-m="pass"],
+    .page-comm [data-m="exit"]    { animation-name: cp-pass; }
 
-    /* 01 · the hero does not arrive, it leaves. The photograph hangs back
-       as the copy scrolls off, so the first thing the page does is move. */
-    .page-comm .comm-top .hero__photo {
-      animation-name: cp-hang;
-      animation-range-start: exit 0%;
-      animation-range-end: exit 100%;
-    }
-    .page-comm .comm-top .hero__copy {
-      animation-name: cp-recede;
-      animation-range-start: exit 0%;
-      animation-range-end: exit 95%;
-    }
-
-    /* 02 · the fork is already on screen when the page loads, so an entry
-       animation would be over before anybody saw it. It drifts up on the
-       way past instead, which is the move the hero is making above it. */
-    .page-comm [data-stop="fork"] .route__panel {
-      animation-name: cp-rise-past;
+    .page-comm [data-m="pass"] {
       animation-range-start: cover 0%;
       animation-range-end: cover 100%;
     }
-
-    /* 04 · where we work opens from the middle, copy one way, map the other */
-    .page-comm [data-stop="area"] .area__left {
-      animation-name: cp-from-left;
-      animation-range-start: entry 8%;
-      animation-range-end: entry 64%;
-    }
-    .page-comm [data-stop="area"] .area__right {
-      animation-name: cp-from-right;
-      animation-range-start: entry 8%;
-      animation-range-end: entry 70%;
-    }
-
-    /* 05 · the ask grows into the page rather than sliding past it */
-    .page-comm [data-stop="scope"] .quotesec__box {
-      animation-name: cp-grow;
-      animation-range-start: entry 4%;
-      animation-range-end: entry 60%;
-    }
-
-    /* 06 · the questions stack up */
-    .page-comm [data-stop="faq"] .faq__left {
-      animation-name: cp-from-left;
-      animation-range-start: entry 8%;
-      animation-range-end: entry 62%;
-    }
-    .page-comm [data-stop="faq"] .faq__right {
-      animation-name: cp-lift;
-      animation-range-start: entry 8%;
-      animation-range-end: entry 68%;
-    }
-
-    /* 07 · the close holds its photograph back the way the hero did, so
-       the page finishes on the move it opened with. */
-    .page-comm [data-stop="close"] .bigcta__photo {
-      animation-name: cp-drift-in;
-      animation-range-start: entry 0%;
+    .page-comm [data-m="exit"] {
+      animation-range-start: exit 0%;
       animation-range-end: exit 100%;
     }
-    .page-comm [data-stop="close"] .bigcta__copy {
-      animation-name: cp-lift;
-      animation-range-start: entry 10%;
-      animation-range-end: entry 72%;
-    }
+
+    /* Arrivals are timed over a fixed distance, not over a share of the
+       element's own height.
+
+       An `entry` range spans exactly the element's box, so the taller the
+       thing the longer its rise — and a 16px eyebrow completed its whole
+       arrival inside 16px of scrolling, which is a flash rather than a
+       move. A `cover` range counted in pixels starts the moment the
+       element's top edge touches the bottom of the window and runs for
+       the same 440px whatever the element is, so a heading, a map and a
+       row of ticks all arrive at the same rate. It is also the one form
+       the fallback can mirror exactly: the distance scrolled since the
+       element appeared is simply `innerHeight - rect.top`. */
+    .page-comm [data-m="arrive"],
+    .page-comm [data-m="arrive:0"] { animation-range-start: cover 80px;  animation-range-end: cover 520px; }
+    .page-comm [data-m="arrive:1"] { animation-range-start: cover 150px; animation-range-end: cover 590px; }
+    .page-comm [data-m="arrive:2"] { animation-range-start: cover 220px; animation-range-end: cover 660px; }
+    .page-comm [data-m="arrive:3"] { animation-range-start: cover 290px; animation-range-end: cover 730px; }
+    .page-comm [data-m="arrive:4"] { animation-range-start: cover 360px; animation-range-end: cover 800px; }
+    .page-comm [data-m="arrive:5"] { animation-range-start: cover 430px; animation-range-end: cover 870px; }
+    .page-comm [data-m="arrive:6"] { animation-range-start: cover 500px; animation-range-end: cover 940px; }
+    .page-comm [data-m="arrive:7"] { animation-range-start: cover 570px; animation-range-end: cover 1010px; }
   }
 }
-
-@keyframes cp-rise-past { from { transform: translateY(34px); } to { transform: translateY(-34px); } }
-@keyframes cp-hang { from { transform: none; } to { transform: translateY(-64px) scale(1.05); } }
-@keyframes cp-drift-in { from { transform: translateY(46px) scale(1.08); } to { transform: translateY(-30px) scale(1.08); } }
-@keyframes cp-recede { from { transform: none; opacity: 1; } to { transform: translateY(28px); opacity: 0.4; } }
-@keyframes cp-lift { from { opacity: 0; transform: translateY(52px); } to { opacity: 1; transform: none; } }
-@keyframes cp-grow { from { opacity: 0; transform: translateY(40px) scale(0.965); } to { opacity: 1; transform: none; } }
-@keyframes cp-from-left { from { opacity: 0; transform: translateX(-44px); } to { opacity: 1; transform: none; } }
-@keyframes cp-from-right { from { opacity: 0; transform: translateX(44px); } to { opacity: 1; transform: none; } }
 
 /* The frame down both edges of the screen, the header's filling rule and
    the footer's arrival are not commercial-only any more — they are in
