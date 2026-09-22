@@ -66,7 +66,7 @@ export default function CommercialPage() {
   return (
     // page-home is the marketing-page layout scope, not the homepage itself —
     // the hero and the section rhythm hang off it.
-    <div className="page-home page-comm">
+    <div className="page-home page-comm page-framed">
       {/* HERO */}
       <section className="hero hero--split comm-top" data-stop="hero">
         <div className="wrap hero__grid">

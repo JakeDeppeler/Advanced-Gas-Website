@@ -4705,3 +4705,111 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
   .cjband__actions .ds-btn { width: 100%; justify-content: center; }
   .cjband__alt { font-size: 13px; }
 }
+
+/* ===================================================================
+   THE FRAME
+   ===================================================================
+   Two lines, one down each edge of the screen, filling as you go, plus
+   the header's bottom rule filling with them and the footer arriving
+   rather than simply being there.
+
+   The point is that a long page reads as one run rather than as a stack
+   of separate ideas, and that the run does not start below the header or
+   stop above the footer. A page opts in with `page-framed` on its root.
+
+   One element per line-pair rather than four pseudo-elements: the bars
+   are two background layers pinned to the left and right of a
+   full-viewport box, so a single scaleY drives both of them in step.
+
+   The track is a low-alpha navy. It is there so the orange reads as a
+   measure rather than as a stray mark in the corner, which is a job it
+   only has on the light bands — over the dark ones it disappears, and
+   the orange carries on its own.
+   =================================================================== */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .page-framed::before,
+    .page-framed::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-repeat: no-repeat;
+      background-size: 3px 100%;
+    }
+    .page-framed::before {
+      background-image:
+        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14)),
+        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14));
+      background-position: left top, right top;
+      z-index: 59;
+    }
+    .page-framed::after {
+      background-image:
+        linear-gradient(var(--orange, #f36722), var(--orange, #f36722)),
+        linear-gradient(var(--orange, #f36722), var(--orange, #f36722));
+      background-position: left top, right top;
+      transform-origin: top center;
+      transform: scaleY(0);
+      animation: frame-fill-y linear both;
+      animation-timeline: scroll(root);
+      z-index: 60;
+    }
+
+    /* The header is part of it. Nothing about the header's height
+       changes: the journey's sticky drawing and the page's
+       scroll-padding are both measured off it, so this only replaces a
+       static rule with a moving one. */
+    body:has(.page-framed) .hdr::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--orange, #f36722);
+      transform-origin: left center;
+      transform: scaleX(0);
+      animation: frame-fill-x linear both;
+      animation-timeline: scroll(root);
+      pointer-events: none;
+    }
+  }
+}
+
+/* The footer is part of it too. The page used to simply end; now the
+   last thing it does is arrive. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Siblings, never a parent and its child — two nested lifts compound
+       into one that overshoots, and two nested fades multiply into a
+       block that never reaches full opacity. */
+    body:has(.page-framed) .ftr__top,
+    body:has(.page-framed) .ftr__col,
+    body:has(.page-framed) .ftr__badges,
+    body:has(.page-framed) .ftr__bottom {
+      animation-name: frame-lift;
+      animation-timeline: view();
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+      animation-duration: 1ms;
+      animation-range-start: entry 0%;
+      animation-range-end: entry 46%;
+    }
+    body:has(.page-framed) .ftr__col:nth-child(1) { animation-range-start: entry 2%;  animation-range-end: entry 44%; }
+    body:has(.page-framed) .ftr__col:nth-child(2) { animation-range-start: entry 8%;  animation-range-end: entry 50%; }
+    body:has(.page-framed) .ftr__col:nth-child(3) { animation-range-start: entry 14%; animation-range-end: entry 56%; }
+    body:has(.page-framed) .ftr__col:nth-child(4) { animation-range-start: entry 20%; animation-range-end: entry 62%; }
+  }
+}
+
+@keyframes frame-fill-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes frame-fill-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes frame-lift { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+
+/* The rails are decoration; on a phone they are also 6px of a 390px
+   screen sitting over the content edge, so they thin out. */
+@media (max-width: 620px) {
+  .page-framed::before,
+  .page-framed::after { background-size: 2px 100%; }
+}
