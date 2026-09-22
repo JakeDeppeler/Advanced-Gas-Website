@@ -162,7 +162,7 @@ export default async function HomePage() {
   ReactDOM.prefetchDNS("https://tile.openstreetmap.org");
 
   return (
-    <div className="page-home">
+    <div className="page-home page-framed">
       {/* HERO — full-bleed team photo, cinematic overlay.
           The hero photo is a real <img> (not a CSS background). Chrome
           heavily deprioritises CSS backgrounds for LCP scoring, the

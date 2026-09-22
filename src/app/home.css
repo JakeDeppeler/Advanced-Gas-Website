@@ -1225,6 +1225,13 @@
   box-shadow: 0 0 0 3px rgba(255,255,255,0.35);
   animation: qcardDotPulse 2s ease-in-out infinite;
 }
+/* An infinite pulse is exactly what reduce is for, and this one had no
+   guard — it kept running on the home page while every other animation
+   on the site stopped. Found while checking that the frame respects the
+   setting. The dot stays; it just stops moving. */
+@media (prefers-reduced-motion: reduce) {
+  .page-home .qcard__ribbon-dot { animation: none; }
+}
 @keyframes qcardDotPulse {
   50% { box-shadow: 0 0 0 6px rgba(255,255,255,0); }
 }
