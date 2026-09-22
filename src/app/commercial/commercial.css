@@ -1114,11 +1114,11 @@
 /* 01 · the hero does not arrive, it leaves. The photograph hangs back as
    the copy scrolls off, so the first thing the page does is move. */
 .page-comm .comm-top .hero__photo {
-  transform: translateY(calc(var(--mq) * -64px)) scale(calc(1 + var(--mq) * 0.05));
+  transform: translateY(calc(var(--mq) * -120px)) scale(calc(1 + var(--mq) * 0.08));
 }
 .page-comm .comm-top .hero__copy {
-  transform: translateY(calc(var(--mq) * 28px));
-  opacity: calc(1 - var(--mq) * 0.6);
+  transform: translateY(calc(var(--mq) * 56px));
+  opacity: calc(1 - var(--mq) * 0.72);
 }
 
 /* 02 · the fork is already on screen at load, so an arrival would be over
@@ -1126,7 +1126,7 @@
    so the doors inside it can carry their own opacity without the two
    fades multiplying. */
 .page-comm [data-stop="fork"] .route__panel {
-  transform: translateY(calc(34px - var(--mq) * 68px));
+  transform: translateY(calc(64px - var(--mq) * 128px));
 }
 /* The four doors do NOT arrive. They sit at y=799 in a 900px window — in
    the first screenful — and a staggered arrival there leaves the last of
@@ -1140,29 +1140,29 @@
 .page-comm [data-stop="journey"] .ds-section-head > h2,
 .page-comm [data-stop="journey"] .comm-flow__lede {
   opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 34px));
+  transform: translateY(calc((1 - var(--mp)) * 62px));
 }
 
 /* 04 · where we work opens from the middle, copy one way, map the other */
 .page-comm [data-stop="area"] .area__left {
   opacity: var(--mp);
-  transform: translateX(calc((1 - var(--mp)) * -44px));
+  transform: translateX(calc((1 - var(--mp)) * -110px));
 }
 .page-comm [data-stop="area"] .area__right {
   opacity: var(--mp);
-  transform: translateX(calc((1 - var(--mp)) * 44px));
+  transform: translateX(calc((1 - var(--mp)) * 110px));
 }
 
 /* 05 · the ask grows into the page rather than sliding past it */
 .page-comm [data-stop="scope"] .quotesec__box {
   opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 40px)) scale(calc(0.965 + var(--mp) * 0.035));
+  transform: translateY(calc((1 - var(--mp)) * 72px)) scale(calc(0.93 + var(--mp) * 0.07));
 }
 
 /* 06 · the questions stack up, one row at a time rather than as a slab */
 .page-comm [data-stop="faq"] .faq__left {
   opacity: var(--mp);
-  transform: translateX(calc((1 - var(--mp)) * -44px));
+  transform: translateX(calc((1 - var(--mp)) * -110px));
 }
 /* The rows are not listed here. They already arrive in sequence, off --i,
    through the reveal rules further up this file — and that path works in
@@ -1174,11 +1174,11 @@
 /* 07 · the close holds its photograph back the way the hero did, so the
    page finishes on the move it opened with. */
 .page-comm [data-stop="close"] .bigcta__photo {
-  transform: translateY(calc(46px - var(--mq) * 76px)) scale(1.08);
+  transform: translateY(calc(80px - var(--mq) * 140px)) scale(1.12);
 }
 .page-comm [data-stop="close"] .bigcta__copy {
   opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 52px));
+  transform: translateY(calc((1 - var(--mp)) * 92px));
 }
 
 /* ---- the reveal steps aside ----
@@ -1227,6 +1227,11 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
 
     /* Arrivals are timed over a fixed distance, not over a share of the
        element's own height.
+
+   The distances below were roughly doubled after the owner reported
+   seeing no movement at all. At 44px of travel on a 900px window a move
+   is about 5% of the screen — technically running, easy to miss. These
+   are 110px and up, which is a move you notice without looking for it.
 
        An `entry` range spans exactly the element's box, so the taller the
        thing the longer its rise — and a 16px eyebrow completed its whole

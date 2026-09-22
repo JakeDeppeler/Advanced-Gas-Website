@@ -4846,3 +4846,66 @@ body:has(.page-framed) .ftr__bottom {
   .page-framed::before,
   .page-framed::after { background-size: 2px 100%; }
 }
+
+/* ---- the closing panel, in orange ----
+   The homepage's last panel was a full-bleed orange band until "the closing
+   panel stops shouting" turned it navy. Navy was the right call for the
+   commercial close, which is a capability document and keeps orange to a
+   rule, a numeral and one button. It was the wrong call here: on the
+   residential side orange is what the page does when it stops explaining
+   and starts asking, and the closing panel is the last asking it does.
+
+   Orange comes back; the photograph, the three terms and the credentials —
+   all of which arrived with that same commit — stay. `--warm` rather than a
+   page selector because three other pages share this markup and none of
+   them should change.
+
+   Everything below is a consequence of the ground colour rather than a
+   decoration: an orange rule on orange is invisible, a navy-toned shadow
+   under an orange panel reads as dirt, and an orange button on an orange
+   field is not a button. */
+.bigcta--warm .bigcta__row {
+  background: var(--orange);
+  box-shadow:
+    0 20px 44px -18px rgba(243, 103, 34, 0.55),
+    0 8px 24px -14px rgba(5, 10, 48, 0.2);
+}
+/* The top rule was "the one piece of orange" on a navy panel. Here it would
+   be orange on orange, so the panel carries its own edge instead. */
+.bigcta--warm .bigcta__row::before { display: none; }
+/* The grid was dropped to a third strength to sit on navy. On orange it is
+   back to the weight it was designed at. */
+.bigcta--warm .bigcta__row::after {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+/* The photograph has to resolve into the new ground, not the old one. */
+.bigcta--warm .bigcta__photo::after {
+  background: linear-gradient(90deg, transparent 62%, rgba(180, 70, 20, 0.5) 88%, var(--orange));
+}
+/* Navy on orange, which is the pairing the rest of the site uses when the
+   ground is orange. `--orange` on `--orange` was a button-shaped hole. */
+.bigcta--warm .bigcta__btns .ds-btn--orange {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 4px 0 #04081f;
+}
+.bigcta--warm .bigcta__btns .ds-btn--orange:hover {
+  background: var(--navy-2, #12204f);
+  box-shadow: 0 5px 0 #04081f;
+}
+/* The dots were orange to stand off navy; on orange they disappear. */
+.bigcta--warm .bigcta__facts li::before { background: #fff; }
+/* Half-strength white cleared AA on navy and does not on orange. */
+.bigcta--warm .bigcta__creds { color: rgba(255, 255, 255, 0.78); }
+.bigcta--warm .bigcta__phone { color: rgba(255, 255, 255, 0.85); }
+
+@media (max-width: 980px) {
+  /* The stacked layout fades the photo downward into the panel, so that
+     gradient needs the new ground too. */
+  .bigcta--warm .bigcta__photo::after {
+    background: linear-gradient(180deg, transparent 62%, rgba(180, 70, 20, 0.5) 88%, var(--orange));
+  }
+}
