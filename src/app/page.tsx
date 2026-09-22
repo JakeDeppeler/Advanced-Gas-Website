@@ -746,7 +746,7 @@ export default async function HomePage() {
 
       {/* BIG CTA — the closing "job sorted" panel, with the crew photo so
           it ends on a face rather than a flat colour band. */}
-      <section className="bigcta bigcta--photo" data-hide-sticky-cta>
+      <section className="bigcta bigcta--photo bigcta--warm" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
           <figure className="bigcta__photo">
             <Image
