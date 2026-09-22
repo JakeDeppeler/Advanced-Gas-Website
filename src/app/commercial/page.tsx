@@ -9,6 +9,7 @@ import { COMM_DOORS, COMM_FAQS } from "@/lib/commercial";
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { CommercialJourney } from "@/components/CommercialJourney";
 import { CountUp } from "@/components/CountUp";
+import { PageMotion } from "@/components/PageMotion";
 import { DoorIcon } from "@/components/DoorIcon";
 import "../home.css";
 import "./commercial.css";
@@ -70,7 +71,7 @@ export default function CommercialPage() {
       {/* HERO */}
       <section className="hero hero--split comm-top" data-stop="hero">
         <div className="wrap hero__grid">
-          <div className="hero__copy">
+          <div className="hero__copy" data-m="exit">
             <span className="hero__badge">
               <span className="ds-dot" />
               Commercial &amp; industrial
@@ -99,7 +100,7 @@ export default function CommercialPage() {
             </div>
           </div>
 
-          <div className="hero__photo" aria-hidden="true">
+          <div className="hero__photo" aria-hidden="true" data-m="exit">
             <Image
               src="/commercial.webp"
               alt=""
@@ -121,7 +122,7 @@ export default function CommercialPage() {
           missing makes the commercial side feel like somebody else's site. */}
       <section className="route" data-stop="fork">
         <div className="wrap">
-          <div className="route__panel">
+          <div className="route__panel" data-m="pass">
             <div className="ds-section-head ds-section-head--center">
               <span className="ds-eyebrow">Start here</span>
               <h2>What&rsquo;s the job?</h2>
@@ -164,9 +165,9 @@ export default function CommercialPage() {
       <section className="comm-flow" data-stop="journey">
         <div className="wrap">
           <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How we work</span>
-            <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
-            <p className="comm-flow__lede">
+            <span className="ds-eyebrow ds-eyebrow--on-dark" data-m="arrive:0"><span className="ds-dot ds-dot--orange" /> How we work</span>
+            <h2 className="ds-h--on-dark" data-m="arrive:1">From your plans to a proper handover.</h2>
+            <p className="comm-flow__lede" data-m="arrive:2">
               Who already lets us on site, what we take on, and then the whole job from the first email to the day
               the doors open. Everything we are holding ourselves to, at the point in the job where it matters.
             </p>
@@ -178,7 +179,7 @@ export default function CommercialPage() {
       {/* WHERE WE WORK */}
       <section className="area" id="area" data-stop="area">
         <div className="wrap area__grid">
-          <div className="area__left">
+          <div className="area__left" data-m="arrive">
             <span className="ds-eyebrow"><span className="ds-dot" /> Where we work</span>
             <h2>Based in Pakenham. On site anywhere in Victoria.</h2>
             <p>
@@ -193,7 +194,7 @@ export default function CommercialPage() {
             </p>
             <a href="#scope" className="ds-btn ds-btn--primary">Submit a scope →</a>
           </div>
-          <div className="area__right">
+          <div className="area__right" data-m="arrive:1">
             <div className="map map--live" aria-label="Map of Victoria, with the 75 km daily service radius marked around Pakenham 3810">
               <ServiceAreaMap view="victoria" />
               <div className="map__badge">
@@ -219,7 +220,7 @@ export default function CommercialPage() {
           page more serious, it made it a wall of cream with no beat in it. */}
       <section className="quotesec comm-scopesec" id="scope" data-stop="scope">
         <div className="wrap">
-          <div className="quotesec__box">
+          <div className="quotesec__box" data-m="arrive">
             <div className="quotesec__grid">
               <div className="quotesec__left">
                 <span className="ds-eyebrow ds-eyebrow--on-orange"><span className="ds-dot ds-dot--on-orange" /> Priced against a written scope</span>
@@ -263,7 +264,7 @@ export default function CommercialPage() {
       {/* QUESTIONS — the ones that decide whether we get on site. */}
       <section className="faq" data-stop="faq">
         <div className="wrap faq__grid">
-          <div className="faq__left">
+          <div className="faq__left" data-m="arrive">
             <span className="ds-eyebrow"><span className="ds-dot" /> Before you put us on a site</span>
             <h2>Insurances, program, variations and the paperwork.</h2>
             <p>
@@ -285,7 +286,7 @@ export default function CommercialPage() {
       {/* CLOSE */}
       <section className="bigcta bigcta--photo" data-stop="close" data-hide-sticky-cta>
         <div className="wrap bigcta__row">
-          <figure className="bigcta__photo">
+          <figure className="bigcta__photo" data-m="pass">
             <Image
               src="/commercial-v3.webp"
               alt="Packaged rooftop plant being craned into position on a commercial site"
@@ -294,7 +295,7 @@ export default function CommercialPage() {
               style={{ objectFit: "cover" }}
             />
           </figure>
-          <div className="bigcta__copy">
+          <div className="bigcta__copy" data-m="arrive:1">
             <h2>Submit a scope for pricing.</h2>
             <p>
               Drawings, a mechanical schedule or a site address is sufficient to begin. Certificates of currency, SWMS
@@ -309,6 +310,10 @@ export default function CommercialPage() {
           </div>
         </div>
       </section>
+
+      {/* Drives the band moves and the frame in browsers without CSS
+          scroll-driven animations. No-ops where the browser has them. */}
+      <PageMotion />
 
       <Script
         id="ld-commercial-faq"

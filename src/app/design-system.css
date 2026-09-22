@@ -4711,84 +4711,121 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
    ===================================================================
    Two lines, one down each edge of the screen, filling as you go, plus
    the header's bottom rule filling with them and the footer arriving
-   rather than simply being there.
+   rather than simply being there. A page opts in with `page-framed`.
 
-   The point is that a long page reads as one run rather than as a stack
-   of separate ideas, and that the run does not start below the header or
-   stop above the footer. A page opts in with `page-framed` on its root.
+   Like the band moves on the commercial page, all of it is expressed as
+   one number and something drives that number. `--frame-p` runs 0 to 1
+   with the page; `--mp` runs 0 to 1 as a block arrives. Where the
+   browser has scroll-driven animations, CSS drives both and no script
+   runs. Where it does not, PageMotion.tsx sets the same numbers from a
+   rAF-throttled scroll handler and marks the document `data-motion="js"`.
 
-   One element per line-pair rather than four pseudo-elements: the bars
+   `--frame-on` is what keeps the rails off a page with no driver at all
+   — no script and no scroll-driven support — where a pair of static grey
+   hairlines down the edges would be a mark that never means anything.
+   =================================================================== */
+@property --frame-p { syntax: "<number>"; inherits: true; initial-value: 0; }
+
+/* Shared with the commercial page's band moves; declared here because
+   this sheet is the one every page loads. --mp is an arrival and rests
+   at 1 (here); --mq is a pass-by and rests at 0 (untouched). Both rest
+   in the state that leaves the page looking normal when nothing drives
+   them, so a failure is a still page rather than a blank one. */
+@property --mp { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --mq { syntax: "<number>"; inherits: false; initial-value: 0; }
+@keyframes cp-arrive { from { --mp: 0; } to { --mp: 1; } }
+@keyframes cp-pass   { from { --mq: 0; } to { --mq: 1; } }
+@keyframes frame-scrub { from { --frame-p: 0; } to { --frame-p: 1; } }
+
+.page-framed { --frame-on: 0; }
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) { .page-framed { --frame-on: 1; } }
+}
+html[data-motion="js"] .page-framed { --frame-on: 1; }
+
+/* One element per line-pair rather than four pseudo-elements: the bars
    are two background layers pinned to the left and right of a
-   full-viewport box, so a single scaleY drives both of them in step.
+   full-viewport box, so a single scaleY drives both in step.
 
    The track is a low-alpha navy. It is there so the orange reads as a
-   measure rather than as a stray mark in the corner, which is a job it
-   only has on the light bands — over the dark ones it disappears, and
-   the orange carries on its own.
-   =================================================================== */
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .page-framed::before,
-    .page-framed::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-repeat: no-repeat;
-      background-size: 3px 100%;
-    }
-    .page-framed::before {
-      background-image:
-        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14)),
-        linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14));
-      background-position: left top, right top;
-      z-index: 59;
-    }
-    .page-framed::after {
-      background-image:
-        linear-gradient(var(--orange, #f36722), var(--orange, #f36722)),
-        linear-gradient(var(--orange, #f36722), var(--orange, #f36722));
-      background-position: left top, right top;
-      transform-origin: top center;
-      transform: scaleY(0);
-      animation: frame-fill-y linear both;
-      animation-timeline: scroll(root);
-      z-index: 60;
-    }
+   measure rather than a stray mark in the corner, which is a job it only
+   has on the light bands — over the dark ones it disappears and the
+   orange carries on its own. */
+.page-framed::before,
+.page-framed::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 3px 100%;
+  opacity: var(--frame-on);
+}
+.page-framed::before {
+  background-image:
+    linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14)),
+    linear-gradient(rgba(11, 20, 80, 0.14), rgba(11, 20, 80, 0.14));
+  background-position: left top, right top;
+  z-index: 59;
+}
+.page-framed::after {
+  background-image:
+    linear-gradient(var(--orange, #f36722), var(--orange, #f36722)),
+    linear-gradient(var(--orange, #f36722), var(--orange, #f36722));
+  background-position: left top, right top;
+  transform-origin: top center;
+  transform: scaleY(var(--frame-p));
+  z-index: 60;
+}
 
-    /* The header is part of it. Nothing about the header's height
-       changes: the journey's sticky drawing and the page's
-       scroll-padding are both measured off it, so this only replaces a
-       static rule with a moving one. */
-    body:has(.page-framed) .hdr::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -1px;
-      height: 2px;
-      background: var(--orange, #f36722);
-      transform-origin: left center;
-      transform: scaleX(0);
-      animation: frame-fill-x linear both;
-      animation-timeline: scroll(root);
-      pointer-events: none;
-    }
-  }
+/* The header is part of it. Nothing about the header's height changes:
+   the journey's sticky drawing and the page's scroll-padding are both
+   measured off it, so this only replaces a static rule with a moving
+   one. */
+body:has(.page-framed) .hdr::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--orange, #f36722);
+  transform-origin: left center;
+  transform: scaleX(var(--frame-p));
+  opacity: var(--frame-on);
+  pointer-events: none;
 }
 
 /* The footer is part of it too. The page used to simply end; now the
-   last thing it does is arrive. */
+   last thing it does is arrive.
+
+   Siblings, never a parent and its child — two nested lifts compound
+   into one that overshoots, and two nested fades multiply into a block
+   that never reaches full opacity. */
+body:has(.page-framed) .ftr__top,
+body:has(.page-framed) .ftr__col,
+body:has(.page-framed) .ftr__badges,
+body:has(.page-framed) .ftr__bottom {
+  opacity: var(--mp);
+  transform: translateY(calc((1 - var(--mp)) * 26px));
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .page-framed::after,
+    body:has(.page-framed) .hdr::after {
+      animation: frame-scrub linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    /* Siblings, never a parent and its child — two nested lifts compound
-       into one that overshoots, and two nested fades multiply into a
-       block that never reaches full opacity. */
     body:has(.page-framed) .ftr__top,
     body:has(.page-framed) .ftr__col,
     body:has(.page-framed) .ftr__badges,
     body:has(.page-framed) .ftr__bottom {
-      animation-name: frame-lift;
+      animation-name: cp-arrive;
       animation-timeline: view();
       animation-fill-mode: both;
       animation-timing-function: linear;
@@ -4802,10 +4839,6 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
     body:has(.page-framed) .ftr__col:nth-child(4) { animation-range-start: entry 20%; animation-range-end: entry 62%; }
   }
 }
-
-@keyframes frame-fill-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-@keyframes frame-fill-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes frame-lift { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
 
 /* The rails are decoration; on a phone they are also 6px of a 390px
    screen sitting over the content edge, so they thin out. */
