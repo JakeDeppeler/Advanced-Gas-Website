@@ -1600,7 +1600,7 @@
 .ftr__legal { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ftr__legal a { color: rgba(255,255,255,0.85); text-decoration: none; }
 .ftr__legal a:hover { color: var(--sky-2); text-decoration: underline; text-underline-offset: 3px; }
-.ftr__legal-sep { color: rgba(255,255,255,0.35); }
+.ftr__legal-sep { color: rgba(255,255,255,0.55); }
 
 /* ============== SHARED QUOTE FORM (used on /quote, suburb, service pages) ============== */
 .qf-card {
