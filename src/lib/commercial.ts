@@ -196,17 +196,35 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
   },
 ];
 
-export const COMM_CLIENTS: { name: string; what: string; where: string }[] = [
-  { name: "Westpac", what: "Branch fit-out", where: "Sale, Gippsland" },
-  { name: "Commonwealth Bank", what: "Branch fit-out", where: "Victoria" },
-  { name: "Kane Constructions", what: "Tier-one builder, subcontract packages", where: "Victoria" },
-  { name: "Petbarn", what: "National retail rollout", where: "Multi-site" },
-  { name: "Greencross", what: "Vet clinics", where: "Multi-site" },
-  { name: "Reece Group", what: "Multi-site service contract", where: "Victoria" },
-  { name: "Reliance Worldwide", what: "Industrial service contract", where: "Victoria" },
-  { name: "KFC", what: "Hospitality / QSR", where: "Victoria" },
-  { name: "Retirement Villages Constructions", what: "Aged care, heat pump upgrades", where: "Victoria" },
-  { name: "Pakenham Springs P.S.", what: "Education", where: "Pakenham" },
+/**
+ * Who already lets us on site.
+ *
+ * `sector` is not decoration. A facility manager scanning this is looking
+ * for somebody like them, and "Branch fit-out" does not say whether that
+ * was a bank or a bakery. It also groups the list into three kinds of
+ * client — institutional, consumer-facing and trade — which is the only
+ * grouping that carries a colour honestly rather than a colour per row.
+ */
+export type CommClient = {
+  name: string;
+  what: string;
+  where: string;
+  sector: string;
+  /** institutional · consumer · trade — drives the chip colour. */
+  tone: "inst" | "cons" | "trade";
+};
+
+export const COMM_CLIENTS: CommClient[] = [
+  { name: "Westpac", what: "Branch fit-out", where: "Sale, Gippsland", sector: "Banking", tone: "inst" },
+  { name: "Commonwealth Bank", what: "Branch fit-out", where: "Victoria", sector: "Banking", tone: "inst" },
+  { name: "Kane Constructions", what: "Tier-one builder, subcontract packages", where: "Victoria", sector: "Construction", tone: "trade" },
+  { name: "Petbarn", what: "National retail rollout", where: "Multi-site", sector: "Retail", tone: "cons" },
+  { name: "Greencross", what: "Vet clinics", where: "Multi-site", sector: "Retail", tone: "cons" },
+  { name: "Reece Group", what: "Multi-site service contract", where: "Victoria", sector: "Trade supply", tone: "trade" },
+  { name: "Reliance Worldwide", what: "Industrial service contract", where: "Victoria", sector: "Industrial", tone: "trade" },
+  { name: "KFC", what: "Hospitality / QSR", where: "Victoria", sector: "Hospitality", tone: "cons" },
+  { name: "Retirement Villages Constructions", what: "Aged care, heat pump upgrades", where: "Victoria", sector: "Aged care", tone: "inst" },
+  { name: "Pakenham Springs P.S.", what: "Education", where: "Pakenham", sector: "Education", tone: "inst" },
 ];
 
 

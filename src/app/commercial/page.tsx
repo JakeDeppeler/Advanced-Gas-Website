@@ -17,6 +17,7 @@ import {
 import { CommercialScopeForm } from "@/components/CommercialScopeForm";
 import { CountUp } from "@/components/CountUp";
 import { PageMotion } from "@/components/PageMotion";
+import { CommercialMark } from "@/components/CommercialMarks";
 import "../home.css";
 import "./commercial.css";
 
@@ -185,17 +186,22 @@ export default function CommercialPage() {
                 can&rsquo;t.
               </p>
             </div>
+                      <div className="cx-mark" data-m="arrive"><CommercialMark kind="refs" /></div>
           </header>
 
           <div className="cx-table" role="table" aria-label="Client reference schedule">
             <div className="cx-table__head" role="row">
               <span role="columnheader">Client</span>
+              <span role="columnheader">Sector</span>
               <span role="columnheader">Package</span>
               <span role="columnheader">Where</span>
             </div>
             {COMM_CLIENTS.map((c) => (
               <div className="cx-table__row" role="row" key={c.name} data-m="arrive">
                 <span role="cell" className="cx-table__key">{c.name}</span>
+                <span role="cell">
+                  <span className={`cx-chip cx-chip--${c.tone}`}>{c.sector}</span>
+                </span>
                 <span role="cell">{c.what}</span>
                 <span role="cell" className="cx-table__where">{c.where}</span>
               </div>
@@ -219,6 +225,7 @@ export default function CommercialPage() {
                 one written scope.
               </p>
             </div>
+                      <div className="cx-mark" data-m="arrive"><CommercialMark kind="works" /></div>
           </header>
 
           <ol className="cx-works__list">
@@ -264,6 +271,7 @@ export default function CommercialPage() {
                 ourselves to at each of them.
               </p>
             </div>
+                      <div className="cx-mark" data-m="arrive"><CommercialMark kind="program" /></div>
           </header>
 
           {/* No stagger on these. A row-position stagger describes the
@@ -317,6 +325,7 @@ export default function CommercialPage() {
                 file.
               </p>
             </div>
+                      <div className="cx-mark" data-m="arrive"><CommercialMark kind="compliance" /></div>
           </header>
 
           <div className="cx-comp__grid">
@@ -426,6 +435,7 @@ export default function CommercialPage() {
               Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. After hours
               goes to someone on the tools.
             </p>
+            <div className="cx-mark cx-mark--inline" data-m="arrive"><CommercialMark kind="faq" /></div>
           </div>
           <div className="cx-faq__right">
             {COMM_FAQS.map((f, i) => (
