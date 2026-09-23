@@ -1108,77 +1108,49 @@
 .page-comm [data-stop="close"] .bigcta__photo { overflow: clip; }
 
 /* ---- what each band does ----
-   These are unconditional: with --mp at 1 and --mq at 0 they compute to
-   the resting state, so they cost nothing when nothing is driving them. */
+   Unconditional: with --mp at 1 and --mq at 0 these compute to the resting
+   state, so they cost nothing when nothing is driving them.
 
-/* 01 · the hero does not arrive, it leaves. The photograph hangs back as
-   the copy scrolls off, so the first thing the page does is move. */
-.page-comm .comm-top .hero__photo {
-  transform: translateY(calc(var(--mq) * -120px)) scale(calc(1 + var(--mq) * 0.08));
+   Keyed off the `data-m` value rather than off each element's own class, so
+   a band added to the page moves by saying which kind of move it wants
+   instead of by having a rule written for it. Only the two that need a
+   different shape get their own line. */
+.page-comm [data-m^="arrive"] {
+  opacity: var(--mp);
+  transform: translateY(calc((1 - var(--mp)) * 64px));
 }
-.page-comm .comm-top .hero__copy {
-  transform: translateY(calc(var(--mq) * 56px));
-  opacity: calc(1 - var(--mq) * 0.72);
+.page-comm [data-m="exit"] {
+  transform: translateY(calc(var(--mq) * 48px));
+  opacity: calc(1 - var(--mq) * 0.8);
 }
-
-/* 02 · the fork is already on screen at load, so an arrival would be over
-   before anybody saw it. The panel drifts past instead — transform only,
-   so the doors inside it can carry their own opacity without the two
-   fades multiplying. */
-.page-comm [data-stop="fork"] .route__panel {
+.page-comm [data-m="pass"] {
   transform: translateY(calc(64px - var(--mq) * 128px));
 }
-/* The four doors do NOT arrive. They sit at y=799 in a 900px window — in
-   the first screenful — and a staggered arrival there leaves the last of
-   them blank on first paint, which is the one thing scroll motion must
-   never do. The panel's drift carries them instead. Same reason the site
-   reveal skips anything above the fold. */
 
-/* 03 · the journey band had nothing at all: the drawing and the beats
-   moved, the heading over them sat still. */
-.page-comm [data-stop="journey"] .ds-eyebrow,
-.page-comm [data-stop="journey"] .ds-section-head > h2,
-.page-comm [data-stop="journey"] .comm-flow__lede {
-  opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 62px));
+/* The title block's photograph hangs back as the block scrolls off, so the
+   first thing the page does is move. It keeps its opacity — a hero image
+   fading out mid-scroll reads as a loading fault rather than as a move. */
+.page-comm .cx-top__bg[data-m] {
+  opacity: 1;
+  transform: translateY(calc(var(--mq) * 70px)) scale(calc(1 + var(--mq) * 0.07));
 }
 
-/* 04 · where we work opens from the middle, copy one way, map the other */
-.page-comm [data-stop="area"] .area__left {
-  opacity: var(--mp);
+/* A program's rule is the whole point of it, and each stage arriving on its
+   own vertical offset breaks that rule into misaligned segments while you
+   scroll. The stages light up in sequence instead of moving. */
+.page-comm .cx-prog__list > li[data-m] { transform: none; }
+
+/* A schedule row sliding 64px makes the table look loose. Rows settle. */
+.page-comm .cx-table__row[data-m] {
+  transform: translateY(calc((1 - var(--mp)) * 16px));
+}
+
+/* Coverage opens from the middle, copy one way and the map the other. */
+.page-comm .cx-area__left[data-m] {
   transform: translateX(calc((1 - var(--mp)) * -110px));
 }
-.page-comm [data-stop="area"] .area__right {
-  opacity: var(--mp);
+.page-comm .cx-area__right[data-m] {
   transform: translateX(calc((1 - var(--mp)) * 110px));
-}
-
-/* 05 · the ask grows into the page rather than sliding past it */
-.page-comm [data-stop="scope"] .quotesec__box {
-  opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 72px)) scale(calc(0.93 + var(--mp) * 0.07));
-}
-
-/* 06 · the questions stack up, one row at a time rather than as a slab */
-.page-comm [data-stop="faq"] .faq__left {
-  opacity: var(--mp);
-  transform: translateX(calc((1 - var(--mp)) * -110px));
-}
-/* The rows are not listed here. They already arrive in sequence, off --i,
-   through the reveal rules further up this file — and that path works in
-   every browser, so there is nothing for this one to add. Two rules on one
-   element's opacity is also a fight this one loses: `.is-revealed` carries
-   a class more than these selectors do, which is exactly why the rows read
-   as fully arrived no matter where the page was scrolled. */
-
-/* 07 · the close holds its photograph back the way the hero did, so the
-   page finishes on the move it opened with. */
-.page-comm [data-stop="close"] .bigcta__photo {
-  transform: translateY(calc(80px - var(--mq) * 140px)) scale(1.12);
-}
-.page-comm [data-stop="close"] .bigcta__copy {
-  opacity: var(--mp);
-  transform: translateY(calc((1 - var(--mp)) * 92px));
 }
 
 /* ---- the reveal steps aside ----
@@ -1242,6 +1214,12 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
        row of ticks all arrive at the same rate. It is also the one form
        the fallback can mirror exactly: the distance scrolled since the
        element appeared is simply `innerHeight - rect.top`. */
+    /* A stagger is for things that appear TOGETHER — a row of three, a pair
+       of columns. Items in a tall list already enter one at a time by their
+       own position, and an index offset on top of that is a second stagger:
+       at `arrive:7` a row starts 570px after it appears and finishes 1010px
+       later, so it sits on screen and invisible for most of a scroll. Index
+       by position within a row, never by position in a long list. */
     .page-comm [data-m="arrive"],
     .page-comm [data-m="arrive:0"] { animation-range-start: cover 80px;  animation-range-end: cover 520px; }
     .page-comm [data-m="arrive:1"] { animation-range-start: cover 150px; animation-range-end: cover 590px; }
@@ -1257,3 +1235,591 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
 /* The frame down both edges of the screen, the header's filling rule and
    the footer's arrival are not commercial-only any more — they are in
    design-system.css under .page-framed, which this page carries. */
+
+/* ===================================================================
+   THE COMMERCIAL FRONT PAGE
+   ===================================================================
+   Built in the language of the documents these readers already work
+   from — a title block, a reference schedule, a schedule of works, a
+   program and a compliance table — rather than as a brochure of cards.
+
+   Colour carries the structure rather than decorating it:
+     navy   = us
+     paper  = the facts you can check
+     orange = the ask, once, loudly
+   Nothing else changes ground, which is what makes the one that does
+   mean something.
+
+   `cx-` because this page shares a stylesheet with four other commercial
+   pages and none of their rules should be within reach of these.
+   =================================================================== */
+.page-comm { --cx-rule: rgba(255, 255, 255, 0.16); }
+
+/* ---- 00 · the title block ---- */
+.cx-top {
+  position: relative;
+  isolation: isolate;
+  background: var(--navy);
+  color: #fff;
+  padding: 104px 0 0;
+  overflow: clip; /* never `hidden` — it would make this a scroll container
+                     and the photograph's hang would resolve against a box
+                     that never scrolls */
+}
+.cx-top__bg { position: absolute; inset: 0; z-index: -2; }
+.cx-top__bg img { object-position: 50% 38%; }
+.cx-top::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  /* Heavy where the words are, light where they are not. Two near-opaque
+     gradients stacked meant the crane was on the page and invisible, which
+     is the worst of both: the weight of a photograph and none of the use. */
+  background:
+    linear-gradient(90deg, rgba(5, 10, 48, 0.95) 0%, rgba(5, 10, 48, 0.88) 38%,
+                           rgba(5, 10, 48, 0.34) 76%, rgba(5, 10, 48, 0.52) 100%),
+    linear-gradient(180deg, rgba(5, 10, 48, 0.55) 0%, rgba(5, 10, 48, 0.1) 26%,
+                            rgba(5, 10, 48, 0.72) 82%, var(--navy) 100%);
+}
+.cx-top__inner { position: relative; padding-bottom: 0; }
+
+.cx-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+.cx-tag__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); }
+
+.cx-h1 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(46px, 8.2vw, 104px);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  color: #fff;
+}
+.cx-lede {
+  margin: 26px 0 0;
+  max-width: 54ch;
+  font-size: 18px;
+  line-height: 1.62;
+  color: rgba(255, 255, 255, 0.82);
+}
+.cx-top__ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+
+/* The block proper. Six fields, ruled, mono — the corner of a drawing
+   sheet, because that is exactly where a builder looks for these. */
+.cx-block {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin: 54px 0 0;
+  border: 1px solid var(--cx-rule);
+  border-radius: 4px; /* almost square on purpose: a title block is not a card */
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+.cx-block__cell {
+  padding: 16px 18px 18px;
+  border-right: 1px solid var(--cx-rule);
+  min-width: 0;
+}
+.cx-block__cell:last-child { border-right: 0; }
+.cx-block dt {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+.cx-block dd {
+  margin: 7px 0 0;
+  font-family: var(--f-display);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+  overflow-wrap: anywhere;
+}
+.cx-top__note {
+  margin: 20px 0 0;
+  padding-bottom: 96px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 62ch;
+}
+
+/* ---- the capability run ----
+   Sixteen terms and no explanation, separated by rules rather than boxed.
+   A chip grid would make them look like tags on a blog. */
+.cx-run {
+  background: #04081f;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 30px 0 34px;
+}
+.cx-run__lbl {
+  margin: 0 0 16px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange-2);
+}
+.cx-run__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+}
+.cx-run__list li {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 18px 5px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 14.5px;
+  color: rgba(255, 255, 255, 0.86);
+  white-space: nowrap;
+}
+.cx-run__list li:last-child { border-right: 0; }
+
+/* ---- shared section furniture ---- */
+.cx-sec { padding: 104px 0; background: var(--bg); }
+.cx-head {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 0 20px;
+  align-items: start;
+  margin-bottom: 52px;
+}
+.cx-head__n {
+  font-family: var(--f-mono);
+  font-size: 34px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--orange);
+  letter-spacing: -0.02em;
+  padding-top: 6px;
+}
+.cx-head h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.028em;
+  color: var(--navy);
+  text-wrap: balance;
+  max-width: 20ch;
+}
+.cx-head p {
+  margin: 16px 0 0;
+  max-width: 62ch;
+  font-size: 17px;
+  line-height: 1.62;
+  color: var(--ink-2);
+}
+.cx-head p a { color: var(--navy); font-weight: 700; text-underline-offset: 3px; }
+.cx-head--dark h2 { color: #fff; }
+.cx-head--dark p { color: rgba(255, 255, 255, 0.76); }
+.cx-head--dark p a { color: #fff; }
+
+/* ---- 01 · the reference schedule ---- */
+.cx-table { border-top: 2px solid var(--navy); }
+.cx-table__head,
+.cx-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 0 28px;
+  align-items: baseline;
+}
+.cx-table__head {
+  padding: 12px 4px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--line);
+}
+.cx-table__row {
+  padding: 18px 4px;
+  border-bottom: 1px solid var(--line);
+  font-size: 15.5px;
+  color: var(--ink-2);
+  transition: background 0.18s ease;
+}
+.cx-table__row:hover { background: rgba(11, 20, 80, 0.028); }
+.cx-table__key {
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+}
+.cx-table__where { font-family: var(--f-mono); font-size: 13px; color: var(--ink-3); }
+
+/* ---- 02 · the schedule of works ---- */
+.cx-works__list { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--navy); }
+.cx-works__list > li {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr) minmax(0, 0.42fr);
+  gap: 0 20px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+}
+.cx-works__n {
+  font-family: var(--f-mono);
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--orange);
+  line-height: 1.3;
+}
+.cx-works__body h3 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--navy);
+}
+.cx-works__body h3 a { color: inherit; text-decoration: none; }
+.cx-works__body h3 a:hover { color: var(--orange); }
+.cx-works__lede { margin: 9px 0 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 56ch; }
+.cx-works__detail { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 7px; }
+.cx-works__detail li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.cx-works__detail li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 11px;
+  height: 1px;
+  background: var(--orange);
+}
+.cx-works__suits {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  padding-top: 4px;
+}
+.cx-works__suits span {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+
+/* ---- 03 · the program ---- */
+.cx-prog { background: var(--navy); }
+.cx-prog .cx-head__n { color: var(--orange-2); }
+.cx-prog__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 44px 34px;
+}
+.cx-prog__list > li { position: relative; padding-top: 30px; }
+/* The rule with the stage on it. Every person reading this has stood in
+   front of a program drawn exactly this way. */
+.cx-prog__mark { position: absolute; top: 0; left: 0; right: -34px; height: 1px; background: var(--cx-rule); }
+.cx-prog__list > li:nth-child(3n) .cx-prog__mark { right: 0; }
+.cx-prog__dot {
+  position: absolute;
+  left: 0;
+  top: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 4px rgba(243, 103, 34, 0.18);
+}
+.cx-prog__n {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--orange-2);
+}
+.cx-prog__list h3 {
+  margin: 10px 0 0;
+  font-family: var(--f-display);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 1.2;
+  color: #fff;
+}
+.cx-prog__list p {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.64;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* The standard, as terms on the program rather than another feature grid. */
+.cx-terms { margin-top: 76px; border-top: 1px solid var(--cx-rule); padding-top: 30px; }
+.cx-terms__lbl {
+  margin: 0 0 20px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange-2);
+}
+.cx-terms ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px 34px;
+}
+.cx-terms li { border-left: 2px solid rgba(243, 103, 34, 0.5); padding-left: 16px; }
+.cx-terms b {
+  display: block;
+  font-family: var(--f-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  color: #fff;
+}
+.cx-terms span { display: block; margin-top: 5px; font-size: 14.5px; line-height: 1.55; color: rgba(255, 255, 255, 0.7); }
+
+/* ---- 04 · compliance ---- */
+.cx-comp__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 56px; }
+.cx-comp__group h3 {
+  margin: 0 0 4px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--navy);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--navy);
+}
+.cx-comp__group dl { margin: 0; }
+.cx-comp__group dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
+  gap: 0 20px;
+  padding: 13px 2px;
+  border-bottom: 1px solid var(--line);
+  align-items: baseline;
+}
+.cx-comp__group dt { font-size: 14px; color: var(--ink-3); }
+.cx-comp__group dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--navy);
+  overflow-wrap: anywhere;
+}
+
+/* ---- 05 · coverage ---- */
+.cx-area__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 56px; align-items: center; }
+.cx-area__left .cx-head { margin-bottom: 22px; }
+.cx-area__left p { margin: 0 0 14px; font-size: 16.5px; line-height: 1.65; color: var(--ink-2); max-width: 52ch; }
+.cx-area__left p strong { color: var(--navy); }
+.cx-area__note { font-size: 15px !important; color: var(--ink-3) !important; }
+.cx-area__left .ds-btn { margin-top: 8px; }
+
+/* ---- 06 · the ask. The one loud band. ---- */
+.cx-ask {
+  background: var(--orange);
+  color: #fff;
+  padding: 92px 0;
+  position: relative;
+  overflow: hidden;
+}
+.cx-ask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 50px 50px;
+  mask-image: radial-gradient(80% 60% at 50% 50%, #000, transparent 80%);
+  pointer-events: none;
+}
+.cx-ask__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.02fr);
+  gap: 56px;
+  align-items: start;
+}
+.cx-ask__eye {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+.cx-ask h2 {
+  margin: 14px 0 0;
+  font-family: var(--f-display);
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+  color: #fff;
+  text-wrap: balance;
+}
+.cx-ask__lede { margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: rgba(255, 255, 255, 0.92); max-width: 52ch; }
+.cx-ask__points { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; }
+.cx-ask__points li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: #fff;
+}
+.cx-ask__points li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+}
+.cx-ask__next { margin-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.28); padding-top: 20px; }
+.cx-ask__next > span {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+.cx-ask__next ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.cx-ask__next li { font-size: 14.5px; line-height: 1.5; color: rgba(255, 255, 255, 0.92); }
+.cx-ask__next b { font-family: var(--f-display); color: #fff; margin-right: 8px; }
+
+/* ---- 07 · questions ---- */
+.cx-faq__grid { display: grid; grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr); gap: 56px; align-items: start; }
+.cx-faq__left .cx-head { margin-bottom: 20px; }
+.cx-faq__left p { margin: 0 0 14px; font-size: 16.5px; line-height: 1.62; color: var(--ink-2); max-width: 46ch; }
+.cx-faq__left a { color: var(--navy); font-weight: 700; text-underline-offset: 3px; }
+.cx-faq__call { font-size: 15px !important; color: var(--ink-3) !important; }
+.cx-faq__right { border-top: 2px solid var(--navy); }
+.cx-faq__right details { border-bottom: 1px solid var(--line); padding: 20px 0; }
+.cx-faq__right summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  font-family: var(--f-display);
+  font-size: 18.5px;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  color: var(--navy);
+}
+.cx-faq__right summary::-webkit-details-marker { display: none; }
+.cx-faq__right summary::after {
+  content: "+";
+  flex: none;
+  font-family: var(--f-mono);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--orange);
+  transition: transform 0.2s ease;
+}
+.cx-faq__right details[open] summary::after { content: "−"; }
+.cx-faq__right details p { margin: 13px 0 0; font-size: 15.5px; line-height: 1.64; color: var(--ink-2); max-width: 64ch; }
+
+/* ---- 08 · close ---- */
+.cx-close { background: var(--navy); color: #fff; padding: 76px 0 84px; }
+.cx-close__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 40px 56px; align-items: center; }
+.cx-close h2 {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 800;
+  line-height: 1.06;
+  letter-spacing: -0.026em;
+  color: #fff;
+  max-width: 18ch;
+}
+.cx-close p { margin: 14px 0 0; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.76); max-width: 60ch; }
+.cx-close__btns { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.cx-close__phone { color: rgba(255, 255, 255, 0.76); text-decoration: none; font-size: 15px; }
+.cx-close__phone strong { font-family: var(--f-display); color: #fff; }
+.cx-close__phone:hover { color: #fff; }
+
+/* ---- narrower ---- */
+@media (max-width: 1100px) {
+  .cx-block { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cx-block__cell:nth-child(3n) { border-right: 0; }
+  .cx-block__cell:nth-child(-n + 3) { border-bottom: 1px solid var(--cx-rule); }
+  .cx-prog__list,
+  .cx-terms ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cx-prog__list > li:nth-child(3n) .cx-prog__mark { right: -34px; }
+  .cx-prog__list > li:nth-child(2n) .cx-prog__mark { right: 0; }
+}
+@media (max-width: 980px) {
+  .cx-sec { padding: 76px 0; }
+  .cx-area__grid,
+  .cx-ask__grid,
+  .cx-faq__grid { grid-template-columns: 1fr; gap: 36px; }
+  .cx-comp__grid { grid-template-columns: 1fr; gap: 36px; }
+  .cx-works__list > li { grid-template-columns: 56px minmax(0, 1fr); }
+  .cx-works__suits { grid-column: 2; padding-top: 14px; border-top: 1px dashed var(--line); margin-top: 4px; }
+  .cx-close__row { grid-template-columns: 1fr; }
+  .cx-close__btns { align-items: flex-start; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 18px; }
+}
+@media (max-width: 760px) {
+  .cx-top { padding-top: 78px; }
+  .cx-top__note { padding-bottom: 64px; }
+  .cx-head { grid-template-columns: 52px minmax(0, 1fr); gap: 0 14px; margin-bottom: 36px; }
+  .cx-head__n { font-size: 24px; }
+  .cx-block { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cx-block__cell:nth-child(3n) { border-right: 1px solid var(--cx-rule); }
+  .cx-block__cell:nth-child(2n) { border-right: 0; }
+  .cx-block__cell:not(:nth-last-child(-n + 2)) { border-bottom: 1px solid var(--cx-rule); }
+  .cx-prog__list,
+  .cx-terms ul { grid-template-columns: 1fr; }
+  .cx-prog__list > li .cx-prog__mark { right: 0; }
+  /* Three columns of schedule will not fit; the location joins the package. */
+  .cx-table__head { display: none; }
+  .cx-table__row { grid-template-columns: 1fr; gap: 3px; padding: 16px 2px; }
+  .cx-table__where { font-size: 12.5px; }
+  .cx-works__list > li { grid-template-columns: 42px minmax(0, 1fr); padding: 26px 0; }
+  .cx-works__n { font-size: 17px; }
+  .cx-works__body h3 { font-size: 21px; }
+  .cx-comp__group dl > div { grid-template-columns: 1fr; gap: 3px; padding: 11px 2px; }
+  .cx-ask { padding: 68px 0; }
+  .cx-run__list { gap: 0 14px; }
+  .cx-run__list li { padding-right: 14px; font-size: 13.5px; }
+}
