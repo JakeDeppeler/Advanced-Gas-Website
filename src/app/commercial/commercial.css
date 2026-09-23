@@ -1145,6 +1145,30 @@
   transform: translateY(calc((1 - var(--mp)) * 16px));
 }
 
+/* The program's rule draws itself left to right as you reach each stage.
+   It is the one animation on this page that says something rather than
+   just arriving — a program being set out. Opacity stays at 1 so it does
+   not fade inside its parent's fade, which would halve both. */
+.page-comm .cx-prog__mark[data-m] {
+  opacity: 1;
+  transform: scaleX(var(--mp));
+  transform-origin: left center;
+}
+
+/* The numerals lead their headings in from the margin. Transform only,
+   for the same reason: two of these sit inside a band that is itself
+   arriving, and two nested fades multiply into one that never lands. */
+.page-comm .cx-head__n[data-m] {
+  opacity: 1;
+  transform: translateX(calc((1 - var(--mp)) * -26px));
+}
+
+/* The capability terms come up a short distance rather than a whole band's
+   worth — sixteen of them moving 64px would be a wave, not a run. */
+.page-comm .cx-run__list li[data-m] {
+  transform: translateY(calc((1 - var(--mp)) * 18px));
+}
+
 /* Coverage opens from the middle, copy one way and the map the other. */
 .page-comm .cx-area__left[data-m] {
   transform: translateX(calc((1 - var(--mp)) * -110px));
@@ -1497,23 +1521,18 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
 .cx-works__body h3 a { color: inherit; text-decoration: none; }
 .cx-works__body h3 a:hover { color: var(--orange); }
 .cx-works__lede { margin: 9px 0 0; font-size: 16px; line-height: 1.6; color: var(--ink-2); max-width: 56ch; }
-.cx-works__detail { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 7px; }
-.cx-works__detail li {
-  position: relative;
-  padding-left: 20px;
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
+.cx-works__more {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--cx-ink);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 2px;
 }
-.cx-works__detail li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.62em;
-  width: 11px;
-  height: 1px;
-  background: var(--orange);
-}
+.cx-works__more:hover { color: var(--navy); }
 .cx-works__suits {
   font-size: 14px;
   line-height: 1.55;
@@ -1822,4 +1841,81 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   .cx-ask { padding: 68px 0; }
   .cx-run__list { gap: 0 14px; }
   .cx-run__list li { padding-right: 14px; font-size: 13.5px; }
+}
+
+/* ===================================================================
+   COLOUR AND RHYTHM
+   ===================================================================
+   The rebuilt page was navy, cream and one orange band — correct and a
+   bit austere. Colour comes back as a system rather than as decoration:
+   it says what kind of thing you are looking at.
+
+     sky    · proof you can check — who let us on, and the compliance rows
+     orange · the work and the ask — the schedule, the program, the form
+     navy   · us
+
+   And the grounds alternate, so eight sections do not read as one long
+   sheet of cream: cream, white, navy, a sky wash, cream, orange, white,
+   navy. Every change of ground is a change of subject.
+   =================================================================== */
+/* Two tokens, not one. `--cx-accent` is the brand colour and goes on marks
+   — a tick, a dot, a rule — where only the eye has to find it. `--cx-ink`
+   is the same colour taken dark enough to be read as text: brand sky on a
+   pale wash is 2.25:1 and brand orange on white is 3.08:1, and the numerals
+   and the links are text however decorative they look. */
+.cx-sec { --cx-accent: var(--orange); --cx-ink: #c2521a; }
+.cx-refs,
+.cx-comp,
+.cx-area { --cx-accent: var(--sky); --cx-ink: #0e6c8f; }
+/* On navy the light end of each is already the readable one. */
+.cx-prog { --cx-accent: var(--orange-2); --cx-ink: var(--orange-2); }
+
+.cx-head__n { color: var(--cx-ink); position: relative; }
+/* A short tick above the numeral, in the section's own colour. It is the
+   one mark that tells you at a glance whether you are reading proof or
+   reading work. */
+.cx-head__n::before {
+  content: "";
+  position: absolute;
+  top: -14px;
+  left: 0;
+  width: 34px;
+  height: 3px;
+  background: var(--cx-accent);
+  border-radius: 2px;
+}
+
+/* ---- the grounds ---- */
+.cx-works,
+.cx-faq { background: #fff; }
+.cx-comp { background: #eef3f9; }
+.cx-comp .cx-comp__group h3 { color: var(--navy); border-bottom-color: var(--sky); }
+.cx-comp .cx-comp__group dl > div { border-bottom-color: #dbe4ef; }
+
+/* The reference schedule and the works schedule take the accent on the
+   rule that opens them, so the colour is structural rather than dabbed on. */
+.cx-table { border-top-color: var(--navy); }
+.cx-table__row:hover { background: rgba(0, 176, 237, 0.045); }
+.cx-table__key { position: relative; }
+.cx-works__list > li:hover .cx-works__n { color: var(--navy); }
+
+/* The program's stages run warm along the rule. */
+.cx-prog__dot { background: var(--orange); box-shadow: 0 0 0 4px rgba(243, 103, 34, 0.2); }
+.cx-prog__n { color: var(--orange-2); }
+
+/* The capability run picks up sky, which is the only place on the page
+   the second brand colour gets to be the loudest thing. */
+.cx-run__lbl { color: var(--sky); }
+.cx-run__list li { border-right-color: rgba(0, 176, 237, 0.3); }
+
+/* ---- simpler ----
+   The page was 12,450px. The schedule losing its bullets takes about
+   1,100 of that; the rest is here. Sections were padded for a page with
+   more in each one. */
+.cx-sec { padding: 88px 0; }
+.cx-head { margin-bottom: 44px; }
+.cx-works__list > li { padding: 26px 0; }
+.cx-comp__grid { gap: 40px 56px; }
+@media (max-width: 980px) {
+  .cx-sec { padding: 64px 0; }
 }
