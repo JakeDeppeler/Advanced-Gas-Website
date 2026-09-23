@@ -132,6 +132,10 @@ export default function CommercialPage() {
           reading as page breaks.
           ===================================================================== */}
       <div className="cx-run-all">
+        {/* The spine fills behind you as you go. It is the one element on the
+            page whose only job is to say how far through you are, which is
+            the difference between a list and a journey. */}
+        <div className="cx-spine" aria-hidden="true" data-m="pass" />
 
         {/* ---- 01 · THE JOBS WE HAVE DONE ---- */}
         <section className="cx-sec cx-jobs" data-stop="jobs">
@@ -255,6 +259,32 @@ export default function CommercialPage() {
             </div>
           </div>
         </section>
+
+        {/* ---- a moment on the way ----
+            Six sections of schedules and tables is a list however well it is
+            set. This is the pivot from how the job runs to who runs it, and
+            it is a real one of ours: plant craned onto a roof that kept
+            trading underneath it. */}
+        <figure className="cx-shot" data-stop="shot">
+          <div className="cx-shot__img" data-m="pass">
+            <Image
+              src="/commercial.webp"
+              alt="A packaged rooftop unit being craned into position over new ductwork"
+              fill
+              sizes="100vw"
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+          <figcaption>
+            <div className="cx-shot__cap">
+              <span className="cx-shot__eye">On the roof, Pakenham</span>
+              <p>
+                Plant craned in over new ductwork, commissioned and handed over &mdash; on a building that kept
+                trading underneath it the whole time.
+              </p>
+            </div>
+          </figcaption>
+        </figure>
 
         {/* ---- 04 · WHO YOU ARE DEALING WITH ----
              Two names and two faces. On a commercial package the question
