@@ -12,7 +12,7 @@
 .fd-sev span { font-size: 0.87rem; opacity: 0.9; }
 
 .fd-sev--info     { background: rgba(255,255,255,0.10); border-color: #6fb3ff; color: #fff; }
-.fd-sev--warn     { background: rgba(243,103,34,0.16); border-color: var(--orange); color: #fff; }
+.fd-sev--warn     { background: rgba(243,103,34,0.16); border-color: var(--orange); color: var(--navy); }
 .fd-sev--critical { background: rgba(214,45,32,0.22);  border-color: #ff6a5c; color: #fff; }
 
 .fd-body { padding: clamp(2rem, 5vw, 3.5rem) 0; background: #fff; }

@@ -2735,11 +2735,13 @@
   font-size: 12.5px;
   color: #fff;
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.18);
+  /* Dark, not light: a white pill on the orange band raises the ground its
+     own white label has to be read against, which cost it a point. */
+  background: rgba(0, 0, 0, 0.18);
   border-radius: 999px;
   padding: 5px 11px;
 }
-.page-detail .quotesec__chips a:hover { background: rgba(255, 255, 255, 0.3); }
+.page-detail .quotesec__chips a:hover { background: rgba(0, 0, 0, 0.3); }
 
 .page-detail .dp-faq { background: var(--paper); border-top: 1px solid var(--line); }
 
@@ -3073,7 +3075,7 @@
     "q3    out";
   column-gap: 44px;
   align-items: start;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   border-radius: 28px;
   padding: 40px 44px 44px;
@@ -3104,7 +3106,7 @@
   font-size: 10.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
+  color: #fff;
   font-weight: 700;
   margin-bottom: 8px;
 }
@@ -3116,7 +3118,7 @@
   color: #fff;
   margin: 0 0 8px;
 }
-.page-detail .advisor__head p { margin: 0; font-size: 14px; line-height: 1.55; color: rgba(255, 255, 255, 0.86); max-width: 46ch; }
+.page-detail .advisor__head p { margin: 0; font-size: 14px; line-height: 1.55; color: #fff; max-width: 46ch; }
 
 .page-detail .advisor__q { border: 0; padding: 0; margin: 0 0 18px; }
 .page-detail .advisor__q legend {
@@ -3136,14 +3138,14 @@
   padding: 11px 13px;
   border: 1.5px solid rgba(255, 255, 255, 0.38);
   border-radius: 11px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
   color: #fff;
   transition: border-color 0.14s ease, background 0.14s ease, color 0.14s ease;
 }
-.page-detail .advisor__opt:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+.page-detail .advisor__opt:hover { background: rgba(0, 0, 0, 0.22); border-color: #fff; }
 .page-detail .advisor__opt.is-on { background: #fff; border-color: #fff; color: var(--navy); }
 .page-detail .advisor__opt strong { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
-.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: rgba(255, 255, 255, 0.78); line-height: 1.4; }
+.page-detail .advisor__opt span { display: block; margin-top: 3px; font-size: 11.5px; color: #fff; line-height: 1.4; }
 .page-detail .advisor__opt.is-on span { color: var(--ink-3); }
 .page-detail .advisor__opt--sm strong { font-size: 13px; font-weight: 600; }
 
@@ -3391,7 +3393,7 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   border-radius: 999px;
   padding: 4px 10px;

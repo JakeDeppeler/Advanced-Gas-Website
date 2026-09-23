@@ -79,13 +79,13 @@
 
 /* emergency override */
 .page-services #emergency {
-  background: var(--red) !important;
+  background: var(--red-deep) !important;
   color: #fff;
   border-bottom: none;
 }
 .page-services #emergency .sv__photo { background: #c41217 !important; border-color: #c41217 !important; }
 .page-services #emergency .sv__specs { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.18); }
-.page-services #emergency .sv-spec__l { color: rgba(255,255,255,0.6); }
+.page-services #emergency .sv-spec__l { color: #fff; }
 .page-services #emergency .sv-spec__v { color: #fff; }
 .page-services #emergency h2,
 .page-services #emergency .sv__lede { color: #fff; }

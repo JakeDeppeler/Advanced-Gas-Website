@@ -1670,7 +1670,7 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
 
 /* ---- 06 · the ask. The one loud band. ---- */
 .cx-ask {
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   padding: 92px 0;
   position: relative;
@@ -1700,7 +1700,7 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
+  color: #fff;
 }
 .cx-ask h2 {
   margin: 14px 0 0;
@@ -1712,7 +1712,7 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   color: #fff;
   text-wrap: balance;
 }
-.cx-ask__lede { margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: rgba(255, 255, 255, 0.92); max-width: 52ch; }
+.cx-ask__lede { margin: 16px 0 0; font-size: 17px; line-height: 1.6; color: #fff; max-width: 52ch; }
 .cx-ask__points { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; }
 .cx-ask__points li {
   position: relative;
@@ -1738,10 +1738,10 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
+  color: #fff;
 }
 .cx-ask__next ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
-.cx-ask__next li { font-size: 14.5px; line-height: 1.5; color: rgba(255, 255, 255, 0.92); }
+.cx-ask__next li { font-size: 14.5px; line-height: 1.5; color: #fff; }
 .cx-ask__next b { font-family: var(--f-display); color: #fff; margin-right: 8px; }
 
 /* ---- 07 · questions ---- */

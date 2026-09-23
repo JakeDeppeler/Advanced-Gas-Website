@@ -475,7 +475,7 @@
 .page-filtration .wf-does > .wrap {
   position: relative;
   overflow: hidden;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   border-radius: 28px;
   padding: 44px 48px 48px;
@@ -609,7 +609,7 @@
   border-left: 1px solid rgba(255, 255, 255, 0.12);
 }
 .page-filtration .wf-compare__table thead th:first-child { border-left: 0; }
-.page-filtration .wf-compare__pickcol { background: var(--orange) !important; }
+.page-filtration .wf-compare__pickcol { background: var(--orange-deep) !important; }
 .page-filtration .wf-compare__table tbody th,
 .page-filtration .wf-compare__table tbody td {
   padding: 16px;
@@ -645,7 +645,7 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: #fff;
-  background: var(--orange);
+  background: var(--orange-deep);
   border-radius: 999px;
   padding: 3px 9px;
   width: fit-content;
@@ -762,7 +762,7 @@
   font-size: 9.5px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   padding: 4px 10px;
   border-radius: 999px;
@@ -966,7 +966,7 @@
   border-left: 1px solid rgba(255, 255, 255, 0.12);
 }
 .page-filtration .wf-vs__table thead th:first-child { background: var(--navy); border-left: 0; }
-.page-filtration .wf-vs__table thead th.is-mine { background: var(--orange); }
+.page-filtration .wf-vs__table thead th.is-mine { background: var(--orange-deep); }
 .page-filtration .wf-vs__table thead th a { color: #fff; text-decoration: none; border-bottom: 2px solid rgba(255,255,255,0.5); }
 .page-filtration .wf-vs__table tbody th {
   text-align: left;
@@ -1037,7 +1037,7 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   border-radius: 999px;
   padding: 4px 10px;
@@ -1225,7 +1225,7 @@
 .ctaband--boxed { background: transparent; padding: 0 0 62px; }
 .ctaband--boxed::before { display: none; }
 .ctaband--boxed .ctaband__row {
-  background: var(--orange);
+  background: var(--orange-deep);
   border-radius: 24px;
   padding: 34px 38px;
   box-shadow: 0 20px 44px -18px rgba(243, 103, 34, 0.5), 0 8px 24px -14px rgba(5, 10, 48, 0.2);
@@ -1564,7 +1564,7 @@
   border-radius: 999px;
   padding: 4px 10px;
 }
-.page-filtration .wf-brand.is-lead .wf-brand__head span { background: var(--orange); }
+.page-filtration .wf-brand.is-lead .wf-brand__head span { background: var(--orange-deep); }
 .page-filtration .wf-brand p {
   margin: 0 0 16px;
   font-size: 14.5px;
@@ -1700,7 +1700,7 @@
   justify-content: center;
   width: 40px; height: 40px;
   border-radius: 50%;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   font-family: var(--f-display);
   font-size: 17px;
@@ -1726,3 +1726,10 @@
 
 /* the quote panel sits on cream, like the home page's */
 .page-filtration .wf-quote.quotesec { background: var(--bg); }
+
+/* The quote box is painted orange by the design system, and on this page its
+   copy was resolving to the body ink instead of white — 1.89:1, the worst
+   reading anywhere on the site. It is the same white as every other orange
+   band; it just never said so here. */
+.page-filtration .quotesec__box .quotesec__lede,
+.page-filtration .quotesec__box .quotesec__finep { color: #fff; }

@@ -371,8 +371,8 @@
 }
 .faults-systemchip:hover { border-color: var(--orange); color: var(--orange); }
 .faults-systemchip.is-active {
-  background: var(--orange);
-  border-color: var(--orange);
+  background: var(--orange-deep);
+  border-color: var(--orange-deep);
   color: #fff;
 }
 .faults-systemchip__count {
@@ -389,7 +389,7 @@
   font-weight: 700;
 }
 .faults-systemchip.is-active .faults-systemchip__count {
-  background: rgba(255,255,255,0.22);
+  background: rgba(0, 0, 0, 0.22);
   color: #fff;
 }
 
