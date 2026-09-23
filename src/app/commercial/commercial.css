@@ -2160,3 +2160,230 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   .cx-smooth { margin-top: 44px; }
   .cx-qs { margin-top: 42px; }
 }
+
+/* ===================================================================
+   THE RUN GOES DARK
+   ===================================================================
+   One pale ground fixed the page breaks and created a worse problem: a
+   page of schedules and tables on cream reads as a spreadsheet, and a
+   spreadsheet is a list, not a journey.
+
+   So the run is dark. It is still ONE ground with one gradient and no
+   edges — the fix for the page breaks stands — but it travels through
+   navy instead of through paper. Three things follow from that and they
+   are the whole reason for doing it:
+
+     · the orange and the sky stop being tints on cream and start being
+       light in a dark room, which is where they carry
+     · the drawings can be large and faint behind the content instead of
+       small and polite beside it, so each section is something you move
+       THROUGH rather than past
+     · a table in light rule on dark reads as an instrument panel rather
+       than as a spreadsheet — same rows, different room
+
+   Everything below is that inversion. It is long because it is
+   exhaustive: every colour that was chosen against paper is chosen
+   again against navy, rather than left to inherit and go muddy.
+   =================================================================== */
+.cx-run-all {
+  /* A solid ground UNDER the gradient. Every word in this run is light, so
+     if the gradient does not paint — an old renderer, a printed page, a
+     tool reading backgroundColor — the fallback has to be dark or the copy
+     lands white on cream and disappears. It also means the ground is
+     something a contrast checker can actually see. */
+  background-color: #0a1240;
+  /* Still one gradient with no edge anywhere — it just travels through
+     deeper air now, lifting a little where the page opens out and
+     settling before the enquiry. */
+  background-image:
+    linear-gradient(180deg,
+      #070d33 0%,
+      #0a1240 14%,
+      #0c1747 30%,
+      #0a1240 46%,
+      #0b1545 62%,
+      #091138 80%,
+      #070c2e 100%);
+  color: rgba(255, 255, 255, 0.78);
+}
+.cx-run-all { --cx-rule: rgba(255, 255, 255, 0.14); }
+.cx-run-all .cx-sec { --cx-accent: var(--orange-2); --cx-ink: var(--orange-2); }
+.cx-run-all .cx-jobs,
+.cx-run-all .cx-comp,
+.cx-run-all .cx-area { --cx-accent: var(--sky); --cx-ink: var(--sky); }
+
+/* The spine reads as a lit line on dark rather than a pencil line on paper. */
+.cx-run-all::after { background: rgba(255, 255, 255, 0.14); }
+
+/* ---- headings and section furniture ---- */
+.cx-run-all .cx-head h2 { color: #fff; }
+.cx-run-all .cx-head p { color: rgba(255, 255, 255, 0.72); }
+.cx-run-all .cx-head p a { color: #fff; }
+
+/* ---- the drawings: large, faint, behind ----
+   Small and beside the heading they were decoration. Big and behind the
+   content they are the room you are walking through. */
+.cx-run-all .cx-mark {
+  width: min(560px, 44vw);
+  margin-right: min(0px, calc(46vw - 560px));
+  color: rgba(255, 255, 255, 0.16);
+}
+.cx-run-all .cx-mark__hi { stroke: var(--cx-accent); opacity: 0.55; }
+
+/* ---- 01 · the schedule of work done ---- */
+.cx-run-all .cx-table { border-top-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-table__head { color: rgba(255, 255, 255, 0.55); border-bottom-color: var(--cx-rule); }
+.cx-run-all .cx-table__row { color: rgba(255, 255, 255, 0.76); border-bottom-color: rgba(255, 255, 255, 0.1); }
+.cx-run-all .cx-table__row:hover { background: rgba(255, 255, 255, 0.04); }
+.cx-run-all .cx-table__key { color: #fff; }
+.cx-run-all .cx-table__where { color: rgba(255, 255, 255, 0.55); }
+
+/* The chips glow rather than tint. */
+.cx-run-all .cx-chip--inst  { color: #7fd6f5; border-color: rgba(0, 176, 237, 0.5);  background: rgba(0, 176, 237, 0.14); }
+.cx-run-all .cx-chip--cons  { color: #ffa477; border-color: rgba(243, 103, 34, 0.5); background: rgba(243, 103, 34, 0.15); }
+.cx-run-all .cx-chip--trade { color: rgba(255, 255, 255, 0.82); border-color: rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.08); }
+
+/* ---- 02 · what we can do ---- */
+.cx-run-all .cx-works__list { border-top-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-works__list > li { border-bottom-color: rgba(255, 255, 255, 0.1); }
+.cx-run-all .cx-works__body h3 a { color: #fff; }
+.cx-run-all .cx-works__body h3 a:hover { color: var(--orange-2); }
+.cx-run-all .cx-works__lede { color: rgba(255, 255, 255, 0.72); }
+.cx-run-all .cx-works__suits { color: rgba(255, 255, 255, 0.6); }
+.cx-run-all .cx-works__suits span { color: rgba(255, 255, 255, 0.9); }
+.cx-run-all .cx-works__list > li:hover .cx-works__n { color: #fff; }
+.cx-run-all .cx-works .cx-run { border-top-color: var(--cx-rule); }
+.cx-run-all .cx-works .cx-run__list li { color: rgba(255, 255, 255, 0.86); border-right-color: rgba(255, 255, 255, 0.16); }
+
+/* ---- 03 · why people choose us ---- */
+.cx-run-all .cx-terms { border-top-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-terms b { color: #fff; }
+.cx-run-all .cx-terms__p { color: rgba(255, 255, 255, 0.72); }
+.cx-run-all .cx-why .cx-prog__mark { background: rgba(255, 255, 255, 0.16); }
+.cx-run-all .cx-why .cx-prog__list h4 { color: #fff; }
+.cx-run-all .cx-why .cx-prog__list p { color: rgba(255, 255, 255, 0.72); }
+
+/* ---- 04 · who you are dealing with ---- */
+.cx-run-all .cx-team__grid { border-top-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-person__photo { background: rgba(255, 255, 255, 0.07); }
+.cx-run-all .cx-person__body h3 { color: #fff; }
+.cx-run-all .cx-person__cred { color: rgba(255, 255, 255, 0.55); }
+.cx-run-all .cx-person__body p:last-child { color: rgba(255, 255, 255, 0.72); }
+.cx-run-all .cx-team__note { color: #fff; }
+
+/* ---- 05 · our details ---- */
+.cx-run-all .cx-comp__group h3 { color: #fff; border-bottom-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-comp__group dl > div { border-bottom-color: rgba(255, 255, 255, 0.1); }
+.cx-run-all .cx-comp__group dt { color: rgba(255, 255, 255, 0.55); }
+.cx-run-all .cx-comp__group dd { color: #fff; }
+.cx-run-all .cx-qs .cx-faq__right { border-top-color: rgba(255, 255, 255, 0.4); }
+.cx-run-all .cx-faq__right details { border-bottom-color: rgba(255, 255, 255, 0.1); }
+.cx-run-all .cx-faq__right summary { color: #fff; }
+.cx-run-all .cx-faq__right summary::after { color: var(--orange-2); }
+.cx-run-all .cx-faq__right details p { color: rgba(255, 255, 255, 0.72); }
+.cx-run-all .cx-qs__call { color: rgba(255, 255, 255, 0.6); }
+.cx-run-all .cx-qs__call a { color: #fff; }
+
+/* ---- 06 · where we are based ---- */
+.cx-run-all .cx-area__left p { color: rgba(255, 255, 255, 0.76); }
+.cx-run-all .cx-area__left p strong { color: #fff; }
+.cx-run-all .cx-area__note { color: rgba(255, 255, 255, 0.6) !important; }
+.cx-run-all .cx-area__left .ds-btn--primary {
+  background: #fff;
+  color: var(--navy);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.45);
+}
+.cx-run-all .cx-area__left .ds-btn--primary:hover { background: #eaf6fc; }
+
+/* ---- the spine fills ----
+   The faint line is the whole run; this is how much of it is behind you.
+   It is the one element on the page whose only job is to say how far
+   through you are, which is most of the difference between reading a
+   list and travelling through something. */
+.cx-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(49px, calc(50% - 591px));
+  width: 1px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--sky), var(--orange-2));
+  transform-origin: top center;
+}
+/* `pass` runs 0 to 1 as the run crosses the window, so the line is a
+   progress read rather than another thing that slides. */
+.page-comm .cx-spine[data-m] {
+  opacity: 1;
+  transform: scaleY(var(--mq));
+}
+@media (max-width: 760px) { .cx-spine { left: 30px; } }
+
+/* ---- the moment on the way ----
+   Full bleed, and tall enough that you are inside it rather than looking
+   at it. The scrim is heavy at the bottom where the caption sits and
+   almost nothing at the top, so the crane stays the subject. */
+.cx-shot {
+  position: relative;
+  margin: 0;
+  height: min(62vh, 560px);
+  overflow: clip; /* never `hidden`: it would make this a scroll container
+                     and the photograph's drift would resolve against a box
+                     that never scrolls */
+  isolation: isolate;
+}
+.cx-shot__img { position: absolute; inset: -8% 0; z-index: -2; }
+.cx-shot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg,
+    rgba(7, 13, 51, 0.5) 0%,
+    rgba(7, 13, 51, 0.12) 34%,
+    rgba(7, 13, 51, 0.72) 78%,
+    rgba(9, 17, 56, 0.96) 100%);
+}
+/* The photograph drifts against the scroll, which is what makes it read
+   as somewhere you are passing rather than a picture on the page. */
+.page-comm .cx-shot__img[data-m] {
+  opacity: 1;
+  transform: translateY(calc(var(--mq) * -9%)) scale(1.04);
+}
+.cx-shot figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 40px;
+}
+/* The caption sits in the content column like everything else. It used to
+   apply the column to each child, and the heading's own 34ch max-width beat
+   it — so the line centred itself in the window instead of starting where
+   every other heading on the page starts. */
+.cx-shot__cap { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+.cx-shot__eye {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange-2);
+}
+.cx-shot figcaption p {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(20px, 2.4vw, 30px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #fff;
+  max-width: 34ch;
+  text-wrap: balance;
+}
+@media (max-width: 760px) {
+  .cx-shot { height: min(52vh, 420px); }
+  .cx-shot figcaption { padding-bottom: 28px; }
+  .cx-shot__cap { padding: 0 20px; }
+}
