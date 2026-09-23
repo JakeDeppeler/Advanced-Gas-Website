@@ -1919,3 +1919,177 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
 @media (max-width: 980px) {
   .cx-sec { padding: 64px 0; }
 }
+
+/* ===================================================================
+   ONE LONG PAGE
+   ===================================================================
+   Eight bands with hard colour joins read as eight pages stacked. Two
+   things tie them into one run.
+
+   THE SPINE. A single hairline down the left margin, on the centre of
+   every section's accent tick, running unbroken from the capability
+   strip to the last question — through the navy band and straight
+   through the orange one. Each section draws its own segment over its
+   own ground and they meet at the joins, which is the only way to get a
+   continuous line across full-bleed grounds without floating an element
+   over the top of them.
+
+   Its x is the content column plus half the tick: .wrap is 1280px with
+   32px of padding, so the content edge is max(32px, 50% - 608px) and
+   the tick centre is 17px inside that.
+
+   THE JOINS. Each band fades the one above it in across its first 80px
+   instead of starting on a hard edge.
+   =================================================================== */
+.cx-run,
+.cx-sec,
+.cx-ask { position: relative; }
+
+.cx-run::after,
+.cx-sec::after,
+.cx-ask::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(49px, calc(50% - 591px));
+  width: 1px;
+  background: rgba(11, 20, 80, 0.13);
+  pointer-events: none;
+}
+/* On the dark and the loud grounds the same line has to invert. */
+.cx-run::after,
+.cx-prog::after { background: rgba(255, 255, 255, 0.16); }
+.cx-ask::after { background: rgba(255, 255, 255, 0.32); }
+.cx-comp::after { background: rgba(11, 20, 80, 0.1); }
+
+/* The numerals sit ON the spine rather than beside it: a dot in the
+   section's own colour, which is what turns a line into a sequence. */
+.cx-head__n::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 13px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--cx-accent);
+  box-shadow: 0 0 0 5px var(--cx-dot-halo, rgba(243, 103, 34, 0.16));
+}
+.cx-refs,
+.cx-comp,
+.cx-area { --cx-dot-halo: rgba(0, 176, 237, 0.18); }
+/* The tick moves off the spine's centre so the two marks do not collide. */
+.cx-head__n::before { left: 30px; width: 26px; }
+.cx-head__n { padding-left: 30px; }
+
+/* The joins. Each ground reaches up into the one above it. */
+.cx-sec::before,
+.cx-ask::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 80px;
+  pointer-events: none;
+  background: linear-gradient(180deg, var(--cx-from, transparent), transparent);
+}
+.cx-refs { --cx-from: rgba(4, 8, 31, 0.07); }      /* down out of the capability strip */
+.cx-works { --cx-from: rgba(250, 248, 243, 1); }    /* cream into white */
+.cx-comp { --cx-from: rgba(5, 10, 48, 0.09); }      /* navy into the wash */
+.cx-area { --cx-from: rgba(238, 243, 249, 1); }     /* wash into cream */
+.cx-faq { --cx-from: rgba(243, 103, 34, 0.1); }     /* orange into white */
+
+/* ---- the drawings ----
+   One `stroke-dashoffset` draws a whole mark: it is an inherited SVG
+   property, so setting it on the <svg> reaches every path inside, and
+   every path carries pathLength=1 so the dash is its whole length. No
+   per-path animation, one number. */
+.cx-mark {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  width: min(230px, 26vw);
+  color: rgba(11, 20, 80, 0.26);
+}
+.cx-mark__svg { display: block; width: 100%; height: auto; overflow: visible; }
+.cx-mark__hi { stroke: var(--cx-accent); }
+.cx-prog .cx-mark { color: rgba(255, 255, 255, 0.34); }
+
+/* Drawn rather than faded in. Opacity and transform stay put so the
+   drawing does not also slide — the line arriving IS the animation. */
+.page-comm .cx-mark[data-m] {
+  opacity: 1;
+  transform: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--mp));
+}
+
+.cx-mark--inline {
+  grid-column: auto;
+  grid-row: auto;
+  justify-self: start;
+  margin-top: 26px;
+  width: min(210px, 52vw);
+}
+
+/* The header grid gains the third column the drawing lives in. */
+.cx-head { grid-template-columns: 116px minmax(0, 1fr) auto; }
+
+@media (max-width: 980px) {
+  /* Below this the heading needs the width more than the drawing does. */
+  .cx-mark { display: none; }
+  .cx-mark--inline { display: block; }
+  .cx-head { grid-template-columns: 82px minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .cx-run::after,
+  .cx-sec::after,
+  .cx-ask::after { left: 30px; }
+  .cx-head { grid-template-columns: 74px minmax(0, 1fr); }
+  .cx-head__n { padding-left: 26px; }
+  .cx-head__n::before { left: 26px; width: 20px; }
+  .cx-head__n::after { left: 9px; top: 12px; }
+}
+
+/* ---- the sector chips ----
+   Three colours, not ten. They group the list into the three kinds of
+   client a reader is scanning for — institutional, consumer-facing and
+   trade — which is a grouping that earns a colour. A colour per row would
+   only have been a rainbow with a legend nobody reads. */
+.cx-table__head,
+.cx-table__row {
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.62fr) minmax(0, 1.25fr) minmax(0, 0.72fr);
+}
+.cx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 9px;
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  border: 1px solid;
+}
+.cx-chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.cx-chip--inst  { color: #0e6c8f; border-color: rgba(0, 176, 237, 0.4);  background: rgba(0, 176, 237, 0.08); }
+/* #c2521a clears AA on white but only reaches 4.01:1 once the chip's own
+   8% orange tint warms the ground under it. The button-hover orange does. */
+.cx-chip--cons  { color: #a8460f; border-color: rgba(243, 103, 34, 0.38); background: rgba(243, 103, 34, 0.08); }
+.cx-chip--trade { color: #2b3566; border-color: rgba(11, 20, 80, 0.26);  background: rgba(11, 20, 80, 0.05); }
+
+/* The drawings carry a little more weight now they are doing real work. */
+.cx-mark { color: rgba(11, 20, 80, 0.32); }
+.cx-prog .cx-mark { color: rgba(255, 255, 255, 0.4); }
+
+@media (max-width: 900px) {
+  /* Four columns will not fit. The sector rides under the name, where it
+     reads as a label on the client rather than as a lost column. */
+  .cx-table__head { display: none; }
+  .cx-table__row { grid-template-columns: 1fr; gap: 5px; padding: 16px 2px; }
+  .cx-chip { font-size: 11px; }
+}
