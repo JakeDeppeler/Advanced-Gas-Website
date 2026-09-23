@@ -162,7 +162,7 @@ export default function CommercialPage() {
           <h2 className="cx-run__lbl">Licensed and equipped for</h2>
           <ul className="cx-run__list">
             {COMM_CAPABILITIES.map((c) => (
-              <li key={c}>{c}</li>
+              <li key={c} data-m="arrive">{c}</li>
             ))}
           </ul>
         </div>
@@ -176,7 +176,7 @@ export default function CommercialPage() {
       <section className="cx-sec cx-refs" data-stop="refs">
         <div className="wrap">
           <header className="cx-head">
-            <span className="cx-head__n">01</span>
+            <span className="cx-head__n" data-m="arrive">01</span>
             <div>
               <h2 data-m="arrive">Who already lets us on site.</h2>
               <p data-m="arrive:1">
@@ -211,7 +211,7 @@ export default function CommercialPage() {
       <section className="cx-sec cx-works" data-stop="works">
         <div className="wrap">
           <header className="cx-head">
-            <span className="cx-head__n">02</span>
+            <span className="cx-head__n" data-m="arrive">02</span>
             <div>
               <h2 data-m="arrive">What we take on.</h2>
               <p data-m="arrive:1">
@@ -230,11 +230,14 @@ export default function CommercialPage() {
                     <Link href={`/commercial/services#${s.slug}`}>{s.title}</Link>
                   </h3>
                   <p className="cx-works__lede">{s.lede}</p>
-                  <ul className="cx-works__detail">
-                    {s.detail.map((d) => (
-                      <li key={d}>{d}</li>
-                    ))}
-                  </ul>
+                  {/* The three detail lines that were here are on
+                      /commercial/services under this exact anchor. A front
+                      page is for finding your job, not for reading its
+                      specification — carrying both made this section 1,100px
+                      of scrolling to get past. */}
+                  <Link className="cx-works__more" href={`/commercial/services#${s.slug}`}>
+                    What&rsquo;s included →
+                  </Link>
                 </div>
                 <div className="cx-works__suits">
                   <span>Suits</span>
@@ -253,7 +256,7 @@ export default function CommercialPage() {
       <section className="cx-sec cx-prog" data-stop="program">
         <div className="wrap">
           <header className="cx-head cx-head--dark">
-            <span className="cx-head__n">03</span>
+            <span className="cx-head__n" data-m="arrive">03</span>
             <div>
               <h2 data-m="arrive">How a job runs.</h2>
               <p data-m="arrive:1">
@@ -270,7 +273,7 @@ export default function CommercialPage() {
           <ol className="cx-prog__list">
             {COMM_PROCESS.map((s) => (
               <li key={s.n} data-m="arrive">
-                <div className="cx-prog__mark" aria-hidden="true">
+                <div className="cx-prog__mark" aria-hidden="true" data-m="arrive">
                   <span className="cx-prog__dot" />
                 </div>
                 <span className="cx-prog__n">{s.n}</span>
@@ -304,7 +307,7 @@ export default function CommercialPage() {
       <section className="cx-sec cx-comp" data-stop="compliance">
         <div className="wrap">
           <header className="cx-head">
-            <span className="cx-head__n">04</span>
+            <span className="cx-head__n" data-m="arrive">04</span>
             <div>
               <h2 data-m="arrive">Everything procurement asks for, already answered.</h2>
               <p data-m="arrive:1">
@@ -339,7 +342,7 @@ export default function CommercialPage() {
         <div className="wrap cx-area__grid">
           <div className="cx-area__left" data-m="arrive">
             <header className="cx-head">
-              <span className="cx-head__n">05</span>
+              <span className="cx-head__n" data-m="arrive">05</span>
               <div>
                 <h2>Based in Pakenham. On site anywhere in Victoria.</h2>
               </div>
@@ -410,7 +413,7 @@ export default function CommercialPage() {
         <div className="wrap cx-faq__grid">
           <div className="cx-faq__left" data-m="arrive">
             <header className="cx-head">
-              <span className="cx-head__n">06</span>
+              <span className="cx-head__n" data-m="arrive">06</span>
               <div>
                 <h2>Before you put us on a site.</h2>
               </div>
