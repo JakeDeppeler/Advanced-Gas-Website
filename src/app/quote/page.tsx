@@ -50,7 +50,7 @@ export default function QuotePage() {
                     position: "absolute", left: 0, top: 2,
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     width: 20, height: 20, borderRadius: "50%",
-                    background: "var(--orange)", color: "#fff",
+                    background: "var(--orange-deep)", color: "#fff",
                     fontSize: 11, fontWeight: 800,
                   }}>✓</span>
                   <div style={{ fontFamily: "var(--f-display)", fontWeight: 700, color: "var(--navy)", fontSize: 16 }}>{t}</div>

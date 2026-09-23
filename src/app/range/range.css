@@ -269,7 +269,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   margin-bottom: 6px;
 }
 .page-range .rfind h3 {
@@ -293,14 +293,14 @@
   padding: 10px 12px;
   border: 1.5px solid rgba(255, 255, 255, 0.38);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.12);
   color: #fff;
   transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
 }
-.page-range .rfind__opt:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+.page-range .rfind__opt:hover { background: rgba(0, 0, 0, 0.22); border-color: #fff; }
 .page-range .rfind__opt.is-on { background: #fff; border-color: #fff; color: var(--navy); }
 .page-range .rfind__opt strong { display: block; font-size: 13px; font-weight: 700; line-height: 1.3; }
-.page-range .rfind__opt span { display: block; margin-top: 2px; font-size: 11px; color: rgba(255, 255, 255, 0.76); line-height: 1.35; }
+.page-range .rfind__opt span { display: block; margin-top: 2px; font-size: 11px; color: #fff; line-height: 1.35; }
 .page-range .rfind__opt.is-on span { color: var(--ink-3); }
 .page-range .rfind__opt--sm strong { font-size: 12.5px; font-weight: 600; }
 

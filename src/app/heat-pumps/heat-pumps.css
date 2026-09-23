@@ -402,7 +402,7 @@
 }
 .page-heatpumps .hpc__badge--aus {
   left: 10px;
-  background: var(--orange); color: #fff;
+  background: var(--orange-deep); color: #fff;
 }
 .page-heatpumps .hpc__badge--style {
   right: 10px;

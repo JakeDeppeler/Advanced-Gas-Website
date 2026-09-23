@@ -10,6 +10,17 @@
   --navy-3: #1b234e;
   --orange: #f36722;
   --orange-2: #ff7a36;
+  /* The brand orange behind white text is 3.08:1 and fails AA at every size
+     below a heading. At AA there is no vivid orange that passes: to reach
+     4.5:1 against white the ground has to sit at or under 0.183 luminance,
+     and an orange that dark is necessarily this one. So `--orange` stays
+     vivid for MARKS — rules, dots, ticks, numerals, the rails — where no
+     text sits on it, and `--orange-deep` is the ground under white text.
+     Same hue, lower value; 4.64:1. */
+  --orange-deep: #c2521a;
+  /* And the alert red, which was 4.42:1 — near enough to look fine and
+     just under the line. 5.31:1. */
+  --red-deep: #d41920;
   --sky: #00b0ed;
   --sky-2: #2cc5ff;
   --red: #ec1c22;
@@ -70,7 +81,10 @@
   gap: 4px;
   padding: 4px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.08);
+  /* Dark, not light. A white overlay under white text raises the ground
+     it has to be read against — this pill was costing its own labels half
+     a point of contrast. The commercial variant already did this. */
+  background: rgba(0, 0, 0, 0.14);
 }
 .sitemode__tab {
   padding: 8px 20px 9px;
@@ -2159,7 +2173,7 @@ input, select, textarea {
   width: 76px;
   height: 76px;
   border-radius: 50%;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   line-height: 1;
 }
@@ -2178,7 +2192,7 @@ input, select, textarea {
 .upnudge__actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
 .upnudge__cta {
   display: inline-block;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   font-weight: 700;
   font-size: 14px;
@@ -2305,7 +2319,7 @@ input, select, textarea {
    more than a screen from a way to act. Paces the long category pages the
    way the reference site does, in our colour rather than theirs. */
 .ctaband {
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
   padding: 44px 0;
   position: relative;
@@ -2342,7 +2356,7 @@ input, select, textarea {
   margin: 8px 0 0;
   font-size: 15.5px;
   line-height: 1.55;
-  color: rgba(255, 255, 255, 0.9);
+  color: #fff;
   max-width: 56ch;
 }
 .ctaband__acts { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
@@ -2642,7 +2656,7 @@ input, select, textarea {
 .quotesec__lede {
   margin: 0;
   font-size: 17px;
-  color: rgba(255,255,255,0.92);
+  color: #fff;
   max-width: 460px;
   line-height: 1.5;
 }
@@ -2652,7 +2666,7 @@ input, select, textarea {
 }
 .quotesec__points li {
   display: flex; align-items: center; gap: 10px;
-  color: rgba(255,255,255,0.96);
+  color: #fff;
   font-size: 15px;
 }
 .tick {
@@ -2662,14 +2676,14 @@ input, select, textarea {
   font-size: 11px; font-weight: 800; flex: 0 0 20px; margin-top: 2px;
 }
 .tick--on-orange {
-  background: rgba(255,255,255,0.22);
-  color: #fff;
+  background: #fff;
+  color: var(--navy);
 }
 .quotesec__finep {
   margin: 12px 0 0;
   font-family: var(--f-mono);
   font-size: 11.5px;
-  color: rgba(255,255,255,0.78);
+  color: #fff;
   letter-spacing: 0.01em;
   max-width: 460px;
   line-height: 1.5;
@@ -3422,10 +3436,10 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
    link that cannot wait, then the switch. */
 .sitemode__left { display: flex; align-items: center; gap: 18px; min-width: 0; }
 .sitemode__right { display: flex; align-items: center; gap: 18px; }
-.sitemode__loc { font-size: 12.5px; color: rgba(255, 255, 255, 0.55); white-space: nowrap; }
+.sitemode__loc { font-size: 12.5px; color: #fff; white-space: nowrap; }
 .sitemode__emerg {
   display: inline-flex; align-items: center; gap: 7px;
-  font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.88);
+  font-size: 12.5px; font-weight: 600; color: #fff;
   text-decoration: none; white-space: nowrap;
 }
 .sitemode__emerg:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
@@ -3433,7 +3447,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   width: 8px; height: 8px; border-radius: 50%; background: var(--red, #ec1c22);
   box-shadow: 0 0 0 3px rgba(236, 28, 34, 0.25);
 }
-.sitemode--comm .sitemode__loc { color: rgba(255, 255, 255, 0.78); }
+.sitemode--comm .sitemode__loc { color: #fff; }
 .sitemode--comm .sitemode__emerg { color: #fff; }
 .sitemode--comm .sitemode__emergdot { background: #ffd9c6; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22); }
 @media (max-width: 900px) { .sitemode__loc { display: none; } }
@@ -3456,20 +3470,20 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   width: 7px; height: 7px; border-radius: 50%;
   background: rgba(255, 255, 255, 0.4);
 }
-.conds__status.is-open { color: rgba(255, 255, 255, 0.9); }
+.conds__status.is-open { color: #fff; }
 .conds__status.is-open .conds__dot {
   background: #43d17f;
   box-shadow: 0 0 0 3px rgba(67, 209, 127, 0.22);
 }
 .conds__temp {
   display: inline-flex; align-items: baseline; gap: 7px;
-  font-size: 12.5px; color: rgba(255, 255, 255, 0.62);
+  font-size: 12.5px; color: #fff;
 }
 .conds__temp strong {
   font-family: var(--f-display);
   font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -0.01em;
 }
-.conds__sky { color: rgba(255, 255, 255, 0.45); }
+.conds__sky { color: #fff; }
 @media (max-width: 720px) {
   /* The tabs go full-width down here, so the conditions would only push them
      into a second row. */
@@ -3487,13 +3501,13 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   border-bottom-color: rgba(0, 0, 0, 0.13);
 }
 .sitemode--comm .sitemode__tabs { background: rgba(0, 0, 0, 0.16); }
-.sitemode--comm .sitemode__tab { color: rgba(255, 255, 255, 0.85); }
+.sitemode--comm .sitemode__tab { color: #fff; }
 .sitemode--comm .sitemode__tab:hover { color: #fff; background: rgba(0, 0, 0, 0.18); }
 .sitemode--comm .sitemode__tab.is-on { background: #fff; color: #c04d0d; }
-.sitemode--comm .conds__status { color: rgba(255, 255, 255, 0.8); }
+.sitemode--comm .conds__status { color: #fff; }
 .sitemode--comm .conds__status.is-open { color: #fff; }
-.sitemode--comm .conds__temp { color: rgba(255, 255, 255, 0.8); }
-.sitemode--comm .conds__sky { color: rgba(255, 255, 255, 0.6); }
+.sitemode--comm .conds__temp { color: #fff; }
+.sitemode--comm .conds__sky { color: #fff; }
 
 /* ---- The commercial header ---- */
 /* Hi-vis orange the moment you cross over. It is a real trade colour rather
@@ -3948,7 +3962,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   letter-spacing: 0.06em;
   padding: 4px 8px;
   border-radius: 6px;
-  background: var(--orange);
+  background: var(--orange-deep);
   color: #fff;
 }
 
@@ -4624,7 +4638,7 @@ body:has(.page-framed) .ftr__bottom {
   margin: 0 0 8px;
   max-width: 700px;
 }
-.bigcta--warm p { margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 17px; }
+.bigcta--warm p { margin: 0; color: #fff; font-size: 17px; }
 .bigcta--warm.bigcta--photo .bigcta__btns {
   flex-direction: row;
   align-items: center;
@@ -4643,7 +4657,7 @@ body:has(.page-framed) .ftr__bottom {
   background: var(--navy-2, #12204f);
   box-shadow: 0 5px 0 #04081f;
 }
-.bigcta--warm .bigcta__phone { color: rgba(255, 255, 255, 0.9); font-size: 15px; }
+.bigcta--warm .bigcta__phone { color: #fff; font-size: 15px; }
 .bigcta--warm .bigcta__phone strong { font-family: var(--f-display); color: #fff; }
 
 @media (max-width: 860px) {
@@ -4654,3 +4668,89 @@ body:has(.page-framed) .ftr__bottom {
 @media (max-width: 560px) {
   .bigcta--warm { padding: 56px 0; }
 }
+
+/* ===================================================================
+   CONTRAST: TEXT ON ORANGE AND RED
+   ===================================================================
+   Every ground below carries text and was painted with the vivid brand
+   colour, which put white on it at 3.1:1 — a real failure at every size
+   below a heading, on twenty-five grounds across the site.
+
+   The fix is the ground, not the words: the hue is unchanged and the
+   text stays white, so nothing about the design reads differently except
+   that the orange is a stop deeper. Accents keep the vivid `--orange`,
+   because a rule or a dot has no text on it and nothing to fail.
+
+   Translucent white had to go with it. On a ground dark enough for white
+   to pass, white at 85% does not — it lands at about 3.8:1 — so the soft
+   secondary copy on these bands is now opaque and leans on size and
+   weight for hierarchy instead of on opacity.
+   =================================================================== */
+
+/* ---- the five large bands ---- */
+.sitemode,
+.quotesec__box,
+.bigcta--warm .bigcta__row,
+.bigcta--warm,
+.cx-ask { background: var(--orange-deep); }
+
+.sitemode__loc,
+.sitemode__tab,
+.quotesec__lede,
+.quotesec__finep,
+.quotesec__points li,
+.bigcta--warm p,
+.bigcta--warm .bigcta__phone,
+.bigcta--warm .bigcta__facts li,
+.cx-ask__eye,
+.cx-ask__lede,
+.cx-ask__points li,
+.cx-ask__next > span,
+.cx-ask__next li { color: #fff; }
+
+/* ---- the red grounds ---- */
+.sv,
+.bcard--emergency,
+.ct-card--red { background: var(--red-deep); }
+.sv .ds-eyebrow,
+.sv__lede,
+.sv-spec__l,
+.sv-spec__v,
+.sv li,
+.bcard--emergency .bcard__num,
+.bcard--emergency p,
+.ct-card--red .ct-card__sub,
+.ct-card--red p { color: #fff; }
+
+/* ---- the badges, chips, tabs and pills ----
+   Small enough that the deeper ground is invisible and the white label
+   is the whole point of them. */
+.qcard__ribbon,
+.fixprice__badge--top,
+.fixprice__badge--best,
+.hpd__tab.is-on,
+.hpd__num,
+.hpc__badge--aus,
+.rb-calc__aus,
+.bl-feat__tag,
+.bl-filters .is-active,
+.upnudge__age,
+.upnudge__cta,
+.mb-tier__tick,
+.mb-tier__flag,
+.phero__chips .is-active,
+.pfam__chip.is-on,
+.megarow--lead .megarow__ico,
+.ba__tag--after,
+.hdr__drawer-sublink--tool.is-lead,
+.ftr__chips-more a,
+.bigcta__btns .ds-btn--orange,
+html[data-cross-dir="to-commercial"] .cross { background: var(--orange-deep); }
+
+/* The header CTA on the commercial side is painted orange by the
+   commercial sheet rather than by the button's own rule. */
+.page-comm .hdr__cta .ds-btn--primary,
+.sitemode--comm ~ .hdr .ds-btn--primary { background: var(--orange-deep); }
+
+/* Already deep enough; only its copy was translucent. */
+.bentile__line { color: #fff; }
