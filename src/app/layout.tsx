@@ -25,10 +25,16 @@ const manrope = Manrope({
   display: "swap",
 });
 
+// The commercial page sets headings at font-stretch 112% and its H1 carries
+// one italic word. Naming explicit weights pins the static faces, which have
+// neither axis — the stretch is silently ignored and the italic is synthesised
+// by the browser as a slant. Dropping `weight` selects the variable font, and
+// the two axes then actually exist.
 const archivo = Archivo({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "600", "700", "800", "900"],
+  style: ["normal", "italic"],
+  axes: ["wdth"],
   display: "swap",
 });
 
