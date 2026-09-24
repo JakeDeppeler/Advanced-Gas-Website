@@ -2484,3 +2484,155 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
     transform: translateY(calc((1 - var(--mp)) * 34px));
   }
 }
+
+/* ===================================================================
+   EACH PART DIFFERENT FROM THE LAST
+   ===================================================================
+   Putting the heading on the side fixed the stacking and left the page
+   still reading as one thing six times: numeral, heading, line, list.
+   Same shape, different words. A reader does not register that as six
+   sections, they register it as a long one.
+
+   So the six alternate in SHAPE, not only in content:
+
+     01  jobs      WIDE   an index at display size — the client names are
+                          the biggest type on the page after the H1
+     02  what      SIDE   held heading, dense numbered schedule
+     03  why       WIDE   six statements at heading size, ghost numerals
+     04  who       WIDE   photographs, two of them, large
+     05  details   SIDE   held heading, the smallest type on the page
+     06  where     WIDE   the map
+
+   Wide, side, wide, wide, side, wide — and the type scale swings with
+   it, from 42px in the index to 14px in the compliance rows. That swing
+   is what makes them read as different places rather than as more of
+   the same page.
+   =================================================================== */
+
+/* ---- the wide shape ---- */
+.cx-run-all .cx-sec--wide > .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.cx-run-all .cx-sec--wide .cx-head {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 56px;
+  align-items: end;
+  padding-bottom: 0;
+  margin-bottom: 52px;
+}
+/* A wide section can carry a much bigger heading, and should: it is the
+   only thing distinguishing it from the held ones at a glance. */
+.cx-run-all .cx-sec--wide .cx-head h2 {
+  max-width: 22ch;
+  font-size: clamp(34px, 5.2vw, 64px);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+.cx-run-all .cx-sec--wide .cx-head p { max-width: 54ch; font-size: 17px; }
+.cx-run-all .cx-sec--wide .cx-head__n { margin-bottom: 18px; }
+.cx-run-all .cx-sec--wide .cx-mark {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: min(280px, 26vw);
+  margin: 0;
+}
+/* Wide sections have no right-hand column, so their content arrives
+   upward rather than sideways — sideways only means something when
+   there is a held column for it to travel past. */
+.page-comm .cx-run-all .cx-sec--wide .cx-body [data-m^="arrive"] {
+  transform: translateY(calc((1 - var(--mp)) * 52px));
+}
+.page-comm .cx-run-all .cx-sec--wide .cx-head h2[data-m],
+.page-comm .cx-run-all .cx-sec--wide .cx-head p[data-m] {
+  transform: translateY(calc((1 - var(--mp)) * 34px));
+}
+
+/* ---- 01 · the index ----
+   Not a table. A table is four columns of equal weight and it reads as
+   data; an index is a list of names with their details underneath, and
+   it reads as a body of work. These are the names the whole page rests
+   on, so they are set at the size that says so. */
+.cx-index { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255, 255, 255, 0.18); }
+.cx-index > li {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 0 24px;
+  align-items: baseline;
+  padding: 30px 0 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: background 0.2s ease;
+}
+.cx-index > li:hover { background: rgba(255, 255, 255, 0.03); }
+.cx-index__n {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  /* 34% reads better and measures 3.03:1 at this size. Still quiet against
+     a 42px name at full white — the hierarchy comes from the size gap, not
+     from making the small thing unreadable. */
+  color: rgba(255, 255, 255, 0.5);
+}
+.cx-index__name {
+  margin: 0;
+  font-family: var(--f-display);
+  font-size: clamp(24px, 3.2vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.032em;
+  line-height: 1.02;
+  color: #fff;
+}
+.cx-index__meta {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin: 12px 0 0;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.7);
+}
+.cx-index__where { font-family: var(--f-mono); font-size: 12.5px; color: rgba(255, 255, 255, 0.5); }
+
+/* ---- 03 · six statements, not six list items ----
+   The reasons are the argument of the whole page. At list size they read
+   as features; at heading size they read as claims somebody is making. */
+.cx-run-all .cx-why .cx-terms {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 46px 64px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  padding-top: 44px;
+}
+.cx-run-all .cx-why .cx-terms li { border-left: 0; padding-left: 0; position: relative; }
+.cx-run-all .cx-why .cx-terms__n {
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 500;
+  /* A ghost, but a legible one: 14% is 1.48:1. At 38% it clears the 3:1
+     large-text line and is still obviously the quietest thing in the
+     block next to a 29px statement at full white. */
+  color: rgba(255, 255, 255, 0.38);
+  margin-bottom: 10px;
+}
+.cx-run-all .cx-why .cx-terms b {
+  font-size: clamp(21px, 2.3vw, 29px);
+  line-height: 1.14;
+  letter-spacing: -0.026em;
+}
+.cx-run-all .cx-why .cx-terms__p { margin-top: 10px; font-size: 16px; line-height: 1.6; max-width: 40ch; }
+
+/* ---- 04 · the two of them, larger ---- */
+.cx-run-all .cx-team__grid { gap: 56px; border-top: 1px solid rgba(255, 255, 255, 0.18); padding-top: 44px; }
+.cx-run-all .cx-person { grid-template-columns: 200px minmax(0, 1fr); gap: 30px; }
+.cx-run-all .cx-person__body h3 { font-size: 27px; }
+
+@media (max-width: 1100px) {
+  .cx-run-all .cx-sec--wide .cx-mark { width: min(200px, 24vw); }
+}
+@media (max-width: 900px) {
+  .cx-run-all .cx-sec--wide .cx-head { grid-template-columns: 1fr; margin-bottom: 34px; }
+  .cx-run-all .cx-why .cx-terms { grid-template-columns: 1fr; gap: 32px; }
+  .cx-run-all .cx-person { grid-template-columns: 110px minmax(0, 1fr); gap: 18px; }
+  .cx-index > li { grid-template-columns: 40px minmax(0, 1fr); gap: 0 14px; padding: 22px 0 20px; }
+  .cx-run-all .cx-team__grid { gap: 30px; }
+}
