@@ -2387,3 +2387,100 @@ html[data-motion="js"] .page-comm .reveal.is-revealed { opacity: 1; transform: n
   .cx-shot figcaption { padding-bottom: 28px; }
   .cx-shot__cap { padding: 0 20px; }
 }
+
+/* ===================================================================
+   THE HEADING GOES TO THE SIDE
+   ===================================================================
+   Dark fixed the spreadsheet problem and left the real one: every
+   section was a heading with its content stacked underneath it, six
+   times. Stacked is what it looked like because stacked is what it was.
+
+   So each section is now two columns. The heading, its numeral, its one
+   line and its drawing sit on the LEFT and STICK — they hold while the
+   schedule, the packages, the people, the compliance rows travel past
+   on the right. You are not reading a stack any more, you are holding
+   one idea while its evidence goes by.
+
+   And the motion follows the layout: the content comes in from the
+   right, because the right is where it lives, and the heading comes in
+   from the left. Nothing rises up the page any more.
+   =================================================================== */
+.cx-run-all .cx-sec > .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 0.46fr) minmax(0, 1fr);
+  gap: 0 76px;
+  align-items: start;
+}
+
+.cx-run-all .cx-head {
+  position: sticky;
+  /* Clear of the header, with room to breathe under it. */
+  top: 124px;
+  display: block;
+  margin: 0;
+  padding-bottom: 32px;
+}
+.cx-run-all .cx-head__n {
+  display: block;
+  margin-bottom: 14px;
+  padding-top: 0;
+}
+.cx-run-all .cx-head h2 { max-width: 15ch; }
+.cx-run-all .cx-head p { max-width: 34ch; font-size: 15.5px; margin-top: 12px; }
+
+/* The drawing sits under its heading in the sticky column rather than
+   off to one side of it, so the whole left column is one object. */
+/* Smaller than it wants to be, on purpose. A sticky heading can only
+   travel the difference between its own height and its row's, so every
+   pixel the left column spends is a pixel it does not hold for. At 330px
+   the column was 528 tall in a 777 row and ran out of travel in 249px. */
+.cx-run-all .cx-mark {
+  grid-column: auto;
+  grid-row: auto;
+  justify-self: start;
+  align-self: auto;
+  width: min(210px, 100%);
+  margin: 26px 0 0;
+}
+
+/* ---- motion follows the layout ----
+   Content in from the right, heading in from the left. The vertical
+   lift is gone: on a two-column section it read as everything falling
+   into place at once, which is the stacked feeling again. */
+.page-comm .cx-run-all .cx-body [data-m^="arrive"],
+.page-comm .cx-run-all .cx-body[data-m^="arrive"] {
+  transform: translateX(calc((1 - var(--mp)) * 88px));
+}
+.page-comm .cx-run-all .cx-head h2[data-m],
+.page-comm .cx-run-all .cx-head p[data-m] {
+  transform: translateX(calc((1 - var(--mp)) * -54px));
+}
+
+/* ---- more air between sections ----
+   With the heading held on the side, the join between sections is the
+   only thing that says one has ended. It needs room to say it. */
+.cx-run-all .cx-sec { padding: 132px 0; }
+
+@media (max-width: 1100px) {
+  .cx-run-all .cx-sec > .wrap { grid-template-columns: minmax(0, 0.5fr) minmax(0, 1fr); gap: 0 44px; }
+  .cx-run-all .cx-mark { width: min(240px, 100%); }
+}
+@media (max-width: 900px) {
+  /* Below this there is no room for two columns, so the heading stops
+     sticking and the section reads top to bottom again — and the motion
+     goes back to a rise, because sideways with nothing beside it is
+     just a jolt. */
+  .cx-run-all .cx-sec > .wrap { grid-template-columns: 1fr; gap: 0; }
+  .cx-run-all .cx-head { position: static; padding-bottom: 0; margin-bottom: 40px; }
+  .cx-run-all .cx-head h2 { max-width: 20ch; }
+  .cx-run-all .cx-mark { display: none; }
+  .cx-run-all .cx-sec { padding: 84px 0; }
+  .page-comm .cx-run-all .cx-body [data-m^="arrive"],
+  .page-comm .cx-run-all .cx-body[data-m^="arrive"] {
+    transform: translateY(calc((1 - var(--mp)) * 44px));
+  }
+  .page-comm .cx-run-all .cx-head h2[data-m],
+  .page-comm .cx-run-all .cx-head p[data-m] {
+    transform: translateY(calc((1 - var(--mp)) * 34px));
+  }
+}

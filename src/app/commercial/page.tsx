@@ -145,14 +145,14 @@ export default function CommercialPage() {
               <div>
                 <h2 data-m="arrive">The jobs we&rsquo;ve done.</h2>
                 <p data-m="arrive:1">
-                  Named, with the package and the location against each one, because a job you can ring up and check
-                  is worth more than a logo you can&rsquo;t. Tier-one builders, national retail, banking, aged care
-                  and education.
+                  Named, with the job and the location against each. A reference you can ring is worth more than a
+                  logo you can&rsquo;t.
                 </p>
               </div>
               <div className="cx-mark" data-m="arrive"><CommercialMark kind="refs" /></div>
             </header>
 
+            <div className="cx-body">
             <div className="cx-table" role="table" aria-label="Completed commercial work">
               <div className="cx-table__head" role="row">
                 <span role="columnheader">Client</span>
@@ -169,6 +169,7 @@ export default function CommercialPage() {
                 </div>
               ))}
             </div>
+            </div>
           </div>
         </section>
 
@@ -183,13 +184,13 @@ export default function CommercialPage() {
               <div>
                 <h2 data-m="arrive">What we can do.</h2>
                 <p data-m="arrive:1">
-                  Eight packages. If yours is a combination of them, that is normal, and it is still one price
-                  against one written scope.
+                  Eight packages. A combination of them is normal, and still one price against one written scope.
                 </p>
               </div>
               <div className="cx-mark" data-m="arrive"><CommercialMark kind="works" /></div>
             </header>
 
+            <div className="cx-body">
             <ol className="cx-works__list">
               {COMM_SCOPES.map((s) => (
                 <li key={s.slug} data-m="arrive">
@@ -212,6 +213,7 @@ export default function CommercialPage() {
                 {COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}
               </ul>
             </div>
+            </div>
           </div>
         </section>
 
@@ -226,14 +228,13 @@ export default function CommercialPage() {
               <div>
                 <h2 data-m="arrive">Why people choose us, and keep us on.</h2>
                 <p data-m="arrive:1">
-                  Almost nobody rings back about the ductwork. They ring back because the job ran without creating
-                  work for them &mdash; the paperwork landed, the program held, and nothing arrived attached to the
-                  invoice.
+                  Nobody rings back about the ductwork. They ring back because the job never made work for them.
                 </p>
               </div>
               <div className="cx-mark" data-m="arrive"><CommercialMark kind="program" /></div>
             </header>
 
+            <div className="cx-body">
             <ul className="cx-terms">
               {COMM_STANDARD.map((s) => (
                 <li key={s.n} data-m="arrive">
@@ -256,6 +257,7 @@ export default function CommercialPage() {
                   </li>
                 ))}
               </ol>
+            </div>
             </div>
           </div>
         </section>
@@ -298,12 +300,12 @@ export default function CommercialPage() {
               <div>
                 <h2 data-m="arrive">Who you&rsquo;re actually dealing with.</h2>
                 <p data-m="arrive:1">
-                  A family business in Pakenham since 2014, not a brand with a call centre behind it. Whoever prices
-                  your package is who you ring about it.
+                  A family business in Pakenham since 2014. Whoever prices your package is who you ring about it.
                 </p>
               </div>
             </header>
 
+            <div className="cx-body">
             <div className="cx-team__grid">
               <article className="cx-person" data-m="arrive">
                 <div className="cx-person__photo">
@@ -337,9 +339,10 @@ export default function CommercialPage() {
             </div>
 
             <p className="cx-team__note" data-m="arrive">
-              Behind the two of us: directly employed installers and apprentices, in our own vans and our own
-              uniform. No labour hire, and no rotating subcontractors on your site.
+              Behind us: directly employed installers and apprentices, in our own vans. No labour hire, no
+              rotating subcontractors on your site.
             </p>
+            </div>
           </div>
         </section>
 
@@ -354,15 +357,14 @@ export default function CommercialPage() {
               <div>
                 <h2 data-m="arrive">Our details, before you ask for them.</h2>
                 <p data-m="arrive:1">
-                  The entity, the licences, the cover, the safety documentation and the capacity. Certificates of
-                  currency and SWMS go out the same day you ask.{" "}
-                  <Link href="/commercial/capability">The capability statement</Link> has the lot on one page you can
-                  file.
+                  Certificates of currency and SWMS go out the same day you ask.{" "}
+                  <Link href="/commercial/capability">The capability statement</Link> has the lot on one page.
                 </p>
               </div>
               <div className="cx-mark" data-m="arrive"><CommercialMark kind="compliance" /></div>
             </header>
 
+            <div className="cx-body">
             <div className="cx-comp__grid">
               {CAPABILITY.map((g) => (
                 <section className="cx-comp__group" key={g.group} data-m="arrive">
@@ -390,6 +392,7 @@ export default function CommercialPage() {
                 Plant down on a contracted site? <a href={`tel:${site.phoneE164}`}>Call {site.phone}</a>. After hours
                 goes to someone on the tools.
               </p>
+            </div>
             </div>
           </div>
         </section>
