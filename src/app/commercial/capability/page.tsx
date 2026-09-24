@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { site } from "@/lib/site";
 import { CAPABILITY, COMM_CLIENTS, COMM_SCOPES, COMM_CAPABILITIES, COMM_FACTS } from "@/lib/commercial";
 import { PrintButton } from "@/components/PrintButton";
-import "../commercial.css";
+import { CxSubHero } from "@/components/commercial/CxSubHero";
+import { CxClose } from "@/components/commercial/CxClose";
+import { CommReveal } from "@/components/commercial/CommReveal";
+import "../cx.css";
 
 export const metadata: Metadata = {
   title: "Capability Statement, Commercial Mechanical",
@@ -15,128 +17,155 @@ export const metadata: Metadata = {
 /**
  * The document procurement asks for, as a page.
  *
- * It's a page rather than a PDF because a PDF goes stale in someone's downloads
- * folder and this doesn't — but it prints to one, cleanly, which is the format
- * it usually gets filed in.
+ * It is a page rather than a PDF because a PDF goes stale in somebody's
+ * downloads folder and this doesn't — but it prints to one cleanly, which is
+ * the format it usually gets filed in. On paper the hero, the shelf and the
+ * figures drop out and the document opens at the first table, under a header
+ * that only exists in print.
  */
 export default function CapabilityPage() {
   return (
-    <div className="page-comm page-cap">
-      {/* On screen this opens like every other commercial page. In print the
-          hero and the panel drop out (see the print rules) and the document
-          starts at the first table, which is where a filed copy should start. */}
-      <section className="comm-sub comm-sub--photo cap-hide-print">
-        <div className="wrap comm-sub__inner">
-          <Link href="/commercial" className="comm-back">← Commercial</Link>
-          <span className="ds-eyebrow">Capability statement</span>
-          <h1>{site.legalName}</h1>
-          <p className="comm-sub__lede">
-            Commercial mechanical services, Type A gas and hot water across Melbourne&rsquo;s south-east and Gippsland.
-            Everything below is current and can be evidenced. Certificates of currency and licence copies on request.
-          </p>
-        </div>
-      </section>
+    <div className="page-cx page-cx--cap" data-no-reveal>
+      <div className="cx-noprint">
+        <CxSubHero
+          eyebrow="Capability statement"
+          title={site.legalName}
+          lede={
+            <>
+              Commercial mechanical services, Type A gas and hot water across Melbourne&rsquo;s south-east and
+              Gippsland. Everything below is current and can be evidenced. Certificates of currency and licence
+              copies on request.
+            </>
+          }
+          photo="/comm/rooftop-daikin-box.jpg"
+        />
 
-      <section className="comm-panelsec cap-hide-print">
-        <div className="wrap">
-          <div className="comm-panel">
-            <div className="comm-panel__row">
-              <dl className="cap-contact" style={{ margin: 0, padding: 0, border: 0, flex: "1 1 auto" }}>
-                <div><dt>Phone</dt><dd><a href={`tel:${site.phoneE164}`}>{site.phone}</a></dd></div>
-                <div><dt>Email</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a></dd></div>
-                <div><dt>Address</dt><dd>{site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</dd></div>
-              </dl>
-              <PrintButton />
+        <div className="cx-shelf">
+          <div className="wrap">
+            <div className="cx-shelf__card">
+              <div className="cx-shelf__row">
+                <dl className="cx-capcontact">
+                  <div>
+                    <dt>Phone</dt>
+                    <dd><a href={`tel:${site.phoneE164}`}>{site.phone}</a></dd>
+                  </div>
+                  <div>
+                    <dt>Email</dt>
+                    <dd><a href={`mailto:${site.email}`}>{site.email}</a></dd>
+                  </div>
+                  <div>
+                    <dt>Address</dt>
+                    <dd>
+                      {site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}
+                    </dd>
+                  </div>
+                </dl>
+                <PrintButton />
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* The print header: what a filed copy opens with instead of the hero.
-          Not an h1. It is hidden on screen and only shown by the print rules,
-          but a crawler reads the DOM and not the stylesheet, so this page was
-          shipping two identical h1s — the only page on the site that did. It
-          is styled to look like the heading it replaces when printed. */}
-      <section className="cap-printhead">
+      {/* What a filed copy opens with instead of the hero. Deliberately not an
+          h1: it is hidden on screen and only shown by the print rules, but a
+          crawler reads the DOM rather than the stylesheet, and this page was
+          once shipping two identical h1s because of it. */}
+      <div className="cx-printhead">
         <div className="wrap">
-          <p className="cap-printhead__name">{site.legalName}</p>
-          <p>Capability statement. {site.phone} · {site.email} · {site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}</p>
+          <p className="cx-printhead__name">{site.legalName}</p>
+          <p>
+            Capability statement. {site.phone} · {site.email} · {site.address.street}, {site.address.suburb}{" "}
+            {site.address.state} {site.address.postcode}
+          </p>
         </div>
-      </section>
+      </div>
 
-      <section className="cap-figures cap-hide-print">
+      <section className="cx-sec cx-noprint" style={{ paddingBottom: 0 }}>
         <div className="wrap">
-          <div className="comm-facts">
-            {COMM_FACTS.map((f) => (
-              <div key={f.k} className="commfact">
+          <ul className="cx-figs">
+            {COMM_FACTS.map((f, i) => (
+              <li className="cx-fig cx-rv" key={f.k} style={{ ["--i" as string]: String(i) }}>
                 <strong>{f.n}</strong>
-                <span>{f.k}</span>
+                <span className="cx-fig__k">{f.k}</span>
                 <p>{f.p}</p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </section>
 
-      <section className="cap-body">
+      <section className="cx-sec" id="statement">
         <div className="wrap">
-          {CAPABILITY.map((g) => (
-            <div key={g.group} className="capblock">
-              <h2>{g.group}</h2>
-              <dl className="captable">
-                {g.rows.map(([k, v]) => (
-                  <div key={k}><dt>{k}</dt><dd>{v}</dd></div>
+          <div className="cx-capgrid">
+            {CAPABILITY.map((g, i) => (
+              <section
+                className={`cx-tbl cx-rv${g.group === "Capacity" ? " cx-tbl--wide" : ""}`}
+                key={g.group}
+                style={{ ["--i" as string]: String(i % 2) }}
+              >
+                <h4>{g.group}</h4>
+                <dl>
+                  {g.rows.map(([k, v, mono]) => (
+                    <div key={k}>
+                      <dt>{k}</dt>
+                      <dd className={mono ? "is-mono" : undefined}>{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            ))}
+
+            <section className="cx-tbl cx-tbl--wide cx-rv">
+              <h4>Scopes undertaken</h4>
+              <ul className="cx-caplist">
+                {COMM_SCOPES.map((sc) => (
+                  <li key={sc.slug}><strong>{sc.title}.</strong> {sc.lede}</li>
+                ))}
+              </ul>
+            </section>
+
+            {/* The confirmed list. It used to scroll across the top of the
+                commercial front page; this is where procurement actually goes
+                looking for it, and it prints. */}
+            <section className="cx-tbl cx-tbl--wide cx-rv">
+              <h4>Technical capabilities</h4>
+              <ul className="cx-cappills">
+                {COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}
+              </ul>
+            </section>
+
+            <section className="cx-tbl cx-tbl--wide cx-rv">
+              <h4>Selected projects &amp; clients</h4>
+              <dl>
+                {COMM_CLIENTS.map((c) => (
+                  <div key={c.name}>
+                    <dt>{c.name}</dt>
+                    <dd>{c.what} · {c.where}</dd>
+                  </div>
                 ))}
               </dl>
-            </div>
-          ))}
-
-          <div className="capblock">
-            <h2>Scopes undertaken</h2>
-            <ul className="cap-scopes">
-              {COMM_SCOPES.map((sc) => (
-                <li key={sc.slug}><strong>{sc.title}.</strong> {sc.lede}</li>
-              ))}
-            </ul>
+            </section>
           </div>
 
-          {/* The confirmed list. It used to scroll across the top of the
-              commercial front page; this is where procurement actually goes
-              looking for it, and it prints. */}
-          <div className="capblock">
-            <h2>Technical capabilities</h2>
-            <ul className="cap-caps">
-              {COMM_CAPABILITIES.map((c) => <li key={c}>{c}</li>)}
-            </ul>
-          </div>
-
-          <div className="capblock">
-            <h2>Selected projects &amp; clients</h2>
-            <dl className="captable">
-              {COMM_CLIENTS.map((c) => (
-                <div key={c.name}><dt>{c.name}</dt><dd>{c.what} · {c.where}</dd></div>
-              ))}
-            </dl>
-          </div>
-
-          <p className="cap-foot">
+          <p className="cx-capfoot">
             Prepared by {site.name}. ABN {site.abn}. This statement is maintained online at{" "}
-            <strong>{site.url.replace(/^https?:\/\//, "")}/commercial/capability</strong>. The version you are reading is the
-            current one, which is the advantage of it not being a PDF in somebody&rsquo;s downloads folder.
+            <strong>{site.url.replace(/^https?:\/\//, "")}/commercial/capability</strong>. The version you are reading
+            is the current one, which is the advantage of it not being a PDF in somebody&rsquo;s downloads folder.
           </p>
         </div>
       </section>
 
-      <section className="comm-cta cap-hide-print">
-        <div className="wrap comm-cta__inner">
-          <h2>Need it on file?</h2>
-          <p>Print this page to PDF and it comes out as a one-document statement. Or ask and we&rsquo;ll send the certificates through.</p>
-          <div className="comm-cta__btns">
-            <Link href="/commercial/contact" className="ds-btn ds-btn--orange ds-btn--xl">Request the certificates →</Link>
-            <a href={`tel:${site.phoneE164}`} className="comm-cta__phone">or call <strong>{site.phone}</strong></a>
-          </div>
-        </div>
-      </section>
+      <CxClose
+        title="Need it on file?"
+        action={{ href: "/commercial/contact", label: "Request the certificates →" }}
+        alt={{ href: `tel:${site.phoneE164}`, label: <>or call <strong>{site.phone}</strong></>, external: true }}
+      >
+        Print this page to PDF and it comes out as a one-document statement. Or ask, and the certificates of currency
+        go through the same day.
+      </CxClose>
+
+      <CommReveal />
     </div>
   );
 }

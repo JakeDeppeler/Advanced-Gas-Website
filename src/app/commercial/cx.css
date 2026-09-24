@@ -1,11 +1,13 @@
 /* ==========================================================================
-   THE BUSINESS & COMMERCIAL FRONT PAGE
+   THE BUSINESS & COMMERCIAL SECTION
    ==========================================================================
 
-   Built from the design handoff, scoped under `.page-cx` so none of it can
-   reach the four commercial sub-pages, which keep `commercial.css`. This
-   page imports only this file and the site's design system, which is where
-   the header, the footer, `.wrap` and `.ds-btn` come from.
+   Built from the design handoff for the front page, and then used for the
+   four sub-pages as well, so a builder moving between them is moving around
+   one document rather than through five pages that happen to share a header.
+   Everything is scoped under `.page-cx`; the only thing outside it is the
+   site's design system, which is where the header, the footer, `.wrap` and
+   `.ds-btn` come from.
 
    Every class on this page carries a `cx-` prefix. That is not decoration:
    the design's own names — `.hero`, `.step`, `.steps`, `.brand`, `.faq` —
@@ -27,9 +29,16 @@
    (#b04711) is 5.14:1 on cream and 5.60:1 on white.
 
    THREE. The vivid brand orange stays exactly as designed for MARKS — the
-   eyebrow dots, the timeline fill, the step dots, the 52px and 180px
-   numerals — where nothing is read off it and the large-text 3:1 bar
-   applies.
+   eyebrow dots, the timeline fill, the step dots — where nothing is read off
+   it at all. A big numeral is a mark too, but it is still text, and large
+   text has to clear 3:1: #f36722 manages 3.08:1 on white and only 2.84:1 on
+   cream. So a numeral on a LIGHT ground takes --cx-orange-mark (#e05716,
+   3.48:1 on cream) and a numeral on navy keeps the vivid one, where it is
+   5.6:1 and the deeper step would read as mud.
+
+   Four steps, each with a job: --cx-orange for marks carrying no text,
+   --cx-orange-mark for large type on light, --cx-orange-d for grounds under
+   white text, --cx-orange-ink for small type on light.
 
    The grey for labels went the same way: #7a7e93 is 3.68:1 on cream.
    --cx-ink-3 keeps the cool cast at 5.37:1.
@@ -40,6 +49,7 @@
   --cx-navy-2: var(--navy-2);
   --cx-navy-3: #141c55;
   --cx-orange: var(--orange);
+  --cx-orange-mark: #e05716;
   --cx-orange-d: #c2521a;
   --cx-orange-dd: #8f3a0e;
   --cx-orange-ink: #b04711;
@@ -591,7 +601,7 @@
 }
 .page-cx .cx-why__n {
   font-family: var(--f-display); font-stretch: 118%; font-weight: 900;
-  font-size: 52px; line-height: 1; color: var(--cx-orange);
+  font-size: 52px; line-height: 1; color: var(--cx-orange-mark);
   letter-spacing: -0.04em; margin-bottom: 22px; display: inline-block;
 }
 .page-cx .cx-why__item h3 { font-weight: 800; font-size: 21px; margin-bottom: 8px; }
@@ -783,7 +793,9 @@
   box-shadow: 0 40px 80px -40px rgba(143, 58, 16, 0.7);
 }
 .page-cx .cx-scope .cx-eye::before { background: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25); }
-.page-cx .cx-scope h2 { font-weight: 900; font-size: clamp(34px, 4.2vw, 52px); line-height: 1; margin: 14px 0 18px; }
+/* Direct child only. On the contact page the scope form sits in this same
+   panel, and its own h2 was inheriting the 52px panel heading. */
+.page-cx .cx-scope > div > h2 { font-weight: 900; font-size: clamp(34px, 4.2vw, 52px); line-height: 1; margin: 14px 0 18px; }
 .page-cx .cx-scope__lede { font-size: 17px; margin-bottom: 24px; }
 .page-cx .cx-checks { list-style: none; margin: 0 0 28px; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .page-cx .cx-checks li { padding-left: 32px; position: relative; font-weight: 500; }
@@ -924,4 +936,294 @@
   .page-cx .cx-proc__big,
   .page-cx .cx-proc__t,
   .page-cx .cx-steps__fill { transition: none; }
+}
+
+/* ==========================================================================
+   THE SUB-PAGES
+   ==========================================================================
+   What we do, the capability statement, about us and contact. They share the
+   front page's tokens, section rhythm, cards and tables — what follows is
+   only the furniture the front page has no use for: a shorter hero with a way
+   back, the jump list, the ten packages set out at length, the figures, the
+   quick doors, and the panel every one of them closes on.
+   ========================================================================== */
+
+/* ---------------------- the shorter hero ---------------------- */
+.page-cx .cx-subhero {
+  position: relative;
+  background: var(--cx-navy);
+  color: #fff;
+  overflow: clip;
+  padding: 44px 0 clamp(56px, 7vw, 88px);
+}
+.page-cx .cx-subhero__bg { position: absolute; inset: 0; opacity: 0.22; filter: saturate(0.8); }
+.page-cx .cx-subhero__bg img { object-fit: cover; object-position: 60% 40%; }
+.page-cx .cx-subhero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, var(--cx-navy) 25%, rgba(5, 10, 48, 0.62) 100%),
+    linear-gradient(0deg, var(--cx-navy), transparent 45%);
+}
+.page-cx .cx-subhero > .wrap { position: relative; z-index: 1; }
+/* block, not inline-block: the eyebrow that follows is an inline-flex and
+   sat on the same line as the way back. */
+.page-cx .cx-back {
+  display: block; width: fit-content;
+  font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72); text-decoration: none; margin-bottom: 26px;
+}
+.page-cx .cx-back:hover { color: #fff; }
+.page-cx .cx-subhero h1 {
+  font-weight: 900; font-size: clamp(36px, 5.2vw, 64px); line-height: 0.98;
+  margin: 14px 0 18px; max-width: 18ch;
+}
+.page-cx .cx-subhero h1 em { color: var(--cx-orange); font-style: italic; }
+.page-cx .cx-subhero__lede {
+  font-size: clamp(16px, 1.35vw, 18.5px);
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 68ch;
+}
+
+/* ---------------------- the card over the seam ----------------------
+   The same move as the front page's credentials card: whatever a reader of
+   this particular page needs before anything else, lifted out of the body
+   and put where they land. */
+.page-cx .cx-shelf { position: relative; z-index: 2; margin-top: -38px; }
+.page-cx .cx-shelf__card {
+  background: #fff; border: 1px solid var(--cx-line); border-radius: 20px;
+  padding: 22px clamp(18px, 3vw, 30px);
+  box-shadow: 0 30px 60px -30px rgba(5, 10, 48, 0.35);
+}
+.page-cx .cx-shelf__row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap;
+}
+
+/* the jump list */
+.page-cx .cx-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.page-cx .cx-jump a {
+  border: 1px solid var(--cx-line); border-radius: 999px; padding: 8px 15px;
+  font-size: 14px; font-weight: 600; text-decoration: none; color: var(--cx-ink);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.page-cx .cx-jump a:hover { border-color: var(--cx-orange); color: var(--cx-orange-ink); background: #fffaf7; }
+
+/* ---------------------- the ten packages, at length ----------------------
+   The front page has these as cards, which is the right shape for choosing
+   one. This is the shape for reading one: the claim on the left, what is
+   actually in it on the right, and a rule between each. */
+.page-cx .cx-full { list-style: none; margin: 0; padding: 0; }
+.page-cx .cx-fullitem {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(24px, 4vw, 56px);
+  padding: clamp(32px, 4vw, 48px) 0;
+  border-top: 1px solid var(--cx-line);
+  scroll-margin-top: 120px;
+}
+.page-cx .cx-fullitem:first-child { border-top: 0; padding-top: 0; }
+.page-cx .cx-fullitem__n {
+  font-family: var(--f-display); font-stretch: 118%; font-weight: 900;
+  font-size: 44px; line-height: 1; letter-spacing: -0.04em;
+  color: var(--cx-orange-mark); display: block; margin-bottom: 10px;
+}
+.page-cx .cx-fullitem h2 { font-weight: 800; font-size: clamp(25px, 2.8vw, 34px); line-height: 1.06; }
+.page-cx .cx-fullitem__lede { margin-top: 12px; font-size: 17px; color: var(--cx-ink-2); }
+.page-cx .cx-fullitem__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.page-cx .cx-fullitem__list li {
+  position: relative; padding-left: 32px; font-size: 16px;
+}
+.page-cx .cx-fullitem__list li::before {
+  content: ""; position: absolute; left: 0; top: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--cx-orange-d) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12l4 4 8-8' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round'/%3E%3C/svg%3E") center / 12px no-repeat;
+}
+.page-cx .cx-fullitem__suits {
+  margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--cx-line);
+  font-size: 14px; color: var(--cx-ink-3);
+}
+.page-cx .cx-fullitem__suits b {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.1em; font-weight: 600;
+  display: block; margin-bottom: 3px; text-transform: uppercase;
+}
+/* The one package nobody emails about. */
+.page-cx .cx-fullitem--urgent .cx-fullitem__n { color: var(--cx-red); }
+.page-cx .cx-fullitem--urgent .cx-fullitem__list li::before { background-color: var(--cx-red); }
+.page-cx .cx-fullitem__call {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  color: var(--cx-red); text-decoration: none;
+}
+.page-cx .cx-fullitem__call:hover { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 820px) {
+  .page-cx .cx-fullitem { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* ---------------------- the four figures ---------------------- */
+.page-cx .cx-figs {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px;
+  list-style: none; margin: 0; padding: 0;
+}
+.page-cx .cx-fig {
+  background: #fff; border: 1px solid var(--cx-line); border-radius: var(--cx-r);
+  padding: 22px 20px; display: flex; flex-direction: column; gap: 6px;
+}
+.page-cx .cx-fig strong {
+  font-family: var(--f-display); font-stretch: 112%; font-weight: 900;
+  font-size: clamp(26px, 2.6vw, 34px); line-height: 1; letter-spacing: -0.03em;
+  color: var(--cx-orange-ink);
+}
+.page-cx .cx-fig__k {
+  font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--cx-ink-3);
+}
+.page-cx .cx-fig p { font-size: 14px; color: var(--cx-ink-2); margin-top: 4px; }
+@media (max-width: 900px) { .page-cx .cx-figs { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .page-cx .cx-figs { grid-template-columns: 1fr; } }
+
+/* ---------------------- who we are ---------------------- */
+.page-cx .cx-who {
+  display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 4vw, 56px); align-items: center;
+}
+.page-cx .cx-who figure { margin: 0; }
+.page-cx .cx-who img {
+  width: 100%; height: auto; display: block;
+  border-radius: 20px; border: 1px solid var(--cx-line);
+}
+.page-cx .cx-who h2 { font-weight: 900; font-size: clamp(28px, 3.4vw, 44px); line-height: 1.02; margin-bottom: 16px; }
+.page-cx .cx-who p { font-size: 17px; color: var(--cx-ink-2); }
+.page-cx .cx-who p + p { margin-top: 14px; }
+@media (max-width: 900px) { .page-cx .cx-who { grid-template-columns: 1fr; } }
+
+/* ---------------------- the quick doors ---------------------- */
+.page-cx .cx-doors { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.page-cx .cx-door {
+  display: flex; align-items: center; gap: 14px;
+  border: 1px solid var(--cx-line); border-radius: 14px; padding: 16px 18px;
+  text-decoration: none; color: var(--cx-ink);
+  transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
+}
+.page-cx .cx-door:hover {
+  border-color: var(--cx-orange); transform: translateY(-2px);
+  box-shadow: 0 16px 28px -20px rgba(5, 10, 48, 0.4);
+}
+.page-cx .cx-door__ico {
+  flex: none; width: 42px; height: 42px; border-radius: 12px;
+  display: grid; place-items: center; color: #fff; background: var(--cx-navy);
+}
+.page-cx .cx-door--call .cx-door__ico { background: var(--cx-orange-d); }
+.page-cx .cx-door__txt { display: grid; gap: 2px; min-width: 0; }
+.page-cx .cx-door__txt strong { font-family: var(--f-display); font-stretch: 108%; font-weight: 800; font-size: 16px; }
+.page-cx .cx-door__txt em {
+  font-style: normal; font-size: 13px; color: var(--cx-ink-3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.page-cx .cx-door__go { margin-left: auto; color: var(--cx-ink-3); }
+@media (max-width: 860px) { .page-cx .cx-doors { grid-template-columns: 1fr; } }
+
+/* ---------------------- the side of the contact form ---------------------- */
+.page-cx .cx-side { display: grid; gap: 14px; align-content: start; }
+/* Darkened, not lightened. A white wash over the orange took the ground to
+   4.07:1 behind its own white text; taking it down instead gives 5.5:1 and
+   still reads as a card on the panel. */
+.page-cx .cx-side__card {
+  border: 1px solid rgba(255, 255, 255, 0.24); border-radius: 16px; padding: 18px 20px;
+  background: rgba(0, 0, 0, 0.12);
+}
+.page-cx .cx-side__card h2 {
+  font-family: var(--f-mono); font-stretch: normal; font-weight: 600;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.page-cx .cx-side__big {
+  font-family: var(--f-display); font-stretch: 112%; font-weight: 800; font-size: 26px;
+  letter-spacing: -0.02em; color: #fff; text-decoration: none; display: block;
+}
+.page-cx .cx-side__big:hover { text-decoration: underline; text-underline-offset: 4px; }
+.page-cx .cx-side__mail { font-size: 17px; font-weight: 700; color: #fff; text-decoration: none; display: block; word-break: break-word; }
+.page-cx .cx-side p { font-size: 14.5px; margin-top: 6px; }
+.page-cx .cx-side a { color: #fff; }
+
+/* ---------------------- what every sub-page closes on ---------------------- */
+.page-cx .cx-closesec { padding: 0 0 clamp(72px, 9vw, 120px); }
+.page-cx .cx-close {
+  background: radial-gradient(120% 120% at 0 0, var(--cx-orange-d), #ad4514 55%, #8f3a10);
+  color: #fff; border-radius: 28px; padding: clamp(30px, 4.5vw, 56px);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(24px, 4vw, 48px); align-items: center;
+  box-shadow: 0 40px 80px -40px rgba(143, 58, 16, 0.7);
+}
+.page-cx .cx-close h2 { font-weight: 900; font-size: clamp(28px, 3.6vw, 46px); line-height: 1.02; }
+.page-cx .cx-close p { margin-top: 14px; font-size: 17px; max-width: 58ch; }
+.page-cx .cx-close__btns { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.page-cx .cx-close__btns .ds-btn { white-space: nowrap; }
+/* White on the orange panel, so the primary action is not orange on orange. */
+.page-cx .ds-btn--onorange {
+  background: #fff; color: var(--cx-orange-ink); box-shadow: 0 4px 0 rgba(90, 36, 9, 0.5);
+}
+.page-cx .ds-btn--onorange:hover { background: #fff6f1; color: var(--cx-orange-ink); box-shadow: 0 6px 0 rgba(90, 36, 9, 0.5); }
+.page-cx .cx-close__alt { color: #fff; font-size: 15px; text-decoration: none; }
+.page-cx .cx-close__alt strong { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 860px) {
+  .page-cx .cx-close { grid-template-columns: 1fr; }
+  .page-cx .cx-close__btns { flex-direction: row; flex-wrap: wrap; align-items: center; }
+}
+
+/* ---------------------- the capability statement ----------------------
+   On screen it is a page like the others. Printed, it is the document
+   procurement files: the hero, the shelf and the figures drop out and it
+   opens at the first table, under a header that only exists on paper. */
+.page-cx .cx-capgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.page-cx .cx-capgrid > .cx-tbl--wide { grid-column: 1 / -1; }
+.page-cx .cx-caplist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.page-cx .cx-caplist li { font-size: 15.5px; color: var(--cx-ink-2); }
+.page-cx .cx-caplist strong { color: var(--cx-ink); }
+.page-cx .cx-cappills { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.page-cx .cx-cappills li {
+  border: 1px solid var(--cx-line); background: #fff; border-radius: 999px;
+  padding: 7px 14px; font-size: 14px;
+}
+.page-cx .cx-capfoot { margin-top: 28px; font-size: 14px; color: var(--cx-ink-3); max-width: 80ch; }
+.page-cx .cx-printhead { display: none; }
+.page-cx .cx-print {
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 12px 18px; border-radius: 10px;
+  font-family: var(--f-display); font-weight: 700; font-size: 15px;
+  color: #fff; background: var(--cx-navy); border: 0;
+  box-shadow: 0 4px 0 #000418; cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+}
+.page-cx .cx-print:hover { background: var(--cx-navy-2); transform: translateY(-1px); box-shadow: 0 6px 0 #000418; }
+.page-cx .cx-print:active { transform: translateY(3px); box-shadow: 0 1px 0 #000418; }
+.page-cx .cx-capcontact { display: flex; gap: clamp(18px, 3vw, 40px); flex-wrap: wrap; margin: 0; }
+.page-cx .cx-capcontact > div { display: grid; gap: 2px; }
+.page-cx .cx-capcontact dt {
+  font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--cx-ink-3);
+}
+.page-cx .cx-capcontact dd { margin: 0; font-weight: 700; font-size: 15px; }
+.page-cx .cx-capcontact a { color: inherit; text-decoration: none; }
+.page-cx .cx-capcontact a:hover { color: var(--cx-orange-ink); }
+@media (max-width: 640px) { .page-cx .cx-capgrid { grid-template-columns: 1fr; } }
+
+@media print {
+  .sitemode, .hdr, .stickycta, .ftr, footer, .cx-noprint { display: none !important; }
+  .page-cx { background: #fff; font-size: 11pt; }
+  .page-cx .cx-sec { padding: 0; }
+  .page-cx .cx-printhead {
+    display: block; padding: 0 0 14px; border-bottom: 2px solid #000; margin-bottom: 18px;
+  }
+  .page-cx .cx-printhead__name {
+    margin: 0; font-family: var(--f-display); font-weight: 800; font-size: 22pt;
+    line-height: 1.1; color: #000;
+  }
+  .page-cx .cx-printhead p { margin: 6px 0 0; font-size: 10.5pt; color: #333; }
+  .page-cx .cx-capgrid { grid-template-columns: 1fr; gap: 0; }
+  .page-cx .cx-tbl {
+    break-inside: avoid; border: 0; border-top: 1px solid #999; border-radius: 0;
+    padding: 12px 0; background: none;
+  }
+  .page-cx .cx-tbl h4 { color: #000; }
+  .page-cx .cx-tbl dd { color: #000; }
+  .page-cx .cx-cappills li { border-color: #999; }
 }

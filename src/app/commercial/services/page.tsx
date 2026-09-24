@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import Image from "next/image";
 import { site } from "@/lib/site";
-import { COMM_SCOPES, COMM_PROCESS } from "@/lib/commercial";
-import "../commercial.css";
+import { COMM_SCOPES } from "@/lib/commercial";
+import { CxSubHero } from "@/components/commercial/CxSubHero";
+import { CxClose } from "@/components/commercial/CxClose";
+import { DuctDivider } from "@/components/commercial/DuctDivider";
+import { ProcessTimeline } from "@/components/commercial/ProcessTimeline";
+import { CommReveal } from "@/components/commercial/CommReveal";
+import "../cx.css";
 
 export const metadata: Metadata = {
   title: "Commercial Fit-outs, Plant & Maintenance",
@@ -12,103 +15,110 @@ export const metadata: Metadata = {
   alternates: { canonical: "/commercial/services" },
 };
 
+/**
+ * What we do, at length.
+ *
+ * The front page sets the ten packages out as cards, which is the right
+ * shape for picking one. This is the shape for reading one: the claim on the
+ * left, what is actually in the package on the right, and a rule between
+ * each — so somebody who followed "What's included →" lands on the detail
+ * rather than on the same card one size larger.
+ *
+ * The jump list over the seam is not decoration. Ten anchors is a lot of
+ * scrolling to reach the one you came for, and most readers arrive here
+ * wanting exactly one of them.
+ */
 export default function CommercialServicesPage() {
   return (
-    <div className="page-comm">
-      <section className="comm-sub comm-sub--photo">
-        <div className="wrap comm-sub__inner">
-          <Link href="/commercial" className="comm-back">← Commercial</Link>
-          <span className="ds-eyebrow">What we do</span>
-          <h1>Ten packages, and the detail behind each one.</h1>
-          <p className="comm-sub__lede">
+    <div className="page-cx" data-no-reveal>
+      <CxSubHero
+        eyebrow="What we do"
+        title={<>Ten packages, and the detail behind <em>each one.</em></>}
+        lede={
+          <>
             We&rsquo;re a specialist mechanical, gas and hot water contractor, not a builder. Every one of these is a
             package we own from the drawings through to handover, with our own crew on it. If a scope needs something
             that isn&rsquo;t on this page, the honest answer is usually that we&rsquo;re not the right outfit for it.
-          </p>
-        </div>
-      </section>
+          </>
+        }
+        photo="/comm/duct-install.jpg"
+      />
 
-      {/* The jump list rides over the seam, the way the fork does on the front
-          page. Ten anchors is a lot of scrolling to find the one you came for. */}
-      <section className="comm-panelsec">
+      <div className="cx-shelf">
         <div className="wrap">
-          <div className="comm-panel">
-            <span className="comm-panel__eyebrow">Go straight to</span>
-            <nav className="comm-jump" aria-label="Jump to a package">
+          <div className="cx-shelf__card">
+            <span className="cx-eye">Go straight to</span>
+            <nav className="cx-jump" aria-label="Jump to a package">
               {COMM_SCOPES.map((sc) => (
                 <a key={sc.slug} href={`#${sc.slug}`}>{sc.title}</a>
               ))}
             </nav>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="comm-full">
-        <div className="wrap comm-full__grid">
-          {COMM_SCOPES.map((sc) => (
-            <article key={sc.slug} className="commfull" id={sc.slug}>
-              <div>
-                <span className="commfull__n">{sc.n}</span>
-                <h2>{sc.title}</h2>
-                <p className="commfull__lede">{sc.lede}</p>
-              </div>
-              <ul className="commfull__list">
-                {sc.detail.map((d) => <li key={d}>{d}</li>)}
-              </ul>
-              <p className="commfull__suits">Suits {sc.suits}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      {/* The same six steps as the front page, because a reader who has come
-          this far is about to ask how it actually runs. */}
-      <section className="comm-flow">
+      <section className="cx-sec">
         <div className="wrap">
-          <div className="ds-section-head">
-            <span className="ds-eyebrow ds-eyebrow--on-dark"><span className="ds-dot ds-dot--orange" /> How every one of them runs</span>
-            <h2 className="ds-h--on-dark">From your plans to a proper handover.</h2>
-            <p className="comm-flow__lede">
-              Whichever package it is, it goes the same way: we read the drawings, build the scope with you in writing,
-              price against that, and hand over with the paperwork in one place.
-            </p>
-          </div>
-          <ol className="comm-steps">
-            {COMM_PROCESS.map((s) => (
-              <li key={s.n} className="commstep">
-                <span className="commstep__n">{s.n}</span>
-                <h3>{s.h}</h3>
-                <p>{s.p}</p>
+          <ol className="cx-full">
+            {COMM_SCOPES.map((sc) => (
+              <li
+                key={sc.slug}
+                id={sc.slug}
+                className={`cx-fullitem cx-rv${sc.slug === "breakdowns" ? " cx-fullitem--urgent" : ""}`}
+              >
+                <div>
+                  <span className="cx-fullitem__n">{sc.n}</span>
+                  <h2>{sc.title}</h2>
+                  <p className="cx-fullitem__lede">{sc.lede}</p>
+                  {sc.slug === "breakdowns" && (
+                    <a className="cx-fullitem__call" href={`tel:${site.phoneE164}`}>
+                      Call {site.phone} →
+                    </a>
+                  )}
+                </div>
+                <div>
+                  <ul className="cx-fullitem__list">
+                    {sc.detail.map((d) => <li key={d}>{d}</li>)}
+                  </ul>
+                  <p className="cx-fullitem__suits">
+                    <b>Suits</b>
+                    {sc.suits}
+                  </p>
+                </div>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="bigcta bigcta--photo" data-hide-sticky-cta>
-        <div className="wrap bigcta__row">
-          <figure className="bigcta__photo">
-            <Image
-              src="/commercial-v3.webp"
-              alt="Packaged rooftop plant being craned into position on a commercial site"
-              fill
-              sizes="(max-width: 900px) 100vw, 50vw"
-              style={{ objectFit: "cover" }}
-            />
-          </figure>
-          <div className="bigcta__copy">
-            <h2>Not sure it&rsquo;s one of ours?</h2>
-            <p>
-              Send it anyway. If it isn&rsquo;t something we&rsquo;re set up to do properly we&rsquo;ll say so, and usually
-              point you at someone who is. That&rsquo;s cheaper for both of us than finding out halfway through.
+      <DuctDivider on="navy" label="supply air" />
+
+      {/* The same six stages as the front page. A reader who has come this far
+          is about to ask how it actually runs, and the answer does not change
+          with the package. */}
+      <section className="cx-sec cx-sec--navy" id="process">
+        <div className="wrap">
+          <header className="cx-sec__head cx-rv">
+            <span className="cx-eye cx-eye--sky">However it is packaged</span>
+            <h2>From your plans to a proper handover.</h2>
+            <p className="cx-sec__lede">
+              Whichever one of the ten it is, it goes the same way: we read the drawings, build the scope with you in
+              writing, price against that, and hand over with the paperwork in one place.
             </p>
-            <div className="bigcta__btns">
-              <Link href="/commercial/contact" className="ds-btn ds-btn--orange ds-btn--xl">Submit a scope →</Link>
-              <a href={`tel:${site.phoneE164}`} className="bigcta__phone">or call <strong>{site.phone}</strong></a>
-            </div>
-          </div>
+          </header>
+          <ProcessTimeline />
         </div>
       </section>
+
+      <CxClose
+        title="Not sure it's one of ours?"
+        alt={{ href: `tel:${site.phoneE164}`, label: <>or call <strong>{site.phone}</strong></>, external: true }}
+      >
+        Send it anyway. If it isn&rsquo;t something we&rsquo;re set up to do properly we&rsquo;ll say so, and usually
+        point you at someone who is. That&rsquo;s cheaper for both of us than finding out halfway through.
+      </CxClose>
+
+      <CommReveal />
     </div>
   );
 }

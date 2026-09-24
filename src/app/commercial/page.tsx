@@ -20,7 +20,7 @@ import { DuctDivider } from "@/components/commercial/DuctDivider";
 import { ProcessTimeline } from "@/components/commercial/ProcessTimeline";
 import { CommGallery } from "@/components/commercial/CommGallery";
 import { CommReveal } from "@/components/commercial/CommReveal";
-import "./front.css";
+import "./cx.css";
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical, Melbourne",
