@@ -138,7 +138,7 @@ export default function CommercialPage() {
         <div className="cx-spine" aria-hidden="true" data-m="pass" />
 
         {/* ---- 01 · THE JOBS WE HAVE DONE ---- */}
-        <section className="cx-sec cx-jobs" data-stop="jobs">
+        <section className="cx-sec cx-sec--wide cx-jobs" data-stop="jobs">
           <div className="wrap">
             <header className="cx-head">
               <span className="cx-head__n" data-m="arrive">01</span>
@@ -153,22 +153,19 @@ export default function CommercialPage() {
             </header>
 
             <div className="cx-body">
-            <div className="cx-table" role="table" aria-label="Completed commercial work">
-              <div className="cx-table__head" role="row">
-                <span role="columnheader">Client</span>
-                <span role="columnheader">Sector</span>
-                <span role="columnheader">The job</span>
-                <span role="columnheader">Where</span>
-              </div>
-              {COMM_CLIENTS.map((c) => (
-                <div className="cx-table__row" role="row" key={c.name} data-m="arrive">
-                  <span role="cell" className="cx-table__key">{c.name}</span>
-                  <span role="cell"><span className={`cx-chip cx-chip--${c.tone}`}>{c.sector}</span></span>
-                  <span role="cell">{c.what}</span>
-                  <span role="cell" className="cx-table__where">{c.where}</span>
-                </div>
+            <ol className="cx-index">
+              {COMM_CLIENTS.map((c, i) => (
+                <li key={c.name} data-m="arrive">
+                  <span className="cx-index__n">{String(i + 1).padStart(2, "0")}</span>
+                  <h3 className="cx-index__name">{c.name}</h3>
+                  <p className="cx-index__meta">
+                    <span className={`cx-chip cx-chip--${c.tone}`}>{c.sector}</span>
+                    <span className="cx-index__what">{c.what}</span>
+                    <span className="cx-index__where">{c.where}</span>
+                  </p>
+                </li>
               ))}
-            </div>
+            </ol>
             </div>
           </div>
         </section>
@@ -221,7 +218,7 @@ export default function CommercialPage() {
              The standard is the argument; the program is the evidence for
              it. Six reasons, and then the six stages that show what those
              reasons look like on a live site. */}
-        <section className="cx-sec cx-why" data-stop="why">
+        <section className="cx-sec cx-sec--wide cx-why" data-stop="why">
           <div className="wrap">
             <header className="cx-head">
               <span className="cx-head__n" data-m="arrive">03</span>
@@ -293,7 +290,7 @@ export default function CommercialPage() {
              "who actually turns up" is asked about the crew, but the one
              underneath it is "who do I ring when it goes wrong", and that
              has an answer with a face on it. */}
-        <section className="cx-sec cx-team" data-stop="team">
+        <section className="cx-sec cx-sec--wide cx-team" data-stop="team">
           <div className="wrap">
             <header className="cx-head">
               <span className="cx-head__n" data-m="arrive">04</span>
