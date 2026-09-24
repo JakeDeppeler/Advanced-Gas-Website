@@ -31,11 +31,17 @@ export async function POST(req: Request) {
     return new NextResponse("Invalid email", { status: 400 });
   }
 
-  const recipients = (process.env.LEAD_NOTIFICATION_EMAIL ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  // Fall back to Jake the way /api/quote does. Without this, an unset
+  // LEAD_NOTIFICATION_EMAIL meant `recipients` was empty, the whole send
+  // block was skipped, the signup was written to a console nobody reads,
+  // and the visitor was still told "You're in." A signup is not stored
+  // anywhere else, so that lost it outright.
+  const envRecipients = (process.env.LEAD_NOTIFICATION_EMAIL ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const recipients = envRecipients.length ? envRecipients : ["jake@advancedgas.com.au"];
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL ?? "Advanced Gas Website <onboarding@resend.dev>";
 
-  if (apiKey && recipients.length > 0) {
+  if (apiKey) {
     // 1) Internal notification
     await send({
       key: apiKey,
@@ -73,7 +79,11 @@ export async function POST(req: Request) {
       ].join("\n"),
     });
   } else {
-    console.log("NEWSLETTER SIGNUP →", data.email);
+    // Nothing sent and nothing stored: saying ok here is telling somebody
+    // they are subscribed when no record of them exists anywhere. Same
+    // call /api/quote makes when it can neither email nor store.
+    console.error("RESEND_API_KEY missing. NEWSLETTER SIGNUP LOST →", data.email);
+    return new NextResponse("Could not record the signup", { status: 502 });
   }
 
   return NextResponse.json({ ok: true });
