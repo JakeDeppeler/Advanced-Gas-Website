@@ -2073,12 +2073,15 @@ input, select, textarea {
   font-weight: 800;
   font-family: var(--f-display);
 }
+/* The one white-on-orange ground the earlier contrast sweep missed: this
+   bar only exists below 900px, and the sweep ran at desktop widths. The
+   vivid --orange behind 15px white is 3.1:1. --orange-deep is 4.64:1. */
 .stickycta__quote {
-  background: var(--orange); color: #fff;
-  box-shadow: 0 3px 0 #c14a13;
+  background: var(--orange-deep); color: #fff;
+  box-shadow: 0 3px 0 #8f3a0e;
 }
 .stickycta:active { }
-.stickycta__quote:active { transform: translateY(1px); box-shadow: 0 2px 0 #c14a13; }
+.stickycta__quote:active { transform: translateY(1px); box-shadow: 0 2px 0 #8f3a0e; }
 
 @media (max-width: 900px) {
   .stickycta { display: flex; }

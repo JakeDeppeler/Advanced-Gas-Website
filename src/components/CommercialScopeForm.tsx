@@ -47,16 +47,35 @@ function niceSize(bytes: number) {
     : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+/**
+ * The ten packages, in the same words and the same order as the section that
+ * lists them further up the page, plus the one answer that is actually the
+ * most common. Somebody who has just read "a combination of them is normal"
+ * needs to be able to say so here.
+ */
 const PACKAGES = [
   "Tenancy or retail fit-out",
-  "System replacement",
+  "Base build mechanical",
+  "System replacement on a live site",
   "Scheduled maintenance",
-  "Type A gas / hot water",
-  "Breakdown or repair",
-  "Not sure yet",
+  "Type A & Type B gas",
+  "Commercial hot water",
+  "Commercial evaporative cooling",
+  "Ventilation & kitchen exhaust",
+  "Air balancing & commissioning",
+  "Breakdown response",
+  "A combination",
 ];
 
-export function CommercialScopeForm({ headingLevel = "h3" }: { headingLevel?: "h2" | "h3" } = {}) {
+export function CommercialScopeForm({
+  headingLevel = "h3",
+  badge,
+}: {
+  headingLevel?: "h2" | "h3";
+  /** The pill above the heading. Opt-in, because only the commercial front
+      page has a card wide enough to carry one without crowding the title. */
+  badge?: string;
+} = {}) {
   const Heading = headingLevel;
   const [company, setCompany] = useState("");
   const [name, setName] = useState("");
@@ -142,6 +161,7 @@ export function CommercialScopeForm({ headingLevel = "h3" }: { headingLevel?: "h
   if (sent) {
     return (
       <div className="scopeform scopeform--done" role="status">
+        {badge && <span className="scopeform__badge">Received</span>}
         <span className="scopeform__tick" aria-hidden="true">✓</span>
         <h3>Got it{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}.</h3>
         <p>
@@ -155,6 +175,7 @@ export function CommercialScopeForm({ headingLevel = "h3" }: { headingLevel?: "h
 
   return (
     <form className="scopeform" onSubmit={onSubmit} noValidate>
+      {badge && <span className="scopeform__badge">{badge}</span>}
       <Heading className="scopeform__h">Submit a scope.</Heading>
       <p className="scopeform__sub">Drawings, a mechanical schedule or a site address is sufficient to begin. Attach the plans if you have them.</p>
 

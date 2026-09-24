@@ -144,15 +144,24 @@ export const COMM_SCOPES: CommScope[] = [
   },
 ];
 
-/** Everything a procurement team asks for before you're allowed on site. */
-export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
+/**
+ * Everything a procurement team asks for before you're allowed on site.
+ *
+ * The third element marks a value as an IDENTIFIER rather than a sentence —
+ * a licence number, an ABN, a figure — which the commercial front page sets
+ * in mono so it can be read off the screen digit by digit and typed into a
+ * form somewhere else. That is what these rows are for.
+ */
+const PLUMBING_NO = site.licences.plumbing.replace(/^plumbing licence\s*/i, "");
+
+export const CAPABILITY: { group: string; rows: [string, string, boolean?][] }[] = [
   {
     group: "The entity",
     rows: [
       ["Legal name", site.legalName],
       ["Trading as", site.name],
-      ["ABN", site.abn],
-      ["ACN", site.acn],
+      ["ABN", site.abn, true],
+      ["ACN", site.acn, true],
       ["Registered address", `${site.address.street}, ${site.address.suburb} ${site.address.state} ${site.address.postcode}`],
       ["Years trading", "12"],
     ],
@@ -160,8 +169,8 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
   {
     group: "Licences & authorisations",
     rows: [
-      ["Plumbing licence", site.licences.plumbing],
-      ["Refrigerant handling", site.licences.refrigeration],
+      ["Plumbing licence", `Lic. ${PLUMBING_NO}`, true],
+      ["Refrigerant handling", site.licences.refrigeration, true],
       ["Type A gas", "Appliance installation & servicing"],
       ["Mechanical services", "Design, install, commission"],
     ],
@@ -169,7 +178,7 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
   {
     group: "Insurance",
     rows: [
-      ["Public liability", "$20,000,000"],
+      ["Public liability", "$20,000,000", true],
       ["Workers compensation", "Current. Certificate of currency on request"],
       ["Motor vehicle", "Comprehensive, full fleet"],
       ["Tools & plant", "Covered"],
@@ -204,20 +213,24 @@ export const CAPABILITY: { group: string; rows: [string, string][] }[] = [
  * was a bank or a bakery. It also groups the list into three kinds of
  * client — institutional, consumer-facing and trade — which is the only
  * grouping that carries a colour honestly rather than a colour per row.
+ *
+ * Four groups, not three: a tier-one builder is neither an institution nor a
+ * trade supplier, and on this page it is the one kind of client every other
+ * builder reading the page is looking for.
  */
 export type CommClient = {
   name: string;
   what: string;
   where: string;
   sector: string;
-  /** institutional · consumer · trade — drives the chip colour. */
-  tone: "inst" | "cons" | "trade";
+  /** institutional · consumer · builder · trade — drives the pill colour. */
+  tone: "inst" | "cons" | "build" | "trade";
 };
 
 export const COMM_CLIENTS: CommClient[] = [
   { name: "Westpac", what: "Branch fit-out", where: "Sale, Gippsland", sector: "Banking", tone: "inst" },
   { name: "Commonwealth Bank", what: "Branch fit-out", where: "Victoria", sector: "Banking", tone: "inst" },
-  { name: "Kane Constructions", what: "Tier-one builder, subcontract packages", where: "Victoria", sector: "Construction", tone: "trade" },
+  { name: "Kane Constructions", what: "Tier-one builder, subcontract packages", where: "Victoria", sector: "Construction", tone: "build" },
   { name: "Petbarn", what: "National retail rollout", where: "Multi-site", sector: "Retail", tone: "cons" },
   { name: "Greencross", what: "Vet clinics", where: "Multi-site", sector: "Retail", tone: "cons" },
   { name: "Reece Group", what: "Multi-site service contract", where: "Victoria", sector: "Trade supply", tone: "trade" },
@@ -385,4 +398,44 @@ export const COMM_FACTS: { n: string; k: string; p: string }[] = [
   { n: "$20M", k: "public liability", p: "Certificate of currency back the same day you ask for it." },
   { n: "Before site", k: "paperwork returned", p: "SWMS, certificates of currency and site inductions land before anyone turns up. If they are not back, we are not on site." },
   { n: "100%", k: "directly employed", p: "Our own installers and apprentices. No labour hire, no rotating subcontractors." },
+];
+
+
+/**
+ * The brands we are authorised for.
+ *
+ * Daikin is on the list because it is in the fit-out photographs — the VRV
+ * outdoor units on that roof are ours. Confirm the final list with Jake
+ * before this is treated as a claim rather than a description.
+ */
+export const COMM_BRANDS: { name: string; what: string }[] = [
+  { name: "Daikin", what: "VRV & ducted" },
+  { name: "Mitsubishi", what: "Electric aircon" },
+  { name: "Kaden", what: "Aircon" },
+  { name: "Brivis", what: "Gas ducted" },
+  { name: "Reclaim", what: "Heat pumps" },
+  { name: "iStore", what: "Heat pumps" },
+  { name: "Thermann", what: "Hot water" },
+];
+
+/**
+ * One commercial fit-out, photographed by the crew on the job.
+ *
+ * These are the first real commercial photographs the site has had — until
+ * now the only one was the crane shot, and everything else in the library
+ * was domestic. The captions describe what is in frame; swap them for the
+ * project name and location if that is ever cleared to publish.
+ *
+ * `big` spans two columns and two rows at the top left of the grid.
+ */
+export const COMM_GALLERY: { src: string; cap: string; big?: boolean }[] = [
+  { src: "/comm/lift.jpg", cap: "Plant lifted to the roof by crane", big: true },
+  { src: "/comm/vrv-outdoor.jpg", cap: "VRV outdoor unit, set on the roof" },
+  { src: "/comm/rooftop-daikin-box.jpg", cap: "Units landed on the roof, still boxed" },
+  { src: "/comm/ceiling-unit.jpg", cap: "Ceiling unit going in above the fit-out" },
+  { src: "/comm/duct-install.jpg", cap: "Supply ductwork hung from the steel" },
+  { src: "/comm/ductwork.jpg", cap: "Duct transitions before the ceiling closes" },
+  { src: "/comm/unit-lift.jpg", cap: "Indoor unit lifted into position" },
+  { src: "/comm/ewp-unit.jpg", cap: "Hanging units from the roof structure" },
+  { src: "/comm/fitout-floor.jpg", cap: "Pipe runs across the tenancy" },
 ];

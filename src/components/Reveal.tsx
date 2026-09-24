@@ -37,7 +37,13 @@ export function Reveal() {
       // and on a tall window the join sits close enough to the 90% line that
       // one half would animate and the other would not, splitting a card that
       // is meant to read as one.
-      if (sec.hasAttribute("data-no-reveal")) return;
+      //
+      // `closest` rather than `hasAttribute`, so a page that brings its own
+      // reveals can opt out of these in one place at its root instead of
+      // tagging every section. Two reveal systems on one section fade the
+      // section's own background as well as its contents, which on a dark
+      // band reads as the colour being wrong rather than as an animation.
+      if (sec.closest("[data-no-reveal]")) return;
       const box = sec.getBoundingClientRect();
       if (box.top < window.innerHeight * 0.9) return; // above the fold, leave alone
       targets.add(sec);
