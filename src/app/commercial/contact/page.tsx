@@ -1,107 +1,124 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { site } from "@/lib/site";
-import { CommercialScopeForm } from "@/components/CommercialScopeForm";
-import "../commercial.css";
+import { COMM_AREA_TOWNS } from "@/lib/commercialSite";
+import { CxSubHero } from "@/components/commercial/CxSubHero";
+import { ContactRouter } from "@/components/commercial/ContactRouter";
+import { ServiceRadar } from "@/components/commercial/ServiceRadar";
+import { CommReveal } from "@/components/commercial/CommReveal";
+import "../cx.css";
 
 export const metadata: Metadata = {
-  title: "Submit a Commercial Scope, Pakenham VIC",
+  title: "Contact Us, Commercial Mechanical Pakenham",
   description:
-    "Submit a scope for pricing, or ask for certificates of currency, SWMS and induction docs. Commercial mechanical across Melbourne's south-east and Gippsland.",
+    "Submit a scope, book a service, ask for a home quote or request certificates of currency and SWMS. Based in Pakenham, on site within 75 km and further for contract work.",
   alternates: { canonical: "/commercial/contact" },
 };
 
 /**
  * The commercial contact page.
  *
- * It exists because the commercial nav used to send "Contact" to the
- * residential contact page with a query string on it. The header only knows
- * the path, so the moment you clicked Contact the whole chrome flipped back to
- * the residential side: navy header, "Your home" tab lit, a form that walks
- * you through brand and size for a split system. Everything about that said
- * "wrong door". This is the right door.
+ * Four kinds of person arrive here and they do not want the same form, so
+ * the first thing on the page is which one you are — see ContactRouter.
+ * Everything else is a way of not using the form at all: the emergency
+ * number first and largest, then the two inboxes, then where we actually
+ * are.
+ *
+ * The page carries no opening hours. On the commercial side the answer that
+ * matters is that the emergency line is answered at any hour, and putting
+ * office hours beside it invites somebody with plant down on a Saturday to
+ * conclude we are shut.
  */
 export default function CommercialContactPage() {
   return (
-    <div className="page-comm page-commcontact">
-      <section className="comm-sub comm-sub--photo">
-        <div className="wrap comm-sub__inner">
-          <Link href="/commercial" className="comm-back">← Commercial</Link>
-          <span className="ds-eyebrow">Contact</span>
-          <h1>Submit a scope, or ask a question.</h1>
-          <p className="comm-sub__lede">
-            Drawings, a mechanical schedule or a site address is sufficient to begin. If you need certificates of
-            currency, SWMS or induction documentation before anything else, ask and they come back the same day.
-          </p>
-        </div>
-      </section>
+    <div className="page-cx" data-no-reveal>
+      <CxSubHero
+        eyebrow="Get in touch"
+        title={<>Talk to the person who&rsquo;ll <em>price the job.</em></>}
+        lede={
+          <>
+            Tell us about your site, scope and timing. We&rsquo;ll talk it through and put together a clear,
+            itemised quote.
+          </>
+        }
+        crumb="Contact us"
+        photo="/comm/fitout-floor.jpg"
+        ctas={
+          <span className="cx-live">
+            <i aria-hidden="true" />
+            <span>Emergency line open 24/7</span>
+          </span>
+        }
+      />
 
-      {/* Three doors over the seam: the form below is for a scope; these are
-          for everyone who came here to do something else. */}
-      <section className="comm-panelsec">
-        <div className="wrap">
-          <div className="comm-panel">
-            <span className="comm-panel__eyebrow">Or, right now</span>
-            <div className="comm-quick">
-              <a href={`tel:${site.phoneE164}`} className="commquick commquick--orange">
-                <span className="commquick__ico" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.9.72 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.35 1.85.59 2.81.72A2 2 0 0 1 22 16.92z" /></svg>
-                </span>
-                <span className="commquick__txt"><strong>Call the office</strong><em>{site.phone}</em></span>
-                <span className="commquick__go" aria-hidden="true">&rarr;</span>
+      <div className="wrap">
+        <div className="cx-cmain" id="scope" data-hide-sticky-cta>
+          <Suspense fallback={<div className="cx-formcard" style={{ minHeight: 520 }} />}>
+            <ContactRouter />
+          </Suspense>
+
+          <aside className="cx-cside">
+            <a className="cx-cc cx-cc--em cx-rv" href={`tel:${site.phoneE164}`}>
+              <span className="cx-mono">Phone · 24/7 emergency</span>
+              <b>{site.phone}</b>
+              <small>
+                Gas, hot water and plant down on a contracted site. After hours goes to someone on the tools.
+              </small>
+            </a>
+
+            <div className="cx-cc2">
+              <a className="cx-cc cx-rv" style={{ ["--i" as string]: "1" }} href={`mailto:${site.email}`}>
+                <span className="cx-mono">Office</span>
+                <b>admin@</b>
+                <small>{site.email}</small>
               </a>
-              <a href={`mailto:${site.email}`} className="commquick commquick--navy">
-                <span className="commquick__ico" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
-                </span>
-                <span className="commquick__txt"><strong>Email the drawings</strong><em>{site.email}</em></span>
-                <span className="commquick__go" aria-hidden="true">&rarr;</span>
+              <a className="cx-cc cx-rv" style={{ ["--i" as string]: "2" }} href="mailto:jake@advancedgas.com.au">
+                <span className="cx-mono">Estimating &amp; quotes</span>
+                <b>jake@</b>
+                <small>jake@advancedgas.com.au</small>
               </a>
-              <Link href="/commercial/capability" className="commquick commquick--ink">
-                <span className="commquick__ico" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M9 13h6M9 17h6" /></svg>
-                </span>
-                <span className="commquick__txt"><strong>Capability statement</strong><em>Licences, insurances, past work</em></span>
-                <span className="commquick__go" aria-hidden="true">&rarr;</span>
-              </Link>
             </div>
+
+            <div className="cx-cc cx-rv" style={{ ["--i" as string]: "3" }}>
+              <span className="cx-mono">Address</span>
+              <b>{site.address.street}</b>
+              <small>{site.address.suburb} {site.address.state} {site.address.postcode}</small>
+            </div>
+
+            {/* Not opening hours: on a commercial page the useful promise is
+                how fast the paperwork comes back, and the emergency line
+                above already answers "can I reach you". */}
+            <div className="cx-cc cx-rv" style={{ ["--i" as string]: "4" }}>
+              <span className="cx-mono">Paperwork</span>
+              <b>Same day</b>
+              <small>
+                Certificates of currency, SWMS and inductions.{" "}
+                <Link href="/commercial/capability">See the capability statement</Link>.
+              </small>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      {/* ========================= SERVICE AREA ========================= */}
+      <section className="cx-sec cx-sec--navy" id="area" style={{ marginTop: "clamp(72px, 9vw, 120px)" }}>
+        <div className="wrap">
+          <div className="cx-area">
+            <div className="cx-rv">
+              <span className="cx-eye cx-eye--sky">Service area</span>
+              <h2>Melbourne&rsquo;s south-east &amp; Gippsland.</h2>
+              <p>Based in {site.address.suburb} and servicing within 75 km, and further for contract work.</p>
+              <ul className="cx-chips">
+                {COMM_AREA_TOWNS.map((t) => <li key={t}>{t}</li>)}
+              </ul>
+            </div>
+            <ServiceRadar />
           </div>
         </div>
       </section>
 
-      <section className="commcontact commcontact--dark">
-        <div className="wrap commcontact__grid">
-          <CommercialScopeForm headingLevel="h2" />
-
-          <aside className="commcontact__side">
-            <div className="commcontact__card">
-              <h2>Call the office</h2>
-              <a className="commcontact__phone" href={`tel:${site.phoneE164}`}>{site.phone}</a>
-              <span className="commcontact__sub">{site.hours[0].day.replace("-", " to ")}, {site.hours[0].open} to {site.hours[0].close}. After hours goes to someone on the tools.</span>
-            </div>
-
-            <div className="commcontact__card">
-              <h2>Email</h2>
-              <a className="commcontact__mail" href={`mailto:${site.email}`}>{site.email}</a>
-              <span className="commcontact__sub">Drawings and schedules can come straight through as attachments.</span>
-            </div>
-
-            <div className="commcontact__card">
-              <h2>Paperwork</h2>
-              <p>
-                Certificates of currency, SWMS and induction documentation are returned the same day you ask. Licences,
-                insurances and past projects are on the <Link href="/commercial/capability">capability statement</Link>,
-                which prints as a one-page document.
-              </p>
-            </div>
-
-            <div className="commcontact__card commcontact__card--quiet">
-              <h2>Based at</h2>
-              <p>{site.address.street}, {site.address.suburb} {site.address.state} {site.address.postcode}. Standard service area 75&nbsp;km, further for rollout and contract work.</p>
-            </div>
-          </aside>
-        </div>
-      </section>
+      <CommReveal />
     </div>
   );
 }

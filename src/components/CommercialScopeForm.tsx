@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { trackLead, readUtm } from "@/lib/track";
 import { site } from "@/lib/site";
+import { ATTACH_ACCEPT, MAX_FILE_BYTES, MAX_TOTAL_BYTES, niceSize, readAsBase64, type EncodedFile } from "@/lib/attachments";
 
 /**
  * The commercial enquiry form.
@@ -18,41 +19,6 @@ import { site } from "@/lib/site";
  * can't be resourced.
  */
 
-/**
- * Drawings, not photographs. A mechanical schedule is a PDF and a set of plans
- * is usually a big one, so the cap is per-file and the total is checked too:
- * the whole enquiry goes to the API as one JSON body, and Vercel will refuse
- * it silently past a few megabytes.
- */
-const MAX_FILE_BYTES = 8 * 1024 * 1024;
-const MAX_TOTAL_BYTES = 18 * 1024 * 1024;
-const ACCEPT = ".pdf,.dwg,.dxf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.heic,.zip";
-
-function readAsBase64(file: File) {
-  return new Promise<{ name: string; type: string; data: string }>((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve({
-      name: file.name,
-      type: file.type || "application/octet-stream",
-      data: String(r.result).split(",")[1] ?? "",
-    });
-    r.onerror = () => reject(new Error(`Could not read ${file.name}`));
-    r.readAsDataURL(file);
-  });
-}
-
-function niceSize(bytes: number) {
-  return bytes >= 1024 * 1024
-    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
-}
-
-/**
- * The ten packages, in the same words and the same order as the section that
- * lists them further up the page, plus the one answer that is actually the
- * most common. Somebody who has just read "a combination of them is normal"
- * needs to be able to say so here.
- */
 const PACKAGES = [
   "Tenancy or retail fit-out",
   "Base build mechanical",
@@ -107,7 +73,7 @@ export function CommercialScopeForm({
 
     setBusy(true);
 
-    let encoded: { name: string; type: string; data: string }[] = [];
+    let encoded: EncodedFile[] = [];
     try {
       encoded = await Promise.all(files.map(readAsBase64));
     } catch {
@@ -240,7 +206,7 @@ export function CommercialScopeForm({
           ref={fileInput}
           type="file"
           multiple
-          accept={ACCEPT}
+          accept={ATTACH_ACCEPT}
           className="scopeform__fileinput"
           onChange={(e) => {
             const picked = Array.from(e.target.files ?? []);

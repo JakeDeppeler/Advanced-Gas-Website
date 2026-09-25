@@ -20,7 +20,7 @@ import { DuctDivider } from "@/components/commercial/DuctDivider";
 import { ProcessTimeline } from "@/components/commercial/ProcessTimeline";
 import { CommGallery } from "@/components/commercial/CommGallery";
 import { CommReveal } from "@/components/commercial/CommReveal";
-import "./front.css";
+import "./cx.css";
 
 export const metadata: Metadata = {
   title: "Commercial HVAC, Gas & Mechanical, Melbourne",
@@ -219,7 +219,7 @@ export default function CommercialPage() {
               >
                 <span className="cx-num">{s.n}</span>
                 <h3>
-                  <Link href={`/commercial/services#${s.slug}`}>{s.title}</Link>
+                  <Link href="/commercial/what-we-do#packages">{s.title}</Link>
                 </h3>
                 <p>{s.lede}</p>
                 <div className="cx-svc__suits">
@@ -229,7 +229,7 @@ export default function CommercialPage() {
                 {s.slug === "breakdowns" ? (
                   <a className="cx-svc__link" href={`tel:${site.phoneE164}`}>Call {site.phone} →</a>
                 ) : (
-                  <Link className="cx-svc__link" href={`/commercial/services#${s.slug}`}>
+                  <Link className="cx-svc__link" href="/commercial/what-we-do#packages">
                     What&rsquo;s included →
                   </Link>
                 )}
