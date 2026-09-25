@@ -140,18 +140,64 @@ export default function WhatWeDoPage() {
                     <em>Call →</em>
                   </a>
                 ) : (
-                  <Link href={`/commercial#services`}>
+                  <a href={`#${s.slug}`}>
                     <span className="cx-num">{s.n}</span>
                     <div>
                       <b>{s.title}</b>
                       <small>{COMM_PACKAGE_LINES[s.slug]}</small>
                     </div>
                     <em>→</em>
-                  </Link>
+                  </a>
                 )}
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* ------------------- and what is in each one -------------------
+          The index above is for choosing a package; this is for reading
+          one. It exists because "What's included →" on the front page had
+          nowhere to go: ten links, one destination, and that destination
+          linked back — a loop where the detail should have been. The
+          handoff flagged those links as needing their pages. This is the
+          page. */}
+      <section className="cx-sec" id="included" style={{ paddingTop: 0 }}>
+        <div className="wrap">
+          <header className="cx-sec__head cx-rv">
+            <span className="cx-eye">What&rsquo;s included</span>
+            <h2>What each package actually covers.</h2>
+          </header>
+
+          <ol className="cx-full">
+            {COMM_SCOPES.map((s) => (
+              <li
+                key={s.slug}
+                id={s.slug}
+                className={`cx-fullitem cx-rv${s.slug === "breakdowns" ? " cx-fullitem--urgent" : ""}`}
+              >
+                <div>
+                  <span className="cx-fullitem__n">{s.n}</span>
+                  <h3>{s.title}</h3>
+                  <p className="cx-fullitem__lede">{s.lede}</p>
+                  {s.slug === "breakdowns" && (
+                    <a className="cx-fullitem__call" href={`tel:${site.phoneE164}`}>
+                      Call {site.phone} →
+                    </a>
+                  )}
+                </div>
+                <div>
+                  <ul className="cx-fullitem__list">
+                    {s.detail.map((d) => <li key={d}>{d}</li>)}
+                  </ul>
+                  <p className="cx-fullitem__suits">
+                    <b>Suits</b>
+                    {s.suits}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
