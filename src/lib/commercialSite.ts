@@ -241,6 +241,21 @@ export const COMM_LICENCE_CLASSES: string[] = [
   "Fire protection: hydrants & hose reels",
 ];
 
+/**
+ * What the director is qualified as, rather than licensed for.
+ *
+ * Worth its own line because it is a different kind of credential and the
+ * stronger one. "Refrigerated air-conditioning: basic systems" in the list
+ * above is a class on a plumbing licence; a refrigeration mechanic is a
+ * completed trade. On a mechanical package it is the difference between
+ * refrigeration work being ours and refrigeration work being somebody we
+ * booked.
+ */
+export const COMM_TRADE_QUALIFICATIONS: { q: string; p: string } = {
+  q: "Qualified refrigeration mechanic",
+  p: "The director holds the refrigeration trade as well as the plumbing and gasfitting licence, so the refrigeration and air-conditioning work on a package is done by us and signed off by us, not subcontracted out and signed off on trust.",
+};
+
 export const COMM_REGISTRATION_CLASSES: string[] = [
   "Water supply",
   "Water supply: domestic hot-water services",

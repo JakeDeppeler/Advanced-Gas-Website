@@ -1315,6 +1315,13 @@
   padding: 20px 24px; flex-wrap: wrap;
 }
 .page-cx .cx-arc b { font-family: var(--f-mono); font-size: 20px; color: var(--cx-orange); font-weight: 600; }
+/* The same strip when the lead is a phrase rather than a code. 20px of
+   monospace is right for "ARC AU59557" and wrong for a sentence. */
+.page-cx .cx-arc--said b {
+  font-family: var(--f-display); font-stretch: 108%; font-weight: 800;
+  font-size: 21px; letter-spacing: -0.02em; white-space: nowrap;
+}
+@media (max-width: 620px) { .page-cx .cx-arc--said b { white-space: normal; } }
 .page-cx .cx-arc p { color: rgba(255, 255, 255, 0.86); flex: 1; min-width: 240px; font-size: 15px; }
 @media (max-width: 760px) { .page-cx .cx-disc { grid-template-columns: 1fr; } }
 
