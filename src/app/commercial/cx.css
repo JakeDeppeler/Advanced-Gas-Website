@@ -1040,7 +1040,7 @@
   font-size: 44px; line-height: 1; letter-spacing: -0.04em;
   color: var(--cx-orange-mark); display: block; margin-bottom: 10px;
 }
-.page-cx .cx-fullitem h2 { font-weight: 800; font-size: clamp(25px, 2.8vw, 34px); line-height: 1.06; }
+.page-cx .cx-fullitem h3 { font-weight: 800; font-size: clamp(25px, 2.8vw, 34px); line-height: 1.06; }
 .page-cx .cx-fullitem__lede { margin-top: 12px; font-size: 17px; color: var(--cx-ink-2); }
 .page-cx .cx-fullitem__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .page-cx .cx-fullitem__list li {
