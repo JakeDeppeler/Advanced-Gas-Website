@@ -3499,18 +3499,32 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
    takes a slightly different step of the same orange so the stack still has
    depth instead of becoming one flat slab. */
 
+/* The brand orange, not a darkened one — and the text goes navy to pay for
+   it. White on #f36722 is 3.1:1, which is why an earlier contrast pass
+   deepened the GROUND to #c2521a and turned a brand band brown. Navy on the
+   brand orange is 5.99:1, so the colour stays and the reading improves.
+   (The design handoff has this bar navy with white text; the site has had it
+   orange since before that, and orange with dark type is the version that is
+   both on brand and legible.) */
 .sitemode--comm {
   background: var(--orange, #f36722);
   border-bottom-color: rgba(0, 0, 0, 0.13);
 }
-.sitemode--comm .sitemode__tabs { background: rgba(0, 0, 0, 0.16); }
-.sitemode--comm .sitemode__tab { color: #fff; }
-.sitemode--comm .sitemode__tab:hover { color: #fff; background: rgba(0, 0, 0, 0.18); }
-.sitemode--comm .sitemode__tab.is-on { background: #fff; color: #c04d0d; }
-.sitemode--comm .conds__status { color: #fff; }
-.sitemode--comm .conds__status.is-open { color: #fff; }
-.sitemode--comm .conds__temp { color: #fff; }
-.sitemode--comm .conds__sky { color: #fff; }
+.sitemode--comm .sitemode__loc,
+.sitemode--comm .sitemode__emerg,
+.sitemode--comm .conds__status,
+.sitemode--comm .conds__status.is-open,
+.sitemode--comm .conds__temp,
+.sitemode--comm .conds__sky { color: var(--navy); }
+.sitemode--comm .sitemode__emerg { font-weight: 600; }
+.sitemode--comm .sitemode__emerg:hover { color: #000; }
+.sitemode--comm .sitemode__emergdot { background: #7a1d10; box-shadow: 0 0 0 3px rgba(122, 29, 16, 0.22); }
+/* A light inset track rather than a dark one: navy on a 16%-black wash of
+   the brand orange is 4.3:1, on a 25%-white wash it is 7.5:1. */
+.sitemode--comm .sitemode__tabs { background: rgba(255, 255, 255, 0.25); }
+.sitemode--comm .sitemode__tab { color: var(--navy); }
+.sitemode--comm .sitemode__tab:hover { color: var(--navy); background: rgba(255, 255, 255, 0.4); }
+.sitemode--comm .sitemode__tab.is-on { background: #fff; color: var(--navy); }
 
 /* ---- The commercial header ---- */
 /* Hi-vis orange the moment you cross over. It is a real trade colour rather
@@ -4553,12 +4567,10 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
    NOT `.sitemode`: that bar is navy on the residential side and orange
    only under `--comm`. Deepening the base rule turned every utility bar
    on the site orange, which is not a contrast fix, it is a repaint. */
-.sitemode--comm,
 .quotesec__box,
 .bigcta--warm .bigcta__row,
 .bigcta--warm { background: var(--orange-deep); }
 
-.sitemode__loc,
 .sitemode__tab,
 .quotesec__lede,
 .quotesec__finep,
