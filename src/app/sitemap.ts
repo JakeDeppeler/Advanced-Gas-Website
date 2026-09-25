@@ -61,7 +61,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog`, changeFrequency: "weekly", priority: 0.6 },
     { url: `${base}/services`, changeFrequency: "monthly", priority: 0.85 },
     { url: `${base}/commercial`, changeFrequency: "monthly", priority: 0.8 },
-    { url: `${base}/commercial/services`, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/commercial/what-we-do`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/commercial/capability`, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/commercial/about`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/commercial/contact`, changeFrequency: "monthly", priority: 0.8 },

@@ -314,9 +314,14 @@ const NAV: NavItem[] = [
  * back where we started.
  */
 const COMM_NAV: NavItem[] = [
-  { href: "/commercial/services", label: "What we do" },
-  { href: "/commercial/capability", label: "Capability statement" },
-  { href: "/commercial/about", label: "About us" },
+  { href: "/commercial/what-we-do", label: "What we do" },
+  // Clients is a section of the front page rather than a page of its own.
+  // It earns a nav slot anyway: "who else have you done this for" is the
+  // second thing every builder asks, and burying it inside /commercial
+  // means only the people who scroll ever find it.
+  { href: "/commercial#jobs", label: "Clients" },
+  { href: "/commercial/capability", label: "Capability" },
+  { href: "/commercial/about", label: "About" },
   { href: "/commercial/contact", label: "Contact" },
 ];
 
@@ -380,6 +385,10 @@ export function Header() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    // A link to a section of a page is never "the page you are on": the
+    // commercial nav's Clients points at /commercial#jobs, and matching on
+    // the path alone would light it up for the whole front page.
+    if (href.includes("#")) return false;
     return pathname === href || pathname.startsWith(href + "/");
   };
 
@@ -499,6 +508,7 @@ export function Header() {
                 <Link
                   key={n.href}
                   href={n.href}
+                  aria-current={active ? "page" : undefined}
                   className={active ? "is-active" : undefined}
                 >
                   {n.label}

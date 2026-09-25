@@ -42,6 +42,16 @@ const nextConfig = {
         permanent: true,
       },
 
+      // ---- The commercial section's "What we do" page ----
+      // It shipped as /commercial/services and is now /commercial/what-we-do,
+      // which is what the nav, the footer and the design all call it. The old
+      // address is in the sitemap Google already has.
+      {
+        source: "/commercial/services",
+        destination: "/commercial/what-we-do",
+        permanent: true,
+      },
+
       // ---- WEB-008 B1/B2: prune the machine-generated estate ----
       // 53 suburb×service sub-pages and the brand×installer×suburb pages
       // produced a handful of clicks between them and flattened internal
