@@ -25,8 +25,10 @@
    its light corner was 3.55:1. Same hue, same shape, text that passes.
 
    TWO. Orange AS text needs to be deeper still, because it sits on cream
-   rather than white: #c2521a on #f7f5ef is 4.21:1. --cx-orange-ink
-   (#b04711) is 5.14:1 on cream and 5.60:1 on white.
+   rather than white: the design's #c4541a on #f7f5ef is 4.11:1.
+   --cx-orange-ink (#ba4c14) is 4.67:1 on cream and 5.09:1 on white — as
+   close to the design's orange as the small-text bar allows. The one place
+   it lands on cream-2 (4.36:1) takes a deeper step of its own, below.
 
    THREE. The vivid brand orange stays exactly as designed for MARKS — the
    eyebrow dots, the timeline fill, the step dots — where nothing is read off
@@ -52,7 +54,7 @@
   --cx-orange-mark: #e05716;
   --cx-orange-d: #c2521a;
   --cx-orange-dd: #8f3a0e;
-  --cx-orange-ink: #b04711;
+  --cx-orange-ink: #ba4c14;
   --cx-sky: var(--sky);
   --cx-cream: #f7f5ef;
   --cx-cream-2: #f1ede3;
@@ -599,9 +601,12 @@
 .page-cx .cx-why__item {
   background: #fff; border: 1px solid var(--cx-line); border-radius: var(--cx-r); padding: 26px;
 }
+/* Brand orange, not the deeper mark step: these sit on a white card, where
+   #f36722 is 3.08:1 and clears the bar for large text. Only the numerals on
+   cream (What we do) need the deeper one. */
 .page-cx .cx-why__n {
   font-family: var(--f-display); font-stretch: 118%; font-weight: 900;
-  font-size: 52px; line-height: 1; color: var(--cx-orange-mark);
+  font-size: 52px; line-height: 1; color: var(--cx-orange);
   letter-spacing: -0.04em; margin-bottom: 22px; display: inline-block;
 }
 .page-cx .cx-why__item h3 { font-weight: 800; font-size: 21px; margin-bottom: 8px; }
@@ -719,7 +724,9 @@
 .page-cx .cx-spec__side { position: sticky; top: var(--cx-stick); }
 .page-cx .cx-spec__side h2 { font-size: clamp(32px, 3.6vw, 48px); font-weight: 900; line-height: 1; margin: 14px 0 16px; }
 .page-cx .cx-spec__side p { color: var(--cx-ink-2); margin: 0 0 24px; font-size: 17px; }
-.page-cx .cx-spec__side a { color: var(--cx-orange-ink); }
+/* The only orange text on this sheet that sits on cream-2, where
+   --cx-orange-ink is 4.36:1. One step deeper, 4.87:1. */
+.page-cx .cx-spec__side a { color: #b04711; }
 .page-cx .cx-spec__side a.ds-btn { color: #fff; }
 .page-cx .cx-spec__doc {
   width: 64px; height: 80px; border: 2px solid var(--cx-navy); border-radius: 4px 16px 4px 4px;
