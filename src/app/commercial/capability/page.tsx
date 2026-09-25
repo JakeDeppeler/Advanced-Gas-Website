@@ -11,6 +11,7 @@ import {
   COMM_LEADERSHIP,
   COMM_LICENCE_CLASSES,
   COMM_REGISTRATION_CLASSES,
+  COMM_TRADE_QUALIFICATIONS,
 } from "@/lib/commercialSite";
 import { CountUp } from "@/components/CountUp";
 import { CxSubHero } from "@/components/commercial/CxSubHero";
@@ -209,7 +210,9 @@ export default function CapabilityPage() {
           <header className="cx-sec__head cx-rv">
             <span className="cx-eye">04 · Director accreditation</span>
             <h2>Dean Winbanks, licence 46828.</h2>
-            <p className="cx-sec__lede">The classes held by the director who signs off the works.</p>
+            <p className="cx-sec__lede">
+              The classes held by the director who signs off the works, and the trade he is qualified in.
+            </p>
           </header>
 
           <div className="cx-acc">
@@ -221,6 +224,14 @@ export default function CapabilityPage() {
               <h4>Registration classes held</h4>
               <ul>{COMM_REGISTRATION_CLASSES.map((c) => <li key={c}>{c}</li>)}</ul>
             </section>
+          </div>
+
+          {/* A trade, not a licence class — and the stronger credential of
+              the two, so it gets its own line rather than a twelfth bullet
+              in a list where it would read as more of the same. */}
+          <div className="cx-arc cx-arc--said cx-rv">
+            <b>{COMM_TRADE_QUALIFICATIONS.q}</b>
+            <p>{COMM_TRADE_QUALIFICATIONS.p}</p>
           </div>
         </div>
       </section>
