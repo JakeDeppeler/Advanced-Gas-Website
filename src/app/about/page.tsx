@@ -101,7 +101,7 @@ export default function AboutPage() {
 
       <section className="ab-team">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot" /> Leadership</span>
             <h2>A small, hands-on team, the people who quote it, run it and stand behind it.</h2>
             <p>Headed up by Director Dean Winbanks, with over 20 years&rsquo; experience across industrial, commercial and domestic work.</p>
@@ -151,7 +151,7 @@ export default function AboutPage() {
 
       <section className="ab-values">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot ds-dot--orange" /> Why choose us</span>
             <h2>Five things you can count on.</h2>
           </div>
@@ -169,7 +169,7 @@ export default function AboutPage() {
 
       <section className="ab-clients">
         <div className="wrap">
-          <div className="ds-section-head">
+          <div className="ds-section-head ds-section-head--center">
             <span className="ds-eyebrow"><span className="ds-dot" /> Track record</span>
             <h2>Trusted by national brands, tier-one builders and local institutions.</h2>
             <p>Our collaboration with these quality clients demonstrates our capability to handle large-scale, complex projects with professionalism and excellence.</p>
