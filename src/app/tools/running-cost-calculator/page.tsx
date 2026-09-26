@@ -60,7 +60,7 @@ export default function RunningCostCalculatorPage() {
                 The Victorian VEU rebate can knock up to $2,700 off a new heat pump, if you&rsquo;re still
                 on gas storage or electric-storage hot water, the running-cost gap will pay back the install
                 in 3-5 years on typical usage.
-                {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
+                {" "}<Link href="/rebates" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>See our rebate breakdown</Link>.
               </p>
             </div>
           </details>

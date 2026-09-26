@@ -262,7 +262,7 @@ export function HeatingComparator() {
           </div>
           <div className="tool-result__row">
             <span className="tool-result__row-lbl">Annual saving</span>
-            <span className="tool-result__row-val" style={{ color: result.savingYr > 0 ? "var(--orange)" : "var(--ink-2)" }}>
+            <span className="tool-result__row-val" style={{ color: result.savingYr > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
               {$(result.savingYr)}
             </span>
           </div>
@@ -274,7 +274,7 @@ export function HeatingComparator() {
           </div>
           <div className="tool-result__row">
             <span className="tool-result__row-lbl">10-year net saving</span>
-            <span className="tool-result__row-val" style={{ color: result.tenYearSaving > 0 ? "var(--orange)" : "var(--ink-2)" }}>
+            <span className="tool-result__row-val" style={{ color: result.tenYearSaving > 0 ? "var(--orange-ink)" : "var(--ink-2)" }}>
               {$(result.tenYearSaving)}
             </span>
           </div>

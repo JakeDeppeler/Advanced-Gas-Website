@@ -39,7 +39,7 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-weight: 700;
 }
 .tool-card h2 {
@@ -89,7 +89,7 @@
 .tool-card__cta {
   font-family: var(--f-display);
   font-weight: 700;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-size: 14px;
   margin-top: 6px;
 }
@@ -312,7 +312,7 @@
 .fault-code {
   font-family: var(--f-mono);
   font-size: 13.5px;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -369,7 +369,7 @@
   cursor: pointer;
   transition: background .12s, border-color .12s, color .12s;
 }
-.faults-systemchip:hover { border-color: var(--orange); color: var(--orange); }
+.faults-systemchip:hover { border-color: var(--orange); color: var(--orange-ink); }
 .faults-systemchip.is-active {
   background: var(--orange-deep);
   border-color: var(--orange-deep);
@@ -600,7 +600,7 @@
   cursor: pointer;
   transition: background .12s, border-color .12s, color .12s;
 }
-.sysc-chip:hover { border-color: var(--orange); color: var(--orange); }
+.sysc-chip:hover { border-color: var(--orange); color: var(--orange-ink); }
 .sysc-chip.is-active { background: var(--navy); border-color: var(--navy); color: #fff; }
 .sysc-selectionhint {
   font-family: var(--f-mono);
@@ -965,7 +965,7 @@
   border-color: color-mix(in srgb, var(--sky) 28%, var(--line));
   justify-content: center;
 }
-.hps-session--gap strong { color: var(--sky); }
+.hps-session--gap strong { color: var(--sky-ink); }
 .hps-sessions__note {
   margin: 10px 0 0;
   font-size: 13px;
@@ -1017,7 +1017,7 @@
   font-weight: 700;
   margin-bottom: 12px;
 }
-.hps-vs__badge.is-ok    { background: rgba(23,160,106,0.12); color: #12855a; }
+.hps-vs__badge.is-ok    { background: rgba(23,160,106,0.12); color: #0d6845; }
 .hps-vs__badge.is-tight { background: color-mix(in srgb, var(--orange) 15%, #fff); color: #b8460f; }
 
 .hps-vs__rows { margin: 0; display: grid; gap: 6px; }
@@ -1256,4 +1256,4 @@
   color: var(--ink-2);
 }
 .hps-picks__also a { color: var(--navy); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
-.hps-picks__also a:hover { color: var(--orange); }
+.hps-picks__also a:hover { color: var(--orange-ink); }

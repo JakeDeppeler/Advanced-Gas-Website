@@ -64,7 +64,7 @@ export default function HotWaterSavingsPage() {
                 (max at current $60-$75 VEEC prices), which comes off the quoted price rather than
                 being something you chase later. Combined with the annual saving, the payback period is usually inside 4-6
                 years, and the unit is warrantied for at least a decade after that.
-                {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See our rebate breakdown</Link>.
+                {" "}<Link href="/rebates" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>See our rebate breakdown</Link>.
               </p>
             </div>
           </details>

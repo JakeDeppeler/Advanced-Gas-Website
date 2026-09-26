@@ -34,7 +34,7 @@ export default function NotFound() {
             </div>
             <p className="nf__sub" style={{ marginTop: 14 }}>
               Mon&ndash;Fri {openingHoursShort()}. Gas leak, no hot water or a CO alarm after hours?{" "}
-              <Link href="/contact#emergency" style={{ color: "var(--orange)", fontWeight: 700 }}>
+              <Link href="/contact#emergency" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>
                 We answer the emergency line
               </Link>.
             </p>

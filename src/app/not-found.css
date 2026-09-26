@@ -62,7 +62,7 @@
   color: var(--navy);
   letter-spacing: -0.01em;
 }
-.nf__golist a:hover strong { color: var(--orange); }
+.nf__golist a:hover strong { color: var(--orange-ink); }
 .nf__golist span { font-size: 14px; line-height: 1.5; color: var(--ink-2); }
 
 @media (max-width: 900px) {

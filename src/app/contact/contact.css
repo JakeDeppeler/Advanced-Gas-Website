@@ -24,7 +24,7 @@
   font-family: var(--f-display); font-weight: 700; font-size: 13.5px; color: var(--navy);
 }
 .page-contact .ct-field label em,
-.page-contact .ct-field__lbl em { font-style: normal; color: var(--orange); }
+.page-contact .ct-field__lbl em { font-style: normal; color: var(--orange-ink); }
 .page-contact .ct-field input,
 .page-contact .ct-field select,
 .page-contact .ct-field textarea {
@@ -161,5 +161,5 @@
   letter-spacing: -0.015em;
   color: var(--navy);
 }
-.ct-nextrow a:hover strong { color: var(--orange); }
+.ct-nextrow a:hover strong { color: var(--orange-ink); }
 .ct-nextrow span { font-size: 14px; line-height: 1.5; color: var(--ink-2); }

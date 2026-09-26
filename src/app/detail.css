@@ -1000,7 +1000,7 @@
   flex: 0 0 auto;
   font-size: 18px;
   font-weight: 700;
-  color: #EE2A7B;
+  color: #c81660;
   transition: transform .16s ease;
 }
 .ig-cta:hover .ig-cta__go { transform: translateX(4px); }
@@ -2138,7 +2138,7 @@
 }
 .svcnear__list a:hover {
   border-color: var(--orange);
-  color: var(--orange);
+  color: var(--orange-ink);
 }
 .svcnear__list a span {
   flex: none;
@@ -2146,7 +2146,7 @@
   font-size: 0.8rem;
   color: var(--ink-2);
 }
-.svcnear__list a:hover span { color: var(--orange); }
+.svcnear__list a:hover span { color: var(--orange-ink); }
 
 /* ---------- per-suburb local detail on suburb x service pages ---------- */
 /* These pages measured 93% identical to one another, which is the exact
@@ -3452,7 +3452,7 @@
   padding-top: 14px;
   transition: color 0.16s ease, gap 0.16s ease;
 }
-.page-detail .wf-style__go:hover { color: var(--orange); gap: 12px; }
+.page-detail .wf-style__go:hover { color: var(--orange-ink); gap: 12px; }
 /* The card for the system whose page you're on. Same slot as the link,
    so the cards still bottom-align to each other. */
 .page-detail .wf-style__here {

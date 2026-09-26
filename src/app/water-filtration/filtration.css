@@ -126,7 +126,7 @@
   color: var(--navy);
   margin: 0 0 6px;
 }
-.wf-tier__tag { font-size: 14px; color: var(--orange); font-weight: 700; margin: 0 0 14px; }
+.wf-tier__tag { font-size: 14px; color: var(--orange-ink); font-weight: 700; margin: 0 0 14px; }
 .wf-tier__where {
   font-size: 13.5px;
   line-height: 1.5;
@@ -326,10 +326,12 @@
   border-left: 0 !important;
 }
 .wr-td--name a { color: var(--navy); text-decoration: none; border-bottom: 2px solid var(--orange); }
-.wr-td--name a:hover { color: var(--orange); }
+.wr-td--name a:hover { color: var(--orange-ink); }
 .wr-yes, .wr-no { text-align: center; }
-.wr-yes { color: var(--sky); font-weight: 800; font-size: 17px; }
-.wr-dash { color: var(--line-2); }
+/* The tick and the dash are the whole content of these cells, so they are
+   read, not decoration: --sky is 2.49:1 on white and --line-2 is 1.51:1. */
+.wr-yes { color: var(--sky-ink); font-weight: 800; font-size: 17px; }
+.wr-dash { color: var(--ink-3); }
 .wr-td--meta { font-size: 12.5px; color: var(--ink-3); white-space: nowrap; text-align: center; }
 .wr-source {
   margin: 18px 0 0;
@@ -395,7 +397,7 @@
   white-space: nowrap;
 }
 .wr-fam__link { margin-top: auto; font-weight: 700; font-size: 14px; color: var(--navy); text-decoration: none; }
-.wr-fam__link:hover { color: var(--orange); text-decoration: underline; }
+.wr-fam__link:hover { color: var(--orange-ink); text-decoration: underline; }
 
 @media (max-width: 640px) {
   .wr-fam { padding: 20px 22px; }
@@ -528,7 +530,8 @@
   border-top-color: var(--sky);
   box-shadow: 0 6px 18px -8px rgba(5, 10, 48, 0.22);
 }
-.page-filtration .wr-source { color: #fff; opacity: 0.9; }
+/* The matrix sits on the cream, not on the orange band above it. */
+.page-filtration .wr-source { color: var(--ink-2); }
 
 @media (max-width: 640px) {
     .page-filtration .wr-families > .wrap,
@@ -632,7 +635,7 @@
   text-decoration: none;
   border-bottom: 2px solid var(--orange);
 }
-.page-filtration .wf-compare__table tbody th a:hover { color: var(--orange); }
+.page-filtration .wf-compare__table tbody th a:hover { color: var(--orange-ink); }
 /* The one we lead with gets the tint, so "start here" is visible before
    anybody reads a word of it. */
 .page-filtration .wf-compare__table tr.is-lead th,
@@ -664,7 +667,7 @@
   border-bottom: 2px solid var(--orange);
   padding-bottom: 2px;
 }
-.page-filtration .wf-compare__more a:hover { color: var(--orange); }
+.page-filtration .wf-compare__more a:hover { color: var(--orange-ink); }
 
 /* ===================================================================
    WHOLE-HOME REBUILD — Jake went through the page point by point. This
@@ -768,7 +771,7 @@
   border-radius: 999px;
 }
 .page-filtration .wf-model h3 { font-family: var(--f-display); font-size: 20px; color: var(--navy); margin: 0 0 4px; }
-.page-filtration .wf-model__suits { font-size: 13.5px; color: var(--orange); font-weight: 700; margin: 0 0 16px; }
+.page-filtration .wf-model__suits { font-size: 13.5px; color: var(--orange-ink); font-weight: 700; margin: 0 0 16px; }
 .page-filtration .wf-model dl { margin: 0; display: grid; gap: 12px; }
 .page-filtration .wf-model dt {
   font-family: var(--f-mono);
@@ -1115,7 +1118,7 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-ink);
   margin-bottom: 12px;
 }
 .page-filtration .wf-model__reasons { margin: 0; padding: 0; list-style: none; counter-reset: r; display: grid; gap: 11px; }
@@ -1159,7 +1162,7 @@
   border-bottom: 2px solid var(--orange);
   padding-bottom: 2px;
 }
-.page-filtration .wf-areas__more a:hover { color: var(--orange); }
+.page-filtration .wf-areas__more a:hover { color: var(--orange-ink); }
 
 /* --- finish picker --- */
 .fpick { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 26px; align-items: center; }

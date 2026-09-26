@@ -63,7 +63,7 @@ export default function HeatPumpComparePage() {
                 imported units can be slower.
               </p>
               <p>
-                Prices shown are fully-installed, pre-rebate. <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange)", fontWeight: 700 }}>Run
+                Prices shown are fully-installed, pre-rebate. <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>Run
                 the rebate estimator</Link> for your net out-of-pocket.
               </p>
             </div>

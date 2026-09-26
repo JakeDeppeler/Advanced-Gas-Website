@@ -95,11 +95,11 @@
   letter-spacing: 0.04em;
   margin-top: 4px;
 }
-.reclaim-cmp__cap span { color: #2E8459; }
+.reclaim-cmp__cap span { color: #246a47; }
 .reclaim-cmp__price {
   font-family: var(--f-display);
   font-weight: 800;
-  color: #2E8459;
+  color: #246a47;
   font-size: 15px;
 }
 .reclaim-cmp__take {

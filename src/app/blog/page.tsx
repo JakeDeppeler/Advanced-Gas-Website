@@ -41,7 +41,7 @@ export default function BlogPage() {
 
       <section className="bl-feat">
         <div className="wrap">
-          <Link href={`/blog/${featured.slug}`} className="bl-feat__card" style={{ textDecoration: "none", color: "inherit" }}>
+          <Link href={`/blog/${featured.slug}`} className="bl-feat__card">
             <div className="bl-feat__photo" style={{ position: "relative", overflow: "hidden" }}>
               <Image
                 src={featured.photo}

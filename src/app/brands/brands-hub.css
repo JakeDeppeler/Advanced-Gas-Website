@@ -272,7 +272,9 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 1.35;
-  color: var(--card-accent, var(--navy));
+  /* Darkened toward black: the cyan accent is 2.96:1 raw on the white card.
+     At 65% the hue holds and the worst of the seven is 6.2:1. */
+  color: color-mix(in srgb, var(--card-accent, var(--navy)) 65%, #000);
   margin: 0;
 }
 
@@ -362,7 +364,7 @@
   font-family: var(--f-display);
   font-weight: 700;
   font-size: 13.5px;
-  color: var(--card-accent, var(--orange));
+  color: color-mix(in srgb, var(--card-accent, var(--orange)) 65%, #000);
   white-space: nowrap;
   transition: transform .16s ease;
 }
