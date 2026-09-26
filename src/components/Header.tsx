@@ -37,7 +37,7 @@ type NavItem =
       href?: string;
       alignRight?: boolean;
       /** Discriminator on how to render the mega panel. */
-      kind: "services" | "areas" | "pricing" | "company";
+      kind: "services" | "areas" | "tools" | "company";
     };
 
 /**
@@ -298,7 +298,7 @@ const AREAS_MEGA = {
  */
 const NAV: NavItem[] = [
   { label: "Services", trigger: "services", href: "/services", kind: "services" },
-  { label: "Pricing", trigger: "pricing", href: "/pricing", kind: "pricing" },
+  { label: "Tools", trigger: "tools", href: "/tools", kind: "tools" },
   { label: "Areas", trigger: "areas", href: "/service-areas", kind: "areas" },
   { label: "About", trigger: "company", href: "/about", kind: "company" },
 ];
@@ -355,7 +355,7 @@ const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
 /**
  * Every public calculator.
  *
- * The menu renders them from PRICING_GROUPS now, which sorts them by the
+ * The menu renders them from TOOLS_GROUPS now, which sorts them by the
  * question they answer rather than listing them flat. This stays as the one
  * enumeration of the lot, which is what the rail's "All N calculators" counts
  * — a hardcoded number there goes stale the first time a tool is added.
@@ -549,7 +549,7 @@ export function Header() {
                   <div className={`mega mega--${n.kind}`} role="menu">
                     {n.kind === "services" && <ServicesMega />}
                     {n.kind === "areas" && <AreasMega />}
-                    {n.kind === "pricing" && <PricingMega />}
+                    {n.kind === "tools" && <ToolsMega />}
                     {n.kind === "company" && <CompanyMega />}
                   </div>
                 )}
@@ -569,6 +569,16 @@ export function Header() {
               {site.phone}
             </span>
           </a>
+          {/* The range is what somebody is actually after when they open a
+              menu looking for prices: every model, every size, with the
+              installed number against it. It was the third row of a dropdown.
+              Residential only — the commercial side sells packages, not
+              models. */}
+          {!onCommercial && (
+            <Link href="/range" className="ds-btn ds-btn--ghost hdr__range">
+              Our full range
+            </Link>
+          )}
           <Link href={onCommercial ? "/commercial/contact" : "/quote"} className="ds-btn ds-btn--primary">
             {onCommercial ? "Submit a scope →" : "Get free quote →"}
           </Link>
@@ -742,37 +752,37 @@ function ServicesMega() {
 }
 
 /**
- * Pricing, in the Services menu's shape.
+ * Tools, in the Services menu's shape.
  *
- * It was fourteen items under one heading: five price cards, then nine
- * calculators as a strip of chips under a rule. Everything reachable, nothing
- * ranked — a reader after a rebate figure had to read past the running-cost
- * calculators to find it.
+ * This was labelled Pricing, and nine of its thirteen items were calculators.
+ * A reader who wanted a number went looking under a word that promised one
+ * and found a rebate estimator; a reader who wanted to work something out had
+ * no reason to open a menu called Pricing at all. The label now matches the
+ * contents.
  *
- * Four groups instead, in the order the question gets asked: what does it
- * cost, what comes off it, what does it cost to run, and what size do I need.
- * Fault codes are the one thing that left; it is a lookup, not a price, and it
- * lives in the Services menu under Service & repair where somebody with a
- * flashing light is already looking.
+ * Prices did not lose anything by it. The price list leads the first group,
+ * rebates sit beside it, and the full range moved up to a button in the
+ * header — which is a better place for it than the third row of a dropdown.
+ *
+ * Four groups, in the order the question gets asked: what does it cost, what
+ * size do I need, what will it cost to run, and which one do I pick. Fault
+ * codes stay in the Services menu under Service & repair, where somebody with
+ * a flashing light is already looking.
  */
-const PRICING_GROUPS: RailGroup[] = [
+const TOOLS_GROUPS: RailGroup[] = [
   {
-    label: "Prices",
+    label: "What it costs",
     items: [
-      // The range leads, and is the orange one. It is the page that carries
-      // every model with its sizes and its price, which makes it the answer
-      // to "what do you sell and what does it cost" — the price list is the
-      // same information as a table for somebody who wants a table.
-      { href: "/range", label: "The full range", sub: "Every model and size, with prices", icon: "\u2302", lead: true },
-      { href: "/pricing", label: "Full price list", sub: "The same numbers, as a table", icon: "\u2261" },
-      { href: "/tools/veu-rebate-estimator", label: "Compare pricing", sub: "Your postcode \u2192 what you\u2019d pay", icon: "\u25c6" },
+      { href: "/pricing", label: "Full price list", sub: "Every model and size, installed", icon: "\u2261", lead: true },
+      { href: "/rebates", label: "VEU rebates", sub: "What comes off, and who qualifies", icon: "$" },
+      { href: "/tools/veu-rebate-estimator", label: "Rebate estimator", sub: "Postcode \u2192 what you\u2019d pay", icon: "\u25c6" },
     ],
   },
   {
-    label: "Rebates",
+    label: "What size",
     items: [
-      { href: "/rebates", label: "VEU rebates", sub: "What you get off, and who qualifies", icon: "$", lead: true },
-      { href: "/tools/veu-rebate-estimator", label: "VEU rebate estimator", sub: "Postcode \u2192 rebate range", icon: "$" },
+      { href: "/tools/sizing-calculator", label: "Aircon sizing", sub: "Room dimensions \u2192 kW recommended", icon: "\u2302" },
+      { href: "/tools/heat-pump-sizing", label: "Heat pump sizing", sub: "Showers \u2192 tank size and reheat time", icon: "\u25d1" },
     ],
   },
   {
@@ -784,26 +794,25 @@ const PRICING_GROUPS: RailGroup[] = [
     ],
   },
   {
-    label: "What size",
+    label: "Compare",
     items: [
-      { href: "/tools/sizing-calculator", label: "Aircon sizing", sub: "Room dimensions \u2192 kW recommended", icon: "\u2302" },
-      { href: "/tools/heat-pump-sizing", label: "Heat pump sizing", sub: "Showers \u2192 tank size and reheat time", icon: "\u25d1" },
       { href: "/tools/heat-pump-compare", label: "Heat pump compare", sub: "Reclaim, iStore and Thermann", icon: "\u25c6" },
       { href: "/tools/system-comparison", label: "System comparison", sub: "Split \u00b7 multi \u00b7 ducted \u00b7 gas \u00b7 evap", icon: "\u2261" },
+      { href: "/upgrade-or-repair", label: "Repair or replace", sub: "Whether this one is worth fixing", icon: "\u25d1" },
     ],
   },
 ];
 
-function PricingMega() {
+function ToolsMega() {
   return (
     <RailMega
-      groups={PRICING_GROUPS}
+      groups={TOOLS_GROUPS}
       rail={
         <>
-          <Link href="/range" className="megasvc__range">
+          <Link href="/tools" className="megasvc__range">
             <div>
-              <b>Open the full range</b>
-              <span>Every model, every size, filterable</span>
+              <b>Every tool, one page</b>
+              <span>Sizing, running costs, rebates and comparisons</span>
             </div>
           </Link>
           <Link href="/quote" className="ds-btn ds-btn--orange megasvc__cta">
@@ -815,7 +824,7 @@ function PricingMega() {
         <div className="megasvc__foot">
           <span className="megasvc__footlabel">Worth knowing</span>
           <span className="megarow__note">
-            Every number is the installed price with the rebate already off it.
+            Every price is the installed price with the rebate already off it.
           </span>
           <Link href="/tools" className="megasvc__poplink">All {TOOLS_MEGA.length} calculators</Link>
         </div>
@@ -1040,9 +1049,9 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
                   ))}
                 </div>
               )}
-              {n.kind === "pricing" && (
+              {n.kind === "tools" && (
                 <div className="hdr__drawer-col">
-                  {PRICING_GROUPS.map((grp) => (
+                  {TOOLS_GROUPS.map((grp) => (
                     <div key={grp.label}>
                       <div className="hdr__drawer-collabel">{grp.label}</div>
                       {grp.items.map((t) => (
@@ -1067,7 +1076,13 @@ function MobileDrawer({ close, onCommercial }: { close: () => void; onCommercial
           );
         })}
 
-        <Link href="/quote" onClick={close} className="ds-btn ds-btn--orange ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
+        {/* The header's range button is hidden below 1240px, so the drawer
+            carries it instead — otherwise the range is only reachable from
+            inside a menu on every phone. */}
+        <Link href="/range" onClick={close} className="ds-btn ds-btn--ghost ds-btn--lg" style={{ marginTop: 12, justifyContent: "center" }}>
+          Our full range
+        </Link>
+        <Link href="/quote" onClick={close} className="ds-btn ds-btn--orange ds-btn--lg" style={{ marginTop: 8, justifyContent: "center" }}>
           Get a free quote →
         </Link>
       </div>
