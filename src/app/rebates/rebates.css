@@ -19,7 +19,7 @@
   --paper: #ffffff;
   --ink: #1a1a1d;
   --ink-2: #4a4a52;
-  --ink-3: #7a7a82;
+  --ink-3: #5d5d64;
   --line: #ebe6d8;
   --line-2: #d8d2c1;
 
@@ -707,7 +707,7 @@
   font-family: var(--f-mono) !important;
   font-size: 11px !important;
   letter-spacing: 0.04em !important;
-  color: var(--orange) !important;
+  color: var(--orange-ink) !important;
   text-transform: none !important;
   font-weight: 600;
   margin-top: 3px;
@@ -835,6 +835,6 @@
   font-family: var(--f-display);
   font-weight: 700;
   font-size: 14px;
-  color: var(--orange);
+  color: var(--orange-ink);
 }
 .rb-nextcard:hover em { text-decoration: underline; text-underline-offset: 3px; }

@@ -262,7 +262,7 @@
 .page-heatpumps .hp-sizing__lbl {
   font-family: var(--f-mono); font-size: 11.5px;
   letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--orange); font-weight: 700;
+  color: var(--orange-ink); font-weight: 700;
 }
 .page-heatpumps .hp-sizing__card strong {
   font-family: var(--f-display); font-weight: 900;
@@ -409,7 +409,7 @@
   background: #fff; color: var(--navy); border: 1px solid var(--line);
 }
 .page-heatpumps .hpc__badge--split {
-  background: var(--sky); color: #fff; border-color: var(--sky);
+  background: var(--sky-ink); color: #fff; border-color: var(--sky-ink);
 }
 
 .page-heatpumps .hpc__more {

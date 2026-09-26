@@ -44,7 +44,12 @@
   background: var(--card-accent, var(--sky));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent, var(--sky)) 20%, transparent);
 }
-.page-brand .brand-hero h1 .accent { color: var(--card-accent, var(--sky)); }
+/* The brand accent as type on the navy hero: Brivis navy-blue lands at
+   1.78:1 and Rinnai purple at 2.6:1 raw. Lightened toward white the hue
+   survives and the worst of the seven is 5.4:1. */
+.page-brand .brand-hero h1 .accent {
+  color: color-mix(in srgb, var(--card-accent, var(--sky)) 60%, #fff);
+}
 
 /* ---------- brand index (/brands) — compact side-by-side cards ---------- */
 .page-brand .brand-hub__grid {
@@ -544,7 +549,7 @@
 }
 .brand-card__compare:hover:not(.is-disabled) {
   border-color: var(--orange);
-  color: var(--orange);
+  color: var(--orange-ink);
 }
 .brand-card__compare.is-disabled {
   opacity: 0.55;
@@ -1230,7 +1235,7 @@
   text-decoration: none;
   font-weight: 600;
 }
-.page-product .product-body__brandlink:hover { color: var(--orange); }
+.page-product .product-body__brandlink:hover { color: var(--orange-ink); }
 
 /* ---------- responsive ---------- */
 @media (max-width: 900px) {
@@ -1305,7 +1310,7 @@
 }
 .ptabs__tab.is-active .ptabs__count {
   background: rgba(243,103,34,0.12);
-  color: var(--orange);
+  color: var(--orange-ink);
 }
 .ptabs__panel { padding: 26px 28px; }
 
@@ -1450,7 +1455,7 @@
   font-size: 10.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-weight: 700;
 }
 .page-product .product-related__name {
@@ -1472,7 +1477,7 @@
   text-decoration: none;
   font-weight: 600;
 }
-.page-product .product-related__all:hover { color: var(--orange); }
+.page-product .product-related__all:hover { color: var(--orange-ink); }
 
 /* Compact list view for product cards on phones.
    Full-width cards with a 6-model split-system range felt bloated —
@@ -2145,7 +2150,7 @@
   font-weight: 600;
   text-underline-offset: 2px;
 }
-.page-brand .brand-why__resources a:hover { color: var(--orange); }
+.page-brand .brand-why__resources a:hover { color: var(--orange-ink); }
 
 @media (max-width: 900px) {
   .page-brand .brand-hero--panel .brand-hero__grid { grid-template-columns: 1fr; row-gap: 28px; }
@@ -2202,7 +2207,7 @@
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-weight: 700;
   margin-bottom: 10px;
 }

@@ -261,7 +261,7 @@ export function VeuRebateEstimator() {
           </div>
           <div className="tool-result__row">
             <span className="tool-result__row-lbl">Net install (mid)</span>
-            <span className="tool-result__row-val" style={{ color: "var(--orange)" }}>
+            <span className="tool-result__row-val" style={{ color: "var(--orange-ink)" }}>
               {$(result.netMid)}
             </span>
           </div>

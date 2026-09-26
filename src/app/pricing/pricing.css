@@ -211,7 +211,7 @@
   font-size: 10.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-ink);
   font-weight: 700;
   margin-bottom: 2px;
 }
@@ -362,7 +362,7 @@
 }
 .pricing-value__col--us {
   background: rgba(243,103,34,0.08);
-  color: var(--orange);
+  color: var(--orange-ink);
   border-top: 3px solid var(--orange);
   border-bottom-color: var(--orange);
 }
@@ -376,7 +376,7 @@
   text-transform: uppercase;
   font-weight: 600;
 }
-.pricing-value__col--us .pricing-value__col-sub { color: var(--orange); }
+.pricing-value__col--us .pricing-value__col-sub { color: var(--orange-ink); }
 .pricing-value__cell { text-align: center; font-variant-numeric: tabular-nums; }
 .pricing-value__cell--us { background: rgba(243,103,34,0.04); }
 .pricing-value__mark {

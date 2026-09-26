@@ -90,7 +90,7 @@
 .fd-more { list-style: none; margin: 0 0 0.9rem; padding: 0; display: grid; gap: 8px; }
 .fd-more li { font-size: 0.88rem; line-height: 1.5; }
 .fd-more a { color: var(--navy); text-decoration: none; display: block; }
-.fd-more a:hover { color: var(--orange); }
+.fd-more a:hover { color: var(--orange-ink); }
 .fd-more strong {
   display: inline-block;
   min-width: 3.6em;
@@ -112,4 +112,4 @@
   border-bottom: 2px solid var(--orange);
   padding-bottom: 2px;
 }
-.fd-inline-link:hover { color: var(--orange); }
+.fd-inline-link:hover { color: var(--orange-ink); }

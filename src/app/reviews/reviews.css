@@ -30,7 +30,7 @@
   color: var(--navy);
 }
 .rvs__stars {
-  color: #f5a623;
+  color: var(--orange-ink);
   font-size: 19px;
   letter-spacing: 2px;
   line-height: 1;
@@ -61,7 +61,7 @@
   box-shadow: 0 10px 26px rgba(5, 10, 48, 0.09);
 }
 .rvs__card-stars {
-  color: #f5a623;
+  color: var(--orange-ink);
   font-size: 14px;
   letter-spacing: 2px;
   line-height: 1;
@@ -128,7 +128,7 @@
 }
 
 /* Unfilled stars on a 4-star review. */
-.rvs__card-stars-dim { color: var(--line-2); }
+.rvs__card-stars-dim { color: var(--ink-3); }
 
 /* Google Places terms require attribution wherever their review
    content is shown. */

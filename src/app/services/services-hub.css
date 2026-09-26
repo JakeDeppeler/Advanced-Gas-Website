@@ -17,7 +17,7 @@
   transition: all 0.15s;
 }
 .page-services .sv-tab:hover {
-  background: rgba(243,103,34,0.10); border-color: var(--orange); color: var(--orange);
+  background: rgba(243,103,34,0.10); border-color: var(--orange); color: var(--orange-ink);
 }
 .page-services .sv-tab span { color: var(--orange); font-weight: 700; }
 
@@ -89,10 +89,10 @@
 .page-services #emergency .sv-spec__v { color: #fff; }
 .page-services #emergency h2,
 .page-services #emergency .sv__lede { color: #fff; }
-.page-services #emergency .sv__bullets li { color: rgba(255,255,255,0.9); }
+.page-services #emergency .sv__bullets li { color: #fff; }
 .page-services #emergency .sv__bullets li::before { color: #fff; }
-.page-services #emergency .ds-eyebrow { color: rgba(255,255,255,0.9); }
-.page-services #emergency .ds-btn--orange { background: #fff; color: var(--red); box-shadow: 0 4px 0 #8b0d12; }
+.page-services #emergency .ds-eyebrow { color: #fff; }
+.page-services #emergency .ds-btn--orange { background: #fff; color: var(--red-deep); box-shadow: 0 4px 0 #8b0d12; }
 .page-services #emergency .ds-btn--ghost { color: #fff; border-color: rgba(255,255,255,0.5); }
 
 @media (max-width: 1100px) {

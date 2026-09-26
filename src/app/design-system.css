@@ -18,10 +18,22 @@
      text sits on it, and `--orange-deep` is the ground under white text.
      Same hue, lower value; 4.64:1. */
   --orange-deep: #c2521a;
+  /* And the same problem the other way up: the vivid orange as TEXT on a
+     light ground is 3.1:1, which is the single most common contrast failure
+     on the site — every eyebrow, every "Read more →", every star row. One
+     step deeper than --orange-deep clears every ground we actually use:
+     5.59:1 on white, 5.27:1 on the cream, 4.87:1 on --bg-2 and 4.91:1 on
+     the lightest orange tint. So: --orange for marks, --orange-deep for
+     grounds under white text, --orange-ink for orange text on light. */
+  --orange-ink: #b04711;
   /* And the alert red, which was 4.42:1 — near enough to look fine and
      just under the line. 5.31:1. */
   --red-deep: #d41920;
   --sky: #00b0ed;
+  /* And the same for the cyan. --sky is 2.49:1 both ways: as text on white
+     and as a ground under white text. One deeper step does both jobs at
+     5.63:1 and still reads as the same cyan. */
+  --sky-ink: #0c6f96;
   --sky-2: #2cc5ff;
   --red: #ec1c22;
   --red-2: #ff3942;
@@ -186,10 +198,10 @@
    than the previous grey-fill hover, and matches how the logo/CTAs
    already lean on the orange accent. */
 .hdr__nav > a:hover,
-.hdr__navtrigger:hover { color: var(--orange); background: transparent; }
+.hdr__navtrigger:hover { color: var(--orange-ink); background: transparent; }
 .hdr__nav > a.is-active,
 .hdr__navtrigger.is-active {
-  color: var(--orange);
+  color: var(--orange-ink);
   background: transparent;
   font-weight: 700;
 }
@@ -210,7 +222,7 @@
    tiny "$$$" tag chip keeps the orange so the rebate cue is still
    visible without dyeing the whole label. */
 .hdr__nav-rebate { color: var(--navy); }
-.hdr__nav-rebate:hover { color: var(--orange); }
+.hdr__nav-rebate:hover { color: var(--orange-ink); }
 .hdr__nav-tag {
   font-family: var(--f-mono);
   font-size: 10px; letter-spacing: 0.05em;
@@ -585,7 +597,7 @@
   transition: color 0.15s;
 }
 .mega__brands-all:hover,
-.mega__toolsall:hover { color: var(--orange); }
+.mega__toolsall:hover { color: var(--orange-ink); }
 
 /* -------- Tools mega — 7 icon tiles in a 2×4 grid + CTA row -------- */
 .mega__tools { width: min(1240px, calc(100vw - 32px)); padding: 26px 30px; }
@@ -2451,7 +2463,7 @@ input, select, textarea {
   transition: box-shadow 0.2s, transform 0.2s;
 }
 .revcard:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-.revcard__stars { color: var(--orange); font-size: 15px; letter-spacing: 2px; }
+.revcard__stars { color: var(--orange-ink); font-size: 15px; letter-spacing: 2px; }
 .revcard__title {
   font-family: var(--f-display);
   font-size: 16.5px; font-weight: 800;
@@ -2477,7 +2489,10 @@ input, select, textarea {
 }
 .revcard__by div { display: flex; flex-direction: column; line-height: 1.15; }
 .revcard__by strong { font-size: 13.5px; color: var(--navy); }
-.revcard__by span { font-size: 12px; color: var(--ink-3); }
+/* Scoped to the name/date column. As `.revcard__by span` it also matched the
+   avatar, out-specified `.revcard__avatar`, and put grey initials on the
+   navy disc at 2.94:1. */
+.revcard__by div span { font-size: 12px; color: var(--ink-3); }
 
 .reviews__fade {
   position: absolute; left: 0; right: 0; height: 90px; z-index: 2;
@@ -3027,7 +3042,7 @@ input, select, textarea {
   border-bottom: 2px solid var(--line);
   padding-bottom: 1px;
 }
-.megasvc__poplink:hover { color: var(--orange); border-bottom-color: var(--orange); }
+.megasvc__poplink:hover { color: var(--orange-ink); border-bottom-color: var(--orange); }
 @media (max-width: 860px) {
   .megasvc { grid-template-columns: 1fr; }
   .megasvc__rail { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); }
@@ -3239,14 +3254,14 @@ input, select, textarea {
   text-decoration: none; line-height: 1.25;
   transition: background 0.12s, color 0.12s;
 }
-.mega__calc:hover { background: var(--bg-2, #f2f5fa); color: var(--orange); }
+.mega__calc:hover { background: var(--bg-2, #f2f5fa); color: var(--orange-ink); }
 .mega__calcicon {
   flex: 0 0 auto; width: 20px; height: 20px;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 6px; background: var(--bg-2, #f2f5fa);
   font-size: 11.5px; color: var(--ink-3);
 }
-.mega__calc:hover .mega__calcicon { background: rgba(243, 103, 34, 0.14); color: var(--orange); }
+.mega__calc:hover .mega__calcicon { background: rgba(243, 103, 34, 0.14); color: var(--orange-ink); }
 @media (max-width: 1100px) {
   .mega__calcgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -3863,11 +3878,11 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 }
 .hp-pick__d { font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
 .hp-pick__meta {
-  margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--orange);
+  margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--orange-ink);
 }
 .hp-pick__go {
   position: absolute; right: 20px; bottom: 18px;
-  font-size: 18px; color: var(--orange);
+  font-size: 18px; color: var(--orange-ink);
   transition: transform 0.18s ease;
 }
 .hp-pick__card:hover .hp-pick__go { transform: translateX(4px); }
@@ -3875,6 +3890,9 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 .hp-pick__card--ask .hp-pick__body strong { color: #fff; }
 .hp-pick__card--ask .hp-pick__d { color: rgba(255,255,255,0.8); }
 .hp-pick__card--ask .hp-pick__meta { color: var(--sky-2); }
+/* The picker's last card is navy, so the arrow keeps the vivid orange:
+   --orange is 5.3:1 on navy, --orange-ink only 3.4:1. */
+.hp-pick__card--ask .hp-pick__go { color: var(--orange); }
 
 .hp-pick { padding: 76px 0 26px; background: var(--bg); }
 /* The last card has no photograph, so it takes the tone instead: it is the
@@ -3949,7 +3967,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
 }
 .pfam__name { margin: 5px 0 0; font-family: var(--f-display); font-size: 17px; line-height: 1.2; letter-spacing: -0.015em; }
 .pfam__name a { color: var(--navy); text-decoration: none; }
-.pfam__name a:hover { color: var(--orange); }
+.pfam__name a:hover { color: var(--orange-ink); }
 .pfam__model { margin-top: 5px; font-family: var(--f-mono); font-size: 11.5px; color: var(--ink-3); }
 
 /* The chips. Real buttons, not links, because they change what this card is
@@ -4007,7 +4025,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   text-decoration: none;
 }
 .pfam__go strong { font-family: var(--f-display); font-size: 15.5px; color: var(--navy); }
-.pfam__go span { color: var(--orange); font-weight: 700; transition: transform 0.14s; }
+.pfam__go span { color: var(--orange-ink); font-weight: 700; transition: transform 0.14s; }
 .pfam:hover .pfam__go span { transform: translateX(3px); }
 /* Which model the chips have landed on. Small and last: it is the answer to
    "what am I actually looking at now", which only matters once you have
@@ -4111,7 +4129,7 @@ html[data-route-enter] #main { animation: pg-fade 0.4s ease-out both; }
   font-family: var(--f-display);
   font-size: 14.5px;
   font-weight: 700;
-  color: var(--orange);
+  color: var(--orange-ink);
   text-decoration: none;
 }
 .pfam__price span { transition: transform 0.14s; display: inline-block; }
@@ -4592,14 +4610,11 @@ html[data-cross="in"] .cross__art { animation: cross-art 0.44s 0.3s ease-out for
 .bigcta--warm .bigcta__facts li { color: #fff; }
 
 /* ---- the red grounds ---- */
-.sv,
+/* `.sv` is every section on /services, not the emergency one: it painted
+   the eyebrow, lede, specs and bullets white on the cream sections either
+   side. #emergency paints and recolours itself in services-hub.css. */
 .bcard--emergency,
 .ct-card--red { background: var(--red-deep); }
-.sv .ds-eyebrow,
-.sv__lede,
-.sv-spec__l,
-.sv-spec__v,
-.sv li,
 .bcard--emergency .bcard__num,
 .bcard--emergency p,
 .ct-card--red .ct-card__sub,

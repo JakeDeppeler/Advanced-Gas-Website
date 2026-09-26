@@ -63,7 +63,7 @@ export default function VeuRebateEstimatorPage() {
               <p>
                 We&rsquo;re a <strong>VEU-accredited provider</strong>. We handle the paperwork end-to-end
                 and apply the rebate to your quote up front so you never pay it and then chase it.
-                {" "}<Link href="/rebates" style={{ color: "var(--orange)", fontWeight: 700 }}>See how the rebate is applied</Link>.
+                {" "}<Link href="/rebates" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>See how the rebate is applied</Link>.
               </p>
               <p style={{ fontSize: 13, color: "var(--ink-3)", marginTop: 12 }}>
                 Numbers here are estimates based on 2026 VEEC market prices ($60-$75). The exact rebate

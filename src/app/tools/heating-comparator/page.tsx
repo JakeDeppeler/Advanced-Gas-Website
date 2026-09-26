@@ -67,7 +67,7 @@ export default function HeatingComparatorPage() {
               <p>
                 Big picture: a modern reverse-cycle unit on 2025 tariffs typically runs at half the
                 cost of a 3-star gas ducted heater. The VEU rebate makes the swap cost dramatically
-                less, <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange)", fontWeight: 700 }}>estimate your rebate</Link>.
+                less, <Link href="/tools/veu-rebate-estimator" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>estimate your rebate</Link>.
               </p>
             </div>
           </details>

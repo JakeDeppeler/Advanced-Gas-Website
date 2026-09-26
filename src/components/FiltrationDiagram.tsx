@@ -16,6 +16,9 @@
 const NAVY = "var(--navy)";
 const SKY = "var(--sky)";
 const ORANGE = "var(--orange)";
+/* The pipes and dots read the vivid orange; the one orange LABEL reads the
+   deeper one, because 12px of #f36722 on a white card is 3.1:1. */
+const ORANGE_INK = "var(--orange-ink)";
 
 /** The filter canister, drawn once and reused at three positions. */
 function Canister({ x, y, label }: { x: number; y: number; label: string }) {
@@ -55,7 +58,7 @@ export function FiltrationDiagram({ tier }: { tier: string }) {
 
         {/* hot out */}
         <path d="M410 130 H455 V60" {...PIPE} stroke={ORANGE} />
-        <text x="424" y="48" fontSize="12" fill={ORANGE} fontWeight="700">Hot out</text>
+        <text x="424" y="48" fontSize="12" fill={ORANGE_INK} fontWeight="700">Hot out</text>
       </svg>
     );
   }

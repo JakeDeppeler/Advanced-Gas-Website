@@ -29,7 +29,7 @@
   padding: 8px 14px; border-radius: 999px; border: 1px solid var(--line);
   background: #fff; color: var(--navy); font-size: 14px; font-weight: 600; text-decoration: none;
 }
-.page-search .sr__chips a:hover { border-color: var(--orange); color: var(--orange); }
+.page-search .sr__chips a:hover { border-color: var(--orange); color: var(--orange-ink); }
 
 .page-search .sr__none { margin-top: 34px; max-width: 60ch; }
 .page-search .sr__none h2 { font-family: var(--f-display); font-size: 22px; margin: 0 0 8px; color: var(--navy); }
@@ -50,7 +50,7 @@
 .page-search .sr__list a {
   display: grid; gap: 3px; padding: 16px 4px; text-decoration: none; color: inherit;
 }
-.page-search .sr__list a:hover strong { color: var(--orange); }
+.page-search .sr__list a:hover strong { color: var(--orange-ink); }
 .page-search .sr__list strong { font-family: var(--f-display); font-size: 17.5px; color: var(--navy); }
 .page-search .sr__list span { font-size: 14.5px; line-height: 1.55; color: var(--ink-2); }
 .page-search .sr__list em {

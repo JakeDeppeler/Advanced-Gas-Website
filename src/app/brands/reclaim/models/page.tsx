@@ -317,10 +317,10 @@ export default function ReclaimModelsPage() {
               <Link href="/tools/heat-pump-sizing" className="ds-btn ds-btn--orange ds-btn--lg">
                 Size it for your household →
               </Link>
-              <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--ghost ds-btn--lg">
+              <Link href="/brands/reclaim/compare" className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
                 Compare the tank finishes →
               </Link>
-              <Link href="/brands/reclaim" className="ds-btn ds-btn--ghost ds-btn--lg">
+              <Link href="/brands/reclaim" className="ds-btn ds-btn--ghost-on-dark ds-btn--lg">
                 All Reclaim systems →
               </Link>
             </div>

@@ -60,7 +60,7 @@ export default function SizingCalculatorPage() {
                 The result is a recommended cooling capacity range. The lower end is the minimum that will
                 cope with an average summer day; the upper end handles heat-wave conditions comfortably.
                 Real-world quotes we produce take room-by-room measurements into account, so numbers may
-                vary, <Link href="/quote" style={{ color: "var(--orange)", fontWeight: 700 }}>send us the room</Link> and we&rsquo;ll spec it exactly.
+                vary, <Link href="/quote" style={{ color: "var(--orange-ink)", fontWeight: 700 }}>send us the room</Link> and we&rsquo;ll spec it exactly.
               </p>
             </div>
           </details>

@@ -65,7 +65,7 @@ export default function ContactPage() {
                 </div>
                 <div className="ct-map__label">
                   <span>PAKENHAM, VIC 3810</span>
-                  <span style={{ color: "var(--orange)", fontWeight: 700 }}>75 km radius</span>
+                  <span style={{ color: "var(--orange-ink)", fontWeight: 700 }}>75 km radius</span>
                 </div>
               </div>
             </div>
