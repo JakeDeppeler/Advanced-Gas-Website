@@ -115,18 +115,27 @@ export function SystemChooser({
                 <div className="wf-style__body">
                   {c.priceFrom && <span className="wf-style__tier">{c.priceFrom}</span>}
                   <h3>{c.label}</h3>
-                  {c.brands.length > 0 && (
-                    <span className="wf-style__style">{c.brands.join(" · ")}</span>
-                  )}
                   <p>{c.blurb}</p>
-                  <ul>
-                    {c.facts.map((f) => (
-                      <li key={f.lead}>
-                        <strong>{f.lead}</strong>
-                        {f.note && <> · {f.note}</>}
-                      </li>
-                    ))}
-                  </ul>
+                  {/* The lead of each fact, as a row of tags.
+                      This was four bulleted lines, each a bold lead plus a
+                      sentence explaining it, under a five-line paragraph
+                      that had usually just said the same thing. Five cards
+                      of that ran to seven hundred pixels each and eighteen
+                      hundred for the section — a wall to read in order to
+                      answer "which shape is my house".
+                      The leads alone still carry the comparison, which is
+                      all this grid is for. The sentences were the detail,
+                      and the detail is on the page each card links to.
+                      The brand line went the same way: it read the same on
+                      every card here, and the panel below already says
+                      which brands we fit it in. */}
+                  {c.facts.length > 0 && (
+                    <ul className="wf-style__tags">
+                      {c.facts.map((f) => (
+                        <li key={f.lead}>{f.lead}</li>
+                      ))}
+                    </ul>
+                  )}
 
                   {(n > 0 || (c.brandSizes?.length ?? 0) > 0) && (
                     <button
