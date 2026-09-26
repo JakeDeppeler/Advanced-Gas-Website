@@ -78,7 +78,14 @@
 .page-about .team__bio { font-size: 13.5px; color: var(--ink-2); margin: 0; line-height: 1.5; }
 
 /* Story side-panel: specialisations card next to the story copy */
-.page-about .ab-story__side { display: flex; flex-direction: column; gap: 20px; }
+/* Sticky, and aligned to the top. The copy column runs four paragraphs and
+   the card runs about half that, which left a tall empty rectangle beside
+   the second half of the story. Now the card travels with the reader. */
+.page-about .ab-story__side {
+  display: flex; flex-direction: column; gap: 20px;
+  position: sticky; top: 104px; align-self: start;
+}
+@media (max-width: 900px) { .page-about .ab-story__side { position: static; } }
 .page-about .ab-spec-card {
   background: #fff; border: 1px solid var(--line);
   border-radius: 18px; padding: 24px 26px;
@@ -114,8 +121,52 @@
 }
 
 .page-about .ab-values { padding: 100px 0; background: var(--bg); }
-.page-about .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
+/* Five cards never divide evenly into three or two, so one of them takes
+   the slack and the row closes. Which one depends on the column count, and
+   the spans are guarded by min-width rather than reset later: `span 2` in a
+   single-column grid does not collapse, it creates an implicit second
+   column and wrecks the stack on a phone.
+   The widths match the responsive block further down: 3 columns above
+   1100px, 2 down to 760px, 1 below that. */
+.page-about .values-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px; margin-top: 48px;
+}
+@media (min-width: 1101px) {
+  .page-about .values-grid .val:nth-child(4) { grid-column: span 2; }
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .page-about .values-grid .val:nth-child(5) { grid-column: span 2; }
+}
 .page-about .val { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+
+/* The photo band. Full-bleed, sized in vw so it stays a band rather than
+   becoming a wall on a wide screen. */
+.page-about .ab-band {
+  position: relative;
+  height: clamp(280px, 34vw, 460px);
+  background: var(--navy);
+  overflow: hidden;
+}
+.page-about .ab-band img { object-position: center 38%; }
+.page-about .ab-band__cap {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 72px 0 26px;
+  background: linear-gradient(transparent, rgba(5, 10, 48, 0.88));
+  color: #fff;
+}
+.page-about .ab-band__cap .wrap {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  gap: 16px; flex-wrap: wrap;
+}
+.page-about .ab-band__cap b {
+  font-family: var(--f-display); font-weight: 800;
+  font-size: clamp(19px, 2.2vw, 27px); letter-spacing: -0.015em;
+}
+.page-about .ab-band__cap span {
+  font-family: var(--f-mono); font-size: 11.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(255, 255, 255, 0.75);
+}
 
 /* Track record, key clients */
 .page-about .ab-clients { padding: 100px 0; background: var(--bg-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
@@ -140,7 +191,8 @@
   letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--ink-3);
 }
-.page-about .val__n { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--orange); }
+/* #ba4c14, not the vivid brand orange: at 12px on white that is 3.1:1. */
+.page-about .val__n { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; color: #ba4c14; }
 .page-about .val h3 {
   font-family: var(--f-display); font-weight: 700; font-size: 22px;
   margin: 10px 0 8px; color: var(--navy); letter-spacing: -0.01em;

@@ -129,6 +129,26 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* The home page carries photography the whole way down; this page had
+          one image at the top and then six thousand pixels of cards. A band
+          between the faces and the claims, so the claims arrive after a
+          picture of the people making them. */}
+      <div className="ab-band">
+        <Image
+          src="/kaden-team-with-chaz.jpg"
+          alt="An Advanced Gas installer unboxing a new Kaden system before fitting"
+          fill
+          sizes="100vw"
+          style={{ objectFit: "cover" }}
+        />
+        <div className="ab-band__cap">
+          <div className="wrap">
+            <b>Genuine gear, fitted by the people who quoted it.</b>
+            <span>Manufacturer warranties on everything we supply</span>
+          </div>
+        </div>
+      </div>
+
       <section className="ab-values">
         <div className="wrap">
           <div className="ds-section-head">
