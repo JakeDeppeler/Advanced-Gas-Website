@@ -133,15 +133,27 @@ Scope** (see the table below). Then **Keys → Application Key** → copy it. Th
 > **Production** unless you are deliberately testing the pipeline first. Switch
 > with the badge rather than by editing the URL.
 
-**b. Client id and secret** — in ServiceTitan itself, not the portal:
-**Settings → Integrations → API Application Access**. Find the app and generate
-the credential pair. These are `ST_CLIENT_ID` and `ST_CLIENT_SECRET`, they are
-issued **per tenant**, and **the secret is shown only once** — if it is not
-recorded at that moment it has to be regenerated.
+The app is registered with **Client Credentials Management** set to *"I, the app
+developer, will configure the credentials on behalf of each tenant"*. That is the
+right choice here because the dashboard has no tenant-facing settings screen —
+its credentials are environment variables. It also decides where step (b)
+happens: the portal, not the tenant's own ServiceTitan.
 
-**c. Tenant id** — the numeric id on that same API Application Access page.
-`ST_TENANT_ID` is always numeric; if what you have is a name, it is the wrong
-field.
+**b. Tenant connects the app** — in ServiceTitan itself:
+**Settings → Integrations → API Application Access**, where a tenant admin
+approves it. Nothing can be collected until this is done, and it is the one step
+that needs someone with admin rights on the tenant.
+
+**c. Client id and secret** — back in the developer portal:
+**My Apps → View Connections**. The client id is shown; the secret is generated
+there. **The secret is shown only once** — if it is not recorded at that moment
+it has to be regenerated. These are `ST_CLIENT_ID` and `ST_CLIENT_SECRET`, and
+they are issued per tenant.
+
+`ST_TENANT_ID` is the numeric tenant id entered under **Tenant(s)** when the app
+was registered. It is always numeric; if what you have is a name, it is the wrong
+field. Leave **Network ID** empty — Customer Global Networks is for franchise
+groups spanning many tenants.
 
 Scopes to tick, and what each one is holding up:
 
