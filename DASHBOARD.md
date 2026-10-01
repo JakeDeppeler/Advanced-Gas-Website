@@ -100,11 +100,19 @@ months with a public holiday.
 The four `ST_*` values come from two different systems, and the order matters —
 the tenant side needs the app key before it will issue a client id.
 
-**a. App key** — in the developer portal at `developer.servicetitan.io`:
-*Login to My Apps* → *Login as Production Environment User* → **+New App**. Fill
-in the app details, add the Advanced Gas tenant under **Tenant(s)**, and tick the
-scopes in **API Scope** (see the table below). Then **Keys → Application Key** →
-copy it. That is `ST_APP_KEY`, and it belongs to the app, not the tenant.
+**a. App key** — in the developer portal, under **My Apps → Register New App**
+(`tenant-api-credentials-portal.servicetitan.io/apps`). Fill in the app details,
+add the Advanced Gas tenant under **Tenant(s)**, and tick the scopes in **API
+Scope** (see the table below). Then **Keys → Application Key** → copy it. That is
+`ST_APP_KEY`, and it belongs to the app, not the tenant.
+
+> **Check the environment badge first.** The portal opens in whichever
+> environment you last used, shown as a coloured badge in the top-right corner,
+> and the URL carries `-integration` when you are in the sandbox. An app
+> registered in the Integration environment reads synthetic demo data and its
+> credentials only work against the integration hosts — register in
+> **Production** unless you are deliberately testing the pipeline first. Switch
+> with the badge rather than by editing the URL.
 
 **b. Client id and secret** — in ServiceTitan itself, not the portal:
 **Settings → Integrations → API Application Access**. Find the app and generate
