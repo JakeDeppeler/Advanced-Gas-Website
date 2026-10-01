@@ -101,36 +101,47 @@ export async function checkServiceTitan(): Promise<CheckReport> {
     .filter(([, present]) => !present)
     .map(([name]) => name);
 
-  if (!serviceTitanConfigured()) {
-    stages.push({
-      stage: "credentials",
-      status: "failed",
-      detail: `Not set: ${missing.join(", ")}`,
-      fix: "Set ST_CLIENT_ID, ST_CLIENT_SECRET, ST_APP_KEY and ST_TENANT_ID in the deployment environment, then redeploy — Next.js reads them at runtime, but a running instance keeps the old values.",
-    });
-    report.resources = PROBES.map((p) => ({
+  const skipRemaining = () =>
+    PROBES.map((p) => ({
       resource: `${p.module}/${p.resource}`,
       scope: p.scope,
       usedFor: p.usedFor,
       status: "skipped" as const,
     }));
-    return report;
-  }
 
-  stages.push({ stage: "credentials", status: "ok", detail: "All four present" });
+  stages.push(
+    missing.length === 0
+      ? { stage: "credentials", status: "ok", detail: "All four present" }
+      : {
+          stage: "credentials",
+          status: "failed",
+          detail: `Not set: ${missing.join(", ")}`,
+          fix: "Set ST_CLIENT_ID, ST_CLIENT_SECRET, ST_APP_KEY and ST_TENANT_ID in the deployment environment, then redeploy — Next.js reads them at runtime, but a running instance keeps the old values.",
+        },
+  );
 
+  // Runs on whatever is set, including a partial set, so a value can be checked
+  // the moment it is added rather than only once all four are in — the four
+  // arrive at different times, and a malformed one is cheapest to catch then.
+  //
   // Reported, not enforced: these are near-certain misconfigurations, but the
   // auth probe below still runs so a surprise success is visible rather than
   // blocked on a guess about formatting.
   const hygiene = stCredentialHygiene();
   const formatProblems = [
     ...hygiene.untrimmed.map((name) => `${name} has leading or trailing whitespace`),
-    ...(hygiene.tenantIdNumeric ? [] : ["ST_TENANT_ID is not numeric — ServiceTitan tenant ids are, so this is probably the tenant name"]),
+    ...(hygiene.tenantIdNumeric === false
+      ? ["ST_TENANT_ID is not numeric — ServiceTitan tenant ids are, so this is probably the tenant name"]
+      : []),
   ];
 
   stages.push(
     formatProblems.length === 0
-      ? { stage: "format", status: "ok", detail: "All four well-formed" }
+      ? {
+          stage: "format",
+          status: "ok",
+          detail: missing.length === 0 ? "All four well-formed" : "What is set so far is well-formed",
+        }
       : {
           stage: "format",
           status: "failed",
@@ -138,6 +149,11 @@ export async function checkServiceTitan(): Promise<CheckReport> {
           fix: "Re-paste the affected values with no surrounding whitespace. A trailing newline survives a copy out of the developer portal and is invisible in every dashboard that stores it.",
         },
   );
+
+  if (!serviceTitanConfigured()) {
+    report.resources = skipRemaining();
+    return report;
+  }
 
   const auth = await stAuthProbe().catch((e: Error) => ({
     ok: false as const,
@@ -155,12 +171,7 @@ export async function checkServiceTitan(): Promise<CheckReport> {
         ? "Could not reach the token endpoint at all — check outbound network access and ST_AUTH_URL."
         : explainAuth(auth.status, auth.code),
     });
-    report.resources = PROBES.map((p) => ({
-      resource: `${p.module}/${p.resource}`,
-      scope: p.scope,
-      usedFor: p.usedFor,
-      status: "skipped" as const,
-    }));
+    report.resources = skipRemaining();
     return report;
   }
 

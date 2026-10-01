@@ -290,7 +290,7 @@ export async function stProbe(
  * malformed secret hides a misconfiguration that will resurface on the next
  * rotation — so this reports them instead.
  */
-export function stCredentialHygiene(): { untrimmed: string[]; tenantIdNumeric: boolean } {
+export function stCredentialHygiene(): { untrimmed: string[]; tenantIdNumeric: boolean | null } {
   const vars: Array<[string, string | undefined]> = [
     ["ST_CLIENT_ID", process.env.ST_CLIENT_ID],
     ["ST_CLIENT_SECRET", process.env.ST_CLIENT_SECRET],
@@ -298,10 +298,13 @@ export function stCredentialHygiene(): { untrimmed: string[]; tenantIdNumeric: b
     ["ST_TENANT_ID", process.env.ST_TENANT_ID],
   ];
 
+  const tenant = process.env.ST_TENANT_ID?.trim();
   return {
     untrimmed: vars.filter(([, v]) => v && v !== v.trim()).map(([name]) => name),
     // ServiceTitan tenant ids are numeric; a non-numeric value is usually the
     // tenant *name* pasted in by mistake, which fails as a 404 much later.
-    tenantIdNumeric: /^\d+$/.test((process.env.ST_TENANT_ID ?? "").trim()),
+    // null when unset — an absent value is the credentials stage's business,
+    // and reporting it as malformed here would be two complaints about one gap.
+    tenantIdNumeric: tenant ? /^\d+$/.test(tenant) : null,
   };
 }
