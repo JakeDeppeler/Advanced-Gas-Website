@@ -29,6 +29,13 @@ const money = (n: number | null | undefined) => {
 const exact = (n: number | null | undefined) =>
   n == null ? "—" : `$${(Math.round(n / 100) * 100).toLocaleString("en-AU")}`;
 
+// Full digits, no compacting. Used where two figures sit side by side and are
+// meant to be read against each other: money() switches to "$15K" above ten
+// thousand, so a pair straddling that threshold would render as "$15K" next to
+// "$9,240" and stop looking like the same kind of number.
+const plain = (n: number | null | undefined) =>
+  n == null ? "—" : `$${Math.round(n).toLocaleString("en-AU")}`;
+
 const signed = (n: number | null | undefined) =>
   n == null ? "—" : `${n >= 0 ? "+" : "−"}${money(Math.abs(n))}`;
 
@@ -115,13 +122,6 @@ export function ScreenBoard({ initial, token }: { initial: Snapshot; token: stri
 }
 
 function TodayPage({ m }: { m: Metrics }) {
-  const behind = m.aheadBehind != null && m.aheadBehind < 0;
-  const paceState =
-    m.revenuePacePct == null ? "" : m.revenuePacePct >= 1 ? "good" : m.revenuePacePct >= 0.85 ? "warning" : "critical";
-
-  const todayState =
-    m.dailyTarget == null ? "" : m.revenueToday >= m.dailyTarget ? "good" : m.revenueToday > 0 ? "warning" : "";
-
   const responseState =
     m.avgFirstResponseMins == null
       ? ""
@@ -135,42 +135,35 @@ function TodayPage({ m }: { m: Metrics }) {
 
   return (
     <>
-      {/* The one hero figure: what today has to turn over for the month to land. */}
-      <div className="tile tile--wide">
-        <span className="tile__label">
-          Needed per day · {m.workingDaysLeft} working {m.workingDaysLeft === 1 ? "day" : "days"} left
-        </span>
-        <span className="tile__value tile__value--hero">
-          {m.dailyTarget == null ? "—" : exact(m.dailyTarget)}
-          {m.dailyTarget != null && <span className="hero__unit">/ day</span>}
-        </span>
-        <div className="meter">
-          <div
-            className={`meter__fill ${paceState ? `meter__fill--${paceState}` : ""}`}
-            style={{ width: `${Math.min(100, (m.revenuePacePct ?? 0) * 100)}%` }}
-          />
-        </div>
-        <div className="hero__row">
-          <span className="hero__stat">
-            <b>{money(m.revenueInvoicedMtd)}</b>
-            <span>invoiced this month</span>
-          </span>
-          <span className="hero__stat">
-            <b>{money(m.revenueTargetMonthly)}</b>
-            <span>target</span>
-          </span>
-          <span className="hero__stat">
-            <b className={behind ? "tile__delta--bad" : "tile__delta--good"}>{signed(m.aheadBehind)}</b>
-            <span>{behind ? "behind pace" : "ahead of pace"}</span>
-          </span>
-        </div>
-      </div>
+      {/* The two daily numbers, given equal weight and identical shape because
+          they are the same question asked of two teams. Selling is the half the
+          room can still act on today; invoicing is the half already committed
+          weeks ago. Ordered sold-then-invoiced so the actionable one is read
+          first on a left-to-right scan. */}
+      <HeroTile
+        label="To sell per day"
+        daily={m.dailySalesTarget}
+        today={m.soldToday}
+        todayLabel="sold today"
+        mtd={m.soldMtd}
+        target={m.salesTargetMonthly}
+        pacePct={m.salesPacePct}
+        aheadBehind={m.salesAheadBehind}
+        daysLeft={m.workingDaysLeft}
+        noTarget="No monthly sales target set"
+      />
 
-      <Tile
-        label="Invoiced today"
-        value={money(m.revenueToday)}
-        state={todayState}
-        sub={m.dailyTarget == null ? "no target set" : `${exact(m.dailyTarget)} needed`}
+      <HeroTile
+        label="To invoice per day"
+        daily={m.dailyTarget}
+        today={m.revenueToday}
+        todayLabel="invoiced today"
+        mtd={m.revenueInvoicedMtd}
+        target={m.revenueTargetMonthly}
+        pacePct={m.revenuePacePct}
+        aheadBehind={m.aheadBehind}
+        daysLeft={m.workingDaysLeft}
+        noTarget="No monthly revenue target set"
       />
 
       <Tile label="Leads today" value={count(m.leadsToday)} />
@@ -198,18 +191,94 @@ function TodayPage({ m }: { m: Metrics }) {
       <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
 
       <Tile
-        label="Close rate"
-        value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`}
-        sub="quotes written, last 30 days"
-      />
-
-      <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
         state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
         sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
       />
     </>
+  );
+}
+
+/**
+ * One of the two daily numbers.
+ *
+ * Both are rendered by the same component on purpose: identical shape is what
+ * tells the room these are two measures of the same thing rather than one
+ * headline and a footnote. A missing target blanks the figure and says so
+ * instead of falling back to a number nobody agreed to.
+ */
+function HeroTile({
+  label,
+  daily,
+  today,
+  todayLabel,
+  mtd,
+  target,
+  pacePct,
+  aheadBehind,
+  daysLeft,
+  noTarget,
+}: {
+  label: string;
+  daily: number | null;
+  today: number;
+  todayLabel: string;
+  mtd: number;
+  target: number | null;
+  pacePct: number | null;
+  aheadBehind: number | null;
+  daysLeft: number;
+  noTarget: string;
+}) {
+  const paceState =
+    pacePct == null ? "" : pacePct >= 1 ? "good" : pacePct >= 0.85 ? "warning" : "critical";
+  const behind = aheadBehind != null && aheadBehind < 0;
+
+  return (
+    <div className="tile tile--wide">
+      <span className="tile__label">
+        {label} · {daysLeft} working {daysLeft === 1 ? "day" : "days"} left
+      </span>
+
+      <span className="tile__value tile__value--hero">
+        {daily == null ? "—" : exact(daily)}
+        {daily != null && <span className="hero__unit">/ day</span>}
+      </span>
+
+      <div className="meter">
+        <div
+          className={`meter__fill ${paceState ? `meter__fill--${paceState}` : ""}`}
+          style={{ width: `${Math.min(100, (pacePct ?? 0) * 100)}%` }}
+        />
+      </div>
+
+      <div className="hero__row">
+        <span className="hero__stat">
+          <b>{plain(today)}</b>
+          <span>{todayLabel}</span>
+        </span>
+        {target == null ? (
+          <span className="hero__stat">
+            <b className="hero__stat--muted">{noTarget}</b>
+            <span>the daily number needs one</span>
+          </span>
+        ) : (
+          <>
+            <span className="hero__stat">
+              <b>
+                {money(mtd)} of {money(target)}
+              </b>
+              <span>this month</span>
+            </span>
+            <span className="hero__stat">
+              <b className={behind ? "tile__delta--bad" : "tile__delta--good"}>{signed(aheadBehind)}</b>
+              <span>{behind ? "behind pace" : "ahead of pace"}</span>
+            </span>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 

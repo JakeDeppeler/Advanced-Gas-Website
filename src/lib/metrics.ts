@@ -31,19 +31,30 @@ export type Metrics = {
   revenueInvoicedMtd: number;
   revenueTargetMonthly: number | null;
   revenuePacePct: number | null;
+  soldMtd: number;
+  salesTargetMonthly: number | null;
+  salesPacePct: number | null;
   overdueTotal: number | null;
   overdueCount: number | null;
   receivablesTotal: number | null;
   topSuburbs: Array<{ suburb: string; count: number }>;
 
-  // The daily number: what the crew has to turn over, per remaining working
-  // day, to still land on the monthly target. Recomputed every sync, so a big
-  // day visibly lowers tomorrow's bar and a slow one raises it.
+  // The two daily numbers, each recomputed every sync so a big day visibly
+  // lowers tomorrow's bar and a slow one raises it.
+  //
+  // They are deliberately separate measures, not two views of one. Work sold
+  // today is invoiced days or weeks later, so revenue alone reports on quotes
+  // closed well before this morning — by the time it sags, the sales week that
+  // caused it is already gone. Sold leads, invoiced lags, and the gap between
+  // them is the pipeline.
   revenueToday: number;
   dailyTarget: number | null;
+  aheadBehind: number | null;
+  soldToday: number;
+  dailySalesTarget: number | null;
+  salesAheadBehind: number | null;
   workingDaysLeft: number;
   workingDaysTotal: number;
-  aheadBehind: number | null;
 
   topJobTypes: Array<{ jobType: string; revenue: number; profit: number | null; jobs: number }>;
   jobTypeBasis: "profit" | "revenue";
@@ -190,16 +201,25 @@ async function serviceTitanMetrics(now: Date) {
     )
     .slice(0, 5);
 
-  // Who has sold the most this month, by the value of estimates they closed.
+  // Everything sold this month: the month and today totals, and the leaderboard.
+  // One query rather than three, and deliberately not filtered to rows that
+  // carry a seller — an estimate closed without one still sold, and excluding it
+  // would make the leaderboard rows sum to less than the headline figure.
   const { data: soldRows, error: soldErr } = await supabase()
     .from("st_estimates")
-    .select("sold_by, total")
-    .gte("sold_on", monthStart.toISOString())
-    .not("sold_by", "is", null);
-  if (soldErr) throw new Error(`st_estimates leaderboard read failed: ${soldErr.message}`);
+    .select("sold_by, total, sold_on")
+    .gte("sold_on", monthStart.toISOString());
+  if (soldErr) throw new Error(`st_estimates sold read failed: ${soldErr.message}`);
+
+  const soldMtd = (soldRows ?? []).reduce((s, r) => s + Number(r.total ?? 0), 0);
+
+  const soldToday = (soldRows ?? [])
+    .filter((r) => r.sold_on && isoDateMelbourne(new Date(String(r.sold_on))) === today)
+    .reduce((s, r) => s + Number(r.total ?? 0), 0);
 
   const bySeller = new Map<string, { sold: number; jobs: number }>();
   for (const r of soldRows ?? []) {
+    if (r.sold_by == null) continue;
     const key = String(r.sold_by);
     const acc = bySeller.get(key) ?? { sold: 0, jobs: 0 };
     acc.sold += Number(r.total ?? 0);
@@ -220,20 +240,33 @@ async function serviceTitanMetrics(now: Date) {
     closeRate30d,
     revenueInvoicedMtd,
     revenueToday,
+    soldMtd,
+    soldToday,
     topJobTypes,
     jobTypeBasis,
     salesLeaderboard,
   };
 }
 
-async function revenueTarget(): Promise<number | null> {
+type Targets = { revenue: number | null; sales: number | null };
+
+/**
+ * The two monthly targets. Either can be absent: a board with only a revenue
+ * target still shows the revenue number and leaves the sales one blank, rather
+ * than inventing a figure nobody agreed to.
+ */
+async function monthlyTargets(): Promise<Targets> {
   const { data } = await supabase()
     .from("portal_settings")
     .select("value")
     .eq("key", "dashboard")
-    .maybeSingle<{ value: { revenueTargetMonthly?: number } }>();
-  const t = data?.value?.revenueTargetMonthly;
-  return typeof t === "number" && t > 0 ? t : null;
+    .maybeSingle<{ value: { revenueTargetMonthly?: number; salesTargetMonthly?: number } }>();
+
+  const positive = (v: unknown) => (typeof v === "number" && v > 0 ? v : null);
+  return {
+    revenue: positive(data?.value?.revenueTargetMonthly),
+    sales: positive(data?.value?.salesTargetMonthly),
+  };
 }
 
 async function workingCalendar(): Promise<WorkingCalendar> {
@@ -313,6 +346,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       closeRate30d: prev?.closeRate30d ?? null,
       revenueInvoicedMtd: prev?.revenueInvoicedMtd ?? 0,
       revenueToday: prev?.revenueToday ?? 0,
+      soldMtd: prev?.soldMtd ?? 0,
+      soldToday: prev?.soldToday ?? 0,
       topJobTypes: prev?.topJobTypes ?? [],
       jobTypeBasis: prev?.jobTypeBasis ?? "revenue",
       salesLeaderboard: prev?.salesLeaderboard ?? [],
@@ -326,31 +361,45 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     sources.xero = { state: "stale", detail: xero.reason, at: previous?.computedAt };
   }
 
-  const target = await revenueTarget().catch(() => null);
+  const targets = await monthlyTargets().catch((): Targets => ({ revenue: null, sales: null }));
   const calendar = await workingCalendar().catch(() => DEFAULT_WORKING_CALENDAR);
   const days = workingDaysInMonth(now, calendar);
 
   // Pace measured against working days elapsed, not calendar days: being "80%
   // through the month" means nothing if the remaining days are a long weekend.
   const progress = days.total > 0 ? days.elapsed / days.total : 0;
-  const revenuePacePct =
-    target && progress > 0 ? st.revenueInvoicedMtd / (target * progress) : null;
 
-  const remainingToTarget = target ? Math.max(0, target - st.revenueInvoicedMtd) : null;
-  const dailyTarget =
-    remainingToTarget == null ? null : remainingToTarget / Math.max(1, days.remaining);
-  const aheadBehind = target ? st.revenueInvoicedMtd - target * progress : null;
+  /**
+   * What has to happen per remaining working day to still land on the target.
+   *
+   * `Math.max(0, …)` floors the shortfall rather than the rate: once the target
+   * is met the number is 0, not a negative figure that would read as money owed
+   * back. `Math.max(1, …)` guards the last day of the month, where dividing by
+   * zero remaining days would otherwise print Infinity on the wall.
+   */
+  const perDay = (target: number | null, achieved: number) => ({
+    pacePct: target && progress > 0 ? achieved / (target * progress) : null,
+    daily: target == null ? null : Math.max(0, target - achieved) / Math.max(1, days.remaining),
+    aheadBehind: target ? achieved - target * progress : null,
+  });
+
+  const revenue = perDay(targets.revenue, st.revenueInvoicedMtd);
+  const sales = perDay(targets.sales, st.soldMtd);
 
   return {
     metrics: {
       ...leads,
       ...st,
-      revenueTargetMonthly: target,
-      revenuePacePct,
-      dailyTarget,
+      revenueTargetMonthly: targets.revenue,
+      revenuePacePct: revenue.pacePct,
+      dailyTarget: revenue.daily,
+      aheadBehind: revenue.aheadBehind,
+      salesTargetMonthly: targets.sales,
+      salesPacePct: sales.pacePct,
+      dailySalesTarget: sales.daily,
+      salesAheadBehind: sales.aheadBehind,
       workingDaysLeft: days.remaining,
       workingDaysTotal: days.total,
-      aheadBehind,
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,

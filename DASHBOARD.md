@@ -31,20 +31,30 @@ tiles can be added — or metrics backfilled — without re-pulling history.
 The board cycles every 20 seconds. Past about eight tiles nothing on a 1080p
 panel stays readable from four metres, so it rotates rather than shrinks.
 
-**Today** leads with the daily number — what the crew has to turn over per
-remaining working day to still land on the monthly target:
+**Today** leads with two daily numbers, side by side and given equal weight:
 
 ```
-needed per day = (monthly target − invoiced so far) ÷ working days remaining
+to sell per day    = (monthly sales target  − sold so far)     ÷ working days remaining
+to invoice per day = (monthly revenue target − invoiced so far) ÷ working days remaining
 ```
 
-It is recomputed every sync, so a big day visibly lowers tomorrow's bar and a
+They are **two different measures, not two views of one**, and that is why both
+are on the wall. Work sold today is invoiced days or weeks later, so revenue
+alone reports on quotes closed well before this morning — by the time it sags,
+the sales week that caused it is already over. Selling is the half the room can
+still act on today; invoicing is the half already committed. The gap between
+them is the pipeline.
+
+Each is recomputed every sync, so a big day visibly lowers tomorrow's bar and a
 slow one raises it. That movement is the point; a static "1/20th of target"
 figure doesn't change anyone's afternoon. Today counts as remaining — the crew
 can still sell today.
 
 Pace is measured against **working days elapsed, not calendar days**. Being
 "80% through the month" means nothing if the days left are a long weekend.
+
+Either target can be left unset. The board then blanks that number and says so,
+rather than falling back to a figure nobody agreed to.
 
 **Performance** carries the leaderboards: who has sold the most this month (by
 value of quotes closed), top job types over 90 days, and top suburbs.
@@ -77,12 +87,18 @@ tables are untouched.
 
 ### 3. Revenue target and working calendar
 
-The daily number needs a monthly target and a definition of a working day:
+The daily numbers need their monthly targets and a definition of a working day:
 
 ```sql
 insert into portal_settings (key, value)
 values ('dashboard', jsonb_build_object(
+  -- What has to be invoiced in the month. Drives "to invoice per day".
   'revenueTargetMonthly', 240000,
+  -- What has to be SOLD in the month — the value of quotes closed. Drives
+  -- "to sell per day". Usually set above the revenue target: not everything
+  -- sold this month gets installed and invoiced this month, and the backlog
+  -- it builds is what next month invoices from.
+  'salesTargetMonthly', 280000,
   -- 1 = Monday … 7 = Sunday. Add 6 if Saturdays count toward the target.
   'workingDays', jsonb_build_array(1,2,3,4,5),
   -- Victorian public holidays and any shutdown days, as YYYY-MM-DD.
@@ -94,6 +110,9 @@ on conflict (key) do update set value = excluded.value;
 Holidays live here rather than in code so the office can correct them without a
 deploy. An empty list is fine — the number is just slightly optimistic in
 months with a public holiday.
+
+To change a target mid-month, update this row — the next sync picks it up and
+both daily numbers re-derive from it. No deploy, no restart.
 
 ### 4. Link ServiceTitan
 

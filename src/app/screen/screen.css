@@ -306,3 +306,10 @@ body:has(.screen) .utilbar {
   color: var(--ink-2);
   margin-left: 0.4vw;
 }
+
+/* A hero with no target set states that in place of the figures, in muted ink
+   rather than a status colour — an unconfigured board is not an alert. */
+.hero__stat--muted {
+  color: var(--ink-muted);
+  font-weight: 550;
+}
