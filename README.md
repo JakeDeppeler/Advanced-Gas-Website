@@ -37,6 +37,7 @@ Replaces the previous Framer site at `advancedgas.framer.website`.
 | `/about` | About + licences |
 | `/contact` | Contact + inline quote form |
 | `/thanks` | Post-submit page (add conversion pixels here) |
+| `/screen` | Wall dashboard for the office TV — see [DASHBOARD.md](DASHBOARD.md) |
 
 ## Run locally
 
