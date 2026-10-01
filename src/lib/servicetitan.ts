@@ -181,3 +181,127 @@ export async function stList<T>(
 
   return out;
 }
+
+// --- Connection diagnostics ---------------------------------------------------
+//
+// Linking a tenant fails in four distinguishable ways — wrong client id/secret,
+// wrong app key, wrong tenant id, or an API scope not ticked on the developer
+// portal app — and ServiceTitan reports all of them as a bare 401/403/404. The
+// helpers below probe one stage at a time so the failure can be named instead of
+// guessed at. They deliberately do not retry: a diagnostic wants the real status
+// code, not the one four backoffs later.
+
+export function stEndpoints(): { authUrl: string; apiBase: string } {
+  return { authUrl: AUTH_URL, apiBase: API_BASE };
+}
+
+/** Which of the four credentials are present. Never reports their values. */
+export function stCredentialStatus(): Record<
+  "clientId" | "clientSecret" | "appKey" | "tenantId",
+  boolean
+> {
+  return {
+    clientId: Boolean(process.env.ST_CLIENT_ID),
+    clientSecret: Boolean(process.env.ST_CLIENT_SECRET),
+    appKey: Boolean(process.env.ST_APP_KEY),
+    tenantId: Boolean(process.env.ST_TENANT_ID),
+  };
+}
+
+export type AuthProbe =
+  | { ok: true; expiresInSeconds: number }
+  | { ok: false; status: number; code: string | null };
+
+/**
+ * Exchange the client credentials for a token, bypassing the cache.
+ *
+ * Surfaces only the OAuth `error` code from a failure body — that field is a
+ * fixed enum (`invalid_client`, `invalid_scope`, …), so it can be shown safely,
+ * unlike the rest of the body, which can echo the client id back.
+ */
+export async function stAuthProbe(): Promise<AuthProbe> {
+  const res = await fetch(AUTH_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: process.env.ST_CLIENT_ID ?? "",
+      client_secret: process.env.ST_CLIENT_SECRET ?? "",
+    }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    let code: string | null = null;
+    try {
+      const body = (await res.json()) as { error?: unknown };
+      if (typeof body.error === "string") code = body.error;
+    } catch {
+      // A non-JSON error body tells us nothing we can safely show.
+    }
+    return { ok: false, status: res.status, code };
+  }
+
+  const json = (await res.json()) as { access_token: string; expires_in: number };
+  // Prime the shared cache so the scope probes that follow reuse this token
+  // rather than authenticating seven more times.
+  token = { value: json.access_token, expiresAt: Date.now() + json.expires_in * 1000 };
+  return { ok: true, expiresInSeconds: json.expires_in };
+}
+
+export type Probe = { status: number; ok: boolean; totalCount: number | null };
+
+/** Single-attempt tenant-scoped GET. Reports the status rather than throwing. */
+export async function stProbe(
+  module: string,
+  resource: string,
+  params: Record<string, string> = {},
+): Promise<Probe> {
+  const url = new URL(`${API_BASE}/${module}/v2/tenant/${tenantId()}/${resource}`);
+  for (const [k, v] of Object.entries({ page: "1", pageSize: "1", includeTotal: "True", ...params })) {
+    url.searchParams.set(k, v);
+  }
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${await getToken()}`,
+      "ST-App-Key": process.env.ST_APP_KEY ?? "",
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) return { status: res.status, ok: false, totalCount: null };
+
+  const json = (await res.json().catch(() => ({}))) as { totalCount?: unknown };
+  return {
+    status: res.status,
+    ok: true,
+    totalCount: typeof json.totalCount === "number" ? json.totalCount : null,
+  };
+}
+
+/**
+ * Credential problems that are invisible by inspection.
+ *
+ * A secret pasted into a dashboard field with a trailing newline is the single
+ * most common cause of `invalid_client`, and nothing in the error says so. The
+ * client deliberately does not trim the values itself — silently accepting a
+ * malformed secret hides a misconfiguration that will resurface on the next
+ * rotation — so this reports them instead.
+ */
+export function stCredentialHygiene(): { untrimmed: string[]; tenantIdNumeric: boolean } {
+  const vars: Array<[string, string | undefined]> = [
+    ["ST_CLIENT_ID", process.env.ST_CLIENT_ID],
+    ["ST_CLIENT_SECRET", process.env.ST_CLIENT_SECRET],
+    ["ST_APP_KEY", process.env.ST_APP_KEY],
+    ["ST_TENANT_ID", process.env.ST_TENANT_ID],
+  ];
+
+  return {
+    untrimmed: vars.filter(([, v]) => v && v !== v.trim()).map(([name]) => name),
+    // ServiceTitan tenant ids are numeric; a non-numeric value is usually the
+    // tenant *name* pasted in by mistake, which fails as a 404 much later.
+    tenantIdNumeric: /^\d+$/.test((process.env.ST_TENANT_ID ?? "").trim()),
+  };
+}

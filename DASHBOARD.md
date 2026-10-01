@@ -60,12 +60,13 @@ Set these in Vercel (see `.env.example`):
 | `SUPABASE_URL` | the `advanced-calc` project |
 | `SUPABASE_SERVICE_ROLE_KEY` | bypasses RLS — server-side only |
 | `SCREEN_TOKEN` | `openssl rand -hex 32` |
-| `CRON_SECRET` | Vercel Cron sends it as a bearer token |
-| `ST_CLIENT_ID` / `ST_CLIENT_SECRET` / `ST_APP_KEY` / `ST_TENANT_ID` | ServiceTitan |
+| `CRON_SECRET` | the sync workflow sends it as a bearer token |
+| `ST_CLIENT_ID` / `ST_CLIENT_SECRET` / `ST_APP_KEY` / `ST_TENANT_ID` | ServiceTitan — where each comes from is step 4 |
 
 Until the ServiceTitan variables are set, the sync skips ServiceTitan cleanly and
 the board runs on website leads alone — every ServiceTitan tile shows `—` with the
-source marked `not-configured`.
+source marked `not-configured`. Next.js reads these at runtime, but a running
+instance keeps the values it started with, so redeploy after adding them.
 
 ### 2. Database
 
@@ -94,7 +95,77 @@ Holidays live here rather than in code so the office can correct them without a
 deploy. An empty list is fine — the number is just slightly optimistic in
 months with a public holiday.
 
-### 4. First sync
+### 4. Link ServiceTitan
+
+The four `ST_*` values come from two different systems, and the order matters —
+the tenant side needs the app key before it will issue a client id.
+
+**a. App key** — in the developer portal at `developer.servicetitan.io`:
+*Login to My Apps* → *Login as Production Environment User* → **+New App**. Fill
+in the app details, add the Advanced Gas tenant under **Tenant(s)**, and tick the
+scopes in **API Scope** (see the table below). Then **Keys → Application Key** →
+copy it. That is `ST_APP_KEY`, and it belongs to the app, not the tenant.
+
+**b. Client id and secret** — in ServiceTitan itself, not the portal:
+**Settings → Integrations → API Application Access**. Find the app and generate
+the credential pair. These are `ST_CLIENT_ID` and `ST_CLIENT_SECRET`, they are
+issued **per tenant**, and **the secret is shown only once** — if it is not
+recorded at that moment it has to be regenerated.
+
+**c. Tenant id** — the numeric id on that same API Application Access page.
+`ST_TENANT_ID` is always numeric; if what you have is a name, it is the wrong
+field.
+
+Scopes to tick, and what each one is holding up:
+
+| API scope | Powers |
+|---|---|
+| Settings | business unit labels, sales leaderboard names |
+| Job Planning & Management | jobs completed, jobs booked, job type labels |
+| Accounting | revenue MTD, the daily number, job type profit |
+| Sales & Estimates | quotes open, close rate, who sold the most |
+| CRM | ServiceTitan lead counts |
+
+A missing scope is the most common failure, and it surfaces as a bare `403` on
+whichever call happens to run first — which is why the next step exists rather
+than going straight to the backfill.
+
+**d. Verify the link** before syncing anything:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  https://www.advancedgas.com.au/api/servicetitan/check
+```
+
+It walks the stages in dependency order — credentials present, credentials
+well-formed, token exchange, then one cheap probe per scope — and stops at the
+first failure, because every later probe would fail for the same reason. Each
+failing stage carries a `fix` naming what to change. `"linked": true` means all
+seven endpoints answered, and the `records` count per resource tells you the
+tenant actually holds data before you commit to a backfill.
+
+It returns 200 even when the link is broken: the body is the report, and a
+non-2xx would be indistinguishable from the endpoint itself being misconfigured.
+The route is read-only and guarded by `CRON_SECRET`.
+
+Two failures worth knowing in advance, because neither is visible by inspection:
+
+- **A credential pasted with a trailing newline.** It survives a copy out of the
+  portal, is invisible in every dashboard that stores it, and comes back as
+  `invalid_client`. The check reports it as a `format` stage failure. The client
+  deliberately does not trim the values itself — silently accepting a malformed
+  secret just hides the problem until the next rotation.
+- **The app not authorised by the tenant at all**, as opposed to one missing
+  scope. Both are 403s; the difference is that the first makes *every* endpoint
+  fail, which the check calls out explicitly.
+
+**Sandbox.** ServiceTitan runs a separate integration environment on different
+hosts with its own portal login and its own credentials. To point at it, set
+`ST_AUTH_URL=https://auth-integration.servicetitan.io/connect/token` and
+`ST_API_BASE=https://api-integration.servicetitan.io`. The production hosts are
+the defaults, so leave both unset for the live tenant.
+
+### 5. First sync
 
 Run once with `?reset=1` to backfill from the start of ServiceTitan history:
 
@@ -110,7 +181,7 @@ The export endpoints are paged and each run is capped, so a large backfill takes
 several invocations — the stored continuation token means each run resumes where
 the last stopped. Re-run until every resource reports `exhausted: true`.
 
-### 5. Point the TV at it
+### 6. Point the TV at it
 
 ```
 https://www.advancedgas.com.au/screen?k=<SCREEN_TOKEN>

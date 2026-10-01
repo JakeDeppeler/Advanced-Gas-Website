@@ -8,7 +8,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Driven by Vercel Cron (see vercel.json). Pulls ServiceTitan into the replica,
+// Driven by the Dashboard sync workflow (.github/workflows/dashboard-sync.yml).
+// Pulls ServiceTitan into the replica,
 // recomputes the snapshot the screen reads, and stores it.
 //
 // Pass ?reset=1 to discard the stored continuation tokens and re-export from the
