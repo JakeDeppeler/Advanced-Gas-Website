@@ -483,8 +483,13 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   }
 
   const totals = m.salesLeaderboard.reduce(
-    (a, r) => ({ today: a.today + r.soldToday, week: a.week + r.soldWeek, month: a.month + r.sold }),
-    { today: 0, week: 0, month: 0 },
+    (a, r) => ({
+      today: a.today + r.soldToday,
+      week: a.week + r.soldWeek,
+      month: a.month + r.sold,
+      quoted: a.quoted + r.quoted,
+    }),
+    { today: 0, week: 0, month: 0, quoted: 0 },
   );
   const callsFor = (n: string) => m.callsByPerson.find((c) => c.name === n);
   // Calls come from ServiceTitan's Telecom module, which is a separate scope.
@@ -501,7 +506,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span>Today</span>
           <span>This week</span>
           <span>This month</span>
-          <span>Calls</span>
+          <span>{haveCalls ? "Calls" : "Calls · needs Telecom"}</span>
           <span>Next bonus tier</span>
         </div>
 
@@ -514,7 +519,10 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 <span className="tbl__name" style={{ display: "block" }}>
                   {r.name}
                 </span>
-                {i === 0 && <span className="tbl__note tbl__note--leader">Leader</span>}
+                <span className={`tbl__note ${i === 0 ? "tbl__note--leader" : ""}`}>
+                  {i === 0 ? "Leader · " : ""}
+                  {count(r.quotes)} {r.quotes === 1 ? "quote" : "quotes"}
+                </span>
               </span>
               <span className="tbl__fig">
                 <b>{plain(r.soldToday)}</b>
@@ -522,13 +530,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               <span className="tbl__fig">
                 <b>{plain(r.soldWeek)}</b>
               </span>
+              {/* Sold against what they wrote, the way the mock sets it: a
+                  month's sold figure on its own says nothing about whether the
+                  pipeline behind it is healthy. */}
               <span className="tbl__fig">
                 <b>{plain(r.sold)}</b>
-                <span>{count(r.jobs)} sold</span>
+                <span>
+                  {r.quotes > 0 ? `of ${money(r.quoted)} quoted` : `${count(r.jobs)} sold`}
+                </span>
               </span>
               <span className="tbl__fig">
                 <b className={haveCalls ? undefined : "tile__value--na"}>{c ? count(c.month) : NA}</b>
-                {!haveCalls && <span>needs Telecom</span>}
               </span>
               <span className="tiers">
                 <span className="tiers__bar">
@@ -541,9 +553,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                     />
                   ))}
                 </span>
-                <span className={`tiers__note ${i === 0 ? "tiers__note--leader" : ""}`}>
-                  {r.toNextTier == null ? "no tiers configured" : `${money(r.toNextTier)} to the next tier`}
-                </span>
+                {r.toNextTier != null && (
+                  <span className={`tiers__note ${i === 0 ? "tiers__note--leader" : ""}`}>
+                    {money(r.toNextTier)} to the next tier
+                  </span>
+                )}
               </span>
             </div>
           );
@@ -560,6 +574,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
+            {totals.quoted > 0 && <span>of {money(totals.quoted)} quoted</span>}
           </span>
           <span className="tbl__fig">
             <b className={haveCalls ? undefined : "tile__value--na"}>

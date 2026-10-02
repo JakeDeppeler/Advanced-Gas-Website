@@ -116,6 +116,9 @@ export type Metrics = {
     soldToday: number;
     soldWeek: number;
     jobs: number;
+    /** What they have written this month, sold or not — the pipeline behind the sold figure. */
+    quoted: number;
+    quotes: number;
     /** Commission is computed but deliberately not rendered on the wall. */
     commission: number | null;
     tier: number | null;
@@ -321,9 +324,14 @@ async function serviceTitanMetrics(now: Date) {
   // Quotes written this month, so the funnel reads created -> outstanding ->
   // closed. A thin pipeline means something different depending on which end
   // it is thin at.
-  const createdRows = await sbSelect<{ total: number | null; created_on: string | null; sold_on: string | null }>(
+  const createdRows = await sbSelect<{
+    total: number | null;
+    created_on: string | null;
+    sold_on: string | null;
+    created_by: string | null;
+  }>(
     "st_estimates",
-    [q.select("total,created_on,sold_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
+    [q.select("total,created_on,sold_on,created_by"), q.gte("created_on", monthStart.toISOString())].join("&"),
   );
 
   const weekStartMs = weekStart.getTime();
@@ -437,10 +445,25 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
-  const soldRows = await sbSelect<{ id: number; sold_by: string | null; total: number | null; sold_on: string | null }>(
+  const soldRows = await sbSelect<{
+    id: number;
+    sold_by: string | null;
+    created_by: string | null;
+    total: number | null;
+    sold_on: string | null;
+  }>(
     "st_estimates",
-    [q.select("id,sold_by,total,sold_on"), q.gte("sold_on", monthStart.toISOString())].join("&"),
+    [q.select("id,sold_by,created_by,total,sold_on"), q.gte("sold_on", monthStart.toISOString())].join("&"),
   );
+
+  /**
+   * Credit goes to whoever wrote the quote, not whoever happened to close it.
+   *
+   * ServiceTitan only stamps soldBy once an estimate closes, so a leaderboard
+   * keyed on it listed the two people who had closed something this month while
+   * six had been quoting. createdById is on every estimate.
+   */
+  const creditFor = (r: { created_by: string | null; sold_by: string | null }) => r.created_by ?? r.sold_by;
 
   const soldMtd = soldRows.reduce((s, r) => s + Number(r.total ?? 0), 0);
 
@@ -452,7 +475,7 @@ async function serviceTitanMetrics(now: Date) {
     .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
     .map((r) => ({
       id: Number(r.id),
-      name: r.sold_by ? String(r.sold_by) : null,
+      name: creditFor(r),
       value: Number(r.total ?? 0),
       soldOn: String(r.sold_on),
     }))
@@ -490,10 +513,11 @@ async function serviceTitanMetrics(now: Date) {
         sold_on: string | null;
         job_id: number | null;
         sold_by: string | null;
+        created_by: string | null;
       }>(
         "st_estimates",
         [
-          q.select("id,total,created_on,sold_on,job_id,sold_by"),
+          q.select("id,total,created_on,sold_on,job_id,sold_by,created_by"),
           q.gte("created_on", startOfDayMelbourne(now).toISOString()),
         ].join("&"),
       )
@@ -519,7 +543,7 @@ async function serviceTitanMetrics(now: Date) {
       label: labelFor(r.job_id),
       value: Number(r.total ?? 0),
       sold: Boolean(r.sold_on),
-      who: r.sold_by,
+      who: r.created_by ?? r.sold_by,
     }))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
     .slice(0, 10);
@@ -545,11 +569,14 @@ async function serviceTitanMetrics(now: Date) {
   // over 100% on any day the team closed something from last week.
   const conversionTodayPct = created.todayC ? created.todaySold / created.todayC : null;
 
-  const bySeller = new Map<string, { sold: number; soldToday: number; soldWeek: number; jobs: number }>();
+  type Seller = { sold: number; soldToday: number; soldWeek: number; jobs: number; quoted: number; quotes: number };
+  const blank = (): Seller => ({ sold: 0, soldToday: 0, soldWeek: 0, jobs: 0, quoted: 0, quotes: 0 });
+
+  const bySeller = new Map<string, Seller>();
   for (const r of soldRows) {
-    if (r.sold_by == null) continue;
-    const key = String(r.sold_by);
-    const acc = bySeller.get(key) ?? { sold: 0, soldToday: 0, soldWeek: 0, jobs: 0 };
+    const key = creditFor(r);
+    if (key == null) continue;
+    const acc = bySeller.get(key) ?? blank();
     const v = Number(r.total ?? 0);
     acc.sold += v;
     acc.jobs += 1;
@@ -561,11 +588,25 @@ async function serviceTitanMetrics(now: Date) {
     bySeller.set(key, acc);
   }
 
+  // Everyone who has written a quote this month, whether or not one has closed.
+  // A page called Team that lists two of seven people reads as broken, and the
+  // work the other five did is the pipeline the sold figures come out of.
+  for (const r of createdRows) {
+    const key = r.created_by;
+    if (key == null) continue;
+    const acc = bySeller.get(key) ?? blank();
+    acc.quoted += Number(r.total ?? 0);
+    acc.quotes += 1;
+    bySeller.set(key, acc);
+  }
+
   // Commission is applied later, once the tiers have been read from settings.
   const rawLeaderboard = [...bySeller.entries()]
     .map(([name, v]) => ({ name, ...v }))
-    .sort((a, b) => b.sold - a.sold)
-    .slice(0, 5);
+    // Sold first, then what they have written: somebody whose quotes have not
+    // landed yet still ranks above somebody who has done neither.
+    .sort((a, b) => b.sold - a.sold || b.quoted - a.quoted)
+    .slice(0, 6);
 
   return {
     jobsCompletedWeek,
@@ -838,6 +879,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
         soldToday: r.soldToday ?? 0,
         soldWeek: r.soldWeek ?? 0,
         jobs: r.jobs,
+        quoted: r.quoted ?? 0,
+        quotes: r.quotes ?? 0,
       })),
       invoiceCountMonth: prev?.invoiceCountMonth ?? 0,
       invoiceCountToday: prev?.invoiceCountToday ?? 0,
