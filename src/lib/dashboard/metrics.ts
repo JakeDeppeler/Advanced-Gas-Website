@@ -65,7 +65,7 @@ export type Metrics = {
   conversionTodayPct: number | null;
 
   /** Today's quotes, newest first, for the Quotes page list. */
-  quotesToday: Array<{ id: number; at: string; label: string; value: number; sold: boolean }>;
+  quotesToday: Array<{ id: number; at: string; label: string; value: number; sold: boolean; who: string | null }>;
   /** Open quotes by value, largest first, with how long they have been out. */
   quotesOutstanding: Array<{ id: number; label: string; value: number; ageDays: number }>;
 
@@ -93,6 +93,11 @@ export type Metrics = {
   aheadBehind: number | null;
   soldToday: number;
   dailySalesTarget: number | null;
+  dailyBookingsTarget: number | null;
+  /** The configured tiers, so the board can state the thresholds it is measuring against. */
+  commissionTiers: CommissionTier[];
+  /** Jobs booked today, against the day's share of the monthly target. */
+  bookingsToday: number;
   salesAheadBehind: number | null;
   workingDaysLeft: number;
   workingDaysTotal: number;
@@ -343,6 +348,7 @@ async function serviceTitanMetrics(now: Date) {
   // Jobs booked this month — when the job was created, not when it is scheduled,
   // because booking is the act being measured.
   const bookingsMonth = await sbCount("st_jobs", q.gte("created_on", monthStart.toISOString()));
+  const bookingsToday = await sbCount("st_jobs", q.gte("created_on", startOfDayMelbourne(now).toISOString()));
 
   const invoices = await sbSelect<{ total: number | null; cost: number | null; invoice_date: string | null }>(
     "st_invoices",
@@ -477,9 +483,19 @@ async function serviceTitanMetrics(now: Date) {
   );
 
   const todayRows = createdRows.length
-    ? await sbSelect<{ id: number; total: number | null; created_on: string | null; sold_on: string | null; job_id: number | null }>(
+    ? await sbSelect<{
+        id: number;
+        total: number | null;
+        created_on: string | null;
+        sold_on: string | null;
+        job_id: number | null;
+        sold_by: string | null;
+      }>(
         "st_estimates",
-        [q.select("id,total,created_on,sold_on,job_id"), q.gte("created_on", startOfDayMelbourne(now).toISOString())].join("&"),
+        [
+          q.select("id,total,created_on,sold_on,job_id,sold_by"),
+          q.gte("created_on", startOfDayMelbourne(now).toISOString()),
+        ].join("&"),
       )
     : [];
 
@@ -503,6 +519,7 @@ async function serviceTitanMetrics(now: Date) {
       label: labelFor(r.job_id),
       value: Number(r.total ?? 0),
       sold: Boolean(r.sold_on),
+      who: r.sold_by,
     }))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
     .slice(0, 10);
@@ -570,6 +587,7 @@ async function serviceTitanMetrics(now: Date) {
     profitMtd,
     profitCoverage,
     bookingsMonth,
+    bookingsToday,
     soldMtd,
     soldToday,
     topJobTypes,
@@ -808,6 +826,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       profitMtd: prev?.profitMtd ?? null,
       profitCoverage: prev?.profitCoverage ?? 0,
       bookingsMonth: prev?.bookingsMonth ?? 0,
+      bookingsToday: prev?.bookingsToday ?? 0,
       soldMtd: prev?.soldMtd ?? 0,
       soldToday: prev?.soldToday ?? 0,
       topJobTypes: prev?.topJobTypes ?? [],
@@ -905,6 +924,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       salesTargetMonthly: targets.sales,
       salesPacePct: sales.pacePct,
       dailySalesTarget: sales.daily,
+      dailyBookingsTarget: bookings.daily,
+      commissionTiers: targets.tiers,
       salesAheadBehind: sales.aheadBehind,
       workingDaysLeft: days.remaining,
       workingDaysTotal: days.total,

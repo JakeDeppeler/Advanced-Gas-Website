@@ -16,6 +16,10 @@ Verify before merging, every time:
 A pending or failing check is not a reason to ask permission; it is a reason to
 wait or to fix it. "Push it live" means merge it *working*.
 
+Nor is it a reason to announce the intention. Saying "I'll merge once the checks
+go green" reads as waiting to be told again, and Jake has had to say "merge it"
+enough times to make the point. Wait for green, merge, then report what landed.
+
 **Stop and ask first** for: anything that deletes data or drops a column, changes
 how money is calculated once the business is relying on it, alters the public
 site's appearance or content in a way nobody requested, touches credentials or

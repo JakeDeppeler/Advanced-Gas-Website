@@ -75,7 +75,7 @@ export function Gauge({
 
   return (
     <div className="tile gauge c3">
-      <span className="tile__label">{label}</span>
+      <span className="gauge__label">{label}</span>
 
       <svg
         className="gauge__svg"
@@ -108,11 +108,15 @@ export function Gauge({
         {target != null ? <> of {format(target)}</> : null}
       </span>
 
-      <span className={`pill ${diff == null ? "pill--quiet" : diff >= 0 ? "pill--ahead" : "pill--behind"}`}>
+      {/* One line, not a pill plus a projection: the mock reads "Behind ·
+          heading for $374,677", and the word carries the status while the
+          colour only reinforces it. */}
+      <span
+        className={`status ${diff == null ? "status--quiet" : diff >= 0 ? "status--ahead" : "status--behind"}`}
+      >
         {statusText}
+        {onPaceFor != null ? ` · heading for ${format(onPaceFor)}` : ""}
       </span>
-
-      {onPaceFor != null && <span className="tile__sub">On pace for {format(onPaceFor)}</span>}
     </div>
   );
 }
