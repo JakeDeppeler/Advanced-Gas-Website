@@ -115,6 +115,9 @@ const RESOURCES: ResourceSpec[] = [
       customer_id: num(r.customerId),
       status: str(pick(r, "statusName", "status")),
       sold_by_id: num(pick(r, "soldById", "soldBy")),
+      // Who wrote the quote, which is a different person from who closed it and
+      // is on every estimate rather than only the sold ones.
+      created_by_id: num(pick(r, "createdById", "createdBy")),
       subtotal: num(r.subtotal),
       total: num(pick(r, "total", "subtotal")),
       created_on: ts(pick(r, "createdOn")),
