@@ -98,16 +98,24 @@ doesn't replay every sale already on the books, and it won't cheer the same sale
 twice. Motion is suppressed under `prefers-reduced-motion`; the name and the
 number still appear, which is the part that matters.
 
-### Light version
+### Theme
+
+The board is light by default — deep navy on warm off-white with the brand
+orange, matching the Advanced Gas identity. Dark is still there:
 
 ```
-/screen?k=<SCREEN_TOKEN>&theme=light
+/screen?k=<SCREEN_TOKEN>&theme=dark
 ```
 
-A selected light theme, not an inverted dark one: the status colours and the
-accent are their own steps chosen against a light surface and checked for
-contrast there. The kiosk default stays dark, which is easier on a panel running
-twelve hours a day.
+Dark is easier on a panel running twelve hours a day, so it is worth switching
+to if the TV shows signs of burn-in. Each theme has its own steps chosen against
+its own surface; neither is an inversion of the other.
+
+The brand pair also fixed the dials. Red/green/gold measured ΔE 4.1 between its
+adjacent zones under deuteranopia — effectively identical colours. The order is
+now behind (orange) → on track (navy) → ahead (green), whose adjacent pairs
+measure 28.2 and 30.5. Orange and green remain a weak pair at 4.8, and they sit
+at opposite ends of the arc, never beside each other.
 
 ## Setup
 

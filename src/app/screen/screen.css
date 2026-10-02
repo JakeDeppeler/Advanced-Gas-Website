@@ -4,40 +4,42 @@
    Sizing is in vw throughout so the same layout fills a 1080p or 4K panel
    without a media query — at 1920px, 1vw = 19.2px.
 
-   Palette: dark-only, deliberately. A wall TV runs 12 hours a day and a light
-   board is both fatiguing and worse for burn-in. Data accent is the validated
-   sequential blue; the good/warning/critical trio is the fixed status palette
-   and is never used for anything decorative. */
+   Palette: the Advanced Gas brand pair, deep navy on warm off-white with an
+   orange accent. That pair is also the best thing that could have happened to
+   the pace dials: blue against orange is the most robust distinction there is
+   for colour-blind viewers, where the red/green/gold it replaced measured
+   ΔE 4.1 under deuteranopia — effectively identical. The zone order is now
+   behind (orange) → on track (navy) → ahead (green), whose adjacent pairs
+   measure 28.2 and 30.5. Orange and green are the one weak pair at 4.8, and
+   they sit at opposite ends of the arc, never side by side.
+
+   Dark is still available at ?theme=dark — easier on a panel running twelve
+   hours a day, and the honest trade-off against this being the nicer board. */
 
 .screen {
-  --plane: #0d0d0d;
-  --surface: #1a1a19;
-  --ink: #ffffff;
-  --ink-2: #c3c2b7;
-  --ink-muted: #898781;
-  --hairline: rgba(255, 255, 255, 0.1);
-  --track: #2c2c2a;
+  --plane: #f5f4ef;
+  --surface: #ffffff;
+  --ink: #0b1437;
+  --ink-2: #4b4a46;
+  --ink-muted: #6b6a68;
+  --hairline: rgba(11, 20, 55, 0.1);
+  --track: #ece9e0;
 
-  --accent: #3987e5;
-  --good: #0ca30c;
-  --warning: #fab219;
-  --critical: #d03b3b;
-  /* "Ahead of target" on the gauges. Deliberately distinct from --warning:
-     amber already means caution elsewhere on the board, and the same hue
-     meaning both "careful" and "smashing it" is how a palette stops working. */
-  --ahead: #c9a227;
+  --navy: #0b1437;
+  --navy-zone: #1b2a6b;
+  --accent: #f36722;
+  --good: #1a7f37;
+  --warning: #b45309;
+  --critical: #c0272d;
+  --ahead: #1a7f37;
 
   position: fixed;
   inset: 0;
   z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 0.9vw;
-  padding: 1.2vw;
   background: var(--plane);
   color: var(--ink);
-  /* System sans, per the data-viz rule that even the hero figure stays in the
-     UI sans — the site's display face would read as decoration here. */
   font-family: var(--font-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
   overflow: hidden;
 }
@@ -53,49 +55,122 @@ body:has(.screen) .utilbar {
 /* ------------------------------------------------------------------ top bar */
 .screen__bar {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1vw;
-  padding-bottom: 0.2vw;
+  align-items: center;
+  gap: 1.6vw;
+  padding: 0.9vw 1.6vw;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
 }
 
-.screen__title {
-  font-size: 1.5vw;
+.screen__brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  padding-right: 1.4vw;
+  border-right: 1px solid var(--hairline);
+}
+.screen__brand b {
+  font-size: 1.25vw;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--navy);
+}
+.screen__brand em {
+  font-size: 0.72vw;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  font-style: normal;
+  letter-spacing: 0.02em;
+  color: var(--accent);
 }
 
-.screen__clock {
-  font-size: 1.5vw;
-  font-weight: 600;
-  color: var(--ink-2);
+.screen__page {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7vw;
+  min-width: 0;
+}
+.screen__page i {
+  font-style: normal;
+  font-size: 1.1vw;
+  font-weight: 800;
+  color: var(--accent);
   font-variant-numeric: tabular-nums;
+}
+.screen__page strong {
+  font-size: 1.95vw;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--navy);
+}
+.screen__page time {
+  font-size: 0.95vw;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+/* The tab strip doubles as the page indicator: the pill is the only thing that
+   moves as the board rotates, so the room can see where it is in the cycle
+   without reading. */
+.screen__tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25vw;
+  margin-left: auto;
+}
+
+.screen__tab {
+  padding: 0.5vw 0.95vw;
+  border-radius: 0.45vw;
+  font-size: 0.95vw;
+  font-weight: 650;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.screen__tab.is-on {
+  background: var(--navy);
+  color: #fff;
+}
+
+.screen__meta {
+  display: flex;
+  align-items: center;
+  gap: 1vw;
+  padding-left: 1.4vw;
+  border-left: 1px solid var(--hairline);
+  font-size: 0.8vw;
+  color: var(--ink-muted);
 }
 
 .screen__sources {
   display: flex;
-  gap: 1.1vw;
-  font-size: 0.95vw;
-  color: var(--ink-muted);
+  gap: 0.8vw;
 }
 
 .screen__source {
   display: inline-flex;
   align-items: center;
-  gap: 0.35vw;
+  gap: 0.3vw;
+  white-space: nowrap;
 }
 
 /* Status is never carried by colour alone — each dot ships with its source
    name, and a degraded source also spells out its state in the label. */
 .screen__dot {
-  width: 0.6vw;
-  height: 0.6vw;
+  width: 0.5vw;
+  height: 0.5vw;
   border-radius: 50%;
   background: var(--good);
 }
-.screen__dot--stale { background: var(--warning); }
+.screen__dot--stale { background: var(--accent); }
 .screen__dot--error { background: var(--critical); }
 .screen__dot--off { background: var(--ink-muted); }
+
+.screen__clock {
+  font-size: 1.15vw;
+  font-weight: 700;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
 
 /* -------------------------------------------------------------------- grid */
 .screen__grid {
@@ -103,86 +178,123 @@ body:has(.screen) .utilbar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  gap: 0.9vw;
+  gap: 0.75vw;
+  padding: 0.9vw 1.6vw 1.2vw;
   min-height: 0;
 }
 
 .tile {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 0.5vw;
-  padding: 1.1vw 1.3vw;
+  /* Label and figure sit together at the top and the caption drops to the
+     floor (via margin-top:auto below). space-between instead spread all three,
+     which left the number floating in the middle of its own tile. */
+  justify-content: flex-start;
+  gap: 0.4vw;
+  padding: 1.1vw 1.25vw;
   background: var(--surface);
-  border: 1px solid var(--hairline);
-  border-radius: 0.7vw;
+  border-radius: 0.6vw;
+  box-shadow: 0 1px 2px rgba(11, 20, 55, 0.06);
   min-width: 0;
   overflow: hidden;
 }
 
 .tile--wide { grid-column: span 2; }
+.tile--tall { grid-row: span 2; }
 
+/* Small, letterspaced, upper-case: it names the figure without competing with
+   it, which matters when the figure is the only thing readable from the far
+   side of the room. */
 .tile__label {
-  font-size: 1.15vw;
-  font-weight: 500;
-  color: var(--ink-2);
-  letter-spacing: 0.01em;
+  font-size: 0.82vw;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 /* Proportional figures, not tabular — tabular-nums makes a large standalone
    number look loose at this size. Tabular is reserved for the aligned columns
-   in the suburb list and the clock. */
+   in the bar lists and the clock. */
 .tile__value {
-  font-size: 3.1vw;
-  font-weight: 650;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-size: 3.4vw;
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--navy);
 }
 
-.tile__value--hero { font-size: 5.4vw; }
+.tile__value--hero { font-size: 5.2vw; }
 
 .tile__value--good { color: var(--good); }
 .tile__value--warning { color: var(--warning); }
 .tile__value--critical { color: var(--critical); }
 
 .tile__delta {
-  font-size: 1.05vw;
-  font-weight: 550;
+  font-size: 0.95vw;
+  font-weight: 650;
   color: var(--ink-muted);
+  margin-top: auto;
 }
 .tile__delta--good { color: var(--good); }
 .tile__delta--bad { color: var(--critical); }
 
 .tile__sub {
-  font-size: 1vw;
+  font-size: 0.92vw;
   color: var(--ink-muted);
+  margin-top: auto;
 }
 
+/* Explanatory copy wraps and sits directly under its label, rather than being
+   pushed to the floor of the tile the way a one-line figure caption is. */
+.tile__sub--body {
+  line-height: 1.45;
+  white-space: normal;
+  margin-top: -0.2vw;
+  margin-bottom: auto;
+}
+
+.gauge .tile__sub { margin-top: 0; }
+
+/* The one filled tile on a page. Reserved for the figure the page exists to
+   show, so inversion means "this one" rather than decoration. */
+.tile--feature {
+  background: var(--navy);
+  box-shadow: none;
+}
+.tile--feature .tile__label { color: rgba(255, 255, 255, 0.65); }
+.tile--feature .tile__value { color: #fff; }
+.tile--feature .tile__sub { color: rgba(255, 255, 255, 0.72); }
+.tile--feature .hero__unit { color: rgba(255, 255, 255, 0.6); }
+.tile--feature .hero__stat b { color: #fff; }
+.tile--feature .hero__stat span { color: rgba(255, 255, 255, 0.6); }
+.tile--feature .meter { background: rgba(255, 255, 255, 0.18); }
+.tile--feature .tile__delta--good { color: #7fe0a0; }
+.tile--feature .tile__delta--bad { color: #ffab9b; }
+
 /* ------------------------------------------------------------------- meter */
-/* Fill carries severity; the unfilled track is a darker step of the same
-   surface family so the state reads across the whole bar. */
 .meter {
-  height: 0.85vw;
-  border-radius: 0.45vw;
+  height: 0.5vw;
+  border-radius: 0.3vw;
   background: var(--track);
   overflow: hidden;
 }
 
 .meter__fill {
   height: 100%;
-  border-radius: 0.45vw;
-  background: var(--accent);
+  border-radius: 0.3vw;
+  background: var(--navy);
   transition: width 600ms ease;
 }
 .meter__fill--good { background: var(--good); }
-.meter__fill--warning { background: var(--warning); }
-.meter__fill--critical { background: var(--critical); }
+.meter__fill--warning { background: var(--accent); }
+.meter__fill--critical { background: var(--accent); }
 
-/* -------------------------------------------------------------- suburb bars */
+/* --------------------------------------------------------------- bar lists */
 .bars {
   display: flex;
   flex-direction: column;
-  gap: 0.45vw;
+  gap: 0.4vw;
   flex: 1;
   justify-content: center;
 }
@@ -192,82 +304,63 @@ body:has(.screen) .utilbar {
   grid-template-columns: 7.5vw 1fr 2.2vw;
   align-items: center;
   gap: 0.6vw;
-  font-size: 1.05vw;
+  font-size: 1vw;
 }
 
 .bars__name {
-  color: var(--ink-2);
+  color: var(--ink);
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.bars__track { height: 0.9vw; }
+.bars__track {
+  height: 0.55vw;
+  background: var(--track);
+  border-radius: 0.3vw;
+  overflow: hidden;
+}
 
 /* One hue for every bar: length already encodes magnitude, so varying colour
-   per row would imply a second variable that doesn't exist. */
+   per row would imply a second variable that doesn't exist. The leader takes
+   the accent — that is a rank, which the order already states, so it is
+   reinforcement rather than new information. */
 .bars__fill {
   height: 100%;
-  border-radius: 0 0.2vw 0.2vw 0;
-  background: var(--accent);
+  border-radius: 0.3vw;
+  background: var(--navy);
   min-width: 0.2vw;
 }
+.bars__row:first-child .bars__fill { background: var(--accent); }
 
 .bars__count {
   text-align: right;
   color: var(--ink);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.screen__empty {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  font-size: 1.6vw;
-  color: var(--ink-muted);
-  text-align: center;
-  padding: 4vw;
-}
-
-/* --------------------------------------------------------------- rotation */
-/* Past about eight tiles nothing on a 1080p panel stays readable from four
-   metres, so the board cycles pages instead of shrinking. */
-.screen__pages {
-  display: flex;
-  gap: 0.5vw;
-  align-items: center;
-}
-
-.screen__pip {
-  width: 0.55vw;
-  height: 0.55vw;
-  border-radius: 50%;
-  background: var(--track);
-}
-.screen__pip--on { background: var(--ink-2); }
-
-.screen__page {
-  display: contents;
-}
-
-.tile--tall { grid-row: span 2; }
-
-/* --------------------------------------------------- leaderboard / bar list */
 .bars--money .bars__row { grid-template-columns: 8.5vw 1fr 4.6vw; }
 
 .bars--lg .bars__row {
-  font-size: 1.25vw;
+  font-size: 1.15vw;
   /* Wide enough for the longest real job-type and technician names —
      "Heat pump HW" truncated at 9vw. */
   grid-template-columns: 11.5vw 1fr 5vw;
 }
-.bars--lg .bars__track { height: 1.15vw; }
+.bars--lg .bars__track { height: 0.75vw; }
+
+/* The quote form's service names run longer than a job-type name ("Heat pump
+   hot water" against "Ducted"), and this list sits in a double-width tile, so
+   the label column can afford the room rather than ellipsing every row. */
+.bars--wide-names .bars__row { grid-template-columns: 17vw 1fr 4vw; }
 
 /* A double-height tile holds the same five rows, so spread them over the extra
    height rather than centring a tight block in a mostly empty box. */
 .tile--tall .bars {
   justify-content: space-evenly;
-  gap: 1.2vw;
+  gap: 1vw;
 }
 
 .bars__rank {
@@ -276,10 +369,11 @@ body:has(.screen) .utilbar {
 }
 
 .bars__meta {
-  font-size: 0.85vw;
+  font-size: 0.8vw;
   color: var(--ink-muted);
 }
 
+/* ---------------------------------------------------------------- hero row */
 /* The hero tile's supporting figures — kept small so the one hero number
    stays the only thing readable from the far side of the room. */
 .hero__row {
@@ -288,64 +382,35 @@ body:has(.screen) .utilbar {
   align-items: baseline;
 }
 
+.tile--wide .meter { margin-top: auto; }
+
 .hero__stat {
   display: flex;
   flex-direction: column;
-  gap: 0.15vw;
+  gap: 0.1vw;
 }
 
 .hero__stat b {
-  font-size: 1.5vw;
-  font-weight: 650;
+  font-size: 1.35vw;
+  font-weight: 750;
+  color: var(--navy);
 }
 
 .hero__stat span {
-  font-size: 0.9vw;
+  font-size: 0.82vw;
   color: var(--ink-muted);
 }
 
 .hero__unit {
-  font-size: 2vw;
-  font-weight: 500;
-  color: var(--ink-2);
+  font-size: 1.8vw;
+  font-weight: 600;
+  color: var(--ink-muted);
   margin-left: 0.4vw;
 }
 
-/* A hero with no target set states that in place of the figures, in muted ink
-   rather than a status colour — an unconfigured board is not an alert. */
 .hero__stat--muted {
   color: var(--ink-muted);
-  font-weight: 550;
-}
-
-/* The quote form's service names run longer than a job-type name ("Heat pump
-   hot water" against "Ducted"), and this list sits in a double-width tile, so
-   the label column can afford the room rather than ellipsing every row. */
-.bars--wide-names .bars__row { grid-template-columns: 17vw 1fr 4vw; }
-
-/* ===================================================================== light */
-/* A selected light theme, not an inverted dark one: the status trio and the
-   accent are their own steps, chosen against a light surface and checked for
-   3:1 contrast there. Reached with ?theme=light on the screen URL; the kiosk
-   default stays dark, which is easier on a panel running twelve hours a day. */
-.screen--light {
-  --plane: #f4f4f1;
-  --surface: #ffffff;
-  --ink: #16160f;
-  --ink-2: #4a4840;
-  --ink-muted: #76736a;
-  --hairline: rgba(0, 0, 0, 0.12);
-  --track: #e4e3dd;
-
-  --accent: #1f6fd0;
-  --good: #107a10;
-  --warning: #9a6b05;
-  --critical: #c0272d;
-  --ahead: #c27500;
-}
-
-.screen--light .tile {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-weight: 650;
 }
 
 /* ==================================================================== gauges */
@@ -367,14 +432,14 @@ body:has(.screen) .utilbar {
 .gauge__zone {
   stroke-width: 13;
   stroke-linecap: butt;
-  opacity: 0.4;
+  opacity: 0.22;
   transition: opacity 400ms ease;
 }
 .gauge__zone.is-active { opacity: 1; }
 
-.gauge__zone--behind { stroke: var(--critical); }
-.gauge__zone--ontrack { stroke: var(--good); }
-.gauge__zone--ahead { stroke: var(--ahead, #c9a227); }
+.gauge__zone--behind { stroke: var(--accent); }
+.gauge__zone--ontrack { stroke: var(--navy-zone); }
+.gauge__zone--ahead { stroke: var(--ahead); }
 
 .gauge__needle {
   stroke: var(--ink);
@@ -389,25 +454,50 @@ body:has(.screen) .utilbar {
 }
 
 .gauge__value {
-  fill: var(--ink);
+  fill: var(--navy);
   font-size: 30px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
 }
 
 .gauge__status {
   fill: var(--ink-muted);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 650;
 }
 
-/* Explanatory copy wraps and sits directly under its label, rather than being
-   pushed to the floor of the tile the way a one-line figure caption is. */
-.tile__sub--body {
-  line-height: 1.45;
-  white-space: normal;
-  margin-top: -0.4vw;
-  margin-bottom: auto;
+/* ------------------------------------------------------------------ notices */
+.screen__empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 1.6vw;
+  color: var(--ink-muted);
+  text-align: center;
+  padding: 4vw;
+}
+
+/* A page whose every figure comes from one disconnected source says so once,
+   across the whole grid, rather than leaving a small tile marooned in an empty
+   one. */
+.screen__notice {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 1.2vw;
+}
+
+.screen__notice .tile__value {
+  font-size: 4.5vw;
+  color: var(--ink-muted);
+}
+
+.screen__notice .tile__sub--body {
+  max-width: 52vw;
+  margin: 0;
+  font-size: 1.35vw;
 }
 
 /* =============================================================== celebration */
@@ -455,7 +545,7 @@ body:has(.screen) .utilbar {
   width: 0.35vw;
   height: 0.35vw;
   border-radius: 50%;
-  background: var(--ink-2);
+  background: var(--accent);
   animation: twinkle 1.4s ease-in-out infinite;
 }
 .celebrate__star--1 { top: 22%; left: 32%; animation-delay: 0ms; }
@@ -469,32 +559,31 @@ body:has(.screen) .utilbar {
   align-items: center;
   gap: 0.4vw;
   padding: 2.4vw 4vw;
-  border-radius: 1vw;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
+  border-radius: 0.9vw;
+  background: var(--navy);
   animation: card-pop 500ms cubic-bezier(0.2, 1.2, 0.4, 1) 200ms both;
 }
 
 .celebrate__kicker {
-  font-size: 1.6vw;
-  font-weight: 700;
+  font-size: 1.5vw;
+  font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--good);
+  color: var(--accent);
 }
 
 .celebrate__amount {
   font-size: 7vw;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink);
+  letter-spacing: -0.035em;
+  color: #fff;
 }
 
 .celebrate__who {
-  font-size: 2.4vw;
-  font-weight: 600;
-  color: var(--ink-2);
+  font-size: 2.2vw;
+  font-weight: 650;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 @keyframes celebrate-in {
@@ -535,26 +624,32 @@ body:has(.screen) .utilbar {
   }
 }
 
+/* ====================================================================== dark */
+/* Reached with ?theme=dark. Its own steps against a dark surface rather than an
+   inverted light palette, and kinder to a panel left on for twelve hours. */
+.screen--dark {
+  --plane: #0d0d0d;
+  --surface: #1a1a19;
+  --ink: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-muted: #898781;
+  --hairline: rgba(255, 255, 255, 0.1);
+  --track: #2c2c2a;
 
-/* A page whose every figure comes from one disconnected source says so once,
-   across the whole grid, rather than leaving a small tile marooned in an empty
-   one. */
-.screen__notice {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  gap: 1.2vw;
+  --navy: #e8e7e1;
+  --navy-zone: #6f8fd6;
+  --accent: #f3853f;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --critical: #d03b3b;
+  --ahead: #0ca30c;
 }
 
-.screen__notice .tile__value {
-  font-size: 4.5vw;
-  color: var(--ink-muted);
-}
-
-.screen__notice .tile__sub--body {
-  max-width: 52vw;
-  margin: 0;
-  font-size: 1.4vw;
-}
+.screen--dark .tile { box-shadow: none; border: 1px solid var(--hairline); }
+.screen--dark .screen__bar { background: var(--surface); }
+.screen--dark .screen__brand b { color: var(--ink); }
+.screen--dark .screen__tab.is-on { background: var(--ink); color: #0d0d0d; }
+.screen--dark .tile--feature { background: #15224f; }
+.screen--dark .tile--feature .tile__value { color: #fff; }
+.screen--dark .celebrate__card { background: var(--surface); border: 1px solid var(--hairline); }
+.screen--dark .gauge__value { fill: var(--ink); }
