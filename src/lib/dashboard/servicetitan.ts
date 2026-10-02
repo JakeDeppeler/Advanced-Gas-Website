@@ -112,6 +112,76 @@ export async function stFetch<T>(path: string, params?: Record<string, string | 
   throw new Error(`ServiceTitan ${path} failed: ${lastError}`);
 }
 
+/**
+ * Write to a ServiceTitan path (POST/PATCH/PUT). Same retry policy as stFetch.
+ *
+ * ServiceTitan answers 200 for a number of writes it then ignores — a field it
+ * does not recognise on that endpoint is dropped silently rather than rejected.
+ * Callers that care (the pricebook sync) must read the record back and compare;
+ * this helper only gets the request there.
+ */
+export async function stSend<T>(
+  method: "POST" | "PATCH" | "PUT",
+  path: string,
+  body: unknown,
+): Promise<T> {
+  const url = `${API_BASE}/${path.replace(/^\//, "")}`;
+  let lastError = "";
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${await getToken()}`,
+        "ST-App-Key": process.env.ST_APP_KEY ?? "",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+
+    if (res.ok) {
+      const text = await res.text();
+      return (text ? JSON.parse(text) : null) as T;
+    }
+
+    if (res.status === 401 && attempt === 0) {
+      token = null;
+      continue;
+    }
+
+    // Writes are not retried on 5xx: a POST that timed out server-side may
+    // already have created the record, and a second attempt would duplicate it.
+    const retryable = res.status === 429;
+    let detail = "";
+    try {
+      // Validation errors carry a useful body ("code is required"). Auth
+      // failures (401/403) are never read: their body can echo the client id.
+      if (res.status === 400 || res.status === 404 || res.status === 409 || res.status === 422) {
+        detail = (await res.text()).slice(0, 500);
+      }
+    } catch {
+      // body unreadable — the status is still the useful part
+    }
+    lastError = `${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`;
+    if (!retryable || attempt === MAX_ATTEMPTS - 1) break;
+
+    const retryAfter = Number(res.headers.get("retry-after"));
+    const backoff = Number.isFinite(retryAfter) && retryAfter > 0
+      ? retryAfter * 1000
+      : 2 ** attempt * 1000 + Math.random() * 250;
+    await sleep(backoff);
+  }
+
+  throw new Error(`ServiceTitan ${method} ${path} failed: ${lastError}`);
+}
+
+/** "{module}/v2/tenant/{tenant}/{resource}" — every tenant-scoped path. */
+export function stTenantPath(module: string, resource: string): string {
+  return `${module}/v2/tenant/${tenantId()}/${resource}`;
+}
+
 export type ExportPage<T> = {
   data: T[];
   hasMore: boolean;

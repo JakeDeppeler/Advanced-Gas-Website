@@ -237,6 +237,7 @@ Scopes to tick, and what each one is holding up:
 | Accounting | revenue MTD, the daily number, job type profit |
 | Sales & Estimates | quotes open, close rate, who sold the most |
 | CRM | ServiceTitan lead counts |
+| Pricebook (Materials: read + write) | Reece price sync on this same app — see [PRICEBOOK.md](PRICEBOOK.md) |
 | Telecom | calls per person (optional — the rest of the board works without it) |
 
 A missing scope is the most common failure, and it surfaces as a bare `403` on

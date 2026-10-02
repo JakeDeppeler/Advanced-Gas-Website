@@ -9,6 +9,11 @@ name: ServiceTitan check
 
 on:
   workflow_dispatch:
+    inputs:
+      url:
+        description: "Site to check (default: the DASHBOARD_SYNC_URL host). Set to a Vercel preview URL to check a branch before it is merged."
+        type: string
+        required: false
 
 jobs:
   check:
@@ -18,6 +23,7 @@ jobs:
         env:
           SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          URL_OVERRIDE: ${{ inputs.url }}
         run: |
           set -euo pipefail
 
@@ -32,7 +38,11 @@ jobs:
           # Trimmed for the same reason as the sync workflow: whitespace in a
           # pasted secret is invisible and fails with an error that names nothing.
           SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
-          CHECK_URL="${SYNC_URL%/api/sync}/api/servicetitan/check"
+          # An explicit url input points the check at a preview deployment
+          # instead (same CRON_SECRET, so Vercel's Preview environment must
+          # carry it too).
+          BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
+          CHECK_URL="${BASE%/}/api/servicetitan/check"
           echo "Checking ${CHECK_URL}"
 
           # --fail-with-body so an HTTP error still prints the body: a 401 here
@@ -50,7 +60,7 @@ jobs:
             echo "## ServiceTitan connection"
             echo
             jq -r 'if .linked
-                   then "**Linked.** All seven endpoints answered."
+                   then "**Linked.** Every endpoint answered."
                    else "**Not linked yet.** The first failing stage below says why; everything after it is skipped, because it would fail for the same reason."
                    end' report.json
             echo

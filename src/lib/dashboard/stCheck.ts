@@ -40,6 +40,7 @@ const PROBES: Array<{
   { module: "accounting", resource: "invoices", scope: "Accounting", usedFor: "revenue, daily target, job type profit" },
   { module: "sales", resource: "estimates", scope: "Sales & Estimates", usedFor: "quotes open, close rate, leaderboard" },
   { module: "crm", resource: "leads", scope: "CRM", usedFor: "ServiceTitan lead counts" },
+  { module: "pricebook", resource: "materials", scope: "Pricebook", usedFor: "Reece price sync (Materials needs write access)" },
   { module: "telecom", resource: "calls", scope: "Telecom", usedFor: "calls per person (optional)" },
 ];
 
