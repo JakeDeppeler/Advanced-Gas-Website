@@ -534,3 +534,27 @@ body:has(.screen) .utilbar {
     transform: translateX(-50%);
   }
 }
+
+
+/* A page whose every figure comes from one disconnected source says so once,
+   across the whole grid, rather than leaving a small tile marooned in an empty
+   one. */
+.screen__notice {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 1.2vw;
+}
+
+.screen__notice .tile__value {
+  font-size: 4.5vw;
+  color: var(--ink-muted);
+}
+
+.screen__notice .tile__sub--body {
+  max-width: 52vw;
+  margin: 0;
+  font-size: 1.4vw;
+}
