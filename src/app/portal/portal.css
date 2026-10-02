@@ -1577,3 +1577,186 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-lead__band.is-unknown { background: var(--pt-bg); }
 @media (max-width: 860px) { .pt-lead__bands { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 460px) { .pt-lead__bands { grid-template-columns: 1fr; } }
+
+/* ==================================================================
+   Supply — Reece maX ↔ ServiceTitan.
+   ================================================================== */
+
+.pt-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ---- status lights ---- */
+.pt-sup__lights { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.pt-sup__light {
+  display: flex; gap: 11px; align-items: flex-start;
+  padding: 13px 15px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-bg);
+}
+.pt-sup__light strong { display: block; font-size: 14px; font-weight: 700; color: var(--pt-ink); }
+.pt-sup__light span { display: block; font-size: 12.5px; color: var(--pt-ink-2); line-height: 1.45; margin-top: 2px; }
+/* The dot is never the only signal — every light spells its state out in the
+   detail line underneath. It is a glance aid, not the reading. */
+.pt-sup__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; margin-top: 5px; }
+.pt-sup__light--ok   .pt-sup__dot { background: var(--pt-good); }
+.pt-sup__light--wait .pt-sup__dot { background: #b8821c; }
+.pt-sup__light--off  .pt-sup__dot { background: var(--pt-ink-3); }
+.pt-sup__attn { margin: 16px 0 0; }
+.pt-sup__attn a { color: inherit; font-weight: 700; }
+
+/* ---- filters above the order table ---- */
+.pt-sup__filters {
+  display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end;
+  margin-bottom: 18px;
+}
+.pt-sup__search { flex: 1 1 320px; min-width: 240px; }
+.pt-sup__stat { display: flex; flex-wrap: wrap; gap: 7px; }
+.pt-sup__statbtn {
+  appearance: none; font: inherit; cursor: pointer;
+  border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink-2);
+  border-radius: 999px; padding: 8px 13px; font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: border-color 0.14s, background 0.14s, color 0.14s;
+}
+.pt-sup__statbtn span {
+  font-family: var(--f-mono, monospace); font-size: 11.5px; font-weight: 700;
+  background: var(--pt-bg); border-radius: 5px; padding: 1px 6px; color: var(--pt-ink-3);
+}
+.pt-sup__statbtn:hover { border-color: var(--pt-ink-3); }
+.pt-sup__statbtn.is-on { background: var(--pt-navy); border-color: var(--pt-navy); color: #fff; }
+.pt-sup__statbtn.is-on span { background: rgba(255,255,255,0.18); color: #fff; }
+
+.pt-sup__tablehead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.pt-sup__tot { margin: 0; font-family: var(--f-mono, monospace); font-size: 12.5px; color: var(--pt-ink-3); white-space: nowrap; }
+
+/* ---- status badges ---- */
+.pt-sup__badge {
+  display: inline-block; font-family: var(--f-mono, monospace); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; border-radius: 6px; white-space: nowrap;
+}
+.pt-sup__badge--received  { background: #eef1f7; color: #4a5676; }
+.pt-sup__badge--resolved  { background: #e6f3ec; color: var(--pt-good); }
+.pt-sup__badge--ordered   { background: #e7f0fb; color: #1d5a9e; }
+.pt-sup__badge--error     { background: #fbe9e7; color: #a53024; }
+.pt-sup__badge--chk-ok      { background: #e6f3ec; color: var(--pt-good); }
+.pt-sup__badge--chk-failed  { background: #fbe9e7; color: #a53024; }
+.pt-sup__badge--chk-skipped { background: #eef1f7; color: #4a5676; }
+
+/* ---- tables ---- */
+/* The place and the matched code are prose, not figures: the shared table
+   style sets every cell in the heavy tabular face, which is right for money
+   and wrong for "Pakenham, VIC". */
+.pt-sup__table .pt-sup__place,
+.pt-sup__lines .pt-sup__matched {
+  font-family: inherit; font-size: 13.5px; font-weight: 500; color: var(--pt-ink-2);
+  text-align: left; white-space: normal; max-width: 26ch;
+}
+.pt-sup__table .pt-sup__place em,
+.pt-sup__lines .pt-sup__matched em { font-style: normal; color: var(--pt-ink-3); }
+.pt-sup__warn { color: var(--pt-accent); font-style: normal; font-weight: 700; }
+.pt-sup__table td em { font-family: inherit; font-size: 12px; font-weight: 600; }
+.pt-sup__open { font-size: 13px; font-weight: 700; color: var(--pt-accent); text-decoration: none; white-space: nowrap; }
+.pt-sup__open:hover { text-decoration: underline; }
+.pt-sup__lines tfoot th, .pt-sup__lines tfoot td { border-bottom: 0; border-top: 2px solid var(--pt-line); }
+/* The shared table styles the two-line row head and the figure cell under
+   `tbody` only, so in the totals row the label and its note ran together on
+   one line and the total lost its weight. */
+.pt-sup__lines tfoot th { font-weight: 400; }
+.pt-sup__lines tfoot th strong { display: block; font-size: 14.5px; font-weight: 700; color: var(--pt-ink); }
+.pt-sup__lines tfoot th span { display: block; font-size: 12px; color: var(--pt-ink-3); margin-top: 2px; white-space: normal; }
+.pt-sup__lines tfoot td { font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); }
+/* Scope and "used for" run long; the shared style would ellipse them. */
+.pt-sup__chk tbody th span { white-space: normal; max-width: 70ch; }
+
+.pt-sup__capnote, .pt-sup__none, .pt-sup__srcnote { margin: 14px 0 0; font-size: 13px; color: var(--pt-ink-3); }
+.pt-sup__srcnote { margin: 16px 0 10px; }
+
+/* ---- empty state ---- */
+.pt-sup__empty { padding: 8px 0 4px; }
+.pt-sup__empty p { margin: 0 0 10px; font-size: 14px; line-height: 1.6; color: var(--pt-ink-2); max-width: 70ch; }
+.pt-sup__empty p:last-child { margin-bottom: 0; }
+.pt-sup__empty code { font-family: var(--f-mono, monospace); font-size: 12.5px; background: var(--pt-bg); padding: 1px 5px; border-radius: 4px; }
+
+/* ---- detail page ---- */
+.pt-sup__figtxt { font-size: 17px; line-height: 1.3; }
+.pt-sup__dl { display: grid; grid-template-columns: minmax(130px, max-content) 1fr; gap: 9px 20px; margin: 0; }
+.pt-sup__dl dt { font-size: 12.5px; color: var(--pt-ink-3); font-weight: 600; }
+.pt-sup__dl dd { margin: 0; font-size: 13.5px; color: var(--pt-ink); overflow-wrap: anywhere; }
+.pt-sup__raw > summary { cursor: pointer; font-family: var(--f-display); font-weight: 800; font-size: 15px; color: var(--pt-ink); }
+.pt-sup__raw pre, .pt-sup__errs pre {
+  margin: 14px 0 0; padding: 14px; background: var(--pt-navy); color: #dbe3f5;
+  border-radius: 10px; overflow-x: auto; font-family: var(--f-mono, monospace); font-size: 12px; line-height: 1.55;
+}
+.pt-sup__errs { margin-top: 20px; }
+.pt-sup__errs h3 { font-family: var(--f-display); font-size: 14.5px; font-weight: 800; margin: 0 0 10px; }
+.pt-sup__errs details { margin-bottom: 10px; }
+.pt-sup__errs summary { cursor: pointer; font-size: 13.5px; color: var(--pt-ink-2); }
+
+/* ---- item search form ---- */
+.pt-sup__searchform { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.pt-sup__searchform .pt-btn { flex: 0 0 auto; }
+
+@media (max-width: 700px) {
+  .pt-sup__filters { flex-direction: column; align-items: stretch; }
+  .pt-sup__dl { grid-template-columns: 1fr; gap: 3px 0; }
+  .pt-sup__dl dd { margin-bottom: 10px; }
+}
+.pt-sup__lines td em.pt-sup__uom { font-family: inherit; font-size: 12px; font-weight: 500; font-style: normal; color: var(--pt-ink-3); }
+
+/* ==================================================================
+   The year — goal, pace, overheads.
+   ================================================================== */
+
+.pt-yg__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 16px; }
+.pt-yg__head .pt-panel__sub { margin-bottom: 0; }
+.pt-yg__head .pt-btn { flex: 0 0 auto; }
+
+.pt-yg__form { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: end; }
+.pt-yg__formbtns { display: flex; gap: 10px; align-items: center; grid-column: 1 / -1; }
+.pt-yg__err { font-size: 13px; color: #a53024; font-weight: 600; }
+
+.pt-yg__strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pt-yg__cell { padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-bg); }
+.pt-yg__cell > span {
+  display: block; font-family: var(--f-mono, monospace); font-size: 10.5px; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--pt-ink-3); font-weight: 700;
+}
+.pt-yg__cell > strong {
+  display: block; font-family: var(--f-display); font-size: 25px; font-weight: 800;
+  letter-spacing: -0.02em; color: var(--pt-ink); margin: 6px 0 3px; font-variant-numeric: tabular-nums;
+}
+.pt-yg__cell > small { display: block; font-size: 11.5px; color: var(--pt-ink-3); line-height: 1.45; }
+
+/* Ahead / behind is written out in words. Colour reinforces it and never
+   carries it — the same rule the wall board runs on. */
+.pt-yg__verdict { font-family: var(--f-display); font-size: 21px; font-weight: 800; letter-spacing: -0.01em; color: var(--pt-ink-2); }
+.pt-yg__verdict--good { color: var(--pt-good); }
+.pt-yg__verdict--bad { color: var(--pt-accent); }
+
+.pt-yg__mom { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; }
+.pt-yg__momcell { padding: 12px 18px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-bg); min-width: 130px; }
+.pt-yg__momcell span { display: block; font-family: var(--f-mono, monospace); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--pt-ink-3); font-weight: 700; }
+.pt-yg__momcell strong { display: block; font-family: var(--f-display); font-size: 23px; font-weight: 800; color: var(--pt-ink); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.pt-yg__momarrow { font-size: 20px; color: var(--pt-ink-3); }
+.pt-yg__momverdict { display: flex; flex-direction: column; gap: 2px; }
+.pt-yg__momverdict small { font-size: 12px; color: var(--pt-ink-3); }
+
+.pt-yg__table tbody th span { color: var(--pt-ink-3); }
+.pt-yg__table .pt-yg__dash { font-family: inherit; font-size: 12.5px; font-weight: 500; font-style: normal; color: var(--pt-ink-3); }
+.pt-yg__table .pt-yg__verdict { font-size: 14px; }
+/* A month that hasn't happened is dimmed but still listed: seeing the shape
+   of the rest of the year is half the point of the table. */
+.pt-yg__future td, .pt-yg__future th { opacity: 0.55; }
+
+/* Invoiced as a bar, with the month's goal marked on it. */
+.pt-yg__bar { position: relative; height: 5px; border-radius: 3px; background: var(--pt-line); margin-top: 7px; min-width: 90px; }
+.pt-yg__bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--pt-navy); }
+.pt-yg__bar b { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--pt-accent); }
+.pt-yg__legend { margin: 12px 0 0; font-size: 12.5px; color: var(--pt-ink-3); }
+.pt-yg__none { margin: 0; font-size: 14px; line-height: 1.6; color: var(--pt-ink-2); max-width: 70ch; }
+
+@media (max-width: 700px) {
+  .pt-yg__head { flex-direction: column; }
+  .pt-yg__mom { gap: 12px; }
+  .pt-yg__momarrow { display: none; }
+}

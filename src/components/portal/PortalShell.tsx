@@ -34,6 +34,7 @@ const ICON = {
   bars: "M4 19V5M4 19h16M8 16v-4M12 16V8M16 16v-7",
   chart: "M4 19V5M4 19h16M7 15l3-4 3 2.5 4-6.5",
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
+  box: "M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10",
 };
 
 export function PortalShell({ user, children }: { user: PortalUser; children: React.ReactNode }) {
@@ -76,6 +77,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     kind: "group", base: "/portal/finance", label: "Finance", icon: ICON.chart,
     children: [
       { href: "/portal/finance", label: "Overview" },
+      { href: "/portal/finance/goals", label: "The year" },
       { href: "/portal/finance/pl", label: "Profit & loss" },
       { href: "/portal/finance/capacity", label: "Costs & capacity" },
       { href: "/portal/finance/leads", label: "Website leads" },
@@ -84,6 +86,18 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       // work that has not happened yet — what is out, what comes back — which
       // is the same question Future planning asks, so it is a tab inside it.
       { href: "/portal/finance/planning", label: "Future planning", also: ["/portal/finance/quotes"] },
+    ],
+  });
+  // Supply is gated on the same capability as Finance: it carries what we pay
+  // Reece and what that becomes on a quote, which is the same class of figure.
+  if (can(user, "overhead")) nodes.push({
+    kind: "group", base: "/portal/supply", label: "Supply", icon: ICON.box,
+    children: [
+      { href: "/portal/supply", label: "Overview" },
+      { href: "/portal/supply/orders", label: "Orders" },
+      { href: "/portal/supply/search", label: "Item search" },
+      { href: "/portal/supply/syncs", label: "Sync history" },
+      { href: "/portal/supply/health", label: "Connection check" },
     ],
   });
   if (can(user, "manage_users")) nodes.push({ kind: "link", href: "/portal/admin", label: "Admin", icon: ICON.shield });
