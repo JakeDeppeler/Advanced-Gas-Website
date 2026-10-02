@@ -66,6 +66,9 @@ const RESOURCES: ResourceSpec[] = [
       business_unit_id: num(r.businessUnitId),
       customer_id: num(r.customerId),
       customer_name: str(pick(r, "customerName")),
+      // The job payload carries a locationId and no address; the suburb and
+      // postcode are stamped on by the resolver from st_locations.
+      location_id: num(r.locationId),
       suburb: str(pick(r, "city", "suburb")),
       postcode: str(pick(r, "zip", "postalCode", "postcode")),
       campaign: str(pick(r, "campaignName", "campaign")),
@@ -146,6 +149,31 @@ const RESOURCES: ResourceSpec[] = [
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
     }),
+  },
+  {
+    // Where the work is. Jobs carry only a locationId — no suburb, no postcode —
+    // so the Areas map had nothing to group by and fell back to website leads,
+    // of which there are thirty in the whole table. This is the lookup that
+    // turns those ids into places.
+    //
+    // An export rather than a list: a tenant accumulates a location per customer
+    // site, and stList caps out at ten pages.
+    resource: "locations",
+    module: "crm",
+    table: "st_locations",
+    map: (r: Row) => {
+      const addr = (r.address ?? {}) as Row;
+      return {
+        id: Number(r.id),
+        customer_id: num(r.customerId),
+        suburb: str(pick(addr, "city", "suburb")),
+        postcode: str(pick(addr, "zip", "postalCode", "postcode")),
+        state: str(pick(addr, "state")),
+        active: r.active !== false,
+        modified_on: ts(pick(r, "modifiedOn")),
+        raw: r,
+      };
+    },
   },
   {
     resource: "leads",

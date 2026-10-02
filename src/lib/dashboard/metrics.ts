@@ -367,6 +367,7 @@ async function serviceTitanMetrics(now: Date) {
       q.select("total,created_on"),
       q.isNull("sold_on"),
       q.notIn("status", ["Dismissed", "Expired"]),
+      q.lt("total", String(QUOTE_CAP)),
     ].join("&"),
   );
 
