@@ -3,9 +3,12 @@ import { verify } from "@/lib/portal/token";
 import { SESSION_COOKIE } from "@/lib/portal/constants";
 
 /**
- * Gate the /portal area. Everything under /portal requires a valid,
- * unexpired session cookie; the login page and the /api/portal/* auth
- * routes stay public (the matcher below never touches /api).
+ * Gate the /portal and /trade areas. Both require a valid, unexpired
+ * session cookie; the login page and the /api/portal/* auth routes stay
+ * public (the matcher below never touches /api).
+ *
+ * /trade is the same portal on an iPad in a van, behind the same cookie —
+ * one sign-in, two shells.
  *
  * This runs on the Edge, where a database round-trip per request isn't
  * worth it, so it only confirms the cookie is a genuine, signed session.
@@ -37,5 +40,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/portal", "/portal/:path*"],
+  matcher: ["/portal", "/portal/:path*", "/trade", "/trade/:path*"],
 };

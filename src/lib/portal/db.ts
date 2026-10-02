@@ -854,6 +854,29 @@ export async function createVanCheck(input: {
   return { ok: true, id: rows[0]?.id };
 }
 
+/**
+ * Merge more items into a check that is still being filled in.
+ *
+ * The Monday flow walks a tech through four steps, and a tech who takes the
+ * photos and then gets called to a job must not lose them — so each step
+ * commits as it is finished and the next one merges into the same row.
+ *
+ * Only ever used to finish the check you are on: the caller restricts it to a
+ * row written today by the same person (see the trade portal's Monday
+ * actions), which keeps the original rule that a bad morning cannot be quietly
+ * edited away later.
+ */
+export async function updateVanCheck(id: string, patch: { items?: CheckItems; notes?: string | null }): Promise<{ ok: boolean }> {
+  const body: Record<string, unknown> = {};
+  if (patch.items) body.items = patch.items;
+  if (patch.notes !== undefined) body.notes = patch.notes;
+  if (Object.keys(body).length === 0) return { ok: true };
+  const res = await sb(`portal_van_checks?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify(body),
+  });
+  return { ok: !!res && res.ok };
+}
+
 export async function deleteVanCheck(id: string): Promise<{ ok: boolean }> {
   const res = await sb(`portal_van_checks?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
   return { ok: !!res && res.ok };

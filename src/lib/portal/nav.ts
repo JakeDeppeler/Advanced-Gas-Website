@@ -63,6 +63,7 @@ export const ICON: Record<string, string> = {
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6",
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
   screen: "M3 5h18v11H3zM9 20h6M12 16v4",
+  tablet: "M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM10 18h4",
 };
 
 /**
@@ -84,6 +85,13 @@ export function portalNav(user: PortalUser): NavItem[] {
     {
       href: "/portal/vehicles", label: "Vehicles", blurb: "Servicing, km, fuel and damage log",
       band: "on-the-job", icon: "truck", also: ["van", "fleet", "rego", "service", "clean"],
+    },
+    // The same portal, built for the iPad in the van: your own van's Monday
+    // jobs, the pricebook, the procedures. Everyone gets it — it shows a
+    // person their own work and nothing gated.
+    {
+      href: "/trade", label: "Trade portal", blurb: "The iPad view: Monday jobs, pricebook, procedures",
+      band: "on-the-job", icon: "tablet", also: ["ipad", "van", "monday", "tradesman", "on site", "field"],
     },
     {
       href: "/portal/handbook", label: "Handbook", blurb: "The full operations manual, A to G",

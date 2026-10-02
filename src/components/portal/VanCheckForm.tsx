@@ -7,28 +7,9 @@ import {
   CHECK_KINDS, countList, itemKey, shortfalls, tickList,
   type CheckItems, type CheckKind,
 } from "@/lib/portal/vanChecks";
+import { shrink } from "@/components/portal/shrinkPhoto";
 
 const parse = (v: string) => { const n = parseInt(v.replace(/[^0-9]/g, ""), 10); return Number.isNaN(n) ? null : n; };
-
-/**
- * Shrink a photo in the browser before it goes anywhere. A phone camera shot is
- * 4–8MB; nobody on a Pakenham back street wants to upload that, and 1600px is
- * plenty to see a dent.
- */
-async function shrink(file: File, max = 1600, quality = 0.82): Promise<File> {
-  if (!file.type.startsWith("image/")) return file;
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
-  if (scale === 1 && file.size < 900_000) return file;
-  const w = Math.round(bitmap.width * scale), h = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w; canvas.height = h;
-  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, w, h);
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", quality));
-  bitmap.close();
-  if (!blob) return file;
-  return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
-}
 
 type Pending = { id: number; label: string; itemKey: string; file: File; url: string };
 
