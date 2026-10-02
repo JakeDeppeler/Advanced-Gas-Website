@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { LEARNING_TRACKS, VIDEOS } from "@/lib/portal/content";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default async function LearningTrackPage({ params }: { params: { track: s
 
   return (
     <PortalShell user={user}>
+      <PortalTabs tabs={LEARNING_TRACKS.map((x) => ({ href: `/portal/learning/${x.slug}`, label: x.label }))} />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Learning · {track.label}</div>
         <h1>{track.label}.</h1>

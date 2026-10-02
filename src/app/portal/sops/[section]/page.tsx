@@ -4,6 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { SOPS, findSection, type SopBlock } from "@/lib/portal/sops";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-static";
 export function generateStaticParams() {
@@ -62,6 +63,7 @@ export default async function SopSectionPage({ params }: { params: { section: st
 
   return (
     <PortalShell user={user}>
+      <PortalTabs tabs={SOPS.map((x) => ({ href: `/portal/sops/${x.slug}`, label: `${x.letter} · ${x.title}` }))} />
       <div className="pt-head">
         <PortalBack href="/portal/sops" label="Processes" />
         <div className="pt-head__eyebrow">Section {section.letter}</div>

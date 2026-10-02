@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TAB_SETS, type TabSetName } from "@/lib/portal/nav";
+import { TAB_SETS, type Tab, type TabSetName } from "@/lib/portal/nav";
 
 /**
  * The strip across the top of a section.
@@ -15,9 +15,12 @@ import { TAB_SETS, type TabSetName } from "@/lib/portal/nav";
  * A tab is current when the path matches it or sits beneath it, so a detail
  * page keeps its section lit rather than blanking the whole strip.
  */
-export function PortalTabs({ set }: { set: TabSetName }) {
+export function PortalTabs({ set, tabs: given }: { set?: TabSetName; tabs?: Tab[] }) {
   const pathname = usePathname();
-  const tabs = TAB_SETS[set];
+  // Sections whose children come from content rather than a fixed list — the
+  // information sections, the handbook's shelves, the learning tracks — pass
+  // their own. Everything else names one of the sets.
+  const tabs = given ?? (set ? TAB_SETS[set] : []);
 
   // Longest match wins, so /portal/finance/goals lights "The year" rather than
   // "Overview", which every finance path starts with.
