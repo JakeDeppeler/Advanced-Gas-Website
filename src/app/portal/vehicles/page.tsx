@@ -147,7 +147,7 @@ export default async function VehiclesPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Vehicles</div>
-        <h1>The fleet<span className="pt-stop">.</span></h1>
+        <h1>The fleet.</h1>
         <p>Servicing, km readings, fuel and the damage log. Open a vehicle to see its history or add an entry — anyone can log fuel and readings.</p>
       </div>
 

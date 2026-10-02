@@ -31,7 +31,7 @@ export default async function TeamDirectory() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Team</div>
-        <h1>The crew<span className="pt-stop">.</span></h1>
+        <h1>The crew.</h1>
         <p>Grouped by level. {canManage ? "Change anyone's level right here, drag the order with the arrows, and open a person for their file." : "Open a person for their file — expectations, goals, reviews and notes."}</p>
       </div>
 

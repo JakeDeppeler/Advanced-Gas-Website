@@ -70,7 +70,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Costs &amp; capacity</div>
-        <h1>What an hour has to cover<span className="pt-stop">.</span></h1>
+        <h1>What an hour has to cover.</h1>
         <p>The crew, every overhead the business carries, and the charge-out rates that fall out of the two. Change anything and the numbers at the top move with it.</p>
       </div>
       <CapacityEditor

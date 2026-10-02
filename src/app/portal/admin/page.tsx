@@ -16,7 +16,7 @@ export default async function AdminHome() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Admin</div>
-        <h1>Admin<span className="pt-stop">.</span></h1>
+        <h1>Admin.</h1>
         <p>Manage who&rsquo;s on the team and set exactly what each person can see.</p>
       </div>
 
