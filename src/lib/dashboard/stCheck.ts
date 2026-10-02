@@ -40,7 +40,11 @@ const PROBES: Array<{
   { module: "accounting", resource: "invoices", scope: "Accounting", usedFor: "revenue, daily target, job type profit" },
   { module: "sales", resource: "estimates", scope: "Sales & Estimates", usedFor: "quotes open, close rate, leaderboard" },
   { module: "crm", resource: "leads", scope: "CRM", usedFor: "ServiceTitan lead counts" },
+  { module: "telecom", resource: "calls", scope: "Telecom", usedFor: "calls per person (optional)" },
 ];
+
+/** Resources the board can live without — a 403 here is a missing scope, not a broken link. */
+const OPTIONAL = new Set(["telecom/calls"]);
 
 function explainProbe(status: number, scope: string): string {
   if (status === 401) return "App key rejected, or the token is not valid for this tenant.";
@@ -216,14 +220,21 @@ export async function checkServiceTitan(): Promise<CheckReport> {
     }
   }
 
-  const failed = report.resources.filter((r) => r.status === "failed");
+  const failed = report.resources.filter((r) => r.status === "failed" && !OPTIONAL.has(r.resource));
+  const optionalFailed = report.resources.filter((r) => r.status === "failed" && OPTIONAL.has(r.resource));
   stages.push(
     failed.length === 0
-      ? { stage: "scopes", status: "ok", detail: "All seven endpoints reachable" }
+      ? {
+          stage: "scopes",
+          status: "ok",
+          detail: optionalFailed.length
+            ? `Required endpoints reachable; ${optionalFailed.map((r) => r.scope).join(", ")} not granted (optional)`
+            : "All endpoints reachable",
+        }
       : {
           stage: "scopes",
           status: "failed",
-          detail: `${failed.length} of ${report.resources.length} endpoints rejected`,
+          detail: `${failed.length} of ${report.resources.length - optionalFailed.length} required endpoints rejected`,
           // A 403 on every endpoint is one missing authorisation, not seven.
           fix: failed.every((r) => r.httpStatus === 403)
             ? "Every endpoint returned 403, which usually means the tenant has not authorised the app at all rather than that each scope is missing. Have the tenant connect it under Settings → Integrations → API Application Access."

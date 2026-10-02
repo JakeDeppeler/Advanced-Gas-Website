@@ -31,6 +31,25 @@ export type Metrics = {
   estimatesOpenValue: number;
   closeRate30d: number | null;
 
+  // The quote funnel: written -> still out -> closed. Outstanding alone can't
+  // tell you whether a thin pipeline means nobody is quoting or everybody is
+  // closing, so the board shows what is being created beside what is sitting.
+  quotesCreatedTodayValue: number;
+  quotesCreatedTodayCount: number;
+  quotesCreatedWeekValue: number;
+  quotesCreatedWeekCount: number;
+  quotesCreatedMonthValue: number;
+  quotesCreatedMonthCount: number;
+
+  profitMtd: number;
+  profitTargetMonthly: number | null;
+  profitPacePct: number | null;
+  profitCoverage: number;
+
+  bookingsMonth: number;
+  bookingsTargetMonthly: number | null;
+  bookingsPacePct: number | null;
+
   revenueInvoicedMtd: number;
   revenueTargetMonthly: number | null;
   revenuePacePct: number | null;
@@ -61,7 +80,25 @@ export type Metrics = {
 
   topJobTypes: Array<{ jobType: string; revenue: number; profit: number | null; jobs: number }>;
   jobTypeBasis: "profit" | "revenue";
-  salesLeaderboard: Array<{ name: string; sold: number; jobs: number }>;
+  salesLeaderboard: Array<{
+    name: string;
+    sold: number;
+    jobs: number;
+    /** Commission is computed but deliberately not rendered on the wall. */
+    commission: number | null;
+    tier: number | null;
+    toNextTier: number | null;
+  }>;
+
+  /** Telecom data only appears once the Telecom scope is granted; empty until then. */
+  callsByPerson: Array<{ name: string; today: number; week: number; month: number }>;
+
+  /**
+   * Sales closed in the last couple of hours, newest first — what the board
+   * celebrates. Carries the estimate id so the screen can tell a genuinely new
+   * sale from one it has already cheered.
+   */
+  recentSales: Array<{ id: number; name: string | null; value: number; soldOn: string }>;
 };
 
 export type Snapshot = {
@@ -174,12 +211,49 @@ async function serviceTitanMetrics(now: Date) {
     ? recentEstimates.filter((e) => e.sold_on).length / recentEstimates.length
     : null;
 
-  const invoices = await sbSelect<{ total: number | null; invoice_date: string | null }>(
+  // Quotes written this month, so the funnel reads created -> outstanding ->
+  // closed. A thin pipeline means something different depending on which end
+  // it is thin at.
+  const createdRows = await sbSelect<{ total: number | null; created_on: string | null }>(
+    "st_estimates",
+    [q.select("total,created_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
+  );
+
+  const weekStartMs = weekStart.getTime();
+  const created = { todayV: 0, todayC: 0, weekV: 0, weekC: 0, monthV: 0, monthC: 0 };
+  for (const r of createdRows) {
+    const v = Number(r.total ?? 0);
+    created.monthV += v;
+    created.monthC += 1;
+    if (!r.created_on) continue;
+    const at = new Date(r.created_on);
+    if (at.getTime() >= weekStartMs) {
+      created.weekV += v;
+      created.weekC += 1;
+    }
+    if (isoDateMelbourne(at) === today) {
+      created.todayV += v;
+      created.todayC += 1;
+    }
+  }
+
+  // Jobs booked this month — when the job was created, not when it is scheduled,
+  // because booking is the act being measured.
+  const bookingsMonth = await sbCount("st_jobs", q.gte("created_on", monthStart.toISOString()));
+
+  const invoices = await sbSelect<{ total: number | null; cost: number | null; invoice_date: string | null }>(
     "st_invoices",
-    [q.select("total,invoice_date"), q.gte("invoice_date", isoDateMelbourne(monthStart))].join("&"),
+    [q.select("total,cost,invoice_date"), q.gte("invoice_date", isoDateMelbourne(monthStart))].join("&"),
   );
 
   const revenueInvoicedMtd = invoices.reduce((s, i) => s + Number(i.total ?? 0), 0);
+
+  // Profit only counts invoices that actually carry a cost. `profitCoverage`
+  // says what share that is, so a gauge built on a third of the data can say so
+  // rather than quietly understating the month.
+  const costed = invoices.filter((i) => i.cost != null);
+  const profitMtd = costed.reduce((s, i) => s + (Number(i.total ?? 0) - Number(i.cost ?? 0)), 0);
+  const profitCoverage = invoices.length ? costed.length / invoices.length : 0;
   const revenueToday = invoices
     .filter((i) => i.invoice_date === today)
     .reduce((s, i) => s + Number(i.total ?? 0), 0);
@@ -223,12 +297,28 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
-  const soldRows = await sbSelect<{ sold_by: string | null; total: number | null; sold_on: string | null }>(
+  const soldRows = await sbSelect<{ id: number; sold_by: string | null; total: number | null; sold_on: string | null }>(
     "st_estimates",
-    [q.select("sold_by,total,sold_on"), q.gte("sold_on", monthStart.toISOString())].join("&"),
+    [q.select("id,sold_by,total,sold_on"), q.gte("sold_on", monthStart.toISOString())].join("&"),
   );
 
   const soldMtd = soldRows.reduce((s, r) => s + Number(r.total ?? 0), 0);
+
+  // The celebration feed. Two hours is comfortably wider than the sync interval,
+  // so a sale can't slip through between runs, and the screen's own de-duping
+  // stops it being cheered twice.
+  const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+  const recentSales = soldRows
+    .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
+    .map((r) => ({
+      id: Number(r.id),
+      name: r.sold_by ? String(r.sold_by) : null,
+      value: Number(r.total ?? 0),
+      soldOn: String(r.sold_on),
+    }))
+    .filter((r) => Number.isFinite(r.id))
+    .sort((a, b) => Date.parse(b.soldOn) - Date.parse(a.soldOn))
+    .slice(0, 10);
   const soldToday = soldRows
     .filter((r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today)
     .reduce((s, r) => s + Number(r.total ?? 0), 0);
@@ -243,7 +333,8 @@ async function serviceTitanMetrics(now: Date) {
     bySeller.set(key, acc);
   }
 
-  const salesLeaderboard = [...bySeller.entries()]
+  // Commission is applied later, once the tiers have been read from settings.
+  const rawLeaderboard = [...bySeller.entries()]
     .map(([name, v]) => ({ name, ...v }))
     .sort((a, b) => b.sold - a.sold)
     .slice(0, 5);
@@ -254,17 +345,101 @@ async function serviceTitanMetrics(now: Date) {
     estimatesOpenCount,
     estimatesOpenValue,
     closeRate30d,
+    quotesCreatedTodayValue: created.todayV,
+    quotesCreatedTodayCount: created.todayC,
+    quotesCreatedWeekValue: created.weekV,
+    quotesCreatedWeekCount: created.weekC,
+    quotesCreatedMonthValue: created.monthV,
+    quotesCreatedMonthCount: created.monthC,
     revenueInvoicedMtd,
     revenueToday,
+    profitMtd,
+    profitCoverage,
+    bookingsMonth,
     soldMtd,
     soldToday,
     topJobTypes,
     jobTypeBasis,
-    salesLeaderboard,
+    rawLeaderboard,
+    recentSales,
   };
 }
 
-type Targets = { revenue: number | null; sales: number | null };
+export type CommissionTier = { from: number; rate: number };
+
+/**
+ * Calls per person for today, this week and this month.
+ *
+ * Reads the replica, which the sync only fills once ServiceTitan's **Telecom**
+ * scope is granted to the app — a scope the tenant has to re-authorise, not a
+ * code change. Until then st_calls is empty and this returns nothing, which the
+ * board renders as "not connected" rather than as a row of zeroes.
+ */
+async function callMetrics(now: Date): Promise<Metrics["callsByPerson"]> {
+  const monthStart = startOfMonthMelbourne(now);
+  const weekStartMs = startOfWeekMelbourne(now).getTime();
+  const today = isoDateMelbourne(now);
+
+  const rows = await sbSelect<{ agent: string | null; received_on: string | null }>(
+    "st_calls",
+    [q.select("agent,received_on"), q.gte("received_on", monthStart.toISOString()), q.notNull("agent")].join("&"),
+  );
+
+  const byAgent = new Map<string, { today: number; week: number; month: number }>();
+  for (const r of rows) {
+    if (!r.received_on) continue;
+    const name = String(r.agent);
+    const acc = byAgent.get(name) ?? { today: 0, week: 0, month: 0 };
+    const at = new Date(r.received_on);
+    acc.month += 1;
+    if (at.getTime() >= weekStartMs) acc.week += 1;
+    if (isoDateMelbourne(at) === today) acc.today += 1;
+    byAgent.set(name, acc);
+  }
+
+  return [...byAgent.entries()]
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.month - a.month)
+    .slice(0, 6);
+}
+
+type Targets = {
+  revenue: number | null;
+  sales: number | null;
+  profit: number | null;
+  bookings: number | null;
+  tiers: CommissionTier[];
+};
+
+/**
+ * Commission on a month's sold total, under a tiered rate.
+ *
+ * Tiers are marginal, not cliff-edged: crossing a threshold lifts the rate on
+ * the amount above it only. A cliff would mean a $1 sale could be worth
+ * thousands, which is how commission schemes end up gamed.
+ */
+function commissionFor(sold: number, tiers: CommissionTier[]) {
+  if (!tiers.length) return { commission: null, tier: null, toNextTier: null };
+
+  const steps = [...tiers].sort((a, b) => a.from - b.from);
+  let commission = 0;
+  let tier = 0;
+
+  for (let i = 0; i < steps.length; i++) {
+    const from = steps[i].from;
+    if (sold <= from) break;
+    const to = i + 1 < steps.length ? Math.min(sold, steps[i + 1].from) : sold;
+    commission += (to - from) * steps[i].rate;
+    tier = i + 1;
+  }
+
+  const next = steps[tier];
+  return {
+    commission,
+    tier,
+    toNextTier: next && sold < next.from ? next.from - sold : null,
+  };
+}
 
 /**
  * The two monthly targets. Either can be absent: a board with only a revenue
@@ -272,15 +447,29 @@ type Targets = { revenue: number | null; sales: number | null };
  * than inventing a figure nobody agreed to.
  */
 async function monthlyTargets(): Promise<Targets> {
-  const row = await sbSelectOne<{ value: { revenueTargetMonthly?: number; salesTargetMonthly?: number } }>(
-    "portal_settings",
-    [q.select("value"), q.eq("key", "dashboard")].join("&"),
-  );
+  const row = await sbSelectOne<{
+    value: {
+      revenueTargetMonthly?: number;
+      salesTargetMonthly?: number;
+      profitTargetMonthly?: number;
+      bookingsTargetMonthly?: number;
+      commissionTiers?: CommissionTier[];
+    };
+  }>("portal_settings", [q.select("value"), q.eq("key", "dashboard")].join("&"));
 
   const positive = (v: unknown) => (typeof v === "number" && v > 0 ? v : null);
+  const tiers = Array.isArray(row?.value?.commissionTiers)
+    ? row!.value.commissionTiers!.filter(
+        (t) => typeof t?.from === "number" && typeof t?.rate === "number" && t.rate >= 0,
+      )
+    : [];
+
   return {
     revenue: positive(row?.value?.revenueTargetMonthly),
     sales: positive(row?.value?.salesTargetMonthly),
+    profit: positive(row?.value?.profitTargetMonthly),
+    bookings: positive(row?.value?.bookingsTargetMonthly),
+    tiers,
   };
 }
 
@@ -356,13 +545,25 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       estimatesOpenCount: prev?.estimatesOpenCount ?? 0,
       estimatesOpenValue: prev?.estimatesOpenValue ?? 0,
       closeRate30d: prev?.closeRate30d ?? null,
+      quotesCreatedTodayValue: prev?.quotesCreatedTodayValue ?? 0,
+      quotesCreatedTodayCount: prev?.quotesCreatedTodayCount ?? 0,
+      quotesCreatedWeekValue: prev?.quotesCreatedWeekValue ?? 0,
+      quotesCreatedWeekCount: prev?.quotesCreatedWeekCount ?? 0,
+      quotesCreatedMonthValue: prev?.quotesCreatedMonthValue ?? 0,
+      quotesCreatedMonthCount: prev?.quotesCreatedMonthCount ?? 0,
       revenueInvoicedMtd: prev?.revenueInvoicedMtd ?? 0,
       revenueToday: prev?.revenueToday ?? 0,
+      profitMtd: prev?.profitMtd ?? 0,
+      profitCoverage: prev?.profitCoverage ?? 0,
+      bookingsMonth: prev?.bookingsMonth ?? 0,
       soldMtd: prev?.soldMtd ?? 0,
       soldToday: prev?.soldToday ?? 0,
       topJobTypes: prev?.topJobTypes ?? [],
       jobTypeBasis: prev?.jobTypeBasis ?? "revenue",
-      salesLeaderboard: prev?.salesLeaderboard ?? [],
+      rawLeaderboard: (prev?.salesLeaderboard ?? []).map((r) => ({ name: r.name, sold: r.sold, jobs: r.jobs })),
+      // Deliberately not carried forward: a stale feed would re-fire the rocket
+      // for a sale the room already celebrated.
+      recentSales: [],
     };
   }
 
@@ -373,7 +574,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     sources.xero = { state: "stale", detail: xero.reason, at: previous?.computedAt };
   }
 
-  const targets = await monthlyTargets().catch((): Targets => ({ revenue: null, sales: null }));
+  const targets = await monthlyTargets().catch((): Targets => ({ revenue: null, sales: null, profit: null, bookings: null, tiers: [] }));
   const calendar = await workingCalendar().catch(() => DEFAULT_WORKING_CALENDAR);
   const days = workingDaysInMonth(now, calendar);
 
@@ -397,11 +598,31 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
 
   const revenue = perDay(targets.revenue, st.revenueInvoicedMtd);
   const sales = perDay(targets.sales, st.soldMtd);
+  const profit = perDay(targets.profit, st.profitMtd);
+  const bookings = perDay(targets.bookings, st.bookingsMonth);
+
+  const salesLeaderboard = st.rawLeaderboard.map((r) => ({
+    ...r,
+    ...commissionFor(r.sold, targets.tiers),
+  }));
+
+  // Telecom is a separate ServiceTitan scope. Until it is granted the table
+  // stays empty and the team page says so rather than showing zeroes that look
+  // like nobody picked up the phone.
+  const callsByPerson = await callMetrics(now).catch(() => [] as Metrics["callsByPerson"]);
+
+  const { rawLeaderboard: _raw, ...stMetrics } = st;
 
   return {
     metrics: {
       ...leads,
-      ...st,
+      ...stMetrics,
+      salesLeaderboard,
+      callsByPerson,
+      profitTargetMonthly: targets.profit,
+      profitPacePct: profit.pacePct,
+      bookingsTargetMonthly: targets.bookings,
+      bookingsPacePct: bookings.pacePct,
       revenueTargetMonthly: targets.revenue,
       revenuePacePct: revenue.pacePct,
       dailyTarget: revenue.daily,

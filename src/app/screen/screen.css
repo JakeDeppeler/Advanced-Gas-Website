@@ -22,6 +22,10 @@
   --good: #0ca30c;
   --warning: #fab219;
   --critical: #d03b3b;
+  /* "Ahead of target" on the gauges. Deliberately distinct from --warning:
+     amber already means caution elsewhere on the board, and the same hue
+     meaning both "careful" and "smashing it" is how a palette stops working. */
+  --ahead: #c9a227;
 
   position: fixed;
   inset: 0;
@@ -318,3 +322,215 @@ body:has(.screen) .utilbar {
    hot water" against "Ducted"), and this list sits in a double-width tile, so
    the label column can afford the room rather than ellipsing every row. */
 .bars--wide-names .bars__row { grid-template-columns: 17vw 1fr 4vw; }
+
+/* ===================================================================== light */
+/* A selected light theme, not an inverted dark one: the status trio and the
+   accent are their own steps, chosen against a light surface and checked for
+   3:1 contrast there. Reached with ?theme=light on the screen URL; the kiosk
+   default stays dark, which is easier on a panel running twelve hours a day. */
+.screen--light {
+  --plane: #f4f4f1;
+  --surface: #ffffff;
+  --ink: #16160f;
+  --ink-2: #4a4840;
+  --ink-muted: #76736a;
+  --hairline: rgba(0, 0, 0, 0.12);
+  --track: #e4e3dd;
+
+  --accent: #1f6fd0;
+  --good: #107a10;
+  --warning: #9a6b05;
+  --critical: #c0272d;
+  --ahead: #c27500;
+}
+
+.screen--light .tile {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================================================================== gauges */
+.gauge {
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.gauge__svg {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Zone order never changes — behind, on track, ahead, left to right — and each
+   band is drawn with a gap at its start, so the boundaries survive for a viewer
+   who can't separate the hues. The active zone is the only one at full weight;
+   the rest sit back, which is a second, non-colour cue to where the needle is. */
+.gauge__zone {
+  stroke-width: 13;
+  stroke-linecap: butt;
+  opacity: 0.4;
+  transition: opacity 400ms ease;
+}
+.gauge__zone.is-active { opacity: 1; }
+
+.gauge__zone--behind { stroke: var(--critical); }
+.gauge__zone--ontrack { stroke: var(--good); }
+.gauge__zone--ahead { stroke: var(--ahead, #c9a227); }
+
+.gauge__needle {
+  stroke: var(--ink);
+  stroke-width: 17;
+  stroke-linecap: round;
+}
+
+.gauge__dot {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 2.5;
+}
+
+.gauge__value {
+  fill: var(--ink);
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.gauge__status {
+  fill: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 550;
+}
+
+/* Explanatory copy wraps and sits directly under its label, rather than being
+   pushed to the floor of the tile the way a one-line figure caption is. */
+.tile__sub--body {
+  line-height: 1.45;
+  white-space: normal;
+  margin-top: -0.4vw;
+  margin-bottom: auto;
+}
+
+/* =============================================================== celebration */
+/* Fires when a sold quote appears that the board hasn't shown before. Covers
+   the grid rather than displacing it, so the layout underneath doesn't reflow
+   and nothing jumps when it clears. */
+.celebrate {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--plane) 88%, transparent);
+  backdrop-filter: blur(2px);
+  animation: celebrate-in 400ms ease both;
+}
+
+.celebrate__sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.celebrate__rocket {
+  position: absolute;
+  left: 50%;
+  bottom: -12vw;
+  font-size: 9vw;
+  line-height: 1;
+  animation: rocket-launch 4.2s cubic-bezier(0.45, 0, 0.3, 1) 300ms both;
+}
+
+.celebrate__moon {
+  position: absolute;
+  top: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5vw;
+  opacity: 0.85;
+}
+
+.celebrate__star {
+  position: absolute;
+  width: 0.35vw;
+  height: 0.35vw;
+  border-radius: 50%;
+  background: var(--ink-2);
+  animation: twinkle 1.4s ease-in-out infinite;
+}
+.celebrate__star--1 { top: 22%; left: 32%; animation-delay: 0ms; }
+.celebrate__star--2 { top: 34%; left: 66%; animation-delay: 420ms; }
+.celebrate__star--3 { top: 15%; left: 58%; animation-delay: 820ms; }
+
+.celebrate__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4vw;
+  padding: 2.4vw 4vw;
+  border-radius: 1vw;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  animation: card-pop 500ms cubic-bezier(0.2, 1.2, 0.4, 1) 200ms both;
+}
+
+.celebrate__kicker {
+  font-size: 1.6vw;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--good);
+}
+
+.celebrate__amount {
+  font-size: 7vw;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.celebrate__who {
+  font-size: 2.4vw;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+@keyframes celebrate-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes card-pop {
+  from { opacity: 0; transform: scale(0.88); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rocket-launch {
+  0%   { transform: translate(-50%, 0) rotate(-12deg); opacity: 0; }
+  12%  { opacity: 1; }
+  100% { transform: translate(-50%, -112vh) rotate(-12deg); opacity: 1; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
+/* The announcement is the name and the number; the motion is decoration. Anyone
+   who has asked the OS for less of it still gets the whole message. */
+@media (prefers-reduced-motion: reduce) {
+  .celebrate,
+  .celebrate__card,
+  .celebrate__rocket,
+  .celebrate__star {
+    animation: none;
+  }
+  .celebrate__rocket {
+    bottom: auto;
+    top: 16%;
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
