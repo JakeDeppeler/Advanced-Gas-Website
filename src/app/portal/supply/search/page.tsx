@@ -6,6 +6,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { searchCatalogue } from "@/lib/pricebook/supply";
 import { reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
 import { money2 } from "@/lib/portal/format";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Item search — Team portal" };
@@ -57,6 +58,7 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
+      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Item search</div>
         <h1>What does Reece charge us?</h1>

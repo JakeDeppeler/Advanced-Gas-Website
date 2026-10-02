@@ -7,6 +7,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { ProfitChart } from "@/components/portal/ProfitChart";
 import { PLStatement } from "@/components/portal/PLStatement";
 import { xeroStatus, getPLDetail, getMoneySeries, plSpans, PL_PERIODS, type PLPeriod } from "@/lib/portal/xero";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profit & loss — Team portal" };
@@ -21,6 +22,7 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Profit &amp; loss</div>

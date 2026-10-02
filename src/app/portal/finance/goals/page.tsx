@@ -7,6 +7,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
 import { getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
 import { currentYear, yearSpans, DEFAULT_YEAR_GOAL, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -42,6 +43,7 @@ export default async function YearGoalPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/finance" label="Finance" />
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">The year</div>
         <h1>Are we going to make it?</h1>

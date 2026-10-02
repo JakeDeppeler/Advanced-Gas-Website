@@ -40,6 +40,8 @@ export type NavItem = {
   feature?: boolean;
   /** Extra words a search should match: what people call it, not what we do. */
   also?: string[];
+  /** Opens in a new tab. The live board is a display, not a page in here. */
+  external?: boolean;
 };
 
 /**
@@ -126,10 +128,20 @@ export function portalNav(user: PortalUser): NavItem[] {
   }
 
   if (can(user, "overhead")) {
-    items.push({
-      href: "/portal/finance/board", label: "Wall board", blurb: "What the office screen is aiming at",
-      band: "settings", icon: "screen", also: ["dashboard", "screen", "target", "commission"],
-    });
+    items.push(
+      {
+        href: "/portal/finance/board", label: "Wall board", blurb: "What the office screen is aiming at",
+        band: "settings", icon: "screen", also: ["dashboard", "screen", "target", "commission"],
+      },
+      // The board itself, not its settings. It is gated by a shared token
+      // rather than a login, so this goes through a route that checks the
+      // session and redirects — which also means nothing here can link to it
+      // directly, and it fell off the page entirely when the sidebar went.
+      {
+        href: "/portal/finance/board/open", label: "Open the live board", blurb: "The office screen, in a new tab",
+        band: "settings", icon: "screen", external: true, also: ["dashboard", "tv", "screen", "live"],
+      },
+    );
   }
 
   // Last in Business, after the pages about everyone else.
@@ -154,3 +166,32 @@ export const BANDS: NavBand[] = ["on-the-job", "how-we-work", "business", "setti
 export function byBand(items: NavItem[], band: NavBand): NavItem[] {
   return items.filter((i) => i.band === band);
 }
+
+/**
+ * Section tabs, which is where the sidebar's children went.
+ *
+ * Declared here beside the destinations rather than in the component, so the
+ * orphan check — does anything link to this route? — has one place to look.
+ */
+export type Tab = { href: string; label: string; also?: string[] };
+export type TabSetName = "finance" | "supply";
+
+export const TAB_SETS: Record<TabSetName, Tab[]> = {
+  finance: [
+    { href: "/portal/finance", label: "Overview" },
+    { href: "/portal/finance/goals", label: "The year" },
+    { href: "/portal/finance/pl", label: "Profit & loss" },
+    { href: "/portal/finance/capacity", label: "Costs & capacity" },
+    { href: "/portal/finance/targets", label: "Targets" },
+    // Quotes is a tab inside planning rather than a sibling: both ask about
+    // work that has not happened yet.
+    { href: "/portal/finance/planning", label: "Planning", also: ["/portal/finance/quotes"] },
+  ],
+  supply: [
+    { href: "/portal/supply", label: "Overview" },
+    { href: "/portal/supply/orders", label: "Orders" },
+    { href: "/portal/supply/search", label: "Item search" },
+    { href: "/portal/supply/syncs", label: "Sync history" },
+    { href: "/portal/supply/health", label: "Connection check" },
+  ],
+};

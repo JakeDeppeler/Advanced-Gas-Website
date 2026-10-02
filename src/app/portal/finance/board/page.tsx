@@ -78,6 +78,13 @@ export default async function BoardPage() {
           The dials on the office screen measure the month against these. Until a target is set the dial says so
           rather than guessing, which is the only honest thing a wall can do with a number nobody agreed to.
         </p>
+        {/* The board is gated by a shared token rather than a login, so it
+            cannot be linked to directly. This goes through a route that checks
+            the session first and then redirects with the token, which keeps the
+            token out of this page's markup. */}
+        <a className="pt-btn pt-btn--sm" href="/portal/finance/board/open" target="_blank" rel="noreferrer">
+          Open the live board ↗
+        </a>
       </div>
 
       {!ready && (

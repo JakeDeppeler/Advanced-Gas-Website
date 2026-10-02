@@ -5,6 +5,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { loadSupplyState } from "@/lib/pricebook/supply";
 import { loadPricebookSettings, type PricebookSettings } from "@/lib/pricebook/stPricebook";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Supply — Team portal" };
@@ -49,6 +50,7 @@ export default async function SupplyPage() {
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Supply</div>
         <h1>Reece maX, into ServiceTitan<span className="pt-stop">.</span></h1>

@@ -6,6 +6,7 @@ import { FinanceOverview } from "@/components/portal/FinanceOverview";
 import { PLSummary } from "@/components/portal/PLSummary";
 import Link from "next/link";
 import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, ovSpans, localToday, MONEY_RANGES, OV_PERIODS, type MoneyRange, type OvPeriod, redirectUri } from "@/lib/portal/xero";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -39,6 +40,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Finance</div>
         <h1>Where we&rsquo;re at<span className="pt-stop">.</span></h1>

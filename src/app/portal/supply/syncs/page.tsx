@@ -4,6 +4,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { listSyncRuns, type SyncRun } from "@/lib/pricebook/supply";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sync history — Team portal" };
@@ -41,6 +42,7 @@ export default async function SupplySyncsPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
+      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Sync history</div>
         <h1>Every pricebook run<span className="pt-stop">.</span></h1>

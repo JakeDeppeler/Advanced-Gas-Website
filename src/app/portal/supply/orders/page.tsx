@@ -7,6 +7,7 @@ import { OrdersBoard } from "@/components/portal/OrdersBoard";
 import { orderTally, ORDER_STATUSES, type OrderStatus, type SupplyOrder } from "@/lib/pricebook/orders";
 import { listOrders } from "@/lib/pricebook/ordersDb";
 import { money } from "@/lib/portal/format";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Orders — Team portal" };
@@ -34,6 +35,7 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
+      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Orders</div>
         <h1>Everything we&rsquo;ve ordered<span className="pt-stop">.</span></h1>
