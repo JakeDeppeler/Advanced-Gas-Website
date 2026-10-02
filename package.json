@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check:trade": "tsx scripts/check-trade.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",

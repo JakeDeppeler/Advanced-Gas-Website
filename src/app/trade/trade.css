@@ -1,0 +1,546 @@
+@import "../portal/tokens.css";
+
+/* ==================================================================
+   Trade portal — what a tradesman sees on the iPad in the van.
+
+   Built for 1180×820 landscape, and for the same screens on a 390-wide
+   phone: the icon rail becomes a bottom tab bar and the two-column
+   layouts stack. Everything is sized for a thumb in a work glove, so no
+   control is under 44px and most are 52.
+   ================================================================== */
+
+.tr {
+  min-height: 100vh;
+  display: flex;
+  background: var(--pt-bg);
+  color: var(--pt-ink);
+  font-family: var(--f-body, "Manrope", ui-sans-serif, system-ui, sans-serif);
+  font-size: 17px;
+  line-height: 25px;
+}
+
+.tr h1, .tr h2, .tr h3 {
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif);
+  font-weight: 800;
+  margin: 0;
+}
+
+.tr a:focus-visible, .tr button:focus-visible, .tr input:focus-visible,
+.tr select:focus-visible, .tr textarea:focus-visible, .tr summary:focus-visible {
+  outline: 2px solid var(--pt-accent-mark);
+  outline-offset: 2px;
+}
+
+/* ---- The rail ---- */
+.tr__rail {
+  flex: none;
+  position: sticky; top: 0;
+  width: 96px; height: 100vh;
+  box-sizing: border-box;
+  padding: 16px 0;
+  background: var(--pt-navy-2);
+  color: #fff;
+  display: flex; flex-direction: column; align-items: stretch;
+}
+.tr__badge {
+  align-self: center; flex: none;
+  width: 52px; height: 52px; margin-bottom: 14px;
+  border-radius: var(--pt-r-sm);
+  background: var(--pt-accent-mark); color: var(--pt-navy-2);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif);
+  font-size: 20px; font-weight: 900; text-decoration: none;
+}
+/* Eleven items at 64px just fit 820px of iPad. On anything shorter the rail
+   scrolls rather than squeezing the labels out from under the icons. */
+.tr__railscroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.tr__rail-i {
+  position: relative; flex: none;
+  min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  text-decoration: none;
+  font-size: 12px; line-height: 16px; font-weight: 700; text-align: center;
+  color: rgba(255, 255, 255, 0.78);
+}
+.tr__rail-i.is-on {
+  color: var(--pt-navy-2);
+  background: var(--pt-bg);
+  margin-left: 10px;
+  border-radius: 16px 0 0 16px;
+}
+.tr__office {
+  flex: none; margin-top: 8px; padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-decoration: none; font-size: 11.5px; font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ---- The page ---- */
+.tr__main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.tr__head {
+  flex: none; min-height: 92px; box-sizing: border-box;
+  padding: 14px 32px;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+}
+.tr__headtxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tr__headtxt h1 { font-size: 32px; line-height: 38px; font-weight: 900; letter-spacing: -0.02em; }
+.tr__headtxt span { font-size: 16px; line-height: 22px; color: var(--pt-ink-2); }
+.tr__headright { flex: none; display: flex; align-items: center; gap: 12px; }
+.tr__bell {
+  position: relative; flex: none;
+  width: 52px; height: 52px; border-radius: 999px;
+  background: var(--pt-surface); border: 1px solid var(--pt-line);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--pt-ink);
+}
+.tr__bellcount {
+  position: absolute; top: -2px; right: -2px;
+  min-width: 20px; height: 20px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 999px; background: var(--pt-accent-fill); color: #fff;
+  font-size: 12px; line-height: 20px; font-weight: 700; text-align: center;
+}
+.tr__body { flex: 1 1 auto; min-height: 0; box-sizing: border-box; padding: 4px 32px 32px; }
+
+/* ---- The phone's tab bar: off at iPad width ---- */
+.tr__bar { display: none; }
+
+/* ---- Surfaces ---- */
+.tr-card {
+  --tr-pad-x: 24px;
+  --tr-pad-b: 22px;
+  background: var(--pt-surface);
+  border-radius: 20px;
+  box-shadow: var(--pt-shadow);
+  padding: 22px var(--tr-pad-x) var(--tr-pad-b);
+}
+.tr-panel {
+  background: var(--pt-navy-2); color: #fff;
+  border-radius: var(--pt-r);
+  padding: 24px 26px;
+}
+.tr-panel h2, .tr-card h2 { font-size: 20px; line-height: 26px; }
+.tr-card__h { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.tr-sub { font-size: 15px; color: var(--pt-ink-2); }
+.tr-panel .tr-sub { color: rgba(255, 255, 255, 0.8); }
+.tr-foot { font-size: 14px; line-height: 20px; color: var(--pt-ink-2); }
+.tr-panel .tr-foot { color: rgba(255, 255, 255, 0.7); }
+
+/* Two columns, left heavier, and one column on a phone. */
+.tr-split { display: grid; grid-template-columns: var(--tr-cols, minmax(0, 1.25fr) minmax(0, 1fr)); gap: 20px; align-items: start; }
+.tr-stack { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---- Controls ---- */
+.tr-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.tr-pill {
+  display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px;
+  border-radius: 999px; border: 1px solid var(--pt-line);
+  background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-size: 16px; font-weight: 700; text-decoration: none;
+  cursor: pointer;
+}
+.tr-pill.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
+
+.tr-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 52px; padding: 0 20px;
+  border: 1px solid var(--pt-line); border-radius: var(--pt-r-sm);
+  background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+/* The one button that commits something. The 4px ledger under it is the
+   design's, and it is the only place a shadow is used to mean "press me". */
+.tr-btn--go {
+  border: 0; padding: 0 22px;
+  background: var(--pt-accent-fill); color: #fff;
+  box-shadow: 0 4px 0 var(--pt-accent-deep);
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif);
+  font-size: 17px; font-weight: 800;
+}
+.tr-btn--go[disabled] { background: var(--pt-ink-2); box-shadow: none; cursor: not-allowed; }
+.tr-btn--ghost { background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.35); }
+.tr-btns { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+.tr-field { display: flex; flex-direction: column; gap: 8px; font-weight: 700; }
+.tr-field > input, .tr-field > select, .tr-field > textarea {
+  box-sizing: border-box; width: 100%; min-height: 52px; padding: 12px 16px;
+  border-radius: var(--pt-r-sm); border: 1px solid #d8d2c1;
+  background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-weight: 400;
+}
+.tr-field > textarea { resize: vertical; }
+.tr-field--big > input { min-height: 72px; font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 34px; font-weight: 900; }
+
+/* ---- Rows: a list of label/value lines inside a card ---- */
+.tr-rows { display: flex; flex-direction: column; }
+.tr-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  min-height: 58px; padding: 10px 0;
+  border-top: 1px solid var(--pt-tint);
+}
+.tr-rows > .tr-row:first-child { border-top: 0; }
+.tr-row__k { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+.tr-row__k strong { font-weight: 700; }
+.tr-row__k span { font-size: 14px; line-height: 20px; color: var(--pt-ink-2); }
+.tr-row__v { flex: 0 1 auto; font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 19px; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+.tr-panel .tr-row { border-top-color: rgba(255, 255, 255, 0.15); }
+.tr-panel .tr-row__k span { color: rgba(255, 255, 255, 0.7); }
+
+/* ---- Facts: the small numbers across the top of a screen ---- */
+.tr-facts { display: grid; grid-template-columns: repeat(var(--tr-n, 4), minmax(0, 1fr)); gap: 12px; }
+.tr-fact {
+  background: var(--pt-surface); border-radius: 20px; box-shadow: var(--pt-shadow);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 2px;
+}
+.tr-fact__k { font-size: 14px; font-weight: 600; color: var(--pt-ink-2); }
+.tr-fact__v { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 22px; line-height: 28px; font-weight: 900; }
+
+/* ---- Progress ---- */
+.tr-bar { height: 8px; border-radius: 999px; background: var(--pt-tint); overflow: hidden; }
+.tr-panel .tr-bar { background: rgba(255, 255, 255, 0.15); }
+.tr-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--pt-accent-fill); }
+.tr-panel .tr-bar > span { background: var(--pt-accent-dark-bg); }
+
+/* ---- Notes ---- */
+.tr-note {
+  border-radius: var(--pt-r-sm); padding: 14px 18px;
+  background: var(--pt-tint); color: var(--pt-ink);
+  font-size: 15px; line-height: 22px;
+}
+.tr-note--warn { background: #fdeee4; color: var(--pt-accent-deep); font-weight: 700; }
+.tr-empty {
+  border: 2px dashed #d8d2c1; border-radius: var(--pt-r-sm);
+  padding: 18px; color: var(--pt-ink-2); font-size: 15px;
+}
+
+/* ---- Master / detail: a rail of sections, a list, and the thing itself ---- */
+.tr-md { display: grid; grid-template-columns: var(--tr-md, 250px 290px minmax(0, 1fr)); gap: 16px; align-items: start; }
+.tr-md__col {
+  background: var(--pt-surface); border-radius: 20px; box-shadow: var(--pt-shadow);
+  padding: 10px; display: flex; flex-direction: column; gap: 2px;
+  max-height: calc(100vh - 170px); overflow-y: auto;
+}
+.tr-md__lbl { padding: 10px 12px 6px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-ink-2); }
+/* The same slot, holding a sentence rather than a word. Uppercased, a
+   twelve-word blurb shouts and stops being readable. */
+.tr-md__blurb { padding: 10px 12px 6px; font-size: 14px; line-height: 20px; color: var(--pt-ink-2); }
+.tr-pick {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; box-sizing: border-box; min-height: 58px; padding: 8px 12px;
+  border: 0; border-radius: 12px; background: transparent; color: var(--pt-ink);
+  font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+}
+.tr-pick.is-on { background: var(--pt-navy-2); color: #fff; }
+.tr-pick__chip {
+  flex: none; min-width: 34px; height: 34px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 9px; background: var(--pt-tint); color: var(--pt-ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 14px; font-weight: 900;
+}
+.tr-pick.is-on .tr-pick__chip { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.tr-pick__chip--alert { background: var(--pt-accent-fill); color: #fff; }
+.tr-pick.is-on .tr-pick__chip--alert { background: var(--pt-accent-fill); color: #fff; }
+.tr-pick__t { display: flex; flex-direction: column; min-width: 0; }
+.tr-pick__t strong { font-weight: 700; }
+.tr-pick__t span { font-size: 13px; line-height: 18px; opacity: 0.75; }
+.tr-pick__t span.is-tag { font-weight: 800; opacity: 1; color: var(--pt-accent); }
+.tr-pick.is-on .tr-pick__t span.is-tag { color: var(--pt-accent-dark-bg); }
+
+.tr-tag {
+  align-self: flex-start; display: inline-flex; align-items: center;
+  min-height: 34px; padding: 0 14px; border-radius: 999px;
+  background: #fdeee4; color: var(--pt-accent-deep);
+  font-size: 14px; font-weight: 800;
+}
+.tr-tag--alert { background: var(--pt-accent-fill); color: #fff; }
+
+/* ---- Home: the three link cards and the tile row ---- */
+.tr-link { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--pt-ink); }
+.tr-link__k { font-size: 15px; font-weight: 600; color: var(--pt-ink-2); }
+.tr-link__v { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 22px; line-height: 28px; font-weight: 800; }
+
+.tr-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; padding-top: 20px; }
+.tr-tile {
+  background: var(--pt-surface); border-radius: 20px; box-shadow: var(--pt-shadow);
+  min-height: 112px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  text-decoration: none; color: var(--pt-ink); text-align: center;
+  font-size: 15px; line-height: 20px; font-weight: 700;
+}
+
+/* A tick box that reports state rather than inviting a press — the step
+   itself is the control, and it is the row's button. */
+.tr-tick {
+  flex: none; width: 36px; height: 36px; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 900;
+  border: 2px solid rgba(255, 255, 255, 0.4); color: #fff;
+}
+.tr-tick.is-on { border: 0; background: var(--pt-accent-dark-bg); color: var(--pt-navy-2); }
+.tr-card .tr-tick, .tr-md__col .tr-tick { border-color: #d8d2c1; color: var(--pt-ink); }
+.tr-card .tr-tick.is-on, .tr-md__col .tr-tick.is-on { background: var(--pt-navy-2); color: #fff; }
+
+.tr-chip {
+  flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border-radius: 12px; border: 0;
+  background: rgba(255, 255, 255, 0.1); color: #fff;
+  font: inherit; font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.tr-card .tr-chip { background: var(--pt-tint); color: var(--pt-ink); }
+
+/* ---- Monday: the photo grid, the OK / needs-a-look pair, the steppers ---- */
+.tr-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.tr-shot {
+  min-height: 120px; padding: 10px; box-sizing: border-box;
+  border: 2px dashed #d8d2c1; border-radius: 16px;
+  background: var(--pt-bg); color: var(--pt-ink);
+  font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center;
+}
+.tr-shot strong { font-weight: 700; }
+.tr-shot span { font-size: 13px; line-height: 17px; }
+.tr-shot.is-on { border: 0; background: var(--pt-navy-2); color: #fff; }
+
+.tr-seg {
+  min-height: 44px; padding: 0 16px; border-radius: 12px;
+  border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.tr-seg.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
+.tr-seg.is-bad { background: #fdeee4; color: var(--pt-accent-deep); border-color: var(--pt-accent-fill); }
+
+.tr-count { flex: none; display: inline-flex; align-items: center; gap: 10px; }
+.tr-count > button {
+  width: 52px; height: 52px; padding: 0;
+  border: 1px solid var(--pt-line); border-radius: var(--pt-r-sm);
+  background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-size: 22px; font-weight: 700; cursor: pointer;
+}
+.tr-count > strong {
+  min-width: 48px; text-align: center;
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 24px; font-weight: 900;
+}
+/* An uncounted line says so. A dash here sat between the − and the + at the
+   same weight and read as a third button. */
+.tr-count__none { min-width: 48px; text-align: center; font-size: 12px; line-height: 15px; color: var(--pt-ink-2); }
+
+/* The four sheets run past the bottom of an iPad, and a tech should never have
+   to scroll eleven rows back to save. */
+.tr-save {
+  position: sticky; bottom: 0; z-index: 2;
+  margin: 0 calc(-1 * var(--tr-pad-x)) calc(-1 * var(--tr-pad-b));
+  padding: 12px var(--tr-pad-x) calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--pt-surface);
+  border-top: 1px solid var(--pt-tint);
+  border-radius: 0 0 20px 20px;
+}
+
+/* The stock list is sixty lines over nine groups. Group headings stay put as
+   you scroll so you always know which drawer you are counting. */
+.tr-stock { max-height: 52vh; overflow-y: auto; }
+.tr-stock > details + details { margin-top: 6px; }
+.tr-stock summary {
+  position: sticky; top: 0; z-index: 1;
+  padding: 10px 2px; cursor: pointer;
+  background: var(--pt-surface);
+  font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 15px; font-weight: 800;
+}
+
+.tr-count-badge {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px;
+  border-radius: 999px; background: var(--pt-tint); color: var(--pt-ink);
+  font-size: 15px; font-weight: 700;
+}
+
+.tr-pick__chip--done { background: var(--pt-accent-dark-bg); color: var(--pt-navy-2); }
+.tr-pick.is-on .tr-pick__chip--done { background: var(--pt-accent-dark-bg); color: var(--pt-navy-2); }
+
+/* ---- My van: the Monday km chart and the two-way tab pair ---- */
+.tr-chart { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 16px; align-items: end; height: 150px; }
+.tr-chart__col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.tr-chart__v { font-size: 14px; font-weight: 700; }
+.tr-chart__bar { width: 100%; max-width: 64px; border-radius: 10px 10px 4px 4px; background: var(--pt-navy-2); }
+.tr-chart__d { font-size: 13px; color: var(--pt-ink-2); }
+
+.tr-tab {
+  flex: 1 1 0; min-height: 48px; border-radius: 12px;
+  background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.35);
+  font: inherit; font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.tr-tab.is-on { background: #fff; color: var(--pt-navy-2); border-color: #fff; }
+
+/* ---- Handbook, videos, info ---- */
+.tr-dot { flex: none; width: 10px; height: 10px; border-radius: 999px; background: #d8d2c1; }
+.tr-dot.is-have { background: var(--pt-sky); }
+.tr-pick.is-on .tr-dot.is-have { background: var(--pt-accent-dark-bg); }
+
+.tr-vids { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px; }
+.tr-vid {
+  background: var(--pt-surface); border-radius: 20px; box-shadow: var(--pt-shadow);
+  padding: 16px; display: flex; gap: 16px; text-decoration: none; color: var(--pt-ink);
+}
+.tr-vid__shot {
+  position: relative; flex: none; width: 104px; height: 78px; border-radius: 14px;
+  background: var(--pt-navy-2); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.tr-vid__len {
+  position: absolute; right: 6px; bottom: 6px;
+  padding: 1px 6px; border-radius: 6px; background: rgba(5, 10, 48, 0.75);
+  font-size: 11px; font-weight: 700;
+}
+.tr-vid__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tr-vid__cat { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-accent); }
+.tr-vid__txt strong { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 17px; line-height: 23px; font-weight: 800; }
+
+.tr-infogrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr)); gap: 16px; align-items: start; }
+
+/* ---- Calculator: the job options and the one figure that matters ---- */
+.tr-opt {
+  text-align: left; font: inherit; color: var(--pt-ink); cursor: pointer;
+  min-height: 64px; padding: 12px 18px; border-radius: var(--pt-r-sm);
+  border: 2px solid var(--pt-line); background: var(--pt-bg);
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+}
+.tr-opt strong { font-weight: 700; }
+.tr-opt span { font-size: 15px; color: var(--pt-ink-2); }
+.tr-opt.is-on { border-color: var(--pt-navy-2); background: var(--pt-surface); }
+.tr-opt--add { border-style: dashed; }
+.tr-opt[disabled] { cursor: not-allowed; opacity: 0.6; }
+
+.tr-outcome {
+  border-radius: var(--pt-r-sm); padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.08); color: #fff;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.tr-outcome > strong { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 30px; line-height: 36px; font-weight: 900; }
+.tr-outcome.is-bad { background: #fdeee4; color: var(--pt-accent-deep); }
+.tr-outcome.is-bad .tr-foot { color: var(--pt-accent-deep); }
+
+/* The public site's calculators, rendered in here as they are. They bring
+   their own CSS; this only gives them the page's gutter back. */
+.tr-toolwrap { margin-top: 4px; }
+.tr-toolwrap > * { max-width: none; }
+@media (max-width: 760px) { .tr-toolwrap { overflow-x: auto; } }
+
+/* ---- Pricebook: what we quote from, then the models ---- */
+.tr-quotes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 14px; }
+.tr-quote {
+  background: var(--pt-navy-2); color: #fff; border-radius: 20px; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.tr-quote__k { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-accent-dark-bg); }
+.tr-quote__p { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 30px; line-height: 36px; font-weight: 900; }
+.tr-quote__t { font-size: 15px; color: rgba(255, 255, 255, 0.8); }
+.tr-quote__in { margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: rgba(255, 255, 255, 0.85); }
+
+.tr-models { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(308px, 100%), 1fr)); gap: 16px; align-items: start; }
+.tr-model {
+  background: var(--pt-surface); border-radius: 20px; box-shadow: var(--pt-shadow);
+  padding: 20px 22px; display: flex; flex-direction: column; gap: 14px;
+}
+.tr-model__head { display: flex; flex-direction: column; gap: 2px; }
+.tr-model__brand { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--pt-accent); }
+.tr-model__head h3 { font-size: 20px; line-height: 26px; }
+.tr-model__specs { margin: 0; display: flex; flex-direction: column; }
+.tr-model__specs > div {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 14px;
+  padding: 8px 0; border-top: 1px solid var(--pt-tint);
+}
+.tr-model__specs > div:first-child { border-top: 0; }
+.tr-model__specs dt { font-size: 14px; color: var(--pt-ink-2); }
+.tr-model__specs dd { margin: 0; font-size: 15px; font-weight: 700; text-align: right; }
+.tr-model__foot { margin-top: auto; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.tr-model__p { font-family: var(--f-display, "Archivo", system-ui, sans-serif); font-size: 26px; line-height: 32px; font-weight: 900; }
+.tr-model__p--none { font-size: 19px; line-height: 26px; color: var(--pt-ink-2); }
+.tr-veu {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 0 12px;
+  border-radius: 999px; background: var(--pt-tint); color: var(--pt-accent-deep);
+  font-size: 13px; font-weight: 700;
+}
+
+/* A notice carries its severity as a left edge as well as its words — the
+   words are the signal, the colour only finds it on the page. */
+.tr-notice { border-left: 6px solid var(--pt-line); }
+.tr-notice.is-bad { border-left-color: var(--pt-accent-fill); }
+.tr-notice.is-warn { border-left-color: var(--pt-sky); }
+
+/* ---- Prose, for a handbook topic or a procedure's body ---- */
+.tr-prose { font-size: 17px; line-height: 27px; }
+.tr-prose > * + * { margin-top: 14px; }
+.tr-prose h3 { font-size: 18px; line-height: 24px; }
+.tr-prose ul, .tr-prose ol { margin: 0; padding-left: 22px; }
+.tr-prose li + li { margin-top: 8px; }
+.tr-prose table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.tr-prose th, .tr-prose td { text-align: left; padding: 10px 12px; border-top: 1px solid var(--pt-tint); vertical-align: top; }
+.tr-prose th { font-weight: 700; color: var(--pt-ink-2); }
+.tr-scroll { overflow-x: auto; }
+
+/* ================================================================
+   Phone: the rail becomes a bottom bar, columns become one column.
+   ================================================================ */
+@media (max-width: 760px) {
+  .tr { display: block; padding-bottom: 76px; }
+  .tr__rail { display: none; }
+  .tr__head {
+    position: sticky; top: 0; z-index: 10;
+    min-height: 0; padding: 14px 16px;
+    background: var(--pt-bg);
+    border-bottom: 1px solid var(--pt-line);
+  }
+  .tr__headtxt h1 { font-size: 24px; line-height: 30px; }
+  .tr__headtxt span { font-size: 14px; line-height: 20px; }
+  .tr__bell { width: 44px; height: 44px; }
+  .tr__body { padding: 16px 16px 24px; }
+
+  .tr__bar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+    padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    background: var(--pt-surface);
+    border-top: 1px solid var(--pt-line);
+  }
+  .tr__bar-i {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    min-height: 52px; text-decoration: none;
+    font-size: 12px; font-weight: 700; color: var(--pt-ink-2);
+  }
+  .tr__bar-i.is-on { color: var(--pt-ink); }
+
+  .tr-split, .tr-md { grid-template-columns: minmax(0, 1fr); }
+  .tr-facts { --tr-n: 2; }
+  .tr-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding-top: 16px; }
+  .tr-shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tr-shot { min-height: 104px; }
+  .tr-stock { max-height: none; }
+  .tr-vids, .tr-infogrid, .tr-models, .tr-quotes { grid-template-columns: minmax(0, 1fr); }
+  .tr-vid__shot { width: 84px; height: 64px; }
+  .tr-tile { min-height: 96px; font-size: 13px; line-height: 17px; gap: 8px; }
+  .tr-card { --tr-pad-x: 18px; --tr-pad-b: 18px; padding: 18px; border-radius: 18px; }
+  .tr-panel { padding: 18px; border-radius: 18px; }
+  .tr-md__col { max-height: none; }
+  /* The rail of sections reads as a row of pills on a phone, not a column of
+     58px rows eating the screen before the content starts. */
+  .tr-md__col--row { flex-direction: row; overflow-x: auto; padding: 8px; }
+  .tr-md__col--row .tr-pick { width: auto; flex: none; }
+  .tr-md__col--row .tr-md__lbl { display: none; }
+
+  /* The four Monday steps go across the top, so the sheet itself starts above
+     the fold instead of below a 280px column of step rows. */
+  .tr-md__col--steps { flex-direction: row; align-items: center; justify-content: space-between; overflow: visible; padding: 8px 10px; }
+  /* Numbers only. With the titles on, step four sat off the right edge with
+     nothing to say it was there, and the step you are on is the card's own
+     heading two centimetres below. */
+  .tr-md__col--steps .tr-pick { width: auto; flex: 1 1 0; justify-content: center; min-height: 52px; padding: 6px; }
+  .tr-md__col--steps .tr-pick__t { display: none; }
+  .tr-md__col--steps .tr-pick__chip { min-width: 38px; height: 38px; font-size: 16px; }
+
+  /* A counter beside a four-word item name left the name three lines tall.
+     The control goes under it instead. */
+  .tr-row { flex-wrap: wrap; }
+  .tr-count { width: 100%; justify-content: flex-end; }
+
+  /* The tab bar is fixed over the bottom of the page, so a save bar stuck at
+     bottom:0 sits underneath it. It stops above it instead. */
+  .tr-save { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+}

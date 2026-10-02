@@ -35,8 +35,11 @@ const parse = (v: string) => { const n = parseFloat(v); return Number.isNaN(n) ?
  * The jobs that come up often enough to be worth a starting point. Hours and
  * minimum prices are Advanced Gas's own, so picking one lands you close before
  * you adjust for the actual site.
+ *
+ * Exported because the trade portal's on-site calculator offers the same list.
+ * Two copies would be two price lists.
  */
-const JOBS = [
+export const JOBS = [
   { k: "custom", label: "Something else", hrs: 2, min: 0 },
   { k: "evap1", label: "Evap service — single storey", hrs: 2, min: 300 },
   { k: "evap2", label: "Evap service — double storey", hrs: 2.5, min: 375 },
