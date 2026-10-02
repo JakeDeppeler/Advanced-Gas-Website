@@ -2112,3 +2112,15 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   .pt-bars__row { grid-template-columns: 110px 1fr 40px; gap: 10px; }
   .pt-needs__row { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* A van's history, split by kind. */
+.pt-veh__filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.pt-veh__filters button {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 13px;
+  border-radius: 999px; border: 1px solid var(--pt-line); background: var(--pt-surface);
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--pt-ink-2); cursor: pointer;
+}
+.pt-veh__filters button span { opacity: 0.65; font-variant-numeric: tabular-nums; }
+.pt-veh__filters button:hover { color: var(--pt-ink); }
+.pt-veh__filters button.is-on { background: var(--pt-navy-2); border-color: var(--pt-navy-2); color: #fff; }
+.pt-veh__filters button:focus-visible { outline: 2px solid var(--pt-accent-mark); outline-offset: 1px; }

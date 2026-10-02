@@ -47,6 +47,15 @@ export type CheckSummary = { kind: string; short: string; when: string | null; b
 
 export type CrewOption = { id: string; name: string };
 
+/** The design's split of a van's history, in its order. */
+const HISTORY_TABS: { key: "all" | VehicleLogKind; label: string }[] = [
+  { key: "all", label: "Everything" },
+  { key: "reading", label: "Km readings" },
+  { key: "fuel", label: "Fuel" },
+  { key: "service", label: "Service" },
+  { key: "damage", label: "Damage" },
+];
+
 export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; checks: CheckSummary[]; crew: CrewOption[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -63,6 +72,8 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
 
   // edit panel
   const [editing, setEditing] = useState(false);
+  const [seeing, setSeeing] = useState<"all" | VehicleLogKind>("all");
+  const shown = seeing === "all" ? logs : logs.filter((l) => l.kind === seeing);
   const [f, setF] = useState({
     name: vehicle.name, rego: vehicle.rego ?? "", details: vehicle.details ?? "",
     odometer: vehicle.odometer?.toString() ?? "", interval: vehicle.serviceIntervalKm?.toString() ?? "",
@@ -187,12 +198,30 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
 
       {/* log timeline */}
       <section className="pt-panel">
-        <h2 className="pt-panel__h">History <span className="pt-tm__count">{logs.length}</span></h2>
-        {logs.length === 0 ? (
-          <div className="pf-empty">Nothing logged yet.</div>
+        <div className="pt-veh__edithead">
+          <h2 className="pt-panel__h">History <span className="pt-tm__count">{shown.length}</span></h2>
+          {/* The design splits this history by kind. A van with two years on it
+              has hundreds of rows and the question is always one kind at a
+              time — what has it cost in fuel, when was it last serviced. */}
+          <nav className="pt-veh__filters" aria-label="History">
+            {HISTORY_TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                aria-pressed={seeing === t.key}
+                className={seeing === t.key ? "is-on" : undefined}
+                onClick={() => setSeeing(t.key)}
+              >
+                {t.label} <span>{t.key === "all" ? logs.length : logs.filter((l) => l.kind === t.key).length}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+        {shown.length === 0 ? (
+          <div className="pf-empty">{logs.length === 0 ? "Nothing logged yet." : `Nothing logged under ${HISTORY_TABS.find((t) => t.key === seeing)?.label.toLowerCase()}.`}</div>
         ) : (
           <div className="pt-veh__logs">
-            {logs.map((l) => (
+            {shown.map((l) => (
               <div key={l.id} className="pt-veh__log">
                 <span className={`pt-veh__logtag pt-veh__logtag--${l.kind}`}>{KIND_LABEL[l.kind]}</span>
                 <div className="pt-veh__logbody">
