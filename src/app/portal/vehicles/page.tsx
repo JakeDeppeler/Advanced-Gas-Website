@@ -8,6 +8,9 @@ import { STATUS_LABEL } from "@/components/portal/vehicleStatus";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { AddVehicleForm } from "@/components/portal/AddVehicleForm";
 import { money } from "@/lib/portal/format";
+import { listVanChecks, listVehicleLogs } from "@/lib/portal/db";
+import { cleanCell, fleetAlerts, kmCell, serviceCell, sortByUrgency, type VanRow } from "@/components/portal/fleetStatus";
+import { localToday } from "@/lib/portal/xero";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Vehicles — Team portal" };
@@ -48,15 +51,45 @@ function status(v: Vehicle): { txt: string; cls: string } | null {
   return { txt: `${km(left)} to service`, cls: "ok" };
 }
 
-function Card({ v, who }: { v: Vehicle; who: string | null }) {
-  const s = status(v);
+/** One van's row: the three states it can be in, each with what we know under it. */
+function FleetTable({ rows, caption, muted }: { rows: VanRow[]; caption: string; muted?: boolean }) {
   return (
-    <Link href={`/portal/vehicles/${v.id}`} className={`pt-card${v.active ? "" : " is-off"}`}>
-      <div className="pt-card__tag">{v.rego || "Vehicle"}</div>
-      <div className="pt-card__title">{v.name}</div>
-      <p className="pt-card__desc">{v.details || " "}</p>
-      <div className="pt-veh__cardstat"><span>{km(v.odometer)}</span>{s && <span className={`pt-veh__status pt-veh__status--${s.cls}`}>{s.txt}</span>}</div>
-    </Link>
+    <section className={`pt-panel${muted ? " is-muted" : ""}`}>
+      <h2 className="pt-panel__h">{caption}</h2>
+      <div className="pt-fleet__wrap">
+        <table className="pt-fleet">
+          <thead>
+            <tr>
+              <th scope="col">Van</th>
+              <th scope="col">Weekly clean &amp; photos</th>
+              <th scope="col">Service</th>
+              <th scope="col">Km reading</th>
+              <th scope="col"><span className="pt-sr">Open</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id}>
+                <th scope="row">
+                  <strong>{r.name}</strong>
+                  <span>{[r.who, r.rego].filter(Boolean).join(" · ") || "No driver set"}</span>
+                </th>
+                {([r.clean, r.service, r.km] as const).map((c, i) => (
+                  <td key={i}>
+                    {/* The word is the signal; the colour only agrees with it. */}
+                    <span className={`pt-vstat pt-vstat--${c.severity}`}>{c.label}</span>
+                    <span className="pt-fleet__detail">{c.detail}</span>
+                  </td>
+                ))}
+                <td className="pt-fleet__go">
+                  <Link href={`/portal/vehicles/${r.id}`}>Open →</Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -74,6 +107,42 @@ export default async function VehiclesPage() {
   const off = vehicles.filter((v) => v.status === "off");
   const t = fleetTotals(vehicles);
 
+  /**
+   * Each van's three states.
+   *
+   * One pair of reads per van. The fleet is four vans, so a query each beats
+   * inventing a bulk endpoint; if it ever grows past a dozen this is the thing
+   * to change.
+   */
+  const today = localToday();
+  const built = await Promise.all(
+    vehicles.map(async (v): Promise<VanRow> => {
+      const [checks, logs] = ready
+        ? await Promise.all([
+            listVanChecks(v.id, "weekly", 1).catch(() => []),
+            listVehicleLogs(v.id).catch(() => []),
+          ])
+        : [[], []];
+      const lastRead = logs.filter((l) => l.kind === "reading").sort((a, b) => b.logDate.localeCompare(a.logDate))[0];
+      return {
+        id: v.id,
+        name: v.name,
+        who: v.assignedTo ? nameOf.get(v.assignedTo) ?? null : null,
+        rego: v.rego,
+        clean: cleanCell(checks[0]?.checkedOn ?? null, today),
+        service: serviceCell(v.odometer, v.nextServiceKm, v.nextServiceDate, today),
+        // The odometer on the van record is the number; a reading log is what
+        // dates it. Without one we can't say how old the figure is.
+        km: kmCell(v.odometer, lastRead?.logDate ?? null, today),
+      };
+    }),
+  );
+
+  const byId = new Map(built.map((r) => [r.id, r]));
+  const rows = sortByUrgency(onRoad.map((v) => byId.get(v.id)!).filter(Boolean));
+  const offRows = sortByUrgency([...repair, ...off].map((v) => byId.get(v.id)!).filter(Boolean));
+  const alerts = fleetAlerts(rows);
+
   return (
     <PortalShell user={user}>
       <div className="pt-head">
@@ -84,6 +153,25 @@ export default async function VehiclesPage() {
 
       {!ready && (
         <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> Vehicles need the Supabase keys set on the server.</div>
+      )}
+
+      {rows.length > 0 && (
+        <div className="pt-alerts">
+          {/* Only the ones that are actually true. Three permanent tiles reading
+              zero teach people to stop looking at the row. */}
+          {alerts.cleanOverdue > 0 && (
+            <div className="pt-alert"><span>{alerts.cleanOverdue}</span><strong>Weekly clean overdue</strong><em>Due Monday morning</em></div>
+          )}
+          {alerts.serviceDue > 0 && (
+            <div className="pt-alert"><span>{alerts.serviceDue}</span><strong>Service due</strong><em>Within 2,000 km or three weeks</em></div>
+          )}
+          {alerts.kmStale > 0 && (
+            <div className="pt-alert"><span>{alerts.kmStale}</span><strong>Km reading missing</strong><em>Everything else hangs off it</em></div>
+          )}
+          {alerts.cleanOverdue + alerts.serviceDue + alerts.kmStale === 0 && (
+            <div className="pt-alert is-clear"><span>✓</span><strong>Nothing outstanding</strong><em>Every van is up to date</em></div>
+          )}
+        </div>
       )}
 
       {vehicles.length > 0 && (
@@ -127,19 +215,8 @@ export default async function VehiclesPage() {
         </div>
       ) : (
         <>
-          <div className="pt-grid">{onRoad.map((v) => <Card key={v.id} v={v} who={v.assignedTo ? nameOf.get(v.assignedTo) ?? null : null} />)}</div>
-          {repair.length > 0 && (
-            <>
-              <div className="pt-tm__listhead"><h2 className="pt-panel__h">Getting fixed <span className="pt-tm__count">{repair.length}</span></h2></div>
-              <div className="pt-grid">{repair.map((v) => <Card key={v.id} v={v} who={v.assignedTo ? nameOf.get(v.assignedTo) ?? null : null} />)}</div>
-            </>
-          )}
-          {off.length > 0 && (
-            <>
-              <div className="pt-tm__listhead pt-tm__listhead--muted"><h2 className="pt-panel__h">Off the road <span className="pt-tm__count">{off.length}</span></h2></div>
-              <div className="pt-grid">{off.map((v) => <Card key={v.id} v={v} who={v.assignedTo ? nameOf.get(v.assignedTo) ?? null : null} />)}</div>
-            </>
-          )}
+          <FleetTable rows={rows} caption="On the road" />
+          {offRows.length > 0 && <FleetTable rows={offRows} caption="Not on the road" muted />}
         </>
       )}
     </PortalShell>

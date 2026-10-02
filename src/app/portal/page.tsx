@@ -69,13 +69,22 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             <h2 className="pt-band__h">{BAND_LABEL[band]}</h2>
             <div className="pt-band__grid">
               {inBand.map((it) => (
-                <Link key={it.href} href={it.href} className={`pt-tile${it.feature ? " is-feature" : ""}`}>
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  target={it.external ? "_blank" : undefined}
+                  rel={it.external ? "noopener" : undefined}
+                  // A route that redirects must not be prefetched: Next would
+                  // follow the redirect on every load of this page.
+                  prefetch={it.external ? false : undefined}
+                  className={`pt-tile${it.feature ? " is-feature" : ""}`}
+                >
                   <span className="pt-tile__ico" aria-hidden="true">
                     <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                       <path d={ICON[it.icon]} />
                     </svg>
                   </span>
-                  <span className="pt-tile__name">{it.label}</span>
+                  <span className="pt-tile__name">{it.label}{it.external ? " ↗" : ""}</span>
                   <span className="pt-tile__blurb">{it.blurb}</span>
                 </Link>
               ))}
