@@ -29,6 +29,9 @@ jobs:
           # The check sits beside the sync endpoint. Deriving the URL rather than
           # adding a third secret means there is one less value that can drift
           # out of step with the other two.
+          # Trimmed for the same reason as the sync workflow: whitespace in a
+          # pasted secret is invisible and fails with an error that names nothing.
+          SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
           CHECK_URL="${SYNC_URL%/api/sync}/api/servicetitan/check"
           echo "Checking ${CHECK_URL}"
 

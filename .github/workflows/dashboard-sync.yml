@@ -46,7 +46,20 @@ jobs:
             exit 1
           fi
 
-          url="$SYNC_URL"
+          # Trim surrounding whitespace. A secret pasted with a leading space
+          # is invisible in the GitHub UI and fails as "curl: (3) URL rejected:
+          # Malformed input to a URL function", which names nothing useful —
+          # it already cost one confusing red run.
+          url="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+
+          case "$url" in
+            https://*|http://*) ;;
+            *)
+              echo "::error::DASHBOARD_SYNC_URL does not look like a URL. Expected something like https://www.advancedgas.com.au/api/sync"
+              exit 1
+              ;;
+          esac
+
           if [ -n "$RESET" ]; then
             url="${url}?reset=1"
           fi
