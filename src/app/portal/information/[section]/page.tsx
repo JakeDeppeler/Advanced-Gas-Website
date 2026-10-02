@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { INFO_SECTIONS } from "@/lib/portal/content";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,9 @@ export default async function InfoSectionPage({ params }: { params: { section: s
 
   return (
     <PortalShell user={user}>
+      {/* Without these you could reach Pricing and not Licences: the sidebar
+          used to carry the siblings and nothing replaced it. */}
+      <PortalTabs tabs={INFO_SECTIONS.map((x) => ({ href: `/portal/information/${x.slug}`, label: x.label }))} />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Information · {section.label}</div>
         <h1>{section.title}</h1>

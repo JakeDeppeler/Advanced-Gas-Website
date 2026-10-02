@@ -3,6 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { HANDBOOK } from "@/lib/portal/content";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,7 @@ export default async function HandbookShelfPage({ params }: { params: { shelf: s
 
   return (
     <PortalShell user={user}>
+      <PortalTabs tabs={HANDBOOK.map((x) => ({ href: `/portal/handbook/${x.letter.toLowerCase()}`, label: `${x.letter} · ${x.title}` }))} />
       <div className="pt-head">
         <PortalBack href="/portal/handbook" label="All of the handbook" />
         <div className="pt-head__eyebrow">Handbook · Shelf {shelf.letter}</div>
