@@ -43,6 +43,27 @@ const signed = (n: number | null | undefined) =>
 
 const count = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("en-AU"));
 
+/**
+ * ServiceTitan-derived figures, gated on the source actually being connected.
+ *
+ * With no connection every one of these computes to 0 — no jobs, no invoices,
+ * no estimates — and a zero is indistinguishable from a measurement. The board
+ * said "Quotes out $0" to someone who had sent quotes that morning, which is
+ * precisely how a wall board loses the room. Unknown reads as "—".
+ *
+ * `stale` still shows values: those were measured, just not recently, and the
+ * header dot already says so.
+ */
+type Live = { st: boolean };
+
+const st = {
+  money: (n: number | null | undefined, l: Live) => (l.st ? money(n) : "—"),
+  plain: (n: number | null | undefined, l: Live) => (l.st ? plain(n) : "—"),
+  count: (n: number | null | undefined, l: Live) => (l.st ? count(n) : "—"),
+  pct: (n: number | null | undefined, l: Live) => (l.st && n != null ? `${Math.round(n * 100)}%` : "—"),
+  sub: (text: string, l: Live) => (l.st ? text : "ServiceTitan not connected"),
+};
+
 export function ScreenBoard({
   initial,
   token,
@@ -99,6 +120,9 @@ export function ScreenBoard({
 
   const m = snap.metrics;
   const celebrating = queue[0];
+  // Anything downstream of ServiceTitan is unknown rather than zero until the
+  // sync has actually talked to it.
+  const live: Live = { st: snap.sources.servicetitan?.state !== "not-configured" };
 
   return (
     <div className={`screen ${theme === "light" ? "screen--light" : ""}`}>
@@ -139,17 +163,17 @@ export function ScreenBoard({
       </div>
 
       <div className="screen__grid">
-        {page === 0 && <TodayPage m={m} />}
-        {page === 1 && <PacePage m={m} />}
-        {page === 2 && <QuotesPage m={m} />}
-        {page === 3 && <TeamPage m={m} />}
-        {page === 4 && <PerformancePage m={m} />}
+        {page === 0 && <TodayPage m={m} live={live} />}
+        {page === 1 && <PacePage m={m} live={live} />}
+        {page === 2 && <QuotesPage m={m} live={live} />}
+        {page === 3 && <TeamPage m={m} live={live} />}
+        {page === 4 && <PerformancePage m={m} live={live} />}
       </div>
     </div>
   );
 }
 
-function TodayPage({ m }: { m: Metrics }) {
+function TodayPage({ m, live }: { m: Metrics; live: Live }) {
   const leadDelta = m.leadsWeek - m.leadsPrevWeek;
   const maxService = Math.max(1, ...m.leadsByService.map((x) => x.count));
 
@@ -163,7 +187,7 @@ function TodayPage({ m }: { m: Metrics }) {
       <HeroTile
         label="To sell per day"
         daily={m.dailySalesTarget}
-        today={m.soldToday}
+        today={live.st ? m.soldToday : null}
         todayLabel="sold today"
         mtd={m.soldMtd}
         target={m.salesTargetMonthly}
@@ -176,7 +200,7 @@ function TodayPage({ m }: { m: Metrics }) {
       <HeroTile
         label="To invoice per day"
         daily={m.dailyTarget}
-        today={m.revenueToday}
+        today={live.st ? m.revenueToday : null}
         todayLabel="invoiced today"
         mtd={m.revenueInvoicedMtd}
         target={m.revenueTargetMonthly}
@@ -217,9 +241,13 @@ function TodayPage({ m }: { m: Metrics }) {
         )}
       </div>
 
-      <Tile label="Jobs completed" value={count(m.jobsCompletedWeek)} sub="this week" />
-      <Tile label="Booked" value={count(m.jobsScheduledNext7)} sub="next 7 days" />
-      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
+      <Tile label="Jobs completed" value={st.count(m.jobsCompletedWeek, live)} sub={st.sub("this week", live)} />
+      <Tile label="Booked" value={st.count(m.jobsScheduledNext7, live)} sub={st.sub("next 7 days", live)} />
+      <Tile
+        label="Quotes out"
+        value={st.money(m.estimatesOpenValue, live)}
+        sub={st.sub(`${count(m.estimatesOpenCount)} open`, live)}
+      />
 
       <Tile
         label="Overdue"
@@ -238,24 +266,24 @@ function TodayPage({ m }: { m: Metrics }) {
 }
 
 /** Four gauges, one per thing the month is judged on. */
-function PacePage({ m }: { m: Metrics }) {
+function PacePage({ m, live }: { m: Metrics; live: Live }) {
   return (
     <>
       <Gauge
         label="Revenue invoiced"
-        value={money(m.revenueInvoicedMtd)}
+        value={st.money(m.revenueInvoicedMtd, live)}
         pacePct={m.revenuePacePct}
         target={m.revenueTargetMonthly ? money(m.revenueTargetMonthly) : null}
       />
       <Gauge
         label="Sold"
-        value={money(m.soldMtd)}
+        value={st.money(m.soldMtd, live)}
         pacePct={m.salesPacePct}
         target={m.salesTargetMonthly ? money(m.salesTargetMonthly) : null}
       />
       <Gauge
         label="Gross profit"
-        value={money(m.profitMtd)}
+        value={st.money(m.profitMtd, live)}
         pacePct={m.profitPacePct}
         target={m.profitTargetMonthly ? money(m.profitTargetMonthly) : null}
         footnote={
@@ -266,7 +294,7 @@ function PacePage({ m }: { m: Metrics }) {
       />
       <Gauge
         label="Jobs booked"
-        value={count(m.bookingsMonth)}
+        value={st.count(m.bookingsMonth, live)}
         pacePct={m.bookingsPacePct}
         target={m.bookingsTargetMonthly ? count(m.bookingsTargetMonthly) : null}
       />
@@ -283,10 +311,14 @@ function PacePage({ m }: { m: Metrics }) {
       </div>
 
       <Tile label="Working days left" value={count(m.workingDaysLeft)} sub={`of ${m.workingDaysTotal} this month`} />
-      <Tile label="Close rate" value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`} sub="last 30 days" />
-      <Tile label="Sold today" value={plain(m.soldToday)} sub="value of quotes closed" />
-      <Tile label="Invoiced today" value={plain(m.revenueToday)} sub="billed today" />
-      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
+      <Tile label="Close rate" value={st.pct(m.closeRate30d, live)} sub={st.sub("last 30 days", live)} />
+      <Tile label="Sold today" value={st.plain(m.soldToday, live)} sub={st.sub("value of quotes closed", live)} />
+      <Tile label="Invoiced today" value={st.plain(m.revenueToday, live)} sub={st.sub("billed today", live)} />
+      <Tile
+        label="Quotes out"
+        value={st.money(m.estimatesOpenValue, live)}
+        sub={st.sub(`${count(m.estimatesOpenCount)} open`, live)}
+      />
       <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
@@ -304,7 +336,24 @@ function PacePage({ m }: { m: Metrics }) {
 }
 
 /** The quote funnel: written, still out, closed. */
-function QuotesPage({ m }: { m: Metrics }) {
+function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
+  // Every figure on this page comes from ServiceTitan estimates. With no
+  // connection the page is not "zero quotes", it is "we cannot see your quotes" —
+  // so it says that once, plainly, instead of printing nine confident noughts.
+  if (!live.st) {
+    return (
+      <div className="tile screen__notice">
+        <span className="tile__label">Quotes</span>
+        <span className="tile__value">—</span>
+        <span className="tile__sub tile__sub--body">
+          ServiceTitan isn&apos;t connected yet, so the board can&apos;t see quotes written, quotes
+          still out, or quotes closed. These are not zero — they are unknown. The figures appear as
+          soon as the tenant authorises the app.
+        </span>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="tile tile--wide">
@@ -367,7 +416,7 @@ function QuotesPage({ m }: { m: Metrics }) {
 }
 
 /** Per person: calls, what they closed, and how far to the next commission tier. */
-function TeamPage({ m }: { m: Metrics }) {
+function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   const maxSold = Math.max(1, ...m.salesLeaderboard.map((s) => s.sold));
   const maxCalls = Math.max(1, ...m.callsByPerson.map((c) => c.month));
 
@@ -376,7 +425,11 @@ function TeamPage({ m }: { m: Metrics }) {
       <div className="tile tile--wide tile--tall">
         <span className="tile__label">Sold this month</span>
         {m.salesLeaderboard.length === 0 ? (
-          <span className="tile__sub">No sold quotes recorded this month</span>
+          <span className="tile__sub tile__sub--body">
+            {live.st
+              ? "No sold quotes recorded this month"
+              : "ServiceTitan isn't connected, so the board can't see who has sold what."}
+          </span>
         ) : (
           <div className="bars bars--money bars--lg">
             {m.salesLeaderboard.map((s, i) => (
@@ -428,19 +481,19 @@ function TeamPage({ m }: { m: Metrics }) {
         )}
       </div>
 
-      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
-      <Tile label="Sold this month" value={money(m.soldMtd)} sub="whole team" />
-      <Tile label="Jobs completed" value={count(m.jobsCompletedWeek)} sub="this week" />
       <Tile
-        label="Close rate"
-        value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`}
-        sub="quotes written, last 30 days"
+        label="Quotes out"
+        value={st.money(m.estimatesOpenValue, live)}
+        sub={st.sub(`${count(m.estimatesOpenCount)} open`, live)}
       />
+      <Tile label="Sold this month" value={st.money(m.soldMtd, live)} sub={st.sub("whole team", live)} />
+      <Tile label="Jobs completed" value={st.count(m.jobsCompletedWeek, live)} sub={st.sub("this week", live)} />
+      <Tile label="Close rate" value={st.pct(m.closeRate30d, live)} sub={st.sub("quotes written, last 30 days", live)} />
     </>
   );
 }
 
-function PerformancePage({ m }: { m: Metrics }) {
+function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
   const jobTypeValue = (t: Metrics["topJobTypes"][number]) =>
     m.jobTypeBasis === "profit" ? (t.profit ?? 0) : t.revenue;
   const maxType = Math.max(1, ...m.topJobTypes.map(jobTypeValue));
@@ -453,7 +506,11 @@ function PerformancePage({ m }: { m: Metrics }) {
           Top job types · {m.jobTypeBasis === "profit" ? "gross profit" : "revenue"}
         </span>
         {m.topJobTypes.length === 0 ? (
-          <span className="tile__sub">No invoiced work in the last 90 days</span>
+          <span className="tile__sub tile__sub--body">
+            {live.st
+              ? "No invoiced work in the last 90 days"
+              : "ServiceTitan isn't connected, so there is no invoiced work to rank."}
+          </span>
         ) : (
           <div className="bars bars--money bars--lg">
             {m.topJobTypes.map((t) => (
@@ -493,8 +550,16 @@ function PerformancePage({ m }: { m: Metrics }) {
         <span className="tile__sub">from the postcode on each lead</span>
       </div>
 
-      <Tile label="Revenue this month" value={money(m.revenueInvoicedMtd)} sub={m.revenueTargetMonthly ? `of ${money(m.revenueTargetMonthly)}` : "no target set"} />
-      <Tile label="Gross profit" value={money(m.profitMtd)} sub={`cost on ${Math.round(m.profitCoverage * 100)}% of invoices`} />
+      <Tile
+        label="Revenue this month"
+        value={st.money(m.revenueInvoicedMtd, live)}
+        sub={st.sub(m.revenueTargetMonthly ? `of ${money(m.revenueTargetMonthly)}` : "no target set", live)}
+      />
+      <Tile
+        label="Gross profit"
+        value={st.money(m.profitMtd, live)}
+        sub={st.sub(`cost on ${Math.round(m.profitCoverage * 100)}% of invoices`, live)}
+      />
       <Tile label="Receivables" value={money(m.receivablesTotal)} sub="owed to us" />
       <Tile
         label="Overdue"
@@ -534,7 +599,8 @@ function HeroTile({
 }: {
   label: string;
   daily: number | null;
-  today: number;
+  /** null when the source isn't connected — unknown, not zero. */
+  today: number | null;
   todayLabel: string;
   mtd: number;
   target: number | null;
