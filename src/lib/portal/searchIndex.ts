@@ -17,9 +17,11 @@ import type { NavItem } from "@/lib/portal/nav";
 export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
   const rows: SearchRow[] = [];
 
-  // The destinations themselves, so typing a section name still works.
+  // The destinations themselves, so typing a section name still works. `where`
+  // is the facet the results page groups on, so it has to be a kind — putting
+  // the blurb here gave every section its own one-result category.
   for (const n of nav) {
-    rows.push({ href: n.href, label: n.label, where: n.blurb, terms: (n.also ?? []).join(" ") });
+    rows.push({ href: n.href, label: n.label, where: "Section", terms: `${n.blurb} ${(n.also ?? []).join(" ")}` });
   }
 
   // Procedures, by code and by title — people quote these as "A3".

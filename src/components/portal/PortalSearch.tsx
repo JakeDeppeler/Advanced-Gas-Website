@@ -89,7 +89,14 @@ export function PortalSearch({ rows }: { rows: SearchRow[] }) {
 
   function onKey(e: React.KeyboardEvent) {
     if (e.key === "Escape") return (input.current?.blur(), setOpen(false));
-    if (!hits.length) return;
+    if (!hits.length) {
+      if (e.key === "Enter" && q.trim().length >= 2) {
+        e.preventDefault();
+        setOpen(false);
+        router.push(`/portal/search?q=${encodeURIComponent(q.trim())}`);
+      }
+      return;
+    }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setCursor((c) => (c + 1) % hits.length);
@@ -99,11 +106,12 @@ export function PortalSearch({ rows }: { rows: SearchRow[] }) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       const hit = hits[cursor];
-      if (hit) {
-        setOpen(false);
-        setQ("");
-        router.push(hit.href);
-      }
+      setOpen(false);
+      const term = q.trim();
+      setQ("");
+      // Enter on a highlighted row opens it; enter on the box alone opens the
+      // full list, which is the case where you want to look rather than jump.
+      router.push(hit ? hit.href : `/portal/search?q=${encodeURIComponent(term)}`);
     }
   }
 
