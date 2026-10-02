@@ -84,7 +84,13 @@ const RESOURCES: ResourceSpec[] = [
     map: (r: Row) => ({
       id: Number(r.id),
       invoice_number: str(pick(r, "number", "invoiceNumber")),
-      job_id: num(pick(r, "jobId", "jobNumber")),
+      // The invoice carries its job as { id, type, number }; there is no flat
+      // jobId. Reading the wrong key left job_id null on all 5,397 invoices,
+      // which broke the join the job-type tile is built on — and the nested
+      // object hands us the type directly, so that tile no longer depends on
+      // st_jobs.job_type being resolved at all.
+      job_id: num(pick(r, "jobId", "jobNumber")) ?? num((r.job as Row | null)?.id),
+      job_type: str((r.job as Row | null)?.type),
       customer_id: num(r.customerId),
       business_unit: str(pick(r, "businessUnitName", "businessUnit")),
       status: str(pick(r, "status", "statusName")),
@@ -172,6 +178,22 @@ const LOOKUPS: LookupSpec[] = [
       id: Number(r.id),
       name: str(pick(r, "name", "displayName")),
       business_unit: str(pick(r, "businessUnitName")),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    // Estimates carry soldBy as an employee id (a short number), not the
+    // nine-digit technician id, so the leaderboard needs this table as well or
+    // every name resolves to null and the Team page renders empty.
+    resource: "employees",
+    module: "settings",
+    path: "employees",
+    table: "st_employees",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      name: str(pick(r, "name", "displayName")),
       active: r.active !== false,
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
