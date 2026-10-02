@@ -160,6 +160,36 @@ const RESOURCES: ResourceSpec[] = [
   },
 ];
 
+/**
+ * Lookups record their outcome the same way the exports do.
+ *
+ * They used to report only into the in-memory response, so when the employees
+ * lookup came back empty there was nowhere to look: no row, no error, no count.
+ * The point of portal_sync_state is that a failure names itself hours later.
+ */
+async function recordLookup(
+  resource: string,
+  startedAt: string,
+  records: number,
+  error: string | null,
+): Promise<void> {
+  await sbUpsert(
+    "portal_sync_state",
+    [
+      {
+        provider: "servicetitan",
+        resource,
+        last_run_at: startedAt,
+        ...(error ? {} : { last_success_at: new Date().toISOString() }),
+        last_status: error ? "error" : records ? "up-to-date" : "empty",
+        last_error: error,
+        records_synced: records,
+      },
+    ],
+    "provider,resource",
+  );
+}
+
 type LookupSpec = {
   resource: string;
   module: string;
@@ -249,14 +279,18 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
   // Lookups first: the exports below store raw IDs, and the resolver at the end
   // needs the name tables already populated to turn them into labels.
   for (const spec of LOOKUPS) {
+    const startedAt = new Date().toISOString();
     try {
       const rows = (await stList<Row>(spec.module, spec.path)).map(spec.map).filter((r) =>
         Number.isFinite(r.id),
       );
       await sbUpsert(spec.table, rows, "id");
+      await recordLookup(spec.resource, startedAt, rows.length, null);
       report.push({ resource: spec.resource, status: "ok", records: rows.length, exhausted: true });
     } catch (e) {
-      report.push({ resource: spec.resource, status: "error", error: (e as Error).message });
+      const message = (e as Error).message;
+      await recordLookup(spec.resource, startedAt, 0, message);
+      report.push({ resource: spec.resource, status: "error", error: message });
     }
   }
 
