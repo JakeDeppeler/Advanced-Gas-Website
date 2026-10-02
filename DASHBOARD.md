@@ -169,12 +169,18 @@ A missing scope is the most common failure, and it surfaces as a bare `403` on
 whichever call happens to run first — which is why the next step exists rather
 than going straight to the backfill.
 
-**d. Verify the link** before syncing anything:
+**d. Verify the link** before syncing anything. Either run the **ServiceTitan
+check** workflow from the Actions tab — no terminal, and the result renders as a
+table on the run's summary page — or call it directly:
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" \
   https://www.advancedgas.com.au/api/servicetitan/check
 ```
+
+On Windows PowerShell that must be `curl.exe`, not `curl`: the latter is an
+alias for a command that does not accept `-H` and fails with an unrelated error.
+The workflow exists partly to avoid that whole class of problem.
 
 It walks the stages in dependency order — credentials present, credentials
 well-formed, token exchange, then one cheap probe per scope — and stops at the
