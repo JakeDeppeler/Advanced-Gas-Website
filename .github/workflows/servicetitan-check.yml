@@ -1,0 +1,68 @@
+name: ServiceTitan check
+
+# Runs the connection check from the Actions tab, so verifying the link needs a
+# browser rather than a terminal — and so the CRON_SECRET stays in the repo's
+# secret store instead of being pasted into somebody's shell history.
+#
+# Actions tab → ServiceTitan check → Run workflow. The result renders as a
+# table on the run's summary page.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the connection check
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SYNC_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the DASHBOARD_SYNC_URL and CRON_SECRET repository secrets first (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+          # The check sits beside the sync endpoint. Deriving the URL rather than
+          # adding a third secret means there is one less value that can drift
+          # out of step with the other two.
+          CHECK_URL="${SYNC_URL%/api/sync}/api/servicetitan/check"
+          echo "Checking ${CHECK_URL}"
+
+          # --fail-with-body so an HTTP error still prints the body: a 401 here
+          # means the two CRON_SECRET copies disagree, and that is worth seeing.
+          curl --fail-with-body -sS \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${CHECK_URL}" > report.json
+
+          # `e` escapes a single cell. It has to be applied per field rather than
+          # to the finished row, or it rewrites the table's own delimiters and
+          # the whole thing renders as prose.
+          JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
+
+          {
+            echo "## ServiceTitan connection"
+            echo
+            jq -r 'if .linked
+                   then "**Linked.** All seven endpoints answered."
+                   else "**Not linked yet.** The first failing stage below says why; everything after it is skipped, because it would fail for the same reason."
+                   end' report.json
+            echo
+            echo "### Stages"
+            echo
+            echo "| Stage | Status | Detail | Fix |"
+            echo "|---|---|---|---|"
+            jq -r "${JQ_DEFS}"'.stages[] | "| \(.stage|e) | \(.status|e) | \(.detail|e) | \(.fix|e) |"' report.json
+            echo
+            echo "### Endpoints"
+            echo
+            echo "| Endpoint | Scope | Status | Records | Fix |"
+            echo "|---|---|---|---|---|"
+            jq -r "${JQ_DEFS}"'.resources[] | "| \(.resource|e) | \(.scope|e) | \(.status|e) | \((.records // "—")|e) | \(.fix|e) |"' report.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "--- raw report ---"
+          jq . report.json
