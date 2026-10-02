@@ -16,7 +16,7 @@ export default async function SopsPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Processes &amp; procedures</div>
-        <h1>One team. One standard. One goal.</h1>
+        <h1>One team. One standard. One goal<span className="pt-stop">.</span></h1>
         {SOP_INTRO.map((p) => <p key={p}>{p}</p>)}
       </div>
 

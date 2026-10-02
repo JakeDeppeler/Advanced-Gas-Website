@@ -20,7 +20,7 @@ export default async function HandbookPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Handbook</div>
-        <h1>How we do things here.</h1>
+        <h1>How we do things here<span className="pt-stop">.</span></h1>
         <p>The company operations manual — everything from who we are to how we quote, run a van and get paid. Pick a shelf to open it.</p>
       </div>
 

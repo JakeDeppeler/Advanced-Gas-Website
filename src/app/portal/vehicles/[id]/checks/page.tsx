@@ -46,7 +46,7 @@ export default async function ChecksPage({ params }: { params: { id: string } })
       <div className="pt-head">
         <PortalBack href={`/portal/vehicles/${vehicle.id}`} label={vehicle.name} />
         <div className="pt-head__eyebrow">{vehicle.name}{vehicle.rego ? ` · ${vehicle.rego}` : ""}</div>
-        <h1>Stock &amp; checks.</h1>
+        <h1>Stock &amp; checks<span className="pt-stop">.</span></h1>
         <p>The same sheets that live in the van — counted, ticked and photographed here instead of on paper, so the office sees it the moment it&rsquo;s done.</p>
       </div>
 

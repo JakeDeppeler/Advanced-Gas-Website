@@ -71,7 +71,7 @@ export default async function TargetsPage() {
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Targets</div>
-        <h1>What has to happen to hit the year.</h1>
+        <h1>What has to happen to hit the year<span className="pt-stop">.</span></h1>
         <p>
           Set the year&rsquo;s revenue and everything else works backwards from it: the work that has to be finished,
           the hours that takes out of the crew&rsquo;s week, the quoting it takes to win it, and whether the crew has

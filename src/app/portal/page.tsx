@@ -1,97 +1,88 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
-import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { HANDBOOK, VIDEOS, TOOLS } from "@/lib/portal/content";
-import { SOPS } from "@/lib/portal/sops";
+import { BANDS, BAND_LABEL, ICON, byBand, portalNav } from "@/lib/portal/nav";
+import { localToday } from "@/lib/portal/xero";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Team portal" };
 
-const HB_ITEMS = HANDBOOK.reduce((n, s) => n + s.items.length, 0);
-const SOP_ITEMS = SOPS.reduce((n, s) => n + s.sops.length, 0);
-
-// Two of these were only ever in the sidebar. The job calculator is the
-// thing a tech opens on site to price a job, and Processes is the other
-// half of the handbook — landing on this page and not seeing either of
-// them made the grid look like the whole portal when it wasn't.
-const TILES = [
-  { href: "/portal/job-calculator", title: "Job calculator", desc: "Price a job by who is on it, how long, and where the day goes.", icon: "M6 3h12v18H6zM9 7h6M9 11h1M13 11h2M9 14h1M13 14v4M9 17h1", count: () => "Price a job" },
-  { href: "/portal/handbook", title: "Handbook", desc: "How we work — the full operations manual, A to G.", icon: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4z", count: () => `${HB_ITEMS} topics` },
-  { href: "/portal/sops", title: "Processes", desc: "The step-by-step for the jobs we do over and over.", icon: "M4 5h11a3 3 0 0 1 3 3v11a3 3 0 0 0-3-3H4zM20 5h0a3 3 0 0 0-3 3", count: () => `${SOPS.length} sections · ${SOP_ITEMS} procedures` },
-  { href: "/portal/learning", title: "Learning videos", desc: "How-to and method videos for the crew.", icon: "M4 5h16v11H4zM10 8.5l4 2.5-4 2.5z", count: () => `${VIDEOS.length} videos` },
-  { href: "/portal/information", title: "Information", desc: "The numbers, licences and contacts we quote from.", icon: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 10v6M12 7v.5", count: () => "Quick reference" },
-  { href: "/portal/tools", title: "Tools", desc: "Sizing, rebate estimator, fault codes, price list.", icon: "M14 6a3.5 3.5 0 0 0 4.6 4.6L21 13l-3 3-2.4-2.4A3.5 3.5 0 0 0 11 8.2z", count: () => `${TOOLS.length} tools` },
-  { href: "/portal/vehicles", title: "Vehicles", desc: "Servicing, km, fuel and the damage log for the fleet.", icon: "M3 6h11v9H3zM14 9h4l3 3v3h-7zM7.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM17.5 18.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z", count: () => "Fleet log" },
-];
-
+/**
+ * Home, which is now the navigation.
+ *
+ * With the sidebar gone this page carries every destination, so it is built
+ * from the same list the search indexes — one source, gated by the same
+ * capabilities the pages check, so a card is never offered to somebody the page
+ * will turn away.
+ *
+ * Grouped into four bands rather than one long grid: twelve undifferentiated
+ * cards is a wall, and the bands are how people already talk about the work —
+ * what you do on the job, how we do it, the business, the settings.
+ */
 export default async function PortalHome({ searchParams }: { searchParams: { denied?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
   const first = user.name.split(" ")[0];
+  const items = portalNav(user);
+
+  // Melbourne's date, not the server's: a board that says Thursday on a Friday
+  // morning in Pakenham is wrong in the way people notice first.
+  const today = localToday().toLocaleDateString("en-AU", {
+    timeZone: "UTC",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">Home</div>
-        <h1>G&rsquo;day {first}.</h1>
-        <p>Everything the crew needs in one place — training, videos, the numbers we quote from, and the tools we use on the job.</p>
-      </div>
-
-      {searchParams?.denied === "1" && (
-        <div className="pt-note"><strong>Admin only.</strong> That area is limited to admins. Ask Jake if you need access.</div>
+      {searchParams.denied && (
+        <div className="pt-note pt-note--warn">
+          <strong>That page isn&rsquo;t open to you.</strong> Ask an admin if you think it should be.
+        </div>
       )}
 
-      <div className="pt-tiles">
-        {TILES.map((t) => (
-          <Link key={t.href} href={t.href} className="pt-tile">
-            <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
-            </span>
-            <h3>{t.title}</h3>
-            <p>{t.desc}</p>
-            <div className="pt-card__meta">{t.count()}</div>
-          </Link>
-        ))}
-        <Link href="/portal/me" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM5 20c0-3.3 3-6 7-6s7 2.7 7 6" /></svg>
-          </span>
-          <h3>My file</h3>
-          <p>What&rsquo;s expected of you, your goals and targets, and your reviews.</p>
-          <div className="pt-card__meta">Open →</div>
+      <div className="pt-hi">
+        <div>
+          <span className="pt-hi__date">{today}</span>
+          <h1 className="pt-hi__h">
+            G&rsquo;day {first}<span className="pt-stop">.</span>
+          </h1>
+        </div>
+        <Link href="/portal/sops/daily-rhythm" className="pt-hi__flag">
+          <span aria-hidden="true" /> Van check is now weekly, Monday morning →
         </Link>
-        {can(user, "reports_read") && (
-          <Link href="/portal/team" className="pt-tile">
-            <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M17 11l2 2 3-3.5" /></svg>
-            </span>
-            <h3>Team</h3>
-            <p>Each person&rsquo;s file — expectations, goals, reviews and private notes.</p>
-            <div className="pt-card__meta">Lead hands &amp; admins</div>
-          </Link>
-        )}
-        {can(user, "overhead") && (
-          <Link href="/portal/finance" className="pt-tile">
-            <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19V5M4 19h16M7 15l3-4 3 2.5 4-6.5" /></svg>
-            </span>
-            <h3>Finance</h3>
-            <p>Live profit from Xero — day, week, month, year — and your targets.</p>
-            <div className="pt-card__meta">Open →</div>
-          </Link>
-        )}
-        {can(user, "manage_users") && (
-          <Link href="/portal/admin" className="pt-tile">
-            <span className="pt-tile__ico" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z" /></svg>
-            </span>
-            <h3>Admin</h3>
-            <p>Manage the team and set who can see what.</p>
-            <div className="pt-card__meta">Admins only</div>
-          </Link>
-        )}
+      </div>
+
+      {/* The wrapper exists for the phone layout: the bands collapse into it with
+          display:contents so twelve tiles flow as one three-column grid, which
+          is how the design has it. Four-item bands would otherwise leave an
+          orphan tile on its own row three times down the page. */}
+      <div className="pt-bands">
+      {BANDS.map((band) => {
+        const inBand = byBand(items, band);
+        if (!inBand.length) return null;
+        return (
+          <section className="pt-band" key={band}>
+            <h2 className="pt-band__h">{BAND_LABEL[band]}</h2>
+            <div className="pt-band__grid">
+              {inBand.map((it) => (
+                <Link key={it.href} href={it.href} className={`pt-tile${it.feature ? " is-feature" : ""}`}>
+                  <span className="pt-tile__ico" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <path d={ICON[it.icon]} />
+                    </svg>
+                  </span>
+                  <span className="pt-tile__name">{it.label}</span>
+                  <span className="pt-tile__blurb">{it.blurb}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        );
+      })}
       </div>
     </PortalShell>
   );
