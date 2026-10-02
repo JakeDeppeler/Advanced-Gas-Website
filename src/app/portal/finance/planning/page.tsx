@@ -11,6 +11,7 @@ import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { VanScaling } from "@/components/portal/VanScaling";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
 import { DEFAULT_TARGETS, type Targets } from "@/lib/portal/targets";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Planning — Team portal" };
@@ -58,6 +59,7 @@ export default async function PlanningPage() {
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Future planning</div>

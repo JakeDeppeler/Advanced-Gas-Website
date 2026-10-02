@@ -8,6 +8,7 @@ import { xeroStatus, getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Costs & capacity — Team portal" };
@@ -65,6 +66,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Costs &amp; capacity</div>

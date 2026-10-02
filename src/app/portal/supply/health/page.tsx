@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { checkServiceTitan, type CheckReport } from "@/lib/dashboard/stCheck";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 // The check calls ServiceTitan for real, which is the point of it — so this
 // page is never cached and is slower than the rest of the portal.
@@ -38,6 +39,7 @@ export default async function SupplyHealthPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
+      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Connection check</div>
         <h1>Is ServiceTitan answering?</h1>

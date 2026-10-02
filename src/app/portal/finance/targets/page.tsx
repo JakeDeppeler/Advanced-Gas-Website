@@ -8,6 +8,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { RevenuePlanner } from "@/components/portal/RevenuePlanner";
 import type { Targets, Capacity } from "@/lib/portal/targets";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Targets — Team portal" };
@@ -68,6 +69,7 @@ export default async function TargetsPage() {
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Targets</div>

@@ -7,6 +7,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { QuotesBoard, type QuoteView } from "@/components/portal/QuotesBoard";
+import { PortalTabs } from "@/components/portal/PortalTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Quotes & win rate — Team portal" };
@@ -31,6 +32,7 @@ export default async function QuotesPage() {
 
   return (
     <PortalShell user={user}>
+      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Quotes &amp; win rate</div>
