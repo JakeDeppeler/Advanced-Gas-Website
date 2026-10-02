@@ -30,12 +30,17 @@ export type Metrics = {
   estimatesOpenCount: number;
   estimatesOpenValue: number;
   closeRate30d: number | null;
+  /** The two counts the rate is made of, so the card can show its own working. */
+  closeRate30dSold: number;
+  closeRate30dQuotes: number;
 
   // The quote funnel: written -> still out -> closed. Outstanding alone can't
   // tell you whether a thin pipeline means nobody is quoting or everybody is
   // closing, so the board shows what is being created beside what is sitting.
   quotesCreatedTodayValue: number;
   quotesCreatedTodayCount: number;
+  /** Of the quotes written today, how many have already closed. */
+  quotesCreatedTodaySold: number;
   quotesCreatedWeekValue: number;
   quotesCreatedWeekCount: number;
   quotesCreatedMonthValue: number;
@@ -45,6 +50,22 @@ export type Metrics = {
   profitTargetMonthly: number | null;
   profitPacePct: number | null;
   profitCoverage: number;
+  /** Gross profit over revenue. Null when too few invoices carry a cost to mean anything. */
+  marginPct: number | null;
+
+  soldCountToday: number;
+  soldCountMonth: number;
+  avgSoldValue: number | null;
+  invoiceCountMonth: number;
+  invoiceCountToday: number;
+  avgInvoiceValue: number | null;
+  /** Of the quotes written today, the share already closed. */
+  conversionTodayPct: number | null;
+
+  /** Today's quotes, newest first, for the Quotes page list. */
+  quotesToday: Array<{ id: number; at: string; label: string; value: number; sold: boolean }>;
+  /** Open quotes by value, largest first, with how long they have been out. */
+  quotesOutstanding: Array<{ id: number; label: string; value: number; ageDays: number }>;
 
   bookingsMonth: number;
   bookingsTargetMonthly: number | null;
@@ -83,6 +104,8 @@ export type Metrics = {
   salesLeaderboard: Array<{
     name: string;
     sold: number;
+    soldToday: number;
+    soldWeek: number;
     jobs: number;
     /** Commission is computed but deliberately not rendered on the wall. */
     commission: number | null;
@@ -175,17 +198,19 @@ async function leadMetrics(now: Date) {
     }
   }
 
-  const rank = <K extends string>(m: Map<string, number>, key: K) =>
+  const rank = <K extends string>(m: Map<string, number>, key: K, limit = 5) =>
     [...m.entries()]
       .map(([k, count]) => ({ [key]: k, count }) as { [P in K]: string } & { count: number })
       .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
+      .slice(0, limit);
 
   return {
     leadsToday,
     leadsWeek,
     leadsPrevWeek,
-    topSuburbs: rank(bySuburb, "suburb"),
+    // The heat map wants the whole catchment, not a top five; the lists that
+    // only have room for a handful take their own slice.
+    topSuburbs: rank(bySuburb, "suburb", 12),
     leadsByService: rank(byService, "service"),
   };
 }
@@ -217,20 +242,20 @@ async function serviceTitanMetrics(now: Date) {
     [q.select("sold_on"), q.gte("created_on", addDays(now, -30).toISOString())].join("&"),
   );
 
-  const closeRate30d = recentEstimates.length
-    ? recentEstimates.filter((e) => e.sold_on).length / recentEstimates.length
-    : null;
+  const closeRate30dQuotes = recentEstimates.length;
+  const closeRate30dSold = recentEstimates.filter((e) => e.sold_on).length;
+  const closeRate30d = closeRate30dQuotes ? closeRate30dSold / closeRate30dQuotes : null;
 
   // Quotes written this month, so the funnel reads created -> outstanding ->
   // closed. A thin pipeline means something different depending on which end
   // it is thin at.
-  const createdRows = await sbSelect<{ total: number | null; created_on: string | null }>(
+  const createdRows = await sbSelect<{ total: number | null; created_on: string | null; sold_on: string | null }>(
     "st_estimates",
-    [q.select("total,created_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
+    [q.select("total,created_on,sold_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
   );
 
   const weekStartMs = weekStart.getTime();
-  const created = { todayV: 0, todayC: 0, weekV: 0, weekC: 0, monthV: 0, monthC: 0 };
+  const created = { todayV: 0, todayC: 0, weekV: 0, weekC: 0, monthV: 0, monthC: 0, todaySold: 0 };
   for (const r of createdRows) {
     const v = Number(r.total ?? 0);
     created.monthV += v;
@@ -244,6 +269,7 @@ async function serviceTitanMetrics(now: Date) {
     if (isoDateMelbourne(at) === today) {
       created.todayV += v;
       created.todayC += 1;
+      if (r.sold_on) created.todaySold += 1;
     }
   }
 
@@ -264,6 +290,16 @@ async function serviceTitanMetrics(now: Date) {
   const costed = invoices.filter((i) => i.cost != null);
   const profitMtd = costed.reduce((s, i) => s + (Number(i.total ?? 0) - Number(i.cost ?? 0)), 0);
   const profitCoverage = invoices.length ? costed.length / invoices.length : 0;
+
+  const invoiceCountMonth = invoices.length;
+  const invoiceCountToday = invoices.filter((i) => i.invoice_date === today).length;
+  const avgInvoiceValue = invoiceCountMonth ? revenueInvoicedMtd / invoiceCountMonth : null;
+
+  // Margin is only meaningful over the invoices that actually carry a cost, and
+  // only worth showing when enough of them do — otherwise it is a ratio of a
+  // sample to the whole, which reads low and means nothing.
+  const costedRevenue = costed.reduce((s, i) => s + Number(i.total ?? 0), 0);
+  const marginPct = profitCoverage >= 0.5 && costedRevenue > 0 ? profitMtd / costedRevenue : null;
   const revenueToday = invoices
     .filter((i) => i.invoice_date === today)
     .reduce((s, i) => s + Number(i.total ?? 0), 0);
@@ -333,13 +369,80 @@ async function serviceTitanMetrics(now: Date) {
     .filter((r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today)
     .reduce((s, r) => s + Number(r.total ?? 0), 0);
 
-  const bySeller = new Map<string, { sold: number; jobs: number }>();
+  // Today's quotes and the biggest ones still out — the Quotes page lists both.
+  // An estimate carries no description of its own, so the label comes from the
+  // job it belongs to; where that join finds nothing the row says "Quote"
+  // rather than inventing a service name.
+  const openRows = await sbSelect<{ id: number; total: number | null; created_on: string | null; job_id: number | null }>(
+    "st_estimates",
+    [q.select("id,total,created_on,job_id"), q.isNull("sold_on"), q.notIn("status", ["Dismissed", "Expired"])].join("&"),
+  );
+
+  const todayRows = createdRows.length
+    ? await sbSelect<{ id: number; total: number | null; created_on: string | null; sold_on: string | null; job_id: number | null }>(
+        "st_estimates",
+        [q.select("id,total,created_on,sold_on,job_id"), q.gte("created_on", startOfDayMelbourne(now).toISOString())].join("&"),
+      )
+    : [];
+
+  const jobIds = [...new Set([...todayRows, ...openRows].map((r) => r.job_id).filter((v): v is number => v != null))];
+  const jobTypeById = new Map<number, string>();
+  if (jobIds.length) {
+    const jobs = await sbSelect<{ id: number; job_type: string | null }>(
+      "st_jobs",
+      [q.select("id,job_type"), `id=in.(${jobIds.slice(0, 200).join(",")})`].join("&"),
+    ).catch(() => []);
+    for (const j of jobs) if (j.job_type) jobTypeById.set(Number(j.id), String(j.job_type));
+  }
+
+  const labelFor = (jobId: number | null) => (jobId != null && jobTypeById.get(jobId)) || "Quote";
+
+  const quotesToday = todayRows
+    .filter((r) => r.created_on)
+    .map((r) => ({
+      id: Number(r.id),
+      at: String(r.created_on),
+      label: labelFor(r.job_id),
+      value: Number(r.total ?? 0),
+      sold: Boolean(r.sold_on),
+    }))
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+    .slice(0, 10);
+
+  const dayMs = 24 * 60 * 60 * 1000;
+  const quotesOutstanding = openRows
+    .map((r) => ({
+      id: Number(r.id),
+      label: labelFor(r.job_id),
+      value: Number(r.total ?? 0),
+      ageDays: r.created_on ? Math.max(0, Math.floor((now.getTime() - Date.parse(r.created_on)) / dayMs)) : 0,
+    }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
+  const soldCountMonth = soldRows.length;
+  const soldCountToday = soldRows.filter(
+    (r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today,
+  ).length;
+  const avgSoldValue = soldCountMonth ? soldMtd / soldCountMonth : null;
+  // Both halves are today's quotes. Dividing every quote sold today (whenever
+  // it was written) by the ones written today mixed two populations and read
+  // over 100% on any day the team closed something from last week.
+  const conversionTodayPct = created.todayC ? created.todaySold / created.todayC : null;
+
+  const bySeller = new Map<string, { sold: number; soldToday: number; soldWeek: number; jobs: number }>();
   for (const r of soldRows) {
     if (r.sold_by == null) continue;
     const key = String(r.sold_by);
-    const acc = bySeller.get(key) ?? { sold: 0, jobs: 0 };
-    acc.sold += Number(r.total ?? 0);
+    const acc = bySeller.get(key) ?? { sold: 0, soldToday: 0, soldWeek: 0, jobs: 0 };
+    const v = Number(r.total ?? 0);
+    acc.sold += v;
     acc.jobs += 1;
+    if (r.sold_on) {
+      const at = new Date(r.sold_on);
+      if (at.getTime() >= weekStartMs) acc.soldWeek += v;
+      if (isoDateMelbourne(at) === today) acc.soldToday += v;
+    }
     bySeller.set(key, acc);
   }
 
@@ -355,8 +458,11 @@ async function serviceTitanMetrics(now: Date) {
     estimatesOpenCount,
     estimatesOpenValue,
     closeRate30d,
+    closeRate30dSold,
+    closeRate30dQuotes,
     quotesCreatedTodayValue: created.todayV,
     quotesCreatedTodayCount: created.todayC,
+    quotesCreatedTodaySold: created.todaySold,
     quotesCreatedWeekValue: created.weekV,
     quotesCreatedWeekCount: created.weekC,
     quotesCreatedMonthValue: created.monthV,
@@ -372,6 +478,16 @@ async function serviceTitanMetrics(now: Date) {
     jobTypeBasis,
     rawLeaderboard,
     recentSales,
+    invoiceCountMonth,
+    invoiceCountToday,
+    avgInvoiceValue,
+    marginPct,
+    soldCountMonth,
+    soldCountToday,
+    avgSoldValue,
+    conversionTodayPct,
+    quotesToday,
+    quotesOutstanding,
   };
 }
 
@@ -555,8 +671,11 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       estimatesOpenCount: prev?.estimatesOpenCount ?? 0,
       estimatesOpenValue: prev?.estimatesOpenValue ?? 0,
       closeRate30d: prev?.closeRate30d ?? null,
+      closeRate30dSold: prev?.closeRate30dSold ?? 0,
+      closeRate30dQuotes: prev?.closeRate30dQuotes ?? 0,
       quotesCreatedTodayValue: prev?.quotesCreatedTodayValue ?? 0,
       quotesCreatedTodayCount: prev?.quotesCreatedTodayCount ?? 0,
+      quotesCreatedTodaySold: prev?.quotesCreatedTodaySold ?? 0,
       quotesCreatedWeekValue: prev?.quotesCreatedWeekValue ?? 0,
       quotesCreatedWeekCount: prev?.quotesCreatedWeekCount ?? 0,
       quotesCreatedMonthValue: prev?.quotesCreatedMonthValue ?? 0,
@@ -570,7 +689,23 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       soldToday: prev?.soldToday ?? 0,
       topJobTypes: prev?.topJobTypes ?? [],
       jobTypeBasis: prev?.jobTypeBasis ?? "revenue",
-      rawLeaderboard: (prev?.salesLeaderboard ?? []).map((r) => ({ name: r.name, sold: r.sold, jobs: r.jobs })),
+      rawLeaderboard: (prev?.salesLeaderboard ?? []).map((r) => ({
+        name: r.name,
+        sold: r.sold,
+        soldToday: r.soldToday ?? 0,
+        soldWeek: r.soldWeek ?? 0,
+        jobs: r.jobs,
+      })),
+      invoiceCountMonth: prev?.invoiceCountMonth ?? 0,
+      invoiceCountToday: prev?.invoiceCountToday ?? 0,
+      avgInvoiceValue: prev?.avgInvoiceValue ?? null,
+      marginPct: prev?.marginPct ?? null,
+      soldCountMonth: prev?.soldCountMonth ?? 0,
+      soldCountToday: prev?.soldCountToday ?? 0,
+      avgSoldValue: prev?.avgSoldValue ?? null,
+      conversionTodayPct: prev?.conversionTodayPct ?? null,
+      quotesToday: [],
+      quotesOutstanding: [],
       // Deliberately not carried forward: a stale feed would re-fire the rocket
       // for a sale the room already celebrated.
       recentSales: [],
