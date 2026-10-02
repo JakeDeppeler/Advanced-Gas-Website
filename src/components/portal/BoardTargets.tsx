@@ -27,7 +27,7 @@ export function BoardTargets({
   const [bookings, setBookings] = useState(String(initial.bookingsTargetMonthly ?? ""));
   const [tiers, setTiers] = useState<Tier[]>(
     initial.commissionTiers.length
-      ? initial.commissionTiers.map((t) => ({ from: String(t.from), rate: String(t.rate * 100) }))
+      ? initial.commissionTiers.map((t) => ({ from: String(t.from), rate: String(Math.round(t.rate * 10000) / 100) }))
       : [{ from: "", rate: "" }],
   );
   const [saving, setSaving] = useState(false);

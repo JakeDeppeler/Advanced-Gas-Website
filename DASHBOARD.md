@@ -177,9 +177,24 @@ change a target without needing a database client, which is the point: the board
 is read by people who cannot edit it, and the number it measures against should
 not need an engineer.
 
-The SQL is kept here for the first install and for the working calendar, which
-the portal page deliberately does not expose — holidays change once a year and a
-form for them would be a form nobody remembers how to use.
+The same page now also carries **the working calendar** — which weekdays count
+and the list of days off — and **where the revenue target comes from**. Holidays
+turned out to be exactly the thing the office needed to correct and the one thing
+it could not: they change every year, and "ask someone to run some SQL" is how a
+calendar ends up a year out of date without anybody noticing.
+
+**The monthly revenue target can follow the year goal** instead of being typed
+in. Set the year once on `/portal/finance/goals` and each month's target is that
+month's share of it, derived on every refresh — so November is right without
+anybody going back to change October. It is derived at read time and never
+written into the row, because a figure copied across in October is wrong in
+November and nothing on the wall would say so. The other three stay explicit:
+sold dollars lead invoiced ones by the length of the install backlog, gross
+profit depends on what the work costs, and bookings is a count. None of them
+follows from a revenue goal, and guessing would put a figure on the wall nobody
+agreed to.
+
+The SQL below is kept for the first install.
 
 ```sql
 insert into portal_settings (key, value)
@@ -384,6 +399,52 @@ so it works regardless.)
 recent invoices, job types are ranked by gross profit; otherwise by revenue, and
 the tile says so on its subtitle. If profit ranking never kicks in, cost is not
 on the invoice export payload and needs pulling from invoice line items.
+
+## Figures that are bounded, blanked or renamed
+
+Changes made after the board was read back to us and the numbers were not
+believed. Each is here because a figure that gets argued with once stops being
+looked at afterwards.
+
+**Jobs completed leads with today, and names the week.** The tile showed the
+week's count on a page headed Today, and thirty jobs since Monday was read as
+thirty since breakfast. It now reads `8 · today · 30 since Monday`.
+
+**Quotes out is bounded to 30 days, not 90.** Estimates in ServiceTitan are never
+dismissed when a customer goes quiet, so Open accumulates: 744 of them, 163 more
+than ninety days old. The first bound was ninety days and it barely helped — 581
+of the 744 fall inside it, so the wall still said 582 quotes and $5.0M and the
+office still did not believe it. Thirty days is the window a quote is actually
+live for, and it matches the close-rate window so the two tiles describe the same
+pipeline. What falls outside is counted separately as "older, to close off",
+because 471 quotes nobody has closed is a real job to do, just not pipeline. The
+same backlog drags the close rate to 5%, which is arithmetically right and worth
+fixing at the source rather than on the board.
+
+**Jobs scheduled next 7 days reads "not available", not zero.** Every row in
+`st_jobs` has `scheduled_on` null: ServiceTitan's jobs export does not return
+appointment times — they are on the separate appointments resource, which the
+sync does not pull. The metric is null so the board admits the gap instead of
+claiming an empty week for a business doing eight jobs a day. Pulling
+`jpm/appointments` would fix it properly.
+
+**The Areas map draws jobs, not leads.** It was built from `portal_leads`, which
+holds about thirty rows in total — the whole catchment drawn from a trickle,
+naming whichever couple of suburbs had filled in the web form. Completed jobs
+carry the same suburb and postcode columns and there are thousands, so the map
+shows where the work is, over 90 days. The lead figures keep their own tile.
+
+**The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
+the room to decide whether four minutes is fine. It now reads **Live · All feeds
+connected** in green, or **Catching up** in amber when the snapshot is over two
+minutes old or a feed is degraded — with the reason written out beside it, since
+roughly one man in twelve cannot tell the two dots apart.
+
+**The board refreshes every 30 seconds.** It recomputes the snapshot on every
+poll, which only reads the local replica and is cheap. Pulling from ServiceTitan
+stays on a two-minute floor, read from `portal_sync_state.last_run_at` rather
+than a timer in the process — serverless instances are recycled constantly and a
+per-instance timer reads as "due" on every cold start.
 
 ## Things worth knowing
 

@@ -83,6 +83,11 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       { href: "/portal/finance/leads", label: "Website leads" },
       { href: "/portal/finance/targets", label: "Targets" },
       { href: "/portal/finance/board", label: "Wall board" },
+      // The board is gated by a shared token rather than a login, so until now
+      // looking at it meant knowing the URL. This goes through a route that
+      // checks the portal session and then redirects with the token, so the
+      // token is never in this page's markup.
+      { href: "/portal/finance/board/open", label: "Open the live board", external: true },
       // Quotes & win rate is not a sibling any more. It is a question about
       // work that has not happened yet — what is out, what comes back — which
       // is the same question Future planning asks, so it is a tab inside it.
@@ -141,6 +146,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
                       href={c.href}
                       target={c.external ? "_blank" : undefined}
                       rel={c.external ? "noopener" : undefined}
+                      prefetch={c.external ? false : undefined}
                       className={`pt__child${!c.external && (pathname === c.href || (c.also ?? []).includes(pathname)) ? " is-on" : ""}`}
                     >
                       {c.label}{c.external ? " ↗" : ""}

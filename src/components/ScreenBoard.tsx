@@ -15,10 +15,12 @@ type Snapshot = {
 // left on this URL for months would leak memory and flash white on every
 // location.reload(); swapping state in place does neither.
 const REFRESH_MS = 30_000;
-// How often the board asks the server to go and fetch. The endpoint has its own
-// eight-minute floor, so this only has to be more often than that; it exists
-// because GitHub's scheduler does not reliably run the sync workflow.
-const RESYNC_MS = 5 * 60_000;
+// How often the board asks the server to recompute, matching the poll so the
+// wall is never more than a minute behind the replica. The endpoint recomputes
+// the snapshot on every one of these — cheap, it only reads the replica — but
+// pulls from ServiceTitan on its own slower floor, because a tenant does not
+// want an export request every thirty seconds all day.
+const RESYNC_MS = 30_000;
 const PAGE_MS = 20_000;
 const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
 
@@ -32,7 +34,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Quotes: () => "Today",
   Team: () => "Sold this month",
   Performance: () => "Month to date",
-  Areas: () => "Last 30 days",
+  Areas: () => "Jobs completed, last 90 days",
 };
 
 const money = (n: number | null | undefined) => {
@@ -157,6 +159,21 @@ export function ScreenBoard({
 
   const degraded = Object.entries(snap.sources).filter(([, s]) => s.state !== "ok");
 
+  /**
+   * The light at the bottom of the wall, which is the only thing anybody checks
+   * before believing a figure.
+   *
+   * Green means the snapshot is current AND every feed answered; amber means one
+   * of those is not true, and the words next to it say which. A clock face was
+   * there before — "Synced 4 min ago" — which asks the room to do the judging.
+   *
+   * Two minutes is generous against a thirty-second refresh, so one missed poll
+   * on a flaky connection doesn't flick the board to amber.
+   */
+  const ageMs = now.getTime() - Date.parse(snap.computedAt);
+  const fresh = Number.isFinite(ageMs) && ageMs < 2 * 60_000;
+  const healthy = fresh && degraded.length === 0;
+
   return (
     <div
       className={`screen ${theme === "dark" ? "screen--dark" : ""}`}
@@ -213,14 +230,15 @@ export function ScreenBoard({
 
       <div className="screen__foot">
         <span className="screen__feed">
-          <span className={`screen__dot ${degraded.length ? "screen__dot--stale" : ""}`} aria-hidden />
-          <b>Live</b>
+          <span className={`screen__dot ${healthy ? "" : "screen__dot--stale"}`} aria-hidden />
+          <b>{healthy ? "Live" : "Catching up"}</b>
         </span>
         <span>
-          Synced {relative(snap.computedAt, now)}
           {degraded.length === 0
-            ? " · No issues"
-            : ` · ${degraded.map(([n, sc]) => `${n} ${sc.state}${sc.detail ? ` — ${sc.detail}` : ""}`).join(" · ")}`}
+            ? fresh
+              ? "All feeds connected"
+              : "Waiting on a refresh"
+            : degraded.map(([n, sc]) => `${n} ${sc.state}${sc.detail ? ` — ${sc.detail}` : ""}`).join(" · ")}
         </span>
         <span className="screen__right">
           <span className="screen__brand">
@@ -290,8 +308,18 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <RateCard label="Cancel rate" sub="Not pulled from ServiceTitan yet" value={null} />
 
       <Split label="Jobs booked" value={st.count(m.bookingsMonth, live)} />
-      <Split label="Jobs completed" value={st.count(m.jobsCompletedWeek, live)} />
-      <Split label="Quotes out" value={st.count(m.estimatesOpenCount, live)} />
+      {/* Both, because the week's count on a page headed Today was read as
+          today's. The big number is the one the page is about. */}
+      <Split
+        label="Jobs completed"
+        sub={live.st ? `today · ${count(m.jobsCompletedWeek)} since Monday` : undefined}
+        value={st.count(m.jobsCompletedToday, live)}
+      />
+      <Split
+        label="Quotes out"
+        sub={live.st ? `last ${m.outstandingDays ?? 30} days · ${money(m.estimatesOpenValue)}` : undefined}
+        value={st.count(m.estimatesOpenCount, live)}
+      />
       <Split
         label="Overdue"
         value={m.overdueCount == null ? NA : count(m.overdueCount)}
@@ -442,7 +470,8 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
         <div className="tile__head">
           <span className="tile__title">Still out</span>
           <span className="tile__sub">
-            {count(m.estimatesOpenCount)} · {money(m.estimatesOpenValue)}
+            {count(m.estimatesOpenCount)} · {money(m.estimatesOpenValue)} · last {m.outstandingDays ?? 30} days
+            {m.estimatesStaleCount > 0 && <> · {count(m.estimatesStaleCount)} older, to close off</>}
           </span>
         </div>
         {m.quotesOutstanding.length === 0 ? (
@@ -693,7 +722,12 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
 }
 
 function AreasPage({ m }: { m: Metrics; live: Live }) {
-  const max = Math.max(1, ...m.topSuburbs.map((s) => s.count));
+  // Jobs, not website leads. The leads table holds about thirty rows in total,
+  // so the map drew the whole catchment from a trickle and named whichever two
+  // suburbs had filled in the web form. Completed jobs carry the same suburb
+  // column and there are thousands of them.
+  const places = m.topJobSuburbs ?? [];
+  const max = Math.max(1, ...places.map((s) => s.count));
   const oldest = [...m.quotesOutstanding].sort((a, b) => b.ageDays - a.ageDays).slice(0, 5);
   const biggest = m.quotesOutstanding[0];
 
@@ -701,18 +735,18 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
     <>
       <div className="tile" style={{ gridColumn: "1 / span 8", gridRow: "1 / span 3" }}>
         <div className="tile__head">
-          <span className="tile__title">Leads by suburb</span>
+          <span className="tile__title">Jobs by suburb</span>
           <span className="heat__legend">
             Fewer
             <span className="heat__ramp" />
             More
           </span>
         </div>
-        {m.topSuburbs.length === 0 ? (
-          <span className="tile__sub">No leads recorded yet</span>
+        {places.length === 0 ? (
+          <span className="tile__sub">No completed jobs recorded yet</span>
         ) : (
           <div className="heat">
-            {m.topSuburbs.map((s) => {
+            {places.map((s) => {
               // Light to navy by share of the busiest suburb. The name and the
               // number are inside every cell, so the ramp is reinforcement.
               const t = s.count / max;
