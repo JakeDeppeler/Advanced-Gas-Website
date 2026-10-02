@@ -5,6 +5,10 @@ import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { BoardTargets } from "@/components/portal/BoardTargets";
+import { BoardCalendar } from "@/components/portal/BoardCalendar";
+import { monthTargetFromYearGoal, normaliseBoardSettings, type YearGoalShape } from "@/lib/dashboard/boardSettings";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
+import { currentYear, periodLabel } from "@/lib/portal/yearGoal";
 import type { BoardTargets as Saved } from "./actions";
 import type { Targets } from "@/lib/portal/targets";
 
@@ -40,6 +44,29 @@ export default async function BoardPage() {
   // the four dials measure something else.
   const suggestion = year?.revenue && year.revenue > 0 ? year.revenue / 12 : null;
 
+  // The rest of the same row — where the revenue target comes from, and the
+  // working calendar — read through the same normaliser the board reads with.
+  const cfg = normaliseBoardSettings(saved);
+
+  // The year goal proper, which the revenue target can be driven from. This is
+  // a different thing from `targets` above: that is the quoting plan, this is
+  // the year the accounts are measured against, with a month-by-month shape.
+  const goalRow = ready ? await getSettings<Partial<YearGoalShape>>("yeargoal").catch(() => null) : null;
+  const goal: YearGoalShape | null =
+    goalRow && typeof goalRow.revenue === "number" && goalRow.revenue > 0
+      ? {
+          basis: goalRow.basis === "calendar" ? "calendar" : "financial",
+          year: typeof goalRow.year === "number" ? goalRow.year : currentYear(goalRow.basis === "calendar" ? "calendar" : "financial", new Date()),
+          revenue: goalRow.revenue,
+          shape: Array.isArray(goalRow.shape) && goalRow.shape.length === 12 ? goalRow.shape : null,
+        }
+      : null;
+
+  // Melbourne's now, resolved on the server so the working-day counts the editor
+  // recomputes as the boxes are ticked agree with the first render.
+  const nowIso = new Date().toISOString();
+  const derived = monthTargetFromYearGoal(goal, isoDateMelbourne(new Date()).slice(0, 7));
+
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/finance" label="Finance" />
@@ -60,6 +87,16 @@ export default async function BoardPage() {
       )}
 
       <BoardTargets initial={initial} canSave={ready} suggestion={suggestion} />
+
+      <BoardCalendar
+        revenueFromYearGoal={cfg.revenueFromYearGoal}
+        workingDays={cfg.workingDays}
+        holidays={cfg.holidays}
+        derived={derived}
+        goalLabel={goal ? periodLabel(goal) : null}
+        goalRevenue={goal?.revenue ?? null}
+        now={nowIso}
+      />
     </PortalShell>
   );
 }

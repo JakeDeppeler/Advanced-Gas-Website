@@ -12,6 +12,14 @@ import {
   workingDaysInMonth,
   type WorkingCalendar,
 } from "./dates";
+import {
+  commissionFor,
+  monthTargetFromYearGoal,
+  normaliseBoardSettings,
+  pacePerDay,
+  type CommissionTier,
+  type YearGoalShape,
+} from "./boardSettings";
 
 // Computes one dashboard snapshot from the local replica. Nothing here calls
 // ServiceTitan directly — the sync job owns that — so this stays fast and keeps
@@ -23,11 +31,27 @@ export type Metrics = {
   leadsToday: number;
   leadsWeek: number;
   leadsPrevWeek: number;
+  /** Website leads by suburb. Thirty rows all up, so it is a trickle, not a map. */
   topSuburbs: Array<{ suburb: string; count: number }>;
+  /** Jobs actually done, by suburb. What the heat map on the Areas page draws. */
+  topJobSuburbs: Array<{ suburb: string; count: number }>;
   leadsByService: Array<{ service: string; count: number }>;
 
+  jobsCompletedToday: number;
   jobsCompletedWeek: number;
-  jobsScheduledNext7: number;
+  /**
+   * Null, not zero, when nothing in the replica carries an appointment time.
+   * Every job row has `scheduled_on` null — ServiceTitan's jobs export doesn't
+   * return appointment times, they live on the separate appointments resource —
+   * so a count here would be a measured-looking zero for a business that is
+   * fully booked.
+   */
+  jobsScheduledNext7: number | null;
+  /** Open quotes older than the outstanding window — to chase or close off. */
+  estimatesStaleCount: number;
+  estimatesStaleValue: number;
+  /** The window, in days, so the tile can say what it is counting. */
+  outstandingDays: number;
   estimatesOpenCount: number;
   estimatesOpenValue: number;
   closeRate30d: number | null;
@@ -285,31 +309,64 @@ async function serviceTitanMetrics(now: Date) {
   const monthStart = startOfMonthMelbourne(now);
   const today = isoDateMelbourne(now);
 
-  const [jobsCompletedWeek, jobsScheduledNext7] = await Promise.all([
+  // Today as well as the week. The week's figure alone, on a page headed Today,
+  // was read as today's: thirty jobs since Monday looked like thirty since
+  // breakfast. Showing both beats labelling one harder.
+  const [jobsCompletedToday, jobsCompletedWeek, scheduledSoon, anyScheduled] = await Promise.all([
+    sbCount("st_jobs", q.gte("completed_on", startOfDayMelbourne(now).toISOString())),
     sbCount("st_jobs", q.gte("completed_on", weekStart.toISOString())),
     sbCount(
       "st_jobs",
       [q.gte("scheduled_on", now.toISOString()), q.lt("scheduled_on", addDays(now, 7).toISOString())].join("&"),
     ),
+    sbCount("st_jobs", q.notNull("scheduled_on")),
   ]);
 
-  // Open quotes from the last 90 days, not every quote ServiceTitan has never
-  // marked sold. Unbounded, this reads 725 quotes and $7.2M going back to 2022 —
-  // quotes nobody closed out rather than money anybody is chasing. Ninety days
-  // covers a real follow-up cycle on a ducted job.
-  const QUOTE_WINDOW_DAYS = 90;
-  const openEstimates = await sbSelect<{ total: number | null }>(
+  // Not one job in the replica carries an appointment time, so "0 scheduled"
+  // would be a statement about the sync dressed up as a statement about next
+  // week. Null blanks the tile instead, and the board says so.
+  const jobsScheduledNext7 = anyScheduled > 0 ? scheduledSoon : null;
+
+  /**
+   * Open quotes, split at the outstanding window.
+   *
+   * Unbounded this reads 744 quotes and $7.3M going back to 2022 — quotes nobody
+   * closed out rather than money anybody is chasing. Ninety days was the first
+   * bound and it barely helped: 581 of the 744 fall inside it, so the wall still
+   * said 582 quotes and $5.0M, and the office still didn't believe it.
+   *
+   * Thirty days is the window a quote is actually live for, and it matches the
+   * close-rate window so the two tiles are talking about the same pipeline. What
+   * falls outside isn't discarded — it is counted separately, because 471 quotes
+   * nobody has closed off is a real thing to go and do, just not pipeline.
+   */
+  const OUTSTANDING_DAYS = 30;
+  const openEstimates = await sbSelect<{ total: number | null; created_on: string | null }>(
     "st_estimates",
     [
-      q.select("total"),
+      q.select("total,created_on"),
       q.isNull("sold_on"),
       q.notIn("status", ["Dismissed", "Expired"]),
-      q.gte("created_on", addDays(now, -QUOTE_WINDOW_DAYS).toISOString()),
     ].join("&"),
   );
 
-  const estimatesOpenCount = openEstimates.length;
-  const estimatesOpenValue = openEstimates.reduce((s, e) => s + Number(e.total ?? 0), 0);
+  const freshFrom = addDays(now, -OUTSTANDING_DAYS).getTime();
+  let estimatesOpenCount = 0;
+  let estimatesOpenValue = 0;
+  let estimatesStaleCount = 0;
+  let estimatesStaleValue = 0;
+  for (const e of openEstimates) {
+    const v = Number(e.total ?? 0);
+    // No created_on means it can't be aged, so it counts as current rather than
+    // being quietly dropped out of both figures.
+    if (!e.created_on || new Date(e.created_on).getTime() >= freshFrom) {
+      estimatesOpenCount += 1;
+      estimatesOpenValue += v;
+    } else {
+      estimatesStaleCount += 1;
+      estimatesStaleValue += v;
+    }
+  }
 
   // Close rate: of the quotes written in the last 30 days, how many sold.
   const recentEstimates = await sbSelect<{ sold_on: string | null }>(
@@ -352,6 +409,29 @@ async function serviceTitanMetrics(now: Date) {
       if (r.sold_on) created.todaySold += 1;
     }
   }
+
+  /**
+   * Where the work actually happened, by suburb.
+   *
+   * The Areas heat map drew website leads, of which there are about thirty in
+   * the whole table — a map of the catchment built from a trickle, naming
+   * whichever couple of suburbs had filled in the web form. Completed jobs carry
+   * the same suburb and postcode columns and there are thousands of them.
+   */
+  const jobPlaces = await sbSelect<{ suburb: string | null; postcode: string | null }>(
+    "st_jobs",
+    [q.select("suburb,postcode"), q.gte("completed_on", addDays(now, -90).toISOString())].join("&"),
+  );
+
+  const byJobSuburb = new Map<string, number>();
+  for (const j of jobPlaces) {
+    const place = j.suburb?.trim() || (j.postcode ? POSTCODE_TO_SUBURB.get(j.postcode.trim()) ?? j.postcode.trim() : null);
+    if (place) byJobSuburb.set(place, (byJobSuburb.get(place) ?? 0) + 1);
+  }
+  const topJobSuburbs = [...byJobSuburb.entries()]
+    .map(([suburb, count]) => ({ suburb, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 12);
 
   // Jobs booked this month — when the job was created, not when it is scheduled,
   // because booking is the act being measured.
@@ -609,8 +689,13 @@ async function serviceTitanMetrics(now: Date) {
     .slice(0, 6);
 
   return {
+    jobsCompletedToday,
     jobsCompletedWeek,
     jobsScheduledNext7,
+    topJobSuburbs,
+    estimatesStaleCount,
+    estimatesStaleValue,
+    outstandingDays: OUTSTANDING_DAYS,
     estimatesOpenCount,
     estimatesOpenValue,
     closeRate30d,
@@ -649,7 +734,7 @@ async function serviceTitanMetrics(now: Date) {
   };
 }
 
-export type CommissionTier = { from: number; rate: number };
+export type { CommissionTier } from "./boardSettings";
 
 /**
  * Calls per person for today, this week and this month.
@@ -696,76 +781,51 @@ type Targets = {
 };
 
 /**
- * Commission on a month's sold total, under a tiered rate.
+ * Everything the board is told rather than measures: the four monthly targets,
+ * the commission bands and the definition of a working day.
  *
- * Tiers are marginal, not cliff-edged: crossing a threshold lifts the rate on
- * the amount above it only. A cliff would mean a $1 sale could be worth
- * thousands, which is how commission schemes end up gamed.
+ * One read for all of it. These were two functions fetching the same row twice,
+ * each re-deciding what a valid target looked like. The shape and its clamps now
+ * live in `boardSettings.ts`, which the portal editor writes through as well — so
+ * a target the office can set is a target the board can read, with no second
+ * definition in between to drift.
  */
-function commissionFor(sold: number, tiers: CommissionTier[]) {
-  if (!tiers.length) return { commission: null, tier: null, toNextTier: null };
-
-  const steps = [...tiers].sort((a, b) => a.from - b.from);
-  let commission = 0;
-  let tier = 0;
-
-  for (let i = 0; i < steps.length; i++) {
-    const from = steps[i].from;
-    if (sold <= from) break;
-    const to = i + 1 < steps.length ? Math.min(sold, steps[i + 1].from) : sold;
-    commission += (to - from) * steps[i].rate;
-    tier = i + 1;
-  }
-
-  const next = steps[tier];
-  return {
-    commission,
-    tier,
-    toNextTier: next && sold < next.from ? next.from - sold : null,
-  };
-}
-
-/**
- * The two monthly targets. Either can be absent: a board with only a revenue
- * target still shows the revenue number and leaves the sales one blank, rather
- * than inventing a figure nobody agreed to.
- */
-async function monthlyTargets(): Promise<Targets> {
-  const row = await sbSelectOne<{
-    value: {
-      revenueTargetMonthly?: number;
-      salesTargetMonthly?: number;
-      profitTargetMonthly?: number;
-      bookingsTargetMonthly?: number;
-      commissionTiers?: CommissionTier[];
-    };
-  }>("portal_settings", [q.select("value"), q.eq("key", "dashboard")].join("&"));
-
-  const positive = (v: unknown) => (typeof v === "number" && v > 0 ? v : null);
-  const tiers = Array.isArray(row?.value?.commissionTiers)
-    ? row!.value.commissionTiers!.filter(
-        (t) => typeof t?.from === "number" && typeof t?.rate === "number" && t.rate >= 0,
-      )
-    : [];
-
-  return {
-    revenue: positive(row?.value?.revenueTargetMonthly),
-    sales: positive(row?.value?.salesTargetMonthly),
-    profit: positive(row?.value?.profitTargetMonthly),
-    bookings: positive(row?.value?.bookingsTargetMonthly),
-    tiers,
-  };
-}
-
-async function workingCalendar(): Promise<WorkingCalendar> {
-  const row = await sbSelectOne<{ value: { workingDays?: number[]; holidays?: string[] } }>(
+async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: WorkingCalendar }> {
+  const row = await sbSelectOne<{ value: unknown }>(
     "portal_settings",
     [q.select("value"), q.eq("key", "dashboard")].join("&"),
   );
+  const cfg = normaliseBoardSettings(row?.value);
+
+  /**
+   * The month's revenue target, which can be driven off the year goal rather
+   * than typed in month by month.
+   *
+   * Derived here, on every snapshot, rather than written into the dashboard row
+   * when the goal was set: a figure copied across in October is the wrong figure
+   * in November, and nothing on the wall would say so.
+   */
+  let revenue = cfg.revenueTargetMonthly;
+  if (cfg.revenueFromYearGoal) {
+    const goal = await sbSelectOne<{ value: YearGoalShape }>(
+      "portal_settings",
+      [q.select("value"), q.eq("key", "yeargoal")].join("&"),
+    ).catch(() => null);
+    // Null when the goal is unset or has run out of year, and null blanks the
+    // figure. Better an admitted gap than pacing the wall against a year that
+    // finished in June.
+    revenue = monthTargetFromYearGoal(goal?.value ?? null, isoDateMelbourne(now).slice(0, 7));
+  }
 
   return {
-    days: row?.value?.workingDays?.length ? row.value.workingDays : DEFAULT_WORKING_CALENDAR.days,
-    holidays: row?.value?.holidays ?? [],
+    targets: {
+      revenue,
+      sales: cfg.salesTargetMonthly,
+      profit: cfg.profitTargetMonthly,
+      bookings: cfg.bookingsTargetMonthly,
+      tiers: cfg.commissionTiers,
+    },
+    calendar: { days: cfg.workingDays, holidays: cfg.holidays },
   };
 }
 
@@ -848,8 +908,15 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   } catch (e) {
     sources.servicetitan = { state: "error", detail: (e as Error).message };
     st = {
+      jobsCompletedToday: prev?.jobsCompletedToday ?? 0,
       jobsCompletedWeek: prev?.jobsCompletedWeek ?? 0,
-      jobsScheduledNext7: prev?.jobsScheduledNext7 ?? 0,
+      // Null carries forward as null: a failed read has nothing to say about
+      // next week's bookings, and zero would claim it does.
+      jobsScheduledNext7: prev?.jobsScheduledNext7 ?? null,
+      topJobSuburbs: prev?.topJobSuburbs ?? [],
+      estimatesStaleCount: prev?.estimatesStaleCount ?? 0,
+      estimatesStaleValue: prev?.estimatesStaleValue ?? 0,
+      outstandingDays: prev?.outstandingDays ?? 30,
       estimatesOpenCount: prev?.estimatesOpenCount ?? 0,
       estimatesOpenValue: prev?.estimatesOpenValue ?? 0,
       closeRate30d: prev?.closeRate30d ?? null,
@@ -905,33 +972,18 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     sources.xero = { state: "stale", detail: xero.reason, at: previous?.computedAt };
   }
 
-  const targets = await monthlyTargets().catch((): Targets => ({ revenue: null, sales: null, profit: null, bookings: null, tiers: [] }));
-  const calendar = await workingCalendar().catch(() => DEFAULT_WORKING_CALENDAR);
+  // A settings read that fails must not blank every target on the wall, so it
+  // degrades to "nothing configured" and the default calendar, which the board
+  // already renders as an admitted gap rather than as a zero.
+  const { targets, calendar } = await boardConfig(now).catch(() => ({
+    targets: { revenue: null, sales: null, profit: null, bookings: null, tiers: [] } as Targets,
+    calendar: DEFAULT_WORKING_CALENDAR,
+  }));
   const days = workingDaysInMonth(now, calendar);
 
-  // Pace measured against working days elapsed, not calendar days: being "80%
-  // through the month" means nothing if the remaining days are a long weekend.
-  const progress = days.total > 0 ? days.elapsed / days.total : 0;
-
-  /**
-   * What has to happen per remaining working day to still land on the target.
-   *
-   * `Math.max(0, …)` floors the shortfall rather than the rate: once the target
-   * is met the number is 0, not a negative figure that would read as money owed
-   * back. `Math.max(1, …)` guards the last day of the month, where dividing by
-   * zero remaining days would otherwise print Infinity on the wall.
-   */
-  const perDay = (target: number | null, achieved: number | null) => ({
-    pacePct: target && achieved != null && progress > 0 ? achieved / (target * progress) : null,
-    // An unmeasurable figure leaves the daily number unset too: "$8,000 a day to
-    // go" computed against a null is just the target spread over the days left,
-    // dressed up as a shortfall.
-    daily:
-      target == null || achieved == null
-        ? null
-        : Math.max(0, target - achieved) / Math.max(1, days.remaining),
-    aheadBehind: target && achieved != null ? achieved - target * progress : null,
-  });
+  // The arithmetic lives in boardSettings.ts so the portal's editor can preview
+  // these exact figures before anybody walks out to look at the wall.
+  const perDay = (target: number | null, achieved: number | null) => pacePerDay(target, achieved, days);
 
   const revenue = perDay(targets.revenue, st.revenueInvoicedMtd);
   const sales = perDay(targets.sales, st.soldMtd);

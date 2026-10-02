@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { dashboardDbConfigured } from "@/lib/dashboard/db";
+import { dashboardDbConfigured, q, sbSelectOne } from "@/lib/dashboard/db";
 import { computeSnapshot, latestSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
@@ -23,7 +23,18 @@ export const maxDuration = 60;
  * gains here is the ability to make the server do work, which the staleness
  * floor bounds to one sync per interval however often it is called.
  */
-const STALE_AFTER_MS = 8 * 60_000;
+/**
+ * Two floors, because the halves of a refresh cost wildly different things.
+ *
+ * Recomputing the snapshot reads the local replica and nothing else, so it runs
+ * on every poll — that is what makes the board live rather than a photograph
+ * taken some minutes ago. Pulling from ServiceTitan is an export request against
+ * a tenant that throttles, and asking it for changes every thirty seconds all
+ * day would get the integration rate-limited to move a number that hadn't
+ * changed.
+ */
+const RECOMPUTE_AFTER_MS = 25_000;
+const SYNC_AFTER_MS = 2 * 60_000;
 
 // Two tabs on two machines can pass the staleness check together. Within one
 // instance this collapses them; across instances the floor above holds the
@@ -42,12 +53,18 @@ export async function GET(req: Request) {
 
   const current = await latestSnapshot();
   const age = current ? Date.now() - Date.parse(current.computedAt) : Infinity;
-  if (age < STALE_AFTER_MS) {
+  if (age < RECOMPUTE_AFTER_MS) {
     return NextResponse.json({ refreshed: false, ageMs: age }, { headers: { "Cache-Control": "no-store" } });
   }
 
+  // Whether to pull from ServiceTitan as well comes from the sync's own record
+  // of when it last ran, not a timer in this process: serverless instances are
+  // recycled constantly, and a per-instance timer would read as "due" on every
+  // cold start.
+  const pull = await syncDue();
+
   if (!inFlight) {
-    inFlight = run().finally(() => {
+    inFlight = run(pull).finally(() => {
       inFlight = null;
     });
   }
@@ -58,13 +75,27 @@ export async function GET(req: Request) {
     return NextResponse.json({ refreshed: false, error: (e as Error).message }, { status: 500 });
   }
 
-  return NextResponse.json({ refreshed: true }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ refreshed: true, synced: pull }, { headers: { "Cache-Control": "no-store" } });
 }
 
-async function run() {
+/** When ServiceTitan was last asked for changes. Unknown counts as not due. */
+async function syncDue(): Promise<boolean> {
+  try {
+    const row = await sbSelectOne<{ last_run_at: string | null }>(
+      "portal_sync_state",
+      [q.select("last_run_at"), q.eq("provider", "servicetitan"), q.order("last_run_at", "desc")].join("&"),
+    );
+    if (!row?.last_run_at) return true;
+    return Date.now() - Date.parse(row.last_run_at) >= SYNC_AFTER_MS;
+  } catch {
+    return false;
+  }
+}
+
+async function run(pull: boolean) {
   // Same order as /api/sync: pull, then recompute. The snapshot is written even
   // when a leg failed, because carry-forward inside computeSnapshot keeps the
   // last known figures on the wall rather than blanking them.
-  await syncServiceTitan(false);
+  if (pull) await syncServiceTitan(false);
   await storeSnapshot(await computeSnapshot());
 }
