@@ -171,6 +171,16 @@ export type Metrics = {
 
   /** Telecom data only appears once the Telecom scope is granted; empty until then. */
   callsByPerson: Array<{ name: string; today: number; week: number; month: number }>;
+  /**
+   * Whether anything has ever come back from the Telecom export.
+   *
+   * It separates "the scope isn't granted" from "the scope is granted and this
+   * month is empty", which need different words on the wall and send somebody to
+   * two different places. The second is the live state: the export returns 21
+   * calls across two months for a business doing eight jobs a day, so it is
+   * carrying a sliver of the real traffic rather than all of it.
+   */
+  callsEverSynced: boolean;
 
   /**
    * Sales closed in the last couple of hours, newest first — what the board
@@ -1065,6 +1075,9 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   // stays empty and the team page says so rather than showing zeroes that look
   // like nobody picked up the phone.
   const callsByPerson = await callMetrics(now).catch(() => [] as Metrics["callsByPerson"]);
+  const callsEverSynced = await sbCount("st_calls", "")
+    .then((n) => n > 0)
+    .catch(() => false);
 
   const { rawLeaderboard: _raw, ...stMetrics } = st;
 
@@ -1074,6 +1087,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       ...stMetrics,
       salesLeaderboard,
       callsByPerson,
+      callsEverSynced,
       profitTargetMonthly: targets.profit,
       profitPacePct: profit.pacePct,
       bookingsTargetMonthly: targets.bookings,

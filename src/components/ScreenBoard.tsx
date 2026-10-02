@@ -529,10 +529,12 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
     { today: 0, week: 0, month: 0, sold: 0, options: 0 },
   );
   const callsFor = (n: string) => m.callsByPerson.find((c) => c.name === n);
-  // Calls come from ServiceTitan's Telecom module, which is a separate scope.
-  // Without it the column is unknown, not zero — and saying so is the only way
-  // anyone learns what would make it appear.
+  // Three states, not two. The scope being absent and the month being empty both
+  // leave this column blank, but they send somebody to different places — and
+  // the live export returns a sliver of the real traffic, so a measured zero
+  // here would be the wrong kind of wrong.
   const haveCalls = m.callsByPerson.length > 0;
+  const callsNote = haveCalls ? "Calls" : m.callsEverSynced ? "Calls · none this month" : "Calls · needs Telecom";
 
   return (
     <div className="tile c12">
@@ -543,7 +545,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span>Today</span>
           <span>This week</span>
           <span>This month</span>
-          <span>{haveCalls ? "Calls" : "Calls · needs Telecom"}</span>
+          <span>{callsNote}</span>
           <span>Next bonus tier</span>
         </div>
 
