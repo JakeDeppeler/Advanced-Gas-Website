@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import { Gauge } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
@@ -158,7 +158,10 @@ export function ScreenBoard({
   const degraded = Object.entries(snap.sources).filter(([, s]) => s.state !== "ok");
 
   return (
-    <div className={`screen ${theme === "dark" ? "screen--dark" : ""}`}>
+    <div
+      className={`screen ${theme === "dark" ? "screen--dark" : ""}`}
+      style={{ "--page-ms": `${PAGE_MS}ms` } as CSSProperties}
+    >
       {celebrating && (
         <Celebration key={celebrating.id} sale={celebrating} onDone={() => setQueue((qd) => qd.slice(1))} />
       )}
@@ -185,6 +188,17 @@ export function ScreenBoard({
               {p}
             </span>
           ))}
+
+          {/* How long this page has left. A CSS animation restarted by the key
+              rather than a ticking state: the board runs for months on a kiosk,
+              and re-rendering the whole tree once a second to sweep one ring is
+              exactly the sort of thing that degrades it. */}
+          <span className="screen__timer" key={page} title="Time to the next page">
+            <svg viewBox="0 0 24 24" role="img" aria-label={`Next page in ${PAGE_MS / 1000} seconds`}>
+              <circle className="screen__timer-track" cx="12" cy="12" r="10" />
+              <circle className="screen__timer-hand" cx="12" cy="12" r="10" />
+            </svg>
+          </span>
         </nav>
       </div>
 
