@@ -28,7 +28,7 @@ tiles can be added — or metrics backfilled — without re-pulling history.
 
 ## The pages
 
-The board cycles every 20 seconds through five pages. Past about eight tiles
+The board cycles every 20 seconds through six pages. Past about eight tiles
 nothing on a 1080p panel stays readable from four metres, so it rotates rather
 than shrinks.
 
@@ -60,6 +60,10 @@ the leader is from the next tier, so individual pay stays off a screen that
 visitors and the whole office can see.
 
 **Performance** carries top job types over 90 days and top suburbs.
+
+**Areas** is a heat map of where the leads came from, beside the quotes that are
+aging. Cells are shaded by lead count and carry the suburb and the number inside
+them, so the ramp reinforces the figure rather than carrying it.
 
 Each number is recomputed every sync, so a big day visibly lowers tomorrow's bar
 and a slow one raises it. That movement is the point; a static "1/20th of target"
@@ -317,6 +321,7 @@ earlier draft carried were removed rather than shipped blank:
 |---|---|
 | Average time to first call | Nothing writes `first_contacted_at` or `handled_at`. Every row is null, so the figure would be permanently `—`. |
 | Leads not yet called | Same columns. It would read "30 uncontacted" for leads that *have* been called but never recorded, which is worse than no tile. |
+| Job value by suburb | ServiceTitan returns a location id on `st_jobs` rather than an address, and the board doesn't resolve it. The Areas map is built from the postcode on each website lead instead, which is lead count, not dollars — so the card says "leads", not "jobs". |
 
 Both become possible the moment the portal stamps a contact time; the columns
 already exist. Until then the slot holds **what they're asking for**, a breakdown
