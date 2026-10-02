@@ -61,7 +61,7 @@ export default async function PlanningPage() {
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Future planning</div>
-        <h1>Where we&rsquo;re headed.</h1>
+        <h1>Where we&rsquo;re headed<span className="pt-stop">.</span></h1>
         <p>The profit you&rsquo;re aiming at and how the year is tracking against it, then the what-ifs: what another billable person adds, and what a more economical van saves. Revenue, and what it takes each week to get there, has its own page under <strong>Targets</strong>. Nothing here changes your live numbers.</p>
       </div>
       <PlanningTabs current="/portal/finance/planning" />

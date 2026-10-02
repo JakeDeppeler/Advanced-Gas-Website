@@ -73,7 +73,7 @@ export default async function BoardPage() {
 
       <div className="pt-head">
         <div className="pt-head__eyebrow">Wall board</div>
-        <h1>What the board is aiming at.</h1>
+        <h1>What the board is aiming at<span className="pt-stop">.</span></h1>
         <p>
           The dials on the office screen measure the month against these. Until a target is set the dial says so
           rather than guessing, which is the only honest thing a wall can do with a number nobody agreed to.

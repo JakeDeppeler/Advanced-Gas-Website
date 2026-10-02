@@ -24,7 +24,7 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Profit &amp; loss</div>
-        <h1>What we actually made.</h1>
+        <h1>What we actually made<span className="pt-stop">.</span></h1>
         <p>Every account from Xero, next to the same figures for the period before — so you can see which lines moved and by how much.</p>
       </div>
 
