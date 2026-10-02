@@ -398,6 +398,7 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
         target={m.profitTargetMonthly}
         progress={progress}
         format={money}
+        unavailable={live.st && m.profitMtd == null ? "no cost on any invoice" : undefined}
       />
       <Gauge
         label="Jobs booked"
@@ -610,10 +611,29 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
     <>
       <Split label="Jobs" sub={st.sub("booked this month", live)} value={st.count(m.bookingsMonth, live)} />
       <Split label="Invoiced" sub={st.sub("this month", live)} value={st.money(m.revenueInvoicedMtd, live)} />
-      <Split label="Gross profit" sub={st.sub(`cost on ${Math.round(m.profitCoverage * 100)}% of invoices`, live)} value={st.money(m.profitMtd, live)} />
+      {/* ServiceTitan carries a cost on a fraction of a per cent of invoice
+          lines here, so these two usually have nothing to measure. They hold
+          their place and say so rather than reading $0 and 0%. */}
+      <Split
+        label="Gross profit"
+        sub={
+          !live.st
+            ? "ServiceTitan not connected"
+            : m.profitMtd == null
+              ? "no cost on any invoice"
+              : `cost on ${Math.round(m.profitCoverage * 100)}% of invoices`
+        }
+        value={st.money(m.profitMtd, live)}
+      />
       <Split
         label="Margin"
-        sub={m.marginPct == null ? "too few invoices carry cost" : "of invoices that carry cost"}
+        sub={
+          m.marginPct != null
+            ? "of invoices that carry cost"
+            : m.profitMtd == null
+              ? "no cost data in ServiceTitan"
+              : "too few invoices carry cost"
+        }
         value={live.st ? pct(m.marginPct) : NA}
       />
 

@@ -47,7 +47,8 @@ export type Metrics = {
   quotesCreatedMonthValue: number;
   quotesCreatedMonthCount: number;
 
-  profitMtd: number;
+  /** Null when no invoice carries a cost — ServiceTitan rarely records one. */
+  profitMtd: number | null;
   profitTargetMonthly: number | null;
   profitPacePct: number | null;
   profitCoverage: number;
@@ -229,9 +230,19 @@ async function serviceTitanMetrics(now: Date) {
     ),
   ]);
 
+  // Open quotes from the last 90 days, not every quote ServiceTitan has never
+  // marked sold. Unbounded, this reads 725 quotes and $7.2M going back to 2022 —
+  // quotes nobody closed out rather than money anybody is chasing. Ninety days
+  // covers a real follow-up cycle on a ducted job.
+  const QUOTE_WINDOW_DAYS = 90;
   const openEstimates = await sbSelect<{ total: number | null }>(
     "st_estimates",
-    [q.select("total"), q.isNull("sold_on"), q.notIn("status", ["Dismissed", "Expired"])].join("&"),
+    [
+      q.select("total"),
+      q.isNull("sold_on"),
+      q.notIn("status", ["Dismissed", "Expired"]),
+      q.gte("created_on", addDays(now, -QUOTE_WINDOW_DAYS).toISOString()),
+    ].join("&"),
   );
 
   const estimatesOpenCount = openEstimates.length;
@@ -289,8 +300,14 @@ async function serviceTitanMetrics(now: Date) {
   // says what share that is, so a gauge built on a third of the data can say so
   // rather than quietly understating the month.
   const costed = invoices.filter((i) => i.cost != null);
-  const profitMtd = costed.reduce((s, i) => s + (Number(i.total ?? 0) - Number(i.cost ?? 0)), 0);
   const profitCoverage = invoices.length ? costed.length / invoices.length : 0;
+  // No costed invoice means no profit figure — not a profit of zero. Across the
+  // whole replica 88 of 4,791 invoice line items carry a cost, so this is the
+  // normal case here rather than an edge one, and a dial reading $0 of target
+  // would be the most prominent wrong number on the wall.
+  const profitMtd = costed.length
+    ? costed.reduce((s, i) => s + (Number(i.total ?? 0) - Number(i.cost ?? 0)), 0)
+    : null;
 
   const invoiceCountMonth = invoices.length;
   const invoiceCountToday = invoices.filter((i) => i.invoice_date === today).length;
@@ -300,7 +317,8 @@ async function serviceTitanMetrics(now: Date) {
   // only worth showing when enough of them do — otherwise it is a ratio of a
   // sample to the whole, which reads low and means nothing.
   const costedRevenue = costed.reduce((s, i) => s + Number(i.total ?? 0), 0);
-  const marginPct = profitCoverage >= 0.5 && costedRevenue > 0 ? profitMtd / costedRevenue : null;
+  const marginPct =
+    profitMtd != null && profitCoverage >= 0.5 && costedRevenue > 0 ? profitMtd / costedRevenue : null;
   const revenueToday = invoices
     .filter((i) => i.invoice_date === today)
     .reduce((s, i) => s + Number(i.total ?? 0), 0);
@@ -652,24 +670,41 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   let st: Awaited<ReturnType<typeof serviceTitanMetrics>>;
   try {
     st = await serviceTitanMetrics(now);
-    const syncRow = await sbSelectOne<{ last_success_at: string | null; last_status: string | null }>(
+    const syncRows = await sbSelect<{
+      resource: string;
+      last_success_at: string | null;
+      last_status: string | null;
+    }>(
       "portal_sync_state",
-      [q.select("last_success_at,last_status"), q.eq("provider", "servicetitan"), q.order("last_success_at", "desc")].join("&"),
+      [q.select("resource,last_success_at,last_status"), q.eq("provider", "servicetitan")].join("&"),
     );
 
-    const lastOk = syncRow?.last_success_at ? Date.parse(syncRow.last_success_at) : 0;
+    // The newest success across every resource, not the newest row.
+    //
+    // This used to read one row ordered by last_success_at descending, and
+    // Postgres sorts nulls first on a descending order. Telecom calls returns
+    // 403 without the scope and so has never succeeded, which put its null at
+    // the top and made the board report the whole integration as unconfigured
+    // while jobs, invoices, estimates and leads were syncing every few minutes.
+    const lastOk = Math.max(
+      0,
+      ...syncRows.map((r) => (r.last_success_at ? Date.parse(r.last_success_at) : 0)),
+    );
+    const failing = syncRows.filter((r) => r.last_status === "error").map((r) => r.resource);
     const stale = !lastOk || Date.now() - lastOk > 45 * 60 * 1000;
     // "Not configured" covers two different problems whose fixes differ, so the
     // board says which: credentials that were never added to the deployment, or
     // credentials that are there but have never produced a successful run.
     sources.servicetitan = {
       state: !lastOk ? "not-configured" : stale ? "stale" : "ok",
-      at: syncRow?.last_success_at ?? undefined,
+      at: lastOk ? new Date(lastOk).toISOString() : undefined,
       detail: !lastOk
         ? serviceTitanConfigured()
           ? "credentials set, no sync has succeeded yet"
           : "credentials not set on this deployment"
-        : (syncRow?.last_status ?? undefined),
+        : failing.length
+          ? `${failing.join(", ")} not syncing`
+          : undefined,
     };
   } catch (e) {
     sources.servicetitan = { state: "error", detail: (e as Error).message };
@@ -690,7 +725,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       quotesCreatedMonthCount: prev?.quotesCreatedMonthCount ?? 0,
       revenueInvoicedMtd: prev?.revenueInvoicedMtd ?? 0,
       revenueToday: prev?.revenueToday ?? 0,
-      profitMtd: prev?.profitMtd ?? 0,
+      profitMtd: prev?.profitMtd ?? null,
       profitCoverage: prev?.profitCoverage ?? 0,
       bookingsMonth: prev?.bookingsMonth ?? 0,
       soldMtd: prev?.soldMtd ?? 0,
@@ -743,10 +778,16 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    * back. `Math.max(1, …)` guards the last day of the month, where dividing by
    * zero remaining days would otherwise print Infinity on the wall.
    */
-  const perDay = (target: number | null, achieved: number) => ({
-    pacePct: target && progress > 0 ? achieved / (target * progress) : null,
-    daily: target == null ? null : Math.max(0, target - achieved) / Math.max(1, days.remaining),
-    aheadBehind: target ? achieved - target * progress : null,
+  const perDay = (target: number | null, achieved: number | null) => ({
+    pacePct: target && achieved != null && progress > 0 ? achieved / (target * progress) : null,
+    // An unmeasurable figure leaves the daily number unset too: "$8,000 a day to
+    // go" computed against a null is just the target spread over the days left,
+    // dressed up as a shortfall.
+    daily:
+      target == null || achieved == null
+        ? null
+        : Math.max(0, target - achieved) / Math.max(1, days.remaining),
+    aheadBehind: target && achieved != null ? achieved - target * progress : null,
   });
 
   const revenue = perDay(targets.revenue, st.revenueInvoicedMtd);
