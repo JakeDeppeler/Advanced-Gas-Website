@@ -142,6 +142,40 @@ export function monthTargetFromYearGoal(goal: YearGoalShape | null, month: strin
   return goal.revenue * normalisedShape(goal.shape)[slot];
 }
 
+/**
+ * Where the year's goal says we should be by today.
+ *
+ * Month by month off the goal's own shape, plus the part of the current month
+ * that has elapsed on calendar days. Calendar days, not working days, because
+ * this is the long view — the figure on the wall under "by now" answers "are we
+ * on for the three million", and a long weekend does not change the answer.
+ *
+ * Null when there is no goal, or the goal's year does not contain today: a
+ * blank is honest where a number would be a guess.
+ */
+export function yearByNow(goal: YearGoalShape | null, today: string): number | null {
+  if (!goal || !(goal.revenue > 0)) return null;
+  const spans = yearSpans(goal.basis, goal.year);
+  const shape = normalisedShape(goal.shape);
+  const y = Number(today.slice(0, 4));
+  const mo = Number(today.slice(5, 7)) - 1;
+  const day = Number(today.slice(8, 10));
+  const slot = spans.findIndex((s) => s.year === y && s.month === mo);
+  if (slot < 0) return null;
+
+  const whole = shape.slice(0, slot).reduce((a, b) => a + b, 0);
+  const daysInMonth = new Date(Date.UTC(y, mo + 1, 0)).getUTCDate();
+  const partial = shape[slot] * (day / daysInMonth);
+  return goal.revenue * (whole + partial);
+}
+
+/** The first day of the goal's year, as YYYY-MM-DD. */
+export function yearStart(goal: YearGoalShape | null): string | null {
+  if (!goal) return null;
+  const spans = yearSpans(goal.basis, goal.year);
+  return spans[0]?.from ?? null;
+}
+
 export type Pacing = {
   /** Achieved over what should be achieved by now. 1 is exactly on pace. */
   pacePct: number | null;

@@ -32,49 +32,66 @@ The board cycles every 20 seconds through six pages. Past about eight tiles
 nothing on a 1080p panel stays readable from four metres, so it rotates rather
 than shrinks.
 
-**Today** leads with two daily numbers, side by side and given equal weight:
+The chrome is the portal's: cream ground, navy for the one card per page that
+matters most, Archivo for every figure, and the brand orange reserved for
+attention. Where it is up to in the cycle is six dashes top-right and the orange
+run under the header, which fills a sixth at a time — the room can see where it
+is without reading six page names, which is what the tab strip asked of it.
 
-```
-to sell per day    = (monthly sales target  − sold so far)     ÷ working days remaining
-to invoice per day = (monthly revenue target − invoiced so far) ÷ working days remaining
-```
+**Today** is two rows of three. Sold today (navy), invoiced today and jobs
+booked today across the top; quoted today, close rate and overdue beneath, each
+with the two lines of context that stop a bare percentage being guessed at.
 
-They are **two different measures, not two views of one**, and that is why both
-are on the wall. Work sold today is invoiced days or weeks later, so revenue
-alone reports on quotes closed well before this morning — by the time it sags,
-the sales week that caused it is already over. Selling is the half the room can
-still act on today; invoicing is the half already committed. The gap between
-them is the pipeline.
+Eleven tiles became six. The page had grown a tile per available number, and at
+that density nothing on it was bigger than anything else — which is the one
+thing a wall needs. Nothing real was lost: jobs completed is the line under
+Invoiced, the lead count is the line under Jobs booked, quotes out has a page
+of its own, and the service mix is the job-type table on Performance.
 
-**Pace** is four dials — revenue, sold, gross profit, jobs booked — each against
-its monthly target.
+**Pace** is three bands with their names down the left margin, because "63%"
+means three different things on this page and the row it sits in is what says
+which:
 
-**Quotes** is the funnel: written today / this week / this month, what is still
-out, and what closed. A thin pipeline means something different at each end.
-Little written is a lead or quoting problem; plenty written and little closed is
-a follow-up problem.
+- **Today** — sold, invoiced and jobs booked against the day's share of the
+  month, where the day's share is
+  `(monthly target − achieved so far) ÷ working days remaining`.
+- **The month** — four dials, each against its monthly target.
+- **This year** — one navy strip: the year to date against the goal, a marker
+  at where the goal says we should be by now, the margin against its target,
+  and jobs a week.
 
-**Team** is per person: what they sold, and how many calls they made. Commission
-is computed but **not shown** — the leaderboard carries sold value and how far
-the leader is from the next tier, so individual pay stays off a screen that
-visitors and the whole office can see.
+Sold and invoiced are **two different measures, not two views of one**, and that
+is why both are on the wall. Work sold today is invoiced days or weeks later, so
+revenue alone reports on quotes closed well before this morning — by the time it
+sags, the sales week that caused it is already over. Selling is the half the
+room can still act on today; invoicing is the half already committed. The gap
+between them is the pipeline.
 
-**Performance** carries top job types over 90 days and top suburbs.
+**Quotes** is three figures — quoted today, sold today, average quote — over
+what was written today and what is still out, biggest first.
 
-**Areas** is a heat map of where the leads came from, beside the quotes that are
-aging. Cells are shaded by lead count and carry the suburb and the number inside
-them, so the ramp reinforces the figure rather than carrying it.
+**Team** is sold, out of quoted, per person. Sold is the headline and quoted is
+the line under it; it used to be the other way round, on the grounds that too
+little closed work carried a seller for a sold column to be anything but
+zeroes. The bonus-tier bar beside it was always measured on sold, so the page
+showed one figure big and ranked on another. Attribution is thin rather than
+absent, so the fix is to lead with sold and say on the page how much of the
+month it accounts for — the totals row does, whenever the named sales come to
+less than 90% of the month.
 
-Each number is recomputed every sync, so a big day visibly lowers tomorrow's bar
-and a slow one raises it. That movement is the point; a static "1/20th of target"
-figure doesn't change anyone's afternoon. Today counts as remaining — the crew
-can still sell today.
+**Performance** is four figures with margin as the navy one, over one table of
+job types: jobs, revenue, profit, and a margin bar with the month's own goal
+drawn on it. The goal is the month's profit target over its revenue target, both
+set on the board's settings page; with no target set there is no line, rather
+than a line at a number nobody chose.
 
-Pace is measured against **working days elapsed, not calendar days**. Being
-"80% through the month" means nothing if the days left are a long weekend.
-
-Any target can be left unset. The board then blanks that figure and says so,
-rather than falling back to a number nobody agreed to.
+**Areas** is where the work is, on the corridor. The positions are the real
+township centres from `src/lib/suburbCoords.ts`, so the shape on the screen is
+the shape of the run; each suburb's pool is sized by the square root of its
+share, so area tracks job count rather than radius. No roads and no coastline —
+the design sketches both, and either would have to be drawn from memory, which
+is the sort of thing a room in Pakenham notices. A suburb with no coordinate on
+file is named under the map rather than dropped.
 
 ### The dials
 
@@ -364,7 +381,10 @@ earlier draft carried were removed rather than shipped blank:
 |---|---|
 | Average time to first call | Nothing writes `first_contacted_at` or `handled_at`. Every row is null, so the figure would be permanently `—`. |
 | Leads not yet called | Same columns. It would read "30 uncontacted" for leads that *have* been called but never recorded, which is worse than no tile. |
-| Job value by suburb | ServiceTitan returns a location id on `st_jobs` rather than an address, and the board doesn't resolve it. The Areas map is built from the postcode on each website lead instead, which is lead count, not dollars — so the card says "leads", not "jobs". |
+| Booking rate | Needs the calls behind it, which sit in ServiceTitan's Telecom scope. That is not granted, so the tile read `—` from the day it was added until the day it was removed. A tile that has never once shown a number is not holding a place, it is taking one. |
+| Cancel rate | Cancellations are not pulled from ServiceTitan at all. Same reasoning. |
+| Calls per person, on Team | Same Telecom scope. The column showed a dash for every person on the wall. |
+| Best conversion by suburb | The design's third Areas card. Estimates carry no suburb, so quotes cannot be divided by place — only completed jobs can. Highest ticket and best average ticket are both on there; conversion is not. |
 
 Both become possible the moment the portal stamps a contact time; the columns
 already exist. Until then the slot holds **what they're asking for**, a breakdown
@@ -374,6 +394,14 @@ by requested service, which every lead does carry.
 lead and `suburb` on none, so the board maps the postcode to a suburb name via
 `src/lib/suburbs.ts` and falls back to the bare postcode for anywhere outside the
 service area. If the form starts capturing a suburb, that value wins automatically.
+
+**Job value by suburb now works.** `st_jobs` carries `suburb`, `postcode` and
+`total`, so the Areas page reports jobs, revenue and average ticket per place
+off completed jobs — thousands of rows — rather than off the thirty-odd website
+leads the map used to be drawn from. Best average ticket is restricted to
+suburbs with at least three jobs: one $15,000 job in a suburb that has had one
+job is not an average, it is that job, and on a wall it reads as a place worth
+chasing.
 
 ## Verify the ServiceTitan field mapping
 
@@ -405,6 +433,14 @@ on the invoice export payload and needs pulling from invoice line items.
 Changes made after the board was read back to us and the numbers were not
 believed. Each is here because a figure that gets argued with once stops being
 looked at afterwards.
+
+**The year is summed the same way the month is.** `revenueInvoicedYtd` is the
+sum of `st_invoices.total` since the goal's year started — the identical query
+to the month's, from a different date. `revenueYearByNow` is the goal's own
+month shape, plus the elapsed part of the current month on calendar days: the
+long view answers "are we on for the three million", and a long weekend does
+not change that answer. Both are null with no year goal set, and the strip says
+so rather than pacing against nothing.
 
 **Jobs completed leads with today, and names the week.** The tile showed the
 week's count on a page headed Today, and thirty jobs since Monday was read as

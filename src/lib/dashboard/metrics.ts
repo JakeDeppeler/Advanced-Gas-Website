@@ -17,6 +17,8 @@ import {
   monthTargetFromYearGoal,
   normaliseBoardSettings,
   pacePerDay,
+  yearByNow,
+  yearStart,
   type CommissionTier,
   type YearGoalShape,
 } from "./boardSettings";
@@ -48,8 +50,13 @@ export type Metrics = {
   leadsPrevWeek: number;
   /** Website leads by suburb. Thirty rows all up, so it is a trickle, not a map. */
   topSuburbs: Array<{ suburb: string; count: number }>;
-  /** Jobs actually done, by suburb. What the heat map on the Areas page draws. */
-  topJobSuburbs: Array<{ suburb: string; count: number }>;
+  /**
+   * Jobs actually done, by suburb — what the heat map on the Areas page draws,
+   * with what the work in each place was worth.
+   */
+  topJobSuburbs: Array<{ suburb: string; count: number; revenue: number; avg: number | null }>;
+  /** The single biggest job completed in the window, and where it was. */
+  highestTicket: { value: number; jobType: string | null; suburb: string | null } | null;
   leadsByService: Array<{ service: string; count: number }>;
 
   jobsCompletedToday: number;
@@ -117,6 +124,22 @@ export type Metrics = {
 
   revenueInvoicedMtd: number;
   revenueTargetMonthly: number | null;
+
+  /**
+   * The year the business is actually driving at — the $3M goal — summed the
+   * same way the month is, off invoice totals since the goal's year started.
+   *
+   * Null throughout when no year goal is set: the strip on the Pace page then
+   * says so rather than pacing the wall against nothing.
+   */
+  revenueInvoicedYtd: number | null;
+  revenueTargetYear: number | null;
+  /** Where the year's target says we should be by today, pro-rata on months. */
+  revenueYearByNow: number | null;
+  /** Jobs completed this year over the weeks elapsed in it. */
+  jobsPerWeek: number | null;
+  /** The month's margin goal: its profit target over its revenue target. */
+  marginGoal: number | null;
   revenuePacePct: number | null;
   soldMtd: number;
   salesTargetMonthly: number | null;
@@ -457,18 +480,29 @@ async function serviceTitanMetrics(now: Date) {
    * whichever couple of suburbs had filled in the web form. Completed jobs carry
    * the same suburb and postcode columns and there are thousands of them.
    */
-  const jobPlaces = await sbSelect<{ suburb: string | null; postcode: string | null }>(
+  const jobPlaces = await sbSelect<{ suburb: string | null; postcode: string | null; total: number | null; job_type: string | null }>(
     "st_jobs",
-    [q.select("suburb,postcode"), q.gte("completed_on", addDays(now, -90).toISOString())].join("&"),
+    [q.select("suburb,postcode,total,job_type"), q.gte("completed_on", addDays(now, -90).toISOString())].join("&"),
   );
 
-  const byJobSuburb = new Map<string, number>();
+  // Count and value together: where the work is, and what it was worth there.
+  // A suburb with four jobs at $3,000 is a different proposition to one with
+  // twenty services, and the map alone cannot say which is which.
+  const byJobSuburb = new Map<string, { count: number; revenue: number }>();
+  let highestTicket: Metrics["highestTicket"] = null;
   for (const j of jobPlaces) {
     const place = j.suburb?.trim() || (j.postcode ? POSTCODE_TO_SUBURB.get(j.postcode.trim()) ?? j.postcode.trim() : null);
-    if (place) byJobSuburb.set(place, (byJobSuburb.get(place) ?? 0) + 1);
+    const value = Number(j.total ?? 0);
+    if (place) {
+      const row = byJobSuburb.get(place) ?? { count: 0, revenue: 0 };
+      byJobSuburb.set(place, { count: row.count + 1, revenue: row.revenue + value });
+    }
+    if (value > 0 && (highestTicket == null || value > highestTicket.value)) {
+      highestTicket = { value, jobType: j.job_type ?? null, suburb: place };
+    }
   }
   const topJobSuburbs = [...byJobSuburb.entries()]
-    .map(([suburb, count]) => ({ suburb, count }))
+    .map(([suburb, r]) => ({ suburb, count: r.count, revenue: r.revenue, avg: r.count > 0 && r.revenue > 0 ? r.revenue / r.count : null }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
@@ -763,6 +797,7 @@ async function serviceTitanMetrics(now: Date) {
     jobsCompletedWeek,
     jobsScheduledNext7,
     topJobSuburbs,
+    highestTicket,
     estimatesStaleCount,
     estimatesStaleValue,
     outstandingDays: OUTSTANDING_DAYS,
@@ -862,7 +897,7 @@ type Targets = {
  * a target the office can set is a target the board can read, with no second
  * definition in between to drift.
  */
-async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: WorkingCalendar }> {
+async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: WorkingCalendar; goal: YearGoalShape | null }> {
   const row = await sbSelectOne<{ value: unknown }>(
     "portal_settings",
     [q.select("value"), q.eq("key", "dashboard")].join("&"),
@@ -877,16 +912,21 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
    * when the goal was set: a figure copied across in October is the wrong figure
    * in November, and nothing on the wall would say so.
    */
-  let revenue = cfg.revenueTargetMonthly;
-  if (cfg.revenueFromYearGoal) {
-    const goal = await sbSelectOne<{ value: YearGoalShape }>(
+  // Read once whether or not the month's target is driven off it: the Pace
+  // page's year strip needs it either way.
+  const goal = (
+    await sbSelectOne<{ value: YearGoalShape }>(
       "portal_settings",
       [q.select("value"), q.eq("key", "yeargoal")].join("&"),
-    ).catch(() => null);
+    ).catch(() => null)
+  )?.value ?? null;
+
+  let revenue = cfg.revenueTargetMonthly;
+  if (cfg.revenueFromYearGoal) {
     // Null when the goal is unset or has run out of year, and null blanks the
     // figure. Better an admitted gap than pacing the wall against a year that
     // finished in June.
-    revenue = monthTargetFromYearGoal(goal?.value ?? null, isoDateMelbourne(now).slice(0, 7));
+    revenue = monthTargetFromYearGoal(goal, isoDateMelbourne(now).slice(0, 7));
   }
 
   return {
@@ -898,6 +938,7 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
       tiers: cfg.commissionTiers,
     },
     calendar: { days: cfg.workingDays, holidays: cfg.holidays },
+    goal,
   };
 }
 
@@ -986,6 +1027,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       // next week's bookings, and zero would claim it does.
       jobsScheduledNext7: prev?.jobsScheduledNext7 ?? null,
       topJobSuburbs: prev?.topJobSuburbs ?? [],
+      highestTicket: prev?.highestTicket ?? null,
       estimatesStaleCount: prev?.estimatesStaleCount ?? 0,
       estimatesStaleValue: prev?.estimatesStaleValue ?? 0,
       outstandingDays: prev?.outstandingDays ?? 30,
@@ -1051,10 +1093,39 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   // A settings read that fails must not blank every target on the wall, so it
   // degrades to "nothing configured" and the default calendar, which the board
   // already renders as an admitted gap rather than as a zero.
-  const { targets, calendar } = await boardConfig(now).catch(() => ({
+  const { targets, calendar, goal } = await boardConfig(now).catch(() => ({
     targets: { revenue: null, sales: null, profit: null, bookings: null, tiers: [] } as Targets,
     calendar: DEFAULT_WORKING_CALENDAR,
+    goal: null as YearGoalShape | null,
   }));
+
+  /**
+   * The year, summed the same way the month is.
+   *
+   * One extra read, and only when a goal exists — with no goal there is nothing
+   * to pace against and the strip on the wall says so instead of showing a
+   * running total nobody set a target for.
+   */
+  const yFrom = yearStart(goal);
+  let revenueInvoicedYtd: number | null = null;
+  let jobsPerWeek: number | null = null;
+  if (yFrom) {
+    const yearInvoices = await sbSelect<{ total: number | null }>(
+      "st_invoices",
+      [q.select("total"), q.gte("invoice_date", yFrom)].join("&"),
+    ).catch(() => null);
+    // A failed read keeps the last good figure rather than blanking the
+    // strip — the same rule every other source on this board follows.
+    revenueInvoicedYtd = yearInvoices
+      ? yearInvoices.reduce((a, i) => a + Number(i.total ?? 0), 0)
+      : previous?.metrics.revenueInvoicedYtd ?? null;
+
+    const yearJobs = await sbCount("st_jobs", q.gte("completed_on", `${yFrom}T00:00:00.000Z`)).catch(() => null);
+    const weeks = Math.max(1, (Date.parse(isoDateMelbourne(now)) - Date.parse(yFrom)) / (7 * 86_400_000));
+    jobsPerWeek = yearJobs != null ? Math.round(yearJobs / weeks) : previous?.metrics.jobsPerWeek ?? null;
+  }
+  const marginGoal =
+    targets.profit && targets.revenue && targets.revenue > 0 ? targets.profit / targets.revenue : null;
   const days = workingDaysInMonth(now, calendar);
 
   // The arithmetic lives in boardSettings.ts so the portal's editor can preview
@@ -1094,6 +1165,11 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       bookingsPacePct: bookings.pacePct,
       revenueTargetMonthly: targets.revenue,
       revenuePacePct: revenue.pacePct,
+      revenueInvoicedYtd,
+      revenueTargetYear: goal && goal.revenue > 0 ? goal.revenue : null,
+      revenueYearByNow: yearByNow(goal, isoDateMelbourne(now)),
+      jobsPerWeek,
+      marginGoal,
       dailyTarget: revenue.daily,
       aheadBehind: revenue.aheadBehind,
       salesTargetMonthly: targets.sales,

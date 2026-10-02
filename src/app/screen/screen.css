@@ -64,7 +64,8 @@ body:has(.screen) .utilbar {
   display: flex;
   align-items: baseline;
   gap: 0.9vw;
-  padding: 1.3vw 2.2vw 0.9vw;
+  padding: 1.3vw 2.2vw 0.75vw;
+  flex: none;
 }
 
 .screen__title {
@@ -83,63 +84,57 @@ body:has(.screen) .utilbar {
   text-overflow: ellipsis;
 }
 
-.screen__tabs {
+/* Six dashes, right of the title: where the board is up to in its cycle,
+   answerable without reading. The strip of six page names it replaced asked
+   the room to read all six to find the filled one. */
+.screen__pager {
   margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.35vw;
   flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.45vw;
 }
 
-.screen__tab {
-  padding: 0.45vw 1.05vw;
+.screen__dashes { display: flex; align-items: center; gap: 0.45vw; }
+.screen__dash {
+  width: 1.5vw;
+  height: 0.28vw;
   border-radius: 999px;
-  font-size: 0.95vw;
-  font-weight: 600;
+  background: #d9d3c3;
+}
+.screen__dash.is-on {
+  width: 2.9vw;
+  background: var(--navy);
+}
+
+.screen__pagertxt {
+  font-size: 0.82vw;
+  font-weight: 700;
   color: var(--ink-2);
   white-space: nowrap;
 }
-.screen__tab.is-on {
-  background: var(--navy);
-  color: #fff;
-}
 
-/* The page countdown. Reads as a clock hand sweeping away, so the room can see
-   a page is about to turn rather than being surprised by it. */
-.screen__timer {
-  width: 1.8vw;
-  height: 1.8vw;
+/* The rule under the header, doing two jobs: it separates the header from the
+   body, and its orange run is how far through the six pages the board is. */
+.screen__rule {
+  margin: 0 2.2vw;
+  height: 0.16vw;
+  border-radius: 999px;
+  background: var(--hairline);
   flex: none;
-  margin-left: 0.9vw;
 }
-.screen__timer svg {
-  width: 100%;
+.screen__rule > span {
+  display: block;
   height: 100%;
-  transform: rotate(-90deg);
+  border-radius: 999px;
+  background: var(--accent);
+  /* Slides rather than jumping, which is the only motion left in the header
+     now the sweeping ring has gone. */
+  transition: width 420ms ease;
 }
-.screen__timer circle {
-  fill: none;
-  stroke-width: 4;
-}
-.screen__timer-track { stroke: var(--track); }
-.screen__timer-hand {
-  stroke: var(--accent);
-  stroke-linecap: round;
-  /* 2πr at r=10. The dash is the whole circumference, so offsetting it by the
-     same amount empties the ring exactly as the page expires. */
-  stroke-dasharray: 62.83;
-  animation: page-countdown var(--page-ms, 20000ms) linear forwards;
-}
-
-@keyframes page-countdown {
-  from { stroke-dashoffset: 0; }
-  to { stroke-dashoffset: 62.83; }
-}
-
-/* A slow linear sweep is information, not decoration, so it stays — but it
-   stops being the thing that draws the eye. */
 @media (prefers-reduced-motion: reduce) {
-  .screen__timer-hand { animation-timing-function: steps(4, end); }
+  .screen__rule > span { transition: none; }
 }
 
 /* -------------------------------------------------------------------- body */
@@ -148,18 +143,21 @@ body:has(.screen) .utilbar {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 0.95vw;
-  padding: 0.3vw 2.2vw 1vw;
+  padding: 1vw 2.2vw 1vw;
   min-height: 0;
   grid-auto-rows: minmax(0, 1fr);
 }
 
 /* Each page wants its own vertical proportions. */
-.screen__grid--today { grid-template-rows: 1.55fr 1.1fr 0.78fr 0.95fr; }
-.screen__grid--pace { grid-template-rows: 0.62fr 2.3fr; }
-.screen__grid--quotes { grid-template-rows: repeat(3, 1fr); }
+.screen__grid--today { grid-template-rows: 1.25fr 1fr; }
+.screen__grid--pace {
+  grid-template-columns: 7.5vw repeat(12, 1fr);
+  grid-template-rows: 0.72fr 1.75fr 0.62fr;
+}
+.screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--team { grid-template-rows: 1fr; }
-.screen__grid--perf { grid-template-rows: auto 1fr; }
-.screen__grid--areas { grid-template-rows: auto auto 1fr; }
+.screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
+.screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
 
 .tile {
   display: flex;
@@ -429,7 +427,7 @@ body:has(.screen) .utilbar {
 .tbl__head,
 .tbl__row {
   display: grid;
-  grid-template-columns: 2.2vw 11vw repeat(3, 1fr) 6vw 15vw;
+  grid-template-columns: 2.2vw 12vw repeat(3, 1fr) 17vw;
   align-items: center;
   gap: 1vw;
   padding: 0.5vw 1vw;
@@ -470,32 +468,91 @@ body:has(.screen) .utilbar {
 .tbl__fig span { font-size: 0.86vw; color: var(--ink-muted); }
 
 .tiers { display: flex; flex-direction: column; gap: 0.35vw; }
-.tiers__bar { display: flex; gap: 0.3vw; }
-.tiers__seg { height: 0.45vw; flex: 1; border-radius: 999px; background: var(--track); }
-.tiers__seg.is-on { background: var(--navy); }
-.tiers__seg.is-on-leader { background: var(--accent); }
+.tiers__bar {
+  height: 0.55vw;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: hidden;
+}
+.tiers__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--navy);
+}
+.tiers__fill.is-leader { background: var(--accent); }
+
 .tiers__note { font-size: 0.88vw; color: var(--ink-muted); }
 .tiers__note--leader { color: var(--accent); font-weight: 700; }
 
 /* ---------------------------------------------------------------- heat map */
 .heat {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.2vw, 1fr));
-  gap: 0.75vw;
-  align-content: center;
+  position: relative;
   flex: 1;
+  min-height: 0;
+  margin-top: 0.6vw;
+  border-radius: 0.9vw;
+  background: #f1ece0;
+  overflow: hidden;
+  /* The blobs bleed past the box; the box is what clips them. */
+  isolation: isolate;
 }
 
-.heat__cell {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0.85vw 0.95vw;
-  border-radius: 0.9vw;
-  aspect-ratio: 4 / 5;
+/* One soft pool of orange per suburb, sized by the square root of its share so
+   area tracks the count rather than radius. */
+.heat__blob {
+  position: absolute;
+  width: var(--r);
+  height: var(--r);
+  margin: calc(var(--r) / -2) 0 0 calc(var(--r) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 103, 34, var(--o)) 0%, rgba(244, 103, 34, 0) 70%);
+  pointer-events: none;
 }
-.heat__name { font-size: 0.95vw; font-weight: 600; }
-.heat__jobs { font-size: 2vw; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+
+.heat__pin {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.45vw;
+  transform: translate(-0.35vw, -50%);
+  white-space: nowrap;
+}
+/* Near the right edge the label sits to the left of its dot instead. */
+.heat__pin.is-flip { flex-direction: row-reverse; transform: translate(calc(-100% + 0.35vw), -50%); }
+.heat__dot {
+  width: 0.55vw;
+  height: 0.55vw;
+  flex: none;
+  border-radius: 50%;
+  background: var(--navy);
+}
+.heat__tag {
+  padding: 0.22vw 0.7vw;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--navy);
+  font-size: 0.95vw;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(5, 10, 48, 0.12);
+}
+.heat__tag b { color: var(--accent); margin-left: 0.15vw; }
+/* The busiest suburb inverts, so the one place the room looks first is the one
+   the map is loudest about. */
+.heat__pin.is-lead .heat__tag { background: var(--navy); color: #fff; }
+.heat__pin.is-lead .heat__tag b { color: #ff9a62; }
+
+.heat__none { color: var(--ink-2); font-size: 1.05vw; }
+
+/* Suburbs with no coordinate on file. Named rather than dropped: their jobs
+   happened whether or not the map knows where they are. */
+.heat__off {
+  position: absolute;
+  left: 1vw;
+  bottom: 0.7vw;
+  font-size: 0.9vw;
+  color: var(--ink-2);
+}
 
 .heat__legend {
   display: flex;
@@ -508,7 +565,7 @@ body:has(.screen) .utilbar {
   width: 9vw;
   height: 0.45vw;
   border-radius: 999px;
-  background: linear-gradient(90deg, #e2e0dd, #050a30);
+  background: linear-gradient(90deg, #f6e4d7, var(--accent));
 }
 
 /* ------------------------------------------------------------------ footer */
@@ -666,4 +723,182 @@ body:has(.screen) .utilbar {
 .screen--dark .screen__tab.is-on { background: var(--ink); color: #0d0d0d; }
 .screen--dark .gauge__fill { stroke: #6f8fd6; }
 .screen--dark .celebrate__card { background: #15224f; }
-.screen--dark .heat__ramp { background: linear-gradient(90deg, #2b2b2f, #8fa9e8); }
+.screen--dark .heat__ramp { background: linear-gradient(90deg, #3a2a20, #ff9a62); }
+
+
+/* ------------------------------------------------- /05 the job-type table */
+/* One row per kind of work, with the month's margin goal drawn on every bar so
+   the question "is this one paying?" is answered without arithmetic. */
+.jt { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+.jt__head,
+.jt__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) 4.5vw 7.5vw 7vw minmax(0, 1.5fr) 4.5vw;
+  align-items: center;
+  gap: 1.2vw;
+}
+
+.jt__head {
+  padding-bottom: 0.7vw;
+  font-size: 0.86vw;
+  color: var(--ink-2);
+}
+.jt__head > span:nth-child(2),
+.jt__head > span:nth-child(3),
+.jt__head > span:nth-child(4) { text-align: right; }
+
+.jt__row {
+  flex: 1;
+  min-height: 0;
+  border-top: 1px solid var(--hairline);
+}
+
+.jt__name {
+  font-size: 1.22vw;
+  font-weight: 700;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jt__n {
+  text-align: right;
+  font-size: 1.22vw;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.jt__bar {
+  position: relative;
+  height: 0.62vw;
+  border-radius: 999px;
+  background: var(--track);
+  overflow: visible;
+}
+.jt__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+}
+/* Teal at or above the goal, orange below. The written percentage beside it
+   carries the same message, so the colour is never the only signal. */
+.jt__fill.is-over { background: var(--ahead-ink); }
+.jt__fill.is-under { background: var(--accent); }
+
+/* The goal, at the midpoint of a track scaled to twice it. */
+.jt__goal {
+  position: absolute;
+  left: 50%;
+  top: -0.28vw;
+  bottom: -0.28vw;
+  width: 0.14vw;
+  border-radius: 999px;
+  background: var(--navy);
+}
+
+.jt__pct {
+  text-align: right;
+  font-size: 1.35vw;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.jt__pct.is-over { color: var(--ahead-ink); }
+.jt__pct.is-under { color: var(--accent); }
+.jt__marginhead { font-size: 0.86vw; }
+
+/* ------------------------------------------------------- head & hero cards */
+.tile--head { justify-content: center; gap: 0.3vw; }
+.tile--head .tile__value { font-size: 2.5vw; line-height: 1.05; }
+.tile__suffix {
+  font-style: normal;
+  font-size: 1.15vw;
+  font-weight: 800;
+  margin-left: 0.35vw;
+  opacity: 0.85;
+}
+.tile__foot {
+  margin-top: auto;
+  font-size: 0.95vw;
+  color: var(--ink-2);
+}
+.tile--navy .tile__foot { color: rgba(255, 255, 255, 0.72); }
+.tile--navy .tile__suffix { color: #fff; }
+
+
+/* The hero figure sits between its label and its footnote rather than under
+   the label with the rest of the card empty below it. */
+.tile--hero { justify-content: flex-start; }
+.tile--hero .tile__value--hero { margin: auto 0; }
+
+
+/* ------------------------------------------------------------- /02 Pace */
+/* The band name in the left margin. "63%" means three different things on this
+   page; the row it sits in is what says which. */
+.band {
+  grid-column: 1;
+  align-self: center;
+  font-size: 1.35vw;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.band--today { grid-row: 1; }
+.band--month { grid-row: 2; }
+.band--year { grid-row: 3; }
+
+/* On Pace every card sits in the 12 columns to the right of the band names. */
+.screen__grid--pace .c3 { grid-column: span 3; }
+.screen__grid--pace .c4 { grid-column: span 4; }
+
+/* The year, as one strip. */
+.year {
+  grid-column: 2 / span 12;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 11vw 9vw;
+  align-items: center;
+  gap: 2vw;
+  padding: 1.1vw 1.6vw;
+  border-radius: 1vw;
+  background: var(--navy);
+  color: #fff;
+}
+.year__none { grid-column: 1 / -1; font-size: 1.1vw; color: rgba(255, 255, 255, 0.78); }
+
+.year__main { display: flex; flex-direction: column; gap: 0.6vw; min-width: 0; }
+.year__nums { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5vw; }
+.year__have { font-size: 1.35vw; font-weight: 800; font-variant-numeric: tabular-nums; }
+.year__have em { font-style: normal; font-weight: 500; color: rgba(255, 255, 255, 0.72); }
+.year__bynow { font-size: 1.1vw; font-weight: 700; color: rgba(255, 255, 255, 0.82); }
+/* Behind its own pace is the one thing on this strip worth a colour. */
+.year__bynow.is-behind { color: var(--accent); }
+
+.year__track {
+  position: relative;
+  height: 0.75vw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.year__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  /* The orange that reads on navy — #f46722 on #050a30 is under 3:1. */
+  background: #ff9a62;
+}
+.year__mark {
+  position: absolute;
+  top: -0.3vw;
+  bottom: -0.3vw;
+  width: 0.2vw;
+  margin-left: -0.1vw;
+  border-radius: 999px;
+  background: #fff;
+}
+
+.year__side { display: flex; flex-direction: column; gap: 0.15vw; }
+.year__k { font-size: 0.92vw; color: rgba(255, 255, 255, 0.7); }
+.year__v { font-size: 1.9vw; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.year__v em { font-style: normal; font-size: 1vw; font-weight: 700; color: rgba(255, 255, 255, 0.7); }
