@@ -152,7 +152,17 @@ been writing to it since migration `0019`; the dashboard only reads it.
 
 ### 3. Revenue target and working calendar
 
-The daily numbers need their monthly targets and a definition of a working day:
+**Set the four monthly targets and the commission tiers in the portal**, at
+**Finance → Wall board** (`/portal/finance/board`). That writes the same
+`portal_settings` row the SQL below describes, merging rather than replacing, so
+it leaves the working calendar alone. Anyone with the `overhead` capability can
+change a target without needing a database client, which is the point: the board
+is read by people who cannot edit it, and the number it measures against should
+not need an engineer.
+
+The SQL is kept here for the first install and for the working calendar, which
+the portal page deliberately does not expose — holidays change once a year and a
+form for them would be a form nobody remembers how to use.
 
 ```sql
 insert into portal_settings (key, value)
