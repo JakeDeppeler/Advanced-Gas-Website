@@ -82,6 +82,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
       { href: "/portal/finance/capacity", label: "Costs & capacity" },
       { href: "/portal/finance/leads", label: "Website leads" },
       { href: "/portal/finance/targets", label: "Targets" },
+      { href: "/portal/finance/board", label: "Wall board" },
       // Quotes & win rate is not a sibling any more. It is a question about
       // work that has not happened yet — what is out, what comes back — which
       // is the same question Future planning asks, so it is a tab inside it.
