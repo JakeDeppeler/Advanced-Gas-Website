@@ -1,0 +1,120 @@
+name: Pricebook sync
+
+# Reece maX → ServiceTitan pricebook.
+#
+# Nightly: pull the maX catalogue (a no-op until Reece credentials are set) and
+# run a dry run against the ServiceTitan pricebook, so the morning's summary
+# page shows what an apply would change. Nothing is written to ServiceTitan on
+# the schedule. Writes happen only from a manual run with "apply" ticked.
+#
+# Actions tab → Pricebook sync → Run workflow. Uses the same two repository
+# secrets as the dashboard sync (DASHBOARD_SYNC_URL and CRON_SECRET).
+
+on:
+  schedule:
+    # 18:00 UTC = 04:00 AEST / 05:00 AEDT, after Reece's overnight price updates.
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Write the planned changes to the ServiceTitan pricebook"
+        type: boolean
+        default: false
+      limit:
+        description: "Maximum changes to write in this run (apply only)"
+        type: string
+        default: "100"
+      reset_catalogue:
+        description: "Re-pull the maX catalogue from the first page"
+        type: boolean
+        default: false
+      url:
+        description: "Site to run against (default: the DASHBOARD_SYNC_URL host). Set to a Vercel preview URL to test a branch."
+        type: string
+        required: false
+
+concurrency:
+  group: pricebook-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Pull catalogue and plan the pricebook sync
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APPLY: ${{ inputs.apply && '1' || '' }}
+          LIMIT: ${{ inputs.limit || '100' }}
+          RESET: ${{ inputs.reset_catalogue && '1' || '' }}
+          URL_OVERRIDE: ${{ inputs.url }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SYNC_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the DASHBOARD_SYNC_URL and CRON_SECRET repository secrets first."
+            exit 1
+          fi
+
+          # Trimmed as in the other workflows: whitespace in a pasted secret is
+          # invisible and fails with an error that names nothing.
+          SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
+          BASE="${BASE%/}"
+          auth=(-H "Authorization: Bearer ${CRON_SECRET}")
+
+          # 1. Catalogue pull. Paged and capped per call, so loop until the
+          #    endpoint reports exhausted (or says it is skipped).
+          url="${BASE}/api/reece/catalogue"
+          [ -n "$RESET" ] && url="${url}?reset=1"
+          for i in $(seq 1 30); do
+            curl --fail-with-body -sS --max-time 120 "${auth[@]}" "$url" > catalogue.json
+            jq -c . catalogue.json
+            status=$(jq -r '.status // "ok"' catalogue.json)
+            exhausted=$(jq -r '.exhausted // true' catalogue.json)
+            [ "$status" = "skipped" ] && break
+            [ "$exhausted" = "true" ] && break
+            url="${BASE}/api/reece/catalogue"
+          done
+
+          # 2. Plan (and optionally apply) against the ServiceTitan pricebook.
+          if [ -n "$APPLY" ]; then
+            curl --fail-with-body -sS --max-time 120 "${auth[@]}" \
+              "${BASE}/api/pricebook/sync?apply=1&limit=${LIMIT}" > sync.json
+          else
+            curl --fail-with-body -sS --max-time 120 "${auth[@]}" \
+              "${BASE}/api/pricebook/sync" > sync.json
+          fi
+
+          JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
+          {
+            echo "## Pricebook sync — $(jq -r .mode sync.json)"
+            echo
+            echo "Catalogue pull: $(jq -r '.status // "ok"' catalogue.json) $(jq -r '.reason // ""' catalogue.json)"
+            echo
+            echo "| Supplier items | Materials | Matched | To update | To create | Unchanged | Not in pricebook | No cost | Missing in supplier |"
+            echo "|---|---|---|---|---|---|---|---|---|"
+            jq -r '.summary | "| \(.supplierItems) | \(.materials) | \(.matched) | \(.toUpdate) | \(.toCreate) | \(.unchanged) | \(.unmatchedNotCreated) | \(.noCost) | \(.missingInSupplier) |"' sync.json
+            echo
+            if [ -n "$APPLY" ]; then
+              echo "**Applied $(jq -r .applied sync.json), verified $(jq -r .verified sync.json), failed $(jq -r '.failed | length' sync.json), remaining $(jq -r .remaining sync.json).**"
+              echo
+              if [ "$(jq -r '.failed | length' sync.json)" != "0" ]; then
+                echo "| Code | Material | Error |"
+                echo "|---|---|---|"
+                jq -r "${JQ_DEFS}"'.failed[] | "| \(.code|e) | \(.materialId|e) | \(.error|e) |"' sync.json
+                echo
+              fi
+            else
+              echo "First 50 planned changes (dry run — nothing written):"
+              echo
+              echo "| Action | Reece code | Material | Description | Cost before → after | Price before → after |"
+              echo "|---|---|---|---|---|---|"
+              jq -r "${JQ_DEFS}"'.changes[:50][] | "| \(.action|e) | \(.code|e) | \(.materialCode|e) | \(.description|e) | \(.before.cost|e) → \(.after.cost|e) | \(.before.price|e) → \(.after.price|e) |"' sync.json
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          jq . sync.json
+          [ "$(jq -r .ok sync.json)" = "true" ]

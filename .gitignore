@@ -8,3 +8,6 @@ out
 .vercel
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Reece price files (trade pricing — keep out of git)
+data/

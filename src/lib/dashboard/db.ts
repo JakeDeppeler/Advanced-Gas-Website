@@ -109,6 +109,19 @@ export async function sbInsert(table: string, row: Row): Promise<void> {
   }
 }
 
+/** PATCH every row matching the filter query. */
+export async function sbUpdate(table: string, query: string, patch: Row): Promise<void> {
+  const res = await sb(`${table}?${query}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=minimal" },
+    body: JSON.stringify(patch),
+  });
+  if (!res) return;
+  if (!res.ok) {
+    throw new Error(`${table} update failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+}
+
 export async function sbRpc(fn: string, args: Row = {}): Promise<void> {
   const res = await sb(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
   if (!res) return;
