@@ -98,6 +98,27 @@ const RESOURCES: ResourceSpec[] = [
     }),
   },
   {
+    // Telecom sits behind its own scope. If it isn't granted the export 403s,
+    // which the per-resource catch below records as an error against this one
+    // resource — the rest of the sync still completes.
+    resource: "calls",
+    module: "telecom",
+    table: "st_calls",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      agent: str(pick(r, "agentName", "agent", "userName")),
+      agent_id: num(pick(r, "agentId", "userId")),
+      direction: str(pick(r, "direction", "callDirection")),
+      outcome: str(pick(r, "callType", "outcome", "status")),
+      duration_seconds: num(pick(r, "duration", "durationSeconds")),
+      customer_id: num(r.customerId),
+      campaign: str(pick(r, "campaignName", "campaign")),
+      received_on: ts(pick(r, "receivedOn", "createdOn", "startedOn")),
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
     resource: "leads",
     module: "crm",
     table: "st_leads",

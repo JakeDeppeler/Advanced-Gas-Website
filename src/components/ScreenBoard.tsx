@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
+import { Gauge } from "./screen/Gauge";
+import { Celebration, type Sale } from "./screen/Celebration";
 
 type Snapshot = {
   computedAt: string;
@@ -14,7 +16,7 @@ type Snapshot = {
 // location.reload(); swapping state in place does neither.
 const REFRESH_MS = 30_000;
 const PAGE_MS = 20_000;
-const PAGES = ["Today", "Performance"] as const;
+const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance"] as const;
 
 const money = (n: number | null | undefined) => {
   if (n == null) return "—";
@@ -41,10 +43,23 @@ const signed = (n: number | null | undefined) =>
 
 const count = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("en-AU"));
 
-export function ScreenBoard({ initial, token }: { initial: Snapshot; token: string }) {
+export function ScreenBoard({
+  initial,
+  token,
+  theme = "dark",
+}: {
+  initial: Snapshot;
+  token: string;
+  theme?: "dark" | "light";
+}) {
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
   const [page, setPage] = useState(0);
+  const [queue, setQueue] = useState<Sale[]>([]);
+
+  // Seeded from the first snapshot so the board doesn't open by cheering every
+  // sale already on the books.
+  const seen = useRef<Set<number>>(new Set(initial.metrics.recentSales?.map((s) => s.id) ?? []));
 
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 30_000);
@@ -63,7 +78,13 @@ export function ScreenBoard({ initial, token }: { initial: Snapshot; token: stri
         const res = await fetch(`/api/screen?k=${encodeURIComponent(token)}`, { cache: "no-store" });
         if (!res.ok) return; // keep the last good numbers on screen
         const next = (await res.json()) as Snapshot;
-        if (!cancelled) setSnap(next);
+        if (cancelled) return;
+
+        const fresh = (next.metrics.recentSales ?? []).filter((s) => !seen.current.has(s.id));
+        for (const s of fresh) seen.current.add(s.id);
+        if (fresh.length) setQueue((qd) => [...qd, ...fresh]);
+
+        setSnap(next);
       } catch {
         // Network blip — the board keeps showing the previous snapshot.
       }
@@ -77,9 +98,18 @@ export function ScreenBoard({ initial, token }: { initial: Snapshot; token: stri
   }, [token]);
 
   const m = snap.metrics;
+  const celebrating = queue[0];
 
   return (
-    <div className="screen">
+    <div className={`screen ${theme === "light" ? "screen--light" : ""}`}>
+      {celebrating && (
+        <Celebration
+          key={celebrating.id}
+          sale={celebrating}
+          onDone={() => setQueue((qd) => qd.slice(1))}
+        />
+      )}
+
       <div className="screen__bar">
         <span className="screen__title">
           Advanced Gas — {PAGES[page]}
@@ -108,7 +138,13 @@ export function ScreenBoard({ initial, token }: { initial: Snapshot; token: stri
         </span>
       </div>
 
-      <div className="screen__grid">{page === 0 ? <TodayPage m={m} /> : <PerformancePage m={m} />}</div>
+      <div className="screen__grid">
+        {page === 0 && <TodayPage m={m} />}
+        {page === 1 && <PacePage m={m} />}
+        {page === 2 && <QuotesPage m={m} />}
+        {page === 3 && <TeamPage m={m} />}
+        {page === 4 && <PerformancePage m={m} />}
+      </div>
     </div>
   );
 }
@@ -163,7 +199,7 @@ function TodayPage({ m }: { m: Metrics }) {
           this is measured rather than inferred — unlike a response-time tile,
           which would need a contact timestamp nothing currently writes. */}
       <div className="tile tile--wide">
-        <span className="tile__label">What they're asking for · last 30 days</span>
+        <span className="tile__label">What they&apos;re asking for · last 30 days</span>
         {m.leadsByService.length === 0 ? (
           <span className="tile__sub">No leads in the last 30 days</span>
         ) : (
@@ -182,11 +218,272 @@ function TodayPage({ m }: { m: Metrics }) {
       </div>
 
       <Tile label="Jobs completed" value={count(m.jobsCompletedWeek)} sub="this week" />
-
       <Tile label="Booked" value={count(m.jobsScheduledNext7)} sub="next 7 days" />
-
       <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
 
+      <Tile
+        label="Overdue"
+        value={money(m.overdueTotal)}
+        state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
+        sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
+      />
+    </>
+  );
+}
+
+/** Four gauges, one per thing the month is judged on. */
+function PacePage({ m }: { m: Metrics }) {
+  return (
+    <>
+      <Gauge
+        label="Revenue invoiced"
+        value={money(m.revenueInvoicedMtd)}
+        pacePct={m.revenuePacePct}
+        target={m.revenueTargetMonthly ? money(m.revenueTargetMonthly) : null}
+      />
+      <Gauge
+        label="Sold"
+        value={money(m.soldMtd)}
+        pacePct={m.salesPacePct}
+        target={m.salesTargetMonthly ? money(m.salesTargetMonthly) : null}
+      />
+      <Gauge
+        label="Gross profit"
+        value={money(m.profitMtd)}
+        pacePct={m.profitPacePct}
+        target={m.profitTargetMonthly ? money(m.profitTargetMonthly) : null}
+        footnote={
+          m.profitCoverage >= 0.99
+            ? undefined
+            : `cost on ${Math.round(m.profitCoverage * 100)}% of invoices`
+        }
+      />
+      <Gauge
+        label="Jobs booked"
+        value={count(m.bookingsMonth)}
+        pacePct={m.bookingsPacePct}
+        target={m.bookingsTargetMonthly ? count(m.bookingsTargetMonthly) : null}
+      />
+
+      <div className="tile tile--wide">
+        <span className="tile__label">How to read these</span>
+        <span className="tile__sub tile__sub--body">
+          Each dial compares the month so far against where it should be by now, counted in
+          <b> working days elapsed</b>, not calendar days. The needle sits in <b>behind</b>, <b>on track</b>
+{" "}
+          or <b>ahead</b>, and every dial says which in words — the zones sit in the same order on all
+          four, so the needle&apos;s position tells you as much as the colour does.
+        </span>
+      </div>
+
+      <Tile label="Working days left" value={count(m.workingDaysLeft)} sub={`of ${m.workingDaysTotal} this month`} />
+      <Tile label="Close rate" value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`} sub="last 30 days" />
+      <Tile label="Sold today" value={plain(m.soldToday)} sub="value of quotes closed" />
+      <Tile label="Invoiced today" value={plain(m.revenueToday)} sub="billed today" />
+      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
+      <Tile
+        label="Overdue"
+        value={money(m.overdueTotal)}
+        state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
+        sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
+      />
+    </>
+  );
+}
+
+/** The quote funnel: written, still out, closed. */
+function QuotesPage({ m }: { m: Metrics }) {
+  return (
+    <>
+      <div className="tile tile--wide">
+        <span className="tile__label">Quotes written today</span>
+        <span className="tile__value tile__value--hero">{plain(m.quotesCreatedTodayValue)}</span>
+        <div className="hero__row">
+          <span className="hero__stat">
+            <b>{count(m.quotesCreatedTodayCount)}</b>
+            <span>quotes today</span>
+          </span>
+          <span className="hero__stat">
+            <b>
+              {money(m.quotesCreatedWeekValue)} · {count(m.quotesCreatedWeekCount)}
+            </b>
+            <span>this week</span>
+          </span>
+          <span className="hero__stat">
+            <b>
+              {money(m.quotesCreatedMonthValue)} · {count(m.quotesCreatedMonthCount)}
+            </b>
+            <span>this month</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="tile tile--wide">
+        <span className="tile__label">Still out there</span>
+        <span className="tile__value tile__value--hero">{money(m.estimatesOpenValue)}</span>
+        <div className="hero__row">
+          <span className="hero__stat">
+            <b>{count(m.estimatesOpenCount)}</b>
+            <span>quotes open</span>
+          </span>
+          <span className="hero__stat">
+            <b>{money(m.soldMtd)}</b>
+            <span>closed this month</span>
+          </span>
+          <span className="hero__stat">
+            <b>{m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`}</b>
+            <span>close rate, 30 days</span>
+          </span>
+        </div>
+      </div>
+
+      <Tile label="Written this week" value={money(m.quotesCreatedWeekValue)} sub={`${count(m.quotesCreatedWeekCount)} quotes`} />
+      <Tile label="Written this month" value={money(m.quotesCreatedMonthValue)} sub={`${count(m.quotesCreatedMonthCount)} quotes`} />
+      <Tile label="Sold this month" value={money(m.soldMtd)} sub="value of quotes closed" />
+      <Tile label="Sold today" value={plain(m.soldToday)} sub="value of quotes closed" />
+
+      <div className="tile tile--wide">
+        <span className="tile__label">Why both halves matter</span>
+        <span className="tile__sub tile__sub--body">
+          A thin pipeline means something different at each end. Little <b>written</b> is a lead or
+          quoting problem; plenty written and little <b>closed</b> is a follow-up problem. Outstanding
+          value on its own can&apos;t tell you which.
+        </span>
+      </div>
+    </>
+  );
+}
+
+/** Per person: calls, what they closed, and how far to the next commission tier. */
+function TeamPage({ m }: { m: Metrics }) {
+  const maxSold = Math.max(1, ...m.salesLeaderboard.map((s) => s.sold));
+  const maxCalls = Math.max(1, ...m.callsByPerson.map((c) => c.month));
+
+  return (
+    <>
+      <div className="tile tile--wide tile--tall">
+        <span className="tile__label">Sold this month</span>
+        {m.salesLeaderboard.length === 0 ? (
+          <span className="tile__sub">No sold quotes recorded this month</span>
+        ) : (
+          <div className="bars bars--money bars--lg">
+            {m.salesLeaderboard.map((s, i) => (
+              <div className="bars__row" key={s.name}>
+                <span className="bars__name">
+                  <span className="bars__rank">{i + 1}. </span>
+                  {s.name}
+                </span>
+                <span className="bars__track">
+                  <span className="bars__fill" style={{ display: "block", width: `${(s.sold / maxSold) * 100}%` }} />
+                </span>
+                <span className="bars__count">{money(s.sold)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <span className="tile__sub">
+          {m.salesLeaderboard[0]?.toNextTier
+            ? `Leader is ${money(m.salesLeaderboard[0].toNextTier)} from the next tier`
+            : "by value of quotes closed"}
+        </span>
+      </div>
+
+      <div className="tile tile--wide tile--tall">
+        <span className="tile__label">Calls this month</span>
+        {m.callsByPerson.length === 0 ? (
+          <span className="tile__sub tile__sub--body">
+            Not connected. Call counts need ServiceTitan&apos;s <b>Telecom</b> scope, which has to be added
+            to the app and re-authorised by the tenant — everything else on this page works without it.
+          </span>
+        ) : (
+          <div className="bars bars--money bars--lg">
+            {m.callsByPerson.map((c) => (
+              <div className="bars__row" key={c.name}>
+                <span className="bars__name">{c.name}</span>
+                <span className="bars__track">
+                  <span className="bars__fill" style={{ display: "block", width: `${(c.month / maxCalls) * 100}%` }} />
+                </span>
+                <span className="bars__count">{c.month}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {m.callsByPerson.length > 0 && (
+          <span className="tile__sub">
+            today {m.callsByPerson.reduce((s, c) => s + c.today, 0)} · this week{" "}
+            {m.callsByPerson.reduce((s, c) => s + c.week, 0)}
+          </span>
+        )}
+      </div>
+
+      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
+      <Tile label="Sold this month" value={money(m.soldMtd)} sub="whole team" />
+      <Tile label="Jobs completed" value={count(m.jobsCompletedWeek)} sub="this week" />
+      <Tile
+        label="Close rate"
+        value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`}
+        sub="quotes written, last 30 days"
+      />
+    </>
+  );
+}
+
+function PerformancePage({ m }: { m: Metrics }) {
+  const jobTypeValue = (t: Metrics["topJobTypes"][number]) =>
+    m.jobTypeBasis === "profit" ? (t.profit ?? 0) : t.revenue;
+  const maxType = Math.max(1, ...m.topJobTypes.map(jobTypeValue));
+  const maxSuburb = Math.max(1, ...m.topSuburbs.map((s) => s.count));
+
+  return (
+    <>
+      <div className="tile tile--wide tile--tall">
+        <span className="tile__label">
+          Top job types · {m.jobTypeBasis === "profit" ? "gross profit" : "revenue"}
+        </span>
+        {m.topJobTypes.length === 0 ? (
+          <span className="tile__sub">No invoiced work in the last 90 days</span>
+        ) : (
+          <div className="bars bars--money bars--lg">
+            {m.topJobTypes.map((t) => (
+              <div className="bars__row" key={t.jobType}>
+                <span className="bars__name">{t.jobType}</span>
+                <span className="bars__track">
+                  <span className="bars__fill" style={{ display: "block", width: `${(jobTypeValue(t) / maxType) * 100}%` }} />
+                </span>
+                <span className="bars__count">{money(jobTypeValue(t))}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <span className="tile__sub">
+          last 90 days
+          {m.jobTypeBasis === "revenue" ? " · no cost data from ServiceTitan, ranked by revenue" : ""}
+        </span>
+      </div>
+
+      <div className="tile tile--wide tile--tall">
+        <span className="tile__label">Top suburbs · last 30 days</span>
+        {m.topSuburbs.length === 0 ? (
+          <span className="tile__sub">No leads recorded yet</span>
+        ) : (
+          <div className="bars bars--lg bars--wide-names">
+            {m.topSuburbs.map((s) => (
+              <div className="bars__row" key={s.suburb}>
+                <span className="bars__name">{s.suburb}</span>
+                <span className="bars__track">
+                  <span className="bars__fill" style={{ display: "block", width: `${(s.count / maxSuburb) * 100}%` }} />
+                </span>
+                <span className="bars__count">{s.count}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <span className="tile__sub">from the postcode on each lead</span>
+      </div>
+
+      <Tile label="Revenue this month" value={money(m.revenueInvoicedMtd)} sub={m.revenueTargetMonthly ? `of ${money(m.revenueTargetMonthly)}` : "no target set"} />
+      <Tile label="Gross profit" value={money(m.profitMtd)} sub={`cost on ${Math.round(m.profitCoverage * 100)}% of invoices`} />
+      <Tile label="Receivables" value={money(m.receivablesTotal)} sub="owed to us" />
       <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
@@ -276,96 +573,6 @@ function HeroTile({
         )}
       </div>
     </div>
-  );
-}
-
-function PerformancePage({ m }: { m: Metrics }) {
-  const maxSold = Math.max(1, ...m.salesLeaderboard.map((s) => s.sold));
-  const jobTypeValue = (t: Metrics["topJobTypes"][number]) =>
-    m.jobTypeBasis === "profit" ? (t.profit ?? 0) : t.revenue;
-  const maxType = Math.max(1, ...m.topJobTypes.map(jobTypeValue));
-  const maxSuburb = Math.max(1, ...m.topSuburbs.map((s) => s.count));
-
-  return (
-    <>
-      <div className="tile tile--wide tile--tall">
-        <span className="tile__label">Sold this month</span>
-        {m.salesLeaderboard.length === 0 ? (
-          <span className="tile__sub">No sold quotes recorded this month</span>
-        ) : (
-          <div className="bars bars--money bars--lg">
-            {m.salesLeaderboard.map((s, i) => (
-              <div className="bars__row" key={s.name}>
-                <span className="bars__name">
-                  <span className="bars__rank">{i + 1}. </span>
-                  {s.name}
-                </span>
-                <span className="bars__track">
-                  <span className="bars__fill" style={{ display: "block", width: `${(s.sold / maxSold) * 100}%` }} />
-                </span>
-                <span className="bars__count">{money(s.sold)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <span className="tile__sub">by value of quotes closed</span>
-      </div>
-
-      <div className="tile tile--wide tile--tall">
-        <span className="tile__label">
-          Top job types · {m.jobTypeBasis === "profit" ? "gross profit" : "revenue"}
-        </span>
-        {m.topJobTypes.length === 0 ? (
-          <span className="tile__sub">No invoiced work in the last 90 days</span>
-        ) : (
-          <div className="bars bars--money bars--lg">
-            {m.topJobTypes.map((t) => (
-              <div className="bars__row" key={t.jobType}>
-                <span className="bars__name">{t.jobType}</span>
-                <span className="bars__track">
-                  <span
-                    className="bars__fill"
-                    style={{ display: "block", width: `${(jobTypeValue(t) / maxType) * 100}%` }}
-                  />
-                </span>
-                <span className="bars__count">{money(jobTypeValue(t))}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <span className="tile__sub">
-          last 90 days
-          {m.jobTypeBasis === "revenue" ? " · no cost data from ServiceTitan, ranked by revenue" : ""}
-        </span>
-      </div>
-
-      <div className="tile tile--wide">
-        <span className="tile__label">Top suburbs · last 30 days</span>
-        {m.topSuburbs.length === 0 ? (
-          <span className="tile__sub">No leads recorded yet</span>
-        ) : (
-          <div className="bars">
-            {m.topSuburbs.map((s) => (
-              <div className="bars__row" key={s.suburb}>
-                <span className="bars__name">{s.suburb}</span>
-                <span className="bars__track">
-                  <span className="bars__fill" style={{ display: "block", width: `${(s.count / maxSuburb) * 100}%` }} />
-                </span>
-                <span className="bars__count">{s.count}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <Tile label="Quotes out" value={money(m.estimatesOpenValue)} sub={`${count(m.estimatesOpenCount)} open`} />
-
-      <Tile
-        label="Close rate"
-        value={m.closeRate30d == null ? "—" : `${Math.round(m.closeRate30d * 100)}%`}
-        sub="quotes written, last 30 days"
-      />
-    </>
   );
 }
 

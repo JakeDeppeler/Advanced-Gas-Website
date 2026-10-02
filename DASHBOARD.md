@@ -26,10 +26,11 @@ that row. Three reasons:
 `st_*` tables keep the raw ServiceTitan payload in a `raw` jsonb column, so new
 tiles can be added — or metrics backfilled — without re-pulling history.
 
-## The two pages
+## The pages
 
-The board cycles every 20 seconds. Past about eight tiles nothing on a 1080p
-panel stays readable from four metres, so it rotates rather than shrinks.
+The board cycles every 20 seconds through five pages. Past about eight tiles
+nothing on a 1080p panel stays readable from four metres, so it rotates rather
+than shrinks.
 
 **Today** leads with two daily numbers, side by side and given equal weight:
 
@@ -45,19 +46,68 @@ the sales week that caused it is already over. Selling is the half the room can
 still act on today; invoicing is the half already committed. The gap between
 them is the pipeline.
 
-Each is recomputed every sync, so a big day visibly lowers tomorrow's bar and a
-slow one raises it. That movement is the point; a static "1/20th of target"
+**Pace** is four dials — revenue, sold, gross profit, jobs booked — each against
+its monthly target.
+
+**Quotes** is the funnel: written today / this week / this month, what is still
+out, and what closed. A thin pipeline means something different at each end.
+Little written is a lead or quoting problem; plenty written and little closed is
+a follow-up problem.
+
+**Team** is per person: what they sold, and how many calls they made. Commission
+is computed but **not shown** — the leaderboard carries sold value and how far
+the leader is from the next tier, so individual pay stays off a screen that
+visitors and the whole office can see.
+
+**Performance** carries top job types over 90 days and top suburbs.
+
+Each number is recomputed every sync, so a big day visibly lowers tomorrow's bar
+and a slow one raises it. That movement is the point; a static "1/20th of target"
 figure doesn't change anyone's afternoon. Today counts as remaining — the crew
 can still sell today.
 
 Pace is measured against **working days elapsed, not calendar days**. Being
 "80% through the month" means nothing if the days left are a long weekend.
 
-Either target can be left unset. The board then blanks that number and says so,
-rather than falling back to a figure nobody agreed to.
+Any target can be left unset. The board then blanks that figure and says so,
+rather than falling back to a number nobody agreed to.
 
-**Performance** carries the leaderboards: who has sold the most this month (by
-value of quotes closed), top job types over 90 days, and top suburbs.
+### The dials
+
+Three zones in a fixed order — behind, on track, ahead — with the needle at the
+current pace. **Colour deliberately does not carry the reading on its own.**
+Red/green/gold is close to the worst case for red-green colour blindness: the
+most separable gold still measures ΔE 5.2 against the green under protanopia,
+which is below the usable floor. So the zone order never changes, the boundaries
+have visible gaps, the active zone is the only one at full weight, and every dial
+states its status in words. Someone who sees no colour difference at all still
+reads it from needle position and text.
+
+### The sale celebration
+
+When a sold quote appears that the board hasn't shown before, a rocket crosses
+the screen with the seller's name and the amount, for seven seconds.
+
+**It is not instant.** The board learns about a sale on the next sync run, so the
+rocket lands within about ten minutes of the quote being closed — not the moment
+it happens. Worth knowing before anyone reads a quiet screen as proof that
+nothing sold.
+
+The screen seeds itself from the first snapshot it loads, so opening the board
+doesn't replay every sale already on the books, and it won't cheer the same sale
+twice. Motion is suppressed under `prefers-reduced-motion`; the name and the
+number still appear, which is the part that matters.
+
+### Light version
+
+```
+/screen?k=<SCREEN_TOKEN>&theme=light
+```
+
+A selected light theme, not an inverted dark one: the status colours and the
+accent are their own steps chosen against a light surface and checked for
+contrast there. The kiosk default stays dark, which is easier on a panel running
+twelve hours a day.
 
 ## Setup
 
@@ -97,6 +147,18 @@ insert into portal_settings (key, value)
 values ('dashboard', jsonb_build_object(
   -- What has to be invoiced in the month. Drives "to invoice per day".
   'revenueTargetMonthly', 240000,
+  -- Gross profit and jobs-booked targets, for their dials on the Pace page.
+  'profitTargetMonthly', 84000,
+  'bookingsTargetMonthly', 60,
+  -- Commission bands, applied marginally: crossing a threshold lifts the rate on
+  -- the amount above it only, never retrospectively on the whole month. A cliff
+  -- would make a single $1 sale worth thousands, which is how a scheme gets gamed.
+  -- `from` is the monthly sold total at which the rate starts.
+  'commissionTiers', jsonb_build_array(
+    jsonb_build_object('from', 0,      'rate', 0.03),
+    jsonb_build_object('from', 50000,  'rate', 0.05),
+    jsonb_build_object('from', 100000, 'rate', 0.07)
+  ),
   -- What has to be SOLD in the month — the value of quotes closed. Drives
   -- "to sell per day". Usually set above the revenue target: not everything
   -- sold this month gets installed and invoiced this month, and the backlog
@@ -167,6 +229,7 @@ Scopes to tick, and what each one is holding up:
 | Accounting | revenue MTD, the daily number, job type profit |
 | Sales & Estimates | quotes open, close rate, who sold the most |
 | CRM | ServiceTitan lead counts |
+| Telecom | calls per person (optional — the rest of the board works without it) |
 
 A missing scope is the most common failure, and it surfaces as a bare `403` on
 whichever call happens to run first — which is why the next step exists rather

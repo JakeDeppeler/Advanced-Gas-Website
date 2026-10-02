@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 export default async function ScreenPage({
   searchParams,
 }: {
-  searchParams: { k?: string };
+  searchParams: { k?: string; theme?: string };
 }) {
   // 404 rather than 401 — an unauthenticated visitor shouldn't learn the route
   // exists at all.
@@ -33,7 +33,13 @@ export default async function ScreenPage({
     return <Message text="No snapshot yet. Run the sync job once to populate the board." />;
   }
 
-  return <ScreenBoard initial={snapshot} token={searchParams.k as string} />;
+  return (
+    <ScreenBoard
+      initial={snapshot}
+      token={searchParams.k as string}
+      theme={searchParams.theme === "light" ? "light" : "dark"}
+    />
+  );
 }
 
 function Message({ text }: { text: string }) {
