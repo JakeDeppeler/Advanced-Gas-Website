@@ -481,9 +481,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
       <div className="tile" style={{ gridColumn: "9 / span 4", gridRow: "1 / span 3" }}>
         <div className="tile__head">
           <span className="tile__title">Still out · largest</span>
-          <span className="tile__sub">
-            {count(m.estimatesOpenCount)} open · {money(m.estimatesOpenValue)}
-          </span>
+          <span className="tile__sub">last 60 days</span>
         </div>
         {m.quotesOutstanding.length === 0 ? (
           <span className="tile__sub">Nothing outstanding</span>
@@ -507,8 +505,20 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
 
 /* ------------------------------------------------------------------- /04 Team */
 function TeamPage({ m, live }: { m: Metrics; live: Live }) {
-  if (!live.st || m.salesLeaderboard.length === 0) {
-    return <NotConnected what="who has sold what" />;
+  if (!live.st) return <NotConnected what="who has sold what" />;
+
+  // Connected, but nothing sold has a seller on it. Saying "not connected"
+  // here sent somebody to check the integration, which was fine.
+  if (m.salesLeaderboard.length === 0) {
+    return (
+      <div className="tile c12 screen__notice">
+        <span className="tile__sub tile__sub--body">
+          No sales this month carry a seller yet. ServiceTitan records who sold a
+          quote on the estimate, so the leaderboard fills as quotes are closed
+          against a named employee.
+        </span>
+      </div>
+    );
   }
 
   const totals = m.salesLeaderboard.reduce(
@@ -716,7 +726,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile" style={{ gridColumn: "1 / span 8", gridRow: "1 / span 2" }}>
         <div className="tile__head">
           <span className="tile__title">Leads by suburb</span>
-          <span className="tile__sub">last 30 days · by lead postcode · not to scale</span>
+          <span className="tile__sub">last 30 days · not to scale</span>
         </div>
         {m.topSuburbs.length === 0 ? (
           <span className="tile__sub">No leads recorded yet</span>
@@ -748,7 +758,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       </div>
 
       <div className="tile tile--navy" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
-        <span className="tile__label">Biggest quote still out</span>
+        <span className="tile__label">Biggest quote still out · 60 days</span>
         <span className={vcls(m.quotesOutstanding[0] ? plain(m.quotesOutstanding[0].value) : NA, "tile__value--hero")}>
           {m.quotesOutstanding[0] ? plain(m.quotesOutstanding[0].value) : NA}
         </span>
@@ -764,7 +774,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile" style={{ gridColumn: "9 / span 4", gridRow: 2 }}>
         <div className="tile__head">
           <span className="tile__title">Still out · oldest</span>
-          <span className="tile__sub">longest since written</span>
+          <span className="tile__sub">last 60 days · longest since written</span>
         </div>
         {oldest.length === 0 ? (
           <span className="tile__sub">Nothing outstanding</span>

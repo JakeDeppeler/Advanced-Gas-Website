@@ -167,7 +167,53 @@ function serviceLabel(raw: string): string {
   return raw.replace(/[-_]+/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
-type LeadRow = { suburb: string | null; postcode: string | null; service: string | null };
+type LeadRow = {
+  suburb: string | null;
+  postcode: string | null;
+  service: string | null;
+  address: string | null;
+};
+
+/** Street-type words, so a formatted address missing its suburb isn't mistaken for one. */
+const STREET_SUFFIX =
+  /\b(road|rd|street|st|drive|dr|way|crescent|cres|highway|hwy|avenue|ave|court|ct|place|pl|lane|ln|parade|pde|terrace|tce|close|cl|rise|boulevard|blvd|circuit|cct|grove|track)\b$/i;
+
+/**
+ * The suburb as the customer's own address gives it.
+ *
+ * The form stores a Google-formatted address — "12 Lamont Crescent, Cranbourne,
+ * Melbourne, Victoria, 3977, Australia" — and never fills the suburb column.
+ * The postcode column it does fill is typed by hand and often disagrees with
+ * the address beside it (3825 against an address in St Albans, 3021), so the
+ * address wins where there is one.
+ *
+ * Takes the last component once the country, state, postcode and the "Melbourne"
+ * metro qualifier are dropped. Returns null rather than guessing when that
+ * leaves a street name or nothing, so the caller can fall back to the postcode.
+ */
+function suburbFromAddress(address: string | null): string | null {
+  if (!address) return null;
+
+  const parts = address
+    .split(",")
+    .map((p) => p.trim())
+    .filter(
+      (p) =>
+        p &&
+        !/^australia$/i.test(p) &&
+        !/^(victoria|vic)$/i.test(p) &&
+        !/^\d{4}$/.test(p) &&
+        !/^melbourne$/i.test(p),
+    );
+
+  // A single-line address puts the number on the front of the suburb
+  // ("12 Pakenham"); no Victorian suburb starts with a digit.
+  const last = parts[parts.length - 1]?.replace(/^\d+[a-z]?[\s/-]+/i, "").trim();
+  if (!last || STREET_SUFFIX.test(last)) return null;
+  // A lone street number, or anything else without a letter, is not a place.
+  if (!/[a-z]/i.test(last)) return null;
+  return last;
+}
 
 async function leadMetrics(now: Date) {
   const dayStart = startOfDayMelbourne(now);
@@ -185,14 +231,21 @@ async function leadMetrics(now: Date) {
 
   const recent = await sbSelect<LeadRow>(
     "portal_leads",
-    [q.select("suburb,postcode,service"), q.gte("created_at", addDays(now, -30).toISOString())].join("&"),
+    [q.select("suburb,postcode,service,address"), q.gte("created_at", addDays(now, -30).toISOString())].join("&"),
   );
 
   const bySuburb = new Map<string, number>();
   const byService = new Map<string, number>();
 
   for (const l of recent) {
-    const place = l.suburb?.trim() || (l.postcode ? POSTCODE_TO_SUBURB.get(l.postcode.trim()) ?? l.postcode.trim() : null);
+    // Address first, then the service-area postcode map, then the postcode
+    // itself. The map only covers the suburbs the site has pages for, so a lead
+    // from Bendigo or Traralgon used to land on the wall as a bare "3556".
+    const pc = l.postcode?.trim();
+    const place =
+      l.suburb?.trim() ||
+      suburbFromAddress(l.address) ||
+      (pc ? (POSTCODE_TO_SUBURB.get(pc) ?? (/^\d{4}$/.test(pc) ? pc : null)) : null);
     if (place) bySuburb.set(place, (bySuburb.get(place) ?? 0) + 1);
 
     const svc = l.service?.trim();
@@ -408,9 +461,19 @@ async function serviceTitanMetrics(now: Date) {
   // An estimate carries no description of its own, so the label comes from the
   // job it belongs to; where that join finds nothing the row says "Quote"
   // rather than inventing a service name.
+  // The named quotes — largest still out, oldest still out, biggest on the Areas
+  // page — are the last two months only. A $544K quote from June topping the
+  // list every day is not something anybody is chasing, and it pushed this
+  // month's real work off the bottom of the card.
+  const QUOTE_LIST_DAYS = 60;
   const openRows = await sbSelect<{ id: number; total: number | null; created_on: string | null; job_id: number | null }>(
     "st_estimates",
-    [q.select("id,total,created_on,job_id"), q.isNull("sold_on"), q.notIn("status", ["Dismissed", "Expired"])].join("&"),
+    [
+      q.select("id,total,created_on,job_id"),
+      q.isNull("sold_on"),
+      q.notIn("status", ["Dismissed", "Expired"]),
+      q.gte("created_on", addDays(now, -QUOTE_LIST_DAYS).toISOString()),
+    ].join("&"),
   );
 
   const todayRows = createdRows.length
