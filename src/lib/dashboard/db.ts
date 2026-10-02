@@ -48,13 +48,35 @@ async function sb(path: string, init: RequestInit = {}): Promise<Response | null
  * forward, so a failed read has to be loud enough for it to notice. Silently
  * returning [] would publish a zero as though it were measured.
  */
+/**
+ * Reads every matching row, a page at a time.
+ *
+ * PostgREST caps a response at 1000 rows and says nothing about it. The board
+ * reported "1000 quotes still out" for weeks of real data, which was the cap
+ * rather than a count, and the value beside it was the sum of whichever
+ * thousand came back. A metric computed from a silently truncated read is the
+ * worst kind of wrong number: it looks measured.
+ */
+const PAGE = 1000;
+
 export async function sbSelect<T = Row>(table: string, query = ""): Promise<T[]> {
-  const res = await sb(`${table}${query ? `?${query}` : ""}`);
-  if (!res) return [];
-  if (!res.ok) {
-    throw new Error(`${table} read failed (${res.status}): ${await res.text().catch(() => "")}`);
+  const out: T[] = [];
+
+  for (let from = 0; ; from += PAGE) {
+    const res = await sb(`${table}${query ? `?${query}` : ""}`, {
+      headers: { Range: `${from}-${from + PAGE - 1}`, "Range-Unit": "items" },
+    });
+    if (!res) return out;
+    if (!res.ok) {
+      throw new Error(`${table} read failed (${res.status}): ${await res.text().catch(() => "")}`);
+    }
+
+    const page = (await res.json()) as T[];
+    out.push(...page);
+    // A short page is the last page. Guarding on the length rather than parsing
+    // content-range keeps this working when the header is absent.
+    if (page.length < PAGE) return out;
   }
-  return (await res.json()) as T[];
 }
 
 /** First row or null, for the single-row lookups (settings, latest snapshot). */
@@ -139,5 +161,12 @@ export const q = {
   notNull: (col: string) => `${col}=not.is.null`,
   notIn: (col: string, vs: string[]) => `${col}=not.in.(${vs.map((v) => `"${v}"`).join(",")})`,
   select: (cols: string) => `select=${encodeURIComponent(cols)}`,
-  order: (col: string, dir: "asc" | "desc" = "asc") => `order=${col}.${dir}`,
+  /**
+   * Postgres sorts nulls first on a descending order, so "newest row" ordered
+   * by a nullable column hands back the one row that has no value at all. That
+   * cost the board a morning: a never-succeeded sync masked four working ones.
+   * Pass nulls: "last" for any column that can be null.
+   */
+  order: (col: string, dir: "asc" | "desc" = "asc", nulls?: "first" | "last") =>
+    `order=${col}.${dir}${nulls ? `.nulls${nulls}` : ""}`,
 };

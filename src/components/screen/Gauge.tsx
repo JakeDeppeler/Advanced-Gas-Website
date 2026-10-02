@@ -31,6 +31,7 @@ export function Gauge({
   target,
   progress,
   format,
+  unavailable,
 }: {
   label: string;
   achieved: number | null;
@@ -38,6 +39,12 @@ export function Gauge({
   /** Share of the month's working days already elapsed. */
   progress: number;
   format: (n: number | null) => string;
+  /**
+   * Why there is no figure, when the reason is the data rather than the link.
+   * A dial that says "not connected" about a feed that is connected sends
+   * somebody to check the wrong thing.
+   */
+  unavailable?: string;
 }) {
   const cx = 110;
   const cy = 100;
@@ -51,9 +58,11 @@ export function Gauge({
   const diff = ratio == null ? null : ratio - progress;
   const statusText =
     diff == null
-      ? target == null
-        ? "no monthly target set"
-        : "not connected"
+      ? unavailable
+        ? unavailable
+        : target == null
+          ? "no monthly target set"
+          : "not connected"
       : Math.abs(diff) < 0.01
         ? "On pace"
         : `${diff > 0 ? "Ahead of" : "Behind"} pace by ${Math.abs(Math.round(diff * 100))}%`;

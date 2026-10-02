@@ -12,7 +12,27 @@ import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
 // the location, so those columns stay null until the lookups are added.
 
 const num = (v: unknown): number | null => (v == null || v === "" ? null : Number(v));
-const str = (v: unknown): string | null => (v == null ? null : String(v));
+/**
+ * ServiceTitan returns enum-ish fields as `{ name, value }` objects, not
+ * strings, and String() on one of those yields "[object Object]". Every row in
+ * st_estimates held exactly that, so the filter excluding dismissed quotes
+ * excluded nothing and the board counted four years of dead quotes as money
+ * still out.
+ *
+ * An unrecognised object becomes null rather than that string: a blank column
+ * is honest, and "[object Object]" silently passes every comparison it is used
+ * in.
+ */
+const str = (v: unknown): string | null => {
+  if (v == null) return null;
+  if (typeof v === "object") {
+    const o = v as { name?: unknown; value?: unknown };
+    if (typeof o.name === "string") return o.name;
+    if (typeof o.value === "string") return o.value;
+    return null;
+  }
+  return String(v);
+};
 const ts = (v: unknown): string | null => {
   if (!v) return null;
   const ms = Date.parse(String(v));
