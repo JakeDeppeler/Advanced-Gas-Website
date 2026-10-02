@@ -1,4 +1,5 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
+import { serviceTitanConfigured } from "./servicetitan";
 import { fetchXeroReceivables } from "./xero";
 import { suburbs } from "../suburbs";
 import {
@@ -658,10 +659,17 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
 
     const lastOk = syncRow?.last_success_at ? Date.parse(syncRow.last_success_at) : 0;
     const stale = !lastOk || Date.now() - lastOk > 45 * 60 * 1000;
+    // "Not configured" covers two different problems whose fixes differ, so the
+    // board says which: credentials that were never added to the deployment, or
+    // credentials that are there but have never produced a successful run.
     sources.servicetitan = {
       state: !lastOk ? "not-configured" : stale ? "stale" : "ok",
       at: syncRow?.last_success_at ?? undefined,
-      detail: syncRow?.last_status ?? undefined,
+      detail: !lastOk
+        ? serviceTitanConfigured()
+          ? "credentials set, no sync has succeeded yet"
+          : "credentials not set on this deployment"
+        : (syncRow?.last_status ?? undefined),
     };
   } catch (e) {
     sources.servicetitan = { state: "error", detail: (e as Error).message };

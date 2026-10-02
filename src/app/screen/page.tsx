@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
+// Light is the default: it is the design the board was drawn to, and the panel
+// in the office is a bright room. `?theme=dark` is still there for a dim one.
 export default async function ScreenPage({
   searchParams,
 }: {
@@ -37,7 +39,7 @@ export default async function ScreenPage({
     <ScreenBoard
       initial={snapshot}
       token={searchParams.k as string}
-      theme={searchParams.theme === "light" ? "light" : "dark"}
+      theme={searchParams.theme === "dark" ? "dark" : "light"}
     />
   );
 }

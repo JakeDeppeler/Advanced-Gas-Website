@@ -447,6 +447,9 @@ body:has(.screen) .utilbar {
   font-weight: 800;
   letter-spacing: -0.03em;
 }
+/* Same reason as the dash elsewhere: at 34px an em dash sits in the middle of
+   the dial looking like a reading. */
+.gauge__pct--na { font-size: 16px; fill: var(--ink-muted); font-weight: 600; }
 
 /* --------------------------------------------------------------- quote list */
 .quotes { display: flex; flex-direction: column; flex: 1; }
