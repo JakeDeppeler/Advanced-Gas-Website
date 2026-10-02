@@ -103,6 +103,8 @@ export type Metrics = {
 
   topJobTypes: Array<{ jobType: string; revenue: number; profit: number | null; jobs: number }>;
   jobTypeBasis: "profit" | "revenue";
+  /** Invoices left out of the ranking because they carry no real job type. */
+  jobTypeUnclassified: number;
   salesLeaderboard: Array<{
     name: string;
     sold: number;
@@ -335,8 +337,22 @@ async function serviceTitanMetrics(now: Date) {
   const jobTypeBasis: "profit" | "revenue" =
     profitRows.length && withCost / profitRows.length >= 0.5 ? "profit" : "revenue";
 
+  /**
+   * ServiceTitan's placeholder for records imported without a job type. It is
+   * not a kind of work — it is the absence of one — and it accounts for most
+   * invoices in this tenant, so left in the ranking it sits permanently at
+   * number one and crowds out the types the room can actually act on. The tile
+   * says how many were set aside rather than quietly dropping them.
+   */
+  const UNCLASSIFIED = /^imported default/i;
+
+  let jobTypeUnclassified = 0;
   const byType = new Map<string, { revenue: number; cost: number; hasCost: boolean; jobs: number }>();
   for (const r of profitRows) {
+    if (UNCLASSIFIED.test(String(r.job_type))) {
+      jobTypeUnclassified += 1;
+      continue;
+    }
     const key = String(r.job_type);
     const acc = byType.get(key) ?? { revenue: 0, cost: 0, hasCost: false, jobs: 0 };
     acc.revenue += Number(r.total ?? 0);
@@ -495,6 +511,7 @@ async function serviceTitanMetrics(now: Date) {
     soldToday,
     topJobTypes,
     jobTypeBasis,
+    jobTypeUnclassified,
     rawLeaderboard,
     recentSales,
     invoiceCountMonth,
@@ -732,6 +749,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       soldToday: prev?.soldToday ?? 0,
       topJobTypes: prev?.topJobTypes ?? [],
       jobTypeBasis: prev?.jobTypeBasis ?? "revenue",
+      jobTypeUnclassified: prev?.jobTypeUnclassified ?? 0,
       rawLeaderboard: (prev?.salesLeaderboard ?? []).map((r) => ({
         name: r.name,
         sold: r.sold,

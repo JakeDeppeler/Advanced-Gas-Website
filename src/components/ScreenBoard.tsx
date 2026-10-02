@@ -640,7 +640,12 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
       <div className="tile c6">
         <div className="tile__head">
           <span className="tile__title">Job types by {m.jobTypeBasis === "profit" ? "gross profit" : "revenue"}</span>
-          <span className="tile__sub">last 90 days</span>
+          {/* The set-aside count is on the wall, not buried: a ranking that
+              quietly omits most of the invoices is a ranking you can't trust. */}
+          <span className="tile__sub">
+            last 90 days
+            {m.jobTypeUnclassified > 0 ? ` · ${count(m.jobTypeUnclassified)} imported without a type` : ""}
+          </span>
         </div>
         {m.topJobTypes.length === 0 ? (
           <span className="tile__sub">{st.sub("No invoiced work in the last 90 days", live)}</span>

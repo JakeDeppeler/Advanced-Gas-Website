@@ -35,6 +35,7 @@ const PROBES: Array<{
 }> = [
   { module: "settings", resource: "business-units", scope: "Settings", usedFor: "business unit labels" },
   { module: "settings", resource: "technicians", scope: "Settings", usedFor: "sales leaderboard names" },
+  { module: "settings", resource: "employees", scope: "Settings", usedFor: "who sold each quote" },
   { module: "jpm", resource: "job-types", scope: "Job Planning & Management", usedFor: "job type labels" },
   { module: "jpm", resource: "jobs", scope: "Job Planning & Management", usedFor: "jobs completed / booked" },
   { module: "accounting", resource: "invoices", scope: "Accounting", usedFor: "revenue, daily target, job type profit" },
