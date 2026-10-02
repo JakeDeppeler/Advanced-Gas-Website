@@ -84,7 +84,12 @@ export function Gauge({
             className="gauge__pace"
           />
         )}
-        <text x={cx} y={cy - 2} className="gauge__pct" textAnchor="middle">
+        <text
+          x={cx}
+          y={cy - 2}
+          className={`gauge__pct ${ratio == null ? "gauge__pct--na" : ""}`}
+          textAnchor="middle"
+        >
           {ratio == null ? "—" : `${Math.round(ratio * 100)}%`}
         </text>
       </svg>

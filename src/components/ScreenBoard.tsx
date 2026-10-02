@@ -15,6 +15,10 @@ type Snapshot = {
 // left on this URL for months would leak memory and flash white on every
 // location.reload(); swapping state in place does neither.
 const REFRESH_MS = 30_000;
+// How often the board asks the server to go and fetch. The endpoint has its own
+// eight-minute floor, so this only has to be more often than that; it exists
+// because GitHub's scheduler does not reliably run the sync workflow.
+const RESYNC_MS = 5 * 60_000;
 const PAGE_MS = 20_000;
 const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
 
@@ -122,10 +126,24 @@ export function ScreenBoard({
       }
     }
 
+    async function resync() {
+      try {
+        const res = await fetch(`/api/screen/refresh?k=${encodeURIComponent(token)}`, { cache: "no-store" });
+        if (!res.ok) return;
+        const { refreshed } = (await res.json()) as { refreshed?: boolean };
+        if (refreshed && !cancelled) await poll();
+      } catch {
+        // The board carries on showing the snapshot it has.
+      }
+    }
+
+    void resync();
     const timer = setInterval(poll, REFRESH_MS);
+    const resyncTimer = setInterval(resync, RESYNC_MS);
     return () => {
       cancelled = true;
       clearInterval(timer);
+      clearInterval(resyncTimer);
     };
   }, [token]);
 
@@ -196,7 +214,7 @@ export function ScreenBoard({
           <span className={`screen__dot ${degraded.length ? "screen__dot--stale" : ""}`} aria-hidden />
           {degraded.length === 0
             ? "No issues · all feeds connected"
-            : degraded.map(([n, s]) => `${n} ${s.state}`).join(" · ")}
+            : degraded.map(([n, s]) => `${n} ${s.state}${s.detail ? ` — ${s.detail}` : ""}`).join(" · ")}
         </span>
         <span className="screen__right">
           {now.toLocaleTimeString("en-AU", {
@@ -837,7 +855,7 @@ function DailyCard({
         )}
       </div>
       <div className="tile__inline">
-        <span className="tile__value">{ratio == null ? NA : pct(ratio)}</span>
+        <span className={vcls(ratio == null ? NA : pct(ratio))}>{ratio == null ? NA : pct(ratio)}</span>
         <span className="tile__sub">
           {achieved == null ? (
             unit

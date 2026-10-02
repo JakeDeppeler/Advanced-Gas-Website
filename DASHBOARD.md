@@ -13,8 +13,8 @@ Website quote form ────────┘   (Vercel Cron)   ├─ st_* rep
                                                └─ portal_metrics_snapshot
 ```
 
-The TV never calls ServiceTitan or Xero. A cron job pulls upstream data into
-Supabase every 10 minutes, computes one snapshot row, and the screen reads only
+The TV never calls ServiceTitan or Xero. A sync pulls upstream data into
+Supabase every few minutes, computes one snapshot row, and the screen reads only
 that row. Three reasons:
 
 - **Rate limits.** A panel polling upstream APIs every 30s gets throttled.
@@ -387,6 +387,18 @@ Caveats worth knowing: GitHub's scheduler is best-effort and can run several
 minutes late at peak, and scheduled workflows are **disabled automatically after
 60 days without repository activity** — if the board silently stops updating
 months from now, check that first.
+
+**In practice it is worse than "several minutes late".** On this repository the
+`*/10` schedule fired once and then not again for over three hours, with the
+workflow enabled and the previous run green. So the board no longer depends on
+it: `/screen` calls `/api/screen/refresh` every five minutes, and that endpoint
+runs the same sync if the stored snapshot is more than eight minutes old. The
+panel is on all day, so the thing that needs the numbers is the thing that asks
+for them. Actions stays scheduled as a backstop for the hours nobody is looking.
+
+That endpoint is authorised by `SCREEN_TOKEN`, not `CRON_SECRET` — the caller is
+the display. The eight-minute floor is what stops a tab left open in a dozen
+browsers from hammering ServiceTitan.
 
 On a Vercel Pro plan, delete that workflow and put the schedule back in
 `vercel.json`, which is more reliable:
