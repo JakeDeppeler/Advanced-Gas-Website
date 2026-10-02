@@ -1,0 +1,55 @@
+name: Reece check
+
+# Runs the Reece API connection check from the Actions tab. Same shape as the
+# ServiceTitan check: the result renders as a table on the run's summary page.
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Site to check (default: the DASHBOARD_SYNC_URL host). Set to a Vercel preview URL to check a branch before it is merged."
+        type: string
+        required: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the connection check
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          URL_OVERRIDE: ${{ inputs.url }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SYNC_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the DASHBOARD_SYNC_URL and CRON_SECRET repository secrets first."
+            exit 1
+          fi
+
+          SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
+          CHECK_URL="${BASE%/}/api/reece/check"
+          echo "Checking ${CHECK_URL}"
+
+          curl --fail-with-body -sS -H "Authorization: Bearer ${CRON_SECRET}" "${CHECK_URL}" > report.json
+
+          JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
+          {
+            echo "## Reece API connection"
+            echo
+            jq -r 'if .linked
+                   then "**Linked.** Every capability answered."
+                   else "**Not linked yet.** The first failing stage below says why; everything after it is skipped."
+                   end' report.json
+            echo
+            echo "Environment: `$(jq -r .environment.env report.json)` · API: `$(jq -r .environment.apiBase report.json)`"
+            echo
+            echo "| Stage | Status | Detail | Fix |"
+            echo "|---|---|---|---|"
+            jq -r "${JQ_DEFS}"'.stages[] | "| \(.stage|e) | \(.status|e) | \(.detail|e) | \(.fix|e) |"' report.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "--- raw report ---"
+          jq . report.json

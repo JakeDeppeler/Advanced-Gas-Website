@@ -1,182 +1,271 @@
 import { q, sbSelectOne, sbUpsert } from "@/lib/dashboard/db";
 import type { ParsedItem } from "./reeceFile";
 
-// Reece maX API client.
+// Reece API client (docs.api.reecegroup.com.au).
 //
-// Reece grants API access to the software vendor, not the contractor: we are
-// registered with Reece as an integration partner, the office then authorises
-// our app from a maX login (OAuth authorization-code), and we hold the tokens.
-// Three capabilities ride on that connection:
+// Reece's model for a tool used by one Reece customer — which this is — is
+// deliberately simple: OAuth2 client_credentials for the app itself, plus a
+// `Customer-Number` header naming the account on every call. There is no
+// per-user login, no refresh token, no browser flow. The alternative,
+// `Customer-Token`, is for multi-tenant platforms that onboard many Reece
+// customers; it is supported here (see /api/reece/connect) in case Reece sets
+// us up that way, and wins over the customer number when stored.
 //
-//   catalogue   — the full purchasable catalogue with our contractor pricing,
-//                 pulled nightly into supplier_items (the same table the price
-//                 file upload fills, so everything downstream is source-agnostic)
-//   search      — item lookup while quoting
-//   PunchOut    — maX posts a cart back to us (handled in /api/reece/punchout)
+// What rides on the connection:
+//   price file   — the whole catalogue with our contractor pricing, as one CSV
+//                  generated on Reece's side (GET price-gateway/price-file),
+//                  parsed by the same code as a manual maX upload
+//   search       — product-gateway/search while quoting
+//   PunchOut     — the user builds a cart on Reece's site; Reece form-posts a
+//                  cartToken back to us and we fetch the cart
+//   ordering     — order-gateway: preview, check, create
+//   invoices     — invoice-gateway: headers, details, PDFs
 //
-// Reece's endpoint paths and payload shapes are taken from the partner
-// documentation they issue with the credentials, which is why every path here is
-// an environment variable with a placeholder default rather than a constant.
-// Until REECE_CLIENT_ID / REECE_CLIENT_SECRET / REECE_TOKEN_URL are set, every
-// function reports "not configured" and the file-upload path carries the load.
-//
-// Unlike Xero (see xero.ts), this app *owns* the Reece connection — nothing else
-// refreshes these tokens — so refreshing here is safe.
+// Two environments. Reece issues separate credentials for test and production;
+// REECE_ENV picks the host pair, and REECE_AUTH_URL / REECE_API_BASE override it.
 
 const env = (k: string) => process.env[k]?.trim() || undefined;
 
+const HOSTS = {
+  production: { auth: "https://auth.api.reecegroup.com.au", api: "https://open.api.reecegroup.com.au" },
+  test: { auth: "https://auth.api.test.reecegroup.com.au", api: "https://open.api.test.reecegroup.com.au" },
+};
+
 export function reeceConfig() {
+  const which = env("REECE_ENV") === "test" ? "test" : "production";
+  const hosts = HOSTS[which];
+  const apiBase = (env("REECE_API_BASE") ?? hosts.api).replace(/\/$/, "");
   return {
+    env: which,
     clientId: env("REECE_CLIENT_ID"),
     clientSecret: env("REECE_CLIENT_SECRET"),
-    authorizeUrl: env("REECE_AUTHORIZE_URL"),
-    tokenUrl: env("REECE_TOKEN_URL"),
-    apiBase: env("REECE_API_BASE"),
-    scopes: env("REECE_SCOPES") ?? "",
-    redirectUri: env("REECE_REDIRECT_URI") ?? `${env("NEXT_PUBLIC_SITE_URL") ?? ""}/api/reece/callback`,
-    cataloguePath: env("REECE_CATALOGUE_PATH") ?? "/catalogue/items",
-    searchPath: env("REECE_SEARCH_PATH") ?? "/catalogue/search",
+    tokenUrl: env("REECE_AUTH_URL") ?? `${hosts.auth}/oauth2/token`,
+    apiBase,
+    // The onboarding and PunchOut pages are browser redirects on the API host
+    // unless Reece says otherwise.
+    linkBase: (env("REECE_LINK_BASE") ?? apiBase).replace(/\/$/, ""),
+    region: env("REECE_REGION") ?? "au",
+    scopes: env("REECE_SCOPES") ?? "Default/read Default/write",
+    customerNumber: env("REECE_CUSTOMER_NUMBER"),
+    // PunchOut's clientId is the "domain key" — {domainKey}.api.reecegroup.com.au.
+    domainKey: env("REECE_DOMAIN_KEY") ?? env("REECE_CLIENT_ID"),
     punchoutSecret: env("REECE_PUNCHOUT_SECRET"),
+    priceFileFormat: env("REECE_PRICE_FILE_FORMAT") === "MAX_JSON" ? "MAX_JSON" : "MAX_CSV",
+    siteUrl: (env("NEXT_PUBLIC_SITE_URL") ?? "").replace(/\/$/, ""),
   };
 }
 
 export function reeceConfigured(): boolean {
   const c = reeceConfig();
-  return Boolean(c.clientId && c.clientSecret && c.tokenUrl && c.apiBase);
+  return Boolean(c.clientId && c.clientSecret);
 }
 
-export function reeceOAuthConfigured(): boolean {
-  return reeceConfigured() && Boolean(reeceConfig().authorizeUrl);
-}
+// --- app token (client_credentials) ------------------------------------------------
 
-// --- OAuth ---------------------------------------------------------------------
+// Module-scoped like the ServiceTitan token: a warm lambda reuses it.
+let token: { value: string; expiresAt: number } | null = null;
 
-export function reeceAuthorizeUrl(state: string): string {
+export type AuthProbe = { ok: true; expiresInSeconds: number } | { ok: false; status: number; detail: string };
+
+async function requestToken(): Promise<AuthProbe & { value?: string }> {
   const c = reeceConfig();
-  if (!c.authorizeUrl || !c.clientId) throw new Error("REECE_AUTHORIZE_URL and REECE_CLIENT_ID must be set");
-  const url = new URL(c.authorizeUrl);
-  url.searchParams.set("response_type", "code");
-  url.searchParams.set("client_id", c.clientId);
-  url.searchParams.set("redirect_uri", c.redirectUri);
-  if (c.scopes) url.searchParams.set("scope", c.scopes);
-  url.searchParams.set("state", state);
-  return url.toString();
-}
+  if (!c.clientId || !c.clientSecret) return { ok: false, status: 0, detail: "REECE_CLIENT_ID / REECE_CLIENT_SECRET not set" };
 
-type TokenResponse = {
-  access_token: string;
-  refresh_token?: string;
-  expires_in?: number;
-  token_type?: string;
-};
-
-type StoredToken = {
-  access_token: string | null;
-  refresh_token: string | null;
-  expires_at: string | null;
-  tenant_id: string | null;
-};
-
-async function tokenRequest(params: Record<string, string>): Promise<TokenResponse> {
-  const c = reeceConfig();
-  if (!c.tokenUrl || !c.clientId || !c.clientSecret) throw new Error("Reece OAuth is not configured");
   const res = await fetch(c.tokenUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-      // Sent both ways — in the body and as basic auth — because providers
-      // differ on which they read and none object to the other being present.
       Authorization: `Basic ${Buffer.from(`${c.clientId}:${c.clientSecret}`).toString("base64")}`,
     },
-    body: new URLSearchParams({ ...params, client_id: c.clientId, client_secret: c.clientSecret }),
+    body: new URLSearchParams({ grant_type: "client_credentials", scope: c.scopes }),
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(`Reece token endpoint failed: ${res.status} ${res.statusText}`);
-  return (await res.json()) as TokenResponse;
+
+  if (!res.ok) {
+    // The body is not echoed: like ServiceTitan's, it can carry the client id.
+    return { ok: false, status: res.status, detail: `${res.status} ${res.statusText}` };
+  }
+  const json = (await res.json()) as { access_token: string; expires_in?: number };
+  const expiresIn = json.expires_in ?? 3600;
+  token = { value: json.access_token, expiresAt: Date.now() + expiresIn * 1000 };
+  return { ok: true, expiresInSeconds: expiresIn, value: json.access_token };
 }
 
-async function storeToken(t: TokenResponse, previous?: StoredToken | null): Promise<void> {
-  const expiresAt = new Date(Date.now() + (t.expires_in ?? 3600) * 1000).toISOString();
+async function getToken(): Promise<string> {
+  if (token && Date.now() < token.expiresAt - 60_000) return token.value;
+  const t = await requestToken();
+  if (!t.ok) throw new Error(`Reece auth failed: ${t.detail}`);
+  return t.value!;
+}
+
+/** Token exchange, bypassing the cache — for the connection check. */
+export async function reeceAuthProbe(): Promise<AuthProbe> {
+  const t = await requestToken();
+  return t.ok ? { ok: true, expiresInSeconds: t.expiresInSeconds } : t;
+}
+
+// --- customer identity ---------------------------------------------------------------
+
+type Stored = {
+  access_token: string | null; // customer token, when onboarded as a platform
+  tenant_id: string | null; // customer number
+  tenant_name: string | null;
+};
+
+export type Customer =
+  | { via: "customer-token"; customerToken: string; customerNumber: string | null }
+  | { via: "customer-number"; customerNumber: string };
+
+/**
+ * How we identify the Reece account on each call. A stored customer token
+ * (from the onboarding flow) wins; otherwise REECE_CUSTOMER_NUMBER, which is
+ * what Reece sets up for a dedicated single-customer integration.
+ */
+export async function reeceCustomer(): Promise<Customer | null> {
+  const c = reeceConfig();
+  const row = await sbSelectOne<Stored>(
+    "portal_integrations",
+    [q.select("access_token,tenant_id,tenant_name"), q.eq("provider", "reece")].join("&"),
+  ).catch(() => null);
+  if (row?.access_token) return { via: "customer-token", customerToken: row.access_token, customerNumber: row.tenant_id };
+  const number = c.customerNumber ?? row?.tenant_id ?? undefined;
+  if (number) return { via: "customer-number", customerNumber: number };
+  return null;
+}
+
+function customerHeaders(cu: Customer): Record<string, string> {
+  return cu.via === "customer-token" ? { "Customer-Token": cu.customerToken } : { "Customer-Number": cu.customerNumber };
+}
+
+export type ReeceConnection =
+  | { status: "not-configured" }
+  | { status: "no-customer" }
+  | { status: "ready"; via: Customer["via"]; customerNumber: string | null };
+
+export async function reeceConnection(): Promise<ReeceConnection> {
+  if (!reeceConfigured()) return { status: "not-configured" };
+  const cu = await reeceCustomer();
+  if (!cu) return { status: "no-customer" };
+  return { status: "ready", via: cu.via, customerNumber: cu.customerNumber };
+}
+
+// --- HTTP -------------------------------------------------------------------------------
+
+export class ReeceHttpError extends Error {
+  constructor(public status: number, public path: string, public body: string) {
+    super(`Reece ${path} failed: ${status}${body ? ` — ${body.slice(0, 300)}` : ""}`);
+  }
+}
+
+type Init = {
+  method?: "GET" | "POST" | "DELETE";
+  params?: Record<string, string | undefined>;
+  body?: unknown;
+  accept?: string;
+  /** Skip the customer header — for endpoints that only need the app token. */
+  noCustomer?: boolean;
+};
+
+/** Raw response for a regional path, e.g. "price-gateway/price-file". */
+export async function reeceRequest(path: string, init: Init = {}): Promise<Response> {
+  const c = reeceConfig();
+  const url = new URL(`${c.apiBase}/${c.region}/${path.replace(/^\//, "")}`);
+  for (const [k, v] of Object.entries(init.params ?? {})) if (v != null && v !== "") url.searchParams.set(k, v);
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${await getToken()}`,
+    Accept: init.accept ?? "application/json",
+  };
+  if (!init.noCustomer) {
+    const cu = await reeceCustomer();
+    if (!cu) throw new Error("No Reece customer identity — set REECE_CUSTOMER_NUMBER or complete /api/reece/connect");
+    Object.assign(headers, customerHeaders(cu));
+  }
+  if (init.body !== undefined) headers["Content-Type"] = "application/json";
+
+  return fetch(url, {
+    method: init.method ?? "GET",
+    headers,
+    body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    cache: "no-store",
+  });
+}
+
+export async function reeceJson<T>(path: string, init: Init = {}): Promise<T> {
+  const res = await reeceRequest(path, init);
+  if (!res.ok) throw new ReeceHttpError(res.status, path, await res.text().catch(() => ""));
+  const text = await res.text();
+  return (text ? JSON.parse(text) : null) as T;
+}
+
+// --- onboarding (Customer-Token model) ----------------------------------------------------
+
+/** Step 1: a request token, then the URL to send the user to. */
+export async function reeceOnboardingStart(callbackUrl: string): Promise<{ requestToken: string; redirect: string }> {
+  const c = reeceConfig();
+  const { requestToken } = await reeceJson<{ requestToken: string }>(
+    "customer-application-onboarding-gateway/request-token",
+    { method: "POST", noCustomer: true },
+  );
+  const redirect = new URL(`${c.linkBase}/link-application/account-select`);
+  redirect.searchParams.set("request_token", requestToken);
+  redirect.searchParams.set("callback_url", callbackUrl);
+  return { requestToken, redirect: redirect.toString() };
+}
+
+/** Step 3: swap the request token for a customer token and remember it. */
+export async function reeceOnboardingFinish(requestToken: string): Promise<{ customerNumber: number; displayName: string | null }> {
+  const r = await reeceJson<{ customerToken: string; customerNumber: number; displayName: string | null }>(
+    "customer-application-onboarding-gateway/customer-token",
+    { method: "POST", noCustomer: true, body: { requestToken } },
+  );
   await sbUpsert(
     "portal_integrations",
     [
       {
         provider: "reece",
-        access_token: t.access_token,
-        // Some providers rotate the refresh token on every refresh and some
-        // never return it again; keep the previous one when a response omits it.
-        refresh_token: t.refresh_token ?? previous?.refresh_token ?? null,
-        expires_at: expiresAt,
-        tenant_id: previous?.tenant_id ?? null,
+        access_token: r.customerToken,
+        tenant_id: String(r.customerNumber),
+        tenant_name: r.displayName,
+        connected_at: new Date().toISOString(),
+        connected_by: "website",
         updated_at: new Date().toISOString(),
       },
     ],
     "provider",
   );
+  return { customerNumber: r.customerNumber, displayName: r.displayName };
 }
 
-export async function reeceExchangeCode(code: string): Promise<void> {
+// --- price file -----------------------------------------------------------------------------
+
+export type PriceFile =
+  | { status: "pending" }
+  | { status: "ok"; format: "MAX_CSV"; text: string }
+  | { status: "ok"; format: "MAX_JSON"; json: unknown };
+
+/** The customer's generated price file, or `pending` when Reece has not built one yet (204). */
+export async function reecePriceFile(): Promise<PriceFile> {
   const c = reeceConfig();
-  const t = await tokenRequest({ grant_type: "authorization_code", code, redirect_uri: c.redirectUri });
-  await sbUpsert(
-    "portal_integrations",
-    [{ provider: "reece", connected_at: new Date().toISOString(), connected_by: "website", updated_at: new Date().toISOString() }],
-    "provider",
-  );
-  await storeToken(t);
-}
-
-export type ReeceConnection =
-  | { status: "not-configured" }
-  | { status: "not-connected" }
-  | { status: "connected"; expiresAt: string | null };
-
-export async function reeceConnection(): Promise<ReeceConnection> {
-  if (!reeceConfigured()) return { status: "not-configured" };
-  const data = await readStored();
-  if (!data?.access_token && !data?.refresh_token) return { status: "not-connected" };
-  return { status: "connected", expiresAt: data.expires_at };
-}
-
-async function readStored(): Promise<StoredToken | null> {
-  return sbSelectOne<StoredToken>(
-    "portal_integrations",
-    [q.select("access_token,refresh_token,expires_at,tenant_id"), q.eq("provider", "reece")].join("&"),
-  );
-}
-
-/** A valid access token, refreshing when within a minute of expiry. */
-async function accessToken(): Promise<string> {
-  const data = await readStored();
-  if (!data?.access_token && !data?.refresh_token) {
-    throw new Error("Reece maX is not connected — open /api/reece/connect?k=<SCREEN_TOKEN> and log in with the maX account");
-  }
-
-  const expiresAt = data.expires_at ? Date.parse(data.expires_at) : 0;
-  if (data.access_token && Date.now() < expiresAt - 60_000) return data.access_token;
-
-  if (!data.refresh_token) throw new Error("Reece access token expired and no refresh token is stored — reconnect maX");
-  const t = await tokenRequest({ grant_type: "refresh_token", refresh_token: data.refresh_token });
-  await storeToken(t, data);
-  return t.access_token;
-}
-
-// --- API --------------------------------------------------------------------------
-
-export async function reeceFetch<T>(path: string, params: Record<string, string | undefined> = {}): Promise<T> {
-  const c = reeceConfig();
-  if (!c.apiBase) throw new Error("REECE_API_BASE is not set");
-  const url = new URL(`${c.apiBase.replace(/\/$/, "")}/${path.replace(/^\//, "")}`);
-  for (const [k, v] of Object.entries(params)) if (v) url.searchParams.set(k, v);
-
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${await accessToken()}`, Accept: "application/json" },
-    cache: "no-store",
+  const res = await reeceRequest("price-gateway/price-file", {
+    params: { format: c.priceFileFormat, additionalFields: c.priceFileFormat === "MAX_JSON" ? "CATEGORY" : undefined },
+    accept: c.priceFileFormat === "MAX_JSON" ? "application/json" : "text/csv, application/json",
   });
-  if (!res.ok) throw new Error(`Reece ${path} failed: ${res.status} ${res.statusText}`);
-  return (await res.json()) as T;
+  if (res.status === 204) return { status: "pending" };
+  if (!res.ok) throw new ReeceHttpError(res.status, "price-gateway/price-file", await res.text().catch(() => ""));
+  if (c.priceFileFormat === "MAX_JSON") return { status: "ok", format: "MAX_JSON", json: await res.json() };
+  return { status: "ok", format: "MAX_CSV", text: await res.text() };
 }
+
+/** Ask Reece to (re)build the price file. 202 means queued; it is ready some time later. */
+export async function reeceTriggerPriceFile(): Promise<void> {
+  const res = await reeceRequest("price-gateway/price-file/trigger-generation", { method: "POST" });
+  if (!res.ok && res.status !== 202) {
+    throw new ReeceHttpError(res.status, "price-gateway/price-file/trigger-generation", await res.text().catch(() => ""));
+  }
+}
+
+// --- product normalisation ------------------------------------------------------------------
 
 type Raw = Record<string, unknown>;
 
@@ -195,71 +284,205 @@ const asNum = (v: unknown): number | null => {
 const asStr = (v: unknown): string | null => (v == null ? null : String(v));
 
 /**
- * Normalise one catalogue record from the maX API to the supplier_items shape.
- * The candidate field names cover the conventions seen across Reece's partner
- * integrations; tighten to the documented names once the API docs are in hand.
+ * One product record from search, a cart, or the JSON price file → supplier item.
+ *
+ * The documented product shapes share `productId` as the key and carry the
+ * price on a unit-of-measure: a cart line has it flat (`unitPriceExcludingGst`),
+ * a search hit has a `unitOfMeasures` array. Both are read; the first UOM wins
+ * for a search hit. Anything else stays in `raw`.
  */
 export function toSupplierItem(r: Raw): ParsedItem | null {
-  const code = asStr(first(r, "productCode", "product_code", "code", "sku", "itemCode", "item_code", "partNumber", "id"));
+  const code = asStr(first(r, "productId", "productCode", "product_code", "code", "sku"));
   if (!code) return null;
-  const price = first(r, "yourPrice", "your_price", "netPrice", "net_price", "tradePrice", "trade_price", "price", "unitPrice", "cost");
-  const priceObj = price && typeof price === "object" ? (price as Raw) : null;
-  const cost = priceObj ? asNum(first(priceObj, "exGst", "ex_gst", "net", "amount", "value")) : asNum(price);
-  const gst = first(r, "gstApplicable", "gst_applicable", "taxable", "gst");
+
+  const uoms = Array.isArray(r.unitOfMeasures) ? (r.unitOfMeasures as Raw[]) : [];
+  const uom = uoms[0] ?? {};
+  const price = first(r, "unitPriceExcludingGst", "priceExcludingGst", "yourPriceExGst", "price") ?? first(uom, "unitPriceExcludingGst", "priceExcludingGst", "price");
+  const listPrice = first(r, "unitMarketPriceExcludingGst", "marketPriceExcludingGst", "listPrice") ?? first(uom, "unitMarketPriceExcludingGst", "marketPriceExcludingGst");
+  const gstRate = asNum(first(r, "gstRate") ?? first(uom, "gstRate"));
+
   return {
     code,
-    description: asStr(first(r, "description", "productDescription", "name", "title")),
-    uom: asStr(first(r, "unitOfMeasure", "unit_of_measure", "uom", "unit", "sellUnit")),
-    pack_qty: asNum(first(r, "packQty", "pack_qty", "packSize", "pack_size", "multiple")),
-    cost,
-    gst_applies: gst == null ? true : !(gst === false || /^(n|no|0|false|free)$/i.test(String(gst))),
-    list_price: asNum(first(r, "listPrice", "list_price", "rrp", "retailPrice")),
-    category: asStr(first(r, "category", "productGroup", "product_group", "group")),
-    barcode: asStr(first(r, "barcode", "ean", "gtin")),
+    description: asStr(first(r, "productTitle", "productDescription", "description", "title", "name")),
+    uom: asStr(first(r, "unitOfMeasure") ?? first(uom, "unitOfMeasure", "code", "name")),
+    pack_qty: asNum(first(r, "packQuantity", "packQty") ?? first(uom, "packQuantity", "quantity")),
+    cost: asNum(price),
+    gst_applies: gstRate == null ? true : gstRate > 0,
+    list_price: asNum(listPrice),
+    category: asStr(first(r, "category", "section")),
+    barcode: asStr(first(r, "barcode", "ean")),
     raw: Object.fromEntries(Object.entries(r).map(([k, v]) => [k, typeof v === "string" ? v : JSON.stringify(v)])),
   };
 }
 
-export type CataloguePage = { items: ParsedItem[]; next: string | null; rawCount: number };
+// --- search -----------------------------------------------------------------------------------
 
-/** One page of the catalogue. `cursor` is whatever the previous page said comes next (a token, a URL, or a page number). */
-export async function reeceCataloguePage(cursor: string | null, pageSize = 500): Promise<CataloguePage> {
-  const c = reeceConfig();
-  const params: Record<string, string | undefined> = { pageSize: String(pageSize), limit: String(pageSize) };
-  if (cursor) {
-    if (/^\d+$/.test(cursor)) params.page = cursor;
-    else params.cursor = cursor;
-  }
-  const res = await reeceFetch<Raw>(c.cataloguePath, params);
-  const list = (first(res, "items", "data", "products", "results") ?? []) as Raw[];
-  const items = Array.isArray(list) ? list.map(toSupplierItem).filter((i): i is ParsedItem => i != null) : [];
+export type SearchResult = { totalResults: number; gstRate: number | null; items: ParsedItem[] };
 
-  // Next-page discovery, in order of how explicit the API is about it.
-  const explicit = asStr(first(res, "nextCursor", "next_cursor", "continuationToken", "nextPageToken", "next"));
-  const hasMore = first(res, "hasMore", "has_more");
-  const page = asNum(first(res, "page", "pageNumber"));
-  const totalPages = asNum(first(res, "totalPages", "pageCount"));
-  let next: string | null = explicit ?? null;
-  if (!next && page != null && ((totalPages != null && page < totalPages) || hasMore === true)) next = String(page + 1);
-  if (!next && !explicit && hasMore === true && page == null) next = String((cursor && /^\d+$/.test(cursor) ? Number(cursor) : 1) + 1);
-
-  return { items, next, rawCount: Array.isArray(list) ? list.length : 0 };
+/** product-gateway/search — searchPhrase must be 3–30 characters, pageSize ≤ 100. */
+export async function reeceSearch(phrase: string, pageSize = 25, pageNumber = 1): Promise<SearchResult> {
+  const searchPhrase = phrase.trim().slice(0, 30);
+  if (searchPhrase.length < 3) throw new Error("Reece search needs at least 3 characters");
+  const res = await reeceJson<Raw>("product-gateway/search", {
+    params: { searchPhrase, pageNumber: String(pageNumber), pageSize: String(Math.min(100, Math.max(1, pageSize))) },
+  });
+  const list = Array.isArray(res.products) ? (res.products as Raw[]) : [];
+  return {
+    totalResults: asNum(res.totalResults) ?? list.length,
+    gstRate: asNum(res.gstRate),
+    items: list.map(toSupplierItem).filter((i): i is ParsedItem => i != null),
+  };
 }
 
-export async function reeceSearch(q: string, limit = 25): Promise<ParsedItem[]> {
+// --- PunchOut -----------------------------------------------------------------------------------
+
+/** Where to send the user to build a cart on Reece's site. */
+export async function reecePunchoutUrl(hookUrl: string): Promise<string> {
   const c = reeceConfig();
-  const res = await reeceFetch<Raw>(c.searchPath, { q, query: q, search: q, limit: String(limit), pageSize: String(limit) });
-  const list = (first(res, "items", "data", "products", "results") ?? []) as Raw[];
-  return Array.isArray(list) ? list.map(toSupplierItem).filter((i): i is ParsedItem => i != null) : [];
+  if (!c.domainKey) throw new Error("REECE_DOMAIN_KEY (or REECE_CLIENT_ID) is not set");
+  const cu = await reeceCustomer();
+  if (!cu) throw new Error("No Reece customer identity");
+  const url = new URL(`${c.linkBase}/punch-out-catalog/gateway`);
+  url.searchParams.set("clientId", c.domainKey);
+  url.searchParams.set("hookUrl", hookUrl);
+  if (cu.via === "customer-token") url.searchParams.set("customerToken", cu.customerToken);
+  else url.searchParams.set("customerNumber", cu.customerNumber);
+  return url.toString();
 }
 
-// --- storage shared by the API pull and the file upload ----------------------------
+export type CartLine = {
+  productId: number;
+  description: string | null;
+  quantity: number;
+  unitOfMeasure: string | null;
+  unitPriceExcludingGst: number | null;
+  unitPriceIncludingGst: number | null;
+  gstRate: number | null;
+  quoteNumber: number | null;
+  quoteLineNumber: number | null;
+};
+
+/** The cart the user built, by the token Reece posted back. */
+export async function reeceCart(cartToken: string): Promise<{ lines: CartLine[]; raw: unknown }> {
+  const cu = await reeceCustomer();
+  const raw = await reeceJson<Raw>(`punch-out-cart/cart/${encodeURIComponent(cartToken)}`, {
+    params: cu?.via === "customer-token" ? { customerToken: cu.customerToken } : { customerNumber: cu?.customerNumber },
+  });
+  const list = Array.isArray(raw.products) ? (raw.products as Raw[]) : [];
+  const lines = list
+    .map((p) => ({
+      productId: asNum(p.productId) ?? 0,
+      description: asStr(first(p, "productDescription", "productTitle", "description")),
+      quantity: asNum(p.quantity) ?? 1,
+      unitOfMeasure: asStr(p.unitOfMeasure),
+      unitPriceExcludingGst: asNum(p.unitPriceExcludingGst),
+      unitPriceIncludingGst: asNum(p.unitPriceIncludingGst),
+      gstRate: asNum(p.gstRate),
+      quoteNumber: asNum(p.quoteNumber),
+      quoteLineNumber: asNum(p.quoteLineNumber),
+    }))
+    .filter((l) => l.productId > 0);
+  return { lines, raw };
+}
+
+// --- ordering -------------------------------------------------------------------------------------
+
+export type OrderProduct = {
+  productId: number;
+  quantity: number;
+  unitOfMeasure?: string | null;
+  unitPriceExcludingGst?: number | null;
+  unitPriceIncludingGst?: number | null;
+  quoteNumber?: number | null;
+  quoteLineNumber?: number | null;
+};
+
+export type OrderRequest = {
+  jobName?: string;
+  orderNumber?: string;
+  orderByName: string;
+  orderByPhone: string;
+  orderByEmail?: string;
+  comment?: string;
+  /** Local time, yyyy-MM-ddTHH:mm:ss, in the future. */
+  requiredByDateTime: string;
+  notification?: { email?: string; sms?: string };
+  fulfillment:
+    | { type: "PICKUP"; pickupBranch: number }
+    | { type: "DELIVERY"; deliveryDetails: Record<string, unknown> };
+  products: OrderProduct[];
+};
+
+/** order-gateway: `preview` prices it, `check` validates it, `create` places it. */
+export async function reeceOrder(mode: "preview" | "check" | "create", order: OrderRequest): Promise<unknown> {
+  const path = mode === "create" ? "order-gateway/orders" : `order-gateway/${mode}`;
+  return reeceJson<unknown>(path, { method: "POST", body: order });
+}
+
+export type Branch = { branchNumber: string; name: string; shortName: string | null; telephone: string | null; emailAddress: string | null };
+
+export async function reeceBranches(): Promise<Branch[]> {
+  const res = await reeceJson<{ branches?: Raw[] }>("branches");
+  return (res.branches ?? []).map((b) => ({
+    branchNumber: String(b.branchNumber ?? ""),
+    name: String(b.name ?? ""),
+    shortName: asStr(b.shortName),
+    telephone: asStr(b.telephone),
+    emailAddress: asStr(b.emailAddress),
+  }));
+}
+
+// --- invoices ---------------------------------------------------------------------------------------
+
+export type InvoiceHeader = {
+  documentNumber: number;
+  documentType: string;
+  documentDate: string;
+  customerNumber: number | null;
+  jobNumber: string | null;
+  orderNumber: string | null;
+};
+
+export async function reeceInvoiceHeaders(fromDate: string, toDate: string, types = "TAX_INVOICE,CREDIT_NOTE,CASH_SALE_INVOICE,CASH_REFUND"): Promise<InvoiceHeader[]> {
+  const res = await reeceJson<{ documentHeaders?: Raw[] }>("invoice-gateway/invoice-headers", {
+    params: { documentTypes: types, fromDate, toDate },
+  });
+  return (res.documentHeaders ?? [])
+    .map((h) => ({
+      documentNumber: asNum(h.documentNumber) ?? 0,
+      documentType: String(h.documentType ?? ""),
+      documentDate: String(h.documentDate ?? ""),
+      customerNumber: asNum(h.customerNumber),
+      jobNumber: asStr(h.jobNumber),
+      orderNumber: asStr(h.orderNumber),
+    }))
+    .filter((h) => h.documentNumber > 0);
+}
+
+/** Full invoices for up to 100 document numbers. */
+export async function reeceInvoices(documentNumbers: number[]): Promise<Raw[]> {
+  if (!documentNumbers.length) return [];
+  const res = await reeceJson<{ documents?: Raw[] }>("invoice-gateway/invoices", {
+    params: { documentNumbers: documentNumbers.slice(0, 100).join(",") },
+  });
+  return res.documents ?? [];
+}
+
+/** The PDF of one invoice. */
+export async function reeceInvoicePdf(documentNumber: number): Promise<Response> {
+  return reeceRequest("invoice-gateway/invoice-documents", {
+    params: { documentNumbers: String(documentNumber) },
+    accept: "application/pdf",
+  });
+}
+
+// --- storage shared by the price-file pull and the manual upload ------------------------------
 
 export async function upsertSupplierItems(items: ParsedItem[], source: "file" | "api", supplier = "reece"): Promise<number> {
   const now = new Date().toISOString();
   let written = 0;
-  for (let i = 0; i < items.length; i += 500) {
-    const rows = items.slice(i, i + 500).map((it) => ({
+  for (let i = 0; i < items.length; i += 1000) {
+    const rows = items.slice(i, i + 1000).map((it) => ({
       supplier,
       code: it.code,
       description: it.description,

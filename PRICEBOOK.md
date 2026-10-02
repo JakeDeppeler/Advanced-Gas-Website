@@ -5,23 +5,26 @@ contractor pricing, gives the office a Reece item search for quoting, and
 receives maX PunchOut carts.
 
 ServiceTitan's own Reece integration is for Reece's US business and is not
-offered to Australian tenants, and Reece maX has no self-serve API. Reece issues
-API access to the *software vendor* and the contractor authorises it from a maX
-login, so this app is registered with Reece as that vendor.
+offered to Australian tenants. Reece's own API (docs.api.reecegroup.com.au)
+is what this uses instead: Reece issues the app a client id and secret, and
+every call names our account with a `Customer-Number` header.
 
 ## How it works
 
 ```
-Reece maX price file ──upload──┐
-                               ├──> supplier_items ──plan/apply──> ServiceTitan pricebook
-Reece maX catalogue API ───────┘         │                          (materials, primary vendor = Reece)
-  (nightly, once connected)              └──> /api/reece/search   (quoting lookup)
-
-Reece maX PunchOut ──webhook──> reece_punchout_carts ──resolve──> ServiceTitan material ids
+Reece price file (API, nightly) ──┐
+Reece maX price file (upload) ────┼──> supplier_items ──plan/apply──> ServiceTitan pricebook
+                                  │         │                          (materials, primary vendor = Reece)
+                                  │         └──> /api/reece/search     (live Reece search when connected,
+                                  │                                     the replica otherwise)
+Reece PunchOut ──cart token──> reece_punchout_carts ──resolve──> ServiceTitan material ids
+                                      └──/api/reece/order──> Reece order-gateway (preview / check / create)
+Reece invoices (API, nightly) ──> reece_invoices
 ```
 
-Two sources feed one table. The price file works today; the catalogue API takes
-over the moment Reece's credentials are in, and nothing downstream changes.
+Two sources feed one table. The manual upload works with no credentials at all;
+the API pull takes over the moment Reece's credentials are in, and nothing
+downstream changes.
 
 The pricebook sync is **plan, then apply**, and they are separate calls. A plan
 reads the replica and the live pricebook, matches on Reece product code, and
@@ -31,9 +34,9 @@ silently ignores, so a successful HTTP status proves nothing. A read-back that
 disagrees with what was sent is a failure in the report.
 
 Matching key: the ServiceTitan material's **primary vendor supplier part number**
-equals the Reece code (with the vendor set to Reece). Materials that predate the
-sync are also matched on their material code, with and without `codePrefix`, and
-get the vendor link written on first apply.
+equals the Reece product id (with the vendor set to Reece). Materials that
+predate the sync are also matched on their material code, with and without
+`codePrefix`, and get the vendor link written on first apply.
 
 ## Setup
 
@@ -111,53 +114,85 @@ curl -H "Authorization: Bearer $CRON_SECRET" "https://www.advancedgas.com.au/api
 Every run, dry or applied, is a row in `pricebook_sync_runs` with its change
 list, so "what changed and when" is a query, not a reconstruction.
 
-### 5. Reece maX API (when Reece issues credentials)
+### 5. Reece API credentials
 
-Ask Reece (maxsupport@reece.com.au, or via the maX integrations page) to
-register the Advanced Gas website as an integration partner, naming the three
-capabilities: catalogue and contractor-pricing pull, item search, and PunchOut.
-They will issue OAuth client credentials and partner documentation. From that:
+Reece's API team (ConnectingCustomers@reece.com.au) issues a **client id and
+secret** per environment (test and production are separate, with separate
+hosts) and links our **account number** to them. That is the whole handshake
+for a single-customer tool: no per-user login, no refresh tokens.
 
-| Variable | From |
+| Variable | Value |
 |---|---|
 | `REECE_CLIENT_ID` / `REECE_CLIENT_SECRET` | the issued credentials |
-| `REECE_AUTHORIZE_URL` / `REECE_TOKEN_URL` | the OAuth endpoints in the docs |
-| `REECE_API_BASE` | the API host |
-| `REECE_SCOPES` | if the docs list scopes |
-| `REECE_CATALOGUE_PATH` / `REECE_SEARCH_PATH` | the catalogue list and search endpoints — the defaults are placeholders |
-| `REECE_PUNCHOUT_SECRET` | the shared secret for the PunchOut webhook |
-| `REECE_REDIRECT_URI` | leave unset; defaults to `<site>/api/reece/callback`, which is what to register with Reece |
+| `REECE_CUSTOMER_NUMBER` | our Reece account number |
+| `REECE_ENV` | `production` (default) or `test`, matching the credentials |
+| `REECE_PUNCHOUT_SECRET` | `openssl rand -hex 32`, see PunchOut below |
+| `REECE_DOMAIN_KEY` | only if Reece's PunchOut "domain key" differs from the client id |
 
-Then, in a browser with the maX login: `https://www.advancedgas.com.au/api/reece/connect?k=<SCREEN_TOKEN>`.
-Tokens land in `portal_integrations` under `reece`, and the nightly workflow
-starts pulling the catalogue (paged; the first full pull takes a few runs).
+Then run **Reece check** from the Actions tab. It walks credentials → token →
+customer identity → one call per capability (branches, search, price file,
+invoices) and names what to fix at the first failure. A `price-file` stage
+reading "no price file generated yet" is normal before step 6.
 
-The response-shape normalisers in `src/lib/pricebook/reece.ts` cover the field names
-seen across Reece's partner integrations. Tighten them to the documented names
-once the docs are in hand — the first catalogue run's `supplier_items.raw`
-column shows exactly what Reece sent.
+If Reece instead sets us up as a *platform* (the `Customer-Token` model), open
+`https://www.advancedgas.com.au/api/reece/connect?k=<SCREEN_TOKEN>` once in a
+browser with the maX login; the resulting token is stored in
+`portal_integrations` and used instead of the customer number.
 
-Unlike Xero, this app owns the Reece connection, so it refreshes the token
-itself.
+### 6. Price file from the API
 
-### 6. Item search
+Reece builds the price file on their side, so there are two one-off steps:
+
+1. **Choose the price-file setting** in maX (Minimal / Typical / Complete).
+   *Typical* is the right size: the popular products plus what we have bought
+   in the last 12 months. *Complete* is the whole catalogue, which is far more
+   than the pricebook needs and makes each nightly run slow.
+2. Run **Pricebook sync** with *reset_catalogue* ticked, which asks Reece to
+   generate the file. It is queued, so the first pull may report `pending`;
+   the next nightly run picks it up.
+
+From then on the nightly workflow fetches the current file, parses it through
+the same column mapper as a manual upload (so `fileColumns` pinning applies),
+and stores it in `supplier_items` with `source = 'api'`.
+
+### 7. Item search
 
 `GET /api/reece/search?q=copper%2020mm&k=<SCREEN_TOKEN>` (or the cron bearer).
-Live maX search when connected, otherwise the replica; same response either
-way, with our contractor price. This is the hook for a quoting tool.
+Live Reece product search when connected (phrases of 3–30 characters, Reece's
+limit; `page=` for more), otherwise the replica. Same response shape either way,
+with our contractor price. This is the hook for a quoting tool.
 
-### 7. PunchOut
+### 8. PunchOut and ordering
 
-Register `https://www.advancedgas.com.au/api/reece/punchout` with Reece as the
-PunchOut return URL and set `REECE_PUNCHOUT_SECRET` to the shared secret. The
-receiver accepts the secret as a bearer token or as an HMAC-SHA256 signature of
-the body — whichever Reece's docs specify. Carts are stored verbatim in
-`reece_punchout_carts` and each line resolved to a ServiceTitan material id.
+Send the user to `https://www.advancedgas.com.au/api/reece/punchout/start?k=<SCREEN_TOKEN>`.
+They land on Reece's site, build a cart, and Reece posts a cart token back to
+`/api/reece/punchout`. That page fetches the cart with our credentials, stores
+it in `reece_punchout_carts`, matches every line to a ServiceTitan material,
+and shows the result with the cart id.
 
-Creating the ServiceTitan purchase order from a resolved cart is the next step
-and is not built: a PO needs a business unit and a job or inventory location,
-which is a choice for whoever built the cart, so it wants a small screen rather
-than a guess.
+Placing the order is deliberate and separate, because it needs a branch, a
+required-by time and a name:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://www.advancedgas.com.au/api/reece/order   # branch list
+curl -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"cartId":"<id>","mode":"preview","orderByName":"Jake","orderByPhone":"+61 4…",
+       "pickupBranch":3032,"requiredByDateTime":"2026-10-03T07:00:00","jobName":"ST 1234"}' \
+  https://www.advancedgas.com.au/api/reece/order
+```
+
+`preview` prices it and `check` validates it, both without ordering. `create`
+places it, and the cart row records Reece's order id so it cannot be placed
+twice. A small office screen for this is the natural next step; the endpoint is
+the part that had to exist first.
+
+### 9. Invoices
+
+The nightly workflow also pulls Reece tax invoices, credit notes and cash sales
+for the last 35 days into `reece_invoices` (headers first, then the full
+document with lines, totals and the PDF link). The 35-day window overlaps the
+previous night, so a missed run loses nothing. Matching these to ServiceTitan
+purchase orders is a follow-up; the data is there for it.
 
 ## Things worth knowing
 
@@ -173,6 +208,11 @@ alone. A product Reece stops stocking may still be on an open estimate.
 **Capped applies.** Vercel's function time budget is why an apply writes at most
 `limit` changes. The plan is recomputed from the live pricebook each run, so
 repeating until `remaining` is 0 is the whole procedure.
+
+**Reece responses are mapped tolerantly.** The documented product shapes are
+what `src/lib/pricebook/reece.ts` reads first, but the full record is kept in
+`raw` on every table, so a field that turns out to live elsewhere is a mapper
+fix, not a re-pull.
 
 **Vendor.** The sync looks up the ServiceTitan vendor by `vendorName` and
 creates it if absent. If the office already has a Reece vendor under a slightly

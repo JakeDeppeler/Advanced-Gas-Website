@@ -2,7 +2,7 @@ name: Pricebook sync
 
 # Reece maX → ServiceTitan pricebook.
 #
-# Nightly: pull the maX catalogue (a no-op until Reece credentials are set) and
+# Nightly: pull the Reece price file and invoices (no-ops until Reece credentials are set) and
 # run a dry run against the ServiceTitan pricebook, so the morning's summary
 # page shows what an apply would change. Nothing is written to ServiceTitan on
 # the schedule. Writes happen only from a manual run with "apply" ticked.
@@ -25,7 +25,7 @@ on:
         type: string
         default: "100"
       reset_catalogue:
-        description: "Re-pull the maX catalogue from the first page"
+        description: "Ask Reece to regenerate the price file before pulling it"
         type: boolean
         default: false
       url:
@@ -65,19 +65,14 @@ jobs:
           BASE="${BASE%/}"
           auth=(-H "Authorization: Bearer ${CRON_SECRET}")
 
-          # 1. Catalogue pull. Paged and capped per call, so loop until the
-          #    endpoint reports exhausted (or says it is skipped).
+          # 1. Reece price file → supplier_items, then invoices → reece_invoices.
+          #    Both skip cleanly when the Reece API is not configured.
           url="${BASE}/api/reece/catalogue"
-          [ -n "$RESET" ] && url="${url}?reset=1"
-          for i in $(seq 1 30); do
-            curl --fail-with-body -sS --max-time 120 "${auth[@]}" "$url" > catalogue.json
-            jq -c . catalogue.json
-            status=$(jq -r '.status // "ok"' catalogue.json)
-            exhausted=$(jq -r '.exhausted // true' catalogue.json)
-            [ "$status" = "skipped" ] && break
-            [ "$exhausted" = "true" ] && break
-            url="${BASE}/api/reece/catalogue"
-          done
+          [ -n "$RESET" ] && url="${url}?trigger=1"
+          curl --fail-with-body -sS --max-time 120 "${auth[@]}" "$url" > catalogue.json || true
+          jq -c . catalogue.json || cat catalogue.json
+          curl --fail-with-body -sS --max-time 120 "${auth[@]}" "${BASE}/api/reece/invoices" > invoices.json || true
+          jq -c . invoices.json || cat invoices.json
 
           # 2. Plan (and optionally apply) against the ServiceTitan pricebook.
           if [ -n "$APPLY" ]; then
@@ -92,7 +87,9 @@ jobs:
           {
             echo "## Pricebook sync — $(jq -r .mode sync.json)"
             echo
-            echo "Catalogue pull: $(jq -r '.status // "ok"' catalogue.json) $(jq -r '.reason // ""' catalogue.json)"
+            echo "Reece price file: $(jq -r '.status // "?"' catalogue.json) $(jq -r '.reason // (if .items then "\(.items) items, \(.stored) stored" else "" end)' catalogue.json)"
+            echo
+            echo "Reece invoices: $(jq -r '.status // "?"' invoices.json) $(jq -r '.reason // (if .headers != null then "\(.headers) headers in window, \(.detailed) detailed" else "" end)' invoices.json)"
             echo
             echo "| Supplier items | Materials | Matched | To update | To create | Unchanged | Not in pricebook | No cost | Missing in supplier |"
             echo "|---|---|---|---|---|---|---|---|---|"

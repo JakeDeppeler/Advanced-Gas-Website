@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-type Row = Record<string, unknown>;
 import { dashboardDbConfigured, q, sbSelect } from "@/lib/dashboard/db";
 import { cronAuthorised, screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { reeceConfigured, reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
@@ -7,27 +6,37 @@ import { reeceConfigured, reeceConnection, reeceSearch } from "@/lib/pricebook/r
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type Row = Record<string, unknown>;
+
 // Item lookup while quoting: /api/reece/search?q=copper+20mm
 //
-// Live maX search when the API is connected; otherwise the local supplier_items
-// replica, which is what the price file filled. Either way the result is the
-// same shape with our contractor price, so whatever calls this does not care
-// which answered. Accepts the cron bearer or the screen token (?k=) so an office
-// tool in a browser can use it.
+// Live Reece product search when the API is connected (3–30 character phrase,
+// Reece's limits); otherwise the local supplier_items replica, which is what
+// the price file filled. Either way the result is the same shape with our
+// contractor price, so whatever calls this does not care which answered.
+// Accepts the cron bearer or the screen token (?k=) so an office tool in a
+// browser can use it.
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
   if (!cronAuthorised(req) && !screenTokenValid(url.searchParams.get("k"))) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
-  const term_ = (url.searchParams.get("q") ?? "").trim();
-  if (term_.length < 2) return NextResponse.json({ ok: false, error: "q must be at least 2 characters" }, { status: 400 });
+  const phrase = (url.searchParams.get("q") ?? "").trim();
+  if (phrase.length < 2) return NextResponse.json({ ok: false, error: "q must be at least 2 characters" }, { status: 400 });
   const limit = Math.min(100, Math.max(1, Number(url.searchParams.get("limit")) || 25));
+  const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
 
-  if (reeceConfigured() && (await reeceConnection()).status === "connected") {
+  if (phrase.length >= 3 && reeceConfigured() && (await reeceConnection()).status === "ready") {
     try {
-      const items = await reeceSearch(term_, limit);
-      return NextResponse.json({ ok: true, source: "max-api", items: items.map(({ raw: _raw, ...i }) => i) });
+      const r = await reeceSearch(phrase, limit, page);
+      return NextResponse.json({
+        ok: true,
+        source: "reece-api",
+        totalResults: r.totalResults,
+        gstRate: r.gstRate,
+        items: r.items.map(({ raw: _raw, ...i }) => i),
+      });
     } catch (e) {
       // Fall through to the replica rather than fail the lookup — a quote
       // waiting on a search is worse than a price a day old.
@@ -39,7 +48,7 @@ export async function GET(req: Request) {
 
   // PostgREST filter grammar: `*` is the wildcard, and commas, dots and
   // parentheses delimit the `or=(…)` list, so they are stripped from the term.
-  const term = term_.replace(/[*%,.()\\]/g, "").trim();
+  const term = phrase.replace(/[*%,.()\\]/g, "").trim();
   const cols = "code,description,uom,pack_qty,cost,gst_applies,list_price,category,barcode,seen_at";
   let exact: Row[] = [];
   let fuzzy: Row[] = [];

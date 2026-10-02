@@ -1,23 +1,25 @@
 import { NextResponse } from "next/server";
 import { dashboardDbConfigured, q, sbSelectOne, sbUpsert } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
-import { reeceCataloguePage, reeceConfigured, reeceConnection, upsertSupplierItems } from "@/lib/pricebook/reece";
+import { reeceConfigured, reeceConnection, reecePriceFile, reeceTriggerPriceFile, toSupplierItem, upsertSupplierItems } from "@/lib/pricebook/reece";
+import { parsePriceFile, type ColumnMap } from "@/lib/pricebook/reeceFile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// Pulls the maX catalogue (with our contractor pricing) into supplier_items.
-// Driven nightly by .github/workflows/pricebook-sync.yml.
+// Pulls our Reece price file into supplier_items. Driven nightly by
+// .github/workflows/pricebook-sync.yml.
 //
-// Paged and capped per invocation, with the cursor stored in portal_sync_state,
-// so a full catalogue takes several runs and each resumes where the last
-// stopped. Pass ?reset=1 to start from the first page again.
+// Reece generates the file on their side, on a schedule of their own; this
+// fetches whatever is current. A 204 from Reece means no file has been built
+// yet (or the price-file settings have not been chosen in maX) and is reported
+// as `pending`, not as an error. Pass ?trigger=1 to ask Reece to rebuild it
+// first — it is queued, so the file lands on a later run, not this one.
 //
-// Skips cleanly when Reece credentials are not set — the price-file upload is
-// the source then, and nothing downstream knows the difference.
-
-const PAGE_CAP = 20;
+// The CSV goes through the same parser as a manual maX upload, so the column
+// mapping is visible in the response and pinnable in portal_settings.pricebook.
+// Skips cleanly when Reece credentials are not set.
 
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) return new NextResponse("Unauthorized", { status: 401 });
@@ -28,59 +30,59 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: true, status: "skipped", reason: "Reece API credentials not set — using uploaded price files" });
   }
   const connection = await reeceConnection();
-  if (connection.status !== "connected") {
-    return NextResponse.json({ ok: true, status: "skipped", reason: "Reece maX not connected — open /api/reece/connect?k=<SCREEN_TOKEN>" });
+  if (connection.status !== "ready") {
+    return NextResponse.json({ ok: true, status: "skipped", reason: "No Reece customer identity — set REECE_CUSTOMER_NUMBER or complete /api/reece/connect" });
   }
 
-  const reset = new URL(req.url).searchParams.get("reset") === "1";
+  const url = new URL(req.url);
+  const trigger = url.searchParams.get("trigger") === "1";
   const startedAt = new Date().toISOString();
 
-  const state = await sbSelectOne<{ continue_from: string | null }>(
-    "portal_sync_state",
-    [q.select("continue_from"), q.eq("provider", "reece"), q.eq("resource", "catalogue")].join("&"),
-  );
-
-  let cursor = reset ? null : state?.continue_from ?? null;
-  let stored = 0;
-  let pages = 0;
-  let exhausted = false;
+  const state = async (patch: Record<string, unknown>) =>
+    sbUpsert("portal_sync_state", [{ provider: "reece", resource: "catalogue", last_run_at: startedAt, ...patch }], "provider,resource").catch(
+      () => undefined,
+    );
 
   try {
-    for (; pages < PAGE_CAP; pages++) {
-      const page = await reeceCataloguePage(cursor);
-      if (page.items.length) stored += await upsertSupplierItems(page.items, "api");
-      if (!page.next || page.rawCount === 0) {
-        exhausted = true;
-        cursor = null;
-        break;
-      }
-      cursor = page.next;
+    let triggered = false;
+    if (trigger) {
+      await reeceTriggerPriceFile();
+      triggered = true;
     }
 
-    await sbUpsert(
-      "portal_sync_state",
-      [
-        {
-          provider: "reece",
-          resource: "catalogue",
-          continue_from: cursor,
-          last_run_at: startedAt,
-          last_success_at: new Date().toISOString(),
-          last_status: exhausted ? "up-to-date" : "more-pending",
-          last_error: null,
-          records_synced: stored,
-        },
-      ],
-      "provider,resource",
-    );
-    return NextResponse.json({ ok: true, status: "ok", pages, stored, exhausted });
+    const file = await reecePriceFile();
+    if (file.status === "pending") {
+      await state({ last_status: "pending", last_error: null });
+      return NextResponse.json({
+        ok: true,
+        status: "pending",
+        triggered,
+        reason: "Reece has not generated a price file for this account yet. Choose the price-file setting in maX (Typical is the right size), then run again with ?trigger=1 and give it a while.",
+      });
+    }
+
+    let items;
+    let mapping: unknown = null;
+    if (file.format === "MAX_CSV") {
+      const settings = await sbSelectOne<{ value: { fileColumns?: ColumnMap } }>(
+        "portal_settings",
+        [q.select("value"), q.eq("key", "pricebook")].join("&"),
+      );
+      const parsed = parsePriceFile(file.text, settings?.value?.fileColumns ?? {});
+      items = parsed.items;
+      mapping = { columns: parsed.columns, unmappedHeaders: parsed.unmappedHeaders, priceIncludedGst: parsed.priceIncludedGst, warnings: parsed.warnings, skipped: parsed.skipped };
+    } else {
+      const j = file.json as { products?: unknown[]; items?: unknown[] } | unknown[];
+      const list = Array.isArray(j) ? j : (j.products ?? j.items ?? []);
+      items = (list as Record<string, unknown>[]).map(toSupplierItem).filter((i): i is NonNullable<typeof i> => i != null);
+    }
+
+    const stored = await upsertSupplierItems(items, "api");
+    await state({ last_success_at: new Date().toISOString(), last_status: "up-to-date", last_error: null, records_synced: stored });
+    return NextResponse.json({ ok: true, status: "ok", triggered, format: file.format, items: items.length, stored, mapping });
   } catch (e) {
     const message = (e as Error).message;
-    await sbUpsert(
-      "portal_sync_state",
-      [{ provider: "reece", resource: "catalogue", last_run_at: startedAt, last_status: "error", last_error: message }],
-      "provider,resource",
-    ).catch(() => undefined);
-    return NextResponse.json({ ok: false, status: "error", pages, stored, error: message }, { status: 502 });
+    await state({ last_status: "error", last_error: message });
+    return NextResponse.json({ ok: false, status: "error", error: message }, { status: 502 });
   }
 }

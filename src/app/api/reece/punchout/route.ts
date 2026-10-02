@@ -1,114 +1,111 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 import { dashboardDbConfigured, q, sbInsert, sbUpdate } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { reeceConfig } from "@/lib/pricebook/reece";
+import { reeceCart, reeceConfig, type CartLine } from "@/lib/pricebook/reece";
 import { buildMaterialIndex, findMaterial, loadMaterials, loadPricebookSettings, resolveVendor } from "@/lib/pricebook/stPricebook";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// PunchOut return: maX posts the cart the user built back to this URL.
+// PunchOut hook: Reece redirects the user's browser here with a form POST
+// (application/x-www-form-urlencoded) carrying `cartToken`, plus the
+// customerNumber or customerToken we sent. We fetch the cart with our API
+// credentials, store it, resolve each line to a ServiceTitan material, and show
+// the user what came back — this response is what they see after Reece.
 //
-// Registered with Reece as the PunchOut webhook. Authenticated by a shared
-// secret (REECE_PUNCHOUT_SECRET) presented either as an HMAC-SHA256 of the raw
-// body in a signature header, or as a bearer token — which of the two Reece
-// uses, and the header name, comes with their PunchOut documentation.
-//
-// The cart is stored verbatim first, then each line is resolved to a
-// ServiceTitan material by Reece code, so the office (or the next step, a
-// purchase order in ServiceTitan) works from ServiceTitan ids rather than
-// re-matching. Creating the purchase order is not done here yet: ServiceTitan's
-// inventory API needs a business unit and a job or inventory location per PO,
-// and which to use is a decision for the person who built the cart.
+// Placing the order is a separate, deliberate call (/api/reece/order) because
+// it needs a branch, a required-by time and a name on the order.
 
-const SIGNATURE_HEADERS = ["x-reece-signature", "x-signature", "x-hub-signature-256", "x-webhook-signature"];
-
-function authorised(req: Request, rawBody: string): boolean {
+function authorised(req: Request): boolean {
   const secret = reeceConfig().punchoutSecret;
-  if (!secret) return false;
-
-  const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
-  if (bearer && bearer.length === secret.length && timingSafeEqual(Buffer.from(bearer), Buffer.from(secret))) return true;
-
-  const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
-  for (const h of SIGNATURE_HEADERS) {
-    const supplied = (req.headers.get(h) ?? "").replace(/^sha256=/i, "").toLowerCase();
-    if (supplied && supplied.length === expected.length && timingSafeEqual(Buffer.from(supplied), Buffer.from(expected))) return true;
-  }
-  return false;
+  const supplied = new URL(req.url).searchParams.get("s") ?? "";
+  if (!secret || !supplied || supplied.length !== secret.length) return false;
+  return timingSafeEqual(Buffer.from(supplied), Buffer.from(secret));
 }
 
-type Raw = Record<string, unknown>;
-const first = (r: Raw, ...keys: string[]): unknown => {
-  for (const k of keys) if (r[k] != null && r[k] !== "") return r[k];
-  return undefined;
-};
+type Resolved = CartLine & { materialId: number | null; materialCode: string | null };
 
-/** The cart's line items, wherever the payload keeps them. */
-function cartLines(cart: Raw): Array<{ code: string; description: string | null; quantity: number; unitPrice: number | null }> {
-  const list = first(cart, "items", "lines", "lineItems", "cartItems", "products") ?? first((cart.cart as Raw) ?? {}, "items", "lines") ?? [];
-  if (!Array.isArray(list)) return [];
-  return list
-    .map((l: Raw) => {
-      const code = first(l, "productCode", "product_code", "code", "sku", "itemCode", "partNumber");
-      const qty = Number(first(l, "quantity", "qty") ?? 1);
-      const price = first(l, "unitPrice", "unit_price", "price", "yourPrice", "netPrice");
-      return {
-        code: code == null ? "" : String(code),
-        description: (first(l, "description", "name", "title") as string | undefined) ?? null,
-        quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
-        unitPrice: price == null || price === "" ? null : Number(price),
-      };
-    })
-    .filter((l) => l.code);
+function page(title: string, body: string, status = 200): NextResponse {
+  return new NextResponse(
+    `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>` +
+      `<style>body{font:16px/1.5 system-ui,sans-serif;margin:2rem auto;max-width:48rem;padding:0 1rem;color:#1a1a1a}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:.4rem .5rem;border-bottom:1px solid #ddd}th{font-weight:600}.muted{color:#666}.warn{color:#9a3412}</style>` +
+      `<h1>${title}</h1>${body}`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8" } },
+  );
 }
+
+const esc = (s: unknown) => String(s ?? "").replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
 
 export async function POST(req: Request) {
-  const rawBody = await req.text();
-  if (!authorised(req, rawBody)) return new NextResponse("Unauthorized", { status: 401 });
-  if (!dashboardDbConfigured()) return NextResponse.json({ ok: false, error: "Supabase not configured" }, { status: 503 });
+  if (!authorised(req)) return new NextResponse("Unauthorized", { status: 401 });
+  if (!dashboardDbConfigured()) return page("Not configured", "<p>Supabase is not configured on this deployment.</p>", 503);
 
-  let cart: Raw;
-  try {
-    cart = JSON.parse(rawBody) as Raw;
-  } catch {
-    return NextResponse.json({ ok: false, error: "body is not JSON" }, { status: 400 });
+  const contentType = req.headers.get("content-type") ?? "";
+  let fields: URLSearchParams;
+  if (contentType.includes("application/json")) {
+    fields = new URLSearchParams(Object.entries((await req.json()) as Record<string, string>));
+  } else {
+    fields = new URLSearchParams(await req.text());
   }
+  const cartToken = fields.get("cartToken")?.trim();
+  if (!cartToken) return page("No cart", "<p>Reece did not send a cart token.</p>", 400);
 
-  const row = { id: randomUUID() };
+  const id = randomUUID();
+  let lines: CartLine[];
   try {
-    await sbInsert("reece_punchout_carts", { id: row.id, cart });
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
-  }
-
-  // Acknowledge even if resolution fails below — the cart is stored and can be
-  // resolved later. Reece should never see a 5xx for something on our side.
-  const lines = cartLines(cart);
-  if (!serviceTitanConfigured() || lines.length === 0) {
-    return NextResponse.json({ ok: true, id: row.id, status: "received", lines: lines.length });
-  }
-
-  try {
-    const settings = await loadPricebookSettings();
-    const vendor = await resolveVendor(settings.vendorName);
-    const index = buildMaterialIndex(await loadMaterials(), vendor.id);
-    const resolved = lines.map((l) => {
-      const m = findMaterial(index, l.code, settings.codePrefix);
-      return { ...l, materialId: m?.id ?? null, materialCode: m?.code ?? null };
+    const cart = await reeceCart(cartToken);
+    lines = cart.lines;
+    await sbInsert("reece_punchout_carts", {
+      id,
+      cart: cart.raw,
+      cart_token: cartToken,
+      customer_number: fields.get("customerNumber"),
+      status: "received",
     });
-    const unresolved = resolved.filter((l) => l.materialId == null).length;
-    await sbUpdate("reece_punchout_carts", q.eq("id", row.id), {
-      status: "resolved",
-      resolved_lines: resolved,
-      error: unresolved ? `${unresolved} line(s) not in the pricebook` : null,
-    });
-    return NextResponse.json({ ok: true, id: row.id, status: "resolved", lines: lines.length, unresolved });
   } catch (e) {
-    await sbUpdate("reece_punchout_carts", q.eq("id", row.id), { status: "error", error: (e as Error).message }).catch(() => undefined);
-    return NextResponse.json({ ok: true, id: row.id, status: "received", lines: lines.length, warning: (e as Error).message });
+    return page("Cart not retrieved", `<p class="warn">${esc((e as Error).message)}</p>`, 502);
   }
+
+  let resolved: Resolved[] = lines.map((l) => ({ ...l, materialId: null, materialCode: null }));
+  let note = "";
+  if (serviceTitanConfigured() && lines.length) {
+    try {
+      const settings = await loadPricebookSettings();
+      const vendor = await resolveVendor(settings.vendorName);
+      const index = buildMaterialIndex(await loadMaterials(), vendor.id);
+      resolved = lines.map((l) => {
+        const m = findMaterial(index, String(l.productId), settings.codePrefix);
+        return { ...l, materialId: m?.id ?? null, materialCode: m?.code ?? null };
+      });
+      const unresolved = resolved.filter((l) => l.materialId == null).length;
+      await sbUpdate("reece_punchout_carts", q.eq("id", id), {
+        status: "resolved",
+        resolved_lines: resolved,
+        error: unresolved ? `${unresolved} line(s) not in the pricebook` : null,
+      });
+      if (unresolved) note = `<p class="warn">${unresolved} line(s) are not in the ServiceTitan pricebook yet. Load a current price file and run the pricebook sync, or add them by hand.</p>`;
+    } catch (e) {
+      await sbUpdate("reece_punchout_carts", q.eq("id", id), { status: "error", error: (e as Error).message }).catch(() => undefined);
+      note = `<p class="warn">Stored, but could not match lines to ServiceTitan: ${esc((e as Error).message)}</p>`;
+    }
+  }
+
+  const total = resolved.reduce((s, l) => s + (l.unitPriceExcludingGst ?? 0) * l.quantity, 0);
+  const rows = resolved
+    .map(
+      (l) =>
+        `<tr><td>${esc(l.productId)}</td><td>${esc(l.description)}</td><td>${esc(l.quantity)} ${esc(l.unitOfMeasure ?? "")}</td>` +
+        `<td>${l.unitPriceExcludingGst == null ? "—" : `$${l.unitPriceExcludingGst.toFixed(2)}`}</td>` +
+        `<td>${l.materialCode ? esc(l.materialCode) : '<span class="warn">not in pricebook</span>'}</td></tr>`,
+    )
+    .join("");
+
+  return page(
+    "Reece cart received",
+    `<p>Cart <code>${esc(id)}</code> with ${resolved.length} line(s), $${total.toFixed(2)} ex GST at your Reece pricing.</p>${note}` +
+      `<table><thead><tr><th>Reece code</th><th>Description</th><th>Qty</th><th>Unit ex GST</th><th>ServiceTitan material</th></tr></thead><tbody>${rows}</tbody></table>` +
+      `<p class="muted">To place this with Reece, call <code>POST /api/reece/order</code> with this cart id, a pickup branch, a required-by time and who is ordering. See PRICEBOOK.md.</p>`,
+  );
 }
