@@ -69,9 +69,14 @@ export async function sbSelectOne<T = Row>(table: string, query = ""): Promise<T
  * PostgREST reports it in the content-range header as `0-0/123` when asked for
  * an exact count, so a counting query costs one row of bandwidth rather than
  * the whole table.
+ *
+ * `col` is only ever used to name one cheap column to select. It defaults to
+ * `id` because every table the dashboard counts has one — `supplier_items` is
+ * keyed on (supplier, code) and does not, which asking for `id` answers with a
+ * 400 rather than a count.
  */
-export async function sbCount(table: string, query = ""): Promise<number> {
-  const res = await sb(`${table}?select=id${query ? `&${query}` : ""}`, {
+export async function sbCount(table: string, query = "", col = "id"): Promise<number> {
+  const res = await sb(`${table}?select=${encodeURIComponent(col)}${query ? `&${query}` : ""}`, {
     headers: { Prefer: "count=exact", Range: "0-0" },
   });
   if (!res) return 0;
