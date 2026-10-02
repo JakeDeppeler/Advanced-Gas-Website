@@ -535,3 +535,33 @@ export async function getMoneySeries(range: MoneyRange): Promise<MonthPoint[]> {
     ok: results[i] !== null,
   }));
 }
+
+/* -------- A whole year, month by month, for the year-goal page -------- */
+
+/**
+ * The P&L for each of twelve explicit month spans.
+ *
+ * Separate from `getMoneySeries`, which builds its own spans from today and
+ * only offers rolling ranges. The year-goal page needs a *named* period —
+ * a financial year that started in July, including months that haven't
+ * happened yet — so it passes the spans in.
+ *
+ * A month Xero didn't answer for comes back null rather than zero. The
+ * caller has to be able to tell "we billed nothing" from "we don't know",
+ * and the two look identical once a failure is written as 0.
+ */
+export async function getMonthlyActuals(
+  spans: Array<{ from: string; to: string }>,
+  today = localToday(),
+): Promise<Array<ProfitLoss | null>> {
+  const tok = await validToken();
+  if (!tok) return spans.map(() => null);
+  const todayIso = isoDate(today);
+  return Promise.all(
+    spans.map((s) =>
+      // Nothing to ask about a month that hasn't started. Xero answers a
+      // future range with zeroes, which would read as a real quiet month.
+      s.from > todayIso ? Promise.resolve(null) : plFetch(tok.accessToken, tok.tenantId, s.from, s.to > todayIso ? todayIso : s.to),
+    ),
+  );
+}
