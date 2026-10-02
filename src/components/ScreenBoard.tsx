@@ -224,8 +224,14 @@ function TodayPage({ m }: { m: Metrics }) {
       <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
-        state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
-        sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
+        state={m.overdueTotal == null ? "" : m.overdueTotal > 0 ? "critical" : "good"}
+        sub={
+          m.overdueTotal == null
+            ? "xero not connected"
+            : m.overdueCount
+              ? `${m.overdueCount} invoices`
+              : "nothing overdue"
+        }
       />
     </>
   );
@@ -284,8 +290,14 @@ function PacePage({ m }: { m: Metrics }) {
       <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
-        state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
-        sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
+        state={m.overdueTotal == null ? "" : m.overdueTotal > 0 ? "critical" : "good"}
+        sub={
+          m.overdueTotal == null
+            ? "xero not connected"
+            : m.overdueCount
+              ? `${m.overdueCount} invoices`
+              : "nothing overdue"
+        }
       />
     </>
   );
@@ -487,8 +499,14 @@ function PerformancePage({ m }: { m: Metrics }) {
       <Tile
         label="Overdue"
         value={money(m.overdueTotal)}
-        state={(m.overdueTotal ?? 0) > 0 ? "critical" : "good"}
-        sub={m.overdueCount ? `${m.overdueCount} invoices` : "nothing overdue"}
+        state={m.overdueTotal == null ? "" : m.overdueTotal > 0 ? "critical" : "good"}
+        sub={
+          m.overdueTotal == null
+            ? "xero not connected"
+            : m.overdueCount
+              ? `${m.overdueCount} invoices`
+              : "nothing overdue"
+        }
       />
     </>
   );

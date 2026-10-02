@@ -112,7 +112,17 @@ export type Snapshot = {
  * board shows the name and falls back to the bare postcode for anywhere outside
  * the service area.
  */
-const POSTCODE_TO_SUBURB = new Map(suburbs.map((s) => [s.postcode, s.name]));
+const POSTCODE_TO_SUBURB = (() => {
+  const m = new Map<string, string>();
+  // First declared wins. Postcodes cover several suburbs — 3977 is Cranbourne
+  // and six neighbours, 3810 is Pakenham and Pakenham Upper — and the list is
+  // ordered with the principal one first. Building this with `new Map(pairs)`
+  // keeps the *last* entry instead, which labelled every Cranbourne lead
+  // "Devon Meadows" and every Pakenham lead "Pakenham Upper": the smallest
+  // suburb in each postcode, confidently, on a wall.
+  for (const s of suburbs) if (!m.has(s.postcode)) m.set(s.postcode, s.name);
+  return m;
+})();
 
 /** Mirrors the quote form's own labels, so the board names a service the way the customer picked it. */
 const SERVICE_LABELS: Record<string, string> = {
