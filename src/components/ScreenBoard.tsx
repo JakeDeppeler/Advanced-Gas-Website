@@ -67,7 +67,7 @@ const st = {
 export function ScreenBoard({
   initial,
   token,
-  theme = "dark",
+  theme = "light",
 }: {
   initial: Snapshot;
   token: string;
@@ -125,7 +125,7 @@ export function ScreenBoard({
   const live: Live = { st: snap.sources.servicetitan?.state !== "not-configured" };
 
   return (
-    <div className={`screen ${theme === "light" ? "screen--light" : ""}`}>
+    <div className={`screen ${theme === "dark" ? "screen--dark" : ""}`}>
       {celebrating && (
         <Celebration
           key={celebrating.id}
@@ -135,30 +135,53 @@ export function ScreenBoard({
       )}
 
       <div className="screen__bar">
-        <span className="screen__title">
-          Advanced Gas — {PAGES[page]}
-          <span className="screen__pages" style={{ display: "inline-flex", marginLeft: "0.8vw" }}>
-            {PAGES.map((p, i) => (
-              <span key={p} className={`screen__pip ${i === page ? "screen__pip--on" : ""}`} />
-            ))}
-          </span>
+        <span className="screen__brand">
+          <b>Advanced</b>
+          <em>Gas &amp; Aircon</em>
         </span>
-        <span className="screen__sources">
-          {Object.entries(snap.sources).map(([name, s]) => (
-            <span className="screen__source" key={name}>
-              <span className={`screen__dot ${dotClass(s.state)}`} aria-hidden />
-              {name}
-              {s.state !== "ok" ? ` · ${s.state}` : ""}
+
+        <span className="screen__page">
+          <i>/{String(page + 1).padStart(2, "0")}</i>
+          <strong>{PAGES[page]}</strong>
+          <time>
+            {now.toLocaleDateString("en-AU", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              timeZone: "Australia/Melbourne",
+            })}
+          </time>
+        </span>
+
+        {/* The tab strip doubles as the page indicator: the pill is the only
+            thing that moves as the board rotates, so the room can see where it
+            is in the cycle without reading. */}
+        <nav className="screen__tabs" aria-label="Board pages">
+          {PAGES.map((p, i) => (
+            <span key={p} className={`screen__tab ${i === page ? "is-on" : ""}`}>
+              {p}
             </span>
           ))}
+        </nav>
+
+        <span className="screen__meta">
+          <span className="screen__sources">
+            {Object.entries(snap.sources).map(([name, srcState]) => (
+              <span className="screen__source" key={name}>
+                <span className={`screen__dot ${dotClass(srcState.state)}`} aria-hidden />
+                {name}
+                {srcState.state !== "ok" ? ` · ${srcState.state}` : ""}
+              </span>
+            ))}
+          </span>
           <span className="screen__source">updated {relative(snap.computedAt, now)}</span>
-        </span>
-        <span className="screen__clock">
-          {now.toLocaleTimeString("en-AU", {
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "Australia/Melbourne",
-          })}
+          <span className="screen__clock">
+            {now.toLocaleTimeString("en-AU", {
+              hour: "2-digit",
+              minute: "2-digit",
+              timeZone: "Australia/Melbourne",
+            })}
+          </span>
         </span>
       </div>
 
@@ -185,6 +208,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           weeks ago. Ordered sold-then-invoiced so the actionable one is read
           first on a left-to-right scan. */}
       <HeroTile
+        feature
         label="To sell per day"
         daily={m.dailySalesTarget}
         today={live.st ? m.soldToday : null}
@@ -586,6 +610,7 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
  * instead of falling back to a number nobody agreed to.
  */
 function HeroTile({
+  feature = false,
   label,
   daily,
   today,
@@ -597,6 +622,8 @@ function HeroTile({
   daysLeft,
   noTarget,
 }: {
+  /** The one inverted card on the page: the figure the page exists to show. */
+  feature?: boolean;
   label: string;
   daily: number | null;
   /** null when the source isn't connected — unknown, not zero. */
@@ -614,7 +641,7 @@ function HeroTile({
   const behind = aheadBehind != null && aheadBehind < 0;
 
   return (
-    <div className="tile tile--wide">
+    <div className={`tile tile--wide ${feature ? "tile--feature" : ""}`}>
       <span className="tile__label">
         {label} · {daysLeft} working {daysLeft === 1 ? "day" : "days"} left
       </span>
