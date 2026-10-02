@@ -45,7 +45,7 @@ export default async function SupplySyncsPage() {
       <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Sync history</div>
-        <h1>Every pricebook run<span className="pt-stop">.</span></h1>
+        <h1>Every pricebook run.</h1>
         <p>
           A <strong>dry run</strong> works out what it would change and writes nothing. An <strong>apply</strong>{" "}
           writes it, one material at a time, and reads each one back — ServiceTitan returns a success for several

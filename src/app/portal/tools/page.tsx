@@ -14,7 +14,7 @@ export default async function ToolsPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Tools</div>
-        <h1>On-the-job tools<span className="pt-stop">.</span></h1>
+        <h1>On-the-job tools.</h1>
         <p>The calculators and lookups we use on site and on quote calls — they open right here in the portal.</p>
       </div>
 

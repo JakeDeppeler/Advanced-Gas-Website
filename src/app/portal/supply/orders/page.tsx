@@ -38,7 +38,7 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
       <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Orders</div>
-        <h1>Everything we&rsquo;ve ordered<span className="pt-stop">.</span></h1>
+        <h1>Everything we&rsquo;ve ordered.</h1>
         <p>
           Every cart sent through Reece maX, what&rsquo;s on it, where it&rsquo;s going and what it came to. Search by
           reference, place or anything on the order, then open one for the full list.

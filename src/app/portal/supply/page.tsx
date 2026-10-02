@@ -53,7 +53,7 @@ export default async function SupplyPage() {
       <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Supply</div>
-        <h1>Reece maX, into ServiceTitan<span className="pt-stop">.</span></h1>
+        <h1>Reece maX, into ServiceTitan.</h1>
         <p>
           Our contractor pricing from Reece, the ServiceTitan pricebook it feeds, and every order that&rsquo;s gone out
           through it. One place to see whether the link is working and what it has done.

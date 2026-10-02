@@ -48,7 +48,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
         <div>
           <span className="pt-hi__date">{today}</span>
           <h1 className="pt-hi__h">
-            G&rsquo;day {first}<span className="pt-stop">.</span>
+            G&rsquo;day {first}.
           </h1>
         </div>
         <Link href="/portal/sops/daily-rhythm" className="pt-hi__flag">
@@ -84,7 +84,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
                       <path d={ICON[it.icon]} />
                     </svg>
                   </span>
-                  <span className="pt-tile__name">{it.label}{it.external ? " ↗" : ""}</span>
+                  <span className="pt-tile__name">{it.label}{it.external ? "\u00A0↗" : ""}</span>
                   <span className="pt-tile__blurb">{it.blurb}</span>
                 </Link>
               ))}

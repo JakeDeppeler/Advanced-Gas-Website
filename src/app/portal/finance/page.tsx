@@ -43,7 +43,7 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
       <PortalTabs set="finance" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Finance</div>
-        <h1>Where we&rsquo;re at<span className="pt-stop">.</span></h1>
+        <h1>Where we&rsquo;re at.</h1>
         <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
       </div>
 

@@ -102,7 +102,7 @@ export default async function JobCalculatorPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <div className="pt-head__eyebrow">Job calculator</div>
-        <h1>Price a job by who&rsquo;s on it<span className="pt-stop">.</span></h1>
+        <h1>Price a job by who&rsquo;s on it.</h1>
         <p>Pick the job, who&rsquo;s on it and for how long. Each person prices at their own charge-out rate, and a day parked on one site prices differently to a day crossing the shire. Add travel and materials and it tells you what&rsquo;s actually left in it.</p>
         {figures.length > 0 && (
           <div className="pt-head__figs">

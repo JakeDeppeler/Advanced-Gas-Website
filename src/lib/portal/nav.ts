@@ -21,7 +21,7 @@ export const BAND_LABEL: Record<NavBand, string> = {
   "on-the-job": "On the job",
   "how-we-work": "How we work",
   business: "Business",
-  settings: "Settings",
+  settings: "You & settings",
 };
 
 export type NavItem = {
@@ -144,10 +144,10 @@ export function portalNav(user: PortalUser): NavItem[] {
     );
   }
 
-  // Last in Business, after the pages about everyone else.
+  // "You & settings" in the design, with Admin — not the tail of Business.
   items.push({
     href: "/portal/me", label: "My file", blurb: "Your leave, goals and reviews",
-    band: "business", icon: "user", also: ["leave", "holiday", "rdo", "review", "goal"],
+    band: "settings", icon: "user", also: ["leave", "holiday", "rdo", "review", "goal"],
   });
 
   if (can(user, "manage_users")) {

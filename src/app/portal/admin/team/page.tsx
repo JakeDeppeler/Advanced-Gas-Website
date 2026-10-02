@@ -29,7 +29,7 @@ export default async function TeamPage() {
         <div className="pt-head__eyebrow">
           <Link href="/portal/admin" style={{ color: "inherit", textDecoration: "none" }}>Admin</Link> · Team &amp; access
         </div>
-        <h1>Who&rsquo;s in, and what they see<span className="pt-stop">.</span></h1>
+        <h1>Who&rsquo;s in, and what they see.</h1>
         <p>Add the crew, set each person&rsquo;s role, and switch individual things on or off. Changes take effect the next time they load a page.</p>
       </div>
 

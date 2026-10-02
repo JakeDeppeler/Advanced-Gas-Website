@@ -26,9 +26,7 @@ export default function PortalLogin({
         <div className="pt-login__pitch">
           <span className="pt-login__kicker">Team portal</span>
           <h2>
-            One standard<span className="pt-stop">.</span>
-            <br />
-            Every job<span className="pt-stop">.</span>
+            One standard. Every job.
           </h2>
           <p>The handbook, processes, tools and numbers the crew works from — all in one place.</p>
         </div>
