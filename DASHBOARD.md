@@ -150,6 +150,23 @@ replica. Existing tables are untouched.
 `portal_leads` is **not** created here. It already exists and the quote form has
 been writing to it since migration `0019`; the dashboard only reads it.
 
+**Applying them is manual.** The deploy runs no migration tool, so a file in
+`supabase/migrations/` changes nothing until it is run against the project.
+`0024` — the calls table — was written while the Telecom scope was still
+ungranted and never applied; the day the scope was turned on, ServiceTitan
+started returning call records and every sync failed with *Could not find the
+table 'public.st_calls'*. It cost nothing because `portal_sync_state` recorded
+the error, but only because that table had been taught to record lookups a few
+hours earlier.
+
+After applying a batch, check the objects exist rather than assuming:
+
+```sql
+select table_name from information_schema.tables
+ where table_schema = 'public' and table_name like 'st\_%' order by 1;
+select proname from pg_proc where proname = 'dashboard_resolve_names';
+```
+
 ### 3. Revenue target and working calendar
 
 **Set the four monthly targets and the commission tiers in the portal**, at

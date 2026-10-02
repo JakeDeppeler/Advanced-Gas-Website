@@ -48,6 +48,12 @@ migration `0019`.
 - Namespace a feature's modules in their own folder, as `portal/` and
   `dashboard/` do.
 - Migrations are numbered sequentially (`0024_…`) and written idempotently.
+  **Nothing applies them for you.** There is no migration runner in the deploy;
+  a file in `supabase/migrations/` is a record of intent until somebody runs it
+  against the project. `0024` sat unapplied for weeks and only surfaced when the
+  Telecom scope was granted and the sync had nowhere to put the calls it
+  suddenly received. After writing one, apply it, then check the thing it
+  creates actually exists.
 - Comments explain **why**, especially where the obvious implementation was
   rejected. A comment restating the code is worse than none.
 
