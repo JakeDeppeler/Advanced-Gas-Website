@@ -25,6 +25,21 @@ import {
 // ServiceTitan directly — the sync job owns that — so this stays fast and keeps
 // working when an upstream API is down.
 
+/**
+ * The ceiling on a quote the board will count.
+ *
+ * Advanced Gas sells residential work from the website. The same ServiceTitan
+ * tenant also carries commercial estimates — $544K, $454K, $436K — and a
+ * handful of them swamp every quote figure on the wall: "still out" read $4.9M
+ * against a month that invoices in the tens of thousands, and the biggest-quote
+ * tile showed a job nobody in the room is working on.
+ *
+ * Quotes at or above this are left out of every quote figure. The cap is on the
+ * quote's own value, so nothing is attributed to the wrong person or period —
+ * those jobs simply are not what this board is for.
+ */
+const QUOTE_CAP = 50_000;
+
 export type SourceState = "ok" | "stale" | "error" | "not-configured";
 
 export type Metrics = {
@@ -66,6 +81,9 @@ export type Metrics = {
   quotesCreatedTodayCount: number;
   /** Of the quotes written today, how many have already closed. */
   quotesCreatedTodaySold: number;
+  /** The average option written today — a count of options says nothing about their size. */
+  avgQuoteToday: number | null;
+  avgQuoteMonth: number | null;
   quotesCreatedWeekValue: number;
   quotesCreatedWeekCount: number;
   quotesCreatedMonthValue: number;
@@ -140,8 +158,10 @@ export type Metrics = {
     soldToday: number;
     soldWeek: number;
     jobs: number;
-    /** What they have written this month, sold or not — the pipeline behind the sold figure. */
+    /** What they have written, sold or not — the measure while nothing closes through the site. */
     quoted: number;
+    quotedToday: number;
+    quotedWeek: number;
     quotes: number;
     /** Commission is computed but deliberately not rendered on the wall. */
     commission: number | null;
@@ -371,7 +391,11 @@ async function serviceTitanMetrics(now: Date) {
   // Close rate: of the quotes written in the last 30 days, how many sold.
   const recentEstimates = await sbSelect<{ sold_on: string | null }>(
     "st_estimates",
-    [q.select("sold_on"), q.gte("created_on", addDays(now, -30).toISOString())].join("&"),
+    [
+      q.select("sold_on"),
+      q.gte("created_on", addDays(now, -30).toISOString()),
+      q.lt("total", String(QUOTE_CAP)),
+    ].join("&"),
   );
 
   const closeRate30dQuotes = recentEstimates.length;
@@ -388,7 +412,11 @@ async function serviceTitanMetrics(now: Date) {
     created_by: string | null;
   }>(
     "st_estimates",
-    [q.select("total,created_on,sold_on,created_by"), q.gte("created_on", monthStart.toISOString())].join("&"),
+    [
+      q.select("total,created_on,sold_on,created_by"),
+      q.gte("created_on", monthStart.toISOString()),
+      q.lt("total", String(QUOTE_CAP)),
+    ].join("&"),
   );
 
   const weekStartMs = weekStart.getTime();
@@ -533,7 +561,11 @@ async function serviceTitanMetrics(now: Date) {
     sold_on: string | null;
   }>(
     "st_estimates",
-    [q.select("id,sold_by,created_by,total,sold_on"), q.gte("sold_on", monthStart.toISOString())].join("&"),
+    [
+      q.select("id,sold_by,created_by,total,sold_on"),
+      q.gte("sold_on", monthStart.toISOString()),
+      q.lt("total", String(QUOTE_CAP)),
+    ].join("&"),
   );
 
   /**
@@ -582,6 +614,7 @@ async function serviceTitanMetrics(now: Date) {
       q.isNull("sold_on"),
       q.notIn("status", ["Dismissed", "Expired"]),
       q.gte("created_on", addDays(now, -QUOTE_LIST_DAYS).toISOString()),
+      q.lt("total", String(QUOTE_CAP)),
     ].join("&"),
   );
 
@@ -599,6 +632,7 @@ async function serviceTitanMetrics(now: Date) {
         [
           q.select("id,total,created_on,sold_on,job_id,sold_by,created_by"),
           q.gte("created_on", startOfDayMelbourne(now).toISOString()),
+          q.lt("total", String(QUOTE_CAP)),
         ].join("&"),
       )
     : [];
@@ -649,8 +683,26 @@ async function serviceTitanMetrics(now: Date) {
   // over 100% on any day the team closed something from last week.
   const conversionTodayPct = created.todayC ? created.todaySold / created.todayC : null;
 
-  type Seller = { sold: number; soldToday: number; soldWeek: number; jobs: number; quoted: number; quotes: number };
-  const blank = (): Seller => ({ sold: 0, soldToday: 0, soldWeek: 0, jobs: 0, quoted: 0, quotes: 0 });
+  type Seller = {
+    sold: number;
+    soldToday: number;
+    soldWeek: number;
+    jobs: number;
+    quoted: number;
+    quotedToday: number;
+    quotedWeek: number;
+    quotes: number;
+  };
+  const blank = (): Seller => ({
+    sold: 0,
+    soldToday: 0,
+    soldWeek: 0,
+    jobs: 0,
+    quoted: 0,
+    quotedToday: 0,
+    quotedWeek: 0,
+    quotes: 0,
+  });
 
   const bySeller = new Map<string, Seller>();
   for (const r of soldRows) {
@@ -675,17 +727,24 @@ async function serviceTitanMetrics(now: Date) {
     const key = r.created_by;
     if (key == null) continue;
     const acc = bySeller.get(key) ?? blank();
-    acc.quoted += Number(r.total ?? 0);
+    const v = Number(r.total ?? 0);
+    acc.quoted += v;
     acc.quotes += 1;
+    if (r.created_on) {
+      const at = new Date(r.created_on);
+      if (at.getTime() >= weekStartMs) acc.quotedWeek += v;
+      if (isoDateMelbourne(at) === today) acc.quotedToday += v;
+    }
     bySeller.set(key, acc);
   }
 
   // Commission is applied later, once the tiers have been read from settings.
   const rawLeaderboard = [...bySeller.entries()]
     .map(([name, v]) => ({ name, ...v }))
-    // Sold first, then what they have written: somebody whose quotes have not
-    // landed yet still ranks above somebody who has done neither.
-    .sort((a, b) => b.sold - a.sold || b.quoted - a.quoted)
+    // Quoting is what the board measures for now — nothing is sold through the
+    // site yet, so ranking on sold put a column of zeroes above the work people
+    // are actually doing. Sold breaks the tie.
+    .sort((a, b) => b.quoted - a.quoted || b.sold - a.sold)
     .slice(0, 6);
 
   return {
@@ -704,6 +763,8 @@ async function serviceTitanMetrics(now: Date) {
     quotesCreatedTodayValue: created.todayV,
     quotesCreatedTodayCount: created.todayC,
     quotesCreatedTodaySold: created.todaySold,
+    avgQuoteToday: created.todayC ? created.todayV / created.todayC : null,
+    avgQuoteMonth: created.monthC ? created.monthV / created.monthC : null,
     quotesCreatedWeekValue: created.weekV,
     quotesCreatedWeekCount: created.weekC,
     quotesCreatedMonthValue: created.monthV,
@@ -925,6 +986,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       quotesCreatedTodayValue: prev?.quotesCreatedTodayValue ?? 0,
       quotesCreatedTodayCount: prev?.quotesCreatedTodayCount ?? 0,
       quotesCreatedTodaySold: prev?.quotesCreatedTodaySold ?? 0,
+      avgQuoteToday: prev?.avgQuoteToday ?? null,
+      avgQuoteMonth: prev?.avgQuoteMonth ?? null,
       quotesCreatedWeekValue: prev?.quotesCreatedWeekValue ?? 0,
       quotesCreatedWeekCount: prev?.quotesCreatedWeekCount ?? 0,
       quotesCreatedMonthValue: prev?.quotesCreatedMonthValue ?? 0,
@@ -947,6 +1010,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
         soldWeek: r.soldWeek ?? 0,
         jobs: r.jobs,
         quoted: r.quoted ?? 0,
+        quotedToday: r.quotedToday ?? 0,
+        quotedWeek: r.quotedWeek ?? 0,
         quotes: r.quotes ?? 0,
       })),
       invoiceCountMonth: prev?.invoiceCountMonth ?? 0,

@@ -32,7 +32,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
       { month: "long", timeZone: "Australia/Melbourne" },
     )}`,
   Quotes: () => "Today",
-  Team: () => "Sold this month",
+  Team: () => "Quoted this month",
   Performance: () => "Month to date",
   Areas: () => "Jobs completed, last 90 days",
 };
@@ -414,20 +414,27 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
         <span className={vcls(plain(m.quotesCreatedTodayValue), "tile__value--hero")}>
           {plain(m.quotesCreatedTodayValue)}
         </span>
-        <span className="tile__sub">{count(m.quotesCreatedTodayCount)} quotes</span>
+        <span className="tile__sub">
+          {count(m.quotesCreatedTodayCount)} {m.quotesCreatedTodayCount === 1 ? "option" : "options"}
+        </span>
       </div>
 
       <div className="tile tile--navy tile--hero c3" style={{ gridColumn: "1 / span 3", gridRow: 2 }}>
-        <span className="tile__label">Sold</span>
-        <span className={vcls(plain(m.soldToday), "tile__value--hero")}>{plain(m.soldToday)}</span>
-        <span className="tile__sub">{count(m.quotesCreatedTodaySold)} quotes</span>
+        {/* The average option, not the close rate: nothing closes through the
+            site yet, so what the board can say about today's quoting is how much
+            of it there was and how big it was. */}
+        <span className="tile__label">Average option</span>
+        <span className={vcls(plain(m.avgQuoteToday), "tile__value--hero")}>{plain(m.avgQuoteToday)}</span>
+        <span className="tile__sub">
+          {m.avgQuoteMonth != null ? `${money(m.avgQuoteMonth)} this month` : "today"}
+        </span>
       </div>
 
       <div className="tile tile--hero c3" style={{ gridColumn: "1 / span 3", gridRow: 3 }}>
-        <span className="tile__label">Close rate</span>
-        <span className={vcls(pct(m.conversionTodayPct), "tile__value--hero")}>{pct(m.conversionTodayPct)}</span>
+        <span className="tile__label">Sold</span>
+        <span className={vcls(plain(m.soldToday), "tile__value--hero")}>{plain(m.soldToday)}</span>
         <span className="tile__sub">
-          {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)}
+          {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} written today
         </span>
       </div>
 
@@ -513,12 +520,13 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
 
   const totals = m.salesLeaderboard.reduce(
     (a, r) => ({
-      today: a.today + r.soldToday,
-      week: a.week + r.soldWeek,
-      month: a.month + r.sold,
-      quoted: a.quoted + r.quoted,
+      today: a.today + r.quotedToday,
+      week: a.week + r.quotedWeek,
+      month: a.month + r.quoted,
+      sold: a.sold + r.sold,
+      options: a.options + r.quotes,
     }),
-    { today: 0, week: 0, month: 0, quoted: 0 },
+    { today: 0, week: 0, month: 0, sold: 0, options: 0 },
   );
   const callsFor = (n: string) => m.callsByPerson.find((c) => c.name === n);
   // Calls come from ServiceTitan's Telecom module, which is a separate scope.
@@ -550,23 +558,21 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 </span>
                 <span className={`tbl__note ${i === 0 ? "tbl__note--leader" : ""}`}>
                   {i === 0 ? "Leader · " : ""}
-                  {count(r.quotes)} {r.quotes === 1 ? "quote" : "quotes"}
+                  {count(r.quotes)} {r.quotes === 1 ? "option" : "options"}
                 </span>
               </span>
               <span className="tbl__fig">
-                <b>{plain(r.soldToday)}</b>
+                <b>{plain(r.quotedToday)}</b>
               </span>
               <span className="tbl__fig">
-                <b>{plain(r.soldWeek)}</b>
+                <b>{plain(r.quotedWeek)}</b>
               </span>
-              {/* Sold against what they wrote, the way the mock sets it: a
-                  month's sold figure on its own says nothing about whether the
-                  pipeline behind it is healthy. */}
+              {/* Quoted is the headline and sold is the footnote, not the other
+                  way round: nothing closes through the site yet, so a column of
+                  zeroes would be the biggest thing on the page. */}
               <span className="tbl__fig">
-                <b>{plain(r.sold)}</b>
-                <span>
-                  {r.quotes > 0 ? `of ${money(r.quoted)} quoted` : `${count(r.jobs)} sold`}
-                </span>
+                <b>{plain(r.quoted)}</b>
+                <span>{r.sold > 0 ? `${money(r.sold)} sold` : "none sold yet"}</span>
               </span>
               <span className="tbl__fig">
                 <b className={haveCalls ? undefined : "tile__value--na"}>{c ? count(c.month) : NA}</b>
@@ -603,7 +609,9 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
-            {totals.quoted > 0 && <span>of {money(totals.quoted)} quoted</span>}
+            <span>
+              {count(totals.options)} options{totals.sold > 0 ? ` · ${money(totals.sold)} sold` : ""}
+            </span>
           </span>
           <span className="tbl__fig">
             <b className={haveCalls ? undefined : "tile__value--na"}>

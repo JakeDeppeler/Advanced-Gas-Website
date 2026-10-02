@@ -23,13 +23,18 @@ const API_BASE = "https://api.xero.com/api.xro/2.0";
 // This app uses Xero's granular scopes, so the P&L report needs the specific
 // accounting.reports.profitandloss.read scope, not the broad accounting.reports.read.
 //
-// The board's overdue tile needs an invoices scope on top of this and does not
-// have one, so it reads 401 and reports stale. Adding
-// "accounting.transactions.read" here was rejected by Xero at the authorize
-// step with invalid_scope and took the connect button down with it — do not put
-// it back without checking the exact scope string this app is allowed to ask
-// for against Xero's own documentation first.
-const SCOPES = "offline_access accounting.reports.profitandloss.read";
+// accounting.invoices.read is for the wall board's overdue tile, which reads
+// authorised ACCREC invoices.
+//
+// It must be the granular scope, not the broad accounting.transactions.read:
+// Xero split those on 2 March 2026 and apps created after that date are refused
+// the old ones at the authorize step with `invalid_scope` — which rejects the
+// whole string, so the connect button stops working altogether rather than
+// just losing the one permission. This app already uses the granular
+// accounting.reports.profitandloss.read, so it is on the new side of that line.
+//
+// Both are read-only. Nothing in this codebase can write to Xero.
+const SCOPES = "offline_access accounting.reports.profitandloss.read accounting.invoices.read";
 
 export function xeroConfigured(): boolean {
   return !!(process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET);
