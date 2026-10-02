@@ -2093,3 +2093,22 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-results__kind { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pt-accent); }
 .pt-results__title { font-family: var(--f-display); font-size: 20px; line-height: 26px; font-weight: 800; }
 .pt-results__snip { color: var(--pt-ink-2); }
+
+/* ------------------------------------------------------------------ marketing */
+.pt-bars { display: flex; flex-direction: column; gap: 10px; }
+.pt-bars__row { display: grid; grid-template-columns: 160px 1fr 48px; gap: 14px; align-items: center; }
+.pt-bars__name { font-size: 14px; font-weight: 700; color: var(--pt-ink); }
+.pt-bars__track { height: 12px; border-radius: 999px; background: var(--pt-tint); overflow: hidden; }
+.pt-bars__track span { display: block; height: 100%; border-radius: 999px; background: var(--pt-navy-2); }
+.pt-bars__n { font-size: 14px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+
+.pt-needs { display: flex; flex-direction: column; gap: 2px; }
+.pt-needs__row { display: grid; grid-template-columns: 180px 1fr; gap: 18px; padding: 14px 0; align-items: start; }
+.pt-needs__row + .pt-needs__row { border-top: 1px solid var(--pt-tint); }
+.pt-needs__row strong { font-size: 14.5px; font-weight: 800; }
+.pt-needs__row span { font-size: 14px; line-height: 1.55; color: var(--pt-ink-2); }
+
+@media (max-width: 620px) {
+  .pt-bars__row { grid-template-columns: 110px 1fr 40px; gap: 10px; }
+  .pt-needs__row { grid-template-columns: 1fr; gap: 4px; }
+}

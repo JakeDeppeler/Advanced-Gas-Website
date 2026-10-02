@@ -110,7 +110,7 @@ export function portalNav(user: PortalUser): NavItem[] {
         band: "on-the-job", icon: "box", also: ["reece", "max", "order", "pricebook", "material"],
       },
       {
-        href: "/portal/finance/leads", label: "Marketing", blurb: "Website leads, reviews and ads",
+        href: "/portal/marketing", label: "Marketing", blurb: "Website leads, reviews and ads",
         band: "business", icon: "speaker", also: ["lead", "enquiry", "website", "review", "ads"],
       },
       {
@@ -174,7 +174,7 @@ export function byBand(items: NavItem[], band: NavBand): NavItem[] {
  * orphan check — does anything link to this route? — has one place to look.
  */
 export type Tab = { href: string; label: string; also?: string[] };
-export type TabSetName = "finance" | "supply";
+export type TabSetName = "finance" | "supply" | "marketing";
 
 export const TAB_SETS: Record<TabSetName, Tab[]> = {
   finance: [
@@ -186,6 +186,10 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     // Quotes is a tab inside planning rather than a sibling: both ask about
     // work that has not happened yet.
     { href: "/portal/finance/planning", label: "Planning", also: ["/portal/finance/quotes"] },
+  ],
+  marketing: [
+    { href: "/portal/marketing", label: "Overview" },
+    { href: "/portal/finance/leads", label: "Website leads" },
   ],
   supply: [
     { href: "/portal/supply", label: "Overview" },
