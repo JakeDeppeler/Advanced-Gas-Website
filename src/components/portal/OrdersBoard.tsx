@@ -81,43 +81,34 @@ export function OrdersBoard({
 
   return (
     <>
-      <div className="pt-sup__filters">
-        <label className="pt-field pt-sup__search">
-          <span>
-            Find an order <em>order number, branch, job, product or description</em>
-          </span>
-          <input
-            type="search"
-            value={term}
-            onChange={(e) => setTerm(e.target.value)}
-            placeholder="20mm copper, Dandenong, Reece #1042…"
-            autoComplete="off"
-          />
-        </label>
-        <div className="pt-sup__stat" role="group" aria-label="Filter by status">
-          <button
-            type="button"
-            className={`pt-sup__statbtn${status === "all" ? " is-on" : ""}`}
-            aria-pressed={status === "all"}
-            onClick={() => setStatus("all")}
-          >
-            All <span>{orders.length}</span>
+      <label className="pt-sbox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
+        <input
+          type="search"
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Order number, branch, job, product or description"
+          aria-label="Find an order"
+          autoComplete="off"
+        />
+      </label>
+      <div className="pt-chiprow" role="group" aria-label="Filter by status">
+        <button type="button" className={status === "all" ? "is-on" : undefined} aria-pressed={status === "all"} onClick={() => setStatus("all")}>
+          All <span>{orders.length}</span>
+        </button>
+        {ORDER_STATUSES.map((s) => (
+          <button key={s} type="button" className={status === s ? "is-on" : undefined} aria-pressed={status === s} title={STATUS_BLURB[s]} onClick={() => setStatus(s)}>
+            {STATUS_LABEL[s]} <span>{tally[s]}</span>
           </button>
-          {ORDER_STATUSES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className={`pt-sup__statbtn pt-sup__statbtn--${s}${status === s ? " is-on" : ""}`}
-              aria-pressed={status === s}
-              title={STATUS_BLURB[s]}
-              onClick={() => setStatus(s)}
-            >
-              {STATUS_LABEL[s]} <span>{tally[s]}</span>
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
+      {orders.length === 0 ? (
+        <section className="pt-emptycard">
+          <strong>No orders yet</strong>
+          <span>Carts land here the moment Reece maX starts posting them back. That needs Reece to issue the integration credentials first.</span>
+        </section>
+      ) : (
       <section className="pt-panel">
         <div className="pt-sup__tablehead">
           <h2 className="pt-panel__h">
@@ -128,18 +119,7 @@ export function OrdersBoard({
           </p>
         </div>
 
-        {orders.length === 0 ? (
-          <div className="pt-sup__empty">
-            <p>
-              <strong>No orders yet.</strong> Carts land here the moment maX PunchOut starts posting them back.
-            </p>
-            <p>
-              That needs Reece to issue the integration credentials and the PunchOut return URL to be registered
-              against this site — the two steps in <code>PRICEBOOK.md</code> §5 and §7. Until then there is genuinely
-              nothing to show, which is why this page is empty rather than showing a zero.
-            </p>
-          </div>
-        ) : shown.length === 0 ? (
+        {shown.length === 0 ? (
           <p className="pt-sup__none">Nothing matches “{term}”{status !== "all" ? ` in ${STATUS_LABEL[status].toLowerCase()}` : ""}.</p>
         ) : (
           <div className="pt-tgt__tablewrap">
@@ -192,6 +172,7 @@ export function OrdersBoard({
           </p>
         )}
       </section>
+      )}
     </>
   );
 }

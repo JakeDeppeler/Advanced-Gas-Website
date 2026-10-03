@@ -31,6 +31,31 @@ function Block({ b }: { b: InfoContentBlock }) {
     );
   }
 
+  if (b.as === "timeline") {
+    return (
+      <section className="pt-itime">
+        {(b.rows ?? []).map((r) => (
+          <div key={r.k} className="pt-itime__row">
+            <strong>{r.k}</strong>
+            <span>{r.v}</span>
+          </div>
+        ))}
+      </section>
+    );
+  }
+
+  if (b.as === "stat") {
+    const r = b.rows?.[0];
+    if (!r) return null;
+    return (
+      <div className={`pt-istat${navy ? " is-navy" : ""}`}>
+        <span>{r.k}</span>
+        {r.href ? <a href={r.href}>{r.v}</a> : <strong>{r.v}</strong>}
+        {r.note && <em>{r.note}</em>}
+      </div>
+    );
+  }
+
   if (b.as === "copy") {
     return (
       <div className="pt-icopy">
@@ -67,7 +92,7 @@ function Block({ b }: { b: InfoContentBlock }) {
       {b.title && <h2 className="pt-icard__h">{b.title}</h2>}
 
       {b.as === "chips" && (
-        <div className="pt-ichips">
+        <div className="pt-ichips" style={{ ["--n" as string]: (b.chips ?? []).length }}>
           {(b.chips ?? []).map((c) => <span key={c}>{c}</span>)}
         </div>
       )}
@@ -106,36 +131,38 @@ export default async function InfoSectionPage({ params }: { params: { section: s
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>{section.title}</h1>
-        {section.intro && <p>{section.intro}</p>}
-      </div>
+      <div className="pt-stack">
+        <div className="pt-stack__head">
+          <PortalBack href="/portal" label="Home" />
+          <h1>{section.title}</h1>
+          {section.intro && <p>{section.intro}</p>}
+        </div>
 
-      {/* Without these you could reach Pricing and not Licences: the sidebar
-          used to carry the siblings and nothing replaced it. */}
-      <nav className="pt-tabs" aria-label="Information">
-        {INFO_SECTIONS.map((x) => (
-          <Link
-            key={x.slug}
-            href={`/portal/information/${x.slug}`}
-            aria-current={x.slug === section.slug ? "page" : undefined}
-            className={`pt-tab${x.slug === section.slug ? " is-on" : ""}`}
-          >
-            {x.label}
-          </Link>
-        ))}
-      </nav>
+        {/* Without these you could reach Pricing and not Licences: the sidebar
+            used to carry the siblings and nothing replaced it. */}
+        <nav className="pt-tabs" aria-label="Information">
+          {INFO_SECTIONS.map((x) => (
+            <Link
+              key={x.slug}
+              href={`/portal/information/${x.slug}`}
+              aria-current={x.slug === section.slug ? "page" : undefined}
+              className={`pt-tab${x.slug === section.slug ? " is-on" : ""}`}
+            >
+              {x.label}
+            </Link>
+          ))}
+        </nav>
 
-      {/* Two columns, with a block saying when it needs the width. The grid
-          flows, so a section with an odd number of halves doesn't leave a
-          stretched card beside a gap. */}
-      <div className="pt-info">
-        {section.blocks.map((b, i) => (
-          <div key={b.title ?? `b${i}`} className={b.span === "full" ? "pt-info__full" : undefined}>
-            <Block b={b} />
-          </div>
-        ))}
+        {/* Two columns, with a block saying when it needs the width or the
+            height. A tall block runs down beside the next two, which is how
+            Pricing puts its price list beside hours and what's included. */}
+        <div className="pt-info">
+          {section.blocks.map((b, i) => (
+            <div key={b.title ?? `b${i}`} className={b.span === "full" ? "pt-info__full" : b.span === "tall" ? "pt-info__tall" : undefined}>
+              <Block b={b} />
+            </div>
+          ))}
+        </div>
       </div>
     </PortalShell>
   );

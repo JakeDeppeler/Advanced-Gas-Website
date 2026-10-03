@@ -5,10 +5,10 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { Heads } from "@/components/portal/marketingParts";
 import { dbConfigured, listStoredPosts, pageViews } from "@/lib/portal/db";
 import { isBuiltIn, isLive, mergePosts, postChecks } from "@/lib/blogMerge";
 import { AUTHORS } from "@/lib/blog";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Blog — Team portal" };
@@ -32,7 +32,7 @@ const when = (iso: string) =>
 export default async function BlogPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="The blog" forWhom="managers" />;
   const canEdit = can(user, "manage_users");
 
   const ready = dbConfigured();
@@ -43,12 +43,6 @@ export default async function BlogPage() {
   const posts = mergePosts(stored, true);
   const rowOf = new Map(stored.map((r) => [r.slug, r]));
 
-  const live = posts.filter((p) => { const r = rowOf.get(p.slug); return !r || isLive(r) || isBuiltIn(p.slug); });
-  const drafts = stored.filter((r) => r.status === "draft" && !isBuiltIn(r.slug)).length;
-  const blogViews = views
-    ? [...views.byPath.entries()].filter(([path]) => path === "/blog" || path.startsWith("/blog/")).reduce((n, [, v]) => n + v, 0)
-    : 0;
-  const allFive = posts.filter((p) => postChecks(p).every((c) => c.ok)).length;
   // Nothing has been counted yet: every column of views would read 0, which
   // claims nobody read anything rather than that nobody was counting.
   const counting = Boolean(views?.since);
@@ -60,8 +54,8 @@ export default async function BlogPage() {
           <PortalBack href="/portal" label="Home" />
           <h1>Blog</h1>
           <p>
-            Every article on advancedgas.com.au/blog, newest first. Open any of them to edit it — including the ones written
-            before the editor existed — and the change is on the site as soon as it&rsquo;s published.
+            Every article on the website, newest first. Open one to edit it, or start a new one — a change is on the site
+            as soon as it&rsquo;s published.
           </p>
         </div>
         {canEdit && <Link href="/portal/blog/new" className="pt-btn pt-btn--orange pt-head__act">+ New post</Link>}
@@ -71,29 +65,16 @@ export default async function BlogPage() {
         <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> The list below is the articles in the code; nothing can be edited until it is.</div>
       )}
 
-      <Heads
-        items={[
-          { label: "On the site", value: String(live.length), sub: "articles anyone can read", feature: true },
-          {
-            label: `Reads · ${WINDOW_DAYS} days`,
-            value: counting ? blogViews.toLocaleString("en-AU") : "—",
-            sub: counting ? `counted since ${when(views!.since!)}` : "counting starts with the next reader",
-          },
-          { label: "All five Google checks", value: `${allFive} of ${posts.length}`, sub: "open one to see what's missing" },
-          { label: "Drafts", value: String(drafts), sub: drafts ? "not on the site yet" : "nothing waiting" },
-        ]}
-      />
-
       <section className="pt-panel">
         <div className="pt-fleet__wrap">
           <table className="pt-fleet pt-blogl">
             <thead>
               <tr>
                 <th scope="col">Post</th>
-                <th scope="col">Topic</th>
+                <th scope="col">Category</th>
                 <th scope="col">Status</th>
-                <th scope="col" className="pt-blogl__num">Reads ({WINDOW_DAYS}d)</th>
-                <th scope="col" className="pt-blogl__num">Google checks</th>
+                <th scope="col" className="pt-blogl__num">Views ({WINDOW_DAYS}d)</th>
+                <th scope="col" className="pt-blogl__num">Score</th>
                 <th scope="col"><span className="pt-sr">Edit</span></th>
               </tr>
             </thead>
@@ -132,7 +113,10 @@ export default async function BlogPage() {
                       {status.note && <span className="pt-fleet__detail">{status.note}</span>}
                     </td>
                     <td className="pt-blogl__num"><strong>{counting ? n.toLocaleString("en-AU") : "—"}</strong></td>
-                    <td className="pt-blogl__num" title={checks.filter((c) => !c.ok).map((c) => c.hint).join(" · ") || "All five pass"}>
+                    {/* Out of the five Google checks the editor runs. What's
+                        missing is spelled out, kept to a narrow column so it
+                        never squeezes the title. */}
+                    <td className="pt-blogl__score" title={checks.filter((c) => !c.ok).map((c) => c.hint).join(" · ") || "All five pass"}>
                       <strong>{passed}/5</strong>
                       <span className="pt-fleet__detail">{passed === 5 ? "all pass" : checks.filter((c) => !c.ok).map((c) => c.fix).join(", ")}</span>
                     </td>

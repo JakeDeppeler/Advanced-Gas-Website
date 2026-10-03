@@ -34,7 +34,14 @@
   --pt-accent-dark-bg: #ff9a62;
   --pt-tint: #f3efe5;
   --pt-sky: #0c6f96;
-  --pt-good: #1f7a4d;
+  /* From the build spec's tokens.css. */
+  --pt-good: #15803d;
+  --pt-good-bg: #e9f8ee;
+  --pt-warn-bg: #fdeee4;
+  --pt-warn-text: #8f3a0e;
+  --pt-info: #0c6f96;
+  --pt-info-bg: #e3f1f6;
+  --pt-field: #d8d2c1;
   --pt-r: 22px;
   --pt-r-sm: 14px;
   --pt-shadow: 0 1px 2px rgba(11, 20, 80, 0.04), 0 8px 24px rgba(11, 20, 80, 0.05);

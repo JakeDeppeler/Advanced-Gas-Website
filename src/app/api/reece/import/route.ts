@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { dashboardDbConfigured, q, sbSelectOne, sbUpsert } from "@/lib/dashboard/db";
+import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
-import { parsePriceFile, type ColumnMap } from "@/lib/pricebook/reeceFile";
-import { upsertSupplierItems } from "@/lib/pricebook/reece";
+import { importPriceFile } from "@/lib/pricebook/importFile";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -47,56 +46,6 @@ export async function POST(req: Request) {
 
   // A pinned column map (portal_settings.pricebook.fileColumns) overrides the
   // header guessing once the real file layout is known.
-  const settings = await sbSelectOne<{ value: { fileColumns?: ColumnMap } }>(
-    "portal_settings",
-    [q.select("value"), q.eq("key", "pricebook")].join("&"),
-  );
-
-  let parsed;
-  try {
-    parsed = parsePriceFile(text, settings?.value?.fileColumns ?? {});
-  } catch (e) {
-    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 422 });
-  }
-
-  const report = {
-    ok: true,
-    dryRun,
-    fileName,
-    rows: parsed.rows,
-    items: parsed.items.length,
-    skipped: parsed.skipped,
-    columns: parsed.columns,
-    unmappedHeaders: parsed.unmappedHeaders,
-    priceIncludedGst: parsed.priceIncludedGst,
-    warnings: parsed.warnings,
-    sample: parsed.items.slice(0, 5).map(({ raw: _raw, ...item }) => item),
-    stored: 0,
-  };
-
-  if (dryRun) return NextResponse.json(report);
-
-  try {
-    report.stored = await upsertSupplierItems(parsed.items, "file");
-  } catch (e) {
-    return NextResponse.json({ ...report, ok: false, error: (e as Error).message }, { status: 500 });
-  }
-
-  await sbUpsert(
-    "portal_sync_state",
-    [
-      {
-        provider: "reece",
-        resource: "price-file",
-        last_run_at: new Date().toISOString(),
-        last_success_at: new Date().toISOString(),
-        last_status: "up-to-date",
-        last_error: fileName,
-        records_synced: report.stored,
-      },
-    ],
-    "provider,resource",
-  ).catch((e: Error) => console.warn("portal_sync_state not updated:", e.message));
-
-  return NextResponse.json(report);
+  const { status, report } = await importPriceFile(text, fileName, dryRun);
+  return NextResponse.json(report, { status });
 }

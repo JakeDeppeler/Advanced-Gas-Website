@@ -6,10 +6,12 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
-import { getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
+import { getMoneySeries, getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
+import { InOutBars } from "@/components/portal/InOutBars";
 import { currentYear, yearSpans, DEFAULT_YEAR_GOAL, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -18,7 +20,7 @@ export const metadata = { title: "The year — Team portal" };
 export default async function YearGoalPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const today = localToday();
   const stored = dbConfigured() ? await getSettings<Partial<YearGoal>>("yeargoal").catch(() => null) : null;
@@ -35,7 +37,16 @@ export default async function YearGoalPage() {
 
   const { status, tenantName } = await xeroStatus();
   const spans = yearSpans(goal.basis, goal.year);
-  const raw = status === "connected" ? await getMonthlyActuals(spans, today).catch(() => spans.map(() => null)) : spans.map(() => null);
+  // The rolling twelve is the Overview's own series, so the two pages share
+  // one set of Xero reads rather than asking twice.
+  const [raw, rolling] = status === "connected"
+    ? await Promise.all([
+      getMonthlyActuals(spans, today).catch(() => spans.map(() => null)),
+      getMoneySeries("12m").catch(() => []),
+    ])
+    : [spans.map(() => null), []];
+  const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const last12 = Array.from({ length: 12 }, (_, k) => MON[(today.getUTCMonth() + 1 + k) % 12]);
   const actuals: MonthActual[] = raw.map((p) => ({
     income: p?.income ?? null,
     expenses: p?.expenses ?? null,
@@ -46,6 +57,7 @@ export default async function YearGoalPage() {
     <PortalShell user={user}>
       <FinanceHead title="The year" lede="The year’s goal across the months, against what Xero says was actually invoiced and what the overheads are running at." xero={{ state: status, org: tenantName }} />
 
+      <InOutBars points={rolling} months={last12} />
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />
     </PortalShell>
   );

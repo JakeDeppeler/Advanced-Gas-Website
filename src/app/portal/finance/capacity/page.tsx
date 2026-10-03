@@ -11,6 +11,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Costs & capacity — Team portal" };
@@ -20,7 +21,7 @@ const TABS = ["crew", "overheads", "rates"] as const;
 export default async function CapacityPage({ searchParams }: { searchParams: { t?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   // Last twelve months of expense accounts, so overhead lines can be fed from
   // what was actually spent rather than typed from memory. When this comes back

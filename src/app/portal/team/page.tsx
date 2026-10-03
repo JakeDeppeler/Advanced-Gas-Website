@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -7,14 +8,15 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { AddTeamPerson } from "@/components/portal/AddTeamPerson";
 import { TeamBoard, type TeamPerson } from "@/components/portal/TeamBoard";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team — Team portal" };
 
-export default async function TeamDirectory() {
+export default async function TeamDirectory({ searchParams }: { searchParams: { add?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "reports_read")) redirect("/portal?denied=1");
+  if (!can(user, "reports_read")) return <Locked user={user} what="Team" forWhom="managers" />;
 
   const ready = dbConfigured();
   const users = ready ? await listUsers() : [];
@@ -30,17 +32,20 @@ export default async function TeamDirectory() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>The crew.</h1>
-        <p>Grouped by level. {canManage ? "Change anyone's level right here, drag the order with the arrows, and open a person for their file." : "Open a person for their file — expectations, goals, reviews and notes."}</p>
+      <PortalBack href="/portal" label="Home" />
+      <div className="pt-head pt-head--split">
+        <div>
+          <h1>The crew</h1>
+          <p>Grouped by level. Open a person for their file.</p>
+        </div>
+        {canManage && <Link href="/portal/team?add=1" className="pt-btn pt-btn--orange pt-mkadd">+ Add a person</Link>}
       </div>
 
       {!ready && (
         <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> The team needs the Supabase keys set on the server.</div>
       )}
 
-      {canManage && <AddTeamPerson />}
+      {canManage && searchParams?.add === "1" && <AddTeamPerson doneHref="/portal/team" />}
 
       {people.length === 0 ? (
         <div className="pt-rep__empty">

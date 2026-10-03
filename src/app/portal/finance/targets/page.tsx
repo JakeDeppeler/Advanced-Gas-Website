@@ -11,6 +11,7 @@ import type { Targets, Capacity } from "@/lib/portal/targets";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Targets — Team portal" };
@@ -18,7 +19,7 @@ export const metadata = { title: "Targets — Team portal" };
 export default async function TargetsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const ready = dbConfigured();
   const targets = ready ? await getSettings<Targets>("targets") : null;

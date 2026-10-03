@@ -53,6 +53,7 @@ export default function PortalLogin({
           )}
 
           <form action="/api/portal/login" method="post">
+            <div className="pt-login__field">
             <label className="pt-login__label" htmlFor="email">Work email</label>
             <input
               className="pt-login__input"
@@ -63,13 +64,11 @@ export default function PortalLogin({
               autoComplete="email"
               placeholder="you@advancedgas.com.au"
             />
+            </div>
             {searchParams.next ? <input type="hidden" name="next" value={searchParams.next} /> : null}
             <button className="pt-login__btn" type="submit">Email me a sign-in link</button>
+            <a className="pt-login__fine" href="/">← Back to the main site</a>
           </form>
-
-          <p className="pt-login__fine">
-            <a href="/">← Back to the main site</a>
-          </p>
         </div>
       </div>
     </div>

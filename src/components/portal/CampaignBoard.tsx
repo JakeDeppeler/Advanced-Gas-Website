@@ -21,18 +21,21 @@ import { marketingHref, type WindowKey } from "@/lib/portal/marketingTabs";
  * campaign's fault.
  */
 export function CampaignBoard({
-  rows, tally, audience, win, windowLabel,
+  rows, tally, audience, win, windowLabel, adding, picker,
 }: {
   rows: CampaignRow[];
   tally: CampaignTally;
   audience: string;
   win: string;
   windowLabel: string;
+  /** The form is open — `&new=1`, from the head's "+ New campaign". */
+  adding: boolean;
+  picker: React.ReactNode;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
-  const [adding, setAdding] = useState(false);
   const [msg, setMsg] = useState("");
+  const here = `${marketingHref("campaigns", win as WindowKey)}${audience === "all" ? "" : `&audience=${audience}`}`;
 
   const pills = byAudience(rows);
   const shown = audience === "all" ? rows : rows.filter((r) => r.audience === audience);
@@ -90,14 +93,26 @@ export function CampaignBoard({
             </Link>
           ))}
         </nav>
-        <button type="button" className="pt-btn pt-btn--orange" onClick={() => setAdding((v) => !v)}>
-          {adding ? "Cancel" : "+ New campaign"}
-        </button>
+        {picker}
       </div>
 
       {msg && <div className="pt-note pt-note--warn">{msg}</div>}
 
-      {adding && <NewCampaign busy={busy} onSave={(input) => act(() => addCampaign(input))} />}
+      {adding && (
+        <NewCampaign
+          busy={busy}
+          cancelHref={here}
+          onSave={(input) => {
+            setMsg("");
+            start(async () => {
+              const res = await addCampaign(input);
+              if (!res.ok) { setMsg(res.error || "Didn't work."); return; }
+              router.push(here);
+              router.refresh();
+            });
+          }}
+        />
+      )}
 
       <section className="pt-panel">
         {shown.length === 0 ? (
@@ -172,9 +187,10 @@ export function CampaignBoard({
 
 /** The add form. Only the name is required — the rest can be filled in later. */
 function NewCampaign({
-  busy, onSave,
+  busy, onSave, cancelHref,
 }: {
   busy: boolean;
+  cancelHref: string;
   onSave: (input: {
     name: string; blurb: string; channel: string; audience: string;
     status: string; monthlySpend: string; owner: string; utmCampaign: string;
@@ -217,9 +233,12 @@ function NewCampaign({
         The utm is how leads find their way back to this row. Put the same value on the ad&rsquo;s link and every
         enquiry from it counts here by itself.
       </p>
-      <button type="button" className="pt-btn pt-btn--orange" disabled={busy || !f.name.trim()} onClick={() => onSave(f)}>
-        {busy ? "Saving…" : "Add it"}
-      </button>
+      <div className="pt-topic__acts">
+        <Link href={cancelHref} className="pt-btn pt-btn--ghost">Cancel</Link>
+        <button type="button" className="pt-btn pt-btn--orange" disabled={busy || !f.name.trim()} onClick={() => onSave(f)}>
+          {busy ? "Saving…" : "Add it"}
+        </button>
+      </div>
     </section>
   );
 }

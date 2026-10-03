@@ -8,6 +8,7 @@ import { xeroStatus, getProfitAndLoss, getMoneySeries, localToday, MONEY_RANGES,
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -33,14 +34,14 @@ function ranges() {
 export default async function FinancePage({ searchParams }: { searchParams: { tf?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const tf: MoneyRange = (MONEY_RANGES as readonly string[]).includes(searchParams?.tf ?? "") ? (searchParams!.tf as MoneyRange) : "12m";
   const { status, tenantName } = await xeroStatus();
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Where we’re at" xero={{ state: status, org: tenantName }} />
+      <FinanceHead title="Where we’re at." xero={{ state: status, org: tenantName }} />
 
       {status === "not-configured" && (
         <section className="pt-panel">

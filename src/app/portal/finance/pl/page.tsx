@@ -10,6 +10,7 @@ import { PLStatement } from "@/components/portal/PLStatement";
 import { xeroStatus, getPLDetail, getMoneySeries, plSpans, PL_PERIODS, type PLPeriod } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profit & loss — Team portal" };
@@ -17,7 +18,7 @@ export const metadata = { title: "Profit & loss — Team portal" };
 export default async function ProfitLossPage({ searchParams }: { searchParams: { p?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const key: PLPeriod = PL_PERIODS.some((o) => o.k === searchParams?.p) ? (searchParams!.p as PLPeriod) : "month";
   const { status, tenantName } = await xeroStatus();

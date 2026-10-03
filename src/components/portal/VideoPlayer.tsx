@@ -29,8 +29,8 @@ export function VideoPlayer({ video, sopHref }: { video: Video; sopHref: string 
   }
 
   return (
-    <div className="pt-vid">
-      <div className="pt-vid__frame">
+    <>
+      <div className="pt-vp__frame">
         {playing && video.youtubeId ? (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${video.youtubeId}?autoplay=1&rel=0`}
@@ -39,21 +39,26 @@ export function VideoPlayer({ video, sopHref }: { video: Video; sopHref: string 
             allowFullScreen
           />
         ) : video.youtubeId ? (
-          <button type="button" className="pt-vid__play" onClick={() => setPlaying(true)} aria-label={`Play ${video.title}`}>
-            <span aria-hidden="true">▶</span>
-          </button>
+          <>
+            <button type="button" className="pt-vp__play" onClick={() => setPlaying(true)} aria-label={`Play ${video.title}`}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+            </button>
+            {video.minutes ? (
+              <div className="pt-vp__bar" aria-hidden="true">
+                <span>0:00</span><span className="pt-vp__track" /><span>{video.minutes}:00</span>
+              </div>
+            ) : null}
+          </>
         ) : (
-          <div className="pt-vid__none">
+          <div className="pt-vp__none">
             <strong>Not loaded in yet</strong>
-            <span>
-              This one is on the list. Once it is filmed and the link is added it plays here.
-            </span>
+            <span>This one is on the list. Once it is filmed and the link is added it plays here.</span>
           </div>
         )}
       </div>
 
-      <div className="pt-vid__meta">
-        <span className="pt-vid__cat">
+      <div className="pt-vp__meta">
+        <span>
           {video.category}
           {video.minutes ? ` · ${video.minutes} min` : ""}
         </span>
@@ -63,18 +68,18 @@ export function VideoPlayer({ video, sopHref }: { video: Video; sopHref: string 
 
       {msg && <div className="pt-note pt-note--warn">{msg}</div>}
 
-      <div className="pt-vid__acts">
+      <div className="pt-vp__acts">
         <button
           type="button"
-          className={`pt-btn ${video.watched ? "" : "pt-btn--orange"}`}
+          className={`pt-btn ${video.watched ? "pt-btn--ghost" : "pt-btn--navy"}`}
           disabled={busy || !isStored(video.id)}
           onClick={toggle}
           title={isStored(video.id) ? undefined : "Not loaded in yet"}
         >
           {busy ? "Saving…" : video.watched ? "✓ Watched — undo" : "Mark as watched"}
         </button>
-        {sopHref && <a className="pt-btn" href={sopHref}>Open the procedure it shows</a>}
+        {sopHref && <a className="pt-btn pt-btn--ghost" href={sopHref}>Open the procedure it shows</a>}
       </div>
-    </div>
+    </>
   );
 }

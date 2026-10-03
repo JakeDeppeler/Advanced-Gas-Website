@@ -119,9 +119,9 @@ export type Video = {
  *  one long list. */
 export const LEARNING_TRACKS: { slug: LearningTrackSlug; label: string; blurb: string }[] = [
   { slug: "on-the-tools", label: "On the tools", blurb: "Install methods, commissioning and the on-site standard." },
-  { slug: "sales", label: "Sales & quoting", blurb: "Presenting options, explaining rebates, asking for the sale." },
-  { slug: "customer", label: "The customer", blurb: "How we show up and set the tone on arrival." },
-  { slug: "accounting", label: "Accounting & admin", blurb: "Timesheets, invoicing, ServiceTitan and getting paid." },
+  { slug: "sales", label: "Sales & quoting", blurb: "The job conversation, quoting on the iPad, and the tiers." },
+  { slug: "customer", label: "The customer", blurb: "First impressions, the handover, and looking after the home." },
+  { slug: "accounting", label: "Accounting & admin", blurb: "Job paperwork, compliance certificates and getting paid." },
 ];
 
 export const VIDEOS: Video[] = [
@@ -196,7 +196,7 @@ export const INFO: InfoBlock[] = [
  * Each block is either a set of key/value rows, body paragraphs, or a bullet
  * list. Edit here to change what the crew reads.
  */
-export type InfoRow = { k: string; v: string; note?: string };
+export type InfoRow = { k: string; v: string; note?: string; href?: string };
 export type InfoPerson = { name: string; role: string; detail: string };
 /**
  * A block's `as` is its shape, not its decoration — the design gives each
@@ -209,15 +209,18 @@ export type InfoPerson = { name: string; role: string; detail: string };
  *  · people the crew, with their role
  *  · chips  a row of stages, for the ladder
  *  · price  key/value where the value is a figure, set large and right
+ *  · timeline  a year down the left and what happened beside it
+ *  · stat   one card, one big value — a phone number, an address
  *
- * `tone: "navy"` fills the card; `span: "full"` makes it run the width.
+ * `tone: "navy"` fills the card; `span: "full"` makes it run the width;
+ * `span: "tall"` runs it down two rows beside the next two blocks.
  */
-export type InfoBlockAs = "rows" | "facts" | "copy" | "people" | "chips" | "price";
+export type InfoBlockAs = "rows" | "facts" | "copy" | "people" | "chips" | "price" | "timeline" | "stat";
 export type InfoContentBlock = {
   title?: string;
   as?: InfoBlockAs;
   tone?: "navy";
-  span?: "full";
+  span?: "full" | "tall";
   rows?: InfoRow[];
   body?: string[];
   list?: string[];
@@ -234,40 +237,23 @@ export const INFO_SECTIONS: InfoSection[] = [
     intro: "Who we are and what we do, in one place.",
     blocks: [
       {
-        // Three facts anyone might be asked on the phone. They are lifted from
-        // the rows below rather than invented: a figure on this page is one
-        // somebody could be held to.
+        // Three facts anyone might be asked on the phone. The first two are
+        // the figures the public homepage already stands behind ("1,200+
+        // installs done", "12 yrs local trading"), so the crew quote the same
+        // numbers a customer has just read.
         as: "facts",
         span: "full",
         rows: [
-          { k: "Based in", v: "Pakenham VIC" },
-          { k: "We travel", v: "~75 km" },
-          { k: "Public liability", v: "$20M" },
+          { k: "Local trading", v: "12 yrs" },
+          { k: "Installs done", v: "1,200+" },
+          { k: "Based in", v: "Pakenham" },
         ],
       },
       {
         title: "What we do",
         span: "full",
         body: [
-          "Advanced Gas & Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne\u2019s South-East and West Gippsland.",
-          "Design, installation, repair and maintenance across HVAC, heating and cooling, Type A gas, general and mechanical plumbing, and refrigeration — residential, commercial and industrial.",
-        ],
-      },
-      {
-        title: "Where we work",
-        rows: [
-          { k: "Base", v: "Pakenham VIC" },
-          { k: "Service area", v: "Melbourne South-East + West Gippsland" },
-          { k: "Larger projects", v: "Across Victoria, and open to interstate" },
-        ],
-      },
-      {
-        title: "The details",
-        rows: [
-          { k: "Legal name", v: "Advanced Gas & Airconditioning Services Pty Ltd" },
-          { k: "ABN", v: "35 607 575 280" },
-          { k: "ACN", v: "607 575 280" },
-          { k: "Public liability", v: "$20M" },
+          "Heating, cooling, gas and hot water across Melbourne\u2019s south-east and Gippsland — heat pump hot water, split and ducted aircon, gas heating, servicing and commercial fit-outs. Directly employed crews, one standard every job.",
         ],
       },
     ],
@@ -279,27 +265,17 @@ export const INFO_SECTIONS: InfoSection[] = [
     intro: "How we got here.",
     blocks: [
       {
-        // The design wants a dated timeline here. Nobody has given us the
-        // dates — the mock's own years read "[Year]" — and a made-up founding
-        // year on an internal page is a year somebody will repeat to a
-        // customer. The story we do have runs as prose until they arrive.
-        title: "Our story",
+        // A dated timeline, with only the dates we can stand behind. 2014 is
+        // the year the public site gives ("a family business in Pakenham
+        // since 2014"). The design's middle rows — first vans and crew, heat
+        // pumps and the VEU program — read "[Year]" in the mock too, and a
+        // guessed year here is one somebody repeats to a customer, so they
+        // wait for the real dates.
+        as: "timeline",
         span: "full",
-        body: [
-          "We\u2019re based in Pakenham and serve Melbourne\u2019s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.",
-          "We value quality working relationships and build them on trust and experience over time. We operate from traditional values: under-promise, over-deliver, and complete work on time, within schedule and within budget.",
-          "Headed up by Director Dean Winbanks, with over 20 years\u2019 industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same values and quality of work — as though the director had completed your works personally.",
-        ],
-      },
-      {
-        title: "What we stand on",
-        tone: "navy",
-        span: "full",
-        list: [
-          "Compliance-first — never work outside a licence, cert every job.",
-          "Under-promise, over-deliver — on time, on schedule, on budget.",
-          "Same faces on every job — directly employed, not subbed out.",
-          "Six-year workmanship warranty, every job.",
+        rows: [
+          { k: "2014", v: "Started in Pakenham as a family business, headed by Director Dean Winbanks" },
+          { k: "2026", v: "The team portal, ServiceTitan and one standard every job" },
         ],
       },
     ],
@@ -341,6 +317,7 @@ export const INFO_SECTIONS: InfoSection[] = [
       {
         title: "Service prices (from)",
         as: "price",
+        span: "tall",
         rows: [
           { k: "Split service", v: "$220+", note: "or $140 each for 3+ at one address" },
           { k: "Ducted split service", v: "$220+" },
@@ -368,12 +345,6 @@ export const INFO_SECTIONS: InfoSection[] = [
           "Compliance certificate",
           "VEU rebate applied where the unit qualifies",
           "No hidden extras — the quote number is the invoice number",
-        ],
-      },
-      {
-        title: "Every model, every installed price",
-        body: [
-          "The full model-by-model price list lives on the public site\u2019s pricing pages — installed price with the VEU rebate already applied, ready to read out.",
         ],
       },
     ],
@@ -409,17 +380,14 @@ export const INFO_SECTIONS: InfoSection[] = [
     blocks: [
       {
         title: "Office phone",
-        as: "facts",
+        as: "stat",
         tone: "navy",
-        rows: [{ k: "Office phone", v: "(03) 5947 8000", note: "Business hours 7:00am – 3:30pm, Mon–Fri" }],
+        rows: [{ k: "Office phone", v: "(03) 5947 8000", note: "Business hours 7:00am – 3:30pm, Mon–Fri", href: "tel:+61359478000" }],
       },
       {
         title: "Factory & office",
-        rows: [
-          { k: "Address", v: "1 Sierra Circuit, Pakenham VIC 3810" },
-          { k: "Bookings", v: "Kellie" },
-          { k: "Quotes & pricing", v: "Jake" },
-        ],
+        as: "stat",
+        rows: [{ k: "Factory & office", v: "1 Sierra Circuit, Pakenham VIC 3810", note: "Who to call: Kellie for bookings, Jake for quotes and pricing" }],
       },
     ],
   },

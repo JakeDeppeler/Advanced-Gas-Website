@@ -33,14 +33,14 @@ export function AddVideo({ track }: { track: string }) {
 
   if (!open) {
     return (
-      <button type="button" className="pt-btn pt-btn--orange" onClick={() => setOpen(true)} style={{ marginTop: 18 }}>
+      <button type="button" className="pt-btn pt-btn--ghost pt-lrn__add" onClick={() => setOpen(true)}>
         + Add a video
       </button>
     );
   }
 
   return (
-    <section className="pt-panel" style={{ marginTop: 18 }}>
+    <section className="pt-panel">
       <h2 className="pt-panel__h">Add a video</h2>
       <div className="pt-mknew__grid">
         <label className="pt-field"><span>Title</span><input className="pt-inp" value={f.title} onChange={set("title")} placeholder="Back-to-back split install, start to finish" /></label>

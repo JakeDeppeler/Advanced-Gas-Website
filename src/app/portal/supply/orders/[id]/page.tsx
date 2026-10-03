@@ -6,6 +6,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { orderRef, STATUS_BLURB, STATUS_LABEL } from "@/lib/pricebook/orders";
 import { getOrder } from "@/lib/pricebook/ordersDb";
 import { money, money2 } from "@/lib/portal/format";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Order — Team portal" };
@@ -25,7 +26,7 @@ const when = (iso: string) =>
 export default async function SupplyOrderPage({ params }: { params: { id: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   const order = await getOrder(params.id).catch(() => null);
   if (!order) notFound();

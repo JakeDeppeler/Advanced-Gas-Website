@@ -13,8 +13,10 @@ import { parseProse, readingMinutes } from "@/lib/portal/prose";
  * function. A separate preview is a second renderer and it drifts.
  */
 export function TopicReader({
-  shelf, shelfTitle, title, note, status, gap, body, updatedBy, updatedAt, canEdit,
+  shelf, shelfTitle, title, note, status, gap, body, updatedBy, updatedAt, canEdit, footer,
 }: {
+  /** Previous / next, drawn at the foot of the article as the design has it. */
+  footer?: React.ReactNode;
   shelf: string;
   shelfTitle: string;
   title: string;
@@ -110,12 +112,16 @@ export function TopicReader({
             </>
           ) : (
             <>
-              <strong>Not written yet.</strong>
-              <span>{gap ? gap : canEdit ? "Nothing stopping you — write it." : "It is on the list."}</span>
+              <strong>Still to write</strong>
+              <span>{gap ? gap : "This topic is on the list. Until it’s written, ask Jake or Dean."}</span>
+              {canEdit && !editing && (
+                <button type="button" className="pt-btn pt-btn--navy" onClick={() => { setDraft(body); setEditing(true); }}>Write this topic</button>
+              )}
             </>
           )}
         </div>
       )}
+      {footer && <div className="pt-topic__foot">{footer}</div>}
     </article>
   );
 }

@@ -46,10 +46,17 @@ export const SOP_VERSION = "Version 1.1 · FY26";
  * C6 says a change gets told to everyone, with what changed and why. This is
  * that record — newest first.
  */
-export const SOP_CHANGES: { on: string; what: string }[] = [
+export const SOP_CHANGES: { on: string; what: string; items: { code: string; text: string }[] }[] = [
   {
     on: "Version 1.1",
     what: "A1 moved from a daily 6:50am check to a weekly one on Monday morning, and the stock count in A4 moved with it. The monthly condition check in A3 is now admin's, done with photos, rather than the whole team together. All three are done in the portal on the van you are signed to.",
+    // The same change, one line per procedure, the way the Processes page
+    // lists it.
+    items: [
+      { code: "A1", text: "Van check moved from daily 6:50am to weekly, Monday morning." },
+      { code: "A4", text: "The stock count moved with it." },
+      { code: "A3", text: "The monthly condition check is now admin’s, done with photos." },
+    ],
   },
 ];
 

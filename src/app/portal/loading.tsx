@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LoadingCard } from "@/components/portal/States";
 
 /**
  * What a portal page looks like while the server is still working on it.
@@ -28,10 +29,8 @@ export default function PortalLoading() {
         <div className="pt-skel" aria-hidden="true">
           <span className="pt-skel__back" />
           <span className="pt-skel__h" />
-          <span className="pt-skel__p" />
-          <span className="pt-skel__panel" />
-          <span className="pt-skel__panel pt-skel__panel--short" />
         </div>
+        <LoadingCard />
       </main>
     </div>
   );

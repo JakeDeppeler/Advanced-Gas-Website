@@ -1,6 +1,6 @@
 import "server-only";
 import { can, type PortalUser } from "@/lib/portal/caps";
-import { dbConfigured, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos } from "@/lib/portal/db";
+import { dbConfigured, getSettings, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos, saveSettings } from "@/lib/portal/db";
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 
@@ -33,7 +33,38 @@ export type Notice = {
   group: "doing" | "news";
   /** When, in words. Empty when the thing carries no date worth showing. */
   when: string;
+  /** Not yet seen by this person. Read is not done: it stays listed until the thing is. */
+  unread?: boolean;
 };
+
+/**
+ * What makes a notice the same notice next time.
+ *
+ * The title and the detail, not the title alone: "Weekly van check — Ford"
+ * comes back every week it's missed, and the detail ("Last done Mon 21 Sep")
+ * is what says this is a new week's, so it arrives unread again.
+ */
+export const noticeKey = (n: Pick<Notice, "title" | "detail">) => `${n.title}|${n.detail}`;
+
+const seenKey = (user: PortalUser) => `seen:${user.email.toLowerCase()}`;
+
+async function seenSet(user: PortalUser): Promise<Set<string>> {
+  const v = await getSettings<{ keys?: string[] }>(seenKey(user)).catch(() => null);
+  return new Set(v?.keys ?? []);
+}
+
+/**
+ * "Mark all read": remember what's on the list now.
+ *
+ * It clears the bell, not the list. These notices are worked out from the
+ * vans and the quote book, so an overdue check stays listed until somebody
+ * does the check — marking it read only says you've seen it.
+ */
+export async function markAllSeen(user: PortalUser): Promise<{ ok: boolean }> {
+  const all = await listNotices(user);
+  const res = await saveSettings(seenKey(user), { at: new Date().toISOString(), keys: all.map(noticeKey).slice(0, 300) });
+  return { ok: res.ok };
+}
 
 /** A quote sitting unanswered this long is worth chasing. */
 const QUOTE_CHASE_DAYS = 7;
@@ -167,9 +198,11 @@ async function newsNotices(): Promise<Notice[]> {
 
 export async function listNotices(user: PortalUser): Promise<Notice[]> {
   if (!dbConfigured()) return [];
-  const [waiting, news] = await Promise.all([waitingNotices(user), newsNotices()]);
+  const [waiting, news, seen] = await Promise.all([waitingNotices(user), newsNotices(), seenSet(user)]);
   const rank = { bad: 0, warn: 1, news: 2 } as const;
-  return [...waiting, ...news].sort((a, b) => rank[a.tone] - rank[b.tone]);
+  return [...waiting, ...news]
+    .map((n) => ({ ...n, unread: !seen.has(noticeKey(n)) }))
+    .sort((a, b) => rank[a.tone] - rank[b.tone]);
 }
 
 export async function unreadCount(user: PortalUser): Promise<number> {
@@ -177,5 +210,6 @@ export async function unreadCount(user: PortalUser): Promise<number> {
   // page; it is not a number on a bell demanding to be cleared — so the news
   // reads aren't made at all here.
   if (!dbConfigured()) return 0;
-  return (await waitingNotices(user)).length;
+  const [waiting, seen] = await Promise.all([waitingNotices(user), seenSet(user)]);
+  return waiting.filter((n) => !seen.has(noticeKey(n))).length;
 }

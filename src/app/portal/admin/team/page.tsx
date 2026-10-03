@@ -6,6 +6,7 @@ import { isOwner } from "@/lib/portal/team";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { TeamManager } from "@/components/portal/TeamManager";
+import { Locked } from "@/components/portal/Locked";
 
 export const metadata = { title: "Team & access — Team portal" };
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function TeamPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) redirect("/portal?denied=1");
+  if (!can(user, "manage_users")) return <Locked user={user} what="Admin" forWhom="admins" />;
 
   const ready = dbConfigured();
   const raw = ready ? await listUsers() : [];

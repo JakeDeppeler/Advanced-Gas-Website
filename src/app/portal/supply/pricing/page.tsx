@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { loadPricebookSettings, type PricebookSettings } from "@/lib/pricebook/stPricebook";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Pricing rules — Supply — Team portal" };
@@ -39,7 +40,7 @@ function rulesOf(s: PricebookSettings): Rule[] {
 export default async function SupplyPricingPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   let rules: PricebookSettings | null = null;
   try {
@@ -51,14 +52,14 @@ export default async function SupplyPricingPage() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <PortalBack href="/portal/supply" label="Supply" />
+        <PortalBack href="/portal" label="Home" />
         <h1>Pricing rules</h1>
-        <p>What happens to a Reece cost on its way into the ServiceTitan pricebook.</p>
+        <p>The markups that turn our cost into the price in ServiceTitan.</p>
       </div>
 
       <PortalTabs set="supply" />
 
-      <section className="pt-panel">
+      <section className="pt-panel pt-rules">
         <h2 className="pt-panel__h">How Reece&rsquo;s cost becomes a pricebook figure</h2>
         {rules ? (
           <div className="pt-rule">

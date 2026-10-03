@@ -35,21 +35,22 @@ export default async function VideoPage({ params }: { params: { track: string; v
 
   return (
     <PortalShell user={user}>
-      <PortalBack href={`/portal/learning/${track.slug}`} label={track.label} />
+      <div className="pt-vp">
+        <div className="pt-vp__main">
+          <PortalBack href={`/portal/learning/${track.slug}`} label="Learning" />
+          <VideoPlayer video={video} sopHref={sop ? `/portal/sops/${sop.section.slug}/${sop.sop.slug}` : null} />
+        </div>
 
-      <div className="pt-vidwrap">
-        <VideoPlayer video={video} sopHref={sop ? `/portal/sops/${sop.section.slug}` : null} />
-
-        <aside className="pt-panel pt-upnext">
-          <h2 className="pt-panel__h">Up next</h2>
+        <aside className="pt-vp__next">
+          <h2>Up next</h2>
           {next.length === 0 ? (
-            <p className="pt-rep__empty">Nothing else on this track yet.</p>
+            <p>Nothing else on this shelf yet.</p>
           ) : (
             next.map((v) => (
-              <Link key={v.id} href={`/portal/learning/${track.slug}/${encodeURIComponent(v.id)}`} className="pt-upnext__row">
+              <Link key={v.id} href={`/portal/learning/${track.slug}/${encodeURIComponent(v.id)}`}>
                 <strong>{v.title}</strong>
                 <span>
-                  {v.minutes ? `${v.minutes} min` : "not loaded in"}
+                  {v.minutes ? `${v.minutes} min` : "Not loaded in yet"}
                   {v.watched ? " · watched" : ""}
                 </span>
               </Link>

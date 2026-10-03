@@ -19,7 +19,7 @@ import { Bell } from "@/components/portal/Bell";
  * A server component: it reads nothing and holds no state, so only the search
  * input ships as JavaScript.
  */
-export function PortalShell({ user, children }: { user: PortalUser; children: React.ReactNode }) {
+export function PortalShell({ user, children, variant }: { user: PortalUser; children: React.ReactNode; variant?: "home" | "wide" }) {
   const rows = buildSearchIndex(portalNav(user));
 
   return (
@@ -27,7 +27,7 @@ export function PortalShell({ user, children }: { user: PortalUser; children: Re
     // The portal is a tool — a panel that fades in when you scroll to it is an
     // animation in the way of work, and it left every below-the-fold panel at
     // opacity 0 in screenshots and in print.
-    <div className="pt" data-no-reveal>
+    <div className={`pt${variant ? ` pt--${variant}` : ""}`} data-no-reveal>
       <header className="pt__bar">
         <Link href="/portal" className="pt__brand" aria-label="Portal home">
           <strong>Advanced</strong>
