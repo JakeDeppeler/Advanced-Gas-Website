@@ -43,10 +43,10 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `Targets from the ${goal} goal · ${day}`;
   },
   Quotes: () => "Written today, and what's still out",
-  // The money columns are the month; the last three are thirty days, because a
+  // The money column is the month; the last three are thirty days, because a
   // quote written this week has not had a chance to close. Said once here
   // rather than three times in headers a column wide.
-  Team: () => "This month, with today and the week · rates over 30 days",
+  Team: () => "Sold this month, against what they quoted · rates over 30 days",
   Performance: (m) => `${monthName(new Date())} so far · by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
@@ -735,7 +735,10 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
       month: a.month + r.sold,
       quoted: a.quoted + r.quoted,
       options: a.options + r.quotes,
+      quotedToday: a.quotedToday + r.quotedToday,
+      quotedWeek: a.quotedWeek + r.quotedWeek,
       quotedJobs: a.quotedJobs + r.quotedJobs,
+      options30: a.options30 + (r.avgOptions ?? 0) * r.quotedJobs,
       soldJobs: a.soldJobs + r.soldJobs,
       won: a.won + r.closeRateWon,
       // Summed, not averaged: a mean of five people's averages weights the one
@@ -743,7 +746,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
       quotedValue: a.quotedValue + (r.avgQuote ?? 0) * r.quotedJobs,
       wonValue: a.wonValue + (r.avgTicket ?? 0) * r.soldJobs,
     }),
-    { today: 0, week: 0, month: 0, quoted: 0, options: 0, quotedJobs: 0, soldJobs: 0, won: 0, quotedValue: 0, wonValue: 0 },
+    {
+      today: 0, week: 0, month: 0, quoted: 0, options: 0,
+      quotedToday: 0, quotedWeek: 0, quotedJobs: 0, options30: 0,
+      soldJobs: 0, won: 0, quotedValue: 0, wonValue: 0,
+    },
   );
   const teamCloseRate = totals.quotedJobs ? totals.won / totals.quotedJobs : null;
   const teamAvgTicket = totals.soldJobs ? totals.wonValue / totals.soldJobs : null;
@@ -781,17 +788,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               </span>
               {i === 0 && <span className="tbl__note tbl__note--leader">Leading</span>}
             </span>
-            {/* Today and this week came off as their own columns — six columns
-                of money was more than the room could take in, and Today read
-                $0 against $0 for everybody most days. They belong here, under
-                the month, where they are what they always were: how the month
-                is tracking, not three separate things to compare. */}
+            {/* One figure is money won, everything under it is money out for
+                decision. Sold today and sold this week were the small lines
+                before, which read as three sold figures of different sizes and
+                told you nothing about what is in front of customers right now —
+                and on most days all three were $0. */}
             <span className="tbl__fig">
               <b>{plain(r.sold)}</b>
+              <span>quoted {plain(r.quoted)} this month</span>
               <span>
-                today {plain(r.soldToday)} · week {plain(r.soldWeek)}
+                today {plain(r.quotedToday)} · week {plain(r.quotedWeek)}
               </span>
-              <span>of {plain(r.quoted)} quoted</span>
             </span>
             {/* Per job, not per option — see the leaderboard fields. Each of the
                 three carries its own denominator underneath, because a 50%
@@ -807,7 +814,8 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
             </span>
             <span className="tbl__fig">
               <b>{plain(r.avgQuote)}</b>
-              <span>{r.quotedJobs ? `${count(r.quotedJobs)} quoted` : "—"}</span>
+              <span>{r.quotedJobs ? `${count(r.quotedJobs)} jobs quoted` : "—"}</span>
+              <span>{r.avgOptions != null ? `${r.avgOptions.toFixed(1)} options per job` : ""}</span>
             </span>
             <span className="tiers">
               {/* No tiers configured means no run to be along, so there is no
@@ -840,12 +848,12 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
             <span>
-              today {plain(totals.today)} · week {plain(totals.week)}
-            </span>
-            <span>
               {thin
                 ? `of ${plain(m.soldMtd)} sold · the rest names no seller`
-                : `of ${plain(totals.quoted)} quoted`}
+                : `quoted ${plain(totals.quoted)} this month`}
+            </span>
+            <span>
+              today {plain(totals.quotedToday)} · week {plain(totals.quotedWeek)}
             </span>
           </span>
           <span className="tbl__fig">
@@ -858,7 +866,8 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="tbl__fig">
             <b>{plain(teamAvgQuote)}</b>
-            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} quoted` : "—"}</span>
+            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} jobs quoted` : "—"}</span>
+            <span>{totals.quotedJobs ? `${(totals.options30 / totals.quotedJobs).toFixed(1)} options per job` : ""}</span>
           </span>
           <span className="tiers__note">
             {m.commissionTiers.length === 0

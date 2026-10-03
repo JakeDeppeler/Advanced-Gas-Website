@@ -625,6 +625,25 @@ win; the average says what winning one is worth, and the room asks both. Per job
 over the same thirty days — an average counted per option under a rate counted
 per job is one sentence disagreeing with itself.
 
+**The Team roster spans thirty days, not just the month.** It was built from
+rows dated this month while three of its columns measure thirty days, so anybody
+who quoted in late September and nothing since was absent from a table that
+already held his close rate and his averages — on 3 October that was **two of
+the seven people quoting**, Jackson Lane and Natasha Hahir. The roster is the
+union of both populations now. ServiceTitan's own API user is excluded by name:
+two estimates in the tenant were written by the integration account rather than
+by a person, and widening the window brought it onto the leaderboard.
+
+**One figure on the Team row is money won; everything under it is money out for
+decision.** The small lines were sold today and sold this week, which read as
+three sold figures of different sizes and said nothing about what is in front of
+customers right now — and on most days all three were $0. They are what was
+quoted today, this week and this month.
+
+**Each person carries options per job.** 4.2 against 2.2 is the difference
+between pricing a job three or four ways and pricing it once, which is the
+lever behind the close rate beside it.
+
 **The Team page is six columns, not nine.** Today read $0 against $0 for
 everybody on most days, and in the first week of a month This week is the same
 figure as the month beside it. Both came off, along with the options-written

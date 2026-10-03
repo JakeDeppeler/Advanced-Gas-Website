@@ -294,6 +294,8 @@ export type Metrics = {
     /** What a job they sold was worth; what a job they quoted was priced at. */
     avgTicket: number | null;
     avgQuote: number | null;
+    /** Options written per job quoted — whether they put a choice in front of people. */
+    avgOptions: number | null;
     /** Commission is computed but deliberately not rendered on the wall. */
     commission: number | null;
     tier: number | null;
@@ -1118,11 +1120,34 @@ async function serviceTitanMetrics(now: Date) {
   }
 
   // Commission is applied later, once the tiers have been read from settings.
-  const rawLeaderboard = [...bySeller.entries()]
-    .map(([name, v]) => {
+  /**
+   * ServiceTitan's own API user, which is not a person.
+   *
+   * Two estimates in the tenant were written by the integration account rather
+   * than by anybody, and widening the roster below to thirty days brought it
+   * onto the leaderboard. Matched by its exact name rather than by a shape —
+   * "no space in it" would eventually drop a real person.
+   */
+  const SERVICE_ACCOUNT = "advancedgasairconditioningservices";
+
+  /**
+   * Everybody who shows up in either population, not just the month's.
+   *
+   * The roster was built from rows dated this month while three of the columns
+   * measure thirty days, so somebody who quoted in late September and nothing
+   * since was absent from a table that already held his close rate and his
+   * averages. On the third of October that was two of the seven people quoting.
+   */
+  const roster = new Set<string>([...bySeller.keys(), ...quotedJobsBy.keys()]);
+  roster.delete(SERVICE_ACCOUNT);
+
+  const rawLeaderboard = [...roster]
+    .map((name) => {
+      const v = bySeller.get(name) ?? blank();
       const quoted = [...(quotedJobsBy.get(name)?.values() ?? [])];
       const wonJobs = quoted.filter((j) => j.won);
       const won = wonJobs.length;
+      const options = quoted.reduce((t, j) => t + j.n, 0);
       return {
         name,
         ...v,
@@ -1140,13 +1165,17 @@ async function serviceTitanMetrics(now: Date) {
         avgQuote: quoted.length
           ? quoted.reduce((t, j) => t + (j.n > 0 ? j.sum / j.n : 0), 0) / quoted.length
           : null,
+        avgOptions: quoted.length ? options / quoted.length : null,
       };
     })
     // Quoting is what the board measures for now — nothing is sold through the
     // site yet, so ranking on sold put a column of zeroes above the work people
     // are actually doing. Sold breaks the tie.
-    .sort((a, b) => b.quoted - a.quoted || b.sold - a.sold)
-    .slice(0, 6);
+    // Quoting is what the board measures for now. Jobs quoted in the window
+    // breaks the tie after that, so somebody who wrote nothing this month but
+    // was quoting a fortnight ago still sorts above an empty row.
+    .sort((a, b) => b.quoted - a.quoted || b.sold - a.sold || b.quotedJobs - a.quotedJobs)
+    .slice(0, 8);
 
   return {
     jobsCompletedToday,
@@ -1487,6 +1516,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
         closeRateWon: r.closeRateWon ?? 0,
         avgTicket: r.avgTicket ?? null,
         avgQuote: r.avgQuote ?? null,
+        avgOptions: r.avgOptions ?? null,
       })),
       invoiceCountMonth: prev?.invoiceCountMonth ?? 0,
       invoiceCountToday: prev?.invoiceCountToday ?? 0,
