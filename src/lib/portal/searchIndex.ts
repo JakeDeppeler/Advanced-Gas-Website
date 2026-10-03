@@ -66,7 +66,8 @@ export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
     // The block headings carry the words people actually search for — "call-out
     // rates", "ARC licence" — which the section title usually doesn't.
     for (const b of s.blocks) {
-      rows.push({ href: `/portal/information/${s.slug}`, label: b.title, where: `Information · ${s.label}` });
+      // Some blocks are a strip of figures with no heading of their own.
+      if (b.title) rows.push({ href: `/portal/information/${s.slug}`, label: b.title, where: `Information · ${s.label}` });
     }
   }
 

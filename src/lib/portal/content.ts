@@ -196,21 +196,60 @@ export const INFO: InfoBlock[] = [
  * Each block is either a set of key/value rows, body paragraphs, or a bullet
  * list. Edit here to change what the crew reads.
  */
-export type InfoRow = { k: string; v: string };
-export type InfoContentBlock = { title: string; rows?: InfoRow[]; body?: string[]; list?: string[] };
+export type InfoRow = { k: string; v: string; note?: string };
+export type InfoPerson = { name: string; role: string; detail: string };
+/**
+ * A block's `as` is its shape, not its decoration — the design gives each
+ * section the shape its content actually is, and a licence number people
+ * read down the phone is a different object from a paragraph.
+ *
+ *  · rows   (default) a key/value card
+ *  · facts  the three-tile strip at the top of a section, first one filled
+ *  · copy   one card per row with a Copy button — numbers people transcribe
+ *  · people the crew, with their role
+ *  · chips  a row of stages, for the ladder
+ *  · price  key/value where the value is a figure, set large and right
+ *
+ * `tone: "navy"` fills the card; `span: "full"` makes it run the width.
+ */
+export type InfoBlockAs = "rows" | "facts" | "copy" | "people" | "chips" | "price";
+export type InfoContentBlock = {
+  title?: string;
+  as?: InfoBlockAs;
+  tone?: "navy";
+  span?: "full";
+  rows?: InfoRow[];
+  body?: string[];
+  list?: string[];
+  people?: InfoPerson[];
+  chips?: string[];
+};
 export type InfoSection = { slug: string; label: string; title: string; intro?: string; blocks: InfoContentBlock[] };
 
 export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "business",
     label: "The business",
-    title: "About Advanced Gas.",
-    intro: "Who we are and what we do — so everyone gives the same answer.",
+    title: "The business",
+    intro: "Who we are and what we do, in one place.",
     blocks: [
       {
+        // Three facts anyone might be asked on the phone. They are lifted from
+        // the rows below rather than invented: a figure on this page is one
+        // somebody could be held to.
+        as: "facts",
+        span: "full",
+        rows: [
+          { k: "Based in", v: "Pakenham VIC" },
+          { k: "We travel", v: "~75 km" },
+          { k: "Public liability", v: "$20M" },
+        ],
+      },
+      {
         title: "What we do",
+        span: "full",
         body: [
-          "Advanced Gas & Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne’s South-East and West Gippsland.",
+          "Advanced Gas & Airconditioning Services is a family-owned business based in Pakenham, serving Melbourne\u2019s South-East and West Gippsland.",
           "Design, installation, repair and maintenance across HVAC, heating and cooling, Type A gas, general and mechanical plumbing, and refrigeration — residential, commercial and industrial.",
         ],
       },
@@ -218,7 +257,7 @@ export const INFO_SECTIONS: InfoSection[] = [
         title: "Where we work",
         rows: [
           { k: "Base", v: "Pakenham VIC" },
-          { k: "Service area", v: "Melbourne South-East + West Gippsland (Pakenham + ~75 km)" },
+          { k: "Service area", v: "Melbourne South-East + West Gippsland" },
           { k: "Larger projects", v: "Across Victoria, and open to interstate" },
         ],
       },
@@ -236,19 +275,26 @@ export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "history",
     label: "Our history",
-    title: "Family-owned. Traditional values.",
-    intro: "Where we came from and what we run on.",
+    title: "Our history",
+    intro: "How we got here.",
     blocks: [
       {
+        // The design wants a dated timeline here. Nobody has given us the
+        // dates — the mock's own years read "[Year]" — and a made-up founding
+        // year on an internal page is a year somebody will repeat to a
+        // customer. The story we do have runs as prose until they arrive.
         title: "Our story",
+        span: "full",
         body: [
-          "We’re based in Pakenham and serve Melbourne’s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.",
+          "We\u2019re based in Pakenham and serve Melbourne\u2019s South-East and West Gippsland. Our team are like family to us, and our clients are an extension of that ethos.",
           "We value quality working relationships and build them on trust and experience over time. We operate from traditional values: under-promise, over-deliver, and complete work on time, within schedule and within budget.",
-          "Headed up by Director Dean Winbanks, with over 20 years’ industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same values and quality of work — as though the director had completed your works personally.",
+          "Headed up by Director Dean Winbanks, with over 20 years\u2019 industrial, commercial and domestic experience. Our staff are mentored individually and trained to uphold the same values and quality of work — as though the director had completed your works personally.",
         ],
       },
       {
         title: "What we stand on",
+        tone: "navy",
+        span: "full",
         list: [
           "Compliance-first — never work outside a licence, cert every job.",
           "Under-promise, over-deliver — on time, on schedule, on budget.",
@@ -261,31 +307,27 @@ export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "roles",
     label: "Roles & the ladder",
-    title: "Who does what.",
+    title: "Who does what",
     intro: "The team today, and the path through the business.",
     blocks: [
       {
-        title: "The team",
-        rows: [
-          { k: "Dean Winbanks", v: "Director · Plumbing Lic. 46828 · signs off the works" },
-          { k: "Jake", v: "Estimating & quotes · pricing, rebates, the numbers" },
-          { k: "Kellie", v: "Office & scheduling · bookings, compliance certs, paperwork" },
-          { k: "Jye", v: "Installer · same face, same standard, every job" },
+        as: "people",
+        span: "full",
+        people: [
+          { name: "Dean Winbanks", role: "Director", detail: "Plumbing Lic. 46828 · signs off the works" },
+          { name: "Jake", role: "Estimating & quotes", detail: "Pricing, rebates, the numbers" },
+          { name: "Kellie", role: "Office & scheduling", detail: "Bookings, compliance certs, paperwork" },
+          { name: "Jye", role: "Installer", detail: "Same face, same standard, every job" },
         ],
       },
       {
         title: "The career ladder",
-        list: [
-          "Apprentice (year 1–4)",
-          "Tradesman",
-          "Leading hand",
-          "Manager",
-        ],
-      },
-      {
-        title: "How we run the roles",
+        as: "chips",
+        tone: "navy",
+        span: "full",
+        chips: ["Apprentice (year 1–4)", "Tradesman", "Leading hand", "Manager"],
         body: [
-          "Each person is mentored individually and scored on the 3–4 KPIs that matter for their role. Expectations per role, pay bands and the full scorecard live in the Handbook (shelf B).",
+          "Each person is mentored individually and scored on the 3–4 KPIs that matter for their role. Pay bands and the scorecard live in Handbook shelf B.",
         ],
       },
     ],
@@ -293,23 +335,14 @@ export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "pricing",
     label: "Pricing",
-    title: "The prices we quote from.",
+    title: "The prices we quote from",
     intro: "So every quote and every phone answer lines up.",
     blocks: [
       {
-        title: "In every installed price",
-        list: [
-          "Labour and standard installation",
-          "Disposal of the old unit",
-          "Compliance certificate",
-          "VEU rebate applied where the unit qualifies",
-          "No hidden extras — the quote number is the invoice number",
-        ],
-      },
-      {
         title: "Service prices (from)",
+        as: "price",
         rows: [
-          { k: "Split service", v: "$220+ (or $140 ea for 3+ at one address)" },
+          { k: "Split service", v: "$220+", note: "or $140 each for 3+ at one address" },
           { k: "Ducted split service", v: "$220+" },
           { k: "Gas heater service", v: "$220+" },
           { k: "Evap cooler service — single storey", v: "$300+" },
@@ -321,15 +354,26 @@ export const INFO_SECTIONS: InfoSection[] = [
         rows: [
           { k: "Business hours", v: "7:00am – 3:30pm, Mon–Fri" },
           { k: "Outside those hours", v: "Charged as a call-out" },
-          { k: "After-hours call-out", v: "$380 call-out, then $260/hr" },
-          { k: "Quote turnaround", v: "Fixed price back within 12 business hours" },
+          { k: "After-hours call-out", v: "$380, then $260/hr" },
+          { k: "Quote turnaround", v: "Fixed price within 12 business hours" },
           { k: "Compliance cert", v: "Emailed within 24 hours of install" },
+        ],
+      },
+      {
+        title: "In every installed price",
+        tone: "navy",
+        list: [
+          "Labour and standard installation",
+          "Disposal of the old unit",
+          "Compliance certificate",
+          "VEU rebate applied where the unit qualifies",
+          "No hidden extras — the quote number is the invoice number",
         ],
       },
       {
         title: "Every model, every installed price",
         body: [
-          "The full model-by-model price list lives on the public site's pricing pages — installed price with the VEU rebate already applied, ready to read out.",
+          "The full model-by-model price list lives on the public site\u2019s pricing pages — installed price with the VEU rebate already applied, ready to read out.",
         ],
       },
     ],
@@ -337,11 +381,15 @@ export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "licences",
     label: "Licences",
-    title: "Licences & accreditation.",
+    title: "Licences & accreditation",
     intro: "The credentials behind every job.",
     blocks: [
       {
-        title: "Licences & accreditation",
+        // Every one of these gets read down a phone or typed into a form, so
+        // each is its own card with a Copy button rather than a row in a list
+        // somebody has to select by hand without catching a neighbour.
+        as: "copy",
+        span: "full",
         rows: [
           { k: "ARCtick", v: "AU59557" },
           { k: "Plumbing licence", v: "46828" },
@@ -356,15 +404,21 @@ export const INFO_SECTIONS: InfoSection[] = [
   {
     slug: "contact",
     label: "Head office",
-    title: "Head office.",
-    intro: "Where to find us.",
+    title: "Head office",
+    intro: "Where we are and who to call.",
     blocks: [
       {
-        title: "Head office",
+        title: "Office phone",
+        as: "facts",
+        tone: "navy",
+        rows: [{ k: "Office phone", v: "(03) 5947 8000", note: "Business hours 7:00am – 3:30pm, Mon–Fri" }],
+      },
+      {
+        title: "Factory & office",
         rows: [
           { k: "Address", v: "1 Sierra Circuit, Pakenham VIC 3810" },
-          { k: "Office", v: "(03) 5947 8000" },
-          { k: "Hours", v: "Mon–Fri, 7:00am–3:30pm" },
+          { k: "Bookings", v: "Kellie" },
+          { k: "Quotes & pricing", v: "Jake" },
         ],
       },
     ],
