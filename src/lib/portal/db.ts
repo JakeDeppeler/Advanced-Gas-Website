@@ -20,6 +20,7 @@ import type { CheckItems, CheckKind } from "./vanChecks";
 import type { Campaign } from "./campaigns";
 import type { Video as StoredVideo } from "./videos";
 import type { StoredSop } from "./sopEdits";
+import type { StoredPost } from "@/lib/blogMerge";
 
 const USERS = "portal_users";
 const REPORTS = "portal_reports";
@@ -35,12 +36,21 @@ function conf() {
   return { url: url.replace(/\/$/, ""), key };
 }
 
-async function sb(path: string, init: RequestInit = {}): Promise<Response | null> {
+/**
+ * `cached` opts a read out of no-store and into Next's fetch cache under a
+ * tag, for the handful of reads that happen on a statically rendered public
+ * page. A page with generateStaticParams that does a no-store fetch throws
+ * "changed from static to dynamic at runtime" and answers 500 — which is what
+ * the blog did the first time a post was written. Everything in the portal
+ * stays no-store: it is behind a login and has to be current.
+ */
+async function sb(path: string, init: RequestInit & { cached?: string } = {}): Promise<Response | null> {
   const c = conf();
+  const { cached, ...rest } = init;
   if (!c) return null;
   return fetch(`${c.url}/rest/v1/${path}`, {
-    ...init,
-    cache: "no-store",
+    ...rest,
+    ...(cached ? { next: { tags: [cached] } } : { cache: "no-store" as RequestCache }),
     headers: {
       apikey: c.key,
       Authorization: `Bearer ${c.key}`,
@@ -1225,6 +1235,67 @@ export async function saveStoredSop(input: {
 
 export async function deleteStoredSop(code: string): Promise<{ ok: boolean; error?: string }> {
   const res = await sb(`portal_sops?code=eq.${encodeURIComponent(code)}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+/* ------------------------------------------------- Blog posts, written here */
+
+type PostRow = {
+  id: string; slug: string; title: string; seo_title: string | null; blurb: string;
+  cat: string; author: string; photo: string | null; photo_alt: string; body: string;
+  featured: boolean; on_home: boolean; published_on: string | null; updated_on: string | null;
+  status: string; updated_by: string | null; updated_at: string;
+};
+
+const toStoredPost = (r: PostRow): StoredPost => ({
+  id: r.id, slug: r.slug, title: r.title, seoTitle: r.seo_title, blurb: r.blurb,
+  cat: r.cat, author: r.author, photo: r.photo, photoAlt: r.photo_alt, body: r.body,
+  featured: r.featured, onHome: r.on_home,
+  publishedOn: r.published_on, updatedOn: r.updated_on,
+  status: r.status === "published" ? "published" : "draft",
+  updatedBy: r.updated_by, updatedAt: r.updated_at,
+});
+
+/** The tag the public blog's read is cached under, revalidated on publish. */
+export const BLOG_TAG = "blog-posts";
+
+export async function listStoredPosts(): Promise<StoredPost[]> {
+  // Tagged rather than no-store: /blog and /blog/[slug] are prerendered and
+  // a no-store read inside them turns the page dynamic and 500s it.
+  const res = await sb("portal_posts?select=*&order=published_on.desc.nullslast,updated_at.desc", { cached: BLOG_TAG });
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as PostRow[]).map(toStoredPost);
+}
+
+export async function saveStoredPost(input: {
+  slug: string; title: string; seoTitle: string | null; blurb: string; cat: string;
+  author: string; photo: string | null; photoAlt: string; body: string;
+  featured: boolean; onHome: boolean; publishedOn: string | null; updatedOn: string | null;
+  status: "draft" | "published"; updatedBy: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_posts?on_conflict=slug", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({
+      slug: input.slug, title: input.title, seo_title: input.seoTitle, blurb: input.blurb,
+      cat: input.cat, author: input.author, photo: input.photo, photo_alt: input.photoAlt,
+      body: input.body, featured: input.featured, on_home: input.onHome,
+      published_on: input.publishedOn, updated_on: input.updatedOn,
+      status: input.status, updated_by: input.updatedBy, updated_at: new Date().toISOString(),
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteStoredPost(slug: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_posts?slug=eq.${encodeURIComponent(slug)}`, {
     method: "DELETE",
     headers: { Prefer: "return=minimal" },
   });

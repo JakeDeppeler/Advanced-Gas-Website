@@ -1,7 +1,7 @@
 import { services, suburbs } from "@/lib/site";
 import { serviceContent } from "@/lib/serviceContent";
 import { brands } from "@/lib/brands";
-import { posts } from "@/lib/blog";
+import { posts as BUILT_IN_POSTS, type BlogPost } from "@/lib/blog";
 import { TIERS } from "@/lib/waterFiltration";
 
 /**
@@ -47,8 +47,16 @@ const PAGES: Hit[] = [
 
 let cache: Hit[] | null = null;
 
-export function searchCorpus(): Hit[] {
-  if (cache) return cache;
+/**
+ * `posts` is passed in by the callers that can read the database — the search
+ * page and its API route — so a post written in the portal is findable the
+ * moment it is published. Everything else gets the built-in list, and the
+ * cache is only kept for that default, because a caller supplying its own
+ * posts is supplying fresher ones.
+ */
+export function searchCorpus(posts: BlogPost[] = BUILT_IN_POSTS): Hit[] {
+  const isDefault = posts === BUILT_IN_POSTS;
+  if (isDefault && cache) return cache;
 
   const out: Hit[] = [...PAGES];
 
@@ -109,7 +117,7 @@ export function searchCorpus(): Hit[] {
     });
   }
 
-  cache = out;
+  if (isDefault) cache = out;
   return out;
 }
 
@@ -149,13 +157,13 @@ const KIND_WEIGHT: Record<Hit["kind"], number> = {
  * letters line up, and a wrong answer confidently presented is how people stop
  * trusting a search box.
  */
-export function searchSite(query: string, limit = 24): Hit[] {
+export function searchSite(query: string, limit = 24, posts?: BlogPost[]): Hit[] {
   const q = normalise(query);
   if (q.length < 2) return [];
   const words = q.split(/\s+/).filter((w) => w.length > 1);
   if (!words.length) return [];
 
-  const scored = searchCorpus().map((h) => {
+  const scored = searchCorpus(posts).map((h) => {
     const title = normalise(h.title);
     const blurb = normalise(h.blurb);
     const terms = normalise(h.terms ?? "");

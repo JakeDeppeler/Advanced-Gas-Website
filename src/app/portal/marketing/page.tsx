@@ -4,7 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { dbConfigured, listWebLeads, listCampaigns, listBrandAssets } from "@/lib/portal/db";
+import { dbConfigured, listWebLeads, listCampaigns, listBrandAssets, listStoredPosts } from "@/lib/portal/db";
 import { classifyLead } from "@/lib/portal/leadSource";
 import { groupByArea, BANDS } from "@/lib/portal/leadArea";
 import { pageReport } from "@/lib/portal/leadPages";
@@ -13,7 +13,7 @@ import {
   MARKETING_TABS, marketingHref, tabDef, windowDays, windowKey, windowLabel, WINDOWS,
   type MarketingTab,
 } from "@/lib/portal/marketingTabs";
-import { blogPosts } from "@/lib/blogPosts";
+import { mergePosts, isLive } from "@/lib/blogMerge";
 import { getReviews } from "@/lib/googleReviews";
 import { getInstagramFeed } from "@/lib/instagram";
 import { CampaignBoard } from "@/components/portal/CampaignBoard";
@@ -130,50 +130,82 @@ async function Campaigns({
 }
 
 /* ------------------------------------------------------------------ Blog */
-function Blog() {
-  const posts = [...blogPosts].sort((a, b) => (b.iso ?? "").localeCompare(a.iso ?? ""));
+/**
+ * Every article on the site, drafts and scheduled posts included.
+ *
+ * This used to list `blogPosts.ts`, which nothing on the public site reads —
+ * so the office was looking at one set of articles and the public at another.
+ * It reads the live merge now: the posts in blog.ts plus whatever has been
+ * written in the portal.
+ */
+async function Blog() {
+  const stored = dbConfigured() ? await listStoredPosts().catch(() => []) : [];
+  const posts = mergePosts(stored, true);
+  const statusOf = new Map(stored.map((r) => [r.slug, r]));
   const byCategory = new Map<string, number>();
-  for (const p of posts) byCategory.set(p.category, (byCategory.get(p.category) ?? 0) + 1);
+  for (const p of posts) byCategory.set(p.cat, (byCategory.get(p.cat) ?? 0) + 1);
+  const liveCount = posts.filter((p) => !statusOf.has(p.slug) || isLive(statusOf.get(p.slug)!)).length;
+
+  const when = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
 
   return (
     <>
       <Heads
         items={[
-          { label: "Articles", value: String(posts.length), sub: "on the site", feature: true },
+          { label: "On the site", value: String(liveCount), sub: "articles the public can read", feature: true },
           { label: "Topics", value: String(byCategory.size), sub: "categories covered" },
-          { label: "Newest", value: posts[0]?.date ?? "—", sub: posts[0]?.title ?? "nothing published" },
+          { label: "Newest", value: posts[0] ? when(posts[0].publishedISO) : "—", sub: posts[0]?.title ?? "nothing published" },
         ]}
       />
       <section className="pt-panel">
-        <h2 className="pt-panel__h">Every article</h2>
+        <div className="pt-veh__edithead">
+          <h2 className="pt-panel__h">Every article</h2>
+          <Link href="/portal/marketing/blog/new" className="pt-btn pt-btn--orange pt-btn--sm">Write a post</Link>
+        </div>
         <div className="pt-fleet__wrap">
-          <table className="pt-fleet">
-            <thead><tr><th>Article</th><th>Topic</th><th>Published</th><th /></tr></thead>
+          <table className="pt-fleet pt-fleet--prose">
+            <thead><tr><th>Article</th><th>Topic</th><th>Published</th><th>Where</th><th /></tr></thead>
             <tbody>
-              {posts.map((p) => (
-                <tr key={p.slug}>
-                  <td><strong>{p.title}</strong>{p.excerpt && <span className="pt-fleet__sub">{p.excerpt}</span>}</td>
-                  <td>{p.categoryShort || p.category}</td>
-                  <td>{p.date}</td>
-                  <td><a href={`/blog/${p.slug}`} target="_blank" rel="noopener" className="pt-fleet__open">Open ↗</a></td>
-                </tr>
-              ))}
+              {posts.map((p) => {
+                const row = statusOf.get(p.slug);
+                const live = !row || isLive(row);
+                return (
+                  <tr key={p.slug}>
+                    <td><strong>{p.title}</strong>{p.blurb && <span className="pt-fleet__sub">{p.blurb}</span>}</td>
+                    <td>{p.cat}</td>
+                    <td>{when(p.publishedISO)}</td>
+                    {/* Said in words: whether the public can read it is the
+                        one thing this table exists to answer. */}
+                    <td>
+                      {!row ? "On the site · in the code"
+                        : row.status === "draft" ? "Draft — not on the site"
+                          : live ? "On the site" : `Scheduled for ${when(p.publishedISO)}`}
+                    </td>
+                    <td>
+                      {row
+                        ? <Link href={`/portal/marketing/blog/${p.slug}`} className="pt-fleet__open">Edit →</Link>
+                        : <a href={`/blog/${p.slug}`} target="_blank" rel="noopener" className="pt-fleet__open">Open ↗</a>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </section>
-      {/* The editor the design draws writes to files in the repo, which is a
-          deploy rather than a save. Said plainly instead of drawn. */}
+      {/* The eight posts already written live in blog.ts, where they were
+          authored and where they are indexed. Nothing moves them; a post
+          written here sits beside them. */}
       <Needs
-        title="Writing a post still goes through a deploy"
-        body="Articles live as files in the codebase, so the blog-post editor in the design would be writing to something it can't reach from a browser. Moving them into the database is the change that makes the editor possible."
+        title="The older posts are still in the code"
+        body="The eight articles written before this editor existed live in blog.ts. They render exactly as they always have and nothing here touches them — a post written in the portal sits alongside them on the blog. Open one above to read it on the site."
       />
     </>
   );
 }
 
 /* --------------------------------------------------------- Website leads */
-function WebsiteLeads({
+async function WebsiteLeads({
   leads, days, win,
 }: {
   leads: Awaited<ReturnType<typeof listWebLeads>>; days: number; win: string;
@@ -196,7 +228,7 @@ function WebsiteLeads({
   }
 
   const area = groupByArea(leads.map((l) => ({ suburb: l.suburb, postcode: l.postcode, kind: l.kind })));
-  const report = pageReport(leads);
+  const report = await pageReport(leads);
 
   return (
     <>
@@ -246,8 +278,8 @@ function WebsiteLeads({
 }
 
 /* ----------------------------------------------------------- On the site */
-function OnTheSite({ leads }: { leads: Awaited<ReturnType<typeof listWebLeads>> }) {
-  const r = pageReport(leads);
+async function OnTheSite({ leads }: { leads: Awaited<ReturnType<typeof listWebLeads>> }) {
+  const r = await pageReport(leads);
   return (
     <>
       <Heads

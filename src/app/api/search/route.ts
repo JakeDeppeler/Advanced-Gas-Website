@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { searchSite } from "@/lib/searchIndex";
+import { publishedPosts } from "@/lib/blogLive";
 
 /**
  * Suggestions for the header's search box.
@@ -11,9 +12,9 @@ import { searchSite } from "@/lib/searchIndex";
  */
 export const runtime = "nodejs";
 
-export function GET(req: Request) {
+export async function GET(req: Request) {
   const q = new URL(req.url).searchParams.get("q") ?? "";
-  const hits = searchSite(q, 8).map((h) => ({ t: h.title, p: h.path, k: h.kind }));
+  const hits = searchSite(q, 8, await publishedPosts()).map((h) => ({ t: h.title, p: h.path, k: h.kind }));
   return NextResponse.json(
     { hits },
     { headers: { "Cache-Control": "public, max-age=300, s-maxage=3600" } },

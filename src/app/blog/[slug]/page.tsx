@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { site } from "@/lib/site";
-import { posts, getPost, AUTHORS } from "@/lib/blog";
+import { AUTHORS } from "@/lib/blog";
+import { publishedPost, publishedPosts } from "@/lib/blogLive";
 import Script from "next/script";
 import "../../detail.css";
 import "../blog.css";
@@ -11,13 +12,19 @@ import { metaDescription, pageTitle, seoMeta } from "@/lib/seo";
 
 type Params = { slug: string };
 
+/**
+ * The slugs known at build time. A post written in the portal after a
+ * deploy is not in this list; Next renders it on the first request and
+ * caches it, and publishing revalidates this path, so it appears without a
+ * redeploy. Prerendering the ones we do know keeps the archive fast.
+ */
 export async function generateStaticParams() {
-  return posts.map((p) => ({ slug: p.slug }));
+  return (await publishedPosts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await publishedPost(slug);
   if (!post) notFound();
   // seoTitle over title: WEB-005. The editorial headlines run 53–72
   // chars and clamping them for the site suffix produced titles ending
@@ -33,7 +40,8 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 export default async function BlogPostPage({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const posts = await publishedPosts();
+  const post = posts.find((p) => p.slug === slug);
   if (!post) notFound();
 
   // Same category first, then top up from the rest of the archive

@@ -3,7 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { NewsletterForm } from "@/components/NewsletterForm";
-import { posts, AUTHORS, type BlogPost } from "@/lib/blog";
+import { AUTHORS, type BlogPost } from "@/lib/blog";
+import { publishedPosts } from "@/lib/blogLive";
 import "./blog.css";
 import { PageHero } from "@/components/PageHero";
 
@@ -24,7 +25,9 @@ function fmtDate(p: BlogPost): string {
   return p.updatedISO ? `Updated ${fmt(p.updatedISO)}` : fmt(p.publishedISO);
 }
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  // Posts written in the portal, over the ones in blog.ts.
+  const posts = await publishedPosts();
   const featured = posts.find((p) => p.featured) ?? posts[0];
   const rest = posts.filter((p) => p.slug !== featured.slug);
 
