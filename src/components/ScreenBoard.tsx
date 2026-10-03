@@ -23,7 +23,7 @@ const REFRESH_MS = 30_000;
 // pulls from ServiceTitan on its own slower floor, because a tenant does not
 // want an export request every thirty seconds all day.
 const RESYNC_MS = 30_000;
-const PAGE_MS = 20_000;
+const PAGE_MS = 30_000;
 const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
 
 /**
@@ -229,23 +229,19 @@ export function ScreenBoard({
         </nav>
       </div>
 
-      {/* The rule under the header is the clock.
+      {/* The rule under the header is the clock for THIS page.
       
-          It used to jump a sixth per page and then sit still for twenty
-          seconds, so the room could see where it was but never that a page was
-          about to turn. Now it runs the whole time: a CSS animation from this
-          page's share of the cycle to the next page's, restarted by the key, so
-          nothing re-renders to move it. */}
+          It swept a sixth of the width per page, so it measured the cycle: a
+          full bar meant the board was about to return to Today, which is not
+          what anybody in the room wants to know. It now empties and refills over
+          each page's thirty seconds, so the question it answers is "how long
+          have I got on this one".
+
+          A CSS animation restarted by the page key, not a ticking state — the
+          board runs for months on a kiosk, and re-rendering the tree once a
+          second to advance a bar is what degrades a display nobody reloads. */}
       <div className="screen__rule" aria-hidden="true">
-        <span
-          key={page}
-          style={
-            {
-              "--from": `${(page / PAGES.length) * 100}%`,
-              "--to": `${((page + 1) / PAGES.length) * 100}%`,
-            } as CSSProperties
-          }
-        />
+        <span key={page} />
       </div>
 
       <div className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}>

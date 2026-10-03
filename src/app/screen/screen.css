@@ -127,18 +127,20 @@ body:has(.screen) .utilbar {
 .screen__rule > span {
   display: block;
   height: 100%;
-  width: var(--from);
+  width: 0;
   border-radius: 999px;
   background: var(--accent);
-  /* Runs the page's whole twenty seconds, so a page about to turn looks like
-     one. The animation is restarted by React's key rather than by a ticking
-     state: this board runs for months on a kiosk, and re-rendering the tree
-     once a second to sweep a bar is exactly what degrades it. */
-  animation: screen-sweep var(--page-ms, 20000ms) linear forwards;
+  /* Each page's own thirty seconds, start to finish. Measuring the six-page
+     cycle instead meant a full bar announced a return to Today, which is not
+     the question anyone in the room is asking. The animation is restarted by
+     React's key rather than by a ticking state: this board runs for months on a
+     kiosk, and re-rendering the tree once a second to sweep a bar is exactly
+     what degrades it. */
+  animation: screen-sweep var(--page-ms, 30000ms) linear forwards;
 }
 @keyframes screen-sweep {
-  from { width: var(--from); }
-  to { width: var(--to); }
+  from { width: 0; }
+  to { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   /* Still moves, just in six steps rather than continuously. */
