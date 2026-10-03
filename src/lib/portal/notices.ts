@@ -1,6 +1,6 @@
 import "server-only";
 import { can, type PortalUser } from "@/lib/portal/caps";
-import { dbConfigured, listQuotes, listVanChecks, listVehicles } from "@/lib/portal/db";
+import { dbConfigured, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos } from "@/lib/portal/db";
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 
@@ -24,11 +24,38 @@ export type Notice = {
   detail: string;
   href: string;
   /** Worst first, same scale the fleet table uses. */
-  tone: "bad" | "warn";
+  tone: "bad" | "warn" | "news";
+  /**
+   * Which half of the page it belongs in. Something waiting on a person is
+   * not the same kind of thing as something that changed, and the design
+   * separates them — one is a list of jobs, the other is a list of facts.
+   */
+  group: "doing" | "news";
+  /** When, in words. Empty when the thing carries no date worth showing. */
+  when: string;
 };
 
 /** A quote sitting unanswered this long is worth chasing. */
 const QUOTE_CHASE_DAYS = 7;
+/** How recently something has to have changed to still count as news. */
+const NEWS_DAYS = 14;
+
+/** A date in the shape the rest of the portal writes them. */
+const day = (iso: string) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short" });
+
+/** "Today", "2 days ago", "Last week" — the resolution people actually use. */
+function ago(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const at = Date.parse(iso);
+  if (!Number.isFinite(at)) return "";
+  const days = Math.floor((Date.now() - at) / 86_400_000);
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  if (days < 14) return "Last week";
+  return `${Math.floor(days / 7)} weeks ago`;
+}
 
 export async function listNotices(user: PortalUser): Promise<Notice[]> {
   if (!dbConfigured()) return [];
@@ -50,6 +77,8 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
         detail: clean.detail,
         href: `/portal/vehicles/${v.id}`,
         tone: "bad",
+        group: "doing",
+        when: ago(checks[i][0]?.checkedOn ? `${checks[i][0].checkedOn}T00:00:00Z` : null) || "Never done",
       });
     }
     const service = serviceCell(v.odometer, v.nextServiceKm, v.nextServiceDate, today);
@@ -59,13 +88,15 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
         detail: service.detail,
         href: `/portal/vehicles/${v.id}`,
         tone: service.severity,
+        group: "doing",
+        when: v.nextServiceDate ? day(v.nextServiceDate) : "",
       });
     }
     // The odometer dates everything else about a van, so a stale one quietly
     // makes the service warning above wrong too.
     const km = kmCell(v.odometer, null, today);
     if (v.odometer == null) {
-      out.push({ title: `No km reading — ${v.name}`, detail: km.detail, href: `/portal/vehicles/${v.id}`, tone: "warn" });
+      out.push({ title: `No km reading — ${v.name}`, detail: km.detail, href: `/portal/vehicles/${v.id}`, tone: "warn", group: "doing", when: "" });
     }
   });
 
@@ -83,13 +114,48 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
         detail: [q.customer, `$${Math.round(q.amount).toLocaleString("en-AU")}`].filter(Boolean).join(" · "),
         href: "/portal/finance/quotes",
         tone: days >= 21 ? "bad" : "warn",
+        group: "doing",
+        when: ago(`${q.quotedOn}T00:00:00Z`),
       });
     }
   }
 
-  return out.sort((a, b) => (a.tone === b.tone ? 0 : a.tone === "bad" ? -1 : 1));
+  // News: what has changed lately. Derived the same way as everything above —
+  // a video row's created_at and a handbook body's updated_at are already
+  // there, so nothing is written to say a thing happened.
+  const newsCut = Date.now() - NEWS_DAYS * 86_400_000;
+  const [videos, bodies] = await Promise.all([listVideos().catch(() => []), handbookBodies().catch(() => new Map())]);
+  for (const v of videos) {
+    const at = Date.parse(v.addedAt ?? "");
+    if (!Number.isFinite(at) || at < newsCut) continue;
+    out.push({
+      title: `New video: ${v.title}`,
+      detail: [v.category, v.minutes ? `${v.minutes} min` : null].filter(Boolean).join(" · "),
+      href: `/portal/learning/${v.track}`,
+      tone: "news",
+      group: "news",
+      when: ago(v.addedAt),
+    });
+  }
+  for (const b of bodies.values()) {
+    const at = Date.parse(b.updatedAt ?? "");
+    if (!Number.isFinite(at) || at < newsCut) continue;
+    out.push({
+      title: `Handbook updated: ${b.title}`,
+      detail: `Shelf ${b.shelf}${b.updatedBy ? ` · ${b.updatedBy}` : ""}`,
+      href: `/portal/handbook/${b.shelf.toLowerCase()}`,
+      tone: "news",
+      group: "news",
+      when: ago(b.updatedAt),
+    });
+  }
+
+  const rank = { bad: 0, warn: 1, news: 2 } as const;
+  return out.sort((a, b) => rank[a.tone] - rank[b.tone]);
 }
 
 export async function unreadCount(user: PortalUser): Promise<number> {
-  return (await listNotices(user)).length;
+  // Only the things waiting on somebody. A new video is worth seeing on the
+  // page; it is not a number on a bell demanding to be cleared.
+  return (await listNotices(user)).filter((n) => n.group === "doing").length;
 }

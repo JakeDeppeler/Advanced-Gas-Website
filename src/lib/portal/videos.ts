@@ -21,6 +21,8 @@ export type Video = {
   /** The procedure it shows, if it shows one. */
   sopCode: string | null;
   watched: boolean;
+  /** When it was added, for "new this week". Absent on the built-in list. */
+  addedAt?: string | null;
 };
 
 /** A stable id for a video that only exists in the constant. */

@@ -11,6 +11,7 @@
 
 import { HANDBOOK, INFO_SECTIONS, LEARNING_TRACKS, PORTAL_TOOLS, VIDEOS } from "@/lib/portal/content";
 import { SOPS } from "@/lib/portal/sops";
+import { FAULT_CODES, FAULT_SYSTEM_LABELS, faultSlug } from "@/lib/faultCodes";
 import type { SearchRow } from "@/components/portal/PortalSearch";
 import type { NavItem } from "@/lib/portal/nav";
 
@@ -67,8 +68,32 @@ export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
     // rates", "ARC licence" — which the section title usually doesn't.
     for (const b of s.blocks) {
       // Some blocks are a strip of figures with no heading of their own.
-      if (b.title) rows.push({ href: `/portal/information/${s.slug}`, label: b.title, where: `Information · ${s.label}` });
+      if (b.title) {
+        rows.push({
+          href: `/portal/information/${s.slug}`,
+          label: b.title,
+          where: `Information · ${s.label}`,
+          // The values are half of what people search for here — "split
+          // service", "ARC", "after-hours" are all in the rows, not the
+          // heading above them.
+          terms: (b.rows ?? []).map((r) => `${r.k} ${r.v}`).join(" ") || (b.list ?? []).join(" "),
+        });
+      }
     }
+  }
+
+  // Fault codes. The top bar says it searches these and it didn't: typing
+  // "drain" found nothing while the finder had two drain faults in it. 149
+  // short rows, so they go in the one index rather than a second one.
+  for (const f of FAULT_CODES) {
+    rows.push({
+      // A code with long-form content has its own page; the rest land on the
+      // finder, which is still where somebody wants to be.
+      href: f.detail ? `/tools/fault-codes/${faultSlug(f.brand)}/${faultSlug(f.code)}` : "/portal/tools/fault-codes",
+      label: `${f.brand} · ${f.code} · ${f.meaning}`,
+      where: "Fault code",
+      terms: `${f.firstCheck} ${FAULT_SYSTEM_LABELS[f.system]}`,
+    });
   }
 
   for (const t of PORTAL_TOOLS) {

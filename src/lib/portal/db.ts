@@ -957,6 +957,7 @@ export async function photoCounts(checkIds: string[]): Promise<Map<string, numbe
 type VideoRow = {
   id: string; track: string; category: string; title: string; description: string | null;
   youtube_id: string | null; minutes: number | null; sop_code: string | null; sort_order: number | null;
+  created_at: string | null;
 };
 
 export async function listVideos(): Promise<StoredVideo[]> {
@@ -966,7 +967,7 @@ export async function listVideos(): Promise<StoredVideo[]> {
     id: r.id, track: r.track as StoredVideo["track"], category: r.category, title: r.title,
     description: r.description, youtubeId: r.youtube_id,
     minutes: r.minutes == null ? null : Number(r.minutes),
-    sopCode: r.sop_code, watched: false,
+    sopCode: r.sop_code, watched: false, addedAt: r.created_at,
   }));
 }
 
