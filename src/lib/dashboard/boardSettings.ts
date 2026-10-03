@@ -1,11 +1,11 @@
 /**
  * Everything the wall board is told, rather than measures.
  *
- * Targets, commission bands and the definition of a working day all live in one
- * `portal_settings` row under the key `dashboard`. Until now the only way to set
- * that row was to write the SQL by hand — DASHBOARD.md documented an `insert`
- * as the procedure — so the figures the whole board paces against were the one
- * part of it nobody in the office could touch.
+ * Commission bands and the definition of a working day live in one
+ * `portal_settings` row under the key `dashboard`. The targets the board paces
+ * against do not: they come from the year goal (`yeargoal`), set on the portal's
+ * Year goal page, so there is one place the business says what it is aiming at
+ * and the wall, the Finance pages and the planner all read the same figure.
  *
  * This module is the shape of that row, in one place, with one normaliser. The
  * board reads through it and the portal editor writes through it, which is the
@@ -26,22 +26,6 @@ import { normalisedShape, yearSpans, type YearBasis } from "@/lib/portal/yearGoa
 export type CommissionTier = { from: number; rate: number };
 
 export type BoardSettings = {
-  /** What has to be invoiced in the month. Drives "to invoice per day". */
-  revenueTargetMonthly: number | null;
-  /**
-   * Take the month's revenue target from the year goal instead of the figure
-   * above, as that month's share of the year.
-   *
-   * Off by default, and deliberately: an existing row that predates this flag
-   * has to keep behaving exactly as it did, because it is on a wall right now.
-   */
-  revenueFromYearGoal: boolean;
-  /** What has to be SOLD in the month — the value of quotes closed. */
-  salesTargetMonthly: number | null;
-  /** Gross profit for the month. */
-  profitTargetMonthly: number | null;
-  /** Jobs booked in the month. A count, not dollars. */
-  bookingsTargetMonthly: number | null;
   commissionTiers: CommissionTier[];
   /** Weekday numbers that count as working days. 1 = Monday … 7 = Sunday. */
   workingDays: number[];
@@ -49,32 +33,13 @@ export type BoardSettings = {
   holidays: string[];
 };
 
-/**
- * Nothing is targeted until somebody says so.
- *
- * Every figure starts null rather than at a plausible number. A default target
- * is indistinguishable on the wall from an agreed one, and the board already
- * knows how to blank a figure and say the target isn't configured — which is
- * the honest answer to "what are we aiming at" before anybody has decided.
- */
 export const DEFAULT_BOARD_SETTINGS: BoardSettings = {
-  revenueTargetMonthly: null,
-  revenueFromYearGoal: false,
-  salesTargetMonthly: null,
-  profitTargetMonthly: null,
-  bookingsTargetMonthly: null,
   commissionTiers: [],
   workingDays: [1, 2, 3, 4, 5],
   holidays: [],
 };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** A target, or null. Zero and negative both mean "not set", not "aim at nothing". */
-function positive(v: unknown): number | null {
-  const n = typeof v === "number" ? v : Number(v);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
 
 /**
  * The stored row as something safe to render, whatever is actually in it.
@@ -102,11 +67,6 @@ export function normaliseBoardSettings(raw: unknown): BoardSettings {
     .sort();
 
   return {
-    revenueTargetMonthly: positive(v.revenueTargetMonthly),
-    revenueFromYearGoal: v.revenueFromYearGoal === true,
-    salesTargetMonthly: positive(v.salesTargetMonthly),
-    profitTargetMonthly: positive(v.profitTargetMonthly),
-    bookingsTargetMonthly: positive(v.bookingsTargetMonthly),
     commissionTiers: tiers,
     // A board with no working days would divide the month's shortfall by a
     // floor of one day and put the whole month on today. Mon-Fri is a fallback,
@@ -117,7 +77,61 @@ export function normaliseBoardSettings(raw: unknown): BoardSettings {
 }
 
 /** Just the fields of the year goal this needs, so the signature survives it changing. */
-export type YearGoalShape = { basis: YearBasis; year: number; revenue: number; shape: number[] | null };
+export type YearGoalShape = {
+  basis: YearBasis;
+  year: number;
+  revenue: number;
+  shape: number[] | null;
+  /** Percentage of revenue to keep as profit. */
+  profitPct?: number | null;
+  /** The planned week. Only the counts matter here. */
+  mix?: Array<{ perWeek: number }>;
+};
+
+export type MonthTargets = {
+  /** To invoice this month. */
+  revenue: number | null;
+  /** To sell this month. */
+  sales: number | null;
+  /** Gross profit to keep this month. */
+  profit: number | null;
+  /** Jobs to book this month. A count. */
+  bookings: number | null;
+};
+
+const NO_TARGETS: MonthTargets = { revenue: null, sales: null, profit: null, bookings: null };
+
+/**
+ * The month's four targets, all from the year goal.
+ *
+ * - **Invoiced**: the month's share of the year, off the goal's own shape.
+ * - **Sold**: the same figure. Over a year, what is sold is what gets invoiced;
+ *   selling less than the month's share is how next month comes up short.
+ * - **Profit**: the invoiced target at the goal's profit percentage.
+ * - **Jobs booked**: the planned week's job count, spread over the month's
+ *   working days — so a month with a public holiday asks for fewer.
+ *
+ * Each is null when the goal doesn't say: no goal, a goal for a different year,
+ * no profit percentage, or no planned week. A null blanks that dial and says
+ * the target isn't set, which beats pacing the wall against a guess.
+ */
+export function monthTargetsFromYearGoal(
+  goal: YearGoalShape | null,
+  month: string,
+  workingDays: { total: number },
+  daysPerWeek: number,
+): MonthTargets {
+  const revenue = monthTargetFromYearGoal(goal, month);
+  if (revenue == null || !goal) return NO_TARGETS;
+  const pct = goal.profitPct ?? null;
+  const perWeek = (goal.mix ?? []).reduce((n, j) => n + (Number.isFinite(j.perWeek) && j.perWeek > 0 ? j.perWeek : 0), 0);
+  return {
+    revenue,
+    sales: revenue,
+    profit: pct != null && pct > 0 ? revenue * (pct / 100) : null,
+    bookings: perWeek > 0 && daysPerWeek > 0 && workingDays.total > 0 ? Math.round((perWeek * workingDays.total) / daysPerWeek) : null,
+  };
+}
 
 /**
  * A single month's share of the year's goal.

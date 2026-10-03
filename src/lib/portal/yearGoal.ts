@@ -37,14 +37,134 @@ export type YearGoal = {
    * "behind" for reasons that have nothing to do with how the year is going.
    */
   shape: number[] | null;
+  /**
+   * The profit to keep, as a percentage of revenue — the "25%" in "$3M at 25%
+   * profit". Null = not set, and the board's profit dial says so.
+   */
+  profitPct: number | null;
+  /** Weeks a year the crew is on the tools. The design plans on 48. */
+  weeks: number;
+  /**
+   * The week the year is built from: how many of each kind of job, what each
+   * is worth and what it keeps. Empty = not planned yet, and the board's
+   * bookings dial says so rather than inventing a count.
+   */
+  mix: GoalJob[];
 };
+
+/** One kind of job in the plan. `margin` is a percentage of the job's price. */
+export type GoalJob = { id: string; name: string; avgJob: number; margin: number; perWeek: number };
 
 export const DEFAULT_YEAR_GOAL: Omit<YearGoal, "year"> = {
   basis: "financial",
   revenue: 0,
   overhead: null,
   shape: null,
+  profitPct: null,
+  weeks: 48,
+  mix: [],
 };
+
+/**
+ * The design's starting week, shown on the Year goal page until a real one is
+ * saved — and labelled as that. Never read by the wall board: the board only
+ * reads what somebody has pressed Save on, so these can't turn into a target
+ * nobody agreed to.
+ */
+export const STARTING_MIX: GoalJob[] = [
+  { id: "heatpump", name: "Heat pump hot water", avgJob: 4800, margin: 28, perWeek: 4 },
+  { id: "split", name: "Split systems", avgJob: 3400, margin: 33, perWeek: 5 },
+  { id: "ducted", name: "Ducted aircon", avgJob: 14000, margin: 28, perWeek: 1 },
+  { id: "hotwater", name: "Hot water (gas / electric)", avgJob: 2600, margin: 20, perWeek: 2 },
+  { id: "service", name: "Service & repairs", avgJob: 320, margin: 15, perWeek: 15 },
+];
+
+/** The same starting goal the design is drawn at: $3M at 25%. Also never read by the board. */
+export const STARTING_GOAL = { revenue: 3_000_000, profitPct: 25 };
+
+/**
+ * A stored row, whatever is in it, as a whole goal.
+ *
+ * The row predates the profit, weeks and mix fields, so each falls back on its
+ * own — an old row reads as "goal set, mix not planned" rather than failing.
+ */
+export function readYearGoal(raw: unknown, today: Date): YearGoal {
+  const v = (raw ?? {}) as Partial<Record<keyof YearGoal, unknown>>;
+  const basis: YearBasis = v.basis === "calendar" ? "calendar" : "financial";
+  const num = (x: unknown) => (typeof x === "number" && Number.isFinite(x) ? x : Number(x));
+  const mix = (Array.isArray(v.mix) ? v.mix : [])
+    .map((j) => j as Partial<GoalJob>)
+    .filter((j) => typeof j?.name === "string" && j.name.trim() !== "")
+    .map((j, i) => ({
+      id: String(j.id ?? `job${i}`),
+      name: String(j.name).trim(),
+      avgJob: Math.max(0, num(j.avgJob) || 0),
+      margin: Math.min(100, Math.max(0, num(j.margin) || 0)),
+      perWeek: Math.max(0, num(j.perWeek) || 0),
+    }));
+  const pct = num(v.profitPct);
+  const weeks = num(v.weeks);
+  return {
+    basis,
+    year: typeof v.year === "number" ? v.year : currentYear(basis, today),
+    revenue: Math.max(0, num(v.revenue) || 0),
+    overhead: v.overhead == null || !Number.isFinite(num(v.overhead)) ? null : Math.max(0, num(v.overhead)),
+    shape: Array.isArray(v.shape) && v.shape.length === 12 ? (v.shape as number[]) : null,
+    profitPct: Number.isFinite(pct) && pct > 0 && pct < 100 ? pct : null,
+    weeks: Number.isFinite(weeks) && weeks >= 1 && weeks <= 52 ? Math.round(weeks) : DEFAULT_YEAR_GOAL.weeks,
+    mix,
+  };
+}
+
+export type MixTotals = {
+  jobsWeek: number;
+  jobsYear: number;
+  revenueWeek: number;
+  revenueYear: number;
+  profitYear: number;
+  /** Profit over revenue, 0–1. Null when the mix brings in nothing. */
+  margin: number | null;
+};
+
+/** What a week of this mix adds up to, and the year of it. */
+export function mixTotals(mix: GoalJob[], weeks: number): MixTotals {
+  let jobsWeek = 0, revenueWeek = 0, profitWeek = 0;
+  for (const j of mix) {
+    jobsWeek += j.perWeek;
+    revenueWeek += j.perWeek * j.avgJob;
+    profitWeek += j.perWeek * j.avgJob * (j.margin / 100);
+  }
+  return {
+    jobsWeek,
+    jobsYear: jobsWeek * weeks,
+    revenueWeek,
+    revenueYear: revenueWeek * weeks,
+    profitYear: profitWeek * weeks,
+    margin: revenueWeek > 0 ? profitWeek / revenueWeek : null,
+  };
+}
+
+/**
+ * The fewest extra jobs a week of one kind that would close a revenue gap —
+ * "about 1 more heat pump a week closes it".
+ *
+ * Fewest wins; on a tie, the kind already bringing in the most, because one
+ * more of the work the year is built on is a more believable ask than one more
+ * of a sideline.
+ */
+export function closeTheGap(mix: GoalJob[], weeks: number, short: number): { name: string; extra: number } | null {
+  if (!(short > 0) || weeks <= 0) return null;
+  let best: { name: string; extra: number; brings: number } | null = null;
+  for (const j of mix) {
+    if (!(j.avgJob > 0)) continue;
+    const extra = Math.ceil(short / (j.avgJob * weeks));
+    const brings = j.perWeek * j.avgJob;
+    if (!best || extra < best.extra || (extra === best.extra && brings > best.brings)) {
+      best = { name: j.name, extra, brings };
+    }
+  }
+  return best ? { name: best.name, extra: best.extra } : null;
+}
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

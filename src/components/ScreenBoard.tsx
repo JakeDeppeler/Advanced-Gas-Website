@@ -905,8 +905,8 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * rather than the thirty-odd rows the web form has ever produced.
  *
  * The goal line on each margin bar is the month's own target: profit target
- * over revenue target, both set on the board's settings page. No target set
- * means no line, rather than a line at a number nobody chose.
+ * over revenue target, which is the year goal's profit percentage. No
+ * percentage set means no line, rather than a line at a number nobody chose.
  */
 function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
   const goal =

@@ -1,28 +1,30 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { BoardTargets } from "@/components/portal/BoardTargets";
+import { BoardCommission } from "@/components/portal/BoardCommission";
 import { BoardCalendar } from "@/components/portal/BoardCalendar";
-import { monthTargetFromYearGoal, normaliseBoardSettings, type YearGoalShape } from "@/lib/dashboard/boardSettings";
-import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { currentYear, periodLabel } from "@/lib/portal/yearGoal";
-import type { BoardTargets as Saved } from "./actions";
-import type { Targets } from "@/lib/portal/targets";
+import { monthTargetsFromYearGoal, normaliseBoardSettings } from "@/lib/dashboard/boardSettings";
+import { isoDateMelbourne, workingDaysInMonth } from "@/lib/dashboard/dates";
+import { mixTotals, periodLabel, readYearGoal } from "@/lib/portal/yearGoal";
+import { money } from "@/lib/portal/format";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wall board — Team portal" };
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 /**
- * Where the wall board's numbers are set.
+ * What the wall board is aiming at, and the two things it is told that the
+ * year goal doesn't say: the commission bands and the working calendar.
  *
- * The board is read from across the office and nobody who reads it can change
- * it, so the one thing it needs from a person — what we are aiming at — belongs
- * in the portal beside the other targets rather than in a database row somebody
- * has to be asked to write.
+ * The targets are shown, not typed. They used to be four boxes here, which
+ * made this a second place to say what the year was aiming at — and two places
+ * to say it is one place to forget.
  */
 export default async function BoardPage() {
   const user = await getPortalUser();
@@ -30,59 +32,65 @@ export default async function BoardPage() {
   if (!can(user, "overhead")) return <Locked user={user} what="The wall board" forWhom="managers" />;
 
   const ready = dbConfigured();
-  const saved = ready ? await getSettings<Partial<Saved>>("dashboard") : null;
-  const year = ready ? await getSettings<Targets>("targets") : null;
+  const [saved, goalRow] = ready
+    ? await Promise.all([
+      getSettings<Record<string, unknown>>("dashboard").catch(() => null),
+      getSettings<unknown>("yeargoal").catch(() => null),
+    ])
+    : [null, null];
 
-  const initial: Saved = {
-    revenueTargetMonthly: saved?.revenueTargetMonthly ?? null,
-    salesTargetMonthly: saved?.salesTargetMonthly ?? null,
-    profitTargetMonthly: saved?.profitTargetMonthly ?? null,
-    bookingsTargetMonthly: saved?.bookingsTargetMonthly ?? null,
-    commissionTiers: saved?.commissionTiers ?? [],
-  };
-
-  // Offered, never applied: the year's goal is invoiced revenue, and three of
-  // the four dials measure something else.
-  const suggestion = year?.revenue && year.revenue > 0 ? year.revenue / 12 : null;
-
-  // The rest of the same row — where the revenue target comes from, and the
-  // working calendar — read through the same normaliser the board reads with.
+  // Read through the same normaliser the board reads with, so what this page
+  // says the board is aiming at is what the board is aiming at.
   const cfg = normaliseBoardSettings(saved);
+  const now = new Date();
+  const goal = readYearGoal(goalRow, now);
+  const hasGoal = goalRow != null && goal.revenue > 0;
+  const cal = { days: cfg.workingDays, holidays: cfg.holidays };
+  const days = workingDaysInMonth(now, cal);
+  const t = monthTargetsFromYearGoal(hasGoal ? goal : null, isoDateMelbourne(now).slice(0, 7), days, cal.days.length);
+  const jobsWeek = mixTotals(goal.mix, goal.weeks).jobsWeek;
+  const month = MONTHS[Number(isoDateMelbourne(now).slice(5, 7)) - 1];
 
-  // The year goal proper, which the revenue target can be driven from. This is
-  // a different thing from `targets` above: that is the quoting plan, this is
-  // the year the accounts are measured against, with a month-by-month shape.
-  const goalRow = ready ? await getSettings<Partial<YearGoalShape>>("yeargoal").catch(() => null) : null;
-  const goal: YearGoalShape | null =
-    goalRow && typeof goalRow.revenue === "number" && goalRow.revenue > 0
-      ? {
-          basis: goalRow.basis === "calendar" ? "calendar" : "financial",
-          year: typeof goalRow.year === "number" ? goalRow.year : currentYear(goalRow.basis === "calendar" ? "calendar" : "financial", new Date()),
-          revenue: goalRow.revenue,
-          shape: Array.isArray(goalRow.shape) && goalRow.shape.length === 12 ? goalRow.shape : null,
-        }
-      : null;
-
-  // Melbourne's now, resolved on the server so the working-day counts the editor
-  // recomputes as the boxes are ticked agree with the first render.
-  const nowIso = new Date().toISOString();
-  const derived = monthTargetFromYearGoal(goal, isoDateMelbourne(new Date()).slice(0, 7));
+  const cells: Array<{ k: string; v: string | null; how: string }> = [
+    {
+      k: "To invoice",
+      v: t.revenue == null ? null : money(t.revenue),
+      how: hasGoal ? `${month}'s share of the ${periodLabel(goal)} goal of ${money(goal.revenue)}` : "Needs a year goal",
+    },
+    {
+      k: "To sell",
+      v: t.sales == null ? null : money(t.sales),
+      how: "The same figure — over a year, what's sold is what gets invoiced",
+    },
+    {
+      k: "Gross profit",
+      v: t.profit == null ? null : money(t.profit),
+      how: goal.profitPct ? `At the goal's ${goal.profitPct}%` : "Needs a profit % on the goal",
+    },
+    {
+      k: "Jobs booked",
+      v: t.bookings == null ? null : t.bookings.toLocaleString("en-AU"),
+      how: jobsWeek > 0 ? `${jobsWeek.toLocaleString("en-AU")} a week over ${days.total} working days` : "Needs the week planned on the goal",
+    },
+  ];
 
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/board" label="Wall board" />
 
-      <div className="pt-head">
-        <h1>What the board is aiming at</h1>
-        <p>
-          The dials on the office screen measure the month against these. Until a target is set the dial says so
-          rather than guessing, which is the only honest thing a wall can do with a number nobody agreed to.
-        </p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <h1>What the board is aiming at</h1>
+          <p>
+            Every target on the wall comes from the year goal, worked out fresh for the month on every refresh. Change
+            the goal and the board follows within the minute.
+          </p>
+        </div>
         {/* The board is gated by a shared token rather than a login, so it
             cannot be linked to directly. This goes through a route that checks
             the session first and then redirects with the token, which keeps the
             token out of this page's markup. */}
-        <a className="pt-btn pt-btn--sm" href="/portal/finance/board/open" target="_blank" rel="noreferrer">
+        <a className="pt-btn pt-btn--ghost" href="/portal/finance/board/open" target="_blank" rel="noreferrer">
           Open the live board ↗
         </a>
       </div>
@@ -93,17 +101,33 @@ export default async function BoardPage() {
         </section>
       )}
 
-      <BoardTargets initial={initial} canSave={ready} suggestion={suggestion} />
+      <section className="pt-panel pt-bdg">
+        <div className="pt-bdg__head">
+          <div>
+            <h2 className="pt-panel__h">{month}, from the year goal</h2>
+            <p className="pt-panel__sub">
+              The four dials on the Pace page. One the goal doesn&rsquo;t cover says &ldquo;not set&rdquo; on the wall
+              rather than guessing.
+            </p>
+          </div>
+          <Link href="/portal/goal" className={`pt-btn ${hasGoal ? "pt-btn--ghost" : "pt-btn--orange"}`}>
+            {hasGoal ? "Change the year goal" : "Set the year goal"}
+          </Link>
+        </div>
+        <div className="pt-bdg__cells">
+          {cells.map((c) => (
+            <div key={c.k} className={`pt-bdg__cell${c.v == null ? " is-unset" : ""}`}>
+              <span>{c.k}</span>
+              <strong>{c.v ?? "Not set"}</strong>
+              <em>{c.how}</em>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <BoardCalendar
-        revenueFromYearGoal={cfg.revenueFromYearGoal}
-        workingDays={cfg.workingDays}
-        holidays={cfg.holidays}
-        derived={derived}
-        goalLabel={goal ? periodLabel(goal) : null}
-        goalRevenue={goal?.revenue ?? null}
-        now={nowIso}
-      />
+      <BoardCommission initial={cfg.commissionTiers} canSave={ready} />
+
+      <BoardCalendar workingDays={cfg.workingDays} holidays={cfg.holidays} now={now.toISOString()} />
     </PortalShell>
   );
 }

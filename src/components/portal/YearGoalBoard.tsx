@@ -1,19 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { NumField } from "@/components/portal/NumField";
+import Link from "next/link";
 import { money, pct } from "@/lib/portal/format";
-import { saveYearGoal } from "@/app/portal/finance/goals/actions";
 import {
-  currentYear,
   monthOnMonth,
   overheadStanding,
   periodLabel,
   standing,
   yearSpans,
   type MonthActual,
-  type YearBasis,
   type YearGoal,
 } from "@/lib/portal/yearGoal";
 
@@ -22,11 +17,6 @@ import {
  * are — with the overhead line beside it, because a revenue year that lands
  * on an overhead year that ran 20% over is not the year anybody wanted.
  */
-
-const parse = (v: string) => {
-  const n = parseFloat(v);
-  return Number.isNaN(n) ? 0 : n;
-};
 
 /** Written out, never left to colour alone. */
 function Verdict({ delta, goodWhenPositive = true }: { delta: number | null; goodWhenPositive?: boolean }) {
@@ -53,16 +43,6 @@ export function YearGoalBoard({
   today: string;
   xero: "connected" | "not-connected" | "not-configured";
 }) {
-  const router = useRouter();
-  const [pending, start] = useTransition();
-  const [editing, setEditing] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const [basis, setBasis] = useState<YearBasis>(goal.basis);
-  const [year, setYear] = useState(String(goal.year));
-  const [revenue, setRevenue] = useState(String(goal.revenue || ""));
-  const [overhead, setOverhead] = useState(goal.overhead == null ? "" : String(goal.overhead));
-
   const now = new Date(today + "T00:00:00Z");
   const year$ = standing(goal, actuals, now);
   const oh = overheadStanding(goal, year$);
@@ -71,22 +51,6 @@ export function YearGoalBoard({
 
   const noGoal = goal.revenue <= 0;
   const max = Math.max(...year$.months.map((m) => Math.max(m.goal, m.income ?? 0)), 1);
-
-  function save() {
-    setErr(null);
-    start(async () => {
-      const res = await saveYearGoal({
-        basis,
-        year: Math.round(parse(year)),
-        revenue: parse(revenue),
-        overhead: overhead.trim() === "" ? null : parse(overhead),
-        shape: goal.shape,
-      });
-      if (!res.ok) return setErr(res.error ?? "Couldn't save.");
-      setEditing(false);
-      router.refresh();
-    });
-  }
 
   return (
     <div className="pt-yg">
@@ -99,59 +63,15 @@ export function YearGoalBoard({
               {goal.basis === "financial"
                 ? "Financial year, 1 July to 30 June."
                 : "Calendar year, January to December."}{" "}
-              Change it here and every figure on the page re-derives from it.
+              It is set on the Year goal page, and the wall board paces against the same figure.
             </p>
           </div>
-          {!editing && (
-            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setEditing(true)}>
-              {noGoal ? "Set the goal" : "Change"}
-            </button>
-          )}
+          <Link href="/portal/goal" className="pt-btn pt-btn--ghost pt-btn--sm">
+            {noGoal ? "Set the goal" : "Change the goal"}
+          </Link>
         </div>
 
-        {editing ? (
-          <div className="pt-yg__form">
-            <label className="pt-field">
-              <span>Year runs</span>
-              <select value={basis} onChange={(e) => setBasis(e.target.value as YearBasis)}>
-                <option value="financial">July to June (financial year)</option>
-                <option value="calendar">January to December</option>
-              </select>
-            </label>
-            <label className="pt-field">
-              <span>
-                Year <em>{basis === "financial" ? "the one it ends in — 2027 means FY26/27" : "the calendar year"}</em>
-              </span>
-              <select value={year} onChange={(e) => setYear(e.target.value)}>
-                {[0, 1, 2].map((d) => {
-                  const y = currentYear(basis, now) + d - 1;
-                  return (
-                    <option key={y} value={y}>
-                      {periodLabel({ basis, year: y })}
-                    </option>
-                  );
-                })}
-              </select>
-            </label>
-            <NumField label="Revenue goal" hint="for the year" prefix="$" value={revenue} onChange={setRevenue} />
-            <NumField
-              label="Overheads"
-              hint="what you expect them to run at — leave blank if you'd rather not say"
-              prefix="$"
-              value={overhead}
-              onChange={setOverhead}
-            />
-            <div className="pt-yg__formbtns">
-              <button type="button" className="pt-btn pt-btn--orange" onClick={save} disabled={pending}>
-                {pending ? "Saving…" : "Save"}
-              </button>
-              <button type="button" className="pt-btn pt-btn--ghost" onClick={() => setEditing(false)} disabled={pending}>
-                Cancel
-              </button>
-              {err && <span className="pt-yg__err">{err}</span>}
-            </div>
-          </div>
-        ) : noGoal ? (
+        {noGoal ? (
           <p className="pt-yg__none">
             No goal set for {periodLabel(goal)} yet. Everything below stays blank until there is one — a page that
             invents a target is worse than a page that admits it hasn&rsquo;t got one.

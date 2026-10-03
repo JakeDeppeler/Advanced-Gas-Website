@@ -22,7 +22,10 @@ export default async function TargetsPage() {
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const ready = dbConfigured();
-  const targets = ready ? await getSettings<Targets>("targets") : null;
+  const [targets, goalRow] = ready
+    ? await Promise.all([getSettings<Targets>("targets"), getSettings<{ revenue?: number }>("yeargoal").catch(() => null)])
+    : [null, null];
+  const goalRevenue = typeof goalRow?.revenue === "number" && goalRow.revenue > 0 ? goalRow.revenue : null;
 
   // The crew's capacity, so the target can be measured against the week rather
   // than only divided up into it.
@@ -73,7 +76,7 @@ export default async function TargetsPage() {
   return (
     <PortalShell user={user}>
       <FinanceHead title="Targets" lede="Set the year’s revenue and everything works backwards from it: the work, the hours, and the quoting it takes." xero={{ state: status, org: tenantName }} />
-      <RevenuePlanner initial={targets} cap={capacity} actual={actual} ytd={ytd} canSave={ready} />
+      <RevenuePlanner initial={targets} cap={capacity} actual={actual} ytd={ytd} canSave={ready} goalRevenue={goalRevenue} />
     </PortalShell>
   );
 }

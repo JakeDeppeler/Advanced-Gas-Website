@@ -33,7 +33,7 @@ someone who isn't standing in front of it: the figures each of the six pages is
 leading with right now, read from the same snapshot row the screen reads, which
 of the four monthly targets are set (a dial with no target stays blank, and the
 page says which), each source's state and age, and how the refresh works. Its
-buttons open the live board and the targets page. **Integrations**
+buttons open the live board, the Year goal and the commission/calendar page. **Integrations**
 (`/portal/integrations`) carries the same source states beside Xero, Reece,
 Google reviews, Instagram and the quote email.
 
@@ -92,9 +92,9 @@ less than 90% of the month.
 
 **Performance** is four figures with margin as the navy one, over one table of
 job types: jobs, revenue, profit, and a margin bar with the month's own goal
-drawn on it. The goal is the month's profit target over its revenue target, both
-set on the board's settings page; with no target set there is no line, rather
-than a line at a number nobody chose.
+drawn on it. The goal is the month's profit target over its revenue target —
+which is the year goal's profit percentage; with no percentage set there is no
+line, rather than a line at a number nobody chose.
 
 **Areas** is where the work is over the last 60 days, on a real map. Tiles are
 CARTO's light basemap — a full-colour one fights the orange heat sitting on it —
@@ -203,43 +203,41 @@ select table_name from information_schema.tables
 select proname from pg_proc where proname = 'dashboard_resolve_names';
 ```
 
-### 3. Revenue target and working calendar
+### 3. Targets, commission and working calendar
 
-**Set the four monthly targets and the commission tiers in the portal**, at
-**Finance → Wall board** (`/portal/finance/board`). That writes the same
-`portal_settings` row the SQL below describes, merging rather than replacing, so
-it leaves the working calendar alone. Anyone with the `overhead` capability can
-change a target without needing a database client, which is the point: the board
-is read by people who cannot edit it, and the number it measures against should
-not need an engineer.
+**Every target on the board comes from the year goal**, set on the portal's
+**Year goal** page (`/portal/goal`, a tile on the portal home). It is the one
+place the business says what it is aiming at; Finance's The year and Targets read
+the same row (`portal_settings` key `yeargoal`). The month's four targets are
+derived from it on every snapshot — never copied into the board's row, because a
+figure copied in October is wrong in November and nothing on the wall would say
+so:
 
-The same page now also carries **the working calendar** — which weekdays count
-and the list of days off — and **where the revenue target comes from**. Holidays
-turned out to be exactly the thing the office needed to correct and the one thing
-it could not: they change every year, and "ask someone to run some SQL" is how a
-calendar ends up a year out of date without anybody noticing.
+| Dial | Target | From |
+|---|---|---|
+| Invoiced | this month's share of the year | revenue goal × the month's share (the goal's month shape, even if none is set) |
+| Sold | the same figure | over a year, what is sold is what gets invoiced |
+| Gross profit | invoiced target × profit % | the goal's "profit to keep" |
+| Jobs booked | planned jobs a week × working days ÷ days a week | the goal's weekly job mix and the board's calendar |
 
-**The monthly revenue target can follow the year goal** instead of being typed
-in. Set the year once on `/portal/finance/goals` and each month's target is that
-month's share of it, derived on every refresh — so November is right without
-anybody going back to change October. It is derived at read time and never
-written into the row, because a figure copied across in October is wrong in
-November and nothing on the wall would say so. The other three stay explicit:
-sold dollars lead invoiced ones by the length of the install backlog, gross
-profit depends on what the work costs, and bookings is a count. None of them
-follows from a revenue goal, and guessing would put a figure on the wall nobody
-agreed to.
+A target the goal doesn't cover — no goal saved, a goal for a different year, no
+profit percentage, no planned week — is null, and its dial says "no target" rather
+than guessing. Nothing reaches the board until the goal is **saved**: the page
+shows the design's starting figures ($3M at 25% and an example week) when nothing
+is saved, labelled as such, and the board never reads those.
 
-The SQL below is kept for the first install.
+**Commission tiers and the working calendar** stay on **Wall board → Commission &
+calendar** (`/portal/finance/board`), in the `dashboard` row. That page also shows
+this month's four targets as the board will use them. Holidays live there rather
+than in code so the office can correct them without a deploy; an empty list is
+fine — the per-day figures are just slightly optimistic in months with a public
+holiday.
+
+The SQL below is kept for a first install with no portal.
 
 ```sql
 insert into portal_settings (key, value)
 values ('dashboard', jsonb_build_object(
-  -- What has to be invoiced in the month. Drives "to invoice per day".
-  'revenueTargetMonthly', 240000,
-  -- Gross profit and jobs-booked targets, for their dials on the Pace page.
-  'profitTargetMonthly', 84000,
-  'bookingsTargetMonthly', 60,
   -- Commission bands, applied marginally: crossing a threshold lifts the rate on
   -- the amount above it only, never retrospectively on the whole month. A cliff
   -- would make a single $1 sale worth thousands, which is how a scheme gets gamed.
@@ -249,11 +247,6 @@ values ('dashboard', jsonb_build_object(
     jsonb_build_object('from', 50000,  'rate', 0.05),
     jsonb_build_object('from', 100000, 'rate', 0.07)
   ),
-  -- What has to be SOLD in the month — the value of quotes closed. Drives
-  -- "to sell per day". Usually set above the revenue target: not everything
-  -- sold this month gets installed and invoiced this month, and the backlog
-  -- it builds is what next month invoices from.
-  'salesTargetMonthly', 280000,
   -- 1 = Monday … 7 = Sunday. Add 6 if Saturdays count toward the target.
   'workingDays', jsonb_build_array(1,2,3,4,5),
   -- Victorian public holidays and any shutdown days, as YYYY-MM-DD.
@@ -262,12 +255,9 @@ values ('dashboard', jsonb_build_object(
 on conflict (key) do update set value = excluded.value;
 ```
 
-Holidays live here rather than in code so the office can correct them without a
-deploy. An empty list is fine — the number is just slightly optimistic in
-months with a public holiday.
-
-To change a target mid-month, update this row — the next sync picks it up and
-both daily numbers re-derive from it. No deploy, no restart.
+Rows written before the targets moved to the year goal may still carry
+`revenueTargetMonthly`, `salesTargetMonthly`, `profitTargetMonthly`,
+`bookingsTargetMonthly` and `revenueFromYearGoal`. The board ignores them.
 
 ### 4. Link ServiceTitan
 
