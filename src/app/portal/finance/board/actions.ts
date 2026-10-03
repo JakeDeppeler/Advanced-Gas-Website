@@ -7,33 +7,18 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { normaliseBoardSettings } from "@/lib/dashboard/boardSettings";
 import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 
-export type BoardTargets = {
-  revenueTargetMonthly: number | null;
-  salesTargetMonthly: number | null;
-  profitTargetMonthly: number | null;
-  bookingsTargetMonthly: number | null;
-  commissionTiers: Array<{ from: number; rate: number }>;
-};
+export type CommissionInput = { commissionTiers: Array<{ from: number; rate: number }> };
 
 export type ActionResult = { ok: boolean; error?: string };
 
 /**
- * The wall board's monthly targets.
- *
- * They live under the same `dashboard` settings key the board already reads, so
- * there is one row and no second source of truth. That row also carries the
- * working calendar, which this form knows nothing about — hence the read before
- * the write: replacing the value wholesale would silently drop the holidays and
- * put the board back on calendar days.
+ * The commission bands. The month's targets aren't saved here — they come from
+ * the year goal — so this writes only the tiers, reading the row first so the
+ * working calendar beside them survives.
  */
-export async function saveBoardTargets(t: BoardTargets): Promise<ActionResult> {
+export async function saveCommission(t: CommissionInput): Promise<ActionResult> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
-
-  // A blank box means "no target", which the board renders as "no monthly
-  // target set". Zero would be a target of nothing, and the dial would read
-  // every month as a triumph.
-  const money = (v: number | null) => (v == null || !Number.isFinite(v) || v <= 0 ? null : Math.round(v));
 
   const tiers = (t.commissionTiers ?? [])
     .filter((x) => Number.isFinite(x.from) && Number.isFinite(x.rate) && x.from > 0 && x.rate > 0)
@@ -41,26 +26,17 @@ export async function saveBoardTargets(t: BoardTargets): Promise<ActionResult> {
     .sort((a, b) => a.from - b.from);
 
   const existing = (await getSettings<Record<string, unknown>>("dashboard")) ?? {};
-  const res = await saveSettings("dashboard", {
-    ...existing,
-    revenueTargetMonthly: money(t.revenueTargetMonthly),
-    salesTargetMonthly: money(t.salesTargetMonthly),
-    profitTargetMonthly: money(t.profitTargetMonthly),
-    bookingsTargetMonthly: money(t.bookingsTargetMonthly),
-    commissionTiers: tiers,
-  });
-
+  const res = await saveSettings("dashboard", { ...existing, commissionTiers: tiers });
   if (!res.ok) {
     return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   }
-
   revalidatePath("/portal/finance/board");
   return { ok: true };
 }
 
 /**
- * The half of the board's row the targets form doesn't touch: where the revenue
- * target comes from, and what counts as a working day.
+ * The half of the board's row the commission form doesn't touch: what counts
+ * as a working day.
  *
  * A separate action over the same row, read-then-merge like the one above, so
  * neither form can drop the other's keys. Everything is clamped through
@@ -68,7 +44,6 @@ export async function saveBoardTargets(t: BoardTargets): Promise<ActionResult> {
  * stored is exactly what comes back out.
  */
 export async function saveBoardCalendar(input: {
-  revenueFromYearGoal: boolean;
   workingDays: number[];
   holidays: string[];
 }): Promise<ActionResult> {

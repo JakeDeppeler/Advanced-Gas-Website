@@ -29,6 +29,24 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
       ? g.shape.map((v) => Math.max(0, Number(v) || 0))
       : null;
 
+  const pct = Number(g.profitPct);
+  if (g.profitPct != null && (!Number.isFinite(pct) || pct <= 0 || pct >= 100)) {
+    return { ok: false, error: "Profit has to be a percentage between 0 and 100." };
+  }
+  const weeks = Math.round(Number(g.weeks));
+  if (!Number.isFinite(weeks) || weeks < 1 || weeks > 52) return { ok: false, error: "Working weeks has to be between 1 and 52." };
+
+  const mix = (Array.isArray(g.mix) ? g.mix : [])
+    .filter((j) => typeof j?.name === "string" && j.name.trim() !== "")
+    .slice(0, 20)
+    .map((j, i) => ({
+      id: String(j.id || `job${i}`).slice(0, 40),
+      name: j.name.trim().slice(0, 60),
+      avgJob: Math.max(0, Math.round(Number(j.avgJob) || 0)),
+      margin: Math.min(99, Math.max(0, Math.round((Number(j.margin) || 0) * 10) / 10)),
+      perWeek: Math.min(500, Math.max(0, Math.round((Number(j.perWeek) || 0) * 10) / 10)),
+    }));
+
   const clean: YearGoal = {
     basis: g.basis === "calendar" ? "calendar" : "financial",
     year,
@@ -37,13 +55,19 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
     // nothing" are different, and only one of them should blank the tile.
     overhead: g.overhead == null || g.overhead === ("" as unknown) ? null : Math.max(0, Math.round(Number(g.overhead) || 0)),
     shape,
+    profitPct: g.profitPct == null ? null : Math.round(pct * 10) / 10,
+    weeks,
+    mix,
   };
 
   const res = await saveSettings("yeargoal", clean);
   if (!res.ok) {
     return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   }
-  revalidatePath("/portal/finance/goals");
-  revalidatePath("/portal/finance");
+  // Everything that reads the goal. The wall board itself picks it up on its
+  // next snapshot, within the minute.
+  for (const path of ["/portal/goal", "/portal/finance/goals", "/portal/finance", "/portal/finance/targets", "/portal/finance/board", "/portal/board"]) {
+    revalidatePath(path);
+  }
   return { ok: true };
 }

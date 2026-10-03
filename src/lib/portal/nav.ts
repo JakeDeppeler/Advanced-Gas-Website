@@ -74,6 +74,7 @@ export const ICON: Record<string, string> = {
   globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z",
   pen: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3",
   plug: "M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4",
+  target: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 12h.01",
 };
 
 /**
@@ -129,7 +130,11 @@ export function portalNav(user: PortalUser): NavItem[] {
       },
       {
         href: "/portal/finance", label: "Finance", blurb: "Live profit from Xero",
-        band: "business", icon: "chart", also: ["xero", "profit", "p&l", "revenue", "target", "goal"],
+        band: "business", icon: "chart", also: ["xero", "profit", "p&l", "revenue"],
+      },
+      {
+        href: "/portal/goal", label: "Year goal", blurb: "What the year is aiming at — the wall board follows it",
+        band: "business", icon: "target", also: ["goal", "target", "$3m", "profit", "jobs a week", "mix", "budget"],
       },
       {
         href: "/portal/website", label: "Website", blurb: "Enquiries, which pages work, drop-off",

@@ -41,6 +41,21 @@ function offsetMs(d: Date): number {
   return asUtc - Math.floor(d.getTime() / 60000) * 60000;
 }
 
+/**
+ * The instant Melbourne's clock read midnight on a given date.
+ *
+ * The offset is taken at the candidate instant, not at whatever moment the
+ * caller is standing in. Using the caller's offset is an hour out whenever a
+ * daylight-saving change sits between the two: from the first Sunday in
+ * October, "the 1st of this month" came out as 11pm on 30 September, and the
+ * month was counted as having one working day in it.
+ */
+function melbourneMidnight(year: number, month0: number, day: number): Date {
+  const utc = Date.UTC(year, month0, day, 0, 0);
+  const guess = new Date(utc - offsetMs(new Date(utc)));
+  return new Date(utc - offsetMs(guess));
+}
+
 /** The instant at which the Melbourne day containing `d` began. */
 export function startOfDayMelbourne(d: Date = new Date()): Date {
   const p = parts(d);
@@ -58,14 +73,15 @@ export function startOfWeekMelbourne(d: Date = new Date()): Date {
   const weekday = new Intl.DateTimeFormat("en-AU", { timeZone: TZ, weekday: "short" }).format(d);
   const order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const idx = Math.max(0, order.indexOf(weekday));
-  return new Date(dayStart.getTime() - idx * 86400000);
+  // Step back to midday on the Monday, then take that day's midnight: a whole
+  // number of 24-hour days is an hour out across a daylight-saving change.
+  return startOfDayMelbourne(new Date(dayStart.getTime() - idx * 86400000 + 12 * 3600000));
 }
 
 /** Start of the Melbourne month containing `d`. */
 export function startOfMonthMelbourne(d: Date = new Date()): Date {
   const p = parts(d);
-  const first = new Date(Date.UTC(p.year, p.month - 1, 1, 0, 0));
-  return new Date(first.getTime() - offsetMs(d));
+  return melbourneMidnight(p.year, p.month - 1, 1);
 }
 
 export function addDays(d: Date, n: number): Date {
@@ -82,7 +98,7 @@ export function isoDateMelbourne(d: Date = new Date()): string {
 export function monthProgress(d: Date = new Date()): number {
   const start = startOfMonthMelbourne(d);
   const p = parts(d);
-  const nextMonth = new Date(Date.UTC(p.year, p.month, 1, 0, 0)).getTime() - offsetMs(d);
+  const nextMonth = melbourneMidnight(p.year, p.month, 1).getTime();
   return (d.getTime() - start.getTime()) / (nextMonth - start.getTime());
 }
 
@@ -126,9 +142,11 @@ export function workingDaysInMonth(
   let elapsed = 0;
   let remaining = 0;
 
-  // Step a day at a time from the 1st; 31 iterations at most, and stepping by
-  // 24h from a Melbourne midnight stays inside the right day across DST because
-  // startOfDayMelbourne re-derives the boundary each time.
+  // Step a day at a time from the 1st; 31 iterations at most. Each step goes
+  // to midday of the next day and takes that day's midnight. Stepping a flat
+  // 24 hours from midnight does not work: on the night daylight saving ends
+  // the day is 25 hours long, 24 hours lands back on the same date, and the
+  // loop counted April as having three working days.
   for (let cursor = start, guard = 0; guard < 40; guard++) {
     const iso = isoDateMelbourne(cursor);
     // Stop once we've stepped into the next month.
@@ -139,7 +157,7 @@ export function workingDaysInMonth(
       if (iso < today) elapsed += 1;
       else remaining += 1;
     }
-    cursor = startOfDayMelbourne(addDays(cursor, 1));
+    cursor = startOfDayMelbourne(new Date(cursor.getTime() + 36 * 3600000));
   }
 
   return { total, elapsed, remaining };

@@ -17,8 +17,10 @@ const num = (n: number | null, dp = 1) =>
  * quoted to win it. The last one is the one that gets forgotten, and it is the
  * only one with a lead time on it.
  */
-export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave }: {
+export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goalRevenue = null }: {
   initial: Targets | null;
+  /** The saved year goal's revenue. When there is one, it is the target here too. */
+  goalRevenue?: number | null;
   cap: Capacity | null;
   /** What the quote book says has actually happened. */
   actual: { winRate: number | null; avgJob: number | null; won: number; quotesPerWeek?: number | null };
@@ -32,7 +34,13 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave }: {
       winRate: actual.winRate ?? DEFAULT_TARGETS.winRate,
       avgJob: actual.avgJob ?? DEFAULT_TARGETS.avgJob,
     };
-    return { ...base, jobTypes: base.jobTypes?.length ? base.jobTypes : DEFAULT_JOB_TYPES };
+    return {
+      ...base,
+      // One figure for the year, set on the Year goal page — not a second one
+      // here that could disagree with it.
+      revenue: goalRevenue && goalRevenue > 0 ? goalRevenue : base.revenue,
+      jobTypes: base.jobTypes?.length ? base.jobTypes : DEFAULT_JOB_TYPES,
+    };
   });
   const [saving, start] = useTransition();
   const [msg, setMsg] = useState<string | null>(null);
@@ -108,8 +116,17 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave }: {
         <label className="pt-cap__f">
           <span>Revenue target (year)</span>
           <span className="pt-calc__field"><span className="pt-calc__pre">$</span>
-            <input inputMode="numeric" value={t.revenue ? t.revenue.toLocaleString("en-AU") : ""} onChange={(e) => set({ revenue: parse(e.target.value) })} />
+            <input
+              inputMode="numeric"
+              value={t.revenue ? t.revenue.toLocaleString("en-AU") : ""}
+              readOnly={goalRevenue != null && goalRevenue > 0}
+              title={goalRevenue ? "Set on the Year goal page" : undefined}
+              onChange={(e) => set({ revenue: parse(e.target.value) })}
+            />
           </span>
+          {goalRevenue != null && goalRevenue > 0 && (
+            <a className="pt-tgt__actual" href="/portal/goal">From the year goal — change it there</a>
+          )}
         </label>
         <label className="pt-cap__f">
           <span>Quote to win rate</span>

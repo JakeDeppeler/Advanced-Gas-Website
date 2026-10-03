@@ -14,7 +14,7 @@ import {
 } from "./dates";
 import {
   commissionFor,
-  monthTargetFromYearGoal,
+  monthTargetsFromYearGoal,
   normaliseBoardSettings,
   byOpportunity,
   closeRate,
@@ -1276,14 +1276,13 @@ type Targets = {
 };
 
 /**
- * Everything the board is told rather than measures: the four monthly targets,
- * the commission bands and the definition of a working day.
+ * Everything the board is told rather than measures: the four monthly targets
+ * (from the year goal), the commission bands and the definition of a working
+ * day (from the board's own row).
  *
- * One read for all of it. These were two functions fetching the same row twice,
- * each re-deciding what a valid target looked like. The shape and its clamps now
- * live in `boardSettings.ts`, which the portal editor writes through as well — so
- * a target the office can set is a target the board can read, with no second
- * definition in between to drift.
+ * The shapes and clamps live in `boardSettings.ts`, which the portal editors
+ * write through as well — so a target the office can set is a target the board
+ * can read, with no second definition in between to drift.
  */
 async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: WorkingCalendar; goal: YearGoalShape | null }> {
   const row = await sbSelectOne<{ value: unknown }>(
@@ -1292,16 +1291,11 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
   );
   const cfg = normaliseBoardSettings(row?.value);
 
-  /**
-   * The month's revenue target, which can be driven off the year goal rather
-   * than typed in month by month.
-   *
-   * Derived here, on every snapshot, rather than written into the dashboard row
-   * when the goal was set: a figure copied across in October is the wrong figure
-   * in November, and nothing on the wall would say so.
-   */
-  // Read once whether or not the month's target is driven off it: the Pace
-  // page's year strip needs it either way.
+  // The year goal is the one place the business says what it is aiming at,
+  // set on the portal's Year goal page. Every target on the wall is derived
+  // from it here, on each snapshot, rather than copied across when it was
+  // saved: a figure copied in October is the wrong figure in November, and
+  // nothing on the wall would say so.
   const goal = (
     await sbSelectOne<{ value: YearGoalShape }>(
       "portal_settings",
@@ -1309,23 +1303,20 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
     ).catch(() => null)
   )?.value ?? null;
 
-  let revenue = cfg.revenueTargetMonthly;
-  if (cfg.revenueFromYearGoal) {
-    // Null when the goal is unset or has run out of year, and null blanks the
-    // figure. Better an admitted gap than pacing the wall against a year that
-    // finished in June.
-    revenue = monthTargetFromYearGoal(goal, isoDateMelbourne(now).slice(0, 7));
-  }
+  const calendar: WorkingCalendar = { days: cfg.workingDays, holidays: cfg.holidays };
+  // Null for any target the goal doesn't cover — no goal, last year's goal,
+  // no profit percentage, no planned week — and a null blanks that dial.
+  const t = monthTargetsFromYearGoal(goal, isoDateMelbourne(now).slice(0, 7), workingDaysInMonth(now, calendar), calendar.days.length);
 
   return {
     targets: {
-      revenue,
-      sales: cfg.salesTargetMonthly,
-      profit: cfg.profitTargetMonthly,
-      bookings: cfg.bookingsTargetMonthly,
+      revenue: t.revenue,
+      sales: t.sales,
+      profit: t.profit,
+      bookings: t.bookings,
       tiers: cfg.commissionTiers,
     },
-    calendar: { days: cfg.workingDays, holidays: cfg.holidays },
+    calendar,
     goal,
   };
 }

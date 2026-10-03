@@ -19,7 +19,7 @@ import { Bell } from "@/components/portal/Bell";
  * A server component: it reads nothing and holds no state, so only the search
  * input ships as JavaScript.
  */
-export function PortalShell({ user, children, variant }: { user: PortalUser; children: React.ReactNode; variant?: "home" | "wide" }) {
+export function PortalShell({ user, children, variant }: { user: PortalUser; children: React.ReactNode; variant?: "home" | "wide" | "mid" }) {
   const rows = buildSearchIndex(portalNav(user));
 
   return (

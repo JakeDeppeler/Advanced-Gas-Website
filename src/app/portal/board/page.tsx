@@ -154,7 +154,8 @@ export default async function BoardPage() {
         </div>
         <div className="pt-vhead__acts">
           <a href="/portal/finance/board/open" target="_blank" rel="noreferrer" className="pt-btn pt-btn--orange">Open the live board ↗</a>
-          <Link href="/portal/finance/board" className="pt-btn pt-btn--ghost">Set the targets</Link>
+          <Link href="/portal/goal" className="pt-btn pt-btn--ghost">Year goal</Link>
+          <Link href="/portal/finance/board" className="pt-btn pt-btn--ghost">Commission &amp; calendar</Link>
         </div>
       </div>
 
@@ -175,7 +176,7 @@ export default async function BoardPage() {
           />
 
           {set < targets.length && (
-            <Link href="/portal/finance/board" className="pt-panel pt-linkpanel">
+            <Link href="/portal/goal" className="pt-panel pt-linkpanel">
               <span>
                 <strong>{targets.length - set} of the four monthly targets aren&rsquo;t set</strong>
                 <em>
@@ -234,7 +235,7 @@ export default async function BoardPage() {
                 <li><strong>Every 25 seconds the board recomputes</strong> one snapshot from that copy — every figure on all six pages comes from that one row, so no two tiles can disagree.</li>
                 <li><strong>A source that fails keeps its last figures</strong> behind an amber dot in the board&rsquo;s header. It never blanks and never shows a zero it didn&rsquo;t measure.</li>
                 <li><strong>A sale lands within about ten minutes</strong> of being closed — the rocket goes off on the sync after, not the moment it happens.</li>
-                <li><strong>Targets are typed in here</strong>, on the targets page. The invoiced target can follow the year goal in Finance month by month.</li>
+                <li><strong>Every target comes from the year goal</strong>: this month&rsquo;s share of the year to invoice and to sell, profit at the goal&rsquo;s percentage, and the planned week&rsquo;s jobs spread over the month&rsquo;s working days. Change the goal and the board follows on its next refresh.</li>
               </ol>
             </section>
           </div>

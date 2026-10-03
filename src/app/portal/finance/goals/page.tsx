@@ -8,7 +8,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
 import { getMoneySeries, getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
 import { InOutBars } from "@/components/portal/InOutBars";
-import { currentYear, yearSpans, DEFAULT_YEAR_GOAL, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
+import { readYearGoal, yearSpans, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
 import { Locked } from "@/components/portal/Locked";
@@ -27,13 +27,7 @@ export default async function YearGoalPage() {
 
   // An unset goal still renders: the page shows the months Xero has and says
   // the goal is missing, rather than redirecting to a form.
-  const goal: YearGoal = {
-    basis: stored?.basis === "calendar" ? "calendar" : "financial",
-    year: typeof stored?.year === "number" ? stored.year : currentYear(stored?.basis === "calendar" ? "calendar" : "financial", today),
-    revenue: typeof stored?.revenue === "number" ? stored.revenue : DEFAULT_YEAR_GOAL.revenue,
-    overhead: typeof stored?.overhead === "number" ? stored.overhead : null,
-    shape: Array.isArray(stored?.shape) && stored.shape.length === 12 ? stored.shape : null,
-  };
+  const goal: YearGoal = readYearGoal(stored, today);
 
   const { status, tenantName } = await xeroStatus();
   const spans = yearSpans(goal.basis, goal.year);
