@@ -1,39 +1,30 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { dbConfigured, listWebLeads, listCampaigns, listBrandAssets, listStoredPosts } from "@/lib/portal/db";
-import { classifyLead } from "@/lib/portal/leadSource";
-import { groupByArea, BANDS } from "@/lib/portal/leadArea";
-import { pageReport } from "@/lib/portal/leadPages";
+import { dbConfigured, listWebLeads, listCampaigns, listBrandAssets } from "@/lib/portal/db";
 import { withLeads, tally } from "@/lib/portal/campaigns";
 import {
-  MARKETING_TABS, marketingHref, tabDef, windowDays, windowKey, windowLabel, WINDOWS,
+  MARKETING_TABS, MOVED_TABS, marketingHref, tabDef, windowDays, windowKey, windowLabel,
   type MarketingTab,
 } from "@/lib/portal/marketingTabs";
-import { mergePosts, isLive } from "@/lib/blogMerge";
 import { getReviews } from "@/lib/googleReviews";
 import { getInstagramFeed } from "@/lib/instagram";
 import { CampaignBoard } from "@/components/portal/CampaignBoard";
 import { BrandAssets } from "@/components/portal/BrandAssets";
-import { Bars, Heads, Needs } from "@/components/portal/marketingParts";
-import { money } from "@/lib/portal/format";
+import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marketing — Team portal" };
 
 /**
- * Marketing: nine views over one window.
+ * Marketing: what we put out into the world — campaigns, reviews, ads, social,
+ * and the brand kit they all draw on.
  *
- * One route, not nine. Every tab answers a question about the same stretch of
- * time, and the window selector is shared — nine routes would each have grown
- * their own idea of "recently" and the numbers would have stopped agreeing.
- *
- * Six of the nine run on data the business already has. Two need a source
- * nobody is recording yet and say exactly which; one is a store the office
- * fills itself.
+ * It used to be nine tabs. The website's half — enquiries, pages, drop-off —
+ * is its own section now, and so is the Blog; both are linked from the home
+ * page beside this one. The old tab addresses forward to where they went.
  */
 export default async function MarketingPage({
   searchParams,
@@ -44,6 +35,9 @@ export default async function MarketingPage({
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
+  const moved = searchParams.tab ? MOVED_TABS[searchParams.tab] : undefined;
+  if (moved) redirect(moved);
+
   const tab = (MARKETING_TABS.find((t) => t.k === searchParams.tab)?.k ?? "campaigns") as MarketingTab;
   const win = windowKey(searchParams.win);
   const days = windowDays(searchParams.win);
@@ -51,7 +45,9 @@ export default async function MarketingPage({
 
   const ready = dbConfigured();
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
-  const leads = ready ? await listWebLeads(since).catch(() => []) : [];
+  // Only Campaigns reads the leads — to credit each campaign with what it
+  // brought in. The other four tabs shouldn't wait on a query they don't use.
+  const leads = ready && tab === "campaigns" ? await listWebLeads(since).catch(() => []) : [];
 
   return (
     <PortalShell user={user}>
@@ -62,33 +58,16 @@ export default async function MarketingPage({
           <h1>{def.title}</h1>
           <p>{def.blurb}</p>
         </div>
-        {/* The window the whole section reads against. */}
-        <nav className="pt-win" aria-label="Time window">
-          {WINDOWS.map((w) => (
-            <Link
-              key={w.k}
-              href={marketingHref(tab, w.k)}
-              aria-current={w.k === win ? "page" : undefined}
-              className={`pt-win__opt${w.k === win ? " is-on" : ""}`}
-            >
-              {w.label}
-            </Link>
-          ))}
-        </nav>
+        {/* Only Campaigns reads against a window; on the others it would be a
+            control that changes nothing. */}
+        {tab === "campaigns" && <WindowPicker win={win} hrefFor={(w) => marketingHref(tab, w)} />}
       </div>
 
-      <nav className="pt-tabs" aria-label="Marketing">
-        {MARKETING_TABS.map((t) => (
-          <Link
-            key={t.k}
-            href={marketingHref(t.k, win)}
-            aria-current={t.k === tab ? "page" : undefined}
-            className={`pt-tab${t.k === tab ? " is-on" : ""}`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <SectionTabs
+        label="Marketing"
+        current={tab}
+        tabs={MARKETING_TABS.map((t) => ({ k: t.k, label: t.label, href: marketingHref(t.k, win) }))}
+      />
 
       {!ready && (
         <div className="pt-note pt-note--warn">
@@ -97,10 +76,6 @@ export default async function MarketingPage({
       )}
 
       {tab === "campaigns" && <Campaigns leads={leads} win={win} audience={searchParams.audience} />}
-      {tab === "blog" && <Blog />}
-      {tab === "leads" && <WebsiteLeads leads={leads} days={days} win={win} />}
-      {tab === "site" && <OnTheSite leads={leads} />}
-      {tab === "dropoff" && <DropOff />}
       {tab === "reviews" && <Reviews />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
@@ -126,199 +101,6 @@ async function Campaigns({
       win={win}
       windowLabel={windowLabel(win)}
     />
-  );
-}
-
-/* ------------------------------------------------------------------ Blog */
-/**
- * Every article on the site, drafts and scheduled posts included.
- *
- * This used to list `blogPosts.ts`, which nothing on the public site reads —
- * so the office was looking at one set of articles and the public at another.
- * It reads the live merge now: the posts in blog.ts plus whatever has been
- * written in the portal.
- */
-async function Blog() {
-  const stored = dbConfigured() ? await listStoredPosts().catch(() => []) : [];
-  const posts = mergePosts(stored, true);
-  const statusOf = new Map(stored.map((r) => [r.slug, r]));
-  const byCategory = new Map<string, number>();
-  for (const p of posts) byCategory.set(p.cat, (byCategory.get(p.cat) ?? 0) + 1);
-  const liveCount = posts.filter((p) => !statusOf.has(p.slug) || isLive(statusOf.get(p.slug)!)).length;
-
-  const when = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" });
-
-  return (
-    <>
-      <Heads
-        items={[
-          { label: "On the site", value: String(liveCount), sub: "articles the public can read", feature: true },
-          { label: "Topics", value: String(byCategory.size), sub: "categories covered" },
-          { label: "Newest", value: posts[0] ? when(posts[0].publishedISO) : "—", sub: posts[0]?.title ?? "nothing published" },
-        ]}
-      />
-      <section className="pt-panel">
-        <div className="pt-veh__edithead">
-          <h2 className="pt-panel__h">Every article</h2>
-          <Link href="/portal/marketing/blog/new" className="pt-btn pt-btn--orange pt-btn--sm">Write a post</Link>
-        </div>
-        <div className="pt-fleet__wrap">
-          <table className="pt-fleet pt-fleet--prose">
-            <thead><tr><th>Article</th><th>Topic</th><th>Published</th><th>Where</th><th /></tr></thead>
-            <tbody>
-              {posts.map((p) => {
-                const row = statusOf.get(p.slug);
-                const live = !row || isLive(row);
-                return (
-                  <tr key={p.slug}>
-                    <td><strong>{p.title}</strong>{p.blurb && <span className="pt-fleet__sub">{p.blurb}</span>}</td>
-                    <td>{p.cat}</td>
-                    <td>{when(p.publishedISO)}</td>
-                    {/* Said in words: whether the public can read it is the
-                        one thing this table exists to answer. */}
-                    <td>
-                      {!row ? "On the site · in the code"
-                        : row.status === "draft" ? "Draft — not on the site"
-                          : live ? "On the site" : `Scheduled for ${when(p.publishedISO)}`}
-                    </td>
-                    <td>
-                      {row
-                        ? <Link href={`/portal/marketing/blog/${p.slug}`} className="pt-fleet__open">Edit →</Link>
-                        : <a href={`/blog/${p.slug}`} target="_blank" rel="noopener" className="pt-fleet__open">Open ↗</a>}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      {/* The eight posts already written live in blog.ts, where they were
-          authored and where they are indexed. Nothing moves them; a post
-          written here sits beside them. */}
-      <Needs
-        title="The older posts are still in the code"
-        body="The eight articles written before this editor existed live in blog.ts. They render exactly as they always have and nothing here touches them — a post written in the portal sits alongside them on the blog. Open one above to read it on the site."
-      />
-    </>
-  );
-}
-
-/* --------------------------------------------------------- Website leads */
-async function WebsiteLeads({
-  leads, days, win,
-}: {
-  leads: Awaited<ReturnType<typeof listWebLeads>>; days: number; win: string;
-}) {
-  const quotes = leads.filter((l) => l.kind === "quote").length;
-  const calls = leads.filter((l) => l.kind === "call").length;
-  const weeks = Math.max(1, days / 7);
-
-  // Outside the hours anyone is at a desk — the enquiries that sit until
-  // morning unless somebody picks them up.
-  const outside = leads.filter((l) => {
-    const h = Number(new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hour: "numeric", hour12: false }).format(new Date(l.createdAt)));
-    return h < 7 || h >= 16;
-  }).length;
-
-  const bySource = new Map<string, number>();
-  for (const l of leads) {
-    const label = classifyLead(l.utm).label;
-    bySource.set(label, (bySource.get(label) ?? 0) + 1);
-  }
-
-  const area = groupByArea(leads.map((l) => ({ suburb: l.suburb, postcode: l.postcode, kind: l.kind })));
-  const report = await pageReport(leads);
-
-  return (
-    <>
-      <Heads
-        items={[
-          { label: "Enquiries", value: String(leads.length), sub: `${(leads.length / weeks).toFixed(1)} a week on average`, feature: true },
-          { label: "Quote requests", value: String(quotes), sub: "filled in the form" },
-          { label: "Phone taps", value: String(calls), sub: "tapped the number" },
-          {
-            label: "Outside 7am–4pm", value: String(outside),
-            sub: leads.length ? `${Math.round((outside / leads.length) * 100)}% — nobody on the tools` : "none yet",
-          },
-        ]}
-      />
-
-      <div className="pt-two">
-        <Bars
-          title="Where they came from"
-          rows={[...bySource.entries()].sort((a, b) => b[1] - a[1]).map(([label, n]) => ({ label, n }))}
-          empty="No enquiries in this window."
-        />
-        <Bars
-          title="When and how far"
-          rows={[
-            ...BANDS.filter((b) => area.byBand[b.key] > 0).map((b) => ({ label: b.label, n: area.byBand[b.key] })),
-            { label: "Outside 7am–4pm", n: outside },
-          ]}
-          empty="No enquiries in this window."
-        />
-      </div>
-
-      <Link href={marketingHref("site", windowKey(win))} className="pt-panel pt-linkpanel">
-        <span>
-          <strong>
-            Only {report.earningPages} of {report.totalPages} pages bring in enquiries
-          </strong>
-          <em>
-            {report.rows[0]
-              ? `“${report.rows[0].title}” is the busiest, with ${report.rows[0].n} of the ${leads.length}.`
-              : "Nothing has produced an enquiry in this window."}
-          </em>
-        </span>
-        <span className="pt-linkpanel__go">See every page →</span>
-      </Link>
-    </>
-  );
-}
-
-/* ----------------------------------------------------------- On the site */
-async function OnTheSite({ leads }: { leads: Awaited<ReturnType<typeof listWebLeads>> }) {
-  const r = await pageReport(leads);
-  return (
-    <>
-      <Heads
-        items={[
-          { label: "Pages that earn", value: String(r.earningPages), sub: `of ${r.totalPages} on the site`, feature: true },
-          { label: "Silent", value: String(r.silentCount), sub: "no enquiry in this window" },
-          { label: "Sections", value: String(r.sections.length), sub: "parts of the site" },
-        ]}
-      />
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Pages that brought something in</h2>
-        {r.rows.length === 0 ? (
-          <p className="pt-rep__empty">No page produced an enquiry in this window.</p>
-        ) : (
-          <div className="pt-fleet__wrap">
-            <table className="pt-fleet">
-              <thead><tr><th>Page</th><th>Section</th><th>Enquiries</th><th>Share</th></tr></thead>
-              <tbody>
-                {r.rows.slice(0, 25).map((p) => (
-                  <tr key={p.path}>
-                    <td><strong>{p.title}</strong><span className="pt-fleet__sub">{p.path}</span></td>
-                    <td>{p.sectionLabel}</td>
-                    <td><strong>{p.n}</strong></td>
-                    <td>{Math.round(p.share * 100)}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">By section</h2>
-        <Bars
-          rows={r.sections.filter((s) => s.n > 0).map((s) => ({ label: `${s.label} · ${s.pages} pages`, n: s.n }))}
-          empty="Nothing to split by section yet."
-        />
-      </section>
-    </>
   );
 }
 
@@ -406,21 +188,7 @@ async function Assets({ user }: { user: string }) {
   return <BrandAssets assets={assets} who={user} />;
 }
 
-/* ------------------------------------------- the two with no source yet */
-function DropOff() {
-  return (
-    <Needs
-      title="Nothing records a page view yet"
-      body="Drop-off is the share of people who start the quote form and stop at each step. The portal only ever sees an enquiry that was finished and sent, so the people who left are, by definition, not in the data. It needs the form to post a step event as each field is completed — a small table and a beacon from the form, and this becomes a real funnel."
-      bullets={[
-        "A portal_form_events table: session, step, at",
-        "The quote form posting a step event as it goes",
-        "Nothing personal in it — a step number and a timestamp",
-      ]}
-    />
-  );
-}
-
+/* ------------------------------------------------- the one with no source yet */
 function Ads() {
   return (
     <Needs

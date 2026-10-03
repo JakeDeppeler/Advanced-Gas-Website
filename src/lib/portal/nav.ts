@@ -15,12 +15,13 @@
 import { can, type PortalUser } from "@/lib/portal/caps";
 
 /** The four bands the home page groups by, in order. */
-export type NavBand = "on-the-job" | "how-we-work" | "business" | "settings";
+export type NavBand = "on-the-job" | "how-we-work" | "business" | "operations" | "settings";
 
 export const BAND_LABEL: Record<NavBand, string> = {
   "on-the-job": "On the job",
   "how-we-work": "How we work",
   business: "Business",
+  operations: "Operations",
   settings: "You & settings",
 };
 
@@ -64,6 +65,9 @@ export const ICON: Record<string, string> = {
   shield: "M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7z",
   screen: "M3 5h18v11H3zM9 20h6M12 16v4",
   tablet: "M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM10 18h4",
+  globe: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z",
+  pen: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3",
+  plug: "M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4",
 };
 
 /**
@@ -115,15 +119,23 @@ export function portalNav(user: PortalUser): NavItem[] {
     items.push(
       {
         href: "/portal/supply", label: "Supply", blurb: "Reece pricing, orders and the pricebook",
-        band: "on-the-job", icon: "box", also: ["reece", "max", "order", "pricebook", "material"],
-      },
-      {
-        href: "/portal/marketing", label: "Marketing", blurb: "Website leads, reviews and ads",
-        band: "business", icon: "speaker", also: ["lead", "enquiry", "website", "review", "ads"],
+        band: "operations", icon: "box", also: ["reece", "max", "order", "pricebook", "material"],
       },
       {
         href: "/portal/finance", label: "Finance", blurb: "Live profit from Xero",
         band: "business", icon: "chart", also: ["xero", "profit", "p&l", "revenue", "target", "goal"],
+      },
+      {
+        href: "/portal/website", label: "Website", blurb: "Enquiries, which pages work, drop-off",
+        band: "business", icon: "globe", also: ["lead", "enquiry", "website", "traffic", "page", "views", "seo"],
+      },
+      {
+        href: "/portal/blog", label: "Blog", blurb: "Every article, its reads, and the editor",
+        band: "business", icon: "pen", also: ["article", "post", "write", "publish", "seo", "views"],
+      },
+      {
+        href: "/portal/marketing", label: "Marketing", blurb: "Campaigns, reviews, ads and social",
+        band: "business", icon: "speaker", also: ["campaign", "review", "ads", "instagram", "social", "brand"],
       },
     );
   }
@@ -131,25 +143,24 @@ export function portalNav(user: PortalUser): NavItem[] {
   if (can(user, "reports_read")) {
     items.push({
       href: "/portal/team", label: "Team", blurb: "The crew and each person's file",
-      band: "business", icon: "people", also: ["crew", "people", "staff", "roster"],
+      band: "operations", icon: "people", also: ["crew", "people", "staff", "roster"],
     });
   }
 
   if (can(user, "overhead")) {
     items.push(
       {
-        href: "/portal/finance/board", label: "Wall board", blurb: "What the office screen is aiming at",
-        band: "settings", icon: "screen", also: ["dashboard", "screen", "target", "commission"],
-      },
-      // The board itself, not its settings. It is gated by a shared token
-      // rather than a login, so this goes through a route that checks the
-      // session and redirects — which also means nothing here can link to it
-      // directly, and it fell off the page entirely when the sidebar went.
-      {
-        href: "/portal/finance/board/open", label: "Open the live board", blurb: "The office screen, in a new tab",
-        band: "settings", icon: "screen", external: true, also: ["dashboard", "tv", "screen", "live"],
+        href: "/portal/board", label: "Wall board", blurb: "What's on the office screen, and how it works",
+        band: "operations", icon: "screen", also: ["dashboard", "screen", "target", "commission", "tv", "live", "open"],
       },
     );
+  }
+
+  if (can(user, "overhead")) {
+    items.push({
+      href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece — is each one working",
+      band: "operations", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection", "instagram", "google"],
+    });
   }
 
   // "You & settings" in the design, with Admin — not the tail of Business.
@@ -168,7 +179,7 @@ export function portalNav(user: PortalUser): NavItem[] {
   return items;
 }
 
-export const BANDS: NavBand[] = ["on-the-job", "how-we-work", "business", "settings"];
+export const BANDS: NavBand[] = ["on-the-job", "how-we-work", "business", "operations", "settings"];
 
 /** The items of one band, in the order declared above. */
 export function byBand(items: NavItem[], band: NavBand): NavItem[] {
@@ -182,7 +193,7 @@ export function byBand(items: NavItem[], band: NavBand): NavItem[] {
  * orphan check — does anything link to this route? — has one place to look.
  */
 export type Tab = { href: string; label: string; also?: string[] };
-export type TabSetName = "finance" | "supply" | "marketing";
+export type TabSetName = "finance" | "supply" | "website";
 
 export const TAB_SETS: Record<TabSetName, Tab[]> = {
   finance: [
@@ -195,9 +206,11 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     // work that has not happened yet.
     { href: "/portal/finance/planning", label: "Planning", also: ["/portal/finance/quotes"] },
   ],
-  marketing: [
-    { href: "/portal/marketing", label: "Overview" },
-    { href: "/portal/finance/leads", label: "Website leads" },
+  website: [
+    { href: "/portal/website", label: "Enquiries" },
+    { href: "/portal/website?tab=pages", label: "Pages" },
+    { href: "/portal/website?tab=dropoff", label: "Drop-off" },
+    { href: "/portal/finance/leads", label: "Every enquiry" },
   ],
   supply: [
     { href: "/portal/supply", label: "Overview" },

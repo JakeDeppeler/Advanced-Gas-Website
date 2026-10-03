@@ -31,10 +31,15 @@ auth, or that you can't verify. Say what you'd do and why, then wait.
 |---|---|
 | Live site | built from **`main`** by the `advanced-gas-website-live` Vercel project |
 | Default branch | `claude/seo-lead-conversion-optimization-W1U10` — **not** deployed |
+| Server functions | `hnd1` (Tokyo), pinned in `vercel.json` |
 
 That default branch is a stale side branch with an older design. Work merged
 there changes nothing visible. **Branch from `main`, PR into `main`.** This has
 already cost one full round of debugging; don't repeat it.
+
+The functions run in Tokyo because Supabase does (`ap-northeast-1`). A portal
+page makes several database reads in a row, and from any other region each one
+is a long round trip. Move the database and this has to move with it.
 
 `main` also carries the internal portal (`src/lib/portal/`), the Xero OAuth
 routes, and the quote form, which has written leads to `portal_leads` since

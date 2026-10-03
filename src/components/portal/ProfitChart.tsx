@@ -10,7 +10,8 @@ const padL = 52, padR = 16, padT = 18, padB = 30;
 const plotW = W - padL - padR;
 const plotH = H - padT - padB;
 
-const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
+// The minus goes before the dollar sign, as money is written: "−$7k", not "$-7k".
+const short = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n) >= 1000 ? `$${Math.round(Math.abs(n) / 1000)}k` : `$${Math.round(Math.abs(n))}`}`;
 
 /**
  * Profit per period as bars either side of zero. Money in versus money out
@@ -28,7 +29,9 @@ export function ProfitChart({ points, spanLabel }: { points: ProfitPoint[]; span
   const hi = Math.max(0, ...vals);
   const lo = Math.min(0, ...vals);
   const pad = (hi - lo || 1) * 0.12;
-  const top = hi + pad, bottom = lo - pad;
+  // Padding below zero only when something is below zero: on a year of
+  // profit it put a "−$7k" tick under the axis that no month came near.
+  const top = hi + pad, bottom = lo < 0 ? lo - pad : 0;
 
   const y = (v: number) => padT + (1 - (v - bottom) / (top - bottom)) * plotH;
   const zeroY = y(0);

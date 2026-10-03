@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { PortalBack } from "@/components/portal/PortalBack";
 import { JobCalculator } from "@/components/portal/JobCalculator";
 import { crewFigures } from "@/lib/portal/crewRates";
 import { money2 } from "@/lib/portal/format";
@@ -22,7 +23,7 @@ export default async function JobCalculatorPage() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Job calculator</div>
+        <PortalBack href="/portal" label="Home" />
         <h1>Price a job by who&rsquo;s on it.</h1>
         <p>Pick the job, who&rsquo;s on it and for how long. Each person prices at their own charge-out rate, and a day parked on one site prices differently to a day crossing the shire. Add travel and materials and it tells you what&rsquo;s actually left in it.</p>
         {figures.length > 0 && (

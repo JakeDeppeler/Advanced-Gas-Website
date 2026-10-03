@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MoneyChart, type MonthPoint } from "@/components/portal/MoneyChart";
 import { money, pct } from "@/lib/portal/format";
@@ -27,8 +27,8 @@ function Icon({ tone }: { tone: Signal["tone"] }) {
 }
 
 export function FinanceOverview({
-  today, week, month, lastMonth, year, series, tf, plKey, plSummary,
-}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string; plKey?: string; plSummary?: ReactNode }) {
+  today, week, month, lastMonth, year, series, tf,
+}: { today: PL; week: PL; month: PL; lastMonth: PL; year: PL; series: MonthPoint[]; tf: string }) {
   const [target, setTarget] = useState<number | null>(null);
   useEffect(() => {
     try {
@@ -56,12 +56,6 @@ export function FinanceOverview({
     { label: "This year", pl: year },
   ];
 
-  const stats: { label: string; value: string; neg?: boolean }[] = [
-    { label: "In this month", value: month ? money(month.income) : "—" },
-    { label: "Out this month", value: month ? money(month.expenses) : "—" },
-    { label: "Profit this year", value: yearProfit !== null ? money(yearProfit) : "—", neg: yearProfit !== null && yearProfit < 0 },
-    { label: "Margin this year", value: margin !== null ? pct(margin) : "—", neg: margin !== null && margin < 0 },
-  ];
 
   const signals: Signal[] = [];
   if (monthProfit !== null) {
@@ -97,35 +91,34 @@ export function FinanceOverview({
 
   return (
     <>
-      {/* Where we're at */}
-      <section className="pt-ov__now">
-        <div className="pt-ov__nowmain">
-          <span className="pt-ov__nowlabel">Profit this month, so far</span>
-          <div className={`pt-ov__big${monthProfit !== null && monthProfit < 0 ? " is-neg" : ""}`}>{monthProfit !== null ? money(monthProfit) : "—"}</div>
+      {/* The two numbers the design leads with: the month so far, and the
+          year. Everything the old row of navy tiles said is in the table
+          beneath, once. */}
+      <div className="pt-ov2">
+        <section className="pt-ov2__month">
+          <span className="pt-ov2__k">Profit this month, so far</span>
+          <strong className="pt-ov2__big">{monthProfit !== null ? money(monthProfit) : "—"}</strong>
           {paced !== null && lastMonth && (
-            <div className="pt-ov__nowsub">On pace for ~{money(paced)} this month · last month {money(lastMonth.netProfit)}</div>
+            <span className="pt-ov2__sub">On pace for about {money(paced)} · last month {money(lastMonth.netProfit)}</span>
           )}
-        </div>
-        <dl className="pt-ov__nowside">
-          {stats.map((s) => (
-            <div key={s.label}>
-              <dt>{s.label}</dt>
-              <dd className={s.neg ? "is-neg" : ""}>{s.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
+        </section>
+        <section className="pt-ov2__year">
+          <span className="pt-ov2__k">Profit this year</span>
+          {/* A loss is said with its minus sign; the orange only agrees. */}
+          <strong className={`pt-ov2__big${yearProfit !== null && yearProfit < 0 ? " is-neg" : ""}`}>{yearProfit !== null ? money(yearProfit) : "—"}</strong>
+          <span className="pt-ov2__sub">Margin {margin !== null ? pct(margin) : "—"}</span>
+        </section>
+      </div>
 
-      {/* Profit at a glance */}
-      <div className="pt-fin__cards">
+      <section className="pt-panel pt-ov2__rows">
         {cards.map((c) => (
-          <div key={c.label} className="pt-fin__card">
-            <div className="pt-fin__cardlabel">{c.label}</div>
-            <div className={`pt-fin__profit${c.pl && c.pl.netProfit < 0 ? " is-neg" : ""}`}>{c.pl ? money(c.pl.netProfit) : "—"}</div>
-            <div className="pt-fin__cardsub">{c.pl ? <>In {money(c.pl.income)} · Out {money(c.pl.expenses)}</> : "No data"}</div>
+          <div key={c.label} className="pt-ov2__row">
+            <strong>{c.label}</strong>
+            <span>{c.pl ? <>In {money(c.pl.income)} · Out {money(c.pl.expenses)}</> : "Xero didn’t answer for this one"}</span>
+            <b className={c.pl && c.pl.netProfit < 0 ? "is-neg" : ""}>{c.pl ? money(c.pl.netProfit) : "—"}</b>
           </div>
         ))}
-      </div>
+      </section>
 
       {/* Money in vs money out */}
       {series.length >= 2 && (
@@ -134,7 +127,7 @@ export function FinanceOverview({
             <h2 className="pt-panel__h">Money in vs money out</h2>
             <div className="pt-ov__tf">
               {TF_OPTS.map((o) => (
-                <Link key={o.k} href={`/portal/finance?tf=${o.k}${plKey ? `&pl=${plKey}` : ""}`} scroll={false} className={`pt-ov__tfbtn${tf === o.k ? " is-on" : ""}`}>{o.label}</Link>
+                <Link key={o.k} href={`/portal/finance?tf=${o.k}`} scroll={false} className={`pt-ov__tfbtn${tf === o.k ? " is-on" : ""}`}>{o.label}</Link>
               ))}
             </div>
           </div>
@@ -142,7 +135,13 @@ export function FinanceOverview({
         </section>
       )}
 
-      {plSummary}
+      <Link href="/portal/finance/pl" className="pt-panel pt-linkpanel">
+        <span>
+          <strong>Where the money went</strong>
+          <em>Every account, against the period before, on the Profit &amp; loss tab.</em>
+        </span>
+        <span className="pt-linkpanel__go">Profit &amp; loss →</span>
+      </Link>
 
       {/* Good vs watch */}
       <section className="pt-panel">

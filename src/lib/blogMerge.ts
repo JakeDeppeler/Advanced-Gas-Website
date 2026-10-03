@@ -11,7 +11,19 @@
  */
 
 import { posts as BUILT_IN, type BlogPost, type Section } from "@/lib/blog";
-import { parseProse, readingMinutes } from "@/lib/portal/prose";
+import { readingMinutes } from "@/lib/portal/prose";
+import { BASE_CATS, FALLBACK_PHOTO, bodySections, sectionsToBody, toSlug, postChecks, wordCount, type PostCheck } from "@/lib/blogText";
+
+export { BASE_CATS, FALLBACK_PHOTO, bodySections, sectionsToBody, toSlug, postChecks, wordCount };
+export type { PostCheck };
+
+/**
+ * Every topic a post can carry: the blog index's chips, and whatever the
+ * articles written in blog.ts already use. Without the second half, opening
+ * one of those in the editor showed the wrong topic in the box and saving it
+ * failed with "Pick a topic".
+ */
+export const POST_CATS: string[] = [...new Set([...BASE_CATS, ...BUILT_IN.map((p) => p.cat)])];
 
 export type StoredPost = {
   id: string;
@@ -33,37 +45,22 @@ export type StoredPost = {
   updatedAt: string;
 };
 
-/** The categories the blog index filters by. */
-export const POST_CATS = [
-  "VEU rebates", "Heat pumps", "Aircon", "Gas safety", "Hot water", "Costs & savings",
-] as const;
-
 /**
- * A post with no cover photo still has to render inside a fixed-ratio image
- * box on the index, so it gets the one the site already ships rather than a
- * broken image or a hole in the grid.
- */
-export const FALLBACK_PHOTO = "/270L-istore-heatpump.webp";
-
-/**
- * Lower-case, hyphenated, no leading or trailing hyphen. It is a URL.
+ * Would saving this article's text give back exactly the article?
  *
- * Here rather than beside the save action: that file is "use server", and a
- * sync helper exported from one becomes a server call. The editor calls this
- * on every keystroke to show the address under the title, which as a server
- * call threw "Server Functions cannot be called during initial render".
+ * A paragraph that happens to begin "- " or "## ", or one carrying a line
+ * break, would come back as something else — a bullet, a heading, two
+ * paragraphs. The live article would change on its first save without anyone
+ * having touched that part of it, so a post that doesn't survive the trip is
+ * not offered for editing.
  */
-export const toSlug = (s: string) =>
-  s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 80);
-
-/** The markdown-lite body, as the Section[] the public post page renders. */
-export function bodySections(body: string): Section[] {
-  return parseProse(body).map((b): Section =>
-    b.kind === "h" ? { type: "h2", text: b.text }
-      : b.kind === "ul" ? { type: "ul", items: b.items }
-        : { type: "p", text: b.text },
-  );
+export function roundTrips(content: Section[]): boolean {
+  return JSON.stringify(bodySections(sectionsToBody(content))) === JSON.stringify(content);
 }
+
+/** Is this one of the articles written in blog.ts? */
+export const isBuiltIn = (slug: string) => BUILT_IN.some((p) => p.slug === slug);
+export const builtInPost = (slug: string) => BUILT_IN.find((p) => p.slug === slug);
 
 export function toBlogPost(row: StoredPost): BlogPost {
   return {
@@ -80,6 +77,7 @@ export function toBlogPost(row: StoredPost): BlogPost {
     photo: row.photo || FALLBACK_PHOTO,
     photoAlt: row.photoAlt || row.title,
     featured: row.featured || undefined,
+    onHome: row.onHome || undefined,
     content: bodySections(row.body),
   } as BlogPost;
 }
@@ -108,9 +106,11 @@ export function mergePosts(stored: StoredPost[], preview = false): BlogPost[] {
   const live = stored.filter((r) => preview || isLive(r));
   const bySlug = new Map(live.map((r) => [r.slug, r]));
 
+  // An edit to a built-in article keeps whatever the row doesn't carry — the
+  // layout flag the index alternates cards on — rather than dropping it.
   const overridden = BUILT_IN.map((p) => {
     const row = bySlug.get(p.slug);
-    return row ? toBlogPost(row) : p;
+    return row ? { ...p, ...toBlogPost(row) } : p;
   });
   const fresh = live.filter((r) => !BUILT_IN.some((p) => p.slug === r.slug)).map(toBlogPost);
 
@@ -122,3 +122,16 @@ export function mergePosts(stored: StoredPost[], preview = false): BlogPost[] {
 export function findMerged(all: BlogPost[], slug: string): BlogPost | undefined {
   return all.find((p) => p.slug === slug);
 }
+
+/**
+ * The home page's three: anything pinned there first, then the newest.
+ *
+ * The "Show on the home page" switch in the editor sets the pin. Before this
+ * the switch saved and nothing read it, so the home page went on showing the
+ * three newest whatever it said.
+ */
+export function homePosts(all: BlogPost[], n = 3): BlogPost[] {
+  const pinned = all.filter((p) => p.onHome);
+  return [...pinned, ...all.filter((p) => !p.onHome)].slice(0, n);
+}
+

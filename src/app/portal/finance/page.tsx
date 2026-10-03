@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
-import { PLSummary } from "@/components/portal/PLSummary";
-import Link from "next/link";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, ovSpans, localToday, MONEY_RANGES, OV_PERIODS, type MoneyRange, type OvPeriod, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getMoneySeries, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { XeroLine } from "@/components/portal/XeroLine";
@@ -31,27 +30,17 @@ function ranges() {
   };
 }
 
-export default async function FinancePage({ searchParams }: { searchParams: { tf?: string; pl?: string } }) {
+export default async function FinancePage({ searchParams }: { searchParams: { tf?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   const tf: MoneyRange = (MONEY_RANGES as readonly string[]).includes(searchParams?.tf ?? "") ? (searchParams!.tf as MoneyRange) : "12m";
-  const pl: OvPeriod = OV_PERIODS.some((o) => o.k === searchParams?.pl) ? (searchParams!.pl as OvPeriod) : "month";
   const { status, tenantName } = await xeroStatus();
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal" label="Home" />
-          <h1>Where we&rsquo;re at</h1>
-          <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Where we’re at" xero={{ state: status, org: tenantName }} />
 
       {status === "not-configured" && (
         <section className="pt-panel">
@@ -74,54 +63,37 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
         </section>
       )}
 
-      {status === "connected" && <ConnectedView tenantName={tenantName ?? null} tf={tf} plKey={pl} />}
+      {status === "connected" && <ConnectedView tf={tf} />}
     </PortalShell>
   );
 }
 
-async function ConnectedView({ tenantName, tf, plKey }: { tenantName: string | null; tf: MoneyRange; plKey: OvPeriod }) {
+async function ConnectedView({ tf }: { tf: MoneyRange }) {
   const r = ranges();
-  const pl = ovSpans(plKey);
-  const [today, week, month, lastMonth, year, series, plNow, plBefore] = await Promise.all([
+  const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
     getProfitAndLoss(r.month.from, r.month.to),
     getProfitAndLoss(r.lastMonth.from, r.lastMonth.to),
     getProfitAndLoss(r.year.from, r.year.to),
     getMoneySeries(tf),
-    getPLDetail(pl.now.from, pl.now.to),
-    getPLDetail(pl.before.from, pl.before.to),
   ]);
 
   const anyData = [today, week, month, year].some((p) => p !== null);
 
   return (
     <div className="pt-fin">
-      {/* Where the figures came from is said once, in the page head. All
-          that is left here is the one thing you can do about it. */}
-      <div className="pt-fin__bar pt-fin__bar--end">
-        <form action="/api/xero/disconnect" method="post"><button type="submit" className="pt-btn pt-btn--ghost pt-btn--sm">Disconnect</button></form>
-      </div>
-
       {!anyData && (
-        <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect and connect again.</div>
+        <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect below and connect again.</div>
       )}
 
-      <FinanceOverview
-        today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} plKey={plKey}
-        plSummary={plNow ? (
-          <PLSummary
-            now={plNow} before={plBefore} nowLabel={pl.now.label} beforeLabel={pl.before.label}
-            picker={
-              <div className="pt-ov__tf">
-                {OV_PERIODS.map((o) => (
-                  <Link key={o.k} href={`/portal/finance?tf=${tf}&pl=${o.k}`} scroll={false} className={`pt-ov__tfbtn${plKey === o.k ? " is-on" : ""}`}>{o.label}</Link>
-                ))}
-              </div>
-            }
-          />
-        ) : null}
-      />
+      <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
+
+      {/* At the foot rather than the top: it is the one control on the page
+          that undoes something, and it's needed about once a year. */}
+      <div className="pt-fin__bar pt-fin__bar--end">
+        <form action="/api/xero/disconnect" method="post"><button type="submit" className="pt-btn pt-btn--ghost pt-btn--sm">Disconnect Xero</button></form>
+      </div>
     </div>
   );
 }

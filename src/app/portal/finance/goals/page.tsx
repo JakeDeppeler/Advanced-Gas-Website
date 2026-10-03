@@ -3,6 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { getSettings, dbConfigured } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
 import { getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
@@ -43,20 +44,7 @@ export default async function YearGoalPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/finance" label="Finance" />
-          <h1>Are we going to make it?</h1>
-          <p>
-            The year&rsquo;s goal broken down across the months, against what Xero says has actually been invoiced and
-            what the overheads are running at. Whether we&rsquo;re ahead or behind, and whether last month was better
-            than the one before.
-          </p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="The year" lede="The year’s goal across the months, against what Xero says was actually invoiced and what the overheads are running at." xero={{ state: status, org: tenantName }} />
 
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />
     </PortalShell>

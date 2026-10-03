@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { ProfitChart } from "@/components/portal/ProfitChart";
 import { PLStatement } from "@/components/portal/PLStatement";
@@ -23,16 +24,7 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/finance" label="Finance" />
-          <h1>What we actually made</h1>
-          <p>Every account from Xero, next to the same figures for the period before — so you can see which lines moved and by how much.</p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Profit & loss" lede="Every account from Xero, next to the same figures for the period before — which lines moved, and by how much." xero={{ state: status, org: tenantName }} />
 
       {status !== "connected" ? (
         <section className="pt-panel">

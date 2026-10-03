@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { WINDOWS, type WindowKey } from "@/lib/portal/marketingTabs";
 
 /**
  * The three shapes every Marketing tab is built from.
@@ -93,5 +94,46 @@ export function Needs({
       )}
       {alt && <Link href={alt.href} className="pt-btn pt-btn--orange pt-needs__alt">{alt.label}</Link>}
     </section>
+  );
+}
+
+/**
+ * The time window a section reads against, as a row of three.
+ *
+ * Shared by Marketing and Website so the two can't grow different ideas of
+ * what "recently" means.
+ */
+export function WindowPicker({ win, hrefFor }: { win: string; hrefFor: (w: WindowKey) => string }) {
+  return (
+    <nav className="pt-win" aria-label="Time window">
+      {WINDOWS.map((w) => (
+        <Link
+          key={w.k}
+          href={hrefFor(w.k)}
+          aria-current={w.k === win ? "page" : undefined}
+          className={`pt-win__opt${w.k === win ? " is-on" : ""}`}
+        >
+          {w.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+/** A section's tab strip: links, with the current one marked for a screen reader too. */
+export function SectionTabs({ label, tabs, current }: { label: string; tabs: { k: string; label: string; href: string }[]; current: string }) {
+  return (
+    <nav className="pt-tabs" aria-label={label}>
+      {tabs.map((t) => (
+        <Link
+          key={t.k}
+          href={t.href}
+          aria-current={t.k === current ? "page" : undefined}
+          className={`pt-tab${t.k === current ? " is-on" : ""}`}
+        >
+          {t.label}
+        </Link>
+      ))}
+    </nav>
   );
 }

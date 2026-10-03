@@ -51,7 +51,7 @@ export default async function SupplyPricingPage() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
+        <PortalBack href="/portal/supply" label="Supply" />
         <h1>Pricing rules</h1>
         <p>What happens to a Reece cost on its way into the ServiceTitan pricebook.</p>
       </div>

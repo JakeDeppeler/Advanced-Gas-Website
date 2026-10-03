@@ -423,10 +423,12 @@ export async function resolveUser(email: string): Promise<PortalUser | null> {
   const owner = baseMember(e);
   if (owner) return { email: owner.email, name: owner.name, role: owner.role, caps: {}, active: true };
   if (!dbConfigured()) return null;
-  const u = await getUser(e);
+  // Both at once: this runs before every page in the portal, and the access
+  // map doesn't depend on who is asking. One wasted read for somebody switched
+  // off is cheaper than a second round trip for everybody else.
+  const [u, access] = await Promise.all([getUser(e), getAccessMap()]);
   if (!u || !u.active) return null;
 
-  const access = await getAccessMap();
   const levelCaps = u.level ? access[u.level] ?? [] : null;
   const caps: CapMap = {};
   for (const { key } of CAPS) {
@@ -1302,4 +1304,39 @@ export async function deleteStoredPost(slug: string): Promise<{ ok: boolean; err
   if (!res) return { ok: false, error: "not-configured" };
   if (!res.ok) return { ok: false, error: `${res.status}` };
   return { ok: true };
+}
+
+/* ---------------- page views ---------------- */
+
+export type PageViews = {
+  /** Reads per path over the window asked for. */
+  byPath: Map<string, number>;
+  /** Every read in the window, all pages. */
+  total: number;
+  /** The first day anything was counted, so a figure can say how far back it goes. */
+  since: string | null;
+};
+
+/**
+ * Reads of public pages since a Melbourne date, from the counter the site
+ * posts to (migration 0037).
+ *
+ * Summed here rather than in SQL: a year of a few hundred pages is a few
+ * thousand small rows, and PostgREST has no GROUP BY without a view.
+ */
+export async function pageViews(sinceDay: string): Promise<PageViews> {
+  const [rows, first] = await Promise.all([
+    sb(`portal_page_views?select=path,views&day=gte.${sinceDay}&limit=50000`),
+    sb(`portal_page_views?select=day&order=day.asc&limit=1`),
+  ]);
+  const byPath = new Map<string, number>();
+  let total = 0;
+  if (rows?.ok) {
+    for (const r of (await rows.json()) as { path: string; views: number }[]) {
+      byPath.set(r.path, (byPath.get(r.path) ?? 0) + r.views);
+      total += r.views;
+    }
+  }
+  const since = first?.ok ? (((await first.json()) as { day: string }[])[0]?.day ?? null) : null;
+  return { byPath, total, since };
 }

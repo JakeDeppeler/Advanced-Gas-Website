@@ -26,6 +26,17 @@ that row. Three reasons:
 `st_*` tables keep the raw ServiceTitan payload in a `raw` jsonb column, so new
 tiles can be added — or metrics backfilled — without re-pulling history.
 
+## Seeing it from the portal
+
+**Wall board** on the portal home (`/portal/board`) is the board explained to
+someone who isn't standing in front of it: the figures each of the six pages is
+leading with right now, read from the same snapshot row the screen reads, which
+of the four monthly targets are set (a dial with no target stays blank, and the
+page says which), each source's state and age, and how the refresh works. Its
+buttons open the live board and the targets page. **Integrations**
+(`/portal/integrations`) carries the same source states beside Xero, Reece,
+Google reviews, Instagram and the quote email.
+
 ## The pages
 
 The board cycles every 20 seconds through six pages. Past about eight tiles

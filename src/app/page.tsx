@@ -11,6 +11,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
 import { publishedPosts } from "@/lib/blogLive";
+import { homePosts } from "@/lib/blogMerge";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
 import { DoorIcon, type DoorIconKey } from "@/components/DoorIcon";
@@ -723,7 +724,7 @@ export default async function HomePage() {
             <Link href="/blog" className="tips__all">Read the blog →</Link>
           </div>
           <div className="tips__grid">
-            {posts.slice(0, 3).map((p, i) => (
+            {homePosts(posts).map((p, i) => (
               <Link key={p.slug} href={`/blog/${p.slug}`} className="tipcard" style={{ ["--i" as string]: i }}>
                 <div className="tipcard__photo">
                   <Image

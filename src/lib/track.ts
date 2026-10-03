@@ -104,3 +104,36 @@ export function trackCall(where: string): void {
     void fetch("/api/track", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
   } catch { /* ignore */ }
 }
+
+/** Paths that are the business's own tools, not pages the public reads. */
+const NOT_THE_SITE = /^\/(portal|trade|screen|api)(\/|$)/;
+const VIEWED = "ag_viewed";
+
+/**
+ * Somebody read a page.
+ *
+ * Once per page per visit: a reload, or going back to a page already read, is
+ * the same reader, and counting it again would make a page people bounce
+ * around on look more read than one they open and finish. Nothing about the
+ * reader is sent — the path is the whole message.
+ */
+export function trackView(path: string): void {
+  if (typeof window === "undefined" || NOT_THE_SITE.test(path)) return;
+  // Headless browsers announce themselves here; a crawler that renders the
+  // page would otherwise count as a reader every time it came by.
+  if ((navigator as Navigator & { webdriver?: boolean }).webdriver) return;
+  try {
+    const seen = new Set<string>(JSON.parse(sessionStorage.getItem(VIEWED) || "[]"));
+    if (seen.has(path)) return;
+    seen.add(path);
+    sessionStorage.setItem(VIEWED, JSON.stringify([...seen].slice(-200)));
+  } catch { /* storage refused: count it, a double count beats none */ }
+  try {
+    void fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: "view", pagePath: path }),
+      keepalive: true,
+    });
+  } catch { /* ignore */ }
+}

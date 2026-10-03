@@ -4,6 +4,7 @@ import { can } from "@/lib/portal/caps";
 import { listUsers, getCapSettings, getSettings, listQuotes, dbConfigured } from "@/lib/portal/db";
 import { computeCapacity, DEFAULT_SETTINGS, type CrewLevel } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { RevenuePlanner } from "@/components/portal/RevenuePlanner";
 import type { Targets, Capacity } from "@/lib/portal/targets";
@@ -70,21 +71,7 @@ export default async function TargetsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/finance" label="Finance" />
-          <h1>What has to happen to hit the year</h1>
-          <p>
-            Set the year&rsquo;s revenue and everything else works backwards from it: the work that has to be finished,
-            the hours that takes out of the crew&rsquo;s week, the quoting it takes to win it, and whether the crew has
-            the week for it at all. Where the accounts and the quote book know the answer already, they are used instead
-            of an assumption.
-          </p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Targets" lede="Set the year’s revenue and everything works backwards from it: the work, the hours, and the quoting it takes." xero={{ state: status, org: tenantName }} />
       <RevenuePlanner initial={targets} cap={capacity} actual={actual} ytd={ytd} canSave={ready} />
     </PortalShell>
   );

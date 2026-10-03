@@ -544,3 +544,15 @@
      bottom:0 sits underneath it. It stops above it instead. */
   .tr-save { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* ------------------------------------------------------- loading skeleton */
+.tr-skel { display: block; border-radius: 14px; background: var(--pt-tint, #f3efe5); }
+.tr-skel__h { width: min(320px, 60%); height: 36px; }
+.tr-skel__body { padding: 8px 32px 40px; display: flex; flex-direction: column; gap: 16px; }
+.tr-skel__panel { height: 240px; background: var(--pt-surface, #fff); border: 1px solid var(--pt-line, #ebe6d8); }
+.tr-skel__panel--short { height: 150px; }
+.tr-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .tr-skel { animation: tr-skel 1.4s ease-in-out infinite; }
+  @keyframes tr-skel { 50% { opacity: 0.55; } }
+}

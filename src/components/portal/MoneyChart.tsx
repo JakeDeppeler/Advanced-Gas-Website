@@ -13,7 +13,8 @@ const plotW = W - padL - padR;
 const plotH = H - padT - padB;
 
 const full = (n: number) => n.toLocaleString("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 });
-const short = (n: number) => (Math.abs(n) >= 1000 ? `$${Math.round(n / 1000)}k` : `$${Math.round(n)}`);
+// The minus goes before the dollar sign, as money is written: "−$7k", not "$-7k".
+const short = (n: number) => `${n < 0 ? "−" : ""}${Math.abs(n) >= 1000 ? `$${Math.round(Math.abs(n) / 1000)}k` : `$${Math.round(Math.abs(n))}`}`;
 
 export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLabel?: string }) {
   const [hover, setHover] = useState<number | null>(null);
