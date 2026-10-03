@@ -444,7 +444,16 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         lines={
           live.st
             ? [
-                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs quoted`,
+                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs · last ${m.outstandingDays ?? 30} days`,
+                // Split by the side of the business: an agent deciding on
+                // behalf of a landlord is a different sell from a householder
+                // spending their own money, and one rate across both says
+                // nothing about either. Each carries its own denominator —
+                // the real estate side is eight jobs deep and a bare
+                // percentage would hide that.
+                ...m.closeRateByUnit
+                  .filter((u) => u.quoted > 0)
+                  .map((u) => `${u.group} ${pct(u.rate)} · ${count(u.won)} of ${count(u.quoted)}`),
                 // Options per job, not the raw count. "429 options" is a
                 // number nobody can act on; "3.6 options per job" says whether
                 // we are putting a choice in front of people, and it is the
@@ -455,7 +464,6 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
                     ? ` · ${(m.closeRate30dOptions / m.closeRate30dQuotes).toFixed(1)} options per job`
                     : ""
                 }`,
-                `last ${m.outstandingDays ?? 30} days`,
               ]
             : ["ServiceTitan not connected"]
         }
@@ -499,20 +507,13 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           actually been billed. It was sold / invoiced / profit / booked in no
           particular order, which is four figures rather than one story. */}
       <span className="band band--today">Today</span>
-      {/* Same reason as the month card below: no daily quoted target exists, so
-          a progress bar against nothing is a bar that never means anything. */}
-      <RateCard
+      {/* No daily quoted target exists, so there is no meter — but the card
+          keeps the shape of the three beside it. */}
+      <DayFigure
         label="Quoted"
-        lines={
-          live.st
-            ? [
-                `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}`,
-                `${count(m.quotesCreatedTodayOptions)} options written`,
-              ]
-            : ["ServiceTitan not connected"]
-        }
         value={st.plain(m.quotesCreatedTodayValue, live)}
-        stack
+        note={live.st ? `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}` : undefined}
+        lines={live.st ? [`${count(m.quotesCreatedTodayOptions)} options written`] : ["ServiceTitan not connected"]}
       />
       <DailyCard
         label="Sold"
@@ -531,18 +532,11 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           today's quotes, so it answers "did what we wrote today come back
           today". It reads 0% on most days, which is the honest answer — the
           month's rate is the card below. */}
-      <RateCard
+      <DayFigure
         label="Win rate"
-        lines={
-          live.st
-            ? [
-                `${count(m.quotesCreatedTodaySold)} of ${count(m.quotesCreatedTodayCount)} quoted today`,
-                "same-day only",
-              ]
-            : ["ServiceTitan not connected"]
-        }
         value={live.st ? pct(m.conversionTodayPct) : NA}
-        stack
+        note={live.st ? `${count(m.quotesCreatedTodaySold)} of ${count(m.quotesCreatedTodayCount)}` : undefined}
+        lines={live.st ? ["quoted and sold the same day"] : ["ServiceTitan not connected"]}
       />
       <DailyCard
         label="Invoiced"
@@ -556,15 +550,14 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           dial with nothing to measure against is an empty arc with the figure
           shrunk underneath it — the one number on the tile made the smallest
           thing on it. */}
-      <RateCard
+      <MonthFigure
         label="Quoted"
+        value={st.money(m.quotesCreatedMonthValue, live)}
         lines={
           live.st
             ? [`${count(m.quotesCreatedMonthCount)} jobs`, `${count(m.closeRate30dOptions)} options written`]
             : ["ServiceTitan not connected"]
         }
-        value={st.money(m.quotesCreatedMonthValue, live)}
-        stack
       />
       <Gauge
         label="Sold"
@@ -585,8 +578,9 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           near zero every time the month turned over. Split by the side of the
           business, because an agent deciding for a landlord is a different sell
           from a householder spending their own money. */}
-      <RateCard
+      <MonthFigure
         label="Win rate"
+        value={live.st ? pct(m.closeRate30d) : NA}
         lines={
           live.st
             ? [
@@ -597,8 +591,6 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
               ]
             : ["ServiceTitan not connected"]
         }
-        value={live.st ? pct(m.closeRate30d) : NA}
-        stack
       />
       <Gauge
         label="Invoiced"
@@ -1304,26 +1296,9 @@ function HeroCard({ label, value, foot, navy }: { label: string; value: string; 
  * lines rather than one: a rate with nothing beside it invites the room to
  * guess what it is a rate of.
  */
-/**
- * `stack` puts the figure above its lines instead of beside them. The split
- * layout wants a wide tile; in one of five columns on Pace it squeezed the
- * lines into two words a row.
- */
-function RateCard({
-  label,
-  lines,
-  value,
-  accent,
-  stack,
-}: {
-  label: string;
-  lines: string[];
-  value: string;
-  accent?: boolean;
-  stack?: boolean;
-}) {
+function RateCard({ label, lines, value, accent }: { label: string; lines: string[]; value: string; accent?: boolean }) {
   return (
-    <div className={`tile ${stack ? "tile--stackrate" : "tile--split"} c4`}>
+    <div className="tile tile--split c4">
       <div>
         <span className="tile__label">{label}</span>
         {lines.map((l) => (
@@ -1336,6 +1311,61 @@ function RateCard({
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+/**
+ * A figure in the shape of the daily cards it sits among.
+ *
+ * Quoted and win rate have no target to pace against, so they carry no meter —
+ * but they were drawn as centred stacks next to three left-aligned cards with
+ * their labels on top, and a row where two tiles are built differently from the
+ * other three reads as a mistake before it reads as a distinction.
+ */
+function DayFigure({
+  label,
+  value,
+  note,
+  lines = [],
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  lines?: string[];
+}) {
+  return (
+    <div className="tile c4">
+      <div className="tile__head">
+        <span className="tile__label">{label}</span>
+      </div>
+      <div className="tile__head">
+        <span className={vcls(value)}>{value}</span>
+        {note && <span className="tile__sub">{note}</span>}
+      </div>
+      {lines.map((l) => (
+        <span className="tile__sub" key={l}>
+          {l}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The same, in the shape of the month's dials: label on top, the figure where
+ * the arc would be, its lines centred underneath.
+ */
+function MonthFigure({ label, value, lines = [] }: { label: string; value: string; lines?: string[] }) {
+  return (
+    <div className="tile gauge c3">
+      <span className="gauge__label">{label}</span>
+      <span className={`${vcls(value)} gauge__figure`}>{value}</span>
+      {lines.map((l) => (
+        <span className="tile__sub" key={l} style={{ textAlign: "center" }}>
+          {l}
+        </span>
+      ))}
     </div>
   );
 }

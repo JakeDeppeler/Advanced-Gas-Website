@@ -379,12 +379,6 @@ body:has(.screen) .utilbar {
 .tile--split .tile__value { font-size: calc(2.5 * var(--u)); }
 .tile--split .tile__value--rate { font-size: calc(3.4 * var(--u)); }
 
-/* The figure above its lines rather than beside them, for a tile one of five
-   columns wide — the split layout squeezed the lines to two words a row. */
-.tile--stackrate { justify-content: center; align-items: center; text-align: center; }
-.tile--stackrate > div { display: flex; flex-direction: column; gap: calc(0.2 * var(--u)); order: 2; }
-.tile--stackrate .tile__value--rate { font-size: calc(3.1 * var(--u)); order: 1; }
-
 /* The pace sentence under a dial wraps rather than running out of its tile.
    `.status` is nowrap everywhere else, where it is a short pill on one line. */
 .gauge .status {
@@ -501,6 +495,18 @@ body:has(.screen) .utilbar {
 .gauge { align-items: center; justify-content: center; gap: calc(0.7 * var(--u)); }
 .gauge > .tile__sub:last-child { margin-top: 0; }
 .gauge__svg { width: 100%; max-height: calc(12 * var(--u)); }
+/* A figure standing where a dial would, for the steps of the funnel that have
+   no target to pace against. Sized to match the dial's own percentage so the
+   row reads as one set of tiles rather than two kinds. */
+.gauge__figure {
+  font-size: calc(3.1 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1;
+  margin: calc(1.6 * var(--u)) 0 calc(0.6 * var(--u));
+}
+.gauge__figure.tile__value--na { font-size: calc(2.2 * var(--u)); color: var(--ink-muted); }
 .gauge__track { stroke: var(--track); }
 .gauge__fill { stroke: var(--navy); }
 .gauge__pace { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }

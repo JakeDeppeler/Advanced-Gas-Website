@@ -624,6 +624,11 @@ where there were **118**. The per-person rates on the Team page group the same
 rows by customer and day as well, so the headline disagreed with the rows under
 it. Both use the same key now.
 
+**The Today page carries the same split.** Close rate reads the overall figure,
+then Domestic and Real Estate on their own lines with their own denominators,
+then what a job was priced at. It is the first page the room sees and the one
+anybody glances at in passing, so the split belongs there as much as on Pace.
+
 **The close rate carries what a job was priced at, and how many ways.** "429
 options" was a number nobody could act on. **3.6 options per job** says whether
 we are putting a choice in front of people, and it is the figure that makes the
@@ -743,6 +748,14 @@ sold / invoiced / profit / booked in no particular order, which is four figures
 rather than one story. Quoted has no target to pace against, so it is a figure
 card rather than a dial — a dial with nothing to measure against is an empty arc
 with the one number on the tile shrunk underneath it.
+
+**Every tile in a Pace row is built the same way.** Quoted and win rate have no
+target to pace against, so they carry no meter and no dial — but they were drawn
+as centred stacks beside three left-aligned cards with their labels on top, and a
+row where two tiles are built differently from the other three reads as a mistake
+before it reads as a distinction. `DayFigure` takes the shape of the daily cards,
+`MonthFigure` takes the shape of the dials: label on top, the figure where the
+arc would be, its lines centred underneath.
 
 **Win rate is split by the side of the business.** Real estate is an agent
 deciding on behalf of a landlord; domestic is a householder spending their own
