@@ -411,6 +411,35 @@ suburbs with at least three jobs: one $15,000 job in a suburb that has had one
 job is not an average, it is that job, and on a wall it reads as a place worth
 chasing.
 
+## Profit on every job isn't buildable yet
+
+The portal design has a **Profit · every job** screen: equipment, materials and
+labour per job, what each cost, what was charged, the mark-up on each and the
+margin that fell out. The design's own footnote reads "Sample jobs for layout",
+which is the right instinct — it cannot be drawn from anything we have.
+
+`st_invoices` carries a `cost` column and the sync has never once written to
+it: 5,399 invoices, zero with a cost (checked 3 Oct 2026). There is no
+equipment or materials cost anywhere, and no labour hours per job, so every
+figure on that screen would have to be invented. A made-up margin on a page
+called "profit on every job" is the single most damaging number this product
+could print — somebody would reprice off it.
+
+What would make it real, in order of how much work each is:
+
+1. **Labour.** `st_jobs` would need hours on site. The charge-out rate already
+   exists and is correct (Costs & capacity derives it from the real crew), so
+   hours alone give a labour cost.
+2. **Materials.** Reece order lines already land in `portal_supply_orders` with
+   a cost. They carry a job reference, so matching them to a job is the join
+   that is missing, not the data.
+3. **Equipment.** The pricebook has the cost of every unit we install; it needs
+   to be recorded against the job it went onto.
+
+Until at least labour and materials are there, the page is not built. The
+figures that *are* sourced — revenue, margin by job type where ServiceTitan
+reports a cost, the year against its goal — are on Finance already.
+
 ## Verify the ServiceTitan field mapping
 
 The mappers in `src/lib/dashboard/stSync.ts` read the fields ServiceTitan's export payloads
