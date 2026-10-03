@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function ScreenPage({
   searchParams,
 }: {
-  searchParams: { k?: string; theme?: string };
+  searchParams: { k?: string; theme?: string; safe?: string };
 }) {
   // 404 rather than 401 — an unauthenticated visitor shouldn't learn the route
   // exists at all.
@@ -40,6 +40,9 @@ export default async function ScreenPage({
       initial={snapshot}
       token={searchParams.k as string}
       theme={searchParams.theme === "dark" ? "dark" : "light"}
+      // Clamped, because this comes off a URL anybody with the token can edit
+      // and a board inset by 40% is a support call, not a setting.
+      safe={Math.min(10, Math.max(0, Number(searchParams.safe) || 0))}
     />
   );
 }

@@ -632,6 +632,37 @@ running — a board that has stopped telling the time looks like a board that ha
 crashed. It releases itself after five minutes, because this runs on a wall and
 somebody will stop it to read a figure and then get called away.
 
+**The board scales to the screen it is given, not to 16:9.** Everything was
+sized in `vw`, which is correct only while the viewport is exactly sixteen by
+nine. A browser on the television has a toolbar: at 1920x937 the Quotes,
+Performance and Areas pages were already losing tile labels off the bottom, and
+below 1920x900 whole tiles went — silently, because the board is
+`overflow: hidden`, so a crop looked like a layout choice. The unit is now
+`--u: min(1vw, 1.7778vh)` and every size is `calc(n * var(--u))`. At a true 16:9
+nothing moves, because 1.7778vh is 1vw there; anywhere else the whole board
+shrinks to fit. Checked at 1080, 1017, 937 and 864 high, at 4K, at 16:10 and at
+1366x768: every page fits with nothing clipped.
+
+**`?safe=3` for a television that overscans.** Plenty of sets still crop a few
+percent off every edge in their default picture mode, and the browser never
+learns about it — it is handed a full 1920x1080 and the panel does not show the
+outer band, which takes the footer and the hold control with it. The parameter
+insets the whole board by that percentage, clamped to 10. Setting the TV's
+picture size to "Just scan" / "Screen fit" / "Full" is the better fix; this is
+for sets that do not offer one.
+
+**Today and this week sit under the month on Team, not beside it.** They were
+their own columns, which made six columns of money that nobody could take in at
+four metres, and Today read $0 against $0 for everybody most days. Under the
+month they are what they always were: how the month is tracking.
+
+**The Performance table counts invoices, not jobs.** The column said "Jobs" and
+was counting rows of `st_invoices`. This month that is 29 invoices against 11
+jobs completed and 20 booked — ServiceTitan bills a job when it is billed, not
+when it is stamped complete, and a job can carry more than one invoice. The
+heading says Invoices. Jobs completed appears on the Today page, under Invoiced
+today; the Performance head card counts jobs booked and says so.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two

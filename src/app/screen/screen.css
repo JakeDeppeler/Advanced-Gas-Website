@@ -8,7 +8,7 @@
    read from the back of the room.
 
    Sizing is in vw throughout so the same layout fills a 1080p or 4K panel
-   without a media query — at 1920px, 1vw = 19.2px. Values were sampled from the
+   without a media query — at 1920px, calc(1 * var(--u)) = 19.2px. Values were sampled from the
    design rather than estimated.
 
    The navy/orange pair is also the strongest thing available for colour-blind
@@ -37,6 +37,37 @@
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
+  /**
+   * The unit everything on this board is sized in.
+   *
+   * It was `vw` throughout, which is right only while the viewport is exactly
+   * 16:9. A browser on the TV has a toolbar, and at 1920x937 the Quotes,
+   * Performance and Areas pages were already losing tile labels off the bottom
+   * — silently, because the board is `overflow: hidden`, so it looked like a
+   * design choice rather than a crop. Below 1920x900 whole tiles went.
+   *
+   * Taking the smaller of the width- and height-derived unit means the board
+   * scales to whatever it is actually given and always fits. At a true 16:9
+   * nothing moves: 1.7778vh is 1vw there, which is why the figures sampled off
+   * the design still land where they were drawn.
+   */
+  --u: min(1vw, 1.7778vh);
+
+  /**
+   * Overscan margin, off by default.
+   *
+   * Plenty of televisions still crop a few percent off every edge in their
+   * default picture mode, and the browser never learns about it — it is handed
+   * a full 1920x1080 and the panel simply does not show the outer band, which
+   * takes the footer and the hold control with it. `?safe=3` on the board URL
+   * pulls everything in by three percent. Setting the TV's picture size to
+   * "Just scan" / "Screen fit" / "Full" is the better fix; this is for the
+   * sets that do not offer one.
+   */
+  --safe: 0;
+  padding: calc(var(--safe) * 1vh) calc(var(--safe) * 1vw);
+  box-sizing: border-box;
+
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -63,13 +94,13 @@ body:has(.screen) .utilbar {
 .screen__bar {
   display: flex;
   align-items: baseline;
-  gap: 0.9vw;
-  padding: 1.3vw 2.2vw 0.75vw;
+  gap: calc(0.9 * var(--u));
+  padding: calc(1.3 * var(--u)) calc(2.2 * var(--u)) calc(0.75 * var(--u));
   flex: none;
 }
 
 .screen__title {
-  font-size: 2.3vw;
+  font-size: calc(2.3 * var(--u));
   font-weight: 800;
   letter-spacing: -0.035em;
   color: var(--navy);
@@ -77,7 +108,7 @@ body:has(.screen) .utilbar {
 }
 
 .screen__subtitle {
-  font-size: 1.02vw;
+  font-size: calc(1.02 * var(--u));
   color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
@@ -93,23 +124,23 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.45vw;
+  gap: calc(0.45 * var(--u));
 }
 
-.screen__dashes { display: flex; align-items: center; gap: 0.45vw; }
+.screen__dashes { display: flex; align-items: center; gap: calc(0.45 * var(--u)); }
 .screen__dash {
-  width: 1.5vw;
-  height: 0.28vw;
+  width: calc(1.5 * var(--u));
+  height: calc(0.28 * var(--u));
   border-radius: 999px;
   background: #d9d3c3;
 }
 .screen__dash.is-on {
-  width: 2.9vw;
+  width: calc(2.9 * var(--u));
   background: var(--navy);
 }
 
 .screen__pagertxt {
-  font-size: 0.82vw;
+  font-size: calc(0.82 * var(--u));
   font-weight: 700;
   color: var(--ink-2);
   white-space: nowrap;
@@ -124,15 +155,15 @@ body:has(.screen) .utilbar {
   align-self: center;
   display: inline-flex;
   align-items: center;
-  gap: 0.4vw;
-  margin-left: 1.1vw;
-  padding: 0.34vw 0.75vw;
+  gap: calc(0.4 * var(--u));
+  margin-left: calc(1.1 * var(--u));
+  padding: calc(0.34 * var(--u)) calc(0.75 * var(--u));
   border: 1px solid var(--hairline);
   border-radius: 999px;
   background: var(--surface);
   color: var(--ink-muted);
   font: inherit;
-  font-size: 0.82vw;
+  font-size: calc(0.82 * var(--u));
   font-weight: 700;
   cursor: pointer;
 }
@@ -142,7 +173,7 @@ body:has(.screen) .utilbar {
   border-color: var(--accent);
   color: #fff;
 }
-.screen__holdicon { display: block; width: 0.54vw; height: 0.63vw; }
+.screen__holdicon { display: block; width: calc(0.54 * var(--u)); height: calc(0.63 * var(--u)); }
 
 /* Holding stops the page clock where it stands, rather than letting the bar run
    out under a page that is not going to turn. */
@@ -151,8 +182,8 @@ body:has(.screen) .utilbar {
 /* The rule under the header, doing two jobs: it separates the header from the
    body, and its orange run is how far through the six pages the board is. */
 .screen__rule {
-  margin: 0 2.2vw;
-  height: 0.16vw;
+  margin: 0 calc(2.2 * var(--u));
+  height: calc(0.16 * var(--u));
   border-radius: 999px;
   background: var(--hairline);
   flex: none;
@@ -185,8 +216,8 @@ body:has(.screen) .utilbar {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 0.95vw;
-  padding: 1vw 2.2vw 1vw;
+  gap: calc(0.95 * var(--u));
+  padding: calc(1 * var(--u)) calc(2.2 * var(--u)) calc(1 * var(--u));
   min-height: 0;
   grid-auto-rows: minmax(0, 1fr);
 }
@@ -194,7 +225,7 @@ body:has(.screen) .utilbar {
 /* Each page wants its own vertical proportions. */
 .screen__grid--today { grid-template-rows: 1.25fr 1fr; }
 .screen__grid--pace {
-  grid-template-columns: 7.5vw repeat(12, 1fr);
+  grid-template-columns: calc(7.5 * var(--u)) repeat(12, 1fr);
   grid-template-rows: 0.72fr 1.75fr 0.62fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
@@ -205,10 +236,10 @@ body:has(.screen) .utilbar {
 .tile {
   display: flex;
   flex-direction: column;
-  gap: 0.4vw;
-  padding: 1.25vw 1.5vw;
+  gap: calc(0.4 * var(--u));
+  padding: calc(1.25 * var(--u)) calc(1.5 * var(--u));
   background: var(--surface);
-  border-radius: 1.15vw;
+  border-radius: calc(1.15 * var(--u));
   box-shadow: 0 1px 2px rgba(5, 10, 48, 0.04);
   min-width: 0;
   overflow: hidden;
@@ -228,7 +259,7 @@ body:has(.screen) .utilbar {
    leans on size and weight instead, and at 1080p across a room the size gap
    does that work on its own. */
 .tile__label {
-  font-size: 1.02vw;
+  font-size: calc(1.02 * var(--u));
   font-weight: 500;
   color: var(--ink-2);
   white-space: nowrap;
@@ -237,26 +268,26 @@ body:has(.screen) .utilbar {
 }
 
 .tile__value {
-  font-size: 2.9vw;
+  font-size: calc(2.9 * var(--u));
   font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1;
   color: var(--navy);
   white-space: nowrap;
 }
-.tile__value--hero { font-size: 4.6vw; }
-.c3 .tile__value--hero { font-size: 3.4vw; }
+.tile__value--hero { font-size: calc(4.6 * var(--u)); }
+.c3 .tile__value--hero { font-size: calc(3.4 * var(--u)); }
 .tile__value--muted { color: var(--muted-fig); }
 
 /* An unavailable figure is a dash, not a bar: at hero size an em dash is as
    wide as a progress fill and was being read as one. */
 .tile__value.tile__value--na {
-  font-size: 1.5vw;
+  font-size: calc(1.5 * var(--u));
   color: var(--ink-muted);
 }
 
 .tile__sub {
-  font-size: 0.92vw;
+  font-size: calc(0.92 * var(--u));
   color: var(--ink-muted);
 }
 .tile__sub--body { line-height: 1.5; white-space: normal; }
@@ -279,11 +310,11 @@ body:has(.screen) .utilbar {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 1vw;
+  gap: calc(1 * var(--u));
 }
 
 .tile__title {
-  font-size: 1.3vw;
+  font-size: calc(1.3 * var(--u));
   font-weight: 800;
   letter-spacing: -0.025em;
   color: var(--navy);
@@ -295,25 +326,25 @@ body:has(.screen) .utilbar {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 1vw;
+  gap: calc(1 * var(--u));
 }
 .tile--split > div {
   display: flex;
   flex-direction: column;
-  gap: 0.2vw;
+  gap: calc(0.2 * var(--u));
   min-width: 0;
 }
-.tile--split .tile__value { font-size: 2.5vw; }
-.tile--split .tile__value--rate { font-size: 3.4vw; }
+.tile--split .tile__value { font-size: calc(2.5 * var(--u)); }
+.tile--split .tile__value--rate { font-size: calc(3.4 * var(--u)); }
 
 /* Two figures abreast, the second one quieter: leads today against leads this
    week, where the first is the one being acted on. */
-.pair { display: flex; align-items: flex-end; gap: 1.6vw; }
-.pair > span { display: flex; flex-direction: column; gap: 0.25vw; }
+.pair { display: flex; align-items: flex-end; gap: calc(1.6 * var(--u)); }
+.pair > span { display: flex; flex-direction: column; gap: calc(0.25 * var(--u)); }
 
 /* ------------------------------------------------------------------ status */
 /* Worded, always. Colour reinforces the word; it never carries it. */
-.status { font-size: 1vw; font-weight: 700; white-space: nowrap; }
+.status { font-size: calc(1 * var(--u)); font-weight: 700; white-space: nowrap; }
 .status--ahead { color: var(--ahead-ink); }
 .status--behind { color: var(--behind-ink); }
 .status--quiet { color: var(--ink-muted); }
@@ -321,9 +352,9 @@ body:has(.screen) .utilbar {
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.28vw 0.72vw;
+  padding: calc(0.28 * var(--u)) calc(0.72 * var(--u));
   border-radius: 999px;
-  font-size: 0.82vw;
+  font-size: calc(0.82 * var(--u));
   font-weight: 700;
   white-space: nowrap;
 }
@@ -336,7 +367,7 @@ body:has(.screen) .utilbar {
 /* ------------------------------------------------------------------- meter */
 .meter {
   position: relative;
-  height: 0.5vw;
+  height: calc(0.5 * var(--u));
   border-radius: 999px;
   background: var(--track);
   overflow: hidden;
@@ -354,9 +385,9 @@ body:has(.screen) .utilbar {
    reading survives any form of colour blindness. */
 .meter__pace {
   position: absolute;
-  top: -0.22vw;
-  bottom: -0.22vw;
-  width: 0.17vw;
+  top: calc(-0.22 * var(--u));
+  bottom: calc(-0.22 * var(--u));
+  width: calc(0.17 * var(--u));
   border-radius: 1px;
   background: var(--accent);
 }
@@ -365,17 +396,17 @@ body:has(.screen) .utilbar {
 /* Name left, figures right, a full-width bar beneath. The rank numbers of the
    first design are gone: the order is the ranking. */
 .rows { display: flex; flex-direction: column; flex: 1; }
-.rows > .row { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0.5vw; }
+.rows > .row { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: calc(0.5 * var(--u)); }
 
 .row__top {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.8vw;
+  gap: calc(0.8 * var(--u));
 }
 
 .row__name {
-  font-size: 1.12vw;
+  font-size: calc(1.12 * var(--u));
   font-weight: 700;
   color: var(--navy);
   white-space: nowrap;
@@ -383,9 +414,9 @@ body:has(.screen) .utilbar {
   text-overflow: ellipsis;
 }
 
-.row__right { display: flex; align-items: baseline; gap: 0.7vw; flex: none; }
-.row__meta { font-size: 0.86vw; color: var(--ink-muted); }
-.row__value { font-size: 1.45vw; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
+.row__right { display: flex; align-items: baseline; gap: calc(0.7 * var(--u)); flex: none; }
+.row__meta { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); }
+.row__value { font-size: calc(1.45 * var(--u)); font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
 
 /* ------------------------------------------------------------ service strip */
 /* Scoped past `.tile--split > div`, which turns every direct child into a
@@ -394,15 +425,15 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 2.4vw;
+  gap: calc(2.4 * var(--u));
   flex: 1;
   min-width: 0;
   overflow: hidden;
 }
-.mix__col { display: flex; flex-direction: column; gap: 0.1vw; min-width: 0; }
-.mix__count { font-size: 1.9vw; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); line-height: 1; }
+.mix__col { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
+.mix__count { font-size: calc(1.9 * var(--u)); font-weight: 800; letter-spacing: -0.03em; color: var(--navy); line-height: 1; }
 .mix__name {
-  font-size: 0.92vw;
+  font-size: calc(0.92 * var(--u));
   color: var(--ink-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -410,9 +441,9 @@ body:has(.screen) .utilbar {
 }
 
 /* ------------------------------------------------------------------- gauge */
-.gauge { align-items: center; justify-content: center; gap: 0.7vw; }
+.gauge { align-items: center; justify-content: center; gap: calc(0.7 * var(--u)); }
 .gauge > .tile__sub:last-child { margin-top: 0; }
-.gauge__svg { width: 100%; max-height: 12vw; }
+.gauge__svg { width: 100%; max-height: calc(12 * var(--u)); }
 .gauge__track { stroke: var(--track); }
 .gauge__fill { stroke: var(--navy); }
 .gauge__pace { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
@@ -423,7 +454,7 @@ body:has(.screen) .utilbar {
   letter-spacing: -0.03em;
 }
 .gauge__pct--na { font-size: 16px; fill: var(--ink-muted); font-weight: 600; }
-.gauge__label { font-size: 1.05vw; color: var(--ink-2); font-weight: 500; }
+.gauge__label { font-size: calc(1.05 * var(--u)); color: var(--ink-2); font-weight: 500; }
 
 /* --------------------------------------------------------------- quote list */
 .quotes { display: flex; flex-direction: column; flex: 1; }
@@ -431,39 +462,39 @@ body:has(.screen) .utilbar {
 
 .quote {
   display: grid;
-  grid-template-columns: 5.4vw 1fr auto 4.2vw;
+  grid-template-columns: calc(5.4 * var(--u)) 1fr auto calc(4.2 * var(--u));
   align-items: center;
-  gap: 1vw;
-  padding: 0.4vw 0;
+  gap: calc(1 * var(--u));
+  padding: calc(0.4 * var(--u)) 0;
   border-top: 1px solid var(--hairline);
 }
 .quotes .quote:first-child { border-top: 0; }
 
-.quote__at { font-size: 0.92vw; color: var(--ink-muted); white-space: nowrap; }
+.quote__at { font-size: calc(0.92 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
 .quote__label {
-  font-size: 1.08vw;
+  font-size: calc(1.08 * var(--u));
   font-weight: 700;
   color: var(--navy);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.quote__who { font-size: 0.92vw; color: var(--ink-muted); font-weight: 500; margin-left: 0.5vw; }
-.quote__value { font-size: 1.2vw; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
-.quote__state { font-size: 0.95vw; font-weight: 600; text-align: right; }
+.quote__who { font-size: calc(0.92 * var(--u)); color: var(--ink-muted); font-weight: 500; margin-left: calc(0.5 * var(--u)); }
+.quote__value { font-size: calc(1.2 * var(--u)); font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
+.quote__state { font-size: calc(0.95 * var(--u)); font-weight: 600; text-align: right; }
 
 /* The outstanding list is two lines: what and how much, then how long it has
    been sitting. */
 .quote--stack {
   grid-template-columns: 1fr auto;
-  row-gap: 0.1vw;
-  padding: 0.5vw 0;
+  row-gap: calc(0.1 * var(--u));
+  padding: calc(0.5 * var(--u)) 0;
 }
-.quote--stack .quote__age { grid-column: 1; font-size: 0.92vw; color: var(--ink-muted); }
+.quote--stack .quote__age { grid-column: 1; font-size: calc(0.92 * var(--u)); color: var(--ink-muted); }
 .quote--stack .quote__basis {
   grid-column: 2;
   text-align: right;
-  font-size: 0.82vw;
+  font-size: calc(0.82 * var(--u));
   color: var(--muted-fig);
   font-weight: 600;
 }
@@ -476,10 +507,10 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   flex: 1;
-  --tbl-fig: 1.32vw;
-  --tbl-name: 1.2vw;
-  --tbl-head: 0.92vw;
-  --tbl-sub: 0.82vw;
+  --tbl-fig: calc(1.32 * var(--u));
+  --tbl-name: calc(1.2 * var(--u));
+  --tbl-head: calc(0.92 * var(--u));
+  --tbl-sub: calc(0.82 * var(--u));
 }
 
 .tbl__head,
@@ -495,15 +526,15 @@ body:has(.screen) .utilbar {
      most days, and in the first week of a month This week is the same figure
      as the month beside it. Six columns of numbers was more than the room
      could take in at four metres, which is the only test that matters. */
-  grid-template-columns: 2.2vw 16vw 1.4fr repeat(3, 1fr) 15vw;
+  grid-template-columns: calc(2.2 * var(--u)) calc(15 * var(--u)) 1.7fr repeat(3, 1fr) calc(13.5 * var(--u));
   align-items: center;
-  gap: 1vw;
-  padding: 0.5vw 1vw;
+  gap: calc(1 * var(--u));
+  padding: calc(0.5 * var(--u)) calc(1 * var(--u));
 }
 
 /* Four sizes in this table and no more.
    
-   It had nine between 0.78vw and 1.5vw — headers at 0.95 against ranks at 0.92,
+   It had nine between calc(0.78 * var(--u)) and calc(1.5 * var(--u)) — headers at 0.95 against ranks at 0.92,
    figure captions at 0.86 against the rate captions at 0.78 — differences small
    enough to read as a mistake rather than a hierarchy. One size for every
    figure, one for a name, one for a column heading, one for everything
@@ -517,7 +548,7 @@ body:has(.screen) .utilbar {
 .tbl__row {
   flex: 1;
   border-top: 1px solid var(--hairline);
-  border-radius: 0.7vw;
+  border-radius: calc(0.7 * var(--u));
 }
 .tbl__row--leader { background: var(--leader-row); border-top-color: transparent; }
 .tbl__row--total { border-top: 2px solid var(--navy); border-radius: 0; }
@@ -525,8 +556,8 @@ body:has(.screen) .utilbar {
 .tbl__rank {
   display: grid;
   place-items: center;
-  width: 1.9vw;
-  height: 1.9vw;
+  width: calc(1.9 * var(--u));
+  height: calc(1.9 * var(--u));
   border-radius: 50%;
   background: var(--track);
   font-size: var(--tbl-sub);
@@ -539,7 +570,7 @@ body:has(.screen) .utilbar {
 .tbl__note { font-size: var(--tbl-sub); color: var(--ink-muted); }
 .tbl__note--leader { color: var(--accent); font-weight: 700; }
 
-.tbl__fig { display: flex; flex-direction: column; gap: 0.12vw; }
+.tbl__fig { display: flex; flex-direction: column; gap: calc(0.12 * var(--u)); }
 .tbl__fig b {
   font-size: var(--tbl-fig);
   font-weight: 800;
@@ -548,9 +579,9 @@ body:has(.screen) .utilbar {
 }
 .tbl__fig span { font-size: var(--tbl-sub); color: var(--ink-muted); }
 
-.tiers { display: flex; flex-direction: column; gap: 0.35vw; }
+.tiers { display: flex; flex-direction: column; gap: calc(0.35 * var(--u)); }
 .tiers__bar {
-  height: 0.55vw;
+  height: calc(0.55 * var(--u));
   border-radius: 999px;
   background: var(--track);
   overflow: hidden;
@@ -571,8 +602,8 @@ body:has(.screen) .utilbar {
   position: relative;
   flex: 1;
   min-height: 0;
-  margin-top: 0.6vw;
-  border-radius: 0.9vw;
+  margin-top: calc(0.6 * var(--u));
+  border-radius: calc(0.9 * var(--u));
   background: #f1ece0;
   overflow: hidden;
 }
@@ -585,7 +616,7 @@ body:has(.screen) .utilbar {
    present and unreadable rather than absent. */
 .bmap .leaflet-control-attribution {
   background: rgba(255, 255, 255, 0.7);
-  font-size: 0.42vw;
+  font-size: calc(0.42 * var(--u));
   color: var(--ink-2);
 }
 
@@ -597,19 +628,19 @@ body:has(.screen) .utilbar {
   transform: translate(var(--dx, 0px), var(--dy, 0px));
   display: inline-flex;
   align-items: center;
-  gap: 0.4vw;
+  gap: calc(0.4 * var(--u));
   white-space: nowrap;
-  padding: 0.2vw 0.7vw 0.2vw 0.35vw;
+  padding: calc(0.2 * var(--u)) calc(0.7 * var(--u)) calc(0.2 * var(--u)) calc(0.35 * var(--u));
   border-radius: 999px;
   background: var(--surface);
   color: var(--navy);
-  font-size: 0.92vw;
+  font-size: calc(0.92 * var(--u));
   font-weight: 700;
   box-shadow: 0 1px 4px rgba(5, 10, 48, 0.18);
 }
 .bmap__pin i {
-  width: 0.45vw;
-  height: 0.45vw;
+  width: calc(0.45 * var(--u));
+  height: calc(0.45 * var(--u));
   flex: none;
   border-radius: 50%;
   background: var(--navy);
@@ -617,14 +648,14 @@ body:has(.screen) .utilbar {
 /* A suburb with nowhere to put its name keeps its dot: it is still on the
    map, it just could not be labelled without covering a busier one. */
 .bmap__pin:has(.bmap__bare) { padding: 0; background: none; box-shadow: none; }
-.bmap__bare { width: 0.55vw; height: 0.55vw; box-shadow: 0 0 0 0.12vw rgba(255, 255, 255, 0.9); }
+.bmap__bare { width: calc(0.55 * var(--u)); height: calc(0.55 * var(--u)); box-shadow: 0 0 0 calc(0.12 * var(--u)) rgba(255, 255, 255, 0.9); }
 /* A label on the left of its dot puts the dot on the right — but only the
    dot moves. Reversing the whole row put the count in front of the name
    ("3 Narre Warren"), which reads as a rank. */
-.bmap__pin.is-left { padding: 0.2vw 0.35vw 0.2vw 0.7vw; }
+.bmap__pin.is-left { padding: calc(0.2 * var(--u)) calc(0.35 * var(--u)) calc(0.2 * var(--u)) calc(0.7 * var(--u)); }
 .bmap__pin.is-left i { order: 3; }
 .bmap__pin.is-left b { order: 1; }
-.bmap__pin.is-left em { order: 2; margin-right: 0.15vw; }
+.bmap__pin.is-left em { order: 2; margin-right: calc(0.15 * var(--u)); }
 .bmap__pin em { font-style: normal; color: var(--accent); }
 /* The busiest suburb inverts and sits above its neighbours, so where two
    labels meet the one the room looks at first is the one on top. */
@@ -637,32 +668,32 @@ body:has(.screen) .utilbar {
 .bmap__pin.is-lead i { background: #fff; }
 .bmap__pin.is-lead em { color: #ff9a62; }
 
-.heat__none { color: var(--ink-2); font-size: 1.05vw; }
+.heat__none { color: var(--ink-2); font-size: calc(1.05 * var(--u)); }
 
 /* Suburbs with no coordinate on file. Named rather than dropped: their jobs
    happened whether or not the map knows where they are. */
 .heat__off {
   position: absolute;
-  left: 0.9vw;
-  bottom: 0.7vw;
+  left: calc(0.9 * var(--u));
+  bottom: calc(0.7 * var(--u));
   z-index: 500;
-  padding: 0.15vw 0.6vw;
+  padding: calc(0.15 * var(--u)) calc(0.6 * var(--u));
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.85);
-  font-size: 0.85vw;
+  font-size: calc(0.85 * var(--u));
   color: var(--ink-2);
 }
 
 .heat__legend {
   display: flex;
   align-items: center;
-  gap: 0.6vw;
-  font-size: 0.88vw;
+  gap: calc(0.6 * var(--u));
+  font-size: calc(0.88 * var(--u));
   color: var(--ink-muted);
 }
 .heat__ramp {
-  width: 9vw;
-  height: 0.45vw;
+  width: calc(9 * var(--u));
+  height: calc(0.45 * var(--u));
   border-radius: 999px;
   background: linear-gradient(90deg, #f6e4d7, var(--accent));
 }
@@ -678,22 +709,22 @@ body:has(.screen) .utilbar {
 .screen__foot {
   display: flex;
   align-items: center;
-  gap: 1.1vw;
-  padding: 0.7vw 2.2vw;
+  gap: calc(1.1 * var(--u));
+  padding: calc(0.7 * var(--u)) calc(2.2 * var(--u));
   background: var(--navy);
   color: rgba(255, 255, 255, 0.72);
-  font-size: 0.92vw;
+  font-size: calc(0.92 * var(--u));
 }
-.screen__feed { display: inline-flex; align-items: center; gap: 0.5vw; }
+.screen__feed { display: inline-flex; align-items: center; gap: calc(0.5 * var(--u)); }
 .screen__feed b { color: #fff; font-weight: 600; }
 .screen__dot {
-  width: 0.45vw;
-  height: 0.45vw;
+  width: calc(0.45 * var(--u));
+  height: calc(0.45 * var(--u));
   border-radius: 50%;
   background: #3fb950;
 }
 .screen__dot--stale { background: var(--accent); }
-.screen__right { margin-left: auto; display: inline-flex; align-items: baseline; gap: 0.6vw; }
+.screen__right { margin-left: auto; display: inline-flex; align-items: baseline; gap: calc(0.6 * var(--u)); }
 .screen__brand { font-weight: 800; color: #fff; letter-spacing: -0.01em; }
 .screen__brand em { font-style: normal; color: var(--accent); }
 
@@ -702,10 +733,10 @@ body:has(.screen) .utilbar {
   display: grid;
   place-items: center;
   height: 100%;
-  font-size: 1.6vw;
+  font-size: calc(1.6 * var(--u));
   color: var(--ink-muted);
   text-align: center;
-  padding: 4vw;
+  padding: calc(4 * var(--u));
 }
 
 /* A page whose every figure comes from one disconnected source says so once,
@@ -716,11 +747,11 @@ body:has(.screen) .utilbar {
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 1vw;
+  gap: calc(1 * var(--u));
   min-height: 60vh;
 }
-.screen__notice .tile__value { font-size: 4vw; color: var(--ink-muted); }
-.screen__notice .tile__sub--body { max-width: 50vw; font-size: 1.25vw; }
+.screen__notice .tile__value { font-size: calc(4 * var(--u)); color: var(--ink-muted); }
+.screen__notice .tile__sub--body { max-width: calc(50 * var(--u)); font-size: calc(1.25 * var(--u)); }
 
 /* =============================================================== celebration */
 /* Fires when a sold quote appears that the board hasn't shown before. Covers
@@ -741,18 +772,18 @@ body:has(.screen) .utilbar {
 .celebrate__rocket {
   position: absolute;
   left: 50%;
-  bottom: -12vw;
-  font-size: 9vw;
+  bottom: calc(-12 * var(--u));
+  font-size: calc(9 * var(--u));
   line-height: 1;
   animation: rocket-launch 4.2s cubic-bezier(0.45, 0, 0.3, 1) 300ms both;
 }
 
-.celebrate__moon { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-size: 5vw; }
+.celebrate__moon { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-size: calc(5 * var(--u)); }
 
 .celebrate__star {
   position: absolute;
-  width: 0.35vw;
-  height: 0.35vw;
+  width: calc(0.35 * var(--u));
+  height: calc(0.35 * var(--u));
   border-radius: 50%;
   background: var(--accent);
   animation: twinkle 1.4s ease-in-out infinite;
@@ -766,24 +797,24 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4vw;
-  padding: 2.4vw 4vw;
-  border-radius: 1vw;
+  gap: calc(0.4 * var(--u));
+  padding: calc(2.4 * var(--u)) calc(4 * var(--u));
+  border-radius: calc(1 * var(--u));
   background: var(--navy);
   animation: card-pop 500ms cubic-bezier(0.2, 1.2, 0.4, 1) 200ms both;
 }
 
 .celebrate__kicker {
   font-family: var(--mono);
-  font-size: 1.3vw;
+  font-size: calc(1.3 * var(--u));
   font-weight: 500;
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--accent);
 }
 
-.celebrate__amount { font-size: 7vw; font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: #fff; }
-.celebrate__who { font-size: 2.2vw; font-weight: 650; color: rgba(255, 255, 255, 0.8); }
+.celebrate__amount { font-size: calc(7 * var(--u)); font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: #fff; }
+.celebrate__who { font-size: calc(2.2 * var(--u)); font-weight: 650; color: rgba(255, 255, 255, 0.8); }
 
 @keyframes celebrate-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes card-pop { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
@@ -840,14 +871,14 @@ body:has(.screen) .utilbar {
 .jt__head,
 .jt__row {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) 4.5vw 7.5vw 7vw minmax(0, 1.5fr) 4.5vw;
+  grid-template-columns: minmax(0, 1.5fr) calc(4.5 * var(--u)) calc(7.5 * var(--u)) calc(7 * var(--u)) minmax(0, 1.5fr) calc(4.5 * var(--u));
   align-items: center;
-  gap: 1.2vw;
+  gap: calc(1.2 * var(--u));
 }
 
 .jt__head {
-  padding-bottom: 0.7vw;
-  font-size: 0.86vw;
+  padding-bottom: calc(0.7 * var(--u));
+  font-size: calc(0.86 * var(--u));
   color: var(--ink-2);
 }
 .jt__head > span:nth-child(2),
@@ -866,14 +897,14 @@ body:has(.screen) .utilbar {
 .jt__row--total {
   flex: 0 0 auto;
   border-top: 2px solid var(--ink-muted);
-  padding-top: 0.5vw;
-  margin-top: 0.3vw;
+  padding-top: calc(0.5 * var(--u));
+  margin-top: calc(0.3 * var(--u));
 }
 .jt__row--total .jt__name,
 .jt__row--total .jt__n { color: var(--ink-2); }
 
 .jt__name {
-  font-size: 1.22vw;
+  font-size: calc(1.22 * var(--u));
   font-weight: 700;
   color: var(--ink);
   overflow: hidden;
@@ -883,7 +914,7 @@ body:has(.screen) .utilbar {
 
 .jt__n {
   text-align: right;
-  font-size: 1.22vw;
+  font-size: calc(1.22 * var(--u));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
@@ -891,7 +922,7 @@ body:has(.screen) .utilbar {
 
 .jt__bar {
   position: relative;
-  height: 0.62vw;
+  height: calc(0.62 * var(--u));
   border-radius: 999px;
   background: var(--track);
   overflow: visible;
@@ -910,36 +941,36 @@ body:has(.screen) .utilbar {
 .jt__goal {
   position: absolute;
   left: 50%;
-  top: -0.28vw;
-  bottom: -0.28vw;
-  width: 0.14vw;
+  top: calc(-0.28 * var(--u));
+  bottom: calc(-0.28 * var(--u));
+  width: calc(0.14 * var(--u));
   border-radius: 999px;
   background: var(--navy);
 }
 
 .jt__pct {
   text-align: right;
-  font-size: 1.35vw;
+  font-size: calc(1.35 * var(--u));
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 .jt__pct.is-over { color: var(--ahead-ink); }
 .jt__pct.is-under { color: var(--accent); }
-.jt__marginhead { font-size: 0.86vw; }
+.jt__marginhead { font-size: calc(0.86 * var(--u)); }
 
 /* ------------------------------------------------------- head & hero cards */
-.tile--head { justify-content: center; gap: 0.3vw; }
-.tile--head .tile__value { font-size: 2.5vw; line-height: 1.05; }
+.tile--head { justify-content: center; gap: calc(0.3 * var(--u)); }
+.tile--head .tile__value { font-size: calc(2.5 * var(--u)); line-height: 1.05; }
 .tile__suffix {
   font-style: normal;
-  font-size: 1.15vw;
+  font-size: calc(1.15 * var(--u));
   font-weight: 800;
-  margin-left: 0.35vw;
+  margin-left: calc(0.35 * var(--u));
   opacity: 0.85;
 }
 .tile__foot {
   margin-top: auto;
-  font-size: 0.95vw;
+  font-size: calc(0.95 * var(--u));
   color: var(--ink-2);
 }
 .tile--navy .tile__foot { color: rgba(255, 255, 255, 0.72); }
@@ -958,7 +989,7 @@ body:has(.screen) .utilbar {
 .band {
   grid-column: 1;
   align-self: center;
-  font-size: 1.35vw;
+  font-size: calc(1.35 * var(--u));
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--navy);
@@ -975,27 +1006,27 @@ body:has(.screen) .utilbar {
 .year {
   grid-column: 2 / span 12;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 11vw 9vw;
+  grid-template-columns: minmax(0, 1fr) calc(11 * var(--u)) calc(9 * var(--u));
   align-items: center;
-  gap: 2vw;
-  padding: 1.1vw 1.6vw;
-  border-radius: 1vw;
+  gap: calc(2 * var(--u));
+  padding: calc(1.1 * var(--u)) calc(1.6 * var(--u));
+  border-radius: calc(1 * var(--u));
   background: var(--navy);
   color: #fff;
 }
-.year__none { grid-column: 1 / -1; font-size: 1.1vw; color: rgba(255, 255, 255, 0.78); }
+.year__none { grid-column: 1 / -1; font-size: calc(1.1 * var(--u)); color: rgba(255, 255, 255, 0.78); }
 
-.year__main { display: flex; flex-direction: column; gap: 0.6vw; min-width: 0; }
-.year__nums { display: flex; align-items: baseline; justify-content: space-between; gap: 1.5vw; }
-.year__have { font-size: 1.35vw; font-weight: 800; font-variant-numeric: tabular-nums; }
+.year__main { display: flex; flex-direction: column; gap: calc(0.6 * var(--u)); min-width: 0; }
+.year__nums { display: flex; align-items: baseline; justify-content: space-between; gap: calc(1.5 * var(--u)); }
+.year__have { font-size: calc(1.35 * var(--u)); font-weight: 800; font-variant-numeric: tabular-nums; }
 .year__have em { font-style: normal; font-weight: 500; color: rgba(255, 255, 255, 0.72); }
-.year__bynow { font-size: 1.1vw; font-weight: 700; color: rgba(255, 255, 255, 0.82); }
+.year__bynow { font-size: calc(1.1 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.82); }
 /* Behind its own pace is the one thing on this strip worth a colour. */
 .year__bynow.is-behind { color: var(--accent); }
 
 .year__track {
   position: relative;
-  height: 0.75vw;
+  height: calc(0.75 * var(--u));
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.16);
 }
@@ -1008,15 +1039,15 @@ body:has(.screen) .utilbar {
 }
 .year__mark {
   position: absolute;
-  top: -0.3vw;
-  bottom: -0.3vw;
-  width: 0.2vw;
-  margin-left: -0.1vw;
+  top: calc(-0.3 * var(--u));
+  bottom: calc(-0.3 * var(--u));
+  width: calc(0.2 * var(--u));
+  margin-left: calc(-0.1 * var(--u));
   border-radius: 999px;
   background: #fff;
 }
 
-.year__side { display: flex; flex-direction: column; gap: 0.15vw; }
-.year__k { font-size: 0.92vw; color: rgba(255, 255, 255, 0.7); }
-.year__v { font-size: 1.9vw; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.year__v em { font-style: normal; font-size: 1vw; font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.year__side { display: flex; flex-direction: column; gap: calc(0.15 * var(--u)); }
+.year__k { font-size: calc(0.92 * var(--u)); color: rgba(255, 255, 255, 0.7); }
+.year__v { font-size: calc(1.9 * var(--u)); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.year__v em { font-style: normal; font-size: calc(1 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.7); }

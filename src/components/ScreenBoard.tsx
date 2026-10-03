@@ -46,7 +46,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // The money columns are the month; the last three are thirty days, because a
   // quote written this week has not had a chance to close. Said once here
   // rather than three times in headers a column wide.
-  Team: () => "Sold this month, out of quoted · rates over 30 days",
+  Team: () => "This month, with today and the week · rates over 30 days",
   Performance: (m) => `${monthName(new Date())} so far · by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
@@ -100,10 +100,13 @@ export function ScreenBoard({
   initial,
   token,
   theme = "light",
+  safe = 0,
 }: {
   initial: Snapshot;
   token: string;
   theme?: "dark" | "light";
+  /** Percent to inset the whole board by, for a television that overscans. */
+  safe?: number;
 }) {
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
@@ -235,7 +238,7 @@ export function ScreenBoard({
   return (
     <div
       className={`screen ${theme === "dark" ? "screen--dark" : ""}`}
-      style={{ "--page-ms": `${PAGE_MS}ms` } as CSSProperties}
+      style={{ "--page-ms": `${PAGE_MS}ms`, "--safe": safe } as CSSProperties}
     >
       {celebrating && (
         <Celebration key={celebrating.id} sale={celebrating} onDone={() => setQueue((qd) => qd.slice(1))} />
@@ -755,7 +758,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
         <div className="tbl__head">
           <span />
           <span>Tech</span>
-          <span>{monthName(new Date())}</span>
+          <span>Sold · {monthName(new Date())}</span>
           <span>Close rate</span>
           <span>Avg ticket</span>
           <span>Avg quote</span>
@@ -771,9 +774,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               </span>
               {i === 0 && <span className="tbl__note tbl__note--leader">Leading</span>}
             </span>
+            {/* Today and this week came off as their own columns — six columns
+                of money was more than the room could take in, and Today read
+                $0 against $0 for everybody most days. They belong here, under
+                the month, where they are what they always were: how the month
+                is tracking, not three separate things to compare. */}
             <span className="tbl__fig">
               <b>{plain(r.sold)}</b>
-              <span>of {plain(r.quoted)}</span>
+              <span>
+                today {plain(r.soldToday)} · week {plain(r.soldWeek)}
+              </span>
+              <span>of {plain(r.quoted)} quoted</span>
             </span>
             {/* Per job, not per option — see the leaderboard fields. Each of the
                 three carries its own denominator underneath, because a 50%
@@ -822,8 +833,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
             <span>
+              today {plain(totals.today)} · week {plain(totals.week)}
+            </span>
+            <span>
               {thin
-                ? `of ${plain(m.soldMtd)} sold this month · the rest names no seller`
+                ? `of ${plain(m.soldMtd)} sold · the rest names no seller`
                 : `of ${plain(totals.quoted)} quoted`}
             </span>
           </span>
@@ -925,7 +939,11 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
           <div className="jt">
             <div className="jt__head">
               <span />
-              <span>Jobs</span>
+              {/* Invoices, not jobs: the table is grouped from st_invoices, and
+                  a job can carry more than one. 29 invoices against 11 jobs
+                  completed this month is the kind of gap a wrong column heading
+                  turns into an argument. */}
+              <span>Invoices</span>
               <span>Revenue</span>
               <span>Profit</span>
               <span className="jt__marginhead">
