@@ -85,13 +85,21 @@ drawn on it. The goal is the month's profit target over its revenue target, both
 set on the board's settings page; with no target set there is no line, rather
 than a line at a number nobody chose.
 
-**Areas** is where the work is, on the corridor. The positions are the real
-township centres from `src/lib/suburbCoords.ts`, so the shape on the screen is
-the shape of the run; each suburb's pool is sized by the square root of its
-share, so area tracks job count rather than radius. No roads and no coastline —
-the design sketches both, and either would have to be drawn from memory, which
-is the sort of thing a room in Pakenham notices. A suburb with no coordinate on
-file is named under the map rather than dropped.
+**Areas** is where the work is over the last 60 days, on a real map. Tiles are
+CARTO's light basemap — a full-colour one fights the orange heat sitting on it —
+loaded by the browser on the panel, with the heat and the labels still drawing
+on the cream if they never arrive. Each suburb's pool is sized by the square
+root of its share, so area tracks job count rather than radius.
+
+Labels are laid out against the fitted map in pixel space, busiest first: each
+tries its preferred side then the others, and anything with nowhere to go keeps
+its dot and loses its tag. Before that pass the three suburbs clustered around
+Berwick printed on top of each other. A suburb with no coordinate on file is
+named under the map rather than dropped.
+
+`NEXT_PUBLIC_BOARD_TILES` overrides the tile URL. It exists so the board can be
+rendered and looked at from an environment with no route to a tile CDN; leave
+it unset everywhere but a dev box.
 
 ### The dials
 
@@ -433,6 +441,25 @@ on the invoice export payload and needs pulling from invoice line items.
 Changes made after the board was read back to us and the numbers were not
 believed. Each is here because a figure that gets argued with once stops being
 looked at afterwards.
+
+**The close rate counts jobs, not options.** ServiceTitan writes one estimate
+per *option* — good, better and best on the same job are three rows — and over
+the last thirty days that is 4.1 options for every job actually quoted. Counted
+per option the board reported **6%** on a month that had closed **14%**: 25 of
+444 rather than 23 of 160. Everything built on that count moved with it —
+quoted today, today's conversion, and the quote counts for the week and month.
+Values still sum every option, because that is what was written; only the
+counts are per job. The card says both, so nobody has to guess which it means:
+`23 of 160 jobs quoted · last 30 days · 444 options`.
+
+**What is still out is valued once per job.** Summing every open option counted
+the same job three and four times and put **$1.35M** of pipeline on the wall
+against **$755K** that could actually land — at most one option on a job ever
+sells. Each job now counts once, at the average of the prices put in front of
+that customer. The best case and the worst case are both a choice; the middle
+of what was offered is the one that needs least defending. The "still out" list
+is one row per job for the same reason: it used to name the same customer three
+times and the room read it as three people to ring.
 
 **The year is summed the same way the month is.** `revenueInvoicedYtd` is the
 sum of `st_invoices.total` since the goal's year started — the identical query

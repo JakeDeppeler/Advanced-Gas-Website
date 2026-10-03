@@ -2,6 +2,7 @@
 
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
+import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import { Gauge } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
@@ -42,7 +43,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Quotes: () => "Written today, and what's still out",
   Team: () => "Sold, out of quoted",
   Performance: (m) => `${monthName(new Date())} so far · by job type`,
-  Areas: () => "Where the work is · last 90 days",
+  Areas: () => "Where the work is · last 60 days",
 };
 
 const money = (n: number | null | undefined) => {
@@ -228,12 +229,23 @@ export function ScreenBoard({
         </nav>
       </div>
 
-      {/* The rule under the header is the progress through the cycle: its
-          orange run is this page's share of the six. It replaces the sweeping
-          ring, which re-rendered to animate and was a second thing saying the
-          same thing as the dashes. */}
+      {/* The rule under the header is the clock.
+      
+          It used to jump a sixth per page and then sit still for twenty
+          seconds, so the room could see where it was but never that a page was
+          about to turn. Now it runs the whole time: a CSS animation from this
+          page's share of the cycle to the next page's, restarted by the key, so
+          nothing re-renders to move it. */}
       <div className="screen__rule" aria-hidden="true">
-        <span style={{ width: `${((page + 1) / PAGES.length) * 100}%` }} />
+        <span
+          key={page}
+          style={
+            {
+              "--from": `${(page / PAGES.length) * 100}%`,
+              "--to": `${((page + 1) / PAGES.length) * 100}%`,
+            } as CSSProperties
+          }
+        />
       </div>
 
       <div className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}>
@@ -322,7 +334,11 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <RateCard
         label="Quoted today"
         lines={[
-          `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "quote" : "quotes"} written`,
+          `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}${
+            m.quotesCreatedTodayOptions > m.quotesCreatedTodayCount
+              ? ` · ${count(m.quotesCreatedTodayOptions)} options`
+              : ""
+          }`,
           `${count(m.quotesCreatedTodaySold)} already closed`,
         ]}
         value={st.plain(m.quotesCreatedTodayValue, live)}
@@ -331,7 +347,12 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         label="Close rate"
         lines={
           live.st
-            ? [`${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} quotes`, `last ${m.outstandingDays ?? 30} days`]
+            ? [
+                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs quoted`,
+                `last ${m.outstandingDays ?? 30} days${
+                  m.closeRate30dOptions > m.closeRate30dQuotes ? ` · ${count(m.closeRate30dOptions)} options` : ""
+                }`,
+              ]
             : ["ServiceTitan not connected"]
         }
         value={live.st ? pct(m.closeRate30d) : NA}
@@ -500,7 +521,8 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
         <span className="tile__label">Quoted today</span>
         <span className={vcls(plain(m.quotesCreatedTodayValue))}>{plain(m.quotesCreatedTodayValue)}</span>
         <span className="tile__foot">
-          {count(m.quotesCreatedTodayCount)} {m.quotesCreatedTodayCount === 1 ? "quote" : "quotes"}
+          {count(m.quotesCreatedTodayCount)} {m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}
+          {m.quotesCreatedTodayOptions > m.quotesCreatedTodayCount ? ` · ${count(m.quotesCreatedTodayOptions)} options` : ""}
         </span>
       </div>
 
@@ -508,7 +530,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
         <span className="tile__label">Sold today</span>
         <span className={vcls(plain(m.soldToday))}>{plain(m.soldToday)}</span>
         <span className="tile__foot">
-          {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} written today
+          {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} jobs quoted today
         </span>
       </div>
 
@@ -516,7 +538,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           mostly noise, and the size of what is being written is the thing a
           slow day actually shows up in first. */}
       <div className="tile tile--head" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
-        <span className="tile__label">Average quote</span>
+        <span className="tile__label">Average option</span>
         <span className={vcls(plain(m.avgQuoteToday))}>{plain(m.avgQuoteToday)}</span>
         <span className="tile__foot">
           {m.avgQuoteMonth != null ? `${money(m.avgQuoteMonth)} this month` : "today"}
@@ -659,9 +681,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 {r.name}
               </span>
               <span className={`tbl__note ${i === 0 ? "tbl__note--leader" : ""}`}>
-                {i === 0
-                  ? "Leading the month"
-                  : `${count(r.quotes)} ${r.quotes === 1 ? "option" : "options"} written`}
+                {/* The leader's option count used to be replaced by the flag,
+                    so the one person you most want to compare against was the
+                    one whose quoting volume the board hid. Both, now. */}
+                {i === 0 ? "Leading · " : ""}
+                {count(r.quotes)} {r.quotes === 1 ? "option" : "options"} written
               </span>
             </span>
             <span className="tbl__fig">
@@ -677,16 +701,25 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               <span>of {plain(r.quoted)}</span>
             </span>
             <span className="tiers">
-              <span className="tiers__bar">
-                <span
-                  className={`tiers__fill ${i === 0 ? "is-leader" : ""}`}
-                  style={{ width: `${tierProgress(r)}%` }}
-                />
-              </span>
-              {r.toNextTier != null && (
-                <span className={`tiers__note ${i === 0 ? "tiers__note--leader" : ""}`}>
-                  {money(r.toNextTier)} to tier {(r.tier ?? 0) + 1}
-                </span>
+              {/* No tiers configured means no run to be along, so there is no
+                  bar — it drew full for everybody, which read as everybody
+                  having hit the top one. */}
+              {m.commissionTiers.length === 0 ? (
+                <span className="tiers__note">No tiers set</span>
+              ) : (
+                <>
+                  <span className="tiers__bar">
+                    <span
+                      className={`tiers__fill ${i === 0 ? "is-leader" : ""}`}
+                      style={{ width: `${tierProgress(r)}%` }}
+                    />
+                  </span>
+                  <span className={`tiers__note ${i === 0 ? "tiers__note--leader" : ""}`}>
+                    {r.toNextTier != null
+                      ? `${money(r.toNextTier)} to tier ${(r.tier ?? 0) + 1}`
+                      : `Top tier · tier ${r.tier ?? m.commissionTiers.length}`}
+                  </span>
+                </>
               )}
             </span>
           </div>
@@ -730,6 +763,8 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
  * whatever the actual figure, which is a bar that means nothing.
  */
 function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
+  // Nothing left to reach means the run is done. The caller only draws a bar
+  // at all when tiers exist, so this is genuinely "at the top".
   if (r.toNextTier == null || r.toNextTier <= 0) return 100;
   const next = r.sold + r.toNextTier;
   return next > 0 ? Math.max(2, Math.min(100, (r.sold / next) * 100)) : 0;
@@ -838,90 +873,38 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
 }
 
 /**
- * Where the work actually is, drawn on the corridor rather than in a grid.
+ * Where the work actually is, on the corridor.
  *
- * The grid of tiles this replaces was a bar chart wearing a map's name: it
- * ranked suburbs but said nothing about where they are, which is the only
- * reason to put geography on a wall. These positions are the real township
- * centres from `suburbCoords`, projected into the box — so the shape on the
- * screen is the shape of the run.
+ * This was a grid of tiles, then blobs on a blank rectangle, and neither was a
+ * map: the first ranked suburbs without saying where they are, and the second
+ * put them in the right relative positions with nothing underneath to read
+ * them against. Real tiles now, from `BoardSuburbMap`.
  *
- * No roads and no coastline. The design sketches both, and either would have to
- * be hand-drawn from memory — a wrong coastline on a wall in Pakenham would be
- * noticed by everyone in the room. The blobs carry the whole message.
+ * A suburb with no coordinate on file is named under the map rather than
+ * dropped, because its jobs happened whether or not we know where.
  */
 function SuburbHeat({ places }: { places: Metrics["topJobSuburbs"] }) {
   const located = places.map((p) => ({ ...p, at: suburbCoords[slugForSuburb(p.suburb)] }));
-  const pts = located.filter((p): p is typeof p & { at: readonly [number, number] } => !!p.at);
-  // A suburb we have no coordinate for would otherwise vanish from the map
-  // along with its jobs. It gets named under it instead.
+  const pts = located
+    .filter((p): p is typeof p & { at: readonly [number, number] } => !!p.at)
+    .map((p) => ({ suburb: p.suburb, count: p.count, lat: p.at[0], lng: p.at[1] }));
   const offMap = located.filter((p) => !p.at);
 
-  if (pts.length < 2) {
-    // One point is not a map. Fall back to naming what there is.
+  if (pts.length === 0) {
     return (
       <div className="heat__none">
         {places.length === 0
           ? "No completed jobs recorded yet"
-          : `${places.map((p) => `${p.suburb} ${p.count}`).join(" · ")}`}
+          : places.map((p) => `${p.suburb} ${p.count}`).join(" · ")}
       </div>
     );
   }
 
-  const lats = pts.map((p) => p.at[0]);
-  const lngs = pts.map((p) => p.at[1]);
-  // A little air around the outermost suburbs so no label sits on the edge.
-  const pad = 0.035;
-  const minLat = Math.min(...lats) - pad, maxLat = Math.max(...lats) + pad;
-  const minLng = Math.min(...lngs) - pad, maxLng = Math.max(...lngs) + pad;
-  const max = Math.max(1, ...pts.map((p) => p.count));
-
-  // Longitude east is right; latitude north is up, so the y axis inverts.
-  const x = (lng: number) => ((lng - minLng) / (maxLng - minLng)) * 100;
-  const y = (lat: number) => ((maxLat - lat) / (maxLat - minLat)) * 100;
-
   return (
     <div className="heat">
-      {pts.map((p) => {
-        const t = p.count / max;
-        return (
-          <span
-            className="heat__blob"
-            key={p.suburb}
-            style={{
-              left: `${x(p.at[1])}%`,
-              top: `${y(p.at[0])}%`,
-              // Area, not radius, tracks the count: a suburb with four times
-              // the jobs should look four times the place, and scaling the
-              // radius would make it sixteen.
-              "--r": `${6 + Math.sqrt(t) * 13}vw`,
-              "--o": String(0.18 + t * 0.62),
-            } as CSSProperties}
-          />
-        );
-      })}
-      {pts.map((p) => {
-        const lead = p.count === max;
-        // Past two-thirds across, the label goes on the left of its dot — at
-        // the right-hand edge it ran off the box and lost its last word.
-        const flip = x(p.at[1]) > 66;
-        return (
-          <span
-            className={`heat__pin ${lead ? "is-lead" : ""} ${flip ? "is-flip" : ""}`}
-            key={`${p.suburb}-pin`}
-            style={{ left: `${x(p.at[1])}%`, top: `${y(p.at[0])}%` }}
-          >
-            <span className="heat__dot" aria-hidden="true" />
-            <span className="heat__tag">
-              {p.suburb} <b>{p.count}</b>
-            </span>
-          </span>
-        );
-      })}
+      <BoardSuburbMap places={pts} />
       {offMap.length > 0 && (
-        <span className="heat__off">
-          Also {offMap.map((p) => `${p.suburb} ${p.count}`).join(" · ")}
-        </span>
+        <span className="heat__off">Also {offMap.map((p) => `${p.suburb} ${p.count}`).join(" · ")}</span>
       )}
     </div>
   );
@@ -972,7 +955,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
         </span>
         <span className="tile__sub">
           {m.highestTicket
-            ? [m.highestTicket.jobType, m.highestTicket.suburb].filter(Boolean).join(" · ") || "last 90 days"
+            ? [m.highestTicket.jobType, m.highestTicket.suburb].filter(Boolean).join(" · ") || "last 60 days"
             : "No completed jobs yet"}
         </span>
       </div>

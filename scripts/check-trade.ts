@@ -22,6 +22,7 @@ import {
 } from "@/components/portal/mondayJobs";
 import { PHOTO_ANGLES, WEEKLY_CHECK, itemKey, type CheckItems } from "@/lib/portal/vanChecks";
 import { PB_CATEGORIES, publishedTiers, shelf, sizeOf } from "@/lib/portal/installPrices";
+import { byOpportunity, closeRate } from "@/lib/dashboard/boardSettings";
 
 let n = 0;
 const is = (a: unknown, b: unknown, m: string) => { n++; assert.deepEqual(a, b, m); };
@@ -127,6 +128,47 @@ ok(!shelf("evap").items.some((i) => /Ducted/.test(i.categoryLabel)), "evap is it
 for (const c of PB_CATEGORIES) {
   const s = shelf(c.key);
   for (const z of s.sizes) ok(s.items.some((i) => sizeOf(i) === z), `${c.label}: the chip ${z} has a model behind it`);
+}
+
+
+
+/* ---------- the board's quote arithmetic ---------- */
+// Added after the wall reported a 6% close rate on a month that closed 14%:
+// ServiceTitan writes one estimate per OPTION, and one job carries about four.
+{
+  // Good, better and best on one job: one opportunity, won once.
+  const threeOptions = [
+    { id: 1, jobId: 10, soldOn: null },
+    { id: 2, jobId: 10, soldOn: "2026-10-01" },
+    { id: 3, jobId: 10, soldOn: null },
+  ];
+  is(byOpportunity(threeOptions).length, 1, "three options on a job are one opportunity");
+  is(closeRate(threeOptions).rate, 1, "and it closed");
+  is(closeRate(threeOptions).options, 3, "while still reporting three options written");
+
+  // An option with no job is its own opportunity — lumping them under one key
+  // merged a dozen unrelated quotes into a single one that counted once.
+  const loose = [
+    { id: 7, jobId: null, soldOn: null },
+    { id: 8, jobId: null, soldOn: null },
+  ];
+  is(byOpportunity(loose).length, 2, "two unattached options are two opportunities");
+
+  // The shape of the live month: four options a job, one job in seven won.
+  const many = [];
+  for (let job = 0; job < 7; job++) {
+    for (let opt = 0; opt < 4; opt++) {
+      many.push({ id: job * 10 + opt, jobId: job, soldOn: job === 0 && opt === 0 ? "2026-10-01" : null });
+    }
+  }
+  const r = closeRate(many);
+  is(r.quoted, 7, "seven jobs quoted");
+  is(r.options, 28, "twenty-eight options written");
+  is(r.won, 1, "one won");
+  ok(Math.abs((r.rate ?? 0) - 1 / 7) < 1e-9, "the rate is per job, not per option");
+  ok((r.rate ?? 0) > 1 / 28, "and so is four times what counting options would give");
+
+  is(closeRate([]).rate, null, "nothing quoted is null, not zero");
 }
 
 console.log(`${n} assertions passed`);

@@ -143,6 +143,70 @@ export function monthTargetFromYearGoal(goal: YearGoalShape | null, month: strin
 }
 
 /**
+ * An option on a quote, as the board counts them.
+ *
+ * ServiceTitan writes one estimate per *option*, not per quote: good, better
+ * and best on the same job are three rows, and a system swapped for a different
+ * brand is a fourth. Over the last thirty days that is four options for every
+ * job actually quoted.
+ */
+export type OptionRow = { id: number | string; jobId: number | string | null; soldOn?: string | null };
+
+export type Opportunity = { key: string; options: number; won: boolean };
+
+/**
+ * Options grouped into the jobs they were written for.
+ *
+ * An option with no job on it is its own opportunity — ServiceTitan leaves
+ * `job_id` null on about a tenth of them, and lumping those together under one
+ * key would merge a dozen unrelated quotes into a single one that counts once.
+ */
+export function byOpportunity(rows: OptionRow[]): Opportunity[] {
+  const out = new Map<string, Opportunity>();
+  for (const r of rows) {
+    const key = r.jobId == null || r.jobId === "" ? `e${r.id}` : `j${r.jobId}`;
+    const got = out.get(key);
+    if (got) {
+      got.options += 1;
+      got.won = got.won || !!r.soldOn;
+    } else {
+      out.set(key, { key, options: 1, won: !!r.soldOn });
+    }
+  }
+  return [...out.values()];
+}
+
+export type CloseRate = {
+  /** Won over quoted, both counted per job. Null when nothing was quoted. */
+  rate: number | null;
+  won: number;
+  /** Jobs quoted — the denominator anyone would mean by "how many quotes". */
+  quoted: number;
+  /** The raw option count, for saying how many were written. */
+  options: number;
+};
+
+/**
+ * How many of the jobs we quoted turned into work.
+ *
+ * Counted per job, not per option, because only one option on a job can ever
+ * be sold — counting options puts four in the denominator for every one that
+ * could possibly land, and reported 6% on a month that actually closed 14%.
+ * A board that understates the close rate by a factor of three is a board the
+ * room stops arguing with and starts ignoring.
+ */
+export function closeRate(rows: OptionRow[]): CloseRate {
+  const opps = byOpportunity(rows);
+  const won = opps.filter((o) => o.won).length;
+  return {
+    rate: opps.length ? won / opps.length : null,
+    won,
+    quoted: opps.length,
+    options: rows.length,
+  };
+}
+
+/**
  * Where the year's goal says we should be by today.
  *
  * Month by month off the goal's own shape, plus the part of the current month
