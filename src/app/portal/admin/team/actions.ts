@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can, isRole, overridesFrom, type Cap, type Role } from "@/lib/portal/caps";
-import { createUser, updateUser, deleteUser } from "@/lib/portal/db";
+import { createUser, updateUser, deleteUser, getUser, getUserById } from "@/lib/portal/db";
 import { isOwner } from "@/lib/portal/team";
 
 export type ActionResult = { ok: boolean; error?: string };
@@ -76,6 +76,41 @@ export async function removeMember(input: { id: string; email: string }): Promis
 
   const res = await deleteUser(input.id);
   if (!res.ok) return { ok: false, error: "Couldn't remove them. Try again." };
+  revalidatePath("/portal/admin/team");
+  return { ok: true };
+}
+
+/**
+ * Give a crew member who has no login an email they can sign in with.
+ *
+ * A manager could already mint a login for anyone through addMember; what that
+ * does is create a SECOND row, leaving the person's file, goals and reviews
+ * behind on the first. So this grants no access addMember didn't, it just puts
+ * the login on the record that already is them. The email can only be set when
+ * the row has none — changing an existing one would hand somebody else's
+ * account away, and that is a deletion dressed as an edit.
+ */
+export async function setLoginEmail(input: { id: string; email: string }): Promise<ActionResult> {
+  const me = await requireManager();
+  if (!me) return { ok: false, error: "Not allowed." };
+
+  const email = input.email.trim().toLowerCase();
+  if (!input.id) return { ok: false, error: "Missing user." };
+  if (!EMAIL_RE.test(email)) return { ok: false, error: "That doesn't look like an email address." };
+
+  const person = await getUserById(input.id);
+  if (!person) return { ok: false, error: "Couldn't find them." };
+  if (person.email) return { ok: false, error: "They already sign in with an email. Change it in Access levels." };
+
+  const taken = await getUser(email);
+  if (taken) return { ok: false, error: "Someone else already signs in with that address." };
+
+  const res = await updateUser(input.id, { email });
+  if (!res.ok) {
+    if (res.error === "not-configured") return { ok: false, error: "The database isn't connected yet." };
+    return { ok: false, error: "Couldn't save. Try again." };
+  }
+  revalidatePath(`/portal/team/${input.id}`);
   revalidatePath("/portal/admin/team");
   return { ok: true };
 }

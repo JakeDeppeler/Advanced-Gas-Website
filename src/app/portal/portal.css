@@ -555,7 +555,11 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 /* Hairline-separated cells rather than a free-floating grid: the stat count
    changes with what's filled in, and evenly-split cells stay tidy at any
    number instead of leaving one stranded on its own row. */
-.pt-veh__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 1px; padding: 0; background: var(--pt-line); overflow: hidden; }
+/* The 1px gaps are the grid's own background showing through, so a last row
+   that doesn't fill its columns showed as a grey block. A white backstop with
+   the lines drawn over it leaves the remainder reading as empty, not broken. */
+.pt-veh__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(172px, 1fr)); gap: 1px; padding: 0; background: var(--pt-surface); overflow: hidden; }
+.pt-veh__stat { box-shadow: 0 0 0 1px var(--pt-line); }
 .pt-veh__stat { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; justify-content: flex-start; min-width: 0; padding: 15px 18px; background: var(--pt-surface); }
 .pt-veh__stat > span { font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pt-ink-3); font-weight: 700; }
 .pt-veh__stat > strong { max-width: 100%; font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; line-height: 1.25; overflow-wrap: break-word; }
@@ -2389,3 +2393,109 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   color: var(--pt-ink);
 }
 .pt-btn:not([class*="pt-btn--"]):hover { border-color: var(--pt-ink-2); }
+
+/* ============== Team · one person: the header, tabs and glance ============== */
+/* The avatar, who they are and the two account actions, all on one line. The
+   back link sits inside the name block rather than above the avatar so it
+   lines up with the name, which is what the eye follows down. */
+.pt-person { display: flex; align-items: flex-start; gap: 22px; margin-bottom: 20px; }
+.pt-person__av {
+  flex: none; width: 82px; height: 82px; border-radius: 50%;
+  background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); color: #fff;
+  display: grid; place-items: center;
+  font-family: var(--f-display); font-weight: 800; font-size: 34px; line-height: 1;
+}
+.pt-person__who { min-width: 0; flex: 1 1 auto; }
+.pt-person__who h1 {
+  font-family: var(--f-display); font-size: 42px; font-weight: 800; letter-spacing: -0.02em;
+  line-height: 1.05; margin: 4px 0 6px; color: var(--pt-ink); text-wrap: balance;
+}
+.pt-person__who > p { margin: 0; font-size: 15px; color: var(--pt-ink-2); }
+/* Said in words as well as colour: somebody skimming in orange-blind sees the
+   sentence, not just a highlight. */
+.pt-person__nologin { color: var(--pt-accent); font-weight: 700; }
+.pt-person__acts { flex: none; padding-top: 30px; }
+
+.pt-pacts__row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.pt-pacts__form {
+  margin-top: 12px; width: min(320px, 100%);
+  background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: 14px; padding: 14px 16px;
+  box-shadow: var(--pt-shadow);
+}
+.pt-pacts__form label { display: block; font-size: 13px; font-weight: 600; color: var(--pt-ink); margin-bottom: 5px; }
+.pt-pacts__form input {
+  width: 100%; box-sizing: border-box; border: 1px solid var(--pt-line); border-radius: 10px;
+  padding: 10px 12px; font: inherit; font-size: 14px; color: var(--pt-ink); background: var(--pt-surface);
+}
+.pt-pacts__note { margin: 8px 0 12px; font-size: 12.5px; line-height: 1.45; color: var(--pt-ink-2); }
+.pt-pacts__err { margin: 10px 0 0; font-size: 13px; font-weight: 600; color: #a53024; }
+
+/* The file on the left, the five facts on the right. One column once the
+   aside would squeeze the panel it sits beside. */
+.pt-person__body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start; }
+.pt-person__main { min-width: 0; }
+.pt-glance { margin-bottom: 0; position: sticky; top: 90px; }
+.pt-glance__row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
+  padding: 13px 0; border-top: 1px solid var(--pt-line); font-size: 14px;
+}
+.pt-glance__row:first-of-type { margin-top: 14px; }
+.pt-glance__row > span { color: var(--pt-ink-2); }
+.pt-glance__row > strong { font-weight: 700; color: var(--pt-ink); text-align: right; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .pt-person__body { grid-template-columns: minmax(0, 1fr); }
+  .pt-glance { position: static; }
+}
+@media (max-width: 720px) {
+  .pt-person { flex-wrap: wrap; gap: 16px; }
+  .pt-person__av { width: 60px; height: 60px; font-size: 25px; }
+  .pt-person__who h1 { font-size: 30px; }
+  .pt-person__acts { width: 100%; padding-top: 0; }
+  .pt-pacts__row { justify-content: flex-start; }
+}
+/* Setting the expectation. Named apart from .pf-add, which is the four-column
+   row the goal and review forms use — the two are different shapes. */
+.pf-set { margin-top: 18px; }
+.pf-set__label { display: block; font-family: var(--f-display); font-size: 14.5px; font-weight: 800; color: var(--pt-ink); margin-bottom: 8px; }
+.pf-row-start { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+
+/* ============ Vehicles · one van: the head, the clean, the photos ============ */
+.pt-vhead__facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 6px 0 0; font-size: 15px; color: var(--pt-ink-2); }
+.pt-vhead__acts { flex: none; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; margin-top: 6px; }
+.pt-vhead__acts .pt-btn { text-decoration: none; display: inline-flex; align-items: center; }
+
+/* Said in words, not just the warm fill — a crew member who can't separate
+   the orange from the cream still reads "overdue". */
+.pt-vw__due {
+  flex: none; align-self: flex-start; border-radius: 999px; padding: 7px 14px;
+  background: #fbe8dc; color: var(--pt-accent-deep); border: 1px solid #f0cdb4;
+  font-size: 13px; font-weight: 800;
+}
+
+.pt-vw__strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.pt-vw__shot { margin: 0; min-width: 0; }
+.pt-vw__shot img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; border: 1px solid var(--pt-line); }
+.pt-vw__shot.is-empty .pt-vw__none {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 4 / 3;
+  border: 1px dashed var(--pt-line); border-radius: 12px; background: var(--pt-tint); color: var(--pt-ink-2);
+}
+.pt-vw__shot figcaption { margin-top: 9px; font-size: 13.5px; font-weight: 700; color: var(--pt-ink); }
+.pt-vw__shot.is-empty figcaption { font-weight: 600; color: var(--pt-ink-2); }
+
+.pt-vw__hist { margin-top: 24px; }
+.pt-vw__row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
+  padding: 15px 0; border-top: 1px solid var(--pt-line); text-decoration: none;
+}
+.pt-vw__row:hover { background: var(--pt-bg); }
+.pt-vw__row > strong { font-size: 15px; color: var(--pt-ink); }
+.pt-vw__row > span { font-size: 14px; color: var(--pt-ink-2); text-align: right; }
+
+@media (max-width: 1100px) { .pt-vw__strip { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 720px) {
+  .pt-vw__strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pt-vhead__acts { justify-content: flex-start; }
+  .pt-vw__row { flex-direction: column; gap: 3px; }
+  .pt-vw__row > span { text-align: left; }
+}

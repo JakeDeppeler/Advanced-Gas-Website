@@ -240,10 +240,13 @@ export async function getUserById(id: string): Promise<CostedUser | null> {
 
 export async function updateUser(
   id: string,
-  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; expectations?: string; level?: CrewLevel; sortOrder?: number | null },
+  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; email?: string; expectations?: string; level?: CrewLevel; sortOrder?: number | null },
 ): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.role !== undefined) body.role = patch.role;
+  // The email IS the sign-in identity, so it is only ever written through
+  // setLoginEmail, which checks nobody else already holds it.
+  if (patch.email !== undefined) body.email = patch.email.trim().toLowerCase();
   if (patch.caps !== undefined) body.caps = patch.caps;
   if (patch.active !== undefined) body.active = patch.active;
   if (patch.name !== undefined) body.name = patch.name.trim();
