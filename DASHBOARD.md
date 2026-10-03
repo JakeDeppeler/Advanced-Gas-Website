@@ -624,6 +624,18 @@ where there were **118**. The per-person rates on the Team page group the same
 rows by customer and day as well, so the headline disagreed with the rows under
 it. Both use the same key now.
 
+**The Today page carries the split as two halves of one tile.** Three lines of
+text under a single figure was a list; two halves with a rule between them is a
+comparison, which is the only reason to split the rate at all. Each half keeps
+its own count, because real estate is eight jobs deep and a percentage on its
+own would hide that.
+
+No combined figure on that tile on purpose: domestic and real estate are 110 of
+the 118 jobs quoted — the remainder are quotation and site-assessment units,
+which are not a side of the business — so an overall percentage sitting above
+two that do not add up to it invites a question with a boring answer. The one
+figure over everything is on Pace.
+
 **The Today page carries the same split.** Close rate reads the overall figure,
 then Domestic and Real Estate on their own lines with their own denominators,
 then what a job was priced at. It is the first page the room sees and the one

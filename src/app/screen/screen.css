@@ -388,6 +388,39 @@ body:has(.screen) .utilbar {
   text-wrap: balance;
 }
 
+/* One tile cut in two, for a figure that only means something next to its pair.
+   The rule between them is what makes it a comparison rather than a list; it
+   is a hairline, not a border, because the tile already has edges. */
+.halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  align-items: center;
+  margin: calc(0.3 * var(--u)) 0;
+}
+.halves__one {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.12 * var(--u));
+  padding: 0 calc(0.9 * var(--u));
+  min-width: 0;
+}
+.halves__one + .halves__one { border-left: 1px solid var(--hairline); }
+.halves__name {
+  font-size: calc(0.95 * var(--u));
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.halves__value {
+  font-size: calc(2.6 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.05;
+}
+.halves__value.is-na { font-size: calc(1.6 * var(--u)); color: var(--muted-fig); }
+.halves__sub { font-size: calc(0.86 * var(--u)); color: var(--ink-muted); white-space: nowrap; }
+
 /* Two figures abreast, the second one quieter: leads today against leads this
    week, where the first is the one being acted on. */
 .pair { display: flex; align-items: flex-end; gap: calc(1.6 * var(--u)); }

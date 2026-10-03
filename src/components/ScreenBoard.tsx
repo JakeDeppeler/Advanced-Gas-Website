@@ -434,40 +434,39 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         ]}
         value={st.plain(m.quotesCreatedTodayValue, live)}
       />
-      {/* The rate on its own says how often we win. What a job was priced at
-          says what winning one is worth, and the two together are the question
-          the room actually asks. Both per job over the same thirty days — an
-          average counted per option under a rate counted per job would be one
-          sentence disagreeing with itself. */}
-      <RateCard
+      {/* Two halves rather than a figure with three lines under it: an agent
+          deciding on behalf of a landlord is a different sell from a
+          householder spending their own money, and the only reason to split
+          the rate is so the two can be read against each other.
+
+          The foot keeps what a job was priced at and how many ways — per job
+          over the same thirty days as the rates above it, because an average
+          counted per option under a rate counted per job would be one sentence
+          disagreeing with itself. */}
+      <SplitRateCard
         label="Close rate"
-        lines={
-          live.st
-            ? [
-                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs · last ${m.outstandingDays ?? 30} days`,
-                // Split by the side of the business: an agent deciding on
-                // behalf of a landlord is a different sell from a householder
-                // spending their own money, and one rate across both says
-                // nothing about either. Each carries its own denominator —
-                // the real estate side is eight jobs deep and a bare
-                // percentage would hide that.
-                ...m.closeRateByUnit
-                  .filter((u) => u.quoted > 0)
-                  .map((u) => `${u.group} ${pct(u.rate)} · ${count(u.won)} of ${count(u.quoted)}`),
-                // Options per job, not the raw count. "429 options" is a
-                // number nobody can act on; "3.6 options per job" says whether
-                // we are putting a choice in front of people, and it is the
-                // thing that makes the close rate beside it a per-job figure
-                // rather than a per-option one.
-                `avg quote ${plain(m.avgQuote30d)}${
-                  m.closeRate30dQuotes > 0
-                    ? ` · ${(m.closeRate30dOptions / m.closeRate30dQuotes).toFixed(1)} options per job`
-                    : ""
-                }`,
+        note={live.st ? `last ${m.outstandingDays ?? 30} days` : undefined}
+        halves={
+          live.st && m.closeRateByUnit.length
+            ? m.closeRateByUnit.map((u) => ({
+                name: u.group,
+                value: u.quoted > 0 ? pct(u.rate) : NA,
+                sub: u.quoted > 0 ? `${count(u.won)} of ${count(u.quoted)} jobs` : "none quoted",
+              }))
+            : [
+                { name: "Domestic", value: NA, sub: "ServiceTitan not connected" },
+                { name: "Real Estate", value: NA, sub: "" },
               ]
-            : ["ServiceTitan not connected"]
         }
-        value={live.st ? pct(m.closeRate30d) : NA}
+        foot={
+          live.st
+            ? `avg quote ${plain(m.avgQuote30d)}${
+                m.closeRate30dQuotes > 0
+                  ? ` · ${(m.closeRate30dOptions / m.closeRate30dQuotes).toFixed(1)} options per job`
+                  : ""
+              }`
+            : undefined
+        }
       />
       <RateCard
         label="Overdue"
@@ -1296,6 +1295,51 @@ function HeroCard({ label, value, foot, navy }: { label: string; value: string; 
  * lines rather than one: a rate with nothing beside it invites the room to
  * guess what it is a rate of.
  */
+/**
+ * One tile, two halves, a rule between them.
+ *
+ * The two sides of the business as three lines of text under a single figure
+ * was a list; as two halves it is a comparison, which is the only reason the
+ * split exists. Each half carries its own count, because real estate is eight
+ * jobs deep and a percentage on its own would hide that.
+ *
+ * No combined figure on this tile on purpose. Domestic and real estate are 110
+ * of the 118 jobs quoted — the rest are quotation and site-assessment units
+ * that are not a side of the business — so an overall percentage sitting above
+ * two that do not add up to it invites a question with a boring answer. The
+ * one figure over everything is on Pace.
+ */
+function SplitRateCard({
+  label,
+  note,
+  halves,
+  foot,
+}: {
+  label: string;
+  note?: string;
+  halves: Array<{ name: string; value: string; sub: string }>;
+  foot?: string;
+}) {
+  return (
+    <div className="tile c4">
+      <div className="tile__head">
+        <span className="tile__label">{label}</span>
+        {note && <span className="tile__sub">{note}</span>}
+      </div>
+      <div className="halves">
+        {halves.map((h) => (
+          <div className="halves__one" key={h.name}>
+            <span className="halves__name">{h.name}</span>
+            <span className={`halves__value ${h.value === NA ? "is-na" : ""}`}>{h.value}</span>
+            <span className="halves__sub">{h.sub}</span>
+          </div>
+        ))}
+      </div>
+      {foot && <span className="tile__sub">{foot}</span>}
+    </div>
+  );
+}
+
 function RateCard({ label, lines, value, accent }: { label: string; lines: string[]; value: string; accent?: boolean }) {
   return (
     <div className="tile tile--split c4">
