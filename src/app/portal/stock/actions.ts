@@ -12,7 +12,7 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : NaN;
 };
 
-export async function addItem(input: { name: string; unit: string; qty: string; minQty: string; location: string }): Promise<ActionResult> {
+export async function addItem(input: { name: string; unit: string; qty: string; minQty: string; location: string; category?: string }): Promise<ActionResult> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
   const name = input.name.trim().slice(0, 80);
@@ -21,7 +21,7 @@ export async function addItem(input: { name: string; unit: string; qty: string; 
   const minQty = input.minQty.trim() === "" ? 0 : num(input.minQty);
   if (!(qty >= 0) || !(minQty >= 0)) return { ok: false, error: "Counts have to be zero or more." };
   try {
-    await addStockItem({ name, unit: input.unit.trim().slice(0, 20) || "each", qty, minQty, location: input.location.trim().slice(0, 60), who: me.name });
+    await addStockItem({ name, unit: input.unit.trim().slice(0, 20) || "each", qty, minQty, location: input.location.trim().slice(0, 60), who: me.name, category: (input.category ?? "").trim().slice(0, 40) });
   } catch {
     return { ok: false, error: "Couldn't save." };
   }

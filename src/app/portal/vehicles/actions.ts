@@ -63,7 +63,7 @@ export async function saveVehicle(input: {
   nextServiceKm: number | null; nextServiceDate: string; status: VehicleStatus;
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; purchasedOn: string; condition: VehicleCondition | null;
-  serviceCost: number | null; kmYear: number | null; assignedTo: string;
+  serviceCost: number | null; kmYear: number | null; assignedTo: string; regoDue?: string;
 }): Promise<ActionResult> {
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };
@@ -74,6 +74,7 @@ export async function saveVehicle(input: {
     purchasePrice: input.purchasePrice, resaleValue: input.resaleValue, lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
     amountOwing: input.amountOwing, purchasedOn: input.purchasedOn, condition: input.condition,
     serviceCost: input.serviceCost, kmYear: input.kmYear, assignedTo: input.assignedTo,
+    ...(input.regoDue !== undefined ? { regoDue: /^\d{4}-\d{2}-\d{2}$/.test(input.regoDue) ? input.regoDue : null } : {}),
   });
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   reval(input.id);

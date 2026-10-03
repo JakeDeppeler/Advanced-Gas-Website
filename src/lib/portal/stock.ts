@@ -11,10 +11,10 @@ import { dbConfigured } from "@/lib/portal/db";
  * (migration 0038), so the log always adds up to the shelf.
  */
 
-export type StockItem = { id: string; name: string; unit: string; qty: number; minQty: number; location: string | null };
+export type StockItem = { id: string; name: string; unit: string; qty: number; minQty: number; location: string | null; category: string | null };
 export type StockMove = { id: string; itemId: string; item: string; change: number; reason: string; who: string | null; forWhat: string | null; at: string };
 
-type ItemRow = { id: string; name: string; unit: string; qty: number | string; min_qty: number | string; location: string | null };
+type ItemRow = { id: string; name: string; unit: string; qty: number | string; min_qty: number | string; location: string | null; category?: string | null };
 type MoveRow = { id: string; item_id: string; change: number | string; reason: string; who: string | null; for_what: string | null; created_at: string };
 
 export const isLow = (i: Pick<StockItem, "qty" | "minQty">) => i.minQty > 0 && i.qty <= i.minQty;
@@ -25,9 +25,9 @@ export const listStock = cache(async (): Promise<StockItem[] | null> => {
   try {
     const rows = await sbSelect<ItemRow>(
       "portal_stock_items",
-      [q.select("id,name,unit,qty,min_qty,location"), "order=sort_order.asc.nullslast,name.asc"].join("&"),
+      [q.select("id,name,unit,qty,min_qty,location,category"), "order=sort_order.asc.nullslast,name.asc"].join("&"),
     );
-    return rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit, qty: Number(r.qty), minQty: Number(r.min_qty), location: r.location }));
+    return rows.map((r) => ({ id: r.id, name: r.name, unit: r.unit, qty: Number(r.qty), minQty: Number(r.min_qty), location: r.location, category: r.category ?? null }));
   } catch {
     return null;
   }
@@ -52,9 +52,10 @@ export async function lowStockCount(): Promise<number | null> {
   return items ? items.filter(isLow).length : null;
 }
 
-export async function addStockItem(input: { name: string; unit: string; qty: number; minQty: number; location: string; who: string }): Promise<void> {
+export async function addStockItem(input: { name: string; unit: string; qty: number; minQty: number; location: string; who: string; category?: string }): Promise<void> {
   await sbInsert("portal_stock_items", {
     name: input.name, unit: input.unit || "each", qty: 0, min_qty: input.minQty, location: input.location || null,
+    category: input.category?.trim() || null,
   });
   // The opening count goes in as a movement, so the log starts where the shelf does.
   if (input.qty > 0) {

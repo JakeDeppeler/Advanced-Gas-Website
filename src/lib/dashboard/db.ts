@@ -149,6 +149,15 @@ export async function sbUpdate(table: string, query: string, patch: Row): Promis
   }
 }
 
+/** DELETE every row matching the filter query. */
+export async function sbDelete(table: string, query: string): Promise<void> {
+  const res = await sb(`${table}?${query}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  if (!res) return;
+  if (!res.ok) {
+    throw new Error(`${table} delete failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+}
+
 export async function sbRpc(fn: string, args: Row = {}): Promise<void> {
   const res = await sb(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
   if (!res) return;

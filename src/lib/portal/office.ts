@@ -4,6 +4,8 @@ import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { q, sbCount, sbSelect } from "@/lib/dashboard/db";
 import { actions, shortfalls, type CheckItems } from "@/lib/portal/vanChecks";
 import { dbConfigured, getSettings, listVanChecks, listVehicles } from "@/lib/portal/db";
+import { listOrders, openReports, toolRequests } from "@/lib/portal/van";
+import { listLeave, listTake5 } from "@/lib/portal/people";
 import { readYearGoal, yearSpans, type YearGoal } from "@/lib/portal/yearGoal";
 import { getProfitAndLoss, localToday, xeroStatus, type ProfitLoss } from "@/lib/portal/xero";
 import { startOfMonthMelbourne } from "@/lib/dashboard/dates";
@@ -62,18 +64,38 @@ export const leadsThisMonth = cache(async (): Promise<{ web: number; st: number;
 export type VanIssue = { vehicleId: string; van: string; item: string; note: string; kind: "service" | "tool"; on: string };
 
 /**
- * What the latest checks flagged on each van that is on the road: anything
- * the weekly or monthly check marked as needing doing is a service request,
- * and anything the tool bag or plant count found under its minimum is a tool
- * short. Only the latest sheet of each kind counts — a tyre flagged three
- * weeks ago and passed since is not waiting on anyone.
+ * What's waiting on the office for each van on the road.
+ *
+ * Service: a damage or service report nobody has answered yet — the tech's
+ * own, or a line their weekly check flagged — plus anything the monthly
+ * check (the office's own) marked as needing doing. Tools: a tool somebody
+ * asked about and hasn't had an answer on, and anything the tool bag or plant
+ * count found under its minimum.
+ *
+ * Only the latest sheet of each kind counts — a tyre flagged three weeks ago
+ * and passed since is not waiting on anyone. Sheets written before reports
+ * existed still put their flagged lines here, so nothing that was waiting
+ * drops off the list because the screen changed.
  */
 export const vanIssues = cache(async (): Promise<VanIssue[]> => {
   if (!dbConfigured()) return [];
-  const vans = (await listVehicles().catch(() => [])).filter((v) => v.status === "on");
+  const [vans, reports, asked] = await Promise.all([
+    listVehicles().catch(() => []),
+    openReports(),
+    toolRequests(),
+  ]);
+  const onRoad = vans.filter((v) => v.status === "on");
+  const name = new Map(vans.map((v) => [v.id, v.name]));
   const out: VanIssue[] = [];
+
+  for (const r of reports.filter((x) => x.status === "open")) {
+    out.push({ vehicleId: r.vehicleId, van: name.get(r.vehicleId) ?? "A van", item: r.title, note: r.detail ?? "", kind: "service", on: r.on });
+  }
+  for (const t of asked.filter((x) => !x.reply)) {
+    out.push({ vehicleId: t.vehicleId, van: name.get(t.vehicleId) ?? "A van", item: t.name, note: t.requestNote ?? "", kind: "tool", on: (t.requestedAt ?? "").slice(0, 10) });
+  }
   await Promise.all(
-    vans.map(async (v) => {
+    onRoad.map(async (v) => {
       const [weekly, monthly, bag, plant] = await Promise.all(
         (["weekly", "monthly", "bag", "plant"] as const).map((k) => listVanChecks(v.id, k, 1).catch(() => [])),
       );
@@ -94,6 +116,17 @@ export const vanIssues = cache(async (): Promise<VanIssue[]> => {
     }),
   );
   return out;
+});
+
+/** What the crew has sent in that waits on somebody in the office. */
+export const crewRequests = cache(async () => {
+  if (!dbConfigured()) return { orders: [], leave: [], incidents: [] };
+  const [orders, leave, incidents] = await Promise.all([
+    listOrders({ open: true, limit: 50 }),
+    listLeave({ status: "asked", limit: 50 }),
+    listTake5({ kind: "incident", unseen: true, limit: 20 }),
+  ]);
+  return { orders: orders.filter((o) => o.status === "requested"), leave, incidents };
 });
 
 /** Jobs ServiceTitan has for one customer, newest first. */

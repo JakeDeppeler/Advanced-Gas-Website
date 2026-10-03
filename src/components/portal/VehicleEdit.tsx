@@ -31,7 +31,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
     owing: vehicle.amountOwing?.toString() ?? "",
     bought: vehicle.purchasedOn ?? "", condition: vehicle.condition,
     serviceCost: vehicle.serviceCost?.toString() ?? "", kmYear: vehicle.kmYear?.toString() ?? "",
-    assignedTo: vehicle.assignedTo ?? "",
+    assignedTo: vehicle.assignedTo ?? "", regoDue: vehicle.regoDue ?? "",
   });
 
   return (
@@ -52,6 +52,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
               <NumField label="Km a year" hint="(roughly)" value={f.kmYear} onChange={(v) => setF({ ...f, kmYear: v })} suffix="km" />
               <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
               <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
+              <label className="pt-field"><span>Rego due</span><input type="date" value={f.regoDue} onChange={(e) => setF({ ...f, regoDue: e.target.value })} /></label>
               <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
               <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
               <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => setF({ ...f, bought: e.target.value })} /></label>
@@ -106,7 +107,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
                   amountOwing: f.owing ? toNum(f.owing) : null,
                   purchasedOn: f.bought, condition: f.condition,
                   serviceCost: f.serviceCost ? toNum(f.serviceCost) : null, kmYear: f.kmYear ? toInt(f.kmYear) : null,
-                  assignedTo: f.assignedTo,
+                  assignedTo: f.assignedTo, regoDue: f.regoDue,
                 });
                 if (r.ok) { setEditing(false); refresh(); }
               })}>{pending ? "Saving…" : "Save"}</button>

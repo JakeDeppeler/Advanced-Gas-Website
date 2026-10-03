@@ -42,7 +42,7 @@ import {
  * quote's own value, so nothing is attributed to the wrong person or period —
  * those jobs simply are not what this board is for.
  */
-const QUOTE_CAP = 50_000;
+export const QUOTE_CAP = 50_000;
 
 /**
  * Commercial work, kept off a residential wall.
@@ -101,7 +101,7 @@ const isFieldPlus = (unit: string | null | undefined) => unit != null && /^impor
  * residential side. Jobs keep `domestic` on its own — an imported job still
  * happened, in a real suburb, for a real amount, and the areas map says so.
  */
-const quotes = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
+export const quotes = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
   domestic(rows).filter((r) => !isFieldPlus(r.business_unit));
 
 /**
@@ -114,7 +114,7 @@ const quotes = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
  * those, because options of one quote are written together, for one customer,
  * on one day.
  */
-function quoteKey(r: {
+export function quoteKey(r: {
   id: number;
   job_id: number | null;
   customer_id?: number | null;

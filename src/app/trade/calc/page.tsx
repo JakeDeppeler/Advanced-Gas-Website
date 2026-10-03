@@ -17,14 +17,14 @@ export default async function TradeCalcPage() {
 
   return (
     <TradeShell
-      user={user} active="/trade/calc"
+      user={user} active="pricebook"
       title="Job calculator"
       sub="Check a job covers your time before you quote it"
       action={
         // Only to someone the office page will let in: it shows what everybody
         // earns, which is why it is behind the overhead capability.
         can(user, "overhead")
-          ? <Link href="/portal/job-calculator" className="tr-btn">Full calculator</Link>
+          ? <Link href="/portal/job-calculator" className="tr__office">Full calculator</Link>
           : undefined
       }
     >

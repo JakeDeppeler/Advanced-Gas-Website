@@ -49,15 +49,22 @@ export async function signedUrls(paths: string[], seconds = 3600): Promise<Map<s
   const out = new Map<string, string>();
   const c = conf();
   if (!c || paths.length === 0) return out;
-  const res = await fetch(`${c.url}/storage/v1/object/sign/${BUCKET}`, {
-    method: "POST",
-    headers: { ...auth(c.key), "Content-Type": "application/json" },
-    body: JSON.stringify({ expiresIn: seconds, paths }),
-    cache: "no-store",
-  });
-  if (!res.ok) return out;
-  const rows = (await res.json()) as { path?: string; signedURL?: string; error?: string | null }[];
-  for (const r of rows) {
+  // Photos are the one thing on a page that can go missing without the page
+  // being wrong, so a storage hiccup costs the thumbnails, never the page.
+  let rows: { path?: string; signedURL?: string; error?: string | null }[] = [];
+  try {
+    const res = await fetch(`${c.url}/storage/v1/object/sign/${BUCKET}`, {
+      method: "POST",
+      headers: { ...auth(c.key), "Content-Type": "application/json" },
+      body: JSON.stringify({ expiresIn: seconds, paths }),
+      cache: "no-store",
+    });
+    if (!res.ok) return out;
+    rows = (await res.json()) as typeof rows;
+  } catch {
+    return out;
+  }
+  for (const r of Array.isArray(rows) ? rows : []) {
     if (r.path && r.signedURL) out.set(r.path, `${c.url}/storage/v1${r.signedURL}`);
   }
   return out;

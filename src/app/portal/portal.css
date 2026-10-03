@@ -3867,3 +3867,13 @@ a.pt-fig:hover { transform: translateY(-2px); }
   .pt-stk__row { grid-template-columns: minmax(0, 1fr) auto; }
   .pt-stk__acts { grid-column: 1 / -1; }
 }
+
+/* A plain figures table — the Hours page's timesheets. */
+.pt-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.pt-table th { text-align: left; padding: 10px 12px 10px 0; font-size: 12.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pt-ink-2); font-weight: 700; border-bottom: 1px solid var(--pt-line); }
+.pt-table td { padding: 12px 12px 12px 0; border-bottom: 1px solid var(--pt-line); }
+.pt-table tr:last-child td { border-bottom: 0; }
+
+/* Rows of figure cards that belong together read as one block. */
+.pt-figrows { display: flex; flex-direction: column; gap: 16px; }
+.pt-figrows .pt-mkheads { margin-bottom: 0; }

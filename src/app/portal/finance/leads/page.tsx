@@ -7,8 +7,9 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { LeadsBoard } from "@/components/portal/LeadsBoard";
 import { groupByArea } from "@/lib/portal/leadArea";
 import { pageReport } from "@/lib/portal/leadPages";
-import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
+import { SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
+import { WEBSITE_TABS, websiteHref, windowKey } from "@/lib/portal/marketingTabs";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Website leads — Team portal" };
@@ -18,7 +19,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
 
-  const days = [30, 90, 365].includes(Number(searchParams?.d)) ? Number(searchParams!.d) : 30;
+  // The same three windows as the Website tabs, so moving between them keeps the window.
+  const win = windowKey(searchParams?.d);
+  const days = Number(win);
   const since = new Date(Date.now() - days * 86_400_000).toISOString();
   const ready = dbConfigured();
   const leads = ready ? await listWebLeads(since) : [];
@@ -31,13 +34,23 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal/website" label="Website" />
-        <h1>What the website brings in</h1>
-        <p>Every quote request and every phone tap: which part of the site earns and which sits there, the page the visit started on, the channel that sent them, how far away they are in drive time rather than kilometres, and what hour of the day they turn up. Nothing here is a customer&rsquo;s details; the enquiry itself still goes to the inbox.</p>
+      <PortalBack href="/portal/website" label="Website" />
+      <div className="pt-head pt-head--split">
+        <div>
+          <h1>Every enquiry</h1>
+          <p>Every quote request and phone tap — which part of the site earns, the channel that sent them, how far away they are in drive time, and what hour they turn up. No customer details here; the enquiry still goes to the inbox.</p>
+        </div>
+        <WindowPicker win={win} hrefFor={(w) => `/portal/finance/leads${w === "30" ? "" : `?d=${w}`}`} />
       </div>
 
-      <PortalTabs set="website" />
+      <SectionTabs
+        label="Website"
+        current="all"
+        tabs={[
+          ...WEBSITE_TABS.map((t) => ({ k: t.k, label: t.label, href: websiteHref(t.k, win) })),
+          { k: "all", label: "Every enquiry", href: `/portal/finance/leads${win === "30" ? "" : `?d=${win}`}` },
+        ]}
+      />
       <LeadsBoard leads={leads} days={days} area={area} pages={pages} dbReady={ready} />
     </PortalShell>
   );

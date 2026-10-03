@@ -6,7 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { BANDS, BAND_BLURB, BAND_LABEL, ICON, byBand, portalNav } from "@/lib/portal/nav";
 import { localToday } from "@/lib/portal/xero";
 import { money } from "@/lib/portal/format";
-import { latestBoard, leadsThisMonth, savedGoal, shortMoney, vanIssues } from "@/lib/portal/office";
+import { crewRequests, latestBoard, leadsThisMonth, savedGoal, shortMoney, vanIssues } from "@/lib/portal/office";
 import { seenSet, waitingNotices, noticeKey } from "@/lib/portal/notices";
 import { lowStockCount } from "@/lib/portal/stock";
 
@@ -32,7 +32,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   if (!user) redirect("/portal/login");
 
   const office = can(user, "overhead");
-  const [board, leads, issues, waiting, seen, goal, low] = await Promise.all([
+  const [board, leads, issues, waiting, seen, goal, low, asks] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
     office ? leadsThisMonth() : Promise.resolve(null),
     office ? vanIssues() : Promise.resolve([]),
@@ -40,6 +40,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     seenSet(user).catch(() => new Set<string>()),
     office ? savedGoal() : Promise.resolve(null),
     office ? lowStockCount() : Promise.resolve(null),
+    office ? crewRequests() : Promise.resolve({ orders: [], leave: [], incidents: [] }),
   ]);
 
   const first = user.name.split(" ")[0];
@@ -48,6 +49,11 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
 
   // ---- what needs someone today
   const lines: Line[] = [];
+  // Safety first: an incident sits at the top until somebody has read it.
+  if (asks.incidents.length) {
+    const f = asks.incidents[0];
+    lines.push({ n: asks.incidents.length, text: `${plural(asks.incidents.length, "incident")} reported · ${f.userName ?? "the crew"}${asks.incidents.length > 1 ? ` and ${asks.incidents.length - 1} more` : ""}`, href: "/portal/requests#incidents" });
+  }
   if (m && (m.quotesQuietCount ?? 0) > 0) {
     lines.push({ n: m.quotesQuietCount, text: `${plural(m.quotesQuietCount, "quote")} gone quiet 7+ days`, href: "/portal/quotes#quiet" });
   }
@@ -59,8 +65,8 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     const f = service[0];
     lines.push({
       n: service.length,
-      text: `van service ${plural(service.length, "request")} · ${(f.note || f.item).toLowerCase()} (${f.van}${service.length > 1 ? ` and ${service.length - 1} more` : ""})`,
-      href: service.length === 1 ? `/portal/vehicles/${f.vehicleId}` : "/portal/vehicles",
+      text: `van ${plural(service.length, "report")} to answer · ${f.item.toLowerCase()} (${f.van}${service.length > 1 ? ` and ${service.length - 1} more` : ""})`,
+      href: service.length === 1 ? `/portal/vehicles/${f.vehicleId}?tab=report` : "/portal/requests#reports",
     });
   }
   const tools = issues.filter((i) => i.kind === "tool");
@@ -68,9 +74,16 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
     const f = tools[0];
     lines.push({
       n: tools.length,
-      text: `${plural(tools.length, "tool")} short on a van · ${f.item.toLowerCase()} (${f.van}${tools.length > 1 ? ` and ${tools.length - 1} more` : ""})`,
-      href: tools.length === 1 ? `/portal/vehicles/${f.vehicleId}` : "/portal/vehicles",
+      text: `${plural(tools.length, "tool")} to sort on a van · ${f.item.toLowerCase()} (${f.van}${tools.length > 1 ? ` and ${tools.length - 1} more` : ""})`,
+      href: tools.length === 1 ? `/portal/vehicles/${f.vehicleId}?tab=tools` : "/portal/vehicles",
     });
+  }
+  if (asks.orders.length) {
+    const f = asks.orders[0];
+    lines.push({ n: asks.orders.length, text: `parts ${plural(asks.orders.length, "order")} to place · ${f.requestedBy ?? "the crew"}${asks.orders.length > 1 ? ` and ${asks.orders.length - 1} more` : ""}`, href: "/portal/requests#parts" });
+  }
+  if (asks.leave.length) {
+    lines.push({ n: asks.leave.length, text: `leave ${plural(asks.leave.length, "request")} to answer`, href: "/portal/requests#leave" });
   }
   if (low && low > 0) {
     lines.push({ n: low, text: `factory stock ${plural(low, "line")} at or under the minimum`, href: "/portal/stock" });
@@ -89,6 +102,8 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   const unread = waiting.filter((n) => !seen.has(noticeKey(n))).length;
   if (unread) badges["/portal/notifications"] = `${unread} new`;
   if (low && low > 0) badges["/portal/stock"] = `${low} low`;
+  const crewWaiting = asks.incidents.length + asks.leave.length + asks.orders.length;
+  if (crewWaiting) badges["/portal/requests"] = `${crewWaiting} waiting`;
 
   // Melbourne's date, not the server's: a board that says Thursday on a Friday
   // morning in Pakenham is wrong in the way people notice first.

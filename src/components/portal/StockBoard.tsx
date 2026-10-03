@@ -19,7 +19,7 @@ export function StockBoard({ items, canSave }: { items: Item[]; canSave: boolean
   const [forWhat, setForWhat] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [adding, setAdding] = useState(items.length === 0);
-  const [f, setF] = useState({ name: "", unit: "each", qty: "", minQty: "", location: "" });
+  const [f, setF] = useState({ name: "", unit: "each", qty: "", minQty: "", location: "", category: "" });
 
   function openRow(id: string, r: Reason) {
     setOpen(id); setReason(r); setQty(r === "count" ? String(items.find((i) => i.id === id)?.qty ?? "") : "1"); setForWhat(""); setMsg(null);
@@ -39,7 +39,7 @@ export function StockBoard({ items, canSave }: { items: Item[]; canSave: boolean
     start(async () => {
       const res = await addItem(f);
       if (!res.ok) return setMsg({ ok: false, text: res.error ?? "Couldn't save." });
-      setF({ name: "", unit: "each", qty: "", minQty: "", location: "" });
+      setF({ name: "", unit: "each", qty: "", minQty: "", location: "", category: "" });
       setAdding(false);
       setMsg({ ok: true, text: "Added." });
       router.refresh();
@@ -61,6 +61,8 @@ export function StockBoard({ items, canSave }: { items: Item[]; canSave: boolean
           <label className="pt-field"><span>On the shelf now</span><input inputMode="decimal" value={f.qty} onChange={(e) => setF({ ...f, qty: e.target.value })} placeholder="0" /></label>
           <label className="pt-field"><span>Low at</span><input inputMode="decimal" value={f.minQty} onChange={(e) => setF({ ...f, minQty: e.target.value })} placeholder="2" /></label>
           <label className="pt-field"><span>Where it lives</span><input value={f.location} onChange={(e) => setF({ ...f, location: e.target.value })} placeholder="Bay 3, top shelf" /></label>
+          <label className="pt-field"><span>Kind</span><input value={f.category} onChange={(e) => setF({ ...f, category: e.target.value })} placeholder="Units, Copper & fittings, Electrical" list="stock-kinds" /></label>
+          <datalist id="stock-kinds">{["Units", "Copper & fittings", "Electrical", "Consumables", "Brackets & mounting"].map((k) => <option key={k} value={k} />)}</datalist>
           <div className="pt-stk__addacts">
             {items.length > 0 && <button type="button" className="pt-btn pt-btn--ghost" onClick={() => setAdding(false)} disabled={pending}>Cancel</button>}
             <button type="button" className="pt-btn pt-btn--orange" onClick={add} disabled={pending || !f.name.trim()}>{pending ? "Saving…" : "Add it"}</button>
