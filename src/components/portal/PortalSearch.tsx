@@ -143,7 +143,7 @@ export function PortalSearch({ rows }: { rows: SearchRow[] }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKey}
-          placeholder="Search procedures, fault codes, prices…"
+          placeholder="Search pages, procedures, fault codes, prices…"
           aria-label="Search the portal"
           aria-expanded={showing}
           autoComplete="off"
