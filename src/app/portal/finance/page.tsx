@@ -7,6 +7,8 @@ import { PLSummary } from "@/components/portal/PLSummary";
 import Link from "next/link";
 import { xeroStatus, getProfitAndLoss, getMoneySeries, getPLDetail, ovSpans, localToday, MONEY_RANGES, OV_PERIODS, type MoneyRange, type OvPeriod, redirectUri } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { PortalBack } from "@/components/portal/PortalBack";
+import { XeroLine } from "@/components/portal/XeroLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -40,12 +42,16 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="finance" />
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">Finance</div>
-        <h1>Where we&rsquo;re at.</h1>
-        <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal" label="Home" />
+          <h1>Where we&rsquo;re at</h1>
+          <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
+        </div>
+        <XeroLine state={status} org={tenantName} />
       </div>
+
+      <PortalTabs set="finance" />
 
       {status === "not-configured" && (
         <section className="pt-panel">
@@ -88,12 +94,12 @@ async function ConnectedView({ tenantName, tf, plKey }: { tenantName: string | n
   ]);
 
   const anyData = [today, week, month, year].some((p) => p !== null);
-  const pulledAt = new Date().toLocaleString("en-AU", { timeZone: "Australia/Melbourne", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 
   return (
     <div className="pt-fin">
-      <div className="pt-fin__bar">
-        <span className="pt-fin__org">Live from <strong>{tenantName || "Xero"}</strong> · read at {pulledAt}</span>
+      {/* Where the figures came from is said once, in the page head. All
+          that is left here is the one thing you can do about it. */}
+      <div className="pt-fin__bar pt-fin__bar--end">
         <form action="/api/xero/disconnect" method="post"><button type="submit" className="pt-btn pt-btn--ghost pt-btn--sm">Disconnect</button></form>
       </div>
 

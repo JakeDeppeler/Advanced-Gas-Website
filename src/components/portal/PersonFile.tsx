@@ -33,7 +33,17 @@ function Stars({ n }: { n: number | null }) {
   return <span className="pf-stars" aria-label={`${n} out of 5`}>{"★".repeat(n)}<span className="pf-stars__off">{"★".repeat(5 - n)}</span></span>;
 }
 
-export function PersonFile({ userId, name, expectations, goals, reviews, notes, canEdit, canDeleteNotes }: Props) {
+/**
+ * One section at a time.
+ *
+ * The four panels used to stack, which meant scrolling past three to reach
+ * the one you opened the page for. The design tabs them, so the page shows
+ * what was asked for and nothing else.
+ */
+export type PersonTab = "expected" | "goals" | "reviews" | "notes";
+
+export function PersonFile({ userId, name, expectations, goals, reviews, notes, canEdit, canDeleteNotes, show }: Props & { show?: PersonTab }) {
+  const on = (t: PersonTab) => !show || show === t;
   const router = useRouter();
   const [pending, start] = useTransition();
   const refresh = () => router.refresh();
@@ -60,26 +70,36 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
   return (
     <div className="pf">
       {/* Expectations */}
+      {on("expected") && (
       <section className="pt-panel">
         <h2 className="pt-panel__h">What&rsquo;s expected</h2>
         <p className="pt-panel__sub">The standard for {name.split(" ")[0]}&rsquo;s role. {name.split(" ")[0]} can see this.</p>
-        {canEdit ? (
-          <>
-            <textarea className="pf-textarea" rows={4} value={exp} onChange={(e) => setExp(e.target.value)} placeholder="e.g. On time, van stocked, front-door approach every job, quotes within the day…" />
-            <div className="pf-row-end">
-              {expMsg && <span className="pt-inline is-ok">{expMsg}</span>}
-              <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={!expDirty || pending} onClick={() => start(async () => {
+        {/* What stands today, read first — the box to change it comes after,
+            so a manager checking the standard doesn't have to read past a
+            form to find it. */}
+        {expectations
+          ? <p className="pf-readonly">{expectations}</p>
+          : <div className="pf-empty">Nothing set yet for {name.split(" ")[0]}.</div>}
+        {canEdit && (
+          <div className="pf-set">
+            <label className="pf-set__label" htmlFor="pf-exp">
+              {expectations ? "Change what's expected" : "Add an expectation"}
+            </label>
+            <textarea id="pf-exp" className="pf-textarea" rows={4} value={exp} onChange={(e) => setExp(e.target.value)} placeholder="e.g. Weekly van check done by 8am Monday" />
+            <div className="pf-row-start">
+              <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" disabled={!expDirty || pending} onClick={() => start(async () => {
                 const res = await saveExpectations({ userId, text: exp });
                 if (res.ok) { setExpMsg("Saved."); refresh(); }
-              })}>{pending ? "Saving…" : expDirty ? "Save" : "Saved"}</button>
+              })}>{pending ? "Saving…" : "Save"}</button>
+              {expMsg && <span className="pt-inline is-ok">{expMsg}</span>}
             </div>
-          </>
-        ) : (
-          <p className="pf-readonly">{expectations || "Nothing set yet."}</p>
+          </div>
         )}
       </section>
+      )}
 
       {/* Goals & targets */}
+      {on("goals") && (
       <section className="pt-panel">
         <h2 className="pt-panel__h">Goals &amp; targets <span className="pt-tm__count">{goals.length}</span></h2>
         <p className="pt-panel__sub">Set and tracked by managers. {name.split(" ")[0]} can see these.</p>
@@ -121,8 +141,10 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
           </div>
         )}
       </section>
+      )}
 
       {/* Reviews */}
+      {on("reviews") && (
       <section className="pt-panel">
         <h2 className="pt-panel__h">Reviews <span className="pt-tm__count">{reviews.length}</span></h2>
         <p className="pt-panel__sub">Formal reviews. {name.split(" ")[0]} can see these.</p>
@@ -163,8 +185,10 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
           </div>
         )}
       </section>
+      )}
 
       {/* Hidden notes */}
+      {on("notes") && (
       <section className="pt-panel pf-hidden">
         <h2 className="pt-panel__h">Managers&rsquo; notes <span className="pf-lock">hidden</span></h2>
         <p className="pt-panel__sub">Private to managers — {name.split(" ")[0]} never sees these. Good, needs-work, or a plain note.</p>
@@ -202,6 +226,7 @@ export function PersonFile({ userId, name, expectations, goals, reviews, notes, 
           </div>
         )}
       </section>
+      )}
     </div>
   );
 }

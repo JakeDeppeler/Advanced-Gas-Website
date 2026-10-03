@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { addLog, removeLog, saveVehicle, removeVehicle } from "@/app/portal/vehicles/actions";
+import { addLog, removeLog } from "@/app/portal/vehicles/actions";
 import { NumField } from "@/components/portal/NumField";
-import { CONDITION_LABEL, CONDITION_OPTS, STATUS_LABEL, STATUS_NOTE, STATUS_OPTS } from "@/components/portal/vehicleStatus";
-import { vehicleFinance, years } from "@/components/portal/vehicleMath";
+import { STATUS_LABEL, STATUS_NOTE } from "@/components/portal/vehicleStatus";
 import type { VehicleCondition, VehicleLogKind, VehicleStatus } from "@/lib/portal/db";
-import { money, money2 } from "@/lib/portal/format";
+import { money2 } from "@/lib/portal/format";
 
 export type VehicleView = {
   id: string; name: string; rego: string | null; details: string | null;
@@ -24,12 +22,6 @@ export type LogView = {
   detail: string | null; createdBy: string | null;
 };
 
-const KINDS: { key: VehicleLogKind; label: string }[] = [
-  { key: "reading", label: "Km reading" },
-  { key: "fuel", label: "Fuel" },
-  { key: "service", label: "Service" },
-  { key: "damage", label: "Damage" },
-];
 const KIND_LABEL: Record<VehicleLogKind, string> = { reading: "Km reading", fuel: "Fuel", service: "Service", damage: "Damage" };
 
 const km = (n: number | null) => (n === null ? "—" : `${n.toLocaleString("en-AU")} km`);
@@ -47,22 +39,21 @@ export type CheckSummary = { kind: string; short: string; when: string | null; b
 
 export type CrewOption = { id: string; name: string };
 
-/** The design's split of a van's history, in its order. */
-const HISTORY_TABS: { key: "all" | VehicleLogKind; label: string }[] = [
-  { key: "all", label: "Everything" },
-  { key: "reading", label: "Km readings" },
-  { key: "fuel", label: "Fuel" },
-  { key: "service", label: "Service" },
-  { key: "damage", label: "Damage" },
-];
+/** What each tab's log form and history are called in the design. */
+const LOG_TITLE: Record<VehicleLogKind, { h: string; sub: string; empty: string }> = {
+  reading: { h: "Km readings", sub: "The odometer, whenever somebody looks at it. Anyone on the crew can add one.", empty: "No readings logged yet." },
+  fuel: { h: "Fuel", sub: "Every fill, with the litres and what it cost.", empty: "No fills logged yet." },
+  service: { h: "Service requests", sub: "What was asked for, what was done, and what it cost.", empty: "No services logged yet." },
+  damage: { h: "Damage log", sub: "Anything that happened to the van — logged the day it happened, not at sale time.", empty: "Nothing logged — which is the point." },
+};
 
-export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; checks: CheckSummary[]; crew: CrewOption[] }) {
+export function VehicleDetail({ vehicle, logs, canManage, crew, log }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; crew: CrewOption[]; log: VehicleLogKind | null }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const refresh = () => router.refresh();
 
-  // add-log form
-  const [kind, setKind] = useState<VehicleLogKind>("reading");
+  // add-log form — the tab picks the kind, so there is no picker.
+  const kind: VehicleLogKind = log ?? "reading";
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [odo, setOdo] = useState("");
   const [cost, setCost] = useState("");
@@ -70,27 +61,7 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
   const [detail, setDetail] = useState("");
   const [msg, setMsg] = useState("");
 
-  // edit panel
-  const [editing, setEditing] = useState(false);
-  const [seeing, setSeeing] = useState<"all" | VehicleLogKind>("all");
-  const shown = seeing === "all" ? logs : logs.filter((l) => l.kind === seeing);
-  const [f, setF] = useState({
-    name: vehicle.name, rego: vehicle.rego ?? "", details: vehicle.details ?? "",
-    odometer: vehicle.odometer?.toString() ?? "", interval: vehicle.serviceIntervalKm?.toString() ?? "",
-    nextKm: vehicle.nextServiceKm?.toString() ?? "", nextDate: vehicle.nextServiceDate ?? "", status: vehicle.status,
-    purchase: vehicle.purchasePrice?.toString() ?? "", resale: vehicle.resaleValue?.toString() ?? "",
-    lifespan: vehicle.lifespanYears?.toString() ?? "", fuel: vehicle.fuelPer100?.toString() ?? "",
-    owing: vehicle.amountOwing?.toString() ?? "",
-    bought: vehicle.purchasedOn ?? "", condition: vehicle.condition,
-    serviceCost: vehicle.serviceCost?.toString() ?? "", kmYear: vehicle.kmYear?.toString() ?? "",
-    assignedTo: vehicle.assignedTo ?? "",
-  });
-
-  const kmToService = vehicle.nextServiceKm !== null && vehicle.odometer !== null ? vehicle.nextServiceKm - vehicle.odometer : null;
-  const status = kmToService === null ? null : kmToService <= 0 ? "overdue" : kmToService <= 1000 ? "soon" : "ok";
-  const annualDep = vehicle.purchasePrice !== null && vehicle.lifespanYears ? (vehicle.purchasePrice - (vehicle.resaleValue ?? 0)) / vehicle.lifespanYears : null;
-  const fin = vehicleFinance(vehicle);
-  const assignedName = crew.find((c) => c.id === vehicle.assignedTo)?.name ?? null;
+  const shown = log ? logs.filter((l) => l.kind === log) : [];
 
   function submitLog() {
     setMsg("");
@@ -113,112 +84,17 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
         </div>
       )}
 
-      {/* stats */}
-      <section className="pt-panel pt-veh__stats">
-        <div className="pt-veh__stat"><span>Current odometer</span><strong>{km(vehicle.odometer)}</strong></div>
-        <div className="pt-veh__stat"><span>Service every</span><strong>{vehicle.serviceIntervalKm ? km(vehicle.serviceIntervalKm) : "—"}</strong></div>
-        <div className="pt-veh__stat"><span>Next service at</span><strong>{km(vehicle.nextServiceKm)}</strong></div>
-        <div className="pt-veh__stat">
-          <span>Service status</span>
-          {status === null ? <strong>—</strong> : (
-            <strong className={`pt-veh__status pt-veh__status--${status}`}>
-              {status === "overdue" ? `Overdue ${km(Math.abs(kmToService as number))}` : status === "soon" ? `Due in ${km(kmToService as number)}` : `${km(kmToService as number)} to go`}
-            </strong>
-          )}
-        </div>
-        {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
-        {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{money(annualDep)}</strong></div>}
-        {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
-        {fin.servicePerYear !== null && <div className="pt-veh__stat"><span>Servicing / yr</span><strong>{money(fin.servicePerYear)}</strong></div>}
-        {fin.sellBy && <div className="pt-veh__stat"><span>Sell by</span><strong>{fin.sellBy}</strong></div>}
-        {fin.lifeLeft !== null && <div className="pt-veh__stat"><span>Life left</span><strong className={fin.pastLife ? "is-neg" : ""}>{fin.pastLife ? `${years(fin.lifeLeft)} over` : years(fin.lifeLeft)}</strong></div>}
-        {fin.worthNow !== null && <div className="pt-veh__stat"><span>Worth today</span><strong>{money(fin.worthNow)}</strong></div>}
-        {vehicle.amountOwing !== null && <div className="pt-veh__stat"><span>Still owing</span><strong>{money(vehicle.amountOwing)}</strong></div>}
-        {fin.equityNow !== null && <div className="pt-veh__stat"><span>Equity</span><strong className={fin.underwater ? "is-neg" : ""}>{money(fin.equityNow)}</strong></div>}
-      </section>
-
-      {(fin.ageYears !== null || vehicle.amountOwing !== null) && (
-        <div className={`pt-veh__calc pt-veh__calc--block${fin.underwater || fin.pastLife ? " is-warn" : ""}`}>
-          {vehicle.condition && <>{CONDITION_LABEL[vehicle.condition]}{fin.ageYears !== null ? `, ${years(fin.ageYears)} ago` : ""}. </>}
-          {!vehicle.condition && fin.ageYears !== null && <>Ours for {years(fin.ageYears)}. </>}
-          {fin.pastLife
-            ? <>It&rsquo;s <strong>{years(fin.lifeLeft as number)} past</strong> the {vehicle.lifespanYears} years it was costed over — it should have gone by {fin.sellBy}. </>
-            : fin.lifeLeft !== null && <>About <strong>{years(fin.lifeLeft)}</strong> left{fin.sellBy ? <> — sell by <strong>{fin.sellBy}</strong></> : null}. </>}
-          {fin.equityNow !== null && (
-            fin.underwater
-              ? <>It&rsquo;s worth about {money(fin.worthNow as number)} with {money(vehicle.amountOwing as number)} owing, so we owe <strong>{money(Math.abs(fin.equityNow))} more than it&rsquo;s worth</strong>.</>
-              : <>Worth about {money(fin.worthNow as number)} with {money(vehicle.amountOwing as number)} owing — <strong>{money(fin.equityNow)}</strong> of that is ours.</>
-          )}
-          {fin.owingPerYearLeft !== null && fin.annualDep !== null && (
-            <> Clearing what&rsquo;s owing before then costs <strong>{money(fin.owingPerYearLeft)}</strong> a year, against {money(fin.annualDep)} a year of value lost.</>
-          )}
-        </div>
-      )}
-
+      {/* The tab's own panel: its history first, because reading it is why
+          most people open the tab, then the one form that adds to it. */}
+      {log && (
       <section className="pt-panel">
         <div className="pt-veh__edithead">
-          <h2 className="pt-panel__h">Stock &amp; checks{assignedName ? <span className="pt-veh__signed">Signed to {assignedName}</span> : null}</h2>
-          <Link href={`/portal/vehicles/${vehicle.id}/checks`} className="pt-btn pt-btn--navy pt-btn--sm">Open the sheets →</Link>
+          <h2 className="pt-panel__h">{LOG_TITLE[log].h} <span className="pt-tm__count">{shown.length}</span></h2>
         </div>
-        <p className="pt-panel__sub">The daily check, the monthly condition check and the stock count — the same sheets that live in the van.</p>
-        <div className="pt-veh__checks">
-          {checks.map((c) => (
-            <Link key={c.kind} href={`/portal/vehicles/${vehicle.id}/checks/${c.kind}`} className="pt-veh__check">
-              <strong>{c.short}</strong>
-              <span>{c.when ? `${dateShort(c.when)}${c.by ? ` · ${c.by}` : ""}` : "Never done"}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+        <p className="pt-panel__sub">{LOG_TITLE[log].sub}</p>
 
-      {/* add log */}
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Log an entry</h2>
-        <p className="pt-panel__sub">A km reading, a fuel fill, a service, or damage. Anyone on the crew can add one.</p>
-        <div className="pt-veh__kinds">
-          {KINDS.map((k) => (
-            <button key={k.key} type="button" className={`pt-veh__kind pt-veh__kind--${k.key}${kind === k.key ? " is-on" : ""}`} onClick={() => setKind(k.key)}>{k.label}</button>
-          ))}
-        </div>
-        <div className="pt-veh__logform">
-          <label className="pt-field"><span>Date</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-          <NumField label="Odometer" value={odo} onChange={setOdo} suffix="km" placeholder="84,300" />
-          {kind === "fuel" && <NumField label="Litres" value={litres} onChange={setLitres} suffix="L" decimal placeholder="62" />}
-          {(kind === "fuel" || kind === "service" || kind === "damage") && <NumField label="Cost" value={cost} onChange={setCost} prefix="$" decimal placeholder="120" />}
-        </div>
-        <label className="pt-field" style={{ marginTop: 10 }}>
-          <span>{kind === "service" ? "What was done" : kind === "damage" ? "What happened" : "Note"} {kind === "reading" ? <em>(optional)</em> : null}</span>
-          <input value={detail} onChange={(e) => setDetail(e.target.value)} placeholder={kind === "service" ? "e.g. Full service, oil + filters" : kind === "damage" ? "e.g. Scratch on rear bar" : "Anything worth noting"} />
-        </label>
-        <div className="pf-row-end">
-          {msg && <span className="pt-inline is-err">{msg}</span>}
-          <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" disabled={pending} onClick={submitLog}>{pending ? "Saving…" : "Add entry"}</button>
-        </div>
-      </section>
-
-      {/* log timeline */}
-      <section className="pt-panel">
-        <div className="pt-veh__edithead">
-          <h2 className="pt-panel__h">History <span className="pt-tm__count">{shown.length}</span></h2>
-          {/* The design splits this history by kind. A van with two years on it
-              has hundreds of rows and the question is always one kind at a
-              time — what has it cost in fuel, when was it last serviced. */}
-          <nav className="pt-veh__filters" aria-label="History">
-            {HISTORY_TABS.map((t) => (
-              <button
-                key={t.key}
-                type="button"
-                aria-pressed={seeing === t.key}
-                className={seeing === t.key ? "is-on" : undefined}
-                onClick={() => setSeeing(t.key)}
-              >
-                {t.label} <span>{t.key === "all" ? logs.length : logs.filter((l) => l.kind === t.key).length}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
         {shown.length === 0 ? (
-          <div className="pf-empty">{logs.length === 0 ? "Nothing logged yet." : `Nothing logged under ${HISTORY_TABS.find((t) => t.key === seeing)?.label.toLowerCase()}.`}</div>
+          <div className="pf-empty">{LOG_TITLE[log].empty}</div>
         ) : (
           <div className="pt-veh__logs">
             {shown.map((l) => (
@@ -239,90 +115,27 @@ export function VehicleDetail({ vehicle, logs, canManage, checks, crew }: { vehi
             ))}
           </div>
         )}
-      </section>
 
-      {/* manager edit */}
-      {canManage && (
-        <section className="pt-panel">
-          <div className="pt-veh__edithead">
-            <h2 className="pt-panel__h">Vehicle details</h2>
-            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setEditing((v) => !v)}>{editing ? "Close" : "Edit"}</button>
-          </div>
-          {editing && (
-            <>
-              <div className="pt-veh__editgrid">
-                <label className="pt-field"><span>Name</span><input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></label>
-                <label className="pt-field"><span>Rego</span><input value={f.rego} onChange={(e) => setF({ ...f, rego: e.target.value })} /></label>
-                <label className="pt-field"><span>Make / model / year</span><input value={f.details} onChange={(e) => setF({ ...f, details: e.target.value })} /></label>
-                <NumField label="Current odometer" value={f.odometer} onChange={(v) => setF({ ...f, odometer: v })} suffix="km" />
-                <NumField label="Service every" value={f.interval} onChange={(v) => setF({ ...f, interval: v })} suffix="km" />
-                <NumField label="A service costs" value={f.serviceCost} onChange={(v) => setF({ ...f, serviceCost: v })} prefix="$" />
-                <NumField label="Km a year" hint="(roughly)" value={f.kmYear} onChange={(v) => setF({ ...f, kmYear: v })} suffix="km" />
-                <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
-                <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
-                <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
-                <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
-                <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => setF({ ...f, bought: e.target.value })} /></label>
-                <label className="pt-field">
-                  <span>Signed to</span>
-                  <select value={f.assignedTo} onChange={(e) => setF({ ...f, assignedTo: e.target.value })}>
-                    <option value="">Nobody yet</option>
-                    {crew.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </label>
-                <div className="pt-field">
-                  <span>Condition when we got it</span>
-                  <div className="pt-seg" role="group" aria-label="Condition when bought">
-                    {CONDITION_OPTS.map((o) => (
-                      <button
-                        key={o.k}
-                        type="button"
-                        className={`pt-seg__b${f.condition === o.k ? " is-on" : ""}`}
-                        aria-pressed={f.condition === o.k}
-                        onClick={() => setF({ ...f, condition: f.condition === o.k ? null : o.k })}
-                      >{o.label}</button>
-                    ))}
-                  </div>
-                </div>
-                <NumField label="Resale value" hint="(at end of life)" value={f.resale} onChange={(v) => setF({ ...f, resale: v })} prefix="$" />
-                <NumField label="Lifespan" value={f.lifespan} onChange={(v) => setF({ ...f, lifespan: v })} suffix="years" decimal />
-                <NumField label="Fuel use" value={f.fuel} onChange={(v) => setF({ ...f, fuel: v })} suffix="L/100km" decimal />
-                <div className="pt-field pt-field--wide">
-                  <span>Road status</span>
-                  <div className="pt-seg" role="group" aria-label="Road status">
-                    {STATUS_OPTS.map((o) => (
-                      <button
-                        key={o.k}
-                        type="button"
-                        className={`pt-seg__b pt-seg__b--${o.k}${f.status === o.k ? " is-on" : ""}`}
-                        aria-pressed={f.status === o.k}
-                        onClick={() => setF({ ...f, status: o.k })}
-                      >{o.label}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="pf-row-end" style={{ justifyContent: "space-between" }}>
-                <button type="button" className="pt-btn pt-btn--danger pt-btn--sm" disabled={pending} onClick={() => start(async () => { const r = await removeVehicle({ id: vehicle.id }); if (r.ok) router.push("/portal/vehicles"); })}>Remove vehicle</button>
-                <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending} onClick={() => start(async () => {
-                  const r = await saveVehicle({
-                    id: vehicle.id, name: f.name, rego: f.rego, details: f.details,
-                    odometer: f.odometer ? toInt(f.odometer) : null, serviceIntervalKm: f.interval ? toInt(f.interval) : null,
-                    nextServiceKm: f.nextKm ? toInt(f.nextKm) : null, nextServiceDate: f.nextDate, status: f.status,
-                    purchasePrice: f.purchase ? toNum(f.purchase) : null, resaleValue: f.resale ? toNum(f.resale) : null,
-                    lifespanYears: f.lifespan ? toNum(f.lifespan) : null, fuelPer100: f.fuel ? toNum(f.fuel) : null,
-                    amountOwing: f.owing ? toNum(f.owing) : null,
-                    purchasedOn: f.bought, condition: f.condition,
-                    serviceCost: f.serviceCost ? toNum(f.serviceCost) : null, kmYear: f.kmYear ? toInt(f.kmYear) : null,
-                    assignedTo: f.assignedTo,
-                  });
-                  if (r.ok) { setEditing(false); refresh(); }
-                })}>{pending ? "Saving…" : "Save"}</button>
-              </div>
-            </>
-          )}
-        </section>
+        <h3 className="pf-set__label" style={{ marginTop: 22 }}>
+          {log === "service" ? "Request a service" : log === "damage" ? "Log damage" : log === "fuel" ? "Log a fill" : "Log a reading"}
+        </h3>
+        <div className="pt-veh__logform">
+          <label className="pt-field"><span>Date</span><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
+          <NumField label="Odometer" value={odo} onChange={setOdo} suffix="km" placeholder="84,300" />
+          {kind === "fuel" && <NumField label="Litres" value={litres} onChange={setLitres} suffix="L" decimal placeholder="62" />}
+          {(kind === "fuel" || kind === "service" || kind === "damage") && <NumField label="Cost" value={cost} onChange={setCost} prefix="$" decimal placeholder="120" />}
+        </div>
+        <label className="pt-field" style={{ marginTop: 10 }}>
+          <span>{kind === "service" ? "What was done" : kind === "damage" ? "What happened" : "Note"} {kind === "reading" ? <em>(optional)</em> : null}</span>
+          <input value={detail} onChange={(e) => setDetail(e.target.value)} placeholder={kind === "service" ? "e.g. Full service, oil + filters" : kind === "damage" ? "e.g. Scratch on rear bar" : "Anything worth noting"} />
+        </label>
+        <div className="pf-row-end">
+          {msg && <span className="pt-inline is-err">{msg}</span>}
+          <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" disabled={pending} onClick={submitLog}>{pending ? "Saving…" : "Add entry"}</button>
+        </div>
+      </section>
       )}
+
     </div>
   );
 }

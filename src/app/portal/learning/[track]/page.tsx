@@ -31,7 +31,6 @@ export default async function LearningTrackPage({ params }: { params: { track: s
 
   return (
     <PortalShell user={user}>
-      <PortalTabs tabs={LEARNING_TRACKS.map((x) => ({ href: `/portal/learning/${x.slug}`, label: x.label }))} />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Learning · {track.label}</div>
         <h1>{track.label}.</h1>
@@ -42,6 +41,8 @@ export default async function LearningTrackPage({ params }: { params: { track: s
           </p>
         )}
       </div>
+
+      <PortalTabs tabs={LEARNING_TRACKS.map((x) => ({ href: `/portal/learning/${x.slug}`, label: x.label }))} />
 
       {vids.length === 0 ? (
         <div className="pt-note">

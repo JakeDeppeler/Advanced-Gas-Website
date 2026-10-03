@@ -204,6 +204,8 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     { href: "/portal/supply/orders", label: "Orders" },
     { href: "/portal/supply/search", label: "Item search" },
     { href: "/portal/supply/syncs", label: "Sync history" },
-    { href: "/portal/supply/health", label: "Connection check" },
+    // The connection check is reached from the Overview's button rather than
+    // a tab: it is an action that takes a few seconds, not a place.
+    { href: "/portal/supply/pricing", label: "Pricing rules", also: ["/portal/supply/health"] },
   ],
 };

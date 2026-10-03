@@ -4,6 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { ViewAsPicker } from "@/components/portal/ViewAs";
+import { PortalBack } from "@/components/portal/PortalBack";
 
 export const metadata = { title: "Admin — Team portal" };
 
@@ -15,9 +16,9 @@ export default async function AdminHome() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Admin</div>
-        <h1>Admin.</h1>
-        <p>Manage who&rsquo;s on the team and set exactly what each person can see.</p>
+        <PortalBack href="/portal" label="Home" />
+        <h1>Admin</h1>
+        <p>Who&rsquo;s on the team and exactly what each person can see.</p>
       </div>
 
       <div className="pt-tiles">
@@ -35,6 +36,25 @@ export default async function AdminHome() {
           </span>
           <h3>Access levels</h3>
           <p>What each crew level can see — Operations, Lead hand, Tradesman, Apprentice, Office, Admin.</p>
+          <div className="pt-card__meta">Open →</div>
+        </Link>
+        <Link href="/portal/sops/edit" className="pt-tile">
+          <span className="pt-tile__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h.01M4 12h.01M4 18h.01M8 6h12M8 12h8M8 18h10M16.5 15.5l3.5 3.5-1.8 1.8-3.5-3.5z" /></svg>
+          </span>
+          <h3>Processes &amp; procedures</h3>
+          <p>Write and change what the crew reads, then publish it to the vans.</p>
+          <div className="pt-card__meta">Edit →</div>
+        </Link>
+        {/* The pricebook as the van sees it. Admin links to it because what
+            the iPad shows is an admin question even though the page itself
+            lives in the trade portal. */}
+        <Link href="/trade/pricebook" className="pt-tile">
+          <span className="pt-tile__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM10 18h4" /></svg>
+          </span>
+          <h3>iPad pricebook</h3>
+          <p>The installed prices the crew quote from in the van, as the iPad shows them.</p>
           <div className="pt-card__meta">Open →</div>
         </Link>
       </div>

@@ -8,6 +8,7 @@ import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
 import { getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
 import { currentYear, yearSpans, DEFAULT_YEAR_GOAL, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { XeroLine } from "@/components/portal/XeroLine";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -31,7 +32,7 @@ export default async function YearGoalPage() {
     shape: Array.isArray(stored?.shape) && stored.shape.length === 12 ? stored.shape : null,
   };
 
-  const { status } = await xeroStatus();
+  const { status, tenantName } = await xeroStatus();
   const spans = yearSpans(goal.basis, goal.year);
   const raw = status === "connected" ? await getMonthlyActuals(spans, today).catch(() => spans.map(() => null)) : spans.map(() => null);
   const actuals: MonthActual[] = raw.map((p) => ({
@@ -42,17 +43,20 @@ export default async function YearGoalPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/finance" label="Finance" />
-      <PortalTabs set="finance" />
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">The year</div>
-        <h1>Are we going to make it?</h1>
-        <p>
-          The year&rsquo;s goal broken down across the months, against what Xero says has actually been invoiced and
-          what the overheads are running at. Whether we&rsquo;re ahead or behind, and whether last month was better
-          than the one before.
-        </p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal/finance" label="Finance" />
+          <h1>Are we going to make it?</h1>
+          <p>
+            The year&rsquo;s goal broken down across the months, against what Xero says has actually been invoiced and
+            what the overheads are running at. Whether we&rsquo;re ahead or behind, and whether last month was better
+            than the one before.
+          </p>
+        </div>
+        <XeroLine state={status} org={tenantName} />
       </div>
+
+      <PortalTabs set="finance" />
 
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />
     </PortalShell>

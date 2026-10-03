@@ -32,13 +32,13 @@ export default async function QuotesPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
-        <div className="pt-head__eyebrow">Finance · Quotes &amp; win rate</div>
-        <h1>Quotes &amp; win rate.</h1>
+        <h1>Quotes &amp; win rate</h1>
         <p>Track what you quote and what you win, see your real win rate, and work out how much to quote to hit a target. This sits under <strong>Future planning</strong> because that is what it is: work that has not happened yet, and the odds on it happening.</p>
       </div>
+
+      <PortalTabs set="finance" />
       <PlanningTabs current="/portal/finance/quotes" />
       <QuotesBoard
         quotes={quotes}

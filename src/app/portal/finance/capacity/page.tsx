@@ -9,6 +9,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { XeroLine } from "@/components/portal/XeroLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Costs & capacity — Team portal" };
@@ -24,7 +25,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
   // what was actually spent rather than typed from memory. When this comes back
   // empty the panel has to say why — a silent absence is indistinguishable from
   // a bug, which is exactly how it read the first time round.
-  const { status } = await xeroStatus();
+  const { status, tenantName } = await xeroStatus();
   const span = lastTwelveMonths();
   let xeroExpenses: { label: string; section: string; amount: number }[] = [];
   let xero: { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string } = {
@@ -66,13 +67,16 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="finance" />
-      <div className="pt-head">
-        <PortalBack href="/portal/finance" label="Finance" />
-        <div className="pt-head__eyebrow">Finance · Costs &amp; capacity</div>
-        <h1>What an hour has to cover.</h1>
-        <p>The crew, every overhead the business carries, and the charge-out rates that fall out of the two. Change anything and the numbers at the top move with it.</p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal/finance" label="Finance" />
+          <h1>What an hour has to cover</h1>
+          <p>The crew, every overhead the business carries, and the charge-out rates that fall out of the two. Change anything and the numbers at the top move with it.</p>
+        </div>
+        <XeroLine state={status} org={tenantName} />
       </div>
+
+      <PortalTabs set="finance" />
       <CapacityEditor
         people={people}
         settings={settings ?? DEFAULT_SETTINGS}

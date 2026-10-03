@@ -43,7 +43,11 @@ export async function TradeShell({ user, active, title, sub, action, children }:
   const hasOffice = can(user, "overhead") || can(user, "manage_users") || can(user, "reports_read");
 
   return (
-    <div className="tr">
+    // data-no-reveal: the site-wide scroll reveal is for the marketing pages.
+    // The trade portal is a tool — a panel that fades in when you scroll to it is an
+    // animation in the way of work, and it left every below-the-fold panel at
+    // opacity 0 in screenshots and in print.
+    <div className="tr" data-no-reveal>
       <nav className="tr__rail" aria-label="Trade portal">
         <Link href="/trade" className="tr__badge" aria-label="Advanced Gas &amp; Aircon — trade home">AG</Link>
         <div className="tr__railscroll">

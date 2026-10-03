@@ -78,7 +78,7 @@ export function CampaignBoard({
       </div>
 
       <div className="pt-mkbar">
-        <nav className="pt-tabs pt-tabs--inline" aria-label="Audience">
+        <nav className="pt-tabs" aria-label="Audience">
           {pills.map((p) => (
             <Link
               key={p.k}

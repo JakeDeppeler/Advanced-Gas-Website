@@ -58,7 +58,6 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Item search</div>
         <h1>What does Reece charge us?</h1>
@@ -67,6 +66,8 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
           in the same box.
         </p>
       </div>
+
+      <PortalTabs set="supply" />
 
       <section className="pt-panel">
         <form className="pt-sup__searchform" method="get">

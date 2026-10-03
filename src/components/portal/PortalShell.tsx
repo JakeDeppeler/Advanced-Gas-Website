@@ -26,7 +26,11 @@ export async function PortalShell({ user, children }: { user: PortalUser; childr
   const unread = await unreadCount(user).catch(() => 0);
 
   return (
-    <div className="pt">
+    // data-no-reveal: the site-wide scroll reveal is for the marketing pages.
+    // The portal is a tool — a panel that fades in when you scroll to it is an
+    // animation in the way of work, and it left every below-the-fold panel at
+    // opacity 0 in screenshots and in print.
+    <div className="pt" data-no-reveal>
       <header className="pt__bar">
         <Link href="/portal" className="pt__brand" aria-label="Portal home">
           <strong>Advanced</strong>

@@ -42,7 +42,6 @@ export default async function SupplySyncsPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Sync history</div>
         <h1>Every pricebook run.</h1>
@@ -52,6 +51,8 @@ export default async function SupplySyncsPage() {
           fields it quietly ignores, so only the read-back proves anything.
         </p>
       </div>
+
+      <PortalTabs set="supply" />
 
       {!dbReady ? (
         <section className="pt-panel">

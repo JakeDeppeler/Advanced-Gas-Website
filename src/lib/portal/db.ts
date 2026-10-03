@@ -19,6 +19,7 @@ import { baseMember } from "./team";
 import type { CheckItems, CheckKind } from "./vanChecks";
 import type { Campaign } from "./campaigns";
 import type { Video as StoredVideo } from "./videos";
+import type { StoredSop } from "./sopEdits";
 
 const USERS = "portal_users";
 const REPORTS = "portal_reports";
@@ -240,10 +241,13 @@ export async function getUserById(id: string): Promise<CostedUser | null> {
 
 export async function updateUser(
   id: string,
-  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; expectations?: string; level?: CrewLevel; sortOrder?: number | null },
+  patch: { role?: Role; caps?: CapMap; active?: boolean; name?: string; email?: string; expectations?: string; level?: CrewLevel; sortOrder?: number | null },
 ): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.role !== undefined) body.role = patch.role;
+  // The email IS the sign-in identity, so it is only ever written through
+  // setLoginEmail, which checks nobody else already holds it.
+  if (patch.email !== undefined) body.email = patch.email.trim().toLowerCase();
   if (patch.caps !== undefined) body.caps = patch.caps;
   if (patch.active !== undefined) body.active = patch.active;
   if (patch.name !== undefined) body.name = patch.name.trim();
@@ -954,6 +958,7 @@ export async function photoCounts(checkIds: string[]): Promise<Map<string, numbe
 type VideoRow = {
   id: string; track: string; category: string; title: string; description: string | null;
   youtube_id: string | null; minutes: number | null; sop_code: string | null; sort_order: number | null;
+  created_at: string | null;
 };
 
 export async function listVideos(): Promise<StoredVideo[]> {
@@ -963,7 +968,7 @@ export async function listVideos(): Promise<StoredVideo[]> {
     id: r.id, track: r.track as StoredVideo["track"], category: r.category, title: r.title,
     description: r.description, youtubeId: r.youtube_id,
     minutes: r.minutes == null ? null : Number(r.minutes),
-    sopCode: r.sop_code, watched: false,
+    sopCode: r.sop_code, watched: false, addedAt: r.created_at,
   }));
 }
 
@@ -1165,4 +1170,65 @@ export async function listWebLeads(since: string, limit = 2000): Promise<WebLead
     pagePath: r.page_path, postcode: r.postcode, suburb: r.suburb, source: r.source,
     utm: r.utm ?? {}, createdAt: r.created_at,
   }));
+}
+
+/* --------------------------------------------- Procedures the office writes */
+
+type SopRow = {
+  id: string; section: string; code: string; slug: string; title: string;
+  happens: string | null; flag: string | null; audience: string;
+  steps: { do?: string; note?: string }[] | null; changed: string | null;
+  status: string; updated_by: string | null; updated_at: string;
+};
+
+const toStoredSop = (r: SopRow): StoredSop => ({
+  id: r.id, section: r.section, code: r.code, slug: r.slug, title: r.title,
+  happens: r.happens, flag: r.flag, audience: r.audience,
+  // A step written before a field existed, or hand-inserted, still has to
+  // render rather than throw on the reader.
+  steps: (r.steps ?? []).map((s) => ({ do: s.do ?? "", note: s.note ?? "" })),
+  changed: r.changed,
+  status: r.status === "published" ? "published" : "draft",
+  updatedBy: r.updated_by, updatedAt: r.updated_at,
+});
+
+export async function listStoredSops(): Promise<StoredSop[]> {
+  const res = await sb("portal_sops?select=*&order=section.asc,code.asc");
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as SopRow[]).map(toStoredSop);
+}
+
+export async function saveStoredSop(input: {
+  id?: string | null;
+  section: string; code: string; slug: string; title: string;
+  happens: string | null; flag: string | null; audience: string;
+  steps: { do: string; note: string }[]; changed: string | null;
+  status: "draft" | "published"; updatedBy: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const body = {
+    section: input.section, code: input.code, slug: input.slug, title: input.title,
+    happens: input.happens, flag: input.flag, audience: input.audience,
+    steps: input.steps, changed: input.changed, status: input.status,
+    updated_by: input.updatedBy, updated_at: new Date().toISOString(),
+  };
+  // Upsert on the code, which is how a procedure is referred to everywhere
+  // else, so saving the same code twice edits it rather than duplicating it.
+  const res = await sb("portal_sops?on_conflict=code", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify(body),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function deleteStoredSop(code: string): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb(`portal_sops?code=eq.${encodeURIComponent(code)}`, {
+    method: "DELETE",
+    headers: { Prefer: "return=minimal" },
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
 }

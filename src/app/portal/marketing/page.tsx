@@ -77,7 +77,7 @@ export default async function MarketingPage({
         </nav>
       </div>
 
-      <nav className="pt-tabs pt-tabs--inline" aria-label="Marketing">
+      <nav className="pt-tabs" aria-label="Marketing">
         {MARKETING_TABS.map((t) => (
           <Link
             key={t.k}

@@ -1,39 +1,61 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CREW_LEVELS } from "@/lib/portal/crew";
 import { startPreview, endPreview } from "@/app/portal/admin/viewAsActions";
 
-/** The picker, on the Admin page. */
+/**
+ * The picker, on the Admin page.
+ *
+ * Pick a level, read what it means, then press the button — two steps rather
+ * than one. A single click that drops you into somebody else's permissions is
+ * easy to do by accident, and getting back out means finding the banner.
+ */
 export function ViewAsPicker({ current }: { current?: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
+  const [picked, setPicked] = useState(current ?? CREW_LEVELS[0].key);
+  const level = CREW_LEVELS.find((l) => l.key === picked) ?? CREW_LEVELS[0];
 
   return (
-    <section className="pt-panel">
-      <h2 className="pt-panel__h">See it as they do</h2>
-      <p className="pt-panel__sub">
-        Look at the portal through a crew level&rsquo;s eyes — the same nav, the same pages, the same locked doors. It only ever
-        takes access away, never adds it, and while it&rsquo;s on you have that level&rsquo;s permissions for real, so you
-        can&rsquo;t save anything they couldn&rsquo;t. It switches itself off after an hour.
+    <section className="pt-va">
+      <h2 className="pt-va__h">See it as they do</h2>
+      <p className="pt-va__sub">
+        Look at the portal through a crew level&rsquo;s eyes — the same nav, the same pages, the same locked doors. It
+        only ever takes access away, never adds it, and while it&rsquo;s on you have that level&rsquo;s permissions for
+        real, so you can&rsquo;t save anything they couldn&rsquo;t. It switches itself off after an hour.
       </p>
-      <div className="pt-va__picks">
+
+      <div className="pt-va__picks" role="radiogroup" aria-label="Crew level">
         {CREW_LEVELS.map((l) => (
           <button
             key={l.key}
             type="button"
-            className={`pt-va__pick${current === l.key ? " is-on" : ""}`}
-            disabled={pending}
-            onClick={() => start(async () => { await startPreview(l.key); router.push("/portal"); router.refresh(); })}
+            role="radio"
+            aria-checked={picked === l.key}
+            className={`pt-va__pick${picked === l.key ? " is-on" : ""}`}
+            onClick={() => setPicked(l.key)}
           >
-            <strong>{l.label}</strong>
-            <span>{l.blurb}</span>
+            {l.label}
           </button>
         ))}
       </div>
+
+      <div className="pt-va__go">
+        <p>{level.blurb}</p>
+        <button
+          type="button"
+          className="pt-btn pt-va__btn"
+          disabled={pending}
+          onClick={() => start(async () => { await startPreview(level.key); router.push("/portal"); router.refresh(); })}
+        >
+          {pending ? "Switching…" : `View as ${level.label}`}
+        </button>
+      </div>
+
       {current && (
-        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" style={{ marginTop: 14 }} disabled={pending}
+        <button type="button" className="pt-va__stop" disabled={pending}
           onClick={() => start(async () => { await endPreview(); router.refresh(); })}>
           Stop previewing
         </button>

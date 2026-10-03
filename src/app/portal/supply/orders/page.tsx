@@ -35,10 +35,8 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <PortalTabs set="supply" />
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Orders</div>
-        <h1>Everything we&rsquo;ve ordered.</h1>
+        <h1>Everything we&rsquo;ve ordered</h1>
         <p>
           Every cart sent through Reece maX, what&rsquo;s on it, where it&rsquo;s going and what it came to. Search by
           reference, place or anything on the order, then open one for the full list.
@@ -49,6 +47,7 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
               <div className="pt-head__figlbl">Orders</div>
               <div className="pt-head__figval">{tally.total}</div>
             </div>
+
             <div className="pt-head__fig">
               <div className="pt-head__figlbl">Value</div>
               <div className="pt-head__figval">{tally.value == null ? "—" : money(tally.value)}</div>
@@ -69,6 +68,8 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
           </div>
         )}
       </div>
+
+      <PortalTabs set="supply" />
 
       <OrdersBoard orders={orders} dbReady={dbReady} capped={orders.length >= CAP} initialStatus={initialStatus} />
     </PortalShell>

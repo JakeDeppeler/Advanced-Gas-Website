@@ -39,7 +39,6 @@ export default async function SupplyHealthPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
-      <PortalTabs set="supply" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Connection check</div>
         <h1>Is ServiceTitan answering?</h1>
@@ -49,6 +48,8 @@ export default async function SupplyHealthPage() {
           everything after it would fail for the same reason.
         </p>
       </div>
+
+      <PortalTabs set="supply" />
 
       {!configured && (
         <section className="pt-panel">
