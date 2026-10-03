@@ -592,6 +592,46 @@ different window than its own close rate is the trap the Performance totals row
 exists to close. The money columns stay on the month, and the page subtitle
 says which is which.
 
+**Quotes are the ones written in ServiceTitan, not the Field Plus import.** The
+migration brought 3,460 estimates across and stamped every one of them
+"Imported Default Businessunit", authored by the import service account, named
+with its Field Plus reference, and dated 30 August — the day the import ran.
+**1,998 are still Open**, because a quote in the old system was never closed off
+when a customer went quiet. On the wall that was a "still out" list of six rows
+that all said *Quote*, all said *33 days*, and ran from $39,930 down: a page of
+migration residue sitting where this week's quoting should be, and **1,673** of
+them counted as a backlog to go and ring. They are not a backlog, they are the
+old system. The business unit is the discriminator — all 3,460 carry it, nothing
+written in ServiceTitan since the import does — and it is the same placeholder
+the job-type ranking already sets aside. Applied to every estimate figure; jobs
+are untouched, because an imported job still happened in a real suburb for a
+real amount and the areas map says so.
+
+**One grouping for every close rate on the board.** `byOpportunity` keyed on job
+id alone and fell through to the estimate id, so every quote ServiceTitan left
+without a job counted as its own job: **150** in the Today page's denominator
+where there were **118**. The per-person rates on the Team page group the same
+rows by customer and day as well, so the headline disagreed with the rows under
+it. Both use the same key now.
+
+**The close rate carries what a job was priced at.** The rate says how often we
+win; the average says what winning one is worth, and the room asks both. Per job
+over the same thirty days — an average counted per option under a rate counted
+per job is one sentence disagreeing with itself.
+
+**The Team page is six columns, not nine.** Today read $0 against $0 for
+everybody on most days, and in the first week of a month This week is the same
+figure as the month beside it. Both came off, along with the options-written
+note under each name. What is left is the month's sold, the three rates, and the
+tier run.
+
+**The board can be held.** A control top right stops the rotation so somebody can
+read a page; space does the same from a keyboard. Polling carries on underneath,
+so the figures stay live while the page stays put, and the footer clock keeps
+running — a board that has stopped telling the time looks like a board that has
+crashed. It releases itself after five minutes, because this runs on a wall and
+somebody will stop it to read a figure and then get called away.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two

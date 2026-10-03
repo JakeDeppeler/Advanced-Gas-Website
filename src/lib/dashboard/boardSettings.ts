@@ -150,21 +150,40 @@ export function monthTargetFromYearGoal(goal: YearGoalShape | null, month: strin
  * brand is a fourth. Over the last thirty days that is four options for every
  * job actually quoted.
  */
-export type OptionRow = { id: number | string; jobId: number | string | null; soldOn?: string | null };
+export type OptionRow = {
+  id: number | string;
+  jobId: number | string | null;
+  soldOn?: string | null;
+  /** Together with createdOn, identifies a quote that arrived with no job on it. */
+  customerId?: number | string | null;
+  createdOn?: string | null;
+};
 
 export type Opportunity = { key: string; options: number; won: boolean };
 
 /**
  * Options grouped into the jobs they were written for.
  *
- * An option with no job on it is its own opportunity — ServiceTitan leaves
- * `job_id` null on about a tenth of them, and lumping those together under one
- * key would merge a dozen unrelated quotes into a single one that counts once.
+ * Job id first. Where there is none, the customer and the day it was written:
+ * options of one quote are priced together, for one customer, on one day, and
+ * ServiceTitan leaves `job_id` null on a good share of them. Falling straight
+ * through to the estimate id instead counted each option as its own job and put
+ * 150 in the close-rate denominator where there were 118 — the headline on the
+ * Today page then disagreed with the per-person rates on the Team page, which
+ * group the same rows the same way.
+ *
+ * Last resort is the estimate id, because lumping every unidentifiable row
+ * under one key would merge a dozen unrelated quotes into a single one.
  */
 export function byOpportunity(rows: OptionRow[]): Opportunity[] {
   const out = new Map<string, Opportunity>();
   for (const r of rows) {
-    const key = r.jobId == null || r.jobId === "" ? `e${r.id}` : `j${r.jobId}`;
+    const key =
+      r.jobId != null && r.jobId !== ""
+        ? `j${r.jobId}`
+        : r.customerId != null && r.customerId !== "" && r.createdOn
+          ? `c${r.customerId}-${String(r.createdOn).slice(0, 10)}`
+          : `e${r.id}`;
     const got = out.get(key);
     if (got) {
       got.options += 1;

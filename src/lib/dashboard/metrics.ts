@@ -75,6 +75,36 @@ const domestic = <T extends { business_unit?: string | null }>(rows: T[]): T[] =
   rows.filter((r) => !isCommercial(r.business_unit));
 
 /**
+ * Quotes that came across from Field Plus rather than being written in
+ * ServiceTitan.
+ *
+ * The migration brought 3,460 estimates over and stamped every one of them
+ * "Imported Default Businessunit", authored by the import service account,
+ * named with its Field Plus reference, and dated the day the import ran —
+ * 30 August. 1,998 of them are still "Open", because quotes in the old system
+ * were never closed off when a customer went quiet.
+ *
+ * On the wall that meant the "still out" list was six rows that all said
+ * "Quote", all said "33 days", and ran from $39,930 down — a page of migration
+ * residue sitting where this week's actual quoting should be, and 1,673 of them
+ * counted as a backlog to go and ring. They are not a backlog. They are the old
+ * system, and nobody is chasing them.
+ *
+ * The business unit is the discriminator: all 3,460 carry it, no estimate
+ * written in ServiceTitan since the import does, and it is the same placeholder
+ * the job-type ranking already sets aside.
+ */
+const isFieldPlus = (unit: string | null | undefined) => unit != null && /^imported default/i.test(unit);
+
+/**
+ * Estimates the board is allowed to talk about: written in ServiceTitan, on the
+ * residential side. Jobs keep `domestic` on its own — an imported job still
+ * happened, in a real suburb, for a real amount, and the areas map says so.
+ */
+const quotes = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
+  domestic(rows).filter((r) => !isFieldPlus(r.business_unit));
+
+/**
  * The key that identifies one quote rather than one option of it.
  *
  * A customer is priced several ways and picks one. Grouping on job_id alone was
@@ -136,6 +166,8 @@ export type Metrics = {
   closeRate30dQuotes: number;
   /** Options written across those jobs. About four to one. */
   closeRate30dOptions: number;
+  /** Average price of a job quoted in the close-rate window, over its options. */
+  avgQuote30d: number | null;
 
   // The quote funnel: written -> still out -> closed. Outstanding alone can't
   // tell you whether a thin pipeline means nobody is quoting or everybody is
@@ -470,7 +502,7 @@ async function serviceTitanMetrics(now: Date) {
    * nobody has closed off is a real thing to go and do, just not pipeline.
    */
   const OUTSTANDING_DAYS = 30;
-  const openEstimates = domestic(
+  const openEstimates = quotes(
     await sbSelect<{
       id: number;
       job_id: number | null;
@@ -537,7 +569,7 @@ async function serviceTitanMetrics(now: Date) {
 
   // Close rate: of the JOBS quoted in the last 30 days, how many turned into
   // work. Per job, not per option — see closeRate() for why.
-  const recentEstimates = domestic(
+  const recentEstimates = quotes(
     await sbSelect<{
       id: number;
       job_id: number | null;
@@ -557,16 +589,48 @@ async function serviceTitanMetrics(now: Date) {
     ),
   );
 
-  const close = closeRate(recentEstimates.map((e) => ({ id: e.id, jobId: e.job_id, soldOn: e.sold_on })));
+  const close = closeRate(
+    recentEstimates.map((e) => ({
+      id: e.id,
+      jobId: e.job_id,
+      soldOn: e.sold_on,
+      customerId: e.customer_id,
+      createdOn: e.created_on,
+    })),
+  );
   const closeRate30dQuotes = close.quoted;
   const closeRate30dSold = close.won;
   const closeRate30dOptions = close.options;
   const closeRate30d = close.rate;
 
+  /**
+   * What a job quoted in that same window was priced at.
+   *
+   * Per job and averaged over its options, not per option: the close rate
+   * beside it counts jobs, so an average that counted options would be the two
+   * halves of one sentence disagreeing. Same window as the rate, for the same
+   * reason the Team columns share one.
+   */
+  const quotedJobValues = new Map<string, { sum: number; n: number }>();
+  for (const r of recentEstimates) {
+    const k = quoteKey(r);
+    const got = quotedJobValues.get(k);
+    const v = Number(r.total ?? 0);
+    if (got) {
+      got.sum += v;
+      got.n += 1;
+    } else {
+      quotedJobValues.set(k, { sum: v, n: 1 });
+    }
+  }
+  const avgQuote30d = quotedJobValues.size
+    ? [...quotedJobValues.values()].reduce((t, j) => t + (j.n > 0 ? j.sum / j.n : 0), 0) / quotedJobValues.size
+    : null;
+
   // Quotes written this month, so the funnel reads created -> outstanding ->
   // closed. A thin pipeline means something different depending on which end
   // it is thin at.
-  const createdRows = domestic(
+  const createdRows = quotes(
     await sbSelect<{
       id: number;
       job_id: number | null;
@@ -575,10 +639,11 @@ async function serviceTitanMetrics(now: Date) {
       sold_on: string | null;
       created_by: string | null;
       business_unit: string | null;
+      customer_id: number | null;
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,total,created_on,sold_on,created_by,business_unit"),
+        q.select("id,job_id,total,created_on,sold_on,created_by,business_unit,customer_id"),
         q.gte("created_on", monthStart.toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -590,8 +655,8 @@ async function serviceTitanMetrics(now: Date) {
   // per job, because "10 quotes today" for what was really two jobs priced
   // five ways is the same overcount that broke the close rate.
   const created = { todayV: 0, weekV: 0, monthV: 0, todayOptions: 0, monthOptions: 0 };
-  const todayRowsForCount: { id: number; job_id: number | null; sold_on: string | null }[] = [];
-  const weekRowsForCount: { id: number; job_id: number | null; sold_on: string | null }[] = [];
+  const todayRowsForCount: { id: number; job_id: number | null; sold_on: string | null; customer_id: number | null; created_on: string | null }[] = [];
+  const weekRowsForCount: { id: number; job_id: number | null; sold_on: string | null; customer_id: number | null; created_on: string | null }[] = [];
   for (const r of createdRows) {
     const v = Number(r.total ?? 0);
     created.monthV += v;
@@ -600,18 +665,26 @@ async function serviceTitanMetrics(now: Date) {
     const at = new Date(r.created_on);
     if (at.getTime() >= weekStartMs) {
       created.weekV += v;
-      weekRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on });
+      weekRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on, customer_id: r.customer_id, created_on: r.created_on });
     }
     if (isoDateMelbourne(at) === today) {
       created.todayV += v;
       created.todayOptions += 1;
-      todayRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on });
+      todayRowsForCount.push({ id: r.id, job_id: r.job_id, sold_on: r.sold_on, customer_id: r.customer_id, created_on: r.created_on });
     }
   }
-  const asOpt = (r: { id: number; job_id: number | null; sold_on: string | null }) =>
-    ({ id: r.id, jobId: r.job_id, soldOn: r.sold_on });
+  const asOpt = (r: { id: number; job_id: number | null; sold_on: string | null; customer_id: number | null; created_on: string | null }) =>
+    ({ id: r.id, jobId: r.job_id, soldOn: r.sold_on, customerId: r.customer_id, createdOn: r.created_on });
   const todayClose = closeRate(todayRowsForCount.map(asOpt));
-  const monthOpportunities = byOpportunity(createdRows.map((r) => ({ id: r.id, jobId: r.job_id, soldOn: r.sold_on }))).length;
+  const monthOpportunities = byOpportunity(
+    createdRows.map((r) => ({
+      id: r.id,
+      jobId: r.job_id,
+      soldOn: r.sold_on,
+      customerId: r.customer_id,
+      createdOn: r.created_on,
+    })),
+  ).length;
   const weekOpportunities = byOpportunity(weekRowsForCount.map(asOpt)).length;
 
   /**
@@ -770,7 +843,7 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
-  const soldRows = domestic(
+  const soldRows = quotes(
     await sbSelect<{
       id: number;
       sold_by: string | null;
@@ -830,7 +903,7 @@ async function serviceTitanMetrics(now: Date) {
   // list every day is not something anybody is chasing, and it pushed this
   // month's real work off the bottom of the card.
   const QUOTE_LIST_DAYS = 60;
-  const openRows = domestic(
+  const openRows = quotes(
     await sbSelect<{
       id: number;
       total: number | null;
@@ -850,7 +923,7 @@ async function serviceTitanMetrics(now: Date) {
   );
 
   const todayRows = createdRows.length
-    ? domestic(
+    ? quotes(
         await sbSelect<{
           id: number;
           total: number | null;
@@ -1090,6 +1163,7 @@ async function serviceTitanMetrics(now: Date) {
     closeRate30dSold,
     closeRate30dQuotes,
     closeRate30dOptions,
+    avgQuote30d,
     quotesCreatedTodayValue: created.todayV,
     quotesCreatedTodayCount: todayClose.quoted,
     quotesCreatedTodayOptions: created.todayOptions,
@@ -1321,6 +1395,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       closeRate30d: prev?.closeRate30d ?? null,
       closeRate30dSold: prev?.closeRate30dSold ?? 0,
       closeRate30dOptions: prev?.closeRate30dOptions ?? 0,
+      avgQuote30d: prev?.avgQuote30d ?? null,
       closeRate30dQuotes: prev?.closeRate30dQuotes ?? 0,
       quotesCreatedTodayValue: prev?.quotesCreatedTodayValue ?? 0,
       quotesCreatedTodayCount: prev?.quotesCreatedTodayCount ?? 0,

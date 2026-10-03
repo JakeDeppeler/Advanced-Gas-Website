@@ -24,6 +24,8 @@ const REFRESH_MS = 30_000;
 // want an export request every thirty seconds all day.
 const RESYNC_MS = 30_000;
 const PAGE_MS = 30_000;
+// How long the board stays held before it starts turning again on its own.
+const HOLD_MS = 5 * 60_000;
 const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
 
 /**
@@ -44,7 +46,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // The money columns are the month; the last three are thirty days, because a
   // quote written this week has not had a chance to close. Said once here
   // rather than three times in headers a column wide.
-  Team: () => "Sold, out of quoted · last three columns over 30 days",
+  Team: () => "Sold this month, out of quoted · rates over 30 days",
   Performance: (m) => `${monthName(new Date())} so far · by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
@@ -107,6 +109,7 @@ export function ScreenBoard({
   const [now, setNow] = useState(() => new Date());
   const [page, setPage] = useState(0);
   const [queue, setQueue] = useState<Sale[]>([]);
+  const [paused, setPaused] = useState(false);
 
   // Seeded from the first snapshot so the board doesn't open by cheering every
   // sale already on the books.
@@ -114,11 +117,54 @@ export function ScreenBoard({
 
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(clock);
+  }, []);
+
+  /**
+   * The rotation, which stops while the board is held.
+   *
+   * Separate from the clock above so holding a page does not also freeze the
+   * time in the footer — a board that has stopped telling the time looks like a
+   * board that has crashed.
+   *
+   * Polling is untouched either way: hold a page and its figures still update
+   * underneath you. What stops is the page turning, which is the only thing
+   * anybody holding it wants stopped.
+   */
+  useEffect(() => {
+    if (paused) return;
     const rotate = setInterval(() => setPage((p) => (p + 1) % PAGES.length), PAGE_MS);
-    return () => {
-      clearInterval(clock);
-      clearInterval(rotate);
+    return () => clearInterval(rotate);
+  }, [paused]);
+
+  /**
+   * Holding is not a mode anybody should be able to leave the board in.
+   *
+   * This runs on a wall, often with nobody at the keyboard. Somebody stops it
+   * to read a figure, gets called away, and the board sits on the Team page
+   * until a person who did not pause it works out why. It releases itself after
+   * five minutes, which is far longer than reading a page takes and far shorter
+   * than a working day.
+   */
+  useEffect(() => {
+    if (!paused) return;
+    const release = setTimeout(() => setPaused(false), HOLD_MS);
+    return () => clearTimeout(release);
+  }, [paused]);
+
+  // Space is the obvious key for this and nothing else on the page uses it. The
+  // guard keeps it from firing while the button itself has focus, which would
+  // toggle twice on one press.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== "Space" && e.key !== " ") return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "BUTTON" || el.tagName === "INPUT")) return;
+      e.preventDefault();
+      setPaused((v) => !v);
     };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   useEffect(() => {
@@ -227,9 +273,29 @@ export function ScreenBoard({
             ))}
           </span>
           <span className="screen__pagertxt">
-            {page + 1} of {PAGES.length} · next: {PAGES[(page + 1) % PAGES.length]}
+            {paused ? `${page + 1} of ${PAGES.length} · held` : `${page + 1} of ${PAGES.length} · next: ${PAGES[(page + 1) % PAGES.length]}`}
           </span>
         </nav>
+        {/* Deliberately quiet: this sits on a wall all day and a control nobody
+            is touching should not be competing with the figures. It only comes
+            forward once it is holding something, because at that point the room
+            needs to know the board stopped on purpose. */}
+        <button
+          type="button"
+          className={`screen__hold ${paused ? "is-on" : ""}`}
+          onClick={() => setPaused((v) => !v)}
+          aria-pressed={paused}
+          title={paused ? "Resume (space)" : "Hold this page (space)"}
+        >
+          <span className="screen__holdicon" aria-hidden>
+            {paused ? (
+              <svg viewBox="0 0 12 14" width="100%" height="100%"><path d="M1 1l10 6-10 6z" fill="currentColor" /></svg>
+            ) : (
+              <svg viewBox="0 0 12 14" width="100%" height="100%"><rect x="1" y="1" width="3.5" height="12" fill="currentColor" /><rect x="7.5" y="1" width="3.5" height="12" fill="currentColor" /></svg>
+            )}
+          </span>
+          {paused ? "Held" : "Hold"}
+        </button>
       </div>
 
       {/* The rule under the header is the clock for THIS page.
@@ -243,7 +309,7 @@ export function ScreenBoard({
           A CSS animation restarted by the page key, not a ticking state — the
           board runs for months on a kiosk, and re-rendering the tree once a
           second to advance a bar is what degrades a display nobody reloads. */}
-      <div className="screen__rule" aria-hidden="true">
+      <div className={`screen__rule ${paused ? "is-held" : ""}`} aria-hidden="true">
         <span key={page} />
       </div>
 
@@ -342,15 +408,21 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         ]}
         value={st.plain(m.quotesCreatedTodayValue, live)}
       />
+      {/* The rate on its own says how often we win. What a job was priced at
+          says what winning one is worth, and the two together are the question
+          the room actually asks. Both per job over the same thirty days — an
+          average counted per option under a rate counted per job would be one
+          sentence disagreeing with itself. */}
       <RateCard
         label="Close rate"
         lines={
           live.st
             ? [
                 `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs quoted`,
-                `last ${m.outstandingDays ?? 30} days${
+                `avg quote ${plain(m.avgQuote30d)}${
                   m.closeRate30dOptions > m.closeRate30dQuotes ? ` · ${count(m.closeRate30dOptions)} options` : ""
                 }`,
+                `last ${m.outstandingDays ?? 30} days`,
               ]
             : ["ServiceTitan not connected"]
         }
@@ -596,7 +668,9 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
                 <span className="quote__label">{qr.label}</span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
-                  {qr.ageDays === 0 ? "Today" : `${qr.ageDays} days${qr.ageDays >= 7 ? " · follow up" : ""}`}
+                  {qr.ageDays === 0
+                    ? "Today"
+                    : `${qr.ageDays} ${qr.ageDays === 1 ? "day" : "days"}${qr.ageDays >= 7 ? " · follow up" : ""}`}
                 </span>
                 {/* Good, better and best are one quote and at most one of them
                     sells, so the figure is the average of the options rather
@@ -681,8 +755,6 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
         <div className="tbl__head">
           <span />
           <span>Tech</span>
-          <span>Today</span>
-          <span>This week</span>
           <span>{monthName(new Date())}</span>
           <span>Close rate</span>
           <span>Avg ticket</span>
@@ -697,21 +769,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               <span className="tbl__name" style={{ display: "block" }}>
                 {r.name}
               </span>
-              <span className={`tbl__note ${i === 0 ? "tbl__note--leader" : ""}`}>
-                {/* The leader's option count used to be replaced by the flag,
-                    so the one person you most want to compare against was the
-                    one whose quoting volume the board hid. Both, now. */}
-                {i === 0 ? "Leading · " : ""}
-                {count(r.quotes)} {r.quotes === 1 ? "option" : "options"} written
-              </span>
-            </span>
-            <span className="tbl__fig">
-              <b>{plain(r.soldToday)}</b>
-              <span>of {plain(r.quotedToday)}</span>
-            </span>
-            <span className="tbl__fig">
-              <b>{plain(r.soldWeek)}</b>
-              <span>of {plain(r.quotedWeek)}</span>
+              {i === 0 && <span className="tbl__note tbl__note--leader">Leading</span>}
             </span>
             <span className="tbl__fig">
               <b>{plain(r.sold)}</b>
@@ -761,14 +819,6 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
         <div className="tbl__row tbl__row--total">
           <span />
           <span className="tbl__name">Team</span>
-          <span className="tbl__fig">
-            <b>{plain(totals.today)}</b>
-            <span>of {plain(totals.quoted ? m.quotesCreatedTodayValue : 0)}</span>
-          </span>
-          <span className="tbl__fig">
-            <b>{plain(totals.week)}</b>
-            <span>of {plain(m.quotesCreatedWeekValue)}</span>
-          </span>
           <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
             <span>
@@ -1051,7 +1101,9 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
                 <span className="quote__label">{qr.label}</span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
-                  {qr.ageDays === 0 ? "Today" : `${qr.ageDays} days${qr.ageDays >= 7 ? " · follow up" : ""}`}
+                  {qr.ageDays === 0
+                    ? "Today"
+                    : `${qr.ageDays} ${qr.ageDays === 1 ? "day" : "days"}${qr.ageDays >= 7 ? " · follow up" : ""}`}
                 </span>
                 {/* Good, better and best are one quote and at most one of them
                     sells, so the figure is the average of the options rather

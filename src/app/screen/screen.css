@@ -115,6 +115,39 @@ body:has(.screen) .utilbar {
   white-space: nowrap;
 }
 
+/* The hold control, right of the pager. Sized and coloured to disappear beside
+   the figures until it is doing something, then it takes the accent so "this
+   board stopped on purpose" carries to the back of the room along with
+   everything else — a board frozen for no visible reason reads as a dead one. */
+.screen__hold {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4vw;
+  margin-left: 1.1vw;
+  padding: 0.34vw 0.75vw;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.82vw;
+  font-weight: 700;
+  cursor: pointer;
+}
+.screen__hold:hover { color: var(--ink); }
+.screen__hold.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.screen__holdicon { display: block; width: 0.54vw; height: 0.63vw; }
+
+/* Holding stops the page clock where it stands, rather than letting the bar run
+   out under a page that is not going to turn. */
+.screen__rule.is-held > span { animation-play-state: paused; }
+
 /* The rule under the header, doing two jobs: it separates the header from the
    body, and its orange run is how far through the six pages the board is. */
 .screen__rule {
@@ -457,7 +490,12 @@ body:has(.screen) .utilbar {
      read against the person beside them, not against each other, and giving
      them a share of the free space pushed the money columns under their own
      figures. */
-  grid-template-columns: 2.2vw 15vw repeat(3, 1fr) repeat(3, 7vw) 12.5vw;
+  /* Rank, name, sold this month, then the three rates, then the tier run.
+     Today and This week came off: Today read $0 against $0 for everybody on
+     most days, and in the first week of a month This week is the same figure
+     as the month beside it. Six columns of numbers was more than the room
+     could take in at four metres, which is the only test that matters. */
+  grid-template-columns: 2.2vw 16vw 1.4fr repeat(3, 1fr) 15vw;
   align-items: center;
   gap: 1vw;
   padding: 0.5vw 1vw;
