@@ -8,6 +8,7 @@ import { ProfitChart } from "@/components/portal/ProfitChart";
 import { PLStatement } from "@/components/portal/PLStatement";
 import { xeroStatus, getPLDetail, getMoneySeries, plSpans, PL_PERIODS, type PLPeriod } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { XeroLine } from "@/components/portal/XeroLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Profit & loss — Team portal" };
@@ -18,15 +19,17 @@ export default async function ProfitLossPage({ searchParams }: { searchParams: {
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   const key: PLPeriod = PL_PERIODS.some((o) => o.k === searchParams?.p) ? (searchParams!.p as PLPeriod) : "month";
-  const { status } = await xeroStatus();
+  const { status, tenantName } = await xeroStatus();
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal/finance" label="Finance" />
-        <div className="pt-head__eyebrow">Finance · Profit &amp; loss</div>
-        <h1>What we actually made.</h1>
-        <p>Every account from Xero, next to the same figures for the period before — so you can see which lines moved and by how much.</p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal/finance" label="Finance" />
+          <h1>What we actually made</h1>
+          <p>Every account from Xero, next to the same figures for the period before — so you can see which lines moved and by how much.</p>
+        </div>
+        <XeroLine state={status} org={tenantName} />
       </div>
 
       <PortalTabs set="finance" />

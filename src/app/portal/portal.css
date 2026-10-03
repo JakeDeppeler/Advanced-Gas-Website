@@ -2615,3 +2615,15 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   color: var(--pt-ink); white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 @media (max-width: 760px) { .pt-rule__row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+
+/* ---- where a page's Xero figures came from ---- */
+/* Beside the heading, because everything under it is read from Xero. The dot
+   repeats what the words say rather than carrying the state alone. */
+.pt-xline {
+  flex: none; display: flex; align-items: center; gap: 9px; margin: 10px 0 0;
+  font-size: 14.5px; color: var(--pt-ink-2); white-space: nowrap;
+}
+.pt-xline i { width: 9px; height: 9px; border-radius: 50%; background: var(--pt-good); }
+.pt-xline--off i { background: var(--pt-ink-3); }
+.pt-fin__bar--end { justify-content: flex-end; }
+@media (max-width: 760px) { .pt-xline { white-space: normal; } }

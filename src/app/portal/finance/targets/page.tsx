@@ -9,6 +9,7 @@ import { RevenuePlanner } from "@/components/portal/RevenuePlanner";
 import type { Targets, Capacity } from "@/lib/portal/targets";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { XeroLine } from "@/components/portal/XeroLine";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Targets — Team portal" };
@@ -58,7 +59,7 @@ export default async function TargetsPage() {
   }
 
   // Revenue banked so far this calendar year, from the filed accounts.
-  const { status } = await xeroStatus();
+  const { status, tenantName } = await xeroStatus();
   const t = localToday();
   const ytd = status === "connected"
     ? (await getProfitAndLoss(
@@ -69,16 +70,18 @@ export default async function TargetsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal/finance" label="Finance" />
-        <div className="pt-head__eyebrow">Finance · Targets</div>
-        <h1>What has to happen to hit the year.</h1>
-        <p>
-          Set the year&rsquo;s revenue and everything else works backwards from it: the work that has to be finished,
-          the hours that takes out of the crew&rsquo;s week, the quoting it takes to win it, and whether the crew has
-          the week for it at all. Where the accounts and the quote book know the answer already, they are used instead
-          of an assumption.
-        </p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal/finance" label="Finance" />
+          <h1>What has to happen to hit the year</h1>
+          <p>
+            Set the year&rsquo;s revenue and everything else works backwards from it: the work that has to be finished,
+            the hours that takes out of the crew&rsquo;s week, the quoting it takes to win it, and whether the crew has
+            the week for it at all. Where the accounts and the quote book know the answer already, they are used instead
+            of an assumption.
+          </p>
+        </div>
+        <XeroLine state={status} org={tenantName} />
       </div>
 
       <PortalTabs set="finance" />
