@@ -417,20 +417,57 @@ chasing.
 The office home (`/portal`) opens with the lines that need someone today. It
 reads the board's latest snapshot, so it never disagrees with the wall:
 
+- **Incidents reported**: an incident or near miss sent from the trade
+  portal's Take 5 screen, until somebody marks it read on `/portal/requests`.
+  It sits first.
 - **Quotes gone quiet 7+ days**: still open, inside the 30-day window, nothing
   sold and no option added for a week (`quotesQuiet*` on the snapshot).
 - **Invoices overdue**: Xero's count and total, the same as the Overdue tile.
-- **Van service requests / tools short**: the latest weekly or monthly check's
-  "needs doing" items, and the tool bag and plant counts under their minimum.
+- **Van reports to answer**: damage and service reports nobody in the office
+  has answered yet (status `open` on `portal_vehicle_logs`) — a tech's own, or
+  a line the weekly check flagged and sent — plus anything the monthly check
+  marked as needing doing.
+- **Tools to sort**: a tool a tech asked about with no answer yet, and the tool
+  bag and plant counts under their minimum.
+- **Parts orders to place**: orders sent from the trade portal still at
+  "asked for".
+- **Leave to answer**: time off asked for and not yet approved or declined.
 - **Factory stock low**: lines at or under their minimum on `/portal/stock`.
 
-Each line is hidden at zero. The design also has customer chats waiting, hours
-paid but not billed, jobs that lost money, payment plans and VEU claims to
-lodge. None of those has anything behind it yet (no chat channel, no
-timesheets, no job costs, no finance-provider or VEU log), so they are left off
-rather than shown as numbers nobody measured. Their pages exist and say what
-each one needs. "First reply to a new lead" is left off The numbers for the
-reason given under the lead data above.
+Each line is hidden at zero. The design also has customer chats waiting, jobs
+that lost money, payment plans and VEU claims to lodge. None of those has
+anything behind it yet (no chat channel, no job costs, no finance-provider or
+VEU log), so they are left off rather than shown as numbers nobody measured.
+Their pages exist and say what each one needs. "First reply to a new lead" is
+left off The numbers for the reason given under the lead data above.
+
+## What the crew sends from the trade portal (migration 0039)
+
+Everything a tech raises on the iPad has an office end, so nothing sent from a
+van goes into a table nobody reads:
+
+| Sent from | Stored in | Answered on |
+|---|---|---|
+| Weekly check, flagged line | `portal_vehicle_logs` (service, `source = weekly`) | The van's Damage & service tab |
+| Damage & service | `portal_vehicle_logs` + photos on `portal_van_photos.log_id` | The van's Damage & service tab, `/portal/requests` |
+| Order parts | `portal_part_orders` | `/portal/stock`, `/portal/requests`, the van's Order parts tab |
+| Tools & gear ask | `portal_van_tools.request` | The van's Tools & gear tab |
+| Factory stock take | `portal_stock_moves` (via `portal_stock_move`) | `/portal/stock` |
+| Take 5 / incident | `portal_take5` | `/portal/requests` |
+| Time off | `portal_leave` | `/portal/requests` |
+| Timesheet | `portal_timesheets` | `/portal/hours` (paid hours) |
+
+The tech reads each answer back on their own screen — "Booked in · 14 Oct",
+"Ready to collect", "Approved". Reports written before 0039 have no status and
+read as "Logged", not as open: an old note that was dealt with months ago must
+not come back as something the office is sitting on.
+
+Not built, and said so on the screens rather than faked: customer texting in
+Messages (no SMS service is connected; Messages carries the office's notices),
+sending a quote through ServiceTitan (no write to ServiceTitan exists; the quote
+screen is what the quote is built from), weekly finance figures in the
+pricebook (no finance product or rate is written down anywhere), and jobs per
+day on the timesheet (ServiceTitan's job assignments aren't synced).
 
 ## Profit on every job isn't buildable yet
 

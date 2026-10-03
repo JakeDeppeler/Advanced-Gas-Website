@@ -583,6 +583,8 @@ export type Vehicle = {
   resaleValue: number | null;
   lifespanYears: number | null;
   fuelPer100: number | null;
+  /** Rego renewal (migration 0039). */
+  regoDue: string | null;
 };
 
 type VehicleRow = {
@@ -593,6 +595,7 @@ type VehicleRow = {
   purchased_on: string | null; condition: string | null;
   service_cost: number | null; km_year: number | null; assigned_to: string | null;
   purchase_price: number | null; resale_value: number | null; lifespan_years: number | null; fuel_l_per_100: number | null;
+  rego_due?: string | null;
 };
 
 const n = (v: number | null) => (v == null ? null : Number(v));
@@ -609,6 +612,7 @@ const toVehicle = (r: VehicleRow): Vehicle => ({
   purchasedOn: r.purchased_on, condition: r.condition === "new" || r.condition === "used" ? r.condition : null,
   serviceCost: n(r.service_cost), kmYear: n(r.km_year), assignedTo: r.assigned_to,
   purchasePrice: n(r.purchase_price), resaleValue: n(r.resale_value), lifespanYears: n(r.lifespan_years), fuelPer100: n(r.fuel_l_per_100),
+  regoDue: r.rego_due ?? null,
 });
 
 export type VehicleLogKind = "service" | "fuel" | "damage" | "reading";
@@ -681,9 +685,10 @@ export async function updateVehicle(id: string, patch: {
   purchasePrice?: number | null; resaleValue?: number | null; lifespanYears?: number | null; fuelPer100?: number | null;
   amountOwing?: number | null; status?: VehicleStatus;
   purchasedOn?: string | null; condition?: VehicleCondition | null;
-  serviceCost?: number | null; kmYear?: number | null; assignedTo?: string | null;
+  serviceCost?: number | null; kmYear?: number | null; assignedTo?: string | null; regoDue?: string | null;
 }): Promise<{ ok: boolean; error?: string }> {
   const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (patch.regoDue !== undefined) body.rego_due = patch.regoDue || null;
   if (patch.name !== undefined) body.name = patch.name.trim();
   if (patch.rego !== undefined) body.rego = patch.rego || null;
   if (patch.details !== undefined) body.details = patch.details || null;

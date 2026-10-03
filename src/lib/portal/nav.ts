@@ -156,6 +156,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   );
   add(office,
     { href: "/portal/stock", label: "Factory stock", short: "Stock", blurb: "What's on the shelf, who took what", band: "crew", icon: "box", also: ["stock", "factory", "shelf", "inventory"] },
+    { href: "/portal/requests", label: "From the crew", short: "Requests", blurb: "Leave, parts, incidents, Take 5s", band: "crew", icon: "bell", also: ["leave", "rdo", "parts order", "incident", "take 5", "near miss", "tool broken"] },
   );
 
   items.push(

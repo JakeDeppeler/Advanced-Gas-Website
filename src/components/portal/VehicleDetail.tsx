@@ -15,6 +15,7 @@ export type VehicleView = {
   purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
   amountOwing: number | null; purchasedOn: string | null; condition: VehicleCondition | null;
   serviceCost: number | null; kmYear: number | null; assignedTo: string | null;
+  regoDue: string | null;
 };
 export type LogView = {
   id: string; kind: VehicleLogKind; dateLabel: string;
@@ -47,7 +48,7 @@ const LOG_TITLE: Record<VehicleLogKind, { h: string; sub: string; empty: string 
   damage: { h: "Damage log", sub: "Anything that happened to the van — logged the day it happened, not at sale time.", empty: "Nothing logged — which is the point." },
 };
 
-export function VehicleDetail({ vehicle, logs, canManage, crew, log }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; crew: CrewOption[]; log: VehicleLogKind | null }) {
+export function VehicleDetail({ vehicle, logs, canManage, crew, log, banner = true }: { vehicle: VehicleView; logs: LogView[]; canManage: boolean; crew: CrewOption[]; log: VehicleLogKind | null; banner?: boolean }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const refresh = () => router.refresh();
@@ -77,7 +78,7 @@ export function VehicleDetail({ vehicle, logs, canManage, crew, log }: { vehicle
 
   return (
     <div className="pt-veh">
-      {vehicle.status !== "on" && (
+      {banner && vehicle.status !== "on" && (
         <div className={`pt-veh__off${vehicle.status === "repair" ? " pt-veh__off--repair" : ""}`}>
           <strong>{STATUS_LABEL[vehicle.status]}.</strong>
           <span>{STATUS_NOTE[vehicle.status]}</span>

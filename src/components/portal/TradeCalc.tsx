@@ -37,25 +37,25 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
   const ok = left != null && left >= 0;
 
   return (
-    <div className="tr-split" style={{ ["--tr-cols" as string]: "minmax(0, 1fr) 380px" }}>
-      <section className="tr-card tr-stack" style={{ gap: 12 }}>
+    <div className="tr-split" style={{ ["--tr-side" as string]: "380px" }}>
+      <section className="tr-card tr-stack" style={{ gap: 10 }}>
         <h2>The job</h2>
         {PRICED.map((j, i) => (
           <button
             key={j.k} type="button" aria-pressed={i === pick} onClick={() => setPick(i)}
-            className={`tr-opt${i === pick ? " is-on" : ""}`}
+            className={`tr-choice${i === pick ? " is-on" : ""}`} style={{ justifyContent: "space-between", minHeight: 56 }}
           >
-            <strong>{j.label}</strong>
-            <span>${j.min} · {j.hrs} hrs</span>
+            <span>{j.label}</span>
+            <span className="tr-small" style={{ fontWeight: 700 }}>${j.min} · {j.hrs} hrs</span>
           </button>
         ))}
         <button
           type="button" aria-pressed={appr} onClick={() => setAppr(!appr)}
-          className={`tr-opt tr-opt--add${appr ? " is-on" : ""}`}
+          className={`tr-choice${appr ? " is-on" : ""}`} style={{ flexDirection: "column", alignItems: "flex-start", justifyContent: "center", minHeight: 64, gap: 2 }}
           disabled={apprentice == null}
         >
-          <strong>{appr ? "Apprentice · on" : "+ Add an apprentice"}</strong>
-          <span>
+          <span>{appr ? "Apprentice · on" : "+ Add an apprentice"}</span>
+          <span className="tr-small" style={{ fontWeight: 600 }}>
             {apprentice == null
               ? "No apprentice costed yet"
               : `Adds ${money2(apprentice)}/hr to what the job costs${apprenticeRidesAlong ? " — their whole cost, over the van's hours" : ""}`}
@@ -63,39 +63,31 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
         </button>
       </section>
 
-      <section className="tr-panel tr-stack" style={{ gap: 12 }}>
-        <span className="tr-sub">{job.label}</span>
+      <section className="tr-card tr-stack" style={{ gap: 12 }}>
+        <span className="tr-muted" style={{ fontWeight: 700 }}>{job.label}</span>
         <div className="tr-rows">
-          <div className="tr-row">
-            <span>Price</span>
-            <strong className="tr-row__v" style={{ fontSize: 28, fontWeight: 900 }}>${job.min}</strong>
-          </div>
-          <div className="tr-row">
-            <span>Cost of the time</span>
-            <strong className="tr-row__v" style={{ fontSize: 28, fontWeight: 900 }}>{cost == null ? "—" : money2(cost)}</strong>
-          </div>
+          <div className="tr-row"><span className="tr-row__k"><strong>Price</strong></span><span className="tr-big" style={{ fontSize: 30 }}>${job.min}</span></div>
+          <div className="tr-row"><span className="tr-row__k"><strong>Cost of the time</strong></span><span className="tr-big" style={{ fontSize: 30 }}>{cost == null ? "—" : money2(cost)}</span></div>
         </div>
 
         {left == null ? (
-          <div className="tr-outcome">
-            <strong>Not costed yet</strong>
-            <span className="tr-foot">
-              The office sets the crew&rsquo;s hours and wages on the costs &amp; capacity page. Until that&rsquo;s done
-              there is no hourly figure to measure a job against.
-            </span>
+          <div className="tr-note tr-note--grey">
+            <strong style={{ display: "block", fontSize: 17 }}>Not costed yet</strong>
+            The office sets the crew&rsquo;s hours and wages on the costs &amp; capacity page. Until that&rsquo;s done
+            there is no hourly figure to measure a job against.
           </div>
         ) : (
-          <div className={`tr-outcome${ok ? "" : " is-bad"}`}>
-            <span style={{ fontSize: 15, fontWeight: 700 }}>{ok ? "Left in it" : "Losing money on this"}</span>
-            <strong>{money2(left)} · {Math.round((left / job.min) * 100)}%</strong>
+          <div className={`tr-note ${ok ? "tr-note--good" : "tr-note--warn"}`}>
+            <span style={{ display: "block", fontSize: 15 }}>{ok ? "Left in it" : "Losing money on this"}</span>
+            <strong style={{ fontFamily: "var(--f-display)", fontSize: 26, fontWeight: 900 }}>{money2(left)} · {Math.round((left / job.min) * 100)}%</strong>
           </div>
         )}
 
         {perHr != null && (
-          <span className="tr-foot">
+          <p className="tr-small">
             {appr ? "The two of you cost" : "Your time costs"} the business {money2(perHr)} an hour.
             Travel, materials and after-hours aren&rsquo;t in this — the office calculator has those.
-          </span>
+          </p>
         )}
       </section>
     </div>

@@ -192,6 +192,27 @@ export const MONTHLY_CHECK: TickItem[] = [
   { item: "Wash & interior", looking: "Van washed, cab and rear tidy.", photo: "optional" },
 ];
 
+/**
+ * The walk-round on the weekly check: the van itself, as opposed to what's in
+ * it. The weekly sheet above is the paperwork's "ready for the week" list;
+ * this is the A1 procedure's last step, "flag anything that needs a
+ * mechanic", broken out so a tyre is a line someone ticks rather than
+ * something they have to remember to write.
+ *
+ * Anything marked as needing a look becomes a service request on the van when
+ * the check is sent, which is where the office already picks them up.
+ */
+export const VEHICLE_CHECK: { group: string; items: string[] }[] = [
+  { group: "Outside", items: ["Tyres & pressures", "Tyre tread", "Spare & jack", "Lights & indicators", "Panels & doors", "Mirrors & glass", "Wipers & washers"] },
+  { group: "Under the bonnet", items: ["Oil", "Coolant", "Brake fluid", "Washer bottle"] },
+  { group: "In the cab", items: ["No warning lights on the dash", "Brakes feel right", "Horn", "Seatbelts"] },
+  { group: "Load area", items: ["Racking & shelving secure", "Gas bottles chained & upright", "Ladders secured", "Fire extinguisher in date"] },
+];
+
+export const VEHICLE_GROUP = "vehicle";
+export const vehicleKey = (item: string) => itemKey(VEHICLE_GROUP, item);
+export const VEHICLE_ITEMS = VEHICLE_CHECK.flatMap((g) => g.items);
+
 /** The angles worth having on record, so a month's photos compare with the last. */
 export const PHOTO_ANGLES = ["Front", "Driver side", "Passenger side", "Rear", "Inside rear", "Cab"];
 
@@ -204,7 +225,13 @@ export const tickList = (kind: CheckKind): TickItem[] | null =>
 /* -------- What a saved check holds -------- */
 
 /** Counted sheets store a qty per item; ticked sheets store a state and a note. */
-export type CheckEntry = { qty?: number | null; state?: "ok" | "action" | null; note?: string };
+export type CheckEntry = {
+  qty?: number | null; state?: "ok" | "action" | null; note?: string;
+  /** On a flagged vehicle-check line: whether the van can still be driven. */
+  drive?: boolean | null;
+  /** The service request it became when the check was sent, so a re-send doesn't raise it twice. */
+  reported?: string;
+};
 export type CheckItems = Record<string, CheckEntry>;
 
 /** Stable key for an item, so a saved check still lines up if a list is reordered. */

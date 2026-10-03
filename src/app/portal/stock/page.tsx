@@ -7,6 +7,10 @@ import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
 import { StockBoard } from "@/components/portal/StockBoard";
 import { isLow, listMoves, listStock } from "@/lib/portal/stock";
+import { listOrders } from "@/lib/portal/van";
+import { listVehicles } from "@/lib/portal/db";
+import { OrderAnswer } from "@/components/portal/OfficeAnswers";
+import "@/app/trade/trade.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Factory stock — Team portal" };
@@ -25,7 +29,8 @@ export default async function StockPage() {
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Factory stock" forWhom="managers" />;
 
-  const [items, moves] = await Promise.all([listStock(), listMoves(40)]);
+  const [items, moves, orders, vans] = await Promise.all([listStock(), listMoves(40), listOrders({ open: true, limit: 30 }), listVehicles().catch(() => [])]);
+  const vanName = new Map(vans.map((v) => [v.id, v.name]));
   const low = (items ?? []).filter(isLow);
   const takenWeek = moves.filter((m) => m.reason === "taken" && Date.now() - Date.parse(m.at) < 7 * 86_400_000).length;
 
@@ -49,6 +54,18 @@ export default async function StockPage() {
               { label: "Taken this week", value: takenWeek.toLocaleString("en-AU"), sub: "times something came off the shelf" },
             ]}
           />
+          {/* Factory first, then Reece: what the crew asked for sits beside the
+              shelf it might come off, so a line already on it never gets ordered. */}
+          <div className="tr-embed">
+            <section className="tr-card" id="orders">
+              <h2 style={{ paddingBottom: 4 }}>Parts the crew asked for · {orders.length} open</h2>
+              {orders.length ? (
+                <div className="tr-rows">
+                  {orders.map((o) => <OrderAnswer key={o.id} o={o} van={o.vehicleId ? vanName.get(o.vehicleId) ?? null : null} canAnswer={can(user, "vehicles")} />)}
+                </div>
+              ) : <p className="tr-empty">Nothing open. Orders sent from the iPad land here.</p>}
+            </section>
+          </div>
           <StockBoard items={items.map((i) => ({ ...i, low: isLow(i) }))} canSave />
           <section className="pt-panel">
             <h2 className="pt-panel__h">Who took what</h2>

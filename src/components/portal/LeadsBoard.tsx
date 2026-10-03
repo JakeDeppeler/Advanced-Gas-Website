@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { site } from "@/lib/site";
+import { Heads } from "@/components/portal/marketingParts";
 import type { WebLead } from "@/lib/portal/db";
 import { classifyLead, CHANNEL_ORDER, type Channel } from "@/lib/portal/leadSource";
 import { BANDS, type AreaRow, type Band } from "@/lib/portal/leadArea";
 import type { PageReport } from "@/lib/portal/leadPages";
-
-const RANGES = [
-  { d: 30, label: "30 days" },
-  { d: 90, label: "90 days" },
-  { d: 365, label: "12 months" },
-];
 
 const day = (iso: string) => iso.slice(0, 10);
 
@@ -140,11 +135,6 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
 
   return (
     <div className="pt-fin">
-      <div className="pt-ov__tf pt-pl__tf">
-        {RANGES.map((r) => (
-          <Link key={r.d} href={`/portal/finance/leads?d=${r.d}`} scroll={false} className={`pt-ov__tfbtn${days === r.d ? " is-on" : ""}`}>{r.label}</Link>
-        ))}
-      </div>
 
       {leads.length === 0 ? (
         <div className="pt-note">
@@ -165,19 +155,35 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
         </div>
       ) : (
         <>
-          <div className="pt-cap__strip">
-            <div className="pt-cap__stripcell"><span>Enquiries</span><strong>{leads.length}</strong><small>over {days} days</small></div>
-            <div className="pt-cap__stripcell"><span>Quote requests</span><strong>{quotes.length}</strong><small>filled in the form</small></div>
-            <div className="pt-cap__stripcell"><span>Phone taps</span><strong>{calls.length}</strong><small>tapped the number</small></div>
-            <div className="pt-cap__stripcell"><span>A week</span><strong>{perWeek.toFixed(1)}</strong><small>on average</small></div>
-            <div className="pt-cap__stripcell"><span>From paid ads</span><strong>{paidN}</strong><small>{Math.round((paidN / leads.length) * 100)}% of the lot</small></div>
-            <div className="pt-cap__stripcell"><span>Facebook ads</span><strong>{fbN}</strong><small>{fbAny - fbN > 0 ? `${fbAny - fbN} more from Facebook, untagged` : "by click ID or tag"}</small></div>
-            <div className="pt-cap__stripcell"><span>Source unknown</span><strong>{unknownN}</strong><small>{Math.round((unknownN / leads.length) * 100)}% arrived with nothing on them</small></div>
-            <div className="pt-cap__stripcell"><span>Pages earning</span><strong>{pageReport.earningPages}</strong><small>of {pageReport.totalPages} pages on the site</small></div>
-            <div className="pt-cap__stripcell"><span>Busiest page</span><strong>{topPage ? topPage.n : 0}</strong><small>{topPage ? topPage.title : "nothing yet"}</small></div>
-            <div className="pt-cap__stripcell"><span>Outside 7–4</span><strong>{afterHours}</strong><small>{Math.round((afterHours / leads.length) * 100)}% came in when nobody is on the tools</small></div>
-            <div className="pt-cap__stripcell"><span>Over 45 min away</span><strong>{area.byBand.haul}</strong><small>{Math.round((area.byBand.haul / Math.max(1, area.total)) * 100)}% of the lot, before a tool comes out</small></div>
-            <div className="pt-cap__stripcell"><span>Half an hour or less</span><strong>{area.byBand.core}</strong><small>the patch, where a callout costs nothing</small></div>
+          {/* The figures as the rest of the office reads them: white cards in
+              rows of four, the headline one filled. The navy grid this replaces
+              set twelve figures at one weight, so the count of enquiries read
+              no louder than the busiest page's. */}
+          <div className="pt-figrows">
+          <Heads
+            items={[
+              { label: "Enquiries", value: String(leads.length), sub: `over ${days} days · ${perWeek.toFixed(1)} a week`, feature: true },
+              { label: "Quote requests", value: String(quotes.length), sub: "filled in the form" },
+              { label: "Phone taps", value: String(calls.length), sub: "tapped the number" },
+              { label: "Outside 7–4", value: String(afterHours), sub: `${Math.round((afterHours / leads.length) * 100)}% came in when nobody is on the tools` },
+            ]}
+          />
+          <Heads
+            items={[
+              { label: "From paid ads", value: String(paidN), sub: `${Math.round((paidN / leads.length) * 100)}% of the lot` },
+              { label: "Facebook ads", value: String(fbN), sub: fbAny - fbN > 0 ? `${fbAny - fbN} more from Facebook, untagged` : "by click ID or tag" },
+              { label: "Source unknown", value: String(unknownN), sub: `${Math.round((unknownN / leads.length) * 100)}% arrived with nothing on them` },
+              { label: "Pages earning", value: String(pageReport.earningPages), sub: `of ${pageReport.totalPages} pages · busiest: ${topPage ? `${topPage.title} (${topPage.n})` : "nothing yet"}` },
+            ]}
+          />
+          <Heads
+            items={[
+              { label: "Half an hour or less", value: String(area.byBand.core), sub: "the patch, where a callout costs nothing" },
+              { label: "Over 45 min away", value: String(area.byBand.haul), sub: `${Math.round((area.byBand.haul / Math.max(1, area.total)) * 100)}% of the lot, before a tool comes out` },
+              { label: "Weekends", value: String(weekend), sub: `${Math.round((weekend / leads.length) * 100)}% on a Saturday or Sunday` },
+              { label: "A week", value: perWeek.toFixed(1), sub: "on average" },
+            ]}
+          />
           </div>
 
           <section className="pt-panel">

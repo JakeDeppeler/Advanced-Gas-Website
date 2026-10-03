@@ -34,27 +34,33 @@ export function SopSteps({ code, items }: { code: string; items: string[] }) {
   const done = ticked.filter((i) => i < items.length).length;
 
   return (
-    <div className="tr-stack" style={{ gap: 12 }}>
+    <div className="tr-stack" style={{ gap: 6 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--pt-ink-2)" }}>{done} of {items.length}</span>
-        <span className="tr-bar" style={{ flex: "1 1 auto" }} aria-hidden="true">
+        <span className="tr-small" style={{ fontWeight: 700 }}>{done} of {items.length} done</span>
+        <span className="tr-bar tr-bar--thin" style={{ flex: "1 1 auto" }} aria-hidden="true">
           <span style={{ width: `${items.length ? (done / items.length) * 100 : 0}%` }} />
         </span>
       </div>
-      <div className="tr-rows">
+      <div>
         {items.map((t, i) => {
           const on = ticked.includes(i);
+          // "Stock count (A4). Count the van against the list" reads as a
+          // heading and its detail; a one-line step stays one line.
+          const cut = t.search(/[.:—] /);
+          const head = cut > 0 && cut < 70 ? t.slice(0, cut) : t;
+          const rest = cut > 0 && cut < 70 ? t.slice(cut + 1).trim().replace(/^— /, "") : "";
           return (
             <button
               key={t} type="button" aria-pressed={on} onClick={() => toggle(i)}
-              className="tr-row tr-steprow"
-              style={{ width: "100%", textAlign: "left", background: "transparent", border: 0, borderTop: i ? "1px solid var(--pt-tint)" : 0, cursor: "pointer", font: "inherit" }}
+              className="tr-sop__step"
+              style={{ width: "100%", textAlign: "left", background: "transparent", border: 0, borderTop: i ? "1px solid var(--tr-line)" : 0, cursor: "pointer", font: "inherit", color: "inherit" }}
             >
-              <span className={`tr-tick${on ? " is-on" : ""}`} style={{ width: 32, height: 32, borderRadius: 9 }} aria-hidden="true">
+              <span className="tr-sop__n" style={on ? { background: "var(--tr-green-tint)", color: "var(--tr-green)" } : undefined} aria-hidden="true">
                 {on ? "✓" : i + 1}
               </span>
-              <span className="tr-row__k" style={{ flex: "1 1 auto" }}>
-                <strong style={on ? { color: "var(--pt-ink-2)" } : undefined}>{t}</strong>
+              <span style={{ minWidth: 0 }}>
+                <strong style={on ? { color: "var(--tr-ink-2)" } : undefined}>{head}</strong>
+                {rest && <p>{rest}</p>}
               </span>
             </button>
           );
