@@ -127,14 +127,22 @@ body:has(.screen) .utilbar {
 .screen__rule > span {
   display: block;
   height: 100%;
+  width: var(--from);
   border-radius: 999px;
   background: var(--accent);
-  /* Slides rather than jumping, which is the only motion left in the header
-     now the sweeping ring has gone. */
-  transition: width 420ms ease;
+  /* Runs the page's whole twenty seconds, so a page about to turn looks like
+     one. The animation is restarted by React's key rather than by a ticking
+     state: this board runs for months on a kiosk, and re-rendering the tree
+     once a second to sweep a bar is exactly what degrades it. */
+  animation: screen-sweep var(--page-ms, 20000ms) linear forwards;
+}
+@keyframes screen-sweep {
+  from { width: var(--from); }
+  to { width: var(--to); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .screen__rule > span { transition: none; }
+  /* Still moves, just in six steps rather than continuously. */
+  .screen__rule > span { animation-timing-function: steps(6, end); }
 }
 
 /* -------------------------------------------------------------------- body */
@@ -494,53 +502,67 @@ body:has(.screen) .utilbar {
   border-radius: 0.9vw;
   background: #f1ece0;
   overflow: hidden;
-  /* The blobs bleed past the box; the box is what clips them. */
-  isolation: isolate;
 }
 
-/* One soft pool of orange per suburb, sized by the square root of its share so
-   area tracks the count rather than radius. */
-.heat__blob {
-  position: absolute;
-  width: var(--r);
-  height: var(--r);
-  margin: calc(var(--r) / -2) 0 0 calc(var(--r) / -2);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(244, 103, 34, var(--o)) 0%, rgba(244, 103, 34, 0) 70%);
-  pointer-events: none;
+/* The map fills its card. If the tiles never arrive this stays the cream
+   ground and the page still reads. */
+.bmap { position: absolute; inset: 0; background: #f1ece0; }
+.bmap .leaflet-container { background: #f1ece0; font: inherit; }
+/* Attribution is required by the tile licence, and on a wall it should be
+   present and unreadable rather than absent. */
+.bmap .leaflet-control-attribution {
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.42vw;
+  color: var(--ink-2);
 }
 
-.heat__pin {
+/* A label and its dot, pinned to the suburb's own coordinates. */
+.bmap__pin {
   position: absolute;
-  display: flex;
+  /* Offsets come from the collision pass, which measures in pixels against
+     the fitted map. */
+  transform: translate(var(--dx, 0px), var(--dy, 0px));
+  display: inline-flex;
   align-items: center;
-  gap: 0.45vw;
-  transform: translate(-0.35vw, -50%);
+  gap: 0.4vw;
   white-space: nowrap;
+  padding: 0.2vw 0.7vw 0.2vw 0.35vw;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--navy);
+  font-size: 0.92vw;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(5, 10, 48, 0.18);
 }
-/* Near the right edge the label sits to the left of its dot instead. */
-.heat__pin.is-flip { flex-direction: row-reverse; transform: translate(calc(-100% + 0.35vw), -50%); }
-.heat__dot {
-  width: 0.55vw;
-  height: 0.55vw;
+.bmap__pin i {
+  width: 0.45vw;
+  height: 0.45vw;
   flex: none;
   border-radius: 50%;
   background: var(--navy);
 }
-.heat__tag {
-  padding: 0.22vw 0.7vw;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--navy);
-  font-size: 0.95vw;
-  font-weight: 700;
-  box-shadow: 0 1px 3px rgba(5, 10, 48, 0.12);
+/* A suburb with nowhere to put its name keeps its dot: it is still on the
+   map, it just could not be labelled without covering a busier one. */
+.bmap__pin:has(.bmap__bare) { padding: 0; background: none; box-shadow: none; }
+.bmap__bare { width: 0.55vw; height: 0.55vw; box-shadow: 0 0 0 0.12vw rgba(255, 255, 255, 0.9); }
+/* A label on the left of its dot puts the dot on the right — but only the
+   dot moves. Reversing the whole row put the count in front of the name
+   ("3 Narre Warren"), which reads as a rank. */
+.bmap__pin.is-left { padding: 0.2vw 0.35vw 0.2vw 0.7vw; }
+.bmap__pin.is-left i { order: 3; }
+.bmap__pin.is-left b { order: 1; }
+.bmap__pin.is-left em { order: 2; margin-right: 0.15vw; }
+.bmap__pin em { font-style: normal; color: var(--accent); }
+/* The busiest suburb inverts and sits above its neighbours, so where two
+   labels meet the one the room looks at first is the one on top. */
+.bmap__pin.is-lead {
+  background: var(--navy);
+  color: #fff;
+  z-index: 5;
+  position: relative;
 }
-.heat__tag b { color: var(--accent); margin-left: 0.15vw; }
-/* The busiest suburb inverts, so the one place the room looks first is the one
-   the map is loudest about. */
-.heat__pin.is-lead .heat__tag { background: var(--navy); color: #fff; }
-.heat__pin.is-lead .heat__tag b { color: #ff9a62; }
+.bmap__pin.is-lead i { background: #fff; }
+.bmap__pin.is-lead em { color: #ff9a62; }
 
 .heat__none { color: var(--ink-2); font-size: 1.05vw; }
 
@@ -548,9 +570,13 @@ body:has(.screen) .utilbar {
    happened whether or not the map knows where they are. */
 .heat__off {
   position: absolute;
-  left: 1vw;
+  left: 0.9vw;
   bottom: 0.7vw;
-  font-size: 0.9vw;
+  z-index: 500;
+  padding: 0.15vw 0.6vw;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.85vw;
   color: var(--ink-2);
 }
 
