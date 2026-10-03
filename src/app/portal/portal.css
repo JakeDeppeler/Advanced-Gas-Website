@@ -1279,8 +1279,13 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-sop__block { margin-bottom: 18px; }
 .pt-sop__block:last-child { margin-bottom: 0; }
 .pt-sop__block h4, .pt-sop__note h4 { margin: 0 0 8px; font-family: var(--f-display); font-size: 13px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: var(--pt-ink-3); }
+/* A flex container takes list-item off its children, which takes the marker
+   with it — the steps had been rendering as seven unnumbered lines under a
+   heading that says "Steps". The li puts it back. */
 .pt-sop__steps, .pt-sop__list { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 7px; }
-.pt-sop__steps li, .pt-sop__list li { font-size: 14.5px; line-height: 1.55; color: var(--pt-ink-2); }
+.pt-sop__steps li, .pt-sop__list li { display: list-item; font-size: 14.5px; line-height: 1.55; color: var(--pt-ink-2); }
+.pt-sop__steps li { list-style: decimal; }
+.pt-sop__list li { list-style: disc; }
 .pt-sop__steps li::marker { font-weight: 700; color: var(--pt-ink-3); }
 
 .pt-sop__note { margin-bottom: 18px; padding: 13px 16px; border-radius: 12px; background: var(--pt-bg); border-left: 3px solid var(--pt-line); }
@@ -2687,3 +2692,107 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 @media (max-width: 640px) {
   .pt-notice__when { display: none; }
 }
+
+/* ================= Processes · edit (admin) ================= */
+.pt-se__head { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+.pt-se__ver { font-size: 14px; font-weight: 700; color: var(--pt-ink-2); border: 1px solid var(--pt-line); border-radius: 999px; padding: 9px 16px; background: var(--pt-surface); }
+.pt-se__drafts { font-size: 13.5px; font-weight: 800; color: var(--pt-accent-deep); background: #fbe8dc; border: 1px solid #f0cdb4; border-radius: 999px; padding: 8px 14px; }
+.pt-se__head .pt-btn { text-decoration: none; }
+
+/* Sections, then that section's procedures, then the one being edited. Three
+   columns because that is the shape of the decision: which part of the
+   manual, which procedure, what it says. */
+.pt-se { display: grid; grid-template-columns: 250px 300px minmax(0, 1fr); gap: 18px; align-items: start; }
+.pt-se__sections, .pt-se__list { padding: 14px; margin-bottom: 0; }
+.pt-se__form { margin-bottom: 0; }
+
+.pt-se__sec, .pt-se__proc {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  appearance: none; border: 0; background: transparent; border-radius: 12px;
+  padding: 11px 12px; font: inherit; cursor: pointer; color: var(--pt-ink);
+}
+.pt-se__sec:hover, .pt-se__proc:hover { background: var(--pt-bg); }
+.pt-se__sec.is-on, .pt-se__proc.is-on { background: var(--pt-navy-2); color: #fff; }
+.pt-se__sec > strong, .pt-se__proc > strong { flex: 1 1 auto; min-width: 0; font-size: 14.5px; font-weight: 700; }
+.pt-se__letter, .pt-se__code {
+  flex: none; display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 7px;
+  border-radius: 9px; background: var(--pt-tint); color: var(--pt-navy);
+  font-family: var(--f-display); font-size: 13px; font-weight: 800;
+}
+.pt-se__sec.is-on .pt-se__letter, .pt-se__proc.is-on .pt-se__code { background: rgba(255,255,255,0.16); color: #fff; }
+.pt-se__sec > em { flex: none; font-style: normal; font-size: 13px; color: var(--pt-ink-2); }
+.pt-se__sec.is-on > em { color: rgba(255,255,255,0.7); }
+.pt-se__proc > em {
+  flex: none; font-style: normal; font-size: 11.5px; font-weight: 800; border-radius: 999px; padding: 4px 9px;
+}
+.pt-se__proc > em.is-draft { background: #fbe8dc; color: var(--pt-accent-deep); }
+.pt-se__proc > em.is-live { background: #e4f1e9; color: var(--pt-good); }
+.pt-se__proc.is-on > em { background: rgba(255,255,255,0.18); color: #fff; }
+.pt-se__note { margin: 12px 4px 2px; font-size: 12.5px; line-height: 1.5; color: var(--pt-ink-2); }
+.pt-se__h { font-family: var(--f-display); font-size: 15px; font-weight: 800; margin: 4px 8px 10px; color: var(--pt-ink); }
+.pt-se__new, .pt-se__add {
+  display: block; width: 100%; margin-top: 8px; appearance: none; cursor: pointer;
+  border: 1px dashed var(--pt-line); border-radius: 12px; background: var(--pt-bg);
+  padding: 12px; font: inherit; font-size: 14px; font-weight: 700; color: var(--pt-ink-2);
+}
+.pt-se__new:hover, .pt-se__add:hover { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+.pt-se__add { width: auto; padding: 10px 18px; margin-top: 12px; }
+
+.pt-se__two { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 14px; margin-bottom: 14px; }
+.pt-se__two:nth-of-type(2) { grid-template-columns: minmax(0, 1fr) 220px; }
+.pt-se__who { display: flex; flex-wrap: wrap; gap: 8px; }
+.pt-se__aud {
+  appearance: none; min-height: 40px; padding: 0 16px; border-radius: 999px;
+  border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink);
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.pt-se__aud.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
+
+.pt-se__steps { display: flex; flex-direction: column; gap: 10px; }
+.pt-se__step { display: grid; grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; }
+.pt-se__n {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--pt-navy-2); color: #fff; font-family: var(--f-display); font-size: 14px; font-weight: 800;
+}
+.pt-se__step input {
+  min-width: 0; border: 1px solid var(--pt-line); border-radius: 10px; padding: 10px 12px;
+  font: inherit; font-size: 14px; color: var(--pt-ink); background: var(--pt-surface);
+}
+.pt-se__step > button {
+  appearance: none; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--pt-line);
+  background: var(--pt-surface); font: inherit; font-size: 15px; color: var(--pt-ink-2); cursor: pointer;
+}
+.pt-se__step > button:disabled { opacity: 0.35; cursor: default; }
+.pt-se__step > button:hover:not(:disabled) { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+.pt-se__x { color: #c0392b !important; }
+.pt-se__hint { margin: 0 0 8px; font-size: 13px; color: var(--pt-ink-2); }
+
+.pt-se__foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--pt-line);
+}
+/* Said in words, because whether the crew can see this is the single most
+   important thing on the screen and it is not safe as a colour. */
+.pt-se__state { flex: 1 1 240px; font-size: 14px; font-weight: 700; color: var(--pt-accent-deep); }
+.pt-se__state.is-live { color: var(--pt-good); }
+.pt-sop__draft {
+  margin-left: auto; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 5px 11px;
+  background: #fbe8dc; color: var(--pt-accent-deep);
+}
+
+@media (max-width: 1200px) {
+  .pt-se { grid-template-columns: 210px minmax(0, 1fr); }
+  .pt-se__form { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .pt-se { grid-template-columns: minmax(0, 1fr); }
+  /* The version pill, the draft count and the iPad link don't fit on one
+     phone row and can't shrink; they take the width and wrap. */
+  .pt-se__head { flex: 1 1 100%; }
+  .pt-se__two, .pt-se__two:nth-of-type(2) { grid-template-columns: minmax(0, 1fr); }
+  /* On a phone the step's two fields and its three buttons stack rather than
+     squeezing six columns into 390px. */
+  .pt-se__step { grid-template-columns: 34px minmax(0, 1fr); grid-auto-flow: row dense; }
+  .pt-se__step > button { grid-column: 2; width: 100%; }
+}
+.pt-se__head .pt-btn--navy { text-decoration: none; }

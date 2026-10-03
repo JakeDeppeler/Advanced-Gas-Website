@@ -2,26 +2,43 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { SOPS, SOP_CHANGES, SOP_INTRO, SOP_VERSION } from "@/lib/portal/sops";
+import { SOP_CHANGES, SOP_INTRO, SOP_VERSION } from "@/lib/portal/sops";
+import { PortalBack } from "@/components/portal/PortalBack";
+import { can } from "@/lib/portal/caps";
+import { dbConfigured, listStoredSops } from "@/lib/portal/db";
+import { mergeSops } from "@/lib/portal/sopEdits";
 
+export const dynamic = "force-dynamic";
 export const metadata = { title: "Processes & procedures — Team portal" };
 
 export default async function SopsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const total = SOPS.reduce((a, s) => a + s.sops.length, 0);
+  const canEdit = can(user, "manage_users");
+  const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
+  const SECTIONS = mergeSops(stored, canEdit);
+  const total = SECTIONS.reduce((a, s) => a + s.sops.length, 0);
+  const drafts = canEdit ? stored.filter((s) => s.status === "draft").length : 0;
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">Processes &amp; procedures</div>
-        <h1>One team. One standard. One goal.</h1>
-        {SOP_INTRO.map((p) => <p key={p}>{p}</p>)}
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal" label="Home" />
+          <h1>One team. One standard. One goal.</h1>
+          {SOP_INTRO.map((p) => <p key={p}>{p}</p>)}
+        </div>
+        {canEdit && (
+          <div className="pt-se__head">
+            {drafts > 0 && <span className="pt-se__drafts">{drafts} draft{drafts === 1 ? "" : "s"}</span>}
+            <Link href="/portal/sops/edit" className="pt-btn pt-btn--navy pt-btn--sm">Edit procedures</Link>
+          </div>
+        )}
       </div>
 
       <div className="pt-sop__meta">
-        <span>{SOPS.length} sections · {total} procedures</span>
+        <span>{SECTIONS.length} sections · {total} procedures</span>
         <span>{SOP_VERSION}</span>
       </div>
 
@@ -39,7 +56,7 @@ export default async function SopsPage() {
       )}
 
       <div className="pt-sop__sections">
-        {SOPS.map((s) => (
+        {SECTIONS.map((s) => (
           <Link key={s.slug} href={`/portal/sops/${s.slug}`} className="pt-sop__section">
             <span className="pt-sop__letter">{s.letter}</span>
             <span className="pt-sop__sectionid">

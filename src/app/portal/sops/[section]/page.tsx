@@ -3,7 +3,10 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { SOPS, findSection, type SopBlock } from "@/lib/portal/sops";
+import { findSection, type SopBlock } from "@/lib/portal/sops";
+import { can } from "@/lib/portal/caps";
+import { dbConfigured, listStoredSops } from "@/lib/portal/db";
+import { mergeSops } from "@/lib/portal/sopEdits";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 
 /**
@@ -64,8 +67,15 @@ export default async function SopSectionPage({ params }: { params: { section: st
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const section = findSection(params.section);
+  // What the office has written wins over the manual. A draft is only shown
+  // to the people who could have written it, so a half-finished procedure
+  // never reaches a van.
+  const canEdit = can(user, "manage_users");
+  const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
+  const sections = mergeSops(stored, canEdit);
+  const section = sections.find((s) => s.slug === params.section) ?? findSection(params.section);
   if (!section) notFound();
+  const statusOf = new Map(stored.map((s) => [s.code, s.status]));
 
   return (
     <PortalShell user={user}>
@@ -76,7 +86,7 @@ export default async function SopSectionPage({ params }: { params: { section: st
         <p>{section.blurb}</p>
       </div>
 
-      <PortalTabs tabs={SOPS.map((x) => ({ href: `/portal/sops/${x.slug}`, label: `${x.letter} · ${x.title}` }))} />
+      <PortalTabs tabs={sections.map((x) => ({ href: `/portal/sops/${x.slug}`, label: `${x.letter} · ${x.title}` }))} />
 
       {section.draft && (
         <div className="pt-note pt-note--warn"><strong>Not final.</strong> {section.draft}</div>
@@ -93,6 +103,9 @@ export default async function SopSectionPage({ params }: { params: { section: st
           <div className="pt-sop__head">
             <span className="pt-sop__code">{sop.code}</span>
             <h2 className="pt-panel__h">{sop.title}</h2>
+            {/* Said in words, not just a tint: an editor reading their own
+                draft has to know the crew can't see it yet. */}
+            {statusOf.get(sop.code) === "draft" && <span className="pt-sop__draft">Draft — only you can see this</span>}
             {sop.doIt && <Link href={sop.doIt.href} className="pt-btn pt-btn--navy pt-btn--sm">{sop.doIt.label} →</Link>}
           </div>
 

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { TradeShell } from "@/components/portal/TradeShell";
 import { SopSteps } from "@/components/portal/SopSteps";
-import { SOPS, SOP_CHANGES, SOP_VERSION, type Sop, type SopBlock } from "@/lib/portal/sops";
+import { SOP_CHANGES, SOP_VERSION, type Sop, type SopBlock } from "@/lib/portal/sops";
+import { dbConfigured, listStoredSops } from "@/lib/portal/db";
+import { mergeSops } from "@/lib/portal/sopEdits";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Processes — Trade portal" };
@@ -68,9 +70,11 @@ function Block({ b, at }: { b: SopBlock; at: string }) {
  * Processes & procedures, on the iPad: pick a section, pick a procedure, work
  * down it.
  *
- * Read from the same `SOPS` the office portal reads. One manual: a procedure
- * that said one thing on the wall and another in the van would be worse than no
- * portal at all, and sops.ts says as much at the top of itself.
+ * Read through the same merge the office portal reads — the manual in
+ * sops.ts with whatever the office has published over it. One manual: a
+ * procedure that said one thing on the wall and another in the van would be
+ * worse than no portal at all, and sops.ts says as much at the top of itself.
+ * Drafts are excluded here and only here, because this is the van.
  *
  * Selection is in the URL rather than component state, so a tech can bookmark
  * C4 — gas leak on site — and land straight on it.
@@ -79,12 +83,17 @@ export default async function TradeProcesses({ searchParams }: { searchParams: {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
+  // Published procedures only. A draft the office is still writing has no
+  // business on a screen in a van.
+  const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
+  const SECTIONS = mergeSops(stored, false);
+
   // A code in the URL wins, because that is what a bookmark and the home
   // screen's "what changed" card both carry.
   const byCode = searchParams.sop
-    ? SOPS.flatMap((s) => s.sops.map((sop) => ({ s, sop }))).find((x) => x.sop.code === searchParams.sop?.toUpperCase())
+    ? SECTIONS.flatMap((s) => s.sops.map((sop) => ({ s, sop }))).find((x) => x.sop.code === searchParams.sop?.toUpperCase())
     : undefined;
-  const section = byCode?.s ?? SOPS.find((s) => s.slug === searchParams.sec) ?? SOPS[0];
+  const section = byCode?.s ?? SECTIONS.find((s) => s.slug === searchParams.sec) ?? SECTIONS[0];
   const sop: Sop = byCode?.sop ?? section.sops[0];
 
   const href = (sec: string, code?: string) => `/trade/processes?sec=${sec}${code ? `&sop=${code}` : ""}`;
@@ -98,7 +107,7 @@ export default async function TradeProcesses({ searchParams }: { searchParams: {
       <div className="tr-md">
         <nav className="tr-md__col tr-md__col--row" aria-label="Sections">
           <span className="tr-md__lbl">Sections</span>
-          {SOPS.map((s) => (
+          {SECTIONS.map((s) => (
             <Link key={s.slug} href={href(s.slug)} aria-current={s.slug === section.slug ? "page" : undefined} className={`tr-pick${s.slug === section.slug ? " is-on" : ""}`}>
               <span className="tr-pick__chip">{s.letter}</span>
               <span className="tr-pick__t"><strong>{s.title}</strong></span>

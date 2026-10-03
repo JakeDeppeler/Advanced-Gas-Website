@@ -38,6 +38,14 @@ export default async function AdminHome() {
           <p>What each crew level can see — Operations, Lead hand, Tradesman, Apprentice, Office, Admin.</p>
           <div className="pt-card__meta">Open →</div>
         </Link>
+        <Link href="/portal/sops/edit" className="pt-tile">
+          <span className="pt-tile__ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h.01M4 12h.01M4 18h.01M8 6h12M8 12h8M8 18h10M16.5 15.5l3.5 3.5-1.8 1.8-3.5-3.5z" /></svg>
+          </span>
+          <h3>Processes &amp; procedures</h3>
+          <p>Write and change what the crew reads, then publish it to the vans.</p>
+          <div className="pt-card__meta">Edit →</div>
+        </Link>
         {/* The pricebook as the van sees it. Admin links to it because what
             the iPad shows is an admin question even though the page itself
             lives in the trade portal. */}
