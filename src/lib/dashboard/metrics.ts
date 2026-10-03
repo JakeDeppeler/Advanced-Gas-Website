@@ -1302,6 +1302,59 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
 }
 
 /** Most recent stored snapshot, used to carry a failed source's last known value. */
+/** "3 hours", "2 days" — for saying how old a carried-forward figure is. */
+function relativeHours(ms: number): string {
+  const h = Math.round(ms / 3_600_000);
+  if (h < 48) return `${h} ${h === 1 ? "hour" : "hours"}`;
+  return `${Math.round(h / 24)} days`;
+}
+
+/**
+ * How old a Xero reading may be before the wall admits it.
+ *
+ * A Xero access token lives thirty minutes and the portal refreshes it when
+ * somebody opens a Finance page — this file must never refresh it, see
+ * dashboard/xero.ts for why. So on any evening or weekend with nobody in the
+ * portal, the token lapses within half an hour; the board went amber and stayed
+ * amber, with "xero access token expired" across the footer, while the figures
+ * behind it were perfectly good.
+ *
+ * That is the board crying wolf, and a light that is permanently amber gets
+ * read exactly as often as one that is permanently green: never. What the tile
+ * carries is money owed to us, which moves when an invoice is raised or paid —
+ * daily, not half-hourly. A reading from this morning is the right number to
+ * put on a wall this afternoon.
+ */
+export const XERO_GOOD_FOR_MS = 12 * 60 * 60 * 1000;
+
+/**
+ * What the footer light should say about Xero.
+ *
+ * Exported so the rule can be exercised on its own: it is the one piece of the
+ * snapshot that decides what the room believes, and it is reached only through
+ * a full recompute otherwise.
+ */
+export function xeroSourceState(
+  ok: boolean,
+  lastReadAt: string | undefined,
+  now: Date,
+  reason: string,
+): { state: SourceState; detail?: string; at?: string } {
+  if (ok) return { state: "ok", at: now.toISOString() };
+
+  // The time of the last successful READ, not of the last snapshot. Carrying
+  // the snapshot's own timestamp meant this advanced every thirty seconds
+  // whether or not Xero had answered, so it could never say how old the figures
+  // were — which is the one thing it is for.
+  const ageMs = lastReadAt ? now.getTime() - Date.parse(lastReadAt) : Number.POSITIVE_INFINITY;
+  if (Number.isFinite(ageMs) && ageMs < XERO_GOOD_FOR_MS) return { state: "ok", at: lastReadAt };
+  return {
+    state: "stale",
+    detail: Number.isFinite(ageMs) ? `last read ${relativeHours(ageMs)} ago` : reason,
+    at: lastReadAt,
+  };
+}
+
 export async function latestSnapshot(): Promise<(Snapshot & { computedAt: string }) | null> {
   const row = await sbSelectOne<{ computed_at: string; metrics: Metrics; sources: Snapshot["sources"] }>(
     "portal_metrics_snapshot",
@@ -1452,11 +1505,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   }
 
   const xero = await fetchXeroReceivables();
-  if (xero.ok) {
-    sources.xero = { state: "ok", at: now.toISOString() };
-  } else {
-    sources.xero = { state: "stale", detail: xero.reason, at: previous?.computedAt };
-  }
+  sources.xero = xeroSourceState(xero.ok, previous?.sources?.xero?.at, now, xero.ok ? "" : xero.reason);
 
   // A settings read that fails must not blank every target on the wall, so it
   // degrades to "nothing configured" and the default calendar, which the board

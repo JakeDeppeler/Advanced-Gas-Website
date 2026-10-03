@@ -663,6 +663,25 @@ when it is stamped complete, and a job can carry more than one invoice. The
 heading says Invoices. Jobs completed appears on the Today page, under Invoiced
 today; the Performance head card counts jobs booked and says so.
 
+**Xero is judged on how old its figures are, not on whether the token is
+alive.** A Xero access token lasts thirty minutes, and the portal refreshes it
+when somebody opens a Finance page — the board must never refresh it, for the
+reason at the top of `dashboard/xero.ts`. So on any evening or weekend with
+nobody in the portal, the token lapsed within half an hour and the wall sat
+amber with "xero access token expired" across the footer while the figures
+behind it were perfectly good. A light that is permanently amber gets read
+exactly as often as one that is permanently green. What the tile carries is
+money owed to us, which moves when an invoice is raised or paid — daily, not
+half-hourly — so a lapsed token holds the last reading and stays green for
+twelve hours, then says `last read 14 hours ago`. A connection that is genuinely
+broken still turns the light within the day. The rule is `xeroSourceState()`,
+exported so it can be exercised on its own.
+
+That also fixed the timestamp underneath it: on a failed read the source carried
+the *snapshot's* time, which advances every thirty seconds whether or not Xero
+answered, so it could never say how old the figures were. It carries the time of
+the last successful read now.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two
