@@ -615,6 +615,19 @@ win; the average says what winning one is worth, and the room asks both. Per job
 over the same thirty days — an average counted per option under a rate counted
 per job is one sentence disagreeing with itself.
 
+**Render the board in Manrope or the check is worthless.** The static harness
+loaded the font from Google, which this container cannot reach, so every render
+fell back to system-ui — shorter lines, shorter rows. Six separate "nothing is
+clipped at any size" checks passed while the Team totals row was being cut off
+on a laptop, because the harness was measuring the wrong typeface. It now loads
+the self-hosted face out of `.next/static/media/*.woff2`, the same file the app
+serves. Any check that measures height has to use the real font.
+
+**Every cell on the Team row is two lines, never three.** A third line on each
+row is what pushed the totals off the bottom of the tile at 1512x820. Quoted and
+sold get a column each — the month as the figure, today and the week under it —
+so the periods are all there without a third line.
+
 **The Team roster spans thirty days, not just the month.** It was built from
 rows dated this month while three of its columns measure thirty days, so anybody
 who quoted in late September and nothing since was absent from a table that
@@ -670,6 +683,14 @@ for sets that do not offer one.
 their own columns, which made six columns of money that nobody could take in at
 four metres, and Today read $0 against $0 for everybody most days. Under the
 month they are what they always were: how the month is tracking.
+
+**Profit came off the Performance page; margin stayed.** Profit has read "—"
+on every single day the board has run, because **0 of the 29 invoices** this
+month carry a cost — ServiceTitan has 88 costed line items across 4,791 in the
+whole replica. A tile that has never shown a number is not holding a place, it
+is taking one. Margin stays because it was asked for, and it says "no cost on
+any invoice yet" rather than showing a zero. Both come back on their own the day
+costs start arriving.
 
 **The Performance table counts invoices, not jobs.** The column said "Jobs" and
 was counting rows of `st_invoices`. This month that is 29 invoices against 11

@@ -526,7 +526,9 @@ body:has(.screen) .utilbar {
      most days, and in the first week of a month This week is the same figure
      as the month beside it. Six columns of numbers was more than the room
      could take in at four metres, which is the only test that matters. */
-  grid-template-columns: calc(2.2 * var(--u)) calc(15 * var(--u)) 1.7fr repeat(3, 1fr) calc(13.5 * var(--u));
+  grid-template-columns:
+    calc(2.2 * var(--u)) calc(13 * var(--u)) 1fr 1fr
+    calc(7.5 * var(--u)) calc(7.5 * var(--u)) calc(10.5 * var(--u)) calc(12 * var(--u));
   align-items: center;
   gap: calc(1 * var(--u));
   padding: calc(0.5 * var(--u)) calc(1 * var(--u));
@@ -871,7 +873,10 @@ body:has(.screen) .utilbar {
 .jt__head,
 .jt__row {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) calc(4.5 * var(--u)) calc(7.5 * var(--u)) calc(7 * var(--u)) minmax(0, 1.5fr) calc(4.5 * var(--u));
+  /* Name, invoices, revenue, the margin bar, the margin figure. Profit came
+     off the page: it read "—" every day, because no invoice in this tenant
+     carries a cost. */
+  grid-template-columns: minmax(0, 1.5fr) calc(5 * var(--u)) calc(8 * var(--u)) minmax(0, 1.8fr) calc(5 * var(--u));
   align-items: center;
   gap: calc(1.2 * var(--u));
 }
@@ -882,8 +887,7 @@ body:has(.screen) .utilbar {
   color: var(--ink-2);
 }
 .jt__head > span:nth-child(2),
-.jt__head > span:nth-child(3),
-.jt__head > span:nth-child(4) { text-align: right; }
+.jt__head > span:nth-child(3) { text-align: right; }
 
 .jt__row {
   flex: 1;

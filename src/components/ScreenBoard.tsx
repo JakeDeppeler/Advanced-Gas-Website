@@ -46,8 +46,10 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // The money column is the month; the last three are thirty days, because a
   // quote written this week has not had a chance to close. Said once here
   // rather than three times in headers a column wide.
-  Team: () => "Sold this month, against what they quoted · rates over 30 days",
-  Performance: (m) => `${monthName(new Date())} so far · by job type`,
+  Team: () => "Quoted and sold, today \u00b7 week \u00b7 month \u00b7 rates over 30 days",
+  // Says which population the page counts, because it was read as jobs twice
+  // and it is invoices — a job can carry more than one.
+  Performance: () => `Invoiced ${monthName(new Date())} so far · by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
 
@@ -772,6 +774,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
         <div className="tbl__head">
           <span />
           <span>Tech</span>
+          <span>Quoted · {monthName(new Date())}</span>
           <span>Sold · {monthName(new Date())}</span>
           <span>Close rate</span>
           <span>Avg ticket</span>
@@ -788,16 +791,20 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
               </span>
               {i === 0 && <span className="tbl__note tbl__note--leader">Leading</span>}
             </span>
-            {/* One figure is money won, everything under it is money out for
-                decision. Sold today and sold this week were the small lines
-                before, which read as three sold figures of different sizes and
-                told you nothing about what is in front of customers right now —
-                and on most days all three were $0. */}
+            {/* Quoted and sold each get a column, each showing the month big
+                with today and the week under it. Two lines, never three: a
+                third line on every row is what pushed the Team totals off the
+                bottom of the tile on a laptop. */}
             <span className="tbl__fig">
-              <b>{plain(r.sold)}</b>
-              <span>quoted {plain(r.quoted)} this month</span>
+              <b>{plain(r.quoted)}</b>
               <span>
                 today {plain(r.quotedToday)} · week {plain(r.quotedWeek)}
+              </span>
+            </span>
+            <span className="tbl__fig">
+              <b>{plain(r.sold)}</b>
+              <span>
+                today {plain(r.soldToday)} · week {plain(r.soldWeek)}
               </span>
             </span>
             {/* Per job, not per option — see the leaderboard fields. Each of the
@@ -814,8 +821,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
             </span>
             <span className="tbl__fig">
               <b>{plain(r.avgQuote)}</b>
-              <span>{r.quotedJobs ? `${count(r.quotedJobs)} jobs quoted` : "—"}</span>
-              <span>{r.avgOptions != null ? `${r.avgOptions.toFixed(1)} options per job` : ""}</span>
+              <span>
+                {r.quotedJobs
+                  ? `${count(r.quotedJobs)} jobs · ${(r.avgOptions ?? 0).toFixed(1)} options each`
+                  : "none written"}
+              </span>
             </span>
             <span className="tiers">
               {/* No tiers configured means no run to be along, so there is no
@@ -846,14 +856,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span />
           <span className="tbl__name">Team</span>
           <span className="tbl__fig">
+            <b>{plain(totals.quoted)}</b>
+            <span>
+              today {plain(totals.quotedToday)} · week {plain(totals.quotedWeek)}
+            </span>
+          </span>
+          <span className="tbl__fig">
             <b>{plain(totals.month)}</b>
             <span>
               {thin
-                ? `of ${plain(m.soldMtd)} sold · the rest names no seller`
-                : `quoted ${plain(totals.quoted)} this month`}
-            </span>
-            <span>
-              today {plain(totals.quotedToday)} · week {plain(totals.quotedWeek)}
+                ? `of ${plain(m.soldMtd)} · rest names no seller`
+                : `today ${plain(totals.today)} · week ${plain(totals.week)}`}
             </span>
           </span>
           <span className="tbl__fig">
@@ -866,8 +879,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           </span>
           <span className="tbl__fig">
             <b>{plain(teamAvgQuote)}</b>
-            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} jobs quoted` : "—"}</span>
-            <span>{totals.quotedJobs ? `${(totals.options30 / totals.quotedJobs).toFixed(1)} options per job` : ""}</span>
+            <span>
+              {totals.quotedJobs
+                ? `${count(totals.quotedJobs)} jobs · ${(totals.options30 / totals.quotedJobs).toFixed(1)} options each`
+                : "—"}
+            </span>
           </span>
           <span className="tiers__note">
             {m.commissionTiers.length === 0
@@ -921,22 +937,27 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
 
   return (
     <>
-      {/* "Jobs booked", not "Jobs": the totals row below counts invoices, and two
-          different job counts on one page with the same label is how a board
-          gets argued with. */}
-      <HeadCard label="Jobs booked" value={st.count(m.bookingsMonth, live)} />
-      <HeadCard label="Invoiced" value={st.money(m.revenueInvoicedMtd, live)} />
+      {/* Three cards, and each says which population it counts. Jobs booked is
+          jobs created this month; everything else on this page is invoices, and
+          the two differ — 29 invoices against 20 jobs booked and 11 completed in
+          the same month, because ServiceTitan bills a job when it is billed and
+          one job can carry more than one invoice. The page was read as job
+          counts twice; now it says. */}
+      <HeadCard label="Jobs booked" value={st.count(m.bookingsMonth, live)} foot="jobs created this month" />
       <HeadCard
-        label="Profit"
-        value={st.money(m.profitMtd, live)}
-        foot={live.st && m.profitMtd == null ? "no cost on any invoice" : undefined}
+        label="Invoiced"
+        value={st.money(m.revenueInvoicedMtd, live)}
+        foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
       />
+      {/* Profit came off: it has read "—" on every single day, because 0 of the
+          29 invoices this month carry a cost. Margin stays because Jake asked
+          for it, and it says why it is blank rather than showing a zero. */}
       <HeadCard
         navy
         label="Margin"
         value={live.st ? pct(m.marginPct) : NA}
         suffix={goal != null && m.marginPct != null ? `of ${pct(goal)}` : undefined}
-        foot={m.marginPct == null && live.st ? "no cost data in ServiceTitan" : undefined}
+        foot={m.marginPct == null && live.st ? "no cost on any invoice yet" : undefined}
       />
 
       <div className="tile c12">
@@ -961,7 +982,6 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                   turns into an argument. */}
               <span>Invoices</span>
               <span>Revenue</span>
-              <span>Profit</span>
               <span className="jt__marginhead">
                 Margin{goal != null ? ` · line is the ${pct(goal)} goal` : ""}
               </span>
@@ -974,7 +994,6 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                   <span className="jt__name">{t.jobType}</span>
                   <span className="jt__n">{count(t.jobs)}</span>
                   <span className="jt__n">{money(t.revenue)}</span>
-                  <span className="jt__n">{t.profit == null ? NA : money(t.profit)}</span>
                   <span className="jt__bar">
                     {t.margin == null ? null : (
                       <>
@@ -1008,7 +1027,6 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
               {/* Full digits, not $21K: this is the figure of the page and it
                   gets read off the wall and repeated. */}
               <span className="jt__n">{plain(m.revenueInvoicedMtd)}</span>
-              <span className="jt__n">{plain(m.profitMtd)}</span>
               <span />
               <span className={`jt__pct ${m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over"}`}>
                 {m.marginPct == null ? NA : pct(m.marginPct)}
