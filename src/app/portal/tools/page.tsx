@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { PortalBack } from "@/components/portal/PortalBack";
 import { PORTAL_TOOLS } from "@/lib/portal/content";
 
 export const metadata = { title: "Tools — Team portal" };
@@ -13,7 +14,7 @@ export default async function ToolsPage() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Tools</div>
+        <PortalBack href="/portal" label="Home" />
         <h1>On-the-job tools.</h1>
         <p>The calculators and lookups we use on site and on quote calls — they open right here in the portal.</p>
       </div>

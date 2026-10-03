@@ -5,7 +5,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { BLOG_TAG, deleteStoredPost, saveStoredPost } from "@/lib/portal/db";
 import { uploadCover } from "@/lib/portal/blogPhotos";
-import { POST_CATS, toSlug } from "@/lib/blogMerge";
+import { POST_CATS, isBuiltIn, toSlug } from "@/lib/blogMerge";
 import { AUTHORS, posts as BUILT_IN } from "@/lib/blog";
 
 export type ActionResult = { ok: boolean; error?: string; slug?: string };
@@ -26,6 +26,11 @@ async function requireEditor() {
  */
 function slugClash(slug: string, original: string | null): string | null {
   if (slug === original) return null;
+  // Moving a built-in article would leave the original standing at its old
+  // address beside a copy at the new one: there is no row there to take away.
+  if (original && isBuiltIn(original)) {
+    return "That article's address is fixed — Google and every link to it already use it.";
+  }
   if (BUILT_IN.some((p) => p.slug === slug)) {
     return "A post written in the code already has that address. Pick another, or you'd be replacing it.";
   }
@@ -58,7 +63,7 @@ export async function savePost(input: {
   if (!slug) return { ok: false, error: "That title doesn't make a usable web address — set one yourself." };
   const clash = slugClash(slug, input.original);
   if (clash) return { ok: false, error: clash };
-  if (!POST_CATS.includes(input.cat as (typeof POST_CATS)[number])) return { ok: false, error: "Pick a topic." };
+  if (!POST_CATS.includes(input.cat)) return { ok: false, error: "Pick a topic." };
   if (!AUTHORS[input.author]) return { ok: false, error: "Pick an author." };
 
   // Publishing is the point at which this becomes a page on the public web,
@@ -130,7 +135,7 @@ function revalidateBlog(slug: string, original: string | null) {
   if (original && original !== slug) revalidatePath(`/blog/${original}`);
   revalidatePath("/");
   revalidatePath("/sitemap.xml");
-  revalidatePath("/portal/marketing");
+  revalidatePath("/portal/blog");
 }
 
 /**

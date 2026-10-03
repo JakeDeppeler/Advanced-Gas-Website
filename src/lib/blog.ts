@@ -32,6 +32,11 @@ export type BlogPost = {
   photo: string;
   photoAlt: string;
   featured?: boolean;
+  /**
+   * Pinned to the home page's three. Set from the portal; a post without it
+   * competes on date for whatever places are left.
+   */
+  onHome?: boolean;
   alt?: boolean;
   content: Section[];
 };

@@ -97,7 +97,7 @@ async function allPaths(): Promise<string[]> {
 let titleCache: Map<string, string> | null = null;
 
 /** The page's real title where the search index knows one, else the path. */
-function titleFor(path: string): string {
+export function titleFor(path: string): string {
   if (!titleCache) {
     titleCache = new Map();
     for (const h of searchCorpus()) titleCache.set(h.path.replace(/\/$/, "") || "/", h.title);

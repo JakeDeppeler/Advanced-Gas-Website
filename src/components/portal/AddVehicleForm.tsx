@@ -41,7 +41,7 @@ export function AddVehicleForm({ crew }: { crew: { id: string; name: string }[] 
   });
 
   if (!open) {
-    return <button type="button" className="pt-btn pt-btn--orange" onClick={() => setOpen(true)}>+ Add a vehicle</button>;
+    return <button type="button" className="pt-btn pt-btn--ghost" onClick={() => setOpen(true)}>+ Add a vehicle</button>;
   }
 
   return (

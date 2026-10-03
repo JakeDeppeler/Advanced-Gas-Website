@@ -28,6 +28,10 @@ const TABS: { k: string; label: string; log: VehicleLogKind | null }[] = [
   { k: "readings", label: "Km readings", log: "reading" },
   { k: "fuel", label: "Fuel", log: "fuel" },
   { k: "damage", label: "Damage log", log: "damage" },
+  // Not in the design, which stops at the five logs. What the van costs, what
+  // it's worth and its details had been stacked under every one of them; they
+  // are reference, not something you do on a Monday, so they get a tab.
+  { k: "costs", label: "Costs & details", log: null },
 ];
 
 export default async function VehiclePage({
@@ -39,17 +43,19 @@ export default async function VehiclePage({
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const vehicle = await getVehicle(params.id);
-  if (!vehicle) notFound();
-
   const tab = TABS.find((t) => t.k === searchParams.tab) ?? TABS[0];
 
-  const [logs, latest, users, weeklies] = await Promise.all([
-    listVehicleLogs(vehicle.id),
-    latestVanChecks(vehicle.id),
+  // Everything keyed on the id goes out at once, the van itself included —
+  // waiting for the van before asking for its logs was a whole round trip to
+  // the database spent learning nothing the URL hadn't already said.
+  const [vehicle, logs, latest, users, weeklies] = await Promise.all([
+    getVehicle(params.id),
+    listVehicleLogs(params.id),
+    latestVanChecks(params.id),
     listUsers(),
-    listVanChecks(vehicle.id, "weekly", 12),
+    listVanChecks(params.id, "weekly", 12),
   ]);
+  if (!vehicle) notFound();
   const crew = users.filter((u) => u.active && u.id).map((u) => ({ id: u.id as string, name: u.name }));
   const assignedName = crew.find((c) => c.id === vehicle.assignedTo)?.name ?? null;
   const lastChecks = CHECK_KINDS.map((k) => ({
@@ -133,8 +139,15 @@ export default async function VehiclePage({
         ))}
       </nav>
 
-      {tab.k === "weekly" && <VanWeekly vehicleId={vehicle.id} last={last} overdue={overdue} history={history} />}
+      {tab.k === "weekly" && (
+        <>
+          <VanWeekly vehicleId={vehicle.id} last={last} overdue={overdue} history={history} />
+          <VehicleChecks vehicleId={vehicle.id} checks={lastChecks} assignedName={assignedName} />
+        </>
+      )}
 
+      {/* Always drawn: it carries the off-the-road banner every tab needs,
+          and the log panel only when the tab is one of the logs. */}
       <VehicleDetail
         vehicle={view}
         logs={logs.map((l) => ({
@@ -146,9 +159,12 @@ export default async function VehiclePage({
         log={tab.log}
       />
 
-      <VehicleChecks vehicleId={vehicle.id} checks={lastChecks} assignedName={assignedName} />
-      <VehicleCosts vehicle={view} />
-      {can(user, "vehicles") && <VehicleEdit vehicle={view} crew={crew} />}
+      {tab.k === "costs" && (
+        <>
+          <VehicleCosts vehicle={view} />
+          {can(user, "vehicles") && <VehicleEdit vehicle={view} crew={crew} />}
+        </>
+      )}
     </PortalShell>
   );
 }

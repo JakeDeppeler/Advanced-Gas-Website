@@ -4,6 +4,7 @@ import { can } from "@/lib/portal/caps";
 import { listQuotes, getSettings, dbConfigured } from "@/lib/portal/db";
 import { DEFAULT_TARGETS, type Targets } from "@/lib/portal/targets";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { QuotesBoard, type QuoteView } from "@/components/portal/QuotesBoard";
@@ -32,13 +33,7 @@ export default async function QuotesPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal/finance" label="Finance" />
-        <h1>Quotes &amp; win rate</h1>
-        <p>Track what you quote and what you win, see your real win rate, and work out how much to quote to hit a target. This sits under <strong>Future planning</strong> because that is what it is: work that has not happened yet, and the odds on it happening.</p>
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Quotes & win rate" lede="What you quote, what you win, your real win rate, and how much to quote to hit a target." />
       <PlanningTabs current="/portal/finance/quotes" />
       <QuotesBoard
         quotes={quotes}

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { PortalBack } from "@/components/portal/PortalBack";
 import { HANDBOOK } from "@/lib/portal/content";
 
 export const metadata = { title: "Handbook — Team portal" };
@@ -19,7 +20,7 @@ export default async function HandbookPage() {
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Handbook</div>
+        <PortalBack href="/portal" label="Home" />
         <h1>How we do things here.</h1>
         <p>The company operations manual — everything from who we are to how we quote, run a van and get paid. Pick a shelf to open it.</p>
       </div>

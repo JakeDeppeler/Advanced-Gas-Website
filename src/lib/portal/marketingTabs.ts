@@ -1,26 +1,16 @@
 /**
  * The Marketing section's tabs and its time window.
  *
- * One page, nine views, one window selector that every view honours — rather
- * than nine routes each with its own idea of "recently". Pure, so the page,
- * the tab strip and the search index all read the same list.
+ * One page per section, one window selector that every view honours — rather
+ * than a route per view each with its own idea of "recently". Pure, so the
+ * pages, the tab strips and the search index all read the same lists.
  */
 
-export type MarketingTab =
-  | "campaigns" | "blog" | "leads" | "site" | "dropoff"
-  | "reviews" | "ads" | "social" | "assets";
+export type MarketingTab = "campaigns" | "reviews" | "ads" | "social" | "assets";
 
 export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; blurb: string }[] = [
   { k: "campaigns", label: "Campaigns", title: "Everything we're running",
     blurb: "Every piece of marketing in one list — who it's for, where it runs, what it costs and what it brings in." },
-  { k: "blog", label: "Blog", title: "What's on the blog",
-    blurb: "Every article on the site, what it's about and which part of the range it supports." },
-  { k: "leads", label: "Website leads", title: "What the website brings in",
-    blurb: "Every quote request and phone tap — where they came from, how far away, and when. No customer details here; the enquiry still goes to the inbox." },
-  { k: "site", label: "On the site", title: "Which pages do the work",
-    blurb: "Every page that has produced an enquiry, and every page that hasn't." },
-  { k: "dropoff", label: "Drop-off", title: "Where people leave",
-    blurb: "How far down the quote form people get before they stop." },
   { k: "reviews", label: "Reviews", title: "What customers say",
     blurb: "The Google reviews, as they come in." },
   { k: "ads", label: "Ads", title: "What the ads are doing",
@@ -30,6 +20,34 @@ export const MARKETING_TABS: { k: MarketingTab; label: string; title: string; bl
   { k: "assets", label: "Brand assets", title: "The brand kit",
     blurb: "Logos, van wrap artwork and the finished-job photos everyone draws on." },
 ];
+
+/**
+ * The website's own section, split out of Marketing.
+ *
+ * Marketing had nine tabs answering two different questions: what we put out
+ * into the world, and what the website does with the people it brings in. The
+ * second half is its own place now, beside the Blog, which is the third.
+ */
+export type WebsiteTab = "leads" | "pages" | "dropoff";
+
+export const WEBSITE_TABS: { k: WebsiteTab; label: string; title: string; blurb: string }[] = [
+  { k: "leads", label: "Enquiries", title: "What the website brings in",
+    blurb: "Every quote request and phone tap — where they came from, how far away, and when. No customer details here; the enquiry still goes to the inbox." },
+  { k: "pages", label: "Pages", title: "Which pages do the work",
+    blurb: "Which pages people read, and which of them turn a reader into an enquiry." },
+  { k: "dropoff", label: "Drop-off", title: "Where people leave",
+    blurb: "How far down the quote form people get before they stop." },
+];
+
+export const websiteTabDef = (k: string | undefined) => WEBSITE_TABS.find((t) => t.k === k) ?? WEBSITE_TABS[0];
+
+/** Marketing's old tab keys, and where each one lives now. */
+export const MOVED_TABS: Record<string, string> = {
+  blog: "/portal/blog",
+  leads: "/portal/website",
+  site: "/portal/website?tab=pages",
+  dropoff: "/portal/website?tab=dropoff",
+};
 
 export const tabDef = (k: string) => MARKETING_TABS.find((t) => t.k === k) ?? MARKETING_TABS[0];
 
@@ -51,3 +69,7 @@ export const windowLabel = (k: string | undefined): string =>
 /** `/portal/marketing?tab=…&win=…`, built in one place so no link drops the window. */
 export const marketingHref = (tab: MarketingTab, win: WindowKey) =>
   `/portal/marketing?tab=${tab}${win === "30" ? "" : `&win=${win}`}`;
+
+/** The same, for the Website section. */
+export const websiteHref = (tab: WebsiteTab, win: WindowKey) =>
+  `/portal/website${tab === "leads" ? (win === "30" ? "" : `?win=${win}`) : `?tab=${tab}${win === "30" ? "" : `&win=${win}`}`}`;

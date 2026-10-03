@@ -6,6 +6,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { Analytics } from "@/components/Analytics";
 import { CallTracking } from "@/components/CallTracking";
+import { PageViews } from "@/components/PageViews";
 import "./globals.css";
 import "./design-system.css";
 import { site } from "@/lib/site";
@@ -160,6 +161,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             when NEXT_PUBLIC_GA_ID is set. */}
         <VercelAnalytics />
         <CallTracking />
+        <PageViews />
         <Analytics />
       </body>
     </html>

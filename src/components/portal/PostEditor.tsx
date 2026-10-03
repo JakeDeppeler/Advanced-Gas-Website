@@ -2,8 +2,8 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { savePost, unpublishPost, uploadCoverPhoto } from "@/app/portal/marketing/blog/actions";
-import { POST_CATS, bodySections, toSlug } from "@/lib/blogMerge";
+import { savePost, unpublishPost, uploadCoverPhoto } from "@/app/portal/blog/actions";
+import { bodySections, postChecks, toSlug } from "@/lib/blogText";
 import { readingMinutes } from "@/lib/portal/prose";
 
 export type AuthorOption = { k: string; name: string; role: string };
@@ -23,10 +23,14 @@ export type PostDraft = {
   onHome: boolean;
   publishedOn: string;
   status: "draft" | "published" | null;
+  /** One of the articles written in blog.ts. */
+  builtIn: boolean;
+  /** Has a row in the portal — for a built-in article, has been edited here. */
+  edited: boolean;
 };
 
 /** Google truncates around here. Not a limit, a budget. */
-const DESC_BUDGET = 155;
+const DESC_BUDGET = 160;
 
 /**
  * Writing a post, and putting it on the public site.
@@ -41,7 +45,7 @@ const DESC_BUDGET = 155;
  * state it is in: everything else in this portal is read by the crew, and
  * this one is read by anyone.
  */
-export function PostEditor({ initial, authors }: { initial: PostDraft; authors: AuthorOption[] }) {
+export function PostEditor({ initial, authors, cats }: { initial: PostDraft; authors: AuthorOption[]; cats: string[] }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [d, setD] = useState<PostDraft>(initial);
@@ -53,15 +57,21 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
 
   const slug = d.slug || toSlug(d.title);
   const preview = bodySections(d.body);
+  const checks = postChecks({ ...d, content: preview });
+  const passed = checks.filter((c) => c.ok).length;
 
   const save = (publish: boolean) =>
     start(async () => {
       const res = await savePost({ ...d, slug, publish });
       if (!res.ok) return setMsg({ ok: false, text: res.error ?? "Couldn't save." });
-      setD((p) => ({ ...p, original: res.slug ?? slug, slug: res.slug ?? slug, status: publish ? "published" : "draft" }));
-      setMsg({ ok: true, text: publish ? "Published. It's on the site now." : "Saved as a draft." });
+      setD((p) => ({ ...p, original: res.slug ?? slug, slug: res.slug ?? slug, status: publish ? "published" : "draft", edited: true }));
+      setMsg({
+        ok: true,
+        text: publish ? "Published. It's on the site now."
+          : d.builtIn ? "Saved as a draft. The original is still the one on the site." : "Saved as a draft.",
+      });
       router.refresh();
-      if (!initial.original) router.replace(`/portal/marketing/blog/${res.slug}`);
+      if (!initial.original) router.replace(`/portal/blog/${res.slug}`);
     });
 
   const pickPhoto = (file: File) =>
@@ -152,17 +162,21 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
           <h2 className="pt-panel__h">Publish</h2>
           {/* The state in words, because this is the one editor in the portal
               whose output anyone on the internet can read. */}
-          <p className={`pt-pe__state${d.status === "published" ? " is-live" : ""}`}>
-            {d.status === "published"
-              ? "On the site. Anyone can read it."
-              : d.status === "draft"
-                ? "Draft. Nobody outside the portal can see it."
-                : "Not saved yet."}
+          <p className={`pt-pe__state${d.status === "published" || d.builtIn ? " is-live" : ""}`}>
+            {d.builtIn && !d.edited
+              ? "On the site, as first written. Publishing puts your version in its place."
+              : d.builtIn && d.status === "draft"
+                ? "Your edits are a draft. The original is still the one on the site."
+                : d.status === "published"
+                  ? d.builtIn ? "On the site, with your edits. Anyone can read it." : "On the site. Anyone can read it."
+                  : d.status === "draft"
+                    ? "Draft. Nobody outside the portal can see it."
+                    : "Not saved yet."}
           </p>
 
           <label className="pt-field"><span>Topic</span>
             <select value={d.cat} onChange={(e) => set("cat", e.target.value)}>
-              {POST_CATS.map((c) => <option key={c} value={c}>{c}</option>)}
+              {cats.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
           <label className="pt-field" style={{ marginTop: 12 }}><span>Author</span>
@@ -197,12 +211,12 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
             </button>
           </div>
           {msg && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} style={{ marginTop: 12 }}>{msg.text}</p>}
-          {d.status === "published" && (
+          {(d.status === "published" || d.builtIn) && (
             <p className="pt-pe__viewrow">
               <a href={`/blog/${slug}`} target="_blank" rel="noopener" className="pt-pe__view">Read it on the site ↗</a>
             </p>
           )}
-          {d.original && (
+          {d.original && d.edited && (
             <button
               type="button"
               className="pt-btn pt-btn--danger pt-btn--sm pt-pe__kill"
@@ -210,10 +224,13 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
               onClick={() => start(async () => {
                 const res = await unpublishPost(d.original!);
                 if (!res.ok) return setMsg({ ok: false, text: res.error ?? "Couldn't remove it." });
-                router.push("/portal/marketing?tab=blog");
+                router.push("/portal/blog");
               })}
             >
-              {d.status === "published" ? "Take it off the site" : "Delete this draft"}
+              {/* A built-in article can't be taken off the site from here —
+                  only the edits can be taken away, which puts it back as it
+                  was first written. */}
+              {d.builtIn ? "Undo my edits — put the original back" : d.status === "published" ? "Take it off the site" : "Delete this draft"}
             </button>
           )}
         </section>
@@ -221,9 +238,10 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
         <section className="pt-panel">
           <h2 className="pt-panel__h">Google listing</h2>
           <p className="pt-panel__sub">What somebody sees before they decide whether to click.</p>
-          <label className="pt-field"><span>Web address</span>
+          <label className="pt-field"><span>Web address{d.builtIn && <em> — fixed: Google and every link to it already use this one</em>}</span>
             <input
               value={slug}
+              readOnly={d.builtIn}
               onChange={(e) => { setSlugTouched(true); set("slug", toSlug(e.target.value)); }}
               placeholder="heat-pump-vs-gas-running-costs"
             />
@@ -245,6 +263,24 @@ export function PostEditor({ initial, authors }: { initial: PostDraft; authors: 
             </span>
             <textarea className="pf-textarea" rows={3} value={d.blurb} onChange={(e) => set("blurb", e.target.value)} placeholder="What shows under the title on Google, and on the blog card." />
           </label>
+        </section>
+
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Google checks · {passed} of {checks.length}</h2>
+          <p className="pt-panel__sub">Five things that decide how it shows up in a search. Not a ranking — nothing here knows what people search for.</p>
+          <ul className="pt-pe__checks">
+            {checks.map((c) => (
+              // A tick or a cross in words as well as the mark, so the state
+              // never rides on the colour alone.
+              <li key={c.k} className={c.ok ? "is-ok" : "is-no"}>
+                <span aria-hidden="true">{c.ok ? "✓" : "✕"}</span>
+                <span>
+                  <strong>{c.label}</strong>
+                  <em>{c.ok ? "Done" : c.hint}</em>
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
     </div>

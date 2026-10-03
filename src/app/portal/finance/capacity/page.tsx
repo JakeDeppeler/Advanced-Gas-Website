@@ -6,6 +6,7 @@ import { vehicleFinance } from "@/components/portal/vehicleMath";
 import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
 import { xeroStatus, getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { CapacityEditor } from "@/components/portal/CapacityEditor";
 import { PortalTabs } from "@/components/portal/PortalTabs";
@@ -67,16 +68,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/finance" label="Finance" />
-          <h1>What an hour has to cover</h1>
-          <p>The crew, every overhead the business carries, and the charge-out rates that fall out of the two. Change anything and the numbers at the top move with it.</p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Costs & capacity" lede="The crew, every overhead the business carries, and the charge-out rates that fall out of the two." xero={{ state: status, org: tenantName }} />
       <CapacityEditor
         people={people}
         settings={settings ?? DEFAULT_SETTINGS}

@@ -57,12 +57,23 @@ function ago(iso: string | null | undefined): string {
   return `${Math.floor(days / 7)} weeks ago`;
 }
 
-export async function listNotices(user: PortalUser): Promise<Notice[]> {
-  if (!dbConfigured()) return [];
+/**
+ * Things waiting on somebody. The bell counts these and nothing else.
+ *
+ * The bell sits on every page, so this is the one read every page pays for.
+ * The reads that don't depend on each other go out together: the vans and the
+ * quotes are one round trip, not two, and the vans' checks are the only thing
+ * that has to wait for anything.
+ */
+async function waitingNotices(user: PortalUser): Promise<Notice[]> {
   const today = localToday();
   const out: Notice[] = [];
 
-  const vehicles = await listVehicles().catch(() => []);
+  const [vehicles, quotes] = await Promise.all([
+    listVehicles().catch(() => []),
+    // Quotes are money and only the people who see money get told about them.
+    can(user, "overhead") ? listQuotes().catch(() => []) : Promise.resolve([]),
+  ]);
   const onRoad = vehicles.filter((v) => v.status === "on");
 
   const checks = await Promise.all(
@@ -100,26 +111,27 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
     }
   });
 
-  // Quotes are money and only the people who see money get told about them.
-  if (can(user, "overhead")) {
-    const quotes = await listQuotes().catch(() => []);
-    const cutoff = Date.now() - QUOTE_CHASE_DAYS * 86_400_000;
-    for (const q of quotes) {
-      if (q.status !== "quoted") continue;
-      const at = Date.parse(q.quotedOn + "T00:00:00Z");
-      if (!Number.isFinite(at) || at > cutoff) continue;
-      const days = Math.round((Date.now() - at) / 86_400_000);
-      out.push({
-        title: `Quote still out after ${days} days`,
-        detail: [q.customer, `$${Math.round(q.amount).toLocaleString("en-AU")}`].filter(Boolean).join(" · "),
-        href: "/portal/finance/quotes",
-        tone: days >= 21 ? "bad" : "warn",
-        group: "doing",
-        when: ago(`${q.quotedOn}T00:00:00Z`),
-      });
-    }
+  const cutoff = Date.now() - QUOTE_CHASE_DAYS * 86_400_000;
+  for (const q of quotes) {
+    if (q.status !== "quoted") continue;
+    const at = Date.parse(q.quotedOn + "T00:00:00Z");
+    if (!Number.isFinite(at) || at > cutoff) continue;
+    const days = Math.round((Date.now() - at) / 86_400_000);
+    out.push({
+      title: `Quote still out after ${days} days`,
+      detail: [q.customer, `$${Math.round(q.amount).toLocaleString("en-AU")}`].filter(Boolean).join(" · "),
+      href: "/portal/finance/quotes",
+      tone: days >= 21 ? "bad" : "warn",
+      group: "doing",
+      when: ago(`${q.quotedOn}T00:00:00Z`),
+    });
   }
+  return out;
+}
 
+/** What has changed lately: on the notifications page, never on the bell. */
+async function newsNotices(): Promise<Notice[]> {
+  const out: Notice[] = [];
   // News: what has changed lately. Derived the same way as everything above —
   // a video row's created_at and a handbook body's updated_at are already
   // there, so nothing is written to say a thing happened.
@@ -150,12 +162,20 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
     });
   }
 
+  return out;
+}
+
+export async function listNotices(user: PortalUser): Promise<Notice[]> {
+  if (!dbConfigured()) return [];
+  const [waiting, news] = await Promise.all([waitingNotices(user), newsNotices()]);
   const rank = { bad: 0, warn: 1, news: 2 } as const;
-  return out.sort((a, b) => rank[a.tone] - rank[b.tone]);
+  return [...waiting, ...news].sort((a, b) => rank[a.tone] - rank[b.tone]);
 }
 
 export async function unreadCount(user: PortalUser): Promise<number> {
   // Only the things waiting on somebody. A new video is worth seeing on the
-  // page; it is not a number on a bell demanding to be cleared.
-  return (await listNotices(user)).filter((n) => n.group === "doing").length;
+  // page; it is not a number on a bell demanding to be cleared — so the news
+  // reads aren't made at all here.
+  if (!dbConfigured()) return 0;
+  return (await waitingNotices(user)).length;
 }

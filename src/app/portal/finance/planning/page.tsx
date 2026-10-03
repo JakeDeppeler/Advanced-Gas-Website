@@ -4,6 +4,7 @@ import { can } from "@/lib/portal/caps";
 import { listUsers, getCapSettings, getSettings, dbConfigured } from "@/lib/portal/db";
 import { computeCapacity, overheadSplit, overheadTotal, scaleModel, DEFAULT_SETTINGS, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { ScenarioPlanner } from "@/components/portal/ScenarioPlanner";
@@ -60,16 +61,7 @@ export default async function PlanningPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/finance" label="Finance" />
-          <h1>Where we&rsquo;re headed</h1>
-          <p>The profit you&rsquo;re aiming at and how the year is tracking against it, then the what-ifs: what another billable person adds, and what a more economical van saves. Revenue, and what it takes each week to get there, has its own page under <strong>Targets</strong>. Nothing here changes your live numbers.</p>
-        </div>
-        <XeroLine state={status} org={tenantName} />
-      </div>
-
-      <PortalTabs set="finance" />
+      <FinanceHead title="Future planning" lede="The profit you’re aiming at, then the what-ifs. Nothing here changes your live numbers." xero={{ state: status, org: tenantName }} />
       <PlanningTabs current="/portal/finance/planning" />
       <FinancePlanner yearProfit={yearProfit} daysWeek={daysWeek} />
       <ScenarioPlanner defaultCharge={charge} defaultCost={cost} />

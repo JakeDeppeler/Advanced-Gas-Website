@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
+import { PortalBack } from "@/components/portal/PortalBack";
 import Link from "next/link";
 import { LEARNING_TRACKS } from "@/lib/portal/content";
 import { can } from "@/lib/portal/caps";
@@ -32,7 +33,7 @@ export default async function LearningTrackPage({ params }: { params: { track: s
   return (
     <PortalShell user={user}>
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Learning · {track.label}</div>
+        <PortalBack href="/portal" label="Home" />
         <h1>{track.label}.</h1>
         <p>{track.blurb}</p>
         {vids.length > 0 && (

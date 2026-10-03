@@ -35,7 +35,7 @@ export function VehicleCosts({ vehicle }: { vehicle: VehicleView }) {
             </strong>
           )}
         </div>
-        {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{vehicle.nextServiceDate}</strong></div>}
+        {vehicle.nextServiceDate && <div className="pt-veh__stat"><span>Next service date</span><strong>{new Date(`${vehicle.nextServiceDate}T00:00:00`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}</strong></div>}
         {annualDep !== null && <div className="pt-veh__stat"><span>Depreciation / yr</span><strong>{money(annualDep)}</strong></div>}
         {vehicle.fuelPer100 !== null && <div className="pt-veh__stat"><span>Fuel use</span><strong>{vehicle.fuelPer100} L/100km</strong></div>}
         {fin.servicePerYear !== null && <div className="pt-veh__stat"><span>Servicing / yr</span><strong>{money(fin.servicePerYear)}</strong></div>}

@@ -12,6 +12,7 @@
  */
 
 import "server-only";
+import { unstable_cache } from "next/cache";
 import { site } from "@/lib/site";
 import { getIntegration, saveIntegration } from "./db";
 
@@ -166,7 +167,7 @@ function pick(map: Map<string, number>, keys: string[]): number | null {
   return null;
 }
 
-function parseReport(data: { Reports?: { Rows?: XeroRow[] }[] }): ProfitLoss {
+function parseReport(data: ReportJson): ProfitLoss {
   const map = new Map<string, number>();
   walk(data.Reports?.[0]?.Rows, map);
   const income = pick(map, ["total income", "total operating income", "total trading income", "total revenue"]) ?? 0;
@@ -210,13 +211,12 @@ const REPORT_CACHE_MS = 5 * 60 * 1000;
 const reportCache = new Map<string, { at: number; value: ProfitLoss }>();
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-async function plFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<ProfitLoss | null> {
-  const key = `${tenantId}|${fromDate}|${toDate}`;
-  const hit = reportCache.get(key);
-  if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
+type ReportJson = { Reports?: { Rows?: XeroRow[] }[] };
 
+/** One P&L report from Xero, through the pool, retried once on a 429. */
+async function rawReport(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<ReportJson | null> {
   const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
-  const value = await withSlot(async () => {
+  return withSlot(async () => {
     for (let attempt = 0; attempt < 2; attempt++) {
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
@@ -230,10 +230,46 @@ async function plFetch(accessToken: string, tenantId: string, fromDate: string, 
         continue;
       }
       if (!res.ok) return null;
-      return parseReport((await res.json()) as { Reports?: { Rows?: XeroRow[] }[] });
+      return (await res.json()) as ReportJson;
     }
     return null;
   });
+}
+
+/**
+ * The same report, shared by every server instance for five minutes.
+ *
+ * The in-memory cache below only helps the instance that filled it, and on
+ * Vercel a quiet portal is a cold one: the first person to open Finance after
+ * lunch paid for seventeen reports, four at a time. This is the deployment's
+ * shared data cache instead, keyed on the organisation and the span — never on
+ * the token, which rotates every half hour.
+ *
+ * The token is fetched inside, so a hit costs no token read at all. A failure
+ * throws rather than returning null, because unstable_cache keeps whatever is
+ * returned: a cached "no answer" would hold a page blank for five minutes after
+ * one 429. The summary and the line-by-line view are the same report parsed two
+ * ways, so they share one entry, and a page wanting both makes one call.
+ */
+const sharedReport = unstable_cache(
+  async (tenantId: string, fromDate: string, toDate: string): Promise<ReportJson> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const data = await rawReport(tok.accessToken, tenantId, fromDate, toDate);
+    if (!data) throw new Error("xero: no report");
+    return data;
+  },
+  ["xero-pl-report"],
+  { revalidate: 300, tags: ["xero-reports"] },
+);
+
+async function plFetch(_accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<ProfitLoss | null> {
+  const key = `${tenantId}|${fromDate}|${toDate}`;
+  const hit = reportCache.get(key);
+  if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
+
+  const data = await sharedReport(tenantId, fromDate, toDate).catch(() => null);
+  const value = data ? parseReport(data) : null;
 
   // Only a real answer is worth keeping — caching a failure would hold the page
   // blank for five minutes after a single hiccup.
@@ -325,24 +361,9 @@ function parseDetail(data: { Reports?: { Rows?: XeroRow[] }[] }): PLDetail {
   return { sections, income, costOfSales, grossProfit, operatingExpenses, netProfit };
 }
 
-async function detailFetch(accessToken: string, tenantId: string, fromDate: string, toDate: string): Promise<PLDetail | null> {
-  const url = `${API_BASE}/Reports/ProfitAndLoss?fromDate=${fromDate}&toDate=${toDate}`;
-  return withSlot(async () => {
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
-        cache: "no-store",
-      });
-      if (res.status === 429 && attempt === 0) {
-        const after = parseInt(res.headers.get("Retry-After") || "", 10);
-        await sleep(Math.min(Number.isNaN(after) ? 2 : after, 5) * 1000);
-        continue;
-      }
-      if (!res.ok) return null;
-      return parseDetail((await res.json()) as { Reports?: { Rows?: XeroRow[] }[] });
-    }
-    return null;
-  });
+async function detailFetch(tenantId: string, fromDate: string, toDate: string): Promise<PLDetail | null> {
+  const data = await sharedReport(tenantId, fromDate, toDate).catch(() => null);
+  return data ? parseDetail(data) : null;
 }
 
 const detailCache = new Map<string, { at: number; value: PLDetail }>();
@@ -353,7 +374,7 @@ export async function getPLDetail(fromDate: string, toDate: string): Promise<PLD
   const key = `${tok.tenantId}|${fromDate}|${toDate}`;
   const hit = detailCache.get(key);
   if (hit && Date.now() - hit.at < REPORT_CACHE_MS) return hit.value;
-  const value = await detailFetch(tok.accessToken, tok.tenantId, fromDate, toDate);
+  const value = await detailFetch(tok.tenantId, fromDate, toDate);
   if (value) detailCache.set(key, { at: Date.now(), value });
   return value;
 }

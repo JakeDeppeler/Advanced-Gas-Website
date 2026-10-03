@@ -2036,7 +2036,10 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-alert em { font-style: normal; font-size: 12.5px; color: var(--pt-ink-2); }
 .pt-alert.is-clear span { background: #e6f3ec; color: var(--pt-good); }
 
-.pt-fleet__wrap { overflow-x: auto; }
+/* Positioned so it contains the screen-reader-only column label: that label is
+   absolutely positioned, and without a positioned ancestor it escaped the
+   scroll box and widened the whole page on a phone. */
+.pt-fleet__wrap { overflow-x: auto; position: relative; }
 .pt-fleet { width: 100%; border-collapse: collapse; min-width: 760px; }
 .pt-fleet thead th {
   text-align: left; padding: 0 14px 10px; font-size: 11px; font-weight: 700;
@@ -2170,7 +2173,12 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 /* ---- Fleet: the four views, and the cost strip at the foot ---- */
 /* A head with an action in it. The log button belongs beside the title, not
    buried under four money figures halfway down. */
-.pt-head--split { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.pt-head--split { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+/* The words take the room and the actions sit beside them, bottom-aligned
+   with the last line as the design draws it. Without a basis the heading
+   block sized to its own text and pushed the buttons onto a line of their
+   own under a long van name. */
+.pt-head--split > :first-child { flex: 1 1 480px; min-width: 0; }
 .pt-head__act { flex: none; margin-top: 6px; }
 
 .pt-tabs__note { margin-left: auto; font-size: 13px; color: var(--pt-ink-2); }
@@ -2854,6 +2862,17 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
    under the reader's cursor on the way to a harmless one. */
 .pt-pe__kill { display: block; width: 100%; margin-top: 16px; }
 .pt-pe__url { margin: 6px 0 0; font-family: var(--f-mono, monospace); font-size: 12.5px; color: var(--pt-ink-2); overflow-wrap: anywhere; }
+.pt-pe__checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.pt-pe__checks li { display: flex; gap: 10px; align-items: flex-start; }
+.pt-pe__checks li > span:first-child {
+  flex: none; width: 22px; height: 22px; border-radius: 999px; display: grid; place-items: center;
+  font-size: 12px; font-weight: 800;
+}
+.pt-pe__checks li.is-ok > span:first-child { background: #e4eff8; color: #15537d; }
+.pt-pe__checks li.is-no > span:first-child { background: #fdf0d8; color: #7d5406; }
+.pt-pe__checks li > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.pt-pe__checks strong { font-size: 14px; font-weight: 700; }
+.pt-pe__checks em { font-style: normal; font-size: 13px; color: var(--pt-ink-2); }
 .pt-field > span em.is-over { color: var(--pt-accent); font-weight: 700; }
 
 @media (max-width: 1100px) {
@@ -2864,4 +2883,140 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 @media (max-width: 720px) {
   .pt-pe__title input { font-size: 22px; }
   .pt-pe__side { flex-direction: column; }
+}
+
+/* ------------------------------------------------------- loading skeleton */
+/* The page's outline while the server works. Soft enough not to read as
+   content, and still — not pulsing — for anyone who has asked for less motion. */
+.pt-skel { display: flex; flex-direction: column; gap: 14px; }
+.pt-skel > span { display: block; border-radius: 12px; background: var(--pt-tint); }
+.pt-skel__back { width: 84px; height: 18px; }
+.pt-skel__h { width: min(420px, 70%); height: 46px; margin-top: 4px; }
+.pt-skel__p { width: min(560px, 90%); height: 20px; margin-bottom: 14px; }
+.pt-skel__panel { height: 220px; border-radius: var(--pt-r) !important; background: var(--pt-surface) !important; border: 1px solid var(--pt-line); }
+.pt-skel__panel--short { height: 140px; }
+@media (prefers-reduced-motion: no-preference) {
+  .pt-skel > span { animation: pt-skel 1.4s ease-in-out infinite; }
+  @keyframes pt-skel { 50% { opacity: 0.55; } }
+}
+
+/* ----------------------------------------------------------- blog list */
+.pt-blogl tbody th { width: auto; }
+.pt-blogl__post { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.pt-blogl__post > div { min-width: 0; }
+.pt-blogl__post strong { line-height: 1.3; }
+.pt-blogl__cover { flex: none; width: 88px; height: 62px; object-fit: cover; border-radius: 12px; background: var(--pt-tint); }
+.pt-blogl__num { text-align: right !important; white-space: nowrap; }
+.pt-blogl__num strong { font-family: var(--f-display); font-size: 16px; font-variant-numeric: tabular-nums; }
+.pt-blogl tbody td, .pt-blogl tbody th { vertical-align: middle; }
+
+/* -------------------------------------------------------- integrations */
+.pt-integ { display: flex; flex-direction: column; gap: 14px; }
+.pt-integ__row { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 28px; margin: 0; }
+.pt-integ__top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pt-integ__top .pt-panel__h { margin: 0; }
+.pt-integ__does { margin: 6px 0 10px; color: var(--pt-ink-2); }
+.pt-integ__facts { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; font-size: 14.5px; }
+.pt-integ__side { display: flex; flex-direction: column; gap: 12px; padding-left: 24px; border-left: 1px solid var(--pt-tint); align-items: flex-start; }
+.pt-integ__side > div { display: flex; flex-direction: column; gap: 2px; }
+.pt-integ__k { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pt-ink-2); }
+.pt-integ__side strong { font-family: var(--f-display); font-size: 16px; }
+.pt-integ__feeds { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.pt-integ__feeds a { font-size: 14px; font-weight: 700; color: var(--pt-accent); text-decoration: none; }
+.pt-integ__feeds a:hover { text-decoration: underline; }
+.pt-integ__row.is-off { background: transparent; box-shadow: none; }
+@media (max-width: 760px) {
+  .pt-integ__row { grid-template-columns: 1fr; gap: 14px; }
+  .pt-integ__side { padding-left: 0; border-left: 0; border-top: 1px solid var(--pt-tint); padding-top: 12px; }
+}
+
+/* --------------------------------------------------------- wall board */
+.pt-sech { font-family: var(--f-display); font-size: 20px; font-weight: 800; margin: 26px 0 12px; }
+.pt-bd { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.pt-bd__card { margin: 0; display: flex; flex-direction: column; }
+.pt-bd__card h3 { margin: 0; font-family: var(--f-display); font-size: 18px; font-weight: 800; }
+.pt-bd__card > p { margin: 4px 0 14px; font-size: 14px; color: var(--pt-ink-2); }
+.pt-bd__card dl { margin: 0; display: flex; flex-direction: column; }
+.pt-bd__card dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--pt-tint); }
+.pt-bd__card dt { font-size: 14px; color: var(--pt-ink-2); }
+.pt-bd__card dt { flex: none; }
+.pt-bd__card dd { margin: 0; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+.pt-bd__card dd span { font-size: 12.5px; font-weight: 500; color: var(--pt-ink-2); }
+.pt-bd__src { display: flex; flex-direction: column; }
+.pt-bd__src > div { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--pt-tint); }
+.pt-bd__src > div:first-child { border-top: 0; }
+.pt-bd__src > div > span:first-child { display: flex; flex-direction: column; min-width: 0; }
+.pt-bd__src em { font-style: normal; font-size: 13px; color: var(--pt-ink-2); }
+.pt-bd__srcstate { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: none; }
+/* Numbered because it is a sequence. Block, not flex: a flex container drops
+   its children's list-item display and the numbers go with it. */
+.pt-bd__how { margin: 0; padding-left: 22px; list-style: decimal; font-size: 14.5px; line-height: 1.5; }
+.pt-bd__how li { display: list-item; }
+.pt-bd__how li + li { margin-top: 10px; }
+.pt-bd__how li::marker { font-weight: 800; color: var(--pt-ink-2); }
+.pt-bd__how strong { font-weight: 700; }
+@media (max-width: 980px) { .pt-bd { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .pt-bd { grid-template-columns: 1fr; } }
+
+/* ------------------------------------------------- the fleet, to the design */
+/* Four ways of reading one table, drawn as one control rather than four
+   separate pills: they are views of the same thing, not places to go. */
+.pt-viewrow { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin: 0 0 18px; }
+.pt-tabs--seg { display: inline-flex; gap: 4px; padding: 4px; margin: 0; border-radius: 999px; background: var(--pt-surface); border: 1px solid var(--pt-line); }
+.pt-tabs--seg a, .pt-tabs--seg .pt-tab { border-color: transparent; background: transparent; }
+.pt-tabs--seg a:hover { border-color: transparent; background: var(--pt-bg); }
+.pt-tabs--seg a.is-on, .pt-tabs--seg .pt-tab.is-on { background: var(--pt-navy-2); border-color: var(--pt-navy-2); color: #fff; }
+.pt-viewrow .pt-tabs__note { margin-left: 0; }
+
+.pt-fleetp .pt-fleet tbody th, .pt-fleetp .pt-fleet tbody td { padding-top: 20px; padding-bottom: 20px; vertical-align: middle; }
+.pt-fleetp .pt-fleet tbody th { width: 30%; }
+.pt-fleet__van { display: flex; align-items: center; gap: 14px; }
+.pt-fleet__icon { flex: none; width: 48px; height: 48px; border-radius: 14px; background: var(--pt-tint); color: var(--pt-ink); display: flex; align-items: center; justify-content: center; }
+.pt-fleet__add { margin: 0 0 18px; }
+
+.pt-fcost__row { display: flex; align-items: center; justify-content: space-between; gap: 12px 28px; flex-wrap: wrap; }
+.pt-fcost__row .pt-panel__h { margin: 0; }
+.pt-fcost dl { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0; }
+.pt-fcost dl > div { display: flex; gap: 6px; align-items: baseline; }
+.pt-fcost dt { color: var(--pt-ink-2); }
+.pt-fcost dd { margin: 0; font-family: var(--f-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+.pt-fcost__how summary { cursor: pointer; margin-top: 12px; font-size: 13.5px; font-weight: 700; color: var(--pt-ink-2); }
+.pt-fcost__how p { margin: 8px 0 0; max-width: 76ch; font-size: 14px; line-height: 1.55; color: var(--pt-ink-2); }
+
+/* ------------------------------------------------------- finance head */
+.pt-finhead { margin-bottom: 22px; }
+.pt-finhead .pt-xline { margin: 0 0 10px; }
+.pt-finhead__lede { margin: -4px 0 20px; max-width: 80ch; font-size: 15px; color: var(--pt-ink-2); }
+
+/* ---------------------------------------------- finance overview, to design */
+.pt-ov2 { display: grid; grid-template-columns: minmax(0, 1.62fr) minmax(0, 1fr); gap: 16px; margin-bottom: 16px; }
+.pt-ov2 > section { border-radius: 24px; padding: 34px 36px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.pt-ov2__month { background: var(--pt-navy-2); color: #fff; }
+.pt-ov2__year { background: var(--pt-surface); border: 1px solid var(--pt-line); box-shadow: var(--pt-shadow); }
+.pt-ov2__k { font-size: 16px; font-weight: 600; }
+.pt-ov2__month .pt-ov2__k, .pt-ov2__month .pt-ov2__sub { color: rgba(255, 255, 255, 0.82); }
+.pt-ov2__year .pt-ov2__k, .pt-ov2__year .pt-ov2__sub { color: var(--pt-ink-2); }
+.pt-ov2__big { font-family: var(--f-display); font-weight: 900; font-size: clamp(40px, 5.4vw, 64px); line-height: 1.05; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pt-ov2__big.is-neg { color: var(--pt-accent); }
+.pt-ov2__sub { font-size: 15.5px; }
+.pt-ov2__rows { padding: 6px 34px; }
+.pt-ov2__row { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 18px 0; }
+.pt-ov2__row + .pt-ov2__row { border-top: 1px solid var(--pt-tint); }
+.pt-ov2__row > strong { font-weight: 700; }
+.pt-ov2__row > span { color: var(--pt-ink-2); font-variant-numeric: tabular-nums; }
+.pt-ov2__row > b { font-family: var(--f-display); font-weight: 900; font-size: 20px; font-variant-numeric: tabular-nums; }
+.pt-ov2__row > b.is-neg { color: var(--pt-accent); }
+@media (max-width: 760px) {
+  .pt-ov2 { grid-template-columns: 1fr; }
+  .pt-ov2 > section { padding: 24px; }
+  .pt-ov2__rows { padding: 4px 20px; }
+  .pt-ov2__row { grid-template-columns: 1fr auto; }
+  .pt-ov2__row > span { grid-column: 1 / -1; grid-row: 2; font-size: 14px; }
+}
+/* A link panel is a row wherever it sits; Finance's panels default to a column. */
+.pt-fin .pt-linkpanel { flex-direction: row; align-items: center; }
+@media (max-width: 620px) {
+  /* One row that scrolls, rather than a capsule folded onto two lines. */
+  .pt-tabs--seg { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .pt-tabs--seg::-webkit-scrollbar { display: none; }
 }

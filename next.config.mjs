@@ -41,6 +41,11 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // The blog editor moved out of Marketing into its own section. Not
+      // permanent: these are portal addresses, never indexed, and a 308 is
+      // cached by the browser for good.
+      { source: "/portal/marketing/blog", destination: "/portal/blog", permanent: false },
+      { source: "/portal/marketing/blog/:slug", destination: "/portal/blog/:slug", permanent: false },
       // ---- WEB-002: apex host → www, 308 ----
       // Both advancedgas.com.au and www.advancedgas.com.au were indexed
       // as separate URLs, splitting authority down the middle (the apex

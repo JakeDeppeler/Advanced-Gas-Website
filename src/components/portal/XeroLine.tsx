@@ -24,9 +24,12 @@ export function XeroLine({ state, org }: { state: XeroState; org?: string | null
   }
   const at = new Date().toLocaleString("en-AU", { timeZone: MEL, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
   return (
-    <p className="pt-xline">
+    // "Xero", not the organisation's registered name: that runs to fifty
+    // characters and pushed the line onto a row of its own under every title.
+    // The name is still there for anyone who hovers.
+    <p className="pt-xline" title={org ? `Connected to ${org}` : undefined}>
       <i aria-hidden="true" />
-      Live from {org || "Xero"} · read {at}
+      Live from Xero · read {at}
     </p>
   );
 }
