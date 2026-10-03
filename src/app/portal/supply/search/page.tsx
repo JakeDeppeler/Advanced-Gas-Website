@@ -1,4 +1,6 @@
 import { redirect } from "next/navigation";
+import { PriceFileUpload } from "@/components/portal/PriceFileUpload";
+import { sbCount } from "@/lib/dashboard/db";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -7,6 +9,7 @@ import { searchCatalogue } from "@/lib/pricebook/supply";
 import { reeceConnection, reeceSearch } from "@/lib/pricebook/reece";
 import { money2 } from "@/lib/portal/format";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Item search — Team portal" };
@@ -19,9 +22,16 @@ type Hit = { code: string; description: string | null; cost: number | null; uom:
 export default async function SupplySearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   const term = (searchParams?.q ?? "").trim();
+  // Whether there is anything to search at all: an empty catalogue and no
+  // live link means the page's job is to say how to fill it.
+  const [itemCount, conn0] = await Promise.all([
+    sbCount("supplier_items", "", "code").catch(() => null),
+    reeceConnection().catch(() => ({ status: "not-configured" }) as const),
+  ]);
+  const nothingToSearch = itemCount === 0 && conn0.status !== "ready";
 
   // Live maX search when Reece is connected, our own replica otherwise. The
   // page says which answered, because the two can disagree: the replica is
@@ -31,7 +41,7 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
   let failure: string | null = null;
 
   if (term) {
-    const conn = await reeceConnection().catch(() => ({ status: "not-configured" }) as const);
+    const conn = conn0;
     // Reece's search endpoint rejects anything under three characters, so a
     // two-letter term goes straight to the replica rather than to an error.
     if (conn.status === "ready" && term.length >= 3) {
@@ -57,80 +67,73 @@ export default async function SupplySearchPage({ searchParams }: { searchParams:
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply" label="Supply" />
+      <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Item search</div>
-        <h1>What does Reece charge us?</h1>
-        <p>
-          Our contractor price, ex GST, for quoting. Search by product code or by what the thing is called — both work
-          in the same box.
-        </p>
+        <h1>Item search</h1>
+        <p>Look up a Reece product and what it costs us, for quoting.</p>
       </div>
 
       <PortalTabs set="supply" />
 
-      <section className="pt-panel">
-        <form className="pt-sup__searchform" method="get">
-          <label className="pt-field pt-sup__search">
-            <span className="pt-sr">Search Reece</span>
-            <input type="search" name="q" defaultValue={term} placeholder="20mm copper, REH250, isolation valve…" autoComplete="off" />
-          </label>
-          <button type="submit" className="pt-btn pt-btn--navy">
-            Search
-          </button>
-        </form>
+      <form method="get" className="pt-sbox pt-sbox--lg" role="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
+        <input type="search" name="q" defaultValue={term} placeholder="Reece product code or name" aria-label="Find a Reece product" autoComplete="off" />
+      </form>
 
-        {failure && (
-          <div className="pt-note">
-            <strong>Search failed.</strong> {failure}
-          </div>
-        )}
+      {failure && (
+        <div className="pt-note">
+          <strong>Search failed.</strong> {failure}
+        </div>
+      )}
 
-        {term && !failure && (
-          <>
-            <p className="pt-panel__sub pt-sup__srcnote">
-              {hits.length === 0
-                ? `Nothing matches “${term}”.`
-                : `${hits.length}${hits.length === 40 ? "+" : ""} match${hits.length === 1 ? "" : "es"} · `}
-              {hits.length > 0 &&
-                (source === "live"
-                  ? "live from maX"
-                  : "from our copy of the price file — as fresh as the last import")}
-            </p>
-            {hits.length > 0 && (
-              <div className="pt-tgt__tablewrap">
-                <table className="pt-tgt__table pt-sup__hits">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Unit</th>
-                      <th>Our cost</th>
-                      {source === "replica" && <th>Last seen</th>}
+      {!term && nothingToSearch && (
+        <section className="pt-emptycard">
+          <strong>Load a price file to search</strong>
+          <span>Upload a maX price file and every product shows here with what it costs us and what it goes into the pricebook at.</span>
+          <PriceFileUpload />
+        </section>
+      )}
+
+      {term && !failure && (
+        <section className="pt-panel">
+          <p className="pt-panel__sub pt-sup__srcnote">
+            {hits.length === 0
+              ? `Nothing matches “${term}”.`
+              : `${hits.length}${hits.length === 40 ? "+" : ""} match${hits.length === 1 ? "" : "es"} · `}
+            {hits.length > 0 &&
+              (source === "live"
+                ? "live from maX"
+                : "from our copy of the price file — as fresh as the last import")}
+          </p>
+          {hits.length > 0 && (
+            <div className="pt-tgt__tablewrap">
+              <table className="pt-tgt__table pt-sup__hits">
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Unit</th>
+                    <th>Our cost</th>
+                    {source === "replica" && <th>Last seen</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {hits.map((h) => (
+                    <tr key={h.code}>
+                      <th scope="row">
+                        <strong>{h.code}</strong>
+                        <span>{h.description ?? "No description"}</span>
+                      </th>
+                      <td>{h.uom ?? "—"}</td>
+                      <td>{h.cost == null ? "—" : money2(h.cost)}</td>
+                      {source === "replica" && <td>{h.seenAt ? day(h.seenAt) : "—"}</td>}
                     </tr>
-                  </thead>
-                  <tbody>
-                    {hits.map((h) => (
-                      <tr key={h.code}>
-                        <th scope="row">
-                          <strong>{h.code}</strong>
-                          <span>{h.description ?? "No description"}</span>
-                        </th>
-                        <td>{h.uom ?? "—"}</td>
-                        <td>{h.cost == null ? "—" : money2(h.cost)}</td>
-                        {source === "replica" && <td>{h.seenAt ? day(h.seenAt) : "—"}</td>}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </>
-        )}
-
-        {!term && (
-          <p className="pt-sup__none">Type a code or a description above.</p>
-        )}
-      </section>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
     </PortalShell>
   );
 }

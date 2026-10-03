@@ -5,6 +5,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { listSyncRuns, type SyncRun } from "@/lib/pricebook/supply";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Sync history — Team portal" };
@@ -29,7 +30,7 @@ function took(run: SyncRun): string {
 export default async function SupplySyncsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   let runs: SyncRun[] = [];
   let dbReady = true;
@@ -41,15 +42,10 @@ export default async function SupplySyncsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply" label="Supply" />
+      <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Sync history</div>
-        <h1>Every pricebook run.</h1>
-        <p>
-          A <strong>dry run</strong> works out what it would change and writes nothing. An <strong>apply</strong>{" "}
-          writes it, one material at a time, and reads each one back — ServiceTitan returns a success for several
-          fields it quietly ignores, so only the read-back proves anything.
-        </p>
+        <h1>Sync history</h1>
+        <p>Every pricebook run, what it changed, and anything that failed.</p>
       </div>
 
       <PortalTabs set="supply" />
@@ -60,12 +56,9 @@ export default async function SupplySyncsPage() {
           <p className="pt-panel__sub">The database isn&rsquo;t reachable from here, so this page can&rsquo;t list the runs.</p>
         </section>
       ) : runs.length === 0 ? (
-        <section className="pt-panel">
-          <h2 className="pt-panel__h">Nothing has run yet</h2>
-          <p className="pt-panel__sub">
-            The nightly schedule only ever dry-runs. The first real run is the <em>Pricebook sync</em> workflow on the
-            Actions tab — without <em>apply</em> ticked it is safe, and its summary page tables what it would change.
-          </p>
+        <section className="pt-emptycard">
+          <strong>No pricebook syncs yet</strong>
+          <span>Each run will list what it changed in ServiceTitan — new items, price moves, and anything that failed.</span>
         </section>
       ) : (
         <section className="pt-panel">

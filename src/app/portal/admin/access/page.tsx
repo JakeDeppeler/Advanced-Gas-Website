@@ -6,6 +6,7 @@ import { DEFAULT_ACCESS } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { AccessEditor } from "@/components/portal/AccessEditor";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Access levels — Team portal" };
@@ -13,7 +14,7 @@ export const metadata = { title: "Access levels — Team portal" };
 export default async function AccessPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) redirect("/portal?denied=1");
+  if (!can(user, "manage_users")) return <Locked user={user} what="Admin" forWhom="admins" />;
 
   const map = dbConfigured() ? await getAccessMap() : DEFAULT_ACCESS;
 

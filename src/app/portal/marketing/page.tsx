@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -14,6 +15,7 @@ import { getInstagramFeed } from "@/lib/instagram";
 import { CampaignBoard } from "@/components/portal/CampaignBoard";
 import { BrandAssets } from "@/components/portal/BrandAssets";
 import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marketing — Team portal" };
@@ -29,11 +31,11 @@ export const metadata = { title: "Marketing — Team portal" };
 export default async function MarketingPage({
   searchParams,
 }: {
-  searchParams: { tab?: string; win?: string; audience?: string };
+  searchParams: { tab?: string; win?: string; audience?: string; new?: string };
 }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Marketing" forWhom="managers" />;
 
   const moved = searchParams.tab ? MOVED_TABS[searchParams.tab] : undefined;
   if (moved) redirect(moved);
@@ -58,9 +60,11 @@ export default async function MarketingPage({
           <h1>{def.title}</h1>
           <p>{def.blurb}</p>
         </div>
-        {/* Only Campaigns reads against a window; on the others it would be a
-            control that changes nothing. */}
-        {tab === "campaigns" && <WindowPicker win={win} hrefFor={(w) => marketingHref(tab, w)} />}
+        {/* The add button is the head's one action, as in the mock. It is a
+            link rather than a toggle so the open form survives a refresh. */}
+        {tab === "campaigns" && (
+          <Link href={`${marketingHref("campaigns", win)}&new=1`} className="pt-btn pt-btn--orange pt-mkadd">+ New campaign</Link>
+        )}
       </div>
 
       <SectionTabs
@@ -75,7 +79,17 @@ export default async function MarketingPage({
         </div>
       )}
 
-      {tab === "campaigns" && <Campaigns leads={leads} win={win} audience={searchParams.audience} />}
+      {tab === "campaigns" && (
+        <Campaigns
+          leads={leads}
+          win={win}
+          audience={searchParams.audience}
+          adding={searchParams.new === "1"}
+          // Only Campaigns reads against a window; on the other tabs it would
+          // be a control that changes nothing.
+          picker={<WindowPicker win={win} hrefFor={(w) => marketingHref("campaigns", w)} />}
+        />
+      )}
       {tab === "reviews" && <Reviews />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
@@ -86,9 +100,9 @@ export default async function MarketingPage({
 
 /* ------------------------------------------------------------- Campaigns */
 async function Campaigns({
-  leads, win, audience,
+  leads, win, audience, adding, picker,
 }: {
-  leads: Awaited<ReturnType<typeof listWebLeads>>; win: string; audience?: string;
+  leads: Awaited<ReturnType<typeof listWebLeads>>; win: string; audience?: string; adding: boolean; picker: React.ReactNode;
 }) {
   const rows = withLeads(dbConfigured() ? await listCampaigns().catch(() => []) : [], leads);
   const t = tally(rows, leads.length);
@@ -100,6 +114,8 @@ async function Campaigns({
       audience={audience ?? "all"}
       win={win}
       windowLabel={windowLabel(win)}
+      adding={adding}
+      picker={picker}
     />
   );
 }

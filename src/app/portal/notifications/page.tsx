@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
+import { MarkAllRead } from "@/components/portal/MarkAllRead";
 import { listNotices } from "@/lib/portal/notices";
 
 export const dynamic = "force-dynamic";
@@ -21,13 +22,13 @@ export default async function NotificationsPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>For you</h1>
-        <p>
-          Everything waiting on somebody, worked out from the vans and the quote book rather than kept in a list of its
-          own. Each one clears when the thing itself is dealt with.
-        </p>
+      <div className="pt-narrow">
+      <div className="pt-head pt-head--split">
+        <div>
+          <PortalBack href="/portal" label="Home" />
+          <h1>For you</h1>
+        </div>
+        <MarkAllRead disabled={!notices.some((n) => n.unread)} />
       </div>
 
       {notices.length === 0 ? (
@@ -49,13 +50,13 @@ export default async function NotificationsPage() {
               <section className="pt-panel pt-notice">
                 {rows.map((n, i) => (
                   <Link key={`${n.href}-${i}`} href={n.href} className="pt-notice__row">
-                    <span className={`pt-notice__dot pt-notice__dot--${n.tone}`} aria-hidden="true" />
+                    {/* The dot is the unread mark; the words say what it is. */}
+                    <span className={`pt-notice__dot${n.unread ? ` pt-notice__dot--${n.tone}` : ""}`} aria-hidden="true" />
                     <span className="pt-notice__txt">
                       <strong>{n.title}</strong>
                       <span>{n.detail}</span>
                     </span>
                     {n.when && <span className="pt-notice__when">{n.when}</span>}
-                    <span className="pt-notice__go" aria-hidden="true">→</span>
                   </Link>
                 ))}
               </section>
@@ -63,7 +64,7 @@ export default async function NotificationsPage() {
           );
         })
       )}
-
+      </div>
     </PortalShell>
   );
 }

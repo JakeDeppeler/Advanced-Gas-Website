@@ -11,6 +11,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { currentYear, periodLabel } from "@/lib/portal/yearGoal";
 import type { BoardTargets as Saved } from "./actions";
 import type { Targets } from "@/lib/portal/targets";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wall board — Team portal" };
@@ -26,7 +27,7 @@ export const metadata = { title: "Wall board — Team portal" };
 export default async function BoardPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="The wall board" forWhom="managers" />;
 
   const ready = dbConfigured();
   const saved = ready ? await getSettings<Partial<Saved>>("dashboard") : null;

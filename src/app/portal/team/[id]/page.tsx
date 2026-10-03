@@ -12,6 +12,7 @@ import { PersonVan } from "@/components/portal/PersonVan";
 import { personVan } from "@/lib/portal/personVan";
 import { money2 } from "@/lib/portal/format";
 import { crewFigures } from "@/lib/portal/crewRates";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function TeamMemberFile({
   const tab = (TABS.find((t) => t.k === searchParams.tab)?.k ?? "expected") as PersonTab | "pay";
   const me = await getPortalUser();
   if (!me) redirect("/portal/login");
-  if (!can(me, "reports_read")) redirect("/portal?denied=1");
+  if (!can(me, "reports_read")) return <Locked user={me} what="Team" forWhom="managers" />;
 
   const person = await getUserById(params.id);
   if (!person || !person.id) notFound();

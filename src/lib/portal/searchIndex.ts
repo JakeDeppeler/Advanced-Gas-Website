@@ -10,12 +10,26 @@
  */
 
 import { HANDBOOK, INFO_SECTIONS, LEARNING_TRACKS, PORTAL_TOOLS, VIDEOS } from "@/lib/portal/content";
-import { SOPS } from "@/lib/portal/sops";
+import { SOPS, type Sop } from "@/lib/portal/sops";
 import { FAULT_CODES, FAULT_SYSTEM_LABELS, faultSlug } from "@/lib/faultCodes";
 import type { SearchRow } from "@/components/portal/PortalSearch";
 import type { NavItem } from "@/lib/portal/nav";
 
-export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
+/** Every word a procedure says, for the results page. */
+function sopText(blocks: Sop["blocks"]): string {
+  return blocks
+    .map((b) => (b.kind === "note" ? b.body : b.kind === "table" ? b.rows.map((r) => r.join(" ")).join(". ") : b.items.join(". ")))
+    .join(". ");
+}
+
+/**
+ * The index the top bar and the results page search.
+ *
+ * `deep` adds the full text of every procedure, which only the results page
+ * asks for: it is what lets "drain" find a procedure that mentions drains,
+ * and it is too much to ship to every page for the bar's dropdown.
+ */
+export function buildSearchIndex(nav: NavItem[], deep = false): SearchRow[] {
   const rows: SearchRow[] = [];
 
   // The destinations themselves, so typing a section name still works. `where`
@@ -30,9 +44,10 @@ export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
     rows.push({ href: `/portal/sops/${sec.slug}`, label: sec.title, where: `Processes · ${sec.letter}`, terms: sec.blurb });
     for (const sop of sec.sops) {
       rows.push({
-        href: `/portal/sops/${sec.slug}#${sop.slug}`,
+        href: `/portal/sops/${sec.slug}/${sop.slug}`,
         label: `${sop.code} · ${sop.title}`,
         where: `Processes · ${sec.title}`,
+        ...(deep ? { body: sopText(sop.blocks) } : {}),
       });
     }
   }
@@ -93,6 +108,7 @@ export function buildSearchIndex(nav: NavItem[]): SearchRow[] {
       label: `${f.brand} · ${f.code} · ${f.meaning}`,
       where: "Fault code",
       terms: `${f.firstCheck} ${FAULT_SYSTEM_LABELS[f.system]}`,
+      snip: f.firstCheck,
     });
   }
 

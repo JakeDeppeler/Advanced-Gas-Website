@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Heads } from "@/components/portal/marketingParts";
 import { listIntegrations, type IntegrationState } from "@/lib/portal/integrations";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Integrations — Team portal" };
@@ -34,7 +35,7 @@ function ago(iso: string | null): string | null {
 export default async function IntegrationsPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Integrations" forWhom="managers" />;
 
   const rows = await listIntegrations();
   const count = (s: IntegrationState) => rows.filter((r) => r.state === s).length;

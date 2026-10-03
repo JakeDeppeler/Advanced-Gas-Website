@@ -8,6 +8,7 @@ import { Heads } from "@/components/portal/marketingParts";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { latestSnapshot, type Metrics } from "@/lib/dashboard/metrics";
 import { money, pct } from "@/lib/portal/format";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wall board — Team portal" };
@@ -121,7 +122,7 @@ const STATE_WORD: Record<string, { word: string; tone: string }> = {
 export default async function BoardPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="The wall board" forWhom="managers" />;
 
   const snap = dashboardDbConfigured() ? await latestSnapshot().catch(() => null) : null;
   const m = snap?.metrics ?? null;

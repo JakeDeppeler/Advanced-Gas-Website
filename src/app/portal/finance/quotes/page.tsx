@@ -9,6 +9,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { QuotesBoard, type QuoteView } from "@/components/portal/QuotesBoard";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Quotes & win rate — Team portal" };
@@ -20,7 +21,7 @@ function when(iso: string) {
 export default async function QuotesPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const ready = dbConfigured();
   // The business has one revenue target and one average job, and they live in

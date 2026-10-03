@@ -10,6 +10,7 @@ import { groupByArea, BANDS } from "@/lib/portal/leadArea";
 import { pageReport, titleFor } from "@/lib/portal/leadPages";
 import { WEBSITE_TABS, websiteHref, websiteTabDef, windowDays, windowKey, type WebsiteTab } from "@/lib/portal/marketingTabs";
 import { Bars, Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Website — Team portal" };
@@ -25,7 +26,7 @@ export const metadata = { title: "Website — Team portal" };
 export default async function WebsitePage({ searchParams }: { searchParams: { tab?: string; win?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
 
   const def = websiteTabDef(searchParams.tab);
   const tab: WebsiteTab = def.k;

@@ -6,8 +6,9 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { SopEditor, type SectionView } from "@/components/portal/SopEditor";
 import { dbConfigured, listStoredSops } from "@/lib/portal/db";
-import { mergeSops, type SopStep } from "@/lib/portal/sopEdits";
+import { mergeSops, splitStep, type SopStep } from "@/lib/portal/sopEdits";
 import { SOPS, SOP_VERSION } from "@/lib/portal/sops";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Edit processes — Team portal" };
@@ -15,7 +16,8 @@ export const metadata = { title: "Edit processes — Team portal" };
 /**
  * The manual's own steps for a procedure, so editing one starts from what the
  * crew reads today rather than from an empty form. A step there is one line;
- * the editor keeps the line and leaves the note blank.
+ * the editor splits it into what to do and the note under it, the same split
+ * the procedure page draws.
  */
 function manualSteps(): Record<string, { title: string; steps: SopStep[]; happens: string }> {
   const out: Record<string, { title: string; steps: SopStep[]; happens: string }> = {};
@@ -24,7 +26,7 @@ function manualSteps(): Record<string, { title: string; steps: SopStep[]; happen
       const block = sop.blocks.find((b) => b.kind === "steps");
       out[sop.code] = {
         title: sop.title,
-        steps: block && block.kind === "steps" ? block.items.map((i) => ({ do: i, note: "" })) : [],
+        steps: block && block.kind === "steps" ? block.items.map(splitStep) : [],
         happens: sop.meta.find((m) => m.k === "When")?.v ?? "",
       };
     }
@@ -35,7 +37,7 @@ function manualSteps(): Record<string, { title: string; steps: SopStep[]; happen
 export default async function EditProcessesPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) redirect("/portal?denied=1");
+  if (!can(user, "manage_users")) return <Locked user={user} what="Editing processes" forWhom="admins" />;
 
   const stored = dbConfigured() ? await listStoredSops().catch(() => []) : [];
   // The list on the left is what an editor would see on the page itself,
@@ -49,18 +51,18 @@ export default async function EditProcessesPage() {
   const drafts = stored.filter((s) => s.status === "draft").length;
 
   return (
-    <PortalShell user={user}>
+    <PortalShell user={user} variant="wide">
       <div className="pt-head pt-head--split">
         <div>
           <PortalBack href="/portal/sops" label="Processes" />
           <h1>Edit processes &amp; procedures</h1>
-          <p>The crew sees a change the moment you publish it. Drafts stay here.</p>
+          <p>The crew sees changes on the trade portal once you publish them. Drafts stay here.</p>
         </div>
         <div className="pt-se__head">
           <span className="pt-se__ver">{SOP_VERSION}</span>
           {drafts > 0 && <span className="pt-se__drafts">{drafts} draft{drafts === 1 ? "" : "s"}</span>}
-          <Link href="/trade/processes" className="pt-btn pt-btn--ghost pt-btn--sm" target="_blank" rel="noopener">
-            See it on the iPad ↗
+          <Link href="/trade/processes" className="pt-btn pt-btn--ghost" target="_blank" rel="noopener">
+            See it on the iPad
           </Link>
         </div>
       </div>

@@ -127,7 +127,11 @@ export function SopEditor({
 
       {/* Procedures in this section */}
       <div className="pt-panel pt-se__list">
-        <h2 className="pt-se__h">{here?.title}</h2>
+        {/* The section's name is the manual's, like its letter, so it reads
+            as a field here but isn't one you can change. */}
+        <label className="pt-field pt-se__secname"><span>Section name</span>
+          <input value={here?.title ?? ""} readOnly title="Section names are the manual’s own structure" />
+        </label>
         {here?.codes.map((c) => {
           const row = storedBy.get(c.code);
           return (
@@ -186,7 +190,7 @@ export function SopEditor({
           </div>
         </div>
 
-        <h3 className="pf-set__label" style={{ marginTop: 20 }}>Steps</h3>
+        <h3 className="pt-se__h3">Steps</h3>
         <div className="pt-se__steps">
           {d.steps.map((s, i) => (
             <div key={i} className="pt-se__step">
@@ -208,15 +212,16 @@ export function SopEditor({
           + Add a step
         </button>
 
-        <h3 className="pf-set__label" style={{ marginTop: 22 }}>What changed</h3>
-        <p className="pt-se__hint">Shown to the crew under the procedure, so nobody has to diff two versions in their head.</p>
-        <textarea
-          className="pf-textarea"
-          rows={3}
-          value={d.changed}
-          onChange={(e) => set("changed", e.target.value)}
-          placeholder="e.g. Added: call Gas Emergencies if it's from the meter side."
-        />
+        <label className="pt-field pt-se__changed">
+          <span>What changed</span>
+          <em className="pt-se__hint">Shown to the crew under the procedure, so nobody has to diff two versions in their head.</em>
+          <textarea
+            rows={3}
+            value={d.changed}
+            onChange={(e) => set("changed", e.target.value)}
+            placeholder="e.g. Added: call Gas Emergencies if it's from the meter side."
+          />
+        </label>
 
         <div className="pt-se__foot">
           <span className={`pt-se__state${d.status === "published" ? " is-live" : ""}`}>
@@ -228,7 +233,7 @@ export function SopEditor({
           </span>
           {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
           {d.status && (
-            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={pending}
+            <button type="button" className="pt-btn pt-btn--ghost" disabled={pending}
               onClick={() => start(async () => {
                 const res = await revertProcedure(d.code);
                 if (!res.ok) return setMsg({ ok: false, text: res.error ?? "Couldn't remove it." });
@@ -239,10 +244,10 @@ export function SopEditor({
               Back to the manual
             </button>
           )}
-          <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={pending} onClick={() => save(false)}>
+          <button type="button" className="pt-btn pt-btn--ghost" disabled={pending} onClick={() => save(false)}>
             {pending ? "Saving…" : "Save draft"}
           </button>
-          <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" disabled={pending} onClick={() => save(true)}>
+          <button type="button" className="pt-btn pt-btn--orange" disabled={pending} onClick={() => save(true)}>
             Publish to the crew
           </button>
         </div>

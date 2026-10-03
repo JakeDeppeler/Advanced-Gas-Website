@@ -25,6 +25,14 @@ export type SearchRow = {
   where: string;
   /** Extra words to match that aren't in the label. */
   terms?: string;
+  /**
+   * The full text — a procedure's steps, a handbook topic's body. Only the
+   * results page carries it: the bar's index ships on every page and has no
+   * use for a hundred procedures' worth of words.
+   */
+  body?: string;
+  /** The line under the title on the results page, when there's no better one. */
+  snip?: string;
 };
 
 const MAX = 8;

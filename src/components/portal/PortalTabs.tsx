@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { TAB_SETS, type Tab, type TabSetName } from "@/lib/portal/nav";
+import { TAB_SETS, type Tab, type TabSetName } from "@/lib/portal/tabSets";
 
 /**
  * The strip across the top of a section.

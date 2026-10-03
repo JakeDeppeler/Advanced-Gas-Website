@@ -33,69 +33,84 @@ export default async function MyFile() {
       <div className="pt-head">
         <PortalBack href="/portal" label="Home" />
         <h1>Where you&rsquo;re at, {me.name.split(" ")[0]}.</h1>
-        <p>What&rsquo;s expected of you, your goals and targets, and your reviews. Set by your manager.</p>
+        <p>What&rsquo;s expected of you, your goals and your reviews. Set by your manager.</p>
       </div>
 
       {!record?.id && (
         <div className="pt-note">Your file isn&rsquo;t set up yet. Once a manager adds goals or a review, they&rsquo;ll show here.</div>
       )}
 
-      <PersonVan {...vanView} mine />
-
       {c && (
-        <section className="pt-panel">
-          <h2 className="pt-panel__h">Your year</h2>
-          <p className="pt-panel__sub">What you&rsquo;re allowed and what you&rsquo;re paid outside normal hours. Set by your manager in Costs &amp; capacity.</p>
-          <div className="pt-pl__heads">
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Annual leave</span><strong className="pt-pl__headval">{c.leaveDays} days</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">RDOs</span><strong className="pt-pl__headval">{c.rdoDays} days</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Sick leave</span><strong className="pt-pl__headval">{c.sickDays} days</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Public holidays</span><strong className="pt-pl__headval">{c.phDays} days</strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Overtime</span><strong className="pt-pl__headval">{c.otMult}×<em> {money2(c.wage * c.otMult)}/hr</em></strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Nights</span><strong className="pt-pl__headval">{c.nightMult}×<em> {money2(c.wage * c.nightMult)}/hr</em></strong></div>
-            <div className="pt-pl__head"><span className="pt-pl__headlabel">Call-backs</span><strong className="pt-pl__headval">{c.callbackPct ?? 0}%</strong></div>
+        <section className="pt-myyear" aria-labelledby="my-year">
+          <h2 id="my-year">Your year</h2>
+          <div className="pt-myyear__days">
+            {[
+              ["Annual leave", c.leaveDays], ["RDOs", c.rdoDays], ["Sick leave", c.sickDays], ["Public holidays", c.phDays],
+            ].map(([k, v]) => (
+              <div key={k as string} className="pt-myyear__tile">
+                <span>{k}</span>
+                <strong>{v}<em> days</em></strong>
+              </div>
+            ))}
+          </div>
+          <div className="pt-myyear__rates">
+            <div><span>Overtime</span><strong>{c.otMult}× · {money2(c.wage * c.otMult)}/hr</strong></div>
+            <div><span>Nights</span><strong>{c.nightMult}× · {money2(c.wage * c.nightMult)}/hr</strong></div>
+            <div><span>Call-backs</span><strong>{c.callbackPct ?? 0}%</strong></div>
           </div>
         </section>
       )}
 
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">What&rsquo;s expected</h2>
-        <p className="pf-readonly">{expectations || "Nothing set yet."}</p>
-      </section>
+      {/* The three things a manager sets, side by side as in the mock. */}
+      <div className="pt-mythree">
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">What&rsquo;s expected</h2>
+          {expectations
+            ? <p className="pf-readonly">{expectations}</p>
+            : <div className="pt-myempty">Nothing set yet. Your manager adds this.</div>}
+        </section>
 
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Goals &amp; targets <span className="pt-tm__count">{goals.length}</span></h2>
-        <div className="pf-goals">
-          {goals.length === 0 && <div className="pf-empty">No goals set yet.</div>}
-          {goals.map((g) => (
-            <div key={g.id} className={`pf-goal is-readonly${g.status === "done" ? " is-done" : ""}`}>
-              <span className="pf-goal__check" aria-hidden="true">{g.status === "done" ? "✓" : ""}</span>
-              <div className="pf-goal__txt">
-                <strong>{g.title}</strong>
-                {g.target && <span className="pf-goal__target">Target: {g.target}</span>}
-                {g.due && <span className="pf-goal__due">by {g.due}</span>}
-              </div>
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Goals &amp; targets</h2>
+          {goals.length === 0 ? <div className="pt-myempty">No goals set yet.</div> : (
+            <div className="pf-goals">
+              {goals.map((g) => (
+                <div key={g.id} className={`pf-goal is-readonly${g.status === "done" ? " is-done" : ""}`}>
+                  <span className="pf-goal__check" aria-hidden="true">{g.status === "done" ? "✓" : ""}</span>
+                  <div className="pf-goal__txt">
+                    <strong>{g.title}</strong>
+                    {g.target && <span className="pf-goal__target">Target: {g.target}</span>}
+                    {g.due && <span className="pf-goal__due">by {g.due}</span>}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          )}
+        </section>
 
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Your reviews <span className="pt-tm__count">{reviews.length}</span></h2>
-        <div className="pf-reviews">
-          {reviews.length === 0 && <div className="pf-empty">No reviews yet.</div>}
-          {reviews.map((r) => (
-            <article key={r.id} className="pf-review">
-              <header className="pf-review__head">
-                <span>{r.period || "Review"} {r.rating ? <span className="pf-stars">{"★".repeat(r.rating)}<span className="pf-stars__off">{"★".repeat(5 - r.rating)}</span></span> : null}</span>
-                <span className="pf-review__when">{when(r.createdAt)}</span>
-              </header>
-              <p className="pf-review__body">{r.body}</p>
-              <footer className="pf-review__foot"><span>— {r.authorName || "Manager"}</span></footer>
-            </article>
-          ))}
-        </div>
-      </section>
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Reviews</h2>
+          {reviews.length === 0 ? <div className="pt-myempty">No reviews yet.</div> : (
+            <div className="pf-reviews">
+              {reviews.map((r) => (
+                <article key={r.id} className="pf-review">
+                  <header className="pf-review__head">
+                    <span>{r.period || "Review"} {r.rating ? <span className="pf-stars">{"★".repeat(r.rating)}<span className="pf-stars__off">{"★".repeat(5 - r.rating)}</span></span> : null}</span>
+                    <span className="pf-review__when">{when(r.createdAt)}</span>
+                  </header>
+                  <p className="pf-review__body">{r.body}</p>
+                  <footer className="pf-review__foot"><span>— {r.authorName || "Manager"}</span></footer>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* The van they're signed to, and the checks they've done on it. Not in
+          the mock, which predates the van checks; it sits under the file
+          rather than above it. */}
+      <PersonVan {...vanView} mine />
     </PortalShell>
   );
 }

@@ -6,6 +6,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { checkServiceTitan, type CheckReport } from "@/lib/dashboard/stCheck";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 // The check calls ServiceTitan for real, which is the point of it — so this
 // page is never cached and is slower than the rest of the portal.
@@ -21,7 +22,7 @@ function Mark({ status }: { status: "ok" | "failed" | "skipped" }) {
 export default async function SupplyHealthPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   const configured = serviceTitanConfigured();
   let report: CheckReport | null = null;

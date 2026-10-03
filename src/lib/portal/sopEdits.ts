@@ -13,6 +13,35 @@ import { SOPS, type Sop, type SopBlock, type SopSection } from "@/lib/portal/sop
 
 export type SopStep = { do: string; note: string };
 
+/**
+ * One line of a procedure ↔ the step the editor and the reader show: what to
+ * do, and a note under it.
+ *
+ * The manual writes a step as one line — "Count the stock against the list.
+ * Do not go from memory." or "Check batteries are charged — drill, impact,
+ * test gear." — and the split is at whichever comes first, a sentence's end
+ * or a dash. `joinStep` puts it back the way it came, so opening a procedure
+ * in the editor and saving it unchanged leaves the crew's text as it was.
+ */
+export function splitStep(line: string): SopStep {
+  const t = line.trim();
+  const dash = t.search(/\s—\s/);
+  const stop = t.search(/[.!?]\s/);
+  const cuts = [dash, stop >= 0 ? stop + 1 : -1].filter((i) => i > 0);
+  if (cuts.length === 0) return { do: t, note: "" };
+  const at = Math.min(...cuts);
+  // A row saved before the two were joined this way can read "X. — Y"; the
+  // dash after a full stop is a leftover, not part of the note.
+  return { do: t.slice(0, at).trim(), note: t.slice(at).trim().replace(/^—\s*/, "") };
+}
+
+export function joinStep(s: SopStep): string {
+  const d = s.do.trim();
+  const n = s.note.trim();
+  if (!n) return d;
+  return /[.!?]$/.test(d) ? `${d} ${n}` : `${d} — ${n}`;
+}
+
 export type StoredSop = {
   id: string;
   section: string;
@@ -61,7 +90,7 @@ export function toSop(row: StoredSop): Sop {
       // The reader draws a step as one line, so a step's note joins it there
       // rather than being dropped — the editor keeps them apart because that
       // is how somebody writes them, not because they display apart.
-      items: row.steps.map((s) => (s.note.trim() ? `${s.do.trim()} — ${s.note.trim()}` : s.do.trim())),
+      items: row.steps.map(joinStep),
     });
   }
   if (row.changed?.trim()) {

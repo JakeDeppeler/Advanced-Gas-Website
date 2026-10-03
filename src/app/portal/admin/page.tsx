@@ -5,13 +5,14 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { ViewAsPicker } from "@/components/portal/ViewAs";
 import { PortalBack } from "@/components/portal/PortalBack";
+import { Locked } from "@/components/portal/Locked";
 
 export const metadata = { title: "Admin — Team portal" };
 
 export default async function AdminHome() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) redirect("/portal?denied=1");
+  if (!can(user, "manage_users")) return <Locked user={user} what="Admin" forWhom="admins" />;
 
   return (
     <PortalShell user={user}>
@@ -21,41 +22,31 @@ export default async function AdminHome() {
         <p>Who&rsquo;s on the team and exactly what each person can see.</p>
       </div>
 
-      <div className="pt-tiles">
-        <Link href="/portal/admin/team" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M17 11l2 2 3-3.5" /></svg>
-          </span>
-          <h3>Team &amp; access</h3>
-          <p>Add people, set their role, and switch on or off exactly what each person can see.</p>
-          <div className="pt-card__meta">Open →</div>
+      {/* Four doors, two by two, as in the Admin mock: a title, what's behind
+          it, and the one word that says what you'll do there. */}
+      <div className="pt-admgrid">
+        <Link href="/portal/admin/team" className="pt-admcard">
+          <h2>Team &amp; access</h2>
+          <p>Add people, set their role, and switch each page on or off for them.</p>
+          <span>Open →</span>
         </Link>
-        <Link href="/portal/admin/access" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5zM12 15v2" /></svg>
-          </span>
-          <h3>Access levels</h3>
-          <p>What each crew level can see — Operations, Lead hand, Tradesman, Apprentice, Office, Admin.</p>
-          <div className="pt-card__meta">Open →</div>
+        <Link href="/portal/admin/access" className="pt-admcard">
+          <h2>Access levels</h2>
+          <p>What each crew level can see, page by page.</p>
+          <span>Open →</span>
         </Link>
-        <Link href="/portal/sops/edit" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h.01M4 12h.01M4 18h.01M8 6h12M8 12h8M8 18h10M16.5 15.5l3.5 3.5-1.8 1.8-3.5-3.5z" /></svg>
-          </span>
-          <h3>Processes &amp; procedures</h3>
+        <Link href="/portal/sops/edit" className="pt-admcard">
+          <h2>Processes &amp; procedures</h2>
           <p>Write and change what the crew reads, then publish it to the vans.</p>
-          <div className="pt-card__meta">Edit →</div>
+          <span>Edit →</span>
         </Link>
         {/* The pricebook as the van sees it. Admin links to it because what
             the iPad shows is an admin question even though the page itself
             lives in the trade portal. */}
-        <Link href="/trade/pricebook" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zM10 18h4" /></svg>
-          </span>
-          <h3>iPad pricebook</h3>
+        <Link href="/trade/pricebook" className="pt-admcard">
+          <h2>iPad pricebook</h2>
           <p>The installed prices the crew quote from in the van, as the iPad shows them.</p>
-          <div className="pt-card__meta">Open →</div>
+          <span>Open →</span>
         </Link>
       </div>
       <ViewAsPicker current={user.viewingAs} />

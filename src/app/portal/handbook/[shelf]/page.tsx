@@ -100,12 +100,13 @@ export default async function HandbookShelfPage({
             updatedBy={current?.updatedBy ?? null}
             updatedAt={current?.updatedAt ?? null}
             canEdit={can(user, "manage_users")}
+            footer={
+              <>
+                {prev ? <Link href={href(prev.title)} className="pt-hb__prev" title={prev.title}>← Previous</Link> : <span />}
+                {next && <Link href={href(next.title)} className="pt-hb__next" title={next.title}>Next topic →</Link>}
+              </>
+            }
           />
-
-          <div className="pt-hb__nav">
-            {prev ? <Link href={href(prev.title)} className="pt-hb__prev">← {prev.title}</Link> : <span />}
-            {next && <Link href={href(next.title)} className="pt-hb__next">{next.title} →</Link>}
-          </div>
         </div>
       </div>
     </PortalShell>

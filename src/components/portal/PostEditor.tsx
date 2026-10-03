@@ -45,13 +45,39 @@ const DESC_BUDGET = 160;
  * state it is in: everything else in this portal is read by the crew, and
  * this one is read by anyone.
  */
-export function PostEditor({ initial, authors, cats }: { initial: PostDraft; authors: AuthorOption[]; cats: string[] }) {
+export function PostEditor({
+  initial, authors, cats, back,
+}: {
+  initial: PostDraft; authors: AuthorOption[]; cats: string[];
+  /** The back link, drawn on the editor's own top row beside the save state. */
+  back: React.ReactNode;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [d, setD] = useState<PostDraft>(initial);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [slugTouched, setSlugTouched] = useState(Boolean(initial.slug));
   const fileRef = useRef<HTMLInputElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
+  /**
+   * The toolbar marks the line the cursor is on. Only the two marks the blog
+   * renders — a heading and a bullet — are buttons: bold, numbered lists and
+   * links would type into the box fine and then print as literal symbols on
+   * the public page, because its renderer doesn't know them.
+   */
+  function markLine(mark: "## " | "- ") {
+    const el = bodyRef.current;
+    if (!el) return;
+    const at = el.selectionStart ?? d.body.length;
+    const start = d.body.lastIndexOf("\n", at - 1) + 1;
+    const line = d.body.slice(start);
+    const has = line.startsWith(mark);
+    const body = has ? d.body.slice(0, start) + line.slice(mark.length) : d.body.slice(0, start) + mark + line;
+    set("body", body);
+    const caret = Math.max(start, at + (has ? -mark.length : mark.length));
+    requestAnimationFrame(() => { el.focus(); el.setSelectionRange(caret, caret); });
+  }
 
   const set = <K extends keyof PostDraft>(k: K, v: PostDraft[K]) => { setD((p) => ({ ...p, [k]: v })); setMsg(null); };
 
@@ -85,7 +111,19 @@ export function PostEditor({ initial, authors, cats }: { initial: PostDraft; aut
       setMsg({ ok: true, text: "Cover photo added. Describe it below." });
     });
 
+  // The short form of the state, for the top row; the Publish panel carries
+  // the long one.
+  const topState = msg?.ok ? msg.text
+    : d.status === "published" || (d.builtIn && !d.edited) ? "On the site"
+      : d.status === "draft" ? "Draft saved"
+        : "Not saved yet";
+
   return (
+    <>
+    <div className="pt-pe__top">
+      {back}
+      <span className="pt-pe__saved" aria-live="polite">{pending ? "Saving…" : topState}</span>
+    </div>
     <div className="pt-pe">
       <div className="pt-panel pt-pe__main">
         {/* Cover photo */}
@@ -117,7 +155,7 @@ export function PostEditor({ initial, authors, cats }: { initial: PostDraft; aut
           </label>
         )}
 
-        <label className="pt-field pt-pe__title" style={{ marginTop: 18 }}>
+        <label className="pt-field pt-pe__title">
           <span>Title</span>
           <input
             value={d.title}
@@ -129,11 +167,15 @@ export function PostEditor({ initial, authors, cats }: { initial: PostDraft; aut
           />
         </label>
 
-        <div className="pt-pe__howto">
-          Blank line starts a paragraph. <code>## </code> makes a heading. <code>- </code> makes a bullet.
+        <div className="pt-pe__tools" role="toolbar" aria-label="Format">
+          <button type="button" onClick={() => markLine("## ")} title="Make this line a heading (## )">H2</button>
+          <button type="button" onClick={() => markLine("- ")} title="Make this line a bullet (- )" aria-label="Bullet">•</button>
+          <span>Blank line starts a paragraph</span>
         </div>
         <textarea
-          className="pf-textarea pt-pe__body"
+          ref={bodyRef}
+          aria-label="Body"
+          className="pt-pe__body"
           rows={18}
           value={d.body}
           onChange={(e) => set("body", e.target.value)}
@@ -284,5 +326,6 @@ export function PostEditor({ initial, authors, cats }: { initial: PostDraft; aut
         </section>
       </div>
     </div>
+    </>
   );
 }

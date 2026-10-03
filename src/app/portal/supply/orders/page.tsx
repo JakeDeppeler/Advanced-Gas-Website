@@ -8,6 +8,7 @@ import { orderTally, ORDER_STATUSES, type OrderStatus, type SupplyOrder } from "
 import { listOrders } from "@/lib/pricebook/ordersDb";
 import { money } from "@/lib/portal/format";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Orders — Team portal" };
@@ -17,7 +18,7 @@ const CAP = 500;
 export default async function SupplyOrdersPage({ searchParams }: { searchParams: { s?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   // A failed read is not an empty list. `dbReady` carries the difference
   // through to the board, which says "can't tell" rather than "none".
@@ -34,13 +35,10 @@ export default async function SupplyOrdersPage({ searchParams }: { searchParams:
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal/supply" label="Supply" />
+      <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
         <h1>Everything we&rsquo;ve ordered</h1>
-        <p>
-          Every cart sent through Reece maX, what&rsquo;s on it, where it&rsquo;s going and what it came to. Search by
-          reference, place or anything on the order, then open one for the full list.
-        </p>
+        <p>Every cart sent through Reece maX — what&rsquo;s on it, where it&rsquo;s going and what it came to.</p>
         {dbReady && orders.length > 0 && (
           <div className="pt-head__figs">
             <div className="pt-head__fig">

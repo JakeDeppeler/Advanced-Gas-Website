@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CREW_LEVELS, type CrewLevel } from "@/lib/portal/crew";
 import { addCrewPerson } from "@/app/portal/finance/capacity/actions";
 
-export function AddTeamPerson() {
+/** The add form, open — reached from the head's "+ Add a person" (`?add=1`). */
+export function AddTeamPerson({ doneHref }: { doneHref: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
-  const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [level, setLevel] = useState<CrewLevel>("tradesman");
@@ -19,16 +20,13 @@ export function AddTeamPerson() {
     start(async () => {
       const res = await addCrewPerson({ name, email, level });
       if (res.ok) {
-        setName(""); setEmail(""); setLevel("tradesman"); setOpen(false);
+        setName(""); setEmail(""); setLevel("tradesman");
+        router.push(doneHref);
         router.refresh();
       } else {
         setMsg(res.error || "Couldn't add them.");
       }
     });
-  }
-
-  if (!open) {
-    return <div style={{ marginBottom: 18 }}><button type="button" className="pt-btn pt-btn--orange" onClick={() => setOpen(true)}>+ Add a person</button></div>;
   }
 
   return (
@@ -41,7 +39,7 @@ export function AddTeamPerson() {
         <select className="pt-cap__type" value={level} onChange={(e) => setLevel(e.target.value as CrewLevel)}>
           {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
         </select>
-        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(false)} disabled={pending}>Cancel</button>
+        <Link href={doneHref} className="pt-btn pt-btn--ghost pt-btn--sm">Cancel</Link>
         <button type="button" className="pt-btn pt-btn--orange pt-btn--sm" onClick={submit} disabled={pending || !name.trim()}>Add</button>
       </div>
       {msg && <div className="pt-inline is-err" style={{ marginTop: 8 }}>{msg}</div>}

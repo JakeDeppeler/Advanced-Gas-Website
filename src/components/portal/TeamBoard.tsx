@@ -43,29 +43,30 @@ export function TeamBoard({ initial, canManage }: { initial: TeamPerson[]; canMa
     <>
       {groups.map((g) => (
         <section key={g.key} className="pt-teamgroup">
-          <h2 className="pt-cathead">{g.label} <span className="pt-tm__count">{g.people.length}</span></h2>
-          <div className="pt-grid">
+          <h2 className="pt-tl__h">{g.label} <span>{g.people.length}</span></h2>
+          <div className="pt-tl">
             {g.people.map((p, i) => (
-              <div key={p.id} className="pt-card pt-tcard">
-                <div className="pt-tcard__top">
-                  <span className="pt-tcard__id">
-                    <strong>{p.name}</strong>
-                    <span>{p.email || "no login email"}</span>
-                  </span>
-                  <Link href={`/portal/team/${p.id}`} className="pt-tcard__open">Open →</Link>
-                </div>
+              <div key={p.id} className="pt-tl__row">
+                <span className="pt-tl__av" aria-hidden="true">{p.name.trim().charAt(0).toUpperCase() || "?"}</span>
+                <span className="pt-tl__id">
+                  <strong>{p.name}</strong>
+                  {/* No email means they can't sign in — worth seeing at a
+                      glance, so it says so rather than leaving a blank. */}
+                  {p.email ? <span>{p.email}</span> : <span className="is-none">No login email yet</span>}
+                </span>
                 {canManage && (
-                  <div className="pt-tcard__ctrls">
-                    <select className="pt-cap__type" value={p.level} onChange={(e) => changeLevel(p.id, e.target.value as CrewLevel)}>
+                  <>
+                    <span className="pt-tl__move">
+                      <button type="button" aria-label={`Move ${p.name} up`} disabled={i === 0} onClick={() => move(p, -1)}>↑</button>
+                      <button type="button" aria-label={`Move ${p.name} down`} disabled={i === g.people.length - 1} onClick={() => move(p, 1)}>↓</button>
+                    </span>
+                    <select className="pt-tl__level" aria-label={`${p.name}'s level`} value={p.level} onChange={(e) => changeLevel(p.id, e.target.value as CrewLevel)}>
                       <option value="" disabled>Level…</option>
                       {CREW_LEVELS.map((l) => <option key={l.key} value={l.key}>{l.label}</option>)}
                     </select>
-                    <span className="pt-tcard__move">
-                      <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(p, -1)}>↑</button>
-                      <button type="button" aria-label="Move down" disabled={i === g.people.length - 1} onClick={() => move(p, 1)}>↓</button>
-                    </span>
-                  </div>
+                  </>
                 )}
+                <Link href={`/portal/team/${p.id}`} className="pt-tl__open">Open →</Link>
               </div>
             ))}
           </div>

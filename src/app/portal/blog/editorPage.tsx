@@ -8,6 +8,7 @@ import { PostEditor, type PostDraft } from "@/components/portal/PostEditor";
 import { AUTHORS } from "@/lib/blog";
 import { POST_CATS, builtInPost, isBuiltIn, roundTrips, sectionsToBody } from "@/lib/blogMerge";
 import { dbConfigured, listStoredPosts } from "@/lib/portal/db";
+import { Locked } from "@/components/portal/Locked";
 
 /** Melbourne's today, which is the date a post written here should carry. */
 const todayMel = () => new Date().toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" });
@@ -29,7 +30,7 @@ const authorOptions = Object.entries(AUTHORS).map(([k, a]) => ({ k, name: a.name
 export async function BlogEditorPage({ slug }: { slug: string | null }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "manage_users")) redirect("/portal?denied=1");
+  if (!can(user, "manage_users")) return <Locked user={user} what="The blog" forWhom="admins" />;
 
   let initial = BLANK;
   if (slug) {
@@ -78,21 +79,20 @@ export async function BlogEditorPage({ slug }: { slug: string | null }) {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head pt-head--split">
-        <div>
-          <PortalBack href="/portal/blog" label="Blog" />
-          <h1>{slug ? initial.title || "Edit the post" : "Write a post"}</h1>
-          <p>Published posts go straight onto advancedgas.com.au/blog. Drafts stay here.</p>
-        </div>
-      </div>
+      {/* The title field is the page's visible heading, as in the mock; this
+          one is for a screen reader landing on the page. */}
+      <h1 className="pt-sr">{slug ? `Edit: ${initial.title || "the post"}` : "Write a post"}</h1>
 
       {!dbConfigured() ? (
+        <>
+        <PortalBack href="/portal/blog" label="Blog" />
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected.</strong> The blog still reads fine; nothing can be written to it
           from here until it is.
         </div>
+        </>
       ) : (
-        <PostEditor initial={initial} authors={authorOptions} cats={POST_CATS} />
+        <PostEditor initial={initial} authors={authorOptions} cats={POST_CATS} back={<PortalBack href="/portal/blog" label="Blog" />} />
       )}
     </PortalShell>
   );

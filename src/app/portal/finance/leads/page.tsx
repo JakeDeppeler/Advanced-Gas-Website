@@ -8,6 +8,7 @@ import { LeadsBoard } from "@/components/portal/LeadsBoard";
 import { groupByArea } from "@/lib/portal/leadArea";
 import { pageReport } from "@/lib/portal/leadPages";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Website leads — Team portal" };
@@ -15,7 +16,7 @@ export const metadata = { title: "Website leads — Team portal" };
 export default async function LeadsPage({ searchParams }: { searchParams: { d?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Website" forWhom="managers" />;
 
   const days = [30, 90, 365].includes(Number(searchParams?.d)) ? Number(searchParams!.d) : 30;
   const since = new Date(Date.now() - days * 86_400_000).toISOString();

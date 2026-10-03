@@ -10,10 +10,12 @@ import { PlanningTabs } from "@/components/portal/PlanningTabs";
 import { ScenarioPlanner } from "@/components/portal/ScenarioPlanner";
 import { FinancePlanner } from "@/components/portal/FinancePlanner";
 import { VanScaling } from "@/components/portal/VanScaling";
+import { WhatIf } from "@/components/portal/WhatIf";
 import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
 import { DEFAULT_TARGETS, type Targets } from "@/lib/portal/targets";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { XeroLine } from "@/components/portal/XeroLine";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Planning — Team portal" };
@@ -21,7 +23,7 @@ export const metadata = { title: "Planning — Team portal" };
 export default async function PlanningPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   // The year's profit so far, so the target has something to measure against.
   const { status, tenantName } = await xeroStatus();
@@ -38,7 +40,7 @@ export default async function PlanningPage() {
   const targets = dbConfigured() ? await getSettings<Targets>("targets") : null;
   const daysWeek = targets?.daysWeek ?? DEFAULT_TARGETS.daysWeek;
 
-  let charge = 0, cost = 0;
+  let charge = 0, cost = 0, techs = 0;
 
   // What another van does to the numbers. It used to be a tab on the costing
   // page, beside four tabs about the business as it stands; it is a question
@@ -51,6 +53,9 @@ export default async function PlanningPage() {
     const s = settings ?? DEFAULT_SETTINGS;
     const people = users.filter((u) => u.active && u.id && u.level).map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
     const cap = computeCapacity(people, s);
+    // The people who bill their own hours: the starting point for "techs on
+    // the road".
+    techs = people.filter((p) => p.level === "tradesman" || p.level === "lead" || p.level === "hybrid").length;
     cost = Math.round(cap.costPerHr);
     charge = Math.round(cap.costPerHr * (1 + s.margin / 100));
     scale = scaleModel(cap, s);
@@ -63,6 +68,7 @@ export default async function PlanningPage() {
     <PortalShell user={user}>
       <FinanceHead title="Future planning" lede="The profit you’re aiming at, then the what-ifs. Nothing here changes your live numbers." xero={{ state: status, org: tenantName }} />
       <PlanningTabs current="/portal/finance/planning" />
+      <WhatIf techs={techs} rate={charge} />
       <FinancePlanner yearProfit={yearProfit} daysWeek={daysWeek} />
       <ScenarioPlanner defaultCharge={charge} defaultCost={cost} />
       {scale.length > 0 && (

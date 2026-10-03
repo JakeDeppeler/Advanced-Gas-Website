@@ -37,7 +37,13 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   });
 
   return (
-    <PortalShell user={user}>
+    <PortalShell user={user} variant="home">
+      <div className="pt-home">
+      {/* The phone's own header: the bar is hidden there, as the design has it. */}
+      <div className="pt-hphone">
+        <Link href="/portal" className="pt-hphone__brand"><strong>Advanced</strong><em>Team portal</em></Link>
+        <Link href="/portal/me" className="pt__avatar" aria-label={`${user.name} — my file`}>{user.name.slice(0, 1).toUpperCase()}</Link>
+      </div>
       {searchParams.denied && (
         <div className="pt-note pt-note--warn">
           <strong>That page isn&rsquo;t open to you.</strong> Ask an admin if you think it should be.
@@ -55,6 +61,11 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
           <span aria-hidden="true" /> Van check is now weekly, Monday morning →
         </Link>
       </div>
+
+      <Link href="/portal/search" className="pt-hsearch">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-4.3-4.3" /></svg>
+        Search the portal
+      </Link>
 
       {/* The wrapper exists for the phone layout: the bands collapse into it with
           display:contents so twelve tiles flow as one three-column grid, which
@@ -80,18 +91,21 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
                   className={`pt-tile${it.feature ? " is-feature" : ""}`}
                 >
                   <span className="pt-tile__ico" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d={ICON[it.icon]} />
                     </svg>
                   </span>
-                  <span className="pt-tile__name">{it.label}{it.external ? "\u00A0↗" : ""}</span>
-                  <span className="pt-tile__blurb">{it.blurb}</span>
+                  <span className="pt-tile__text">
+                    <span className="pt-tile__name" data-short={it.short}><span>{it.label}{it.external ? "\u00A0↗" : ""}</span></span>
+                    <span className="pt-tile__blurb">{it.blurb}</span>
+                  </span>
                 </Link>
               ))}
             </div>
           </section>
         );
       })}
+      </div>
       </div>
     </PortalShell>
   );

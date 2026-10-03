@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { loadSupplyState } from "@/lib/pricebook/supply";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalBack } from "@/components/portal/PortalBack";
+import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Supply — Team portal" };
@@ -44,7 +45,7 @@ function Light({ state, label, detail, fix }: {
 export default async function SupplyPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) redirect("/portal?denied=1");
+  if (!can(user, "overhead")) return <Locked user={user} what="Supply" forWhom="managers" />;
 
   const state = await loadSupplyState();
   const stLight: Health = state.serviceTitan.configured ? "ok" : "off";
@@ -58,23 +59,16 @@ export default async function SupplyPage() {
       <div className="pt-head">
         <PortalBack href="/portal" label="Home" />
         <h1>Reece maX, into ServiceTitan</h1>
-        <p>
-          Our contractor pricing from Reece, the ServiceTitan pricebook it feeds, and every order that&rsquo;s gone out
-          through it. One place to see whether the link is working and what it has done.
-        </p>
+        <p>Our contractor pricing from Reece, the pricebook it feeds, and every order that&rsquo;s gone out through it.</p>
       </div>
 
       <PortalTabs set="supply" />
 
-      <section className="pt-panel">
-        <div className="pt-veh__edithead">
+      <section className="pt-panel pt-sup">
+        <div className="pt-sup__head">
           <h2 className="pt-panel__h">Where the link stands</h2>
-          <Link href="/portal/supply/health" className="pt-btn pt-btn--navy pt-btn--sm">Run connection check</Link>
+          <Link href="/portal/supply/health" className="pt-btn pt-btn--navy">Run connection check</Link>
         </div>
-        <p className="pt-panel__sub">
-          Read from our own records, so this loads instantly. Proving ServiceTitan is actually answering calls it for
-          real and takes a few seconds, so it is the button rather than this page.
-        </p>
         <div className="pt-sup__rows">
           <Light
             state={stLight}
@@ -102,7 +96,7 @@ export default async function SupplyPage() {
                   ? "Nothing loaded yet"
                   : `${state.catalogue.items.toLocaleString("en-AU")} items · ${state.catalogue.priced?.toLocaleString("en-AU") ?? "?"} priced · last seen ${when(state.catalogue.lastSeenAt)}`
             }
-            fix={state.catalogue.items === 0 ? { href: "/portal/supply/syncs", label: "Upload a price file" } : undefined}
+            fix={state.catalogue.items === 0 ? { href: "/portal/supply/search", label: "Upload a price file" } : undefined}
           />
           <Light
             state={state.lastRun ? "ok" : "wait"}
@@ -127,34 +121,6 @@ export default async function SupplyPage() {
         )}
       </section>
 
-      <div className="pt-tiles">
-        <Link href="/portal/supply/orders" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 7l8-4 8 4v10l-8 4-8-4zM4 7l8 4 8-4M12 11v10" /></svg>
-          </span>
-          <h3>Orders</h3>
-          <p>Everything sent through maX — where it went, what it came to, and what was on it.</p>
-          <div className="pt-card__meta">
-            {state.orders.total == null ? "Open →" : `${state.orders.total} order${state.orders.total === 1 ? "" : "s"} →`}
-          </div>
-        </Link>
-        <Link href="/portal/supply/search" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4" /></svg>
-          </span>
-          <h3>Item search</h3>
-          <p>Look up a Reece product and what it costs us, for quoting.</p>
-          <div className="pt-card__meta">Open →</div>
-        </Link>
-        <Link href="/portal/supply/syncs" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" /></svg>
-          </span>
-          <h3>Sync history</h3>
-          <p>Every pricebook run, what it changed, and anything that failed.</p>
-          <div className="pt-card__meta">Open →</div>
-        </Link>
-      </div>
 
     </PortalShell>
   );
