@@ -43,7 +43,6 @@ export default async function YearGoalPage() {
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/finance" label="Finance" />
-      <PortalTabs set="finance" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">The year</div>
         <h1>Are we going to make it?</h1>
@@ -53,6 +52,8 @@ export default async function YearGoalPage() {
           than the one before.
         </p>
       </div>
+
+      <PortalTabs set="finance" />
 
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />
     </PortalShell>

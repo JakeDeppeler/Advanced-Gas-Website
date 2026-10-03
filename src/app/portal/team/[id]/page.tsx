@@ -84,7 +84,7 @@ export default async function TeamMemberFile({
         </div>
       </div>
 
-      <nav className="pt-tabs pt-tabs--inline" aria-label="Their file">
+      <nav className="pt-tabs" aria-label="Their file">
         {TABS.map((t) => (
           <Link
             key={t.k}

@@ -120,19 +120,20 @@
 .pt-head p { margin: 0; color: var(--pt-ink-2); font-size: 18px; line-height: 28px; max-width: 64ch; }
 
 /* ---- Tab strip: what section children became when the sidebar went ---- */
-.pt-tabs {
-  display: flex; gap: 2px; margin: 0 0 26px; padding: 4px; overflow-x: auto;
-  background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: 999px;
-  align-self: flex-start; width: fit-content; max-width: 100%;
+/* The section strip. One shape everywhere: separate pills under the heading,
+   the current one filled. It used to be pills inside a pill on some pages and
+   loose pills on others, which read as two different controls. */
+.pt-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.pt-tabs a, .pt-tabs .pt-tab {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--pt-line);
+  background: var(--pt-surface); color: var(--pt-ink); text-decoration: none;
+  font-size: 14px; font-weight: 700; white-space: nowrap;
 }
-.pt-tabs a {
-  flex: 0 0 auto; padding: 9px 17px; border-radius: 999px; text-decoration: none;
-  font-size: 13.5px; font-weight: 700; color: var(--pt-ink-2); white-space: nowrap;
-}
-.pt-tabs a:hover { color: var(--pt-ink); }
+.pt-tabs a:hover, .pt-tabs .pt-tab:hover { border-color: var(--pt-ink-3); }
 /* The current tab is a navy fill, not a colour shift — it has to read at a
    glance on a page that is otherwise all cream and white. */
-.pt-tabs a.is-on { background: var(--pt-navy-2); color: #fff; }
+.pt-tabs a.is-on, .pt-tabs .pt-tab.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
 .pt-tabs a:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 1px; }
 
 /* The three numbers under a heading: what a tradesman's hour costs, what an
@@ -1652,20 +1653,30 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
 }
 
-/* ---- status lights ---- */
-.pt-sup__lights { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
-.pt-sup__light {
-  display: flex; gap: 11px; align-items: flex-start;
-  padding: 13px 15px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-bg);
+/* ---- status rows ---- */
+/* Four rows read down, not four tiles read across: the question is always
+   "which one is the problem", and a column of names answers it faster than a
+   row of boxes. */
+.pt-sup__rows { display: flex; flex-direction: column; margin-top: 6px; }
+.pt-sup__row {
+  display: grid; grid-template-columns: 190px minmax(0, 1fr) auto; gap: 24px; align-items: baseline;
+  padding: 16px 0; border-top: 1px solid var(--pt-line);
 }
-.pt-sup__light strong { display: block; font-size: 14px; font-weight: 700; color: var(--pt-ink); }
-.pt-sup__light span { display: block; font-size: 12.5px; color: var(--pt-ink-2); line-height: 1.45; margin-top: 2px; }
-/* The dot is never the only signal — every light spells its state out in the
-   detail line underneath. It is a glance aid, not the reading. */
-.pt-sup__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; margin-top: 5px; }
-.pt-sup__light--ok   .pt-sup__dot { background: var(--pt-good); }
-.pt-sup__light--wait .pt-sup__dot { background: #b8821c; }
-.pt-sup__light--off  .pt-sup__dot { background: var(--pt-ink-3); }
+.pt-sup__row:first-child { border-top: 0; }
+.pt-sup__row > strong { font-size: 15.5px; font-weight: 800; color: var(--pt-ink); }
+.pt-sup__state { display: flex; align-items: baseline; gap: 11px; min-width: 0; font-size: 14.5px; color: var(--pt-ink-2); }
+.pt-sup__row > em { font-style: normal; font-size: 14px; color: var(--pt-ink-2); white-space: nowrap; }
+.pt-sup__fix { font-size: 14.5px; font-weight: 800; color: var(--pt-accent); white-space: nowrap; }
+/* The dot is never the only signal — every row spells its state out in words,
+   either in the detail or in the status at the end. It is a glance aid. */
+.pt-sup__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; align-self: center; }
+.pt-sup__row--ok   .pt-sup__dot { background: var(--pt-good); }
+.pt-sup__row--wait .pt-sup__dot { background: var(--pt-accent-fill); }
+.pt-sup__row--off  .pt-sup__dot { background: var(--pt-ink-3); }
+@media (max-width: 760px) {
+  .pt-sup__row { grid-template-columns: minmax(0, 1fr); gap: 5px; }
+  .pt-sup__row > em, .pt-sup__fix { text-align: left; }
+}
 .pt-sup__attn { margin: 16px 0 0; }
 .pt-sup__attn a { color: inherit; font-weight: 700; }
 
@@ -2114,17 +2125,6 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-head--split { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
 .pt-head__act { flex: none; margin-top: 6px; }
 
-.pt-tabs--inline {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
-  margin: 0 0 18px;
-}
-.pt-tabs--inline .pt-tab {
-  display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px;
-  border-radius: 999px; border: 1px solid var(--pt-line);
-  background: var(--pt-surface); color: var(--pt-ink);
-  font-size: 14px; font-weight: 700; text-decoration: none;
-}
-.pt-tabs--inline .pt-tab.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
 .pt-tabs__note { margin-left: auto; font-size: 13px; color: var(--pt-ink-2); }
 
 /* The cost of running the fleet is context for the table, not a headline
@@ -2181,7 +2181,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 
 /* The campaigns bar: audience pills on the left, the add button on the right. */
 .pt-mkbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
-.pt-mkbar .pt-tabs--inline { margin: 0; }
+.pt-mkbar .pt-tabs { margin: 0; }
 .pt-tab em { font-style: normal; opacity: 0.7; margin-left: 4px; }
 
 .pt-aud {
@@ -2600,3 +2600,18 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   color: #fff;
 }
 .pt-toolwrap .faults-systemchip:hover { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+
+/* ---- a settings rule: name, what it does, what it's set to ---- */
+.pt-rule { display: flex; flex-direction: column; margin-top: 6px; }
+.pt-rule__row {
+  display: grid; grid-template-columns: 230px minmax(0, 1fr) auto; gap: 24px; align-items: baseline;
+  padding: 16px 0; border-top: 1px solid var(--pt-line);
+}
+.pt-rule__row:first-child { border-top: 0; }
+.pt-rule__row > strong { font-size: 15.5px; font-weight: 800; color: var(--pt-ink); }
+.pt-rule__row > span { font-size: 14.5px; color: var(--pt-ink-2); }
+.pt-rule__row > em {
+  font-style: normal; font-family: var(--f-display); font-size: 17px; font-weight: 800;
+  color: var(--pt-ink); white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+@media (max-width: 760px) { .pt-rule__row { grid-template-columns: minmax(0, 1fr); gap: 4px; } }

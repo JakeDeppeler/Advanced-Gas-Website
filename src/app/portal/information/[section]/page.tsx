@@ -114,7 +114,7 @@ export default async function InfoSectionPage({ params }: { params: { section: s
 
       {/* Without these you could reach Pricing and not Licences: the sidebar
           used to carry the siblings and nothing replaced it. */}
-      <nav className="pt-tabs pt-tabs--inline" aria-label="Information">
+      <nav className="pt-tabs" aria-label="Information">
         {INFO_SECTIONS.map((x) => (
           <Link
             key={x.slug}

@@ -120,7 +120,7 @@ export default async function VehiclePage({
         </div>
       </div>
 
-      <nav className="pt-tabs pt-tabs--inline" aria-label="This van">
+      <nav className="pt-tabs" aria-label="This van">
         {TABS.map((t) => (
           <Link
             key={t.k}

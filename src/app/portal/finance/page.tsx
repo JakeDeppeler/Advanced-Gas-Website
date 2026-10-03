@@ -40,12 +40,13 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="finance" />
       <div className="pt-head">
         <div className="pt-head__eyebrow">Finance</div>
         <h1>Where we&rsquo;re at.</h1>
         <p>A plain read on how the business is tracking — this month, this year, and what&rsquo;s going well versus what to watch.</p>
       </div>
+
+      <PortalTabs set="finance" />
 
       {status === "not-configured" && (
         <section className="pt-panel">

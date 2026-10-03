@@ -69,13 +69,14 @@ export default async function SopSectionPage({ params }: { params: { section: st
 
   return (
     <PortalShell user={user}>
-      <PortalTabs tabs={SOPS.map((x) => ({ href: `/portal/sops/${x.slug}`, label: `${x.letter} · ${x.title}` }))} />
       <div className="pt-head">
         <PortalBack href="/portal/sops" label="Processes" />
         <div className="pt-head__eyebrow">Section {section.letter}</div>
         <h1>{section.title}.</h1>
         <p>{section.blurb}</p>
       </div>
+
+      <PortalTabs tabs={SOPS.map((x) => ({ href: `/portal/sops/${x.slug}`, label: `${x.letter} · ${x.title}` }))} />
 
       {section.draft && (
         <div className="pt-note pt-note--warn"><strong>Not final.</strong> {section.draft}</div>

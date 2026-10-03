@@ -4,8 +4,8 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { loadSupplyState } from "@/lib/pricebook/supply";
-import { loadPricebookSettings, type PricebookSettings } from "@/lib/pricebook/stPricebook";
 import { PortalTabs } from "@/components/portal/PortalTabs";
+import { PortalBack } from "@/components/portal/PortalBack";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Supply — Team portal" };
@@ -17,14 +17,26 @@ const when = (iso: string | null) =>
 /** Three states, never two: a thing can be working, not working, or unknown. */
 type Health = "ok" | "wait" | "off";
 
-function Light({ state, label, detail }: { state: Health; label: string; detail: string }) {
+/** The word for each state, so the dot is never carrying it alone. */
+const HEALTH_WORD: Record<Health, string> = { ok: "Working", wait: "Waiting", off: "Not set up" };
+
+function Light({ state, label, detail, fix }: {
+  state: Health; label: string; detail: string;
+  /** The one thing to do about it, when there is one. It replaces the status
+   *  word rather than sitting beside it: a row that needs an action does not
+   *  also need to be told it isn't working. */
+  fix?: { href: string; label: string };
+}) {
   return (
-    <div className={`pt-sup__light pt-sup__light--${state}`}>
-      <span className="pt-sup__dot" aria-hidden="true" />
-      <div>
-        <strong>{label}</strong>
-        <span>{detail}</span>
-      </div>
+    <div className={`pt-sup__row pt-sup__row--${state}`}>
+      <strong>{label}</strong>
+      <span className="pt-sup__state">
+        <i className="pt-sup__dot" aria-hidden="true" />
+        {detail}
+      </span>
+      {fix
+        ? <Link href={fix.href} className="pt-sup__fix">{fix.label}</Link>
+        : <em>{HEALTH_WORD[state]}</em>}
     </div>
   );
 }
@@ -35,13 +47,6 @@ export default async function SupplyPage() {
   if (!can(user, "overhead")) redirect("/portal?denied=1");
 
   const state = await loadSupplyState();
-  let rules: PricebookSettings | null = null;
-  try {
-    rules = await loadPricebookSettings();
-  } catch {
-    rules = null;
-  }
-
   const stLight: Health = state.serviceTitan.configured ? "ok" : "off";
   const reeceLight: Health =
     state.reece.status === "ready" ? "ok" : state.reece.status === "no-customer" ? "wait" : "off";
@@ -50,23 +55,27 @@ export default async function SupplyPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="supply" />
       <div className="pt-head">
-        <div className="pt-head__eyebrow">Supply</div>
-        <h1>Reece maX, into ServiceTitan.</h1>
+        <PortalBack href="/portal" label="Home" />
+        <h1>Reece maX, into ServiceTitan</h1>
         <p>
           Our contractor pricing from Reece, the ServiceTitan pricebook it feeds, and every order that&rsquo;s gone out
           through it. One place to see whether the link is working and what it has done.
         </p>
       </div>
 
+      <PortalTabs set="supply" />
+
       <section className="pt-panel">
-        <h2 className="pt-panel__h">Where the link stands</h2>
+        <div className="pt-veh__edithead">
+          <h2 className="pt-panel__h">Where the link stands</h2>
+          <Link href="/portal/supply/health" className="pt-btn pt-btn--navy pt-btn--sm">Run connection check</Link>
+        </div>
         <p className="pt-panel__sub">
-          Read from our own records, so this loads instantly. To actually prove ServiceTitan is answering — which takes
-          a few seconds and calls it for real — run the <Link href="/portal/supply/health">connection check</Link>.
+          Read from our own records, so this loads instantly. Proving ServiceTitan is actually answering calls it for
+          real and takes a few seconds, so it is the button rather than this page.
         </p>
-        <div className="pt-sup__lights">
+        <div className="pt-sup__rows">
           <Light
             state={stLight}
             label="ServiceTitan"
@@ -90,9 +99,10 @@ export default async function SupplyPage() {
               state.catalogue.items == null
                 ? "Couldn’t read it"
                 : state.catalogue.items === 0
-                  ? "Nothing loaded yet — upload a maX price file"
+                  ? "Nothing loaded yet"
                   : `${state.catalogue.items.toLocaleString("en-AU")} items · ${state.catalogue.priced?.toLocaleString("en-AU") ?? "?"} priced · last seen ${when(state.catalogue.lastSeenAt)}`
             }
+            fix={state.catalogue.items === 0 ? { href: "/portal/supply/syncs", label: "Upload a price file" } : undefined}
           />
           <Light
             state={state.lastRun ? "ok" : "wait"}
@@ -102,6 +112,7 @@ export default async function SupplyPage() {
                 ? `Last run ${when(state.lastRun.startedAt)} · ${state.lastRun.mode}${state.lastRun.errors.length ? ` · ${state.lastRun.errors.length} error(s)` : ""}`
                 : "Never run"
             }
+            fix={state.lastRun ? undefined : { href: "/portal/supply/syncs", label: "Run a sync" }}
           />
         </div>
         {state.orders.needingAttention != null && state.orders.needingAttention > 0 && (
@@ -143,49 +154,8 @@ export default async function SupplyPage() {
           <p>Every pricebook run, what it changed, and anything that failed.</p>
           <div className="pt-card__meta">Open →</div>
         </Link>
-        <Link href="/portal/supply/health" className="pt-tile">
-          <span className="pt-tile__ico" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l7 4v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V7zM9 12l2 2 4-4" /></svg>
-          </span>
-          <h3>Connection check</h3>
-          <p>Prove ServiceTitan is answering, scope by scope, and name what to fix if it isn&rsquo;t.</p>
-          <div className="pt-card__meta">Run it →</div>
-        </Link>
       </div>
 
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Pricing rules</h2>
-        <p className="pt-panel__sub">
-          How Reece&rsquo;s cost becomes a pricebook figure. Shown here rather than editable: changing the markup
-          changes what every quote charges on the next sync, so it stays a deliberate change made in{" "}
-          <code>portal_settings</code> — the exact statement is in <code>PRICEBOOK.md</code> §2. Say the word and
-          I&rsquo;ll put a form on it.
-        </p>
-        {rules ? (
-          <dl className="pt-sup__dl">
-            <dt>Vendor</dt>
-            <dd>{rules.vendorName}</dd>
-            <dt>Price mode</dt>
-            <dd>
-              {rules.priceMode === "markup"
-                ? `Markup — sell price is cost + ${rules.markupPercent}%`
-                : "Cost only — vendor cost updates, sell prices left as the office set them"}
-            </dd>
-            <dt>Rounding</dt>
-            <dd>{rules.roundTo > 0 ? `To the nearest $${rules.roundTo}` : "None"}</dd>
-            <dt>Create missing items</dt>
-            <dd>{rules.createMissing ? "Yes" : "No — only codes already in the pricebook are updated"}</dd>
-            {rules.codePrefix && (
-              <>
-                <dt>Code prefix</dt>
-                <dd>{rules.codePrefix}</dd>
-              </>
-            )}
-          </dl>
-        ) : (
-          <p className="pt-sup__none">Couldn&rsquo;t read the pricing rules.</p>
-        )}
-      </section>
     </PortalShell>
   );
 }

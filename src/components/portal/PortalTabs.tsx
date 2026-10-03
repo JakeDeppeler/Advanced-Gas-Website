@@ -33,7 +33,7 @@ export function PortalTabs({ set, tabs: given }: { set?: TabSetName; tabs?: Tab[
   return (
     <nav className="pt-tabs" aria-label="Section">
       {tabs.map((t) => (
-        <Link key={t.href} href={t.href} className={t.href === current ? "is-on" : undefined} aria-current={t.href === current ? "page" : undefined}>
+        <Link key={t.href} href={t.href} className={`pt-tab${t.href === current ? " is-on" : ""}`} aria-current={t.href === current ? "page" : undefined}>
           {t.label}
         </Link>
       ))}

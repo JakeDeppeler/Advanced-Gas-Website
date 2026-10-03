@@ -212,7 +212,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
       )}
 
       {rows.length > 0 && (
-        <nav className="pt-tabs pt-tabs--inline" aria-label="Fleet views">
+        <nav className="pt-tabs" aria-label="Fleet views">
           {VIEWS.map((v) => (
             <Link
               key={v.k}

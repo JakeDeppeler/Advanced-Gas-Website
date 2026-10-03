@@ -69,7 +69,6 @@ export default async function TargetsPage() {
 
   return (
     <PortalShell user={user}>
-      <PortalTabs set="finance" />
       <div className="pt-head">
         <PortalBack href="/portal/finance" label="Finance" />
         <div className="pt-head__eyebrow">Finance · Targets</div>
@@ -81,6 +80,8 @@ export default async function TargetsPage() {
           of an assumption.
         </p>
       </div>
+
+      <PortalTabs set="finance" />
       <RevenuePlanner initial={targets} cap={capacity} actual={actual} ytd={ytd} canSave={ready} />
     </PortalShell>
   );

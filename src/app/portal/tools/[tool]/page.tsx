@@ -71,7 +71,7 @@ export default async function PortalToolPage({ params }: { params: { tool: strin
       {/* Somebody on site moves between these all day — sizing, then the
           rebate, then the running cost for the same quote. Going back to the
           Tools page between each was three taps where this is one. */}
-      <nav className="pt-tabs pt-tabs--inline" aria-label="Tools">
+      <nav className="pt-tabs" aria-label="Tools">
         {TABS.map((x) => {
           const on = x.href === `/portal/tools/${params.tool}`;
           return (
