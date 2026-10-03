@@ -247,6 +247,21 @@ export type Metrics = {
     quotedToday: number;
     quotedWeek: number;
     quotes: number;
+    /**
+     * Per job, not per option. A customer priced three ways is one job quoted
+     * and at most one job sold; counted per option every close rate on the page
+     * would read at a third of what it is. These three say something about how
+     * somebody quotes rather than how much, which is what the money columns
+     * already cover.
+     */
+    quotedJobs: number;
+    soldJobs: number;
+    /** Of the jobs they wrote this month, the share that has closed. */
+    closeRate: number | null;
+    closeRateWon: number;
+    /** What a job they sold was worth; what a job they quoted was priced at. */
+    avgTicket: number | null;
+    avgQuote: number | null;
     /** Commission is computed but deliberately not rendered on the wall. */
     commission: number | null;
     tier: number | null;
@@ -528,10 +543,14 @@ async function serviceTitanMetrics(now: Date) {
       job_id: number | null;
       sold_on: string | null;
       business_unit: string | null;
+      customer_id: number | null;
+      created_on: string | null;
+      created_by: string | null;
+      total: number | null;
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,sold_on,business_unit"),
+        q.select("id,job_id,sold_on,business_unit,customer_id,created_on,created_by,total"),
         q.gte("created_on", addDays(now, -30).toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -759,10 +778,13 @@ async function serviceTitanMetrics(now: Date) {
       total: number | null;
       sold_on: string | null;
       business_unit: string | null;
+      job_id: number | null;
+      customer_id: number | null;
+      created_on: string | null;
     }>(
       "st_estimates",
       [
-        q.select("id,sold_by,created_by,total,sold_on,business_unit"),
+        q.select("id,sold_by,created_by,total,sold_on,business_unit,job_id,customer_id,created_on"),
         q.gte("sold_on", monthStart.toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -938,6 +960,57 @@ async function serviceTitanMetrics(now: Date) {
   });
 
   const bySeller = new Map<string, Seller>();
+
+  /**
+   * The same two populations again, grouped per job rather than per option.
+   *
+   * The money columns sum every option, because that is what was written. A
+   * close rate and an average cannot: three prices on one kitchen are one job
+   * quoted and at most one job sold, so counted per option everybody's close
+   * rate reads at a third of the truth and their average quote at the price of
+   * an option rather than of a job.
+   */
+  const quotedJobsBy = new Map<string, Map<string, { sum: number; n: number; won: boolean; wonValue: number }>>();
+
+  /**
+   * Thirty days, not the month, for anything that needs a quote to have had a
+   * chance to close.
+   *
+   * On the third of October the month held eleven jobs quoted by one person and
+   * none closed, which is a 0% against his name on a wall for the arithmetic
+   * reason that nobody decides in three days. Over thirty days the same person
+   * reads 12% of 65 and the woman selling reads 31% of 42 — rates you can put
+   * two people beside each other on. It is also the window the headline close
+   * rate already uses, so the two tiles are describing one pipeline.
+   *
+   * All three columns run off this one population, so they answer one question
+   * between them: of the jobs you put a price on in the last thirty days, how
+   * many came back, what were they worth, and what were you asking. A ticket
+   * averaged over a different window than the rate beside it is the same trap
+   * as the one the totals row on Performance was built to close.
+   */
+  for (const r of recentEstimates) {
+    const key = r.created_by;
+    if (key == null) continue;
+    const jobs =
+      quotedJobsBy.get(key) ?? new Map<string, { sum: number; n: number; won: boolean; wonValue: number }>();
+    const jk = quoteKey(r);
+    const v = Number(r.total ?? 0);
+    const sold = Boolean(r.sold_on);
+    const got = jobs.get(jk);
+    if (got) {
+      got.sum += v;
+      got.n += 1;
+      got.won = got.won || sold;
+      // The ticket is the option that actually sold, not the average of the
+      // options offered — the customer picked one and that is what was banked.
+      if (sold) got.wonValue += v;
+    } else {
+      jobs.set(jk, { sum: v, n: 1, won: sold, wonValue: sold ? v : 0 });
+    }
+    quotedJobsBy.set(key, jobs);
+  }
+
   for (const r of soldRows) {
     const key = creditFor(r);
     if (key == null) continue;
@@ -973,7 +1046,29 @@ async function serviceTitanMetrics(now: Date) {
 
   // Commission is applied later, once the tiers have been read from settings.
   const rawLeaderboard = [...bySeller.entries()]
-    .map(([name, v]) => ({ name, ...v }))
+    .map(([name, v]) => {
+      const quoted = [...(quotedJobsBy.get(name)?.values() ?? [])];
+      const wonJobs = quoted.filter((j) => j.won);
+      const won = wonJobs.length;
+      return {
+        name,
+        ...v,
+        quotedJobs: quoted.length,
+        soldJobs: won,
+        // Null, not zero, with nothing quoted: somebody credited only through
+        // sold_by has written nothing this month, and a 0% against their name
+        // would read as a month of losing every job.
+        closeRate: quoted.length ? won / quoted.length : null,
+        closeRateWon: won,
+        avgTicket: won ? wonJobs.reduce((t, j) => t + j.wonValue, 0) / won : null,
+        // The middle of what was put in front of the customer, averaged across
+        // their jobs — the same convention the pipeline figure uses, because
+        // the best case and the worst case are both a choice.
+        avgQuote: quoted.length
+          ? quoted.reduce((t, j) => t + (j.n > 0 ? j.sum / j.n : 0), 0) / quoted.length
+          : null,
+      };
+    })
     // Quoting is what the board measures for now — nothing is sold through the
     // site yet, so ranking on sold put a column of zeroes above the work people
     // are actually doing. Sold breaks the tie.
@@ -1258,6 +1353,12 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
         quotedToday: r.quotedToday ?? 0,
         quotedWeek: r.quotedWeek ?? 0,
         quotes: r.quotes ?? 0,
+        quotedJobs: r.quotedJobs ?? 0,
+        soldJobs: r.soldJobs ?? 0,
+        closeRate: r.closeRate ?? null,
+        closeRateWon: r.closeRateWon ?? 0,
+        avgTicket: r.avgTicket ?? null,
+        avgQuote: r.avgQuote ?? null,
       })),
       invoiceCountMonth: prev?.invoiceCountMonth ?? 0,
       invoiceCountToday: prev?.invoiceCountToday ?? 0,

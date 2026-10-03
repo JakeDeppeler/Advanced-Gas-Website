@@ -444,7 +444,12 @@ body:has(.screen) .utilbar {
 .tbl__head,
 .tbl__row {
   display: grid;
-  grid-template-columns: 2.2vw 12vw repeat(3, 1fr) 17vw;
+  /* Rank, name, three money columns, then close rate / avg ticket / avg quote,
+     then the tier run. The three rate columns are fixed and narrow: they are
+     read against the person beside them, not against each other, and giving
+     them a share of the free space pushed the money columns under their own
+     figures. */
+  grid-template-columns: 2.2vw 15vw repeat(3, 1fr) repeat(3, 6.6vw) 12.5vw;
   align-items: center;
   gap: 1vw;
   padding: 0.5vw 1vw;
@@ -483,6 +488,11 @@ body:has(.screen) .utilbar {
 .tbl__fig { display: flex; flex-direction: column; gap: 0.1vw; }
 .tbl__fig b { font-size: 1.5vw; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
 .tbl__fig span { font-size: 0.86vw; color: var(--ink-muted); }
+/* The three rate columns. Smaller than the money beside them on purpose: they
+   qualify those figures rather than compete with them, and $15,464 at the full
+   1.5vw does not fit a column this narrow. */
+.tbl__fig--sm b { font-size: 1.12vw; }
+.tbl__fig--sm span { font-size: 0.78vw; }
 
 .tiers { display: flex; flex-direction: column; gap: 0.35vw; }
 .tiers__bar {

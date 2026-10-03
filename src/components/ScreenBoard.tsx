@@ -41,7 +41,10 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `Targets from the ${goal} goal · ${day}`;
   },
   Quotes: () => "Written today, and what's still out",
-  Team: () => "Sold, out of quoted",
+  // The money columns are the month; the last three are thirty days, because a
+  // quote written this week has not had a chance to close. Said once here
+  // rather than three times in headers a column wide.
+  Team: () => "Sold, out of quoted · last three columns over 30 days",
   Performance: (m) => `${monthName(new Date())} so far · by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
@@ -648,9 +651,19 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
       month: a.month + r.sold,
       quoted: a.quoted + r.quoted,
       options: a.options + r.quotes,
+      quotedJobs: a.quotedJobs + r.quotedJobs,
+      soldJobs: a.soldJobs + r.soldJobs,
+      won: a.won + r.closeRateWon,
+      // Summed, not averaged: a mean of five people's averages weights the one
+      // who wrote a single quote the same as the one who wrote fifty.
+      quotedValue: a.quotedValue + (r.avgQuote ?? 0) * r.quotedJobs,
+      wonValue: a.wonValue + (r.avgTicket ?? 0) * r.soldJobs,
     }),
-    { today: 0, week: 0, month: 0, quoted: 0, options: 0 },
+    { today: 0, week: 0, month: 0, quoted: 0, options: 0, quotedJobs: 0, soldJobs: 0, won: 0, quotedValue: 0, wonValue: 0 },
   );
+  const teamCloseRate = totals.quotedJobs ? totals.won / totals.quotedJobs : null;
+  const teamAvgTicket = totals.soldJobs ? totals.wonValue / totals.soldJobs : null;
+  const teamAvgQuote = totals.quotedJobs ? totals.quotedValue / totals.quotedJobs : null;
 
   /**
    * How much of the month's closed work this table actually accounts for.
@@ -671,6 +684,9 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
           <span>Today</span>
           <span>This week</span>
           <span>{monthName(new Date())}</span>
+          <span>Close rate</span>
+          <span>Avg ticket</span>
+          <span>Avg quote</span>
           <span>Next bonus tier</span>
         </div>
 
@@ -700,6 +716,22 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
             <span className="tbl__fig">
               <b>{plain(r.sold)}</b>
               <span>of {plain(r.quoted)}</span>
+            </span>
+            {/* Per job, not per option — see the leaderboard fields. Each of the
+                three carries its own denominator underneath, because a 50%
+                close rate off two jobs and off twenty are different claims and
+                the room cannot tell them apart from the percentage. */}
+            <span className="tbl__fig tbl__fig--sm">
+              <b>{pct(r.closeRate)}</b>
+              <span>{r.quotedJobs ? `${count(r.closeRateWon)} of ${count(r.quotedJobs)} jobs` : "none written"}</span>
+            </span>
+            <span className="tbl__fig tbl__fig--sm">
+              <b>{plain(r.avgTicket)}</b>
+              <span>{r.soldJobs ? `${count(r.soldJobs)} won` : "none won"}</span>
+            </span>
+            <span className="tbl__fig tbl__fig--sm">
+              <b>{plain(r.avgQuote)}</b>
+              <span>{r.quotedJobs ? `${count(r.quotedJobs)} jobs quoted` : "—"}</span>
             </span>
             <span className="tiers">
               {/* No tiers configured means no run to be along, so there is no
@@ -744,6 +776,18 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 ? `of ${plain(m.soldMtd)} sold this month · the rest names no seller`
                 : `of ${plain(totals.quoted)} quoted`}
             </span>
+          </span>
+          <span className="tbl__fig tbl__fig--sm">
+            <b>{pct(teamCloseRate)}</b>
+            <span>{totals.quotedJobs ? `${count(totals.won)} of ${count(totals.quotedJobs)} jobs` : "—"}</span>
+          </span>
+          <span className="tbl__fig tbl__fig--sm">
+            <b>{plain(teamAvgTicket)}</b>
+            <span>{totals.soldJobs ? `${count(totals.soldJobs)} won` : "—"}</span>
+          </span>
+          <span className="tbl__fig tbl__fig--sm">
+            <b>{plain(teamAvgQuote)}</b>
+            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} jobs quoted` : "—"}</span>
           </span>
           <span className="tiers__note">
             {m.commissionTiers.length === 0

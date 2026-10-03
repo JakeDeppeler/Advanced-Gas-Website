@@ -576,6 +576,22 @@ a full-colour basemap does not fight the orange heat on top.
 `NEXT_PUBLIC_BOARD_TILES` overrides the URL for rendering the board from an
 environment with no route to a tile CDN.
 
+**The Team page's last three columns are per job, over thirty days.** Close
+rate, average ticket and average quote all come off one population: the jobs
+each person put a price on in the last thirty days. Per option they would be
+nonsense — three prices on one kitchen is one job quoted and at most one job
+sold, so every close rate would read at about a third of the truth. Month to
+date they would be nonsense too: on the third of October one person had eleven
+jobs quoted and none closed, which is **0%** on a wall for the arithmetic
+reason that nobody decides in three days. Over thirty days the same person
+reads 12% of 65 and the person selling reads 31% of 42 — two figures you can
+put beside each other. Average ticket is the option that actually sold, not the
+average of the options offered, and it runs over the same thirty days as the
+rate beside it rather than the calendar month, because a ticket averaged over a
+different window than its own close rate is the trap the Performance totals row
+exists to close. The money columns stay on the month, and the page subtitle
+says which is which.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two
