@@ -150,13 +150,13 @@ body:has(.screen) .utilbar {
    the figures until it is doing something, then it takes the accent so "this
    board stopped on purpose" carries to the back of the room along with
    everything else — a board frozen for no visible reason reads as a dead one. */
-.screen__hold {
+.screen__ctl {
   flex: none;
   align-self: center;
   display: inline-flex;
   align-items: center;
   gap: calc(0.4 * var(--u));
-  margin-left: calc(1.1 * var(--u));
+  margin-left: calc(0.6 * var(--u));
   padding: calc(0.34 * var(--u)) calc(0.75 * var(--u));
   border: 1px solid var(--hairline);
   border-radius: 999px;
@@ -167,8 +167,8 @@ body:has(.screen) .utilbar {
   font-weight: 700;
   cursor: pointer;
 }
-.screen__hold:hover { color: var(--ink); }
-.screen__hold.is-on {
+.screen__ctl:hover { color: var(--ink); }
+.screen__ctl.is-on {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
@@ -207,6 +207,8 @@ body:has(.screen) .utilbar {
   to { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .screen__grid > *,
+  .screen__title { animation: none; }
   /* Still moves, just in six steps rather than continuously. */
   .screen__rule > span { animation-timing-function: steps(6, end); }
 }
@@ -225,13 +227,53 @@ body:has(.screen) .utilbar {
 /* Each page wants its own vertical proportions. */
 .screen__grid--today { grid-template-rows: 1.25fr 1fr; }
 .screen__grid--pace {
-  grid-template-columns: calc(7.5 * var(--u)) repeat(12, 1fr);
+  /* Five across, because the page is a funnel of five steps and twelve columns
+     do not divide into it. The band names keep their own column on the left. */
+  grid-template-columns: calc(7.5 * var(--u)) repeat(5, 1fr);
   grid-template-rows: 0.72fr 1.75fr 0.62fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--team { grid-template-rows: 1fr; }
 .screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
 .screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
+
+/**
+ * How a page arrives.
+ *
+ * The board changes page every thirty seconds and the swap was instantaneous,
+ * which from across the room reads as a flicker — you look up because something
+ * moved, and by then it has already finished moving. A short rise and fade
+ * gives the eye something to follow to the figure it is meant to land on.
+ *
+ * Staggered by column so the page assembles left to right rather than all at
+ * once, and capped at nine so a long table does not take a second and a half to
+ * finish arriving. `backwards` holds the first frame during the delay, or every
+ * tile would flash at full opacity before its turn.
+ *
+ * One animation per page change, on mount, driven by React's key — not a
+ * ticking state. This panel runs for months.
+ */
+@keyframes tile-in {
+  from { opacity: 0; transform: translateY(calc(0.9 * var(--u))); }
+  to { opacity: 1; transform: none; }
+}
+.screen__grid > * {
+  animation: tile-in 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
+.screen__grid > *:nth-child(1) { animation-delay: 0ms; }
+.screen__grid > *:nth-child(2) { animation-delay: 45ms; }
+.screen__grid > *:nth-child(3) { animation-delay: 90ms; }
+.screen__grid > *:nth-child(4) { animation-delay: 135ms; }
+.screen__grid > *:nth-child(5) { animation-delay: 180ms; }
+.screen__grid > *:nth-child(6) { animation-delay: 225ms; }
+.screen__grid > *:nth-child(7) { animation-delay: 270ms; }
+.screen__grid > *:nth-child(n + 8) { animation-delay: 315ms; }
+
+/* The page title comes in with the page. The subtitle does not: on Today it
+   carries a clock that updates on its own, and animating that would twitch. */
+.screen__title {
+  animation: tile-in 380ms cubic-bezier(0.22, 0.7, 0.3, 1) backwards;
+}
 
 .tile {
   display: flex;
@@ -336,6 +378,21 @@ body:has(.screen) .utilbar {
 }
 .tile--split .tile__value { font-size: calc(2.5 * var(--u)); }
 .tile--split .tile__value--rate { font-size: calc(3.4 * var(--u)); }
+
+/* The figure above its lines rather than beside them, for a tile one of five
+   columns wide — the split layout squeezed the lines to two words a row. */
+.tile--stackrate { justify-content: center; align-items: center; text-align: center; }
+.tile--stackrate > div { display: flex; flex-direction: column; gap: calc(0.2 * var(--u)); order: 2; }
+.tile--stackrate .tile__value--rate { font-size: calc(3.1 * var(--u)); order: 1; }
+
+/* The pace sentence under a dial wraps rather than running out of its tile.
+   `.status` is nowrap everywhere else, where it is a short pill on one line. */
+.gauge .status {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+  text-wrap: balance;
+}
 
 /* Two figures abreast, the second one quieter: leads today against leads this
    week, where the first is the one being acted on. */
@@ -876,7 +933,9 @@ body:has(.screen) .utilbar {
   /* Name, invoices, revenue, the margin bar, the margin figure. Profit came
      off the page: it read "—" every day, because no invoice in this tenant
      carries a cost. */
-  grid-template-columns: minmax(0, 1.5fr) calc(5 * var(--u)) calc(8 * var(--u)) minmax(0, 1.8fr) calc(5 * var(--u));
+  grid-template-columns:
+    minmax(0, 1.5fr) calc(5 * var(--u)) calc(5 * var(--u)) calc(8 * var(--u))
+    minmax(0, 1.6fr) calc(5 * var(--u));
   align-items: center;
   gap: calc(1.2 * var(--u));
 }
@@ -887,7 +946,8 @@ body:has(.screen) .utilbar {
   color: var(--ink-2);
 }
 .jt__head > span:nth-child(2),
-.jt__head > span:nth-child(3) { text-align: right; }
+.jt__head > span:nth-child(3),
+.jt__head > span:nth-child(4) { text-align: right; }
 
 .jt__row {
   flex: 1;
@@ -1002,13 +1062,13 @@ body:has(.screen) .utilbar {
 .band--month { grid-row: 2; }
 .band--year { grid-row: 3; }
 
-/* On Pace every card sits in the 12 columns to the right of the band names. */
-.screen__grid--pace .c3 { grid-column: span 3; }
-.screen__grid--pace .c4 { grid-column: span 4; }
+/* On Pace every card is one step of the funnel, so each takes one column. */
+.screen__grid--pace .c3,
+.screen__grid--pace .c4 { grid-column: span 1; }
 
 /* The year, as one strip. */
 .year {
-  grid-column: 2 / span 12;
+  grid-column: 2 / span 5;
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(11 * var(--u)) calc(9 * var(--u));
   align-items: center;

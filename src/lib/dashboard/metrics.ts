@@ -170,6 +170,15 @@ export type Metrics = {
   closeRate30dOptions: number;
   /** Average price of a job quoted in the close-rate window, over its options. */
   avgQuote30d: number | null;
+  /**
+   * The same close rate split by the side of the business the work came from.
+   *
+   * Real estate work is a different sell from domestic — an agent deciding on
+   * behalf of a landlord, against a householder spending their own money — and
+   * one rate over both says nothing about either. Each row carries its own
+   * denominator because the real estate side is eight jobs deep.
+   */
+  closeRateByUnit: Array<{ group: string; rate: number | null; won: number; quoted: number }>;
 
   // The quote funnel: written -> still out -> closed. Outstanding alone can't
   // tell you whether a thin pipeline means nobody is quoting or everybody is
@@ -274,7 +283,15 @@ export type Metrics = {
   overdueCount: number | null;
   receivablesTotal: number | null;
 
-  topJobTypes: Array<{ jobType: string; revenue: number; profit: number | null; jobs: number }>;
+  topJobTypes: Array<{
+    jobType: string;
+    revenue: number;
+    profit: number | null;
+    /** Invoices raised for this kind of work this month. */
+    jobs: number;
+    /** Jobs of this kind created this month, billed or not. */
+    booked: number;
+  }>;
   jobTypeBasis: "profit" | "revenue";
   /** Invoices left out of the ranking because they carry no real job type. */
   jobTypeUnclassified: number;
@@ -637,6 +654,29 @@ async function serviceTitanMetrics(now: Date) {
       quotedJobValues.set(k, { sum: v, n: 1 });
     }
   }
+  /**
+   * Per side of the business. ServiceTitan names the unit "Domestic -
+   * Installation", "Real Estate - Repairs" and so on, so the part before the
+   * dash is the side. Only the two Jake asked for are kept: the rest of the
+   * tenant is a handful of jobs under names like "Quotation" that are not a
+   * side of the business at all.
+   */
+  const UNIT_GROUPS = ["Domestic", "Real Estate"] as const;
+  const byUnit = new Map<string, Map<string, boolean>>();
+  for (const r of recentEstimates) {
+    const group = String(r.business_unit ?? "").split(" - ")[0].trim();
+    if (!UNIT_GROUPS.includes(group as (typeof UNIT_GROUPS)[number])) continue;
+    const jobs = byUnit.get(group) ?? new Map<string, boolean>();
+    const k = quoteKey(r);
+    jobs.set(k, (jobs.get(k) ?? false) || Boolean(r.sold_on));
+    byUnit.set(group, jobs);
+  }
+  const closeRateByUnit: Metrics["closeRateByUnit"] = UNIT_GROUPS.map((group) => {
+    const jobs = [...(byUnit.get(group)?.values() ?? [])];
+    const won = jobs.filter(Boolean).length;
+    return { group: String(group), rate: jobs.length ? won / jobs.length : null, won, quoted: jobs.length };
+  });
+
   const avgQuote30d = quotedJobValues.size
     ? [...quotedJobValues.values()].reduce((t, j) => t + (j.n > 0 ? j.sum / j.n : 0), 0) / quotedJobValues.size
     : null;
@@ -843,12 +883,32 @@ async function serviceTitanMetrics(now: Date) {
     byType.set(key, acc);
   }
 
+  /**
+   * Jobs booked this month by kind of work, alongside what was invoiced.
+   *
+   * The table was invoices only, and invoices are what has been billed — which
+   * trails what has been taken on, and in a month where a lot gets booked and
+   * little gets billed the page reads as a quiet month when it was anything
+   * but. Booked is the leading half of the same question.
+   */
+  const bookedRows = await sbSelect<{ job_type: string | null }>(
+    "st_jobs",
+    [q.select("job_type"), q.gte("created_on", monthStart.toISOString()), q.notNull("job_type")].join("&"),
+  ).catch(() => []);
+  const bookedByType = new Map<string, number>();
+  for (const r of bookedRows) {
+    const t = String(r.job_type);
+    if (UNCLASSIFIED.test(t)) continue;
+    bookedByType.set(t, (bookedByType.get(t) ?? 0) + 1);
+  }
+
   const topJobTypes = [...byType.entries()]
     .map(([jobType, v]) => ({
       jobType,
       revenue: v.revenue,
       profit: v.hasCost ? v.revenue - v.cost : null,
       jobs: v.jobs,
+      booked: bookedByType.get(jobType) ?? 0,
     }))
     .sort((a, b) => (jobTypeBasis === "profit" ? (b.profit ?? 0) - (a.profit ?? 0) : b.revenue - a.revenue))
     .slice(0, 5);
@@ -1219,6 +1279,7 @@ async function serviceTitanMetrics(now: Date) {
     closeRate30dQuotes,
     closeRate30dOptions,
     avgQuote30d,
+    closeRateByUnit,
     quotesCreatedTodayValue: created.todayV,
     quotesCreatedTodayCount: todayClose.quoted,
     quotesCreatedTodayOptions: created.todayOptions,
@@ -1499,6 +1560,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       closeRate30dSold: prev?.closeRate30dSold ?? 0,
       closeRate30dOptions: prev?.closeRate30dOptions ?? 0,
       avgQuote30d: prev?.avgQuote30d ?? null,
+      closeRateByUnit: prev?.closeRateByUnit ?? [],
       closeRate30dQuotes: prev?.closeRate30dQuotes ?? 0,
       quotesCreatedTodayValue: prev?.quotesCreatedTodayValue ?? 0,
       quotesCreatedTodayCount: prev?.quotesCreatedTodayCount ?? 0,

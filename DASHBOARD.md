@@ -738,6 +738,42 @@ the *snapshot's* time, which advances every thirty seconds whether or not Xero
 answered, so it could never say how old the figures were. It carries the time of
 the last successful read now.
 
+**Pace reads as a funnel: Quoted, Sold, Booked, Win rate, Invoiced.** It was
+sold / invoiced / profit / booked in no particular order, which is four figures
+rather than one story. Quoted has no target to pace against, so it is a figure
+card rather than a dial — a dial with nothing to measure against is an empty arc
+with the one number on the tile shrunk underneath it.
+
+**Win rate is split by the side of the business.** Real estate is an agent
+deciding on behalf of a landlord; domestic is a householder spending their own
+money, and one rate over both says nothing about either. Over thirty days that
+is Domestic 20% of 102 jobs and Real Estate 25% of 8. Each row carries its
+denominator, because the real estate side is eight jobs deep and a percentage
+alone would hide that.
+
+The Today band's win rate is today's own conversion — both halves are quotes
+written today — and it says "same-day only", because it reads 0% most days and
+that is the honest answer rather than a broken one.
+
+**Performance shows booked beside invoiced.** Invoices are what has been billed,
+which trails what has been taken on; a month that books a lot and bills little
+read as quiet when it was anything but. This month that is 20 booked against 29
+invoiced.
+
+**The board can be skipped, and held means held.** Skip (or the right arrow)
+moves one page; Hold (or space) stops the rotation. Skipping while held moves one
+page and stays held, which is what stepping through by hand wants. The five
+minute auto-release is gone: holding now holds until it is released, because
+asking for a page to stop and having it move anyway is worse than a board left
+on one page with an orange "Held" badge on it.
+
+**A page arrives rather than appearing.** The swap was instantaneous, which from
+across the room reads as a flicker — you look up because something moved and it
+has already finished moving. Tiles rise and fade in over 380ms, staggered 45ms
+by column and capped at nine so a long table does not take a second and a half
+to finish. One animation per page change, on mount, driven by React's key rather
+than by a ticking state, and off entirely under `prefers-reduced-motion`.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two

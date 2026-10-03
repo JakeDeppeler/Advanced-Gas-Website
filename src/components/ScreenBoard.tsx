@@ -24,8 +24,6 @@ const REFRESH_MS = 30_000;
 // want an export request every thirty seconds all day.
 const RESYNC_MS = 30_000;
 const PAGE_MS = 30_000;
-// How long the board stays held before it starts turning again on its own.
-const HOLD_MS = 5 * 60_000;
 const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
 
 /**
@@ -49,7 +47,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Team: () => "Quoted and sold, today \u00b7 week \u00b7 month \u00b7 rates over 30 days",
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
-  Performance: () => `Invoiced ${monthName(new Date())} so far · by job type`,
+  Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
   Areas: () => "Where the work is · last 60 days",
 };
 
@@ -142,31 +140,30 @@ export function ScreenBoard({
     return () => clearInterval(rotate);
   }, [paused]);
 
-  /**
-   * Holding is not a mode anybody should be able to leave the board in.
-   *
-   * This runs on a wall, often with nobody at the keyboard. Somebody stops it
-   * to read a figure, gets called away, and the board sits on the Team page
-   * until a person who did not pause it works out why. It releases itself after
-   * five minutes, which is far longer than reading a page takes and far shorter
-   * than a working day.
-   */
-  useEffect(() => {
-    if (!paused) return;
-    const release = setTimeout(() => setPaused(false), HOLD_MS);
-    return () => clearTimeout(release);
-  }, [paused]);
+  const skip = () => setPage((p) => (p + 1) % PAGES.length);
 
-  // Space is the obvious key for this and nothing else on the page uses it. The
-  // guard keeps it from firing while the button itself has focus, which would
-  // toggle twice on one press.
+  // Space holds, the right arrow skips. The guard keeps a press from firing
+  // while one of the buttons has focus, which would act twice on one key.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.code !== "Space" && e.key !== " ") return;
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === "BUTTON" || el.tagName === "INPUT")) return;
-      e.preventDefault();
-      setPaused((v) => !v);
+      const onControl = !!el && (el.tagName === "BUTTON" || el.tagName === "INPUT");
+      if (e.code === "Space" || e.key === " ") {
+        // Space activates a focused button on its own, so letting it through
+        // here as well would toggle twice on one press.
+        if (onControl) return;
+        e.preventDefault();
+        setPaused((v) => !v);
+        return;
+      }
+      if (e.key === "ArrowRight") {
+        // No such clash for the arrow: it does nothing to a focused button, so
+        // it has to keep working after somebody has clicked Skip once.
+        e.preventDefault();
+        // Skipping while held moves one page and stays held, which is what
+        // somebody stepping through the board by hand wants.
+        setPage((p) => (p + 1) % PAGES.length);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -247,7 +244,11 @@ export function ScreenBoard({
       )}
 
       <div className="screen__bar">
-        <span className="screen__title">{name}</span>
+        {/* Keyed so the entrance replays with the page, like the tiles below.
+            The subtitle is not: on Today it carries a clock that ticks every
+            thirty seconds, and re-running the animation for a changed minute
+            would make the header twitch on its own. */}
+        <span className="screen__title" key={name}>{name}</span>
         <span className="screen__subtitle">
           {name === "Today"
             ? `${now.toLocaleDateString("en-AU", {
@@ -287,7 +288,21 @@ export function ScreenBoard({
             needs to know the board stopped on purpose. */}
         <button
           type="button"
-          className={`screen__hold ${paused ? "is-on" : ""}`}
+          className="screen__ctl screen__skip"
+          onClick={skip}
+          title="Next page (right arrow)"
+        >
+          <span className="screen__holdicon" aria-hidden>
+            <svg viewBox="0 0 12 14" width="100%" height="100%">
+              <path d="M1 1l8 6-8 6z" fill="currentColor" />
+              <rect x="9.5" y="1" width="2" height="12" fill="currentColor" />
+            </svg>
+          </span>
+          Skip
+        </button>
+        <button
+          type="button"
+          className={`screen__ctl screen__hold ${paused ? "is-on" : ""}`}
           onClick={() => setPaused((v) => !v)}
           aria-pressed={paused}
           title={paused ? "Resume (space)" : "Hold this page (space)"}
@@ -318,7 +333,13 @@ export function ScreenBoard({
         <span key={page} />
       </div>
 
-      <div className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}>
+      {/* Keyed on the page so React replaces the subtree rather than patching
+          it: the entrance animation below is on the tiles themselves, and it
+          only replays on a fresh mount. */}
+      <div
+        key={page}
+        className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}
+      >
         {page === 0 && <TodayPage m={m} live={live} />}
         {page === 1 && <PacePage m={m} live={live} now={now} />}
         {page === 2 && <QuotesPage m={m} live={live} />}
@@ -472,7 +493,27 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
 
   return (
     <>
+      {/* The page reads as the funnel it is, left to right: what we put in
+          front of people, what came back, what that turned into on the
+          calendar, the rate the first becomes the second, and what has
+          actually been billed. It was sold / invoiced / profit / booked in no
+          particular order, which is four figures rather than one story. */}
       <span className="band band--today">Today</span>
+      {/* Same reason as the month card below: no daily quoted target exists, so
+          a progress bar against nothing is a bar that never means anything. */}
+      <RateCard
+        label="Quoted"
+        lines={
+          live.st
+            ? [
+                `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}`,
+                `${count(m.quotesCreatedTodayOptions)} options written`,
+              ]
+            : ["ServiceTitan not connected"]
+        }
+        value={st.plain(m.quotesCreatedTodayValue, live)}
+        stack
+      />
       <DailyCard
         label="Sold"
         achieved={live.st ? m.soldToday : null}
@@ -480,20 +521,51 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
         dayProgress={today}
       />
       <DailyCard
-        label="Invoiced"
-        achieved={live.st ? m.revenueToday : null}
-        target={m.dailyTarget}
-        dayProgress={today}
-      />
-      <DailyCard
-        label="Jobs booked"
+        label="Booked"
         achieved={live.st ? m.bookingsToday : null}
         target={m.dailyBookingsTarget}
         plainNumber
         dayProgress={today}
       />
+      {/* Today's own conversion, not the thirty-day rate: both halves are
+          today's quotes, so it answers "did what we wrote today come back
+          today". It reads 0% on most days, which is the honest answer — the
+          month's rate is the card below. */}
+      <RateCard
+        label="Win rate"
+        lines={
+          live.st
+            ? [
+                `${count(m.quotesCreatedTodaySold)} of ${count(m.quotesCreatedTodayCount)} quoted today`,
+                "same-day only",
+              ]
+            : ["ServiceTitan not connected"]
+        }
+        value={live.st ? pct(m.conversionTodayPct) : NA}
+        stack
+      />
+      <DailyCard
+        label="Invoiced"
+        achieved={live.st ? m.revenueToday : null}
+        target={m.dailyTarget}
+        dayProgress={today}
+      />
 
       <span className="band band--month">{monthName(now)}</span>
+      {/* A card, not a dial. There is no quoted target to pace against, and a
+          dial with nothing to measure against is an empty arc with the figure
+          shrunk underneath it — the one number on the tile made the smallest
+          thing on it. */}
+      <RateCard
+        label="Quoted"
+        lines={
+          live.st
+            ? [`${count(m.quotesCreatedMonthCount)} jobs`, `${count(m.closeRate30dOptions)} options written`]
+            : ["ServiceTitan not connected"]
+        }
+        value={st.money(m.quotesCreatedMonthValue, live)}
+        stack
+      />
       <Gauge
         label="Sold"
         achieved={live.st ? m.soldMtd : null}
@@ -502,26 +574,38 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
         format={money}
       />
       <Gauge
+        label="Booked"
+        achieved={live.st ? m.bookingsMonth : null}
+        target={m.bookingsTargetMonthly}
+        progress={progress}
+        format={(n) => count(n)}
+      />
+      {/* Thirty days, not the month: on the third of the month almost nothing
+          quoted this month has had time to come back, and the rate would read
+          near zero every time the month turned over. Split by the side of the
+          business, because an agent deciding for a landlord is a different sell
+          from a householder spending their own money. */}
+      <RateCard
+        label="Win rate"
+        lines={
+          live.st
+            ? [
+                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs · last 30 days`,
+                ...m.closeRateByUnit
+                  .filter((u) => u.quoted > 0)
+                  .map((u) => `${u.group} ${pct(u.rate)} · ${count(u.won)} of ${count(u.quoted)}`),
+              ]
+            : ["ServiceTitan not connected"]
+        }
+        value={live.st ? pct(m.closeRate30d) : NA}
+        stack
+      />
+      <Gauge
         label="Invoiced"
         achieved={live.st ? m.revenueInvoicedMtd : null}
         target={m.revenueTargetMonthly}
         progress={progress}
         format={money}
-      />
-      <Gauge
-        label="Profit"
-        achieved={live.st ? m.profitMtd : null}
-        target={m.profitTargetMonthly}
-        progress={progress}
-        format={money}
-        unavailable={live.st && m.profitMtd == null ? "No cost on any invoice" : undefined}
-      />
-      <Gauge
-        label="Jobs booked"
-        achieved={live.st ? m.bookingsMonth : null}
-        target={m.bookingsTargetMonthly}
-        progress={progress}
-        format={(n) => count(n)}
       />
 
       <span className="band band--year">This year</span>
@@ -980,6 +1064,9 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                   a job can carry more than one. 29 invoices against 11 jobs
                   completed this month is the kind of gap a wrong column heading
                   turns into an argument. */}
+              {/* Booked leads invoiced: a month that takes a lot on and bills
+                  little of it reads as quiet on the invoice column alone. */}
+              <span>Booked</span>
               <span>Invoices</span>
               <span>Revenue</span>
               <span className="jt__marginhead">
@@ -992,6 +1079,7 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
               return (
                 <div className="jt__row" key={t.jobType}>
                   <span className="jt__name">{t.jobType}</span>
+                  <span className="jt__n">{count(t.booked)}</span>
                   <span className="jt__n">{count(t.jobs)}</span>
                   <span className="jt__n">{money(t.revenue)}</span>
                   <span className="jt__bar">
@@ -1022,7 +1110,8 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                 invoiced figure in the tile above. Counted over every invoice,
                 untyped ones included, so this line and "Invoiced" agree. */}
             <div className="jt__row jt__row--total">
-              <span className="jt__name">All invoiced this month</span>
+              <span className="jt__name">All work this month</span>
+              <span className="jt__n">{count(m.bookingsMonth)}</span>
               <span className="jt__n">{count(m.invoiceCountMonth)}</span>
               {/* Full digits, not $21K: this is the figure of the page and it
                   gets read off the wall and repeated. */}
@@ -1215,9 +1304,26 @@ function HeroCard({ label, value, foot, navy }: { label: string; value: string; 
  * lines rather than one: a rate with nothing beside it invites the room to
  * guess what it is a rate of.
  */
-function RateCard({ label, lines, value, accent }: { label: string; lines: string[]; value: string; accent?: boolean }) {
+/**
+ * `stack` puts the figure above its lines instead of beside them. The split
+ * layout wants a wide tile; in one of five columns on Pace it squeezed the
+ * lines into two words a row.
+ */
+function RateCard({
+  label,
+  lines,
+  value,
+  accent,
+  stack,
+}: {
+  label: string;
+  lines: string[];
+  value: string;
+  accent?: boolean;
+  stack?: boolean;
+}) {
   return (
-    <div className="tile tile--split c4">
+    <div className={`tile ${stack ? "tile--stackrate" : "tile--split"} c4`}>
       <div>
         <span className="tile__label">{label}</span>
         {lines.map((l) => (
