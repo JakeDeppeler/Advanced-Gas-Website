@@ -131,6 +131,8 @@ export type Metrics = {
   leadsToday: number;
   leadsWeek: number;
   leadsPrevWeek: number;
+  /** Website enquiries since the 1st of the Melbourne month. */
+  leadsMonth: number;
   /** Website leads by suburb. Thirty rows all up, so it is a trickle, not a map. */
   topSuburbs: Array<{ suburb: string; count: number }>;
   /**
@@ -210,6 +212,14 @@ export type Metrics = {
    * One row per job, valued at the average of the options offered on it.
    */
   quotesOutstanding: Array<{ id: number; label: string; value: number; options: number; ageDays: number }>;
+  /**
+   * Open quotes, still inside the live window, where nothing has been written
+   * for a week: the newest option on the job is 7+ days old and none has sold.
+   * The ones to ring. Largest first, at most 25; the counts cover them all.
+   */
+  quotesQuiet: Array<{ id: number; label: string; value: number; options: number; ageDays: number }>;
+  quotesQuietCount: number;
+  quotesQuietValue: number;
 
   bookingsMonth: number;
   bookingsTargetMonthly: number | null;
@@ -355,7 +365,7 @@ const SERVICE_LABELS: Record<string, string> = {
   water: "Water filtration",
 };
 
-function serviceLabel(raw: string): string {
+export function serviceLabel(raw: string): string {
   if (SERVICE_LABELS[raw]) return SERVICE_LABELS[raw];
   // Page-derived slugs like "air-conditioning-installation" arrive from landing
   // pages rather than the form's own picker.
@@ -415,13 +425,14 @@ async function leadMetrics(now: Date) {
   const weekStart = startOfWeekMelbourne(now);
   const prevWeekStart = addDays(weekStart, -7);
 
-  const [leadsToday, leadsWeek, leadsPrevWeek] = await Promise.all([
+  const [leadsToday, leadsWeek, leadsPrevWeek, leadsMonth] = await Promise.all([
     sbCount("portal_leads", q.gte("created_at", dayStart.toISOString())),
     sbCount("portal_leads", q.gte("created_at", weekStart.toISOString())),
     sbCount(
       "portal_leads",
       [q.gte("created_at", prevWeekStart.toISOString()), q.lt("created_at", weekStart.toISOString())].join("&"),
     ),
+    sbCount("portal_leads", q.gte("created_at", startOfMonthMelbourne(now).toISOString())),
   ]);
 
   const recent = await sbSelect<LeadRow>(
@@ -460,6 +471,7 @@ async function leadMetrics(now: Date) {
     leadsToday,
     leadsWeek,
     leadsPrevWeek,
+    leadsMonth,
     // The heat map wants the whole catchment, not a top five; the lists that
     // only have room for a handful take their own slice.
     topSuburbs: rank(bySuburb, "suburb", 12),
@@ -976,7 +988,7 @@ async function serviceTitanMetrics(now: Date) {
   // One row per quote, not per option — see quoteKey.
   const outByJob = new Map<
     string,
-    { id: number; label: string; sum: number; n: number; biggest: number; oldest: number }
+    { id: number; label: string; sum: number; n: number; biggest: number; oldest: number; newest: number }
   >();
   for (const r of openRows) {
     const key = quoteKey(r);
@@ -988,8 +1000,9 @@ async function serviceTitanMetrics(now: Date) {
       got.n += 1;
       got.biggest = Math.max(got.biggest, v);
       got.oldest = Math.max(got.oldest, age);
+      got.newest = Math.min(got.newest, age);
     } else {
-      outByJob.set(key, { id: Number(r.id), label: labelFor(r.job_id), sum: v, n: 1, biggest: v, oldest: age });
+      outByJob.set(key, { id: Number(r.id), label: labelFor(r.job_id), sum: v, n: 1, biggest: v, oldest: age, newest: age });
     }
   }
 
@@ -1002,6 +1015,19 @@ async function serviceTitanMetrics(now: Date) {
     .map((j) => ({ id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.oldest }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
+
+  // Gone quiet: a quote still inside the live window that nobody has added an
+  // option to for a week, and that hasn't sold. Judged on the newest option,
+  // because a job re-priced on Tuesday is being worked on, however old its
+  // first option is.
+  const QUIET_DAYS = 7;
+  const quiet = [...outByJob.values()]
+    .filter((j) => j.biggest < QUOTE_CAP && j.newest >= QUIET_DAYS && j.newest <= OUTSTANDING_DAYS)
+    .map((j) => ({ id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.newest }))
+    .sort((a, b) => b.value - a.value);
+  const quotesQuietCount = quiet.length;
+  const quotesQuietValue = quiet.reduce((n, j) => n + j.value, 0);
+  const quotesQuiet = quiet.slice(0, 25);
 
   const soldCountMonth = soldRows.length;
   const soldCountToday = soldRows.filter(
@@ -1226,6 +1252,9 @@ async function serviceTitanMetrics(now: Date) {
     conversionTodayPct,
     quotesToday,
     quotesOutstanding,
+    quotesQuiet,
+    quotesQuietCount,
+    quotesQuietValue,
   };
 }
 
@@ -1406,6 +1435,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       leadsToday: prev?.leadsToday ?? 0,
       leadsWeek: prev?.leadsWeek ?? 0,
       leadsPrevWeek: prev?.leadsPrevWeek ?? 0,
+      leadsMonth: prev?.leadsMonth ?? 0,
       topSuburbs: prev?.topSuburbs ?? [],
       leadsByService: prev?.leadsByService ?? [],
     };
@@ -1519,6 +1549,9 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       conversionTodayPct: prev?.conversionTodayPct ?? null,
       quotesToday: [],
       quotesOutstanding: [],
+      quotesQuiet: prev?.quotesQuiet ?? [],
+      quotesQuietCount: prev?.quotesQuietCount ?? 0,
+      quotesQuietValue: prev?.quotesQuietValue ?? 0,
       // Deliberately not carried forward: a stale feed would re-fire the rocket
       // for a sale the room already celebrated.
       recentSales: [],

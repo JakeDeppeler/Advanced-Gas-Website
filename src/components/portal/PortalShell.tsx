@@ -29,10 +29,20 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
     // opacity 0 in screenshots and in print.
     <div className={`pt${variant ? ` pt--${variant}` : ""}`} data-no-reveal>
       <header className="pt__bar">
+        <div className="pt__left">
         <Link href="/portal" className="pt__brand" aria-label="Portal home">
           <strong>Advanced</strong>
           <em>Gas &amp; Aircon · Team portal</em>
         </Link>
+        {/* Home is the navigation, so it gets a button of its own beside the
+            brand — filled when you're on it, as the design has it. */}
+        <Link href="/portal" className={`pt__home${variant === "home" ? " is-on" : ""}`} aria-current={variant === "home" ? "page" : undefined}>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10" />
+          </svg>
+          Home
+        </Link>
+        </div>
 
         <PortalSearch rows={rows} />
 

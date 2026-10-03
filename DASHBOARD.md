@@ -412,6 +412,26 @@ suburbs with at least three jobs: one $15,000 job in a suburb that has had one
 job is not an average, it is that job, and on a wall it reads as a place worth
 chasing.
 
+## The portal home's "Needs someone today"
+
+The office home (`/portal`) opens with the lines that need someone today. It
+reads the board's latest snapshot, so it never disagrees with the wall:
+
+- **Quotes gone quiet 7+ days**: still open, inside the 30-day window, nothing
+  sold and no option added for a week (`quotesQuiet*` on the snapshot).
+- **Invoices overdue**: Xero's count and total, the same as the Overdue tile.
+- **Van service requests / tools short**: the latest weekly or monthly check's
+  "needs doing" items, and the tool bag and plant counts under their minimum.
+- **Factory stock low**: lines at or under their minimum on `/portal/stock`.
+
+Each line is hidden at zero. The design also has customer chats waiting, hours
+paid but not billed, jobs that lost money, payment plans and VEU claims to
+lodge. None of those has anything behind it yet (no chat channel, no
+timesheets, no job costs, no finance-provider or VEU log), so they are left off
+rather than shown as numbers nobody measured. Their pages exist and say what
+each one needs. "First reply to a new lead" is left off The numbers for the
+reason given under the lead data above.
+
 ## Profit on every job isn't buildable yet
 
 The portal design has a **Profit · every job** screen: equipment, materials and

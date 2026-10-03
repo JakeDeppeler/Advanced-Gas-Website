@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { can, type PortalUser } from "@/lib/portal/caps";
 import { dbConfigured, getSettings, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos, saveSettings } from "@/lib/portal/db";
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
@@ -48,10 +49,10 @@ export const noticeKey = (n: Pick<Notice, "title" | "detail">) => `${n.title}|${
 
 const seenKey = (user: PortalUser) => `seen:${user.email.toLowerCase()}`;
 
-async function seenSet(user: PortalUser): Promise<Set<string>> {
+const seenSet = cache(async function seenSet(user: PortalUser): Promise<Set<string>> {
   const v = await getSettings<{ keys?: string[] }>(seenKey(user)).catch(() => null);
   return new Set(v?.keys ?? []);
-}
+});
 
 /**
  * "Mark all read": remember what's on the list now.
@@ -96,7 +97,12 @@ function ago(iso: string | null | undefined): string {
  * quotes are one round trip, not two, and the vans' checks are the only thing
  * that has to wait for anything.
  */
-async function waitingNotices(user: PortalUser): Promise<Notice[]> {
+/**
+ * What is waiting on somebody, once per request: the bell, the home grid's
+ * badges and the notifications page all ask, and each answer is several
+ * reads.
+ */
+export const waitingNotices = cache(async function waitingNotices(user: PortalUser): Promise<Notice[]> {
   const today = localToday();
   const out: Notice[] = [];
 
@@ -158,7 +164,7 @@ async function waitingNotices(user: PortalUser): Promise<Notice[]> {
     });
   }
   return out;
-}
+});
 
 /** What has changed lately: on the notifications page, never on the bell. */
 async function newsNotices(): Promise<Notice[]> {
@@ -204,6 +210,9 @@ export async function listNotices(user: PortalUser): Promise<Notice[]> {
     .map((n) => ({ ...n, unread: !seen.has(noticeKey(n)) }))
     .sort((a, b) => rank[a.tone] - rank[b.tone]);
 }
+
+/** The keys of the notices this person has already seen. */
+export { seenSet };
 
 export async function unreadCount(user: PortalUser): Promise<number> {
   // Only the things waiting on somebody. A new video is worth seeing on the
