@@ -1324,14 +1324,38 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-va__bar button { appearance: none; border: 1px solid #d9b878; background: #fff; border-radius: 9px; padding: 8px 14px; font: inherit; font-size: 12.5px; font-weight: 700; color: #8a5a12; cursor: pointer; white-space: nowrap; }
 .pt-va__bar button:hover:not(:disabled) { background: #fdf8ee; }
 
-.pt-va__picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
-.pt-va__pick { display: flex; flex-direction: column; gap: 3px; text-align: left; appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 12px; padding: 13px 15px; font: inherit; cursor: pointer; }
-.pt-va__pick:hover:not(:disabled) { border-color: var(--pt-sky); }
-.pt-va__pick.is-on { border-color: var(--pt-navy); background: var(--pt-navy); }
-.pt-va__pick strong { font-size: 14px; font-weight: 700; color: var(--pt-ink); }
-.pt-va__pick span { font-size: 12px; line-height: 1.45; color: var(--pt-ink-3); }
-.pt-va__pick.is-on strong, .pt-va__pick.is-on span { color: #fff; }
-.pt-va__pick:disabled { opacity: 0.6; cursor: default; }
+/* Pick a level, read what it means, then press the button. The panel is
+   filled because what it does — hand you somebody else's permissions — is
+   not the same kind of thing as the two cards above it. */
+.pt-va {
+  background: linear-gradient(160deg, var(--pt-navy), var(--pt-navy-2)); color: #fff;
+  border-radius: 18px; padding: 24px 26px; margin-top: 20px;
+  box-shadow: 0 24px 50px -34px rgba(14,27,77,0.7);
+}
+.pt-va__h { font-family: var(--f-display); font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 8px; }
+.pt-va__sub { margin: 0 0 18px; max-width: 72ch; font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.78); }
+.pt-va__picks { display: flex; flex-wrap: wrap; gap: 10px; }
+.pt-va__pick {
+  appearance: none; min-height: 42px; padding: 0 18px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.34); background: transparent; color: #fff;
+  font: inherit; font-size: 14.5px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.pt-va__pick:hover:not(.is-on) { border-color: #fff; }
+/* The chosen one inverts rather than tinting — on a navy ground a tint is a
+   shade difference, and the button below names it in words anyway. */
+.pt-va__pick.is-on { background: #fff; color: var(--pt-navy-2); border-color: #fff; }
+
+.pt-va__go {
+  display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+  margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.16);
+}
+.pt-va__go p { margin: 0; font-size: 15px; color: rgba(255,255,255,0.84); }
+.pt-va__btn { background: #fff; color: var(--pt-navy-2); border-color: #fff; }
+.pt-va__btn:hover:not(:disabled) { background: var(--pt-bg); }
+.pt-va__stop {
+  appearance: none; margin-top: 16px; border: 1px solid rgba(255,255,255,0.34); background: transparent;
+  color: #fff; border-radius: 10px; padding: 8px 14px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
 .pt-veh__signedto { margin: 2px 0 8px; font-size: 12px; font-weight: 700; color: var(--pt-navy); }
 .pt-veh__signedto.is-none { color: var(--pt-ink-3); font-weight: 500; }
 .pt-pv__assign { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--pt-line); }
@@ -1937,12 +1961,18 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 }
 .pt-band__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 14px; }
 
+/* Laid out from the top, with only the footer pushed down. space-between
+   spread the spare height between all four children, so a card with a
+   three-line blurb sat its title seven pixels lower than its neighbour and
+   the row of titles stopped being a row. */
 .pt-tile {
-  display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
+  display: flex; flex-direction: column; justify-content: flex-start; gap: 0;
   min-height: 168px; box-sizing: border-box; padding: 24px; border-radius: var(--pt-r); text-decoration: none;
   background: var(--pt-surface); border: 1px solid var(--pt-line); box-shadow: var(--pt-shadow);
   transition: transform 0.14s ease, border-color 0.14s ease;
 }
+.pt-tile__ico { margin-bottom: 18px; }
+.pt-tile > .pt-card__meta, .pt-tile > .pt-tile__foot { margin-top: auto; padding-top: 18px; }
 .pt-tile:hover { transform: translateY(-2px); border-color: #cfc9b8; }
 .pt-tile:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 2px; }
 .pt-tile__ico {
