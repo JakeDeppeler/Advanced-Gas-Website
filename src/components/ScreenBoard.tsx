@@ -721,17 +721,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 three carries its own denominator underneath, because a 50%
                 close rate off two jobs and off twenty are different claims and
                 the room cannot tell them apart from the percentage. */}
-            <span className="tbl__fig tbl__fig--sm">
+            <span className="tbl__fig">
               <b>{pct(r.closeRate)}</b>
               <span>{r.quotedJobs ? `${count(r.closeRateWon)} of ${count(r.quotedJobs)} jobs` : "none written"}</span>
             </span>
-            <span className="tbl__fig tbl__fig--sm">
+            <span className="tbl__fig">
               <b>{plain(r.avgTicket)}</b>
               <span>{r.soldJobs ? `${count(r.soldJobs)} won` : "none won"}</span>
             </span>
-            <span className="tbl__fig tbl__fig--sm">
+            <span className="tbl__fig">
               <b>{plain(r.avgQuote)}</b>
-              <span>{r.quotedJobs ? `${count(r.quotedJobs)} jobs quoted` : "—"}</span>
+              <span>{r.quotedJobs ? `${count(r.quotedJobs)} quoted` : "—"}</span>
             </span>
             <span className="tiers">
               {/* No tiers configured means no run to be along, so there is no
@@ -777,17 +777,17 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
                 : `of ${plain(totals.quoted)} quoted`}
             </span>
           </span>
-          <span className="tbl__fig tbl__fig--sm">
+          <span className="tbl__fig">
             <b>{pct(teamCloseRate)}</b>
             <span>{totals.quotedJobs ? `${count(totals.won)} of ${count(totals.quotedJobs)} jobs` : "—"}</span>
           </span>
-          <span className="tbl__fig tbl__fig--sm">
+          <span className="tbl__fig">
             <b>{plain(teamAvgTicket)}</b>
             <span>{totals.soldJobs ? `${count(totals.soldJobs)} won` : "—"}</span>
           </span>
-          <span className="tbl__fig tbl__fig--sm">
+          <span className="tbl__fig">
             <b>{plain(teamAvgQuote)}</b>
-            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} jobs quoted` : "—"}</span>
+            <span>{totals.quotedJobs ? `${count(totals.quotedJobs)} quoted` : "—"}</span>
           </span>
           <span className="tiers__note">
             {m.commissionTiers.length === 0

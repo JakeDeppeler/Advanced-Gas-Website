@@ -439,7 +439,15 @@ body:has(.screen) .utilbar {
 /* ------------------------------------------------------------------- table */
 /* The leaderboard. Each figure carries what it was measured against directly
    underneath, so "sold" is never read without "of quoted". */
-.tbl { display: flex; flex-direction: column; flex: 1; }
+.tbl {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  --tbl-fig: 1.32vw;
+  --tbl-name: 1.2vw;
+  --tbl-head: 0.92vw;
+  --tbl-sub: 0.82vw;
+}
 
 .tbl__head,
 .tbl__row {
@@ -449,14 +457,22 @@ body:has(.screen) .utilbar {
      read against the person beside them, not against each other, and giving
      them a share of the free space pushed the money columns under their own
      figures. */
-  grid-template-columns: 2.2vw 15vw repeat(3, 1fr) repeat(3, 6.6vw) 12.5vw;
+  grid-template-columns: 2.2vw 15vw repeat(3, 1fr) repeat(3, 7vw) 12.5vw;
   align-items: center;
   gap: 1vw;
   padding: 0.5vw 1vw;
 }
 
+/* Four sizes in this table and no more.
+   
+   It had nine between 0.78vw and 1.5vw — headers at 0.95 against ranks at 0.92,
+   figure captions at 0.86 against the rate captions at 0.78 — differences small
+   enough to read as a mistake rather than a hierarchy. One size for every
+   figure, one for a name, one for a column heading, one for everything
+   secondary. What separates the money columns from the rate columns is where
+   they are and what the heading says, which is how a table is meant to work. */
 .tbl__head {
-  font-size: 0.95vw;
+  font-size: var(--tbl-head);
   color: var(--ink-2);
 }
 
@@ -475,24 +491,24 @@ body:has(.screen) .utilbar {
   height: 1.9vw;
   border-radius: 50%;
   background: var(--track);
-  font-size: 0.92vw;
+  font-size: var(--tbl-sub);
   font-weight: 700;
   color: var(--ink-2);
 }
 .tbl__rank--leader { background: var(--accent); color: #fff; }
 
-.tbl__name { font-size: 1.2vw; font-weight: 800; color: var(--navy); }
-.tbl__note { font-size: 0.88vw; color: var(--ink-muted); }
+.tbl__name { font-size: var(--tbl-name); font-weight: 800; color: var(--navy); }
+.tbl__note { font-size: var(--tbl-sub); color: var(--ink-muted); }
 .tbl__note--leader { color: var(--accent); font-weight: 700; }
 
-.tbl__fig { display: flex; flex-direction: column; gap: 0.1vw; }
-.tbl__fig b { font-size: 1.5vw; font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
-.tbl__fig span { font-size: 0.86vw; color: var(--ink-muted); }
-/* The three rate columns. Smaller than the money beside them on purpose: they
-   qualify those figures rather than compete with them, and $15,464 at the full
-   1.5vw does not fit a column this narrow. */
-.tbl__fig--sm b { font-size: 1.12vw; }
-.tbl__fig--sm span { font-size: 0.78vw; }
+.tbl__fig { display: flex; flex-direction: column; gap: 0.12vw; }
+.tbl__fig b {
+  font-size: var(--tbl-fig);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+}
+.tbl__fig span { font-size: var(--tbl-sub); color: var(--ink-muted); }
 
 .tiers { display: flex; flex-direction: column; gap: 0.35vw; }
 .tiers__bar {
@@ -509,7 +525,7 @@ body:has(.screen) .utilbar {
 }
 .tiers__fill.is-leader { background: var(--accent); }
 
-.tiers__note { font-size: 0.88vw; color: var(--ink-muted); }
+.tiers__note { font-size: var(--tbl-sub); color: var(--ink-muted); }
 .tiers__note--leader { color: var(--accent); font-weight: 700; }
 
 /* ---------------------------------------------------------------- heat map */
