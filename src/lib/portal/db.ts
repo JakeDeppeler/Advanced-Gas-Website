@@ -17,6 +17,7 @@ import type { CrewLevel, Costing, CapSettings, AccessMap } from "./crew";
 import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
 import type { CheckItems, CheckKind } from "./vanChecks";
+import type { Campaign } from "./campaigns";
 
 const USERS = "portal_users";
 const REPORTS = "portal_reports";
@@ -946,6 +947,100 @@ export async function photoCounts(checkIds: string[]): Promise<Map<string, numbe
   return out;
 }
 
+
+/* ---------------- marketing campaigns ---------------- */
+
+type CampaignDbRow = {
+  id: string; name: string; blurb: string | null; channel: string | null;
+  audience: string; status: string; monthly_spend: number | null;
+  owner: string | null; utm_campaign: string | null; sort_order: number | null;
+};
+
+const toCampaign = (r: CampaignDbRow): Campaign => ({
+  id: r.id, name: r.name, blurb: r.blurb, channel: r.channel,
+  audience: r.audience as Campaign["audience"],
+  status: r.status as Campaign["status"],
+  monthlySpend: r.monthly_spend == null ? null : Number(r.monthly_spend),
+  owner: r.owner, utmCampaign: r.utm_campaign,
+  sortOrder: r.sort_order == null ? null : Number(r.sort_order),
+});
+
+export async function listCampaigns(): Promise<Campaign[]> {
+  // Live ones first, then by the order the office set, then newest.
+  const res = await sb("portal_campaigns?select=*&order=sort_order.asc.nullslast,created_at.desc");
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as CampaignDbRow[]).map(toCampaign);
+}
+
+export async function createCampaign(input: {
+  name: string; blurb: string; channel: string; audience: string; status: string;
+  monthlySpend: number | null; owner: string; utmCampaign: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_campaigns", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      name: input.name, blurb: input.blurb || null, channel: input.channel || null,
+      audience: input.audience, status: input.status,
+      monthly_spend: input.monthlySpend, owner: input.owner || null,
+      utm_campaign: input.utmCampaign || null,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+export async function updateCampaign(id: string, patch: Record<string, unknown>): Promise<{ ok: boolean }> {
+  const res = await sb(`portal_campaigns?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({ ...patch, updated_at: new Date().toISOString() }),
+  });
+  return { ok: !!res && res.ok };
+}
+
+export async function deleteCampaign(id: string): Promise<{ ok: boolean }> {
+  const res = await sb(`portal_campaigns?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  return { ok: !!res && res.ok };
+}
+
+/* ---------------- brand assets ---------------- */
+
+export type BrandAsset = {
+  id: string; label: string; kind: "logo" | "photo" | "document" | "other";
+  path: string; mime: string | null; bytes: number | null; addedBy: string | null; createdAt: string;
+};
+type BrandAssetRow = {
+  id: string; label: string; kind: string; path: string;
+  mime: string | null; bytes: number | null; added_by: string | null; created_at: string;
+};
+
+export async function listBrandAssets(): Promise<BrandAsset[]> {
+  const res = await sb("portal_brand_assets?select=*&order=created_at.desc");
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as BrandAssetRow[]).map((r) => ({
+    id: r.id, label: r.label, kind: r.kind as BrandAsset["kind"], path: r.path,
+    mime: r.mime, bytes: r.bytes == null ? null : Number(r.bytes),
+    addedBy: r.added_by, createdAt: r.created_at,
+  }));
+}
+
+export async function createBrandAsset(input: {
+  label: string; kind: string; path: string; mime: string | null; bytes: number | null; addedBy: string;
+}): Promise<{ ok: boolean }> {
+  const res = await sb("portal_brand_assets", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      label: input.label, kind: input.kind, path: input.path,
+      mime: input.mime, bytes: input.bytes, added_by: input.addedBy || null,
+    }),
+  });
+  return { ok: !!res && res.ok };
+}
+
+export async function deleteBrandAsset(id: string): Promise<{ ok: boolean }> {
+  const res = await sb(`portal_brand_assets?id=eq.${encodeURIComponent(id)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
+  return { ok: !!res && res.ok };
+}
 
 /* ---------------- website leads ---------------- */
 

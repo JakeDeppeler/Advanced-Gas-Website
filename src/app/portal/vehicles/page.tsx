@@ -93,9 +93,36 @@ function FleetTable({ rows, caption, muted }: { rows: VanRow[]; caption: string;
   );
 }
 
-export default async function VehiclesPage() {
+/**
+ * The four views of the fleet the design asks for.
+ *
+ * One table, four ways of reading it. On a four-van fleet "all vans" answers
+ * most questions, but the three others are the ones somebody opens this page
+ * already looking for — and sorting by the column they care about beats
+ * scanning three pills per row for the one that is amber.
+ */
+const VIEWS = [
+  { k: "all", label: "All vans" },
+  { k: "clean", label: "Weekly clean & photos" },
+  { k: "service", label: "Service requests" },
+  { k: "km", label: "Km readings" },
+] as const;
+type ViewKey = (typeof VIEWS)[number]["k"];
+
+const SEVERITY = { bad: 0, warn: 1, ok: 2, none: 3 } as const;
+
+/** Worst first on the column this view is about; everything else as it was. */
+function forView(rows: VanRow[], view: ViewKey): VanRow[] {
+  if (view === "all") return rows;
+  const col = view === "clean" ? "clean" : view === "service" ? "service" : "km";
+  return [...rows].sort((a, b) => SEVERITY[a[col].severity] - SEVERITY[b[col].severity]);
+}
+
+export default async function VehiclesPage({ searchParams }: { searchParams: { view?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
+
+  const view: ViewKey = (VIEWS.find((v) => v.k === searchParams.view)?.k ?? "all") as ViewKey;
 
   const canManage = can(user, "vehicles");
   const ready = dbConfigured();
@@ -145,10 +172,20 @@ export default async function VehiclesPage() {
 
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <div className="pt-head__eyebrow">Vehicles</div>
-        <h1>The fleet.</h1>
-        <p>Servicing, km readings, fuel and the damage log. Open a vehicle to see its history or add an entry — anyone can log fuel and readings.</p>
+      <div className="pt-head pt-head--split">
+        <div>
+          <div className="pt-head__eyebrow">Vehicles</div>
+          <h1>The fleet.</h1>
+          <p>
+            {vehicles.length} {vehicles.length === 1 ? "van" : "vans"}. Weekly clean and photos are due every Monday
+            morning. Open one to see its history or add an entry — anyone can log fuel and readings.
+          </p>
+        </div>
+        {rows.length > 0 && (
+          <Link href={`/portal/vehicles/${rows[0].id}`} className="pt-btn pt-btn--orange pt-head__act">
+            + Log for a van
+          </Link>
+        )}
       </div>
 
       {!ready && (
@@ -174,35 +211,20 @@ export default async function VehiclesPage() {
         </div>
       )}
 
-      {vehicles.length > 0 && (
-        <>
-          <div className="pt-cap__strip pt-veh__fleet">
-            <div className="pt-cap__stripcell"><span>Vans on the road</span><strong>{onRoad.length}<em> of {vehicles.length}</em></strong></div>
-            <div className="pt-cap__stripcell"><span>Worth today</span><strong>{t.worth !== null ? money(t.worth) : "—"}</strong></div>
-            <div className="pt-cap__stripcell"><span>Still owing</span><strong>{t.owing !== null ? money(t.owing) : "—"}</strong></div>
-            <div className="pt-cap__stripcell"><span>Equity</span><strong>{t.equity !== null ? money(t.equity) : "—"}</strong></div>
-          </div>
-
-          <section className="pt-panel">
-            <h2 className="pt-panel__h">What the fleet costs a year</h2>
-            <p className="pt-panel__sub">
-              Servicing from each van&rsquo;s interval and what a service costs, fuel at {FUEL_PRICE.toFixed(2)}/L, and {KM_PER_WEEK}km a week
-              where no figure has been entered. Depreciation counts only on vans still being paid off — one that&rsquo;s bought and
-              paid for still loses value, but that isn&rsquo;t cash going out. This is the figure the Vehicles line in <strong>Costs &amp; capacity</strong> has to cover.
-            </p>
-            <div className="pt-pl__heads">
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Depreciation (financed)</span><strong className="pt-pl__headval">{t.dep !== null ? money(t.dep) : "—"}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Servicing</span><strong className="pt-pl__headval">{t.servicing !== null ? money(t.servicing) : "—"}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">Fuel</span><strong className="pt-pl__headval">{t.fuel !== null ? money(t.fuel) : "—"}</strong></div>
-              <div className="pt-pl__head"><span className="pt-pl__headlabel">All of it</span><strong className="pt-pl__headval">{t.running !== null ? money(t.running) : "—"}</strong></div>
-            </div>
-            {(t.dep === null || t.servicing === null || t.fuel === null) && (
-              <p className="pt-panel__sub" style={{ marginBottom: 0 }}>
-                A dash means the figures aren&rsquo;t filled in yet — purchase price and lifespan for depreciation, service cost and km a year for servicing, fuel use for fuel.
-              </p>
-            )}
-          </section>
-        </>
+      {rows.length > 0 && (
+        <nav className="pt-tabs pt-tabs--inline" aria-label="Fleet views">
+          {VIEWS.map((v) => (
+            <Link
+              key={v.k}
+              href={v.k === "all" ? "/portal/vehicles" : `/portal/vehicles?view=${v.k}`}
+              aria-current={v.k === view ? "page" : undefined}
+              className={`pt-tab${v.k === view ? " is-on" : ""}`}
+            >
+              {v.label}
+            </Link>
+          ))}
+          <span className="pt-tabs__note">{view === "all" ? "Most urgent first" : "Worst on this column first"}</span>
+        </nav>
       )}
 
       {canManage && <div style={{ marginBottom: 18 }}><AddVehicleForm crew={crew} /></div>}
@@ -215,9 +237,31 @@ export default async function VehiclesPage() {
         </div>
       ) : (
         <>
-          <FleetTable rows={rows} caption="On the road" />
+          <FleetTable rows={forView(rows, view)} caption="On the road" />
           {offRows.length > 0 && <FleetTable rows={offRows} caption="Not on the road" muted />}
         </>
+      )}
+
+      {vehicles.length > 0 && (
+        <section className="pt-panel pt-veh__cost">
+          <h2 className="pt-panel__h">What the fleet costs a year</h2>
+          <p className="pt-panel__sub">
+            Servicing from each van&rsquo;s interval and what a service costs, fuel at {FUEL_PRICE.toFixed(2)}/L, and {KM_PER_WEEK}km a week
+            where no figure has been entered. Depreciation counts only on vans still being paid off — one that&rsquo;s bought and
+            paid for still loses value, but that isn&rsquo;t cash going out. This is the figure the Vehicles line in <strong>Costs &amp; capacity</strong> has to cover.
+          </p>
+          <div className="pt-pl__heads">
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Depreciation (financed)</span><strong className="pt-pl__headval">{t.dep !== null ? money(t.dep) : "—"}</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Servicing</span><strong className="pt-pl__headval">{t.servicing !== null ? money(t.servicing) : "—"}</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">Fuel</span><strong className="pt-pl__headval">{t.fuel !== null ? money(t.fuel) : "—"}</strong></div>
+            <div className="pt-pl__head"><span className="pt-pl__headlabel">All of it</span><strong className="pt-pl__headval">{t.running !== null ? money(t.running) : "—"}</strong></div>
+          </div>
+          {(t.dep === null || t.servicing === null || t.fuel === null) && (
+            <p className="pt-panel__sub" style={{ marginBottom: 0 }}>
+              A dash means the figures aren&rsquo;t filled in yet — purchase price and lifespan for depreciation, service cost and km a year for servicing, fuel use for fuel.
+            </p>
+          )}
+        </section>
       )}
     </PortalShell>
   );

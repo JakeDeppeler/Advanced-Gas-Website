@@ -2100,3 +2100,126 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-veh__filters button:hover { color: var(--pt-ink); }
 .pt-veh__filters button.is-on { background: var(--pt-navy-2); border-color: var(--pt-navy-2); color: #fff; }
 .pt-veh__filters button:focus-visible { outline: 2px solid var(--pt-accent-mark); outline-offset: 1px; }
+
+
+/* ---- Fleet: the four views, and the cost strip at the foot ---- */
+/* A head with an action in it. The log button belongs beside the title, not
+   buried under four money figures halfway down. */
+.pt-head--split { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.pt-head__act { flex: none; margin-top: 6px; }
+
+.pt-tabs--inline {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  margin: 0 0 18px;
+}
+.pt-tabs--inline .pt-tab {
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--pt-line);
+  background: var(--pt-surface); color: var(--pt-ink);
+  font-size: 14px; font-weight: 700; text-decoration: none;
+}
+.pt-tabs--inline .pt-tab.is-on { background: var(--pt-navy-2); color: #fff; border-color: var(--pt-navy-2); }
+.pt-tabs__note { margin-left: auto; font-size: 13px; color: var(--pt-ink-2); }
+
+/* The cost of running the fleet is context for the table, not a headline
+   above it. */
+.pt-veh__cost { margin-top: 18px; }
+
+
+/* ================= Marketing: nine tabs over one window ================= */
+/* The window selector, beside the heading. */
+.pt-win { flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--pt-tint); }
+.pt-win__opt {
+  display: inline-flex; align-items: center; min-height: 34px; padding: 0 14px;
+  border-radius: 999px; font-size: 13.5px; font-weight: 700;
+  color: var(--pt-ink-2); text-decoration: none;
+}
+.pt-win__opt.is-on { background: var(--pt-navy-2); color: #fff; }
+
+/* The row of figures across the top of a tab. */
+.pt-mkheads { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.pt-mkhead {
+  background: var(--pt-surface); border-radius: var(--pt-r); box-shadow: var(--pt-shadow);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 3px;
+}
+/* Exactly one filled card per tab — a second would be two cards shouting. */
+.pt-mkhead.is-feature { background: var(--pt-navy-2); color: #fff; }
+.pt-mkhead__k { font-size: 13.5px; font-weight: 600; color: var(--pt-ink-2); }
+.pt-mkhead.is-feature .pt-mkhead__k { color: rgba(255, 255, 255, 0.75); }
+.pt-mkhead__v { font-family: var(--f-display); font-size: 34px; line-height: 1.1; font-weight: 800; }
+.pt-mkhead__sub { margin-top: auto; padding-top: 6px; font-size: 13px; color: var(--pt-ink-2); }
+.pt-mkhead.is-feature .pt-mkhead__sub { color: rgba(255, 255, 255, 0.7); }
+
+/* Two panels side by side, one column when there isn't room. */
+.pt-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 16px; }
+
+/* A labelled bar list. */
+.pt-bars { display: flex; flex-direction: column; gap: 2px; }
+.pt-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) 44px; align-items: center; gap: 14px; padding: 11px 0; border-top: 1px solid var(--pt-line); }
+.pt-bars > .pt-bar:first-child { border-top: 0; }
+.pt-bar__k { font-size: 14.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-bar__track { height: 9px; border-radius: 999px; background: var(--pt-tint); overflow: hidden; }
+.pt-bar__fill { display: block; height: 100%; border-radius: 999px; background: var(--pt-navy-2); }
+.pt-bar:first-child .pt-bar__fill { background: var(--pt-accent-fill); }
+.pt-bar__n { text-align: right; font-family: var(--f-display); font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* A panel that is itself a link to the tab that goes deeper. */
+.pt-linkpanel {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  text-decoration: none; color: var(--pt-ink);
+}
+.pt-linkpanel span { display: flex; flex-direction: column; gap: 3px; }
+.pt-linkpanel strong { font-family: var(--f-display); font-size: 19px; font-weight: 800; }
+.pt-linkpanel em { font-style: normal; font-size: 14px; color: var(--pt-ink-2); }
+.pt-linkpanel__go { flex: none; color: var(--pt-accent); font-weight: 700; }
+
+/* The campaigns bar: audience pills on the left, the add button on the right. */
+.pt-mkbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.pt-mkbar .pt-tabs--inline { margin: 0; }
+.pt-tab em { font-style: normal; opacity: 0.7; margin-left: 4px; }
+
+.pt-aud {
+  display: inline-flex; align-items: center; min-height: 26px; padding: 0 10px;
+  border-radius: 999px; background: var(--pt-tint); color: var(--pt-ink-2);
+  font-size: 12.5px; font-weight: 700;
+}
+
+/* Status is a control in the row, because it is the edit anybody makes. */
+.pt-statsel {
+  appearance: none; border: 1px solid var(--pt-line); border-radius: 999px;
+  padding: 5px 12px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+  background: var(--pt-surface); color: var(--pt-ink-2);
+}
+.pt-statsel.is-live { background: #e3f1f8; color: #0e729d; border-color: #bfdcea; }
+.pt-statsel.is-work { background: #fdefe3; color: #a2500f; border-color: #f0d6bf; }
+
+.pt-mknew__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 12px; margin-bottom: 14px; }
+.pt-field { display: flex; flex-direction: column; gap: 5px; }
+.pt-field > span { font-size: 13px; font-weight: 700; color: var(--pt-ink-2); }
+
+/* Reviews and the social grid. */
+.pt-revs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+.pt-rev { background: var(--pt-bg); border: 1px solid var(--pt-line); border-radius: var(--pt-r-sm); padding: 16px 18px; }
+.pt-rev header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pt-rev header strong { font-weight: 700; }
+.pt-rev header span { color: var(--pt-accent); letter-spacing: 1px; }
+.pt-rev h3 { margin: 8px 0 4px; font-size: 15px; }
+.pt-rev p { margin: 6px 0 0; font-size: 14px; line-height: 1.55; color: var(--pt-ink-2); }
+.pt-rev footer { margin-top: 10px; font-size: 12.5px; color: var(--pt-ink-3); }
+
+.pt-grid-social { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); gap: 12px; }
+.pt-social { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--pt-ink-2); font-size: 12.5px; line-height: 1.45; }
+.pt-social img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--pt-r-sm); display: block; }
+
+/* A tab that cannot be built yet, saying what it needs. */
+.pt-needs__list { margin: 4px 0 14px; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+.pt-needs__list li { font-size: 14px; line-height: 1.5; color: var(--pt-ink-2); }
+.pt-needs__alt { align-self: flex-start; }
+
+.pt-x { appearance: none; border: 0; background: none; color: var(--pt-ink-3); font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.pt-x:hover { color: #b23b2e; }
+.pt-fleet__sub { display: block; font-size: 12.5px; color: var(--pt-ink-2); }
+/* A three-word note under a figure was wrapping to three lines and making
+   every row in the table twice as tall as it needed to be. */
+.pt-fleet td .pt-fleet__sub { white-space: nowrap; }
+.pt-fleet td:has(.pt-fleet__sub) { min-width: 86px; }
