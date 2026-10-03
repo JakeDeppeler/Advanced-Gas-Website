@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { TradeShell, TradeIcon } from "@/components/portal/TradeShell";
-import { LEARNING_TRACKS, VIDEOS } from "@/lib/portal/content";
+import { LEARNING_TRACKS } from "@/lib/portal/content";
+import { dbConfigured, listVideos, watchedVideos } from "@/lib/portal/db";
+import { mergeVideos, onTrack } from "@/lib/portal/videos";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Videos — Trade portal" };
@@ -12,7 +14,12 @@ export default async function TradeVideos({ searchParams }: { searchParams: { tr
   if (!user) redirect("/portal/login");
 
   const track = LEARNING_TRACKS.find((t) => t.slug === searchParams.track) ?? LEARNING_TRACKS[0];
-  const shown = VIDEOS.filter((v) => v.track === track.slug);
+  // The same store the office portal writes, so a video added on a laptop is
+  // on the van iPad without a deploy.
+  const [stored, watched] = dbConfigured()
+    ? await Promise.all([listVideos().catch(() => []), watchedVideos(user.email).catch(() => new Set<string>())])
+    : [[], new Set<string>()];
+  const shown = onTrack(mergeVideos(stored, watched), track.slug);
 
   return (
     <TradeShell user={user} active="/trade/videos" title="Videos" sub="Method videos from the crew">
@@ -32,11 +39,10 @@ export default async function TradeVideos({ searchParams }: { searchParams: { tr
               // A card only links somewhere when there is something behind it.
               // Every one of these is filmed but none is loaded in yet, so the
               // card says so rather than opening an empty player.
-              const Tag = v.youtubeId ? "a" : "div";
               return (
-                <Tag
-                  key={v.title}
-                  {...(v.youtubeId ? { href: `https://www.youtube.com/watch?v=${v.youtubeId}`, target: "_blank", rel: "noopener" } : {})}
+                <Link
+                  key={v.id}
+                  href={`/portal/learning/${track.slug}/${encodeURIComponent(v.id)}`}
                   className="tr-vid"
                 >
                   <span className="tr-vid__shot">
@@ -47,9 +53,11 @@ export default async function TradeVideos({ searchParams }: { searchParams: { tr
                     <span className="tr-vid__cat">{v.category}</span>
                     <strong>{v.title}</strong>
                     <span className="tr-sub">{v.description}</span>
-                    {!v.youtubeId && <span className="tr-foot">Filmed — not loaded in yet.</span>}
+                    {!v.youtubeId
+                      ? <span className="tr-foot">Not loaded in yet.</span>
+                      : v.watched && <span className="tr-foot">✓ Watched</span>}
                   </span>
-                </Tag>
+                </Link>
               );
             })}
           </div>

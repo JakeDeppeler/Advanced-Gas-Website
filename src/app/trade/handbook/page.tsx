@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { TradeShell } from "@/components/portal/TradeShell";
 import { HANDBOOK } from "@/lib/portal/content";
+import { handbookBodies, dbConfigured } from "@/lib/portal/db";
+import { parseProse, readingMinutes } from "@/lib/portal/prose";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Handbook — Trade portal" };
@@ -22,6 +24,12 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
 
   const shelf = HANDBOOK.find((s) => s.letter === searchParams.shelf?.toUpperCase()) ?? HANDBOOK[0];
   const topic = shelf.items.find((t) => t.title === searchParams.topic) ?? shelf.items[0];
+
+  // The same bodies the office portal writes. One handbook, two front doors —
+  // a topic written on a laptop is readable in the van the moment it saves.
+  const bodies = dbConfigured() ? await handbookBodies().catch(() => new Map()) : new Map();
+  const body = (bodies.get(`${shelf.letter}|${topic.title}`)?.body ?? "").trim();
+  const written = (title: string) => (bodies.get(`${shelf.letter}|${title}`)?.body ?? "").trim().length > 0;
 
   const ready = (letter: string) => {
     const s = HANDBOOK.find((x) => x.letter === letter);
@@ -61,7 +69,7 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
               >
                 {/* The dot is the topic's state, and the word for it is in the
                     panel — colour on its own would be the only signal. */}
-                <span className={`tr-dot${t.status === "have" ? " is-have" : ""}`} aria-hidden="true" />
+                <span className={`tr-dot${written(t.title) ? " is-written" : t.status === "have" ? " is-have" : ""}`} aria-hidden="true" />
                 <span className="tr-pick__t"><strong>{t.title}</strong>{t.note && <span>{t.note}</span>}</span>
               </Link>
             );
@@ -74,22 +82,30 @@ export default async function TradeHandbook({ searchParams }: { searchParams: { 
             <span className="tr-sub">{shelf.letter} · {shelf.title}{topic.today ? " · ready today" : ""}</span>
           </div>
 
-          {topic.note && <p className="tr-prose" style={{ margin: 0 }}>{topic.note}</p>}
-
-          {topic.status === "have" ? (
-            topic.href ? (
-              <a href={topic.href} className="tr-btn tr-btn--go" style={{ alignSelf: "flex-start" }} target="_blank" rel="noopener">
-                Open it
-              </a>
-            ) : (
-              <div className="tr-note">
-                Written, and waiting to be loaded in. Ask the office for it until then.
+          {body ? (
+            <>
+              <span className="tr-foot">{readingMinutes(body)} min read</span>
+              <div className="tr-prose">
+                {parseProse(body).map((b, i) =>
+                  b.kind === "h" ? <h3 key={i}>{b.text}</h3>
+                  : b.kind === "ul" ? <ul key={i}>{b.items.map((it) => <li key={it}>{it}</li>)}</ul>
+                  : <p key={i}>{b.text}</p>,
+                )}
               </div>
-            )
+            </>
           ) : (
-            <div className="tr-note tr-note--warn">
-              Still being written.{topic.gap ? ` ${topic.gap}.` : ""}
-            </div>
+            <>
+              {topic.note && <p className="tr-prose" style={{ margin: 0 }}>{topic.note}</p>}
+              {topic.status === "have" ? (
+                <div className="tr-note">
+                  Written, and waiting to be loaded in. The office can paste it in from the portal.
+                </div>
+              ) : (
+                <div className="tr-note tr-note--warn">
+                  Still being written.{topic.gap ? ` ${topic.gap}.` : ""}
+                </div>
+              )}
+            </>
           )}
 
           <span className="tr-foot">

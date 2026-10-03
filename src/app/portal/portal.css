@@ -2223,3 +2223,169 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
    every row in the table twice as tall as it needed to be. */
 .pt-fleet td .pt-fleet__sub { white-space: nowrap; }
 .pt-fleet td:has(.pt-fleet__sub) { min-width: 86px; }
+
+
+/* ================== Handbook: a shelf, and what's on it ================== */
+.pt-hb { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: start; }
+
+.pt-hb__side { position: sticky; top: 92px; display: flex; flex-direction: column; gap: 14px; }
+
+/* A to G as chips, because seven shelves named in full is a wall of text and
+   the letter is what people actually say. */
+.pt-hb__letters { display: flex; flex-wrap: wrap; gap: 6px; }
+.pt-hb__letter {
+  width: 40px; height: 40px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: var(--pt-tint); color: var(--pt-ink);
+  font-family: var(--f-display); font-size: 15px; font-weight: 800; text-decoration: none;
+}
+.pt-hb__letter.is-on { background: var(--pt-navy-2); color: #fff; }
+
+.pt-hb__shelfname {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--pt-ink-2);
+}
+
+.pt-hb__topics { display: flex; flex-direction: column; gap: 2px; }
+.pt-hb__topic {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; padding: 8px 14px; border-radius: 12px;
+  color: var(--pt-ink); text-decoration: none; font-size: 14.5px; font-weight: 700;
+}
+.pt-hb__topic.is-on { background: var(--pt-navy-2); color: #fff; }
+/* Three states, and the dot is never the only one — the panel spells it out. */
+.pt-hb__dot { width: 9px; height: 9px; flex: none; border-radius: 50%; background: #d8d2c1; }
+.pt-hb__dot.is-have { background: var(--pt-sky); }
+.pt-hb__dot.is-written { background: var(--pt-good); }
+.pt-hb__topic.is-on .pt-hb__dot.is-written { background: var(--pt-accent-dark-bg); }
+
+.pt-hb__main { display: flex; flex-direction: column; gap: 14px; }
+.pt-topic { padding: 34px 38px; }
+.pt-topic__crumb { font-size: 13.5px; color: var(--pt-ink-2); }
+.pt-topic__h { margin: 6px 0 14px; font-size: 38px; line-height: 1.1; letter-spacing: -0.02em; }
+.pt-topic__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.pt-topic__mins { font-size: 13px; color: var(--pt-ink-2); }
+.pt-topic__edit { margin-left: auto; }
+.pt-topic__note { margin: 0 0 16px; font-size: 15px; color: var(--pt-ink-2); }
+
+.pt-chip {
+  display: inline-flex; align-items: center; min-height: 30px; padding: 0 14px;
+  border-radius: 999px; font-size: 13px; font-weight: 700;
+}
+.pt-chip.is-ready { background: #e3f1f8; color: #0e729d; }
+.pt-chip.is-have { background: var(--pt-tint); color: var(--pt-ink-2); }
+.pt-chip.is-write { background: #fdefe3; color: #a2500f; }
+
+/* The reading column. 65-ish characters, which is where prose stops being a
+   wall and starts being something people finish. */
+.pt-prose { max-width: 68ch; font-size: 16.5px; line-height: 1.72; color: var(--pt-ink); }
+.pt-prose > * + * { margin-top: 15px; }
+.pt-prose h2 { font-size: 21px; line-height: 1.3; margin-top: 28px; }
+/* The portal's reset strips list markers, so prose has to ask for them back —
+   without them a list rendered as indented paragraphs. */
+.pt-prose ul { margin: 0; padding-left: 24px; list-style: disc; display: flex; flex-direction: column; gap: 8px; }
+.pt-prose li { display: list-item; }
+.pt-prose li::marker { color: var(--pt-accent); }
+
+.pt-topic__empty {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 22px 24px; border: 1px dashed var(--pt-line); border-radius: var(--pt-r-sm);
+  background: var(--pt-bg);
+}
+.pt-topic__empty strong { font-size: 16px; }
+.pt-topic__empty span { font-size: 14.5px; color: var(--pt-ink-2); }
+
+.pt-topic__ta {
+  width: 100%; box-sizing: border-box; min-height: 420px; padding: 18px 20px;
+  border: 1px solid var(--pt-line); border-radius: var(--pt-r-sm);
+  background: var(--pt-bg); color: var(--pt-ink);
+  font: inherit; font-size: 15.5px; line-height: 1.7; resize: vertical;
+}
+.pt-topic__help { margin: 10px 0 0; font-size: 13px; color: var(--pt-ink-2); }
+.pt-topic__help code { background: var(--pt-tint); padding: 1px 5px; border-radius: 5px; }
+.pt-topic__acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+.pt-hb__nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 4px; }
+.pt-hb__prev, .pt-hb__next { font-size: 14.5px; font-weight: 700; text-decoration: none; color: var(--pt-ink-2); }
+.pt-hb__next { color: var(--pt-accent); }
+
+@media (max-width: 900px) {
+  .pt-hb { grid-template-columns: minmax(0, 1fr); }
+  .pt-hb__side { position: static; }
+  .pt-topic { padding: 22px 20px; }
+  .pt-topic__h { font-size: 28px; }
+}
+
+
+/* ===================== Learning: the player and the shelf ================= */
+.pt-vidwrap { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+
+.pt-vid__frame {
+  position: relative; aspect-ratio: 16 / 9; border-radius: var(--pt-r);
+  background: var(--pt-navy-2); overflow: hidden;
+  display: grid; place-items: center;
+}
+.pt-vid__frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* The embed only loads once somebody presses play: three YouTube frames on a
+   shelf page is a lot of script for a van iPad on 4G. */
+.pt-vid__play {
+  width: 74px; height: 74px; border: 0; border-radius: 50%;
+  background: #fff; color: var(--pt-navy-2);
+  display: grid; place-items: center; cursor: pointer;
+  font-size: 22px; padding-left: 4px;
+}
+.pt-vid__none {
+  display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center;
+  padding: 24px; max-width: 46ch; color: rgba(255, 255, 255, 0.82);
+}
+.pt-vid__none strong { color: #fff; font-size: 17px; }
+.pt-vid__none span { font-size: 14px; line-height: 1.55; }
+
+.pt-vid__meta { margin-top: 18px; }
+.pt-vid__cat { font-size: 13.5px; font-weight: 700; color: var(--pt-accent); }
+.pt-vid__meta h1 { margin: 6px 0 8px; font-size: 34px; line-height: 1.12; letter-spacing: -0.02em; }
+.pt-vid__meta p { margin: 0; font-size: 16px; color: var(--pt-ink-2); }
+.pt-vid__acts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+
+/* A card on the shelf, which is a link to the player. */
+.pt-vid--card { display: flex; flex-direction: column; text-decoration: none; color: var(--pt-ink); }
+.pt-vid--card .pt-vid__frame { aspect-ratio: 16 / 10; border-radius: var(--pt-r-sm); }
+.pt-vid--card .pt-vid__play { width: 46px; height: 46px; font-size: 0; }
+.pt-vid--card.is-empty .pt-vid__frame { background: #2a3050; }
+.pt-vid__done {
+  position: absolute; top: 10px; right: 10px;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--pt-good); color: #fff;
+  display: grid; place-items: center; font-size: 14px; font-weight: 800;
+}
+.pt-vid__body { padding: 12px 2px 0; }
+.pt-vid__body h3 { margin: 4px 0 4px; font-size: 16.5px; line-height: 1.3; }
+.pt-vid__body p { margin: 0; font-size: 14px; color: var(--pt-ink-2); }
+.pt-vid__flag {
+  display: inline-block; margin-top: 8px; padding: 2px 9px; border-radius: 999px;
+  background: var(--pt-tint); color: var(--pt-ink-2); font-size: 12px; font-weight: 700;
+}
+
+.pt-upnext__row {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 14px 0; border-top: 1px solid var(--pt-line); text-decoration: none; color: var(--pt-ink);
+}
+.pt-upnext .pt-upnext__row:first-of-type { border-top: 0; }
+.pt-upnext__row strong { font-size: 15.5px; line-height: 1.35; }
+.pt-upnext__row span { font-size: 13px; color: var(--pt-ink-2); }
+
+@media (max-width: 900px) {
+  .pt-vidwrap { grid-template-columns: minmax(0, 1fr); }
+  .pt-vid__meta h1 { font-size: 26px; }
+}
+
+
+/* The plain button had a transparent border, so on a white card it read as
+   text rather than something to press. The mock outlines it. */
+.pt-btn:not([class*="pt-btn--"]) {
+  border-color: var(--pt-line);
+  background: var(--pt-surface);
+  color: var(--pt-ink);
+}
+.pt-btn:not([class*="pt-btn--"]):hover { border-color: var(--pt-ink-2); }

@@ -6,10 +6,16 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { SOPS, findSection, type SopBlock } from "@/lib/portal/sops";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 
-export const dynamic = "force-static";
-export function generateStaticParams() {
-  return SOPS.map((s) => ({ section: s.slug }));
-}
+/**
+ * Dynamic, not static.
+ *
+ * This was `force-static` with `generateStaticParams`, which cannot work: the
+ * page reads the session cookie to find out who is asking, and a page that
+ * reads cookies cannot be prerendered. Next resolved that by answering every
+ * request with a 307 carrying no Location — so every procedure's detail page
+ * had been a dead link, and the Processes section only ever showed its index.
+ */
+export const dynamic = "force-dynamic";
 
 export function generateMetadata({ params }: { params: { section: string } }) {
   const s = findSection(params.section);

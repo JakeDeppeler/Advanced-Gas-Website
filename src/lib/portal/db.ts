@@ -18,6 +18,7 @@ import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
 import type { CheckItems, CheckKind } from "./vanChecks";
 import type { Campaign } from "./campaigns";
+import type { Video as StoredVideo } from "./videos";
 
 const USERS = "portal_users";
 const REPORTS = "portal_reports";
@@ -947,6 +948,102 @@ export async function photoCounts(checkIds: string[]): Promise<Map<string, numbe
   return out;
 }
 
+
+/* ---------------- learning videos ---------------- */
+
+type VideoRow = {
+  id: string; track: string; category: string; title: string; description: string | null;
+  youtube_id: string | null; minutes: number | null; sop_code: string | null; sort_order: number | null;
+};
+
+export async function listVideos(): Promise<StoredVideo[]> {
+  const res = await sb("portal_videos?select=*&order=sort_order.asc.nullslast,created_at.asc");
+  if (!res || !res.ok) return [];
+  return ((await res.json()) as VideoRow[]).map((r) => ({
+    id: r.id, track: r.track as StoredVideo["track"], category: r.category, title: r.title,
+    description: r.description, youtubeId: r.youtube_id,
+    minutes: r.minutes == null ? null : Number(r.minutes),
+    sopCode: r.sop_code, watched: false,
+  }));
+}
+
+/** Which of these this person has watched. */
+export async function watchedVideos(email: string): Promise<Set<string>> {
+  const res = await sb(`portal_video_watches?select=video_id&user_email=eq.${encodeURIComponent(email)}`);
+  if (!res || !res.ok) return new Set();
+  return new Set(((await res.json()) as { video_id: string }[]).map((r) => r.video_id));
+}
+
+export async function markWatched(videoId: string, email: string): Promise<{ ok: boolean }> {
+  // Watching twice is still watched, so a repeat is a no-op rather than an error.
+  const res = await sb("portal_video_watches?on_conflict=video_id,user_email", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ video_id: videoId, user_email: email, watched_at: new Date().toISOString() }),
+  });
+  return { ok: !!res && res.ok };
+}
+
+export async function unmarkWatched(videoId: string, email: string): Promise<{ ok: boolean }> {
+  const res = await sb(
+    `portal_video_watches?video_id=eq.${encodeURIComponent(videoId)}&user_email=eq.${encodeURIComponent(email)}`,
+    { method: "DELETE", headers: { Prefer: "return=minimal" } },
+  );
+  return { ok: !!res && res.ok };
+}
+
+export async function createVideo(input: {
+  track: string; category: string; title: string; description: string;
+  youtubeId: string; minutes: number | null; sopCode: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_videos", {
+    method: "POST", headers: { Prefer: "return=minimal" },
+    body: JSON.stringify({
+      track: input.track, category: input.category, title: input.title,
+      description: input.description || null, youtube_id: input.youtubeId || null,
+      minutes: input.minutes, sop_code: input.sopCode || null,
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
+
+/* ---------------- handbook topic bodies ---------------- */
+
+export type HandbookBody = { shelf: string; title: string; body: string; updatedBy: string | null; updatedAt: string };
+type HandbookRow = { shelf: string; title: string; body: string; updated_by: string | null; updated_at: string };
+
+/** Every written body, keyed `shelf|title` — one read for a whole shelf. */
+export async function handbookBodies(): Promise<Map<string, HandbookBody>> {
+  const out = new Map<string, HandbookBody>();
+  const res = await sb("portal_handbook_topics?select=shelf,title,body,updated_by,updated_at");
+  if (!res || !res.ok) return out;
+  for (const r of (await res.json()) as HandbookRow[]) {
+    out.set(`${r.shelf}|${r.title}`, {
+      shelf: r.shelf, title: r.title, body: r.body,
+      updatedBy: r.updated_by, updatedAt: r.updated_at,
+    });
+  }
+  return out;
+}
+
+/** Write a topic's body. Upsert on (shelf, title), which is the unique key. */
+export async function saveHandbookBody(input: {
+  shelf: string; title: string; body: string; updatedBy: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  const res = await sb("portal_handbook_topics?on_conflict=shelf,title", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({
+      shelf: input.shelf, title: input.title, body: input.body,
+      updated_by: input.updatedBy, updated_at: new Date().toISOString(),
+    }),
+  });
+  if (!res) return { ok: false, error: "not-configured" };
+  if (!res.ok) return { ok: false, error: `${res.status}` };
+  return { ok: true };
+}
 
 /* ---------------- marketing campaigns ---------------- */
 
