@@ -614,6 +614,12 @@ where there were **118**. The per-person rates on the Team page group the same
 rows by customer and day as well, so the headline disagreed with the rows under
 it. Both use the same key now.
 
+**The close rate carries what a job was priced at, and how many ways.** "429
+options" was a number nobody could act on. **3.6 options per job** says whether
+we are putting a choice in front of people, and it is the figure that makes the
+rate beside it legible: a close rate counted per job only means something once
+you know a job is typically priced three or four ways.
+
 **The close rate carries what a job was priced at.** The rate says how often we
 win; the average says what winning one is worth, and the room asks both. Per job
 over the same thirty days — an average counted per option under a rate counted

@@ -422,8 +422,15 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           live.st
             ? [
                 `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs quoted`,
+                // Options per job, not the raw count. "429 options" is a
+                // number nobody can act on; "3.6 options per job" says whether
+                // we are putting a choice in front of people, and it is the
+                // thing that makes the close rate beside it a per-job figure
+                // rather than a per-option one.
                 `avg quote ${plain(m.avgQuote30d)}${
-                  m.closeRate30dOptions > m.closeRate30dQuotes ? ` · ${count(m.closeRate30dOptions)} options` : ""
+                  m.closeRate30dQuotes > 0
+                    ? ` · ${(m.closeRate30dOptions / m.closeRate30dQuotes).toFixed(1)} options per job`
+                    : ""
                 }`,
                 `last ${m.outstandingDays ?? 30} days`,
               ]
