@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHero } from "@/components/PageHero";
 import { searchSite, type Hit } from "@/lib/searchIndex";
+import { publishedPosts } from "@/lib/blogLive";
 import "../detail.css";
 import "./search.css";
 
@@ -24,9 +25,9 @@ const COMMON = [
   { label: "Emergency", href: "/contact#emergency" },
 ];
 
-export default function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const q = (searchParams?.q ?? "").slice(0, 80);
-  const hits = q ? searchSite(q) : [];
+  const hits = q ? searchSite(q, 24, await publishedPosts()) : [];
   const grouped = ORDER
     .map((kind) => ({ kind, rows: hits.filter((h) => h.kind === kind) }))
     .filter((g) => g.rows.length > 0);

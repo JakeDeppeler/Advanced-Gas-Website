@@ -5,6 +5,21 @@ const nextConfig = {
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],
+    /**
+     * Cover photos for posts written in the portal live in the public
+     * blog-photos bucket on Supabase, so next/image has to be told that host
+     * is allowed. Without it the optimiser throws and a published post shows
+     * a broken hero — which no typecheck or build would catch.
+     *
+     * Narrow on purpose: this one bucket's public path, not the project.
+     */
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "pfvibwgusbfnjopqiszg.supabase.co",
+        pathname: "/storage/v1/object/public/blog-photos/**",
+      },
+    ],
   },
   experimental: {
     // Van photos go through a server action. They're shrunk to 1600px in the

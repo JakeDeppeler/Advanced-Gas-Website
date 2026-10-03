@@ -4,7 +4,7 @@ import { serviceContent } from "@/lib/serviceContent";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { brands } from "@/lib/brands";
 import { detailedCodes, faultSlug } from "@/lib/faultCodes";
-import { posts } from "@/lib/blog";
+import { publishedPosts } from "@/lib/blogLive";
 
 /**
  * No `lastModified` anywhere in here, deliberately.
@@ -25,7 +25,10 @@ import { posts } from "@/lib/blog";
  * `changeFrequency` and `priority` are kept because they cost nothing.
  * Google ignores both; some smaller crawlers still read them.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // A post published from the portal has to be in here, or Google never
+  // learns it exists.
+  const posts = await publishedPosts();
   const base = site.url;
 
   const staticUrls: MetadataRoute.Sitemap = [

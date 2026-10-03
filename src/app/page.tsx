@@ -10,7 +10,7 @@ import { RATING_SUMMARY } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
-import { posts } from "@/lib/blog";
+import { publishedPosts } from "@/lib/blogLive";
 import { publishedSuburbs } from "@/lib/suburbs";
 import { SuburbSearch } from "@/components/SuburbSearch";
 import { DoorIcon, type DoorIconKey } from "@/components/DoorIcon";
@@ -143,6 +143,8 @@ const SUBURBS: { name: string; slug: string }[] = [...publishedSuburbs]
 
 
 export default async function HomePage() {
+  // The three latest guides, including any written in the portal.
+  const posts = await publishedPosts();
   // Live 4★+ Google reviews (falls back to the curated list when the
   // Places API isn't configured — see lib/googleReviews.ts).
   const { reviews: liveReviews } = await getReviews(12);

@@ -26,7 +26,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: { d?: 
   const area = groupByArea(leads.map((l) => ({ suburb: l.suburb, postcode: l.postcode, kind: l.kind })));
   // Same reason: the page report reads the sitemap, which pulls in every
   // suburb, brand and fault-code module on the site.
-  const pages = pageReport(leads);
+  const pages = await pageReport(leads);
 
   return (
     <PortalShell user={user}>

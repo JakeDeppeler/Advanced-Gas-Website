@@ -2275,8 +2275,13 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-fleet__sub { display: block; font-size: 12.5px; color: var(--pt-ink-2); }
 /* A three-word note under a figure was wrapping to three lines and making
    every row in the table twice as tall as it needed to be. */
+/* The fleet's sub-line is a short label like "28 Sept · Jye" and reads
+   better on one line. A table that puts a sentence there says so, rather
+   than inheriting a nowrap that makes one column as wide as the page. */
 .pt-fleet td .pt-fleet__sub { white-space: nowrap; }
 .pt-fleet td:has(.pt-fleet__sub) { min-width: 86px; }
+.pt-fleet--prose td .pt-fleet__sub { white-space: normal; max-width: 52ch; }
+.pt-fleet--prose td:has(.pt-fleet__sub) { min-width: 0; }
 
 
 /* ================== Handbook: a shelf, and what's on it ================== */
@@ -2796,3 +2801,67 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
   .pt-se__step > button { grid-column: 2; width: 100%; }
 }
 .pt-se__head .pt-btn--navy { text-decoration: none; }
+
+/* ================= Marketing · writing a post ================= */
+.pt-pe { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 18px; align-items: start; }
+.pt-pe__main { margin-bottom: 0; }
+.pt-pe__side { display: flex; flex-direction: column; gap: 18px; }
+.pt-pe__side .pt-panel { margin-bottom: 0; }
+
+.pt-pe__file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.pt-pe__drop {
+  display: grid; place-items: center; width: 100%; aspect-ratio: 16 / 7; appearance: none; cursor: pointer;
+  border: 1px dashed var(--pt-line); border-radius: 16px; background: var(--pt-bg);
+  font: inherit; font-size: 15px; font-weight: 700; color: var(--pt-ink-2);
+}
+.pt-pe__drop:hover:not(:disabled) { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+.pt-pe__cover { position: relative; }
+.pt-pe__cover img { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; border-radius: 16px; }
+.pt-pe__coveracts { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 8px; }
+
+/* The title is the page's H1, so it is set like one here rather than looking
+   like any other field. */
+.pt-pe__title > span { font-size: 13px; }
+.pt-pe__title input {
+  font-family: var(--f-display); font-size: 30px; font-weight: 800; letter-spacing: -0.02em;
+  padding: 12px 14px; line-height: 1.15;
+}
+.pt-pe__howto { margin: 18px 0 8px; font-size: 13px; color: var(--pt-ink-2); }
+.pt-pe__howto code { font-size: 12.5px; background: var(--pt-tint); border-radius: 5px; padding: 1px 5px; }
+.pt-pe__body { font-size: 15px; line-height: 1.65; min-height: 320px; }
+.pt-pe__count { margin: 8px 0 0; font-size: 13px; color: var(--pt-ink-2); }
+
+.pt-pe__prev { margin-top: 18px; border-top: 1px solid var(--pt-line); padding-top: 14px; }
+.pt-pe__prev summary { font-size: 14px; font-weight: 700; color: var(--pt-ink); cursor: pointer; }
+.pt-pe__prevbody { margin-top: 14px; max-width: 65ch; }
+.pt-pe__prevbody h3 { font-family: var(--f-display); font-size: 19px; font-weight: 800; margin: 20px 0 8px; color: var(--pt-ink); }
+.pt-pe__prevbody p { margin: 0 0 12px; font-size: 15.5px; line-height: 1.7; color: var(--pt-ink-2); }
+.pt-pe__prevbody ul { margin: 0 0 12px; padding-left: 22px; }
+.pt-pe__prevbody li { list-style: disc; display: list-item; font-size: 15.5px; line-height: 1.6; color: var(--pt-ink-2); margin-bottom: 5px; }
+
+/* Draft or live, in words. This is the one editor here whose output anybody
+   on the internet can read. */
+.pt-pe__state {
+  margin: 0 0 16px; padding: 11px 14px; border-radius: 11px; font-size: 14px; font-weight: 700;
+  background: #fbe8dc; color: var(--pt-accent-deep); border: 1px solid #f0cdb4;
+}
+.pt-pe__state.is-live { background: #e4f1e9; color: var(--pt-good); border-color: #c5e2d1; }
+.pt-pe__acts { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+.pt-pe__switches { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.pt-pe__viewrow { margin: 14px 0 0; }
+.pt-pe__view { font-size: 14px; font-weight: 700; color: var(--pt-accent); }
+/* Its own line. Sharing one with the "read it" link put a destructive button
+   under the reader's cursor on the way to a harmless one. */
+.pt-pe__kill { display: block; width: 100%; margin-top: 16px; }
+.pt-pe__url { margin: 6px 0 0; font-family: var(--f-mono, monospace); font-size: 12.5px; color: var(--pt-ink-2); overflow-wrap: anywhere; }
+.pt-field > span em.is-over { color: var(--pt-accent); font-weight: 700; }
+
+@media (max-width: 1100px) {
+  .pt-pe { grid-template-columns: minmax(0, 1fr); }
+  .pt-pe__side { flex-direction: row; flex-wrap: wrap; }
+  .pt-pe__side .pt-panel { flex: 1 1 320px; }
+}
+@media (max-width: 720px) {
+  .pt-pe__title input { font-size: 22px; }
+  .pt-pe__side { flex-direction: column; }
+}

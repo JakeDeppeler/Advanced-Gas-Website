@@ -74,11 +74,17 @@ export function sectionOf(path: string): SectionKey {
 
 let pathCache: string[] | null = null;
 
-/** Every public page, from the sitemap, as a path. */
-function allPaths(): string[] {
+/**
+ * Every public page, from the sitemap, as a path.
+ *
+ * Async because the sitemap is: a post written in the portal is a page on
+ * the site and has to be counted as one here, or "pages earning" would be
+ * measured against a page count that is quietly out of date.
+ */
+async function allPaths(): Promise<string[]> {
   if (pathCache) return pathCache;
   const out = new Set<string>();
-  for (const e of sitemap()) {
+  for (const e of await sitemap()) {
     try {
       const p = new URL(e.url).pathname.replace(/\/$/, "") || "/";
       out.add(p);
@@ -154,8 +160,8 @@ export type PageReport = {
   landingsKnown: number;
 };
 
-export function pageReport(leads: WebLead[]): PageReport {
-  const paths = allPaths();
+export async function pageReport(leads: WebLead[]): Promise<PageReport> {
+  const paths = await allPaths();
   const known = new Set(paths);
 
   const acc = new Map<string, PageRow>();
