@@ -32,6 +32,15 @@ export const suburbCoords: Record<string, readonly [number, number]> = {
   "keysborough":         [-37.998, 145.176],
   "noble-park":          [-37.970, 145.174],
   "springvale":          [-37.949, 145.150],
+  /**
+   * Bayside and the peninsula. No page in suburbs.ts covers these, so they add
+   * nothing to the public site — they are here for the wall board, which plots
+   * whatever ServiceTitan says the work was in and listed these under "Also…"
+   * for want of a coordinate. Chelsea alone had eleven jobs sitting off the map.
+   */
+  "chelsea":             [-38.052, 145.117],
+  "sandhurst":           [-38.085, 145.188],
+  "tootgarook":          [-38.379, 144.849],
   "cranbourne":          [-38.111, 145.283],
   "cranbourne-east":     [-38.115, 145.311],
   "cranbourne-north":    [-38.087, 145.278],

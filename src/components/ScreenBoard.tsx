@@ -595,6 +595,11 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0 ? "Today" : `${qr.ageDays} days${qr.ageDays >= 7 ? " · follow up" : ""}`}
                 </span>
+                {/* Good, better and best are one quote and at most one of them
+                    sells, so the figure is the average of the options rather
+                    than their sum. It says so: an unlabelled average of three
+                    prices reads as a total and understates the top option. */}
+                <span className="quote__basis">{qr.options > 1 ? `avg of ${qr.options}` : ""}</span>
               </div>
             ))}
           </div>
@@ -792,7 +797,10 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
 
   return (
     <>
-      <HeadCard label="Jobs" value={st.count(m.bookingsMonth, live)} />
+      {/* "Jobs booked", not "Jobs": the totals row below counts invoices, and two
+          different job counts on one page with the same label is how a board
+          gets argued with. */}
+      <HeadCard label="Jobs booked" value={st.count(m.bookingsMonth, live)} />
       <HeadCard label="Invoiced" value={st.money(m.revenueInvoicedMtd, live)} />
       <HeadCard
         label="Profit"
@@ -813,12 +821,12 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
           {/* The set-aside count is on the wall, not buried: a ranking that
               quietly omits most of the invoices is a ranking you can't trust. */}
           <span className="tile__sub">
-            last 90 days
+            this month
             {m.jobTypeUnclassified > 0 ? ` · ${count(m.jobTypeUnclassified)} untyped` : ""}
           </span>
         </div>
         {rows.length === 0 ? (
-          <span className="tile__sub">{st.sub("No invoiced work in the last 90 days", live)}</span>
+          <span className="tile__sub">{st.sub("No invoiced work in the this month", live)}</span>
         ) : (
           <div className="jt">
             <div className="jt__head">
@@ -861,6 +869,23 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                 </div>
               );
             })}
+            {/* The five rows are a ranking, not the month. Jake asked for the
+                month's own totals under them because the obvious reading of a
+                table is that it adds up, and these five came to a third of the
+                invoiced figure in the tile above. Counted over every invoice,
+                untyped ones included, so this line and "Invoiced" agree. */}
+            <div className="jt__row jt__row--total">
+              <span className="jt__name">All invoiced this month</span>
+              <span className="jt__n">{count(m.invoiceCountMonth)}</span>
+              {/* Full digits, not $21K: this is the figure of the page and it
+                  gets read off the wall and repeated. */}
+              <span className="jt__n">{plain(m.revenueInvoicedMtd)}</span>
+              <span className="jt__n">{plain(m.profitMtd)}</span>
+              <span />
+              <span className={`jt__pct ${m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over"}`}>
+                {m.marginPct == null ? NA : pct(m.marginPct)}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -984,6 +1009,11 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0 ? "Today" : `${qr.ageDays} days${qr.ageDays >= 7 ? " · follow up" : ""}`}
                 </span>
+                {/* Good, better and best are one quote and at most one of them
+                    sells, so the figure is the average of the options rather
+                    than their sum. It says so: an unlabelled average of three
+                    prices reads as a total and understates the top option. */}
+                <span className="quote__basis">{qr.options > 1 ? `avg of ${qr.options}` : ""}</span>
               </div>
             ))}
           </div>

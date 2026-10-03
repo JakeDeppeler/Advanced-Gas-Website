@@ -117,6 +117,10 @@ const RESOURCES: ResourceSpec[] = [
       job_id: num(r.jobId),
       customer_id: num(r.customerId),
       status: str(pick(r, "statusName", "status")),
+      // Which side of the business wrote it. The board is a residential wall:
+      // a commercial project at $119K is real work and real money, and it is
+      // not what anybody standing in front of this screen is chasing.
+      business_unit: str(pick(r, "businessUnitName", "businessUnit")),
       sold_by_id: num(pick(r, "soldById", "soldBy")),
       // Who wrote the quote, which is a different person from who closed it and
       // is on every estimate rather than only the sold ones.

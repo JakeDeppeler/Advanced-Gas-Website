@@ -537,6 +537,45 @@ naming whichever couple of suburbs had filled in the web form. Completed jobs
 carry the same suburb and postcode columns and there are thousands, so the map
 shows where the work is, over 90 days. The lead figures keep their own tile.
 
+**Commercial work is excluded, but an unknown business unit is not.** The board
+is a residential wall and a $119K commercial project at the top of "still out"
+is not what the room is going to ring about. The exclusion is applied in code
+rather than in the query, because `business_unit` is null on **151 of the 273**
+jobs completed in the last sixty days — ServiceTitan's import placeholder
+resolves to no name in the lookup tables — and `NULL NOT LIKE 'Commercial%'` is
+NULL in SQL, not true, so a `not.like` filter would have dropped every one of
+those rows and taken most of the areas map with it. Unknown is not commercial;
+it is unknown. The eight rows that are genuinely commercial are not worth a
+filter that silently decides otherwise.
+
+**Highest ticket only names a job it can classify.** The tile was showing
+**$21,890 · Sale**, which is an imported legacy invoice with no job type and no
+business unit, in a town 200km east of the corridor. The board could not say
+what the work was or which side of the business it came from, and it was read
+as commercial. The tile now skips any job missing either field, so it names
+$7,145 · Install - Multi-Head · Sandhurst instead. Those jobs still count
+towards the map — they happened, in a real suburb, for a real amount; they just
+do not get named.
+
+**The job types table totals the month under it.** Five ranked rows read as if
+they add up, and they are a top five. The last row is every invoice this month,
+untyped included, so the table and the Invoiced tile agree. The head card is
+labelled "Jobs booked" rather than "Jobs", because it counts jobs created this
+month while the totals row counts invoices, and two different job counts under
+the same word is how a board gets argued with.
+
+**Quote figures say when they are an average.** A quote priced three ways shows
+the average of its options, not their sum, and the row says `avg of 3` under the
+figure. An unlabelled average of three prices reads as a total and understates
+the top option.
+
+**The map is on OpenStreetMap tiles.** CARTO's light basemap now wants an API
+key and serves "API KEY REQUIRED" across every tile, which is what the wall was
+showing. OSM needs no key. The tile pane is desaturated and lightened in CSS so
+a full-colour basemap does not fight the orange heat on top.
+`NEXT_PUBLIC_BOARD_TILES` overrides the URL for rendering the board from an
+environment with no route to a tile CDN.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two

@@ -427,6 +427,13 @@ body:has(.screen) .utilbar {
   padding: 0.5vw 0;
 }
 .quote--stack .quote__age { grid-column: 1; font-size: 0.92vw; color: var(--ink-muted); }
+.quote--stack .quote__basis {
+  grid-column: 2;
+  text-align: right;
+  font-size: 0.82vw;
+  color: var(--muted-fig);
+  font-weight: 600;
+}
 .quote--stack .quote__age--late { color: var(--behind-ink); font-weight: 700; }
 
 /* ------------------------------------------------------------------- table */
@@ -594,6 +601,13 @@ body:has(.screen) .utilbar {
   height: 0.45vw;
   border-radius: 999px;
   background: linear-gradient(90deg, #f6e4d7, var(--accent));
+}
+
+/* The basemap is context, not content. Desaturated and lifted so the orange
+   heat on top of it is the thing the eye lands on — OpenStreetMap's standard
+   style is full colour, and it fights an orange overlay on equal terms. */
+.heat .leaflet-tile-pane {
+  filter: grayscale(1) contrast(0.82) brightness(1.1);
 }
 
 /* ------------------------------------------------------------------ footer */
@@ -781,6 +795,18 @@ body:has(.screen) .utilbar {
   min-height: 0;
   border-top: 1px solid var(--hairline);
 }
+
+/* The month's own totals, so the five ranked rows are read against the whole
+   rather than mistaken for it. Not flex: 1 — it takes only the height it needs
+   and the ranked rows keep sharing the rest. */
+.jt__row--total {
+  flex: 0 0 auto;
+  border-top: 2px solid var(--ink-muted);
+  padding-top: 0.5vw;
+  margin-top: 0.3vw;
+}
+.jt__row--total .jt__name,
+.jt__row--total .jt__n { color: var(--ink-2); }
 
 .jt__name {
   font-size: 1.22vw;

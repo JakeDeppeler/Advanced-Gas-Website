@@ -44,6 +44,57 @@ import {
  */
 const QUOTE_CAP = 50_000;
 
+/**
+ * Commercial work, kept off a residential wall.
+ *
+ * ServiceTitan names the side of the business on every record: "Commercial
+ * Projects" and "Commercial Service" against the Domestic, Real Estate and
+ * Retirement Village units. A commercial project at $119,000 is real money and
+ * it is not what anybody standing in front of this screen is going to ring
+ * about — it sat at the top of "still out" and pushed a week of actual quoting
+ * off the bottom of the card.
+ *
+ * This does not replace QUOTE_CAP, it complements it. Half the quotes carry
+ * "Imported Default Businessunit", the migration placeholder, so the unit is
+ * simply unknown for most of them: the name catches commercial work priced like
+ * residential, and the ceiling catches the unclassified outliers.
+ *
+ * Applied here rather than in the query. `business_unit` is null on 151 of the
+ * 273 jobs completed in the last sixty days — ServiceTitan's import placeholder
+ * resolves to no name — and `NULL NOT LIKE 'Commercial%'` is NULL in SQL, not
+ * true, so a `not.like` filter would have dropped every one of those rows and
+ * taken most of the areas map with them. An unknown unit is not commercial; it
+ * is unknown, and the eight rows this actually excludes are not worth a filter
+ * that silently decides otherwise.
+ */
+const isCommercial = (unit: string | null | undefined) =>
+  unit != null && /^\s*commercial/i.test(unit);
+
+/** Drops the commercial side of the business from a fetched set of rows. */
+const domestic = <T extends { business_unit?: string | null }>(rows: T[]): T[] =>
+  rows.filter((r) => !isCommercial(r.business_unit));
+
+/**
+ * The key that identifies one quote rather than one option of it.
+ *
+ * A customer is priced several ways and picks one. Grouping on job_id alone was
+ * not enough: everything imported from the old system arrived with no job_id,
+ * so each option became its own quote — one August job came through as fourteen
+ * rows between $29K and $454K. Customer plus the day it was written identifies
+ * those, because options of one quote are written together, for one customer,
+ * on one day.
+ */
+function quoteKey(r: {
+  id: number;
+  job_id: number | null;
+  customer_id?: number | null;
+  created_on?: string | null;
+}): string {
+  if (r.job_id != null) return `j${r.job_id}`;
+  if (r.customer_id != null && r.created_on) return `c${r.customer_id}-${r.created_on.slice(0, 10)}`;
+  return `e${r.id}`;
+}
+
 export type SourceState = "ok" | "stale" | "error" | "not-configured";
 
 export type Metrics = {
@@ -404,14 +455,22 @@ async function serviceTitanMetrics(now: Date) {
    * nobody has closed off is a real thing to go and do, just not pipeline.
    */
   const OUTSTANDING_DAYS = 30;
-  const openEstimates = await sbSelect<{ id: number; job_id: number | null; total: number | null; created_on: string | null }>(
-    "st_estimates",
-    [
-      q.select("id,job_id,total,created_on"),
-      q.isNull("sold_on"),
-      q.notIn("status", ["Dismissed", "Expired"]),
-      q.lt("total", String(QUOTE_CAP)),
-    ].join("&"),
+  const openEstimates = domestic(
+    await sbSelect<{
+      id: number;
+      job_id: number | null;
+      customer_id: number | null;
+      total: number | null;
+      created_on: string | null;
+      business_unit: string | null;
+    }>(
+      "st_estimates",
+      [
+        q.select("id,job_id,customer_id,total,created_on,business_unit"),
+        q.isNull("sold_on"),
+        q.notIn("status", ["Dismissed", "Expired"]),
+      ].join("&"),
+    ),
   );
 
   /**
@@ -425,9 +484,9 @@ async function serviceTitanMetrics(now: Date) {
    * middle of what was offered is the one that needs least defending.
    */
   const freshFrom = addDays(now, -OUTSTANDING_DAYS).getTime();
-  const openJobs = new Map<string, { fresh: boolean; sum: number; n: number }>();
+  const openJobs = new Map<string, { fresh: boolean; sum: number; n: number; biggest: number }>();
   for (const e of openEstimates) {
-    const key = e.job_id == null ? `e${e.id}` : `j${e.job_id}`;
+    const key = quoteKey(e);
     // No created_on means it can't be aged, so it counts as current rather than
     // being quietly dropped out of both figures.
     const fresh = !e.created_on || new Date(e.created_on).getTime() >= freshFrom;
@@ -437,8 +496,9 @@ async function serviceTitanMetrics(now: Date) {
       got.n += 1;
       // A job is current if any option on it is.
       got.fresh = got.fresh || fresh;
+      got.biggest = Math.max(got.biggest, Number(e.total ?? 0));
     } else {
-      openJobs.set(key, { fresh, sum: Number(e.total ?? 0), n: 1 });
+      openJobs.set(key, { fresh, sum: Number(e.total ?? 0), n: 1, biggest: Number(e.total ?? 0) });
     }
   }
 
@@ -447,6 +507,9 @@ async function serviceTitanMetrics(now: Date) {
   let estimatesStaleCount = 0;
   let estimatesStaleValue = 0;
   for (const j of openJobs.values()) {
+    // The ceiling is on the quote, not on each option. Judged one option at a
+    // time, a job whose top option was $454K still contributed its cheaper ones.
+    if (j.biggest >= QUOTE_CAP) continue;
     const typical = j.n > 0 ? j.sum / j.n : 0;
     if (j.fresh) {
       estimatesOpenCount += 1;
@@ -459,13 +522,20 @@ async function serviceTitanMetrics(now: Date) {
 
   // Close rate: of the JOBS quoted in the last 30 days, how many turned into
   // work. Per job, not per option — see closeRate() for why.
-  const recentEstimates = await sbSelect<{ id: number; job_id: number | null; sold_on: string | null }>(
-    "st_estimates",
-    [
-      q.select("id,job_id,sold_on"),
-      q.gte("created_on", addDays(now, -30).toISOString()),
-      q.lt("total", String(QUOTE_CAP)),
-    ].join("&"),
+  const recentEstimates = domestic(
+    await sbSelect<{
+      id: number;
+      job_id: number | null;
+      sold_on: string | null;
+      business_unit: string | null;
+    }>(
+      "st_estimates",
+      [
+        q.select("id,job_id,sold_on,business_unit"),
+        q.gte("created_on", addDays(now, -30).toISOString()),
+        q.lt("total", String(QUOTE_CAP)),
+      ].join("&"),
+    ),
   );
 
   const close = closeRate(recentEstimates.map((e) => ({ id: e.id, jobId: e.job_id, soldOn: e.sold_on })));
@@ -477,20 +547,23 @@ async function serviceTitanMetrics(now: Date) {
   // Quotes written this month, so the funnel reads created -> outstanding ->
   // closed. A thin pipeline means something different depending on which end
   // it is thin at.
-  const createdRows = await sbSelect<{
-    id: number;
-    job_id: number | null;
-    total: number | null;
-    created_on: string | null;
-    sold_on: string | null;
-    created_by: string | null;
-  }>(
-    "st_estimates",
-    [
-      q.select("id,job_id,total,created_on,sold_on,created_by"),
-      q.gte("created_on", monthStart.toISOString()),
-      q.lt("total", String(QUOTE_CAP)),
-    ].join("&"),
+  const createdRows = domestic(
+    await sbSelect<{
+      id: number;
+      job_id: number | null;
+      total: number | null;
+      created_on: string | null;
+      sold_on: string | null;
+      created_by: string | null;
+      business_unit: string | null;
+    }>(
+      "st_estimates",
+      [
+        q.select("id,job_id,total,created_on,sold_on,created_by,business_unit"),
+        q.gte("created_on", monthStart.toISOString()),
+        q.lt("total", String(QUOTE_CAP)),
+      ].join("&"),
+    ),
   );
 
   const weekStartMs = weekStart.getTime();
@@ -533,9 +606,20 @@ async function serviceTitanMetrics(now: Date) {
   // Sixty days, the same window the named quote lists use, so every "recent"
   // figure on the board means the same stretch of time.
   const AREA_DAYS = 60;
-  const jobPlaces = await sbSelect<{ suburb: string | null; postcode: string | null; total: number | null; job_type: string | null }>(
-    "st_jobs",
-    [q.select("suburb,postcode,total,job_type"), q.gte("completed_on", addDays(now, -AREA_DAYS).toISOString())].join("&"),
+  const jobPlaces = domestic(
+    await sbSelect<{
+      suburb: string | null;
+      postcode: string | null;
+      total: number | null;
+      job_type: string | null;
+      business_unit: string | null;
+    }>(
+      "st_jobs",
+      [
+        q.select("suburb,postcode,total,job_type,business_unit"),
+        q.gte("completed_on", addDays(now, -AREA_DAYS).toISOString()),
+      ].join("&"),
+    ),
   );
 
   // Count and value together: where the work is, and what it was worth there.
@@ -550,7 +634,21 @@ async function serviceTitanMetrics(now: Date) {
       const row = byJobSuburb.get(place) ?? { count: 0, revenue: 0 };
       byJobSuburb.set(place, { count: row.count + 1, revenue: row.revenue + value });
     }
-    if (value > 0 && (highestTicket == null || value > highestTicket.value)) {
+    /**
+     * The named job has to be one we can stand behind, which means one we can
+     * classify. 144 of the 273 completed jobs in this window carry
+     * ServiceTitan's import placeholder for a business unit — the id resolves
+     * to nothing in the lookup tables — and the largest of them, $21,890 in
+     * Sale, was topping this tile. Sale is 200km east of the corridor and the
+     * row has no job type either, so the board could not say what the work was
+     * or which side of the business it belonged to. Jake read it as commercial
+     * and he had no way to tell otherwise.
+     *
+     * Unclassified jobs still count towards the map: they happened, in a real
+     * suburb, for a real amount. They just don't get named.
+     */
+    const classified = j.business_unit != null && j.job_type != null;
+    if (classified && value > 0 && (highestTicket == null || value > highestTicket.value)) {
       highestTicket = { value, jobType: j.job_type ?? null, suburb: place };
     }
   }
@@ -598,12 +696,14 @@ async function serviceTitanMetrics(now: Date) {
     .filter((i) => i.invoice_date === today)
     .reduce((s, i) => s + Number(i.total ?? 0), 0);
 
-  // Job types, ranked over a 90-day window so a quiet month doesn't reshuffle
-  // the board. Ranked by gross profit where ServiceTitan gave us cost on a
-  // meaningful share of invoices, otherwise by revenue — the tile says which.
+  // Job types for the month, not a rolling ninety days. The page is headed
+  // "October so far" and the two tiles above read the month, so a table summing
+  // $92K under an "Invoiced $21K" tile invited exactly one question and gave
+  // the wrong answer to it. Ranked by gross profit where ServiceTitan gave us
+  // cost on a meaningful share of invoices, otherwise by revenue.
   const profitRows = await sbSelect<{ job_type: string | null; total: number | null; cost: number | null }>(
     "st_invoices",
-    [q.select("job_type,total,cost"), q.gte("invoice_date", isoDateMelbourne(addDays(now, -90))), q.notNull("job_type")].join("&"),
+    [q.select("job_type,total,cost"), q.gte("invoice_date", isoDateMelbourne(monthStart)), q.notNull("job_type")].join("&"),
   );
 
   const withCost = profitRows.filter((r) => r.cost != null).length;
@@ -651,19 +751,22 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
-  const soldRows = await sbSelect<{
-    id: number;
-    sold_by: string | null;
-    created_by: string | null;
-    total: number | null;
-    sold_on: string | null;
-  }>(
-    "st_estimates",
-    [
-      q.select("id,sold_by,created_by,total,sold_on"),
-      q.gte("sold_on", monthStart.toISOString()),
-      q.lt("total", String(QUOTE_CAP)),
-    ].join("&"),
+  const soldRows = domestic(
+    await sbSelect<{
+      id: number;
+      sold_by: string | null;
+      created_by: string | null;
+      total: number | null;
+      sold_on: string | null;
+      business_unit: string | null;
+    }>(
+      "st_estimates",
+      [
+        q.select("id,sold_by,created_by,total,sold_on,business_unit"),
+        q.gte("sold_on", monthStart.toISOString()),
+        q.lt("total", String(QUOTE_CAP)),
+      ].join("&"),
+    ),
   );
 
   /**
@@ -705,33 +808,44 @@ async function serviceTitanMetrics(now: Date) {
   // list every day is not something anybody is chasing, and it pushed this
   // month's real work off the bottom of the card.
   const QUOTE_LIST_DAYS = 60;
-  const openRows = await sbSelect<{ id: number; total: number | null; created_on: string | null; job_id: number | null }>(
-    "st_estimates",
-    [
-      q.select("id,total,created_on,job_id"),
-      q.isNull("sold_on"),
-      q.notIn("status", ["Dismissed", "Expired"]),
-      q.gte("created_on", addDays(now, -QUOTE_LIST_DAYS).toISOString()),
-      q.lt("total", String(QUOTE_CAP)),
-    ].join("&"),
+  const openRows = domestic(
+    await sbSelect<{
+      id: number;
+      total: number | null;
+      created_on: string | null;
+      job_id: number | null;
+      customer_id: number | null;
+      business_unit: string | null;
+    }>(
+      "st_estimates",
+      [
+        q.select("id,total,created_on,job_id,customer_id,business_unit"),
+        q.isNull("sold_on"),
+        q.notIn("status", ["Dismissed", "Expired"]),
+        q.gte("created_on", addDays(now, -QUOTE_LIST_DAYS).toISOString()),
+      ].join("&"),
+    ),
   );
 
   const todayRows = createdRows.length
-    ? await sbSelect<{
-        id: number;
-        total: number | null;
-        created_on: string | null;
-        sold_on: string | null;
-        job_id: number | null;
-        sold_by: string | null;
-        created_by: string | null;
-      }>(
-        "st_estimates",
-        [
-          q.select("id,total,created_on,sold_on,job_id,sold_by,created_by"),
-          q.gte("created_on", startOfDayMelbourne(now).toISOString()),
-          q.lt("total", String(QUOTE_CAP)),
-        ].join("&"),
+    ? domestic(
+        await sbSelect<{
+          id: number;
+          total: number | null;
+          created_on: string | null;
+          sold_on: string | null;
+          job_id: number | null;
+          sold_by: string | null;
+          created_by: string | null;
+          business_unit: string | null;
+        }>(
+          "st_estimates",
+          [
+            q.select("id,total,created_on,sold_on,job_id,sold_by,created_by,business_unit"),
+            q.gte("created_on", startOfDayMelbourne(now).toISOString()),
+            q.lt("total", String(QUOTE_CAP)),
+          ].join("&"),
+        ),
       )
     : [];
 
@@ -761,23 +875,33 @@ async function serviceTitanMetrics(now: Date) {
     .slice(0, 10);
 
   const dayMs = 24 * 60 * 60 * 1000;
-  // One row per job. The list named the same job three times over when it had
-  // been priced three ways, which is a list of options wearing a list of jobs'
-  // clothes — and the room reads it as three customers to ring.
-  const outByJob = new Map<string, { id: number; label: string; sum: number; n: number; oldest: number }>();
+
+  // One row per quote, not per option — see quoteKey.
+  const outByJob = new Map<
+    string,
+    { id: number; label: string; sum: number; n: number; biggest: number; oldest: number }
+  >();
   for (const r of openRows) {
-    const key = r.job_id == null ? `e${r.id}` : `j${r.job_id}`;
+    const key = quoteKey(r);
     const age = r.created_on ? Math.max(0, Math.floor((now.getTime() - Date.parse(r.created_on)) / dayMs)) : 0;
+    const v = Number(r.total ?? 0);
     const got = outByJob.get(key);
     if (got) {
-      got.sum += Number(r.total ?? 0);
+      got.sum += v;
       got.n += 1;
+      got.biggest = Math.max(got.biggest, v);
       got.oldest = Math.max(got.oldest, age);
     } else {
-      outByJob.set(key, { id: Number(r.id), label: labelFor(r.job_id), sum: Number(r.total ?? 0), n: 1, oldest: age });
+      outByJob.set(key, { id: Number(r.id), label: labelFor(r.job_id), sum: v, n: 1, biggest: v, oldest: age });
     }
   }
+
   const quotesOutstanding = [...outByJob.values()]
+    // The ceiling applies to the quote, not to each option of it. Judging
+    // options one at a time let a job whose top option was $454K through on the
+    // strength of its cheaper ones, which is how a commercial fit-out kept
+    // appearing on a residential wall.
+    .filter((j) => j.biggest < QUOTE_CAP)
     .map((j) => ({ id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.oldest }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);

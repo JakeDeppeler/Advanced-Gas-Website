@@ -12,11 +12,10 @@ export type HeatPlace = { suburb: string; count: number; lat: number; lng: numbe
  * run. The one thing a map earns its place for is showing where the work is
  * relative to everywhere else, and that needs roads under it.
  *
- * Tiles are CARTO's light basemap rather than standard OpenStreetMap: this sits
- * under an orange heat layer, and a full-colour basemap fights it. It is loaded
- * at runtime by the browser on the wall, not baked in — and if it never
- * arrives, the heat and the labels still draw on the cream, so the page
- * degrades to what it was rather than to nothing.
+ * Tiles are loaded at runtime by the browser on the wall, not baked in — and if
+ * they never arrive, the heat and the labels still draw on the cream, so the
+ * page degrades to what it was rather than to nothing. Which basemap and why is
+ * at the tileLayer call below.
  *
  * `map.remove()` on teardown, because this mounts and unmounts every two
  * minutes on a panel that runs for months.
@@ -60,10 +59,19 @@ export function BoardSuburbMap({ places }: { places: HeatPlace[] }) {
       // NEXT_PUBLIC_BOARD_TILES exists so the board can be rendered and looked
       // at from an environment with no route to a tile CDN. Unset everywhere
       // but a dev box, where it points at a local stand-in.
-      const tiles = process.env.NEXT_PUBLIC_BOARD_TILES || "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+      //
+      // Standard OpenStreetMap, not CARTO's light basemap: CARTO now wants an
+      // API key and serves "API KEY REQUIRED" across every tile instead, which
+      // is what the wall was showing. OSM needs no key and the rest of this
+      // codebase already uses it.
+      //
+      // A full-colour basemap would fight the orange heat on top, so the tile
+      // pane is desaturated and lightened in CSS rather than swapped for
+      // another hosted style that might also start asking for a key.
+      const tiles = process.env.NEXT_PUBLIC_BOARD_TILES || "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
       L.tileLayer(tiles, {
-        attribution: "© OpenStreetMap · © CARTO",
-        subdomains: "abcd",
+        attribution: "© OpenStreetMap",
+        subdomains: "abc",
         maxZoom: 19,
       }).addTo(map);
 
