@@ -353,13 +353,7 @@ body:has(.screen) .utilbar {
   align-items: baseline;
   justify-content: space-between;
   gap: calc(1 * var(--u));
-  /* The figure and its target sit side by side until they cannot. On Pace a
-     card is a fifth of the width and "$138,431" beside "of $48,310" ran out of
-     the tile; wrapping drops the target onto its own line rather than cutting
-     it off. */
-  flex-wrap: wrap;
 }
-.tile__head > .tile__sub { flex: 0 1 auto; min-width: 0; }
 
 .tile__title {
   font-size: calc(1.3 * var(--u));
@@ -458,6 +452,11 @@ body:has(.screen) .utilbar {
 .meter {
   position: relative;
   height: calc(0.5 * var(--u));
+  /* Never let the column squeeze it away. A card with one more line under the
+     bar than its neighbours — the win rate's "22 of 124 · last 30 days" — shrank
+     this to nothing, so four cards in the row had a bar and the fifth had a gap
+     where one should be. */
+  flex: none;
   border-radius: 999px;
   background: var(--track);
   overflow: hidden;

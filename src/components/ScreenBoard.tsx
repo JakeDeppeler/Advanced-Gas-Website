@@ -1390,14 +1390,18 @@ function DailyCard({
         <span className="tile__label">{label}</span>
         {state && <span className={`status status--${state === "Behind" ? "behind" : "ahead"}`}>{state}</span>}
       </div>
-      <div className="tile__head">
-        <span className={vcls(achieved == null ? NA : fmt(achieved))}>
-          {achieved == null ? NA : fmt(achieved)}
-        </span>
-        <span className="tile__sub">
-          {target == null ? (flat ? "no target set" : "no daily target set") : `of ${fmt(target)}`}
-        </span>
-      </div>
+      {/* The target sits under the figure, not beside it. Side by side it fitted
+          until a figure got long — "$138,431" next to "of $48,310" ran out of a
+          tile a fifth of the width — and letting it wrap meant one card in the
+          row laid out differently from the other four depending on how big the
+          number happened to be that day. Under it, every card is the same
+          shape whatever the figures do. */}
+      <span className={vcls(achieved == null ? NA : fmt(achieved))}>
+        {achieved == null ? NA : fmt(achieved)}
+      </span>
+      <span className="tile__sub">
+        {target == null ? (flat ? "no target set" : "no daily target set") : `of ${fmt(target)}`}
+      </span>
       <div className="meter meter--ticked">
         <div
           className={`meter__fill ${state === "Behind" ? "is-behind" : state ? "is-ahead" : ""}`}
