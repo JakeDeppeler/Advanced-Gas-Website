@@ -1157,6 +1157,33 @@ body:has(.screen) .utilbar {
   margin-left: calc(0.35 * var(--u));
   opacity: 0.85;
 }
+/* A short breakdown under a hero figure: label left, count on its own right
+   edge so the tall one is a shape rather than a sentence. Narrow, because a
+   row stretched across a third of the board puts its number a foot away from
+   what it counts. */
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.3 * var(--u));
+  width: calc(13 * var(--u));
+  max-width: 100%;
+  margin-top: calc(0.6 * var(--u));
+}
+.rows__one {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(1 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+  padding-bottom: calc(0.28 * var(--u));
+}
+.rows__one:last-child { border-bottom: 0; }
+.rows__k { font-size: calc(1 * var(--u)); color: var(--ink-2); }
+.rows__v { font-size: calc(1.25 * var(--u)); font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+.tile--navy .rows__one { border-color: rgba(255, 255, 255, 0.14); }
+.tile--navy .rows__k { color: rgba(255, 255, 255, 0.72); }
+.tile--navy .rows__v { color: #fff; }
+
 .tile__foot {
   margin-top: auto;
   font-size: calc(0.95 * var(--u));
