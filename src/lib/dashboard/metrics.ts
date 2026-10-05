@@ -152,6 +152,12 @@ export type Metrics = {
   jobsCompletedToday: number;
   jobsCompletedWeek: number;
   /**
+   * Of the jobs finished today, how many have an invoice with money on it.
+   * Never the count of invoice records: ServiceTitan opens one with every job,
+   * so that number is always the whole day and says nothing.
+   */
+  jobsInvoicedToday: number;
+  /**
    * Null, not zero, when nothing in the replica carries an appointment time.
    * Every job row has `scheduled_on` null — ServiceTitan's jobs export doesn't
    * return appointment times, they live on the separate appointments resource —
@@ -571,6 +577,31 @@ async function serviceTitanMetrics(now: Date) {
   // would be a statement about the sync dressed up as a statement about next
   // week. Null blanks the tile instead, and the board says so.
   const jobsScheduledNext7 = anyScheduled > 0 ? scheduledSoon : null;
+
+  /**
+   * How many of the jobs finished today have actually been billed.
+   *
+   * Counted on the invoice carrying a value, not on an invoice existing:
+   * ServiceTitan opens an invoice record with every job, so every completed job
+   * in the replica has one and "10 of 10 invoiced" would be a statement about
+   * ServiceTitan's data model rather than about the office. On a typical day
+   * one or two of ten carry a figure, and closing that gap is the afternoon's
+   * admin.
+   */
+  const completedTodayIds = (
+    await sbSelect<{ id: number }>(
+      "st_jobs",
+      [q.select("id"), q.gte("completed_on", startOfDayMelbourne(now).toISOString())].join("&"),
+    ).catch(() => [])
+  ).map((j) => Number(j.id));
+  let jobsInvoicedToday = 0;
+  if (completedTodayIds.length) {
+    const billed = await sbSelect<{ job_id: number | null }>(
+      "st_invoices",
+      [q.select("job_id"), `job_id=in.(${completedTodayIds.slice(0, 200).join(",")})`, q.gt("total", "0")].join("&"),
+    ).catch(() => []);
+    jobsInvoicedToday = new Set(billed.map((i) => Number(i.job_id))).size;
+  }
 
   /**
    * Open quotes, split at the outstanding window.
@@ -1049,6 +1080,13 @@ async function serviceTitanMetrics(now: Date) {
     ),
   );
 
+  /*
+   * `customer_id` is not decoration here: `quoteKey` groups on the job, and
+   * falls back to customer-plus-day for the estimates ServiceTitan writes with
+   * no job attached. Leaving the column out of the select made that fallback
+   * unreachable, so eight options of one quote — same customer, same minute,
+   * same price to the dollar — listed as eight separate quotes on the wall.
+   */
   const todayRows = createdRows.length
     ? quotes(
         await sbSelect<{
@@ -1057,13 +1095,14 @@ async function serviceTitanMetrics(now: Date) {
           created_on: string | null;
           sold_on: string | null;
           job_id: number | null;
+          customer_id: number | null;
           sold_by: string | null;
           created_by: string | null;
           business_unit: string | null;
         }>(
           "st_estimates",
           [
-            q.select("id,total:total_inc,created_on,sold_on,job_id,sold_by,created_by,business_unit"),
+            q.select("id,total:total_inc,created_on,sold_on,job_id,customer_id,sold_by,created_by,business_unit"),
             q.gte("created_on", startOfDayMelbourne(now).toISOString()),
             q.lt("total", String(QUOTE_CAP)),
           ].join("&"),
@@ -1394,6 +1433,7 @@ async function serviceTitanMetrics(now: Date) {
   return {
     jobsCompletedToday,
     jobsCompletedWeek,
+    jobsInvoicedToday,
     jobsScheduledNext7,
     topJobSuburbs,
     highestTicket,
@@ -1678,6 +1718,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     st = {
       jobsCompletedToday: prev?.jobsCompletedToday ?? 0,
       jobsCompletedWeek: prev?.jobsCompletedWeek ?? 0,
+      jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
       // next week's bookings, and zero would claim it does.
       jobsScheduledNext7: prev?.jobsScheduledNext7 ?? null,

@@ -170,6 +170,7 @@ export async function sbRpc(fn: string, args: Row = {}): Promise<void> {
 export const q = {
   gte: (col: string, v: string) => `${col}=gte.${encodeURIComponent(v)}`,
   lt: (col: string, v: string) => `${col}=lt.${encodeURIComponent(v)}`,
+  gt: (col: string, v: string) => `${col}=gt.${encodeURIComponent(v)}`,
   eq: (col: string, v: string) => `${col}=eq.${encodeURIComponent(v)}`,
   isNull: (col: string) => `${col}=is.null`,
   notNull: (col: string) => `${col}=not.is.null`,
