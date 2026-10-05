@@ -36,7 +36,7 @@ export type SearchRow = {
 
 const MAX = 8;
 
-export function PortalSearch({ rows }: { rows: SearchRow[] }) {
+export function PortalSearch({ rows, placeholder = "Search pages, procedures, fault codes, prices…" }: { rows: SearchRow[]; placeholder?: string }) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -142,7 +142,7 @@ export function PortalSearch({ rows }: { rows: SearchRow[] }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKey}
-          placeholder="Search pages, procedures, fault codes, prices…"
+          placeholder={placeholder}
           aria-label="Search the portal"
           aria-expanded={showing}
           autoComplete="off"

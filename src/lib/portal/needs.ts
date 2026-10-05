@@ -1,0 +1,102 @@
+import "server-only";
+import { cache } from "react";
+import { can, type PortalUser } from "@/lib/portal/caps";
+import { crewRequests, latestBoard, vanIssues } from "@/lib/portal/office";
+import { lowStockCount } from "@/lib/portal/stock";
+import { money } from "@/lib/portal/format";
+import { portalNav, type NavBand } from "@/lib/portal/nav";
+
+/** One thing waiting on somebody, with the side-bar tab it belongs to. */
+export type NeedLine = { n: number; text: string; href: string; band: NavBand | null };
+
+const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : many);
+
+/**
+ * What needs someone today: the list Home and The numbers draw, and what the
+ * side bar's "need you" counts are made of — one list, so the count beside
+ * Crew & vans is the number of lines on Home that open a Crew & vans page.
+ *
+ * Only lines that can be counted. The design has nine; the ones with nothing
+ * behind them yet — chats waiting, hours not billed, payment plans, VEU claims
+ * — stay off rather than show a number nobody measured, and every line hides
+ * at zero.
+ */
+export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> => {
+  if (!can(user, "overhead")) return [];
+  const [board, issues, low, asks] = await Promise.all([
+    latestBoard(),
+    vanIssues().catch(() => []),
+    lowStockCount().catch(() => null),
+    crewRequests().catch(() => ({ orders: [], leave: [], incidents: [] })),
+  ]);
+  const m = board?.metrics;
+  const lines: Array<Omit<NeedLine, "band">> = [];
+
+  // Safety first: an incident sits at the top until somebody has read it.
+  if (asks.incidents.length) {
+    const f = asks.incidents[0];
+    lines.push({ n: asks.incidents.length, text: `${plural(asks.incidents.length, "incident")} reported · ${f.userName ?? "the crew"}${asks.incidents.length > 1 ? ` and ${asks.incidents.length - 1} more` : ""}`, href: "/portal/requests#incidents" });
+  }
+  if (m && (m.quotesQuietCount ?? 0) > 0) {
+    lines.push({ n: m.quotesQuietCount, text: `${plural(m.quotesQuietCount, "quote")} gone quiet 7+ days`, href: "/portal/quotes#quiet" });
+  }
+  if (m && (m.overdueCount ?? 0) > 0 && m.overdueTotal != null) {
+    lines.push({ n: m.overdueCount as number, text: `${plural(m.overdueCount as number, "invoice")} overdue · ${money(m.overdueTotal)}`, href: "/portal/money" });
+  }
+  // Jobs this month that lost money once their parts and hours are costed.
+  const jp = m?.jobProfitMonth;
+  if (jp && jp.losing > 0) {
+    lines.push({ n: jp.losing, text: `${plural(jp.losing, "job")} lost money this month${jp.under > jp.losing ? ` · ${jp.under} under the goal's margin` : ""}`, href: "/portal/profit" });
+  }
+  const service = issues.filter((i) => i.kind === "service");
+  if (service.length) {
+    const f = service[0];
+    lines.push({
+      n: service.length,
+      text: `van ${plural(service.length, "report")} to answer · ${f.item.toLowerCase()} (${f.van}${service.length > 1 ? ` and ${service.length - 1} more` : ""})`,
+      href: service.length === 1 ? `/portal/vehicles/${f.vehicleId}?tab=report` : "/portal/requests#reports",
+    });
+  }
+  const tools = issues.filter((i) => i.kind === "tool");
+  if (tools.length) {
+    const f = tools[0];
+    lines.push({
+      n: tools.length,
+      text: `${plural(tools.length, "tool")} to sort on a van · ${f.item.toLowerCase()} (${f.van}${tools.length > 1 ? ` and ${tools.length - 1} more` : ""})`,
+      href: tools.length === 1 ? `/portal/vehicles/${f.vehicleId}?tab=tools` : "/portal/vehicles",
+    });
+  }
+  if (asks.orders.length) {
+    const f = asks.orders[0];
+    lines.push({ n: asks.orders.length, text: `parts ${plural(asks.orders.length, "order")} to place · ${f.requestedBy ?? "the crew"}${asks.orders.length > 1 ? ` and ${asks.orders.length - 1} more` : ""}`, href: "/portal/requests#parts" });
+  }
+  if (asks.leave.length) {
+    lines.push({ n: asks.leave.length, text: `leave ${plural(asks.leave.length, "request")} to answer`, href: "/portal/requests#leave" });
+  }
+  if (low && low > 0) {
+    lines.push({ n: low, text: `factory stock ${plural(low, "line")} at or under the minimum`, href: "/portal/stock" });
+  }
+
+  // Each line belongs to the tab whose page it opens.
+  const items = portalNav(user);
+  const bandOf = (href: string): NavBand | null => {
+    const path = href.split(/[?#]/)[0];
+    let best: { band: NavBand; len: number } | null = null;
+    for (const it of items) {
+      const base = it.href.split("?")[0];
+      if (it.band === "hidden") continue;
+      if (path === base || path.startsWith(`${base}/`)) {
+        if (!best || base.length > best.len) best = { band: it.band, len: base.length };
+      }
+    }
+    return best?.band ?? null;
+  };
+  return lines.map((l) => ({ ...l, band: bandOf(l.href) }));
+});
+
+/** How many lines of the list each tab holds: the side bar's and Home's "need you". */
+export function needsByBand(lines: NeedLine[]): Partial<Record<NavBand, number>> {
+  const out: Partial<Record<NavBand, number>> = {};
+  for (const l of lines) if (l.band) out[l.band] = (out[l.band] ?? 0) + 1;
+  return out;
+}
