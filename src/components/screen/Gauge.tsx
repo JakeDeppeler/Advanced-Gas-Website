@@ -106,7 +106,7 @@ function arc(cx: number, cy: number, r: number, from: number, to: number) {
  * that overflows its own chart is worse than a smaller one.
  */
 const figureSize = (text: string) =>
-  text.length <= 2 ? 40 : text.length <= 4 ? 34 : text.length <= 6 ? 28 : 23;
+  text.length <= 2 ? 54 : text.length <= 3 ? 48 : text.length <= 4 ? 42 : text.length <= 6 ? 34 : 28;
 
 export function Gauge({
   label,
@@ -173,11 +173,15 @@ export function Gauge({
           />
         ))}
 
-        <text x={cx} y={cy + (of ? 2 : fs * 0.36)} className="gauge__fig" fontSize={fs} textAnchor="middle">
+        {/* The figure and what it is of, as one block centred on the dial: the
+            figure's baseline a little under the middle and its denominator
+            under that, so the pair reads as one thing rather than as a number
+            with a caption drifting away from it. */}
+        <text x={cx} y={cy + (of ? 6 : fs * 0.36)} className="gauge__fig" fontSize={fs} textAnchor="middle">
           {figure}
         </text>
         {of ? (
-          <text x={cx} y={cy + 26} className="gauge__of" fontSize="17" textAnchor="middle">
+          <text x={cx} y={cy + 31} className="gauge__of" fontSize="18" textAnchor="middle">
             {of}
           </text>
         ) : null}
