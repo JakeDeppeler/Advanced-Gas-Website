@@ -64,11 +64,9 @@ of them were finished on an earlier day. The month, the year and Pace still go
 by invoice date: that is the date Xero carries, and the year has to match the
 books.
 
-Under Invoiced today: how many of the jobs finished today have been billed.
-Counted on the invoice carrying a value, never on an invoice existing —
-ServiceTitan opens one with every job, so "10 of 10" would be a statement about
-its data model rather than about the office. On a typical day one or two of ten
-carry a figure, and closing that gap is the afternoon's admin.
+Jobs billed are counted on an invoice carrying a value, never on an invoice
+existing — ServiceTitan opens one with every job, so a count of records would
+be a statement about its data model rather than about the office.
 
 Eleven tiles became six. The page had grown a tile per available number, and at
 that density nothing on it was bigger than anything else — which is the one
