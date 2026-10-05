@@ -9,7 +9,7 @@ readable from 3–4 metres.
 ServiceTitan ──export API──┐
   (continueFrom tokens)    │
 Xero (read-only) ──────────┼──> /api/sync ──> Supabase ──> /screen
-Website quote form ────────┘   (Vercel Cron)   ├─ st_* replica
+Website quote form ────────┘   (GH Actions)    ├─ st_* replica
                                                └─ portal_metrics_snapshot
 ```
 
@@ -18,6 +18,9 @@ Supabase every few minutes, computes one snapshot row, and the screen reads only
 that row. Three reasons:
 
 - **Rate limits.** A panel polling upstream APIs every 30s gets throttled.
+  Xero is the one place this leaked — recomputing the snapshot used to re-read
+  the receivables ledger each time, and that is now gated to five minutes. See
+  the Xero notes below.
 - **The board never blanks.** If a source fails, its tile carries the last known
   value and the source dot in the header turns amber or red. A dashboard that
   shows an error gets ignored within a week.
@@ -975,6 +978,37 @@ the *snapshot's* time, which advances every thirty seconds whether or not Xero
 answered, so it could never say how old the figures were. It carries the time of
 the last successful read now.
 
+**The sync cron keeps the Xero token alive, and it is the only thing allowed
+to.** The rule above stopped the board crying wolf, but the underlying fault was
+real: nothing refreshed the token on a schedule, so the only reading Xero ever
+gave was whatever happened to be fetched while somebody had a portal Finance
+page open. The board showed `last read 14 hours ago` most mornings because that
+is exactly what it was.
+
+`/api/sync` now calls `ensureXeroToken()` before it syncs. That is a thin wrapper
+over the portal's own `validToken()`, so there is still **one** refresher in the
+codebase — the thing that must never happen is a *second* one, not a scheduled
+first. The sync is the only safe caller because it is the only scheduled,
+single, non-overlapping one: every ten minutes against a thirty-minute token,
+under `concurrency: dashboard-sync` with `cancel-in-progress: false`. The token
+only actually rotates inside the last minute of its life, so most ticks cost one
+database read.
+
+It is deliberately **not** called from `/api/screen/refresh`. That runs on every
+panel in the building and passes its own staleness check on several instances at
+once — precisely the race that kills the connection. If the board ever needs the
+token turned, it needs the sync to run, not a refresh of its own.
+
+**And the board only asks Xero every five minutes.** `computeSnapshot` pulls the
+whole authorised-receivables ledger, and it was doing so on every recompute —
+about 3,500 calls a day against a tenant limit of 5,000, sharing that allowance
+with the portal's Finance pages. It went unnoticed only because the token was
+usually dead and the calls failed before they counted. `XERO_READ_EVERY_MS`
+gates it; a skipped read is spelled as a failed one, because the carry-forward
+already does the right thing with that and nothing downstream has to learn a
+third case. The gate only bites when a read *succeeded* recently, so a Xero that
+starts failing is retried within five minutes.
+
 **Every step of the funnel paces against a target.** The month's five tiles are
 all dials, and today's five all carry a daily figure to go. Two of them needed a
 new input, and both come off one number on the year goal:
@@ -1091,12 +1125,15 @@ per-instance timer reads as "due" on every cold start.
 
 ## Things worth knowing
 
-**Do not add a Xero token refresh here.** Xero rotates the refresh token on every
-refresh — the old one dies immediately. The internal portal already owns that loop
-and writes to `portal_integrations`. If this app refreshed too, whichever went
-second would silently break the live Xero connection. `src/lib/xero.ts` therefore
-reads the stored token and reports `stale` when it has expired, rather than
-refreshing. Persistent staleness is a portal-side fix.
+**Do not add a *second* Xero token refresh.** Xero rotates the refresh token on
+every refresh — the old one dies immediately, so two refreshers each invalidate
+the other's token and the connection stays broken until somebody re-authorises
+by hand. `src/lib/portal/xero.ts` owns the one loop there is and writes
+`portal_integrations`; `src/lib/dashboard/xero.ts` reads the stored token and
+reports `stale` when it has expired, and must stay that way. The only scheduled
+thing that turns the handle is `/api/sync`, through `ensureXeroToken()` — see
+the Xero notes above for why that one caller is safe and the board's own refresh
+loop is not.
 
 **All date boundaries are Melbourne time**, computed in `src/lib/dates.ts` — never
 the server's timezone and never an upstream system's. The Xero org is set to

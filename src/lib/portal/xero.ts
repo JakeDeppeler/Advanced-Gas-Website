@@ -133,6 +133,40 @@ async function validToken(): Promise<XeroAuth | null> {
   return tokenInFlight;
 }
 
+/**
+ * Keep the stored Xero token alive, for the scheduled sync to call.
+ *
+ * Xero access tokens live thirty minutes and the refresh token rotates on every
+ * use, so there can only ever be one thing turning this handle — two racing
+ * refreshers each invalidate the other's token and the connection dies until
+ * somebody re-authorises by hand. That owner is this module, and the one
+ * scheduled caller is the dashboard sync cron: it runs every ten minutes
+ * against a thirty-minute token, around the clock, under a concurrency group
+ * that will not let two ticks overlap.
+ *
+ * It is deliberately not called from the board's own refresh loop. That runs on
+ * every panel in the building and passes its staleness check on several
+ * instances at once, which is exactly the race this must not have.
+ *
+ * `resolveToken` only actually refreshes inside the last minute of the token's
+ * life, so calling this on every tick costs one database read and nothing else.
+ * Which also narrows the one race that was always here — the in-flight guard
+ * below is per serverless instance, so two portal page loads on two instances
+ * could in principle both refresh. On a ten-minute tick the token is almost
+ * never inside that last minute when a page asks for it, so a Finance page now
+ * takes the cached branch and refreshes nothing.
+ */
+export async function ensureXeroToken(): Promise<{ ok: boolean; reason?: string }> {
+  if (!xeroConfigured()) return { ok: false, reason: "not configured" };
+  try {
+    const auth = await validToken();
+    return auth ? { ok: true } : { ok: false, reason: "not connected" };
+  } catch (e) {
+    // Never the response body: it can carry the client id.
+    return { ok: false, reason: (e as Error).message };
+  }
+}
+
 export type XeroStatus = "not-configured" | "not-connected" | "connected";
 
 export async function xeroStatus(): Promise<{ status: XeroStatus; tenantName?: string | null }> {

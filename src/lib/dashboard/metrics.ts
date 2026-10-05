@@ -1,6 +1,6 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
-import { fetchXeroReceivables } from "./xero";
+import { fetchXeroReceivables, type XeroResult } from "./xero";
 import { suburbs } from "../suburbs";
 import {
   addDays,
@@ -1762,6 +1762,39 @@ function relativeHours(ms: number): string {
 export const XERO_GOOD_FOR_MS = 12 * 60 * 60 * 1000;
 
 /**
+ * How often this file is allowed to ask Xero anything.
+ *
+ * The board recomputes every twenty-five seconds or so, and before this gate
+ * every one of those recomputes pulled the whole authorised-receivables ledger
+ * — roughly 3,500 calls a day against a tenant limit of 5,000, with the
+ * portal's own Finance pages drawing on the same allowance. That was invisible
+ * only because the token kept lapsing overnight and most of those calls failed
+ * before they counted; now that the sync keeps the token alive, they would all
+ * land.
+ *
+ * Five minutes is well inside the twelve hours a reading is allowed to be old
+ * (XERO_GOOD_FOR_MS above), and money owed to us moves when an invoice is
+ * raised or paid, not between two refreshes of a wall display.
+ */
+const XERO_READ_EVERY_MS = 5 * 60 * 1000;
+
+/**
+ * Whether Xero is due to be asked again.
+ *
+ * `lastReadAt` is the last read that SUCCEEDED, which is what makes the gate
+ * safe: a Xero that has started failing ages past the interval within the
+ * interval and is retried, so this can only ever suppress a call whose answer
+ * we already have. Exported so the rule can be exercised without a recompute.
+ */
+export function xeroReadDue(lastReadAt: string | undefined, now: Date): boolean {
+  if (!lastReadAt) return true;
+  const ageMs = now.getTime() - Date.parse(lastReadAt);
+  if (!Number.isFinite(ageMs)) return true;
+  // A timestamp in the future is a clock that has moved, not a fresh reading.
+  return ageMs < 0 || ageMs >= XERO_READ_EVERY_MS;
+}
+
+/**
  * What the footer light should say about Xero.
  *
  * Exported so the rule can be exercised on its own: it is the one piece of the
@@ -1952,8 +1985,22 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     };
   }
 
-  const xero = await fetchXeroReceivables();
-  sources.xero = xeroSourceState(xero.ok, previous?.sources?.xero?.at, now, xero.ok ? "" : xero.reason);
+  /*
+   * A read we skip is simply a read we did not make, and the carry-forward
+   * below already knows what to do with that: the figures come from the last
+   * snapshot and the footer light keeps the timestamp of the last real read.
+   * Which is why the skip is spelled as a `reason` rather than as a third
+   * state — nothing downstream needs to learn a new case.
+   *
+   * The gate only ever bites when a read SUCCEEDED recently: `at` holds the
+   * last successful read, so a Xero that has started failing ages past five
+   * minutes within five minutes and is retried on the next recompute.
+   */
+  const lastXeroRead = previous?.sources?.xero?.at;
+  const xero: XeroResult = xeroReadDue(lastXeroRead, now)
+    ? await fetchXeroReceivables()
+    : { ok: false, reason: "not due" };
+  sources.xero = xeroSourceState(xero.ok, lastXeroRead, now, xero.ok ? "" : xero.reason);
 
   // A settings read that fails must not blank every target on the wall, so it
   // degrades to "nothing configured" and the default calendar, which the board

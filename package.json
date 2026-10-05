@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "check:trade": "tsx scripts/check-trade.ts",
-    "check:pace": "tsx scripts/check-pace.ts"
+    "check:pace": "tsx scripts/check-pace.ts",
+    "check:xero": "npx tsx --conditions=react-server scripts/check-xero.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",
