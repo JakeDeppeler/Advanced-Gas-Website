@@ -271,6 +271,19 @@ export type Metrics = {
   soldToday: number;
   dailySalesTarget: number | null;
   dailyBookingsTarget: number | null;
+  /**
+   * What has to go out the door in quotes today to stay on for the month.
+   *
+   * The one figure on the board anybody can act on before lunch: "sell $12,000
+   * today" is not a thing a person does, "put $48,000 of work in front of
+   * customers today" is. Derived from the sold target and the planned win rate,
+   * so it moves on its own as either changes.
+   */
+  dailyQuotedTarget: number | null;
+  quotedTargetMonthly: number | null;
+  quotedPacePct: number | null;
+  /** The planned win rate, as a ratio. Flat across the month — it does not accrue. */
+  winRateTarget: number | null;
   /** The configured tiers, so the board can state the thresholds it is measuring against. */
   commissionTiers: CommissionTier[];
   /** Jobs booked today, against the day's share of the monthly target. */
@@ -1362,6 +1375,8 @@ type Targets = {
   sales: number | null;
   profit: number | null;
   bookings: number | null;
+  quoted: number | null;
+  winRate: number | null;
   tiers: CommissionTier[];
 };
 
@@ -1404,6 +1419,8 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
       sales: t.sales,
       profit: t.profit,
       bookings: t.bookings,
+      quoted: t.quoted,
+      winRate: t.winRate,
       tiers: cfg.commissionTiers,
     },
     calendar,
@@ -1627,7 +1644,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   // degrades to "nothing configured" and the default calendar, which the board
   // already renders as an admitted gap rather than as a zero.
   const { targets, calendar, goal } = await boardConfig(now).catch(() => ({
-    targets: { revenue: null, sales: null, profit: null, bookings: null, tiers: [] } as Targets,
+    targets: { revenue: null, sales: null, profit: null, bookings: null, quoted: null, winRate: null, tiers: [] } as Targets,
     calendar: DEFAULT_WORKING_CALENDAR,
     goal: null as YearGoalShape | null,
   }));
@@ -1669,6 +1686,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const sales = perDay(targets.sales, st.soldMtd);
   const profit = perDay(targets.profit, st.profitMtd);
   const bookings = perDay(targets.bookings, st.bookingsMonth);
+  const quoted = perDay(targets.quoted, st.quotesCreatedMonthValue);
 
   const salesLeaderboard = st.rawLeaderboard.map((r) => ({
     ...r,
@@ -1709,6 +1727,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       salesPacePct: sales.pacePct,
       dailySalesTarget: sales.daily,
       dailyBookingsTarget: bookings.daily,
+      dailyQuotedTarget: quoted.daily,
+      quotedTargetMonthly: targets.quoted,
+      quotedPacePct: quoted.pacePct,
+      winRateTarget: targets.winRate,
       commissionTiers: targets.tiers,
       salesAheadBehind: sales.aheadBehind,
       workingDaysLeft: days.remaining,

@@ -792,6 +792,36 @@ the *snapshot's* time, which advances every thirty seconds whether or not Xero
 answered, so it could never say how old the figures were. It carries the time of
 the last successful read now.
 
+**Every step of the funnel paces against a target.** The month's five tiles are
+all dials, and today's five all carry a daily figure to go. Two of them needed a
+new input, and both come off one number on the year goal:
+
+| Target | Where it comes from |
+|---|---|
+| Win rate | `yeargoal.winRatePct`, a percentage |
+| Quoted, this month | the sold target divided by that win rate |
+| Quoted, today | what is left of the month's quoted target over the working days left |
+
+Quoting is the figure anybody can act on before lunch. "Sell $12,000 today" is
+not a thing a person does; "put $48,000 of work in front of customers today" is,
+and selling a month's share at a 25% win rate means quoting four times it.
+Nothing is stored — the daily number falls out of the monthly one each snapshot,
+so it moves on its own as the month goes and as the goal changes.
+
+**A win rate target is flat, and the dial says so.** It is 25% on the first of
+the month and on the last; there is no share of it to have reached by now, so
+that dial has no pace tick and its status reads "Below target by 28%" rather
+than "Behind pace". Its centre shows the rate itself, not its share of the
+target — 18% against a 25% target is 72% of the way there, and "72%" in the
+middle of a dial labelled Win rate is read as the win rate by everybody who has
+not been told otherwise.
+
+**The dials and bars carry the status colour.** Blue when ahead or hit, orange
+when behind. Colour never carries it alone: every dial writes the status out
+underneath and every daily card puts "Target hit" or "Behind" beside its label,
+which is what a viewer who cannot separate the two hues reads. The colour only
+makes the answer available from further back in the room than the words are.
+
 **Pace reads as a funnel: Quoted, Sold, Booked, Win rate, Invoiced.** It was
 sold / invoiced / profit / booked in no particular order, which is four figures
 rather than one story. Quoted has no target to pace against, so it is a figure

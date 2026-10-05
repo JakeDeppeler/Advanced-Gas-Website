@@ -506,13 +506,14 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           actually been billed. It was sold / invoiced / profit / booked in no
           particular order, which is four figures rather than one story. */}
       <span className="band band--today">Today</span>
-      {/* No daily quoted target exists, so there is no meter — but the card
-          keeps the shape of the three beside it. */}
-      <DayFigure
+      {/* The figure anybody can act on before lunch. "Sell $12,000 today" is not
+          a thing a person does; "put $48,000 in front of customers today" is,
+          and it comes off the sold target divided by the planned win rate. */}
+      <DailyCard
         label="Quoted"
-        value={st.plain(m.quotesCreatedTodayValue, live)}
-        note={live.st ? `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}` : undefined}
-        lines={live.st ? [`${count(m.quotesCreatedTodayOptions)} options written`] : ["ServiceTitan not connected"]}
+        achieved={live.st ? m.quotesCreatedTodayValue : null}
+        target={m.dailyQuotedTarget}
+        dayProgress={today}
       />
       <DailyCard
         label="Sold"
@@ -531,11 +532,15 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           today's quotes, so it answers "did what we wrote today come back
           today". It reads 0% on most days, which is the honest answer — the
           month's rate is the card below. */}
-      <DayFigure
+      {/* Against the planned rate, not against a share of it: a win rate is the
+          same number on the first of the month and on the last. */}
+      <DailyCard
         label="Win rate"
-        value={live.st ? pct(m.conversionTodayPct) : NA}
-        note={live.st ? `${count(m.quotesCreatedTodaySold)} of ${count(m.quotesCreatedTodayCount)}` : undefined}
-        lines={live.st ? ["quoted and sold the same day"] : ["ServiceTitan not connected"]}
+        achieved={live.st ? m.closeRate30d : null}
+        target={m.winRateTarget}
+        format={pct}
+        flat
+        foot={live.st ? `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} · last 30 days` : undefined}
       />
       <DailyCard
         label="Invoiced"
@@ -545,18 +550,12 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
       />
 
       <span className="band band--month">{monthName(now)}</span>
-      {/* A card, not a dial. There is no quoted target to pace against, and a
-          dial with nothing to measure against is an empty arc with the figure
-          shrunk underneath it — the one number on the tile made the smallest
-          thing on it. */}
-      <MonthFigure
+      <Gauge
         label="Quoted"
-        value={st.money(m.quotesCreatedMonthValue, live)}
-        lines={
-          live.st
-            ? [`${count(m.quotesCreatedMonthCount)} jobs`, `${count(m.closeRate30dOptions)} options written`]
-            : ["ServiceTitan not connected"]
-        }
+        achieved={live.st ? m.quotesCreatedMonthValue : null}
+        target={m.quotedTargetMonthly}
+        progress={progress}
+        format={money}
       />
       <Gauge
         label="Sold"
@@ -574,22 +573,15 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
       />
       {/* Thirty days, not the month: on the third of the month almost nothing
           quoted this month has had time to come back, and the rate would read
-          near zero every time the month turned over. Split by the side of the
-          business, because an agent deciding for a landlord is a different sell
-          from a householder spending their own money. */}
-      <MonthFigure
+          near zero every time the month turned over. Flat, because a win rate
+          target does not accrue — 25% is 25% on the first and on the last. */}
+      <Gauge
         label="Win rate"
-        value={live.st ? pct(m.closeRate30d) : NA}
-        lines={
-          live.st
-            ? [
-                `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} jobs · last 30 days`,
-                ...m.closeRateByUnit
-                  .filter((u) => u.quoted > 0)
-                  .map((u) => `${u.group} ${pct(u.rate)} · ${count(u.won)} of ${count(u.quoted)}`),
-              ]
-            : ["ServiceTitan not connected"]
-        }
+        achieved={live.st ? m.closeRate30d : null}
+        target={m.winRateTarget}
+        progress={progress}
+        format={pct}
+        flat
       />
       <Gauge
         label="Invoiced"
@@ -1359,79 +1351,38 @@ function RateCard({ label, lines, value, accent }: { label: string; lines: strin
   );
 }
 
-/**
- * A figure in the shape of the daily cards it sits among.
- *
- * Quoted and win rate have no target to pace against, so they carry no meter —
- * but they were drawn as centred stacks next to three left-aligned cards with
- * their labels on top, and a row where two tiles are built differently from the
- * other three reads as a mistake before it reads as a distinction.
- */
-function DayFigure({
-  label,
-  value,
-  note,
-  lines = [],
-}: {
-  label: string;
-  value: string;
-  note?: string;
-  lines?: string[];
-}) {
-  return (
-    <div className="tile c4">
-      <div className="tile__head">
-        <span className="tile__label">{label}</span>
-      </div>
-      <div className="tile__head">
-        <span className={vcls(value)}>{value}</span>
-        {note && <span className="tile__sub">{note}</span>}
-      </div>
-      {lines.map((l) => (
-        <span className="tile__sub" key={l}>
-          {l}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/**
- * The same, in the shape of the month's dials: label on top, the figure where
- * the arc would be, its lines centred underneath.
- */
-function MonthFigure({ label, value, lines = [] }: { label: string; value: string; lines?: string[] }) {
-  return (
-    <div className="tile gauge c3">
-      <span className="gauge__label">{label}</span>
-      <span className={`${vcls(value)} gauge__figure`}>{value}</span>
-      {lines.map((l) => (
-        <span className="tile__sub" key={l} style={{ textAlign: "center" }}>
-          {l}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function DailyCard({
   label,
   achieved,
   target,
   plainNumber,
+  format,
+  flat,
+  foot,
   dayProgress: elapsed,
 }: {
   label: string;
   achieved: number | null;
   target: number | null;
   plainNumber?: boolean;
+  /** Overrides the money/count default — a rate needs its own. */
+  format?: (n: number | null) => string;
+  /**
+   * A target that does not accrue through the day. A win rate is the same
+   * number at 8am and at 5pm, so there is no share of it to have reached by
+   * now and no tick on the bar.
+   */
+  flat?: boolean;
+  /** An extra line under the bar, where the figure needs a denominator. */
+  foot?: string;
   /** Share of the 7am-5pm working day gone, drawn as the tick on the bar. */
   dayProgress?: number;
 }) {
   const ratio = target && target > 0 && achieved != null ? achieved / target : null;
-  const fmt = (n: number | null) => (plainNumber ? count(n) : plain(n));
+  const fmt = format ?? ((n: number | null) => (plainNumber ? count(n) : plain(n)));
+  const pace = flat ? 1 : elapsed;
   const state =
-    ratio == null ? null : ratio >= 1 ? "Target hit" : elapsed != null && ratio >= elapsed ? "Ahead" : "Behind";
+    ratio == null ? null : ratio >= 1 ? (flat ? "On target" : "Target hit") : pace != null && ratio >= pace ? "Ahead" : "Behind";
 
   return (
     <div className="tile c4">
@@ -1443,14 +1394,20 @@ function DailyCard({
         <span className={vcls(achieved == null ? NA : fmt(achieved))}>
           {achieved == null ? NA : fmt(achieved)}
         </span>
-        <span className="tile__sub">{target == null ? "no daily target set" : `of ${fmt(target)}`}</span>
+        <span className="tile__sub">
+          {target == null ? (flat ? "no target set" : "no daily target set") : `of ${fmt(target)}`}
+        </span>
       </div>
       <div className="meter meter--ticked">
-        <div className="meter__fill" style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }} />
-        {elapsed != null && target != null && (
+        <div
+          className={`meter__fill ${state === "Behind" ? "is-behind" : state ? "is-ahead" : ""}`}
+          style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }}
+        />
+        {elapsed != null && target != null && !flat && (
           <span className="meter__pace" style={{ left: `${elapsed * 100}%` }} />
         )}
       </div>
+      {foot && <span className="tile__sub">{foot}</span>}
     </div>
   );
 }

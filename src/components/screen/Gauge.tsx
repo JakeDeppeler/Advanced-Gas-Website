@@ -31,6 +31,7 @@ export function Gauge({
   target,
   progress,
   format,
+  flat,
   unavailable,
 }: {
   label: string;
@@ -40,12 +41,23 @@ export function Gauge({
   progress: number;
   format: (n: number | null) => string;
   /**
+   * A target that does not accrue over the month.
+   *
+   * A win rate is 25% on the first of the month and on the last; there is no
+   * share of it to have reached by now, so there is no pace tick and the status
+   * compares the figure to the target itself rather than to the month's
+   * progress. Everything else on this page builds up as the month goes.
+   */
+  flat?: boolean;
+  /**
    * Why there is no figure, when the reason is the data rather than the link.
    * A dial that says "not connected" about a feed that is connected sends
    * somebody to check the wrong thing.
    */
   unavailable?: string;
 }) {
+  // A flat target is measured against itself, not against the month so far.
+  const pace = flat ? 1 : progress;
   const cx = 110;
   const cy = 100;
   const r = 86;
@@ -55,7 +67,7 @@ export function Gauge({
   const shown = Math.min(1, Math.max(0, ratio ?? 0));
   const at = (t: number) => START + Math.min(1, Math.max(0, t)) * SWEEP;
 
-  const diff = ratio == null ? null : ratio - progress;
+  const diff = ratio == null ? null : ratio - pace;
   const statusText =
     diff == null
       ? unavailable
@@ -64,14 +76,30 @@ export function Gauge({
           ? "no monthly target set"
           : "not connected"
       : Math.abs(diff) < 0.01
-        ? "On pace"
-        : `${diff > 0 ? "Ahead of" : "Behind"} pace by ${Math.abs(Math.round(diff * 100))}%`;
+        ? flat
+          ? "On target"
+          : "On pace"
+        : flat
+          ? `${diff > 0 ? "Above" : "Below"} target by ${Math.abs(Math.round(diff * 100))}%`
+          : `${diff > 0 ? "Ahead of" : "Behind"} pace by ${Math.abs(Math.round(diff * 100))}%`;
+
+  /**
+   * The arc takes the status colour.
+   *
+   * Colour reinforces the sentence underneath; it never carries it. The dial
+   * already says "Behind pace by 51%" in words, and that is what a viewer who
+   * cannot separate the two hues reads — the fill only makes the answer
+   * available from further back in the room than the text is.
+   */
+  const tone = diff == null ? "none" : diff >= -0.01 ? "ahead" : "behind";
 
   // Where the month lands if the rest of it looks like the part so far.
   // Rounded before formatting: a projected job count of 64.308 is arithmetic
   // leaking onto the wall.
   const onPaceFor =
-    ratio != null && target != null && progress > 0 ? Math.round((achieved as number) / progress) : null;
+    !flat && ratio != null && target != null && progress > 0
+      ? Math.round((achieved as number) / progress)
+      : null;
 
   return (
     <div className="tile gauge c3">
@@ -85,9 +113,15 @@ export function Gauge({
       >
         <path d={arc(cx, cy, r, START, START + SWEEP)} className="gauge__track" fill="none" strokeWidth="19" strokeLinecap="round" />
         {ratio != null && (
-          <path d={arc(cx, cy, r, START, at(shown))} className="gauge__fill" fill="none" strokeWidth="19" strokeLinecap="round" />
+          <path
+            d={arc(cx, cy, r, START, at(shown))}
+            className={`gauge__fill is-${tone}`}
+            fill="none"
+            strokeWidth="19"
+            strokeLinecap="round"
+          />
         )}
-        {target != null && (
+        {target != null && !flat && (
           <line
             {...lineAt(cx, cy, r, at(progress))}
             className="gauge__pace"
@@ -99,7 +133,12 @@ export function Gauge({
           className={`gauge__pct ${ratio == null ? "gauge__pct--na" : ""}`}
           textAnchor="middle"
         >
-          {ratio == null ? "—" : `${Math.round(ratio * 100)}%`}
+          {/* A flat dial shows the figure itself, not its share of the target.
+              A win rate of 18% against a 25% target is 72% of the way there,
+              and "72%" in the middle of a dial labelled Win rate is read as
+              the win rate by everybody who has not been told otherwise. The
+              line underneath still says "18% of 25%". */}
+          {ratio == null ? "—" : flat ? format(achieved) : `${Math.round(ratio * 100)}%`}
         </text>
       </svg>
 
