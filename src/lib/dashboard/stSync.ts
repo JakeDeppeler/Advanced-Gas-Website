@@ -133,10 +133,16 @@ const RESOURCES: ResourceSpec[] = [
     table: "st_payments",
     map: (r: Row) => ({
       id: Number(r.id),
-      customer_id: num(r.customerId),
+      // Nested as { id, name }, with no flat customerId beside it — reading the
+      // flat key left this null on all 4,492 payments the first sync brought.
+      customer_id: num((r.customer as Row | null)?.id),
       business_unit: str(pick(r, "businessUnitName", "businessUnit")),
       type: str(pick(r, "typeName", "type", "paymentType")),
-      status: str(pick(r, "status", "transactionStatus", "statusName")),
+      // A payment carries no status of its own; `syncStatus` is where it has
+      // got to on its way into the books. `active` is generated from raw —
+      // migration 0043 — so the voided ones can be left out of "paid today"
+      // without the sync having to remember to write it.
+      status: str(pick(r, "syncStatus", "status", "transactionStatus")),
       memo: str(pick(r, "memo", "referenceNumber", "authCode")),
       total: num(pick(r, "total", "amount", "appliedAmount")),
       // A Melbourne date, not the UTC slice an invoice date takes: a payment

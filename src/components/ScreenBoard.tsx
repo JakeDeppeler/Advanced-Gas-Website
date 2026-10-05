@@ -437,14 +437,22 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <HeroCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
+        rows={
+          !live.st || m.jobsInvoicedToday === 0
+            ? undefined
+            : [
+                { k: "Done today", v: count(m.jobsInvoicedTodayAge.sameDay) },
+                { k: "1–3 days", v: count(m.jobsInvoicedTodayAge.days1to3) },
+                { k: "4–7 days", v: count(m.jobsInvoicedTodayAge.days4to7) },
+                { k: "Over a week", v: count(m.jobsInvoicedTodayAge.older) },
+              ]
+        }
         foot={
           !live.st
             ? undefined
             : m.jobsInvoicedToday === 0
               ? "nothing billed yet today"
-              : `${count(m.jobsInvoicedToday)} billed · today ${count(m.jobsInvoicedTodayAge.sameDay)} · 1–3d ${count(
-                  m.jobsInvoicedTodayAge.days1to3,
-                )} · 4–7d ${count(m.jobsInvoicedTodayAge.days4to7)} · 7+ ${count(m.jobsInvoicedTodayAge.older)}`
+              : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`
         }
       />
       <HeroCard
@@ -769,11 +777,15 @@ function YearPace({ y, margin, costed, goalPct }: {
   return (
     <div className="year year--pace">
       <div className="year__main">
+        {/* Where we are is the big figure and the gap is the note beside it.
+            It was the other way round, which made the headline of the strip a
+            number nobody banked — and on a wall the biggest thing on a card is
+            read as the thing it is about. */}
         <span className="year__nums">
-          <b className={`year__gap ${behind ? "is-behind" : ""}`}>
-            {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
-          </b>
-          <em>{money(y.ytd)} so far</em>
+          <b className="year__gap">{money(y.ytd)}</b>
+          <em className={`year__vs ${behind ? "is-behind" : "is-ahead"}`}>
+            {Math.abs(y.gap) < y.goal * 0.005 ? "on pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
+          </em>
         </span>
         <span className="year__track">
           {landing != null && (
@@ -1506,11 +1518,41 @@ function HeadCard({ label, value, suffix, foot, navy }: {
  * A figure at the size the room reads it, with its label above and one line of
  * context under it. The three across the top of Today.
  */
-function HeroCard({ label, value, foot, navy }: { label: string; value: string; foot?: string; navy?: boolean }) {
+function HeroCard({
+  label,
+  value,
+  rows,
+  foot,
+  navy,
+}: {
+  label: string;
+  value: string;
+  /**
+   * A short breakdown under the figure, stacked rather than run together.
+   *
+   * The invoice ageing was one line — "9 billed · today 1 · 1–3d 3 · 4–7d 5 ·
+   * 7+ 0" — and at four metres that is a sentence to be read rather than a
+   * shape to be glanced at. Stacked, with the counts on their own right-hand
+   * edge, the tall bucket is the one that sticks out.
+   */
+  rows?: Array<{ k: string; v: string }>;
+  foot?: string;
+  navy?: boolean;
+}) {
   return (
     <div className={`tile tile--hero c4 ${navy ? "tile--navy" : ""}`}>
       <span className="tile__label">{label}</span>
       <span className={vcls(value, "tile__value--hero")}>{value}</span>
+      {rows?.length ? (
+        <div className="rows">
+          {rows.map((r) => (
+            <span className="rows__one" key={r.k}>
+              <span className="rows__k">{r.k}</span>
+              <b className="rows__v">{r.v}</b>
+            </span>
+          ))}
+        </div>
+      ) : null}
       {foot ? <span className="tile__foot">{foot}</span> : null}
     </div>
   );

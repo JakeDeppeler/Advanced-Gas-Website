@@ -62,6 +62,12 @@ is the only figure on the page that moves. The date is the Melbourne day, not
 the UTC slice an invoice date takes: a payment banked at 9am here is 10pm
 yesterday in UTC.
 
+Voided payments do not count. Thirty-two of the 4,492 the first sync brought are
+`active: false` — reversed, entered twice and backed out — $34K all up. They are
+payment records and they are not money that arrived. `st_payments.active` is
+generated from the raw payload (migration 0043) so it is right for rows already
+in the table and cannot drift; unknown reads as real.
+
 It reads **"—" until the first payment has ever synced**, never $0. The resource
 is newer than the rest and an empty table would otherwise put "nothing banked
 today" on the wall on a day the office took three cheques. Once one payment is
@@ -73,8 +79,11 @@ migration 0041), not ServiceTitan's invoice date, which is the day the job was
 finished. Over September 55 of 79 priced invoices had their lines added after
 that date, up to thirteen days later, so a job done Thursday and billed Monday
 was Thursday's money and Monday looked quiet while the office billed all
-morning. The line under the figure ages what went out by how long each job had
-been waiting — `4 billed · today 1 · 1–3d 2 · 4–7d 0 · 7+ 1`. "2 done on an
+morning. Under the figure, what went out is aged by how long each job had been
+waiting — done today, 1–3 days, 4–7 days, over a week — stacked, with the counts
+on their own right-hand edge so the tall bucket is a shape to glance at rather
+than a sentence to read. It was one run-on line and at four metres that is not
+the same thing. "2 done on an
 earlier day" said there was a lag and nothing about its size, and the size is
 the point: two jobs billed a day late is the office keeping up, two billed a
 fortnight late is money that sat there. Bucketed rather than averaged, because
