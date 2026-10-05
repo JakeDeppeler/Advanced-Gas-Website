@@ -100,24 +100,43 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
     .map((r) => ({ d: day(r.completed_on), c: jobClass(r.job_type) }))
     .filter((r) => r.c !== "quote");
 
-  // A quote is the job it was written for, dated by its first option and worth
-  // the average of the options put in front of that customer — good, better and
-  // best are one offer, and at most one of them sells.
-  const quotedFirst = new Map<string, { d: string; sum: number; n: number }>();
+  /*
+   * A quote is the job it was written for **on the day it was written**, worth
+   * the average of the options put in front of that customer that day — good,
+   * better and best are one offer, and at most one of them sells.
+   *
+   * The day matters. Going back to a job you quoted a fortnight ago and pricing
+   * it again is a quote you wrote today: it is a visit, an hour at a kitchen
+   * table and a number sent. Keyed on the job alone and dated by its first
+   * option, that work landed on the wall a fortnight ago and today's dial never
+   * moved. One job in seven here is quoted on more than one day — 140 jobs over
+   * twelve weeks, 160 days of quoting — so this is the normal case, not an edge
+   * one.
+   *
+   * The rates below still count *jobs*, not days: a close rate asks what share
+   * of the work we price comes back, and a job quoted twice is one job that
+   * either sold or didn't. The period counts ask how much quoting got done,
+   * which is a different question with a different answer.
+   */
+  const quotedEvents = new Map<string, { job: string; d: string; sum: number; n: number }>();
   for (const r of quotes(quotedRows)) {
     const d = day(r.created_on);
     if (!d) continue;
-    const k = quoteKey(r);
-    const was = quotedFirst.get(k);
+    const job = quoteKey(r);
+    const k = `${job}|${d}`;
+    const was = quotedEvents.get(k);
     if (was) {
       was.sum += Number(r.value ?? 0);
       was.n += 1;
-      if (d < was.d) was.d = d;
     } else {
-      quotedFirst.set(k, { d, sum: Number(r.value ?? 0), n: 1 });
+      quotedEvents.set(k, { job, d, sum: Number(r.value ?? 0), n: 1 });
     }
   }
-  const quotedJobs = [...quotedFirst.values()].map((j) => ({ d: j.d, v: j.n > 0 ? j.sum / j.n : 0 }));
+  const quotedJobs = [...quotedEvents.values()].map((j) => ({
+    job: j.job,
+    d: j.d,
+    v: j.n > 0 ? j.sum / j.n : 0,
+  }));
   // Sold once per job, on the day it was sold, at what the chosen option was worth.
   const soldJobs = new Map<string, { d: string; v: number }>();
   for (const r of quotes(soldRows)) {
@@ -161,7 +180,9 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       serviceBooked: bookedRows.filter((b) => b.c === "service" && within(b.d, window)).length,
       serviceCompleted: doneRows.filter((x) => x.c === "service" && within(x.d, window)).length,
       installsCompleted: doneRows.filter((x) => x.c === "install" && within(x.d, window)).length,
-      quoted: quotedJobs.filter((x) => within(x.d, window)).length,
+      // Distinct jobs, not days of quoting: this is the close rate's denominator
+      // and the rate is per job. The period counts above are per day.
+      quoted: new Set(quotedJobs.filter((x) => within(x.d, window)).map((x) => x.job)).size,
       sold: sold.length,
       soldValue: sold.reduce((t, s) => t + s.v, 0),
       invoiced: inWin.reduce((t, x) => t + x.v, 0),

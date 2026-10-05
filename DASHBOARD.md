@@ -136,6 +136,20 @@ thousand dollars of noise, "Since last week" beside it carries the same signal
 with a week of smoothing, and last year is the figure somebody repeats in the
 van.
 
+A quote is counted **on the day it was written**, not on the day the job was
+first priced. Going back to a job you quoted a fortnight ago and pricing it
+again is a quote you wrote today — a visit, an hour at a kitchen table and a
+number sent — and keyed on the job alone that work landed on the wall a
+fortnight ago while today's dial never moved. One job in seven here is quoted on
+more than one day: 140 jobs over twelve weeks, 160 days of quoting. On 6 October
+the old rule counted 1 quote for the day against the new rule's 2, and 25 for
+the month against 32.
+
+The *rates* still count jobs. A close rate asks what share of the work we price
+comes back, and a job quoted twice is one job that either sold or didn't; the
+period counts ask how much quoting got done, which is a different question with
+a different answer.
+
 **Leads came off the funnel.** Nothing counts the phone calls behind a lead —
 ServiceTitan's Telecom scope is a separate grant — so the card drew no verdict,
 said "calls not counted" underneath, and took a sixth of the row to do it. In
