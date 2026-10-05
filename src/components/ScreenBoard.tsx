@@ -777,11 +777,15 @@ function YearPace({ y, margin, costed, goalPct }: {
   return (
     <div className="year year--pace">
       <div className="year__main">
+        {/* Where we are is the big figure and the gap is the note beside it.
+            It was the other way round, which made the headline of the strip a
+            number nobody banked — and on a wall the biggest thing on a card is
+            read as the thing it is about. */}
         <span className="year__nums">
-          <b className={`year__gap ${behind ? "is-behind" : ""}`}>
-            {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
-          </b>
-          <em>{money(y.ytd)} so far</em>
+          <b className="year__gap">{money(y.ytd)}</b>
+          <em className={`year__vs ${behind ? "is-behind" : "is-ahead"}`}>
+            {Math.abs(y.gap) < y.goal * 0.005 ? "on pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
+          </em>
         </span>
         <span className="year__track">
           {landing != null && (

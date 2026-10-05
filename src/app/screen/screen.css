@@ -1264,7 +1264,9 @@ body:has(.screen) .utilbar {
 .year--pace .year__main { gap: calc(0.7 * var(--u)); }
 .year--pace .year__nums { justify-content: flex-start; gap: calc(0.9 * var(--u)); min-width: 0; overflow: hidden; }
 .year__gap { font-size: calc(2.1 * var(--u)); font-weight: 900; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
-.year__gap.is-behind { color: #ff9a62; }
+/* The gap keeps the colour now that the figure beside it is the headline. */
+.year__vs.is-behind { color: #ff9a62; }
+.year__vs.is-ahead { color: #8ee0ab; }
 .year--pace .year__nums em {
   font-style: normal;
   font-size: calc(1.05 * var(--u));
