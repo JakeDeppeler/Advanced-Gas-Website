@@ -158,6 +158,13 @@ export type Metrics = {
    * the whole day and says nothing.
    */
   jobsInvoicedToday: number;
+  /**
+   * Money banked today, and how many payments it came in. Null — not zero —
+   * until the payments export has ever returned a row, so a sync that is not
+   * running yet cannot read as a day nobody paid.
+   */
+  paidToday: number | null;
+  paymentsToday: number | null;
   /** Of those, the jobs that were finished on an earlier day: the office catching up. */
   jobsInvoicedTodayEarlier: number;
   /**
@@ -580,6 +587,28 @@ async function serviceTitanMetrics(now: Date) {
   // would be a statement about the sync dressed up as a statement about next
   // week. Null blanks the tile instead, and the board says so.
   const jobsScheduledNext7 = anyScheduled > 0 ? scheduledSoon : null;
+
+  /**
+   * What customers actually paid today.
+   *
+   * Invoiced is what we asked for; this is what turned up, and on a day the
+   * office spends chasing debtors it is the only figure on the page that moves.
+   *
+   * Null, never zero, until the payments export has ever brought a row back:
+   * the resource is new and an empty table would otherwise put "$0 paid today"
+   * on the wall on a day the office banked three cheques, which is the one kind
+   * of wrong number this board must not show. Once a single payment has synced,
+   * a genuine quiet day reads $0 and means it.
+   */
+  const [paidRows, everPaid] = await Promise.all([
+    sbSelect<{ total: number | null }>(
+      "st_payments",
+      [q.select("total"), q.eq("paid_on", today)].join("&"),
+    ).catch(() => []),
+    sbCount("st_payments", "").catch(() => 0),
+  ]);
+  const paidToday = everPaid > 0 ? paidRows.reduce((t, p) => t + Number(p.total ?? 0), 0) : null;
+  const paymentsToday = everPaid > 0 ? paidRows.length : null;
 
   /**
    * Everything billed today, whenever the job was done.
@@ -1433,6 +1462,8 @@ async function serviceTitanMetrics(now: Date) {
     jobsCompletedToday,
     jobsCompletedWeek,
     jobsInvoicedToday,
+    paidToday,
+    paymentsToday,
     jobsInvoicedTodayEarlier,
     jobsScheduledNext7,
     topJobSuburbs,
@@ -1719,6 +1750,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobsCompletedToday: prev?.jobsCompletedToday ?? 0,
       jobsCompletedWeek: prev?.jobsCompletedWeek ?? 0,
       jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
+      paidToday: prev?.paidToday ?? null,
+      paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
       // next week's bookings, and zero would claim it does.

@@ -1,4 +1,5 @@
 import { q, sbRpc, sbSelectOne, sbUpsert, type Row } from "./db";
+import { isoDateMelbourne } from "./dates";
 import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
 
 // Pulls ServiceTitan exports into the local replica.
@@ -37,6 +38,12 @@ const ts = (v: unknown): string | null => {
   if (!v) return null;
   const ms = Date.parse(String(v));
   return Number.isFinite(ms) ? new Date(ms).toISOString() : null;
+};
+
+/** The Melbourne day a timestamp fell on, for a column that means "that day". */
+const melDay = (v: unknown): string | null => {
+  const iso = ts(v);
+  return iso ? isoDateMelbourne(new Date(iso)) : null;
 };
 
 function pick(r: Row, ...keys: string[]): unknown {
@@ -108,6 +115,36 @@ const RESOURCES: ResourceSpec[] = [
       cost: num(pick(r, "cost", "totalCost", "itemCost")),
       invoice_date: (ts(pick(r, "invoiceDate", "createdOn")) ?? "").slice(0, 10) || null,
       due_date: (ts(pick(r, "dueDate")) ?? "").slice(0, 10) || null,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    /**
+     * What customers have actually paid.
+     *
+     * Same Accounting scope the invoices come in under, so nothing new has to
+     * be granted. One payment can be split across several invoices, which is
+     * what `appliedTo` holds; the board sums the payment itself, because a
+     * customer paying $2,648 once is one payment whatever it cleared.
+     */
+    resource: "payments",
+    module: "accounting",
+    table: "st_payments",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      customer_id: num(r.customerId),
+      business_unit: str(pick(r, "businessUnitName", "businessUnit")),
+      type: str(pick(r, "typeName", "type", "paymentType")),
+      status: str(pick(r, "status", "transactionStatus", "statusName")),
+      memo: str(pick(r, "memo", "referenceNumber", "authCode")),
+      total: num(pick(r, "total", "amount", "appliedAmount")),
+      // A Melbourne date, not the UTC slice an invoice date takes: a payment
+      // taken at 9am here is 10pm yesterday in UTC, and "paid today" has to
+      // mean the day the office had.
+      paid_on: melDay(pick(r, "paidOn", "date", "paidDate", "createdOn")),
+      applied_to: (Array.isArray(r.appliedTo) ? r.appliedTo : []) as Row[],
+      created_on: ts(pick(r, "createdOn")),
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
     }),

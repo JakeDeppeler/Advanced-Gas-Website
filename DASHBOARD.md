@@ -50,8 +50,22 @@ run under the header, which fills a sixth at a time — the room can see where i
 is without reading six page names, which is what the tab strip asked of it.
 
 **Today** is two rows of three. Sold today (navy), invoiced today and jobs
-booked today across the top; quoted today, close rate and overdue beneath, each
+booked today across the top; quoted today, close rate and money in beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
+
+**Money in** is one card cut in two: what customers paid today, and what is
+still overdue. Payments come from ServiceTitan's accounting export (`st_payments`,
+migration 0042) under the Accounting scope the invoices already use — the
+"Payment Applied" alert the office gets by email is the same record. Invoiced is
+what we asked for; paid is what turned up, and on a day spent chasing debtors it
+is the only figure on the page that moves. The date is the Melbourne day, not
+the UTC slice an invoice date takes: a payment banked at 9am here is 10pm
+yesterday in UTC.
+
+It reads **"—" until the first payment has ever synced**, never $0. The resource
+is newer than the rest and an empty table would otherwise put "nothing banked
+today" on the wall on a day the office took three cheques. Once one payment is
+in, a genuinely quiet day reads $0 and means it.
 
 **Invoiced today is everything billed today, whenever the job was done.** It
 counts an invoice on the day its lines were last put on (`st_invoices.invoiced_on`,

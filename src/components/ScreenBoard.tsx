@@ -498,17 +498,33 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
             : undefined
         }
       />
-      <RateCard
-        label="Overdue"
-        lines={
-          m.overdueTotal == null
-            ? ["Not read from Xero yet"]
-            : m.receivablesTotal == null
-              ? [`${money(m.overdueTotal)} owed`]
-              : [`${money(m.overdueTotal)} owed`, `of ${money(m.receivablesTotal)} on the books`]
-        }
-        value={m.overdueCount == null ? NA : count(m.overdueCount)}
-        accent={(m.overdueCount ?? 0) > 0}
+      {/* Money in, both halves of it: what was banked today and what is still
+          owed. They were two different cards' worth of figure and only one card
+          between them, and they belong side by side anyway — a good day on the
+          left is the thing that shrinks the number on the right. */}
+      <SplitRateCard
+        label="Money in"
+        halves={[
+          {
+            name: "Paid today",
+            value: m.paidToday == null ? NA : plain(m.paidToday),
+            sub:
+              m.paymentsToday == null
+                ? "payments not synced yet"
+                : m.paymentsToday === 0
+                  ? "nothing banked yet"
+                  : `${count(m.paymentsToday)} ${m.paymentsToday === 1 ? "payment" : "payments"}`,
+          },
+          {
+            name: "Overdue",
+            value: m.overdueTotal == null ? NA : money(m.overdueTotal),
+            sub:
+              m.overdueCount == null
+                ? "not read from Xero yet"
+                : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"}`,
+          },
+        ]}
+        foot={m.receivablesTotal == null ? undefined : `${money(m.receivablesTotal)} on the books all up`}
       />
     </>
   );

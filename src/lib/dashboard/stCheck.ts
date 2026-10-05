@@ -39,6 +39,7 @@ const PROBES: Array<{
   { module: "jpm", resource: "job-types", scope: "Job Planning & Management", usedFor: "job type labels" },
   { module: "jpm", resource: "jobs", scope: "Job Planning & Management", usedFor: "jobs completed / booked" },
   { module: "accounting", resource: "invoices", scope: "Accounting", usedFor: "revenue, daily target, job type profit" },
+  { module: "accounting", resource: "payments", scope: "Accounting", usedFor: "paid today" },
   { module: "sales", resource: "estimates", scope: "Sales & Estimates", usedFor: "quotes open, close rate, leaderboard" },
   { module: "crm", resource: "leads", scope: "CRM", usedFor: "ServiceTitan lead counts" },
   { module: "pricebook", resource: "materials", scope: "Pricebook", usedFor: "Reece price sync (Materials needs write access)" },
