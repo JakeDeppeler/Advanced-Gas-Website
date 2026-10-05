@@ -1,16 +1,18 @@
 /**
- * The pace dial: four zones, and a needle at how we are actually going.
+ * The pace dial: four zones, and a knob at how we are actually going.
  *
- * The needle is not "how much of the target we have done" — on the second of
- * the month that is 7% on every dial on the page and tells the room nothing.
- * It is **done ÷ what the goal says we should have by now**, so the straight-up
- * position is exactly on pace and the needle means the same thing on the first
- * of the month and on the last.
+ * The knob is not "how much of the target we have done" — on the second of the
+ * month that is 7% on every dial on the page and tells the room nothing. It is
+ * **done ÷ what the goal says we should have by now**, and that is the number
+ * written beside the verdict underneath, so the dial, the words and the key in
+ * the footer are all quoting the same scale. Before, the dial was in one unit,
+ * the week's shortfall in jobs and the month's in points of the month, and
+ * none of the three answered "how close is close".
  *
  * The four zones are fixed on that scale, in the same order on every dial, with
- * a gap between each. The one the needle lands in is the only one at full
+ * a gap between each. The one the knob lands in is the only one at full
  * strength; the rest sit back as tints of themselves. That is three readings of
- * the same verdict — needle position, which zone is lit, and the words
+ * the same verdict — where the knob sits, which zone is lit, and the words
  * underneath — so none of them is carried by hue alone, which red/amber/green
  * could never be: the board's rule, and the reason this dial can use the
  * colours the room already understands.
@@ -20,8 +22,9 @@
 
 /** The dial runs to half as much again as the goal asks of us by now. */
 const DIAL_MAX = 1.5;
-const SWEEP = 180;
-const START = 270; // compass degrees: nine o'clock, sweeping over the top
+/** Three quarters of a circle, open at the bottom where the figure's feet go. */
+const SWEEP = 270;
+const START = 225; // compass degrees: start at half past seven, sweep clockwise
 /** Enough to read as a boundary from four metres, small enough to lose nothing. */
 const GAP = 2.4;
 
@@ -52,10 +55,8 @@ export const ZONE_LABEL: Record<Verdict, string> = {
  * What each word means, in the footer key beside it.
  *
  * Without these the room can see that something is Close and not how close.
- * Worse, the two rows quote their shortfall in different units — the week in
- * jobs ("Behind 2.5"), the month in points of the month ("Behind pace by 5%") —
- * so neither of those numbers tells you which band you are in either. The bands
- * are the one scale all twelve dials share, and the key is where it is stated.
+ * The bands are the one scale all twelve dials share, and the key is where it
+ * is stated.
  */
 export const ZONE_BAND: Record<Verdict, string> = {
   behind: "under 75%",
@@ -63,6 +64,9 @@ export const ZONE_BAND: Record<Verdict, string> = {
   track: "90–110%",
   ahead: "over 110%",
 };
+
+/** The glyph each verdict carries, so the word is never alone either. */
+const GLYPH: Record<Verdict, string> = { behind: "▼", close: "▼", track: "●", ahead: "▲" };
 
 /** Done over what should be done by now. Null when the goal can't say. */
 export function paceIndex(done: number | null | undefined, byNow: number | null | undefined): number | null {
@@ -79,6 +83,12 @@ export function verdictOf(index: number | null): Verdict | null {
   return "ahead";
 }
 
+/** "▼ Behind · 59%" — the verdict, and the figure the key's bands are in. */
+export function verdictText(index: number | null, verdict: Verdict | null): string {
+  if (verdict == null || index == null) return "no target yet";
+  return `${GLYPH[verdict]} ${ZONE_LABEL[verdict]} · ${Math.round(index * 100)}%`;
+}
+
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
@@ -90,38 +100,44 @@ function arc(cx: number, cy: number, r: number, from: number, to: number) {
   return `M ${a.x.toFixed(2)} ${a.y.toFixed(2)} A ${r} ${r} 0 ${to - from > 180 ? 1 : 0} 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
 }
 
+/**
+ * The figure sits inside the dial, so it has only the dial's width to live in.
+ * "$2,888" in the size "14" wants would run out through the arc, and a figure
+ * that overflows its own chart is worse than a smaller one.
+ */
+const figureSize = (text: string) => (text.length <= 4 ? 40 : text.length <= 6 ? 32 : 26);
+
 export function Gauge({
   label,
   index,
   verdict,
   figure,
-  sub,
+  of,
   status,
   foot,
 }: {
   label: string;
-  /** done ÷ by now. Null draws the dial flat with no needle. */
+  /** done ÷ by now. Null draws the dial flat with no knob. */
   index: number | null;
   verdict: Verdict | null;
-  /** The headline under the dial. */
-  figure: React.ReactNode;
-  /** The line under the headline, where there is one. */
-  sub?: React.ReactNode;
+  /** What has been done, in the middle of the dial. */
+  figure: string;
+  /** What it is of, under the figure. */
+  of?: string;
   status: string;
   foot?: string;
 }) {
-  // The viewBox is sized to the dial rather than the dial to the viewBox: the
-  // card is only ever as wide as a sixth of the board, so every unit of margin
-  // in here comes straight off the arc the room is reading.
-  const cx = 106;
-  const cy = 96;
-  const r = 84;
-  const w = 20;
+  // The viewBox hugs the dial: every unit of empty box in here is a gap between
+  // the arc and the words under it that the card cannot afford.
+  const cx = 100;
+  const cy = 92;
+  const r = 78;
+  const w = 19;
   const at = (v: number) => START + (Math.min(DIAL_MAX, Math.max(0, v)) / DIAL_MAX) * SWEEP;
 
   /*
    * A round cap adds half the stroke width past each end of the path, which at
-   * this radius is six degrees — more than the Close band is wide. Drawn
+   * this radius is seven degrees — more than the Close band is wide. Drawn
    * naively the small bands came out as circles sitting on top of their
    * neighbours and the gaps between them closed up. Each path is pulled in by a
    * cap at both ends so the *drawn* band lands where the arithmetic says.
@@ -137,18 +153,14 @@ export function Gauge({
     return b > a ? { k: z.k, a, b } : { k: z.k, a: mid - 0.01, b: mid + 0.01 };
   });
 
-  const needle = index == null ? null : at(index);
+  const knob = index == null ? null : polar(cx, cy, r, at(index));
+  const fs = figureSize(figure);
 
   return (
     <div className="tile gauge">
       <span className="gauge__label">{label}</span>
 
-      <svg
-        className="gauge__svg"
-        viewBox="0 0 212 112"
-        role="img"
-        aria-label={`${label}: ${status}`}
-      >
+      <svg className="gauge__svg" viewBox="0 0 200 162" role="img" aria-label={`${label}: ${figure}${of ? ` ${of}` : ""}, ${status}`}>
         {bands.map((b) => (
           <path
             key={b.k}
@@ -159,22 +171,22 @@ export function Gauge({
             strokeLinecap="round"
           />
         ))}
-        {needle != null && (
-          <>
-            <line
-              {...(() => {
-                const t = polar(cx, cy, r - w / 2 - 4, needle);
-                return { x1: cx, y1: cy, x2: t.x, y2: t.y };
-              })()}
-              className="gauge__needle"
-            />
-            <circle cx={cx} cy={cy} r="9" className="gauge__hub" />
-          </>
-        )}
+
+        <text x={cx} y={cy + (of ? 2 : fs * 0.36)} className="gauge__fig" fontSize={fs} textAnchor="middle">
+          {figure}
+        </text>
+        {of ? (
+          <text x={cx} y={cy + 26} className="gauge__of" fontSize="17" textAnchor="middle">
+            {of}
+          </text>
+        ) : null}
+
+        {/* Where we are, as a knob riding the track rather than a needle from
+            the middle: the middle is where the figure lives now, and a line
+            crossing it was the first thing the eye landed on. */}
+        {knob && <circle cx={knob.x} cy={knob.y} r={w / 2 - 1.5} className="gauge__knob" />}
       </svg>
 
-      <span className="gauge__fig">{figure}</span>
-      {sub ? <span className="gauge__sub">{sub}</span> : null}
       <span className={`status status--${verdict ?? "quiet"}`}>{status}</span>
       {foot ? <span className="gauge__foot">{foot}</span> : null}
     </div>

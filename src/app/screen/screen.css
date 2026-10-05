@@ -540,55 +540,52 @@ body:has(.screen) .utilbar {
 
 /* ------------------------------------------------------------------- gauge */
 /* The pace dial. Four zones in a fixed order with a gap between each, and only
-   the one the needle landed in at full strength — so which verdict is being
-   given is readable from the shape of the dial, not only from its hue. The
-   words underneath say it a third time, and the footer carries the key. */
-.gauge { align-items: center; justify-content: center; gap: calc(0.45 * var(--u)); text-align: center; }
-.gauge__svg { width: 100%; max-height: calc(9.2 * var(--u)); flex: none; }
+   the one the knob landed in at full strength — so which verdict is being given
+   is readable from the shape of the dial, not only from its hue. The words
+   underneath say it a third time, and the footer carries the key. */
+.gauge {
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(0.3 * var(--u));
+  text-align: center;
+  /* The name sits in a band of its own with a rule under it, so the padding is
+     applied per child rather than to the card. */
+  padding: 0 0 calc(1 * var(--u));
+}
+/* The step's name, as a header band ruled off from the dial under it. The rule
+   runs the full width of the card: it is a heading, not a caption. */
+.gauge__label {
+  /* Stretched by the flex column rather than width:100%, which on a box that
+     is not border-box adds its own padding on top of the card and pushes the
+     rule out through the side. */
+  align-self: stretch;
+  box-sizing: border-box;
+  padding: calc(0.95 * var(--u)) calc(1 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+  font-size: calc(1.15 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+}
+.gauge__svg { width: 100%; max-height: calc(13 * var(--u)); flex: 1; min-height: 0; margin-top: calc(0.2 * var(--u)); }
 
-/* The zones not in play sit back as tints of themselves, so which verdict is
-   being given reads as a weight difference before it reads as a hue. */
-.gauge__zone { opacity: 0.36; }
+.gauge__zone { opacity: 0.32; }
 .gauge__zone.is-on { opacity: 1; }
 .gauge__zone.is-behind { stroke: var(--vd-behind); }
 .gauge__zone.is-close { stroke: var(--vd-close); }
 .gauge__zone.is-track { stroke: var(--vd-track); }
 .gauge__zone.is-ahead { stroke: var(--vd-ahead); }
 
-/* Where we actually are. A needle rather than a filled arc: the zones are the
-   scale, and a fill would cover the one of them that matters. */
-.gauge__needle { stroke: var(--navy); stroke-width: 4.5; stroke-linecap: round; }
-.gauge__hub { fill: var(--navy); }
+/* Where we are: a knob riding the track. A ring rather than a dot, so it reads
+   as a position on the band rather than as a fifth zone. */
+.gauge__knob { fill: #fff; stroke: var(--navy); stroke-width: 3.5; }
 
-.gauge__label { font-size: calc(1.02 * var(--u)); color: var(--ink-2); font-weight: 500; }
-.gauge__fig {
-  font-size: calc(2.3 * var(--u));
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--navy);
-  line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-  /* "$61K of $308K" broke over two lines in one card of six and made that card
-     taller than the other five, which on an equal-height row pushed its last
-     line out through the bottom. */
-  white-space: nowrap;
-  max-width: 100%;
-}
-.gauge__fig em,
-.gauge__sub em {
-  font-style: normal;
-  font-weight: 500;
-  color: var(--ink-muted);
-}
-.gauge__fig em { font-size: calc(1.08 * var(--u)); margin-left: calc(0.25 * var(--u)); }
-.gauge__sub {
-  font-size: calc(1.05 * var(--u));
-  color: var(--ink-muted);
-  font-variant-numeric: tabular-nums;
-}
-.gauge__sub b { color: var(--navy); font-weight: 800; }
-.gauge__foot { font-size: calc(0.95 * var(--u)); color: var(--ink-2); }
-.gauge .status { white-space: normal; text-wrap: balance; line-height: 1.2; }
+/* The figure lives in the middle of its own dial. */
+.gauge__fig { fill: var(--navy); font-weight: 800; letter-spacing: -0.03em; }
+.gauge__of { fill: var(--ink-muted); font-weight: 500; }
+
+.gauge__foot { font-size: calc(0.95 * var(--u)); color: var(--ink-2); padding: 0 calc(0.8 * var(--u)); }
+.gauge .status { white-space: normal; text-wrap: balance; line-height: 1.2; font-size: calc(1.05 * var(--u)); }
 
 /* --------------------------------------------------------------- quote list */
 .quotes { display: flex; flex-direction: column; flex: 1; }
@@ -1178,8 +1175,10 @@ body:has(.screen) .utilbar {
   padding-bottom: calc(0.28 * var(--u));
 }
 .rows__one:last-child { border-bottom: 0; }
-.rows__k { font-size: calc(1 * var(--u)); color: var(--ink-2); }
-.rows__v { font-size: calc(1.25 * var(--u)); font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
+/* The same size as the footnote under it: this is context for the figure
+   above, not a second figure. */
+.rows__k { font-size: calc(0.95 * var(--u)); color: var(--ink-2); }
+.rows__v { font-size: calc(0.95 * var(--u)); font-weight: 800; color: var(--navy); font-variant-numeric: tabular-nums; }
 .tile--navy .rows__one { border-color: rgba(255, 255, 255, 0.14); }
 .tile--navy .rows__k { color: rgba(255, 255, 255, 0.72); }
 .tile--navy .rows__v { color: #fff; }

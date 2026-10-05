@@ -5,7 +5,7 @@ import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
-import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, type Verdict } from "./screen/Gauge";
+import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
 
 type Snapshot = {
@@ -599,16 +599,16 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           first: the week is the one anybody can still change. */}
       <span className="band band--week">This week</span>
       {STEP_KEYS.map(({ k, label }) => (
-        <WeekDial key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
+        <StepDial key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
       ))}
 
       {/* The month on the same dial as the week, so the two rows are one
           reading at two lengths rather than two kinds of chart. Each step is
           the same step in both — "Booked" means quote visits and service calls
           in every row, never all jobs in one and some in another. */}
-      <span className="band band--month">{monthName(now)}</span>
+      <span className="band band--month">This month</span>
       {STEP_KEYS.map(({ k, label }) => (
-        <MonthDial key={`m-${k}`} label={label} stage={k} s={p.standing.month[k]} progress={monthProgress} />
+        <StepDial key={`m-${k}`} label={label} stage={k} s={p.standing.month[k]} progress={monthProgress} />
       ))}
 
       <span className="band band--year">This year</span>
@@ -632,101 +632,61 @@ const stepFig = (stage: string, n: number | null | undefined) => {
 };
 
 /**
- * One step of the funnel this week: the dial, what has been done of what the
- * week needs, the verdict and what a day has to bring to catch up.
+ * One step of the funnel, over a week or over a month.
  *
- * The headline is the raw figure rather than a percentage. "14 of 118" is a
- * thing the room can picture; "12%" on a Monday is not, and the dial beside it
- * is already the proportion.
+ * Both rows are the same card: what has been done of what the period needs, in
+ * the middle of the dial, and the verdict with its percentage underneath. The
+ * two differ only in the line at the foot — the week says what a day has to
+ * bring to catch up, the month says where it lands at this rate — because the
+ * week is still steerable and the month is mostly a forecast.
+ *
+ * The percentage beside the verdict is done ÷ by now, the same scale the zones
+ * and the footer's key are in. It used to be the week's shortfall in jobs and
+ * the month's in points of the month, which meant three numbers on one page in
+ * three units and no way to tell which band any of them was in.
  */
-function WeekDial({ label, stage, s, last }: { label: string; stage: string; s: StepStanding; last?: number | null }) {
+function StepDial({
+  label,
+  stage,
+  s,
+  last,
+  progress,
+}: {
+  label: string;
+  stage: string;
+  s: StepStanding;
+  /** The week's card: what the same step did last week. */
+  last?: number | null;
+  /** The month's card: how much of it has gone, for the run-rate line. */
+  progress?: number;
+}) {
   const index = paceIndex(s.done, s.byNow);
   const verdict = s.need == null ? null : verdictOf(index);
-  const gap = s.gap == null ? null : stepFig(stage, Math.abs(s.gap));
   const over = (s.gap ?? 0) >= 0;
 
-  const status =
-    verdict == null
-      ? NA
-      : verdict === "track"
-        ? "● On track"
-        : verdict === "ahead"
-          ? `▲ Ahead ${gap}`
-          : verdict === "close"
-            ? `${over ? "▲" : "▼"} Close · ${gap} ${over ? "ahead" : "behind"}`
-            : `▼ Behind ${gap}`;
+  // Where the month lands if the rest of it looks like the part so far.
+  // Rounded before formatting: a projected job count of 64.308 is arithmetic
+  // leaking onto the wall.
+  const landing =
+    progress != null && progress > 0 && s.done != null && s.need != null ? Math.round(s.done / progress) : null;
 
   return (
     <Gauge
       label={label}
       index={index}
       verdict={verdict}
-      figure={
-        <>
-          <b>{stepFig(stage, s.done)}</b>
-          {s.need == null ? <em> no target yet</em> : <em> of {stepFig(stage, s.need)}</em>}
-        </>
-      }
-      status={status}
+      figure={stepFig(stage, s.done)}
+      of={s.need == null ? "no target yet" : `of ${stepFig(stage, s.need)}`}
+      status={verdictText(index, verdict)}
       foot={
-        !over && s.perDayLeft != null
-          ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
-          : last != null
-            ? `Last week ${stepFig(stage, last)}`
-            : undefined
+        landing != null
+          ? `Heading for ${stepFig(stage, landing)}`
+          : !over && s.perDayLeft != null
+            ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
+            : last != null
+              ? `Last week ${stepFig(stage, last)}`
+              : undefined
       }
-    />
-  );
-}
-
-/**
- * The same step over the month. The headline is the share of the month's need
- * that has landed, because over a month that figure is worth something on its
- * own, with the raw pair under it and where the month lands at this rate below
- * that.
- */
-function MonthDial({ label, stage, s, progress }: { label: string; stage: string; s: StepStanding; progress: number }) {
-  const index = paceIndex(s.done, s.byNow);
-  const verdict = s.need == null ? null : verdictOf(index);
-  const ratio = s.need && s.need > 0 && s.done != null ? s.done / s.need : null;
-  // How far ahead or behind the month's own line, in points of the month — the
-  // figure the room repeats, and the one the portal's Pace page prints.
-  const diff = ratio == null ? null : ratio - progress;
-  // At least a point once the verdict is anything but on track: "Close · 0%
-  // behind" is a sentence arguing with itself.
-  const off = diff == null ? null : Math.max(1, Math.abs(Math.round(diff * 100)));
-  const over = (diff ?? 0) >= 0;
-
-  const status =
-    verdict == null
-      ? "no target yet"
-      : verdict === "track"
-        ? "On track"
-        : verdict === "close"
-          ? `Close · ${off}% ${over ? "ahead" : "behind"}`
-          : over
-            ? `Ahead of pace by ${off}%`
-            : `Behind pace by ${off}%`;
-
-  // Where the month lands if the rest of it looks like the part so far. Rounded
-  // before formatting: a projected job count of 64.308 is arithmetic leaking
-  // onto the wall.
-  const landing = ratio != null && progress > 0 ? Math.round((s.done as number) / progress) : null;
-
-  return (
-    <Gauge
-      label={label}
-      index={index}
-      verdict={verdict}
-      figure={ratio == null ? NA : `${Math.round(ratio * 100)}%`}
-      sub={
-        <>
-          <b>{stepFig(stage, s.done)}</b>
-          {s.need == null ? null : <em> of {stepFig(stage, s.need)}</em>}
-        </>
-      }
-      status={status}
-      foot={landing == null ? undefined : `Heading for ${stepFig(stage, landing)}`}
     />
   );
 }

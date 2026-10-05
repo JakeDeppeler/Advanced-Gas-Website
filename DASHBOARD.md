@@ -145,28 +145,33 @@ The portal's Pace page runs the same code off the same snapshot.
 
 ### The pace dial
 
-Every step on Pace is the same dial: four zones, and a needle at how we are
-actually going.
+Every step on Pace is the same dial, over a week and over a month: three
+quarters of a circle, four zones, the figure in the middle and a knob at how we
+are actually going.
 
-The needle is **done ÷ what the goal says we should have by now**, not done ÷
+The knob is at **done ÷ what the goal says we should have by now**, not done ÷
 the whole target. On the second of the month the second of those is 7% on every
 dial on the page and tells the room nothing; the first means the same thing on
-the first of the month and on the last, with straight up being exactly on pace.
-The dial runs to half as much again as the line asks, so a step that is
-genuinely ahead has somewhere to show it.
+the first of the month and on the last. The dial runs to half as much again as
+the line asks, so a step genuinely ahead has somewhere to show it.
+
+**That ratio is the number beside the verdict** — "▼ Behind · 59%" — so the
+dial, the words and the key in the footer are all quoting one scale. They were
+three: the dial in this ratio, the week's shortfall in jobs, the month's in
+points of the month, and none of the three answered "how close is close".
 
 The four zones are fixed on that scale and in the same order on every dial —
 **Behind** under three quarters of the line, **Close** to nine tenths, **On
 track** a tenth either side of it, **Ahead** past that — with a gap between
-each. Only the zone the needle landed in is at full strength; the rest sit back
-as tints of themselves.
+each. Only the zone the knob landed in is at full strength; the rest sit back as
+tints of themselves.
 
-That is the same verdict three times over: where the needle points, which zone
-is lit, and the words underneath. The footer carries the key — Behind · Close ·
-On track · Ahead — so the colours are not a convention the room has to be told.
-Red and green are the worst pair under red-green colour blindness and they are
-used here anyway, because nothing on this dial is carried by hue alone and the
-needle alone answers it.
+That is the same verdict three times over: where the knob sits, which zone is
+lit, and the words underneath. The footer carries the key — Behind under 75% ·
+Close 75–90% · On track 90–110% · Ahead over 110% — so the colours are not a
+convention the room has to be told. Red and green are the worst pair under
+red-green colour blindness and they are used here anyway, because nothing on
+this dial is carried by hue alone.
 
 **Quotes** is three figures — quoted today, sold today, average quote — over
 what was written today and what is still out, biggest first. Both lists are one
