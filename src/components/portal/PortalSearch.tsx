@@ -7,11 +7,10 @@ import Link from "next/link";
 /**
  * The search in the top bar.
  *
- * It exists because the sidebar doesn't any more: with navigation collapsed to
- * the home grid, the fast path to "the fault code page" or "clause A3" has to be
- * typing it. So this searches the actual content — handbook clauses, procedures,
- * videos, information sections, tools — not just the twelve page titles, which
- * would make it a slower version of going home.
+ * The fast path to "the fault code page" or "clause A3" is typing it, so this
+ * searches the actual content — handbook clauses, procedures, videos,
+ * information sections, tools — not just the page titles, which would make it
+ * a slower version of the side bar.
  *
  * Everything is indexed on the server and handed down as a flat list. It is a
  * few hundred short rows; filtering it in the browser is instant and costs no
