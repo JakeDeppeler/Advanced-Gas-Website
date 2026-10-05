@@ -65,7 +65,7 @@ export default async function BoardPage() {
     {
       k: "Gross profit",
       v: t.profit == null ? null : money(t.profit),
-      how: goal.profitPct ? `At the goal's ${goal.profitPct}%` : "Needs a profit % on the goal",
+      how: goal.profitPct ? `At the goal's ${goal.profitPct}%, on the month before GST` : "Needs a profit % on the goal",
     },
     {
       k: "Jobs booked",

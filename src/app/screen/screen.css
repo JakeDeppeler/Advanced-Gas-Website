@@ -227,10 +227,11 @@ body:has(.screen) .utilbar {
 /* Each page wants its own vertical proportions. */
 .screen__grid--today { grid-template-rows: 1.25fr 1fr; }
 .screen__grid--pace {
-  /* Five across, because the page is a funnel of five steps and twelve columns
-     do not divide into it. The band names keep their own column on the left. */
-  grid-template-columns: calc(7.5 * var(--u)) repeat(5, 1fr);
-  grid-template-rows: 0.72fr 1.75fr 0.62fr;
+  /* Six across, one per step the money moves through — leads, booked, quoted,
+     sold, completed, invoiced. The band names keep their own column on the
+     left. The year sits on top because it is the question. */
+  grid-template-columns: calc(7.5 * var(--u)) repeat(6, 1fr);
+  grid-template-rows: 0.8fr 1.12fr 0.95fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--team { grid-template-rows: 1fr; }
@@ -1130,9 +1131,9 @@ body:has(.screen) .utilbar {
   letter-spacing: -0.02em;
   color: var(--navy);
 }
-.band--today { grid-row: 1; }
-.band--month { grid-row: 2; }
-.band--year { grid-row: 3; }
+.band--year { grid-row: 1; }
+.band--today { grid-row: 2; }
+.band--month { grid-row: 3; }
 
 /* On Pace every card is one step of the funnel, so each takes one column. */
 .screen__grid--pace .c3,
@@ -1187,3 +1188,28 @@ body:has(.screen) .utilbar {
 .year__k { font-size: calc(0.92 * var(--u)); color: rgba(255, 255, 255, 0.7); }
 .year__v { font-size: calc(1.9 * var(--u)); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .year__v em { font-style: normal; font-size: calc(1 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+
+
+/* ------------------------------------------------- /02 Pace, by step */
+.year--pace {
+  grid-column: 2 / span 6;
+  grid-template-columns: minmax(0, 1fr) repeat(4, calc(11 * var(--u)));
+  gap: calc(1.6 * var(--u));
+}
+.year__gap { font-size: calc(2.7 * var(--u)); font-weight: 900; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+.year__gap.is-behind { color: #ff9a62; }
+.year--pace .year__main { gap: calc(0.85 * var(--u)); }
+.year--pace .year__have { font-size: calc(1.05 * var(--u)); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.year__v--drift { font-size: calc(1.4 * var(--u)); white-space: nowrap; }
+/* The two colours that read on the navy, each with its glyph and its word. */
+.year__v--drift.is-up { color: #8ee0ab; }
+.year__v--drift.is-down { color: #ff9a62; }
+
+.pstep { justify-content: space-between; }
+.pstep .status { font-size: calc(1.15 * var(--u)); }
+.pstep__fig { display: flex; align-items: baseline; gap: calc(0.5 * var(--u)); min-width: 0; }
+.pstep__fig .tile__value { font-size: calc(3.3 * var(--u)); }
+.pstep__fig .tile__sub { white-space: nowrap; font-size: calc(1 * var(--u)); }
+.pstep > .tile__sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pstep--compact .pstep__fig .tile__value { font-size: calc(2.4 * var(--u)); }
+.pstep--compact .status { font-size: calc(1 * var(--u)); }

@@ -50,7 +50,63 @@ export type YearGoal = {
    * bookings dial says so rather than inventing a count.
    */
   mix: GoalJob[];
+  /** The win rate the business is planning on, as a percentage. Null = use the measured one. */
+  winRatePct: number | null;
+  /** What the Pace page plans on beyond the goal itself. See pace.ts. */
+  pace: PaceSettings;
 };
+
+/**
+ * What the Pace page plans on beyond the goal itself.
+ *
+ * The booking rate and an average sale live on the row under `pace`. The close
+ * rate does not: it is the row's `winRatePct`, the planned win rate the wall
+ * board's quoted target is also built on, so there is one win rate the business
+ * has said it is aiming at rather than two that could disagree.
+ */
+export type PaceSettings = {
+  /** Share of enquiries that turn into a booking, 0–1. Nothing measures it. */
+  bookRate: number | null;
+  /** A close rate to plan on instead of the measured one, 0–1. Stored as `winRatePct`. */
+  closeRate: number | null;
+  /** An average sale to plan on instead of the measured one, including GST. */
+  avgSale: number | null;
+};
+
+export const NO_PACE_SETTINGS: PaceSettings = { bookRate: null, closeRate: null, avgSale: null };
+
+export function readPaceSettings(raw: unknown): PaceSettings {
+  const v = (raw ?? {}) as Record<string, unknown>;
+  const frac = (x: unknown) => {
+    const n = Number(x);
+    return x != null && x !== "" && Number.isFinite(n) && n > 0 && n <= 1 ? n : null;
+  };
+  const amt = Number(v.avgSale);
+  return {
+    bookRate: frac(v.bookRate),
+    closeRate: frac(v.closeRate),
+    avgSale: v.avgSale != null && v.avgSale !== "" && Number.isFinite(amt) && amt > 0 ? amt : null,
+  };
+}
+
+/** A planned win rate as stored: a percentage over 0 and at most 100, or null. */
+export function readWinRatePct(x: unknown): number | null {
+  const n = Number(x);
+  return x != null && x !== "" && Number.isFinite(n) && n > 0 && n <= 100 ? n : null;
+}
+
+/** The pace settings off a whole stored goal row, close rate from `winRatePct`. */
+export function paceSettingsOf(row: unknown): PaceSettings {
+  const v = (row ?? {}) as { pace?: unknown; winRatePct?: unknown };
+  const win = readWinRatePct(v.winRatePct);
+  return { ...readPaceSettings(v.pace), closeRate: win == null ? null : win / 100 };
+}
+
+/** The part of the pace settings stored under `pace` — not the close rate. */
+export function storedPace(p: PaceSettings): { bookRate: number | null; avgSale: number | null } {
+  const r = readPaceSettings(p);
+  return { bookRate: r.bookRate, avgSale: r.avgSale };
+}
 
 /** One kind of job in the plan. `margin` is a percentage of the job's price. */
 export type GoalJob = { id: string; name: string; avgJob: number; margin: number; perWeek: number };
@@ -63,6 +119,8 @@ export const DEFAULT_YEAR_GOAL: Omit<YearGoal, "year"> = {
   profitPct: null,
   weeks: 48,
   mix: [],
+  winRatePct: null,
+  pace: NO_PACE_SETTINGS,
 };
 
 /**
@@ -113,6 +171,8 @@ export function readYearGoal(raw: unknown, today: Date): YearGoal {
     profitPct: Number.isFinite(pct) && pct > 0 && pct < 100 ? pct : null,
     weeks: Number.isFinite(weeks) && weeks >= 1 && weeks <= 52 ? Math.round(weeks) : DEFAULT_YEAR_GOAL.weeks,
     mix,
+    winRatePct: readWinRatePct(v.winRatePct),
+    pace: paceSettingsOf(v),
   };
 }
 

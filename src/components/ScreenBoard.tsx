@@ -35,10 +35,11 @@ const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as con
 const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Today: () => "",
   Pace: (m) => {
-    const day = `day ${m.workingDaysTotal - m.workingDaysLeft + 1} of ${m.workingDaysTotal}`;
-    if (m.revenueTargetYear == null) return `Monthly targets · ${day}`;
-    const goal = m.marginGoal != null ? `${money(m.revenueTargetYear)} at ${pct(m.marginGoal)}` : money(m.revenueTargetYear);
-    return `Targets from the ${goal} goal · ${day}`;
+    const cal = m.paceData?.calendar;
+    const day = cal ? `week day ${Math.min(cal.week.total, cal.week.elapsed + 1)} of ${cal.week.total}` : "";
+    if (!m.pace) return "No goal set for this year";
+    const goal = m.pace.profitPct ? `${money(m.pace.goal)} at ${m.pace.profitPct}%` : money(m.pace.goal);
+    return `What the ${goal} goal needs of every step${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
   // The money column is the month; the last three are thirty days, because a
@@ -485,182 +486,211 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
 }
 
 /**
- * Pace: today against today's share, the month against its target, and the
- * year against the goal the whole thing is pointed at.
+ * Pace: is the year on, and is this week doing what the year needs?
  *
- * Three bands with their names down the left margin, because "63%" means three
- * different things on this page and the row it is in is what says which. The
- * year strip at the foot is the one figure the business is actually driving
- * at; without it the page paced the month against a target whose own reason
- * for existing was off-screen.
+ * The year comes first because it is the question — on for the $3.2M or not,
+ * better or worse than yesterday and last week, and what a week has to bring
+ * from here to make up the gap. Under it, the six steps the money moves
+ * through, each against what the goal needs of it this week and this month:
+ * leads, booked, quoted, sold, completed, invoiced.
+ *
+ * Every need comes from pace.ts, the same arithmetic the portal's Pace page
+ * runs, off the same snapshot. Leads carry their count but no verdict: phone
+ * calls aren't recorded anywhere the board can read, so "behind" would be a
+ * statement about the data rather than the phones.
  */
-function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
-  const progress = m.workingDaysTotal > 0 ? (m.workingDaysTotal - m.workingDaysLeft) / m.workingDaysTotal : 0;
-  const today = dayProgress(now);
+const STEP_KEYS: Array<{ k: "leads" | "booked" | "quoted" | "sold" | "completed" | "invoiced"; label: string }> = [
+  { k: "leads", label: "Leads" },
+  { k: "booked", label: "Booked" },
+  { k: "quoted", label: "Quoted" },
+  { k: "sold", label: "Sold" },
+  { k: "completed", label: "Completed" },
+  { k: "invoiced", label: "Invoiced" },
+];
 
+function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
+  const p = m.pace;
+  if (!live.st) return <NotConnected what="what each step has done against the goal" />;
+  if (!p) {
+    return (
+      <div className="tile screen__notice c12">
+        <span className="tile__value">{NA}</span>
+        <span className="tile__sub tile__sub--body">
+          No goal is set for this year, so there is nothing to pace against. Set it on the portal&apos;s Pace page
+          and this page fills in from the next refresh.
+        </span>
+      </div>
+    );
+  }
+  const y = p.yearView;
+  const cal = m.paceData?.calendar;
+  // Working days of the month gone, counting today's hours as they pass —
+  // the same "by now" the step cards and the portal use.
+  const monthProgress = cal && cal.month.total > 0 ? (cal.month.elapsed + (cal.todayWorking ? cal.dayFraction : 0)) / cal.month.total : 0;
   return (
     <>
-      {/* The page reads as the funnel it is, left to right: what we put in
-          front of people, what came back, what that turned into on the
-          calendar, the rate the first becomes the second, and what has
-          actually been billed. It was sold / invoiced / profit / booked in no
-          particular order, which is four figures rather than one story. */}
-      <span className="band band--today">Today</span>
-      {/* The figure anybody can act on before lunch. "Sell $12,000 today" is not
-          a thing a person does; "put $48,000 in front of customers today" is,
-          and it comes off the sold target divided by the planned win rate. */}
-      <DailyCard
-        label="Quoted"
-        achieved={live.st ? m.quotesCreatedTodayValue : null}
-        target={m.dailyQuotedTarget}
-        dayProgress={today}
-      />
-      <DailyCard
-        label="Sold"
-        achieved={live.st ? m.soldToday : null}
-        target={m.dailySalesTarget}
-        dayProgress={today}
-      />
-      <DailyCard
-        label="Booked"
-        achieved={live.st ? m.bookingsToday : null}
-        target={m.dailyBookingsTarget}
-        plainNumber
-        dayProgress={today}
-      />
-      {/* Today's own conversion, not the thirty-day rate: both halves are
-          today's quotes, so it answers "did what we wrote today come back
-          today". It reads 0% on most days, which is the honest answer — the
-          month's rate is the card below. */}
-      {/* Against the planned rate, not against a share of it: a win rate is the
-          same number on the first of the month and on the last. */}
-      <DailyCard
-        label="Win rate"
-        achieved={live.st ? m.closeRate30d : null}
-        target={m.winRateTarget}
-        format={pct}
-        flat
-        foot={live.st ? `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} · 30 days` : undefined}
-      />
-      <DailyCard
-        label="Invoiced"
-        achieved={live.st ? m.revenueToday : null}
-        target={m.dailyTarget}
-        dayProgress={today}
-      />
-
-      <span className="band band--month">{monthName(now)}</span>
-      <Gauge
-        label="Quoted"
-        achieved={live.st ? m.quotesCreatedMonthValue : null}
-        target={m.quotedTargetMonthly}
-        progress={progress}
-        format={money}
-      />
-      <Gauge
-        label="Sold"
-        achieved={live.st ? m.soldMtd : null}
-        target={m.salesTargetMonthly}
-        progress={progress}
-        format={money}
-      />
-      <Gauge
-        label="Booked"
-        achieved={live.st ? m.bookingsMonth : null}
-        target={m.bookingsTargetMonthly}
-        progress={progress}
-        format={(n) => count(n)}
-      />
-      {/* Thirty days, not the month: on the third of the month almost nothing
-          quoted this month has had time to come back, and the rate would read
-          near zero every time the month turned over. Flat, because a win rate
-          target does not accrue — 25% is 25% on the first and on the last. */}
-      <Gauge
-        label="Win rate"
-        achieved={live.st ? m.closeRate30d : null}
-        target={m.winRateTarget}
-        progress={progress}
-        format={pct}
-        flat
-      />
-      <Gauge
-        label="Invoiced"
-        achieved={live.st ? m.revenueInvoicedMtd : null}
-        target={m.revenueTargetMonthly}
-        progress={progress}
-        format={money}
-      />
-
       <span className="band band--year">This year</span>
-      <YearStrip m={m} />
+      <YearPace y={y} margin={m.jobProfitMonth?.margin ?? null} costed={m.jobProfitMonth?.costed ?? 0} goalPct={p.profitPct} />
+
+      <span className="band band--today">This week</span>
+      {STEP_KEYS.map(({ k, label }) => (
+        <StepCard key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={k === "invoiced" ? p.lastWeek.invoiced : p.lastWeek[k]} />
+      ))}
+
+      {/* The month as dials, one per step, against the same funnel the week
+          row and the portal's Pace page use — so "Booked" means quote visits
+          and service calls in every row, never all jobs in one and some in
+          another. */}
+      <span className="band band--month">{monthName(now)}</span>
+      {STEP_KEYS.map(({ k, label }) => {
+        const s = p.standing.month[k];
+        return (
+          <Gauge
+            key={`m-${k}`}
+            label={label}
+            achieved={s.done}
+            target={k === "leads" ? null : s.need}
+            progress={monthProgress}
+            format={k === "invoiced" ? money : wholeJobs}
+            unavailable={k === "leads" ? "phone calls aren't counted" : undefined}
+          />
+        );
+      })}
     </>
+  );
+}
+
+type StepStanding = NonNullable<Metrics["pace"]>["standing"]["week"]["leads"];
+
+/** A count of jobs, whole. A month's need of 77.9 quotes is 78 on a wall. */
+const wholeJobs = (n: number | null) => (n == null ? NA : Math.round(n).toLocaleString("en-AU"));
+
+/** Whole jobs from ten up, a tenth under it; money in thousands. */
+const stepFig = (stage: string, n: number | null | undefined) => {
+  if (n == null) return NA;
+  if (stage === "invoiced") return money(n);
+  return n >= 10 ? Math.round(n).toLocaleString("en-AU") : (Math.round(n * 10) / 10).toLocaleString("en-AU");
+};
+
+/**
+ * One step: done, of what it needs, a bar with a tick where it should be by
+ * now, and the verdict in words with a glyph — never the colour alone.
+ */
+function StepCard({ label, stage, s, last, compact }: { label: string; stage: string; s: StepStanding; last?: number | null; compact?: boolean }) {
+  const leads = stage === "leads";
+  const ratio = s.need && s.need > 0 && s.done != null ? s.done / s.need : null;
+  const tick = s.need && s.need > 0 && s.byNow != null ? s.byNow / s.need : null;
+  const gap = s.gap == null ? null : stepFig(stage, Math.abs(s.gap));
+  const verdict =
+    leads ? null
+      : s.verdict === "ahead" ? { cls: "ahead", text: `▲ Ahead ${gap}` }
+        : s.verdict === "behind" ? { cls: "behind", text: `▼ Behind ${gap}` }
+          : s.verdict === "on" ? { cls: "ahead", text: "● On pace" }
+            : null;
+  return (
+    <div className={`tile pstep ${compact ? "pstep--compact" : ""}`}>
+      <span className="tile__label">{label}</span>
+      <div className="pstep__fig">
+        <span className={vcls(stepFig(stage, s.done))}>{stepFig(stage, s.done)}</span>
+        {!leads && <span className="tile__sub">{s.need == null ? "no target yet" : `of ${stepFig(stage, s.need)}`}</span>}
+      </div>
+      {!leads && (
+        <div className="meter meter--ticked">
+          <div
+            className={`meter__fill ${s.verdict === "behind" ? "is-behind" : s.verdict ? "is-ahead" : ""}`}
+            style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }}
+          />
+          {tick != null && <span className="meter__pace" style={{ left: `${Math.min(100, tick * 100)}%` }} />}
+        </div>
+      )}
+      {verdict ? (
+        <span className={`status status--${verdict.cls}`}>{verdict.text}</span>
+      ) : (
+        <span className="status status--quiet">{leads ? "No verdict" : NA}</span>
+      )}
+      <span className="tile__sub">
+        {leads
+          ? "calls not counted"
+          : s.verdict === "behind" && s.perDayLeft != null
+            ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
+            : last != null
+              ? `last week ${stepFig(stage, last)}`
+              : s.byNow != null ? `${stepFig(stage, s.byNow)} by now` : ""}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The year, as one navy strip: how far off the goal's line we are, whether
+ * that got better or worse since yesterday and since last week, what a week
+ * has to bring from here, and whether the jobs are keeping the margin.
+ */
+function YearPace({ y, margin, costed, goalPct }: {
+  y: NonNullable<Metrics["pace"]>["yearView"];
+  margin: number | null;
+  costed: number;
+  goalPct: number | null;
+}) {
+  if (!y) {
+    return (
+      <div className="year">
+        <span className="year__none">The year&apos;s running total starts from the next refresh.</span>
+      </div>
+    );
+  }
+  const behind = y.gap < 0;
+  const drift = (then: number | null) => {
+    if (then == null) return { text: NA, cls: "" };
+    const d = y.gap - then;
+    if (Math.abs(d) < 1) return { text: "● No change", cls: "" };
+    return d > 0 ? { text: `▲ ${money(d)} better`, cls: "is-up" } : { text: `▼ ${money(-d)} worse`, cls: "is-down" };
+  };
+  const yd = drift(y.gapYesterday);
+  const wk = drift(y.gapLastWeek);
+  return (
+    <div className="year year--pace">
+      <div className="year__main">
+        <span className={`year__gap ${behind ? "is-behind" : ""}`}>
+          {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
+        </span>
+        <span className="year__track">
+          <span className="year__fill" style={{ width: `${Math.min(100, (y.ytd / y.goal) * 100)}%` }} />
+          <span className="year__mark" style={{ left: `${Math.min(100, (y.byNow / y.goal) * 100)}%` }} />
+        </span>
+        <span className="year__have">
+          {money(y.ytd)} <em>invoiced of {money(y.goal)} · the line: {money(y.byNow)} by now</em>
+        </span>
+      </div>
+      <div className="year__side">
+        <span className="year__k">Since yesterday</span>
+        <span className={`year__v year__v--drift ${yd.cls}`}>{yd.text}</span>
+      </div>
+      <div className="year__side">
+        <span className="year__k">Since last week</span>
+        <span className={`year__v year__v--drift ${wk.cls}`}>{wk.text}</span>
+      </div>
+      <div className="year__side">
+        <span className="year__k">{behind ? "To catch up" : "To stay on"}</span>
+        <span className="year__v">
+          {y.weekNeeded == null ? NA : money(y.weekNeeded)}
+          <em> a week</em>
+        </span>
+      </div>
+      <div className="year__side">
+        <span className="year__k">Job margin · month</span>
+        <span className="year__v">
+          {margin == null ? NA : pct(margin)}
+          {margin != null && goalPct != null ? <em> of {goalPct}%</em> : costed > 0 ? <em> {costed} costed</em> : null}
+        </span>
+      </div>
+    </div>
   );
 }
 
 /** The month the board is pacing, named rather than numbered. */
 const monthName = (now: Date) =>
   now.toLocaleDateString("en-AU", { month: "long", timeZone: "Australia/Melbourne" });
-
-/**
- * The year goal, as one navy strip: where we are, where the goal says we should
- * be by now, and the two figures that decide whether getting there is worth it.
- *
- * Blank with a reason when no goal is set. A progress bar against an unset
- * target is a bar that always looks the same, which is worse than a sentence.
- */
-function YearStrip({ m }: { m: Metrics }) {
-  const have = m.revenueInvoicedYtd;
-  const goal = m.revenueTargetYear;
-  const byNow = m.revenueYearByNow;
-
-  if (goal == null || have == null) {
-    return (
-      <div className="year">
-        <span className="year__none">
-          No year goal set. The board paces the month on its own targets until one is.
-        </span>
-      </div>
-    );
-  }
-
-  const done = Math.min(100, (have / goal) * 100);
-  const mark = byNow == null ? null : Math.min(100, (byNow / goal) * 100);
-  const behind = byNow != null && have < byNow;
-
-  return (
-    <div className="year">
-      <div className="year__main">
-        <div className="year__nums">
-          <span className="year__have">
-            {money(have)} <em>of {money(goal)}</em>
-          </span>
-          {byNow != null && (
-            <span className={`year__bynow ${behind ? "is-behind" : "is-ahead"}`}>
-              {money(byNow)} by now
-            </span>
-          )}
-        </div>
-        <span className="year__track">
-          <span className="year__fill" style={{ width: `${done}%` }} />
-          {/* Where the goal says we should be. The bar alone says how far we
-              have come; this says whether that is far enough. */}
-          {mark != null && <span className="year__mark" style={{ left: `${mark}%` }} />}
-        </span>
-      </div>
-      <div className="year__side">
-        <span className="year__k">Margin</span>
-        <span className="year__v">
-          {m.marginPct == null ? NA : pct(m.marginPct)}
-          {m.marginGoal != null && m.marginPct != null ? <em> of {pct(m.marginGoal)}</em> : null}
-        </span>
-      </div>
-      <div className="year__side">
-        <span className="year__k">Jobs a week</span>
-        <span className="year__v">{m.jobsPerWeek == null ? NA : count(m.jobsPerWeek)}</span>
-      </div>
-    </div>
-  );
-}
 
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="quotes written, still out, or closed" />;
@@ -996,15 +1026,11 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * and is answered properly by the heat map on Areas — off thousands of jobs
  * rather than the thirty-odd rows the web form has ever produced.
  *
- * The goal line on each margin bar is the month's own target: profit target
- * over revenue target, which is the year goal's profit percentage. No
+ * The goal line on each margin bar is the year goal's profit percentage. No
  * percentage set means no line, rather than a line at a number nobody chose.
  */
 function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
-  const goal =
-    m.profitTargetMonthly && m.revenueTargetMonthly && m.revenueTargetMonthly > 0
-      ? m.profitTargetMonthly / m.revenueTargetMonthly
-      : null;
+  const goal = m.marginGoal;
 
   const rows = m.topJobTypes.map((t) => ({
     ...t,
@@ -1361,93 +1387,6 @@ function RateCard({ label, lines, value, accent }: { label: string; lines: strin
       </span>
     </div>
   );
-}
-
-function DailyCard({
-  label,
-  achieved,
-  target,
-  plainNumber,
-  format,
-  flat,
-  foot,
-  dayProgress: elapsed,
-}: {
-  label: string;
-  achieved: number | null;
-  target: number | null;
-  plainNumber?: boolean;
-  /** Overrides the money/count default — a rate needs its own. */
-  format?: (n: number | null) => string;
-  /**
-   * A target that does not accrue through the day. A win rate is the same
-   * number at 8am and at 5pm, so there is no share of it to have reached by
-   * now and no tick on the bar.
-   */
-  flat?: boolean;
-  /** An extra line under the bar, where the figure needs a denominator. */
-  foot?: string;
-  /** Share of the 7am-5pm working day gone, drawn as the tick on the bar. */
-  dayProgress?: number;
-}) {
-  const ratio = target && target > 0 && achieved != null ? achieved / target : null;
-  const fmt = format ?? ((n: number | null) => (plainNumber ? count(n) : plain(n)));
-  const pace = flat ? 1 : elapsed;
-  const state =
-    ratio == null ? null : ratio >= 1 ? (flat ? "On target" : "Target hit") : pace != null && ratio >= pace ? "Ahead" : "Behind";
-
-  return (
-    <div className="tile c4">
-      <div className="tile__head">
-        <span className="tile__label">{label}</span>
-        {/* The corner carries whatever qualifies the figure. The win rate is
-            a thirty-day rate sitting in a row headed Today, so it has to say
-            so — and under the bar it fell out of the bottom of the tile.
-            Status over denominator where there is both. */}
-        {(state || foot) && (
-          <span className="tile__corner">
-            {state && (
-              <b className={`status status--${state === "Behind" ? "behind" : "ahead"}`}>{state}</b>
-            )}
-            {foot && <span className="tile__sub">{foot}</span>}
-          </span>
-        )}
-      </div>
-      {/* The target sits under the figure, not beside it. Side by side it fitted
-          until a figure got long — "$138,431" next to "of $48,310" ran out of a
-          tile a fifth of the width — and letting it wrap meant one card in the
-          row laid out differently from the other four depending on how big the
-          number happened to be that day. Under it, every card is the same
-          shape whatever the figures do. */}
-      <span className={vcls(achieved == null ? NA : fmt(achieved))}>
-        {achieved == null ? NA : fmt(achieved)}
-      </span>
-      <span className="tile__sub">
-        {target == null ? (flat ? "no target set" : "no daily target set") : `of ${fmt(target)}`}
-      </span>
-      <div className="meter meter--ticked">
-        <div
-          className={`meter__fill ${state === "Behind" ? "is-behind" : state ? "is-ahead" : ""}`}
-          style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }}
-        />
-        {elapsed != null && target != null && !flat && (
-          <span className="meter__pace" style={{ left: `${elapsed * 100}%` }} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function dayProgress(now: Date) {
-  const parts = new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Melbourne",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
-  const at = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
-  const mins = at("hour") * 60 + at("minute");
-  return Math.min(1, Math.max(0, (mins - 7 * 60) / (10 * 60)));
 }
 
 const clockLabel = (now: Date) =>

@@ -47,6 +47,8 @@ function pick(r: Row, ...keys: string[]): unknown {
 type ResourceSpec = {
   resource: string;
   module: string;
+  /** The export path under `export/`, when it isn't the resource name. */
+  path?: string;
   table: string;
   map: (r: Row) => Row & { id: number };
 };
@@ -97,7 +99,9 @@ const RESOURCES: ResourceSpec[] = [
       customer_id: num(r.customerId),
       business_unit: str(pick(r, "businessUnitName", "businessUnit")),
       status: str(pick(r, "status", "statusName")),
-      subtotal: num(r.subtotal),
+      // ServiceTitan spells it subTotal. Reading `subtotal` left the column
+      // null on every invoice, and profit is worked out on the price before GST.
+      subtotal: num(pick(r, "subTotal", "subtotal")),
       tax: num(pick(r, "salesTax", "tax")),
       total: num(r.total),
       balance: num(pick(r, "balance", "amountDue")),
@@ -127,6 +131,10 @@ const RESOURCES: ResourceSpec[] = [
       created_by_id: num(pick(r, "createdById", "createdBy")),
       subtotal: num(r.subtotal),
       total: num(pick(r, "total", "subtotal")),
+      // An estimate's total is before GST and its tax sits beside it. The
+      // replica keeps both; `total_inc` (generated) is what every quote figure
+      // reads, so a quote and an invoice are counted the same way.
+      tax: num(r.tax),
       created_on: ts(pick(r, "createdOn")),
       sold_on: ts(pick(r, "soldOn", "soldDate")),
       modified_on: ts(pick(r, "modifiedOn")),
@@ -178,6 +186,29 @@ const RESOURCES: ResourceSpec[] = [
         raw: r,
       };
     },
+  },
+  {
+    // Who was on each job, and when they arrived and finished — the labour half
+    // of what a job cost. Payroll is its own scope; without it this resource
+    // records an error against itself and profit falls back to the hours sold
+    // on the invoice.
+    resource: "timesheets",
+    module: "payroll",
+    path: "jobs/timesheets",
+    table: "st_timesheets",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      job_id: num(r.jobId),
+      appointment_id: num(r.appointmentId),
+      technician_id: num(r.technicianId),
+      dispatched_on: ts(r.dispatchedOn),
+      arrived_on: ts(r.arrivedOn),
+      done_on: ts(r.doneOn),
+      canceled_on: ts(r.canceledOn),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
   },
   {
     resource: "leads",
@@ -342,7 +373,7 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
       const from = reset ? null : state?.continue_from ?? null;
       const { records, continueFrom, exhausted } = await stExportAll<Row>(
         spec.module,
-        spec.resource,
+        spec.path ?? spec.resource,
         from,
       );
 

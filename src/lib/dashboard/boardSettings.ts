@@ -19,6 +19,9 @@
 
 import { normalisedShape, yearSpans, type YearBasis } from "@/lib/portal/yearGoal";
 
+/** Australian GST. Invoices on the wall include it; profit never does. */
+export const GST_RATE = 0.1;
+
 /**
  * One commission band. `from` is the month's sold total at which `rate` starts,
  * and `rate` is a fraction — 0.05, not 5.
@@ -127,7 +130,10 @@ const NO_TARGETS: MonthTargets = {
  * - **Invoiced**: the month's share of the year, off the goal's own shape.
  * - **Sold**: the same figure. Over a year, what is sold is what gets invoiced;
  *   selling less than the month's share is how next month comes up short.
- * - **Profit**: the invoiced target at the goal's profit percentage.
+ * - **Profit**: the invoiced target before GST, at the goal's profit
+ *   percentage. Invoices are counted with GST — it's what the business is
+ *   paid on — but GST is passed to the ATO, so 20% profit on a $110 invoice
+ *   is $20, not $22.
  * - **Jobs booked**: the planned week's job count, spread over the month's
  *   working days — so a month with a public holiday asks for fewer.
  *
@@ -154,7 +160,7 @@ export function monthTargetsFromYearGoal(
   return {
     revenue,
     sales: revenue,
-    profit: pct != null && pct > 0 ? revenue * (pct / 100) : null,
+    profit: pct != null && pct > 0 ? (revenue / (1 + GST_RATE)) * (pct / 100) : null,
     bookings: perWeek > 0 && daysPerWeek > 0 && workingDays.total > 0 ? Math.round((perWeek * workingDays.total) / daysPerWeek) : null,
     quoted: win != null ? revenue / win : null,
     winRate: win,

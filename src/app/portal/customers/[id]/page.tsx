@@ -35,7 +35,7 @@ export default async function CustomerPage({ params }: { params: { id: string } 
   const [jobs, ests, invs, leads, calls] = await Promise.all([
     customerJobs(id).catch(() => []),
     sbSelect<{ id: number; job_id: number | null; status: string | null; total: number | null; created_on: string | null; sold_on: string | null }>(
-      "st_estimates", [q.select("id,job_id,status,total,created_on,sold_on"), q.eq("customer_id", String(id))].join("&"),
+      "st_estimates", [q.select("id,job_id,status,total:total_inc,created_on,sold_on"), q.eq("customer_id", String(id))].join("&"),
     ).catch(() => []),
     sbSelect<{ id: number; invoice_number: string | null; invoice_date: string | null; total: number | null; job_type: string | null }>(
       "st_invoices", [q.select("id,invoice_number,invoice_date,total,job_type"), q.eq("customer_id", String(id))].join("&"),
