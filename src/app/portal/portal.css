@@ -37,132 +37,150 @@
 .pt--navsmall { grid-template-columns: 84px minmax(0, 1fr); }
 .pt__page { min-width: 0; min-height: 100vh; display: flex; flex-direction: column; }
 
-/* ---- The side bar ---- */
+/* ---- The side bar ----
+   To the mock: white, a hairline against the cream page, 288 wide. Brand and
+   its « on top, the search, Home as the one navy pill, then the tabs with
+   their counts; you, the bell and Sign out at the foot. */
 .pt-side {
   position: sticky; top: 0; height: 100vh; box-sizing: border-box; z-index: 40;
-  display: flex; flex-direction: column; gap: 18px;
-  padding: 22px 16px 18px; overflow-y: auto; overscroll-behavior: contain;
-  background: var(--pt-navy-2); color: #fff;
-  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 20px 16px 16px; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--pt-surface); color: var(--pt-ink); border-right: 1px solid var(--pt-line);
+  scrollbar-width: thin; scrollbar-color: var(--pt-line) transparent;
 }
-.pt-side.is-small { padding: 22px 12px 18px; align-items: center; }
-.pt-side__brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 4px; }
-.pt-side__logo { display: flex; align-items: center; gap: 12px; text-decoration: none; min-width: 0; }
-.pt-side__tile {
-  flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center;
-  background: var(--pt-accent-mark); color: #fff; font-family: var(--f-display); font-weight: 900; font-size: 20px;
+.pt-side__brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 0 8px; min-height: 40px; }
+.pt-side__logo { display: flex; flex-direction: column; text-decoration: none; min-width: 0; }
+.pt-side__logo strong { font-family: var(--f-display); font-weight: 900; font-size: 22px; line-height: 24px; letter-spacing: -0.02em; color: var(--pt-ink); }
+.pt-side__logo em { font-style: normal; font-weight: 700; font-size: 12.5px; line-height: 16px; color: var(--pt-accent); white-space: nowrap; }
+.pt-side__size {
+  appearance: none; flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink-2); font: inherit; font-size: 17px; line-height: 1; cursor: pointer;
 }
-.pt-side__name { display: flex; flex-direction: column; min-width: 0; }
-.pt-side__name strong { font-family: var(--f-display); font-weight: 900; font-size: 20px; line-height: 22px; letter-spacing: -0.02em; color: #fff; }
-.pt-side__name em { font-style: normal; font-weight: 700; font-size: 12px; line-height: 16px; color: var(--pt-accent-dark-bg); white-space: nowrap; }
+.pt-side__size:hover { background: var(--pt-bg); color: var(--pt-ink); }
 .pt-side__close { display: none; }
+
+.pt-side__search { margin-top: 6px; }
+.pt-side .pt-find { flex: none; width: 100%; }
+.pt-side .pt-find__box { height: 42px; border-radius: 12px; padding: 0 14px; gap: 10px; background: var(--pt-bg); }
+.pt-side .pt-find__box input { font-size: 15px; }
+/* The results need more room than the bar has, so they open over the page. */
+.pt-side .pt-find__out { right: auto; width: min(460px, calc(100vw - 32px)); }
+
 .pt-side__nav { display: flex; flex-direction: column; gap: 4px; }
 .pt-side__tabs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.pt-side__home, .pt-side__head, .pt-side__site, .pt-side__size {
+.pt-side__home, .pt-side__head {
   appearance: none; display: flex; align-items: center; gap: 12px; width: 100%; box-sizing: border-box;
-  min-height: 46px; padding: 0 14px; border: 0; border-radius: var(--pt-r-sm); background: none;
-  color: rgba(255, 255, 255, 0.84); font: inherit; font-size: 15px; font-weight: 700; text-align: left;
+  min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none;
+  color: var(--pt-ink); font: inherit; font-size: 16px; font-weight: 600; text-align: left;
   text-decoration: none; cursor: pointer;
 }
-.pt-side__home:hover, .pt-side__head:hover, .pt-side__site:hover, .pt-side__size:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.pt-side__home:hover, .pt-side__head:hover { background: var(--pt-bg); }
 .pt-side svg { flex: none; }
-/* Where you are: filled white, the way an active tab is filled navy on the
-   cream — a fill and a weight, never a colour on its own. */
-.pt-side__home.is-on, .pt-side__head.is-on { background: #fff; color: var(--pt-ink); }
-.pt-side__tab.has-active .pt-side__head:not(.is-on) { color: #fff; }
-.pt-side__headrow { display: flex; align-items: center; gap: 2px; border-radius: var(--pt-r-sm); }
+/* Where you are: Home and a tab's own page fill navy, the way an active tab
+   fills navy on the cream — a fill and a weight, never a colour on its own. */
+.pt-side__home.is-on, .pt-side__head.is-on { background: var(--pt-ink); color: #fff; }
+.pt-side__headrow { display: flex; align-items: center; gap: 2px; border-radius: 12px; }
 .pt-side__headrow .pt-side__head { flex: 1; min-width: 0; }
+.pt-side__label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pt-side__need {
+  flex: none; display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box;
+  border-radius: 999px; background: var(--pt-warn-bg); color: var(--pt-accent); font-size: 12px; font-weight: 800;
+}
+.pt-side__head.is-on .pt-side__need { background: rgba(255, 255, 255, 0.16); color: #fff; }
 .pt-side__chevbtn {
-  appearance: none; flex: none; display: grid; place-items: center; width: 38px; height: 46px; border: 0; border-radius: 12px;
-  background: none; color: rgba(255, 255, 255, 0.75); cursor: pointer;
+  appearance: none; flex: none; display: grid; place-items: center; width: 28px; height: 44px; border: 0; border-radius: 10px;
+  background: none; color: #9a958a; cursor: pointer;
 }
-.pt-side__chevbtn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.pt-side__label { flex: 1; min-width: 0; }
-.pt-side__chev { opacity: 0.7; transition: transform 160ms ease; }
+.pt-side__chevbtn:hover { color: var(--pt-ink); }
+.pt-side__chev { transition: transform 160ms ease; }
 .pt-side__tab.is-open .pt-side__chev { transform: rotate(90deg); }
-.pt-side__tab.is-open > .pt-side__headrow { background: rgba(255, 255, 255, 0.06); }
-.pt-side__tab.is-open .pt-side__head:not(.is-on) { color: #fff; }
-.pt-side__pages, .pt-side__fly ul { list-style: none; margin: 4px 0 8px; padding: 0 0 0 34px; display: flex; flex-direction: column; gap: 2px; }
+/* The open tab sits on the cream, so its pages read as belonging to it. */
+.pt-side__tab.is-open > .pt-side__headrow { background: var(--pt-tint); }
+.pt-side__tab.is-open > .pt-side__headrow .pt-side__head:hover { background: none; }
+.pt-side__pages, .pt-side__fly ul { list-style: none; margin: 6px 0 6px; padding: 0 0 0 40px; display: flex; flex-direction: column; gap: 6px; }
 .pt-side__page {
-  display: block; padding: 8px 12px; border-radius: 10px; text-decoration: none;
-  font-size: 14.5px; line-height: 20px; font-weight: 600; color: rgba(255, 255, 255, 0.76);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 0 12px; box-sizing: border-box;
+  border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 500; color: #2b2b33;
 }
-.pt-side__page:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
-.pt-side__page.is-on { background: rgba(255, 255, 255, 0.13); color: #fff; font-weight: 800; box-shadow: inset 3px 0 0 var(--pt-accent-mark); }
-.pt-side__foot { margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; flex-direction: column; gap: 2px; width: 100%; }
-.pt-side__site, .pt-side__size { min-height: 40px; font-size: 14px; color: rgba(255, 255, 255, 0.7); }
-.pt-side__size > span:first-child { width: 20px; text-align: center; font-size: 18px; line-height: 1; }
-.pt-side a:focus-visible, .pt-side button:focus-visible { outline: 2px solid var(--pt-accent-dark-bg); outline-offset: 2px; }
+.pt-side__page > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pt-side__page em { flex: none; font-style: normal; font-size: 12.5px; font-weight: 700; color: var(--pt-accent); white-space: nowrap; }
+.pt-side__page:hover { background: var(--pt-bg); color: var(--pt-ink); }
+.pt-side__page.is-on { background: var(--pt-warn-bg); color: var(--pt-accent); font-weight: 700; box-shadow: inset 3px 0 0 var(--pt-accent-mark); }
 
-/* Small: icons only, centred, the tab holding this page lit. */
-.pt-side.is-small .pt-side__brand { padding: 0; justify-content: center; }
-.pt-side.is-small .pt-side__nav, .pt-side.is-small .pt-side__foot { align-items: center; }
-.pt-side.is-small .pt-side__home, .pt-side.is-small .pt-side__head, .pt-side.is-small .pt-side__site, .pt-side.is-small .pt-side__size {
-  width: 56px; padding: 0; justify-content: center; min-height: 48px;
+/* You, at the foot. */
+.pt-side__foot {
+  margin-top: auto; padding: 14px 8px 0; border-top: 1px solid var(--pt-line);
+  display: flex; align-items: center; gap: 10px;
 }
-.pt-side.is-small .pt-side__headrow { justify-content: center; }
-.pt-side.is-small .pt-side__tab.has-active .pt-side__head:not(.is-on) { background: rgba(255, 255, 255, 0.13); box-shadow: inset 3px 0 0 var(--pt-accent-mark); }
-.pt-side.is-small .pt-side__tab.is-open .pt-side__head { background: #fff; color: var(--pt-ink); box-shadow: none; }
+.pt-side__bell {
+  position: relative; flex: none; width: 44px; height: 44px; border-radius: 999px; border: 1px solid var(--pt-line);
+  display: inline-grid; place-items: center; color: var(--pt-ink); text-decoration: none;
+}
+.pt-side__bell:hover { background: var(--pt-bg); }
+.pt-side__bellcount {
+  position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
+  border-radius: 999px; background: var(--pt-accent-fill); color: #fff; font-size: 12px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.pt-side__me { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; text-decoration: none; color: var(--pt-ink); }
+.pt-side__metxt { display: flex; flex-direction: column; min-width: 0; }
+.pt-side__metxt strong { font-size: 15px; line-height: 20px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pt-side__metxt span { font-size: 13px; line-height: 18px; color: var(--pt-ink-2); }
+.pt-side__out { flex: none; }
+.pt-side__out button {
+  appearance: none; display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 8px 4px;
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--pt-ink-2); cursor: pointer; border-radius: 8px;
+}
+.pt-side__out button:hover { color: var(--pt-ink); }
+.pt-side__out svg { display: none; }
+.pt-side a:focus-visible, .pt-side button:focus-visible { outline: 2px solid var(--pt-accent-mark); outline-offset: 2px; }
+
+/* Small: 84 wide, icons centred, the tab holding this page lit. */
+.pt-side.is-small { padding: 20px 12px 16px; align-items: center; }
+.pt-side.is-small .pt-side__brand { padding: 0; justify-content: center; }
+.pt-side.is-small .pt-side__nav, .pt-side.is-small .pt-side__tabs { align-items: center; }
+.pt-side.is-small .pt-side__home, .pt-side.is-small .pt-side__head { width: 52px; min-height: 48px; padding: 0; justify-content: center; position: relative; }
+.pt-side.is-small .pt-side__searchbtn { border: 1px solid var(--pt-line); background: var(--pt-bg); width: 52px; min-height: 44px; margin-top: 6px; justify-content: center; }
+.pt-side.is-small .pt-side__need { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; font-size: 11px; padding: 0 4px; }
+.pt-side.is-small .pt-side__tab.has-active .pt-side__head:not(.is-on) { background: var(--pt-warn-bg); color: var(--pt-accent); }
+.pt-side.is-small .pt-side__tab.is-open .pt-side__head:not(.is-on) { background: var(--pt-tint); }
+.pt-side.is-small .pt-side__foot { flex-direction: column; padding: 14px 0 0; width: 100%; }
+.pt-side.is-small .pt-side__metxt, .pt-side.is-small .pt-side__out span { display: none; }
+.pt-side.is-small .pt-side__out svg { display: block; }
 /* A small tab's pages slide out beside the bar. Fixed, so the bar's own
    scrolling can't clip it. */
 .pt-side__fly {
-  position: fixed; top: 0; bottom: 0; left: 84px; width: 264px; box-sizing: border-box; z-index: 45;
-  padding: 26px 14px; overflow-y: auto; background: var(--pt-navy); color: #fff;
-  box-shadow: 16px 0 40px -16px rgba(5, 10, 48, 0.55);
+  position: fixed; top: 12px; left: 92px; width: 272px; max-height: calc(100vh - 24px); box-sizing: border-box; z-index: 45;
+  padding: 18px 12px; overflow-y: auto; background: var(--pt-surface); color: var(--pt-ink);
+  border: 1px solid var(--pt-line); border-radius: 18px; box-shadow: 0 24px 60px -24px rgba(5, 10, 48, 0.35);
   animation: pt-fly 160ms ease-out;
 }
 .pt-side__fly ul { padding-left: 0; }
-.pt-side__flyh { display: block; margin: 0 0 10px; padding: 6px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.75); text-decoration: none; }
-.pt-side__flyh:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
-@keyframes pt-fly { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pt-side__flyh { display: block; margin: 0 0 6px; padding: 8px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pt-accent); text-decoration: none; }
+.pt-side__flyh:hover { background: var(--pt-bg); }
+@keyframes pt-fly { from { transform: translateX(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pt-side__fly { animation: none; } .pt-side__chev { transition: none; } }
 .pt-side__scrim { display: none; }
 
-/* ---- The bar ---- */
-/* The bar, to TopBar.dc.html: three items spread across the width with the
-   search a 440px box between them — not centred on the page, which is where a
-   grid had put it. */
-.pt__bar {
-  position: sticky; top: 0; z-index: 30;
-  display: flex; align-items: center; justify-content: space-between; gap: 32px;
-  height: 72px; box-sizing: border-box; padding: 0 48px;
-  background: var(--pt-surface);
-  border-bottom: 1px solid var(--pt-line);
-}
-/* The brand and the menu button are for a phone, where the side bar is a
-   drawer; at desktop widths the side bar carries both. */
-.pt__menu, .pt__bar .pt__brand { display: none; }
+/* ---- The phone's bar ----
+   On a desktop the side bar is the chrome and this isn't drawn. */
+.pt__bar { display: none; }
 .pt__menu {
-  appearance: none; flex: none; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--pt-line);
-  background: var(--pt-surface); color: var(--pt-ink); place-items: center; cursor: pointer;
+  appearance: none; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); cursor: pointer;
 }
-.pt__brand { flex: none; display: flex; flex-direction: column; text-decoration: none; }
+.pt__brand { flex: 1; min-width: 0; display: flex; flex-direction: column; text-decoration: none; }
 .pt__brand strong { font-family: var(--f-display); font-weight: 900; font-size: 20px; line-height: 22px; letter-spacing: -0.02em; color: var(--pt-ink); }
 .pt__brand em { font-style: normal; font-weight: 700; font-size: 12px; line-height: 16px; color: var(--pt-accent); }
-.pt__brand:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 3px; border-radius: 6px; }
-.pt__left { flex: none; display: flex; align-items: center; gap: 20px; }
-
-.pt__right { flex: none; display: flex; align-items: center; gap: 14px; }
-.pt__who { display: flex; align-items: center; gap: 14px; }
 .pt__avatar {
   width: 40px; height: 40px; flex: 0 0 auto; border-radius: 999px;
-  background: var(--pt-navy-2); color: #fff;
+  background: var(--pt-navy-2); color: #fff; text-decoration: none;
   display: inline-flex; align-items: center; justify-content: center;
   font-family: var(--f-display); font-weight: 900; font-size: 17px;
 }
-.pt__who-txt { display: flex; flex-direction: column; }
-.pt__who-txt strong { font-size: 15px; line-height: 20px; font-weight: 700; }
-.pt__who-txt span { font-size: 13px; line-height: 18px; color: var(--pt-ink-2); }
-.pt__logout {
-  appearance: none; margin-left: 8px; border: 1px solid var(--pt-line); background: var(--pt-surface);
-  color: var(--pt-ink); font: inherit; font-size: 14px; font-weight: 700;
-  min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
-}
-.pt__logout:hover { background: var(--pt-bg); border-color: #cfc9b8; }
-.pt__logout:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 2px; }
 
 /* ---- Search ---- */
-.pt-find { position: relative; flex: 0 1 440px; min-width: 0; }
+.pt-find { position: relative; min-width: 0; }
 .pt-find__box {
   display: flex; align-items: center; gap: 10px;
   background: var(--pt-bg); border: 1px solid var(--pt-line); border-radius: 999px;
@@ -176,9 +194,8 @@
 }
 .pt-find__box input::placeholder { color: var(--pt-ink-2); }
 .pt-find__box input::-webkit-search-cancel-button { display: none; }
-
 .pt-find__out {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 40;
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 60;
   background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: 12px;
   box-shadow: 0 16px 40px -12px rgba(13, 20, 48, 0.3); overflow: hidden;
 }
@@ -194,48 +211,42 @@
 .pt-find__hitwhere { font-size: 11.5px; color: var(--pt-ink-2); text-align: right; flex: 0 0 auto; max-width: 45%; }
 .pt-find__none { margin: 0; padding: 14px 16px; font-size: 13.5px; color: var(--pt-ink-2); }
 
-/* Content max 1360, padded 32 48, as the spec lays the page out beside the bar. */
-.pt__content { padding: 32px 48px 80px; max-width: 1360px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+/* The page beside the bar: 1264 of content in the mock's 1440, starting at
+   the top with nothing over it. */
+.pt__content { padding: 36px clamp(24px, 6vw, 88px) 80px; max-width: 1440px; width: 100%; margin: 0 auto; box-sizing: border-box; }
 
 @media (max-width: 860px) {
   /* The side bar becomes a drawer over the page. */
   .pt, .pt--navsmall { grid-template-columns: minmax(0, 1fr); }
   .pt-side, .pt-side.is-small {
     position: fixed; top: 0; bottom: 0; left: 0; width: 288px; height: auto; z-index: 70; align-items: stretch;
-    transform: translateX(-102%); transition: transform 200ms ease; padding: 22px 16px 18px;
+    transform: translateX(-102%); transition: transform 200ms ease; padding: 20px 16px 16px;
   }
-  .pt-side.is-drawer { transform: none; box-shadow: 0 0 60px rgba(5, 10, 48, 0.4); }
+  .pt-side.is-drawer { transform: none; box-shadow: 0 0 60px rgba(5, 10, 48, 0.3); }
   .pt-side__close {
-    display: grid; place-items: center; appearance: none; width: 36px; height: 36px; border-radius: 10px; border: 0;
-    background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 22px; line-height: 1; cursor: pointer;
+    display: grid; place-items: center; appearance: none; width: 34px; height: 34px; border-radius: 10px;
+    border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); font-size: 22px; line-height: 1; cursor: pointer;
   }
-  .pt-side__scrim { display: block; position: fixed; inset: 0; z-index: 65; border: 0; background: rgba(5, 10, 48, 0.45); }
-  .pt__menu { display: grid; }
   .pt-side__size { display: none; }
-  .pt__bar .pt__brand { display: flex; }
-  /* The bar becomes two rows here and kept the fixed 72px it has at full
-     width, so the search row hung out of the bar's own box and sat on top of
-     the first line of the page. */
-  .pt__bar { flex-wrap: wrap; gap: 10px 12px; padding: 10px 16px; height: auto; }
-  .pt-find { order: 3; flex: 1 1 100%; }
-  .pt__right { gap: 10px; }
-  /* The name and role go; the avatar still says who is signed in, and the bar
-     has to leave room for the search on a phone. */
-  .pt__who-txt { display: none; }
+  .pt-side__scrim { display: block; position: fixed; inset: 0; z-index: 65; border: 0; background: rgba(5, 10, 48, 0.4); }
+  .pt__bar {
+    position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px; background: var(--pt-surface); border-bottom: 1px solid var(--pt-line);
+  }
   .pt__content { padding: 22px 16px 56px; }
-  .pt__left { gap: 10px; }
 }
 
 /* ---- Page header ---- */
 .pt-head { margin-bottom: 30px; }
-.pt-head__eyebrow { display: inline-flex; align-items: center; gap: 8px; font-family: var(--f-mono, monospace); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pt-ink-2); font-weight: 700; }
+.pt-head__eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--pt-accent); font-weight: 800; }
 /* The heading is the page's whole top end now that nothing else frames it, so
    it carries the weight a page title should. */
+/* 44/48 Archivo 900, the spec's page title. */
 .pt-head h1 {
-  font-size: clamp(32px, 3.6vw, 48px); font-weight: 900;
-  letter-spacing: -0.03em; line-height: 1.08; margin: 0 0 10px; color: var(--pt-ink);
+  font-size: clamp(32px, 3.2vw, 44px); font-weight: 900;
+  letter-spacing: -0.03em; line-height: 1.09; margin: 0 0 10px; color: var(--pt-ink);
 }
-.pt-head p { margin: 0; color: var(--pt-ink-2); font-size: 18px; line-height: 28px; max-width: 64ch; }
+.pt-head p { margin: 0; color: var(--pt-ink-2); font-size: 17px; line-height: 26px; max-width: 68ch; }
 
 /* ---- Tab strip: a section's own pages, across the top of it ---- */
 /* The section strip. One shape everywhere: separate pills under the heading,
@@ -475,6 +486,9 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-back { display: flex; width: fit-content; align-items: center; gap: 4px; color: var(--pt-ink-2); text-decoration: none; font-size: 15px; line-height: 24px; font-weight: 700; padding: 6px 0; margin-bottom: 10px; transition: color 0.14s; }
 .pt-back:hover { color: var(--pt-ink); }
 .pt-back:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 3px; border-radius: 4px; }
+/* The side bar is the way back on a desktop, so the mock's pages start at
+   their title. A phone, where the bar is a drawer, keeps the link. */
+@media (min-width: 861px) { .pt-back { display: none; } }
 .pt-back svg { flex: 0 0 auto; }
 
 /* ==================================================================
@@ -2064,46 +2078,57 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 /* Home, to Main.dc.html. */
 /* Home, to the design's Home (the "Needs someone today" version): a wider
    page than the reading pages, six cards across. */
-.pt--home .pt__content { max-width: 1360px; }
-.pt-home { display: flex; flex-direction: column; gap: 36px; padding-top: 8px; }
-.pt-hi { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; flex-wrap: wrap; }
-.pt-hi > div { display: flex; flex-direction: column; gap: 8px; }
-.pt-hi__date { font-size: 15px; font-weight: 600; color: var(--pt-ink-2); }
+/* Home is narrower in the mock: 1092 of the 1440, centred. */
+.pt--home .pt__content { max-width: calc(1092px + 2 * clamp(24px, 6vw, 88px)); }
+.pt-home { display: flex; flex-direction: column; gap: 24px; }
+.pt-hi { display: flex; flex-direction: column; gap: 4px; }
+.pt-hi__date { font-size: 15px; font-weight: 500; color: var(--pt-ink-2); }
 .pt-hi__h {
   margin: 0; font-family: var(--f-display);
-  font-size: 52px; font-weight: 900; letter-spacing: -0.03em; line-height: 56px; color: var(--pt-ink);
+  font-size: 48px; font-weight: 900; letter-spacing: -0.03em; line-height: 54px; color: var(--pt-ink);
 }
 /* The full stop in the accent is the signature of the design — it is on every
    display heading, and it is the only decorative use of the colour. */
 .pt-stop { color: var(--pt-accent); }
 
-.pt-hi__flag {
-  display: inline-flex; align-items: center; gap: 10px;
-  min-height: 44px; padding: 0 18px; border-radius: 999px; text-decoration: none;
-  background: var(--pt-surface); box-shadow: var(--pt-shadow);
-  font-size: 15px; font-weight: 700; color: var(--pt-ink);
-}
-.pt-hi__flag span { width: 8px; height: 8px; border-radius: 999px; background: var(--pt-accent-mark); flex: 0 0 auto; }
-.pt-hi__flag:hover { box-shadow: 0 0 0 1px var(--pt-line), var(--pt-shadow); }
-
-/* Needs someone today: two columns of counted lines, each a link. */
-.pt-today { background: var(--pt-surface); border-radius: 22px; padding: 22px 24px 10px; box-shadow: var(--pt-shadow); margin-top: -8px; }
-.pt-today__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 6px; }
-.pt-today__head h2 { margin: 0; font-family: var(--f-display); font-size: 22px; line-height: 28px; font-weight: 800; }
-.pt-today__head a { font-size: 15px; font-weight: 700; color: var(--pt-accent); text-decoration: none; }
-.pt-today__head a:hover { text-decoration: underline; }
-.pt-today__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; }
-.pt-today__list li { border-top: 1px solid var(--pt-tint); }
-.pt-today__row { display: flex; align-items: center; gap: 14px; min-height: 52px; text-decoration: none; color: var(--pt-ink); }
-.pt-today__n {
-  flex: none; min-width: 40px; height: 28px; padding: 0 10px; box-sizing: border-box; border-radius: 999px;
+/* Needs someone today: one column of counted lines, each a link. */
+.pt-wait { background: var(--pt-surface); border-radius: 20px; padding: 15px 24px 6px; box-shadow: var(--pt-shadow); }
+.pt-wait__head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-bottom: 8px; }
+.pt-wait__head h2 { margin: 0; font-family: var(--f-display); font-size: 21px; line-height: 26px; font-weight: 800; color: var(--pt-ink); }
+.pt-wait__head > span { font-size: 14px; color: var(--pt-ink-2); }
+.pt-wait__all { font-size: 15px; font-weight: 700; color: var(--pt-accent); text-decoration: none; }
+.pt-wait__all:hover { text-decoration: underline; }
+.pt-wait__list { list-style: none; margin: 0; padding: 0; }
+.pt-wait__list li { border-top: 1px solid var(--pt-tint); }
+.pt-wait__row { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 7px 0; box-sizing: border-box; line-height: 22px; text-decoration: none; color: var(--pt-ink); }
+.pt-wait__n {
+  flex: none; min-width: 34px; height: 26px; padding: 0 9px; box-sizing: border-box; border-radius: 999px;
   display: inline-flex; align-items: center; justify-content: center;
-  background: var(--pt-warn-bg); color: var(--pt-warn-text); font-family: var(--f-display); font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: var(--pt-warn-bg); color: var(--pt-warn-text); font-family: var(--f-display); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums;
 }
-.pt-today__txt { flex: 1 1 auto; min-width: 0; font-size: 16px; font-weight: 700; }
-.pt-today__go { flex: none; color: var(--pt-accent); font-weight: 700; }
-.pt-today__row:hover .pt-today__txt { text-decoration: underline; }
-.pt-today__none { margin: 0; padding: 14px 0 16px; border-top: 1px solid var(--pt-tint); color: var(--pt-ink-2); }
+.pt-wait__txt { flex: 1 1 auto; min-width: 0; font-size: 16px; font-weight: 600; }
+.pt-wait__go { flex: none; color: #b3ad9f; }
+.pt-wait__row:hover .pt-wait__txt { text-decoration: underline; }
+.pt-wait__row:hover .pt-wait__go { color: var(--pt-accent); }
+.pt-wait__none { margin: 0; padding: 14px 0 16px; border-top: 1px solid var(--pt-tint); color: var(--pt-ink-2); }
+
+/* The seven sections, four across: how many lines are each one's, and how
+   many pages it holds. */
+.pt-secs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.pt-sec {
+  display: flex; flex-direction: column; gap: 16px; min-height: 196px; box-sizing: border-box; padding: 20px;
+  border-radius: 20px; background: var(--pt-surface); box-shadow: var(--pt-shadow); text-decoration: none; color: var(--pt-ink);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.pt-sec:hover { transform: translateY(-2px); box-shadow: 0 0 0 1px var(--pt-line), var(--pt-shadow); }
+.pt-sec__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.pt-sec .pt-tile__ico { width: 48px; height: 48px; }
+.pt-sec__text { margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
+.pt-sec__name { font-family: var(--f-display); font-size: 20px; line-height: 26px; font-weight: 800; color: var(--pt-ink); }
+.pt-sec__blurb { font-size: 14px; line-height: 20px; color: var(--pt-ink-2); }
+.pt-sec__go { margin-top: 6px; font-size: 13px; font-weight: 800; color: var(--pt-accent); }
+@media (max-width: 1180px) { .pt-secs { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .pt-secs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; } .pt-sec { min-height: 170px; padding: 16px; } }
 
 .pt-bands { display: flex; flex-direction: column; gap: 34px; }
 .pt-band { display: flex; flex-direction: column; gap: 14px; }
@@ -2139,51 +2164,27 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 @media (max-width: 1240px) { .pt-band__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 900px) {
   .pt-band__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .pt-today__list { grid-template-columns: minmax(0, 1fr); }
+}
+/* Three across on a phone left each card 110 wide, too narrow for a name like
+   "Scoreboard" or a badge like "7 overdue". */
+@media (max-width: 600px) {
+  .pt-band__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 }
 
-/* Home on a phone, to "Home · phone": no bar, just the brand and who you are;
-   a search field under the greeting; three-across square tiles with a bare
-   icon and a short label. The blurbs go, and the section headings shrink to a
-   line — thirty cards with no headings would be a page of guessing. */
-.pt-hphone, .pt-hsearch { display: none; }
+/* Home on a phone: the phone bar opens the side bar, a search field sits under
+   the greeting, and the section cards go two across. */
+.pt-hsearch { display: none; }
 @media (max-width: 560px) {
-  .pt--home .pt__bar { display: none; }
-  .pt--home .pt__content { padding: 24px 16px 56px; }
-  .pt-home { gap: 22px; padding-top: 0; }
-  .pt-hphone { display: flex; align-items: center; justify-content: space-between; }
-  .pt-hphone__brand { display: flex; flex-direction: column; text-decoration: none; }
-  .pt-hphone__brand strong { font-family: var(--f-display); font-size: 20px; line-height: 22px; font-weight: 900; letter-spacing: -0.02em; color: var(--pt-ink); }
-  .pt-hphone__brand em { font-style: normal; font-size: 13px; line-height: 18px; font-weight: 700; color: var(--pt-accent); }
-  .pt-hphone .pt__avatar { text-decoration: none; }
-  .pt-hi { gap: 6px; }
-  .pt-hi > div { gap: 6px; }
-  .pt-hi__h { font-size: 32px; line-height: 36px; }
-  .pt-hi__flag { display: none; }
+  .pt-home { gap: 18px; }
+  .pt-hi__h { font-size: 34px; line-height: 40px; }
   .pt-hsearch {
     display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 18px; border-radius: 999px;
     background: var(--pt-surface); border: 1px solid var(--pt-line); color: var(--pt-ink-2); text-decoration: none; font-size: 16px;
   }
-  .pt-today { padding: 16px 16px 6px; margin-top: 0; }
-  .pt-today__head h2 { font-size: 19px; }
-  .pt-today__txt { font-size: 15px; }
-  .pt-bands { gap: 20px; }
-  .pt-band { gap: 10px; }
-  .pt-band__h { font-size: 17px; line-height: 22px; }
-  .pt-band__h span { display: none; }
-  .pt-band__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  .pt-tile {
-    position: relative; align-items: center; justify-content: center; text-align: center;
-    padding: 10px 6px; gap: 10px; min-height: 0; aspect-ratio: 1; border-radius: 18px;
-  }
-  .pt-tile__top { justify-content: center; }
-  .pt-tile__ico { width: auto; height: auto; background: none; border-radius: 0; }
-  .pt-tile__ico svg { width: 22px; height: 22px; }
-  .pt-tile__badge { position: absolute; top: 6px; right: 6px; height: 18px; padding: 0 6px; font-size: 10.5px; }
-  .pt-tile__name { font-family: var(--f-body); font-size: 14px; line-height: 18px; font-weight: 700; }
-  .pt-tile__name[data-short]::before { content: attr(data-short); }
-  .pt-tile__name[data-short] > span { display: none; }
-  .pt-tile__blurb { display: none; }
+  .pt-wait { padding: 16px 16px 4px; }
+  .pt-wait__head h2 { font-size: 19px; }
+  .pt-wait__txt { font-size: 15px; }
+  .pt-sec__name { font-size: 18px; line-height: 22px; }
 }
 
 /* ------------------------------------------------------------- the fleet table */
@@ -2856,11 +2857,11 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 
 /* The editor runs wider than the reading pages: three columns side by side
    need the room, and the mock gives it 1280. */
-.pt--wide .pt__content { max-width: 1360px; }
+
 .pt--wide .pt-head { margin-bottom: 22px; }
 .pt--wide .pt-head .pt-back { margin-bottom: 4px; }
 .pt--wide .pt-head h1 { margin-bottom: 4px; }
-@media (min-width: 861px) and (max-width: 1100px) { .pt__content { padding-left: 32px; padding-right: 32px; } }
+
 
 /* Sections, then that section's procedures, then the one being edited. Three
    columns because that is the shape of the decision: which part of the
@@ -3367,6 +3368,9 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 
 /* ---------------------------------------- the fleet, to Vehicles.dc.html */
 .pt-alerts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 28px; }
+/* This rule comes after the general one, so it needs its own phone width or
+   the three alerts squeeze into columns a word wide. */
+@media (max-width: 620px) { .pt-alerts { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
 .pt-alert { gap: 2px 18px; padding: 20px 24px; border-radius: 20px; border: 2px solid transparent; box-shadow: var(--pt-shadow); }
 .pt-alert span {
   width: 52px; height: 52px; border-radius: 16px; font-size: 24px; font-weight: 900;
@@ -3868,7 +3872,7 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 
 /* A page between the reading width and the editor's: the Year goal's table
    and its two figures want more room than 1104, and the mock gives it 1184. */
-.pt--mid .pt__content { max-width: 1360px; }
+
 
 /* An input as wide as its own text: the text sits in a hidden copy in the
    same grid cell, and the input fills the cell it makes. */
@@ -4139,3 +4143,84 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-profit__how { margin: 12px 0 0; padding-left: 20px; display: grid; gap: 10px; font-size: 15.5px; line-height: 24px; color: var(--pt-ink-2); max-width: 90ch; }
 .pt-profit__how strong { color: var(--pt-ink); }
 .pt-profit__how a { color: var(--pt-accent); font-weight: 700; }
+
+/* ==================================================================
+   The numbers, to the mock: four year figures, the month's flow in six
+   steps with the rate between each, then what needs someone and three
+   more figures.
+   ================================================================== */
+.pt-nbr__chip {
+  align-self: flex-end; display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px;
+  background: var(--pt-surface); border: 1px solid var(--pt-line); font-size: 14px; font-weight: 700; color: var(--pt-ink); white-space: nowrap;
+}
+/* The mock's title is Home's size, not an inner page's, and its lede runs
+   the width of three stat cards before it wraps. */
+.pt-nbr .pt-head { margin-bottom: 24px; }
+.pt-nbr .pt-head h1 { font-size: clamp(32px, 3.4vw, 48px); line-height: 1.1; margin-bottom: 8px; }
+.pt-nbr .pt-head p { max-width: 760px; }
+.pt-nbr__stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 26px; }
+.pt-nbr__stat {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 20px 22px; border-radius: 20px;
+  background: var(--pt-surface); box-shadow: var(--pt-shadow); text-decoration: none; color: var(--pt-ink);
+}
+.pt-nbr__stat:hover { box-shadow: 0 0 0 1px var(--pt-line), var(--pt-shadow); }
+.pt-nbr__k { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14.5px; font-weight: 600; color: var(--pt-ink-2); }
+.pt-nbr__go { color: var(--pt-accent); font-weight: 700; }
+.pt-nbr__stat > strong, .pt-nbr__step > strong {
+  font-family: var(--f-display); font-size: 34px; line-height: 40px; font-weight: 900; letter-spacing: -0.02em;
+  color: var(--pt-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.pt-nbr__stat > strong.is-bad { color: var(--pt-accent); }
+.pt-nbr__stat > strong.is-good { color: var(--pt-good); }
+.pt-nbr__sub { font-size: 13.5px; line-height: 19px; color: var(--pt-ink-2); }
+.pt-nbr__bar { position: relative; display: block; height: 8px; margin: 6px 0 4px; border-radius: 999px; background: var(--pt-tint); }
+.pt-nbr__bar i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: var(--pt-accent-fill); }
+.pt-nbr__bar b { position: absolute; top: -4px; width: 3px; height: 16px; margin-left: -1.5px; border-radius: 2px; background: var(--pt-ink); }
+
+.pt-nbr__h { margin: 0 0 14px; font-family: var(--f-display); font-size: 22px; line-height: 28px; font-weight: 800; color: var(--pt-ink); }
+.pt-nbr__flow { list-style: none; margin: 0 0 22px; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; }
+.pt-nbr__stepwrap { position: relative; display: flex; min-width: 0; }
+.pt-nbr__step {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 18px 18px 16px; margin-right: 42px;
+  border-radius: 18px; background: var(--pt-surface); box-shadow: var(--pt-shadow); text-decoration: none; color: var(--pt-ink);
+}
+.pt-nbr__stepwrap:last-child .pt-nbr__step { margin-right: 0; }
+.pt-nbr__step:hover { box-shadow: 0 0 0 1px var(--pt-line), var(--pt-shadow); }
+.pt-nbr__step > strong { font-size: 30px; line-height: 36px; }
+.pt-nbr__open { margin-top: auto; padding-top: 10px; font-size: 13.5px; font-weight: 800; color: var(--pt-accent); }
+/* The rate from one step to the next, in the gap between them. */
+.pt-nbr__rate {
+  position: absolute; top: 50%; right: 0; width: 42px; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;
+  font-size: 11px; line-height: 13px; color: var(--pt-good); font-weight: 700;
+}
+.pt-nbr__rate > span { font-size: 14px; color: var(--pt-ink); }
+.pt-nbr__rate em { font-style: normal; }
+
+.pt-nbr__lower { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.pt-nbr__side { display: flex; flex-direction: column; gap: 16px; }
+
+/* Sized by the room the page gets, which depends on the side bar as much as
+   on the window. */
+.pt-nbr { container-type: inline-size; }
+@container (max-width: 1180px) {
+  /* Four across at this width leaves a card about 190 wide inside, and a
+     seven-figure year at 34px broke a digit onto a line of its own. */
+  .pt-nbr__stat > strong { font-size: 28px; line-height: 34px; }
+  .pt-nbr__flow { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 14px; }
+  .pt-nbr__stepwrap:nth-child(3n) .pt-nbr__step { margin-right: 0; }
+  .pt-nbr__stepwrap:nth-child(3n) .pt-nbr__rate { display: none; }
+}
+@container (max-width: 960px) {
+  .pt-nbr__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pt-nbr__lower { grid-template-columns: minmax(0, 1fr); }
+}
+@container (max-width: 600px) {
+  .pt-nbr__stats { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .pt-nbr__flow { grid-template-columns: minmax(0, 1fr); }
+  .pt-nbr__step { margin-right: 0 !important; margin-bottom: 26px; }
+  .pt-nbr__stepwrap:last-child .pt-nbr__step { margin-bottom: 0; }
+  .pt-nbr__stepwrap .pt-nbr__rate { display: flex !important; top: auto; bottom: 0; right: auto; left: 50%; width: auto; transform: translateX(-50%); flex-direction: row; gap: 6px; }
+  .pt-nbr__rate > span { transform: rotate(90deg); }
+}
+@media (max-width: 640px) { .pt-nbr__chip { white-space: normal; } }
