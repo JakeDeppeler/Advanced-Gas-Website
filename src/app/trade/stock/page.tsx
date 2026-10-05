@@ -21,11 +21,14 @@ export default async function TradeFactory() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
 
-  const [items, moves, van] = await Promise.all([
+  const [all, moves, van] = await Promise.all([
     listStock(),
     listMoves(12),
     user.id && dbConfigured() ? vehicleFor(user.id).catch(() => null) : null,
   ]);
+  // Tools are signed out by the office, one to a person, not taken off a
+  // shelf by the handful, so the iPad's list is the materials and systems.
+  const items = all ? all.filter((i) => i.section !== "tools") : null;
   const low = (items ?? []).filter(isLow).length;
   const lastCount = moves.find((m) => m.reason === "count");
   const taken = moves.filter((m) => m.reason === "taken").slice(0, 6);

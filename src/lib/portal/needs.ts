@@ -2,7 +2,8 @@ import "server-only";
 import { cache } from "react";
 import { can, type PortalUser } from "@/lib/portal/caps";
 import { crewRequests, latestBoard, vanIssues } from "@/lib/portal/office";
-import { lowStockCount } from "@/lib/portal/stock";
+import { dueState, isLow, listStock } from "@/lib/portal/stock";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { money } from "@/lib/portal/format";
 import { portalNav, type NavBand } from "@/lib/portal/nav";
 
@@ -23,10 +24,10 @@ const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : ma
  */
 export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> => {
   if (!can(user, "overhead")) return [];
-  const [board, issues, low, asks] = await Promise.all([
+  const [board, issues, shelf, asks] = await Promise.all([
     latestBoard(),
     vanIssues().catch(() => []),
-    lowStockCount().catch(() => null),
+    listStock().catch(() => null),
     crewRequests().catch(() => ({ orders: [], leave: [], incidents: [] })),
   ]);
   const m = board?.metrics;
@@ -73,8 +74,21 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
   if (asks.leave.length) {
     lines.push({ n: asks.leave.length, text: `leave ${plural(asks.leave.length, "request")} to answer`, href: "/portal/requests#leave" });
   }
-  if (low && low > 0) {
-    lines.push({ n: low, text: `factory stock ${plural(low, "line")} at or under the minimum`, href: "/portal/stock" });
+  const low = shelf ? shelf.filter(isLow) : [];
+  const lowMaterials = low.filter((i) => i.section === "materials").length;
+  const lowSystems = low.filter((i) => i.section === "systems").length;
+  if (lowMaterials > 0) {
+    lines.push({ n: lowMaterials, text: `factory stock ${plural(lowMaterials, "line")} at or under the minimum`, href: "/portal/stock" });
+  }
+  if (lowSystems > 0) {
+    lines.push({ n: lowSystems, text: `${plural(lowSystems, "system")} in the factory at or under the minimum`, href: "/portal/stock?s=systems" });
+  }
+  // A tool past its test & tag or service shouldn't go on site, so it's a line
+  // here the day it lapses rather than something found on the job.
+  const today = isoDateMelbourne(new Date());
+  const lapsed = shelf ? shelf.filter((i) => i.section === "tools" && dueState(i.dueOn, today) === "over") : [];
+  if (lapsed.length) {
+    lines.push({ n: lapsed.length, text: `${plural(lapsed.length, "tool")} overdue for test & tag or service · ${lapsed[0].name}${lapsed.length > 1 ? ` and ${lapsed.length - 1} more` : ""}`, href: "/portal/stock?s=tools" });
   }
 
   // Each line belongs to the tab whose page it opens.

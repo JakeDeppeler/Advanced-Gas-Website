@@ -272,9 +272,21 @@ export type Metrics = {
   /**
    * Open quotes, still inside the live window, where nothing has been written
    * for a week: the newest option on the job is 7+ days old and none has sold.
-   * The ones to ring. Largest first, at most 25; the counts cover them all.
+   * The ones to ring. Largest first, at most 200 — every one the 30-day window
+   * holds in practice, so the portal can sort them and show them all; the
+   * counts cover them all regardless. Who and where come from the job's
+   * ServiceTitan location, since the jobs export carries no customer name.
    */
-  quotesQuiet: Array<{ id: number; label: string; value: number; options: number; ageDays: number }>;
+  quotesQuiet: Array<{
+    id: number;
+    label: string;
+    value: number;
+    options: number;
+    ageDays: number;
+    jobNumber?: string | null;
+    customer?: string | null;
+    suburb?: string | null;
+  }>;
   quotesQuietCount: number;
   quotesQuietValue: number;
 
@@ -1185,14 +1197,28 @@ async function serviceTitanMetrics(now: Date) {
   // types into ServiceTitan to find the thing. The estimate id is ours; the job
   // number is theirs.
   const jobNumberById = new Map<number, string>();
+  // Who the quote is for and where, for the quiet list the office rings from.
+  const placeByJob = new Map<number, { customer: string | null; suburb: string | null }>();
   if (jobIds.length) {
-    const jobs = await sbSelect<{ id: number; job_type: string | null; job_number: string | null }>(
+    const jobs = await sbSelect<{ id: number; job_type: string | null; job_number: string | null; location_id: number | null }>(
       "st_jobs",
-      [q.select("id,job_type,job_number"), `id=in.(${jobIds.slice(0, 200).join(",")})`].join("&"),
+      [q.select("id,job_type,job_number,location_id"), `id=in.(${jobIds.slice(0, 200).join(",")})`].join("&"),
     ).catch(() => []);
     for (const j of jobs) {
       if (j.job_type) jobTypeById.set(Number(j.id), String(j.job_type));
       if (j.job_number) jobNumberById.set(Number(j.id), String(j.job_number));
+    }
+    const locIds = [...new Set(jobs.map((j) => j.location_id).filter((v): v is number => v != null))];
+    const locs = locIds.length
+      ? await sbSelect<{ id: number; name: string | null; suburb: string | null }>(
+          "st_locations",
+          [q.select("id,name:raw->>name,suburb"), `id=in.(${locIds.join(",")})`].join("&"),
+        ).catch(() => [])
+      : [];
+    const locById = new Map(locs.map((l) => [Number(l.id), l]));
+    for (const j of jobs) {
+      const l = j.location_id != null ? locById.get(Number(j.location_id)) : undefined;
+      if (l) placeByJob.set(Number(j.id), { customer: l.name?.trim() || null, suburb: l.suburb?.trim() || null });
     }
   }
 
@@ -1261,6 +1287,7 @@ async function serviceTitanMetrics(now: Date) {
     string,
     {
       id: number;
+      jobId: number | null;
       label: string;
       jobNumber: string | null;
       sum: number;
@@ -1284,6 +1311,7 @@ async function serviceTitanMetrics(now: Date) {
     } else {
       outByJob.set(key, {
         id: Number(r.id),
+        jobId: r.job_id,
         label: labelFor(r.job_id),
         jobNumber: numberFor(r.job_id),
         sum: v,
@@ -1319,11 +1347,17 @@ async function serviceTitanMetrics(now: Date) {
   const QUIET_DAYS = 7;
   const quiet = [...outByJob.values()]
     .filter((j) => j.biggest < QUOTE_CAP && j.newest >= QUIET_DAYS && j.newest <= OUTSTANDING_DAYS)
-    .map((j) => ({ id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.newest }))
+    .map((j) => {
+      const place = j.jobId != null ? placeByJob.get(j.jobId) : undefined;
+      return {
+        id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.newest,
+        jobNumber: j.jobNumber, customer: place?.customer ?? null, suburb: place?.suburb ?? null,
+      };
+    })
     .sort((a, b) => b.value - a.value);
   const quotesQuietCount = quiet.length;
   const quotesQuietValue = quiet.reduce((n, j) => n + j.value, 0);
-  const quotesQuiet = quiet.slice(0, 25);
+  const quotesQuiet = quiet.slice(0, 200);
 
   const soldCountMonth = soldRows.length;
   const soldCountToday = soldRows.filter(
@@ -1861,7 +1895,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       conversionTodayPct: prev?.conversionTodayPct ?? null,
       quotesToday: [],
       quotesOutstanding: [],
-      quotesQuiet: prev?.quotesQuiet ?? [],
+      // Snapshots from before the quiet list carried who and where lack them.
+      quotesQuiet: (prev?.quotesQuiet ?? []).map((r) => ({ ...r, jobNumber: r.jobNumber ?? null, customer: r.customer ?? null, suburb: r.suburb ?? null })),
       quotesQuietCount: prev?.quotesQuietCount ?? 0,
       quotesQuietValue: prev?.quotesQuietValue ?? 0,
       // Deliberately not carried forward: a stale feed would re-fire the rocket

@@ -96,7 +96,9 @@
 .pt-side__tab.is-open .pt-side__chev { transform: rotate(90deg); }
 /* The open tab sits on the cream, so its pages read as belonging to it. */
 .pt-side__tab.is-open > .pt-side__headrow { background: var(--pt-tint); }
-.pt-side__tab.is-open > .pt-side__headrow .pt-side__head:hover { background: none; }
+/* Not on the tab's own page: its header is navy with white words there, and
+   clearing the fill on hover left white on the cream. */
+.pt-side__tab.is-open > .pt-side__headrow .pt-side__head:not(.is-on):hover { background: none; }
 .pt-side__pages, .pt-side__fly ul { list-style: none; margin: 6px 0 6px; padding: 0 0 0 40px; display: flex; flex-direction: column; gap: 6px; }
 .pt-side__page {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 40px; padding: 0 12px; box-sizing: border-box;
@@ -3948,7 +3950,12 @@ a.pt-fig:hover { transform: translateY(-2px); }
 
 /* Factory stock. */
 .pt-stk__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.pt-stk__add { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1.4fr; gap: 12px; align-items: end; padding: 14px 0 18px; }
+/* The add forms differ by part — six fields for materials and systems, five
+   for a tool — so the grid fills by width rather than a fixed five columns. */
+.pt-stk__add { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; align-items: end; padding: 14px 0 18px; }
+.pt-stk__add .pt-stk__name2 { grid-column: span 2; }
+.pt-stk__add .pt-stk__wide { grid-column: 1 / -1; }
+.pt-stk__add select { height: 44px; }
 .pt-stk__addacts { grid-column: 1 / -1; display: flex; gap: 10px; }
 .pt-stk { list-style: none; margin: 0; padding: 0; }
 .pt-stk__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 20px; align-items: center; padding: 14px 0; border-top: 1px solid var(--pt-tint); }
@@ -3964,11 +3971,58 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-stk__form select, .pt-stk__form input { height: 40px; border: 1px solid var(--pt-field); border-radius: 10px; padding: 0 10px; font: inherit; font-size: 14px; background: var(--pt-surface); color: var(--pt-ink); }
 .pt-stk__form input[inputmode="decimal"] { width: 80px; }
 .pt-stk__form input:not([inputmode]) { flex: 1 1 180px; }
+.pt-stk__tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.pt-stk__group + .pt-stk__group { margin-top: 18px; }
+.pt-stk__gh {
+  display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; font-size: 12.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; font-weight: 800; color: var(--pt-ink-2);
+}
+.pt-stk__gh span { font-family: var(--f-body, inherit); letter-spacing: 0; color: var(--pt-ink-3); font-weight: 700; }
+/* Not counted is grey, not orange: it isn't low, it's unknown. */
+.pt-stk__unk { font-size: 12.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; background: var(--pt-tint); color: var(--pt-ink-2); }
+.pt-stk__edit input[inputmode="decimal"] { width: 90px; }
+.pt-stk__rm { margin-left: auto; color: var(--pt-ink-2); }
+
+/* Starting the materials from the van sheet: a group to a box, ticked. */
+.pt-stk__seed { padding: 6px 0 14px; }
+.pt-stk__seed > .pt-panel__sub { max-width: 80ch; margin-bottom: 12px; }
+.pt-stk__seedg { border: 1px solid var(--pt-line); border-radius: 14px; padding: 8px 14px 12px; margin: 0 0 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 2px 18px; }
+.pt-stk__seedg legend { padding: 0 6px; font-weight: 800; font-size: 14.5px; }
+.pt-stk__seedg legend label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.pt-stk__seedl { display: flex; align-items: center; gap: 8px; min-height: 34px; font-size: 14.5px; cursor: pointer; }
+.pt-stk__seedl span { flex: 1; min-width: 0; }
+.pt-stk__seedl small { font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-stk__seedl.is-have { color: var(--pt-ink-2); cursor: default; }
+.pt-stk__seedg input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pt-navy); flex: none; }
+
+/* The whole shelf counted at once. */
+.pt-stk__count { padding: 4px 0 8px; }
+.pt-stk__count .pt-addacts, .pt-stk__count .pt-stk__addacts { margin-top: 14px; }
+.pt-stk__grouprow th { padding-top: 18px !important; font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pt-ink-2); text-align: left; }
+.pt-stk__cin {
+  width: 84px; height: 38px; box-sizing: border-box; border: 1px solid var(--pt-field); border-radius: 10px; padding: 0 10px;
+  font: inherit; font-size: 15px; text-align: right; font-variant-numeric: tabular-nums; background: var(--pt-surface); color: var(--pt-ink);
+}
+
+/* Tools: where each one is, and its test & tag, in words with a chip behind them. */
+.pt-tool__filter { margin: 2px 0 6px; flex-wrap: wrap; }
+.pt-tool__state { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; font-size: 13px; color: var(--pt-ink-2); }
+.pt-tool__in, .pt-tool__out, .pt-tool__soon { font-size: 12.5px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.pt-tool__in { background: #e3f4fb; color: #0c6f96; }
+.pt-tool__out { background: var(--pt-navy); color: #fff; }
+.pt-tool__soon { background: #fff4d6; color: #7a5200; }
+.pt-tool__date { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--pt-ink-2); }
+.pt-tab__n { margin-left: 8px; font-size: 13px; font-weight: 700; color: var(--pt-ink-3); font-variant-numeric: tabular-nums; }
+.pt-tab.is-on .pt-tab__n { color: inherit; opacity: 0.75; }
+
 @media (max-width: 760px) {
   .pt-stk__add { grid-template-columns: 1fr 1fr; }
-  .pt-stk__add > label:first-child { grid-column: 1 / -1; }
+  .pt-stk__add .pt-stk__name2 { grid-column: 1 / -1; }
   .pt-stk__row { grid-template-columns: minmax(0, 1fr) auto; }
-  .pt-stk__acts { grid-column: 1 / -1; }
+  .pt-stk__acts { grid-column: 1 / -1; flex-wrap: wrap; }
+  .pt-stk__head { flex-wrap: wrap; }
+  .pt-stk__tools { justify-content: flex-start; }
+  .pt-tool__state { justify-content: flex-start; grid-column: 1 / -1; }
 }
 
 /* A plain figures table — the Hours page's timesheets. */
@@ -4224,3 +4278,8 @@ a.pt-fig:hover { transform: translateY(-2px); }
   .pt-nbr__rate > span { transform: rotate(90deg); }
 }
 @media (max-width: 640px) { .pt-nbr__chip { white-space: normal; } }
+
+/* ---- Quotes gone quiet: the order, and how many are showing ---- */
+.pt-quiet__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 4px 0 10px; }
+.pt-quiet__count { font-size: 13.5px; font-weight: 600; color: var(--pt-ink-2); font-variant-numeric: tabular-nums; }
+.pt-quiet__more { margin-top: 14px; }

@@ -29,14 +29,22 @@ export default async function TradeParts({ searchParams }: { searchParams: { low
     user.id ? listOrders({ vehicleId: van?.id, limit: 8 }) : [],
   ]);
   const counted = sheets[0]?.items ?? {};
-  const factory = new Map((shelf ?? []).map((i) => [norm(i.name), i.qty]));
+  // Matched on the van sheet's group and name, which is how a materials list
+  // started from the sheet is kept — "Cap 1/2"" is brass in one group and
+  // B-Press in two others. A line kept under its name alone still matches on
+  // the name. One nobody has counted shows as unknown, not as none.
+  const materials = (shelf ?? []).filter((i) => i.section === "materials");
+  const qtyOf = (i: (typeof materials)[number]) => (i.countedAt ? i.qty : null);
+  const byGroup = new Map(materials.map((i) => [`${norm(i.category ?? "")}|${norm(i.name)}`, qtyOf(i)]));
+  const byName = new Map(materials.map((i) => [norm(i.name), qtyOf(i)]));
 
   const rows: PartRow[] = VAN_STOCK.flatMap((g) => g.items.map((it) => {
     const k = itemKey(g.group, it.item);
+    const gk = `${norm(g.group)}|${norm(it.item)}`;
     return {
       key: k, item: it.item, group: g.group, unit: it.unit, min: it.min,
       onVan: counted[k]?.qty ?? null,
-      atFactory: factory.get(norm(it.item)) ?? null,
+      atFactory: byGroup.has(gk) ? byGroup.get(gk) ?? null : byName.get(norm(it.item)) ?? null,
     };
   }));
   const mine = orders.filter((o) => o.requestedBy === user.name || o.vehicleId === van?.id);
