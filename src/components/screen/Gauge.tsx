@@ -105,7 +105,8 @@ function arc(cx: number, cy: number, r: number, from: number, to: number) {
  * "$2,888" in the size "14" wants would run out through the arc, and a figure
  * that overflows its own chart is worse than a smaller one.
  */
-const figureSize = (text: string) => (text.length <= 4 ? 40 : text.length <= 6 ? 32 : 26);
+const figureSize = (text: string) =>
+  text.length <= 2 ? 40 : text.length <= 4 ? 34 : text.length <= 6 ? 28 : 23;
 
 export function Gauge({
   label,

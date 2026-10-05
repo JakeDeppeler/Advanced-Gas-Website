@@ -53,6 +53,12 @@ is without reading six page names, which is what the tab strip asked of it.
 booked today across the top; quoted today, close rate and money in beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
 
+Four of the six are cut down the middle: the figure on the left, its breakdown
+on the right, a rule between. Invoiced today carries how long each billed job
+had waited; jobs booked carries the kinds of work booked, because "19 jobs
+booked" is a number and four split systems and a ducted heater is a day. Quoted
+today leads with the figure and puts its context to the right of it.
+
 **Money in** is one card cut in two: what customers paid today, and what is
 still overdue. Payments come from ServiceTitan's accounting export (`st_payments`,
 migration 0042) under the Accounting scope the invoices already use — the
@@ -187,8 +193,8 @@ absent, so the fix is to lead with sold and say on the page how much of the
 month it accounts for — the totals row does, whenever the named sales come to
 less than 90% of the month.
 
-**Performance** is three figures with job margin as the navy one, over one table
-of job types: jobs booked, invoices, revenue, and a bar.
+**Performance** is four figures with job margin as the navy one — booked,
+invoiced, paid, and what was left of it — over one table of job types: jobs booked, invoices, revenue, and a bar.
 
 The margin tile is the **per-job** figure — price before GST, less equipment and
 materials, less the hours at what an hour of the crew costs (see

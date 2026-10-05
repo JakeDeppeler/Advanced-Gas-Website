@@ -434,7 +434,11 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           keeping up, two billed a fortnight late is money that sat there. The
           four buckets always show, zeroes included, so the line is in the same
           shape every day and the room reads position rather than words. */}
-      <HeroCard
+      {/* The figure on the left, how long each job had waited on the right, with
+          the rule between them — the same shape as Close rate and Money in
+          below. The breakdown sat under the figure with the whole right half of
+          the card empty beside it. */}
+      <SideCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
         rows={
@@ -455,9 +459,16 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
               : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`
         }
       />
-      <HeroCard
+      {/* What the day's bookings actually are. "19 jobs booked" is a number;
+          four split systems and a ducted heater is a day. */}
+      <SideCard
         label="Jobs booked today"
         value={st.count(m.bookingsToday, live)}
+        rows={
+          !live.st || m.bookingsTodayTypes.length === 0
+            ? undefined
+            : m.bookingsTodayTypes.map((t) => ({ k: t.jobType, v: count(t.count) }))
+        }
         foot={`from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"} · ${count(m.leadsWeek)} this week`}
       />
 
@@ -465,6 +476,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           figures that put it in context on the left, the number itself on the
           right at the size the room reads. */}
       <RateCard
+        leading
         label="Quoted today"
         lines={[
           `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}${
@@ -1198,6 +1210,21 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
         value={st.money(m.revenueInvoicedMtd, live)}
         foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
       />
+      {/* What turned up against what was asked for. The row was three cards in a
+          space built for four, with a quarter of it empty since profit came
+          off, and this is the figure that was missing from the story: booked,
+          invoiced, paid, and what was left of it. */}
+      <HeadCard
+        label="Paid"
+        value={m.paidMonth == null ? NA : money(m.paidMonth)}
+        foot={
+          m.paidMonth == null
+            ? "payments not synced yet"
+            : m.revenueInvoicedMtd > 0
+              ? `${pct(m.paidMonth / m.revenueInvoicedMtd)} of what was invoiced`
+              : "banked this month"
+        }
+      />
       {/* Profit came off: it read "—" on every single day, because no invoice in
           the tenant carries a cost. Margin stays because Jake asked for it, and
           it is now the per-job figure — price before GST, less equipment and
@@ -1478,6 +1505,46 @@ function HeadCard({ label, value, suffix, foot, navy }: {
  * A figure at the size the room reads it, with its label above and one line of
  * context under it. The three across the top of Today.
  */
+/**
+ * A figure with its breakdown beside it, split down the middle.
+ *
+ * The same shape as the two rate cards below it on the page: label across the
+ * top, a rule down the middle, and a foot under both. The breakdown sat under
+ * the figure and left the whole right half of the card empty, which on a wall
+ * reads as a card that has lost something.
+ */
+function SideCard({
+  label,
+  value,
+  rows,
+  foot,
+}: {
+  label: string;
+  value: string;
+  rows?: Array<{ k: string; v: string }>;
+  foot?: string;
+}) {
+  return (
+    <div className="tile c4">
+      <span className="tile__label">{label}</span>
+      <div className={`side ${rows?.length ? "" : "side--alone"}`}>
+        <span className={vcls(value, "tile__value--hero")}>{value}</span>
+        {rows?.length ? (
+          <div className="rows">
+            {rows.map((r) => (
+              <span className="rows__one" key={r.k}>
+                <span className="rows__k">{r.k}</span>
+                <b className="rows__v">{r.v}</b>
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {foot ? <span className="tile__foot">{foot}</span> : null}
+    </div>
+  );
+}
+
 function HeroCard({
   label,
   value,
@@ -1568,9 +1635,22 @@ function SplitRateCard({
   );
 }
 
-function RateCard({ label, lines, value, accent }: { label: string; lines: string[]; value: string; accent?: boolean }) {
+function RateCard({
+  label,
+  lines,
+  value,
+  accent,
+  leading,
+}: {
+  label: string;
+  lines: string[];
+  value: string;
+  accent?: boolean;
+  /** The figure first, with its label and context to the right of it. */
+  leading?: boolean;
+}) {
   return (
-    <div className="tile tile--split c4">
+    <div className={`tile tile--split c4 ${leading ? "tile--lead" : ""}`}>
       <div>
         <span className="tile__label">{label}</span>
         {lines.map((l) => (

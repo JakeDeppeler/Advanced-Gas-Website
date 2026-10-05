@@ -403,6 +403,10 @@ body:has(.screen) .utilbar {
 
 /* Label and its caption on the left, the figure hard right, vertically centred:
    the rate cards and the compact stat cards both read this way. */
+/* The figure first, its label and context to the right of it. */
+.tile--lead { flex-direction: row-reverse; }
+.tile--lead > div { align-items: flex-end; text-align: right; }
+
 .tile--split {
   flex-direction: row;
   align-items: center;
@@ -567,7 +571,17 @@ body:has(.screen) .utilbar {
   letter-spacing: -0.02em;
   color: var(--navy);
 }
-.gauge__svg { width: 100%; max-height: calc(13 * var(--u)); flex: 1; min-height: 0; margin-top: calc(0.2 * var(--u)); }
+/* Capped rather than full width: at the card's full width the arc ran from edge
+   to edge with the figure inside it crowding the band, and the card wants air
+   around the dial more than it wants a bigger dial. */
+.gauge__svg {
+  width: 100%;
+  max-width: calc(10.2 * var(--u));
+  max-height: calc(11 * var(--u));
+  flex: 1;
+  min-height: 0;
+  margin-top: calc(0.5 * var(--u));
+}
 
 .gauge__zone { opacity: 0.32; }
 .gauge__zone.is-on { opacity: 1; }
@@ -1161,11 +1175,28 @@ body:has(.screen) .utilbar {
 .rows {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: calc(0.3 * var(--u));
-  width: calc(13 * var(--u));
-  max-width: 100%;
-  margin-top: calc(0.6 * var(--u));
+  min-width: 0;
+  flex: 1;
 }
+
+/* A figure and its breakdown, side by side with a rule between — the same
+   division as the rate cards below it on the page. */
+.side {
+  display: flex;
+  align-items: center;
+  gap: calc(1.5 * var(--u));
+  flex: 1;
+  min-height: 0;
+}
+/* Half a card is not a whole card: at the hero size "$15,894" ran straight
+   through the rule and into the breakdown beside it. */
+.side > .tile__value--hero { flex: 1; min-width: 0; margin: 0; font-size: calc(3 * var(--u)); }
+.side--alone > .tile__value--hero { font-size: calc(4.6 * var(--u)); }
+.side .rows { border-left: 1px solid var(--hairline); padding-left: calc(1.5 * var(--u)); }
+/* Nothing to put beside it — the figure keeps the whole card. */
+.side--alone > .tile__value--hero { flex: none; }
 .rows__one {
   display: flex;
   align-items: baseline;

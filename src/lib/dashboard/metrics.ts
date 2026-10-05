@@ -99,6 +99,15 @@ const domestic = <T extends { business_unit?: string | null }>(rows: T[]): T[] =
  * written in ServiceTitan since the import does, and it is the same placeholder
  * the job-type ranking already sets aside.
  */
+/**
+ * ServiceTitan's placeholder for records imported without a job type. It is not
+ * a kind of work — it is the absence of one — and it accounts for most invoices
+ * in this tenant, so left in a ranking it sits permanently at number one and
+ * crowds out the types the room can actually act on. Every list that uses it
+ * says how many were set aside rather than quietly dropping them.
+ */
+const UNCLASSIFIED = /^imported default/i;
+
 const isFieldPlus = (unit: string | null | undefined) => unit != null && /^imported default/i.test(unit);
 
 /**
@@ -165,6 +174,10 @@ export type Metrics = {
    */
   paidToday: number | null;
   paymentsToday: number | null;
+  /** Banked since the 1st. Null until the payments export has ever returned a row. */
+  paidMonth: number | null;
+  /** What today's bookings were, by kind of work. Top three and a remainder. */
+  bookingsTodayTypes: Array<{ jobType: string; count: number }>;
   /**
    * Of the jobs billed today, how long each had been waiting — the gap between
    * the day the job finished and the day its invoice was actually priced.
@@ -632,6 +645,17 @@ async function serviceTitanMetrics(now: Date) {
   const paidToday = everPaid > 0 ? banked.reduce((t, p) => t + Number(p.total ?? 0), 0) : null;
   const paymentsToday = everPaid > 0 ? banked.length : null;
 
+  // The month's banked total, for the Performance page's row of four: booked,
+  // invoiced, paid, margin — what was asked for and what turned up.
+  const paidMonthRows = await sbSelect<{ total: number | null; active: boolean | null }>(
+    "st_payments",
+    [q.select("total,active"), q.gte("paid_on", isoDateMelbourne(monthStart))].join("&"),
+  ).catch(() => []);
+  const paidMonth =
+    everPaid > 0
+      ? paidMonthRows.filter((p) => p.active !== false).reduce((t, p) => t + Number(p.total ?? 0), 0)
+      : null;
+
   /**
    * Everything billed today, whenever the job was done.
    *
@@ -974,6 +998,33 @@ async function serviceTitanMetrics(now: Date) {
   const bookingsMonth = await sbCount("st_jobs", q.gte("created_on", monthStart.toISOString()));
   const bookingsToday = await sbCount("st_jobs", q.gte("created_on", startOfDayMelbourne(now).toISOString()));
 
+  /**
+   * What today's bookings actually are.
+   *
+   * "19 jobs booked" is a number; four split systems and a ducted heater is a
+   * day. The unclassified placeholder is set aside the same way the job-type
+   * table sets it aside — it is the absence of a type, not a kind of work — and
+   * what is left is counted largest first, with anything past the top three
+   * gathered into one line rather than dropped, because a card that quietly
+   * shows three of eleven is a card that doesn't add up.
+   */
+  const bookedTodayRows = await sbSelect<{ job_type: string | null }>(
+    "st_jobs",
+    [q.select("job_type"), q.gte("created_on", startOfDayMelbourne(now).toISOString())].join("&"),
+  ).catch(() => []);
+  const byBookedType = new Map<string, number>();
+  for (const r of bookedTodayRows) {
+    const t = r.job_type;
+    if (!t || UNCLASSIFIED.test(t)) continue;
+    byBookedType.set(t, (byBookedType.get(t) ?? 0) + 1);
+  }
+  const rankedBookedTypes = [...byBookedType.entries()].sort((a, b) => b[1] - a[1]);
+  const bookingsTodayTypes: Array<{ jobType: string; count: number }> = rankedBookedTypes
+    .slice(0, 3)
+    .map(([jobType, count]) => ({ jobType, count }));
+  const restBooked = rankedBookedTypes.slice(3).reduce((t, [, n]) => t + n, 0);
+  if (restBooked > 0) bookingsTodayTypes.push({ jobType: "Everything else", count: restBooked });
+
   const invoices = await sbSelect<{ total: number | null; cost: number | null; invoice_date: string | null }>(
     "st_invoices",
     [q.select("total,cost,invoice_date"), q.gte("invoice_date", isoDateMelbourne(monthStart))].join("&"),
@@ -1021,14 +1072,6 @@ async function serviceTitanMetrics(now: Date) {
   const jobTypeBasis: "profit" | "revenue" =
     profitRows.length && withCost / profitRows.length >= 0.5 ? "profit" : "revenue";
 
-  /**
-   * ServiceTitan's placeholder for records imported without a job type. It is
-   * not a kind of work — it is the absence of one — and it accounts for most
-   * invoices in this tenant, so left in the ranking it sits permanently at
-   * number one and crowds out the types the room can actually act on. The tile
-   * says how many were set aside rather than quietly dropping them.
-   */
-  const UNCLASSIFIED = /^imported default/i;
 
   let jobTypeUnclassified = 0;
   const byType = new Map<string, { revenue: number; cost: number; hasCost: boolean; jobs: number }>();
@@ -1539,6 +1582,8 @@ async function serviceTitanMetrics(now: Date) {
     jobsInvoicedToday,
     paidToday,
     paymentsToday,
+    paidMonth,
+    bookingsTodayTypes,
     jobsInvoicedTodayAge,
     jobsInvoicedTodayEarlier,
     jobsScheduledNext7,
@@ -1828,6 +1873,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
       jobsInvoicedTodayAge: prev?.jobsInvoicedTodayAge ?? { sameDay: 0, days1to3: 0, days4to7: 0, older: 0 },
       paidToday: prev?.paidToday ?? null,
+      paidMonth: prev?.paidMonth ?? null,
+      bookingsTodayTypes: prev?.bookingsTodayTypes ?? [],
       paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
