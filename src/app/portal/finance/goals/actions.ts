@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { getSettings, saveSettings } from "@/lib/portal/db";
-import { readPaceSettings, readYearGoal, type PaceSettings, type YearGoal } from "@/lib/portal/yearGoal";
+import { readWinRatePct, readYearGoal, storedPace, type PaceSettings, type YearGoal } from "@/lib/portal/yearGoal";
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -58,9 +58,11 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
     profitPct: g.profitPct == null ? null : Math.round(pct * 10) / 10,
     weeks,
     mix,
-    // Set on the Pace page. Read through the same clamps, so a stale form on
-    // the Year goal page can't write a booking rate of 7 (meaning 7%) back.
-    pace: readPaceSettings(g.pace),
+    // Set on the Pace page, and carried through here so saving the planned
+    // week doesn't wipe them. Read through the same clamps, so a stale form
+    // can't write a booking rate of 7 (meaning 7%) back.
+    winRatePct: readWinRatePct(g.winRatePct),
+    pace: g.pace,
   };
 
   return write(clean);
@@ -70,7 +72,8 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
 const READERS = ["/portal/goal", "/portal/pace", "/portal/profit", "/portal/finance/goals", "/portal/finance", "/portal/finance/targets", "/portal/finance/board", "/portal/board"];
 
 async function write(clean: YearGoal): Promise<ActionResult> {
-  const res = await saveSettings("yeargoal", clean);
+  // The close rate is stored once, as winRatePct; `pace` keeps the rest.
+  const res = await saveSettings("yeargoal", { ...clean, pace: storedPace(clean.pace) });
   if (!res.ok) {
     return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   }
@@ -112,6 +115,7 @@ export async function savePace(input: {
     year,
     revenue,
     profitPct: pct == null ? null : Math.round(pct * 10) / 10,
-    pace: readPaceSettings(input.pace),
+    winRatePct: input.pace.closeRate == null ? null : readWinRatePct(Math.round(input.pace.closeRate * 1000) / 10),
+    pace: input.pace,
   });
 }

@@ -111,8 +111,10 @@ ok(buildPace({ ...goal, year: 2026 }, none, data) === null, "last year's goal pa
 // ---- profit before GST, and the setting round trip
 const t = monthTargetsFromYearGoal({ ...goal, mix: [] }, "2026-10", { total: 22 }, 5);
 ok(near(t.profit, (3_200_000 / 12 / 1.1) * 0.2), "profit target is 20% of the month before GST ($48.5K)", t.profit);
-const g = readYearGoal({ revenue: 3_200_000, profitPct: 20, year: 2027, pace: { bookRate: 0.7, closeRate: 7, avgSale: "abc" } }, new Date("2026-10-05"));
-ok(g.pace.bookRate === 0.7 && g.pace.closeRate === null && g.pace.avgSale === null, "a rate stored as 7 (meant 7%) is refused, not read as 700%", g.pace);
+const g = readYearGoal({ revenue: 3_200_000, profitPct: 20, year: 2027, pace: { bookRate: 7, avgSale: "abc" } }, new Date("2026-10-05"));
+ok(g.pace.bookRate === null && g.pace.avgSale === null, "a booking rate stored as 7 (meant 7%) is refused, not read as 700%", g.pace);
+const w = readYearGoal({ revenue: 3_200_000, profitPct: 20, year: 2027, winRatePct: 25, pace: { bookRate: 0.7 } }, new Date("2026-10-05"));
+ok(w.pace.closeRate === 0.25 && w.winRatePct === 25 && w.pace.bookRate === 0.7, "the planned close rate is the goal's one win rate, winRatePct", w);
 
 console.log(failed ? `\n${failed} failed` : "\nAll pace checks pass");
 process.exit(failed ? 1 : 0);

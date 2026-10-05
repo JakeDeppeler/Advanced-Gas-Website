@@ -356,6 +356,18 @@ body:has(.screen) .utilbar {
   gap: calc(1 * var(--u));
 }
 
+/* The top-right of a daily card: its status, and under it whatever qualifies
+   the figure. Right-aligned so both read off the same edge as the card. */
+.tile__corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(0.1 * var(--u));
+  text-align: right;
+  min-width: 0;
+}
+.tile__corner .tile__sub { white-space: nowrap; }
+
 .tile__title {
   font-size: calc(1.3 * var(--u));
   font-weight: 800;
@@ -453,6 +465,11 @@ body:has(.screen) .utilbar {
 .meter {
   position: relative;
   height: calc(0.5 * var(--u));
+  /* Never let the column squeeze it away. A card with one more line under the
+     bar than its neighbours — the win rate's "22 of 124 · last 30 days" — shrank
+     this to nothing, so four cards in the row had a bar and the fifth had a gap
+     where one should be. */
+  flex: none;
   border-radius: 999px;
   background: var(--track);
   overflow: hidden;
@@ -465,6 +482,10 @@ body:has(.screen) .utilbar {
   transition: width 600ms ease;
 }
 .meter__fill--accent { background: var(--accent); }
+/* Same contract as the dials: the bar takes the status colour, and the words
+   beside the figure ("Target hit", "Behind") are what actually carry it. */
+.meter__fill.is-ahead { background: var(--ahead-ink); }
+.meter__fill.is-behind { background: var(--behind-ink); }
 
 /* Where the month should be by now. A tick rather than a colour change, so the
    reading survives any form of colour blindness. */
@@ -529,20 +550,14 @@ body:has(.screen) .utilbar {
 .gauge { align-items: center; justify-content: center; gap: calc(0.7 * var(--u)); }
 .gauge > .tile__sub:last-child { margin-top: 0; }
 .gauge__svg { width: 100%; max-height: calc(12 * var(--u)); }
-/* A figure standing where a dial would, for the steps of the funnel that have
-   no target to pace against. Sized to match the dial's own percentage so the
-   row reads as one set of tiles rather than two kinds. */
-.gauge__figure {
-  font-size: calc(3.1 * var(--u));
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--navy);
-  line-height: 1;
-  margin: calc(1.6 * var(--u)) 0 calc(0.6 * var(--u));
-}
-.gauge__figure.tile__value--na { font-size: calc(2.2 * var(--u)); color: var(--ink-muted); }
 .gauge__track { stroke: var(--track); }
+/* The arc carries the status, so the answer is available from further back in
+   the room than the sentence under it is readable. It never carries it alone:
+   every dial writes the status out in words directly below, which is what a
+   viewer who cannot separate the two hues reads. */
 .gauge__fill { stroke: var(--navy); }
+.gauge__fill.is-ahead { stroke: var(--ahead-ink); }
+.gauge__fill.is-behind { stroke: var(--behind-ink); }
 .gauge__pace { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
 .gauge__pct {
   fill: var(--navy);
@@ -577,6 +592,24 @@ body:has(.screen) .utilbar {
   text-overflow: ellipsis;
 }
 .quote__who { font-size: calc(0.92 * var(--u)); color: var(--ink-muted); font-weight: 500; margin-left: calc(0.5 * var(--u)); }
+/* The job number, quieter than the kind of work but in the same line: it is how
+   you find the thing, not what the thing is. */
+.quote__job {
+  font-size: calc(0.86 * var(--u));
+  color: var(--muted-fig);
+  font-weight: 700;
+  margin-left: calc(0.45 * var(--u));
+  font-variant-numeric: tabular-nums;
+}
+/* Today's rows are one job each, so the figure is an average and says so where
+   there was more than one price on it. */
+.quote__value .quote__basis {
+  display: block;
+  font-size: calc(0.78 * var(--u));
+  font-weight: 600;
+  color: var(--muted-fig);
+  text-align: right;
+}
 .quote__value { font-size: calc(1.2 * var(--u)); font-weight: 800; letter-spacing: -0.03em; color: var(--navy); }
 .quote__state { font-size: calc(0.95 * var(--u)); font-weight: 600; text-align: right; }
 

@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
+import { Gauge } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
 
 type Snapshot = {
@@ -522,6 +523,10 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
     );
   }
   const y = p.yearView;
+  const cal = m.paceData?.calendar;
+  // Working days of the month gone, counting today's hours as they pass —
+  // the same "by now" the step cards and the portal use.
+  const monthProgress = cal && cal.month.total > 0 ? (cal.month.elapsed + (cal.todayWorking ? cal.dayFraction : 0)) / cal.month.total : 0;
   return (
     <>
       <span className="band band--year">This year</span>
@@ -532,15 +537,33 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
         <StepCard key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={k === "invoiced" ? p.lastWeek.invoiced : p.lastWeek[k]} />
       ))}
 
+      {/* The month as dials, one per step, against the same funnel the week
+          row and the portal's Pace page use — so "Booked" means quote visits
+          and service calls in every row, never all jobs in one and some in
+          another. */}
       <span className="band band--month">{monthName(now)}</span>
-      {STEP_KEYS.map(({ k, label }) => (
-        <StepCard key={`m-${k}`} label={label} stage={k} s={p.standing.month[k]} compact />
-      ))}
+      {STEP_KEYS.map(({ k, label }) => {
+        const s = p.standing.month[k];
+        return (
+          <Gauge
+            key={`m-${k}`}
+            label={label}
+            achieved={s.done}
+            target={k === "leads" ? null : s.need}
+            progress={monthProgress}
+            format={k === "invoiced" ? money : wholeJobs}
+            unavailable={k === "leads" ? "phone calls aren't counted" : undefined}
+          />
+        );
+      })}
     </>
   );
 }
 
 type StepStanding = NonNullable<Metrics["pace"]>["standing"]["week"]["leads"];
+
+/** A count of jobs, whole. A month's need of 77.9 quotes is 78 on a wall. */
+const wholeJobs = (n: number | null) => (n == null ? NA : Math.round(n).toLocaleString("en-AU"));
 
 /** Whole jobs from ten up, a tenth under it; money in thousands. */
 const stepFig = (stage: string, n: number | null | undefined) => {
@@ -573,7 +596,10 @@ function StepCard({ label, stage, s, last, compact }: { label: string; stage: st
       </div>
       {!leads && (
         <div className="meter meter--ticked">
-          <div className="meter__fill" style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }} />
+          <div
+            className={`meter__fill ${s.verdict === "behind" ? "is-behind" : s.verdict ? "is-ahead" : ""}`}
+            style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }}
+          />
           {tick != null && <span className="meter__pace" style={{ left: `${Math.min(100, tick * 100)}%` }} />}
         </div>
       )}
@@ -722,9 +748,15 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
                 </span>
                 <span className="quote__label">
                   {qr.label}
+                  {/* ServiceTitan's own number, so a figure on the wall can be
+                      looked up without hunting for it by customer and time. */}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
                   {qr.who ? <span className="quote__who">{qr.who}</span> : null}
                 </span>
-                <span className="quote__value">{plain(qr.value)}</span>
+                <span className="quote__value">
+                  {plain(qr.value)}
+                  {qr.options > 1 ? <span className="quote__basis">avg of {qr.options}</span> : null}
+                </span>
                 <span className={`quote__state ${qr.sold ? "status status--ahead" : "status status--quiet"}`}>
                   {qr.sold ? "Sold" : "Open"}
                 </span>
@@ -748,7 +780,10 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           <div className="quotes">
             {m.quotesOutstanding.map((qr) => (
               <div className="quote quote--stack" key={qr.id}>
-                <span className="quote__label">{qr.label}</span>
+                <span className="quote__label">
+                  {qr.label}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
+                </span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0
@@ -1222,7 +1257,10 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
           <div className="quotes">
             {oldest.map((qr) => (
               <div className="quote quote--stack" key={qr.id}>
-                <span className="quote__label">{qr.label}</span>
+                <span className="quote__label">
+                  {qr.label}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
+                </span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0
@@ -1349,114 +1387,6 @@ function RateCard({ label, lines, value, accent }: { label: string; lines: strin
       </span>
     </div>
   );
-}
-
-/**
- * A figure in the shape of the daily cards it sits among.
- *
- * Quoted and win rate have no target to pace against, so they carry no meter —
- * but they were drawn as centred stacks next to three left-aligned cards with
- * their labels on top, and a row where two tiles are built differently from the
- * other three reads as a mistake before it reads as a distinction.
- */
-function DayFigure({
-  label,
-  value,
-  note,
-  lines = [],
-}: {
-  label: string;
-  value: string;
-  note?: string;
-  lines?: string[];
-}) {
-  return (
-    <div className="tile c4">
-      <div className="tile__head">
-        <span className="tile__label">{label}</span>
-      </div>
-      <div className="tile__head">
-        <span className={vcls(value)}>{value}</span>
-        {note && <span className="tile__sub">{note}</span>}
-      </div>
-      {lines.map((l) => (
-        <span className="tile__sub" key={l}>
-          {l}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/**
- * The same, in the shape of the month's dials: label on top, the figure where
- * the arc would be, its lines centred underneath.
- */
-function MonthFigure({ label, value, lines = [] }: { label: string; value: string; lines?: string[] }) {
-  return (
-    <div className="tile gauge c3">
-      <span className="gauge__label">{label}</span>
-      <span className={`${vcls(value)} gauge__figure`}>{value}</span>
-      {lines.map((l) => (
-        <span className="tile__sub" key={l} style={{ textAlign: "center" }}>
-          {l}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function DailyCard({
-  label,
-  achieved,
-  target,
-  plainNumber,
-  dayProgress: elapsed,
-}: {
-  label: string;
-  achieved: number | null;
-  target: number | null;
-  plainNumber?: boolean;
-  /** Share of the 7am-5pm working day gone, drawn as the tick on the bar. */
-  dayProgress?: number;
-}) {
-  const ratio = target && target > 0 && achieved != null ? achieved / target : null;
-  const fmt = (n: number | null) => (plainNumber ? count(n) : plain(n));
-  const state =
-    ratio == null ? null : ratio >= 1 ? "Target hit" : elapsed != null && ratio >= elapsed ? "Ahead" : "Behind";
-
-  return (
-    <div className="tile c4">
-      <div className="tile__head">
-        <span className="tile__label">{label}</span>
-        {state && <span className={`status status--${state === "Behind" ? "behind" : "ahead"}`}>{state}</span>}
-      </div>
-      <div className="tile__head">
-        <span className={vcls(achieved == null ? NA : fmt(achieved))}>
-          {achieved == null ? NA : fmt(achieved)}
-        </span>
-        <span className="tile__sub">{target == null ? "no daily target set" : `of ${fmt(target)}`}</span>
-      </div>
-      <div className="meter meter--ticked">
-        <div className="meter__fill" style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }} />
-        {elapsed != null && target != null && (
-          <span className="meter__pace" style={{ left: `${elapsed * 100}%` }} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function dayProgress(now: Date) {
-  const parts = new Intl.DateTimeFormat("en-AU", {
-    timeZone: "Australia/Melbourne",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).formatToParts(now);
-  const at = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
-  const mins = at("hour") * 60 + at("minute");
-  return Math.min(1, Math.max(0, (mins - 7 * 60) / (10 * 60)));
 }
 
 const clockLabel = (now: Date) =>

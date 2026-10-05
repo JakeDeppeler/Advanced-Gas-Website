@@ -87,6 +87,15 @@ export type YearGoalShape = {
   shape: number[] | null;
   /** Percentage of revenue to keep as profit. */
   profitPct?: number | null;
+  /**
+   * The win rate the business is planning on, as a percentage.
+   *
+   * This is the one new thing the goal has to say, and it buys the quoted
+   * target: to sell a month's share at a 25% win rate you have to put four
+   * times that in front of people. Set on the portal's Year goal page beside
+   * the profit percentage.
+   */
+  winRatePct?: number | null;
   /** The planned week. Only the counts matter here. */
   mix?: Array<{ perWeek: number }>;
 };
@@ -100,9 +109,20 @@ export type MonthTargets = {
   profit: number | null;
   /** Jobs to book this month. A count. */
   bookings: number | null;
+  /** To put in front of customers this month, to sell the above at the planned win rate. */
+  quoted: number | null;
+  /** The planned win rate, as a ratio. Flat across the month — it does not accrue. */
+  winRate: number | null;
 };
 
-const NO_TARGETS: MonthTargets = { revenue: null, sales: null, profit: null, bookings: null };
+const NO_TARGETS: MonthTargets = {
+  revenue: null,
+  sales: null,
+  profit: null,
+  bookings: null,
+  quoted: null,
+  winRate: null,
+};
 
 /**
  * The month's four targets, all from the year goal.
@@ -131,11 +151,19 @@ export function monthTargetsFromYearGoal(
   if (revenue == null || !goal) return NO_TARGETS;
   const pct = goal.profitPct ?? null;
   const perWeek = (goal.mix ?? []).reduce((n, j) => n + (Number.isFinite(j.perWeek) && j.perWeek > 0 ? j.perWeek : 0), 0);
+  // The planned win rate, and what it costs in quoting. Selling a month's share
+  // at a 25% win rate means putting four times that in front of people, which
+  // is the figure the room actually needs each morning — "quote this much
+  // today" rather than "sell this much today", because only the first is a
+  // thing anybody can go and do before lunch.
+  const win = goal.winRatePct != null && goal.winRatePct > 0 && goal.winRatePct <= 100 ? goal.winRatePct / 100 : null;
   return {
     revenue,
     sales: revenue,
     profit: pct != null && pct > 0 ? (revenue / (1 + GST_RATE)) * (pct / 100) : null,
     bookings: perWeek > 0 && daysPerWeek > 0 && workingDays.total > 0 ? Math.round((perWeek * workingDays.total) / daysPerWeek) : null,
+    quoted: win != null ? revenue / win : null,
+    winRate: win,
   };
 }
 

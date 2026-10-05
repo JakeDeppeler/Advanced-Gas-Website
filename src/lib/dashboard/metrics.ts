@@ -12,11 +12,11 @@ import {
   workingDaysInMonth,
   type WorkingCalendar,
 } from "./dates";
-import { buildPace, readPaceSettings, type PaceData, type PaceSettings, type PaceView } from "./pace";
+import { buildPace, type PaceData, type PaceSettings, type PaceView } from "./pace";
 import { computePaceData } from "./paceData";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
-import { currentYear, yearSpans } from "../portal/yearGoal";
+import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
 import {
   commissionFor,
   monthTargetsFromYearGoal,
@@ -220,12 +220,34 @@ export type Metrics = {
   conversionTodayPct: number | null;
 
   /** Today's quotes, newest first, for the Quotes page list. */
-  quotesToday: Array<{ id: number; at: string; label: string; value: number; sold: boolean; who: string | null }>;
+  /**
+   * Today's quoting, one row per job rather than one per option: the value is
+   * the average of what was put in front of that customer, with the count of
+   * options beside it.
+   */
+  quotesToday: Array<{
+    id: number;
+    at: string;
+    label: string;
+    /** ServiceTitan's own job number, for looking the thing up. */
+    jobNumber: string | null;
+    value: number;
+    options: number;
+    sold: boolean;
+    who: string | null;
+  }>;
   /**
    * Open quotes by value, largest first, with how long they have been out.
    * One row per job, valued at the average of the options offered on it.
    */
-  quotesOutstanding: Array<{ id: number; label: string; value: number; options: number; ageDays: number }>;
+  quotesOutstanding: Array<{
+    id: number;
+    label: string;
+    jobNumber: string | null;
+    value: number;
+    options: number;
+    ageDays: number;
+  }>;
   /**
    * Open quotes, still inside the live window, where nothing has been written
    * for a week: the newest option on the job is 7+ days old and none has sold.
@@ -276,6 +298,19 @@ export type Metrics = {
   soldToday: number;
   dailySalesTarget: number | null;
   dailyBookingsTarget: number | null;
+  /**
+   * What has to go out the door in quotes today to stay on for the month.
+   *
+   * The one figure on the board anybody can act on before lunch: "sell $12,000
+   * today" is not a thing a person does, "put $48,000 of work in front of
+   * customers today" is. Derived from the sold target and the planned win rate,
+   * so it moves on its own as either changes.
+   */
+  dailyQuotedTarget: number | null;
+  quotedTargetMonthly: number | null;
+  quotedPacePct: number | null;
+  /** The planned win rate, as a ratio. Flat across the month — it does not accrue. */
+  winRateTarget: number | null;
   /** The configured tiers, so the board can state the thresholds it is measuring against. */
   commissionTiers: CommissionTier[];
   /** Jobs booked today, against the day's share of the monthly target. */
@@ -1038,25 +1073,75 @@ async function serviceTitanMetrics(now: Date) {
 
   const jobIds = [...new Set([...todayRows, ...openRows].map((r) => r.job_id).filter((v): v is number => v != null))];
   const jobTypeById = new Map<number, string>();
+  // ServiceTitan's own job number, which is what anybody standing at the board
+  // types into ServiceTitan to find the thing. The estimate id is ours; the job
+  // number is theirs.
+  const jobNumberById = new Map<number, string>();
   if (jobIds.length) {
-    const jobs = await sbSelect<{ id: number; job_type: string | null }>(
+    const jobs = await sbSelect<{ id: number; job_type: string | null; job_number: string | null }>(
       "st_jobs",
-      [q.select("id,job_type"), `id=in.(${jobIds.slice(0, 200).join(",")})`].join("&"),
+      [q.select("id,job_type,job_number"), `id=in.(${jobIds.slice(0, 200).join(",")})`].join("&"),
     ).catch(() => []);
-    for (const j of jobs) if (j.job_type) jobTypeById.set(Number(j.id), String(j.job_type));
+    for (const j of jobs) {
+      if (j.job_type) jobTypeById.set(Number(j.id), String(j.job_type));
+      if (j.job_number) jobNumberById.set(Number(j.id), String(j.job_number));
+    }
   }
 
   const labelFor = (jobId: number | null) => (jobId != null && jobTypeById.get(jobId)) || "Quote";
+  const numberFor = (jobId: number | null) => (jobId != null ? jobNumberById.get(jobId) ?? null : null);
 
-  const quotesToday = todayRows
-    .filter((r) => r.created_on)
-    .map((r) => ({
-      id: Number(r.id),
-      at: String(r.created_on),
-      label: labelFor(r.job_id),
-      value: Number(r.total ?? 0),
-      sold: Boolean(r.sold_on),
-      who: r.created_by ?? r.sold_by,
+  /**
+   * Today's quoting, one row per job rather than one per option.
+   *
+   * Priced four ways, a single kitchen filled the card: ten rows that all said
+   * "Quotation", all said the same name, all said 1:34pm, and differed only in
+   * the third digit of the price. That is not a list of today's work, it is one
+   * job wearing ten hats, and at four metres it reads as a wall of noise.
+   *
+   * One row a job now, at the average of what was put in front of that
+   * customer, with the option count beside it — the same convention the
+   * outstanding list and the pipeline figures already use.
+   */
+  const todayByJob = new Map<
+    string,
+    { id: number; jobId: number | null; at: string; sum: number; n: number; sold: boolean; who: string | null }
+  >();
+  for (const r of todayRows) {
+    if (!r.created_on) continue;
+    const key = quoteKey(r);
+    const v = Number(r.total ?? 0);
+    const got = todayByJob.get(key);
+    if (got) {
+      got.sum += v;
+      got.n += 1;
+      got.sold = got.sold || Boolean(r.sold_on);
+      // The time shown is when the job was first priced, not when the last
+      // option was saved — the options of one quote are written together.
+      if (Date.parse(String(r.created_on)) < Date.parse(got.at)) got.at = String(r.created_on);
+    } else {
+      todayByJob.set(key, {
+        id: Number(r.id),
+        jobId: r.job_id,
+        at: String(r.created_on),
+        sum: v,
+        n: 1,
+        sold: Boolean(r.sold_on),
+        who: r.created_by ?? r.sold_by,
+      });
+    }
+  }
+
+  const quotesToday = [...todayByJob.values()]
+    .map((j) => ({
+      id: j.id,
+      at: j.at,
+      label: labelFor(j.jobId),
+      jobNumber: numberFor(j.jobId),
+      value: j.n > 0 ? j.sum / j.n : 0,
+      options: j.n,
+      sold: j.sold,
+      who: j.who,
     }))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
     .slice(0, 10);
@@ -1066,7 +1151,16 @@ async function serviceTitanMetrics(now: Date) {
   // One row per quote, not per option — see quoteKey.
   const outByJob = new Map<
     string,
-    { id: number; label: string; sum: number; n: number; biggest: number; oldest: number; newest: number }
+    {
+      id: number;
+      label: string;
+      jobNumber: string | null;
+      sum: number;
+      n: number;
+      biggest: number;
+      oldest: number;
+      newest: number;
+    }
   >();
   for (const r of openRows) {
     const key = quoteKey(r);
@@ -1080,7 +1174,16 @@ async function serviceTitanMetrics(now: Date) {
       got.oldest = Math.max(got.oldest, age);
       got.newest = Math.min(got.newest, age);
     } else {
-      outByJob.set(key, { id: Number(r.id), label: labelFor(r.job_id), sum: v, n: 1, biggest: v, oldest: age, newest: age });
+      outByJob.set(key, {
+        id: Number(r.id),
+        label: labelFor(r.job_id),
+        jobNumber: numberFor(r.job_id),
+        sum: v,
+        n: 1,
+        biggest: v,
+        oldest: age,
+        newest: age,
+      });
     }
   }
 
@@ -1090,7 +1193,14 @@ async function serviceTitanMetrics(now: Date) {
     // strength of its cheaper ones, which is how a commercial fit-out kept
     // appearing on a residential wall.
     .filter((j) => j.biggest < QUOTE_CAP)
-    .map((j) => ({ id: j.id, label: j.label, value: j.sum / j.n, options: j.n, ageDays: j.oldest }))
+    .map((j) => ({
+      id: j.id,
+      label: j.label,
+      jobNumber: j.jobNumber,
+      value: j.sum / j.n,
+      options: j.n,
+      ageDays: j.oldest,
+    }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 6);
 
@@ -1380,6 +1490,8 @@ type Targets = {
   sales: number | null;
   profit: number | null;
   bookings: number | null;
+  quoted: number | null;
+  winRate: number | null;
   tiers: CommissionTier[];
 };
 
@@ -1422,6 +1534,8 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
       sales: t.sales,
       profit: t.profit,
       bookings: t.bookings,
+      quoted: t.quoted,
+      winRate: t.winRate,
       tiers: cfg.commissionTiers,
     },
     calendar,
@@ -1645,7 +1759,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   // degrades to "nothing configured" and the default calendar, which the board
   // already renders as an admitted gap rather than as a zero.
   const { targets, calendar, goal } = await boardConfig(now).catch(() => ({
-    targets: { revenue: null, sales: null, profit: null, bookings: null, tiers: [] } as Targets,
+    targets: { revenue: null, sales: null, profit: null, bookings: null, quoted: null, winRate: null, tiers: [] } as Targets,
     calendar: DEFAULT_WORKING_CALENDAR,
     goal: null as YearGoalShape | null,
   }));
@@ -1688,6 +1802,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const sales = perDay(targets.sales, st.soldMtd);
   const profit = perDay(targets.profit, st.profitMtd);
   const bookings = perDay(targets.bookings, st.bookingsMonth);
+  const quoted = perDay(targets.quoted, st.quotesCreatedMonthValue);
 
   const salesLeaderboard = st.rawLeaderboard.map((r) => ({
     ...r,
@@ -1706,7 +1821,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
 
   // The pace view and this month's job profit. Each degrades on its own to
   // the last snapshot's figures, the same as every other source on the wall.
-  const paceSettings = readPaceSettings((goal as { pace?: unknown } | null)?.pace);
+  const paceSettings = paceSettingsOf(goal);
   // The year's running total starts from the goal's year, or this financial
   // year when no goal is saved yet — so the Pace page can show where the year
   // stands while somebody is still deciding what to aim at.
@@ -1742,6 +1857,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       salesPacePct: sales.pacePct,
       dailySalesTarget: sales.daily,
       dailyBookingsTarget: bookings.daily,
+      dailyQuotedTarget: quoted.daily,
+      quotedTargetMonthly: targets.quoted,
+      quotedPacePct: quoted.pacePct,
+      winRateTarget: targets.winRate,
       commissionTiers: targets.tiers,
       salesAheadBehind: sales.aheadBehind,
       workingDaysLeft: days.remaining,

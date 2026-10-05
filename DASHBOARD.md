@@ -850,6 +850,36 @@ the *snapshot's* time, which advances every thirty seconds whether or not Xero
 answered, so it could never say how old the figures were. It carries the time of
 the last successful read now.
 
+**Every step of the funnel paces against a target.** The month's five tiles are
+all dials, and today's five all carry a daily figure to go. Two of them needed a
+new input, and both come off one number on the year goal:
+
+| Target | Where it comes from |
+|---|---|
+| Win rate | `yeargoal.winRatePct`, a percentage |
+| Quoted, this month | the sold target divided by that win rate |
+| Quoted, today | what is left of the month's quoted target over the working days left |
+
+Quoting is the figure anybody can act on before lunch. "Sell $12,000 today" is
+not a thing a person does; "put $48,000 of work in front of customers today" is,
+and selling a month's share at a 25% win rate means quoting four times it.
+Nothing is stored — the daily number falls out of the monthly one each snapshot,
+so it moves on its own as the month goes and as the goal changes.
+
+**A win rate target is flat, and the dial says so.** It is 25% on the first of
+the month and on the last; there is no share of it to have reached by now, so
+that dial has no pace tick and its status reads "Below target by 28%" rather
+than "Behind pace". Its centre shows the rate itself, not its share of the
+target — 18% against a 25% target is 72% of the way there, and "72%" in the
+middle of a dial labelled Win rate is read as the win rate by everybody who has
+not been told otherwise.
+
+**The dials and bars carry the status colour.** Blue when ahead or hit, orange
+when behind. Colour never carries it alone: every dial writes the status out
+underneath and every daily card puts "Target hit" or "Behind" beside its label,
+which is what a viewer who cannot separate the two hues reads. The colour only
+makes the answer available from further back in the room than the words are.
+
 **Pace reads as a funnel: Quoted, Sold, Booked, Win rate, Invoiced.** It was
 sold / invoiced / profit / booked in no particular order, which is four figures
 rather than one story. Quoted has no target to pace against, so it is a figure
@@ -863,6 +893,17 @@ row where two tiles are built differently from the other three reads as a mistak
 before it reads as a distinction. `DayFigure` takes the shape of the daily cards,
 `MonthFigure` takes the shape of the dials: label on top, the figure where the
 arc would be, its lines centred underneath.
+
+**Since then Pace is laid out by step** (see [Pace: what the goal needs of every
+step](#pace-what-the-goal-needs-of-every-step)). The year strip moved to the top
+and says whether the gap moved since yesterday and last week; the Today row
+became This week, six cards from leads to invoiced; and the month kept its
+dials in the status colour, but six of them, one per step against the funnel's
+month need — so Booked and Quoted mean the same thing in every row on the page.
+The daily quoted target is still computed (`dailyQuotedTarget`) but nothing on
+the wall shows it now; each week card's "N a day to catch up" carries the same
+idea for its own step. `winRatePct` is set on the portal's Pace page as "Plan on
+a close rate", and it is the close rate the funnel plans on.
 
 **Win rate is split by the side of the business.** Real estate is an agent
 deciding on behalf of a landlord; domestic is a householder spending their own
@@ -893,6 +934,23 @@ has already finished moving. Tiles rise and fade in over 380ms, staggered 45ms
 by column and capped at nine so a long table does not take a second and a half
 to finish. One animation per page change, on mount, driven by React's key rather
 than by a ticking state, and off entirely under `prefers-reduced-motion`.
+
+**Written today is one row a job, not one a option.** A single kitchen priced
+four ways filled the card: ten rows that all said "Quotation", all said the same
+name, all said 1:34pm, and differed only in the third digit of the price. That
+is not a list of today's work, it is one job wearing ten hats, and at four
+metres it reads as noise. One row a job now, at the average of what was put in
+front of that customer, with `avg of 5` under the figure where there was more
+than one price — the same convention the outstanding list already uses.
+
+**Both quote lists carry ServiceTitan's job number.** The estimate id is ours;
+the job number is theirs, and it is what somebody standing at the board types in
+to find the thing. Quieter than the kind of work, on the same line.
+
+**The win rate's denominator sits in the card's top-right corner.** It is a
+thirty-day rate in a row headed Today, so it has to say so — and under the bar
+it fell out of the bottom of the tile. Status over denominator where there is
+both.
 
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
