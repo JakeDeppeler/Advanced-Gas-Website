@@ -866,6 +866,23 @@ by column and capped at nine so a long table does not take a second and a half
 to finish. One animation per page change, on mount, driven by React's key rather
 than by a ticking state, and off entirely under `prefers-reduced-motion`.
 
+**Written today is one row a job, not one a option.** A single kitchen priced
+four ways filled the card: ten rows that all said "Quotation", all said the same
+name, all said 1:34pm, and differed only in the third digit of the price. That
+is not a list of today's work, it is one job wearing ten hats, and at four
+metres it reads as noise. One row a job now, at the average of what was put in
+front of that customer, with `avg of 5` under the figure where there was more
+than one price — the same convention the outstanding list already uses.
+
+**Both quote lists carry ServiceTitan's job number.** The estimate id is ours;
+the job number is theirs, and it is what somebody standing at the board types in
+to find the thing. Quieter than the kind of work, on the same line.
+
+**The win rate's denominator sits in the card's top-right corner.** It is a
+thirty-day rate in a row headed Today, so it has to say so — and under the bar
+it fell out of the bottom of the tile. Status over denominator where there is
+both.
+
 **The footer is a light, not a clock.** It read "Synced 4 min ago", which asks
 the room to decide whether four minutes is fine. It now reads **Live · All feeds
 connected** in green, or **Catching up** in amber when the snapshot is over two

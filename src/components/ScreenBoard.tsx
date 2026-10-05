@@ -540,7 +540,7 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
         target={m.winRateTarget}
         format={pct}
         flat
-        foot={live.st ? `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} · last 30 days` : undefined}
+        foot={live.st ? `${count(m.closeRate30dSold)} of ${count(m.closeRate30dQuotes)} · 30 days` : undefined}
       />
       <DailyCard
         label="Invoiced"
@@ -718,9 +718,15 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
                 </span>
                 <span className="quote__label">
                   {qr.label}
+                  {/* ServiceTitan's own number, so a figure on the wall can be
+                      looked up without hunting for it by customer and time. */}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
                   {qr.who ? <span className="quote__who">{qr.who}</span> : null}
                 </span>
-                <span className="quote__value">{plain(qr.value)}</span>
+                <span className="quote__value">
+                  {plain(qr.value)}
+                  {qr.options > 1 ? <span className="quote__basis">avg of {qr.options}</span> : null}
+                </span>
                 <span className={`quote__state ${qr.sold ? "status status--ahead" : "status status--quiet"}`}>
                   {qr.sold ? "Sold" : "Open"}
                 </span>
@@ -744,7 +750,10 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           <div className="quotes">
             {m.quotesOutstanding.map((qr) => (
               <div className="quote quote--stack" key={qr.id}>
-                <span className="quote__label">{qr.label}</span>
+                <span className="quote__label">
+                  {qr.label}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
+                </span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0
@@ -1222,7 +1231,10 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
           <div className="quotes">
             {oldest.map((qr) => (
               <div className="quote quote--stack" key={qr.id}>
-                <span className="quote__label">{qr.label}</span>
+                <span className="quote__label">
+                  {qr.label}
+                  {qr.jobNumber ? <span className="quote__job">#{qr.jobNumber}</span> : null}
+                </span>
                 <span className="quote__value">{plain(qr.value)}</span>
                 <span className={`quote__age ${qr.ageDays >= 7 ? "quote__age--late" : ""}`}>
                   {qr.ageDays === 0
@@ -1388,7 +1400,18 @@ function DailyCard({
     <div className="tile c4">
       <div className="tile__head">
         <span className="tile__label">{label}</span>
-        {state && <span className={`status status--${state === "Behind" ? "behind" : "ahead"}`}>{state}</span>}
+        {/* The corner carries whatever qualifies the figure. The win rate is
+            a thirty-day rate sitting in a row headed Today, so it has to say
+            so — and under the bar it fell out of the bottom of the tile.
+            Status over denominator where there is both. */}
+        {(state || foot) && (
+          <span className="tile__corner">
+            {state && (
+              <b className={`status status--${state === "Behind" ? "behind" : "ahead"}`}>{state}</b>
+            )}
+            {foot && <span className="tile__sub">{foot}</span>}
+          </span>
+        )}
       </div>
       {/* The target sits under the figure, not beside it. Side by side it fitted
           until a figure got long — "$138,431" next to "of $48,310" ran out of a
@@ -1411,7 +1434,6 @@ function DailyCard({
           <span className="meter__pace" style={{ left: `${elapsed * 100}%` }} />
         )}
       </div>
-      {foot && <span className="tile__sub">{foot}</span>}
     </div>
   );
 }
