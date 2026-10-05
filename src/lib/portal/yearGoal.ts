@@ -50,7 +50,35 @@ export type YearGoal = {
    * bookings dial says so rather than inventing a count.
    */
   mix: GoalJob[];
+  /** What the Pace page plans on beyond the goal itself. See pace.ts. */
+  pace: PaceSettings;
 };
+
+/** Settings the business chooses, stored on the year goal row as `pace`. */
+export type PaceSettings = {
+  /** Share of enquiries that turn into a booking, 0–1. Nothing measures it. */
+  bookRate: number | null;
+  /** A close rate to plan on instead of the measured one, 0–1. */
+  closeRate: number | null;
+  /** An average sale to plan on instead of the measured one, including GST. */
+  avgSale: number | null;
+};
+
+export const NO_PACE_SETTINGS: PaceSettings = { bookRate: null, closeRate: null, avgSale: null };
+
+export function readPaceSettings(raw: unknown): PaceSettings {
+  const v = (raw ?? {}) as Record<string, unknown>;
+  const frac = (x: unknown) => {
+    const n = Number(x);
+    return x != null && x !== "" && Number.isFinite(n) && n > 0 && n <= 1 ? n : null;
+  };
+  const amt = Number(v.avgSale);
+  return {
+    bookRate: frac(v.bookRate),
+    closeRate: frac(v.closeRate),
+    avgSale: v.avgSale != null && v.avgSale !== "" && Number.isFinite(amt) && amt > 0 ? amt : null,
+  };
+}
 
 /** One kind of job in the plan. `margin` is a percentage of the job's price. */
 export type GoalJob = { id: string; name: string; avgJob: number; margin: number; perWeek: number };
@@ -63,6 +91,7 @@ export const DEFAULT_YEAR_GOAL: Omit<YearGoal, "year"> = {
   profitPct: null,
   weeks: 48,
   mix: [],
+  pace: NO_PACE_SETTINGS,
 };
 
 /**
@@ -113,6 +142,7 @@ export function readYearGoal(raw: unknown, today: Date): YearGoal {
     profitPct: Number.isFinite(pct) && pct > 0 && pct < 100 ? pct : null,
     weeks: Number.isFinite(weeks) && weeks >= 1 && weeks <= 52 ? Math.round(weeks) : DEFAULT_YEAR_GOAL.weeks,
     mix,
+    pace: readPaceSettings(v.pace),
   };
 }
 

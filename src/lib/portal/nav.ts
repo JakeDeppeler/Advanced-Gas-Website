@@ -117,6 +117,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   const add = (ok: boolean, ...xs: NavItem[]) => { if (ok) items.push(...xs); };
 
   add(office,
+    {
+      href: "/portal/pace", label: "Pace", blurb: "What the goal takes, and are we on it", band: "run", icon: "trend",
+      also: ["pace", "on track", "behind", "ahead", "catch up", "leads needed", "quotes needed", "how many", "funnel", "3.2", "target"],
+    },
     { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The month and the year in numbers", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "target"] },
     { href: "/portal/numbers", label: "The numbers", blurb: "Leads to paid, all in one place", band: "run", icon: "trend", also: ["funnel", "conversion", "leads to paid", "average job"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },

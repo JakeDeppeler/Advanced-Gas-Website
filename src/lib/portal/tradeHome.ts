@@ -63,7 +63,7 @@ export const myOpenQuotes = cache(async (name: string): Promise<MyQuotes> => {
       id: number; total: number | null; created_on: string | null; job_id: number | null;
       customer_id: number | null; business_unit: string | null; created_by: string | null;
     }>("st_estimates", [
-      q.select("id,total,created_on,job_id,customer_id,business_unit,created_by"),
+      q.select("id,total:total_inc,created_on,job_id,customer_id,business_unit,created_by"),
       // A prefix match on first name and surname, then checked properly below.
       `created_by=ilike.${encodeURIComponent(`${parts[0]} ${parts[parts.length - 1].slice(0, 4)}`)}*`,
       q.isNull("sold_on"),

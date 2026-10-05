@@ -59,17 +59,22 @@ thing a wall needs. Nothing real was lost: jobs completed is the line under
 Invoiced, the lead count is the line under Jobs booked, quotes out has a page
 of its own, and the service mix is the job-type table on Performance.
 
-**Pace** is three bands with their names down the left margin, because "63%"
-means three different things on this page and the row it sits in is what says
-which:
+**Pace** is the year goal worked back through every step the money moves
+through — leads, booked, quoted, sold, completed, invoiced — in three bands
+with their names down the left margin:
 
-- **Today** — sold, invoiced and jobs booked against the day's share of the
-  month, where the day's share is
-  `(monthly target − achieved so far) ÷ working days remaining`.
-- **The month** — four dials, each against its monthly target.
-- **This year** — one navy strip: the year to date against the goal, a marker
-  at where the goal says we should be by now, the margin against its target,
-  and jobs a week.
+- **This year** — one navy strip: how far off the goal's line we are, whether
+  that got better or worse since yesterday and since last week, what a week has
+  to invoice from here to land the year, and the margin on this month's jobs.
+- **This week** — the six steps, each done against what the goal needs of it
+  this week, with a tick on the bar where it should be by now and the verdict
+  in words: ▲ ahead, ● on pace, ▼ behind, and how many a day it takes to catch
+  up.
+- **The month** — the same six against the month's need.
+
+The arithmetic is `src/lib/dashboard/pace.ts` and is described under
+[Pace: what the goal needs of every step](#pace-what-the-goal-needs-of-every-step).
+The portal's Pace page runs the same code off the same snapshot.
 
 Sold and invoiced are **two different measures, not two views of one**, and that
 is why both are on the wall. Work sold today is invoiced days or weeks later, so
@@ -469,34 +474,87 @@ screen is what the quote is built from), weekly finance figures in the
 pricebook (no finance product or rate is written down anywhere), and jobs per
 day on the timesheet (ServiceTitan's job assignments aren't synced).
 
-## Profit on every job isn't buildable yet
+## Pace: what the goal needs of every step
 
-The portal design has a **Profit · every job** screen: equipment, materials and
-labour per job, what each cost, what was charged, the mark-up on each and the
-margin that fell out. The design's own footnote reads "Sample jobs for layout",
-which is the right instinct — it cannot be drawn from anything we have.
+Set on the portal's **Pace** page (`/portal/pace`), which writes the same
+`yeargoal` row the Year goal page does. The goal is turnover **including GST**,
+because that is what the business is paid on. Profit is the exception: GST goes
+to the ATO, so 20% profit means 20% of the price before GST, and the monthly
+profit target is the invoiced target ÷ 1.1 × the percentage.
 
-`st_invoices` carries a `cost` column and the sync has never once written to
-it: 5,399 invoices, zero with a cost (checked 3 Oct 2026). There is no
-equipment or materials cost anywhere, and no labour hours per job, so every
-figure on that screen would have to be invented. A made-up margin on a page
-called "profit on every job" is the single most damaging number this product
-could print — somebody would reprice off it.
+Quotes are counted including GST too (`st_estimates.total_inc`, generated from
+ServiceTitan's pre-GST total plus its tax — migration 0040). Before that, sold
+was ex GST and invoiced was inc GST against one target, and the two dials sat
+ten per cent apart before anybody had done anything.
 
-What would make it real, in order of how much work each is:
+### How the goal is worked back
 
-1. **Labour.** `st_jobs` would need hours on site. The charge-out rate already
-   exists and is correct (Costs & capacity derives it from the real crew), so
-   hours alone give a labour cost.
-2. **Materials.** Reece order lines already land in `portal_supply_orders` with
-   a cost. They carry a job reference, so matching them to a job is the join
-   that is missing, not the data.
-3. **Equipment.** The pricebook has the cost of every unit we install; it needs
-   to be recorded against the job it went onto.
+The money doesn't flow down one pipe. Most of it comes through a quote —
+booked, priced, sold, installed — while service and repairs are booked, done
+and billed without one. So the goal splits by the share of invoiced money that
+came through a quote (install and quotation jobs), and each half is worked back
+on its own rates:
 
-Until at least labour and materials are there, the page is not built. The
-figures that *are* sourced — revenue, margin by job type where ServiceTitan
-reports a cost, the year against its goal — are on Finance already.
+| Step | Need |
+|---|---|
+| Invoiced | the goal, shared across the months by the goal's shape |
+| Sold $ | invoiced × share through a quote |
+| Sold (jobs) | sold $ ÷ average sale |
+| Quoted (jobs) | sold ÷ close rate (per job, not per option) |
+| Completed | jobs sold (each becomes an install) + service jobs, where service jobs = the rest of the money ÷ the average service job |
+| Booked | quote visits (quoted × visits booked per job quoted) + service calls (service jobs ÷ the share of service bookings that go ahead) |
+| Leads | booked ÷ the share of leads that book |
+
+A week is five of the month's working days at the month's rate; a day is one.
+"By now" counts today's working hours (7am to 4pm) as they pass, so a step
+doesn't read behind at 9am for work that happens after lunch. Within 5% of the
+line is on pace.
+
+### Where the rates come from
+
+Measured off the replica over the last twelve weeks, but never before
+**1 September 2026**: the Field Plus import landed on 31 August and stamped 985
+jobs and 487 quotes with that date. A rate needs at least eight of whatever it
+divides by (eight quotes, eight service jobs) before it counts. Close rate and
+average sale can be overridden on the Pace page to see what a better close rate
+does to the quoting; nothing reaches the wall until it is saved.
+
+**The booking rate isn't measured, and leads carry no verdict.** Leads counted
+are the website form and ServiceTitan's CRM leads; phone calls aren't recorded
+anywhere the replica can read (ServiceTitan's call log has 17 in five weeks).
+So the business sets the booking rate itself, and the leads step shows its
+count but never "behind" — that would be a statement about the data, not the
+phones.
+
+### The year line
+
+Invoiced since the goal's year started against where the goal says we should
+be by this moment: whole months at their share, this month pro rata on calendar
+days, and today by the hour. The same gap is worked out at the end of yesterday
+and a week ago, so the board can say whether we moved closer or further. "To
+catch up" is this month's planned week × (money left ÷ plan left). The run-rate
+landing on the portal is the last 28 days carried to the year end, and says it
+doesn't allow for the season.
+
+## Profit on every job
+
+`/portal/profit`, and the margin on the board's year strip. Each job's price
+before GST, less the equipment and materials cost ServiceTitan's pricebook puts
+on its invoice lines (`st_invoices.items_cost`, generated — migration 0040),
+less its hours at the crew's fully loaded cost an hour from Costs & capacity
+(wages and on-costs plus each billable hour's share of every overhead). What's
+left is profit after overheads — the same thing the goal's percentage means.
+
+Hours are Payroll's job timesheets (arrived to done, per tech) where that scope
+is granted (`st_timesheets`), otherwise the hours the invoice's labour lines
+were sold with (`st_invoices.sold_hours`). Sold hours are what the job was
+priced to take, so until timesheets sync a job that ran long looks better than
+it was; the page says which it used on every row.
+
+A job is only costed when all three are known. An install with no equipment
+cost on its invoice would otherwise read as 70% margin, so it is listed with
+the reason instead. $0 invoices (warranty, quote visits) are left out. The
+board shows a margin only once five jobs are costed.
 
 ## Verify the ServiceTitan field mapping
 

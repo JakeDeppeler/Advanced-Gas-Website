@@ -162,3 +162,53 @@ export function workingDaysInMonth(
 
   return { total, elapsed, remaining };
 }
+
+/**
+ * Working days in the Melbourne week (Monday to Sunday) containing `now`, split
+ * the same way as the month: today counts as remaining.
+ */
+export function workingDaysInWeek(
+  now: Date = new Date(),
+  cal: WorkingCalendar = DEFAULT_WORKING_CALENDAR,
+): { total: number; elapsed: number; remaining: number } {
+  const start = startOfWeekMelbourne(now);
+  const today = isoDateMelbourne(now);
+  let total = 0;
+  let elapsed = 0;
+  let remaining = 0;
+  // Midday steps for the same daylight-saving reason as the month.
+  for (let i = 0, cursor = start; i < 7; i++) {
+    if (isWorkingDay(cursor, cal)) {
+      total += 1;
+      if (isoDateMelbourne(cursor) < today) elapsed += 1;
+      else remaining += 1;
+    }
+    cursor = startOfDayMelbourne(new Date(cursor.getTime() + 36 * 3600000));
+  }
+  return { total, elapsed, remaining };
+}
+
+/** Working days from `from` to `to`, both YYYY-MM-DD and inclusive. */
+export function workingDaysBetween(from: string, to: string, cal: WorkingCalendar = DEFAULT_WORKING_CALENDAR): number {
+  if (to < from) return 0;
+  let n = 0;
+  let cursor = startOfDayMelbourne(new Date(`${from}T12:00:00+10:00`));
+  for (let guard = 0; guard < 800; guard++) {
+    const iso = isoDateMelbourne(cursor);
+    if (iso > to) break;
+    if (isWorkingDay(cursor, cal)) n += 1;
+    cursor = startOfDayMelbourne(new Date(cursor.getTime() + 36 * 3600000));
+  }
+  return n;
+}
+
+/**
+ * How far through today's working hours we are, 0–1: nothing before 7am,
+ * all of it from 4pm. Pace by now has to allow for today being half done, or
+ * every stage reads behind at 9am for work that happens after lunch.
+ */
+export function workdayFraction(now: Date = new Date()): number {
+  const p = parts(now);
+  const h = p.hour + p.minute / 60;
+  return Math.min(1, Math.max(0, (h - 7) / 9));
+}

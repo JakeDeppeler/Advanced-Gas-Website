@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "check:trade": "tsx scripts/check-trade.ts"
+    "check:trade": "tsx scripts/check-trade.ts",
+    "check:pace": "tsx scripts/check-pace.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",

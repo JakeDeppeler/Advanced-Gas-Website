@@ -12,6 +12,11 @@ import {
   workingDaysInMonth,
   type WorkingCalendar,
 } from "./dates";
+import { buildPace, readPaceSettings, type PaceData, type PaceSettings, type PaceView } from "./pace";
+import { computePaceData } from "./paceData";
+import { jobProfits, type ProfitSummary } from "./jobProfit";
+import { crewFigures } from "../portal/crewRates";
+import { currentYear, yearSpans } from "../portal/yearGoal";
 import {
   commissionFor,
   monthTargetsFromYearGoal,
@@ -348,6 +353,19 @@ export type Metrics = {
    * sale from one it has already cheered.
    */
   recentSales: Array<{ id: number; name: string | null; value: number; soldOn: string }>;
+
+  /**
+   * The year goal worked back through every stage — leads, booked, quoted,
+   * sold, completed, invoiced — with where each stands this week and month,
+   * and the year's gap now against yesterday and a week ago. Null with no
+   * goal for this year. Built in pace.ts; the portal's Pace page rebuilds it
+   * from `paceData` when somebody tries a different close rate.
+   */
+  pace: PaceView | null;
+  paceData: PaceData | null;
+  paceSettings: PaceSettings | null;
+  /** Profit on the jobs invoiced this month, before GST. See jobProfit.ts. */
+  jobProfitMonth: ProfitSummary | null;
 };
 
 export type Snapshot = {
@@ -544,7 +562,7 @@ async function serviceTitanMetrics(now: Date) {
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,customer_id,total,created_on,business_unit"),
+        q.select("id,job_id,customer_id,total:total_inc,created_on,business_unit"),
         q.isNull("sold_on"),
         q.notIn("status", ["Dismissed", "Expired"]),
       ].join("&"),
@@ -613,7 +631,7 @@ async function serviceTitanMetrics(now: Date) {
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,sold_on,business_unit,customer_id,created_on,created_by,total"),
+        q.select("id,job_id,sold_on,business_unit,customer_id,created_on,created_by,total:total_inc"),
         q.gte("created_on", addDays(now, -30).toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -697,7 +715,7 @@ async function serviceTitanMetrics(now: Date) {
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,total,created_on,sold_on,created_by,business_unit,customer_id"),
+        q.select("id,job_id,total:total_inc,created_on,sold_on,created_by,business_unit,customer_id"),
         q.gte("created_on", monthStart.toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -931,7 +949,7 @@ async function serviceTitanMetrics(now: Date) {
     }>(
       "st_estimates",
       [
-        q.select("id,sold_by,created_by,total,sold_on,business_unit,job_id,customer_id,created_on"),
+        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on"),
         q.gte("sold_on", monthStart.toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -988,7 +1006,7 @@ async function serviceTitanMetrics(now: Date) {
     }>(
       "st_estimates",
       [
-        q.select("id,total,created_on,job_id,customer_id,business_unit"),
+        q.select("id,total:total_inc,created_on,job_id,customer_id,business_unit"),
         q.isNull("sold_on"),
         q.notIn("status", ["Dismissed", "Expired"]),
         q.gte("created_on", addDays(now, -QUOTE_LIST_DAYS).toISOString()),
@@ -1010,7 +1028,7 @@ async function serviceTitanMetrics(now: Date) {
         }>(
           "st_estimates",
           [
-            q.select("id,total,created_on,sold_on,job_id,sold_by,created_by,business_unit"),
+            q.select("id,total:total_inc,created_on,sold_on,job_id,sold_by,created_by,business_unit"),
             q.gte("created_on", startOfDayMelbourne(now).toISOString()),
             q.lt("total", String(QUOTE_CAP)),
           ].join("&"),
@@ -1657,8 +1675,9 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     const weeks = Math.max(1, (Date.parse(isoDateMelbourne(now)) - Date.parse(yFrom)) / (7 * 86_400_000));
     jobsPerWeek = yearJobs != null ? Math.round(yearJobs / weeks) : previous?.metrics.jobsPerWeek ?? null;
   }
-  const marginGoal =
-    targets.profit && targets.revenue && targets.revenue > 0 ? targets.profit / targets.revenue : null;
+  // The goal's own percentage. Profit over invoiced would read it ten per cent
+  // low, because the invoiced target carries GST and the profit target doesn't.
+  const marginGoal = targets.profit != null && goal?.profitPct ? goal.profitPct / 100 : null;
   const days = workingDaysInMonth(now, calendar);
 
   // The arithmetic lives in boardSettings.ts so the portal's editor can preview
@@ -1684,6 +1703,20 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     .catch(() => false);
 
   const { rawLeaderboard: _raw, ...stMetrics } = st;
+
+  // The pace view and this month's job profit. Each degrades on its own to
+  // the last snapshot's figures, the same as every other source on the wall.
+  const paceSettings = readPaceSettings((goal as { pace?: unknown } | null)?.pace);
+  // The year's running total starts from the goal's year, or this financial
+  // year when no goal is saved yet — so the Pace page can show where the year
+  // stands while somebody is still deciding what to aim at.
+  const paceFrom = yFrom ?? yearSpans("financial", currentYear("financial", now))[0].from;
+  const paceData = await computePaceData(now, calendar, paceFrom).catch(() => previous?.metrics.paceData ?? null);
+  const pace = paceData ? buildPace(goal, paceSettings, paceData) : null;
+  const jobProfitMonth = await crewFigures()
+    .then((c) => jobProfits(isoDateMelbourne(startOfMonthMelbourne(now)), isoDateMelbourne(now), c.costPerHr, goal?.profitPct ?? null))
+    .then((r) => r.summary)
+    .catch(() => previous?.metrics.jobProfitMonth ?? null);
 
   return {
     metrics: {
@@ -1716,6 +1749,10 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,
+      pace,
+      paceData,
+      paceSettings,
+      jobProfitMonth,
     },
     sources,
   };

@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { saveSettings } from "@/lib/portal/db";
-import type { YearGoal } from "@/lib/portal/yearGoal";
+import { getSettings, saveSettings } from "@/lib/portal/db";
+import { readPaceSettings, readYearGoal, type PaceSettings, type YearGoal } from "@/lib/portal/yearGoal";
 
 export type ActionResult = { ok: boolean; error?: string };
 
@@ -58,16 +58,60 @@ export async function saveYearGoal(g: YearGoal): Promise<ActionResult> {
     profitPct: g.profitPct == null ? null : Math.round(pct * 10) / 10,
     weeks,
     mix,
+    // Set on the Pace page. Read through the same clamps, so a stale form on
+    // the Year goal page can't write a booking rate of 7 (meaning 7%) back.
+    pace: readPaceSettings(g.pace),
   };
 
+  return write(clean);
+}
+
+/** Every page that reads the goal, so each shows the saved figure straight away. */
+const READERS = ["/portal/goal", "/portal/pace", "/portal/profit", "/portal/finance/goals", "/portal/finance", "/portal/finance/targets", "/portal/finance/board", "/portal/board"];
+
+async function write(clean: YearGoal): Promise<ActionResult> {
   const res = await saveSettings("yeargoal", clean);
   if (!res.ok) {
     return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   }
   // Everything that reads the goal. The wall board itself picks it up on its
   // next snapshot, within the minute.
-  for (const path of ["/portal/goal", "/portal/finance/goals", "/portal/finance", "/portal/finance/targets", "/portal/finance/board", "/portal/board"]) {
-    revalidatePath(path);
-  }
+  for (const path of READERS) revalidatePath(path);
   return { ok: true };
+}
+
+/**
+ * The Pace page's save: the goal's headline (how much, at what profit, for
+ * which year) and the rates it plans on. Merged into the stored row rather than
+ * replacing it, so the week planned on the Year goal page survives a change of
+ * close rate here.
+ */
+export async function savePace(input: {
+  revenue: number;
+  profitPct: number | null;
+  basis: YearGoal["basis"];
+  year: number;
+  pace: PaceSettings;
+}): Promise<ActionResult> {
+  const me = await getPortalUser();
+  if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
+
+  const revenue = Math.round(Number(input.revenue));
+  if (!Number.isFinite(revenue) || revenue <= 0) return { ok: false, error: "The goal needs a dollar figure." };
+  const year = Math.round(Number(input.year));
+  if (!Number.isFinite(year) || year < 2000 || year > 2100) return { ok: false, error: "That year doesn't look right." };
+  const pct = input.profitPct == null ? null : Number(input.profitPct);
+  if (pct != null && (!Number.isFinite(pct) || pct <= 0 || pct >= 100)) {
+    return { ok: false, error: "Profit has to be a percentage between 0 and 100." };
+  }
+
+  const stored = readYearGoal(await getSettings<unknown>("yeargoal").catch(() => null), new Date());
+  return write({
+    ...stored,
+    basis: input.basis === "calendar" ? "calendar" : "financial",
+    year,
+    revenue,
+    profitPct: pct == null ? null : Math.round(pct * 10) / 10,
+    pace: readPaceSettings(input.pace),
+  });
 }
