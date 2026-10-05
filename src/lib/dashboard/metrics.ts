@@ -152,11 +152,14 @@ export type Metrics = {
   jobsCompletedToday: number;
   jobsCompletedWeek: number;
   /**
-   * Of the jobs finished today, how many have an invoice with money on it.
-   * Never the count of invoice records: ServiceTitan opens one with every job,
-   * so that number is always the whole day and says nothing.
+   * Jobs billed today — an invoice with money on it whose lines were put on
+   * today — whenever the job itself was done. Never the count of invoice
+   * records: ServiceTitan opens one with every job, so that number is always
+   * the whole day and says nothing.
    */
   jobsInvoicedToday: number;
+  /** Of those, the jobs that were finished on an earlier day: the office catching up. */
+  jobsInvoicedTodayEarlier: number;
   /**
    * Null, not zero, when nothing in the replica carries an appointment time.
    * Every job row has `scheduled_on` null — ServiceTitan's jobs export doesn't
@@ -579,29 +582,26 @@ async function serviceTitanMetrics(now: Date) {
   const jobsScheduledNext7 = anyScheduled > 0 ? scheduledSoon : null;
 
   /**
-   * How many of the jobs finished today have actually been billed.
+   * Everything billed today, whenever the job was done.
    *
-   * Counted on the invoice carrying a value, not on an invoice existing:
-   * ServiceTitan opens an invoice record with every job, so every completed job
-   * in the replica has one and "10 of 10 invoiced" would be a statement about
-   * ServiceTitan's data model rather than about the office. On a typical day
-   * one or two of ten carry a figure, and closing that gap is the afternoon's
-   * admin.
+   * By the day the invoice's lines were last put on (`invoiced_on`, migration
+   * 0041), not ServiceTitan's invoice date, which is the day the job finished:
+   * a job done on Thursday and priced on Monday is Monday's invoicing, and
+   * counted by invoice date it vanished into last week while the office spent
+   * the morning billing it. The month and the year still go by invoice date,
+   * the date Xero carries.
+   *
+   * Jobs are counted on an invoice with money on it, never on the invoice
+   * existing: ServiceTitan opens one with every job.
    */
-  const completedTodayIds = (
-    await sbSelect<{ id: number }>(
-      "st_jobs",
-      [q.select("id"), q.gte("completed_on", startOfDayMelbourne(now).toISOString())].join("&"),
-    ).catch(() => [])
-  ).map((j) => Number(j.id));
-  let jobsInvoicedToday = 0;
-  if (completedTodayIds.length) {
-    const billed = await sbSelect<{ job_id: number | null }>(
-      "st_invoices",
-      [q.select("job_id"), `job_id=in.(${completedTodayIds.slice(0, 200).join(",")})`, q.gt("total", "0")].join("&"),
-    ).catch(() => []);
-    jobsInvoicedToday = new Set(billed.map((i) => Number(i.job_id))).size;
-  }
+  const billedToday = await sbSelect<{ id: number; job_id: number | null; total: number | null; invoice_date: string | null }>(
+    "st_invoices",
+    [q.select("id,job_id,total,invoice_date"), q.eq("invoiced_on", today)].join("&"),
+  );
+  const pricedToday = billedToday.filter((i) => Number(i.total ?? 0) > 0);
+  const jobOf = (i: { id: number; job_id: number | null }) => (i.job_id != null ? `j${i.job_id}` : `i${i.id}`);
+  const jobsInvoicedToday = new Set(pricedToday.map(jobOf)).size;
+  const jobsInvoicedTodayEarlier = new Set(pricedToday.filter((i) => i.invoice_date != null && i.invoice_date < today).map(jobOf)).size;
 
   /**
    * Open quotes, split at the outstanding window.
@@ -913,7 +913,7 @@ async function serviceTitanMetrics(now: Date) {
     : null;
 
   const invoiceCountMonth = invoices.length;
-  const invoiceCountToday = invoices.filter((i) => i.invoice_date === today).length;
+  const invoiceCountToday = pricedToday.length;
   const avgInvoiceValue = invoiceCountMonth ? revenueInvoicedMtd / invoiceCountMonth : null;
 
   // Margin is only meaningful over the invoices that actually carry a cost, and
@@ -922,9 +922,8 @@ async function serviceTitanMetrics(now: Date) {
   const costedRevenue = costed.reduce((s, i) => s + Number(i.total ?? 0), 0);
   const marginPct =
     profitMtd != null && profitCoverage >= 0.5 && costedRevenue > 0 ? profitMtd / costedRevenue : null;
-  const revenueToday = invoices
-    .filter((i) => i.invoice_date === today)
-    .reduce((s, i) => s + Number(i.total ?? 0), 0);
+  // Credits and adjustments billed today count against it, as they do on the books.
+  const revenueToday = billedToday.reduce((s, i) => s + Number(i.total ?? 0), 0);
 
   // Job types for the month, not a rolling ninety days. The page is headed
   // "October so far" and the two tiles above read the month, so a table summing
@@ -1434,6 +1433,7 @@ async function serviceTitanMetrics(now: Date) {
     jobsCompletedToday,
     jobsCompletedWeek,
     jobsInvoicedToday,
+    jobsInvoicedTodayEarlier,
     jobsScheduledNext7,
     topJobSuburbs,
     highestTicket,
@@ -1719,6 +1719,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobsCompletedToday: prev?.jobsCompletedToday ?? 0,
       jobsCompletedWeek: prev?.jobsCompletedWeek ?? 0,
       jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
+      jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
       // next week's bookings, and zero would claim it does.
       jobsScheduledNext7: prev?.jobsScheduledNext7 ?? null,
