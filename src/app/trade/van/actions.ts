@@ -267,7 +267,8 @@ export async function takeFromFactory(input: { lines: { itemId: string; qty: num
   if (!me) return { ok: false, error: "Sign in again." };
   const shelf = await listStock();
   if (!shelf) return { ok: false, error: "The factory list can't be read right now." };
-  const known = new Set(shelf.map((i) => i.id));
+  // Not tools: one of those goes out to a named person through the office.
+  const known = new Set(shelf.filter((i) => i.section !== "tools").map((i) => i.id));
   const lines = input.lines.filter((l) => known.has(l.itemId) && Number.isFinite(l.qty) && l.qty > 0).slice(0, 40);
   if (!lines.length) return { ok: false, error: "Nothing picked yet." };
   const forWhat = input.forWhat.trim().slice(0, 120) || "Van";

@@ -6,6 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Figs, ago } from "@/components/portal/Figs";
+import { QuietQuotes } from "@/components/portal/QuietQuotes";
 import { latestBoard, monthName } from "@/lib/portal/office";
 import { money, pct } from "@/lib/portal/format";
 
@@ -39,7 +40,8 @@ function QuoteTable({ rows, ageLabel }: { rows: Q[]; ageLabel: string }) {
  *
  * Counted per job, not per option: good, better and best on one job are one
  * quote, worth the average of what was offered, because at most one of them
- * sells. The lists are the ones to act on — the quotes gone quiet, and the
+ * sells. The lists are the ones to act on — the quotes gone quiet, longest
+ * quiet first by default because that is the order to ring them in, and the
  * biggest still waiting.
  */
 export default async function QuotesPage() {
@@ -98,10 +100,7 @@ export default async function QuotesPage() {
         {!m || (m.quotesQuietCount ?? 0) === 0 ? (
           <p className="pt-rep__empty">{!m ? "The board hasn't made its first snapshot yet." : m.quotesQuiet === undefined ? "Counted from the board's next refresh." : "Nothing has gone quiet."}</p>
         ) : (
-          <>
-            <QuoteTable rows={quiet} ageLabel="Quiet for" />
-            {(m.quotesQuietCount ?? 0) > quiet.length && <p className="pt-panel__sub">The {quiet.length} largest of {m.quotesQuietCount}.</p>}
-          </>
+          <QuietQuotes rows={quiet} total={m.quotesQuietCount ?? quiet.length} />
         )}
       </section>
 
