@@ -48,6 +48,22 @@ export const ZONE_LABEL: Record<Verdict, string> = {
   ahead: "Ahead",
 };
 
+/**
+ * What each word means, in the footer key beside it.
+ *
+ * Without these the room can see that something is Close and not how close.
+ * Worse, the two rows quote their shortfall in different units — the week in
+ * jobs ("Behind 2.5"), the month in points of the month ("Behind pace by 5%") —
+ * so neither of those numbers tells you which band you are in either. The bands
+ * are the one scale all twelve dials share, and the key is where it is stated.
+ */
+export const ZONE_BAND: Record<Verdict, string> = {
+  behind: "under 75%",
+  close: "75–90%",
+  track: "90–110%",
+  ahead: "over 110%",
+};
+
 /** Done over what should be done by now. Null when the goal can't say. */
 export function paceIndex(done: number | null | undefined, byNow: number | null | undefined): number | null {
   if (done == null || byNow == null) return null;

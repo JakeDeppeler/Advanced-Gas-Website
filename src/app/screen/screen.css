@@ -880,9 +880,14 @@ body:has(.screen) .utilbar {
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: calc(1.5 * var(--u));
+  gap: calc(1.1 * var(--u));
+  /* Centred out of the flow, so its width is a share of the footer and it wrapped
+     into three ragged lines. It is one line or it is not a key. */
+  white-space: nowrap;
 }
-.lg { display: inline-flex; align-items: center; gap: calc(0.45 * var(--u)); color: rgba(255, 255, 255, 0.86); font-weight: 600; }
+.lg__head { color: rgba(255, 255, 255, 0.6); font-weight: 600; }
+.lg { display: inline-flex; align-items: center; gap: calc(0.4 * var(--u)); color: rgba(255, 255, 255, 0.86); font-weight: 600; }
+.lg em { font-style: normal; font-weight: 600; color: rgba(255, 255, 255, 0.55); }
 .lg__dot { width: calc(0.6 * var(--u)); height: calc(0.6 * var(--u)); border-radius: 50%; }
 .lg__dot.is-behind { background: #f4604f; }
 .lg__dot.is-close { background: #f0a53c; }

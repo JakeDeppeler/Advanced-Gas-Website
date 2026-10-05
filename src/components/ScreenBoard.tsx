@@ -5,7 +5,7 @@ import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
-import { Gauge, ZONES, ZONE_LABEL, paceIndex, verdictOf, type Verdict } from "./screen/Gauge";
+import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, type Verdict } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
 
 type Snapshot = {
@@ -362,15 +362,19 @@ export function ScreenBoard({
               : "Waiting on a refresh"
             : degraded.map(([n, sc]) => `${n} ${sc.state}${sc.detail ? ` — ${sc.detail}` : ""}`).join(" · ")}
         </span>
-        {/* The dials' key, on the page that has dials. Four words and four dots
-            is what lets somebody who has never been told read the colours — and
-            it is the reason the dials are allowed to use red and green at all. */}
+        {/* The dials' key, on the page that has dials. The words and dots are
+            what let somebody who has never been told read the colours — and
+            they are the reason the dials may use red and green at all. The
+            bands beside them are what says how close Close is: the two rows
+            quote their shortfall in different units, so neither of those
+            numbers answers it. */}
         {page === 1 && (
           <span className="screen__legend">
+            <b className="lg__head">Done of what the goal needs by now</b>
             {ZONES.map((z) => (
               <span key={z.k} className="lg">
                 <i className={`lg__dot is-${z.k}`} aria-hidden />
-                {ZONE_LABEL[z.k]}
+                {ZONE_LABEL[z.k]} <em>{ZONE_BAND[z.k]}</em>
               </span>
             ))}
           </span>
@@ -777,7 +781,10 @@ function YearPace({ y, margin, costed, goalPct }: {
         </span>
       </div>
       <div className="year__side">
-        <span className="year__k">Job margin · month</span>
+        {/* The sample size sits in the key line: a 34% margin over seven jobs is
+            a different statement from a 34% margin over the month, and the strip
+            has no room to say it twice. */}
+        <span className="year__k">Job margin · {costed > 0 ? `${costed} ${costed === 1 ? "job" : "jobs"}` : "month"}</span>
         <span className={`year__v ${marginVerdict ? `is-${marginVerdict}` : ""}`}>
           {margin == null ? NA : pct(margin)}
           {margin != null && goalPct != null ? (
@@ -785,8 +792,6 @@ function YearPace({ y, margin, costed, goalPct }: {
               {" "}
               of {goalPct}%{marginVerdict ? ` · ${marginVerdict}` : ""}
             </em>
-          ) : costed > 0 ? (
-            <em> {costed} costed</em>
           ) : null}
         </span>
       </div>
