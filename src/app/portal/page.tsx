@@ -3,11 +3,12 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { BANDS, BAND_BLURB, BAND_LABEL, ICON, byBand, portalNav } from "@/lib/portal/nav";
+import { BANDS, BAND_BLURB, BAND_LABEL, byBand, portalNav } from "@/lib/portal/nav";
+import { navBadges } from "@/lib/portal/navBadges";
+import { NavTiles } from "@/components/portal/NavTiles";
 import { localToday } from "@/lib/portal/xero";
 import { money } from "@/lib/portal/format";
-import { crewRequests, latestBoard, leadsThisMonth, savedGoal, shortMoney, vanIssues } from "@/lib/portal/office";
-import { seenSet, waitingNotices, noticeKey } from "@/lib/portal/notices";
+import { crewRequests, latestBoard, savedGoal, shortMoney, vanIssues } from "@/lib/portal/office";
 import { lowStockCount } from "@/lib/portal/stock";
 
 export const dynamic = "force-dynamic";
@@ -32,15 +33,14 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   if (!user) redirect("/portal/login");
 
   const office = can(user, "overhead");
-  const [board, leads, issues, waiting, seen, goal, low, asks] = await Promise.all([
+  const [board, issues, goal, low, asks, badges] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
-    office ? leadsThisMonth() : Promise.resolve(null),
     office ? vanIssues() : Promise.resolve([]),
-    waitingNotices(user).catch(() => []),
-    seenSet(user).catch(() => new Set<string>()),
     office ? savedGoal() : Promise.resolve(null),
     office ? lowStockCount() : Promise.resolve(null),
     office ? crewRequests() : Promise.resolve({ orders: [], leave: [], incidents: [] }),
+    // The counts on the cards, shared with each side-bar tab's page.
+    navBadges(user),
   ]);
 
   const first = user.name.split(" ")[0];
@@ -88,22 +88,6 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   if (low && low > 0) {
     lines.push({ n: low, text: `factory stock ${plural(low, "line")} at or under the minimum`, href: "/portal/stock" });
   }
-
-  // ---- the counts on the cards, only where something real is behind them
-  const badges: Record<string, string> = {};
-  if (leads && leads.total > 0) badges["/portal/leads"] = leads.total.toLocaleString("en-AU");
-  if (m && m.estimatesOpenCount > 0) badges["/portal/quotes"] = `${m.estimatesOpenCount} out`;
-  if (m && (m.overdueCount ?? 0) > 0) badges["/portal/money"] = `${m.overdueCount} overdue`;
-  const vans = new Set([
-    ...waiting.filter((n) => n.href.startsWith("/portal/vehicles/")).map((n) => n.href),
-    ...issues.map((i) => `/portal/vehicles/${i.vehicleId}`),
-  ]);
-  if (vans.size) badges["/portal/vehicles"] = `${vans.size} to look at`;
-  const unread = waiting.filter((n) => !seen.has(noticeKey(n))).length;
-  if (unread) badges["/portal/notifications"] = `${unread} new`;
-  if (low && low > 0) badges["/portal/stock"] = `${low} low`;
-  const crewWaiting = asks.incidents.length + asks.leave.length + asks.orders.length;
-  if (crewWaiting) badges["/portal/requests"] = `${crewWaiting} waiting`;
 
   // Melbourne's date, not the server's: a board that says Thursday on a Friday
   // morning in Pakenham is wrong in the way people notice first.
@@ -173,24 +157,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
             return (
               <section className="pt-band" key={band} aria-label={BAND_LABEL[band]}>
                 <h2 className="pt-band__h">{BAND_LABEL[band]} <span>{blurb}</span></h2>
-                <div className="pt-band__grid">
-                  {inBand.map((it) => (
-                    <Link key={it.href} href={it.href} prefetch={it.external ? false : undefined} className="pt-tile">
-                      <span className="pt-tile__top">
-                        <span className="pt-tile__ico" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d={ICON[it.icon]} />
-                          </svg>
-                        </span>
-                        {badges[it.href] && <span className="pt-tile__badge">{badges[it.href]}</span>}
-                      </span>
-                      <span className="pt-tile__text">
-                        <span className="pt-tile__name" data-short={it.short}><span>{it.label}</span></span>
-                        <span className="pt-tile__blurb">{it.blurb}</span>
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+                <NavTiles items={inBand} badges={badges} />
               </section>
             );
           })}

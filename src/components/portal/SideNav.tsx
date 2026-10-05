@@ -8,13 +8,14 @@ import { usePathname, useSearchParams } from "next/navigation";
  * The team portal's side bar, to the design's SideNav: Home, then the seven
  * tabs the home page is grouped into.
  *
- * Open it is 288 wide and each tab is a header: tapping one shows only that
- * tab's pages. That is what stops it becoming the sidebar the portal dropped
- * in October, which carried every destination open at once and had grown
- * three levels of groups to fit them. Small it is 84 wide, icons only, and a
- * tab's pages slide out beside it. « and » switch between the two; the choice
- * is kept in a cookie, so the server draws the right width first time and the
- * page doesn't jump on load.
+ * Open it is 288 wide. A tab's header goes to that tab's page — its options
+ * as cards — and the arrow beside it shows only that tab's pages in the bar.
+ * One tab open at a time is what stops it becoming the sidebar the portal
+ * dropped in October, which had every destination open at once and three
+ * levels of groups to fit them. Small it is 84 wide, icons only: a tab's icon
+ * goes to its page too, and hovering it slides its pages out beside the bar.
+ * « and » switch between the two; the choice is kept in a cookie, so the
+ * server draws the right width first time and the page doesn't jump on load.
  *
  * On a phone it is a drawer, opened from the menu button in the top bar.
  *
@@ -72,7 +73,9 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
   const query = useSearchParams() ?? new URLSearchParams();
   const active = activeHref(tabs, path, new URLSearchParams(query.toString()));
   const home = path === "/portal";
-  const activeTab = tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;
+  // A tab's own page (/portal/section/run) belongs to that tab.
+  const sectionKey = path.startsWith("/portal/section/") ? path.split("/")[3] ?? null : null;
+  const activeTab = sectionKey ?? tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;
 
   const [smallPref, setSmall] = useState(initialSmall);
   // On a phone the bar is a drawer, and a drawer of bare icons would be a
@@ -86,6 +89,17 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
   // Phone: the drawer.
   const [drawer, setDrawer] = useState(false);
   const ref = useRef<HTMLElement>(null);
+  // Hover opens a small tab's pages and leaving closes them, a moment later,
+  // so the pointer can cross the gap from the icon to the list.
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const show = (key: string) => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setFlyout(key);
+  };
+  const hideSoon = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setFlyout(null), 220);
+  };
 
   // Moving to another page closes anything that slid out, and opens the tab
   // the new page belongs to.
@@ -131,8 +145,6 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
     }
   }
 
-  const fly = tabs.find((t) => t.key === flyout) ?? null;
-
   return (
     <>
       <aside ref={ref} className={`pt-side${small ? " is-small" : ""}${drawer ? " is-drawer" : ""}`} aria-label="Portal">
@@ -159,26 +171,46 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
             {tabs.map((t) => {
               const isOpen = small ? flyout === t.key : openTab === t.key;
               const holds = t.key === activeTab;
+              const href = `/portal/section/${t.key}`;
+              const onPage = sectionKey === t.key;
               return (
-                <li key={t.key} className={`pt-side__tab${holds ? " has-active" : ""}${isOpen ? " is-open" : ""}`}>
-                  <button
-                    type="button"
-                    className="pt-side__head"
-                    aria-expanded={isOpen}
-                    aria-controls={small ? "pt-side-fly" : `pt-side-${t.key}`}
-                    title={small ? t.label : undefined}
-                    onClick={() => (small ? setFlyout((f) => (f === t.key ? null : t.key)) : setOpenTab((o) => (o === t.key ? null : t.key)))}
-                  >
-                    <Ic d={t.icon} />
+                <li
+                  key={t.key}
+                  className={`pt-side__tab${holds ? " has-active" : ""}${isOpen ? " is-open" : ""}`}
+                  onMouseEnter={small ? () => show(t.key) : undefined}
+                  onMouseLeave={small ? hideSoon : undefined}
+                >
+                  {/* The header goes to the tab's page — its options as cards —
+                      open or small. Open, the arrow beside it shows the pages
+                      here without leaving the one you're on. */}
+                  <div className="pt-side__headrow">
+                    <Link
+                      href={href}
+                      className={`pt-side__head${onPage ? " is-on" : ""}`}
+                      aria-current={onPage ? "page" : undefined}
+                      title={small ? t.label : undefined}
+                      aria-label={small ? t.label : undefined}
+                      onFocus={small ? () => show(t.key) : undefined}
+                      onClick={() => { if (!small) setOpenTab(t.key); }}
+                    >
+                      <Ic d={t.icon} />
+                      {!small && <span className="pt-side__label">{t.label}</span>}
+                    </Link>
                     {!small && (
-                      <>
-                        <span className="pt-side__label">{t.label}</span>
+                      <button
+                        type="button"
+                        className="pt-side__chevbtn"
+                        aria-expanded={isOpen}
+                        aria-controls={`pt-side-${t.key}`}
+                        aria-label={`${isOpen ? "Hide" : "Show"} the ${t.label} pages`}
+                        onClick={() => setOpenTab((o) => (o === t.key ? null : t.key))}
+                      >
                         <svg className="pt-side__chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                           <path d="M9 6l6 6-6 6" />
                         </svg>
-                      </>
+                      </button>
                     )}
-                  </button>
+                  </div>
                   {!small && isOpen && (
                     <ul className="pt-side__pages" id={`pt-side-${t.key}`}>
                       {t.pages.map((p) => (
@@ -189,6 +221,20 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
                         </li>
                       ))}
                     </ul>
+                  )}
+                  {small && isOpen && (
+                    <div className="pt-side__fly" role="region" aria-label={t.label} onMouseEnter={() => show(t.key)} onMouseLeave={hideSoon}>
+                      <Link href={href} className="pt-side__flyh">{t.label} →</Link>
+                      <ul>
+                        {t.pages.map((p) => (
+                          <li key={p.href}>
+                            <Link href={p.href} className={`pt-side__page${p.href === active ? " is-on" : ""}`} aria-current={p.href === active ? "page" : undefined}>
+                              {p.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                 </li>
               );
@@ -207,20 +253,6 @@ export function SideNav({ tabs, small: initialSmall }: { tabs: SideTab[]; small:
           </button>
         </div>
 
-        {small && fly && (
-          <div className="pt-side__fly" id="pt-side-fly" role="region" aria-label={fly.label}>
-            <span className="pt-side__flyh">{fly.label}</span>
-            <ul>
-              {fly.pages.map((p) => (
-                <li key={p.href}>
-                  <Link href={p.href} className={`pt-side__page${p.href === active ? " is-on" : ""}`} aria-current={p.href === active ? "page" : undefined}>
-                    {p.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </aside>
       {drawer && <button type="button" className="pt-side__scrim" aria-label="Close the menu" onClick={() => setDrawer(false)} />}
     </>

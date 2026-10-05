@@ -68,12 +68,20 @@
 .pt-side svg { flex: none; }
 /* Where you are: filled white, the way an active tab is filled navy on the
    cream — a fill and a weight, never a colour on its own. */
-.pt-side__home.is-on { background: #fff; color: var(--pt-ink); }
-.pt-side__tab.has-active > .pt-side__head { color: #fff; }
+.pt-side__home.is-on, .pt-side__head.is-on { background: #fff; color: var(--pt-ink); }
+.pt-side__tab.has-active .pt-side__head:not(.is-on) { color: #fff; }
+.pt-side__headrow { display: flex; align-items: center; gap: 2px; border-radius: var(--pt-r-sm); }
+.pt-side__headrow .pt-side__head { flex: 1; min-width: 0; }
+.pt-side__chevbtn {
+  appearance: none; flex: none; display: grid; place-items: center; width: 38px; height: 46px; border: 0; border-radius: 12px;
+  background: none; color: rgba(255, 255, 255, 0.75); cursor: pointer;
+}
+.pt-side__chevbtn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .pt-side__label { flex: 1; min-width: 0; }
 .pt-side__chev { opacity: 0.7; transition: transform 160ms ease; }
 .pt-side__tab.is-open .pt-side__chev { transform: rotate(90deg); }
-.pt-side__tab.is-open > .pt-side__head { background: rgba(255, 255, 255, 0.06); color: #fff; }
+.pt-side__tab.is-open > .pt-side__headrow { background: rgba(255, 255, 255, 0.06); }
+.pt-side__tab.is-open .pt-side__head:not(.is-on) { color: #fff; }
 .pt-side__pages, .pt-side__fly ul { list-style: none; margin: 4px 0 8px; padding: 0 0 0 34px; display: flex; flex-direction: column; gap: 2px; }
 .pt-side__page {
   display: block; padding: 8px 12px; border-radius: 10px; text-decoration: none;
@@ -92,8 +100,9 @@
 .pt-side.is-small .pt-side__home, .pt-side.is-small .pt-side__head, .pt-side.is-small .pt-side__site, .pt-side.is-small .pt-side__size {
   width: 56px; padding: 0; justify-content: center; min-height: 48px;
 }
-.pt-side.is-small .pt-side__tab.has-active > .pt-side__head { background: rgba(255, 255, 255, 0.13); box-shadow: inset 3px 0 0 var(--pt-accent-mark); }
-.pt-side.is-small .pt-side__tab.is-open > .pt-side__head { background: #fff; color: var(--pt-ink); box-shadow: none; }
+.pt-side.is-small .pt-side__headrow { justify-content: center; }
+.pt-side.is-small .pt-side__tab.has-active .pt-side__head:not(.is-on) { background: rgba(255, 255, 255, 0.13); box-shadow: inset 3px 0 0 var(--pt-accent-mark); }
+.pt-side.is-small .pt-side__tab.is-open .pt-side__head { background: #fff; color: var(--pt-ink); box-shadow: none; }
 /* A small tab's pages slide out beside the bar. Fixed, so the bar's own
    scrolling can't clip it. */
 .pt-side__fly {
@@ -103,7 +112,8 @@
   animation: pt-fly 160ms ease-out;
 }
 .pt-side__fly ul { padding-left: 0; }
-.pt-side__flyh { display: block; margin: 0 0 10px 12px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.7); }
+.pt-side__flyh { display: block; margin: 0 0 10px; padding: 6px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255, 255, 255, 0.75); text-decoration: none; }
+.pt-side__flyh:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
 @keyframes pt-fly { from { transform: translateX(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .pt-side__fly { animation: none; } .pt-side__chev { transition: none; } }
 .pt-side__scrim { display: none; }
