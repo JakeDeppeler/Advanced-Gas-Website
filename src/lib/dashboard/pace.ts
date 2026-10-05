@@ -192,6 +192,11 @@ export function yearPlan(goal: number, r: Rates): { plan: Plan; lanes: Lanes } {
 
   const sold = soldWork != null && r.avgSale.value ? soldWork / r.avgSale.value : null;
   const quoted = sold != null && r.closeRate.value ? sold / r.closeRate.value : null;
+  // What has to go in front of customers to sell that much of it. The close
+  // rate is counted in jobs, so this is the work the plan needs quoted, not a
+  // separate rate — sell a quarter of what you write and you have to write four
+  // times what you mean to sell.
+  const quotedWork = soldWork != null && r.closeRate.value ? soldWork / r.closeRate.value : null;
   const quoteVisits = quoted != null && r.visitsPerQuote.value != null ? quoted * r.visitsPerQuote.value : null;
 
   // No service money in the plan is no service jobs, not an unknown number.
@@ -208,7 +213,7 @@ export function yearPlan(goal: number, r: Rates): { plan: Plan; lanes: Lanes } {
     plan: {
       leads: { count: leads, value: null },
       booked: { count: booked, value: null },
-      quoted: { count: quoted, value: null },
+      quoted: { count: quoted, value: quotedWork },
       sold: { count: sold, value: soldWork },
       completed: { count: completed, value: null },
       invoiced: { count: null, value: goal },
@@ -322,6 +327,13 @@ export type PaceCounts = {
   leads: number | null;
   booked: number | null;
   quoted: number | null;
+  /**
+   * What those quotes were worth, one figure per job at the average of the
+   * options offered. Summing every option counts good, better and best as
+   * three quotes, and at most one of them sells — the same basis the
+   * outstanding list and the close rate already use.
+   */
+  quotedValue: number | null;
   sold: number | null;
   soldValue: number | null;
   completed: number | null;
@@ -380,7 +392,7 @@ export type PaceView = {
   month: Plan;
   week: Plan;
   day: Plan;
-  standing: { today: Record<Stage, Standing>; week: Record<Stage, Standing>; month: Record<Stage, Standing> };
+  standing: { today: Record<Step, Standing>; week: Record<Step, Standing>; month: Record<Step, Standing> };
   lastWeek: PaceCounts;
   thisWeek: PaceCounts;
   yearView: YearView | null;
@@ -388,7 +400,23 @@ export type PaceView = {
   leadsPartial: boolean;
 };
 
-const actualOf = (c: PaceCounts, s: Stage): number | null => (s === "sold" ? c.sold : c[s]);
+/**
+ * The stages, plus what the quoting was worth.
+ *
+ * Quote value is not a seventh stage of the funnel — it is the third one in
+ * dollars — so it lives beside `Stage` rather than in it. The plan already
+ * carries it (`plan.quoted.value`), and the wall shows it in place of leads,
+ * which nothing counts the phone calls behind.
+ */
+export type Step = Stage | "quotedValue";
+export const STEPS: Step[] = ["leads", "booked", "quoted", "quotedValue", "sold", "completed", "invoiced"];
+
+const actualOf = (c: PaceCounts, s: Step): number | null =>
+  s === "quotedValue" ? c.quotedValue : s === "sold" ? c.sold : c[s];
+
+/** Money for the two money steps, a count for the rest. */
+const needOf = (plan: Plan, s: Step): number | null =>
+  s === "quotedValue" ? plan.quoted.value : s === "invoiced" ? plan.invoiced.value : plan[s].count;
 
 /**
  * The whole view: the plan at every scale, where each stage stands this week
@@ -417,10 +445,9 @@ export function buildPace(goal: PaceGoal | null, settings: PaceSettings, d: Pace
   const monthElapsed = cal.month.total > 0 ? (cal.month.elapsed + frac) / cal.month.total : 0;
 
   const stand = (plan: Plan, counts: PaceCounts, elapsed: number, left: number) => {
-    const out = {} as Record<Stage, Standing>;
-    for (const s of STAGES) {
-      const need = s === "invoiced" ? plan[s].value : plan[s].count;
-      const st = standingOf(need, actualOf(counts, s), elapsed, left);
+    const out = {} as Record<Step, Standing>;
+    for (const s of STEPS) {
+      const st = standingOf(needOf(plan, s), actualOf(counts, s), elapsed, left);
       // Leads are only partly counted — no phone calls — so "behind" would be
       // a statement about the data, not the phones. The figures stay; the
       // verdict doesn't.

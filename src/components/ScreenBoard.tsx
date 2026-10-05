@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
+import type { Step } from "@/lib/dashboard/pace";
 import { Gauge } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
 
@@ -409,10 +410,19 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         value={st.plain(m.soldToday, live)}
         foot={soldJobs == null ? undefined : `${count(soldJobs)} ${soldJobs === 1 ? "job" : "jobs"} sold`}
       />
+      {/* How many of today's finished jobs have been billed, beside the money.
+          The gap between the two is the afternoon's admin, and it is the one
+          thing on this page the office can close out before going home. */}
       <HeroCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
-        foot={doneJobs == null ? undefined : `${count(doneJobs)} ${doneJobs === 1 ? "job" : "jobs"} completed`}
+        foot={
+          doneJobs == null
+            ? undefined
+            : doneJobs === 0
+              ? "no jobs completed yet"
+              : `${count(m.jobsInvoicedToday)} of ${count(doneJobs)} completed jobs invoiced`
+        }
       />
       <HeroCard
         label="Jobs booked today"
@@ -499,10 +509,19 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
  * calls aren't recorded anywhere the board can read, so "behind" would be a
  * statement about the data rather than the phones.
  */
-const STEP_KEYS: Array<{ k: "leads" | "booked" | "quoted" | "sold" | "completed" | "invoiced"; label: string }> = [
-  { k: "leads", label: "Leads" },
+/**
+ * The funnel across the page, one card a column.
+ *
+ * Leads came off. Nothing counts the phone calls behind a lead — ServiceTitan's
+ * Telecom scope is a separate grant — so the card drew no verdict, said "calls
+ * not counted" underneath, and took a sixth of the row to do it. In its place
+ * is what the quoting was worth, which is the figure the quoting step is
+ * actually judged on and the one anybody can act on before lunch.
+ */
+const STEP_KEYS: Array<{ k: Step; label: string }> = [
   { k: "booked", label: "Booked" },
   { k: "quoted", label: "Quoted" },
+  { k: "quotedValue", label: "Quote value" },
   { k: "sold", label: "Sold" },
   { k: "completed", label: "Completed" },
   { k: "invoiced", label: "Invoiced" },
@@ -529,12 +548,11 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
   const monthProgress = cal && cal.month.total > 0 ? (cal.month.elapsed + (cal.todayWorking ? cal.dayFraction : 0)) / cal.month.total : 0;
   return (
     <>
-      <span className="band band--year">This year</span>
-      <YearPace y={y} margin={m.jobProfitMonth?.margin ?? null} costed={m.jobProfitMonth?.costed ?? 0} goalPct={p.profitPct} />
-
-      <span className="band band--today">This week</span>
+      {/* The week first, the month under it, the year at the foot. Nearest
+          first: the week is the one anybody can still change. */}
+      <span className="band band--week">This week</span>
       {STEP_KEYS.map(({ k, label }) => (
-        <StepCard key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={k === "invoiced" ? p.lastWeek.invoiced : p.lastWeek[k]} />
+        <StepCard key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
       ))}
 
       {/* The month as dials, one per step, against the same funnel the week
@@ -549,16 +567,22 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
             key={`m-${k}`}
             label={label}
             achieved={s.done}
-            target={k === "leads" ? null : s.need}
+            target={s.need}
             progress={monthProgress}
-            format={k === "invoiced" ? money : wholeJobs}
-            unavailable={k === "leads" ? "phone calls aren't counted" : undefined}
+            format={k === "invoiced" || k === "quotedValue" ? money : wholeJobs}
           />
         );
       })}
+
+      <span className="band band--year">This year</span>
+      <YearPace y={y} margin={m.jobProfitMonth?.margin ?? null} costed={m.jobProfitMonth?.costed ?? 0} goalPct={p.profitPct} />
     </>
   );
 }
+
+/** Last week's figure for a step. Quote value is the one the counts don't hold. */
+const lastWeekOf = (c: NonNullable<Metrics["pace"]>["lastWeek"], k: Step): number | null =>
+  k === "quotedValue" ? c.quotedValue : c[k];
 
 type StepStanding = NonNullable<Metrics["pace"]>["standing"]["week"]["leads"];
 
@@ -566,9 +590,10 @@ type StepStanding = NonNullable<Metrics["pace"]>["standing"]["week"]["leads"];
 const wholeJobs = (n: number | null) => (n == null ? NA : Math.round(n).toLocaleString("en-AU"));
 
 /** Whole jobs from ten up, a tenth under it; money in thousands. */
+const isMoneyStep = (stage: string) => stage === "invoiced" || stage === "quotedValue";
 const stepFig = (stage: string, n: number | null | undefined) => {
   if (n == null) return NA;
-  if (stage === "invoiced") return money(n);
+  if (isMoneyStep(stage)) return money(n);
   return n >= 10 ? Math.round(n).toLocaleString("en-AU") : (Math.round(n * 10) / 10).toLocaleString("en-AU");
 };
 
@@ -577,45 +602,33 @@ const stepFig = (stage: string, n: number | null | undefined) => {
  * now, and the verdict in words with a glyph — never the colour alone.
  */
 function StepCard({ label, stage, s, last, compact }: { label: string; stage: string; s: StepStanding; last?: number | null; compact?: boolean }) {
-  const leads = stage === "leads";
   const ratio = s.need && s.need > 0 && s.done != null ? s.done / s.need : null;
-  const tick = s.need && s.need > 0 && s.byNow != null ? s.byNow / s.need : null;
+  const pace = s.need && s.need > 0 && s.byNow != null ? s.byNow / s.need : null;
   const gap = s.gap == null ? null : stepFig(stage, Math.abs(s.gap));
   const verdict =
-    leads ? null
-      : s.verdict === "ahead" ? { cls: "ahead", text: `▲ Ahead ${gap}` }
-        : s.verdict === "behind" ? { cls: "behind", text: `▼ Behind ${gap}` }
-          : s.verdict === "on" ? { cls: "ahead", text: "● On pace" }
-            : null;
+    s.verdict === "ahead" ? { cls: "ahead", text: `▲ Ahead ${gap}` }
+      : s.verdict === "behind" ? { cls: "behind", text: `▼ Behind ${gap}` }
+        : s.verdict === "on" ? { cls: "ahead", text: "● On pace" }
+          : null;
   return (
     <div className={`tile pstep ${compact ? "pstep--compact" : ""}`}>
       <span className="tile__label">{label}</span>
       <div className="pstep__fig">
         <span className={vcls(stepFig(stage, s.done))}>{stepFig(stage, s.done)}</span>
-        {!leads && <span className="tile__sub">{s.need == null ? "no target yet" : `of ${stepFig(stage, s.need)}`}</span>}
+        <span className="tile__sub">{s.need == null ? "no target yet" : `of ${stepFig(stage, s.need)}`}</span>
       </div>
-      {!leads && (
-        <div className="meter meter--ticked">
-          <div
-            className={`meter__fill ${s.verdict === "behind" ? "is-behind" : s.verdict ? "is-ahead" : ""}`}
-            style={{ width: `${Math.min(100, (ratio ?? 0) * 100)}%` }}
-          />
-          {tick != null && <span className="meter__pace" style={{ left: `${Math.min(100, tick * 100)}%` }} />}
-        </div>
-      )}
+      <Bullet ratio={ratio} pace={pace} hasTarget={s.need != null && s.need > 0} />
       {verdict ? (
         <span className={`status status--${verdict.cls}`}>{verdict.text}</span>
       ) : (
-        <span className="status status--quiet">{leads ? "No verdict" : NA}</span>
+        <span className="status status--quiet">{NA}</span>
       )}
       <span className="tile__sub">
-        {leads
-          ? "calls not counted"
-          : s.verdict === "behind" && s.perDayLeft != null
-            ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
-            : last != null
-              ? `last week ${stepFig(stage, last)}`
-              : s.byNow != null ? `${stepFig(stage, s.byNow)} by now` : ""}
+        {s.verdict === "behind" && s.perDayLeft != null
+          ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
+          : last != null
+            ? `last week ${stepFig(stage, last)}`
+            : s.byNow != null ? `${stepFig(stage, s.byNow)} by now` : ""}
       </span>
     </div>
   );
@@ -654,10 +667,8 @@ function YearPace({ y, margin, costed, goalPct }: {
         <span className={`year__gap ${behind ? "is-behind" : ""}`}>
           {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
         </span>
-        <span className="year__track">
-          <span className="year__fill" style={{ width: `${Math.min(100, (y.ytd / y.goal) * 100)}%` }} />
-          <span className="year__mark" style={{ left: `${Math.min(100, (y.byNow / y.goal) * 100)}%` }} />
-        </span>
+        {/* The same bar as the week cards, in the strip's own colours. */}
+        <Bullet ratio={y.ytd / y.goal} pace={y.byNow / y.goal} hasTarget dark />
         <span className="year__have">
           {money(y.ytd)} <em>invoiced of {money(y.goal)} · the line: {money(y.byNow)} by now</em>
         </span>
@@ -1037,6 +1048,29 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
     margin: t.profit != null && t.revenue > 0 ? t.profit / t.revenue : null,
   }));
 
+  /**
+   * Margin, or — when there is none to show — each type's share of the month.
+   *
+   * The job-type table's margin comes off `st_invoices.cost`, and not one
+   * invoice in the replica carries one: 0 of 5,415. So the column was five empty
+   * grey tracks and a column of dashes, which from four metres reads as a broken
+   * chart rather than as missing data, and Jake asked why the line was grey.
+   *
+   * A column that has never once held a figure is not holding a place, it is
+   * taking one. Share of the month's invoicing goes there instead — measured,
+   * and it answers what the table is actually read for, which is where the
+   * month's money came from. The navy tile above still carries a real margin,
+   * worked per job from equipment cost and hours (see jobProfit.ts), and this
+   * column comes back on its own the day ServiceTitan starts sending a cost.
+   */
+  const anyMargin = rows.some((t) => t.margin != null);
+  const share = (revenue: number) => (m.revenueInvoicedMtd > 0 ? revenue / m.revenueInvoicedMtd : null);
+
+  // The tile's margin is the job-level one, not the invoice column's: the
+  // invoice column has never once been populated, so a tile built on it read
+  // "—" on every single day it has been up.
+  const jp = m.jobProfitMonth;
+
   return (
     <>
       {/* Three cards, and each says which population it counts. Jobs booked is
@@ -1051,15 +1085,24 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
         value={st.money(m.revenueInvoicedMtd, live)}
         foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
       />
-      {/* Profit came off: it has read "—" on every single day, because 0 of the
-          29 invoices this month carry a cost. Margin stays because Jake asked
-          for it, and it says why it is blank rather than showing a zero. */}
+      {/* Profit came off: it read "—" on every single day, because no invoice in
+          the tenant carries a cost. Margin stays because Jake asked for it, and
+          it is now the per-job figure — price before GST, less equipment and
+          materials, less the hours at what an hour of the crew costs — with the
+          jobs it could cost said underneath, so a margin off four jobs never
+          passes as a margin off the month. */}
       <HeadCard
         navy
-        label="Margin"
-        value={live.st ? pct(m.marginPct) : NA}
-        suffix={goal != null && m.marginPct != null ? `of ${pct(goal)}` : undefined}
-        foot={m.marginPct == null && live.st ? "no cost on any invoice yet" : undefined}
+        label="Job margin"
+        value={live.st ? pct(jp?.margin ?? null) : NA}
+        suffix={goal != null && jp?.margin != null ? `of ${pct(goal)}` : undefined}
+        foot={
+          !live.st
+            ? undefined
+            : jp == null || jp.costed === 0
+              ? "no job costed this month yet"
+              : `over ${count(jp.costed)} of ${count(jp.jobs)} jobs billed`
+        }
       />
 
       <div className="tile c12">
@@ -1088,12 +1131,13 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
               <span>Invoices</span>
               <span>Revenue</span>
               <span className="jt__marginhead">
-                Margin{goal != null ? ` · line is the ${pct(goal)} goal` : ""}
+                {anyMargin ? `Margin${goal != null ? ` · line is the ${pct(goal)} goal` : ""}` : "Share of the month"}
               </span>
               <span />
             </div>
             {rows.map((t) => {
               const under = goal != null && t.margin != null && t.margin < goal;
+              const part = anyMargin ? null : share(t.revenue);
               return (
                 <div className="jt__row" key={t.jobType}>
                   <span className="jt__name">{t.jobType}</span>
@@ -1101,23 +1145,30 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                   <span className="jt__n">{count(t.jobs)}</span>
                   <span className="jt__n">{money(t.revenue)}</span>
                   <span className="jt__bar">
-                    {t.margin == null ? null : (
-                      <>
-                        {/* Scaled to twice the goal, so a bar at the goal sits
-                            mid-track and the line has somewhere to be. Without
-                            a goal the scale is the best margin on the page. */}
-                        <span
-                          className={`jt__fill ${under ? "is-under" : "is-over"}`}
-                          style={{
-                            width: `${Math.min(100, (t.margin / (goal != null ? goal * 2 : Math.max(0.01, ...rows.map((r) => r.margin ?? 0)))) * 100)}%`,
-                          }}
-                        />
-                        {goal != null && <span className="jt__goal" />}
-                      </>
+                    {anyMargin ? (
+                      t.margin == null ? null : (
+                        <>
+                          {/* Scaled to twice the goal, so a bar at the goal sits
+                              mid-track and the line has somewhere to be. Without
+                              a goal the scale is the best margin on the page. */}
+                          <span
+                            className={`jt__fill ${under ? "is-under" : "is-over"}`}
+                            style={{
+                              width: `${Math.min(100, (t.margin / (goal != null ? goal * 2 : Math.max(0.01, ...rows.map((r) => r.margin ?? 0)))) * 100)}%`,
+                            }}
+                          />
+                          {goal != null && <span className="jt__goal" />}
+                        </>
+                      )
+                    ) : part == null ? null : (
+                      // Share of the whole month, so the bars sit against the
+                      // figure in the tile above rather than against each other
+                      // — the top row is not automatically a full track.
+                      <span className="jt__fill" style={{ width: `${Math.min(100, part * 100)}%` }} />
                     )}
                   </span>
-                  <span className={`jt__pct ${t.margin == null ? "" : under ? "is-under" : "is-over"}`}>
-                    {t.margin == null ? NA : pct(t.margin)}
+                  <span className={`jt__pct ${anyMargin ? (t.margin == null ? "" : under ? "is-under" : "is-over") : "jt__pct--quiet"}`}>
+                    {anyMargin ? (t.margin == null ? NA : pct(t.margin)) : part == null ? NA : pct(part)}
                   </span>
                 </div>
               );
@@ -1135,8 +1186,12 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
                   gets read off the wall and repeated. */}
               <span className="jt__n">{plain(m.revenueInvoicedMtd)}</span>
               <span />
-              <span className={`jt__pct ${m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over"}`}>
-                {m.marginPct == null ? NA : pct(m.marginPct)}
+              <span
+                className={`jt__pct ${
+                  anyMargin ? (m.marginPct == null ? "" : goal != null && m.marginPct < goal ? "is-under" : "is-over") : "jt__pct--quiet"
+                }`}
+              >
+                {anyMargin ? (m.marginPct == null ? NA : pct(m.marginPct)) : "100%"}
               </span>
             </div>
           </div>
@@ -1385,6 +1440,85 @@ function RateCard({ label, lines, value, accent }: { label: string; lines: strin
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+/**
+ * The pace bar: three zones, the goal, and where we actually are.
+ *
+ * Jake asked for red, amber and green with the goal marked and a dark line for
+ * where we have got to, which is a bullet chart — and a bullet chart suits this
+ * page better than the single fill it replaces, because a fill says "this much"
+ * and nothing about whether this much is any good.
+ *
+ * The boundaries are the pace, not fixed fractions of the target. Green starts
+ * exactly where the week has got to, so being in the green means being on or
+ * ahead of pace and nothing else — the same test the verdict underneath
+ * applies. Fixed boundaries read more calmly but they disagree with that
+ * verdict twice a day: on Tuesday morning a quarter of the week's target is
+ * comfortably ahead and would have sat in the red. A bar and a label
+ * contradicting each other on one card is how a wall stops being believed.
+ *
+ * The red zone growing through the week is the point of it: stand still and the
+ * bar you have to clear rises past you.
+ *
+ * The track runs a quarter past the goal rather than stopping at it. A bar that
+ * pins at 100% cannot show a good week — $60K against a $48K target looked
+ * identical to $48K exactly — and the headroom fixes the goal at four fifths of
+ * every track on the page, marked by a gap twice the width of the others rather
+ * than by a line, which is one mark fewer on a 9px band.
+ *
+ * Colour is not carrying this, per the board's rule: the zones are in a fixed
+ * order with gaps between them, the one the figure lands in is drawn at full
+ * strength against the others' half, and the verdict is written underneath.
+ */
+const HEADROOM = 1.25;
+
+function Bullet({
+  ratio,
+  pace,
+  hasTarget,
+  dark,
+}: {
+  ratio: number | null;
+  pace: number | null;
+  hasTarget: boolean;
+  /** On the navy year strip, where the zones and the bar need the other end of the scale. */
+  dark?: boolean;
+}) {
+  // No target, no verdict: an empty track, and the line above it says why.
+  if (!hasTarget || ratio == null) return <div className="meter" />;
+
+  const clamp = (n: number) => Math.min(1, Math.max(0, n));
+  // Nothing expected yet — first thing Monday — is measured against the whole
+  // period, not against zero, which would paint the entire bar green.
+  const p = pace == null || pace <= 0 ? 1 : pace;
+  const low = clamp((0.75 * p) / HEADROOM);
+  const mid = clamp(p / HEADROOM);
+  const GOAL = 1 / HEADROOM;
+  const zone = ratio >= p ? "high" : ratio >= 0.75 * p ? "mid" : "low";
+
+  // The gap between zones comes out of each zone's right edge rather than going
+  // between them, so the boundaries land on the arithmetic and not a pixel or
+  // two past it.
+  const span = (from: number, to: number) => ({
+    left: `${from * 100}%`,
+    width: `max(0px, calc(${(to - from) * 100}% - var(--zone-gap)))`,
+  });
+
+  return (
+    <div className={`meter meter--bullet is-${zone}${dark ? " meter--dark" : ""}`}>
+      <span className="meter__zone meter__zone--low" style={span(0, low)} />
+      <span className="meter__zone meter__zone--mid" style={span(low, mid)} />
+      {/* Green twice, split at the goal by a gap twice the width of the others.
+          One green running the whole way would hide the goal; a separate mark
+          for it is one more thing on a 9px band than it can carry. The second
+          green is the headroom — a week that beat its target has somewhere to
+          show it. */}
+      <span className="meter__zone meter__zone--high is-goal" style={span(mid, GOAL)} />
+      <span className="meter__zone meter__zone--high" style={{ left: `${GOAL * 100}%`, right: 0 }} />
+      <span className="meter__now" style={{ width: `${clamp(ratio / HEADROOM) * 100}%` }} />
     </div>
   );
 }

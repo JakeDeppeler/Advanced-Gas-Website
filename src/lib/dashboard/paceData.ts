@@ -66,9 +66,13 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       "st_jobs",
       [q.select("completed_on,job_type,status"), q.gte("completed_on", fromTs)].join("&"),
     ),
-    sbSelect<{ id: number; job_id: number | null; customer_id: number | null; created_on: string | null; business_unit: string | null }>(
+    sbSelect<{ id: number; job_id: number | null; customer_id: number | null; created_on: string | null; value: number | null; business_unit: string | null }>(
       "st_estimates",
-      [q.select("id,job_id,customer_id,created_on,business_unit"), q.gte("created_on", fromTs), q.lt("total", String(QUOTE_CAP))].join("&"),
+      [
+        q.select("id,job_id,customer_id,created_on,value:total_inc,business_unit"),
+        q.gte("created_on", fromTs),
+        q.lt("total", String(QUOTE_CAP)),
+      ].join("&"),
     ),
     sbSelect<{ id: number; job_id: number | null; customer_id: number | null; created_on: string | null; sold_on: string | null; value: number | null; business_unit: string | null }>(
       "st_estimates",
@@ -88,15 +92,24 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
     .map((r) => ({ d: day(r.completed_on), c: jobClass(r.job_type) }))
     .filter((r) => r.c !== "quote");
 
-  // A quote is the job it was written for, dated by its first option.
-  const quotedFirst = new Map<string, string>();
+  // A quote is the job it was written for, dated by its first option and worth
+  // the average of the options put in front of that customer — good, better and
+  // best are one offer, and at most one of them sells.
+  const quotedFirst = new Map<string, { d: string; sum: number; n: number }>();
   for (const r of quotes(quotedRows)) {
     const d = day(r.created_on);
     if (!d) continue;
     const k = quoteKey(r);
     const was = quotedFirst.get(k);
-    if (!was || d < was) quotedFirst.set(k, d);
+    if (was) {
+      was.sum += Number(r.value ?? 0);
+      was.n += 1;
+      if (d < was.d) was.d = d;
+    } else {
+      quotedFirst.set(k, { d, sum: Number(r.value ?? 0), n: 1 });
+    }
   }
+  const quotedJobs = [...quotedFirst.values()].map((j) => ({ d: j.d, v: j.n > 0 ? j.sum / j.n : 0 }));
   // Sold once per job, on the day it was sold, at what the chosen option was worth.
   const soldJobs = new Map<string, { d: string; v: number }>();
   for (const r of quotes(soldRows)) {
@@ -113,10 +126,12 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
     // Nothing before go-live is a booking or a quote — it is the import.
     const live = r.to >= ST_LIVE;
     const sold = [...soldJobs.values()].filter((s) => within(s.d, r));
+    const quoted = quotedJobs.filter((x) => within(x.d, r));
     return {
       leads: leadDays.filter((d) => within(d, r)).length,
       booked: live ? bookedRows.filter((b) => within(b.d, r)).length : null,
-      quoted: live ? [...quotedFirst.values()].filter((d) => within(d, r)).length : null,
+      quoted: live ? quoted.length : null,
+      quotedValue: live ? quoted.reduce((t, x) => t + x.v, 0) : null,
       sold: live ? sold.length : null,
       soldValue: live ? sold.reduce((t, s) => t + s.v, 0) : null,
       completed: doneRows.filter((x) => within(x.d, r)).length,
@@ -138,7 +153,7 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       serviceBooked: bookedRows.filter((b) => b.c === "service" && within(b.d, window)).length,
       serviceCompleted: doneRows.filter((x) => x.c === "service" && within(x.d, window)).length,
       installsCompleted: doneRows.filter((x) => x.c === "install" && within(x.d, window)).length,
-      quoted: [...quotedFirst.values()].filter((d) => within(d, window)).length,
+      quoted: quotedJobs.filter((x) => within(x.d, window)).length,
       sold: sold.length,
       soldValue: sold.reduce((t, s) => t + s.v, 0),
       invoiced: inWin.reduce((t, x) => t + x.v, 0),

@@ -53,6 +53,12 @@ is without reading six page names, which is what the tab strip asked of it.
 booked today across the top; quoted today, close rate and overdue beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
 
+Under Invoiced today: how many of the jobs finished today have been billed.
+Counted on the invoice carrying a value, never on an invoice existing —
+ServiceTitan opens one with every job, so "10 of 10" would be a statement about
+its data model rather than about the office. On a typical day one or two of ten
+carry a figure, and closing that gap is the afternoon's admin.
+
 Eleven tiles became six. The page had grown a tile per available number, and at
 that density nothing on it was bigger than anything else — which is the one
 thing a wall needs. Nothing real was lost: jobs completed is the line under
@@ -60,21 +66,51 @@ Invoiced, the lead count is the line under Jobs booked, quotes out has a page
 of its own, and the service mix is the job-type table on Performance.
 
 **Pace** is the year goal worked back through every step the money moves
-through — leads, booked, quoted, sold, completed, invoiced — in three bands
-with their names down the left margin:
+through — booked, quoted, quote value, sold, completed, invoiced — in three
+bands with their names down the left margin, nearest first:
 
+- **This week** — the six steps, each done against what the goal needs of it
+  this week, a bullet bar, and the verdict in words: ▲ ahead, ● on pace,
+  ▼ behind, and how many a day it takes to catch up.
+- **The month** — the same six as dials, against the month's need.
 - **This year** — one navy strip: how far off the goal's line we are, whether
   that got better or worse since yesterday and since last week, what a week has
   to invoice from here to land the year, and the margin on this month's jobs.
-- **This week** — the six steps, each done against what the goal needs of it
-  this week, with a tick on the bar where it should be by now and the verdict
-  in words: ▲ ahead, ● on pace, ▼ behind, and how many a day it takes to catch
-  up.
-- **The month** — the same six against the month's need.
+
+**Leads came off the funnel.** Nothing counts the phone calls behind a lead —
+ServiceTitan's Telecom scope is a separate grant — so the card drew no verdict,
+said "calls not counted" underneath, and took a sixth of the row to do it. In
+its place is **quote value**: what the quoting was worth, one figure per job at
+the average of the options offered, against what the plan needs quoted to sell
+its share at the measured close rate. Summing every option would count good,
+better and best as three quotes when at most one of them sells — the same basis
+the outstanding list and the close rate already use.
 
 The arithmetic is `src/lib/dashboard/pace.ts` and is described under
 [Pace: what the goal needs of every step](#pace-what-the-goal-needs-of-every-step).
 The portal's Pace page runs the same code off the same snapshot.
+
+### The pace bar
+
+Every target bar on the board is a bullet bar: red, amber and green zones, the
+goal, and a dark bar underneath for where we have actually got to. The year
+strip takes the same bar in its own colours.
+
+The zone boundaries are the **pace**, not fixed fractions of the target. Green
+starts exactly where the week has got to, so being in the green means being on
+or ahead of pace and nothing else — the same test the verdict underneath
+applies. Fixed boundaries read more calmly but they disagree with that verdict
+twice a day: on Tuesday morning a quarter of the week's target is comfortably
+ahead and would have sat in the red. A bar and a label contradicting each other
+on one card is how a wall stops being believed. The red zone growing through the
+week is the point of it: stand still and the bar you have to clear rises past
+you.
+
+The track runs a quarter past the goal rather than stopping at it, so a week
+that beat its target has somewhere to show it — pinned at 100%, $60K against a
+$48K target looked identical to $48K exactly. The headroom also fixes the goal
+at four fifths of every track on the page, marked by a gap twice the width of
+the others rather than by a line, which is one mark fewer on a 9px band.
 
 Sold and invoiced are **two different measures, not two views of one**, and that
 is why both are on the wall. Work sold today is invoiced days or weeks later, so
@@ -84,7 +120,9 @@ room can still act on today; invoicing is the half already committed. The gap
 between them is the pipeline.
 
 **Quotes** is three figures — quoted today, sold today, average quote — over
-what was written today and what is still out, biggest first.
+what was written today and what is still out, biggest first. Both lists are one
+row per **job**, at the average of the options put in front of that customer,
+with the option count and ServiceTitan's own job number beside it.
 
 **Team** is sold, out of quoted, per person. Sold is the headline and quoted is
 the line under it; it used to be the other way round, on the grounds that too
@@ -95,11 +133,24 @@ absent, so the fix is to lead with sold and say on the page how much of the
 month it accounts for — the totals row does, whenever the named sales come to
 less than 90% of the month.
 
-**Performance** is four figures with margin as the navy one, over one table of
-job types: jobs, revenue, profit, and a margin bar with the month's own goal
-drawn on it. The goal is the month's profit target over its revenue target —
-which is the year goal's profit percentage; with no percentage set there is no
-line, rather than a line at a number nobody chose.
+**Performance** is three figures with job margin as the navy one, over one table
+of job types: jobs booked, invoices, revenue, and a bar.
+
+The margin tile is the **per-job** figure — price before GST, less equipment and
+materials, less the hours at what an hour of the crew costs (see
+`src/lib/dashboard/jobProfit.ts`) — against the year goal's profit percentage,
+with the jobs it could cost said underneath, so a margin off four jobs never
+passes as a margin off the month. It used to come off `st_invoices.cost`, which
+is null on all 5,415 rows in the replica, so it read "—" on every day it was up.
+
+The table's bar is still that invoice-level margin, and **when no invoice
+carries a cost it is each type's share of the month instead.** The column was
+five empty grey tracks and a column of dashes, which from four metres reads as a
+broken chart rather than as missing data. A column that has never once held a
+figure is not holding a place, it is taking one. Share of the month's invoicing
+is measured, and it answers what the table is actually read for — where the
+month's money came from. The margin comes back on its own the day ServiceTitan
+starts sending a cost.
 
 **Areas** is where the work is over the last 60 days, on a real map. Tiles are
 CARTO's light basemap — a full-colour one fights the orange heat sitting on it —
@@ -116,6 +167,16 @@ named under the map rather than dropped.
 `NEXT_PUBLIC_BOARD_TILES` overrides the tile URL. It exists so the board can be
 rendered and looked at from an environment with no route to a tile CDN; leave
 it unset everywhere but a dev box.
+
+### Colour
+
+Behind is red, ahead is green — the pair the room reads without being taught,
+and the pair that is worst under red-green colour blindness. The board only ever
+uses them to *reinforce*: every figure that takes a status colour carries the
+verdict in words beside it ("▲ Ahead $4,200", "Behind pace by 19%"), and the
+pace bars carry it again in fixed zone order, visible boundary gaps and a weight
+difference on the zone the figure landed in. Nothing here is readable by hue
+alone, and that property is the thing to keep.
 
 ### The dials
 

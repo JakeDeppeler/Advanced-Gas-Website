@@ -48,6 +48,7 @@ const soldWork = 3_200_000 * (108127 / 118144);
 ok(near(plan.sold.value, soldWork), "sold $ = goal × sold share ($2.93M)", plan.sold.value);
 ok(near(plan.sold.count, soldWork / (69017 / 22)), "jobs sold = sold $ ÷ average sale (933)", plan.sold.count);
 ok(near(plan.quoted.count, plan.sold.count! / (22 / 122)), "jobs quoted = sold ÷ close rate (5,175)", plan.quoted.count);
+ok(near(plan.quoted.value, soldWork / (22 / 122)), "quoted $ = sold $ ÷ close rate", plan.quoted.value);
 const serviceJobs = (3_200_000 - soldWork) / (10017 / 72);
 ok(near(lanes.serviceJobs, serviceJobs), "service jobs = the rest ÷ average service job", lanes.serviceJobs);
 ok(near(plan.completed.count, plan.sold.count! + serviceJobs), "completed = installs + service jobs");
@@ -86,10 +87,10 @@ const data: PaceData = {
   today: "2026-10-05",
   calendar: { daysPerWeek: 5, week: { total: 5, elapsed: 0, remaining: 5 }, month: { total: 22, elapsed: 2, remaining: 20 }, dayFraction: 0.5, todayWorking: true },
   periods: {
-    today: { leads: 1, booked: 3, quoted: 2, sold: 0, soldValue: 0, completed: 1, invoiced: 0 },
-    week: { leads: 1, booked: 3, quoted: 2, sold: 0, soldValue: 0, completed: 1, invoiced: 0 },
-    lastWeek: { leads: 9, booked: 40, quoted: 30, sold: 8, soldValue: 25000, completed: 27, invoiced: 48255 },
-    month: { leads: 4, booked: 20, quoted: 15, sold: 6, soldValue: 17000, completed: 8, invoiced: 20726 },
+    today: { leads: 1, booked: 3, quoted: 2, quotedValue: 9000, sold: 0, soldValue: 0, completed: 1, invoiced: 0 },
+    week: { leads: 1, booked: 3, quoted: 2, quotedValue: 9000, sold: 0, soldValue: 0, completed: 1, invoiced: 0 },
+    lastWeek: { leads: 9, booked: 40, quoted: 30, quotedValue: 132000, sold: 8, soldValue: 25000, completed: 27, invoiced: 48255 },
+    month: { leads: 4, booked: 20, quoted: 15, quotedValue: 66000, sold: 6, soldValue: 17000, completed: 8, invoiced: 20726 },
   },
   measured: sept,
   year: { ytd: 531636, ytdYesterday: 531636, ytdLastWeek: 483000, last28: 104000 },

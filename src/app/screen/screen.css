@@ -11,10 +11,12 @@
    without a media query — at 1920px, calc(1 * var(--u)) = 19.2px. Values were sampled from the
    design rather than estimated.
 
-   The navy/orange pair is also the strongest thing available for colour-blind
-   viewers: blue against orange survives every form of CVD, where the red/green
-   it replaced measured ΔE 4.1 under deuteranopia. Status is carried by a worded
-   pill, never by hue alone. */
+   Status reads red for behind and green for ahead, which is what a room reads
+   without being taught. They are a poor pair under red-green colour blindness,
+   which is why the board only ever uses them to reinforce: every figure that
+   takes one also carries the verdict in words beside it, and the pace bars
+   carry it again in fixed zone order, boundary gaps and a weight difference on
+   the zone the figure landed in. Nothing here is readable by hue alone. */
 
 .screen {
   --plane: #f9f8f3;
@@ -29,10 +31,23 @@
   /* The quieter of two figures shown side by side. */
   --muted-fig: #b8b4a9;
 
-  --ahead-bg: #e3f1f8;
-  --ahead-ink: #0e729d;
+  /* Ahead is green and behind is red, which is what the room reads without
+     being taught. It was blue against orange, chosen because red/green is the
+     worst case under protanopia — but that only matters where the colour is the
+     whole message, and here it never is: every figure that takes one carries
+     the verdict in words beside it ("▲ Ahead $4,200", "Behind pace by 9%"), and
+     the pace bars carry it again in fixed zone order, boundary gaps and a
+     weight difference on the zone the figure landed in. */
+  --ahead-bg: #e4f2e8;
+  --ahead-ink: #15803d;
   --behind-bg: #fdefe3;
   --behind-ink: #c2410c;
+
+  /* The pace bar's zones: short of three quarters of where we should be by now,
+     nearly there, and at or past it. Fixed order, left to right, every bar. */
+  --zone-low: #d4553a;
+  --zone-mid: #e0a52a;
+  --zone-high: #2f9e5e;
   --leader-row: #fef4eb;
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -231,7 +246,8 @@ body:has(.screen) .utilbar {
      sold, completed, invoiced. The band names keep their own column on the
      left. The year sits on top because it is the question. */
   grid-template-columns: calc(7.5 * var(--u)) repeat(6, 1fr);
-  grid-template-rows: 0.8fr 1.12fr 0.95fr;
+  /* The week first, the month under it, the year at the foot — nearest first. */
+  grid-template-rows: 1.12fr 0.95fr 0.8fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--team { grid-template-rows: 1fr; }
@@ -441,7 +457,9 @@ body:has(.screen) .utilbar {
 
 /* ------------------------------------------------------------------ status */
 /* Worded, always. Colour reinforces the word; it never carries it. */
-.status { font-size: calc(1 * var(--u)); font-weight: 700; white-space: nowrap; }
+/* A notch down from the figure it qualifies: at 1u the two-line "Behind pace by
+   9% · heading for 154" under a dial was competing with the dial. */
+.status { font-size: calc(0.92 * var(--u)); font-weight: 700; white-space: nowrap; }
 .status--ahead { color: var(--ahead-ink); }
 .status--behind { color: var(--behind-ink); }
 .status--quiet { color: var(--ink-muted); }
@@ -474,29 +492,57 @@ body:has(.screen) .utilbar {
   background: var(--track);
   overflow: hidden;
 }
-.meter--ticked { overflow: visible; }
-.meter__fill {
-  height: 100%;
+/* ------------------------------------------------------------ bullet bar */
+/* Three zones, the goal, and where we are. See the Bullet component for why the
+   boundaries are the pace and why the track runs past the goal.
+
+   Taller than the plain meter because it now carries four things instead of
+   one, and a 9px band is what makes the zone gaps readable from the far side of
+   the room. */
+.meter--bullet {
+  height: calc(0.95 * var(--u));
+  overflow: visible;
+  background: none;
+  /* The gaps are structural, not decoration: they are what tells a viewer who
+     cannot separate the hues that there are zones at all and which one the bar
+     has reached. */
+  --zone-gap: calc(0.16 * var(--u));
+}
+/* The zones are a strip along the top; where we have got to runs underneath
+   it. Laid over each other the dark bar hid whichever zone it had reached,
+   which is the one a reader needs to see. */
+.meter__zone {
+  position: absolute;
+  top: 0;
+  height: calc(0.46 * var(--u));
+  border-radius: calc(0.14 * var(--u));
+  opacity: 0.42;
+}
+.meter__zone--low { background: var(--zone-low); }
+.meter__zone--mid { background: var(--zone-mid); }
+.meter__zone--high { background: var(--zone-high); }
+/* The goal: a gap wide enough to read as a landmark rather than as another zone
+   boundary. It sits at four fifths of every track on the page. */
+.meter__zone.is-goal { margin-right: calc(0.3 * var(--u)); }
+
+/* The zone the figure actually landed in, at full strength. A lightness
+   difference, which is the one cue that survives every form of colour
+   blindness — the hue beside it is reinforcement. */
+.meter--bullet.is-low .meter__zone--low,
+.meter--bullet.is-mid .meter__zone--mid,
+.meter--bullet.is-high .meter__zone--high { opacity: 1; }
+
+.meter__now {
+  position: absolute;
+  left: 0;
+  top: calc(0.57 * var(--u));
+  height: calc(0.34 * var(--u));
+  min-width: calc(0.1 * var(--u));
   border-radius: 999px;
   background: var(--navy);
   transition: width 600ms ease;
 }
-.meter__fill--accent { background: var(--accent); }
-/* Same contract as the dials: the bar takes the status colour, and the words
-   beside the figure ("Target hit", "Behind") are what actually carry it. */
-.meter__fill.is-ahead { background: var(--ahead-ink); }
-.meter__fill.is-behind { background: var(--behind-ink); }
 
-/* Where the month should be by now. A tick rather than a colour change, so the
-   reading survives any form of colour blindness. */
-.meter__pace {
-  position: absolute;
-  top: calc(-0.22 * var(--u));
-  bottom: calc(-0.22 * var(--u));
-  width: calc(0.17 * var(--u));
-  border-radius: 1px;
-  background: var(--accent);
-}
 
 /* --------------------------------------------------------------- bar lists */
 /* Name left, figures right, a full-width bar beneath. The rank numbers of the
@@ -1068,6 +1114,7 @@ body:has(.screen) .utilbar {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: 999px;
+  background: var(--navy);
 }
 /* Teal at or above the goal, orange below. The written percentage beside it
    carries the same message, so the colour is never the only signal. */
@@ -1092,6 +1139,8 @@ body:has(.screen) .utilbar {
   font-variant-numeric: tabular-nums;
 }
 .jt__pct.is-over { color: var(--ahead-ink); }
+/* A share of the month is not a verdict, so it does not take a status colour. */
+.jt__pct--quiet { color: var(--ink-2); font-weight: 700; }
 .jt__pct.is-under { color: var(--accent); }
 .jt__marginhead { font-size: calc(0.86 * var(--u)); }
 
@@ -1131,9 +1180,9 @@ body:has(.screen) .utilbar {
   letter-spacing: -0.02em;
   color: var(--navy);
 }
-.band--year { grid-row: 1; }
-.band--today { grid-row: 2; }
-.band--month { grid-row: 3; }
+.band--week { grid-row: 1; }
+.band--month { grid-row: 2; }
+.band--year { grid-row: 3; }
 
 /* On Pace every card is one step of the funnel, so each takes one column. */
 .screen__grid--pace .c3,
@@ -1141,7 +1190,8 @@ body:has(.screen) .utilbar {
 
 /* The year, as one strip. */
 .year {
-  grid-column: 2 / span 5;
+  grid-column: 2 / span 6;
+  grid-row: 3;
   display: grid;
   grid-template-columns: minmax(0, 1fr) calc(11 * var(--u)) calc(9 * var(--u));
   align-items: center;
@@ -1161,26 +1211,21 @@ body:has(.screen) .utilbar {
 /* Behind its own pace is the one thing on this strip worth a colour. */
 .year__bynow.is-behind { color: var(--accent); }
 
-.year__track {
-  position: relative;
-  height: calc(0.75 * var(--u));
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-}
-.year__fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  border-radius: 999px;
-  /* The orange that reads on navy — #f46722 on #050a30 is under 3:1. */
-  background: #ff9a62;
-}
-.year__mark {
-  position: absolute;
-  top: calc(-0.3 * var(--u));
-  bottom: calc(-0.3 * var(--u));
-  width: calc(0.2 * var(--u));
-  margin-left: calc(-0.1 * var(--u));
-  border-radius: 999px;
+/* The year's bar is the week cards' bar in the strip's colours: the zones
+   lifted off navy, and white for where we have got to, because white is to navy
+   what the near-black bar is to a white card. It was an orange fill with a white
+   tick, which is a third way of drawing the one thing this page does. */
+.year .meter--dark { height: calc(1.25 * var(--u)); }
+.year .meter--dark .meter__zone { height: calc(0.6 * var(--u)); opacity: 0.42; }
+.year .meter--dark .meter__zone--low { background: #ff8a6b; }
+.year .meter--dark .meter__zone--mid { background: #ffcc63; }
+.year .meter--dark .meter__zone--high { background: #58d08d; }
+.year .meter--dark.is-low .meter__zone--low,
+.year .meter--dark.is-mid .meter__zone--mid,
+.year .meter--dark.is-high .meter__zone--high { opacity: 1; }
+.year .meter--dark .meter__now {
+  top: calc(0.76 * var(--u));
+  height: calc(0.42 * var(--u));
   background: #fff;
 }
 
@@ -1206,7 +1251,7 @@ body:has(.screen) .utilbar {
 .year__v--drift.is-down { color: #ff9a62; }
 
 .pstep { justify-content: space-between; }
-.pstep .status { font-size: calc(1.15 * var(--u)); }
+.pstep .status { font-size: calc(1.02 * var(--u)); }
 .pstep__fig { display: flex; align-items: baseline; gap: calc(0.5 * var(--u)); min-width: 0; }
 .pstep__fig .tile__value { font-size: calc(3.3 * var(--u)); }
 .pstep__fig .tile__sub { white-space: nowrap; font-size: calc(1 * var(--u)); }
