@@ -1114,7 +1114,11 @@ body:has(.screen) .utilbar {
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: 999px;
-  background: var(--navy);
+  /* Share of the month is context, not a verdict, so it stays in the page's own
+     warm neutrals rather than taking the navy the figures are set in. Five navy
+     bars down the table pulled the eye off the revenue column they are there to
+     qualify. Margin keeps its status colours below. */
+  background: var(--muted-fig);
 }
 /* Teal at or above the goal, orange below. The written percentage beside it
    carries the same message, so the colour is never the only signal. */
