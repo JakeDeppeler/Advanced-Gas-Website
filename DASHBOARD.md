@@ -73,8 +73,14 @@ migration 0041), not ServiceTitan's invoice date, which is the day the job was
 finished. Over September 55 of 79 priced invoices had their lines added after
 that date, up to thirteen days later, so a job done Thursday and billed Monday
 was Thursday's money and Monday looked quiet while the office billed all
-morning. The line under the figure says how many jobs were billed and how many
-of them were finished on an earlier day. The month, the year and Pace still go
+morning. The line under the figure ages what went out by how long each job had
+been waiting — `4 billed · today 1 · 1–3d 2 · 4–7d 0 · 7+ 1`. "2 done on an
+earlier day" said there was a lag and nothing about its size, and the size is
+the point: two jobs billed a day late is the office keeping up, two billed a
+fortnight late is money that sat there. Bucketed rather than averaged, because
+one job from June would drag a mean into nonsense where the buckets show it for
+what it is. All four always show, zeroes included, so the line is the same shape
+every day and the room reads position rather than words. The month, the year and Pace still go
 by invoice date: that is the date Xero carries, and the year has to match the
 books.
 

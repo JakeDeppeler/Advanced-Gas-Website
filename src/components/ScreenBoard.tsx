@@ -428,8 +428,12 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       />
       {/* Everything billed today, whenever the job was done — the office
           catching up on Thursday's jobs on a Monday is Monday's invoicing. The
-          line says how much of it was earlier work, so a big figure on a quiet
-          day for the crew explains itself. */}
+          line ages what went out by how long each job had been waiting, because
+          "2 done on an earlier day" said there was a lag and nothing about its
+          size, and the size is the whole point: two jobs billed a day late is
+          keeping up, two billed a fortnight late is money that sat there. The
+          four buckets always show, zeroes included, so the line is in the same
+          shape every day and the room reads position rather than words. */}
       <HeroCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
@@ -438,9 +442,9 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
             ? undefined
             : m.jobsInvoicedToday === 0
               ? "nothing billed yet today"
-              : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed${
-                  (m.jobsInvoicedTodayEarlier ?? 0) > 0 ? ` · ${count(m.jobsInvoicedTodayEarlier)} done on an earlier day` : ""
-                }`
+              : `${count(m.jobsInvoicedToday)} billed · today ${count(m.jobsInvoicedTodayAge.sameDay)} · 1–3d ${count(
+                  m.jobsInvoicedTodayAge.days1to3,
+                )} · 4–7d ${count(m.jobsInvoicedTodayAge.days4to7)} · 7+ ${count(m.jobsInvoicedTodayAge.older)}`
         }
       />
       <HeroCard

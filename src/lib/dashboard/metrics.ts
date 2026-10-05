@@ -165,6 +165,11 @@ export type Metrics = {
    */
   paidToday: number | null;
   paymentsToday: number | null;
+  /**
+   * Of the jobs billed today, how long each had been waiting — the gap between
+   * the day the job finished and the day its invoice was actually priced.
+   */
+  jobsInvoicedTodayAge: { sameDay: number; days1to3: number; days4to7: number; older: number };
   /** Of those, the jobs that were finished on an earlier day: the office catching up. */
   jobsInvoicedTodayEarlier: number;
   /**
@@ -631,6 +636,37 @@ async function serviceTitanMetrics(now: Date) {
   const jobOf = (i: { id: number; job_id: number | null }) => (i.job_id != null ? `j${i.job_id}` : `i${i.id}`);
   const jobsInvoicedToday = new Set(pricedToday.map(jobOf)).size;
   const jobsInvoicedTodayEarlier = new Set(pricedToday.filter((i) => i.invoice_date != null && i.invoice_date < today).map(jobOf)).size;
+
+  /**
+   * How far behind the billing is, on what went out today.
+   *
+   * "2 done on an earlier day" said there was a lag and nothing about its size,
+   * and the size is the whole point: two jobs billed a day late is the office
+   * keeping up, two billed a fortnight late is money that sat there. Bucketed
+   * rather than averaged — one job from June would drag a mean into nonsense
+   * while the four buckets would show it for what it is, a single old one.
+   *
+   * Aged from the invoice date, which is ServiceTitan's day the job finished,
+   * against `invoiced_on`, the day its lines were actually put on. The gap
+   * between those two dates is the lag.
+   */
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const billedAgeOf = new Map<string, number>();
+  for (const i of pricedToday) {
+    if (!i.invoice_date) continue;
+    const days = Math.max(0, Math.round((Date.parse(today) - Date.parse(i.invoice_date)) / DAY_MS));
+    const k = jobOf(i);
+    // A job on two invoices is one job, at the oldest of them: the lag is how
+    // long the job waited, not how long its last line did.
+    billedAgeOf.set(k, Math.max(billedAgeOf.get(k) ?? 0, days));
+  }
+  const ages = [...billedAgeOf.values()];
+  const jobsInvoicedTodayAge = {
+    sameDay: ages.filter((d) => d <= 0).length,
+    days1to3: ages.filter((d) => d >= 1 && d <= 3).length,
+    days4to7: ages.filter((d) => d >= 4 && d <= 7).length,
+    older: ages.filter((d) => d > 7).length,
+  };
 
   /**
    * Open quotes, split at the outstanding window.
@@ -1464,6 +1500,7 @@ async function serviceTitanMetrics(now: Date) {
     jobsInvoicedToday,
     paidToday,
     paymentsToday,
+    jobsInvoicedTodayAge,
     jobsInvoicedTodayEarlier,
     jobsScheduledNext7,
     topJobSuburbs,
@@ -1750,6 +1787,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       jobsCompletedToday: prev?.jobsCompletedToday ?? 0,
       jobsCompletedWeek: prev?.jobsCompletedWeek ?? 0,
       jobsInvoicedToday: prev?.jobsInvoicedToday ?? 0,
+      jobsInvoicedTodayAge: prev?.jobsInvoicedTodayAge ?? { sameDay: 0, days1to3: 0, days4to7: 0, older: 0 },
       paidToday: prev?.paidToday ?? null,
       paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
