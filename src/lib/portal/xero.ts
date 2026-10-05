@@ -14,7 +14,7 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { site } from "@/lib/site";
-import { getIntegration, saveIntegration } from "./db";
+import { claimIntegrationRefresh, getIntegration, saveIntegration } from "./db";
 
 const AUTH_URL = "https://login.xero.com/identity/connect/authorize";
 const TOKEN_URL = "https://identity.xero.com/connect/token";
@@ -99,13 +99,42 @@ export async function getConnections(accessToken: string): Promise<{ tenantId: s
 
 type XeroAuth = { accessToken: string; tenantId: string };
 
+/**
+ * How close to expiry a reader will tolerate before refreshing.
+ *
+ * A minute: a page about to make several Xero calls wants a token that will
+ * still be good when the last of them lands, and no more than that — every
+ * refresh rotates the stored refresh token, so the fewer the better.
+ */
+const READ_MARGIN_MS = 60_000;
+
+/**
+ * How close to expiry the keep-alive refreshes at.
+ *
+ * Wider than a reader's margin, because this one is not answering a question —
+ * it is making sure there is a live token for whoever asks next, and it only
+ * gets the chances the board's poll gives it. Five minutes is roughly twelve
+ * polls of room to get one refresh through.
+ */
+const KEEPALIVE_MARGIN_MS = 5 * 60_000;
+
+/**
+ * How long a claimed refresh stands before another caller may take it over.
+ *
+ * Shorter than KEEPALIVE_MARGIN_MS on purpose: a caller that claims the lease
+ * and then fails — a cold lambda killed mid-flight, a Xero timeout — must not
+ * hold everybody off until the token dies. At ninety seconds against a
+ * five-minute margin there are three attempts before anything is at risk.
+ */
+const TOKEN_LOCK_HOLD_MS = 90_000;
+
 /** A valid access token + tenant, refreshing and re-storing if it's expired. */
-async function resolveToken(): Promise<XeroAuth | null> {
+async function resolveToken(marginMs = READ_MARGIN_MS): Promise<XeroAuth | null> {
   const integ = await getIntegration("xero");
   if (!integ || !integ.refreshToken || !integ.tenantId) return null;
 
   const exp = integ.expiresAt ? Date.parse(integ.expiresAt) : 0;
-  if (integ.accessToken && exp - 60_000 > Date.now()) {
+  if (integ.accessToken && exp - marginMs > Date.now()) {
     return { accessToken: integ.accessToken, tenantId: integ.tenantId };
   }
 
@@ -126,41 +155,63 @@ async function resolveToken(): Promise<XeroAuth | null> {
 // everyone waiting on it.
 let tokenInFlight: Promise<XeroAuth | null> | null = null;
 
-async function validToken(): Promise<XeroAuth | null> {
+async function validToken(marginMs = READ_MARGIN_MS): Promise<XeroAuth | null> {
   if (!tokenInFlight) {
-    tokenInFlight = resolveToken().finally(() => { tokenInFlight = null; });
+    tokenInFlight = resolveToken(marginMs).finally(() => { tokenInFlight = null; });
   }
+  // Joining a refresh started with a narrower margin can hand back a token this
+  // caller would have refreshed. Harmless: it is a valid token, and the lease
+  // the keep-alive holds expires well before the token does, so the next poll
+  // claims it and tries again.
   return tokenInFlight;
 }
 
 /**
- * Keep the stored Xero token alive, for the scheduled sync to call.
+ * Keep the stored Xero token alive, so a reader always finds a live one.
  *
- * Xero access tokens live thirty minutes and the refresh token rotates on every
- * use, so there can only ever be one thing turning this handle — two racing
- * refreshers each invalidate the other's token and the connection dies until
- * somebody re-authorises by hand. That owner is this module, and the one
- * scheduled caller is the dashboard sync cron: it runs every ten minutes
- * against a thirty-minute token, around the clock, under a concurrency group
- * that will not let two ticks overlap.
+ * Nothing used to do this. A Xero access token lives thirty minutes and the
+ * only thing that ever refreshed it was somebody opening a portal Finance page,
+ * so overnight it always lapsed and the wall board's overdue figures were
+ * thirteen hours old by morning with the footer saying so.
  *
- * It is deliberately not called from the board's own refresh loop. That runs on
- * every panel in the building and passes its staleness check on several
- * instances at once, which is exactly the race this must not have.
+ * Both schedulable things call this: the GitHub Actions sync cron, and the
+ * board's own refresh route. Both, because neither is enough alone — GitHub
+ * does not honour a ten-minute schedule on a repository this quiet (today it
+ * fired at 07:11, 16:10 and 22:45, against a token that dies in half an hour),
+ * and the board only polls while a panel is switched on. Between them the token
+ * is turned through the working day and overnight.
  *
- * `resolveToken` only actually refreshes inside the last minute of the token's
- * life, so calling this on every tick costs one database read and nothing else.
- * Which also narrows the one race that was always here — the in-flight guard
- * below is per serverless instance, so two portal page loads on two instances
- * could in principle both refresh. On a ten-minute tick the token is almost
- * never inside that last minute when a page asks for it, so a Finance page now
- * takes the cached branch and refreshes nothing.
+ * Which means this is called from several serverless instances at once, and
+ * that is the one thing a Xero refresh must never be: the refresh token rotates
+ * on every use and the old one dies immediately, so a lost race does not retry,
+ * it disconnects until somebody re-authorises by hand. `tokenInFlight` above is
+ * a module-level promise and only collapses callers inside one instance, so the
+ * claim has to be made where all the instances can see it — an atomic
+ * `update ... where` on the integration row. See claimIntegrationRefresh.
+ *
+ * The order matters. Check whether a refresh is even due BEFORE claiming,
+ * because the common case by far is a token with twenty minutes left, and that
+ * case should cost one read and take no lease at all.
  */
 export async function ensureXeroToken(): Promise<{ ok: boolean; reason?: string }> {
   if (!xeroConfigured()) return { ok: false, reason: "not configured" };
   try {
-    const auth = await validToken();
-    return auth ? { ok: true } : { ok: false, reason: "not connected" };
+    const integ = await getIntegration("xero");
+    if (!integ?.refreshToken || !integ.tenantId) return { ok: false, reason: "not connected" };
+
+    const exp = integ.expiresAt ? Date.parse(integ.expiresAt) : 0;
+    if (integ.accessToken && exp - KEEPALIVE_MARGIN_MS > Date.now()) {
+      return { ok: true, reason: "not due" };
+    }
+
+    if (!(await claimIntegrationRefresh("xero", TOKEN_LOCK_HOLD_MS))) {
+      // Somebody else has it. The token is still minutes from expiry, so the
+      // right thing to do is nothing at all.
+      return { ok: true, reason: "refreshing elsewhere" };
+    }
+
+    const auth = await validToken(KEEPALIVE_MARGIN_MS);
+    return auth ? { ok: true, reason: "refreshed" } : { ok: false, reason: "refresh failed" };
   } catch (e) {
     // Never the response body: it can carry the client id.
     return { ok: false, reason: (e as Error).message };

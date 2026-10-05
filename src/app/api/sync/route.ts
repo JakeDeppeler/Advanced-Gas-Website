@@ -3,8 +3,9 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
-// The portal owns the Xero refresh loop; this is the one scheduled thing that
-// turns it. See ensureXeroToken for why it may only ever be called from here.
+// The portal owns the Xero refresh loop. This turns it on a schedule, as the
+// board's own refresh route does — safe to call from both because ensureXeroToken
+// claims the refresh in the database first.
 import { ensureXeroToken } from "@/lib/portal/xero";
 
 export const runtime = "nodejs";
@@ -32,10 +33,16 @@ export async function GET(req: Request) {
   /*
    * Keep Xero's token alive before anything reads it.
    *
-   * It lives thirty minutes; this runs every ten, around the clock. Nothing
-   * else refreshed it, so it lapsed whenever nobody opened a portal Finance
-   * page — which overnight is always — and the board's overdue figures went
-   * amber by morning with a fourteen-hour-old reading behind them.
+   * It lives thirty minutes. Nothing used to refresh it on a schedule, so it
+   * lapsed whenever nobody had a portal Finance page open — which overnight is
+   * always — and the board's overdue figures were thirteen hours old by morning
+   * with the footer saying so.
+   *
+   * This leg is the overnight one. The schedule here asks for every ten minutes
+   * and GitHub gives a few runs a day on a repository this quiet, which is not
+   * enough on its own for a half-hour token; the board's refresh route carries
+   * the working day. Both call it, and ensureXeroToken takes an atomic claim
+   * before refreshing so the two can never race.
    *
    * Failure here is not failure of the sync: a Xero that cannot be reached is
    * a tile carrying its last value, and ServiceTitan is most of the board.

@@ -807,6 +807,49 @@ export async function saveIntegration(provider: string, data: {
   return { ok: true };
 }
 
+/**
+ * Claim the exclusive right to refresh a provider's token.
+ *
+ * True means this caller owns the refresh; false means somebody else does and
+ * this caller must leave the token alone. It is one statement, and that is the
+ * whole point: PostgREST turns the filter into an `update ... where`, a second
+ * caller running it blocks on the row lock, re-evaluates the filter against the
+ * row the first one wrote, and updates nothing. `return=representation` is what
+ * makes the answer visible — no rows back, no claim.
+ *
+ * `tokenInFlight` in xero.ts cannot do this job. It is a module-level promise,
+ * so it collapses concurrent refreshes within one serverless instance and does
+ * nothing about two instances, which is the case that matters: Xero rotates the
+ * refresh token on every use, so a lost race does not retry, it disconnects.
+ *
+ * `holdMs` is how long the claim stands before another caller may take it. It is
+ * a lease, not a lock to be released: a caller that claims it and then dies must
+ * not shut the others out until the token expires, so the hold is shorter than
+ * the margin the refresh fires in and a later poll simply claims it again.
+ *
+ * `refresh_lock_at` is NOT NULL, defaulting to -infinity, so that "never
+ * locked" is a timestamp. That is deliberate and it is the reason for the
+ * default: the claim is then one plain `lt`, the same filter shape as the
+ * timestamp queries already running elsewhere in this file, rather than an
+ * `or=(is.null,lt.…)` group used nowhere else in it. One less piece of query
+ * grammar to be right about, on the statement that protects the token.
+ */
+export async function claimIntegrationRefresh(provider: string, holdMs: number): Promise<boolean> {
+  const stale = new Date(Date.now() - holdMs).toISOString();
+  const res = await sb(
+    `portal_integrations?provider=eq.${encodeURIComponent(provider)}` +
+      `&refresh_lock_at=lt.${encodeURIComponent(stale)}&select=provider`,
+    {
+      method: "PATCH",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({ refresh_lock_at: new Date().toISOString() }),
+    },
+  );
+  if (!res || !res.ok) return false;
+  const rows = (await res.json().catch(() => [])) as unknown[];
+  return Array.isArray(rows) && rows.length > 0;
+}
+
 export async function deleteIntegration(provider: string): Promise<{ ok: boolean; error?: string }> {
   const res = await sb(`portal_integrations?provider=eq.${encodeURIComponent(provider)}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });
   if (!res) return { ok: false, error: "not-configured" };

@@ -978,26 +978,56 @@ the *snapshot's* time, which advances every thirty seconds whether or not Xero
 answered, so it could never say how old the figures were. It carries the time of
 the last successful read now.
 
-**The sync cron keeps the Xero token alive, and it is the only thing allowed
-to.** The rule above stopped the board crying wolf, but the underlying fault was
-real: nothing refreshed the token on a schedule, so the only reading Xero ever
-gave was whatever happened to be fetched while somebody had a portal Finance
-page open. The board showed `last read 14 hours ago` most mornings because that
-is exactly what it was.
+**Something keeps the Xero token alive now, and a database lock makes that
+safe.** The rule above stopped the board crying wolf, but the underlying fault
+was real: nothing refreshed the token on a schedule, so the only reading Xero
+ever gave was whatever happened to be fetched while somebody had a portal
+Finance page open. The board showed `last read 13 hours ago` most mornings
+because that is exactly what it was.
 
-`/api/sync` now calls `ensureXeroToken()` before it syncs. That is a thin wrapper
-over the portal's own `validToken()`, so there is still **one** refresher in the
-codebase — the thing that must never happen is a *second* one, not a scheduled
-first. The sync is the only safe caller because it is the only scheduled,
-single, non-overlapping one: every ten minutes against a thirty-minute token,
-under `concurrency: dashboard-sync` with `cancel-in-progress: false`. The token
-only actually rotates inside the last minute of its life, so most ticks cost one
-database read.
+Both schedulable things call `ensureXeroToken()` — the Actions sync cron, and
+`/api/screen/refresh`. Both, because neither works alone, for the same reason
+the ServiceTitan pull is split the same way: GitHub does not honour a
+ten-minute schedule on a repository this quiet (on 5 October the workflow fired
+at 07:11, 16:10 and 22:45) and a Xero access token dies in thirty minutes, so
+the cron alone leaves it dead for most of the day; the board, for its part, only
+polls while a panel is switched on. The cron covers the night, the board covers
+the working day.
 
-It is deliberately **not** called from `/api/screen/refresh`. That runs on every
-panel in the building and passes its own staleness check on several instances at
-once — precisely the race that kills the connection. If the board ever needs the
-token turned, it needs the sync to run, not a refresh of its own.
+The first attempt at this put the refresh in the cron **only**, on the reasoning
+that the cron is single and non-overlapping and the board's refresh route is
+neither. The reasoning was sound and the premise was wrong — the cron does not
+run often enough to keep a half-hour token alive, which `/api/screen/refresh`
+already says in its own header comment about ServiceTitan. Read that comment
+before touching this.
+
+So the board does call it, and the race that made it look unsafe is closed
+properly instead of avoided. `tokenInFlight` in `portal/xero.ts` is a
+module-level promise: it collapses concurrent refreshes inside one serverless
+instance and does nothing about two instances, which is the case that matters,
+because Xero rotates the refresh token on every use and a lost race does not
+retry — it disconnects until somebody re-authorises by hand. The claim therefore
+lives where every instance can see it, as an atomic `update … where` on
+`portal_integrations.refresh_lock_at` (`claimIntegrationRefresh`, migration
+`0045`): the second caller blocks on the row lock, re-reads the predicate
+against what the first one wrote, and updates nothing. No row back, no claim,
+and the loser does nothing at all — the token it already has is minutes from
+expiry, not past it.
+
+Three constants set the shape, all in `portal/xero.ts`:
+
+| | |
+|---|---|
+| `READ_MARGIN_MS` (1 min) | how close to expiry a *reader* tolerates |
+| `KEEPALIVE_MARGIN_MS` (5 min) | how close to expiry the keep-alive refreshes at |
+| `TOKEN_LOCK_HOLD_MS` (90 s) | how long a claim stands |
+
+The hold is deliberately shorter than the margin: a caller that claims the lease
+and then dies must not shut the others out until the token expires, so at ninety
+seconds against five minutes there are three attempts before anything is at
+risk. And the due-check comes *before* the claim, because the common case is a
+token with twenty minutes left and that case should cost one read and take no
+lease.
 
 **And the board only asks Xero every five minutes.** `computeSnapshot` pulls the
 whole authorised-receivables ledger, and it was doing so on every recompute —
@@ -1121,7 +1151,10 @@ roughly one man in twelve cannot tell the two dots apart.
 poll, which only reads the local replica and is cheap. Pulling from ServiceTitan
 stays on a two-minute floor, read from `portal_sync_state.last_run_at` rather
 than a timer in the process — serverless instances are recycled constantly and a
-per-instance timer reads as "due" on every cold start.
+per-instance timer reads as "due" on every cold start. Xero is two more floors
+again, and for two different reasons: the receivables read is gated to five
+minutes because of a tenant call limit, and the token refresh is gated by a
+database claim because a lost race disconnects it. Both above.
 
 ## Things worth knowing
 
@@ -1130,10 +1163,10 @@ every refresh — the old one dies immediately, so two refreshers each invalidat
 the other's token and the connection stays broken until somebody re-authorises
 by hand. `src/lib/portal/xero.ts` owns the one loop there is and writes
 `portal_integrations`; `src/lib/dashboard/xero.ts` reads the stored token and
-reports `stale` when it has expired, and must stay that way. The only scheduled
-thing that turns the handle is `/api/sync`, through `ensureXeroToken()` — see
-the Xero notes above for why that one caller is safe and the board's own refresh
-loop is not.
+reports `stale` when it has expired, and must stay that way. Everything that
+wants the handle turned goes through `ensureXeroToken()`, which claims the
+refresh in the database before touching Xero — so adding a caller is fine and
+adding a refresh is not. See the Xero notes above.
 
 **All date boundaries are Melbourne time**, computed in `src/lib/dates.ts` — never
 the server's timezone and never an upstream system's. The Xero org is set to

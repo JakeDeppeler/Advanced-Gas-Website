@@ -3,6 +3,7 @@ import { dashboardDbConfigured, q, sbSelectOne } from "@/lib/dashboard/db";
 import { computeSnapshot, latestSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
+import { ensureXeroToken } from "@/lib/portal/xero";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,6 +94,25 @@ async function syncDue(): Promise<boolean> {
 }
 
 async function run(pull: boolean) {
+  /*
+   * Turn Xero's handle before reading it.
+   *
+   * The same argument as the sync above, for the same reason: the Actions cron
+   * fires a few times a day on a repository this quiet and a Xero token lives
+   * half an hour, so the cron alone left it dead for most of the day. The panel
+   * is on all day, so the thing that needs the numbers keeps the token alive
+   * for them — which is how ServiceTitan already works here.
+   *
+   * Unlike the sync, this cannot be left to a staleness floor. Xero rotates the
+   * refresh token on every use, so two instances refreshing at once disconnects
+   * it rather than costing a wasted call; ensureXeroToken takes an atomic claim
+   * in the database before it touches anything, and no-ops on the common case
+   * of a token with twenty minutes left. Awaited rather than fired off, so a
+   * refresh lands before computeSnapshot reads receivables — and swallowed,
+   * because a Xero that cannot be reached is one tile carrying its last value.
+   */
+  await ensureXeroToken().catch(() => undefined);
+
   // Same order as /api/sync: pull, then recompute. The snapshot is written even
   // when a leg failed, because carry-forward inside computeSnapshot keeps the
   // last known figures on the wall rather than blanking them.
