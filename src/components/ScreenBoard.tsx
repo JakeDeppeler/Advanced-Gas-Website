@@ -400,7 +400,6 @@ export function ScreenBoard({
  */
 function TodayPage({ m, live }: { m: Metrics; live: Live }) {
   const soldJobs = live.st ? m.soldCountToday : null;
-  const doneJobs = live.st ? m.jobsCompletedToday : null;
 
   return (
     <>
@@ -410,18 +409,21 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         value={st.plain(m.soldToday, live)}
         foot={soldJobs == null ? undefined : `${count(soldJobs)} ${soldJobs === 1 ? "job" : "jobs"} sold`}
       />
-      {/* How many of today's finished jobs have been billed, beside the money.
-          The gap between the two is the afternoon's admin, and it is the one
-          thing on this page the office can close out before going home. */}
+      {/* Everything billed today, whenever the job was done — the office
+          catching up on Thursday's jobs on a Monday is Monday's invoicing. The
+          line says how much of it was earlier work, so a big figure on a quiet
+          day for the crew explains itself. */}
       <HeroCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
         foot={
-          doneJobs == null
+          !live.st
             ? undefined
-            : doneJobs === 0
-              ? "no jobs completed yet"
-              : `${count(m.jobsInvoicedToday)} of ${count(doneJobs)} completed jobs invoiced`
+            : m.jobsInvoicedToday === 0
+              ? "nothing billed yet today"
+              : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed${
+                  (m.jobsInvoicedTodayEarlier ?? 0) > 0 ? ` · ${count(m.jobsInvoicedTodayEarlier)} done on an earlier day` : ""
+                }`
         }
       />
       <HeroCard

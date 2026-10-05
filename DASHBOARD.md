@@ -53,6 +53,17 @@ is without reading six page names, which is what the tab strip asked of it.
 booked today across the top; quoted today, close rate and overdue beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
 
+**Invoiced today is everything billed today, whenever the job was done.** It
+counts an invoice on the day its lines were last put on (`st_invoices.invoiced_on`,
+migration 0041), not ServiceTitan's invoice date, which is the day the job was
+finished. Over September 55 of 79 priced invoices had their lines added after
+that date, up to thirteen days later, so a job done Thursday and billed Monday
+was Thursday's money and Monday looked quiet while the office billed all
+morning. The line under the figure says how many jobs were billed and how many
+of them were finished on an earlier day. The month, the year and Pace still go
+by invoice date: that is the date Xero carries, and the year has to match the
+books.
+
 Under Invoiced today: how many of the jobs finished today have been billed.
 Counted on the invoice carrying a value, never on an invoice existing —
 ServiceTitan opens one with every job, so "10 of 10" would be a statement about
