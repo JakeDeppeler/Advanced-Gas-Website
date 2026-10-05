@@ -381,6 +381,8 @@ export type YearView = {
   weekNeeded: number | null;
   /** Where the year lands if the last four weeks are the rate from here. */
   landing: number | null;
+  /** The last day of the goal's year, so the wall can say what it is tracking to. */
+  endsOn: string;
 };
 
 export type PaceView = {
@@ -484,6 +486,7 @@ export function buildPace(goal: PaceGoal | null, settings: PaceSettings, d: Pace
       weekPlanned,
       weekNeeded: weekPlanned != null && catchUp != null ? weekPlanned * catchUp : null,
       landing: d.year.ytd + (d.year.last28 / 28) * daysLeft,
+      endsOn: end,
     };
   }
 

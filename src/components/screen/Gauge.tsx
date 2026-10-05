@@ -1,18 +1,67 @@
 /**
- * A half-dial of progress toward a monthly target.
+ * The pace dial: four zones, and a needle at how we are actually going.
  *
- * Two encodings, deliberately separate: the navy arc is how far the month has
- * got, and the orange tick is where it should be by now. Keeping "how far" and
- * "how far by now" on different marks means neither has to be inferred from a
- * colour change, which is what a zoned dial asks of you — and what nobody with
- * red-green colour blindness can do.
+ * The needle is not "how much of the target we have done" — on the second of
+ * the month that is 7% on every dial on the page and tells the room nothing.
+ * It is **done ÷ what the goal says we should have by now**, so the straight-up
+ * position is exactly on pace and the needle means the same thing on the first
+ * of the month and on the last.
  *
- * The status underneath is a worded pill. Colour reinforces it; it never
- * carries it.
+ * The four zones are fixed on that scale, in the same order on every dial, with
+ * a gap between each. The one the needle lands in is the only one at full
+ * strength; the rest sit back as tints of themselves. That is three readings of
+ * the same verdict — needle position, which zone is lit, and the words
+ * underneath — so none of them is carried by hue alone, which red/amber/green
+ * could never be: the board's rule, and the reason this dial can use the
+ * colours the room already understands.
+ *
+ * The footer carries the key: Behind · Close · On track · Ahead.
  */
 
+/** The dial runs to half as much again as the goal asks of us by now. */
+const DIAL_MAX = 1.5;
 const SWEEP = 180;
-const START = 270; // compass degrees: start at nine o'clock, sweep over the top
+const START = 270; // compass degrees: nine o'clock, sweeping over the top
+/** Enough to read as a boundary from four metres, small enough to lose nothing. */
+const GAP = 2.4;
+
+export type Verdict = "behind" | "close" | "track" | "ahead";
+
+/**
+ * Where the zones end, on the done ÷ by-now scale.
+ *
+ * On track is a tenth either side of the line. Tighter and a single job flips
+ * the wall between colours every hour; looser and "on track" covers a month
+ * that is quietly sliding.
+ */
+export const ZONES: Array<{ k: Verdict; to: number }> = [
+  { k: "behind", to: 0.75 },
+  { k: "close", to: 0.9 },
+  { k: "track", to: 1.1 },
+  { k: "ahead", to: DIAL_MAX },
+];
+
+export const ZONE_LABEL: Record<Verdict, string> = {
+  behind: "Behind",
+  close: "Close",
+  track: "On track",
+  ahead: "Ahead",
+};
+
+/** Done over what should be done by now. Null when the goal can't say. */
+export function paceIndex(done: number | null | undefined, byNow: number | null | undefined): number | null {
+  if (done == null || byNow == null) return null;
+  // Nothing expected yet — first thing Monday — is on pace, not a division by
+  // zero. Anything at all on the board by then is ahead.
+  if (byNow <= 0) return done > 0 ? DIAL_MAX : 1;
+  return done / byNow;
+}
+
+export function verdictOf(index: number | null): Verdict | null {
+  if (index == null) return null;
+  for (const z of ZONES) if (index < z.to) return z.k;
+  return "ahead";
+}
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = ((deg - 90) * Math.PI) / 180;
@@ -27,142 +76,91 @@ function arc(cx: number, cy: number, r: number, from: number, to: number) {
 
 export function Gauge({
   label,
-  achieved,
-  target,
-  progress,
-  format,
-  flat,
-  unavailable,
+  index,
+  verdict,
+  figure,
+  sub,
+  status,
+  foot,
 }: {
   label: string;
-  achieved: number | null;
-  target: number | null;
-  /** Share of the month's working days already elapsed. */
-  progress: number;
-  format: (n: number | null) => string;
-  /**
-   * A target that does not accrue over the month.
-   *
-   * A win rate is 25% on the first of the month and on the last; there is no
-   * share of it to have reached by now, so there is no pace tick and the status
-   * compares the figure to the target itself rather than to the month's
-   * progress. Everything else on this page builds up as the month goes.
-   */
-  flat?: boolean;
-  /**
-   * Why there is no figure, when the reason is the data rather than the link.
-   * A dial that says "not connected" about a feed that is connected sends
-   * somebody to check the wrong thing.
-   */
-  unavailable?: string;
+  /** done ÷ by now. Null draws the dial flat with no needle. */
+  index: number | null;
+  verdict: Verdict | null;
+  /** The headline under the dial. */
+  figure: React.ReactNode;
+  /** The line under the headline, where there is one. */
+  sub?: React.ReactNode;
+  status: string;
+  foot?: string;
 }) {
-  // A flat target is measured against itself, not against the month so far.
-  const pace = flat ? 1 : progress;
-  const cx = 110;
-  const cy = 100;
-  const r = 86;
+  // The viewBox is sized to the dial rather than the dial to the viewBox: the
+  // card is only ever as wide as a sixth of the board, so every unit of margin
+  // in here comes straight off the arc the room is reading.
+  const cx = 106;
+  const cy = 96;
+  const r = 84;
+  const w = 20;
+  const at = (v: number) => START + (Math.min(DIAL_MAX, Math.max(0, v)) / DIAL_MAX) * SWEEP;
 
-  const ratio = target && target > 0 && achieved != null ? achieved / target : null;
-  // The arc pins at the end of the dial; the figure underneath keeps the truth.
-  const shown = Math.min(1, Math.max(0, ratio ?? 0));
-  const at = (t: number) => START + Math.min(1, Math.max(0, t)) * SWEEP;
-
-  const diff = ratio == null ? null : ratio - pace;
-  const statusText =
-    diff == null
-      ? unavailable
-        ? unavailable
-        : target == null
-          ? "no monthly target set"
-          : "not connected"
-      : Math.abs(diff) < 0.01
-        ? flat
-          ? "On target"
-          : "On pace"
-        : flat
-          ? `${diff > 0 ? "Above" : "Below"} target by ${Math.abs(Math.round(diff * 100))}%`
-          : `${diff > 0 ? "Ahead of" : "Behind"} pace by ${Math.abs(Math.round(diff * 100))}%`;
-
-  /**
-   * The arc takes the status colour.
-   *
-   * Colour reinforces the sentence underneath; it never carries it. The dial
-   * already says "Behind pace by 51%" in words, and that is what a viewer who
-   * cannot separate the two hues reads — the fill only makes the answer
-   * available from further back in the room than the text is.
+  /*
+   * A round cap adds half the stroke width past each end of the path, which at
+   * this radius is six degrees — more than the Close band is wide. Drawn
+   * naively the small bands came out as circles sitting on top of their
+   * neighbours and the gaps between them closed up. Each path is pulled in by a
+   * cap at both ends so the *drawn* band lands where the arithmetic says.
    */
-  const tone = diff == null ? "none" : diff >= -0.01 ? "ahead" : "behind";
+  const cap = ((w / 2 / r) * 180) / Math.PI;
+  let from = 0;
+  const bands = ZONES.map((z) => {
+    const a = at(from) + GAP / 2 + cap;
+    const b = at(z.to) - GAP / 2 - cap;
+    const mid = (a + b) / 2;
+    from = z.to;
+    // A band too narrow for two caps still gets a dot, not nothing.
+    return b > a ? { k: z.k, a, b } : { k: z.k, a: mid - 0.01, b: mid + 0.01 };
+  });
 
-  // Where the month lands if the rest of it looks like the part so far.
-  // Rounded before formatting: a projected job count of 64.308 is arithmetic
-  // leaking onto the wall.
-  const onPaceFor =
-    !flat && ratio != null && target != null && progress > 0
-      ? Math.round((achieved as number) / progress)
-      : null;
+  const needle = index == null ? null : at(index);
 
   return (
-    <div className="tile gauge c3">
+    <div className="tile gauge">
       <span className="gauge__label">{label}</span>
 
       <svg
         className="gauge__svg"
-        viewBox="0 0 220 116"
+        viewBox="0 0 212 112"
         role="img"
-        aria-label={`${label}: ${format(achieved)} of ${format(target)}, ${statusText}`}
+        aria-label={`${label}: ${status}`}
       >
-        <path d={arc(cx, cy, r, START, START + SWEEP)} className="gauge__track" fill="none" strokeWidth="19" strokeLinecap="round" />
-        {ratio != null && (
+        {bands.map((b) => (
           <path
-            d={arc(cx, cy, r, START, at(shown))}
-            className={`gauge__fill is-${tone}`}
+            key={b.k}
+            d={arc(cx, cy, r, b.a, b.b)}
+            className={`gauge__zone is-${b.k} ${verdict === b.k ? "is-on" : ""}`}
             fill="none"
-            strokeWidth="19"
+            strokeWidth={w}
             strokeLinecap="round"
           />
+        ))}
+        {needle != null && (
+          <>
+            <line
+              {...(() => {
+                const t = polar(cx, cy, r - w / 2 - 4, needle);
+                return { x1: cx, y1: cy, x2: t.x, y2: t.y };
+              })()}
+              className="gauge__needle"
+            />
+            <circle cx={cx} cy={cy} r="9" className="gauge__hub" />
+          </>
         )}
-        {target != null && !flat && (
-          <line
-            {...lineAt(cx, cy, r, at(progress))}
-            className="gauge__pace"
-          />
-        )}
-        <text
-          x={cx}
-          y={cy - 2}
-          className={`gauge__pct ${ratio == null ? "gauge__pct--na" : ""}`}
-          textAnchor="middle"
-        >
-          {/* A flat dial shows the figure itself, not its share of the target.
-              A win rate of 18% against a 25% target is 72% of the way there,
-              and "72%" in the middle of a dial labelled Win rate is read as
-              the win rate by everybody who has not been told otherwise. The
-              line underneath still says "18% of 25%". */}
-          {ratio == null ? "—" : flat ? format(achieved) : `${Math.round(ratio * 100)}%`}
-        </text>
       </svg>
 
-      <span className="tile__sub" style={{ textAlign: "center" }}>
-        <b>{format(achieved)}</b>
-        {target != null ? <> of {format(target)}</> : null}
-      </span>
-
-      {/* One line, not a pill plus a projection: the mock reads "Behind ·
-          heading for $374,677", and the word carries the status while the
-          colour only reinforces it. */}
-      <span
-        className={`status ${diff == null ? "status--quiet" : diff >= 0 ? "status--ahead" : "status--behind"}`}
-      >
-        {statusText}
-        {onPaceFor != null ? ` · heading for ${format(onPaceFor)}` : ""}
-      </span>
+      <span className="gauge__fig">{figure}</span>
+      {sub ? <span className="gauge__sub">{sub}</span> : null}
+      <span className={`status status--${verdict ?? "quiet"}`}>{status}</span>
+      {foot ? <span className="gauge__foot">{foot}</span> : null}
     </div>
   );
-}
-
-/** A tick across the band, rather than a dot on it: it reads at four metres. */
-function lineAt(cx: number, cy: number, r: number, deg: number) {
-  const inner = polar(cx, cy, r - 12, deg);
-  const outer = polar(cx, cy, r + 12, deg);
-  return { x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y };
 }

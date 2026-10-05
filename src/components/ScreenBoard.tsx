@@ -5,7 +5,7 @@ import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
-import { Gauge } from "./screen/Gauge";
+import { Gauge, ZONES, ZONE_LABEL, paceIndex, verdictOf, type Verdict } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
 
 type Snapshot = {
@@ -362,6 +362,19 @@ export function ScreenBoard({
               : "Waiting on a refresh"
             : degraded.map(([n, sc]) => `${n} ${sc.state}${sc.detail ? ` — ${sc.detail}` : ""}`).join(" · ")}
         </span>
+        {/* The dials' key, on the page that has dials. Four words and four dots
+            is what lets somebody who has never been told read the colours — and
+            it is the reason the dials are allowed to use red and green at all. */}
+        {page === 1 && (
+          <span className="screen__legend">
+            {ZONES.map((z) => (
+              <span key={z.k} className="lg">
+                <i className={`lg__dot is-${z.k}`} aria-hidden />
+                {ZONE_LABEL[z.k]}
+              </span>
+            ))}
+          </span>
+        )}
         <span className="screen__right">
           <span className="screen__brand">
             Advanced <em>Gas &amp; Aircon</em>
@@ -554,27 +567,17 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           first: the week is the one anybody can still change. */}
       <span className="band band--week">This week</span>
       {STEP_KEYS.map(({ k, label }) => (
-        <StepCard key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
+        <WeekDial key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
       ))}
 
-      {/* The month as dials, one per step, against the same funnel the week
-          row and the portal's Pace page use — so "Booked" means quote visits
-          and service calls in every row, never all jobs in one and some in
-          another. */}
+      {/* The month on the same dial as the week, so the two rows are one
+          reading at two lengths rather than two kinds of chart. Each step is
+          the same step in both — "Booked" means quote visits and service calls
+          in every row, never all jobs in one and some in another. */}
       <span className="band band--month">{monthName(now)}</span>
-      {STEP_KEYS.map(({ k, label }) => {
-        const s = p.standing.month[k];
-        return (
-          <Gauge
-            key={`m-${k}`}
-            label={label}
-            achieved={s.done}
-            target={s.need}
-            progress={monthProgress}
-            format={k === "invoiced" || k === "quotedValue" ? money : wholeJobs}
-          />
-        );
-      })}
+      {STEP_KEYS.map(({ k, label }) => (
+        <MonthDial key={`m-${k}`} label={label} stage={k} s={p.standing.month[k]} progress={monthProgress} />
+      ))}
 
       <span className="band band--year">This year</span>
       <YearPace y={y} margin={m.jobProfitMonth?.margin ?? null} costed={m.jobProfitMonth?.costed ?? 0} goalPct={p.profitPct} />
@@ -588,9 +591,6 @@ const lastWeekOf = (c: NonNullable<Metrics["pace"]>["lastWeek"], k: Step): numbe
 
 type StepStanding = NonNullable<Metrics["pace"]>["standing"]["week"]["leads"];
 
-/** A count of jobs, whole. A month's need of 77.9 quotes is 78 on a wall. */
-const wholeJobs = (n: number | null) => (n == null ? NA : Math.round(n).toLocaleString("en-AU"));
-
 /** Whole jobs from ten up, a tenth under it; money in thousands. */
 const isMoneyStep = (stage: string) => stage === "invoiced" || stage === "quotedValue";
 const stepFig = (stage: string, n: number | null | undefined) => {
@@ -600,39 +600,102 @@ const stepFig = (stage: string, n: number | null | undefined) => {
 };
 
 /**
- * One step: done, of what it needs, a bar with a tick where it should be by
- * now, and the verdict in words with a glyph — never the colour alone.
+ * One step of the funnel this week: the dial, what has been done of what the
+ * week needs, the verdict and what a day has to bring to catch up.
+ *
+ * The headline is the raw figure rather than a percentage. "14 of 118" is a
+ * thing the room can picture; "12%" on a Monday is not, and the dial beside it
+ * is already the proportion.
  */
-function StepCard({ label, stage, s, last, compact }: { label: string; stage: string; s: StepStanding; last?: number | null; compact?: boolean }) {
-  const ratio = s.need && s.need > 0 && s.done != null ? s.done / s.need : null;
-  const pace = s.need && s.need > 0 && s.byNow != null ? s.byNow / s.need : null;
+function WeekDial({ label, stage, s, last }: { label: string; stage: string; s: StepStanding; last?: number | null }) {
+  const index = paceIndex(s.done, s.byNow);
+  const verdict = s.need == null ? null : verdictOf(index);
   const gap = s.gap == null ? null : stepFig(stage, Math.abs(s.gap));
-  const verdict =
-    s.verdict === "ahead" ? { cls: "ahead", text: `▲ Ahead ${gap}` }
-      : s.verdict === "behind" ? { cls: "behind", text: `▼ Behind ${gap}` }
-        : s.verdict === "on" ? { cls: "ahead", text: "● On pace" }
-          : null;
+  const over = (s.gap ?? 0) >= 0;
+
+  const status =
+    verdict == null
+      ? NA
+      : verdict === "track"
+        ? "● On track"
+        : verdict === "ahead"
+          ? `▲ Ahead ${gap}`
+          : verdict === "close"
+            ? `${over ? "▲" : "▼"} Close · ${gap} ${over ? "ahead" : "behind"}`
+            : `▼ Behind ${gap}`;
+
   return (
-    <div className={`tile pstep ${compact ? "pstep--compact" : ""}`}>
-      <span className="tile__label">{label}</span>
-      <div className="pstep__fig">
-        <span className={vcls(stepFig(stage, s.done))}>{stepFig(stage, s.done)}</span>
-        <span className="tile__sub">{s.need == null ? "no target yet" : `of ${stepFig(stage, s.need)}`}</span>
-      </div>
-      <Bullet ratio={ratio} pace={pace} hasTarget={s.need != null && s.need > 0} />
-      {verdict ? (
-        <span className={`status status--${verdict.cls}`}>{verdict.text}</span>
-      ) : (
-        <span className="status status--quiet">{NA}</span>
-      )}
-      <span className="tile__sub">
-        {s.verdict === "behind" && s.perDayLeft != null
+    <Gauge
+      label={label}
+      index={index}
+      verdict={verdict}
+      figure={
+        <>
+          <b>{stepFig(stage, s.done)}</b>
+          {s.need == null ? <em> no target yet</em> : <em> of {stepFig(stage, s.need)}</em>}
+        </>
+      }
+      status={status}
+      foot={
+        !over && s.perDayLeft != null
           ? `${stepFig(stage, s.perDayLeft)} a day to catch up`
           : last != null
-            ? `last week ${stepFig(stage, last)}`
-            : s.byNow != null ? `${stepFig(stage, s.byNow)} by now` : ""}
-      </span>
-    </div>
+            ? `Last week ${stepFig(stage, last)}`
+            : undefined
+      }
+    />
+  );
+}
+
+/**
+ * The same step over the month. The headline is the share of the month's need
+ * that has landed, because over a month that figure is worth something on its
+ * own, with the raw pair under it and where the month lands at this rate below
+ * that.
+ */
+function MonthDial({ label, stage, s, progress }: { label: string; stage: string; s: StepStanding; progress: number }) {
+  const index = paceIndex(s.done, s.byNow);
+  const verdict = s.need == null ? null : verdictOf(index);
+  const ratio = s.need && s.need > 0 && s.done != null ? s.done / s.need : null;
+  // How far ahead or behind the month's own line, in points of the month — the
+  // figure the room repeats, and the one the portal's Pace page prints.
+  const diff = ratio == null ? null : ratio - progress;
+  // At least a point once the verdict is anything but on track: "Close · 0%
+  // behind" is a sentence arguing with itself.
+  const off = diff == null ? null : Math.max(1, Math.abs(Math.round(diff * 100)));
+  const over = (diff ?? 0) >= 0;
+
+  const status =
+    verdict == null
+      ? "no target yet"
+      : verdict === "track"
+        ? "On track"
+        : verdict === "close"
+          ? `Close · ${off}% ${over ? "ahead" : "behind"}`
+          : over
+            ? `Ahead of pace by ${off}%`
+            : `Behind pace by ${off}%`;
+
+  // Where the month lands if the rest of it looks like the part so far. Rounded
+  // before formatting: a projected job count of 64.308 is arithmetic leaking
+  // onto the wall.
+  const landing = ratio != null && progress > 0 ? Math.round((s.done as number) / progress) : null;
+
+  return (
+    <Gauge
+      label={label}
+      index={index}
+      verdict={verdict}
+      figure={ratio == null ? NA : `${Math.round(ratio * 100)}%`}
+      sub={
+        <>
+          <b>{stepFig(stage, s.done)}</b>
+          {s.need == null ? null : <em> of {stepFig(stage, s.need)}</em>}
+        </>
+      }
+      status={status}
+      foot={landing == null ? undefined : `Heading for ${stepFig(stage, landing)}`}
+    />
   );
 }
 
@@ -663,16 +726,39 @@ function YearPace({ y, margin, costed, goalPct }: {
   };
   const yd = drift(y.gapYesterday);
   const wk = drift(y.gapLastWeek);
+
+  const pc = (n: number) => `${Math.min(100, Math.max(0, (n / y.goal) * 100))}%`;
+  // Where the run rate lands, drawn as a dashed continuation of the bar rather
+  // than as another figure: the gap between where the solid stops and where the
+  // dashes stop is the whole argument of this strip.
+  const landing = y.landing == null ? null : Math.max(y.ytd, y.landing);
+
+  const marginVerdict =
+    margin == null || goalPct == null ? null : margin >= goalPct / 100 ? "ahead" : margin >= goalPct / 100 - 0.02 ? "close" : "behind";
+
   return (
     <div className="year year--pace">
       <div className="year__main">
-        <span className={`year__gap ${behind ? "is-behind" : ""}`}>
-          {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
+        <span className="year__nums">
+          <b className={`year__gap ${behind ? "is-behind" : ""}`}>
+            {Math.abs(y.gap) < y.goal * 0.005 ? "On pace" : behind ? `${money(-y.gap)} behind` : `${money(y.gap)} ahead`}
+          </b>
+          <em>{money(y.ytd)} so far</em>
         </span>
-        {/* The same bar as the week cards, in the strip's own colours. */}
-        <Bullet ratio={y.ytd / y.goal} pace={y.byNow / y.goal} hasTarget dark />
-        <span className="year__have">
-          {money(y.ytd)} <em>invoiced of {money(y.goal)} · the line: {money(y.byNow)} by now</em>
+        <span className="year__track">
+          {landing != null && (
+            <span className="year__run" style={{ left: pc(y.ytd), width: `calc(${pc(landing)} - ${pc(y.ytd)})` }} />
+          )}
+          <span className="year__fill" style={{ width: pc(y.ytd) }} />
+          {/* The line the goal says we should be on. */}
+          <span className="year__mark" style={{ left: pc(y.byNow) }} />
+        </span>
+      </div>
+      <div className="year__side">
+        <span className="year__k">Tracking to · {endLabel(y.endsOn)}</span>
+        <span className="year__v">
+          {y.landing == null ? NA : money(y.landing)}
+          <em> of {money(y.goal)}</em>
         </span>
       </div>
       <div className="year__side">
@@ -692,14 +778,25 @@ function YearPace({ y, margin, costed, goalPct }: {
       </div>
       <div className="year__side">
         <span className="year__k">Job margin · month</span>
-        <span className="year__v">
+        <span className={`year__v ${marginVerdict ? `is-${marginVerdict}` : ""}`}>
           {margin == null ? NA : pct(margin)}
-          {margin != null && goalPct != null ? <em> of {goalPct}%</em> : costed > 0 ? <em> {costed} costed</em> : null}
+          {margin != null && goalPct != null ? (
+            <em>
+              {" "}
+              of {goalPct}%{marginVerdict ? ` · ${marginVerdict}` : ""}
+            </em>
+          ) : costed > 0 ? (
+            <em> {costed} costed</em>
+          ) : null}
         </span>
       </div>
     </div>
   );
 }
+
+/** "30 June" — the day the goal's year runs to. */
+const endLabel = (iso: string) =>
+  new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", timeZone: "UTC" });
 
 /** The month the board is pacing, named rather than numbered. */
 const monthName = (now: Date) =>
@@ -1442,85 +1539,6 @@ function RateCard({ label, lines, value, accent }: { label: string; lines: strin
       >
         {value}
       </span>
-    </div>
-  );
-}
-
-/**
- * The pace bar: three zones, the goal, and where we actually are.
- *
- * Jake asked for red, amber and green with the goal marked and a dark line for
- * where we have got to, which is a bullet chart — and a bullet chart suits this
- * page better than the single fill it replaces, because a fill says "this much"
- * and nothing about whether this much is any good.
- *
- * The boundaries are the pace, not fixed fractions of the target. Green starts
- * exactly where the week has got to, so being in the green means being on or
- * ahead of pace and nothing else — the same test the verdict underneath
- * applies. Fixed boundaries read more calmly but they disagree with that
- * verdict twice a day: on Tuesday morning a quarter of the week's target is
- * comfortably ahead and would have sat in the red. A bar and a label
- * contradicting each other on one card is how a wall stops being believed.
- *
- * The red zone growing through the week is the point of it: stand still and the
- * bar you have to clear rises past you.
- *
- * The track runs a quarter past the goal rather than stopping at it. A bar that
- * pins at 100% cannot show a good week — $60K against a $48K target looked
- * identical to $48K exactly — and the headroom fixes the goal at four fifths of
- * every track on the page, marked by a gap twice the width of the others rather
- * than by a line, which is one mark fewer on a 9px band.
- *
- * Colour is not carrying this, per the board's rule: the zones are in a fixed
- * order with gaps between them, the one the figure lands in is drawn at full
- * strength against the others' half, and the verdict is written underneath.
- */
-const HEADROOM = 1.25;
-
-function Bullet({
-  ratio,
-  pace,
-  hasTarget,
-  dark,
-}: {
-  ratio: number | null;
-  pace: number | null;
-  hasTarget: boolean;
-  /** On the navy year strip, where the zones and the bar need the other end of the scale. */
-  dark?: boolean;
-}) {
-  // No target, no verdict: an empty track, and the line above it says why.
-  if (!hasTarget || ratio == null) return <div className="meter" />;
-
-  const clamp = (n: number) => Math.min(1, Math.max(0, n));
-  // Nothing expected yet — first thing Monday — is measured against the whole
-  // period, not against zero, which would paint the entire bar green.
-  const p = pace == null || pace <= 0 ? 1 : pace;
-  const low = clamp((0.75 * p) / HEADROOM);
-  const mid = clamp(p / HEADROOM);
-  const GOAL = 1 / HEADROOM;
-  const zone = ratio >= p ? "high" : ratio >= 0.75 * p ? "mid" : "low";
-
-  // The gap between zones comes out of each zone's right edge rather than going
-  // between them, so the boundaries land on the arithmetic and not a pixel or
-  // two past it.
-  const span = (from: number, to: number) => ({
-    left: `${from * 100}%`,
-    width: `max(0px, calc(${(to - from) * 100}% - var(--zone-gap)))`,
-  });
-
-  return (
-    <div className={`meter meter--bullet is-${zone}${dark ? " meter--dark" : ""}`}>
-      <span className="meter__zone meter__zone--low" style={span(0, low)} />
-      <span className="meter__zone meter__zone--mid" style={span(low, mid)} />
-      {/* Green twice, split at the goal by a gap twice the width of the others.
-          One green running the whole way would hide the goal; a separate mark
-          for it is one more thing on a 9px band than it can carry. The second
-          green is the headroom — a week that beat its target has somewhere to
-          show it. */}
-      <span className="meter__zone meter__zone--high is-goal" style={span(mid, GOAL)} />
-      <span className="meter__zone meter__zone--high" style={{ left: `${GOAL * 100}%`, right: 0 }} />
-      <span className="meter__now" style={{ width: `${clamp(ratio / HEADROOM) * 100}%` }} />
     </div>
   );
 }

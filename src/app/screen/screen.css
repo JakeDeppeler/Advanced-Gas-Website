@@ -48,6 +48,14 @@
   --zone-low: #d4553a;
   --zone-mid: #e0a52a;
   --zone-high: #2f9e5e;
+
+  /* The four verdicts the pace dials and the footer key are drawn in, in the
+     order they sit on every dial. Only ever a reinforcement: the dial writes
+     its verdict out in words and the footer names each colour. */
+  --vd-behind: #d8372a;
+  --vd-close: #e2912c;
+  --vd-track: #1f9a5c;
+  --vd-ahead: #d9b02a;
   --leader-row: #fef4eb;
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -246,8 +254,10 @@ body:has(.screen) .utilbar {
      sold, completed, invoiced. The band names keep their own column on the
      left. The year sits on top because it is the question. */
   grid-template-columns: calc(7.5 * var(--u)) repeat(6, 1fr);
-  /* The week first, the month under it, the year at the foot — nearest first. */
-  grid-template-rows: 1.12fr 0.95fr 0.8fr;
+  /* The week first, the month under it, the year at the foot — nearest first.
+     The two dial rows are the same height: they are one reading at two lengths,
+     and a shorter week row would read as the lesser of the two. */
+  grid-template-rows: 1fr 1fr 0.3fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--team { grid-template-rows: 1fr; }
@@ -410,12 +420,7 @@ body:has(.screen) .utilbar {
 
 /* The pace sentence under a dial wraps rather than running out of its tile.
    `.status` is nowrap everywhere else, where it is a short pill on one line. */
-.gauge .status {
-  white-space: normal;
-  text-align: center;
-  line-height: 1.25;
-  text-wrap: balance;
-}
+
 
 /* One tile cut in two, for a figure that only means something next to its pair.
    The rule between them is what makes it a comparison rather than a list; it
@@ -464,6 +469,12 @@ body:has(.screen) .utilbar {
 .status--behind { color: var(--behind-ink); }
 .status--quiet { color: var(--ink-muted); }
 
+/* The pace dials' four, matching their zone and the footer key exactly. */
+.gauge .status--behind { color: var(--vd-behind); }
+.gauge .status--close { color: var(--vd-close); }
+.gauge .status--track { color: var(--vd-track); }
+.gauge .status--ahead { color: var(--vd-ahead); }
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -478,71 +489,6 @@ body:has(.screen) .utilbar {
 .pill--quiet { background: var(--track); color: var(--ink-2); }
 .pill--solid { background: var(--navy); color: #fff; }
 .pill--accent { background: var(--accent); color: #fff; }
-
-/* ------------------------------------------------------------------- meter */
-.meter {
-  position: relative;
-  height: calc(0.5 * var(--u));
-  /* Never let the column squeeze it away. A card with one more line under the
-     bar than its neighbours — the win rate's "22 of 124 · last 30 days" — shrank
-     this to nothing, so four cards in the row had a bar and the fifth had a gap
-     where one should be. */
-  flex: none;
-  border-radius: 999px;
-  background: var(--track);
-  overflow: hidden;
-}
-/* ------------------------------------------------------------ bullet bar */
-/* Three zones, the goal, and where we are. See the Bullet component for why the
-   boundaries are the pace and why the track runs past the goal.
-
-   Taller than the plain meter because it now carries four things instead of
-   one, and a 9px band is what makes the zone gaps readable from the far side of
-   the room. */
-.meter--bullet {
-  height: calc(0.95 * var(--u));
-  overflow: visible;
-  background: none;
-  /* The gaps are structural, not decoration: they are what tells a viewer who
-     cannot separate the hues that there are zones at all and which one the bar
-     has reached. */
-  --zone-gap: calc(0.16 * var(--u));
-}
-/* The zones are a strip along the top; where we have got to runs underneath
-   it. Laid over each other the dark bar hid whichever zone it had reached,
-   which is the one a reader needs to see. */
-.meter__zone {
-  position: absolute;
-  top: 0;
-  height: calc(0.46 * var(--u));
-  border-radius: calc(0.14 * var(--u));
-  opacity: 0.42;
-}
-.meter__zone--low { background: var(--zone-low); }
-.meter__zone--mid { background: var(--zone-mid); }
-.meter__zone--high { background: var(--zone-high); }
-/* The goal: a gap wide enough to read as a landmark rather than as another zone
-   boundary. It sits at four fifths of every track on the page. */
-.meter__zone.is-goal { margin-right: calc(0.3 * var(--u)); }
-
-/* The zone the figure actually landed in, at full strength. A lightness
-   difference, which is the one cue that survives every form of colour
-   blindness — the hue beside it is reinforcement. */
-.meter--bullet.is-low .meter__zone--low,
-.meter--bullet.is-mid .meter__zone--mid,
-.meter--bullet.is-high .meter__zone--high { opacity: 1; }
-
-.meter__now {
-  position: absolute;
-  left: 0;
-  top: calc(0.57 * var(--u));
-  height: calc(0.34 * var(--u));
-  min-width: calc(0.1 * var(--u));
-  border-radius: 999px;
-  background: var(--navy);
-  transition: width 600ms ease;
-}
-
 
 /* --------------------------------------------------------------- bar lists */
 /* Name left, figures right, a full-width bar beneath. The rank numbers of the
@@ -593,26 +539,56 @@ body:has(.screen) .utilbar {
 }
 
 /* ------------------------------------------------------------------- gauge */
-.gauge { align-items: center; justify-content: center; gap: calc(0.7 * var(--u)); }
-.gauge > .tile__sub:last-child { margin-top: 0; }
-.gauge__svg { width: 100%; max-height: calc(12 * var(--u)); }
-.gauge__track { stroke: var(--track); }
-/* The arc carries the status, so the answer is available from further back in
-   the room than the sentence under it is readable. It never carries it alone:
-   every dial writes the status out in words directly below, which is what a
-   viewer who cannot separate the two hues reads. */
-.gauge__fill { stroke: var(--navy); }
-.gauge__fill.is-ahead { stroke: var(--ahead-ink); }
-.gauge__fill.is-behind { stroke: var(--behind-ink); }
-.gauge__pace { stroke: var(--accent); stroke-width: 5; stroke-linecap: round; }
-.gauge__pct {
-  fill: var(--navy);
-  font-size: 36px;
+/* The pace dial. Four zones in a fixed order with a gap between each, and only
+   the one the needle landed in at full strength — so which verdict is being
+   given is readable from the shape of the dial, not only from its hue. The
+   words underneath say it a third time, and the footer carries the key. */
+.gauge { align-items: center; justify-content: center; gap: calc(0.45 * var(--u)); text-align: center; }
+.gauge__svg { width: 100%; max-height: calc(9.2 * var(--u)); flex: none; }
+
+/* The zones not in play sit back as tints of themselves, so which verdict is
+   being given reads as a weight difference before it reads as a hue. */
+.gauge__zone { opacity: 0.36; }
+.gauge__zone.is-on { opacity: 1; }
+.gauge__zone.is-behind { stroke: var(--vd-behind); }
+.gauge__zone.is-close { stroke: var(--vd-close); }
+.gauge__zone.is-track { stroke: var(--vd-track); }
+.gauge__zone.is-ahead { stroke: var(--vd-ahead); }
+
+/* Where we actually are. A needle rather than a filled arc: the zones are the
+   scale, and a fill would cover the one of them that matters. */
+.gauge__needle { stroke: var(--navy); stroke-width: 4.5; stroke-linecap: round; }
+.gauge__hub { fill: var(--navy); }
+
+.gauge__label { font-size: calc(1.02 * var(--u)); color: var(--ink-2); font-weight: 500; }
+.gauge__fig {
+  font-size: calc(2.3 * var(--u));
   font-weight: 800;
   letter-spacing: -0.03em;
+  color: var(--navy);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  /* "$61K of $308K" broke over two lines in one card of six and made that card
+     taller than the other five, which on an equal-height row pushed its last
+     line out through the bottom. */
+  white-space: nowrap;
+  max-width: 100%;
 }
-.gauge__pct--na { font-size: 16px; fill: var(--ink-muted); font-weight: 600; }
-.gauge__label { font-size: calc(1.05 * var(--u)); color: var(--ink-2); font-weight: 500; }
+.gauge__fig em,
+.gauge__sub em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+.gauge__fig em { font-size: calc(1.08 * var(--u)); margin-left: calc(0.25 * var(--u)); }
+.gauge__sub {
+  font-size: calc(1.05 * var(--u));
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.gauge__sub b { color: var(--navy); font-weight: 800; }
+.gauge__foot { font-size: calc(0.95 * var(--u)); color: var(--ink-2); }
+.gauge .status { white-space: normal; text-wrap: balance; line-height: 1.2; }
 
 /* --------------------------------------------------------------- quote list */
 .quotes { display: flex; flex-direction: column; flex: 1; }
@@ -885,6 +861,7 @@ body:has(.screen) .utilbar {
 
 /* ------------------------------------------------------------------ footer */
 .screen__foot {
+  position: relative;
   display: flex;
   align-items: center;
   gap: calc(1.1 * var(--u));
@@ -894,6 +871,23 @@ body:has(.screen) .utilbar {
   font-size: calc(0.92 * var(--u));
 }
 .screen__feed { display: inline-flex; align-items: center; gap: calc(0.5 * var(--u)); }
+
+/* The dials' key, centred in the footer. Without it the colours are a
+   convention the room has to be told; with it they are self-explanatory. */
+.screen__legend {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(1.5 * var(--u));
+}
+.lg { display: inline-flex; align-items: center; gap: calc(0.45 * var(--u)); color: rgba(255, 255, 255, 0.86); font-weight: 600; }
+.lg__dot { width: calc(0.6 * var(--u)); height: calc(0.6 * var(--u)); border-radius: 50%; }
+.lg__dot.is-behind { background: #f4604f; }
+.lg__dot.is-close { background: #f0a53c; }
+.lg__dot.is-track { background: #35b877; }
+.lg__dot.is-ahead { background: #e8c74a; }
 .screen__feed b { color: #fff; font-weight: 600; }
 .screen__dot {
   width: calc(0.45 * var(--u));
@@ -1215,50 +1209,84 @@ body:has(.screen) .utilbar {
 /* Behind its own pace is the one thing on this strip worth a colour. */
 .year__bynow.is-behind { color: var(--accent); }
 
-/* The year's bar is the week cards' bar in the strip's colours: the zones
-   lifted off navy, and white for where we have got to, because white is to navy
-   what the near-black bar is to a white card. It was an orange fill with a white
-   tick, which is a third way of drawing the one thing this page does. */
-.year .meter--dark { height: calc(1.25 * var(--u)); }
-.year .meter--dark .meter__zone { height: calc(0.6 * var(--u)); opacity: 0.42; }
-.year .meter--dark .meter__zone--low { background: #ff8a6b; }
-.year .meter--dark .meter__zone--mid { background: #ffcc63; }
-.year .meter--dark .meter__zone--high { background: #58d08d; }
-.year .meter--dark.is-low .meter__zone--low,
-.year .meter--dark.is-mid .meter__zone--mid,
-.year .meter--dark.is-high .meter__zone--high { opacity: 1; }
-.year .meter--dark .meter__now {
-  top: calc(0.76 * var(--u));
-  height: calc(0.42 * var(--u));
-  background: #fff;
-}
-
 .year__side { display: flex; flex-direction: column; gap: calc(0.15 * var(--u)); }
 .year__k { font-size: calc(0.92 * var(--u)); color: rgba(255, 255, 255, 0.7); }
-.year__v { font-size: calc(1.9 * var(--u)); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
-.year__v em { font-style: normal; font-size: calc(1 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.year__v {
+  font-size: calc(1.8 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  /* One line each. "25% of 20% · ahead" wrapping put the verdict on a row of
+     its own, below the strip's baseline, where it read as a stray word. */
+  white-space: nowrap;
+}
+.year__v em { font-style: normal; font-size: calc(0.95 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.7); }
 
 
 /* ------------------------------------------------- /02 Pace, by step */
 .year--pace {
   grid-column: 2 / span 6;
-  grid-template-columns: minmax(0, 1fr) repeat(4, calc(11 * var(--u)));
-  gap: calc(1.6 * var(--u));
+  grid-template-columns: minmax(0, 1.9fr) repeat(5, minmax(0, 1fr));
+  gap: calc(1.4 * var(--u));
 }
-.year__gap { font-size: calc(2.7 * var(--u)); font-weight: 900; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
+.year--pace .year__main { gap: calc(0.7 * var(--u)); }
+.year--pace .year__nums { justify-content: flex-start; gap: calc(0.9 * var(--u)); min-width: 0; overflow: hidden; }
+.year__gap { font-size: calc(2.1 * var(--u)); font-weight: 900; letter-spacing: -0.03em; line-height: 1; white-space: nowrap; }
 .year__gap.is-behind { color: #ff9a62; }
-.year--pace .year__main { gap: calc(0.85 * var(--u)); }
-.year--pace .year__have { font-size: calc(1.05 * var(--u)); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.year--pace .year__nums em {
+  font-style: normal;
+  font-size: calc(1.05 * var(--u));
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  white-space: nowrap;
+}
 .year__v--drift { font-size: calc(1.4 * var(--u)); white-space: nowrap; }
 /* The two colours that read on the navy, each with its glyph and its word. */
 .year__v--drift.is-up { color: #8ee0ab; }
 .year__v--drift.is-down { color: #ff9a62; }
+/* The month's margin against the goal, in the dials' own verdict colours lifted
+   off navy — the word beside it says the same thing. */
+.year__v.is-ahead { color: #ffd95e; }
+.year__v.is-close { color: #ffbe6b; }
+.year__v.is-behind { color: #ff9a62; }
 
-.pstep { justify-content: space-between; }
-.pstep .status { font-size: calc(1.02 * var(--u)); }
-.pstep__fig { display: flex; align-items: baseline; gap: calc(0.5 * var(--u)); min-width: 0; }
-.pstep__fig .tile__value { font-size: calc(3.3 * var(--u)); }
-.pstep__fig .tile__sub { white-space: nowrap; font-size: calc(1 * var(--u)); }
-.pstep > .tile__sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pstep--compact .pstep__fig .tile__value { font-size: calc(2.4 * var(--u)); }
-.pstep--compact .status { font-size: calc(1 * var(--u)); }
+/* The year's bar: how far we have come, where the goal says we should be, and
+   — in dashes — where the last four weeks' rate lands it. */
+.year__track {
+  position: relative;
+  height: calc(0.85 * var(--u));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.year__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  /* The orange that reads on navy — #f46722 on #050a30 is under 3:1. */
+  background: #ff8755;
+}
+/* The run rate, as the bar continuing in dashes. The gap between where the
+   solid stops and where the dashes stop is the whole argument of this strip,
+   and it needs no second figure to make it. */
+.year__run {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.42) 0,
+    rgba(255, 255, 255, 0.42) calc(0.5 * var(--u)),
+    transparent calc(0.5 * var(--u)),
+    transparent calc(0.92 * var(--u))
+  );
+}
+.year__mark {
+  position: absolute;
+  top: calc(-0.3 * var(--u));
+  bottom: calc(-0.3 * var(--u));
+  width: calc(0.22 * var(--u));
+  margin-left: calc(-0.11 * var(--u));
+  border-radius: 999px;
+  background: #fff;
+}

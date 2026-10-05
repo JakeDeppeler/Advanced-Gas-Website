@@ -78,10 +78,12 @@ of its own, and the service mix is the job-type table on Performance.
 through — booked, quoted, quote value, sold, completed, invoiced — in three
 bands with their names down the left margin, nearest first:
 
-- **This week** — the six steps, each done against what the goal needs of it
-  this week, a bullet bar, and the verdict in words: ▲ ahead, ● on pace,
-  ▼ behind, and how many a day it takes to catch up.
-- **The month** — the same six as dials, against the month's need.
+- **This week** — the six steps as dials, each done against what the goal needs
+  of it this week, with the verdict in words: ▲ ahead, ● on track, ▼ behind, and
+  how many a day it takes to catch up.
+- **The month** — the same six dials, against the month's need, with the share
+  of it landed, the pair behind that share, and where the month lands at this
+  rate.
 - **This year** — one navy strip: how far off the goal's line we are, whether
   that got better or worse since yesterday and since last week, what a week has
   to invoice from here to land the year, and the margin on this month's jobs.
@@ -99,34 +101,30 @@ The arithmetic is `src/lib/dashboard/pace.ts` and is described under
 [Pace: what the goal needs of every step](#pace-what-the-goal-needs-of-every-step).
 The portal's Pace page runs the same code off the same snapshot.
 
-### The pace bar
+### The pace dial
 
-Every target bar on the board is a bullet bar: red, amber and green zones, the
-goal, and a dark bar underneath for where we have actually got to. The year
-strip takes the same bar in its own colours.
+Every step on Pace is the same dial: four zones, and a needle at how we are
+actually going.
 
-The zone boundaries are the **pace**, not fixed fractions of the target. Green
-starts exactly where the week has got to, so being in the green means being on
-or ahead of pace and nothing else — the same test the verdict underneath
-applies. Fixed boundaries read more calmly but they disagree with that verdict
-twice a day: on Tuesday morning a quarter of the week's target is comfortably
-ahead and would have sat in the red. A bar and a label contradicting each other
-on one card is how a wall stops being believed. The red zone growing through the
-week is the point of it: stand still and the bar you have to clear rises past
-you.
+The needle is **done ÷ what the goal says we should have by now**, not done ÷
+the whole target. On the second of the month the second of those is 7% on every
+dial on the page and tells the room nothing; the first means the same thing on
+the first of the month and on the last, with straight up being exactly on pace.
+The dial runs to half as much again as the line asks, so a step that is
+genuinely ahead has somewhere to show it.
 
-The track runs a quarter past the goal rather than stopping at it, so a week
-that beat its target has somewhere to show it — pinned at 100%, $60K against a
-$48K target looked identical to $48K exactly. The headroom also fixes the goal
-at four fifths of every track on the page, marked by a gap twice the width of
-the others rather than by a line, which is one mark fewer on a 9px band.
+The four zones are fixed on that scale and in the same order on every dial —
+**Behind** under three quarters of the line, **Close** to nine tenths, **On
+track** a tenth either side of it, **Ahead** past that — with a gap between
+each. Only the zone the needle landed in is at full strength; the rest sit back
+as tints of themselves.
 
-Sold and invoiced are **two different measures, not two views of one**, and that
-is why both are on the wall. Work sold today is invoiced days or weeks later, so
-revenue alone reports on quotes closed well before this morning — by the time it
-sags, the sales week that caused it is already over. Selling is the half the
-room can still act on today; invoicing is the half already committed. The gap
-between them is the pipeline.
+That is the same verdict three times over: where the needle points, which zone
+is lit, and the words underneath. The footer carries the key — Behind · Close ·
+On track · Ahead — so the colours are not a convention the room has to be told.
+Red and green are the worst pair under red-green colour blindness and they are
+used here anyway, because nothing on this dial is carried by hue alone and the
+needle alone answers it.
 
 **Quotes** is three figures — quoted today, sold today, average quote — over
 what was written today and what is still out, biggest first. Both lists are one
@@ -179,24 +177,14 @@ it unset everywhere but a dev box.
 
 ### Colour
 
-Behind is red, ahead is green — the pair the room reads without being taught,
-and the pair that is worst under red-green colour blindness. The board only ever
-uses them to *reinforce*: every figure that takes a status colour carries the
-verdict in words beside it ("▲ Ahead $4,200", "Behind pace by 19%"), and the
-pace bars carry it again in fixed zone order, visible boundary gaps and a weight
-difference on the zone the figure landed in. Nothing here is readable by hue
-alone, and that property is the thing to keep.
-
-### The dials
-
-Three zones in a fixed order — behind, on track, ahead — with the needle at the
-current pace. **Colour deliberately does not carry the reading on its own.**
-Red/green/gold is close to the worst case for red-green colour blindness: the
-most separable gold still measures ΔE 5.2 against the green under protanopia,
-which is below the usable floor. So the zone order never changes, the boundaries
-have visible gaps, the active zone is the only one at full weight, and every dial
-states its status in words. Someone who sees no colour difference at all still
-reads it from needle position and text.
+Behind is red, close is amber, on track is green and ahead is gold — the set the
+room reads without being taught, and the set that is worst under red-green
+colour blindness. The board only ever uses them to *reinforce*: every figure
+that takes a status colour carries the verdict in words beside it ("▲ Ahead
+$4,200", "Behind pace by 19%"), the pace dials carry it again in needle
+position, fixed zone order, visible boundary gaps and a weight difference on the
+zone the needle landed in, and the footer names all four. Nothing here is
+readable by hue alone, and that property is the thing to keep.
 
 ### The sale celebration
 
