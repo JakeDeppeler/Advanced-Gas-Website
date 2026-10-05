@@ -93,7 +93,7 @@ const data: PaceData = {
     month: { leads: 4, booked: 20, quoted: 15, quotedValue: 66000, sold: 6, soldValue: 17000, completed: 8, invoiced: 20726 },
   },
   measured: sept,
-  year: { ytd: 531636, ytdYesterday: 531636, ytdLastWeek: 483000, last28: 104000 },
+  year: { ytd: 531636, ytdYesterday: 531636, ytdLastWeek: 483000, last28: 104000, lastYearTotal: 1909607, lastYearToDate: 317612 },
   calls: 15,
 };
 const v = buildPace(goal, none, data)!;
@@ -107,6 +107,11 @@ ok(near(v.yearView!.gapYesterday, 531636 - expectedBy(goal, "2026-10-04", 1)!), 
 ok(near(v.yearView!.gapLastWeek, 483000 - expectedBy(goal, "2026-09-28", 1)!), "last week's gap is a week ago");
 const left = 3_200_000 - 531636;
 ok(near(v.yearView!.catchUp, left / (3_200_000 - v.yearView!.byNow)), "catch-up is money left over plan left", v.yearView?.catchUp);
+ok(v.yearView!.lastYear === 1909607, "last year's whole total comes through");
+ok(
+  near(v.yearView!.ytd - v.yearView!.lastYearToDate, 531636 - 317612),
+  "ahead of last year is this date against the same date last year",
+);
 ok(buildPace({ ...goal, year: 2026 }, none, data) === null, "last year's goal paces nothing");
 
 // ---- profit before GST, and the setting round trip

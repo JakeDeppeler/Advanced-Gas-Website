@@ -104,9 +104,22 @@ bands with their names down the left margin, nearest first:
 - **The month** — the same six dials, against the month's need, with the share
   of it landed, the pair behind that share, and where the month lands at this
   rate.
-- **This year** — one navy strip: how far off the goal's line we are, whether
-  that got better or worse since yesterday and since last week, what a week has
-  to invoice from here to land the year, and the margin on this month's jobs.
+- **This year** — one navy strip: how far off the goal's line we are, where the
+  last four weeks' rate lands it by year end, how it stands against the same
+  date last year, whether the gap got better or worse over the week, what a week
+  has to invoice from here, and the margin on this month's jobs.
+
+Last year sits beside the goal because the goal is a stretch and last year is
+the number the room actually feels: $1.9M invoiced in FY25/26 against a $3.2M
+goal for FY26/27. "Up $219K" compares this year to date against the **same date**
+last year; "Tracking to" is a flat run rate off the last four weeks, so the two
+can disagree — being well up at October says nothing about a year that was
+back-loaded, and the run rate has no idea it was.
+
+It replaced "Since yesterday". A day's drift on a year-to-date figure is a
+thousand dollars of noise, "Since last week" beside it carries the same signal
+with a week of smoothing, and last year is the figure somebody repeats in the
+van.
 
 **Leads came off the funnel.** Nothing counts the phone calls behind a lead —
 ServiceTitan's Telecom scope is a separate grant — so the card drew no verdict,

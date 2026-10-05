@@ -357,8 +357,18 @@ export type PaceData = {
   };
   periods: { today: PaceCounts; week: PaceCounts; lastWeek: PaceCounts; month: PaceCounts };
   measured: Measured | null;
-  /** Invoiced since the goal's year began: now, at the end of yesterday, and a week ago. */
-  year: { ytd: number; ytdYesterday: number; ytdLastWeek: number; last28: number } | null;
+  /**
+   * Invoiced since the goal's year began: now, at the end of yesterday, and a
+   * week ago — plus the year before it, whole and to the same date.
+   */
+  year: {
+    ytd: number;
+    ytdYesterday: number;
+    ytdLastWeek: number;
+    last28: number;
+    lastYearTotal: number;
+    lastYearToDate: number;
+  } | null;
   /** Calls ServiceTitan's phone log holds for the window — to say how thin it is. */
   calls: number;
 };
@@ -381,6 +391,9 @@ export type YearView = {
   weekNeeded: number | null;
   /** Where the year lands if the last four weeks are the rate from here. */
   landing: number | null;
+  /** What the year before this one came to, and what it had come to by this date. */
+  lastYear: number;
+  lastYearToDate: number;
   /** The last day of the goal's year, so the wall can say what it is tracking to. */
   endsOn: string;
 };
@@ -486,6 +499,8 @@ export function buildPace(goal: PaceGoal | null, settings: PaceSettings, d: Pace
       weekPlanned,
       weekNeeded: weekPlanned != null && catchUp != null ? weekPlanned * catchUp : null,
       landing: d.year.ytd + (d.year.last28 / 28) * daysLeft,
+      lastYear: d.year.lastYearTotal,
+      lastYearToDate: d.year.lastYearToDate,
       endsOn: end,
     };
   }

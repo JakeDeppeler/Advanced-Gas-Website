@@ -53,7 +53,15 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
   const earliest = [window.from, periods.lastWeek.from, periods.month.from].sort()[0];
   const from = earliest < ST_LIVE ? ST_LIVE : earliest;
   const fromTs = midnight(from);
-  const invoicesFrom = yearFrom && yearFrom < from ? yearFrom : from;
+  /*
+   * Invoices go back a year further than anything else here, so the wall can
+   * say how this year is going against the same date last year. One query over
+   * two years rather than two queries: a year of this tenant's invoices is
+   * about 1,200 rows, which is nothing beside the four thousand the window
+   * already reads.
+   */
+  const lastYearFrom = yearFrom ? shiftIso(yearFrom, -365) : null;
+  const invoicesFrom = [from, yearFrom, lastYearFrom].filter((v): v is string => v != null).sort()[0];
 
   const [webLeads, stLeads, booked, done, quotedRows, soldRows, invoices, calls] = await Promise.all([
     sbSelect<{ created_at: string }>("portal_leads", [q.select("created_at"), q.gte("created_at", fromTs)].join("&")),
@@ -163,13 +171,19 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
   }
 
   let year: PaceData["year"] = null;
-  if (yearFrom) {
-    const upTo = (to: string) => inv.filter((x) => x.d && x.d >= yearFrom && x.d <= to).reduce((t, x) => t + x.v, 0);
+  if (yearFrom && lastYearFrom) {
+    const sum = (f: string, t: string) => inv.filter((x) => within(x.d, { from: f, to: t })).reduce((a, x) => a + x.v, 0);
+    const upTo = (to: string) => sum(yearFrom, to);
+    // The same stretch of last year, to the day: a year-to-date figure is only
+    // worth comparing against the same slice of the one before it.
+    const lastYearTo = shiftIso(today, -365);
     year = {
       ytd: upTo(today),
       ytdYesterday: upTo(yesterday),
       ytdLastWeek: upTo(shiftIso(today, -7)),
-      last28: inv.filter((x) => within(x.d, { from: shiftIso(today, -28), to: yesterday })).reduce((t, x) => t + x.v, 0),
+      last28: sum(shiftIso(today, -28), yesterday),
+      lastYearTotal: sum(lastYearFrom, shiftIso(yearFrom, -1)),
+      lastYearToDate: sum(lastYearFrom, lastYearTo),
     };
   }
 

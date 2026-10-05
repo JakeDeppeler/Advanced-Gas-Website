@@ -748,8 +748,14 @@ function YearPace({ y, margin, costed, goalPct }: {
     if (Math.abs(d) < 1) return { text: "● No change", cls: "" };
     return d > 0 ? { text: `▲ ${money(d)} better`, cls: "is-up" } : { text: `▼ ${money(-d)} worse`, cls: "is-down" };
   };
-  const yd = drift(y.gapYesterday);
   const wk = drift(y.gapLastWeek);
+  /** This year to date against the same date last year. */
+  const lastYear = (() => {
+    const d = y.ytd - y.lastYearToDate;
+    if (y.lastYearToDate <= 0) return { text: NA, cls: "" };
+    if (Math.abs(d) < y.lastYearToDate * 0.01) return { text: "● Level", cls: "" };
+    return d > 0 ? { text: `▲ ${money(d)} up`, cls: "is-up" } : { text: `▼ ${money(-d)} down`, cls: "is-down" };
+  })();
 
   const pc = (n: number) => `${Math.min(100, Math.max(0, (n / y.goal) * 100))}%`;
   // Where the run rate lands, drawn as a dashed continuation of the bar rather
@@ -785,9 +791,20 @@ function YearPace({ y, margin, costed, goalPct }: {
           <em> of {money(y.goal)}</em>
         </span>
       </div>
+      {/* Where this year stands against the one before it, which is the goal
+          the room actually feels: $1.9M was last year, and beating it is a
+          different question from landing a $3.2M stretch. The pair reads as
+          one sentence — up this much at this date, heading for that much by
+          June — and the two can disagree, because a flat run rate off the last
+          four weeks has no idea last year was back-loaded.
+
+          It replaced "Since yesterday". A day's drift on a year-to-date figure
+          is $1,346 of noise; "Since last week" beside it carries the same
+          signal with a week of smoothing, and this is the number somebody
+          repeats in the van. */}
       <div className="year__side">
-        <span className="year__k">Since yesterday</span>
-        <span className={`year__v year__v--drift ${yd.cls}`}>{yd.text}</span>
+        <span className="year__k">Last year · {money(y.lastYear)}</span>
+        <span className={`year__v year__v--drift ${lastYear.cls}`}>{lastYear.text}</span>
       </div>
       <div className="year__side">
         <span className="year__k">Since last week</span>
