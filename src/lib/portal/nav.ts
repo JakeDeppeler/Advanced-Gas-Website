@@ -2,11 +2,10 @@
  * Everywhere in the portal a person can go, in the order the home page shows
  * them.
  *
- * One list, because three things need to agree about it: the home grid that is
- * now the only navigation, the search box in the top bar, and the capability
- * gate that decides who sees what. When the sidebar held this, the grid and the
- * search would each have had their own copy and they would have drifted within
- * a month.
+ * One list, because four things need to agree about it: the home grid, the
+ * side bar (whose seven tabs are the grid's seven sections), the search box in
+ * the top bar, and the capability gate that decides who sees what. Each with
+ * its own copy would have drifted within a month.
  *
  * Pure — no React, no database. `can()` is a plain predicate over the user that
  * the caller already has.
@@ -117,10 +116,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   const add = (ok: boolean, ...xs: NavItem[]) => { if (ok) items.push(...xs); };
 
   add(office,
-    {
-      href: "/portal/pace", label: "Pace", blurb: "What the goal takes, and are we on it", band: "run", icon: "trend",
-      also: ["pace", "on track", "behind", "ahead", "catch up", "leads needed", "quotes needed", "how many", "funnel", "3.2", "target"],
-    },
     { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The month and the year in numbers", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "target"] },
     { href: "/portal/numbers", label: "The numbers", blurb: "Leads to paid, all in one place", band: "run", icon: "trend", also: ["funnel", "conversion", "leads to paid", "average job"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
@@ -130,6 +125,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
     { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
     { href: "/trade/pricebook", label: "Pricebook", blurb: "What the iPad shows, and ServiceTitan", band: "customers", icon: "tag", also: ["price", "installed price", "ipad", "servicetitan"] },
+    // Beside the goal it paces: Run the company is six across, and a seventh
+    // card there sat on a row of its own.
+    {
+      href: "/portal/pace", label: "Pace", blurb: "What the goal takes, and are we on it", band: "profit", icon: "trend",
+      also: ["pace", "on track", "behind", "ahead", "catch up", "leads needed", "quotes needed", "how many", "funnel", "3.2", "target"],
+    },
     { href: "/portal/profit", label: "Profit on every job", short: "Job profit", blurb: "Margin, job by job", band: "profit", icon: "trend", also: ["margin", "job costing", "profit"] },
     {
       href: "/portal/goal", label: opts.goalLabel ? `The ${opts.goalLabel} goal` : "Year goal", short: "Goal",
