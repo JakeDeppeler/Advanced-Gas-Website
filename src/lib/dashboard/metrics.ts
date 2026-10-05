@@ -606,14 +606,19 @@ async function serviceTitanMetrics(now: Date) {
    * a genuine quiet day reads $0 and means it.
    */
   const [paidRows, everPaid] = await Promise.all([
-    sbSelect<{ total: number | null }>(
+    sbSelect<{ total: number | null; active: boolean | null }>(
       "st_payments",
-      [q.select("total"), q.eq("paid_on", today)].join("&"),
+      [q.select("total,active"), q.eq("paid_on", today)].join("&"),
     ).catch(() => []),
     sbCount("st_payments", "").catch(() => 0),
   ]);
-  const paidToday = everPaid > 0 ? paidRows.reduce((t, p) => t + Number(p.total ?? 0), 0) : null;
-  const paymentsToday = everPaid > 0 ? paidRows.length : null;
+  // Thirty-two of the 4,492 payments in the replica are reversed or voided,
+  // $34K all up. They are still payment records and they are not money that
+  // arrived. Unknown counts as real: a row whose payload predates the key is a
+  // payment that happened.
+  const banked = paidRows.filter((p) => p.active !== false);
+  const paidToday = everPaid > 0 ? banked.reduce((t, p) => t + Number(p.total ?? 0), 0) : null;
+  const paymentsToday = everPaid > 0 ? banked.length : null;
 
   /**
    * Everything billed today, whenever the job was done.

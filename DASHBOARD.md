@@ -62,6 +62,12 @@ is the only figure on the page that moves. The date is the Melbourne day, not
 the UTC slice an invoice date takes: a payment banked at 9am here is 10pm
 yesterday in UTC.
 
+Voided payments do not count. Thirty-two of the 4,492 the first sync brought are
+`active: false` — reversed, entered twice and backed out — $34K all up. They are
+payment records and they are not money that arrived. `st_payments.active` is
+generated from the raw payload (migration 0043) so it is right for rows already
+in the table and cannot drift; unknown reads as real.
+
 It reads **"—" until the first payment has ever synced**, never $0. The resource
 is newer than the rest and an empty table would otherwise put "nothing banked
 today" on the wall on a day the office took three cheques. Once one payment is
