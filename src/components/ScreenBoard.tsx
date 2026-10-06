@@ -199,7 +199,19 @@ export function ScreenBoard({
 
         const fresh = (next.metrics.alertEvents ?? []).filter((e) => !seen.current.has(e.id));
         for (const e of fresh) seen.current.add(e.id);
-        if (fresh.length) setQueue((qd) => [...qd, ...fresh]);
+        /*
+         * At most a few at a time, newest kept.
+         *
+         * Each alert holds the wall for seven to eleven seconds, so a batch of
+         * twelve — which is what a sync outage and recovery delivers in one
+         * poll — is two solid minutes in which the board shows no figures at
+         * all. The newest are the ones the room means by "what just happened";
+         * the older ones are history by the time they would have played.
+         *
+         * A fresh load never hits this: `seen` is seeded from the first
+         * snapshot, so everything already on the books counts as watched.
+         */
+        if (fresh.length) setQueue((qd) => [...qd, ...fresh].slice(-3));
 
         setSnap(next);
       } catch {

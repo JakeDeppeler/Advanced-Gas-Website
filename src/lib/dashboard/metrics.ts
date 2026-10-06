@@ -482,7 +482,6 @@ export type Metrics = {
    * celebrates. Carries the estimate id so the screen can tell a genuinely new
    * sale from one it has already cheered.
    */
-  recentSales: Array<{ id: number; name: string | null; value: number; soldOn: string }>;
 
   /**
    * The year goal worked back through every stage — leads, booked, quoted,
@@ -1278,31 +1277,17 @@ async function serviceTitanMetrics(now: Date) {
 
   const soldMtd = soldRows.reduce((s, r) => s + Number(r.total ?? 0), 0);
 
-  // The celebration feed. Two hours is comfortably wider than the sync interval,
-  // so a sale can't slip through between runs, and the screen's own de-duping
-  // stops it being cheered twice.
+  /** How far back the alert feed below looks. See the comment on it. */
   const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
-  const recentSales = soldRows
-    .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
-    .map((r) => ({
-      id: Number(r.id),
-      name: creditFor(r),
-      value: Number(r.total ?? 0),
-      soldOn: String(r.sold_on),
-    }))
-    .filter((r) => Number.isFinite(r.id))
-    .sort((a, b) => Date.parse(b.soldOn) - Date.parse(a.soldOn))
-    .slice(0, 10);
-
   /**
    * The three things worth taking the whole wall for: a quote written, a job
    * finished, a sale closed.
    *
    * One list rather than three feeds, because the board shows them one at a
    * time from a single queue and the only thing it needs per item is which of
-   * the three it is. The window matches the sale feed above — two hours is
-   * comfortably wider than the sync interval, so nothing slips between runs,
-   * and the screen de-dupes by id so nothing is cheered twice.
+   * the three it is. Two hours is comfortably wider than the sync interval, so
+   * nothing slips between runs, and the screen de-dupes by id so nothing is
+   * cheered twice.
    *
    * `who` and `where` are filled where ServiceTitan has them and left null
    * where it does not; the board drops the half of the line it cannot fill
@@ -1860,7 +1845,6 @@ async function serviceTitanMetrics(now: Date) {
     jobTypeBasis,
     jobTypeUnclassified,
     rawLeaderboard,
-    recentSales,
     invoiceCountMonth,
     invoiceCountToday,
     avgInvoiceValue,
@@ -2064,8 +2048,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       // The unbilled queue carries forward: a ServiceTitan that stopped
       // answering has not billed those jobs, and an empty list would read as
       // "all caught up" to the one person whose job it is.
-      // Deliberately not carried forward, for the same reason recentSales is
-      // not: a stale feed would re-fire an alert the room already watched.
+      // Deliberately not carried forward: a stale feed would re-fire an alert
+      // the room already watched.
       alertEvents: [],
       toBill: prev?.toBill ?? [],
       toBillCount: prev?.toBillCount ?? 0,
@@ -2143,7 +2127,6 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       quotesQuietValue: prev?.quotesQuietValue ?? 0,
       // Deliberately not carried forward: a stale feed would re-fire the rocket
       // for a sale the room already celebrated.
-      recentSales: [],
     };
   }
 
