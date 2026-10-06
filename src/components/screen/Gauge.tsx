@@ -116,8 +116,9 @@ export function Gauge({
   of,
   status,
   foot,
+  bare = false,
 }: {
-  label: string;
+  label?: string;
   /** done ÷ by now. Null draws the dial flat with no knob. */
   index: number | null;
   verdict: Verdict | null;
@@ -127,6 +128,14 @@ export function Gauge({
   of?: string;
   status: string;
   foot?: string;
+  /**
+   * Drawn inside a card that already has a header, rather than being one.
+   *
+   * Pace puts a step's week and month in one card under a single name, so the
+   * dial there must not bring its own card or repeat the name — the heading
+   * belongs to the column, not to either half of it.
+   */
+  bare?: boolean;
 }) {
   // The viewBox hugs the dial: every unit of empty box in here is a gap between
   // the arc and the words under it that the card cannot afford.
@@ -158,10 +167,10 @@ export function Gauge({
   const fs = figureSize(figure);
 
   return (
-    <div className="tile gauge">
-      <span className="gauge__label">{label}</span>
+    <div className={bare ? "gauge gauge--bare" : "tile gauge"}>
+      {!bare && label ? <span className="gauge__label">{label}</span> : null}
 
-      <svg className="gauge__svg" viewBox="0 0 200 162" role="img" aria-label={`${label}: ${figure}${of ? ` ${of}` : ""}, ${status}`}>
+      <svg className="gauge__svg" viewBox="0 0 200 162" role="img" aria-label={`${label ? `${label}: ` : ""}${figure}${of ? ` ${of}` : ""}, ${status}`}>
         {bands.map((b) => (
           <path
             key={b.k}

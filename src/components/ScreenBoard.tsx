@@ -38,7 +38,13 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Today: () => "",
   Pace: (m) => {
     const cal = m.paceData?.calendar;
-    const day = cal ? `week day ${Math.min(cal.week.total, cal.week.elapsed + 1)} of ${cal.week.total}` : "";
+    // Both counts, because the page shows both: a card is behind for the week
+    // and on track for the month all the time, and which day of which you are
+    // on is the only thing that reconciles them.
+    const day = cal
+      ? `week day ${Math.min(cal.week.total, cal.week.elapsed + 1)} of ${cal.week.total}` +
+        ` · month day ${Math.min(cal.month.total, cal.month.elapsed + 1)} of ${cal.month.total}`
+      : "";
     if (!m.pace) return "No goal set for this year";
     const goal = m.pace.profitPct ? `${money(m.pace.goal)} at ${m.pace.profitPct}%` : money(m.pace.goal);
     return `What the ${goal} goal needs of every step${day ? ` · ${day}` : ""}`;
@@ -435,15 +441,25 @@ export function ScreenBoard({
  */
 function TodayPage({ m, live }: { m: Metrics; live: Live }) {
   const soldJobs = live.st ? m.soldCountToday : null;
+  /*
+   * Sold beside quoted, on one line.
+   *
+   * "3 jobs sold" on its own is a number the room can't place: three out of
+   * three is a day, three out of twenty is a different one. The quotes written
+   * today are the denominator everybody actually has in their head, and the
+   * Quoted today card below carries the money side of the same pair.
+   */
+  const soldFoot =
+    soldJobs == null
+      ? undefined
+      : `${count(soldJobs)} ${soldJobs === 1 ? "job" : "jobs"} sold` +
+        (m.quotesCreatedTodayCount > 0
+          ? ` · ${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "quote" : "quotes"} written`
+          : "");
 
   return (
     <>
-      <HeroCard
-        navy
-        label="Sold today"
-        value={st.plain(m.soldToday, live)}
-        foot={soldJobs == null ? undefined : `${count(soldJobs)} ${soldJobs === 1 ? "job" : "jobs"} sold`}
-      />
+      <HeroCard navy label="Sold today" value={st.plain(m.soldToday, live)} foot={soldFoot} />
       {/* Everything billed today, whenever the job was done — the office
           catching up on Thursday's jobs on a Monday is Monday's invoicing. The
           line ages what went out by how long each job had been waiting, because
@@ -627,18 +643,24 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
     <>
       {/* The week first, the month under it, the year at the foot. Nearest
           first: the week is the one anybody can still change. */}
+      {/* One card per step, the week above the month, under a single name.
+          The step is the thing — "Booked" is one column of the funnel read at
+          two lengths — so repeating the heading on a second row of cards made
+          twelve charts out of six and invited the eye to read across a row
+          rather than down a step. The band labels on the left still say which
+          half is which. */}
       <span className="band band--week">This week</span>
-      {STEP_KEYS.map(({ k, label }) => (
-        <StepDial key={`w-${k}`} label={label} stage={k} s={p.standing.week[k]} last={lastWeekOf(p.lastWeek, k)} />
-      ))}
-
-      {/* The month on the same dial as the week, so the two rows are one
-          reading at two lengths rather than two kinds of chart. Each step is
-          the same step in both — "Booked" means quote visits and service calls
-          in every row, never all jobs in one and some in another. */}
       <span className="band band--month">This month</span>
       {STEP_KEYS.map(({ k, label }) => (
-        <StepDial key={`m-${k}`} label={label} stage={k} s={p.standing.month[k]} progress={monthProgress} />
+        <StepColumn
+          key={k}
+          label={label}
+          stage={k}
+          week={p.standing.week[k]}
+          month={p.standing.month[k]}
+          last={lastWeekOf(p.lastWeek, k)}
+          progress={monthProgress}
+        />
       ))}
 
       <span className="band band--year">This year</span>
@@ -675,12 +697,41 @@ const stepFig = (stage: string, n: number | null | undefined) => {
  * the month's in points of the month, which meant three numbers on one page in
  * three units and no way to tell which band any of them was in.
  */
+function StepColumn({
+  label,
+  stage,
+  week,
+  month,
+  last,
+  progress,
+}: {
+  label: string;
+  stage: string;
+  week: StepStanding;
+  month: StepStanding;
+  last: number | null;
+  progress: number;
+}) {
+  return (
+    <div className="tile step">
+      <span className="step__head">{label}</span>
+      <div className="step__half">
+        <StepDial label={label} stage={stage} s={week} last={last} bare />
+      </div>
+      <div className="step__half step__half--month">
+        <StepDial label={label} stage={stage} s={month} progress={progress} bare />
+      </div>
+    </div>
+  );
+}
+
 function StepDial({
   label,
   stage,
   s,
   last,
   progress,
+  bare = false,
 }: {
   label: string;
   stage: string;
@@ -689,6 +740,8 @@ function StepDial({
   last?: number | null;
   /** The month's card: how much of it has gone, for the run-rate line. */
   progress?: number;
+  /** Inside a StepColumn, which already carries the name and the card. */
+  bare?: boolean;
 }) {
   const index = paceIndex(s.done, s.byNow);
   const verdict = s.need == null ? null : verdictOf(index);
@@ -703,6 +756,7 @@ function StepDial({
   return (
     <Gauge
       label={label}
+      bare={bare}
       index={index}
       verdict={verdict}
       figure={stepFig(stage, s.done)}
