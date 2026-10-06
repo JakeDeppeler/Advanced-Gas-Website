@@ -1274,28 +1274,39 @@ on screen. A full-screen "SOLD! $5,340" that nobody sold is exactly what this
 board must never do, and a preview left running would otherwise be
 indistinguishable from the real thing.
 
-### What they still need before they can fire on real events
+### What feeds them
 
-They are not wired to live data yet, and deliberately: two of the three have no
-feed, and one element of the third has no figure behind it.
+`metrics.alertEvents` — one queue for all three kinds, oldest first, over the
+same two-hour window the sale feed used: comfortably wider than the sync
+interval, so nothing slips between runs, and the board de-dupes by id so nothing
+is cheered twice. `seen` is seeded from the first snapshot, so the board does
+not open by celebrating everything already on the books.
 
-- **Sold** is closest. `recentSales` already carries id, who, value and time —
-  it needs the job type and suburb, both of which are on `st_jobs` beside the
-  estimate's `job_id`.
-- **The bonus bar has nothing behind it.** `portal_settings` holds only
-  `yeargoal`; no commission tiers are configured, so "$25,200 to the $40K bonus"
-  cannot be computed. The bar is built to be omitted when tiers are unset rather
-  than to guess a threshold. The team-week bar is fine — `soldWeek` and
-  `weeklySalesTarget` both exist.
-- **New quote** needs a recent-quotes event feed. The quoting-event grouping
-  added for Pace (`quoteKey` + day) already knows what counts as a quote
-  written, including a re-quote on an old job, so "first quote on this job" is
-  answerable.
-- **Job completed** needs a recent-completions feed off `st_jobs.completed_on`.
-  Job type and suburb are on that row; the tech is not, and would have to come
-  off the job's estimate or invoice. The chip ("compliance cert first, then bill
-  it") is a rule about job type, not a stored field — it needs writing down
-  before it can be shown.
+| Alert | Fires on | Value |
+|---|---|---|
+| New quote | an estimate created | the estimate total |
+| Job completed | `st_jobs.completed_on` | what the job was sold for, else nothing |
+| Sold | an estimate's `sold_on` | the estimate total |
+
+**Arranging the facts is its own module.** `dashboard/alertCopy.ts` has no React
+in it, so `scripts/check-alerts.ts` can exercise it directly — it is where a
+missing suburb becomes "· Officer" with nothing in front of it, and that class
+of mistake survives a typecheck and a screenshot of the one case that happens to
+have every field. The checks cover each kind with each field missing.
+
+**The bonus bar is still absent, and the code keeps it that way.** No commission
+tiers are configured — `portal_settings` holds only `yeargoal` — so a person's
+month has no threshold to be measured against. The Sold alert draws the team's
+week, whose target is real, and simply omits the other bar; with no weekly
+target either it draws none at all rather than an empty one. Set the tiers on
+the portal and the bar appears.
+
+**"3rd sale this month" carries no pronoun.** The design read "His 3rd sale this
+month"; the board knows who closed the job and nothing else about them.
+
+**The rocket card is gone.** It only ever fired for a sale and was small enough
+to miss from across the room. Two celebration systems would have left the next
+reader guessing which one fires.
 
 ## Things worth knowing
 

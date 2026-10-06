@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "check:trade": "tsx scripts/check-trade.ts",
     "check:pace": "tsx scripts/check-pace.ts",
-    "check:xero": "npx tsx scripts/check-xero.ts"
+    "check:xero": "npx tsx scripts/check-xero.ts",
+    "check:alerts": "npx tsx scripts/check-alerts.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",

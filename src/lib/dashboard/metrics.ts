@@ -395,6 +395,26 @@ export type Metrics = {
     value: number | null;
   }>;
   toBillCount: number;
+
+  /**
+   * Events worth taking the whole wall for, oldest first.
+   *
+   * The board plays them one at a time from this queue and de-dupes by id, so a
+   * sale cheered on one refresh is not cheered again on the next. `who` and
+   * `suburb` are null where ServiceTitan has no answer, and the alert drops
+   * that half of the line rather than printing a gap.
+   */
+  alertEvents: Array<{
+    kind: "quote" | "done" | "sold";
+    id: string;
+    at: string;
+    amount: number;
+    jobType: string | null;
+    suburb: string | null;
+    who: string | null;
+    /** Sold only: how many this person has closed this month, including this one. */
+    nth: number | null;
+  }>;
   /** The part of the unbilled queue that was sold before the visit, so can be valued. */
   toBillValue: number;
 
@@ -1273,6 +1293,119 @@ async function serviceTitanMetrics(now: Date) {
     .filter((r) => Number.isFinite(r.id))
     .sort((a, b) => Date.parse(b.soldOn) - Date.parse(a.soldOn))
     .slice(0, 10);
+
+  /**
+   * The three things worth taking the whole wall for: a quote written, a job
+   * finished, a sale closed.
+   *
+   * One list rather than three feeds, because the board shows them one at a
+   * time from a single queue and the only thing it needs per item is which of
+   * the three it is. The window matches the sale feed above — two hours is
+   * comfortably wider than the sync interval, so nothing slips between runs,
+   * and the screen de-dupes by id so nothing is cheered twice.
+   *
+   * `who` and `where` are filled where ServiceTitan has them and left null
+   * where it does not; the board drops the half of the line it cannot fill
+   * rather than printing "null · Officer".
+   */
+  const alertJobIds = [
+    ...new Set(
+      [
+        ...soldRows.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
+      ].filter((v): v is number => v != null),
+    ),
+  ];
+
+  const recentQuoteRows = quotes(
+    await sbSelect<{ id: number; job_id: number | null; total: number | null; created_on: string | null; created_by: string | null; sold_by: string | null; business_unit: string | null }>(
+      "st_estimates",
+      [
+        q.select("id,job_id,total,created_on,created_by,sold_by,business_unit"),
+        q.gte("created_on", new Date(twoHoursAgo).toISOString()),
+        q.order("created_on", "desc"),
+        "limit=20",
+      ].join("&"),
+    ).catch(() => []),
+  );
+
+  const recentDoneRows = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; suburb: string | null; completed_on: string | null }>(
+    "st_jobs",
+    [
+      q.select("id,job_number,job_type,suburb,completed_on"),
+      q.gte("completed_on", new Date(twoHoursAgo).toISOString()),
+      q.order("completed_on", "desc"),
+      "limit=20",
+    ].join("&"),
+  ).catch(() => []);
+
+  for (const r of recentQuoteRows) if (r.job_id != null) alertJobIds.push(Number(r.job_id));
+  const alertPlace = new Map<number, { jobType: string | null; suburb: string | null }>();
+  const wanted = [...new Set(alertJobIds)].slice(0, 100);
+  if (wanted.length) {
+    const js = await sbSelect<{ id: number; job_type: string | null; suburb: string | null }>(
+      "st_jobs",
+      [q.select("id,job_type,suburb"), `id=in.(${wanted.join(",")})`].join("&"),
+    ).catch(() => []);
+    for (const j of js) alertPlace.set(Number(j.id), { jobType: j.job_type ?? null, suburb: j.suburb ?? null });
+  }
+
+  /** How many this person has sold this month, for the line under a Sold alert. */
+  const soldCountByPerson = new Map<string, number>();
+  for (const r of soldRows) {
+    const who = creditFor(r);
+    if (who) soldCountByPerson.set(who, (soldCountByPerson.get(who) ?? 0) + 1);
+  }
+
+  const alertEvents: Metrics["alertEvents"] = [
+    ...soldRows
+      .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
+      .map((r) => {
+        const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
+        const who = creditFor(r);
+        return {
+          kind: "sold" as const,
+          id: `sold-${r.id}`,
+          at: String(r.sold_on),
+          amount: Number(r.total ?? 0),
+          jobType: place?.jobType ?? null,
+          suburb: place?.suburb ?? null,
+          who,
+          nth: who ? soldCountByPerson.get(who) ?? null : null,
+        };
+      }),
+    ...recentQuoteRows
+      .filter((r) => r.created_on)
+      .map((r) => {
+        const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
+        return {
+          kind: "quote" as const,
+          id: `quote-${r.id}`,
+          at: String(r.created_on),
+          amount: Number(r.total ?? 0),
+          jobType: place?.jobType ?? null,
+          suburb: place?.suburb ?? null,
+          who: creditFor(r),
+          nth: null,
+        };
+      }),
+    ...recentDoneRows
+      .filter((r) => r.completed_on)
+      .map((r) => ({
+        kind: "done" as const,
+        id: `done-${r.id}`,
+        at: String(r.completed_on),
+        // A finished job is worth whatever it was sold for; most service work
+        // has not been priced yet, and the alert says so rather than "$0".
+        amount: soldValueByJob.get(Number(r.id)) ?? 0,
+        jobType: r.job_type ?? null,
+        suburb: r.suburb ?? null,
+        who: null as string | null,
+        nth: null,
+      })),
+  ]
+    .filter((e) => Number.isFinite(Date.parse(e.at)))
+    .sort((a, b) => Date.parse(a.at) - Date.parse(b.at))
+    .slice(-12);
   const soldToday = soldRows
     .filter((r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today)
     .reduce((s, r) => s + Number(r.total ?? 0), 0);
@@ -1717,6 +1850,7 @@ async function serviceTitanMetrics(now: Date) {
     profitCoverage,
     bookingsMonth,
     bookingsToday,
+    alertEvents,
     toBill,
     toBillCount,
     toBillValue,
@@ -1930,6 +2064,9 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       // The unbilled queue carries forward: a ServiceTitan that stopped
       // answering has not billed those jobs, and an empty list would read as
       // "all caught up" to the one person whose job it is.
+      // Deliberately not carried forward, for the same reason recentSales is
+      // not: a stale feed would re-fire an alert the room already watched.
+      alertEvents: [],
       toBill: prev?.toBill ?? [],
       toBillCount: prev?.toBillCount ?? 0,
       toBillValue: prev?.toBillValue ?? 0,

@@ -6,8 +6,8 @@ import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
-import { Celebration, type Sale } from "./screen/Celebration";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
+import { alertFrom } from "@/lib/dashboard/alertCopy";
 
 type Snapshot = {
   computedAt: string;
@@ -126,7 +126,7 @@ export function ScreenBoard({
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
   const [page, setPage] = useState(0);
-  const [queue, setQueue] = useState<Sale[]>([]);
+  const [queue, setQueue] = useState<Metrics["alertEvents"]>([]);
   const [paused, setPaused] = useState(false);
   // Bumped each time a previewed alert finishes, so it replays rather than
   // showing once and leaving the board behind it.
@@ -134,7 +134,7 @@ export function ScreenBoard({
 
   // Seeded from the first snapshot so the board doesn't open by cheering every
   // sale already on the books.
-  const seen = useRef<Set<number>>(new Set(initial.metrics.recentSales?.map((s) => s.id) ?? []));
+  const seen = useRef<Set<string>>(new Set(initial.metrics.alertEvents?.map((e) => e.id) ?? []));
 
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 30_000);
@@ -197,8 +197,8 @@ export function ScreenBoard({
         const next = (await res.json()) as Snapshot;
         if (cancelled) return;
 
-        const fresh = (next.metrics.recentSales ?? []).filter((s) => !seen.current.has(s.id));
-        for (const s of fresh) seen.current.add(s.id);
+        const fresh = (next.metrics.alertEvents ?? []).filter((e) => !seen.current.has(e.id));
+        for (const e of fresh) seen.current.add(e.id);
         if (fresh.length) setQueue((qd) => [...qd, ...fresh]);
 
         setSnap(next);
@@ -262,7 +262,11 @@ export function ScreenBoard({
         <Alert key={`${preview}-${previewRun}`} alert={previewAlert(preview)} onDone={() => setPreviewRun((n) => n + 1)} />
       ) : (
         celebrating && (
-          <Celebration key={celebrating.id} sale={celebrating} onDone={() => setQueue((qd) => qd.slice(1))} />
+          <Alert
+            key={celebrating.id}
+            alert={alertFrom(celebrating, m)}
+            onDone={() => setQueue((qd) => qd.slice(1))}
+          />
         )
       )}
 

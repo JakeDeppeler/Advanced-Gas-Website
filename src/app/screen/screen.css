@@ -948,85 +948,6 @@ body:has(.screen) .utilbar {
 .screen__notice .tile__value { font-size: calc(4 * var(--u)); color: var(--ink-muted); }
 .screen__notice .tile__sub--body { max-width: calc(50 * var(--u)); font-size: calc(1.25 * var(--u)); }
 
-/* =============================================================== celebration */
-/* Fires when a sold quote appears that the board hasn't shown before. Covers
-   the grid rather than displacing it, so the layout underneath doesn't reflow
-   and nothing jumps when it clears. */
-.celebrate {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: grid;
-  place-items: center;
-  background: color-mix(in srgb, var(--plane) 90%, transparent);
-  animation: celebrate-in 400ms ease both;
-}
-
-.celebrate__sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-
-.celebrate__rocket {
-  position: absolute;
-  left: 50%;
-  bottom: calc(-12 * var(--u));
-  font-size: calc(9 * var(--u));
-  line-height: 1;
-  animation: rocket-launch 4.2s cubic-bezier(0.45, 0, 0.3, 1) 300ms both;
-}
-
-.celebrate__moon { position: absolute; top: 6%; left: 50%; transform: translateX(-50%); font-size: calc(5 * var(--u)); }
-
-.celebrate__star {
-  position: absolute;
-  width: calc(0.35 * var(--u));
-  height: calc(0.35 * var(--u));
-  border-radius: 50%;
-  background: var(--accent);
-  animation: twinkle 1.4s ease-in-out infinite;
-}
-.celebrate__star--1 { top: 22%; left: 32%; animation-delay: 0ms; }
-.celebrate__star--2 { top: 34%; left: 66%; animation-delay: 420ms; }
-.celebrate__star--3 { top: 15%; left: 58%; animation-delay: 820ms; }
-
-.celebrate__card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: calc(0.4 * var(--u));
-  padding: calc(2.4 * var(--u)) calc(4 * var(--u));
-  border-radius: calc(1 * var(--u));
-  background: var(--navy);
-  animation: card-pop 500ms cubic-bezier(0.2, 1.2, 0.4, 1) 200ms both;
-}
-
-.celebrate__kicker {
-  font-family: var(--mono);
-  font-size: calc(1.3 * var(--u));
-  font-weight: 500;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
-.celebrate__amount { font-size: calc(7 * var(--u)); font-weight: 800; line-height: 1; letter-spacing: -0.04em; color: #fff; }
-.celebrate__who { font-size: calc(2.2 * var(--u)); font-weight: 650; color: rgba(255, 255, 255, 0.8); }
-
-@keyframes celebrate-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes card-pop { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: scale(1); } }
-@keyframes rocket-launch {
-  0%   { transform: translate(-50%, 0) rotate(-12deg); opacity: 0; }
-  12%  { opacity: 1; }
-  100% { transform: translate(-50%, -112vh) rotate(-12deg); opacity: 1; }
-}
-@keyframes twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
-
-/* The announcement is the name and the number; the motion is decoration. Anyone
-   who has asked the OS for less of it still gets the whole message. */
-@media (prefers-reduced-motion: reduce) {
-  .celebrate, .celebrate__card, .celebrate__rocket, .celebrate__star { animation: none; }
-  .celebrate__rocket { bottom: auto; top: 16%; opacity: 1; transform: translateX(-50%); }
-}
-
 /* ====================================================================== dark */
 /* Reached with ?theme=dark. Its own steps against a dark surface rather than an
    inverted light palette, and kinder to a panel left on for twelve hours. */
@@ -1054,7 +975,6 @@ body:has(.screen) .utilbar {
 .screen--dark .screen__foot { background: #17171a; border-top: 1px solid var(--hairline); }
 .screen--dark .screen__tab.is-on { background: var(--ink); color: #0d0d0d; }
 .screen--dark .gauge__fill { stroke: #6f8fd6; }
-.screen--dark .celebrate__card { background: #15224f; }
 .screen--dark .heat__ramp { background: linear-gradient(90deg, #3a2a20, #ff9a62); }
 
 
