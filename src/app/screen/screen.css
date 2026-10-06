@@ -1391,3 +1391,352 @@ body:has(.screen) .utilbar {
 /* With the alert in the footer, the Pace page's key stops centring itself
    over the left-hand side and takes its place in the row. */
 .screen__foot.has-alert .screen__legend { position: static; transform: none; margin-left: auto; }
+/* ─────────────────────────────────────────────────────────────────────────
+   The full-screen alerts: quote written, job finished, sale closed.
+
+   Every size here is the design's px at 1920 wide, divided by 19.2 — the value
+   of --u at that width. 150px headline → 7.8125u. Written that way so the
+   picture is the design's exactly on the wall it was drawn for, and still
+   proportionate on a panel that isn't 1920.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.alert {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #fff;
+  animation: alert-wipe 0.7s cubic-bezier(0.3, 0.7, 0.3, 1) both;
+}
+
+.alert--quote { background: radial-gradient(circle at 50% 45%, #ff8a3d, #c2521a 72%); }
+.alert--done { background: radial-gradient(circle at 50% 45%, #1f9d4f, #0f6a31 70%); }
+.alert--sold {
+  background: radial-gradient(circle at 50% 42%, #ffe066, #f5b800 55%, #c98a00);
+  color: var(--navy);
+}
+
+/* A sheen crossing the panel, so a flat colour field isn't dead under lights. */
+.alert__glint {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0) 0 calc(6.25 * var(--u)), rgba(255, 255, 255, 0.08) calc(6.25 * var(--u)) calc(8.33 * var(--u)));
+  animation: alert-glint 2.4s 1s ease-in-out infinite;
+}
+.alert--sold .alert__glint {
+  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0) 0 calc(6.25 * var(--u)), rgba(255, 255, 255, 0.14) calc(6.25 * var(--u)) calc(8.33 * var(--u)));
+}
+
+.alert__stack {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(0.73 * var(--u));
+  text-align: center;
+}
+
+/* ── the medallion (quote, done) ── */
+
+.alert__medallion { position: relative; width: calc(10.42 * var(--u)); height: calc(10.42 * var(--u)); }
+.alert--done .alert__medallion { width: calc(10.94 * var(--u)); height: calc(10.94 * var(--u)); }
+
+.alert__ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: calc(0.31 * var(--u)) solid rgba(255, 255, 255, 0.65);
+  animation: alert-ripple 2.4s ease-out infinite both;
+}
+.alert--done .alert__ripple { border-color: rgba(255, 255, 255, 0.7); animation-duration: 2.2s; }
+
+.alert__disc {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 calc(0.83 * var(--u)) calc(2.6 * var(--u)) rgba(0, 0, 0, 0.25);
+  animation: alert-pop 0.6s 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+.alert__icon { width: calc(6.25 * var(--u)); height: calc(6.25 * var(--u)); }
+.alert--done .alert__icon { width: calc(6.77 * var(--u)); height: calc(6.77 * var(--u)); }
+.alert__stroke { animation-name: alert-draw; animation-timing-function: ease-out; animation-fill-mode: both; }
+
+/* ── the medal (sold) ── */
+
+.alert__medal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(9.9 * var(--u));
+  height: calc(9.9 * var(--u));
+  border-radius: 999px;
+  background: radial-gradient(circle at 36% 32%, #2b3a7a, var(--navy) 62%);
+  box-shadow: 0 calc(0.83 * var(--u)) calc(2.6 * var(--u)) rgba(0, 0, 0, 0.3);
+  font-family: var(--font-display), Archivo, system-ui, sans-serif;
+  font-weight: 900;
+  font-size: calc(5.73 * var(--u));
+  line-height: 1;
+  color: #facc15;
+  animation: alert-pop 0.6s 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+/* ── words ── */
+
+.alert__eyebrow {
+  font-size: calc(1.46 * var(--u));
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  animation: alert-up 0.5s 0.9s ease both;
+}
+.alert--done .alert__eyebrow { color: rgba(255, 255, 255, 0.85); }
+.alert--sold .alert__eyebrow { color: rgba(5, 10, 48, 0.72); }
+
+.alert__head {
+  font-family: var(--font-display), Archivo, system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-size: calc(7.81 * var(--u));
+  line-height: calc(7.81 * var(--u));
+  animation: alert-stamp 0.6s 1.1s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.alert--sold .alert__head {
+  font-size: calc(8.85 * var(--u));
+  line-height: calc(8.33 * var(--u));
+  letter-spacing: 0.02em;
+  color: var(--navy);
+  /* No stamp here: the letters carry the entrance and settle upright. The
+     headline itself only glows. */
+  animation: alert-glow 1.6s 1.2s ease-in-out infinite;
+}
+.alert__letter {
+  display: inline-block;
+  animation: alert-letter 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.alert__row {
+  display: flex;
+  align-items: baseline;
+  gap: calc(1.25 * var(--u));
+  animation: alert-up 0.5s 1.35s ease both;
+}
+
+.alert__figure {
+  display: inline-flex;
+  font-family: var(--font-display), Archivo, system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-size: calc(5 * var(--u));
+  line-height: 1em;
+  color: #fff;
+}
+.alert--sold .alert__figure { font-size: calc(7.81 * var(--u)); color: var(--navy); }
+
+.alert__glyph { display: inline-block; height: 1em; }
+.alert__glyph--roll { overflow: hidden; vertical-align: top; }
+.alert__strip { display: block; animation: alert-roll 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.alert__digit { display: block; height: 1em; }
+
+.alert__what { font-size: calc(1.77 * var(--u)); font-weight: 800; text-align: left; }
+.alert__where {
+  display: block;
+  font-size: calc(1.35 * var(--u));
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+}
+.alert--done .alert__where { color: rgba(255, 255, 255, 0.8); }
+
+/* The angled navy slab beside the Sold figure. */
+.alert__slab {
+  padding: calc(0.73 * var(--u)) calc(1.77 * var(--u));
+  background: var(--navy);
+  color: #fff;
+  font-size: calc(1.77 * var(--u));
+  line-height: calc(2.19 * var(--u));
+  font-weight: 900;
+  text-align: left;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 1.6 * var(--u)) 100%, 0 100%);
+  padding-right: calc(3.2 * var(--u));
+  animation: alert-banner 0.8s 1.8s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+.alert__slabsub { display: block; font-size: calc(1.25 * var(--u)); font-weight: 800; color: #facc15; }
+
+/* ── the Sold progress bars ── */
+
+.alert__bars {
+  display: flex;
+  flex-direction: column;
+  gap: calc(1 * var(--u));
+  width: calc(58 * var(--u));
+  margin-top: calc(0.8 * var(--u));
+  padding: calc(1.2 * var(--u)) calc(1.6 * var(--u));
+  border-radius: calc(1 * var(--u));
+  background: var(--navy);
+  color: #fff;
+  animation: alert-up 0.5s 2.4s ease both;
+}
+.alert__bar { display: flex; flex-direction: column; gap: calc(0.5 * var(--u)); }
+.alert__barhead { display: flex; align-items: baseline; justify-content: space-between; gap: calc(1 * var(--u)); }
+.alert__barlabel { font-size: calc(1.25 * var(--u)); font-weight: 900; }
+.alert__bardetail { font-size: calc(1.15 * var(--u)); font-weight: 700; color: rgba(255, 255, 255, 0.85); }
+
+.alert__track {
+  position: relative;
+  height: calc(0.83 * var(--u));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+}
+.alert__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f46722, #facc15);
+  animation: alert-fill 1.1s 2.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* ── chip and note ── */
+
+.alert__chip {
+  display: inline-flex;
+  padding: calc(0.63 * var(--u)) calc(1.46 * var(--u));
+  border-radius: 999px;
+  background: #fff;
+  color: #c2521a;
+  font-size: calc(1.35 * var(--u));
+  font-weight: 900;
+  animation: alert-up 0.5s 1.7s ease both;
+}
+.alert--done .alert__chip { background: #facc15; color: var(--navy); }
+.alert--sold .alert__chip { background: var(--navy); color: #facc15; }
+
+.alert__note {
+  margin-top: calc(0.52 * var(--u));
+  font-size: calc(1.46 * var(--u));
+  font-weight: 900;
+  color: var(--navy);
+  animation: alert-up 0.5s 3.6s ease both;
+}
+
+/* ── the countdown, and the fireworks ── */
+
+.alert__count {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(0.52 * var(--u));
+  background: rgba(255, 255, 255, 0.45);
+  transform-origin: left;
+  animation: alert-count var(--hold, 8000ms) linear both;
+}
+.alert--sold .alert__count { background: rgba(5, 10, 48, 0.35); }
+
+.alert__burst { position: absolute; width: 0; height: 0; z-index: 1; }
+.alert__spark {
+  position: absolute;
+  left: calc(-0.26 * var(--u));
+  top: calc(-0.26 * var(--u));
+  width: calc(0.52 * var(--u));
+  height: calc(0.52 * var(--u));
+  border-radius: 999px;
+  animation: alert-burst 1.3s ease-out 2 both;
+}
+
+.alert__coins { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+
+/* Confetti, fired up and inward from the two bottom corners. */
+.alert__confetti { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+.alert__piece { position: absolute; bottom: calc(-1 * var(--u)); animation-name: alert-cannon; animation-timing-function: cubic-bezier(0.15, 0.6, 0.4, 1); animation-fill-mode: both; }
+.alert__piece.is-left { left: calc(-1 * var(--u)); }
+.alert__piece.is-right { right: calc(-1 * var(--u)); }
+.alert__coin {
+  position: absolute;
+  top: calc(-4 * var(--u));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(3.65 * var(--u));
+  height: calc(3.65 * var(--u));
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #fff3b0, #facc15 45%, #b8860b);
+  color: #7a5b00;
+  font-family: var(--font-display), Archivo, system-ui, sans-serif;
+  font-weight: 900;
+  font-size: calc(1.8 * var(--u));
+  animation: alert-coin linear infinite both;
+}
+
+@keyframes alert-wipe {
+  from { clip-path: circle(0% at 50% 50%); }
+  to { clip-path: circle(75% at 50% 50%); }
+}
+@keyframes alert-glint { 0%, 100% { opacity: 0; } 50% { opacity: 0.35; } }
+@keyframes alert-pop { 0% { transform: scale(0); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes alert-draw { from { stroke-dashoffset: 140; } to { stroke-dashoffset: 0; } }
+@keyframes alert-ripple { 0% { transform: scale(0.7); opacity: 0.7; } 100% { transform: scale(2.8); opacity: 0; } }
+@keyframes alert-up { from { transform: translateY(calc(3 * var(--u))); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes alert-stamp {
+  0% { transform: scale(2.4) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.94) rotate(-3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+@keyframes alert-glow {
+  0%, 100% { text-shadow: 0 0 0 rgba(255, 255, 255, 0); }
+  50% { text-shadow: 0 0 calc(2.6 * var(--u)) rgba(255, 255, 255, 0.95), 0 0 calc(0.94 * var(--u)) rgba(255, 255, 255, 0.8); }
+}
+@keyframes alert-roll { from { transform: translateY(0); } to { transform: translateY(calc(var(--t) * -1em)); } }
+@keyframes alert-banner { 0% { transform: translateX(-110vw) skewX(-12deg); } 70% { transform: translateX(3%) skewX(-12deg); } 100% { transform: skewX(-12deg); } }
+@keyframes alert-fill { from { width: var(--from); } to { width: var(--to); } }
+@keyframes alert-count { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes alert-burst {
+  0% { transform: rotate(var(--r)) translateX(0) scale(1); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: rotate(var(--r)) translateX(var(--dist)) scale(0.2); opacity: 0; }
+}
+@keyframes alert-coin { 0% { transform: translateY(0) rotateY(0); } 100% { transform: translateY(calc(62 * var(--u))) rotateY(1440deg); } }
+@keyframes alert-letter {
+  0% { transform: translateY(calc(-13.5 * var(--u))) scale(2.6) rotate(-20deg); opacity: 0; }
+  55% { transform: translateY(calc(0.83 * var(--u))) scale(0.9) rotate(4deg); opacity: 1; }
+  75% { transform: translateY(calc(-0.42 * var(--u))) scale(1.06); }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes alert-cannon {
+  0% { transform: translate(0, 0) rotate(0) scale(1); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.8); opacity: 0; }
+}
+
+/*
+ * Reduced motion: the alert still takes the wall and still says the number —
+ * every word and figure is in the DOM regardless. What goes is the travel.
+ * The digit strip has to be pinned to its landing row, or it would sit showing
+ * the first digit of a counter that never ran.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .alert,
+  .alert *,
+  .alert__glint,
+  .alert__ripple,
+  .alert__coin,
+  .alert__spark { animation: none !important; }
+  .alert__strip { transform: translateY(calc(var(--t) * -1em)); }
+  .alert__head { transform: rotate(-3deg); }
+  .alert__slab { transform: skewX(-12deg); }
+  .alert__fill { width: var(--to); }
+  .alert__coins, .alert__burst, .alert__confetti { display: none; }
+  /* The sheen animates between 0 and .35; with the animation off it would sit
+     at full strength, which is heavier banding than it ever reaches moving. */
+  .alert__glint { opacity: 0.25; }
+  .alert__letter { transform: none; opacity: 1; }
+}

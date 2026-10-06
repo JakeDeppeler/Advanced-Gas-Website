@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 export default async function ScreenPage({
   searchParams,
 }: {
-  searchParams: { k?: string; theme?: string; safe?: string };
+  searchParams: { k?: string; theme?: string; safe?: string; alert?: string };
 }) {
   // 404 rather than 401 — an unauthenticated visitor shouldn't learn the route
   // exists at all.
@@ -43,6 +43,15 @@ export default async function ScreenPage({
       // Clamped, because this comes off a URL anybody with the token can edit
       // and a board inset by 40% is a support call, not a setting.
       safe={Math.min(10, Math.max(0, Number(searchParams.safe) || 0))}
+      // `?alert=quote|done|sold` puts one alert on the board on a loop, so the
+      // thing can be judged on the wall it is for rather than in a screenshot.
+      // Sample figures, and it says so on screen — nobody should be able to
+      // mistake a preview for a sale that happened.
+      preview={
+        searchParams.alert === "quote" || searchParams.alert === "done" || searchParams.alert === "sold"
+          ? searchParams.alert
+          : undefined
+      }
     />
   );
 }

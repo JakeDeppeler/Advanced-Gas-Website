@@ -7,6 +7,7 @@ import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Celebration, type Sale } from "./screen/Celebration";
+import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
 
 type Snapshot = {
   computedAt: string;
@@ -103,18 +104,24 @@ export function ScreenBoard({
   token,
   theme = "light",
   safe = 0,
+  preview,
 }: {
   initial: Snapshot;
   token: string;
   theme?: "dark" | "light";
   /** Percent to inset the whole board by, for a television that overscans. */
   safe?: number;
+  /** `?alert=…` — show one alert on a loop, on sample figures. */
+  preview?: AlertKind;
 }) {
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
   const [page, setPage] = useState(0);
   const [queue, setQueue] = useState<Sale[]>([]);
   const [paused, setPaused] = useState(false);
+  // Bumped each time a previewed alert finishes, so it replays rather than
+  // showing once and leaving the board behind it.
+  const [previewRun, setPreviewRun] = useState(0);
 
   // Seeded from the first snapshot so the board doesn't open by cheering every
   // sale already on the books.
@@ -242,8 +249,12 @@ export function ScreenBoard({
       className={`screen ${theme === "dark" ? "screen--dark" : ""}`}
       style={{ "--page-ms": `${PAGE_MS}ms`, "--safe": safe } as CSSProperties}
     >
-      {celebrating && (
-        <Celebration key={celebrating.id} sale={celebrating} onDone={() => setQueue((qd) => qd.slice(1))} />
+      {preview ? (
+        <Alert key={`${preview}-${previewRun}`} alert={previewAlert(preview)} onDone={() => setPreviewRun((n) => n + 1)} />
+      ) : (
+        celebrating && (
+          <Celebration key={celebrating.id} sale={celebrating} onDone={() => setQueue((qd) => qd.slice(1))} />
+        )
       )}
 
       <div className="screen__bar">

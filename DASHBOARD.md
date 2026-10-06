@@ -1180,6 +1180,68 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## The full-screen alerts
+
+Three events take the whole wall for a few seconds: a quote written, a job
+finished, a sale closed. `src/components/screen/Alert.tsx`, styled in the
+`.alert` block at the end of `screen.css`.
+
+They replace the rocket card, which only ever fired for a sale and was small
+enough to miss from across the room. The point of a takeover is that it
+interrupts: the room is four metres away and doing something else.
+
+**The sizes are the design's own.** Each is the px the mockup specifies at 1920
+wide, divided by 19.2 — the value of `--u` there. A 150px headline is
+`calc(7.81 * var(--u))`, a 96px figure is `calc(5 * var(--u))`. Written that way
+the picture is the design's exactly on the wall it was drawn for, and still
+proportionate on a panel that isn't 1920. Checked at all six viewports the board
+supports; nothing overflows.
+
+| | Quote | Job done | Sold |
+|---|---|---|---|
+| Ground | `#ff8a3d → #c2521a` | `#1f9d4f → #0f6a31` | `#ffe066 → #f5b800 → #c98a00` |
+| Headline | New quote, 150px | Time to bill, 150px | SOLD!, 170px |
+| Figure | 96px | 96px | 150px |
+| Holds for | 7s | 9s | 11s |
+
+**Motion is decorative in all three.** Every word and figure is in the DOM from
+the first frame, so `prefers-reduced-motion` drops the animation and loses
+nothing. The one thing that needs handling is the digit roll: its strip has to
+be pinned to the landing row, or it would sit showing the first digit of a
+counter that never ran. The confetti is placed from a seeded generator rather
+than `Math.random`, so the same alert looks the same on every panel and the same
+in a screenshot as on the wall — a figure that can't be compared between two
+renders can't be checked.
+
+**`?alert=quote|done|sold` previews one on the board**, on a loop, so it can be
+judged on the TV rather than in a screenshot. The sample figures say *Preview*
+on screen. A full-screen "SOLD! $5,340" that nobody sold is exactly what this
+board must never do, and a preview left running would otherwise be
+indistinguishable from the real thing.
+
+### What they still need before they can fire on real events
+
+They are not wired to live data yet, and deliberately: two of the three have no
+feed, and one element of the third has no figure behind it.
+
+- **Sold** is closest. `recentSales` already carries id, who, value and time —
+  it needs the job type and suburb, both of which are on `st_jobs` beside the
+  estimate's `job_id`.
+- **The bonus bar has nothing behind it.** `portal_settings` holds only
+  `yeargoal`; no commission tiers are configured, so "$25,200 to the $40K bonus"
+  cannot be computed. The bar is built to be omitted when tiers are unset rather
+  than to guess a threshold. The team-week bar is fine — `soldWeek` and
+  `weeklySalesTarget` both exist.
+- **New quote** needs a recent-quotes event feed. The quoting-event grouping
+  added for Pace (`quoteKey` + day) already knows what counts as a quote
+  written, including a re-quote on an old job, so "first quote on this job" is
+  answerable.
+- **Job completed** needs a recent-completions feed off `st_jobs.completed_on`.
+  Job type and suburb are on that row; the tech is not, and would have to come
+  off the job's estimate or invoice. The chip ("compliance cert first, then bill
+  it") is a rule about job type, not a stored field — it needs writing down
+  before it can be shown.
+
 ## Things worth knowing
 
 **Do not add a *second* Xero token refresh.** Xero rotates the refresh token on
