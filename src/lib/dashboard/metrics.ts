@@ -659,8 +659,8 @@ async function serviceTitanMetrics(now: Date) {
   // was read as today's: thirty jobs since Monday looked like thirty since
   // breakfast. Showing both beats labelling one harder.
   const [jobsCompletedToday, jobsCompletedWeek, scheduledSoon, anyScheduled] = await Promise.all([
-    sbCount("st_jobs", q.gte("completed_on", startOfDayMelbourne(now).toISOString())),
-    sbCount("st_jobs", q.gte("completed_on", weekStart.toISOString())),
+    sbCount("st_jobs", [q.gte("completed_on", startOfDayMelbourne(now).toISOString()), q.eq("status", "Completed")].join("&")),
+    sbCount("st_jobs", [q.gte("completed_on", weekStart.toISOString()), q.eq("status", "Completed")].join("&")),
     sbCount(
       "st_jobs",
       [q.gte("scheduled_on", now.toISOString()), q.lt("scheduled_on", addDays(now, 7).toISOString())].join("&"),

@@ -522,8 +522,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
    *
    * "3 jobs sold" on its own is a number the room can't place: three out of
    * three is a day, three out of twenty is a different one. The quotes written
-   * today are the denominator everybody actually has in their head, and the
-   * Quoted today card below carries the money side of the same pair.
+   * today are the denominator everybody actually has in their head.
    */
   const soldFoot =
     soldJobs == null
@@ -533,8 +532,31 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           ? ` · ${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "quote" : "quotes"} written`
           : "");
 
+  const today = m.pace?.standing.today;
+  /*
+   * Sold is the one of these with no money figure to be measured against.
+   *
+   * The `sold` step in `standing` counts jobs, so its byNow is in jobs — the
+   * same unit trap that put 529,611% on a Team card. The day's sold *value*
+   * target is on the plan, and how much of the day has gone is on the
+   * calendar, so the by-now for money is the two multiplied.
+   */
+  const cal = m.paceData?.calendar;
+  const dayGone = cal ? (cal.todayWorking ? cal.dayFraction : 1) : null;
+  const soldTarget = m.pace?.day.sold.value ?? null;
+  const soldByNow = soldTarget != null && dayGone != null ? soldTarget * dayGone : null;
+
   return (
     <>
+      {/* Sold today, on the left where the eye starts. */}
+      <HeroCard
+        navy
+        label="Sold today"
+        value={st.plain(m.soldToday, live)}
+        verdict={headVerdictOf(live.st ? m.soldToday : null, soldByNow)}
+        foot={soldFoot}
+      />
+
       {/* Everything billed today, whenever the job was done — the office
           catching up on Thursday's jobs on a Monday is Monday's invoicing. The
           line ages what went out by how long each job had been waiting, because
@@ -543,13 +565,10 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           keeping up, two billed a fortnight late is money that sat there. The
           four buckets always show, zeroes included, so the line is in the same
           shape every day and the room reads position rather than words. */}
-      {/* The figure on the left, how long each job had waited on the right, with
-          the rule between them — the same shape as Close rate and Money in
-          below. The breakdown sat under the figure with the whole right half of
-          the card empty beside it. */}
       <SideCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
+        verdict={headVerdictOf(live.st ? m.revenueToday : null, today?.invoiced.byNow)}
         rows={
           !live.st || m.jobsInvoicedToday === 0
             ? undefined
@@ -568,39 +587,64 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
               : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`
         }
       />
-      {/* Sold today takes the middle of the row. It is the figure the room
-          watches, and centred it is the one the eye lands on first from
-          anywhere in the room rather than the one at the far left. */}
-      <HeroCard navy label="Sold today" value={st.plain(m.soldToday, live)} foot={soldFoot} />
-      {/* What the day's bookings actually are. "19 jobs booked" is a number;
-          four split systems and a ducted heater is a day. */}
+
+      {/* Quoted today completes the money row: written, billed, closed. The
+          three figures the day is actually judged on sit on one line, and the
+          counts move down to the row underneath. */}
       <SideCard
-        label="Jobs booked today"
-        value={st.count(m.bookingsToday, live)}
+        label="Quoted today"
+        value={st.plain(m.quotesCreatedTodayValue, live)}
+        verdict={headVerdictOf(live.st ? m.quotesCreatedTodayValue : null, today?.quotedValue.byNow)}
         rows={
-          !live.st || m.bookingsTodayTypes.length === 0
+          !live.st || m.quotesCreatedTodayCount === 0
             ? undefined
-            : m.bookingsTodayTypes.map((t) => ({ k: t.jobType, v: count(t.count) }))
+            : [
+                { k: "Jobs", v: count(m.quotesCreatedTodayCount) },
+                { k: "Options", v: count(m.quotesCreatedTodayOptions) },
+                { k: "Each", v: avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount) },
+                { k: "Already closed", v: count(m.quotesCreatedTodaySold) },
+              ]
         }
-        foot={`from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"} · ${count(m.leadsWeek)} this week`}
+        foot={
+          !live.st
+            ? undefined
+            : m.quotesCreatedTodayCount === 0
+              ? "nothing quoted yet today"
+              : `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"} priced today`
+        }
       />
 
-      {/* The second row is the same card three times: what it is and the two
-          figures that put it in context on the left, the number itself on the
-          right at the size the room reads. */}
-      <RateCard
-        leading
-        label="Quoted today"
-        lines={[
-          `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}${
-            m.quotesCreatedTodayOptions > m.quotesCreatedTodayCount
-              ? ` · ${count(m.quotesCreatedTodayOptions)} options`
-              : ""
-          }`,
-          `${count(m.quotesCreatedTodaySold)} already closed`,
+      {/* Booked and completed as two halves of one card: what came in today
+          against what went out. They are the same unit and the same day, and
+          side by side the gap between them is the thing worth seeing — a day
+          that books eight and finishes two is a different day from one that
+          books two and finishes eight. The job types stay, in the foot. */}
+      <SplitRateCard
+        label="Jobs today"
+        halves={[
+          {
+            name: "Booked",
+            value: st.count(m.bookingsToday, live),
+            sub: `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}`,
+            verdict: headVerdictOf(live.st ? m.bookingsToday : null, today?.booked.byNow),
+          },
+          {
+            name: "Completed",
+            value: st.count(m.jobsCompletedToday, live),
+            sub: `${count(m.jobsCompletedWeek)} this week`,
+            verdict: headVerdictOf(live.st ? m.jobsCompletedToday : null, today?.completed.byNow),
+          },
         ]}
-        value={st.plain(m.quotesCreatedTodayValue, live)}
+        foot={
+          !live.st || m.bookingsTodayTypes.length === 0
+            ? undefined
+            : m.bookingsTodayTypes
+                .slice(0, 3)
+                .map((t) => `${t.jobType} ${count(t.count)}`)
+                .join(" · ")
+        }
       />
+
       {/* Two halves rather than a figure with three lines under it: an agent
           deciding on behalf of a landlord is a different sell from a
           householder spending their own money, and the only reason to split
@@ -1180,10 +1224,23 @@ function avgOptions(options: number, jobs: number): string {
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="quotes written, still out, or closed" />;
 
+  // The same two measures as the Today page's money row, against the same
+  // by-now, so the two pages cannot disagree about whether the day is going
+  // well. Sold has no money step in `standing` — that one counts jobs — so its
+  // by-now is the day's target times how much of the day has gone.
+  const today = m.pace?.standing.today;
+  const cal = m.paceData?.calendar;
+  const dayGone = cal ? (cal.todayWorking ? cal.dayFraction : 1) : null;
+  const soldTarget = m.pace?.day.sold.value ?? null;
+  const soldByNow = soldTarget != null && dayGone != null ? soldTarget * dayGone : null;
+
   return (
     <>
       <div className="tile tile--head" style={{ gridColumn: "1 / span 4", gridRow: 1 }}>
-        <span className="tile__label">Quoted today</span>
+        <span className="tile__labelrow">
+          <span className="tile__label">Quoted today</span>
+          <Verdict of={headVerdictOf(m.quotesCreatedTodayValue, today?.quotedValue.byNow)} />
+        </span>
         <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker id="Quoted today" text={plain(m.quotesCreatedTodayValue)} /></span>
         {/* How many options each job was given, not just how many were written
             in total. The count on its own answers "how busy"; the average
@@ -1198,7 +1255,10 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
       </div>
 
       <div className="tile tile--navy tile--head" style={{ gridColumn: "5 / span 4", gridRow: 1 }}>
-        <span className="tile__label">Sold today</span>
+        <span className="tile__labelrow">
+          <span className="tile__label">Sold today</span>
+          <Verdict of={headVerdictOf(m.soldToday, soldByNow)} />
+        </span>
         <span className={vcls(plain(m.soldToday))}><Ticker id="Sold today" text={plain(m.soldToday)} /></span>
         <span className="tile__foot">
           {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} jobs quoted today
@@ -1931,6 +1991,11 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
  * means what it means on Pace. `byNow` must be in the step's own unit — the
  * count steps are jobs and the money steps are dollars, and they share a shape.
  */
+function Verdict({ of }: { of: { verdict: Verdict; text: string } | null }) {
+  if (!of) return null;
+  return <span className={`tile__verdict status status--${of.verdict}`}>{of.text}</span>;
+}
+
 function headVerdictOf(done: number | null | undefined, byNow: number | null | undefined) {
   const index = paceIndex(done, byNow);
   const v = verdictOf(index);
@@ -1954,15 +2019,21 @@ function SideCard({
   value,
   rows,
   foot,
+  verdict,
 }: {
   label: string;
   value: string;
   rows?: Array<{ k: string; v: string }>;
   foot?: string;
+  /** Where this figure sits against what the day needs by now, if anything measures it. */
+  verdict?: { verdict: Verdict; text: string } | null;
 }) {
   return (
     <div className="tile c4">
-      <span className="tile__label">{label}</span>
+      <span className="tile__labelrow">
+        <span className="tile__label">{label}</span>
+        {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
+      </span>
       <div className={`side ${rows?.length ? "" : "side--alone"}`}>
         <span className={vcls(value, "tile__value--hero")}><Ticker id={label} text={value} /></span>
         {rows?.length ? (
@@ -1987,8 +2058,11 @@ function HeroCard({
   rows,
   foot,
   navy,
+  verdict,
 }: {
   label: string;
+  /** Where this figure sits against what the day needs by now, if anything measures it. */
+  verdict?: { verdict: Verdict; text: string } | null;
   value: string;
   /**
    * A short breakdown under the figure, stacked rather than run together.
@@ -2004,7 +2078,10 @@ function HeroCard({
 }) {
   return (
     <div className={`tile tile--hero c4 ${navy ? "tile--navy" : ""}`}>
-      <span className="tile__label">{label}</span>
+      <span className="tile__labelrow">
+        <span className="tile__label">{label}</span>
+        {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
+      </span>
       <span className={vcls(value, "tile__value--hero")}><Ticker id={label} text={value} /></span>
       {rows?.length ? (
         <div className="rows">
@@ -2048,7 +2125,8 @@ function SplitRateCard({
 }: {
   label: string;
   note?: string;
-  halves: Array<{ name: string; value: string; sub: string }>;
+  /** Each half may carry its own verdict: the two are measured separately. */
+  halves: Array<{ name: string; value: string; sub: string; verdict?: { verdict: Verdict; text: string } | null }>;
   foot?: string;
 }) {
   return (
@@ -2060,7 +2138,10 @@ function SplitRateCard({
       <div className="halves">
         {halves.map((h) => (
           <div className="halves__one" key={h.name}>
-            <span className="halves__name">{h.name}</span>
+            <span className="halves__namerow">
+              <span className="halves__name">{h.name}</span>
+              {h.verdict ? <span className={`tile__verdict status status--${h.verdict.verdict}`}>{h.verdict.text}</span> : null}
+            </span>
             <span className={`halves__value ${h.value === NA ? "is-na" : ""}`}>{h.value}</span>
             <span className="halves__sub">{h.sub}</span>
           </div>

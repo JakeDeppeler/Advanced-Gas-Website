@@ -1203,6 +1203,40 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## The Today page reads in two rows
+
+**Money across the top, counts underneath.** Sold, Invoiced and Quoted are the
+three figures the day is judged on and they sit on one line, left to right in
+the order the work happens. Sold is leftmost because that is where the eye
+starts.
+
+**Jobs booked and jobs completed share a card.** Same unit, same day, and side
+by side the gap between them is the thing worth seeing: a day that books eight
+and finishes two is a different day from one that books two and finishes eight.
+The job types the day was booked in stay, in the foot.
+
+**Every one of them carries its verdict beside the label** — behind, close, on
+track or ahead, against what the goal needs *by now*, with the glyph and the
+word so it is never colour alone. The Quotes page shows the same two measures
+against the same by-now, so the two pages cannot disagree about whether the day
+is going well.
+
+`Verdict` is one component and `headVerdictOf` is one function, used by the
+Today cards, the Quotes tiles and the Performance head cards, because four
+places each deciding what "on track" means is four chances to drift.
+
+**Sold's by-now is computed, not read from `standing`.** The `sold` step there
+counts jobs, so its `byNow` is in jobs — the same unit trap that once put
+529,611% on a Team card. The day's sold *value* target is on the plan and how
+much of the day has gone is on the calendar; the by-now for money is the two
+multiplied.
+
+**A cancelled job is not a completed job.** `jobsCompletedToday` and
+`jobsCompletedWeek` counted by `completed_on` alone, which ServiceTitan stamps
+on cancellations too — this week's figure was 18 where 16 jobs were actually
+completed. Both now filter on `status = 'Completed'`, the same fix the billing
+queue needed.
+
 ## Figures count up
 
 `src/components/screen/Ticker.tsx`. A number that is replaced the instant a new

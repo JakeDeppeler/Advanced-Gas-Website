@@ -1937,6 +1937,10 @@ body:has(.screen) .utilbar {
   min-width: 0;
 }
 .tile__labelrow .tile__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The two halves of a split card each carry their own verdict. */
+.halves__namerow { display: flex; align-items: baseline; justify-content: space-between; gap: calc(0.4 * var(--u)); min-width: 0; }
+.halves__namerow .halves__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.halves__namerow .tile__verdict { font-size: calc(0.82 * var(--u)); }
 .tile__verdict { flex: none; font-size: calc(0.92 * var(--u)); font-weight: 800; white-space: nowrap; }
 /* Track and close had a colour on the navy card and on the dials but none on
    a white card, so Invoiced on Performance read "On track" in plain ink while
