@@ -34,6 +34,10 @@ const COOKIE = "pt_nav";
 export const OPEN_EVENT = "pt-nav:open";
 
 const HOME_ICON = "M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10";
+const TODO_ICON = "M9 6h11M9 12h11M9 18h11M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17";
+
+/** The To-do link's count: mine overdue or due today, and how many of those are overdue. */
+export type TodoCount = { due: number; overdue: number };
 
 function Ic({ d, size = 20 }: { d: string; size?: number }) {
   return (
@@ -77,16 +81,18 @@ function activeHref(tabs: SideTab[], path: string, query: URLSearchParams): stri
   return best?.href ?? null;
 }
 
-export function SideNav({ tabs, small: initialSmall, search, foot }: {
+export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
   tabs: SideTab[];
   small: boolean;
   search: ReactNode;
   foot: ReactNode;
+  todo?: TodoCount;
 }) {
   const path = usePathname() ?? "";
   const query = useSearchParams() ?? new URLSearchParams();
   const active = activeHref(tabs, path, new URLSearchParams(query.toString()));
   const home = path === "/portal";
+  const onTodo = path === "/portal/todo";
   // A tab's own page (/portal/section/run) belongs to that tab.
   const sectionKey = path.startsWith("/portal/section/") ? path.split("/")[3] ?? null : null;
   const activeTab = sectionKey ?? tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;
@@ -184,6 +190,21 @@ export function SideNav({ tabs, small: initialSmall, search, foot }: {
           <Link href="/portal" className={`pt-side__home${home ? " is-on" : ""}`} aria-current={home ? "page" : undefined} title={small ? "Home" : undefined} aria-label={small ? "Home" : undefined}>
             <Ic d={HOME_ICON} />
             {!small && <span>Home</span>}
+          </Link>
+          {/* Beside Home rather than in a tab: everyone has a list, and the
+              number on it is the one thing in the bar that is only yours. */}
+          <Link
+            href="/portal/todo"
+            className={`pt-side__home pt-side__todo${onTodo ? " is-on" : ""}`}
+            aria-current={onTodo ? "page" : undefined}
+            title={small ? "To-do" : undefined}
+            aria-label={small || todo?.due ? `To-do${todo?.due ? `, ${todo.due} due${todo.overdue ? `, ${todo.overdue} overdue` : ""}` : ""}` : undefined}
+          >
+            <Ic d={TODO_ICON} />
+            {!small && <span className="pt-side__label">To-do</span>}
+            {!!todo?.due && (
+              <span className={`pt-side__need${todo.overdue ? " is-late" : ""}`} title={todo.overdue ? `${todo.overdue} overdue` : `${todo.due} due today`}>{todo.due}</span>
+            )}
           </Link>
 
           <ul className="pt-side__tabs">

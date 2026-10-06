@@ -11,6 +11,7 @@ import { Bell } from "@/components/portal/Bell";
 import { SideNav, SideNavButton, type SideTab } from "@/components/portal/SideNav";
 import { navBadges } from "@/lib/portal/navBadges";
 import { needsByBand, needsToday } from "@/lib/portal/needs";
+import { myCounts } from "@/lib/todos/store";
 
 /** Each tab's icon in the side bar, from the same stroke set as the home cards. */
 const TAB_ICON: Record<Exclude<NavBand, "hidden">, string> = {
@@ -45,8 +46,12 @@ type NavProps = { user: PortalUser; items: NavItem[]; small: boolean; search: Re
  * the bar is drawn the same with no numbers on it.
  */
 async function CountedNav({ user, items, ...p }: NavProps) {
-  const [badges, lines] = await Promise.all([navBadges(user).catch(() => ({})), needsToday(user).catch(() => [])]);
-  return <SideNav tabs={tabsOf(items, badges, needsByBand(lines))} {...p} />;
+  const [badges, lines, todo] = await Promise.all([
+    navBadges(user).catch(() => ({})),
+    needsToday(user).catch(() => []),
+    myCounts(user).catch(() => undefined),
+  ]);
+  return <SideNav tabs={tabsOf(items, badges, needsByBand(lines))} todo={todo} {...p} />;
 }
 
 /**

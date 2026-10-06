@@ -189,6 +189,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   );
 
   // Not cards on the home grid, but still places the search should find.
+  // Everyone has a list; the side bar links it beside Home, so it's here for the search.
+  items.push({ href: "/portal/todo", label: "To-do", blurb: "Jobs given to people, with the day each is due", band: "hidden", icon: "list", also: ["todo", "to do", "to-do list", "task", "tasks", "reminder", "due", "overdue", "jobs to do"] });
   items.push({ href: "/portal/job-calculator", label: "Job calculator", short: "Job calc", blurb: "Price a job by who's on it", band: "hidden", icon: "calc", also: ["price", "quote", "rate", "labour"] });
   // The wall board's own tab: the remote first, because driving the TV is
   // what people come here to do; then what it shows, then what it aims at.
