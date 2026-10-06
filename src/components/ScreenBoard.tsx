@@ -7,6 +7,7 @@ import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
+import { Ticker } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 
 type Snapshot = {
@@ -78,7 +79,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // assumption about people, not a fact about them. It goes in the header.
   Team: (m) =>
     m.salesLeaderboard.length > 0
-      ? `Against an equal share of the team's week and month \u00b7 ${m.salesLeaderboard.length} on the board`
+      ? `Against an equal share of the team's week and month${m.salesLeaderboard.length > 6 ? ` \u00b7 top 6 of ${m.salesLeaderboard.length}` : ""}`
       : "Who has sold what",
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
@@ -413,7 +414,7 @@ export function ScreenBoard({
         /* Team is the one page whose column count is the data: one card a
            person, however many that is. The twelve-column grid the other pages
            share gave each card a twelfth of the width. */
-        style={name === "Team" ? ({ "--team-n": m.salesLeaderboard.length || 1 } as CSSProperties) : undefined}
+        style={name === "Team" ? ({ "--team-n": Math.min(6, m.salesLeaderboard.length) || 1 } as CSSProperties) : undefined}
       >
         {page === 0 && <TodayPage m={m} live={live} />}
         {page === 1 && <PacePage m={m} live={live} now={now} />}
@@ -1161,7 +1162,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
     <>
       <div className="tile tile--head" style={{ gridColumn: "1 / span 4", gridRow: 1 }}>
         <span className="tile__label">Quoted today</span>
-        <span className={vcls(plain(m.quotesCreatedTodayValue))}>{plain(m.quotesCreatedTodayValue)}</span>
+        <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker text={plain(m.quotesCreatedTodayValue)} /></span>
         {/* How many options each job was given, not just how many were written
             in total. The count on its own answers "how busy"; the average
             answers "how well" — three options a job is a quote, one is a price,
@@ -1176,7 +1177,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile tile--navy tile--head" style={{ gridColumn: "5 / span 4", gridRow: 1 }}>
         <span className="tile__label">Sold today</span>
-        <span className={vcls(plain(m.soldToday))}>{plain(m.soldToday)}</span>
+        <span className={vcls(plain(m.soldToday))}><Ticker text={plain(m.soldToday)} /></span>
         <span className="tile__foot">
           {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} jobs quoted today
         </span>
@@ -1187,7 +1188,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           slow day actually shows up in first. */}
       <div className="tile tile--head" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
         <span className="tile__label">Average option</span>
-        <span className={vcls(plain(m.avgQuoteToday))}>{plain(m.avgQuoteToday)}</span>
+        <span className={vcls(plain(m.avgQuoteToday))}><Ticker text={plain(m.avgQuoteToday)} /></span>
         <span className="tile__foot">
           {m.avgQuoteMonth != null ? `${money(m.avgQuoteMonth)} this month` : "today"}
         </span>
@@ -1357,9 +1358,10 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
    * target, so that is what the order has to be, and then the number beside
    * the name means what the band above it means.
    */
-  const ranked = [...people].sort(
-    (a, b) => (paceIndex(b.sold, monthSoldByNow) ?? -1) - (paceIndex(a.sold, monthSoldByNow) ?? -1),
-  );
+  const TEAM_CARDS = 6;
+  const ranked = [...people]
+    .sort((a, b) => (paceIndex(b.sold, monthSoldByNow) ?? -1) - (paceIndex(a.sold, monthSoldByNow) ?? -1))
+    .slice(0, TEAM_CARDS);
 
   const teamSold = people.reduce((a, r) => a + r.sold, 0);
   const teamQuoted = people.reduce((a, r) => a + r.quoted, 0);
@@ -1383,7 +1385,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
       <div className="tile tile--navy teamfoot">
         <span className="teamfoot__lead">
           <span className="teamfoot__label">Team</span>
-          <b className="teamfoot__fig">{plain(teamSold)} sold</b>
+          <b className="teamfoot__fig"><Ticker text={plain(teamSold)} /> sold</b>
           <span className="teamfoot__of">
             {teamMonthTarget ? `of ${money(teamMonthTarget)} this month` : "this month"} ·{" "}
             {count(teamSoldJobs)} {teamSoldJobs === 1 ? "job" : "jobs"}
@@ -1497,7 +1499,7 @@ function TeamRow({
       <span className="teamrow__body">
         <MiniDial index={index} verdict={verdict} />
         <span className="teamrow__text">
-          <b className="teamrow__fig">{plain(value)}</b>
+          <b className="teamrow__fig"><Ticker text={plain(value)} /></b>
           <span className={`status status--${verdict ?? "quiet"} teamrow__status`}>{verdictText(index, verdict)}</span>
           <span className="teamrow__of">{a.target != null ? `of ${money(a.target)} ${unit}` : `no ${unit} target`}</span>
           {extra ? <span className="teamrow__of">{extra}</span> : null}
@@ -1573,19 +1575,30 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
           the same month, because ServiceTitan bills a job when it is billed and
           one job can carry more than one invoice. The page was read as job
           counts twice; now it says. */}
-      <HeadCard label="Jobs booked" value={st.count(m.bookingsMonth, live)} foot="jobs created this month" />
+      <HeadCard
+        label="Jobs booked"
+        value={st.count(m.bookingsMonth, live)}
+        verdict={headVerdictOf(m.bookingsMonth, m.pace?.standing.month.booked.byNow)}
+        foot="jobs created this month"
+      />
       <HeadCard
         label="Invoiced"
         value={st.money(m.revenueInvoicedMtd, live)}
+        verdict={headVerdictOf(m.revenueInvoicedMtd, m.pace?.standing.month.invoiced.byNow)}
         foot={live.st ? `${count(m.invoiceCountMonth)} invoices raised` : undefined}
       />
       {/* What turned up against what was asked for. The row was three cards in a
           space built for four, with a quarter of it empty since profit came
           off, and this is the figure that was missing from the story: booked,
           invoiced, paid, and what was left of it. */}
+      {/* Measured against the same plan as Invoiced, not against what we
+          happened to invoice: the goal is revenue, and revenue is not revenue
+          until it is banked. It will read behind Invoiced most months, because
+          cash lags billing — that gap is the thing worth seeing. */}
       <HeadCard
         label="Paid"
         value={m.paidMonth == null ? NA : money(m.paidMonth)}
+        verdict={headVerdictOf(m.paidMonth, m.pace?.standing.month.invoiced.byNow)}
         foot={
           m.paidMonth == null
             ? "payments not synced yet"
@@ -1604,6 +1617,10 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
         navy
         label="Job margin"
         value={live.st ? pct(jp?.margin ?? null) : NA}
+        /* Against the goal itself, not against a by-now share of it: a margin
+           is a rate, and a rate is not something you accumulate half of by the
+           middle of the month. */
+        verdict={headVerdictOf(jp?.margin ?? null, goal)}
         suffix={goal != null && jp?.margin != null ? `of ${pct(goal)}` : undefined}
         foot={
           !live.st
@@ -1789,7 +1806,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile tile--navy" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
         <span className="tile__label">Highest ticket</span>
         <span className={vcls(m.highestTicket ? plain(m.highestTicket.value) : NA, "tile__value--hero")}>
-          {m.highestTicket ? plain(m.highestTicket.value) : NA}
+          <Ticker text={m.highestTicket ? plain(m.highestTicket.value) : NA} />
         </span>
         <span className="tile__sub">
           {m.highestTicket
@@ -1801,7 +1818,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile" style={{ gridColumn: "9 / span 4", gridRow: 2 }}>
         <span className="tile__label">Best average ticket</span>
         <span className={vcls(best ? plain(best.avg) : NA, "tile__value--hero")}>
-          {best ? plain(best.avg) : NA}
+          <Ticker text={best ? plain(best.avg) : NA} />
         </span>
         <span className="tile__sub">
           {best ? `${best.suburb} · ${count(best.count)} ${best.count === 1 ? "job" : "jobs"}` : "Not enough jobs to rank"}
@@ -1855,19 +1872,40 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
  * board used before — at four across, the right-aligned figures landed at four
  * different distances from their labels and stopped reading as one row.
  */
-function HeadCard({ label, value, suffix, foot, navy }: {
+function HeadCard({ label, value, suffix, foot, navy, verdict }: {
   label: string; value: string; suffix?: string; foot?: string; navy?: boolean;
+  /** Where this figure sits against what it is measured by, if anything measures it. */
+  verdict?: { verdict: Verdict; text: string } | null;
 }) {
   return (
     <div className={`tile tile--head c3 ${navy ? "tile--navy" : ""}`}>
-      <span className="tile__label">{label}</span>
+      <span className="tile__labelrow">
+        <span className="tile__label">{label}</span>
+        {/* Glyph and word, not a coloured dot: ▼ Behind reads at four metres and
+            reads to the one man in twelve who cannot tell the dot from the one
+            beside it. */}
+        {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
+      </span>
       <span className={vcls(value)}>
-        {value}
+        <Ticker text={value} />
         {suffix ? <em className="tile__suffix">{suffix}</em> : null}
       </span>
       {foot ? <span className="tile__foot">{foot}</span> : null}
     </div>
   );
+}
+
+/**
+ * A head card's verdict: done against what the goal says should be done by now.
+ *
+ * The same scale as the dials and the footer's key, so "On track" on this page
+ * means what it means on Pace. `byNow` must be in the step's own unit — the
+ * count steps are jobs and the money steps are dollars, and they share a shape.
+ */
+function headVerdictOf(done: number | null | undefined, byNow: number | null | undefined) {
+  const index = paceIndex(done, byNow);
+  const v = verdictOf(index);
+  return v ? { verdict: v, text: verdictText(index, v) } : null;
 }
 
 /**
@@ -1897,7 +1935,7 @@ function SideCard({
     <div className="tile c4">
       <span className="tile__label">{label}</span>
       <div className={`side ${rows?.length ? "" : "side--alone"}`}>
-        <span className={vcls(value, "tile__value--hero")}>{value}</span>
+        <span className={vcls(value, "tile__value--hero")}><Ticker text={value} /></span>
         {rows?.length ? (
           <div className="rows">
             {rows.map((r) => (
@@ -1938,7 +1976,7 @@ function HeroCard({
   return (
     <div className={`tile tile--hero c4 ${navy ? "tile--navy" : ""}`}>
       <span className="tile__label">{label}</span>
-      <span className={vcls(value, "tile__value--hero")}>{value}</span>
+      <span className={vcls(value, "tile__value--hero")}><Ticker text={value} /></span>
       {rows?.length ? (
         <div className="rows">
           {rows.map((r) => (
@@ -2030,7 +2068,7 @@ function RateCard({
         className={`${vcls(value)} tile__value--rate`}
         style={accent && value !== NA ? { color: "var(--accent)" } : undefined}
       >
-        {value}
+        <Ticker text={value} />
       </span>
     </div>
   );

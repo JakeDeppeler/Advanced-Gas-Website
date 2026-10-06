@@ -1180,6 +1180,49 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## Figures count up
+
+`src/components/screen/Ticker.tsx`. A number that is replaced the instant a new
+snapshot lands is, from four metres, indistinguishable from a number that was
+always that. Counting up is what says *this just moved*, and on a wall that is
+on all day it is most of what makes the board read as live rather than as a
+printout.
+
+**It takes the formatted string, not a number and a formatter.** Every figure
+here already arrives formatted by one of half a dozen helpers (`$1.5M`,
+`$14,850`, `34%`, `—`), so the string is read as a template — prefix, number,
+suffix — and only the number moves. Threading a formatter through every card to
+re-derive what the string already says would have meant touching forty call
+sites to animate twenty.
+
+The rules, in `planRun`, which is pulled out of the effect so it can be tested:
+first sight of a number counts from zero (that is a page turning on); the same
+number again does **not** re-count, because the board re-renders every thirty
+seconds whether or not anything moved and a figure that re-counts says something
+happened when nothing did; a new number counts from the one the room was looking
+at. `prefers-reduced-motion` skips straight to the value, and anything with no
+number in it renders as itself.
+
+`scripts/check-ticker.ts` covers every shape the board formats, including the
+real minus sign the board uses and `7 of 11 jobs`, where only the 7 may move —
+animating the numerator while the denominator sat still would read as the
+denominator changing. The animation itself was sampled in a browser: it counts
+`$2,032 → $6,975 → … → $14,850` on mount and from the old figure, not zero, on a
+change.
+
+**The Team page shows six.** Past six the cards narrow until the figures stop
+being readable across the room, which costs more than the seventh card is worth.
+The header says "top 6 of 7" when somebody is not shown, so six never reads as
+everybody, and the team strip still counts them all.
+
+**The Performance head cards carry their verdict**, each against the thing that
+measures it: jobs booked and invoiced against the month's pace, margin against
+the margin goal itself (a rate is not something you accumulate half of by
+mid-month), and paid against the *same plan as invoiced* rather than against
+what we happened to invoice — the goal is revenue, and revenue is not revenue
+until it is banked. Paid will read behind invoiced most months because cash lags
+billing, and that gap is the thing worth seeing.
+
 ## The Team page
 
 One card a person, ordered best to worst, with a strip across the foot for the
