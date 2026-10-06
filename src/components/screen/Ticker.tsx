@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * A figure that counts up to its value instead of appearing at it.
@@ -60,53 +60,119 @@ export function formatLike(n: number, p: Parsed): string {
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
 /**
+ * What each figure last showed the room, kept outside the page.
+ *
+ * The board rebuilds a page from nothing every time it rotates in (the grid is
+ * keyed on the page so the tile entrance replays), so a figure's own state dies
+ * every thirty seconds. Kept in the component, every figure counted up from
+ * zero every time its page came round, all day, and a count that happens every
+ * time says nothing. Kept here, a figure counts only
+ * when it moved since the room last saw it, which is the only time a count
+ * means anything.
+ *
+ * Mirrored to localStorage so the morning switch-on knows what the evening
+ * left. Entries carry the day they were seen: a figure remembered from
+ * yesterday is not a baseline for today, because "Sold today" restarting at
+ * $0 and climbing to $6,000 by nine is not $6,000 of news against last night's
+ * $5,000.
+ */
+const STORE_KEY = "screen.ticker.v1";
+type Seen = { v: number; d: string };
+let seen: Map<string, Seen> | null = null;
+
+const today = () => new Date().toLocaleDateString("en-CA");
+
+function memory(): Map<string, Seen> {
+  if (seen) return seen;
+  seen = new Map();
+  try {
+    const raw = window.localStorage.getItem(STORE_KEY);
+    if (raw) for (const [k, e] of Object.entries(JSON.parse(raw) as Record<string, Seen>)) seen.set(k, e);
+  } catch {
+    // Private window, blocked storage, a corrupt entry: start with no memory,
+    // which means nothing counts until something moves. That is the safe side.
+  }
+  return seen;
+}
+
+function lastSeen(key: string): number | null {
+  const e = memory().get(key);
+  return e && e.d === today() ? e.v : null;
+}
+
+function remember(key: string, v: number) {
+  const mem = memory();
+  mem.set(key, { v, d: today() });
+  try {
+    window.localStorage.setItem(STORE_KEY, JSON.stringify(Object.fromEntries(mem)));
+  } catch {
+    // Memory for this session still holds; only the next reload loses it.
+  }
+}
+
+/**
+ * Which page a figure is on, so "Quoted today" on Today and "Quoted today" on
+ * Quotes are remembered apart — they are different figures under one label.
+ */
+export const TickerScope = createContext("");
+
+/**
  * Whether this render counts, and from where.
  *
  * Pulled out of the effect so it can be checked: the rules are easy to state
  * and easy to get subtly wrong, and every one of them is only wrong for 700ms.
  *
  * - Nothing numeric to count to → show it and stop.
- * - Never rendered a number before → count from zero. That is the page turning
- *   on, and it is the whole effect.
- * - Same number as last time → do not count. The board re-renders on a thirty
- *   second poll whether or not anything moved, and a figure that re-counts to
- *   the number it already was says something happened when nothing did.
- * - A new number → count from the one the room was looking at, not from zero.
+ * - Never seen this figure today → show it and stop. This used to count from
+ *   zero, on the reasoning that it was the page turning on; but the page turns
+ *   on every rotation, so every figure on the board was counting all day and
+ *   the one that had genuinely moved looked like all the rest.
+ * - Same number as last seen → do not count.
+ * - Lower than last seen → show it and stop. What the room is waiting for — a
+ *   job sold, a quote written — only ever adds. A figure going down is a
+ *   cancellation, a correction or the day rolling over, and counting it
+ *   would dress a correction up as news.
+ * - Higher → count from the one the room last saw.
  */
 export function planRun(prevValue: number | null, next: Parsed | null, reduceMotion: boolean):
   | { animate: false }
   | { animate: true; from: number } {
-  if (!next || reduceMotion) return { animate: false };
-  const from = prevValue ?? 0;
-  if (from === next.value) return { animate: false };
-  return { animate: true, from };
+  if (!next || reduceMotion || prevValue == null) return { animate: false };
+  if (next.value <= prevValue) return { animate: false };
+  return { animate: true, from: prevValue };
 }
 
-export function Ticker({ text }: { text: string }) {
+/**
+ * `id` names the figure within its page. It has to be stable across the
+ * page's rotations and unique on the page; the card's label is usually both.
+ */
+export function Ticker({ text, id }: { text: string; id: string }) {
+  const scope = useContext(TickerScope);
+  const key = `${scope}/${id}`;
   const [shown, setShown] = useState(text);
-  // What the last animation finished on, so a change counts from where the eye
-  // last saw the number rather than from zero every time.
-  const from = useRef<number | null>(null);
   const frame = useRef<number | null>(null);
 
-  useEffect(() => {
+  // A layout effect, so the first painted frame of a count is the number the
+  // room last saw. In a plain effect the new figure paints first and then jumps
+  // back to count up to itself, which flashes the answer before the count.
+  useLayoutEffect(() => {
     const p = parseFigure(text);
     if (!p) {
-      from.current = null;
       setShown(text);
       return;
     }
 
-    const reduce = Boolean(
-      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
-    );
-    const run = planRun(from.current, p, reduce);
+    const reduce = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+    const run = planRun(lastSeen(key), p, reduce);
+    // Remembered now rather than when the count lands: the page can rotate
+    // away mid-count, and the room has been told this number either way.
+    remember(key, p.value);
     if (!run.animate) {
-      from.current = p.value;
       setShown(text);
       return;
     }
     const start = run.from;
+    setShown(formatLike(start, p));
 
     const t0 = performance.now();
     const step = (now: number) => {
@@ -116,14 +182,13 @@ export function Ticker({ text }: { text: string }) {
       // rounding the board's own helper did stays done.
       setShown(t >= 1 ? text : formatLike(v, p));
       if (t < 1) frame.current = requestAnimationFrame(step);
-      else from.current = p.value;
     };
     frame.current = requestAnimationFrame(step);
 
     return () => {
       if (frame.current != null) cancelAnimationFrame(frame.current);
     };
-  }, [text]);
+  }, [text, key]);
 
   // The settled text is what a screen reader and a screenshot get; the frames
   // in between are decoration.

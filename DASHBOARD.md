@@ -52,8 +52,9 @@ attention. Where it is up to in the cycle is six dashes top-right and the orange
 run under the header, which fills a sixth at a time — the room can see where it
 is without reading six page names, which is what the tab strip asked of it.
 
-**Today** is two rows of three. Sold today (navy), invoiced today and jobs
-booked today across the top; quoted today, close rate and money in beneath, each
+**Today** is two rows of three. Invoiced today, Sold today (navy) and jobs
+booked today across the top, with Sold today in the middle because it is the
+figure the room watches and the centre is where the eye lands first; quoted today, close rate and money in beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
 
 Four of the six are cut down the middle: the figure on the left, its breakdown
@@ -1195,20 +1196,39 @@ suffix — and only the number moves. Threading a formatter through every card t
 re-derive what the string already says would have meant touching forty call
 sites to animate twenty.
 
-The rules, in `planRun`, which is pulled out of the effect so it can be tested:
-first sight of a number counts from zero (that is a page turning on); the same
-number again does **not** re-count, because the board re-renders every thirty
-seconds whether or not anything moved and a figure that re-counts says something
-happened when nothing did; a new number counts from the one the room was looking
-at. `prefers-reduced-motion` skips straight to the value, and anything with no
+**It counts only when the number went up since the room last saw it.** The
+first version counted from zero on first sight, reasoning that first sight was
+the page turning on. But every page is rebuilt each time it rotates in, so
+every figure on the board counted up every thirty seconds all day, and the one
+that had genuinely moved looked like all the rest. Jake asked for the numbers
+to move only when an estimate is sold or a quote is written, so that a page
+coming round shows it has updated.
+
+So what each figure last showed is kept outside the page, keyed by page and
+figure (`TickerScope` plus the `id` each `Ticker` is given), and mirrored to
+`localStorage` so a reload or the morning switch-on knows what the board last
+said. The rules, in `planRun`, which is pulled out of the effect so it can be
+tested:
+
+- never seen today → shows the number, no count;
+- same number → no count;
+- **lower** → no count. A sale or a quote only ever adds, so a figure going
+  down is a cancellation, a correction or midnight, and counting it would
+  dress a correction up as news;
+- higher → counts from the number the room last saw.
+
+Remembered values carry the day they were seen and lapse at midnight, so last
+night's "Sold today" is never the baseline for this morning's.
+`prefers-reduced-motion` skips straight to the value, and anything with no
 number in it renders as itself.
 
 `scripts/check-ticker.ts` covers every shape the board formats, including the
 real minus sign the board uses and `7 of 11 jobs`, where only the 7 may move —
 animating the numerator while the denominator sat still would read as the
-denominator changing. The animation itself was sampled in a browser: it counts
-`$2,032 → $6,975 → … → $14,850` on mount and from the old figure, not zero, on a
-change.
+denominator changing. Checked in a browser against a real snapshot with the
+poll intercepted: a fresh load shows `$23,301` with no count, a full rotation
+with nothing changed shows no count, and a $2,873 sale landing while Today was
+off screen counts `$23,301 → … → $26,174` when Today comes back round.
 
 **The Team page shows six.** Past six the cards narrow until the figures stop
 being readable across the room, which costs more than the seventh card is worth.

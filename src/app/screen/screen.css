@@ -56,6 +56,10 @@
   --vd-close: #e2912c;
   --vd-track: #1f9a5c;
   --vd-ahead: #d9b02a;
+  /* The same two as text on a white card. The dial strokes above are 3.6:1
+     and 2.5:1 on white, fine for an arc and too faint for a word. */
+  --vd-track-ink: #15803d;
+  --vd-close-ink: #a15c07;
   --leader-row: #fef4eb;
 
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -979,6 +983,8 @@ body:has(.screen) .utilbar {
   --behind-ink: #f0a97a;
   --leader-row: #241a12;
   --muted-fig: #6f6d66;
+  --vd-track-ink: #6fdca0;
+  --vd-close-ink: #ffc46b;
 }
 
 .screen--dark .tile { box-shadow: none; border: 1px solid var(--hairline); }
@@ -1932,6 +1938,13 @@ body:has(.screen) .utilbar {
 }
 .tile__labelrow .tile__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tile__verdict { flex: none; font-size: calc(0.92 * var(--u)); font-weight: 800; white-space: nowrap; }
+/* Track and close had a colour on the navy card and on the dials but none on
+   a white card, so Invoiced on Performance read "On track" in plain ink while
+   the dial for the same figure on Pace was green. */
+.tile__verdict.status--track { color: var(--vd-track-ink); }
+.tile__verdict.status--close { color: var(--vd-close-ink); }
+.tile__value.tile__value--good { color: var(--vd-track-ink); }
+.tile--navy .tile__value.tile__value--good { color: #6fdca0; }
 /* On the navy card the status inks are tuned for paper. */
 .tile--navy .tile__verdict.status--behind { color: #ff8d80; }
 .tile--navy .tile__verdict.status--close { color: #ffc46b; }
