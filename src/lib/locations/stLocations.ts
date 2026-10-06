@@ -24,11 +24,20 @@ export type ImportLocation = {
   name: string;
   address: { street: string; unit?: string; city: string; state: string; zip: string; country: string };
   contacts?: ImportContact[];
+  /** Location notes, e.g. repairs flagged on the customer's service list. */
+  notes?: string[];
 };
 
 export type ImportSpec = { customerId: number; locations: ImportLocation[] };
 
-type StLocation = { id: number; name: string; customerId: number; active?: boolean; address?: { street?: string; unit?: string } };
+type StLocation = {
+  id: number;
+  name: string;
+  customerId: number;
+  active?: boolean;
+  address?: { street?: string; unit?: string; city?: string };
+};
+type StNote = { text: string };
 type StContact = { id: number; type: string; value: string; memo?: string | null };
 
 const norm = (s: string | undefined | null) => (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
@@ -60,6 +69,8 @@ export type ImportPlan = {
   alreadyThere: string[];
   /** Every listed location known to exist, by name → ServiceTitan id. */
   ids: Map<string, number>;
+  /** The customer's locations as ServiceTitan lists them right now. */
+  live: StLocation[];
 };
 
 // What this import has created, by name → id, kept in portal_settings.
@@ -98,7 +109,7 @@ export async function planImport(spec: ImportSpec): Promise<ImportPlan> {
   for (const l of existing) ids.set(norm(l.name), l.id);
   const toCreate = spec.locations.filter((l) => !ids.has(norm(l.name)));
   const alreadyThere = spec.locations.filter((l) => ids.has(norm(l.name))).map((l) => l.name);
-  return { customer: { id: customer.id, name: customer.name }, existing: existing.length, toCreate, alreadyThere, ids };
+  return { customer: { id: customer.id, name: customer.name }, existing: existing.length, toCreate, alreadyThere, ids, live: existing };
 }
 
 // A 400 body can quote the submitted fields back, and these errors end up in a
@@ -189,4 +200,80 @@ export async function checkContacts(spec: ImportSpec, plan: ImportPlan, from: nu
     failed: results.filter((r) => !r.ok),
     next: next < spec.locations.length ? next : null,
   };
+}
+
+/**
+ * Adds each listed location's notes that it does not already carry, pinned so
+ * a tech opening the location sees them first. Matched on the note text, so a
+ * re-run adds nothing; a note someone has since edited in ServiceTitan would be
+ * added again, which is the better failure than silently dropping it.
+ */
+export async function addNotes(spec: ImportSpec, plan: ImportPlan) {
+  const withNotes = spec.locations.filter((l) => l.notes?.length);
+  const results: (Result & { added?: number })[] = [];
+  for (let i = 0; i < withNotes.length; i += 5) {
+    results.push(
+      ...(await Promise.all(
+        withNotes.slice(i, i + 5).map(async (loc) => {
+          const id = plan.ids.get(norm(loc.name));
+          if (!id) return { name: loc.name, ok: false, error: "not created yet" };
+          try {
+            const have = await stList<StNote>("crm", `locations/${id}/notes`);
+            let added = 0;
+            for (const text of loc.notes ?? []) {
+              if (have.some((h) => norm(h.text) === norm(text))) continue;
+              await stSend("POST", stTenantPath("crm", `locations/${id}/notes`), { text, pinToTop: true });
+              added++;
+            }
+            return { name: loc.name, ok: true, id, added };
+          } catch (e) {
+            return { name: loc.name, ok: false, id, error: scrub(e) };
+          }
+        }),
+      )),
+    );
+  }
+  return {
+    locations: withNotes.length,
+    added: results.reduce((n, r) => n + (r.added ?? 0), 0),
+    failed: results.filter((r) => !r.ok),
+  };
+}
+
+/**
+ * The customer's locations that are not on the import list, each with the unit
+ * number it appears to be (from its name, unit field or street) and the listed
+ * location that number belongs to. Read-only: this is how possible duplicates
+ * get found, and deciding which record survives is a human's call.
+ */
+export function otherLocations(spec: ImportSpec, plan: ImportPlan) {
+  const listed = new Set(spec.locations.map((l) => norm(l.name)));
+  const unitOf = (l: StLocation): number | null => {
+    for (const s of [l.address?.unit, l.name, l.address?.street]) {
+      const m = (s ?? "").match(/(?:unit|u|villa|apt)?\s*#?\s*(\d{1,3})\b/i);
+      // A bare number in the street is the street number (36 Racecourse Road),
+      // not a unit, unless it is written as "12/36 …".
+      if (s === l.address?.street) {
+        const slash = (s ?? "").match(/^\s*(\d{1,3})\s*\//);
+        if (slash) return Number(slash[1]);
+        continue;
+      }
+      if (m) return Number(m[1]);
+    }
+    return null;
+  };
+  return plan.live
+    .filter((l) => !listed.has(norm(l.name)))
+    .map((l) => {
+      const unit = unitOf(l);
+      const match = unit != null ? spec.locations.find((s) => Number(s.address.unit) === unit) : undefined;
+      return {
+        id: l.id,
+        name: l.name,
+        address: [l.address?.unit && `Unit ${l.address.unit}`, l.address?.street, l.address?.city].filter(Boolean).join(", "),
+        active: l.active !== false,
+        unit,
+        sameUnitAs: match ? { name: match.name, id: plan.ids.get(norm(match.name)) ?? null } : null,
+      };
+    });
 }
