@@ -57,14 +57,18 @@ ok(two !== null && two.value === 7 && two.suffix === " of 11 jobs", "the rest is
 
 console.log("\n-- when it counts, and from where --");
 const fig = (t: string) => parseFigure(t);
-ok(planRun(null, fig("$14,850"), false).animate === true, "first sight of a number counts");
-ok((planRun(null, fig("$14,850"), false) as { from: number }).from === 0, "and counts from zero");
+// The page rebuilds every rotation, so "first sight" happens all day long. A
+// count on first sight is a count every thirty seconds, which says nothing.
+ok(planRun(null, fig("$14,850"), false).animate === false, "first sight of a number does not count");
 const again = planRun(14850, fig("$14,850"), false);
 ok(again.animate === false, "the same number again does not re-count");
 const moved = planRun(14850, fig("$16,000"), false);
-ok(moved.animate === true && (moved as { from: number }).from === 14850, "a new number counts from the old one", moved);
+ok(moved.animate === true && (moved as { from: number }).from === 14850, "a higher number counts from the old one", moved);
+ok(planRun(1, fig("2"), false).animate === true, "one more quote counts");
+ok(planRun(16000, fig("$14,850"), false).animate === false, "a lower number does not count");
+ok(planRun(14850, fig("$0"), false).animate === false, "nor does a reset to zero");
 ok(planRun(14850, fig("\u2014"), false).animate === false, "a dash stops it");
-ok(planRun(null, fig("$14,850"), true).animate === false, "reduced motion stops it");
+ok(planRun(14850, fig("$16,000"), true).animate === false, "reduced motion stops it");
 ok(planRun(0, fig("$0"), false).animate === false, "zero to zero is not a count");
 
 console.log(failed ? `\n${failed} failed\n` : "\nall good\n");

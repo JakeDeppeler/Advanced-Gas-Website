@@ -7,7 +7,7 @@ import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
-import { Ticker } from "./screen/Ticker";
+import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 
 type Snapshot = {
@@ -416,6 +416,7 @@ export function ScreenBoard({
            share gave each card a twelfth of the width. */
         style={name === "Team" ? ({ "--team-n": Math.min(6, m.salesLeaderboard.length) || 1 } as CSSProperties) : undefined}
       >
+        <TickerScope.Provider value={name}>
         {page === 0 && <TodayPage m={m} live={live} />}
         {page === 1 && <PacePage m={m} live={live} now={now} />}
         {page === 2 && <QuotesPage m={m} live={live} />}
@@ -423,6 +424,7 @@ export function ScreenBoard({
         {page === 4 && <TeamPage m={m} live={live} />}
         {page === 5 && <PerformancePage m={m} live={live} />}
         {page === 6 && <AreasPage m={m} live={live} />}
+        </TickerScope.Provider>
       </div>
 
       <div className={`screen__foot${journalAlert ? " has-alert" : ""}`}>
@@ -516,7 +518,6 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
 
   return (
     <>
-      <HeroCard navy label="Sold today" value={st.plain(m.soldToday, live)} foot={soldFoot} />
       {/* Everything billed today, whenever the job was done — the office
           catching up on Thursday's jobs on a Monday is Monday's invoicing. The
           line ages what went out by how long each job had been waiting, because
@@ -550,6 +551,10 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
               : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`
         }
       />
+      {/* Sold today takes the middle of the row. It is the figure the room
+          watches, and centred it is the one the eye lands on first from
+          anywhere in the room rather than the one at the far left. */}
+      <HeroCard navy label="Sold today" value={st.plain(m.soldToday, live)} foot={soldFoot} />
       {/* What the day's bookings actually are. "19 jobs booked" is a number;
           four split systems and a ducted heater is a day. */}
       <SideCard
@@ -1162,7 +1167,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
     <>
       <div className="tile tile--head" style={{ gridColumn: "1 / span 4", gridRow: 1 }}>
         <span className="tile__label">Quoted today</span>
-        <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker text={plain(m.quotesCreatedTodayValue)} /></span>
+        <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker id="Quoted today" text={plain(m.quotesCreatedTodayValue)} /></span>
         {/* How many options each job was given, not just how many were written
             in total. The count on its own answers "how busy"; the average
             answers "how well" — three options a job is a quote, one is a price,
@@ -1177,7 +1182,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
 
       <div className="tile tile--navy tile--head" style={{ gridColumn: "5 / span 4", gridRow: 1 }}>
         <span className="tile__label">Sold today</span>
-        <span className={vcls(plain(m.soldToday))}><Ticker text={plain(m.soldToday)} /></span>
+        <span className={vcls(plain(m.soldToday))}><Ticker id="Sold today" text={plain(m.soldToday)} /></span>
         <span className="tile__foot">
           {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} jobs quoted today
         </span>
@@ -1188,7 +1193,7 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
           slow day actually shows up in first. */}
       <div className="tile tile--head" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
         <span className="tile__label">Average option</span>
-        <span className={vcls(plain(m.avgQuoteToday))}><Ticker text={plain(m.avgQuoteToday)} /></span>
+        <span className={vcls(plain(m.avgQuoteToday))}><Ticker id="Average option" text={plain(m.avgQuoteToday)} /></span>
         <span className="tile__foot">
           {m.avgQuoteMonth != null ? `${money(m.avgQuoteMonth)} this month` : "today"}
         </span>
@@ -1385,7 +1390,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
       <div className="tile tile--navy teamfoot">
         <span className="teamfoot__lead">
           <span className="teamfoot__label">Team</span>
-          <b className="teamfoot__fig"><Ticker text={plain(teamSold)} /> sold</b>
+          <b className="teamfoot__fig"><Ticker id="Team sold" text={plain(teamSold)} /> sold</b>
           <span className="teamfoot__of">
             {teamMonthTarget ? `of ${money(teamMonthTarget)} this month` : "this month"} ·{" "}
             {count(teamSoldJobs)} {teamSoldJobs === 1 ? "job" : "jobs"}
@@ -1448,9 +1453,9 @@ function TeamCard({
         <b>{r.name}</b>
       </span>
 
-      <TeamRow label="Quoted this week" value={r.quotedWeek} a={weekQuoted} unit="this week" extra={`${money(r.quoted)} this month`} />
-      <TeamRow label="Sold this week" value={r.soldWeek} a={weekSold} unit="this week" extra={weekSold.byNow != null ? `by today ${plain(weekSold.byNow)}` : undefined} />
-      <TeamRow label="Sold this month" value={r.sold} a={monthSold} unit="this month" extra={monthSold.byNow != null ? `by today ${plain(monthSold.byNow)}` : undefined} />
+      <TeamRow id={`${r.name}/Quoted this week`} label="Quoted this week" value={r.quotedWeek} a={weekQuoted} unit="this week" extra={`${money(r.quoted)} this month`} />
+      <TeamRow id={`${r.name}/Sold this week`} label="Sold this week" value={r.soldWeek} a={weekSold} unit="this week" extra={weekSold.byNow != null ? `by today ${plain(weekSold.byNow)}` : undefined} />
+      <TeamRow id={`${r.name}/Sold this month`} label="Sold this month" value={r.sold} a={monthSold} unit="this month" extra={monthSold.byNow != null ? `by today ${plain(monthSold.byNow)}` : undefined} />
 
       <span className="teamcard__stats">
         <span className="teamcard__stat">
@@ -1479,12 +1484,15 @@ function TeamCard({
 
 /** One measure on a person's card: the figure, the dial, and what it is of. */
 function TeamRow({
+  id,
   label,
   value,
   a,
   unit,
   extra,
 }: {
+  /** Person and row, so each card's figures are remembered as that person's. */
+  id: string;
   label: string;
   value: number;
   a: Against;
@@ -1499,7 +1507,7 @@ function TeamRow({
       <span className="teamrow__body">
         <MiniDial index={index} verdict={verdict} />
         <span className="teamrow__text">
-          <b className="teamrow__fig"><Ticker text={plain(value)} /></b>
+          <b className="teamrow__fig"><Ticker id={id} text={plain(value)} /></b>
           <span className={`status status--${verdict ?? "quiet"} teamrow__status`}>{verdictText(index, verdict)}</span>
           <span className="teamrow__of">{a.target != null ? `of ${money(a.target)} ${unit}` : `no ${unit} target`}</span>
           {extra ? <span className="teamrow__of">{extra}</span> : null}
@@ -1806,7 +1814,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile tile--navy" style={{ gridColumn: "9 / span 4", gridRow: 1 }}>
         <span className="tile__label">Highest ticket</span>
         <span className={vcls(m.highestTicket ? plain(m.highestTicket.value) : NA, "tile__value--hero")}>
-          <Ticker text={m.highestTicket ? plain(m.highestTicket.value) : NA} />
+          <Ticker id="Highest ticket" text={m.highestTicket ? plain(m.highestTicket.value) : NA} />
         </span>
         <span className="tile__sub">
           {m.highestTicket
@@ -1818,7 +1826,7 @@ function AreasPage({ m }: { m: Metrics; live: Live }) {
       <div className="tile" style={{ gridColumn: "9 / span 4", gridRow: 2 }}>
         <span className="tile__label">Best average ticket</span>
         <span className={vcls(best ? plain(best.avg) : NA, "tile__value--hero")}>
-          <Ticker text={best ? plain(best.avg) : NA} />
+          <Ticker id="Best average ticket" text={best ? plain(best.avg) : NA} />
         </span>
         <span className="tile__sub">
           {best ? `${best.suburb} · ${count(best.count)} ${best.count === 1 ? "job" : "jobs"}` : "Not enough jobs to rank"}
@@ -1886,8 +1894,12 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
             beside it. */}
         {verdict ? <span className={`tile__verdict status status--${verdict.verdict}`}>{verdict.text}</span> : null}
       </span>
-      <span className={vcls(value)}>
-        <Ticker text={value} />
+      {/* The figure goes green as well as the word when it is where the goal
+          needs it: the word is a third the size and the figure is what is read
+          from across the room. Only the good side — behind or close stays in
+          ink with the word saying so, so a green figure is always good news. */}
+      <span className={`${vcls(value)}${verdict && (verdict.verdict === "track" || verdict.verdict === "ahead") ? " tile__value--good" : ""}`}>
+        <Ticker id={label} text={value} />
         {suffix ? <em className="tile__suffix">{suffix}</em> : null}
       </span>
       {foot ? <span className="tile__foot">{foot}</span> : null}
@@ -1935,7 +1947,7 @@ function SideCard({
     <div className="tile c4">
       <span className="tile__label">{label}</span>
       <div className={`side ${rows?.length ? "" : "side--alone"}`}>
-        <span className={vcls(value, "tile__value--hero")}><Ticker text={value} /></span>
+        <span className={vcls(value, "tile__value--hero")}><Ticker id={label} text={value} /></span>
         {rows?.length ? (
           <div className="rows">
             {rows.map((r) => (
@@ -1976,7 +1988,7 @@ function HeroCard({
   return (
     <div className={`tile tile--hero c4 ${navy ? "tile--navy" : ""}`}>
       <span className="tile__label">{label}</span>
-      <span className={vcls(value, "tile__value--hero")}><Ticker text={value} /></span>
+      <span className={vcls(value, "tile__value--hero")}><Ticker id={label} text={value} /></span>
       {rows?.length ? (
         <div className="rows">
           {rows.map((r) => (
@@ -2068,7 +2080,7 @@ function RateCard({
         className={`${vcls(value)} tile__value--rate`}
         style={accent && value !== NA ? { color: "var(--accent)" } : undefined}
       >
-        <Ticker text={value} />
+        <Ticker id={label} text={value} />
       </span>
     </div>
   );
