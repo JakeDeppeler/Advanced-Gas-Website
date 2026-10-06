@@ -62,6 +62,31 @@ lands in a few seconds. Each press carries an id and is acted on once, so the
 TV's own Skip and Hold still work after it. The tab's other pages are the
 explainer above and the targets and commission page.
 
+### The reports
+
+**Wall board → Reports** (`/portal/board/reports`) keeps the board's figures
+as reports and emails each one to a list kept on that page — Jake, and
+whoever in the team list is called Dean or Kellie, until somebody changes it:
+
+- **Daily**, every working day — sold, invoiced, paid, booked, quoted and
+  leads; the week so far against the goal; what needs someone; who sold.
+- **Weekly**, on the week's last working day — the week's six figures beside
+  last week's, each against what the goal needed of the week, the week's job
+  profit, who sold, what needs someone.
+- **Monthly**, on the month's last working day — the month against the goal,
+  its job profit, the year so far and where it lands, the kinds of work, who
+  sold.
+
+Each goes at half past five, from the same snapshot the TV shows. Two things
+send them: a Vercel cron each evening (`vercel.json`, 08:00 UTC — 7 pm in
+summer, 6 pm in winter) calling `/api/reports/run`, and the ServiceTitan sync
+as a backstop. Each report is claimed before it is built — it lives as one
+document in `portal_settings` under `report:<kind>:<period>`, created with an
+insert that does nothing if it exists — so two runs can't both send it. A
+send that fails is kept as failed and tried again by the next runs, up to
+three times. "Send now" on the page rebuilds the period's report from the
+figures as they are and sends it; "Send again" resends a kept one as it was.
+
 ## The pages
 
 The board cycles every 20 seconds through six pages. Past about eight tiles

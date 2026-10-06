@@ -4364,3 +4364,19 @@ a.pt-fig:hover { transform: translateY(-2px); }
 @media (max-width: 1180px) {
   .pt-wb { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---- Reports: what went, to whom; one opened as the email had it ---- */
+.pt-rpt__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.pt-rpt__head .pt-seg a { text-decoration: none; display: inline-flex; align-items: center; }
+.pt-rpt__now { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.pt-rpt__again { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.pt-rpt__sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; align-items: start; }
+.pt-rpt__sec { margin: 0; }
+.pt-rpt__lines { margin: 8px 0 0; }
+.pt-rpt__line { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--pt-tint); }
+.pt-rpt__line dt { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 14px; color: var(--pt-ink-2); }
+.pt-rpt__line dt span { font-size: 12.5px; color: var(--pt-ink-3, #8b8a86); }
+.pt-rpt__line dd { margin: 0; font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pt-rpt__line dd.is-bad { color: #b3261e; }
+.pt-rpt__line dd.is-good { color: var(--pt-good); }
+@media (max-width: 520px) { .pt-rpt__sections { grid-template-columns: minmax(0, 1fr); } }
