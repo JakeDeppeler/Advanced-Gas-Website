@@ -1398,7 +1398,7 @@ from the Sold alert: no commission tiers are configured.
 ## Invoiced means the work was done
 
 Every revenue figure on this board reads `st_invoices_billed` (migration
-`0047`), a view of `st_invoices` inner-joined to jobs whose status is
+`0048`), a view of `st_invoices` inner-joined to jobs whose status is
 `Completed`.
 
 ServiceTitan opens an invoice when a job is **created** and puts the priced
