@@ -57,21 +57,63 @@ async function sb(path: string, init: RequestInit = {}): Promise<Response | null
  * thousand came back. A metric computed from a silently truncated read is the
  * worst kind of wrong number: it looks measured.
  */
-const PAGE = 1000;
+export { PAGE } from "./paging";
+import { PAGE, hasOrder, pagedQuery } from "./paging";
 
+/** One page, or null when the database isn't configured. */
+async function sbPage<T>(table: string, query: string, from: number): Promise<T[] | null> {
+  const res = await sb(`${table}${query ? `?${query}` : ""}`, {
+    headers: { Range: `${from}-${from + PAGE - 1}`, "Range-Unit": "items" },
+  });
+  if (!res) return null;
+  if (!res.ok) {
+    throw new Error(`${table} read failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+  return (await res.json()) as T[];
+}
+
+/**
+ * Every row matching the query, a page at a time.
+ *
+ * **A read that needs more than one page must say what order it wants.**
+ * Postgres promises nothing about the order of rows without an ORDER BY, so
+ * asking for "rows 1000–1999" of an unordered result can hand back rows the
+ * first page already gave and never hand back others. The sum of such a read is
+ * not a sum of anything.
+ *
+ * It did exactly that. The Pace page reads two years of invoices — 2,023 rows,
+ * so three pages — and put $669,510 on the wall as the year to date against a
+ * true $390,203, while last year came back short by whatever went missing. The
+ * month and year on the Today page were right the whole time, because their
+ * window fits in one page, so the board disagreed with itself and only the
+ * three-page figure was wrong.
+ *
+ * So: one page, no ordering needed. More than one, and the read restarts with
+ * `order=id.asc` unless the caller named its own order. The extra page costs a
+ * few hundred milliseconds on the handful of reads big enough to need it, and
+ * it is the difference between a figure and a guess.
+ */
 export async function sbSelect<T = Row>(table: string, query = ""): Promise<T[]> {
+  const head = await sbPage<T>(table, query, 0);
+  if (head == null) return [];
+  // A short first page is the whole answer, in whatever order it arrived —
+  // nothing was paged, so nothing can have been doubled or dropped.
+  if (head.length < PAGE) return head;
+
+  const stable = pagedQuery(query);
   const out: T[] = [];
+  if (stable === query) {
+    out.push(...head);
+  } else {
+    const first = await sbPage<T>(table, stable, 0);
+    if (first == null) return out;
+    out.push(...first);
+    if (first.length < PAGE) return out;
+  }
 
-  for (let from = 0; ; from += PAGE) {
-    const res = await sb(`${table}${query ? `?${query}` : ""}`, {
-      headers: { Range: `${from}-${from + PAGE - 1}`, "Range-Unit": "items" },
-    });
-    if (!res) return out;
-    if (!res.ok) {
-      throw new Error(`${table} read failed (${res.status}): ${await res.text().catch(() => "")}`);
-    }
-
-    const page = (await res.json()) as T[];
+  for (let from = out.length; ; from += PAGE) {
+    const page = await sbPage<T>(table, stable, from);
+    if (page == null) return out;
     out.push(...page);
     // A short page is the last page. Guarding on the length rather than parsing
     // content-range keeps this working when the header is absent.

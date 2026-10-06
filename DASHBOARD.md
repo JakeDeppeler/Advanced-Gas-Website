@@ -1395,6 +1395,36 @@ moment those disagree about what 90% means the board is arguing with itself.
 The design's per-person bonus bar is absent for the same reason it is absent
 from the Sold alert: no commission tiers are configured.
 
+## A read of more than one page must say what order it wants
+
+`sbSelect` fetches in pages of a thousand. It used to page straight through
+with `Range` offsets and no `ORDER BY`, and Postgres promises nothing about the
+order of rows without one — so "rows 1000–1999" of an unordered result can hand
+back rows the first page already gave and never hand back others.
+
+It did. The Pace page reads two years of invoices — 2,023 rows, so three pages —
+and put **$669,510** on the wall as the year to date against a true **$390,203**,
+with last year short by whatever went missing. The Today page's month and year
+were right the whole time, because their window fits in a single page. The board
+was disagreeing with itself and only the three-page figure was wrong.
+
+The shape of this bug is what makes it dangerous: the row *count* is right,
+every row returned is real, nothing throws, and the total is simply wrong. There
+is nothing to notice.
+
+So a short first page is returned as it arrives — nothing was paged, so nothing
+can have been doubled or dropped — and anything longer restarts with
+`order=id.asc` unless the caller named its own order. The extra page costs a
+few hundred milliseconds on the handful of reads big enough to need it.
+
+`scripts/check-paging.ts` runs the loop against a fake PostgREST that reorders
+an unordered read on every request, as the real one is entitled to. It also runs
+the **old** loop against the same fake and asserts that one fails — a guard that
+does not fail on the bug it was written for is decoration. Its rows are each
+worth a different amount for the same reason: with every row equal, a doubled
+row and a dropped one cancel in the total and the check passes for the wrong
+reason, which is how the first version of this file passed.
+
 ## Invoiced means the work was done
 
 Every revenue figure on this board reads `st_invoices_billed` (migration
