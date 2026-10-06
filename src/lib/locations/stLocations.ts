@@ -433,12 +433,12 @@ export async function syncTags(spec: ImportSpec, plan: ImportPlan, from: number,
             for (const n of loc.tags ?? []) want.add(byName.get(norm(n))!);
             const same = want.size === cur.tagTypeIds.length && cur.tagTypeIds.every((t) => want.has(t));
             if (same) return { name: loc.name, ok: true, id, changed: false };
+            // No read-back here. ServiceTitan's reads lag its writes: on the
+            // first live run 115 tag changes read back stale a moment later,
+            // and every one of them was in place on the next run. Verification
+            // is a second pass over the list (the workflow runs one after a
+            // pause), which should change nothing.
             await stSend("PATCH", stTenantPath("crm", `locations/${id}`), { tagTypeIds: [...want] });
-            const back = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
-            const got = new Set(back.tagTypeIds ?? []);
-            if (got.size !== want.size || [...want].some((t) => !got.has(t))) {
-              throw new Error("tags did not stick on read-back");
-            }
             return { name: loc.name, ok: true, id, changed: true };
           } catch (e) {
             return { name: loc.name, ok: false, id, error: scrub(e) };
