@@ -5,7 +5,7 @@ import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
-import { Gauge, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
+import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 
@@ -73,10 +73,13 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // Names whose job it is, because the page is a work list rather than a score:
   // everything on it is something one person in the office does next.
   Invoices: () => "Money to bill, money owed to us, and what's overdue · one person's job",
-  // The money column is the month; the last three are thirty days, because a
-  // quote written this week has not had a chance to close. Said once here
-  // rather than three times in headers a column wide.
-  Team: () => "Quoted and sold, today \u00b7 week \u00b7 month \u00b7 rates over 30 days",
+  // Says what each card's targets are a share of. Nothing holds a per-person
+  // number, so the share is equal — and an equal share of a team target is an
+  // assumption about people, not a fact about them. It goes in the header.
+  Team: (m) =>
+    m.salesLeaderboard.length > 0
+      ? `Against an equal share of the team's week and month \u00b7 ${m.salesLeaderboard.length} on the board`
+      : "Who has sold what",
   // Says which population the page counts, because it was read as jobs twice
   // and it is invoices — a job can carry more than one.
   Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
@@ -407,6 +410,10 @@ export function ScreenBoard({
       <div
         key={page}
         className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--invoices", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}
+        /* Team is the one page whose column count is the data: one card a
+           person, however many that is. The twelve-column grid the other pages
+           share gave each card a twelfth of the width. */
+        style={name === "Team" ? ({ "--team-n": m.salesLeaderboard.length || 1 } as CSSProperties) : undefined}
       >
         {page === 0 && <TodayPage m={m} live={live} />}
         {page === 1 && <PacePage m={m} live={live} now={now} />}
@@ -1280,6 +1287,20 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
  * not granted, so it had shown a dash for every person since the day it was
  * added. See DASHBOARD.md.
  */
+/**
+ * Team: one card a person, each read against what the week and the month need.
+ *
+ * It was a table. A table is the right shape for comparing a column, and the
+ * wrong one for the question this page is actually asked from across the room,
+ * which is "who is behind". Every row looked the same until you read it.
+ *
+ * **The targets are an equal share of the team's.** Nothing anywhere holds a
+ * per-person number — no setting, no column — so each person's week is the
+ * team's week divided by the people on the board. That is an assumption, and
+ * it is written on the card ("of $12.1K this week") rather than left implied,
+ * because an equal share is not true of an apprentice and a lead hand and the
+ * room should be able to see the denominator it is being judged against.
+ */
 function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="who has sold what" />;
 
@@ -1297,169 +1318,192 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
     );
   }
 
-  const totals = m.salesLeaderboard.reduce(
-    (a, r) => ({
-      today: a.today + r.soldToday,
-      week: a.week + r.soldWeek,
-      month: a.month + r.sold,
-      quoted: a.quoted + r.quoted,
-      options: a.options + r.quotes,
-      quotedToday: a.quotedToday + r.quotedToday,
-      quotedWeek: a.quotedWeek + r.quotedWeek,
-      quotedJobs: a.quotedJobs + r.quotedJobs,
-      options30: a.options30 + (r.avgOptions ?? 0) * r.quotedJobs,
-      soldJobs: a.soldJobs + r.soldJobs,
-      won: a.won + r.closeRateWon,
-      // Summed, not averaged: a mean of five people's averages weights the one
-      // who wrote a single quote the same as the one who wrote fifty.
-      quotedValue: a.quotedValue + (r.avgQuote ?? 0) * r.quotedJobs,
-      wonValue: a.wonValue + (r.avgTicket ?? 0) * r.soldJobs,
-    }),
-    {
-      today: 0, week: 0, month: 0, quoted: 0, options: 0,
-      quotedToday: 0, quotedWeek: 0, quotedJobs: 0, options30: 0,
-      soldJobs: 0, won: 0, quotedValue: 0, wonValue: 0,
-    },
-  );
-  const teamCloseRate = totals.quotedJobs ? totals.won / totals.quotedJobs : null;
-  const teamAvgTicket = totals.soldJobs ? totals.wonValue / totals.soldJobs : null;
-  const teamAvgQuote = totals.quotedJobs ? totals.quotedValue / totals.quotedJobs : null;
+  const people = m.salesLeaderboard;
+  const heads = people.length;
+  const share = (team: number | null | undefined) =>
+    team != null && heads > 0 ? team / heads : null;
 
-  /**
-   * How much of the month's closed work this table actually accounts for.
+  const weekSoldTarget = share(m.pace?.week.sold.value);
+  const monthSoldTarget = share(m.pace?.month.sold.value);
+  const weekQuotedTarget = share(m.pace?.week.quoted.value);
+
+  /*
+   * By-now is the target times how much of the period has gone.
    *
-   * Only shown when it is short, and then it is the first thing under the
-   * heading: a board that silently ranks a quarter of the month is a board that
-   * gets somebody a quiet word they did not earn.
+   * It cannot come from `standing`, which is where the first version took it:
+   * the `sold` step there is a count of jobs, and dividing a person's dollars
+   * by a share of a job count put 529,611% on the wall. The steps that are
+   * money (quotedValue, invoiced) and the steps that are jobs (sold, booked,
+   * completed) share a shape and not a unit, which is exactly the trap.
    */
-  const covered = m.soldMtd > 0 ? totals.month / m.soldMtd : 1;
-  const thin = covered < 0.9 && m.soldMtd > 0;
+  const cal = m.paceData?.calendar;
+  const gone = (p: { total: number; elapsed: number } | undefined) =>
+    cal && p && p.total > 0 ? Math.min(1, (p.elapsed + (cal.todayWorking ? cal.dayFraction : 0)) / p.total) : null;
+  const weekGone = gone(cal?.week);
+  const monthGone = gone(cal?.month);
+  const byNow = (target: number | null, progress: number | null) =>
+    target != null && progress != null ? target * progress : null;
+
+  const weekSoldByNow = byNow(weekSoldTarget, weekGone);
+  const monthSoldByNow = byNow(monthSoldTarget, monthGone);
+  const weekQuotedByNow = byNow(weekQuotedTarget, weekGone);
+
+  /*
+   * Ordered by the thing the band says, best first.
+   *
+   * The leaderboard arrives sorted by what has been quoted, which put the
+   * biggest quoter at number 1 under a red BEHIND band — a rank and a verdict
+   * disagreeing on the same card. The card's headline is the month against
+   * target, so that is what the order has to be, and then the number beside
+   * the name means what the band above it means.
+   */
+  const ranked = [...people].sort(
+    (a, b) => (paceIndex(b.sold, monthSoldByNow) ?? -1) - (paceIndex(a.sold, monthSoldByNow) ?? -1),
+  );
+
+  const teamSold = people.reduce((a, r) => a + r.sold, 0);
+  const teamQuoted = people.reduce((a, r) => a + r.quoted, 0);
+  const teamSoldJobs = people.reduce((a, r) => a + r.soldJobs, 0);
+  const teamQuotedJobs = people.reduce((a, r) => a + r.quotedJobs, 0);
+  const teamMonthTarget = m.pace?.month.sold.value ?? null;
 
   return (
-    <div className="tile c12">
-      <div className="tbl">
-        <div className="tbl__head">
-          <span />
-          <span>Tech</span>
-          <span>Quoted · {monthName(new Date())}</span>
-          <span>Sold · {monthName(new Date())}</span>
-          <span>Close rate</span>
-          <span>Avg ticket</span>
-          <span>Avg quote</span>
-          <span>Next bonus tier</span>
-        </div>
+    <>
+      {ranked.map((r, i) => (
+        <TeamCard
+          key={r.name}
+          rank={i + 1}
+          r={r}
+          weekQuoted={{ target: weekQuotedTarget, byNow: weekQuotedByNow }}
+          weekSold={{ target: weekSoldTarget, byNow: weekSoldByNow }}
+          monthSold={{ target: monthSoldTarget, byNow: monthSoldByNow }}
+        />
+      ))}
 
-        {m.salesLeaderboard.map((r, i) => (
-          <div className={`tbl__row ${i === 0 ? "tbl__row--leader" : ""}`} key={r.name}>
-            <span className={`tbl__rank ${i === 0 ? "tbl__rank--leader" : ""}`}>{i + 1}</span>
-            <span>
-              <span className="tbl__name" style={{ display: "block" }}>
-                {r.name}
-              </span>
-              {i === 0 && <span className="tbl__note tbl__note--leader">Leading</span>}
-            </span>
-            {/* Quoted and sold each get a column, each showing the month big
-                with today and the week under it. Two lines, never three: a
-                third line on every row is what pushed the Team totals off the
-                bottom of the tile on a laptop. */}
-            <span className="tbl__fig">
-              <b>{plain(r.quoted)}</b>
-              <span>
-                today {plain(r.quotedToday)} · week {plain(r.quotedWeek)}
-              </span>
-            </span>
-            <span className="tbl__fig">
-              <b>{plain(r.sold)}</b>
-              <span>
-                today {plain(r.soldToday)} · week {plain(r.soldWeek)}
-              </span>
-            </span>
-            {/* Per job, not per option — see the leaderboard fields. Each of the
-                three carries its own denominator underneath, because a 50%
-                close rate off two jobs and off twenty are different claims and
-                the room cannot tell them apart from the percentage. */}
-            <span className="tbl__fig">
-              <b>{pct(r.closeRate)}</b>
-              <span>{r.quotedJobs ? `${count(r.closeRateWon)} of ${count(r.quotedJobs)} jobs` : "none written"}</span>
-            </span>
-            <span className="tbl__fig">
-              <b>{plain(r.avgTicket)}</b>
-              <span>{r.soldJobs ? `${count(r.soldJobs)} won` : "none won"}</span>
-            </span>
-            <span className="tbl__fig">
-              <b>{plain(r.avgQuote)}</b>
-              <span>
-                {r.quotedJobs
-                  ? `${count(r.quotedJobs)} jobs · ${(r.avgOptions ?? 0).toFixed(1)} options each`
-                  : "none written"}
-              </span>
-            </span>
-            <span className="tiers">
-              {/* No tiers configured means no run to be along, so there is no
-                  bar — it drew full for everybody, which read as everybody
-                  having hit the top one. */}
-              {m.commissionTiers.length === 0 ? (
-                <span className="tiers__note">No tiers set</span>
-              ) : (
-                <>
-                  <span className="tiers__bar">
-                    <span
-                      className={`tiers__fill ${i === 0 ? "is-leader" : ""}`}
-                      style={{ width: `${tierProgress(r)}%` }}
-                    />
-                  </span>
-                  <span className={`tiers__note ${i === 0 ? "tiers__note--leader" : ""}`}>
-                    {r.toNextTier != null
-                      ? `${money(r.toNextTier)} to tier ${(r.tier ?? 0) + 1}`
-                      : `Top tier · tier ${r.tier ?? m.commissionTiers.length}`}
-                  </span>
-                </>
-              )}
-            </span>
-          </div>
-        ))}
-
-        <div className="tbl__row tbl__row--total">
-          <span />
-          <span className="tbl__name">Team</span>
-          <span className="tbl__fig">
-            <b>{plain(totals.quoted)}</b>
-            <span>
-              today {plain(totals.quotedToday)} · week {plain(totals.quotedWeek)}
-            </span>
+      <div className="tile tile--navy teamfoot">
+        <span className="teamfoot__lead">
+          <span className="teamfoot__label">Team</span>
+          <b className="teamfoot__fig">{plain(teamSold)} sold</b>
+          <span className="teamfoot__of">
+            {teamMonthTarget ? `of ${money(teamMonthTarget)} this month` : "this month"} ·{" "}
+            {count(teamSoldJobs)} {teamSoldJobs === 1 ? "job" : "jobs"}
           </span>
-          <span className="tbl__fig">
-            <b>{plain(totals.month)}</b>
-            <span>
-              {thin
-                ? `of ${plain(m.soldMtd)} · rest names no seller`
-                : `today ${plain(totals.today)} · week ${plain(totals.week)}`}
-            </span>
+        </span>
+        <span className="teamfoot__stats">
+          <span className="teamfoot__stat">
+            <span className="teamfoot__k">Quoted · this month</span>
+            <b>{plain(teamQuoted)}</b>
+            <span className="teamfoot__sub">{count(teamQuotedJobs)} jobs</span>
           </span>
-          <span className="tbl__fig">
-            <b>{pct(teamCloseRate)}</b>
-            <span>{totals.quotedJobs ? `${count(totals.won)} of ${count(totals.quotedJobs)} jobs` : "—"}</span>
+          <span className="teamfoot__stat">
+            <span className="teamfoot__k">Close rate</span>
+            <b>{teamQuotedJobs > 0 ? pct(teamSoldJobs / teamQuotedJobs) : NA}</b>
           </span>
-          <span className="tbl__fig">
-            <b>{plain(teamAvgTicket)}</b>
-            <span>{totals.soldJobs ? `${count(totals.soldJobs)} won` : "—"}</span>
+          <span className="teamfoot__stat">
+            <span className="teamfoot__k">Avg ticket</span>
+            <b>{teamSoldJobs > 0 ? plain(teamSold / teamSoldJobs) : NA}</b>
           </span>
-          <span className="tbl__fig">
-            <b>{plain(teamAvgQuote)}</b>
-            <span>
-              {totals.quotedJobs
-                ? `${count(totals.quotedJobs)} jobs · ${(totals.options30 / totals.quotedJobs).toFixed(1)} options each`
-                : "—"}
-            </span>
+          <span className="teamfoot__stat">
+            <span className="teamfoot__k">Avg quote</span>
+            <b>{teamQuotedJobs > 0 ? plain(teamQuoted / teamQuotedJobs) : NA}</b>
           </span>
-          <span className="tiers__note">
-            {m.commissionTiers.length === 0
-              ? "no tiers configured"
-              : `Tiers ${m.commissionTiers.map((t) => money(t.from)).join(" · ")} a month`}
-          </span>
-        </div>
+        </span>
       </div>
+    </>
+  );
+}
+
+type Against = { target: number | null; byNow: number | null };
+
+/** One person: three measures, each against what their share should be by now. */
+function TeamCard({
+  rank,
+  r,
+  weekQuoted,
+  weekSold,
+  monthSold,
+}: {
+  rank: number;
+  r: Metrics["salesLeaderboard"][number];
+  weekQuoted: Against;
+  weekSold: Against;
+  monthSold: Against;
+}) {
+  // The card's own headline is the month, which is what a bonus and a review
+  // are actually settled on; the two week rows say whether it is recoverable.
+  const index = paceIndex(r.sold, monthSold.byNow);
+  const verdict = verdictOf(index);
+
+  return (
+    <div className={`tile teamcard ${verdict ? `teamcard--${verdict}` : ""}`}>
+      <span className={`teamcard__band ${verdict ? `is-${verdict}` : ""}`}>
+        <b>{verdict ? ZONE_LABEL[verdict].toUpperCase() : "NO TARGET"}</b>
+        <span>{index != null ? `${Math.round(index * 100)}%` : NA}</span>
+      </span>
+
+      <span className="teamcard__who">
+        <span className="teamcard__rank">{rank}</span>
+        <b>{r.name}</b>
+      </span>
+
+      <TeamRow label="Quoted this week" value={r.quotedWeek} a={weekQuoted} unit="this week" extra={`${money(r.quoted)} this month`} />
+      <TeamRow label="Sold this week" value={r.soldWeek} a={weekSold} unit="this week" extra={weekSold.byNow != null ? `by today ${plain(weekSold.byNow)}` : undefined} />
+      <TeamRow label="Sold this month" value={r.sold} a={monthSold} unit="this month" extra={monthSold.byNow != null ? `by today ${plain(monthSold.byNow)}` : undefined} />
+
+      <span className="teamcard__stats">
+        <span className="teamcard__stat">
+          <span className="teamcard__k">Quoted</span>
+          <b>{plain(r.quoted)}</b>
+          <span className="teamcard__sub">{count(r.quotedJobs)} jobs</span>
+        </span>
+        <span className="teamcard__stat">
+          <span className="teamcard__k">Close rate</span>
+          <b>{r.closeRate != null ? pct(r.closeRate) : NA}</b>
+          <span className="teamcard__sub">{count(r.soldJobs)} won</span>
+        </span>
+        <span className="teamcard__stat">
+          <span className="teamcard__k">Avg ticket</span>
+          <b>{r.avgTicket != null ? plain(r.avgTicket) : NA}</b>
+        </span>
+        <span className="teamcard__stat">
+          <span className="teamcard__k">Avg quote</span>
+          <b>{r.avgQuote != null ? plain(r.avgQuote) : NA}</b>
+          <span className="teamcard__sub">{r.avgOptions != null ? `${r.avgOptions.toFixed(1)} options` : ""}</span>
+        </span>
+      </span>
     </div>
+  );
+}
+
+/** One measure on a person's card: the figure, the dial, and what it is of. */
+function TeamRow({
+  label,
+  value,
+  a,
+  unit,
+  extra,
+}: {
+  label: string;
+  value: number;
+  a: Against;
+  unit: string;
+  extra?: string;
+}) {
+  const index = paceIndex(value, a.byNow);
+  const verdict = verdictOf(index);
+  return (
+    <span className="teamrow">
+      <span className="teamrow__label">{label}</span>
+      <span className="teamrow__body">
+        <MiniDial index={index} verdict={verdict} />
+        <span className="teamrow__text">
+          <b className="teamrow__fig">{plain(value)}</b>
+          <span className={`status status--${verdict ?? "quiet"} teamrow__status`}>{verdictText(index, verdict)}</span>
+          <span className="teamrow__of">{a.target != null ? `of ${money(a.target)} ${unit}` : `no ${unit} target`}</span>
+          {extra ? <span className="teamrow__of">{extra}</span> : null}
+        </span>
+      </span>
+    </span>
   );
 }
 

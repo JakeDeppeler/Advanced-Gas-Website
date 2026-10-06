@@ -1180,6 +1180,44 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## The Team page
+
+One card a person, ordered best to worst, with a strip across the foot for the
+team. It was a table: the right shape for comparing a column and the wrong one
+for the question this page is actually asked from four metres, which is *who is
+behind*. Every row looked the same until you read it.
+
+Each card carries the month's verdict as a coloured band with the word written
+out, the person's name and rank, three measures — quoted this week, sold this
+week, sold this month — each with a dial on the board's one shared scale, and a
+block of rates underneath.
+
+**The targets are an equal share of the team's.** Nothing anywhere holds a
+per-person number: not `portal_settings`, not a column, nothing. So each
+person's week is the team's week divided by the people on the board. That is an
+assumption about people rather than a fact about them, so it is written in the
+page header and again on every card ("of $7,924 this week") instead of being
+left implied. An equal share is not true of an apprentice and a lead hand, and
+the room should be able to see the denominator it is being judged against.
+
+**By-now is the target times how much of the period has gone**, computed from
+the working calendar — not taken from `pace.standing`. The first version read
+it from there and put **529,611%** on a card: the `sold` step in `standing` is a
+count of jobs, so dividing a person's dollars by a share of a job count is a
+unit error that still typechecks. The money steps (`quotedValue`, `invoiced`)
+and the job steps (`sold`, `booked`, `completed`) share a shape and not a unit.
+
+**The order is the band's own measure.** The leaderboard arrives sorted by what
+has been quoted, which put the biggest quoter at number 1 under a red BEHIND
+band — a rank and a verdict disagreeing on the same card.
+
+**`MiniDial` shares ZONES and `paceIndex` with the full-size dial**, because the
+Team page puts three per person and the Pace page puts six of its own, and the
+moment those disagree about what 90% means the board is arguing with itself.
+
+The design's per-person bonus bar is absent for the same reason it is absent
+from the Sold alert: no commission tiers are configured.
+
 ## The Invoices page
 
 The fourth page in the rotation, and the only one that is a work list rather

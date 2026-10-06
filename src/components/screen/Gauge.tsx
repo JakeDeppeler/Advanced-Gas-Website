@@ -206,3 +206,48 @@ export function Gauge({
     </div>
   );
 }
+
+/**
+ * The same dial, small enough to sit beside a line of text.
+ *
+ * Shares ZONES, paceIndex and verdictOf with the full-size one on purpose: the
+ * Team page puts three of these on every person's card and the Pace page puts
+ * six big ones on its own, and the moment those two disagree about what 90%
+ * means the board is arguing with itself. What goes is the figure in the
+ * middle, which has no room here and is written beside the dial anyway.
+ */
+export function MiniDial({ index, verdict }: { index: number | null; verdict: Verdict | null }) {
+  const cx = 50;
+  const cy = 44;
+  const r = 36;
+  const w = 11;
+  const at = (v: number) => START + (Math.min(DIAL_MAX, Math.max(0, v)) / DIAL_MAX) * SWEEP;
+  const cap = ((w / 2 / r) * 180) / Math.PI;
+
+  let from = 0;
+  const bands = ZONES.map((z) => {
+    const a = at(from) + GAP / 2 + cap;
+    const b = at(z.to) - GAP / 2 - cap;
+    const mid = (a + b) / 2;
+    from = z.to;
+    return b > a ? { k: z.k, a, b } : { k: z.k, a: mid - 0.01, b: mid + 0.01 };
+  });
+
+  const knob = index == null ? null : polar(cx, cy, r, at(index));
+
+  return (
+    <svg className="minidial" viewBox="0 0 100 86" aria-hidden focusable="false">
+      {bands.map((b) => (
+        <path
+          key={b.k}
+          d={arc(cx, cy, r, b.a, b.b)}
+          className={`gauge__zone is-${b.k} ${verdict === b.k ? "is-on" : ""}`}
+          fill="none"
+          strokeWidth={w}
+          strokeLinecap="round"
+        />
+      ))}
+      {knob && <circle cx={knob.x} cy={knob.y} r={w / 2 - 1} className="gauge__knob minidial__knob" />}
+    </svg>
+  );
+}
