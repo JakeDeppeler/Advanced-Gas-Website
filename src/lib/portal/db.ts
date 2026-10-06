@@ -16,6 +16,7 @@ import { CAPS, roleDefault } from "./caps";
 import type { CrewLevel, Costing, CapSettings, AccessMap } from "./crew";
 import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
+import { sbSelect } from "@/lib/dashboard/db";
 import type { CheckItems, CheckKind } from "./vanChecks";
 import type { Campaign } from "./campaigns";
 import type { Video as StoredVideo } from "./videos";
@@ -1217,15 +1218,21 @@ type WebLeadRow = {
   utm: Record<string, string> | null; created_at: string;
 };
 
-/** Enquiries since a date, newest first. Nothing personal comes back. */
+/**
+ * Enquiries since a date, newest first. Nothing personal comes back.
+ *
+ * Paged rather than capped: `limit` is the caller's ceiling on what it wants to
+ * show, and asking for two thousand rows of a table PostgREST serves a thousand
+ * of at a time is how a lead count quietly stops counting.
+ */
 export async function listWebLeads(since: string, limit = 2000): Promise<WebLead[]> {
-  const res = await sb(
-    `portal_leads?created_at=gte.${encodeURIComponent(since)}` +
+  const rows = await sbSelect<WebLeadRow>(
+    "portal_leads",
+    `created_at=gte.${encodeURIComponent(since)}` +
     `&select=id,kind,service,page_path,postcode,suburb,source,utm,created_at` +
     `&order=created_at.desc&limit=${limit}`,
-  );
-  if (!res || !res.ok) return [];
-  return ((await res.json()) as WebLeadRow[]).map((r) => ({
+  ).catch(() => []);
+  return rows.map((r) => ({
     id: r.id, kind: r.kind === "call" ? "call" : "quote", service: r.service,
     pagePath: r.page_path, postcode: r.postcode, suburb: r.suburb, source: r.source,
     utm: r.utm ?? {}, createdAt: r.created_at,
@@ -1371,19 +1378,23 @@ export type PageViews = {
  *
  * Summed here rather than in SQL: a year of a few hundred pages is a few
  * thousand small rows, and PostgREST has no GROUP BY without a view.
+ *
+ * Paged, which is not optional. The grain is one row per path per day, and the
+ * site has sixty-one paths being read: a `limit=50000` asked for the lot and
+ * PostgREST would have served the first thousand — about seven weeks in — and
+ * said nothing, after which the traffic figure would have stopped growing and
+ * looked like traffic that had stopped growing.
  */
 export async function pageViews(sinceDay: string): Promise<PageViews> {
   const [rows, first] = await Promise.all([
-    sb(`portal_page_views?select=path,views&day=gte.${sinceDay}&limit=50000`),
+    sbSelect<{ path: string; views: number }>("portal_page_views", `select=path,views&day=gte.${sinceDay}`).catch(() => []),
     sb(`portal_page_views?select=day&order=day.asc&limit=1`),
   ]);
   const byPath = new Map<string, number>();
   let total = 0;
-  if (rows?.ok) {
-    for (const r of (await rows.json()) as { path: string; views: number }[]) {
-      byPath.set(r.path, (byPath.get(r.path) ?? 0) + r.views);
-      total += r.views;
-    }
+  for (const r of rows) {
+    byPath.set(r.path, (byPath.get(r.path) ?? 0) + r.views);
+    total += r.views;
   }
   const since = first?.ok ? (((await first.json()) as { day: string }[])[0]?.day ?? null) : null;
   return { byPath, total, since };

@@ -1413,17 +1413,48 @@ every row returned is real, nothing throws, and the total is simply wrong. There
 is nothing to notice.
 
 So a short first page is returned as it arrives — nothing was paged, so nothing
-can have been doubled or dropped — and anything longer restarts with
-`order=id.asc` unless the caller named its own order. The extra page costs a
-few hundred milliseconds on the handful of reads big enough to need it.
+can have been doubled or dropped — and anything longer restarts under an order
+that ends in the table's key. The extra page costs a few hundred milliseconds on
+the handful of reads big enough to need it.
 
-`scripts/check-paging.ts` runs the loop against a fake PostgREST that reorders
-an unordered read on every request, as the real one is entitled to. It also runs
-the **old** loop against the same fake and asserts that one fails — a guard that
-does not fail on the bug it was written for is decoration. Its rows are each
-worth a different amount for the same reason: with every row equal, a doubled
-row and a dropped one cancel in the total and the check passes for the wrong
-reason, which is how the first version of this file passed.
+Three things that are easy to get wrong, each of which was:
+
+- **An order isn't enough; it has to be unique.** The first fix left a read
+  alone if it named any order of its own, which is no protection at all:
+  `order=completed_on.desc` over a fortnight of jobs finished the same afternoon
+  leaves the ties for the server to arrange as it likes, differently per request.
+  The key now goes on the *end* of whatever the caller asked for, which keeps
+  their meaning and makes it total.
+- **The key is not always `id`.** `supplier_items` is keyed on
+  (supplier, code), `portal_page_views` on (path, day), and four others on
+  something other than `id`; they are listed in `lib/dashboard/paging.ts`, and a
+  read that grows past one page on a table missing from that list answers 400
+  rather than guessing.
+- **`Range` and `limit`/`offset` never travel together.** They are two ways to
+  ask for the same window and PostgREST does not promise which wins. If `limit`
+  wins, every page comes back as the *first* thousand rows, full, for ever — a
+  loop that never ends. A caller's `limit` is now lifted out of the query and
+  applied by the loop as a ceiling, and a caller's `offset` is refused outright.
+  `loadSupplierItems` was walking `offset=` by hand on top of the paging and had
+  been getting away with it only because the table was empty.
+
+`scripts/check-paging.ts` runs the loop against a fake PostgREST that honours
+the order it was asked for and arranges everything that order does not separate
+differently on every request, as the real one is entitled to. It also runs the
+**old** loop against the same fake and asserts that one fails — a guard that
+does not fail on the bug it was written for is decoration. Two details of the
+fake are load-bearing, and both were wrong first time: its rows are each worth a
+different amount, because with every row equal a doubled row and a dropped one
+cancel in the total; and it shuffles tie groups outright rather than rotating
+the table before a stable sort, which left most ties in place and let the broken
+loop pass.
+
+Elsewhere, the portal's own reads are nearly all one person's rows or a whole
+table of a dozen, and are left unpaged. The two that count things — page views
+and web leads — asked for 50,000 and 2,000 rows of tables PostgREST serves a
+thousand of at a time, so they go through `sbSelect` like everything else. Page
+views are one row per path per day and the site has sixty-one paths being read:
+that read would have quietly stopped growing about seven weeks in.
 
 ## Invoiced means the work was done
 
