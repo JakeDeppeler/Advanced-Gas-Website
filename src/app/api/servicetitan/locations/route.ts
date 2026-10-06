@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { applyImport, loadImportSpec, planImport } from "@/lib/locations/stLocations";
+import { applyImport, checkContacts, loadImportSpec, planImport } from "@/lib/locations/stLocations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +12,10 @@ export const maxDuration = 60;
 //
 //   GET /api/servicetitan/locations              dry run: plan only, nothing written
 //   GET /api/servicetitan/locations?apply=1      create up to `limit` (default 5, max 50)
+//   GET /api/servicetitan/locations?contacts=1&from=N
+//                                                add any missing contacts to list
+//                                                positions N..N+limit, once the
+//                                                creates are done
 //
 // The list is read from portal_settings.st_location_import. Safe to repeat: the
 // plan is recomputed from the customer's live locations, so anything already
@@ -41,6 +45,12 @@ export async function GET(req: Request) {
       alreadyThere: plan.alreadyThere.length,
       toCreate: plan.toCreate.length,
     };
+
+    if (url.searchParams.get("contacts") === "1") {
+      const from = Math.max(0, Math.floor(Number(url.searchParams.get("from")) || 0));
+      const result = await checkContacts(spec, plan, from, limit);
+      return NextResponse.json({ ok: result.failed.length === 0, mode: "contacts", summary, ...result });
+    }
 
     if (!apply) {
       return NextResponse.json({

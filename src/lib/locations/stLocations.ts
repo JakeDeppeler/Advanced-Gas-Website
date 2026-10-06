@@ -1,4 +1,4 @@
-import { q, sbSelectOne } from "@/lib/dashboard/db";
+import { q, sbSelectOne, sbUpsert } from "@/lib/dashboard/db";
 import { stFetch, stList, stSend, stTenantPath } from "@/lib/dashboard/servicetitan";
 
 // Bulk-creates service locations under one existing ServiceTitan customer — a
@@ -58,7 +58,30 @@ export type ImportPlan = {
   existing: number;
   toCreate: ImportLocation[];
   alreadyThere: string[];
+  /** Every listed location known to exist, by name → ServiceTitan id. */
+  ids: Map<string, number>;
 };
+
+// What this import has created, by name → id, kept in portal_settings.
+//
+// ServiceTitan reads lag its writes: on the first live run, 38 of 50 freshly
+// created locations answered 404 when fetched by id a second later. A plan
+// built only from ServiceTitan's location list could miss a location created
+// moments earlier and create it again. The ledger is the import's own record,
+// so a created name is never planned twice however far behind the list is.
+const LEDGER_KEY = `${IMPORT_KEY}_created`;
+
+async function loadLedger(): Promise<Record<string, number>> {
+  const row = await sbSelectOne<{ value: Record<string, number> }>(
+    "portal_settings",
+    [q.select("value"), q.eq("key", LEDGER_KEY)].join("&"),
+  );
+  return row?.value ?? {};
+}
+
+async function saveLedger(ledger: Record<string, number>): Promise<void> {
+  await sbUpsert("portal_settings", [{ key: LEDGER_KEY, value: ledger, updated_at: new Date().toISOString() }], "key");
+}
 
 export async function planImport(spec: ImportSpec): Promise<ImportPlan> {
   // Fetching the customer first turns a mistyped id into a clear 404 before
@@ -70,71 +93,100 @@ export async function planImport(spec: ImportSpec): Promise<ImportPlan> {
     customerId: String(spec.customerId),
     active: "Any",
   });
-  const have = new Set(existing.map((l) => norm(l.name)));
-  const toCreate = spec.locations.filter((l) => !have.has(norm(l.name)));
-  const alreadyThere = spec.locations.filter((l) => have.has(norm(l.name))).map((l) => l.name);
-  return { customer: { id: customer.id, name: customer.name }, existing: existing.length, toCreate, alreadyThere };
+  const ids = new Map<string, number>();
+  for (const [name, id] of Object.entries(await loadLedger())) ids.set(norm(name), id);
+  for (const l of existing) ids.set(norm(l.name), l.id);
+  const toCreate = spec.locations.filter((l) => !ids.has(norm(l.name)));
+  const alreadyThere = spec.locations.filter((l) => ids.has(norm(l.name))).map((l) => l.name);
+  return { customer: { id: customer.id, name: customer.name }, existing: existing.length, toCreate, alreadyThere, ids };
 }
 
-export type CreateResult =
-  | { name: string; ok: true; id: number; contactsAdded: number }
-  | { name: string; ok: false; id?: number; error: string };
+// A 400 body can quote the submitted fields back, and these errors end up in a
+// public Actions log, so anything shaped like an email is masked.
+const scrub = (e: unknown) => (e as Error).message.replace(/[^\s"'@]+@[^\s"'@]+/g, "[email]");
 
-async function createOne(customerId: number, loc: ImportLocation): Promise<CreateResult> {
-  let id: number | undefined;
-  try {
-    const created = await stSend<StLocation>("POST", stTenantPath("crm", "locations"), {
-      customerId,
-      name: loc.name,
-      address: loc.address,
-      contacts: loc.contacts ?? [],
-    });
-    id = created?.id;
-    if (!id) return { name: loc.name, ok: false, error: "ServiceTitan returned no location id" };
+type Result = { name: string; ok: boolean; id?: number; error?: string };
 
-    // Read back rather than trusting the 200: ServiceTitan drops fields it does
-    // not recognise without complaint. Contacts in particular are added
-    // separately if the create body's copy did not stick, rather than assuming
-    // which way this endpoint behaves.
-    const back = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
-    if (back.customerId !== customerId || norm(back.name) !== norm(loc.name)) {
-      return { name: loc.name, ok: false, id, error: "read-back does not match what was sent" };
-    }
-
-    const want = loc.contacts ?? [];
-    let contactsAdded = 0;
-    if (want.length) {
-      const have = await stList<StContact>("crm", `locations/${id}/contacts`);
-      for (const c of want) {
-        if (have.some((h) => h.type === c.type && norm(h.value) === norm(c.value))) continue;
-        await stSend("POST", stTenantPath("crm", `locations/${id}/contacts`), c);
-        contactsAdded++;
-      }
-    }
-    return { name: loc.name, ok: true, id, contactsAdded };
-  } catch (e) {
-    // A 400 body can quote the submitted fields back, and this error ends up in
-    // a public Actions log, so anything shaped like an email is masked.
-    const error = (e as Error).message.replace(/[^\s"'@]+@[^\s"'@]+/g, "[email]");
-    return { name: loc.name, ok: false, id, error };
-  }
-}
-
-/** Creates up to `limit` of the planned locations, a few at a time. */
+/**
+ * Creates up to `limit` of the planned locations, a few at a time.
+ *
+ * Success is the id in the create response. There is deliberately no read-back
+ * here — reads lag (see the ledger) — and no contact check either; those happen
+ * in `checkContacts`, run once the creates are done and ServiceTitan has caught up.
+ */
 export async function applyImport(spec: ImportSpec, plan: ImportPlan, limit: number) {
   const batch = plan.toCreate.slice(0, limit);
-  const results: CreateResult[] = [];
+  const ledger = await loadLedger();
+  const results: Result[] = [];
   // Five in flight keeps a 50-location call well inside the function timeout
   // without leaning on ServiceTitan's rate limit; 429s back off in stSend.
   for (let i = 0; i < batch.length; i += 5) {
-    results.push(...(await Promise.all(batch.slice(i, i + 5).map((l) => createOne(spec.customerId, l)))));
+    const round = await Promise.all(
+      batch.slice(i, i + 5).map(async (loc): Promise<Result> => {
+        try {
+          const created = await stSend<StLocation>("POST", stTenantPath("crm", "locations"), {
+            customerId: spec.customerId,
+            name: loc.name,
+            address: loc.address,
+            contacts: loc.contacts ?? [],
+          });
+          return created?.id
+            ? { name: loc.name, ok: true, id: created.id }
+            : { name: loc.name, ok: false, error: "ServiceTitan returned no location id" };
+        } catch (e) {
+          return { name: loc.name, ok: false, error: scrub(e) };
+        }
+      }),
+    );
+    results.push(...round);
+    for (const r of round) if (r.ok && r.id) ledger[r.name] = r.id;
+    // Saved per round, so a timeout part-way through loses at most five names.
+    await saveLedger(ledger);
   }
   const created = results.filter((r) => r.ok);
-  const failed = results.filter((r): r is Extract<CreateResult, { ok: false }> => !r.ok);
   return {
     created: created.length,
-    failed,
+    failed: results.filter((r) => !r.ok),
     createdNames: created.map((r) => r.name),
     remaining: plan.toCreate.length - created.length,
+  };
+}
+
+/**
+ * Makes sure each listed location carries its contacts, for list positions
+ * [from, from + limit). Adds what is missing, never duplicates what is there.
+ * Safe to re-run over the whole list at any time.
+ */
+export async function checkContacts(spec: ImportSpec, plan: ImportPlan, from: number, limit: number) {
+  const slice = spec.locations.slice(from, from + limit);
+  const results: (Result & { added?: number })[] = [];
+  for (let i = 0; i < slice.length; i += 5) {
+    results.push(
+      ...(await Promise.all(
+        slice.slice(i, i + 5).map(async (loc) => {
+          const id = plan.ids.get(norm(loc.name));
+          if (!id) return { name: loc.name, ok: false, error: "not created yet" };
+          try {
+            const have = await stList<StContact>("crm", `locations/${id}/contacts`);
+            let added = 0;
+            for (const c of loc.contacts ?? []) {
+              if (have.some((h) => h.type === c.type && norm(h.value) === norm(c.value))) continue;
+              await stSend("POST", stTenantPath("crm", `locations/${id}/contacts`), c);
+              added++;
+            }
+            return { name: loc.name, ok: true, id, added };
+          } catch (e) {
+            return { name: loc.name, ok: false, id, error: scrub(e) };
+          }
+        }),
+      )),
+    );
+  }
+  const next = from + slice.length;
+  return {
+    checked: results.filter((r) => r.ok).length,
+    added: results.reduce((n, r) => n + (r.added ?? 0), 0),
+    failed: results.filter((r) => !r.ok),
+    next: next < spec.locations.length ? next : null,
   };
 }
