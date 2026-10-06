@@ -373,7 +373,7 @@ export type Metrics = {
   overdueCount: number | null;
   receivablesTotal: number | null;
   /** What is owed, split by how long it has been owed. Null until Xero answers. */
-  receivablesAging: { notDue: number; d1to14: number; d15to30: number; d30plus: number } | null;
+  receivablesAging: { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number } | null;
   /** The oldest overdue invoices, to work from the top. No customer names: see dashboard/xero.ts. */
   overdueList: Array<{ number: string; days: number; amount: number }>;
 
@@ -1072,6 +1072,11 @@ async function serviceTitanMetrics(now: Date) {
     [
       q.select("id,job_number,job_type,suburb,completed_on"),
       q.gte("completed_on", `${toBillFrom}T00:00:00Z`),
+      // A cancelled job still gets a completed_on — seven of the last
+      // fortnight's did — and a cancelled job is not work waiting to be
+      // billed. Without this the list sent the office chasing paperwork for
+      // jobs that never happened.
+      q.eq("status", "Completed"),
       q.order("completed_on", "desc"),
       "limit=400",
     ].join("&"),
@@ -2261,7 +2266,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,
-      receivablesAging: xero.ok ? xero.aging : prev?.receivablesAging ?? null,
+      receivablesAging: xero.ok ? xero.aging : (prev?.receivablesAging as Metrics["receivablesAging"]) ?? null,
       // Carried forward like the totals: a skipped or failed Xero read leaves
       // the chase list standing rather than emptying it, which would read as
       // "nothing overdue".

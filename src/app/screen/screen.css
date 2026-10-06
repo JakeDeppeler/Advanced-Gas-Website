@@ -130,6 +130,18 @@ body:has(.screen) .utilbar {
   line-height: 1;
 }
 
+/* The page's verdict, between its name and the line describing it. Carries the
+   board's status colour and the word, like every other verdict here. */
+.screen__verdict {
+  flex: none;
+  padding: calc(0.12 * var(--u)) calc(0.7 * var(--u));
+  border-radius: 999px;
+  background: var(--leader-row);
+  font-size: calc(1 * var(--u));
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .screen__subtitle {
   font-size: calc(1.02 * var(--u));
   color: var(--ink-2);
@@ -1722,6 +1734,12 @@ body:has(.screen) .utilbar {
    ────────────────────────────────────────────────────────────────────────── */
 
 .screen__grid--invoices .tile--hero { grid-column: span 3; }
+/* The size a three-column hero gets everywhere else. These tiles span three
+   but carry .c4, so they were taking the full-width hero size: four money
+   figures in a row filling their tiles edge to edge, with the label and the
+   line underneath fighting for the corners. They are a reference the office
+   reads standing at the board, not the one number on the page. */
+.screen__grid--invoices .tile__value--hero { font-size: calc(3.4 * var(--u)); }
 .inv__list { grid-column: span 5; }
 .inv__chase { grid-column: span 4; }
 .inv__age-panel { grid-column: span 3; }
@@ -1752,7 +1770,7 @@ body:has(.screen) .utilbar {
 /* Top-aligned under the heading: centred in a panel this tall left a hand's
    width of nothing between the title and the first row, which reads as a
    missing tile rather than as breathing room. */
-.inv__bars { display: flex; flex-direction: column; flex: 1; gap: calc(1.6 * var(--u)); margin-top: calc(1 * var(--u)); }
+.inv__bars { display: flex; flex-direction: column; flex: 1; gap: calc(1.15 * var(--u)); margin-top: calc(0.8 * var(--u)); }
 /* Label and figure on one line, the bar full width under them. The design puts
    all three side by side, but in a panel this narrow that left the track about
    a centimetre long — and a bar too short to compare is just a dot with a
@@ -1771,7 +1789,8 @@ body:has(.screen) .utilbar {
 .inv__barlabel { font-weight: 700; color: var(--navy); }
 .inv__track { height: calc(0.75 * var(--u)); border-radius: 999px; background: var(--leader-row); overflow: hidden; }
 .inv__fill { display: block; height: 100%; border-radius: 999px; background: #8f9bd4; }
-.inv__fill.is-soft { background: #b9a0d8; }
+.inv__fill.is-soft { background: #a8a6dc; }
+.inv__fill.is-soft2 { background: #c49cd0; }
 .inv__fill.is-warn { background: var(--accent); }
 .inv__fill.is-bad { background: var(--vd-behind); }
 .inv__barval { font-weight: 900; color: var(--navy); font-size: calc(1.15 * var(--u)); }

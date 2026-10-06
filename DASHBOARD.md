@@ -1205,6 +1205,20 @@ case rather than a gap.
 walks through, and "Mrs Smith · $2,140 · 42 days" is a customer's debt readable
 by anyone passing. The invoice number is what the office looks it up by anyway.
 
+**A cancelled job is not work waiting to be billed.** ServiceTitan stamps a
+`completed_on` on cancelled jobs too — seven of the last fortnight's — so the
+to-bill list has to filter on `status = 'Completed'`, not on the date being
+present. Without it the office was being sent to chase paperwork for jobs that
+never happened, and the count read 47 where it should read 40.
+
+**The ageing runs 1–7 and 8–14, not one fortnight.** A week late is a reminder
+and a fortnight late is a phone call, and a single bucket hid which it was.
+Snapshots written before the split hold neither key, and `receivablesAging` is
+carried forward when a Xero read fails or is skipped — so the old shape outlives
+the deploy. The page reads a missing bucket as zero: read loosely, those rows
+came out as a dash beside a bar at full width, which says "everything is a week
+late" on a board whose whole job is not to say things like that.
+
 **The ageing bars are shares of everything owed**, not of the biggest bucket:
 the question is how much of the money is late, and scaling to the largest row
 makes a tidy ledger look like a bad one. They are stacked — label and figure on

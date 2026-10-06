@@ -23,7 +23,7 @@ type Integration = {
 };
 
 /** What is owed to us, split by how long it has been owed. */
-export type XeroAging = { notDue: number; d1to14: number; d15to30: number; d30plus: number };
+export type XeroAging = { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number };
 
 /**
  * One overdue invoice, for the chase list.
@@ -97,7 +97,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   let overdueTotal = 0;
   let overdueCount = 0;
   let receivablesTotal = 0;
-  const aging: XeroAging = { notDue: 0, d1to14: 0, d15to30: 0, d30plus: 0 };
+  const aging: XeroAging = { notDue: 0, d1to7: 0, d8to14: 0, d15to30: 0, d30plus: 0 };
   const overdue: XeroOverdue[] = [];
 
   for (const inv of json.Invoices ?? []) {
@@ -120,7 +120,8 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     const days = Math.floor((now - ms) / DAY);
     overdueTotal += due;
     overdueCount += 1;
-    if (days <= 14) aging.d1to14 += due;
+    if (days <= 7) aging.d1to7 += due;
+    else if (days <= 14) aging.d8to14 += due;
     else if (days <= 30) aging.d15to30 += due;
     else aging.d30plus += due;
 

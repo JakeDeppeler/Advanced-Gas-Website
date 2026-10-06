@@ -34,6 +34,26 @@ const PAGES = ["Today", "Pace", "Quotes", "Invoices", "Team", "Performance", "Ar
  * Pace names where its targets came from, because "63%" on a wall invites the
  * question and the answer is the whole point of the board.
  */
+/**
+ * The badge beside a page's name: is this page's own measure on track?
+ *
+ * Only Performance carries one so far. Its headline question is whether the
+ * month's work is getting done, so the badge is the `completed` step of Pace —
+ * the same figure the Pace page's Completed dial shows, on the same done ÷
+ * by-now scale as every other verdict on the board and as the footer's key. A
+ * second scale invented for this one badge is how a board starts disagreeing
+ * with itself.
+ */
+function headVerdict(name: (typeof PAGES)[number], m: Metrics): { verdict: string; text: string } | null {
+  if (name !== "Performance") return null;
+  const s = m.pace?.standing.month.completed;
+  if (!s || s.need == null) return null;
+  const index = paceIndex(s.done, s.byNow);
+  const verdict = verdictOf(index);
+  if (!verdict) return null;
+  return { verdict, text: verdictText(index, verdict) };
+}
+
 const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   Today: () => "",
   Pace: (m) => {
@@ -288,6 +308,15 @@ export function ScreenBoard({
             thirty seconds, and re-running the animation for a changed minute
             would make the header twitch on its own. */}
         <span className="screen__title" key={name}>{name}</span>
+        {/* Whether the page's own headline measure is behind, close, on track
+            or ahead, right beside its name — so the room gets the answer before
+            reading any of the figures under it. The word is written out: this
+            is the board's status palette and it is never carried by hue alone. */}
+        {headVerdict(name, m) && (
+          <span className={`screen__verdict status status--${headVerdict(name, m)!.verdict}`}>
+            {headVerdict(name, m)!.text}
+          </span>
+        )}
         <span className="screen__subtitle">
           {name === "Today"
             ? `${now.toLocaleDateString("en-AU", {
@@ -939,12 +968,26 @@ const monthName = (now: Date) =>
  *   matters, which is worse than no chip.
  */
 function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
-  const aging = m.receivablesAging;
+  /*
+   * A bucket the snapshot does not carry counts as zero.
+   *
+   * Snapshots written before the fortnight was split into 1–7 and 8–14 hold
+   * neither key, and `receivablesAging` is carried forward when a Xero read
+   * fails or is skipped — so the old shape outlives the deploy. Read loosely,
+   * those two rows came out as a dash beside a bar at its full width, which
+   * says "everything is a week late" on a board whose whole job is not to say
+   * things like that.
+   */
+  const a = m.receivablesAging;
+  const num = (v: number | undefined) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+  const aging = a
+    ? { notDue: num(a.notDue), d1to7: num(a.d1to7), d8to14: num(a.d8to14), d15to30: num(a.d15to30), d30plus: num(a.d30plus) }
+    : null;
   const owed = m.receivablesTotal ?? 0;
   /* The ageing bars are shares of what is owed, not of the biggest bucket: the
      question is how much of the money is late, and scaling to the largest row
      makes a tidy ledger look like a bad one. */
-  const bar = (v: number) => (owed > 0 ? Math.max(0.02, v / owed) : 0);
+  const bar = (v: number) => (owed > 0 && Number.isFinite(v) ? Math.max(0.02, v / owed) : 0);
 
   return (
     <>
@@ -1054,7 +1097,8 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
           <div className="inv__bars">
             {[
               { k: "Not due yet", v: aging.notDue, cls: "" },
-              { k: "1 – 14 days", v: aging.d1to14, cls: "is-soft" },
+              { k: "1 – 7 days", v: aging.d1to7, cls: "is-soft" },
+              { k: "8 – 14 days", v: aging.d8to14, cls: "is-soft2" },
               { k: "15 – 30 days", v: aging.d15to30, cls: "is-warn" },
               { k: "30+ days", v: aging.d30plus, cls: "is-bad" },
             ].map((r) => (
@@ -1091,6 +1135,18 @@ function dayTime(iso: string): string {
   return `${d.toLocaleDateString("en-AU", { weekday: "short", timeZone: "Australia/Melbourne" })} ${t}`;
 }
 
+/**
+ * Options per job, to one decimal unless it lands square.
+ *
+ * "3 each" when it is exactly three, "3.2 each" when it is not — a flat "3"
+ * for 3.2 overstates a number the room is being asked to act on, and "3.0"
+ * for three is arithmetic showing through.
+ */
+function avgOptions(options: number, jobs: number): string {
+  const a = options / jobs;
+  return Number.isInteger(a) ? String(a) : a.toFixed(1);
+}
+
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="quotes written, still out, or closed" />;
 
@@ -1099,9 +1155,15 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
       <div className="tile tile--head" style={{ gridColumn: "1 / span 4", gridRow: 1 }}>
         <span className="tile__label">Quoted today</span>
         <span className={vcls(plain(m.quotesCreatedTodayValue))}>{plain(m.quotesCreatedTodayValue)}</span>
+        {/* How many options each job was given, not just how many were written
+            in total. The count on its own answers "how busy"; the average
+            answers "how well" — three options a job is a quote, one is a price,
+            and it is the first thing that slips on a flat-out day. */}
         <span className="tile__foot">
           {count(m.quotesCreatedTodayCount)} {m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}
-          {m.quotesCreatedTodayOptions > m.quotesCreatedTodayCount ? ` · ${count(m.quotesCreatedTodayOptions)} options` : ""}
+          {m.quotesCreatedTodayCount > 0 && m.quotesCreatedTodayOptions > 0
+            ? ` · ${count(m.quotesCreatedTodayOptions)} options · ${avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount)} each`
+            : ""}
         </span>
       </div>
 
