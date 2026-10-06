@@ -8,6 +8,7 @@ import { Heads } from "@/components/portal/marketingParts";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { latestSnapshot, type Metrics } from "@/lib/dashboard/metrics";
 import { money, pct } from "@/lib/portal/format";
+import { LiveAge, RefreshEvery } from "@/components/portal/LiveAge";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +19,6 @@ const m$ = (n: number | null | undefined) => (n == null ? NA : money(n));
 const n0 = (n: number | null | undefined) => (n == null ? NA : n.toLocaleString("en-AU"));
 const p0 = (n: number | null | undefined) => (n == null ? NA : pct(n));
 
-function ago(iso: string): string {
-  const s = Math.round((Date.now() - Date.parse(iso)) / 1000);
-  if (s < 60) return `${s} seconds ago`;
-  const m = Math.round(s / 60);
-  if (m < 60) return `${m} min ago`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h} hour${h === 1 ? "" : "s"} ago`;
-  return new Date(iso).toLocaleString("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
-}
 
 /** A figure, and the line under it that says what it's against. */
 type Fig = { v: string; sub?: string };
@@ -50,7 +42,7 @@ function cards(m: Metrics, st: boolean): Card[] {
       page: "Today", job: "What has happened since this morning.",
       rows: [
         ["Sold today", { v: m$(m.soldToday) }],
-        ["Invoiced today", { v: m$(m.revenueToday) }],
+        ["Invoiced today", { v: m$(m.revenueToday), sub: m.revenueTodayEarlier ? `everything billed today · ${m$(m.revenueTodayEarlier)} for jobs done earlier` : "everything billed today" }],
         ["Jobs booked today", { v: st ? n0(m.bookingsToday) : NA }],
         ["Overdue invoices", m.overdueCount == null ? { v: NA, sub: "not read from Xero yet" } : { v: n0(m.overdueCount), sub: `${m$(m.overdueTotal)} owed` }],
       ],
@@ -139,10 +131,12 @@ export default async function BoardPage() {
   const set = targets.filter((t) => t.v).length;
   const sources = snap ? Object.entries(snap.sources) : [];
   const liveCount = sources.filter(([, s]) => s.state === "ok").length;
-  const fresh = snap ? Date.now() - Date.parse(snap.computedAt) < 15 * 60_000 : false;
+  const now = Date.now();
+  const fresh = snap ? now - Date.parse(snap.computedAt) < 15 * 60_000 : false;
 
   return (
     <PortalShell user={user}>
+      <RefreshEvery ms={25_000} poke="/portal/board/refresh" />
       <div className="pt-head pt-head--split">
         <div>
           <PortalBack href="/portal" label="Home" />
@@ -168,7 +162,7 @@ export default async function BoardPage() {
         <>
           <Heads
             items={[
-              { label: "Last refreshed", value: ago(snap.computedAt), sub: fresh ? "recomputed every 25 seconds while the screen is on" : "the screen hasn't been open lately", feature: true },
+              { label: "Last refreshed", value: <LiveAge at={snap.computedAt} now={now} />, sub: fresh ? "recomputed every 25 seconds while the TV or this page is open" : "catching up — the TV has been off", feature: true },
               { label: "Sources live", value: `${liveCount} of ${sources.length}`, sub: liveCount === sources.length ? "everything is coming through" : "see below for which" },
               { label: "Targets set", value: `${set} of ${targets.length}`, sub: set === targets.length ? "every dial has something to aim at" : "a dial with no target stays blank" },
               { label: "Pages", value: "6", sub: "each on screen for 20 seconds" },
@@ -217,7 +211,7 @@ export default async function BoardPage() {
                       </span>
                       <span className="pt-bd__srcstate">
                         <span className={`pt-vstat pt-vstat--${w.tone}`}>{w.word}</span>
-                        {s.at && <em>{ago(s.at)}</em>}
+                        {s.at && <em><LiveAge at={s.at} now={now} /></em>}
                       </span>
                     </div>
                   );
@@ -231,7 +225,7 @@ export default async function BoardPage() {
             <section className="pt-panel">
               <h2 className="pt-panel__h">How it works</h2>
               <ol className="pt-bd__how">
-                <li><strong>ServiceTitan is copied into the database</strong> every couple of minutes while the screen is on, and overnight by a scheduled job. The TV never talks to ServiceTitan or Xero itself.</li>
+                <li><strong>ServiceTitan is copied into the database</strong> every couple of minutes while the screen or this page is open, and overnight by a scheduled job. The TV never talks to ServiceTitan or Xero itself.</li>
                 <li><strong>Every 25 seconds the board recomputes</strong> one snapshot from that copy — every figure on all six pages comes from that one row, so no two tiles can disagree.</li>
                 <li><strong>A source that fails keeps its last figures</strong> behind an amber dot in the board&rsquo;s header. It never blanks and never shows a zero it didn&rsquo;t measure.</li>
                 <li><strong>A sale lands within about ten minutes</strong> of being closed — the rocket goes off on the sync after, not the moment it happens.</li>

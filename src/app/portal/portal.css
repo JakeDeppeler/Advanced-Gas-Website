@@ -86,7 +86,10 @@
   flex: none; display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box;
   border-radius: 999px; background: var(--pt-warn-bg); color: var(--pt-accent); font-size: 12px; font-weight: 800;
 }
-.pt-side__head.is-on .pt-side__need { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.pt-side__head.is-on .pt-side__need, .pt-side__home.is-on .pt-side__need { background: rgba(255, 255, 255, 0.16); color: #fff; }
+/* An overdue to-do: red, and the title says "overdue" for anyone who can't tell the red. */
+.pt-side__need.is-late { background: #b23b2e; color: #fff; }
+.pt-side__home.is-on .pt-side__need.is-late { background: #ff8f80; color: var(--pt-ink); }
 .pt-side__chevbtn {
   appearance: none; flex: none; display: grid; place-items: center; width: 28px; height: 40px; border: 0; border-radius: 10px;
   background: none; color: #9a958a; cursor: pointer;
@@ -4364,3 +4367,120 @@ a.pt-fig:hover { transform: translateY(-2px); }
 @media (max-width: 1180px) {
   .pt-wb { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---- Reports: what went, to whom; one opened as the email had it ---- */
+.pt-rpt__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.pt-seg a.pt-seg__b { text-decoration: none; display: inline-flex; align-items: center; }
+.pt-rpt__now { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.pt-rpt__again { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ------------------------------------------------ an email, as it arrives */
+.pt-mail { display: flex; flex-direction: column; gap: 12px; }
+.pt-mail__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pt-mail__stage { border-radius: 18px; background: var(--pt-tint); padding: 18px; display: flex; justify-content: center; overflow: hidden; }
+.pt-mail__frame { display: block; width: 100%; max-width: 680px; border: 0; border-radius: 12px; background: #f9f8f3; }
+.pt-mail__stage.is-phone .pt-mail__frame { max-width: 390px; box-shadow: 0 0 0 10px #050a30; border-radius: 22px; }
+.pt-mail__subject { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-surface); }
+.pt-mail__subject span { font-size: 12px; color: var(--pt-ink-3); text-transform: uppercase; letter-spacing: .08em; }
+.pt-mail__subject strong { font-size: 15px; color: var(--pt-ink); line-height: 1.4; overflow-wrap: anywhere; }
+.pt-rpt__kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.pt-rpt__kind { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; text-decoration: none; color: var(--pt-ink); background: var(--pt-surface); }
+.pt-rpt__kind:hover { border-color: var(--pt-ink-3); }
+.pt-rpt__kind strong { font-size: 15px; }
+.pt-rpt__kind span { font-size: 13px; color: var(--pt-ink-2); }
+.pt-rpt__kind em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--pt-accent); margin-top: 4px; }
+@media (max-width: 720px) { .pt-rpt__kinds { grid-template-columns: minmax(0, 1fr); } .pt-mail__stage { padding: 8px; } }
+
+/* ------------------------------------------------------------- to-do lists */
+/* Overdue is red with a flag and the words; due today is the warm amber the
+   portal uses for "needs a look"; the rest are plain. The colour backs the
+   words up — it is never the only thing saying a to-do is late. */
+.pt-todo { --todo-late: #b23b2e; --todo-late-bg: #fbe9e6; display: flex; flex-direction: column; container-type: inline-size; }
+.pt-todo__form { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 14px 16px; align-items: start; margin-top: 16px; }
+.pt-todo__form.is-solo .pt-todo__what { grid-column: 1 / -1; }
+.pt-todo__when, .pt-todo__notesfield, .pt-todo__submit, .pt-todo__addnote { grid-column: 1 / -1; }
+.pt-todo__addnote { justify-self: start; appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 13.5px; font-weight: 700; color: var(--pt-accent); cursor: pointer; }
+.pt-todo__addnote:hover { text-decoration: underline; }
+.pt-todo__submit { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pt-todo__submit .pt-inline { margin: 0; }
+
+.pt-todo__due-pick { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pt-todo__due-pick input[type="date"] { width: 170px; flex: none; border: 1px solid var(--pt-line); border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 14px; color: var(--pt-ink); background: var(--pt-surface); box-sizing: border-box; }
+.pt-todo__due-pick input[type="date"]:focus { outline: none; border-color: var(--pt-sky); box-shadow: 0 0 0 3px rgba(42,167,224,0.15); }
+.pt-todo__chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.pt-todo__chip { appearance: none; border: 1px solid var(--pt-line); background: var(--pt-surface); border-radius: 999px; padding: 6px 12px; min-height: 34px; font: inherit; font-size: 13px; font-weight: 600; color: var(--pt-ink-2); cursor: pointer; }
+.pt-todo__chip:hover { border-color: var(--pt-ink-3); color: var(--pt-ink); }
+.pt-todo__chip.is-on { background: var(--pt-navy); border-color: var(--pt-navy); color: #fff; }
+.pt-todo__chip:focus-visible, .pt-todo__tick:focus-visible, .pt-todo__editbtn:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 2px; }
+.pt-todo__due-pick.is-compact input[type="date"] { width: 150px; padding: 7px 10px; font-size: 13.5px; }
+.pt-todo__due-pick.is-compact .pt-todo__chip { padding: 4px 10px; min-height: 30px; font-size: 12.5px; }
+
+.pt-todo__cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; align-items: start; margin-bottom: 8px; }
+.pt-todo__cols.is-one { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.pt-todo__col { background: var(--pt-surface); border-radius: 18px; padding: 18px 20px 16px; box-shadow: var(--pt-shadow); min-width: 0; }
+.pt-todo__col.has-late { box-shadow: inset 0 3px 0 var(--todo-late), var(--pt-shadow); }
+.pt-todo__colhead { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--pt-line); }
+.pt-todo__colhead h3 { margin: 0; font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); }
+.pt-todo__counts { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--pt-ink-2); white-space: nowrap; flex-wrap: wrap; }
+.pt-todo__late { display: inline-flex; align-items: center; gap: 4px; color: var(--todo-late); background: var(--todo-late-bg); border-radius: 999px; padding: 2px 9px; font-weight: 700; }
+.pt-todo__today { color: var(--pt-warn-text); background: var(--pt-warn-bg); border-radius: 999px; padding: 2px 9px; font-weight: 700; }
+
+.pt-todo__list { list-style: none; margin: 0; padding: 0; }
+.pt-todo__item { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 0; border-top: 1px solid var(--pt-tint); }
+.pt-todo__list > .pt-todo__item:first-child { border-top: 0; }
+.pt-todo__item.is-overdue { margin-left: -12px; padding-left: 9px; border-left: 3px solid var(--todo-late); }
+.pt-todo__tick { appearance: none; width: 26px; height: 26px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--pt-field); background: var(--pt-surface); color: transparent; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.pt-todo__tick:hover:not(:disabled) { border-color: var(--pt-good); color: var(--pt-good); }
+.pt-todo__item.is-done .pt-todo__tick { background: var(--pt-good); border-color: var(--pt-good); color: #fff; }
+.pt-todo__body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.pt-todo__title { font-size: 15px; font-weight: 600; line-height: 1.35; color: var(--pt-ink); overflow-wrap: anywhere; }
+.pt-todo__item.is-done .pt-todo__title { text-decoration: line-through; color: var(--pt-ink-2); font-weight: 500; }
+.pt-todo__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-todo__due { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+.pt-todo__due.is-overdue { color: var(--todo-late); font-weight: 800; }
+.pt-todo__due.is-today { color: var(--pt-warn-text); background: var(--pt-warn-bg); border-radius: 999px; padding: 1px 8px; font-weight: 700; }
+.pt-todo__due.is-done { color: var(--pt-good); }
+.pt-todo__notes { font-size: 13px; line-height: 1.45; color: var(--pt-ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.pt-todo__editbtn { appearance: none; border: 0; background: none; padding: 2px 0; margin-left: auto; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--pt-ink-2); cursor: pointer; text-decoration: underline; text-decoration-color: var(--pt-field); text-underline-offset: 3px; }
+.pt-todo__editbtn:hover { color: var(--pt-ink); text-decoration-color: currentColor; }
+.pt-todo__item.is-editing { display: block; }
+.pt-todo__edit { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; }
+.pt-todo__editacts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pt-todo__remove { appearance: none; border: 0; background: none; margin-left: auto; font: inherit; font-size: 13px; font-weight: 700; color: var(--todo-late); cursor: pointer; padding: 6px 2px; }
+.pt-todo__remove:hover { text-decoration: underline; }
+.pt-todo__empty { margin: 12px 0 4px; font-size: 14px; color: var(--pt-ink-2); }
+.pt-todo__none { margin: 0 0 18px; font-size: 14.5px; color: var(--pt-ink-2); }
+
+.pt-todo__quick { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--pt-line); }
+.pt-todo__quick > input { border: 1px dashed var(--pt-field); border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 14px; color: var(--pt-ink); background: var(--pt-bg); box-sizing: border-box; width: 100%; }
+.pt-todo__quick > input:focus { outline: none; border-style: solid; border-color: var(--pt-sky); background: var(--pt-surface); box-shadow: 0 0 0 3px rgba(42,167,224,0.15); }
+.pt-todo__quick > .pt-btn { align-self: flex-start; }
+
+.pt-todo__done, .pt-todo__office { margin-top: 12px; }
+.pt-todo__done summary, .pt-todo__office summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; list-style: none; }
+.pt-todo__done summary::-webkit-details-marker, .pt-todo__office summary::-webkit-details-marker { display: none; }
+.pt-todo__done summary .pt-panel__h::after, .pt-todo__office summary .pt-panel__h::after { content: "▾"; font-size: 14px; color: var(--pt-ink-2); transition: transform .15s; }
+.pt-todo__done[open] summary .pt-panel__h::after, .pt-todo__office[open] summary .pt-panel__h::after { transform: rotate(180deg); }
+.pt-todo__done[open] > .pt-todo__list { margin-top: 10px; }
+.pt-todo__pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 16px; margin: 0 0 14px; }
+.pt-todo__pickrow { display: flex; align-items: center; gap: 8px; font-size: 14.5px; color: var(--pt-ink); min-height: 32px; }
+.pt-todo__pickrow input { width: 18px; height: 18px; accent-color: var(--pt-navy); }
+.pt-todo__foot { margin: 6px 0 0; font-size: 13px; color: var(--pt-ink-2); }
+
+@media (max-width: 900px) { .pt-todo__cols.is-one { grid-template-columns: minmax(0, 1fr); } }
+/* Three across holds to an iPad upright; narrower than that, a list each, one under the other. */
+@container (max-width: 700px) {
+  .pt-todo__cols.is-office { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@container (max-width: 1000px) {
+  .pt-todo__cols.is-office .pt-todo__col { padding: 16px 14px 14px; }
+  .pt-todo__cols.is-office .pt-todo__item.is-overdue { margin-left: -10px; padding-left: 7px; }
+}
+@media (max-width: 640px) {
+  .pt-todo__form { grid-template-columns: minmax(0, 1fr); }
+  .pt-todo__form > * { grid-column: 1 / -1; }
+  .pt-todo__cols { grid-template-columns: minmax(0, 1fr); }
+  .pt-todo__col { padding: 16px 16px 14px; }
+  .pt-todo__item.is-overdue { margin-left: -8px; padding-left: 5px; }
+}
+@media (prefers-reduced-motion: reduce) { .pt-todo__done summary .pt-panel__h::after, .pt-todo__office summary .pt-panel__h::after { transition: none; } }

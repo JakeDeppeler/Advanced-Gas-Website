@@ -62,6 +62,64 @@ lands in a few seconds. Each press carries an id and is acted on once, so the
 TV's own Skip and Hold still work after it. The tab's other pages are the
 explainer above and the targets and commission page.
 
+### The reports
+
+**Wall board → Reports** (`/portal/board/reports`) keeps the board's figures
+as reports and emails each one to a list kept on that page — Jake, and
+whoever in the team list is called Dean or Kellie, until somebody changes it:
+
+- **Daily**, every working day — sold and invoiced in the two big tiles, then
+  paid, booked, quoted and leads; the week so far against the goal; what needs
+  someone, including to-dos past their day (`/portal/todo`, by person); who sold.
+- **Weekly**, on the week's last working day — the week's six figures beside
+  last week's, each against what the goal needed of the week, the week's job
+  profit, who sold, what needs someone.
+- **Monthly**, on the month's last working day — the month against the goal,
+  its job profit, the year so far and where it lands, the kinds of work, who
+  sold.
+
+Each goes at half past five, from the same snapshot the TV shows. Two things
+send them: a Vercel cron each evening (`vercel.json`, 08:00 UTC — 7 pm in
+summer, 6 pm in winter) calling `/api/reports/run`, and the ServiceTitan sync
+as a backstop. Each report is claimed before it is built — it lives as one
+document in `portal_settings` under `report:<kind>:<period>`, created with an
+insert that does nothing if it exists — so two runs can't both send it. A
+send that fails is kept as failed and tried again by the next runs, up to
+three times. "Send again" resends a kept one.
+
+The email is dressed as the board — cream ground, white tiles, the navy lead
+tile, mono labels, pace bars with a mark where the goal says we should be by
+now and the standing written beside each one. It is tables with inline
+styles, because that is what Gmail and Outlook leave alone; a phone stacks the
+two big tiles and keeps the small ones two-up. **Preview** (`/portal/board/reports/preview`)
+shows each report as it will arrive, built from the figures right now and kept
+nowhere. From there "Send it to me" mails a copy to whoever pressed it, not
+kept and not counted; "Send to everyone now" sends the real one early, and it
+then counts as the period's report. A kept report opens as the same email.
+
+Each pace line is measured against where the goal says it should be *by now*,
+whatever kind of report it is in. On the period's last working day that is the
+whole of what the goal needed, and the line says so; in a preview mid-week it
+isn't, and comparing a Tuesday against Friday's number had a preview reading
+"ahead by $214,936" on a month a fifth done.
+
+#### Two kinds of "invoiced"
+
+"Invoiced today" is everything the office **billed** today — counted by
+`invoiced_on`, the day the invoice's lines were put on, whichever day the job
+was done. The week, the month and the year count invoices by **invoice date**,
+ServiceTitan's day the job finished, which is the date Xero carries. On
+6 October that made today read $29,441 and the week so far $23,521: $12,174 of
+the day's billing was for jobs finished on earlier days ($8,236 of it for
+September jobs), which belong to those weeks, and one $3,058 job dated today had
+been priced on the 1st. Both are right; side by side unlabelled they look
+wrong. The reports and the portal now say which each one is, and split today's
+figure into today's jobs and earlier ones (`revenueTodayEarlier`). The board's
+Pace page draws today's bar on the invoice-date basis too ($20,325 that day).
+Whether the week should switch to the billing day is a money decision left
+with Jake: `invoiced_on` only means "billed" from late September — older
+invoices had their lines touched in bulk — so it can't carry the year.
+
 ## The pages
 
 The board cycles every 20 seconds through six pages. Past about eight tiles
@@ -1565,6 +1623,13 @@ for them. Actions stays scheduled as a backstop for the hours nobody is looking.
 That endpoint is authorised by `SCREEN_TOKEN`, not `CRON_SECRET` — the caller is
 the display. The eight-minute floor is what stops a tab left open in a dozen
 browsers from hammering ServiceTitan.
+
+The portal's **Wall board → What it shows** page asks the same way while it is
+open, through `/portal/board/refresh` — behind the portal sign-in instead of
+the screen token, through the same `refreshBoard()` and the same floors — so its
+"Last refreshed" tile counts up live and resets as new figures land, with the
+TV switched off. Before, the tile was the age at the moment the page was drawn
+and stayed there.
 
 On a Vercel Pro plan, delete that workflow and put the schedule back in
 `vercel.json`, which is more reliable:

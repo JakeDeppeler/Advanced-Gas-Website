@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { WINDOWS, type WindowKey } from "@/lib/portal/marketingTabs";
 
@@ -13,7 +14,7 @@ import { WINDOWS, type WindowKey } from "@/lib/portal/marketingTabs";
 export function Heads({
   items,
 }: {
-  items: { label: string; value: string; sub?: string; feature?: boolean }[];
+  items: { label: string; value: ReactNode; sub?: string; feature?: boolean }[];
 }) {
   return (
     <div className="pt-mkheads">
