@@ -25,6 +25,7 @@ const STATUS: Record<string, { label: string; tone: "ok" | "bad" | "warn" | "non
   OutOfSync: { label: "Changed since it synced", tone: "warn" },
   Excluded: { label: "Left out of syncing", tone: "none" },
   Missing: { label: "Gone from ServiceTitan", tone: "none" },
+  NotApplicable: { label: "Goes to Xero as bills", tone: "none" },
 };
 
 function Status({ s }: { s: string | null }) {
