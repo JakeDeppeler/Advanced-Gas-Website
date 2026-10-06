@@ -5,6 +5,8 @@ import { dbConfigured, getSettings, handbookBodies, listQuotes, listVanChecks, l
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
 import { journalErrors } from "@/lib/journals/read";
+import { meOf, openTodos, todayMelbourne } from "@/lib/todos/store";
+import { dueState, dueWords, firstName } from "@/lib/todos/types";
 
 /**
  * What's waiting for you, derived rather than stored.
@@ -107,12 +109,35 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
   const today = localToday();
   const out: Notice[] = [];
 
-  const [vehicles, quotes, journals] = await Promise.all([
+  const [vehicles, quotes, journals, me, todos] = await Promise.all([
     listVehicles().catch(() => []),
     // Quotes are money and only the people who see money get told about them.
     can(user, "overhead") ? listQuotes().catch(() => []) : Promise.resolve([]),
     can(user, "overhead") ? journalErrors().catch(() => []) : Promise.resolve([]),
+    meOf(user).catch(() => null),
+    openTodos().catch(() => []),
   ]);
+
+  // Your to-dos: past their day, due today, or just given to you by someone
+  // else. Each clears when it's ticked off — or, for a new one, once it's seen.
+  const NEW_TODO_MS = 3 * 86_400_000;
+  const day0 = todayMelbourne();
+  for (const t of me ? todos.filter((x) => x.assigneeId === me.id) : []) {
+    const st = dueState(t, day0);
+    const from = t.createdById && t.createdById !== me?.id ? firstName(t.createdBy ?? "someone") : null;
+    if (st === "overdue" || st === "today") {
+      out.push({
+        title: `${st === "overdue" ? "Overdue" : "Due today"}: ${t.title}`,
+        detail: [dueWords(t, day0), from ? `from ${from}` : null].filter(Boolean).join(" · "),
+        href: "/portal/todo",
+        tone: st === "overdue" ? "bad" : "warn",
+        group: "doing",
+        when: ago(`${t.dueOn}T00:00:00Z`),
+      });
+    } else if (from && Date.now() - Date.parse(t.createdAt) < NEW_TODO_MS) {
+      out.push({ title: `${from} gave you a to-do: ${t.title}`, detail: dueWords(t, day0), href: "/portal/todo", tone: "news", group: "doing", when: ago(t.createdAt) });
+    }
+  }
   const onRoad = vehicles.filter((v) => v.status === "on");
 
   const checks = await Promise.all(
