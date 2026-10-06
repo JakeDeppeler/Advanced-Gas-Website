@@ -158,22 +158,36 @@ jobs:
               } >> "$GITHUB_STEP_SUMMARY"
               ;;
             tags)
-              from=0; checked=0; changed=0
-              while :; do
-                call "?tags=1&from=${from}&limit=${LIMIT}"
-                checked=$((checked + $(jq -r .checked run.json)))
-                changed=$((changed + $(jq -r .changed run.json)))
-                jq -c '.failed[]' run.json >> failures.ndjson
-                # A systematic failure (a tag type missing, a field ignored)
-                # shows on the first page; don't repeat it 360 times.
-                if [ -s failures.ndjson ]; then break; fi
-                from=$(jq -r '.next // empty' run.json)
-                [ -z "$from" ] && break
+              # Pass 1 sets the tags. Pass 2, after ServiceTitan's reads have
+              # caught up, is the check: it should find nothing left to change.
+              for pass in set verify; do
+                [ "$pass" = verify ] && sleep 30
+                from=0; checked=0; changed=0
+                while :; do
+                  call "?tags=1&from=${from}&limit=${LIMIT}"
+                  checked=$((checked + $(jq -r .checked run.json)))
+                  changed=$((changed + $(jq -r .changed run.json)))
+                  jq -c '.failed[]' run.json >> failures.ndjson
+                  # A systematic failure shows on the first page; don't repeat it 360 times.
+                  if [ -s failures.ndjson ]; then break; fi
+                  from=$(jq -r '.next // empty' run.json)
+                  [ -z "$from" ] && break
+                done
+                if [ "$pass" = set ]; then set_checked=$checked; set_changed=$changed; fi
+                [ -s failures.ndjson ] && break
               done
               {
                 echo "## Locations import — tags"
                 echo
-                echo "Checked **${checked}** locations, changed tags on **${changed}**, failed **$(wc -l < failures.ndjson)**."
+                echo "Checked **${set_checked}** locations, changed tags on **${set_changed}**, failed **$(wc -l < failures.ndjson)**."
+                if [ ! -s failures.ndjson ]; then
+                  echo
+                  if [ "$changed" = "0" ]; then
+                    echo "Check pass 30 s later: every location already had the right tags."
+                  else
+                    echo "Check pass 30 s later still had to change **${changed}** — ServiceTitan may not be keeping them. Re-run once; if the number stays, report it."
+                  fi
+                fi
                 failure_table
               } >> "$GITHUB_STEP_SUMMARY"
               ;;
