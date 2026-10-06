@@ -173,7 +173,8 @@ export function LocationImporter({
       <h2 className="pt-panel__h">Load a list</h2>
       <p className="pt-loc__lede">
         A CSV with one row per unit — in Excel, <em>File → Save As → CSV</em>. Colour coding doesn’t survive that, so put
-        service status in a column of its own.
+        service status in a column of its own. Each row can have its own address, or leave the address columns out and
+        give one address for every row below.
       </p>
 
       <input ref={input} type="file" accept=".csv,text/csv" hidden
@@ -183,6 +184,11 @@ export function LocationImporter({
           {file ? "Choose a different file" : "Choose a CSV"}
         </button>
         {file && <span className="pt-loc__muted">{file} · {rows.length} rows</span>}
+        {!file && (
+          <a className="pt-btn pt-btn--sm pt-btn--ghost" href="/templates/site-locations.csv" download>
+            Download a template
+          </a>
+        )}
         {saved && !file && (
           <button type="button" className="pt-btn pt-btn--navy" disabled={busy} onClick={() => void run(false)}>
             Run again on the saved list ({saved.count})

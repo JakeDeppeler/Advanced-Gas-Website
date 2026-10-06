@@ -5,7 +5,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
 import {
   addNotes, applyImport, checkContacts, fetchCustomer, fetchLive, loadSpec, mergeDouble, missingTagTypes, norm,
-  planImport, saveSpec, setStatus, specProblem, syncTags, unitOf,
+  planImport, sameSpot, saveSpec, setStatus, specProblem, syncTags,
   type ImportLocation, type StatusTag,
 } from "@/lib/locations/stLocations";
 
@@ -51,8 +51,7 @@ export async function POST(req: Request) {
       const rows = locations.map((l) => {
         const same = byName.get(norm(l.name));
         if (same) return { name: l.name, state: "exists" as const, match: { id: same.id, name: same.name } };
-        const u = unitOf(l);
-        const twin = u != null ? active.find((a) => unitOf(a) === u) : undefined;
+        const twin = active.find((a) => sameSpot(a, l));
         if (twin) return { name: l.name, state: "double" as const, match: { id: twin.id, name: twin.name } };
         return { name: l.name, state: "new" as const };
       });
