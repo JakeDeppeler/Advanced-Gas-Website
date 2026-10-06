@@ -1456,6 +1456,35 @@ thousand of at a time, so they go through `sbSelect` like everything else. Page
 views are one row per path per day and the site has sixty-one paths being read:
 that read would have quietly stopped growing about seven weeks in.
 
+## The year's margin is the year's, not the month's
+
+The Pace strip's margin cell used to carry `jobProfitMonth` — a seven-job figure
+sitting in a row headed "This year" beside a year of revenue, inviting the room
+to read one as the margin on the other. It now carries `jobProfitYear`, over the
+same span the strip's own revenue covers.
+
+Widening the window costs nothing in honesty, because there was nothing to lose:
+**every costed job in the replica falls inside the last ninety days.** ServiceTitan
+only started carrying a materials cost and clocked hours recently, so the windows
+go:
+
+| Window | Jobs priced | Of those, costable | Share of revenue |
+|---|---|---|---|
+| Month to date | 8 | 7 | 99% |
+| Last 90 days | 266 | 30 | 17% |
+| Financial year to date | 287 | 30 | 16% |
+| Last 12 months | 1,449 | 30 | 3% |
+
+So the year picks up all thirty rather than the handful invoiced since the first,
+and going back further than the year would only add jobs that cannot be costed.
+It reads about 22% against a 20% goal, where the month alone read 28%.
+
+Sixteen percent of revenue is not a year's margin and the cell does not claim it
+is: the key line says **"Job margin · 30 jobs"**, because a margin over thirty
+jobs is a different statement from a margin over the year and the strip has no
+room to say it twice. If ServiceTitan's costing coverage improves, this figure
+gets better on its own and the job count says so.
+
 ## Invoiced means the work was done
 
 Every revenue figure on this board reads `st_invoices_billed` (migration
