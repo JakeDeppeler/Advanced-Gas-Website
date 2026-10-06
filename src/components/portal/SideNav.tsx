@@ -6,7 +6,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 
 /**
  * The team portal's side bar, to the design's SideNav: the brand and its «,
- * the search, Home, the seven tabs the home page is grouped into, and you at
+ * the search, Home, the tabs the home page is grouped into, and you at
  * the foot — the whole of the portal's chrome, so the page itself starts at
  * the top with nothing over it.
  *

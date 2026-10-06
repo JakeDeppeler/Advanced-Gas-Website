@@ -3,7 +3,7 @@
  * them.
  *
  * One list, because four things need to agree about it: the home grid, the
- * side bar (whose seven tabs are the grid's seven sections), the search box in
+ * side bar (whose tabs are the grid's sections), the search box in
  * the top bar, and the capability gate that decides who sees what. Each with
  * its own copy would have drifted within a month.
  *
@@ -22,10 +22,11 @@ const SOP_COUNT = SOPS.reduce((n, s) => n + s.sops.length, 0);
  * runs the company from first, the standard and the settings last. `hidden`
  * is for places the search should find that the home grid doesn't carry.
  */
-export type NavBand = "run" | "customers" | "profit" | "marketing" | "crew" | "how-we-work" | "settings" | "hidden";
+export type NavBand = "run" | "board" | "customers" | "profit" | "marketing" | "crew" | "how-we-work" | "settings" | "hidden";
 
 export const BAND_LABEL: Record<NavBand, string> = {
   run: "Run the company",
+  board: "Wall board",
   customers: "Customers & sales",
   profit: "Profit & finance",
   marketing: "Marketing",
@@ -38,6 +39,7 @@ export const BAND_LABEL: Record<NavBand, string> = {
 /** The grey line beside each heading. */
 export const BAND_BLURB: Record<NavBand, string> = {
   run: "How we're tracking, and leads to paid step by step",
+  board: "The office screen, and the remote for it",
   customers: "Talking to customers and pricing the work",
   profit: "Margins, the year goal and Xero",
   marketing: "Where the work comes from",
@@ -188,15 +190,24 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
 
   // Not cards on the home grid, but still places the search should find.
   items.push({ href: "/portal/job-calculator", label: "Job calculator", short: "Job calc", blurb: "Price a job by who's on it", band: "hidden", icon: "calc", also: ["price", "quote", "rate", "labour"] });
+  // The wall board's own tab: the remote first, because driving the TV is
+  // what people come here to do; then what it shows, then what it aims at.
   add(office,
-    { href: "/portal/board", label: "Wall board", blurb: "What's on the office screen, and how it works", band: "hidden", icon: "screen", also: ["dashboard", "screen", "tv", "live", "commission"] },
+    {
+      href: "/portal/board/remote", label: "Remote", blurb: "What's on the wall now, and change it from here", band: "board", icon: "screen",
+      also: ["wall board", "dashboard", "tv", "screen", "remote", "demo", "hold", "show a page", "dark mode", "reload"],
+    },
+    { href: "/portal/board", label: "What it shows", short: "Pages", blurb: "Each page's figures, and where they come from", band: "board", icon: "chart", also: ["dashboard", "screen", "tv", "live", "feeds"] },
+    { href: "/portal/finance/board", label: "Targets & commission", short: "Targets", blurb: "What it aims at, the bonus bands, the working days", band: "board", icon: "target", also: ["commission", "bonus", "working days", "holidays", "board targets"] },
+  );
+  add(office,
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece — is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
   );
 
   return items;
 }
 
-export const BANDS: NavBand[] = ["run", "customers", "profit", "marketing", "crew", "how-we-work", "settings"];
+export const BANDS: NavBand[] = ["run", "board", "customers", "profit", "marketing", "crew", "how-we-work", "settings"];
 
 /** The items of one band, in the order declared above. */
 export function byBand(items: NavItem[], band: NavBand): NavItem[] {

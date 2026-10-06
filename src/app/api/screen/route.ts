@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
+import { readRemote } from "@/lib/board/remote";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +25,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "No snapshot yet — run the sync job" }, { status: 503 });
   }
 
-  return NextResponse.json(snapshot, {
+  // The portal's remote rides along with the figures, so a board that isn't
+  // being driven costs no extra request to hear about it.
+  const remote = await readRemote().catch(() => null);
+  return NextResponse.json({ ...snapshot, remote }, {
     headers: { "Cache-Control": "no-store" },
   });
 }

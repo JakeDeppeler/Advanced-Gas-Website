@@ -4318,3 +4318,49 @@ a.pt-fig:hover { transform: translateY(-2px); }
 @media (max-width: 640px) {
   .pt-jrn__row { flex-direction: column; align-items: flex-start; }
 }
+
+/* ---- Wall board: the board live, and the remote beside it ---- */
+.pt-wb { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); gap: 16px; align-items: start; }
+.pt-wb__live { display: flex; flex-direction: column; gap: 12px; }
+.pt-wb__gh { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pt-wb__gh h2 { margin: 0; font-family: var(--f-display); font-size: 18px; line-height: 24px; font-weight: 800; color: var(--pt-ink); }
+.pt-wb__fine { font-size: 12.5px; color: var(--pt-ink-2); }
+/* 16:9, the TV's shape: the board inside is drawn at 1920 and scaled down. */
+.pt-wb__frame { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #f9f8f3; box-shadow: inset 0 0 0 1px var(--pt-line); }
+.pt-wb__frame iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; pointer-events: none; }
+.pt-wb__links { display: flex; flex-wrap: wrap; gap: 6px 20px; margin: 0; font-size: 13.5px; }
+.pt-wb__links a { color: var(--pt-accent); font-weight: 700; text-decoration: none; }
+.pt-wb__links a:hover { text-decoration: underline; }
+
+.pt-wb__controls { display: flex; flex-direction: column; gap: 18px; }
+.pt-wb__group { display: flex; flex-direction: column; gap: 10px; padding-bottom: 18px; border-bottom: 1px solid var(--pt-tint); }
+.pt-wb__group h2 { margin: 0; font-family: var(--f-display); font-size: 17px; line-height: 22px; font-weight: 800; color: var(--pt-ink); }
+.pt-wb__group > .pt-btn { align-self: flex-start; }
+.pt-wb__row { flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.pt-wb__row > div:first-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1 1 200px; }
+.pt-wb__note { margin: 0; font-size: 13.5px; line-height: 19px; color: var(--pt-ink-2); }
+.pt-wb__pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.pt-wb__page {
+  appearance: none; min-height: 44px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--pt-line);
+  background: var(--pt-surface); color: var(--pt-ink); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.pt-wb__page:hover:not(:disabled) { border-color: var(--pt-ink-3); }
+/* Held is navy, the portal's "you picked this" — and it says "Holding on" in words above. */
+.pt-wb__page.is-on { background: var(--pt-navy); border-color: var(--pt-navy); color: #fff; }
+/* One to a row: the column is narrow beside the board, and three across
+   broke "Time to bill" over two lines. */
+.pt-wb__demos { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.pt-wb__demo {
+  appearance: none; display: flex; align-items: baseline; gap: 12px; padding: 12px 14px; min-height: 48px;
+  border-radius: 14px; border: 1px solid var(--pt-line); background: var(--pt-surface); text-align: left; font: inherit; cursor: pointer; color: var(--pt-ink);
+}
+.pt-wb__demo strong { font-family: var(--f-display); font-size: 15px; font-weight: 900; }
+.pt-wb__demo span { font-size: 12.5px; line-height: 16px; color: var(--pt-ink-2); }
+.pt-wb__demo:hover:not(:disabled) { border-color: var(--pt-ink-3); }
+.pt-wb__demo--sold strong { color: var(--pt-accent); }
+.pt-wb__demo.is-on { background: var(--pt-navy); border-color: var(--pt-navy); }
+.pt-wb__demo.is-on strong, .pt-wb__demo.is-on span { color: #fff; }
+
+@media (max-width: 1180px) {
+  .pt-wb { grid-template-columns: minmax(0, 1fr); }
+}

@@ -15,6 +15,7 @@ import { needsByBand, needsToday } from "@/lib/portal/needs";
 /** Each tab's icon in the side bar, from the same stroke set as the home cards. */
 const TAB_ICON: Record<Exclude<NavBand, "hidden">, string> = {
   run: ICON.trend,
+  board: ICON.screen,
   customers: ICON.chat,
   profit: ICON.chart,
   marketing: ICON.speaker,
@@ -53,7 +54,7 @@ async function CountedNav({ user, items, ...p }: NavProps) {
  *
  * The side bar carries everything the top bar used to — the brand, the search,
  * the bell, who's signed in — so the page starts at the top with its own title.
- * Its tabs are the home page's seven sections, read from the same list, so the
+ * Its tabs are the home page's sections, read from the same list, so the
  * bar, the home page and the search can't disagree about where anything lives.
  * On a phone the bar is a drawer and a slim bar across the top opens it.
  *
