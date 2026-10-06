@@ -16,6 +16,9 @@ name: ServiceTitan locations import
 #             which listed unit each appears to duplicate. The full report is
 #             saved to portal_settings.st_location_import_others, not this log,
 #             because existing location names can carry residents' names.
+#   merge     folds the duplicate pairs a person approved (listed in
+#             portal_settings.st_location_import_merge): the older record is
+#             kept and renamed, the newer one deactivated. Safe to repeat.
 
 on:
   workflow_dispatch:
@@ -23,7 +26,7 @@ on:
       task:
         description: "What to do"
         type: choice
-        options: [dry-run, create, contacts, notes, others]
+        options: [dry-run, create, contacts, notes, others, merge]
         default: dry-run
       limit:
         description: "Locations per call (max 50)"
@@ -149,6 +152,19 @@ jobs:
                 echo "## Locations import — other locations on the customer"
                 echo
                 jq -r '"**\(.others)** locations on the customer are not on the import list; **\(.sameUnitAsListed)** of them look like the same unit as an imported one. Full report saved to `\(.savedTo)` (kept out of this public log)."' run.json
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            merge)
+              call "?merge=1"
+              jq -c '.results[] | select(.ok | not)' run.json >> failures.ndjson
+              {
+                echo "## Locations import — merge duplicates"
+                echo
+                jq -r '"Merged **\(.merged)** of \(.pairs) approved pairs."' run.json
+                echo
+                echo "| Unit | Kept | Deactivated | Done | Error |"
+                echo "|---|---|---|---|---|"
+                jq -r "${JQ_DEFS}"'.results[] | "| \(.name|e) | \(.keep|e) | \(.retire|e) | \((.done // []) | join(", ")|e) | \(.error|e) |"' run.json
               } >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac

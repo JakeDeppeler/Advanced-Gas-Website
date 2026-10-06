@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { dashboardDbConfigured, sbUpsert } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { addNotes, applyImport, checkContacts, loadImportSpec, otherLocations, planImport } from "@/lib/locations/stLocations";
+import { addNotes, applyImport, checkContacts, loadImportSpec, mergePairs, otherLocations, planImport } from "@/lib/locations/stLocations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +20,8 @@ export const maxDuration = 60;
 //   GET /api/servicetitan/locations?others=1     read-only: the customer's locations
 //                                                that are not on the list, with the
 //                                                listed unit each one seems to duplicate
+//   GET /api/servicetitan/locations?merge=1      fold the approved duplicate pairs in
+//                                                portal_settings.st_location_import_merge
 //
 // The list is read from portal_settings.st_location_import. Safe to repeat: the
 // plan is recomputed from the customer's live locations, so anything already
@@ -49,6 +51,11 @@ export async function GET(req: Request) {
       alreadyThere: plan.alreadyThere.length,
       toCreate: plan.toCreate.length,
     };
+
+    if (url.searchParams.get("merge") === "1") {
+      const result = await mergePairs(spec);
+      return NextResponse.json({ ok: result.merged === result.pairs, mode: "merge", summary, ...result });
+    }
 
     if (url.searchParams.get("others") === "1") {
       // The names of a customer's existing locations can carry residents'
