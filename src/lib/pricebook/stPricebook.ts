@@ -154,26 +154,25 @@ export type SupplierItem = {
 };
 
 export async function loadSupplierItems(supplier = "reece"): Promise<SupplierItem[]> {
-  const out: SupplierItem[] = [];
-  const page = 1000;
-  for (let from = 0; ; from += page) {
-    const rows = await sbSelect<SupplierItem>(
-      "supplier_items",
-      [
-        q.select("supplier,code,description,uom,pack_qty,cost,gst_applies,list_price,category,barcode,source,seen_at"),
-        q.eq("supplier", supplier),
-        q.order("code"),
-        `offset=${from}`,
-        `limit=${page}`,
-      ].join("&"),
-    );
-    // PostgREST returns numeric columns as strings in some configurations; normalise once here.
-    for (const r of rows) {
-      out.push({ ...r, cost: r.cost == null ? null : Number(r.cost), pack_qty: r.pack_qty == null ? null : Number(r.pack_qty), list_price: r.list_price == null ? null : Number(r.list_price) });
-    }
-    if (rows.length < page) break;
-  }
-  return out;
+  // Paged by sbSelect rather than by hand. This used to walk `offset=` itself
+  // and ask for a thousand at a time on top, which sent PostgREST both a Range
+  // header and a limit/offset pair for the same window — a request whose answer
+  // depends on which of the two that version prefers.
+  const rows = await sbSelect<SupplierItem>(
+    "supplier_items",
+    [
+      q.select("supplier,code,description,uom,pack_qty,cost,gst_applies,list_price,category,barcode,source,seen_at"),
+      q.eq("supplier", supplier),
+      q.order("code"),
+    ].join("&"),
+  );
+  // PostgREST returns numeric columns as strings in some configurations; normalise once here.
+  return rows.map((r) => ({
+    ...r,
+    cost: r.cost == null ? null : Number(r.cost),
+    pack_qty: r.pack_qty == null ? null : Number(r.pack_qty),
+    list_price: r.list_price == null ? null : Number(r.list_price),
+  }));
 }
 
 // --- plan -------------------------------------------------------------------------

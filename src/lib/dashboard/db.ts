@@ -58,12 +58,12 @@ async function sb(path: string, init: RequestInit = {}): Promise<Response | null
  * worst kind of wrong number: it looks measured.
  */
 export { PAGE } from "./paging";
-import { PAGE, hasOrder, pagedQuery } from "./paging";
+import { PAGE, pagedQuery, splitLimit } from "./paging";
 
-/** One page, or null when the database isn't configured. */
-async function sbPage<T>(table: string, query: string, from: number): Promise<T[] | null> {
+/** `span` rows from `from`, or null when the database isn't configured. */
+async function sbPage<T>(table: string, query: string, from: number, span: number): Promise<T[] | null> {
   const res = await sb(`${table}${query ? `?${query}` : ""}`, {
-    headers: { Range: `${from}-${from + PAGE - 1}`, "Range-Unit": "items" },
+    headers: { Range: `${from}-${from + span - 1}`, "Range-Unit": "items" },
   });
   if (!res) return null;
   if (!res.ok) {
@@ -88,37 +88,47 @@ async function sbPage<T>(table: string, query: string, from: number): Promise<T[
  * window fits in one page, so the board disagreed with itself and only the
  * three-page figure was wrong.
  *
- * So: one page, no ordering needed. More than one, and the read restarts with
- * `order=id.asc` unless the caller named its own order. The extra page costs a
- * few hundred milliseconds on the handful of reads big enough to need it, and
- * it is the difference between a figure and a guess.
+ * So: one page, no ordering needed. More than one, and the read restarts under
+ * an order ending in the table's key — the caller's own order where they named
+ * one, with the key appended to settle its ties, because an order that isn't
+ * unique leaves exactly the same hole. The extra page costs a few hundred
+ * milliseconds on the handful of reads big enough to need it, and it is the
+ * difference between a figure and a guess.
+ *
+ * A caller's own `limit=` is honoured as a ceiling but never sent alongside the
+ * paging — see splitLimit for why the two cannot travel together.
  */
 export async function sbSelect<T = Row>(table: string, query = ""): Promise<T[]> {
-  const head = await sbPage<T>(table, query, 0);
-  if (head == null) return [];
-  // A short first page is the whole answer, in whatever order it arrived —
-  // nothing was paged, so nothing can have been doubled or dropped.
-  if (head.length < PAGE) return head;
+  const { query: base, limit } = splitLimit(query);
+  const want = limit ?? Infinity;
 
-  const stable = pagedQuery(query);
+  // The first page, in whatever order it arrives. Nothing was paged, so nothing
+  // can have been doubled or dropped, and a read that ends here — short, or long
+  // enough to fill the caller's ceiling — needs no order at all.
+  const head = await sbPage<T>(table, base, 0, Math.min(want, PAGE));
+  if (head == null) return [];
+  if (head.length < PAGE || head.length >= want) return head;
+
+  const stable = pagedQuery(base, table);
   const out: T[] = [];
-  if (stable === query) {
+  if (stable === base) {
     out.push(...head);
   } else {
-    const first = await sbPage<T>(table, stable, 0);
+    const first = await sbPage<T>(table, stable, 0, PAGE);
     if (first == null) return out;
     out.push(...first);
     if (first.length < PAGE) return out;
   }
 
-  for (let from = out.length; ; from += PAGE) {
-    const page = await sbPage<T>(table, stable, from);
-    if (page == null) return out;
+  while (out.length < want) {
+    const page = await sbPage<T>(table, stable, out.length, Math.min(want - out.length, PAGE));
+    if (page == null) break;
     out.push(...page);
     // A short page is the last page. Guarding on the length rather than parsing
     // content-range keeps this working when the header is absent.
-    if (page.length < PAGE) return out;
+    if (page.length < PAGE) break;
   }
+  return out;
 }
 
 /** First row or null, for the single-row lookups (settings, latest snapshot). */
