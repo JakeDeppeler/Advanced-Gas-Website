@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { dashboardDbConfigured } from "@/lib/dashboard/db";
+import { dashboardDbConfigured, sbUpsert } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { applyImport, checkContacts, loadImportSpec, planImport } from "@/lib/locations/stLocations";
+import { addNotes, applyImport, checkContacts, loadImportSpec, otherLocations, planImport } from "@/lib/locations/stLocations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +16,10 @@ export const maxDuration = 60;
 //                                                add any missing contacts to list
 //                                                positions N..N+limit, once the
 //                                                creates are done
+//   GET /api/servicetitan/locations?notes=1      add each listed location's missing notes
+//   GET /api/servicetitan/locations?others=1     read-only: the customer's locations
+//                                                that are not on the list, with the
+//                                                listed unit each one seems to duplicate
 //
 // The list is read from portal_settings.st_location_import. Safe to repeat: the
 // plan is recomputed from the customer's live locations, so anything already
@@ -45,6 +49,31 @@ export async function GET(req: Request) {
       alreadyThere: plan.alreadyThere.length,
       toCreate: plan.toCreate.length,
     };
+
+    if (url.searchParams.get("others") === "1") {
+      // The names of a customer's existing locations can carry residents'
+      // names, so the full report goes to Supabase and the public workflow log
+      // gets counts only.
+      const others = otherLocations(spec, plan);
+      await sbUpsert(
+        "portal_settings",
+        [{ key: "st_location_import_others", value: { at: new Date().toISOString(), others }, updated_at: new Date().toISOString() }],
+        "key",
+      );
+      return NextResponse.json({
+        ok: true,
+        mode: "others",
+        summary,
+        others: others.length,
+        sameUnitAsListed: others.filter((o) => o.sameUnitAs).length,
+        savedTo: "portal_settings.st_location_import_others",
+      });
+    }
+
+    if (url.searchParams.get("notes") === "1") {
+      const result = await addNotes(spec, plan);
+      return NextResponse.json({ ok: result.failed.length === 0, mode: "notes", summary, ...result });
+    }
 
     if (url.searchParams.get("contacts") === "1") {
       const from = Math.max(0, Math.floor(Number(url.searchParams.get("from")) || 0));

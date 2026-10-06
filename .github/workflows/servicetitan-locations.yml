@@ -4,35 +4,31 @@ name: ServiceTitan locations import
 # ServiceTitan customer. The list is kept in Supabase rather than here because
 # this repo and its Actions logs are public and the list holds contact details.
 #
-# Actions tab → ServiceTitan locations import → Run workflow.
-#   - Untick "apply" for a dry run: shows the customer name and what would be
-#     created. Nothing is written.
-#   - Tick "apply" with a small limit for a test batch, check it in ServiceTitan,
-#     then tick "all" to create the rest. Re-running is safe: locations that
-#     already exist on the customer (by name), or that this import has already
-#     created, are skipped.
-#   - Then run once more with "contacts" ticked. Creates do not check contacts,
-#     because ServiceTitan takes a little while to make a new location readable.
+# Actions tab → ServiceTitan locations import → Run workflow, then pick a task:
+#   dry-run   shows the customer and what would be created. Writes nothing.
+#   create    creates everything still missing, `limit` per call, stopping at the
+#             first failure. Safe to repeat: names already on the customer, or
+#             already created by this import, are skipped.
+#   contacts  adds any missing contact. Run after create — ServiceTitan takes a
+#             little while to make a new location readable.
+#   notes     adds each location's notes (repairs from the service list), pinned.
+#   others    read-only: the customer's locations that are not on the list, and
+#             which listed unit each appears to duplicate. The full report is
+#             saved to portal_settings.st_location_import_others, not this log,
+#             because existing location names can carry residents' names.
 
 on:
   workflow_dispatch:
     inputs:
-      apply:
-        description: "Create locations in ServiceTitan"
-        type: boolean
-        default: false
+      task:
+        description: "What to do"
+        type: choice
+        options: [dry-run, create, contacts, notes, others]
+        default: dry-run
       limit:
         description: "Locations per call (max 50)"
         type: string
-        default: "5"
-      all:
-        description: "Keep calling until every location is created (apply only)"
-        type: boolean
-        default: false
-      contacts:
-        description: "Check every location's contact and add any that are missing (run after the creates)"
-        type: boolean
-        default: false
+        default: "50"
       url:
         description: "Site to run against (default: the DASHBOARD_SYNC_URL host)"
         type: string
@@ -47,14 +43,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Plan or create locations
+      - name: Run the selected task
         env:
           SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          APPLY: ${{ inputs.apply && '1' || '' }}
-          ALL: ${{ inputs.all && '1' || '' }}
-          CONTACTS: ${{ inputs.contacts && '1' || '' }}
-          LIMIT: ${{ inputs.limit || '5' }}
+          TASK: ${{ inputs.task }}
+          LIMIT: ${{ inputs.limit || '50' }}
           URL_OVERRIDE: ${{ inputs.url }}
         run: |
           set -euo pipefail
@@ -65,87 +59,98 @@ jobs:
           fi
           SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
           BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
-          BASE="${BASE%/}"
+          BASE="${BASE%/}/api/servicetitan/locations"
           auth=(-H "Authorization: Bearer ${CRON_SECRET}")
           JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
 
-          if [ -n "$CONTACTS" ]; then
-            from=0; checked=0; added=0; failed=0
-            : > failures.ndjson
-            while :; do
-              curl -sS --max-time 90 "${auth[@]}" "${BASE}/api/servicetitan/locations?contacts=1&from=${from}&limit=${LIMIT}" > run.json || true
-              jq -c '{ok, mode, checked, added, next, failed, error}' run.json || cat run.json
-              if [ "$(jq -r '.mode // empty' run.json)" != "contacts" ]; then
-                echo "::error::$(jq -r '.error // "unexpected response"' run.json 2>/dev/null || echo unexpected response)"
-                exit 1
-              fi
-              checked=$((checked + $(jq -r .checked run.json)))
-              added=$((added + $(jq -r .added run.json)))
-              failed=$((failed + $(jq -r '.failed | length' run.json)))
-              jq -c '.failed[]' run.json >> failures.ndjson
-              from=$(jq -r '.next // empty' run.json)
-              [ -z "$from" ] && break
-            done
-            {
-              echo "## Locations import — contacts"
-              echo
-              echo "Checked **${checked}** locations, added **${added}** missing contacts, failed **${failed}**."
-              if [ "$failed" != "0" ]; then
-                echo
-                echo "| Location | Id | Error |"
-                echo "|---|---|---|"
-                jq -r "${JQ_DEFS}"'"| \(.name|e) | \(.id|e) | \(.error|e) |"' failures.ndjson
-              fi
-            } >> "$GITHUB_STEP_SUMMARY"
-            [ "$failed" = "0" ]
-            exit 0
-          fi
-
-          if [ -z "$APPLY" ]; then
-            curl --fail-with-body -sS --max-time 90 "${auth[@]}" "${BASE}/api/servicetitan/locations" > plan.json || { cat plan.json; exit 1; }
-            {
-              echo "## Locations import — dry run (nothing written)"
-              echo
-              jq -r '"Customer **\(.summary.customer.name)** (\(.summary.customer.id)) has \(.summary.existingOnCustomer) locations now."' plan.json
-              echo
-              jq -r '"In the list: \(.summary.inList). Already on the customer: \(.summary.alreadyThere). To create: **\(.summary.toCreate)**."' plan.json
-              echo
-              echo "First to create: $(jq -r '.firstToCreate | join(", ")' plan.json)"
-            } >> "$GITHUB_STEP_SUMMARY"
-            jq . plan.json
-            exit 0
-          fi
-
-          total=0; failed=0; rounds=0
-          : > failures.ndjson
-          while :; do
-            rounds=$((rounds + 1))
-            curl -sS --max-time 90 "${auth[@]}" "${BASE}/api/servicetitan/locations?apply=1&limit=${LIMIT}" > run.json || true
-            jq -c '{ok, mode, summary, created, remaining, createdNames, failed, error}' run.json || cat run.json
-            if [ "$(jq -r '.mode // empty' run.json)" != "apply" ]; then
+          # One call. Prints the response and fails the step on an error body.
+          call() {
+            curl -sS --max-time 90 "${auth[@]}" "${BASE}$1" > run.json || true
+            jq -c 'del(.summary)' run.json || cat run.json
+            if [ "$(jq -r '.mode // empty' run.json 2>/dev/null)" = "" ]; then
               echo "::error::$(jq -r '.error // "unexpected response"' run.json 2>/dev/null || echo unexpected response)"
               exit 1
             fi
-            total=$((total + $(jq -r .created run.json)))
-            n=$(jq -r '.failed | length' run.json)
-            failed=$((failed + n))
-            jq -c '.failed[]' run.json >> failures.ndjson
-            remaining=$(jq -r .remaining run.json)
-            customer=$(jq -r '"\(.summary.customer.name) (\(.summary.customer.id))"' run.json)
-            # Stop on any failure so a systematic error (a missing scope, a bad
-            # field) costs one batch, not the whole list.
-            if [ -z "$ALL" ] || [ "$n" != "0" ] || [ "$remaining" = "0" ] || [ "$rounds" -ge 40 ]; then break; fi
-          done
-
-          {
-            echo "## Locations import — applied"
-            echo
-            echo "Customer **${customer}**. Created **${total}**, failed **${failed}**, still to create **${remaining}**."
-            if [ "$failed" != "0" ]; then
+          }
+          customer() { jq -r '"\(.summary.customer.name) (\(.summary.customer.id))"' run.json; }
+          failure_table() {
+            if [ -s failures.ndjson ]; then
               echo
               echo "| Location | Id | Error |"
               echo "|---|---|---|"
               jq -r "${JQ_DEFS}"'"| \(.name|e) | \(.id|e) | \(.error|e) |"' failures.ndjson
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
-          [ "$failed" = "0" ]
+          }
+          : > failures.ndjson
+
+          case "$TASK" in
+            dry-run)
+              call ""
+              {
+                echo "## Locations import — dry run (nothing written)"
+                echo
+                jq -r '"Customer **\(.summary.customer.name)** (\(.summary.customer.id)) has \(.summary.existingOnCustomer) locations now."' run.json
+                echo
+                jq -r '"In the list: \(.summary.inList). Already on the customer: \(.summary.alreadyThere). To create: **\(.summary.toCreate)**."' run.json
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+
+            create)
+              total=0; rounds=0
+              while :; do
+                rounds=$((rounds + 1))
+                call "?apply=1&limit=${LIMIT}"
+                total=$((total + $(jq -r .created run.json)))
+                jq -c '.failed[]' run.json >> failures.ndjson
+                remaining=$(jq -r .remaining run.json)
+                # Stop on any failure so a systematic error costs one batch.
+                if [ -s failures.ndjson ] || [ "$remaining" = "0" ] || [ "$rounds" -ge 40 ]; then break; fi
+              done
+              {
+                echo "## Locations import — create"
+                echo
+                echo "Customer **$(customer)**. Created **${total}**, failed **$(wc -l < failures.ndjson)**, still to create **${remaining}**."
+                failure_table
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+
+            contacts)
+              from=0; checked=0; added=0
+              while :; do
+                call "?contacts=1&from=${from}&limit=${LIMIT}"
+                checked=$((checked + $(jq -r .checked run.json)))
+                added=$((added + $(jq -r .added run.json)))
+                jq -c '.failed[]' run.json >> failures.ndjson
+                from=$(jq -r '.next // empty' run.json)
+                [ -z "$from" ] && break
+              done
+              {
+                echo "## Locations import — contacts"
+                echo
+                echo "Checked **${checked}** locations, added **${added}** missing contacts, failed **$(wc -l < failures.ndjson)**."
+                failure_table
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+
+            notes)
+              call "?notes=1"
+              jq -c '.failed[]' run.json >> failures.ndjson
+              {
+                echo "## Locations import — notes"
+                echo
+                jq -r '"\(.locations) locations have notes on the list. Added **\(.added)** notes, failed **\(.failed | length)**."' run.json
+                failure_table
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+
+            others)
+              call "?others=1"
+              {
+                echo "## Locations import — other locations on the customer"
+                echo
+                jq -r '"**\(.others)** locations on the customer are not on the import list; **\(.sameUnitAsListed)** of them look like the same unit as an imported one. Full report saved to `\(.savedTo)` (kept out of this public log)."' run.json
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+          esac
+
+          [ ! -s failures.ndjson ]
