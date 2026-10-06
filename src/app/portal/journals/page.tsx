@@ -5,7 +5,8 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Figs, ago } from "@/components/portal/Figs";
-import { JournalRecipients } from "@/components/portal/JournalRecipients";
+import { EmailListEditor } from "@/components/portal/EmailListEditor";
+import { changeRecipient } from "./actions";
 import { dbConfigured } from "@/lib/portal/db";
 import { journalErrors, journalSyncState, journalsWaiting, latestJournals, syncedSince, WAITING_AFTER_HOURS, type JournalEntry } from "@/lib/journals/read";
 import { alertRecipients } from "@/lib/journals/alerts";
@@ -173,7 +174,7 @@ export default async function JournalsPage() {
           One email per sync that finds a new error, listing every entry that didn&rsquo;t go, with ServiceTitan&rsquo;s reason and a
           link to each. The same error isn&rsquo;t sent twice; if it changes, it is.
         </p>
-        <JournalRecipients initial={recipients} />
+        <EmailListEditor id="journal-alert" initial={recipients} change={changeRecipient} empty="Nobody is on the list, so a failed journal entry shows on the board and here but isn’t emailed." />
       </section>
     </PortalShell>
   );

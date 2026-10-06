@@ -1,10 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { changeRecipient } from "@/app/portal/journals/actions";
 
-/** Who gets the "didn't sync to Xero" emails: the list, a remove on each, and an add. */
-export function JournalRecipients({ initial }: { initial: string[] }) {
+type Change = (input: { email: string; add: boolean }) => Promise<{ ok: boolean; error?: string; emails?: string[] }>;
+
+/**
+ * Who gets an email the portal sends: the list, a remove on each, and an add.
+ * The saving is the page's own server action, handed in, so the journal
+ * alerts and the reports keep separate lists with one way of editing them.
+ */
+export function EmailListEditor({ initial, change: save, empty, id }: {
+  initial: string[];
+  change: Change;
+  /** Said when nobody is on the list: what that means for this list. */
+  empty: string;
+  /** For the add box's id, so two lists on one page don't share one. */
+  id: string;
+}) {
   const [emails, setEmails] = useState(initial);
   const [email, setEmail] = useState("");
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -12,7 +24,7 @@ export function JournalRecipients({ initial }: { initial: string[] }) {
 
   function change(e: string, add: boolean) {
     start(async () => {
-      const res = await changeRecipient({ email: e, add });
+      const res = await save({ email: e, add });
       if (!res.ok) return setMsg({ ok: false, text: res.error ?? "Couldn't save." });
       setEmails(res.emails ?? emails);
       if (add) setEmail("");
@@ -23,7 +35,7 @@ export function JournalRecipients({ initial }: { initial: string[] }) {
   return (
     <div className="pt-jrn__who">
       {emails.length === 0 ? (
-        <p className="pt-inline is-err">Nobody is on the list, so a failed journal entry shows on the board and here but isn&rsquo;t emailed.</p>
+        <p className="pt-inline is-err">{empty}</p>
       ) : (
         <ul className="pt-jrn__list">
           {emails.map((e) => (
@@ -42,7 +54,7 @@ export function JournalRecipients({ initial }: { initial: string[] }) {
       >
         <label className="pt-field">
           <span>Add someone</span>
-          <input id="journal-alert-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder="name@advancedgas.com.au" />
+          <input id={`${id}-email`} type="email" inputMode="email" autoComplete="email" value={email} onChange={(ev) => setEmail(ev.target.value)} placeholder="name@advancedgas.com.au" />
         </label>
         <button type="submit" className="pt-btn pt-btn--orange" disabled={pending || !email.trim()}>{pending ? "Saving…" : "Add"}</button>
       </form>

@@ -167,6 +167,23 @@ export async function sbUpdateReturning<T = Row>(table: string, query: string, p
   return (await res.json()) as T[];
 }
 
+/**
+ * Insert a row unless one with the same conflict key is already there. True
+ * when this call made it — a claim two runs can race for, and only one wins.
+ */
+export async function sbInsertIfAbsent(table: string, row: Row, onConflict: string): Promise<boolean> {
+  const res = await sb(`${table}?on_conflict=${encodeURIComponent(onConflict)}`, {
+    method: "POST",
+    headers: { Prefer: "resolution=ignore-duplicates,return=representation" },
+    body: JSON.stringify(row),
+  });
+  if (!res) return false;
+  if (!res.ok) {
+    throw new Error(`${table} insert failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+  return ((await res.json()) as unknown[]).length > 0;
+}
+
 /** DELETE every row matching the filter query. */
 export async function sbDelete(table: string, query: string): Promise<void> {
   const res = await sb(`${table}?${query}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });

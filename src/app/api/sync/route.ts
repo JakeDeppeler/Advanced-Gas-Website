@@ -3,6 +3,7 @@ import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
+import { runDueReports } from "@/lib/reports/run";
 // The portal owns the Xero refresh loop. This turns it on a schedule, as the
 // board's own refresh route does — safe to call from both because ensureXeroToken
 // claims the refresh in the database first.
@@ -61,11 +62,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: (e as Error).message, sync }, { status: 500 });
   }
 
+  // The evening reports' backstop: anything due and not yet sent goes now,
+  // from the snapshot just taken. A failure here is the reports', not the sync's.
+  const reports = await runDueReports(new Date(), { ...snapshot, computedAt: new Date().toISOString() })
+    .catch((e) => [{ key: "reports", status: "error", error: (e as Error).message }]);
+
   return NextResponse.json({
     ok: true,
     durationMs: Date.now() - startedAt,
     sync,
     xeroToken,
+    reports,
     sources: snapshot.sources,
   });
 }
