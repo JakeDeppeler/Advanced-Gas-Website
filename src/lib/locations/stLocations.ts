@@ -300,15 +300,40 @@ export async function mergePairs(spec: ImportSpec) {
   );
   const pairs = row?.value?.pairs ?? [];
   const ledger = await loadLedger();
-  const results: { name: string; keep: number; retire: number; ok: boolean; done?: string[]; error?: string }[] = [];
+  const results: {
+    name: string;
+    keep: number;
+    retire: number;
+    ok: boolean;
+    before?: string;
+    done?: string[];
+    error?: string;
+  }[] = [];
 
   for (const pair of pairs) {
     const done: string[] = [];
+    let before: string | undefined;
     try {
       const loc = spec.locations.find((l) => norm(l.name) === norm(pair.name));
       if (!loc) throw new Error("not on the import list");
-      const keep = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.keep}`));
-      const retire = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.retire}`));
+      // The state each record was in before this run touched it, reported
+      // either way: after the first live attempt the customer's active count
+      // fell by eight although nothing had been deactivated, and which of each
+      // pair survived has to be read, not assumed.
+      const state = async (id: number) => {
+        try {
+          const l = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
+          return { l, text: `"${l.name}" ${l.active === false ? "inactive" : "active"}` };
+        } catch (e) {
+          return { l: null, text: /\b404\b/.test((e as Error).message) ? "not found" : "unreadable" };
+        }
+      };
+      const ks = await state(pair.keep);
+      const rs = await state(pair.retire);
+      before = `kept ${ks.text}; duplicate ${rs.text}`;
+      if (!ks.l || !rs.l) throw new Error("one of the pair could not be read");
+      const keep = ks.l;
+      const retire = rs.l;
       if (keep.customerId !== spec.customerId || retire.customerId !== spec.customerId) {
         throw new Error("one of the pair is not on this customer");
       }
@@ -321,8 +346,18 @@ export async function mergePairs(spec: ImportSpec) {
       const haveContacts = await stList<StContact>("crm", `locations/${pair.keep}/contacts`);
       for (const c of loc.contacts ?? []) {
         if (haveContacts.some((h) => h.type === c.type && norm(h.value) === norm(c.value))) continue;
-        await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/contacts`), c);
-        done.push("contact");
+        try {
+          await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/contacts`), c);
+          done.push("contact");
+        } catch (e) {
+          // On the first live merge every one of these older records answered
+          // 409 Conflict, though its contact list did not show the address —
+          // ServiceTitan already holds a matching contact it does not list
+          // here. A conflict means the contact is there; it must not stop the
+          // duplicate being retired, which would leave two "Unit NNN" records.
+          if (!/\b409\b/.test((e as Error).message)) throw e;
+          done.push("contact already on record");
+        }
       }
       const haveNotes = await stList<StNote>("crm", `locations/${pair.keep}/notes`);
       for (const text of loc.notes ?? []) {
@@ -343,9 +378,9 @@ export async function mergePairs(spec: ImportSpec) {
       if (r.active !== false) throw new Error("duplicate is still active — ServiceTitan ignored the deactivate");
 
       ledger[loc.name] = pair.keep;
-      results.push({ ...pair, ok: true, done: done.length ? done : ["already merged"] });
+      results.push({ ...pair, ok: true, before, done: done.length ? done : ["already merged"] });
     } catch (e) {
-      results.push({ ...pair, ok: false, done, error: scrub(e) });
+      results.push({ ...pair, ok: false, before, done, error: scrub(e) });
     }
   }
   await saveLedger(ledger);
