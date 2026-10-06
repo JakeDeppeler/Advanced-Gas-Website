@@ -26,7 +26,7 @@ const REFRESH_MS = 30_000;
 // want an export request every thirty seconds all day.
 const RESYNC_MS = 30_000;
 const PAGE_MS = 30_000;
-const PAGES = ["Today", "Pace", "Quotes", "Team", "Performance", "Areas"] as const;
+const PAGES = ["Today", "Pace", "Quotes", "Invoices", "Team", "Performance", "Areas"] as const;
 
 /**
  * The line beside each page name: what the figures below it are measuring.
@@ -50,6 +50,9 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `What the ${goal} goal needs of every step${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
+  // Names whose job it is, because the page is a work list rather than a score:
+  // everything on it is something one person in the office does next.
+  Invoices: () => "Money to bill, money owed to us, and what's overdue · one person's job",
   // The money column is the month; the last three are thirty days, because a
   // quote written this week has not had a chance to close. Said once here
   // rather than three times in headers a column wide.
@@ -358,14 +361,15 @@ export function ScreenBoard({
           only replays on a fresh mount. */}
       <div
         key={page}
-        className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}
+        className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--invoices", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}
       >
         {page === 0 && <TodayPage m={m} live={live} />}
         {page === 1 && <PacePage m={m} live={live} now={now} />}
         {page === 2 && <QuotesPage m={m} live={live} />}
-        {page === 3 && <TeamPage m={m} live={live} />}
-        {page === 4 && <PerformancePage m={m} live={live} />}
-        {page === 5 && <AreasPage m={m} live={live} />}
+        {page === 3 && <InvoicesPage m={m} live={live} />}
+        {page === 4 && <TeamPage m={m} live={live} />}
+        {page === 5 && <PerformancePage m={m} live={live} />}
+        {page === 6 && <AreasPage m={m} live={live} />}
       </div>
 
       <div className={`screen__foot${journalAlert ? " has-alert" : ""}`}>
@@ -899,6 +903,177 @@ const endLabel = (iso: string) =>
 /** The month the board is pacing, named rather than numbered. */
 const monthName = (now: Date) =>
   now.toLocaleDateString("en-AU", { month: "long", timeZone: "Australia/Melbourne" });
+
+/**
+ * Invoices: money to bill, money owed, and what is overdue.
+ *
+ * The only page on the board that is a work list rather than a score. Every
+ * figure on it is something one person in the office does next, which is why
+ * the subtitle says so — the crew can skip this one.
+ *
+ * Two things the design asked for are not here, and deliberately:
+ *
+ * - **VEU rebates to come.** Nothing in this database knows about a VEU
+ *   lodgement. There is no table, no column and no field on the job; the
+ *   figure would have had to be invented. Paid today takes the fourth tile
+ *   instead, which is real and belongs on a money page.
+ * - **The paperwork each job needs** ("Plumbing cert + VEU form"). That is a
+ *   rule about job type that nobody has written down anywhere this code can
+ *   read. A chip guessed from a job-type string would be wrong on the job that
+ *   matters, which is worse than no chip.
+ */
+function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
+  const aging = m.receivablesAging;
+  const owed = m.receivablesTotal ?? 0;
+  /* The ageing bars are shares of what is owed, not of the biggest bucket: the
+     question is how much of the money is late, and scaling to the largest row
+     makes a tidy ledger look like a bad one. */
+  const bar = (v: number) => (owed > 0 ? Math.max(0.02, v / owed) : 0);
+
+  return (
+    <>
+      <HeroCard
+        navy
+        label="To bill"
+        value={live.st ? count(m.toBillCount) : NA}
+        foot={
+          !live.st
+            ? undefined
+            : m.toBillCount === 0
+              ? "everything finished is billed"
+              : `${m.toBillCount === 1 ? "job" : "jobs"} done, not billed yet` +
+                /* Most service work is priced after the visit, so the queue has
+                   no value until somebody puts one on it. Only the part that
+                   was sold before the visit can be quoted as money. */
+                (m.toBillValue > 0 ? ` · ${plain(m.toBillValue)} of it already sold` : " · not priced yet")
+        }
+      />
+      <HeroCard
+        label="Owed to us"
+        value={xeroFig(m.receivablesTotal)}
+        foot={
+          m.paidToday != null && m.paidToday > 0
+            ? `invoiced, not paid yet · paid today ${plain(m.paidToday)}`
+            : "invoiced, not paid yet"
+        }
+      />
+      <HeroCard
+        label="Overdue"
+        value={xeroFig(m.overdueTotal)}
+        foot={
+          m.overdueCount == null
+            ? undefined
+            : `${count(m.overdueCount)} ${m.overdueCount === 1 ? "invoice" : "invoices"} past their due date`
+        }
+      />
+      <HeroCard
+        label="Paid today"
+        value={live.st ? plain(m.paidToday ?? 0) : NA}
+        foot={
+          m.paymentsToday == null
+            ? undefined
+            : m.paymentsToday === 0
+              ? "nothing in yet today"
+              : `${count(m.paymentsToday)} ${m.paymentsToday === 1 ? "payment" : "payments"} · ${plain(m.paidMonth ?? 0)} this month`
+        }
+      />
+
+      {/* The work list. Today's at the top, then the ones that have been
+          waiting — a job finished on Friday is still unbilled on Monday. */}
+      <div className="tile inv__list">
+        <div className="tile__head">
+          <span className="tile__title">To bill · finished recently</span>
+          <span className="tile__sub">do the paperwork, then bill it</span>
+        </div>
+        {!live.st || m.toBill.length === 0 ? (
+          <span className="tile__sub">{live.st ? "Nothing waiting to be billed" : NA}</span>
+        ) : (
+          <div className="quotes">
+            {m.toBill.map((j) => (
+              <div className="quote inv__row" key={j.id}>
+                <span className="quote__label">
+                  {j.jobType ?? "Job"}
+                  {j.suburb ? <span className="inv__where"> · {j.suburb}</span> : null}
+                  {j.jobNumber ? <span className="quote__job">#{j.jobNumber}</span> : null}
+                </span>
+                <span className="quote__at">{dayTime(j.at)}</span>
+                <span className="quote__value">{j.value != null && j.value > 0 ? plain(j.value) : <span className="inv__unpriced">to price</span>}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Oldest first, because that is the order they get rung in. No customer
+          names: this is a wall in a room the public walks through. */}
+      <div className="tile inv__chase">
+        <div className="tile__head">
+          <span className="tile__title">Overdue · chase these</span>
+          <span className="tile__sub">
+            {m.overdueCount != null ? `${count(m.overdueCount)} · ${plain(m.overdueTotal ?? 0)}` : NA}
+          </span>
+        </div>
+        {m.overdueList.length === 0 ? (
+          <span className="tile__sub">Nothing overdue</span>
+        ) : (
+          <div className="quotes">
+            {m.overdueList.map((o) => (
+              <div className="quote inv__row" key={o.number}>
+                <span className="quote__label">Invoice {o.number}</span>
+                <span className={`inv__age ${o.days > 30 ? "is-bad" : o.days > 14 ? "is-warn" : ""}`}>{o.days} days</span>
+                <span className="quote__value">{plain(o.amount)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="tile inv__age-panel">
+        <div className="tile__head">
+          <span className="tile__title">Owed to us · by age</span>
+        </div>
+        {!aging ? (
+          <span className="tile__sub">{NA}</span>
+        ) : (
+          <div className="inv__bars">
+            {[
+              { k: "Not due yet", v: aging.notDue, cls: "" },
+              { k: "1 – 14 days", v: aging.d1to14, cls: "is-soft" },
+              { k: "15 – 30 days", v: aging.d15to30, cls: "is-warn" },
+              { k: "30+ days", v: aging.d30plus, cls: "is-bad" },
+            ].map((r) => (
+              <span className="inv__bar" key={r.k}>
+                <span className="inv__barlabel">{r.k}</span>
+                <span className="inv__track">
+                  <span className={`inv__fill ${r.cls}`} style={{ width: `${(bar(r.v) * 100).toFixed(1)}%` }} />
+                </span>
+                <b className={`inv__barval ${r.cls}`}>{plain(r.v)}</b>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+/**
+ * A Xero figure: blank when Xero has never answered, rather than $0.
+ *
+ * Not gated on the ServiceTitan light — Xero is its own source with its own dot
+ * in the footer, and a ServiceTitan outage says nothing about what we are owed.
+ */
+const xeroFig = (n: number | null | undefined) => (n == null ? NA : plain(n));
+
+/** "Today 4:55 pm" or "Fri 2:30 pm" — which day it was is half the point here. */
+function dayTime(iso: string): string {
+  const d = new Date(iso);
+  const t = d.toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+  const today = new Date().toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" });
+  const its = d.toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" });
+  if (today === its) return `Today ${t}`;
+  return `${d.toLocaleDateString("en-AU", { weekday: "short", timeZone: "Australia/Melbourne" })} ${t}`;
+}
 
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="quotes written, still out, or closed" />;

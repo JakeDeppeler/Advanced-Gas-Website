@@ -12,11 +12,11 @@
  *
  *   npm run check:xero
  *
- * The --conditions=react-server in that script is only so `import "server-only"`
- * resolves to its no-op rather than the copy that throws; nothing here reaches
- * the database.
+ * It imports xeroFreshness.ts rather than metrics.ts on purpose: these rules
+ * need no database, and going through metrics.ts meant the check broke the day
+ * an unrelated feature put React in that file's import graph.
  */
-import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "../src/lib/dashboard/metrics";
+import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "../src/lib/dashboard/xeroFreshness";
 
 let failed = 0;
 function ok(cond: boolean, what: string, got?: unknown) {

@@ -1,6 +1,8 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { fetchXeroReceivables, type XeroResult } from "./xero";
+import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
+export { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState };
 import { suburbs } from "../suburbs";
 import {
   addDays,
@@ -12,7 +14,7 @@ import {
   workingDaysInMonth,
   type WorkingCalendar,
 } from "./dates";
-import { buildPace, type PaceData, type PaceSettings, type PaceView } from "./pace";
+import { buildPace, shiftIso, type PaceData, type PaceSettings, type PaceView } from "./pace";
 import { computePaceData } from "./paceData";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
@@ -140,7 +142,8 @@ export function quoteKey(r: {
   return `e${r.id}`;
 }
 
-export type SourceState = "ok" | "stale" | "error" | "not-configured";
+export type { SourceState } from "./sourceState";
+import type { SourceState } from "./sourceState";
 
 export type Metrics = {
   leadsToday: number;
@@ -369,6 +372,31 @@ export type Metrics = {
   overdueTotal: number | null;
   overdueCount: number | null;
   receivablesTotal: number | null;
+  /** What is owed, split by how long it has been owed. Null until Xero answers. */
+  receivablesAging: { notDue: number; d1to14: number; d15to30: number; d30plus: number } | null;
+  /** The oldest overdue invoices, to work from the top. No customer names: see dashboard/xero.ts. */
+  overdueList: Array<{ number: string; days: number; amount: number }>;
+
+  /**
+   * Jobs finished and not yet billed — the office's own to-do list.
+   *
+   * ServiceTitan opens an invoice when the job is created, so "not invoiced" is
+   * not a missing row; it is a row still sitting at zero. `value` is the sale
+   * behind the job where there was one, and null where the job gets priced
+   * after the visit, which is most service work: a figure guessed for those
+   * would be the board inventing money.
+   */
+  toBill: Array<{
+    id: number;
+    jobNumber: string | null;
+    jobType: string | null;
+    suburb: string | null;
+    at: string;
+    value: number | null;
+  }>;
+  toBillCount: number;
+  /** The part of the unbilled queue that was sold before the visit, so can be valued. */
+  toBillValue: number;
 
   topJobTypes: Array<{
     jobType: string;
@@ -1007,6 +1035,71 @@ async function serviceTitanMetrics(now: Date) {
   const bookingsToday = await sbCount("st_jobs", q.gte("created_on", startOfDayMelbourne(now).toISOString()));
 
   /**
+   * Jobs finished and not billed — what the Invoices page works from.
+   *
+   * ServiceTitan opens an invoice the moment a job is created, so there is no
+   * such thing as a completed job with no invoice row: on 60 days of history
+   * every one of 274 had one. What marks a job as unbilled is that its invoice
+   * is still sitting at zero, which 136 of those 274 were. Counting missing
+   * rows instead would have put a confident 0 on the wall forever.
+   *
+   * Fourteen days, not today: the point of the list is work that has been
+   * waiting, and a job finished on Friday afternoon is still unbilled on
+   * Monday. The page shows today's at the top.
+   */
+  const toBillFrom = shiftIso(today, -14);
+  const doneRecently = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; suburb: string | null; completed_on: string }>(
+    "st_jobs",
+    [
+      q.select("id,job_number,job_type,suburb,completed_on"),
+      q.gte("completed_on", `${toBillFrom}T00:00:00Z`),
+      q.order("completed_on", "desc"),
+      "limit=400",
+    ].join("&"),
+  ).catch(() => []);
+
+  const doneIds = doneRecently.map((j) => Number(j.id)).filter(Number.isFinite);
+  // The invoice behind each, to find the ones still at zero.
+  const billedTotalByJob = new Map<number, number>();
+  // What the job was sold for, where it was sold before the visit at all.
+  const soldValueByJob = new Map<number, number>();
+  if (doneIds.length) {
+    const ids = doneIds.slice(0, 400).join(",");
+    const [invs, sold] = await Promise.all([
+      sbSelect<{ job_id: number | null; total: number | null }>(
+        "st_invoices",
+        [q.select("job_id,total"), `job_id=in.(${ids})`].join("&"),
+      ).catch(() => []),
+      sbSelect<{ job_id: number | null; total: number | null }>(
+        "st_estimates",
+        [q.select("job_id,total"), `job_id=in.(${ids})`, "sold_on=not.is.null"].join("&"),
+      ).catch(() => []),
+    ]);
+    for (const i of invs) {
+      if (i.job_id == null) continue;
+      billedTotalByJob.set(Number(i.job_id), (billedTotalByJob.get(Number(i.job_id)) ?? 0) + Number(i.total ?? 0));
+    }
+    for (const e of sold) {
+      if (e.job_id == null) continue;
+      soldValueByJob.set(Number(e.job_id), (soldValueByJob.get(Number(e.job_id)) ?? 0) + Number(e.total ?? 0));
+    }
+  }
+
+  const toBillAll = doneRecently
+    .filter((j) => (billedTotalByJob.get(Number(j.id)) ?? 0) === 0)
+    .map((j) => ({
+      id: Number(j.id),
+      jobNumber: j.job_number ? String(j.job_number) : null,
+      jobType: j.job_type ? String(j.job_type) : null,
+      suburb: j.suburb ? String(j.suburb) : null,
+      at: String(j.completed_on),
+      value: soldValueByJob.get(Number(j.id)) ?? null,
+    }));
+  const toBillCount = toBillAll.length;
+  const toBillValue = toBillAll.reduce((a, r) => a + (r.value ?? 0), 0);
+  const toBill = toBillAll.slice(0, 6);
+
+  /**
    * What today's bookings actually are.
    *
    * "19 jobs booked" is a number; four split systems and a ducted heater is a
@@ -1624,6 +1717,9 @@ async function serviceTitanMetrics(now: Date) {
     profitCoverage,
     bookingsMonth,
     bookingsToday,
+    toBill,
+    toBillCount,
+    toBillValue,
     soldMtd,
     soldToday,
     topJobTypes,
@@ -1745,91 +1841,6 @@ async function boardConfig(now: Date): Promise<{ targets: Targets; calendar: Wor
 
 /** Most recent stored snapshot, used to carry a failed source's last known value. */
 /** "3 hours", "2 days" — for saying how old a carried-forward figure is. */
-function relativeHours(ms: number): string {
-  const h = Math.round(ms / 3_600_000);
-  if (h < 48) return `${h} ${h === 1 ? "hour" : "hours"}`;
-  return `${Math.round(h / 24)} days`;
-}
-
-/**
- * How old a Xero reading may be before the wall admits it.
- *
- * A Xero access token lives thirty minutes and the portal refreshes it when
- * somebody opens a Finance page — this file must never refresh it, see
- * dashboard/xero.ts for why. So on any evening or weekend with nobody in the
- * portal, the token lapses within half an hour; the board went amber and stayed
- * amber, with "xero access token expired" across the footer, while the figures
- * behind it were perfectly good.
- *
- * That is the board crying wolf, and a light that is permanently amber gets
- * read exactly as often as one that is permanently green: never. What the tile
- * carries is money owed to us, which moves when an invoice is raised or paid —
- * daily, not half-hourly. A reading from this morning is the right number to
- * put on a wall this afternoon.
- */
-export const XERO_GOOD_FOR_MS = 12 * 60 * 60 * 1000;
-
-/**
- * How often this file is allowed to ask Xero anything.
- *
- * The board recomputes every twenty-five seconds or so, and before this gate
- * every one of those recomputes pulled the whole authorised-receivables ledger
- * — roughly 3,500 calls a day against a tenant limit of 5,000, with the
- * portal's own Finance pages drawing on the same allowance. That was invisible
- * only because the token kept lapsing overnight and most of those calls failed
- * before they counted; now that the sync keeps the token alive, they would all
- * land.
- *
- * Five minutes is well inside the twelve hours a reading is allowed to be old
- * (XERO_GOOD_FOR_MS above), and money owed to us moves when an invoice is
- * raised or paid, not between two refreshes of a wall display.
- */
-const XERO_READ_EVERY_MS = 5 * 60 * 1000;
-
-/**
- * Whether Xero is due to be asked again.
- *
- * `lastReadAt` is the last read that SUCCEEDED, which is what makes the gate
- * safe: a Xero that has started failing ages past the interval within the
- * interval and is retried, so this can only ever suppress a call whose answer
- * we already have. Exported so the rule can be exercised without a recompute.
- */
-export function xeroReadDue(lastReadAt: string | undefined, now: Date): boolean {
-  if (!lastReadAt) return true;
-  const ageMs = now.getTime() - Date.parse(lastReadAt);
-  if (!Number.isFinite(ageMs)) return true;
-  // A timestamp in the future is a clock that has moved, not a fresh reading.
-  return ageMs < 0 || ageMs >= XERO_READ_EVERY_MS;
-}
-
-/**
- * What the footer light should say about Xero.
- *
- * Exported so the rule can be exercised on its own: it is the one piece of the
- * snapshot that decides what the room believes, and it is reached only through
- * a full recompute otherwise.
- */
-export function xeroSourceState(
-  ok: boolean,
-  lastReadAt: string | undefined,
-  now: Date,
-  reason: string,
-): { state: SourceState; detail?: string; at?: string } {
-  if (ok) return { state: "ok", at: now.toISOString() };
-
-  // The time of the last successful READ, not of the last snapshot. Carrying
-  // the snapshot's own timestamp meant this advanced every thirty seconds
-  // whether or not Xero had answered, so it could never say how old the figures
-  // were — which is the one thing it is for.
-  const ageMs = lastReadAt ? now.getTime() - Date.parse(lastReadAt) : Number.POSITIVE_INFINITY;
-  if (Number.isFinite(ageMs) && ageMs < XERO_GOOD_FOR_MS) return { state: "ok", at: lastReadAt };
-  return {
-    state: "stale",
-    detail: Number.isFinite(ageMs) ? `last read ${relativeHours(ageMs)} ago` : reason,
-    at: lastReadAt,
-  };
-}
-
 export async function latestSnapshot(): Promise<(Snapshot & { computedAt: string }) | null> {
   const row = await sbSelectOne<{ computed_at: string; metrics: Metrics; sources: Snapshot["sources"] }>(
     "portal_metrics_snapshot",
@@ -1916,6 +1927,12 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       paidToday: prev?.paidToday ?? null,
       paidMonth: prev?.paidMonth ?? null,
       bookingsTodayTypes: prev?.bookingsTodayTypes ?? [],
+      // The unbilled queue carries forward: a ServiceTitan that stopped
+      // answering has not billed those jobs, and an empty list would read as
+      // "all caught up" to the one person whose job it is.
+      toBill: prev?.toBill ?? [],
+      toBillCount: prev?.toBillCount ?? 0,
+      toBillValue: prev?.toBillValue ?? 0,
       paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
@@ -2124,6 +2141,12 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       overdueTotal: xero.ok ? xero.overdueTotal : prev?.overdueTotal ?? null,
       overdueCount: xero.ok ? xero.overdueCount : prev?.overdueCount ?? null,
       receivablesTotal: xero.ok ? xero.receivablesTotal : prev?.receivablesTotal ?? null,
+      receivablesAging: xero.ok ? xero.aging : prev?.receivablesAging ?? null,
+      // Carried forward like the totals: a skipped or failed Xero read leaves
+      // the chase list standing rather than emptying it, which would read as
+      // "nothing overdue".
+      overdueList: xero.ok ? xero.overdue : prev?.overdueList ?? [],
+
       pace,
       paceData,
       paceSettings,

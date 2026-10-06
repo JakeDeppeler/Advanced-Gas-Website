@@ -22,8 +22,28 @@ type Integration = {
   expires_at: string | null;
 };
 
+/** What is owed to us, split by how long it has been owed. */
+export type XeroAging = { notDue: number; d1to14: number; d15to30: number; d30plus: number };
+
+/**
+ * One overdue invoice, for the chase list.
+ *
+ * Deliberately no contact name. This goes on a wall in an office with a
+ * reception area, and "Mrs Smith · $2,140 · 42 days" is a customer's debt
+ * readable by whoever walks past. The invoice number is what the office looks
+ * the thing up by anyway.
+ */
+export type XeroOverdue = { number: string; days: number; amount: number };
+
 export type XeroResult =
-  | { ok: true; overdueTotal: number; overdueCount: number; receivablesTotal: number }
+  | {
+      ok: true;
+      overdueTotal: number;
+      overdueCount: number;
+      receivablesTotal: number;
+      aging: XeroAging;
+      overdue: XeroOverdue[];
+    }
   | { ok: false; reason: string };
 
 async function currentToken(): Promise<{ token: string; tenant: string } | { error: string }> {
@@ -69,13 +89,16 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   if (!res.ok) return { ok: false, reason: `xero ${res.status} ${res.statusText}` };
 
   const json = (await res.json()) as {
-    Invoices?: Array<{ AmountDue?: number; DueDateString?: string; DueDate?: string }>;
+    Invoices?: Array<{ AmountDue?: number; DueDateString?: string; DueDate?: string; InvoiceNumber?: string }>;
   };
 
   const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
   let overdueTotal = 0;
   let overdueCount = 0;
   let receivablesTotal = 0;
+  const aging: XeroAging = { notDue: 0, d1to14: 0, d15to30: 0, d30plus: 0 };
+  const overdue: XeroOverdue[] = [];
 
   for (const inv of json.Invoices ?? []) {
     const due = Number(inv.AmountDue ?? 0);
@@ -86,11 +109,26 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     // variant is present; prefer the string form and fall back to parsing.
     const raw = inv.DueDateString ?? inv.DueDate ?? "";
     const ms = raw.startsWith("/Date(") ? Number(raw.slice(6, raw.indexOf("+"))) : Date.parse(raw);
-    if (Number.isFinite(ms) && ms < now) {
-      overdueTotal += due;
-      overdueCount += 1;
+
+    // A due date we cannot read is not yet overdue: calling it 30+ days late
+    // would put money in the worst bucket on the strength of a parse failure.
+    if (!Number.isFinite(ms) || ms >= now) {
+      aging.notDue += due;
+      continue;
     }
+
+    const days = Math.floor((now - ms) / DAY);
+    overdueTotal += due;
+    overdueCount += 1;
+    if (days <= 14) aging.d1to14 += due;
+    else if (days <= 30) aging.d15to30 += due;
+    else aging.d30plus += due;
+
+    overdue.push({ number: inv.InvoiceNumber ?? "—", days, amount: due });
   }
 
-  return { ok: true, overdueTotal, overdueCount, receivablesTotal };
+  // Oldest first: the chase list is worked from the top.
+  overdue.sort((a, b) => b.days - a.days);
+
+  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, overdue: overdue.slice(0, 6) };
 }

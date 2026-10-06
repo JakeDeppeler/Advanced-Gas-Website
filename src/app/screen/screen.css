@@ -260,6 +260,7 @@ body:has(.screen) .utilbar {
   grid-template-rows: 1fr 1fr 0.3fr;
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
+.screen__grid--invoices { grid-template-rows: 0.62fr 1.6fr; }
 .screen__grid--team { grid-template-rows: 1fr; }
 .screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
 .screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
@@ -1792,3 +1793,67 @@ body:has(.screen) .utilbar {
   .alert__glint { opacity: 0.25; }
   .alert__letter { transform: none; opacity: 1; }
 }
+
+
+/* ────────────────────────────────────────────────────────── the Invoices page
+
+   A work list, not a score: four figures across the top and three panels under
+   them, each one something the office does next.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.screen__grid--invoices .tile--hero { grid-column: span 3; }
+.inv__list { grid-column: span 5; }
+.inv__chase { grid-column: span 4; }
+.inv__age-panel { grid-column: span 3; }
+
+/* The job and where it was, then when it was finished, then what it is worth —
+   widest first, because the job is what the office looks it up by. */
+.inv__row { grid-template-columns: minmax(0, 1fr) auto auto; gap: calc(1 * var(--u)); }
+.inv__where { color: var(--ink-2); font-weight: 600; }
+/* Not a dash: a job with no price yet is waiting on somebody, and the blank
+   that a dash leaves reads as missing data rather than as work to do. */
+.inv__unpriced { color: var(--ink-muted); font-weight: 650; font-size: calc(0.95 * var(--u)); }
+
+/* How late, as a pill. The number is in the words, so the colour is the second
+   signal and never the only one. */
+.inv__age {
+  justify-self: end;
+  padding: calc(0.15 * var(--u)) calc(0.6 * var(--u));
+  border-radius: 999px;
+  background: var(--leader-row);
+  color: var(--ink-2);
+  font-size: calc(0.95 * var(--u));
+  font-weight: 800;
+  white-space: nowrap;
+}
+.inv__age.is-warn { background: #fdf0dd; color: #8a5308; }
+.inv__age.is-bad { background: #fbe3e0; color: #93241a; }
+
+/* Top-aligned under the heading: centred in a panel this tall left a hand's
+   width of nothing between the title and the first row, which reads as a
+   missing tile rather than as breathing room. */
+.inv__bars { display: flex; flex-direction: column; flex: 1; gap: calc(1.6 * var(--u)); margin-top: calc(1 * var(--u)); }
+/* Label and figure on one line, the bar full width under them. The design puts
+   all three side by side, but in a panel this narrow that left the track about
+   a centimetre long — and a bar too short to compare is just a dot with a
+   number beside it. Stacked, the four tracks share one scale across the full
+   width of the card, which is the only thing that makes them readable. */
+.inv__bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: calc(0.2 * var(--u)) calc(0.8 * var(--u));
+  font-size: calc(1.05 * var(--u));
+}
+.inv__barlabel { grid-area: 1 / 1 / 2 / 2; }
+.inv__barval { grid-area: 1 / 2 / 2 / 3; justify-self: end; }
+.inv__track { grid-area: 2 / 1 / 3 / 3; }
+.inv__barlabel { font-weight: 700; color: var(--navy); }
+.inv__track { height: calc(0.75 * var(--u)); border-radius: 999px; background: var(--leader-row); overflow: hidden; }
+.inv__fill { display: block; height: 100%; border-radius: 999px; background: #8f9bd4; }
+.inv__fill.is-soft { background: #b9a0d8; }
+.inv__fill.is-warn { background: var(--accent); }
+.inv__fill.is-bad { background: var(--vd-behind); }
+.inv__barval { font-weight: 900; color: var(--navy); font-size: calc(1.15 * var(--u)); }
+.inv__barval.is-warn { color: var(--accent); }
+.inv__barval.is-bad { color: var(--vd-behind); }

@@ -1180,6 +1180,61 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## The Invoices page
+
+The fourth page in the rotation, and the only one that is a work list rather
+than a score: four figures across the top — to bill, owed to us, overdue, paid
+today — and three panels under them. Everything on it is something one person in
+the office does next, which is what the subtitle says, so the crew can skip it.
+
+**"Not invoiced" is an invoice still at zero, not a missing one.** ServiceTitan
+opens an invoice the moment a job is created, so every completed job has an
+invoice row: on sixty days of history, all 274 of them did. A to-bill tile built
+on missing rows would have read a confident **0** forever. What marks a job as
+unbilled is its invoice sitting at zero, which 136 of those 274 were.
+
+**The to-bill figure is a count, not an amount.** Most service work is priced
+after the visit, so the queue has no value until somebody puts one on it — of
+136 unbilled jobs only 7 had been sold beforehand. The tile leads with the
+number of jobs and adds "$X of it already sold" only for the part that can
+honestly be valued; the rest says "not priced yet". The six jobs finished on
+6 October were all diagnostics and service, all unpriced, which is the normal
+case rather than a gap.
+
+**No customer names on the chase list.** This is a wall in a room the public
+walks through, and "Mrs Smith · $2,140 · 42 days" is a customer's debt readable
+by anyone passing. The invoice number is what the office looks it up by anyway.
+
+**The ageing bars are shares of everything owed**, not of the biggest bucket:
+the question is how much of the money is late, and scaling to the largest row
+makes a tidy ledger look like a bad one. They are stacked — label and figure on
+one line, bar full width underneath — because side by side in a panel this
+narrow the track came out about a centimetre long, and a bar too short to
+compare is a dot with a number beside it. A due date Xero gives that cannot be
+parsed counts as not due: putting money in the worst bucket on the strength of
+a parse failure is the board inventing a problem.
+
+### Two things from the design that are not here
+
+- **VEU rebates to come.** Nothing in this database knows about a VEU
+  lodgement — no table, no column, no field on the job. The figure would have
+  been invented whole. **Paid today** takes the fourth tile instead, which is
+  real and belongs on a money page. Building the real tile needs somewhere to
+  record a lodgement first.
+- **The paperwork each job needs** ("Plumbing cert + VEU form", "Gas compliance
+  cert"). That is a rule about job type that nobody has written down anywhere
+  this code can read. A chip guessed from a job-type string would be wrong on
+  the job that matters, which is worse than no chip. Write the rule down and it
+  becomes a lookup.
+
+### And one from the Today page
+
+**The "74% booking rate" pill is not buildable.** Every denominator available
+makes the rate nonsense: `st_calls` holds 21 rows and `portal_leads` 33, against
+237 jobs created in the last thirty days — website leads would put the booking
+rate at 718%. It needs the ServiceTitan Telecom sync actually returning calls,
+which it is not.
+
 ## The full-screen alerts
 
 Three events take the whole wall for a few seconds: a quote written, a job
