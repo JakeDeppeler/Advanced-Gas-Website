@@ -162,9 +162,9 @@ jobs:
                 echo
                 jq -r '"Merged **\(.merged)** of \(.pairs) approved pairs."' run.json
                 echo
-                echo "| Unit | Kept | Deactivated | Done | Error |"
-                echo "|---|---|---|---|---|"
-                jq -r "${JQ_DEFS}"'.results[] | "| \(.name|e) | \(.keep|e) | \(.retire|e) | \((.done // []) | join(", ")|e) | \(.error|e) |"' run.json
+                echo "| Unit | Kept | Deactivated | Before this run | Done | Error |"
+                echo "|---|---|---|---|---|---|"
+                jq -r "${JQ_DEFS}"'.results[] | "| \(.name|e) | \(.keep|e) | \(.retire|e) | \(.before|e) | \((.done // []) | join(", ")|e) | \(.error|e) |"' run.json
               } >> "$GITHUB_STEP_SUMMARY"
               ;;
           esac
