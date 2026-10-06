@@ -461,7 +461,12 @@ body:has(.screen) .utilbar {
   display: flex;
   flex-direction: column;
   gap: calc(0.12 * var(--u));
-  padding: 0 calc(0.9 * var(--u));
+  /* 0.9u each side left the name 94px of a 236px row against a 134px verdict
+     chip, and "Completed" needs 99 — the wall read "Comple…" at 1920x1080 and
+     nowhere else, because every smaller viewport scales --u off the height. The
+     ellipsis stays as the backstop for business-unit names, which this card
+     also carries and which can be any length. */
+  padding: 0 calc(0.6 * var(--u));
   min-width: 0;
 }
 .halves__one + .halves__one { border-left: 1px solid var(--hairline); }
@@ -648,6 +653,14 @@ body:has(.screen) .utilbar {
   text-overflow: ellipsis;
 }
 .quote__who { font-size: calc(0.92 * var(--u)); color: var(--ink-muted); font-weight: 500; margin-left: calc(0.5 * var(--u)); }
+/* On the To bill list the job number is the point of the row — it is what the
+   office types to find the job — so the kind of work gives way before the
+   number does. Sitting at the end of one ellipsing line it went first, and the
+   wall read "Repair - Gas Heater · Narre Warren #…". The chase list opposite
+   solved the same thing by stacking; here there is room on the line. */
+.inv__row .quote__label { display: flex; align-items: baseline; min-width: 0; }
+.quote__what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv__row .quote__job { flex: none; }
 /* The job number, quieter than the kind of work but in the same line: it is how
    you find the thing, not what the thing is. */
 .quote__job {
@@ -1949,7 +1962,7 @@ body:has(.screen) .utilbar {
 }
 .tile__labelrow .tile__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The two halves of a split card each carry their own verdict. */
-.halves__namerow { display: flex; align-items: baseline; justify-content: space-between; gap: calc(0.4 * var(--u)); min-width: 0; }
+.halves__namerow { display: flex; align-items: baseline; justify-content: space-between; gap: calc(0.3 * var(--u)); min-width: 0; }
 .halves__namerow .halves__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .halves__namerow .tile__verdict { font-size: calc(0.82 * var(--u)); }
 .tile__verdict { flex: none; font-size: calc(0.92 * var(--u)); font-weight: 800; white-space: nowrap; }

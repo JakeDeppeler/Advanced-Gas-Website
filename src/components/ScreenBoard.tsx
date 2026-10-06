@@ -787,7 +787,17 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
       ))}
 
       <span className="band band--year">This year</span>
-      <YearPace y={y} margin={m.jobProfitMonth?.margin ?? null} costed={m.jobProfitMonth?.costed ?? 0} goalPct={p.profitPct} />
+      {/* The year's margin, not the month's. This row is headed "This year" and
+          carries a year of revenue; borrowing the month's figure put seven jobs
+          next to $390K and invited the room to read one as the margin on the
+          other. Snapshots taken before the year window existed fall back to the
+          month rather than blanking the cell. */}
+      <YearPace
+        y={y}
+        margin={(m.jobProfitYear ?? m.jobProfitMonth)?.margin ?? null}
+        costed={(m.jobProfitYear ?? m.jobProfitMonth)?.costed ?? 0}
+        goalPct={p.profitPct}
+      />
     </>
   );
 }
@@ -997,10 +1007,11 @@ function YearPace({ y, margin, costed, goalPct }: {
         </span>
       </div>
       <div className="year__side">
-        {/* The sample size sits in the key line: a 34% margin over seven jobs is
-            a different statement from a 34% margin over the month, and the strip
-            has no room to say it twice. */}
-        <span className="year__k">Job margin · {costed > 0 ? `${costed} ${costed === 1 ? "job" : "jobs"}` : "month"}</span>
+        {/* The sample size sits in the key line, and on this cell it is the whole
+            caveat: ServiceTitan carries a cost on about a sixth of the year's
+            revenue, so this is thirty jobs' margin, not the year's. Saying how
+            many is the difference between a figure and a claim. */}
+        <span className="year__k">Job margin · {costed > 0 ? `${costed} ${costed === 1 ? "job" : "jobs"}` : "year"}</span>
         <span className={`year__v ${marginVerdict ? `is-${marginVerdict}` : ""}`}>
           {margin == null ? NA : pct(margin)}
           {margin != null && goalPct != null ? (
@@ -1125,8 +1136,12 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
             {m.toBill.map((j) => (
               <div className="quote inv__row" key={j.id}>
                 <span className="quote__label">
-                  {j.jobType ?? "Job"}
-                  {j.suburb ? <span className="inv__where"> · {j.suburb}</span> : null}
+                  {/* The kind of work is wrapped so it, and not the job number,
+                      is what gives way when the row is too narrow. */}
+                  <span className="quote__what">
+                    {j.jobType ?? "Job"}
+                    {j.suburb ? <span className="inv__where"> · {j.suburb}</span> : null}
+                  </span>
                   {j.jobNumber ? <span className="quote__job">#{j.jobNumber}</span> : null}
                 </span>
                 <span className="quote__at">{dayTime(j.at)}</span>

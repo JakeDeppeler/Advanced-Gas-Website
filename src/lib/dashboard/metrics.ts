@@ -504,6 +504,16 @@ export type Metrics = {
   /** Profit on the jobs invoiced this month, before GST. See jobProfit.ts. */
   jobProfitMonth: ProfitSummary | null;
   /**
+   * The same, over the year the Pace strip is about.
+   *
+   * The strip used to borrow the month's margin, which put a seven-job figure
+   * in a row headed "This year" beside a year's revenue. Widening the window
+   * costs nothing in honesty here: every costed job in the replica falls inside
+   * the last ninety days, so the year picks up all thirty of them rather than
+   * the handful invoiced since the first.
+   */
+  jobProfitYear?: ProfitSummary | null;
+  /**
    * Journal entries ServiceTitan couldn't post to Xero. Null until journal
    * entries have been read at least once — the board shows an alert only when
    * it has seen one fail, never an all-clear it didn't check. Optional because
@@ -2239,10 +2249,20 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const paceFrom = yFrom ?? yearSpans("financial", currentYear("financial", now))[0].from;
   const paceData = await computePaceData(now, calendar, paceFrom).catch(() => previous?.metrics.paceData ?? null);
   const pace = paceData ? buildPace(goal, paceSettings, paceData) : null;
-  const jobProfitMonth = await crewFigures()
-    .then((c) => jobProfits(isoDateMelbourne(startOfMonthMelbourne(now)), isoDateMelbourne(now), c.costPerHr, goal?.profitPct ?? null))
-    .then((r) => r.summary)
+  // One crew figure, two windows: the Performance page asks about the month and
+  // the Pace strip about the year, and they must not disagree on what an hour
+  // costs.
+  const crew = await crewFigures().catch(() => null);
+  const profitOver = async (from: string) =>
+    crew == null
+      ? null
+      : (await jobProfits(from, isoDateMelbourne(now), crew.costPerHr, goal?.profitPct ?? null)).summary;
+  const jobProfitMonth = await profitOver(isoDateMelbourne(startOfMonthMelbourne(now)))
     .catch(() => previous?.metrics.jobProfitMonth ?? null);
+  // The same span the strip's revenue figure covers, so the margin beside it is
+  // a margin on that money and not on some other month's.
+  const jobProfitYear = await profitOver(paceFrom)
+    .catch(() => previous?.metrics.jobProfitYear ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
 
   return {
@@ -2290,6 +2310,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       paceData,
       paceSettings,
       jobProfitMonth,
+      jobProfitYear,
       journals,
     },
     sources,
