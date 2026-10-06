@@ -110,7 +110,7 @@ export default async function JournalsPage() {
         cols={4}
         items={[
           { label: "Didn't reach Xero", feature: errors.length > 0, value: read ? String(errors.length) : null, sub: errors.length ? "fix in ServiceTitan, then sync again" : "nothing in error", needs: "Waiting on the first read" },
-          { label: "Waiting to sync", value: read ? String(waiting.length) : null, sub: `closed and still not in Xero after ${WAITING_AFTER_HOURS} hours`, needs: "Waiting on the first read" },
+          { label: "Waiting to sync", value: read ? String(waiting.length) : null, sub: `not in Xero ${WAITING_AFTER_HOURS} hours after they last changed`, needs: "Waiting on the first read" },
           { label: "Synced in 30 days", value: read && synced != null ? String(synced) : null, sub: "journal entries now in Xero", needs: "Waiting on the first read" },
           { label: "Last checked", value: state?.last_success_at ? ago(state.last_success_at) : null, sub: "the portal's last read from ServiceTitan", needs: "Not yet" },
         ]}
@@ -132,8 +132,9 @@ export default async function JournalsPage() {
         <section className="pt-panel">
           <h2 className="pt-panel__h">Waiting to sync <span className="pt-tm__count">{waiting.length}</span></h2>
           <p className="pt-panel__sub">
-            Closed, with transactions in them, and not in Xero after {WAITING_AFTER_HOURS} hours. If these pile up, ServiceTitan
-            isn&rsquo;t syncing on its own — turn on real-time sync in its Xero integration settings, or sync them by hand there.
+            Never synced, or changed since they were, and still not in Xero {WAITING_AFTER_HOURS} hours after they last changed. If
+            these pile up, ServiceTitan isn&rsquo;t syncing on its own — turn on real-time sync in its Xero integration settings,
+            or sync them by hand there.
           </p>
           <ul className="pt-jrn">{waiting.slice(0, 50).map((e) => <EntryRow key={e.id} e={e} waiting />)}</ul>
         </section>
@@ -152,7 +153,7 @@ export default async function JournalsPage() {
                   <tr key={e.id}>
                     <td>
                       <strong>#{e.number ?? "—"} · {e.name || "Journal entry"}</strong>
-                      <span className="pt-fleet__sub">{e.status === "Open" ? "Still open in ServiceTitan" : e.isEmpty ? "Nothing in it" : "Closed"}</span>
+                      {e.isEmpty && <span className="pt-fleet__sub">Nothing in it</span>}
                     </td>
                     <td>{day(e.postDate)}</td>
                     <td><Status s={e.syncStatus} /></td>

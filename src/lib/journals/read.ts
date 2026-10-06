@@ -34,7 +34,7 @@ const toEntry = (r: Row): JournalEntry => ({
   isEmpty: !!r.is_empty,
 });
 
-/** How long an entry can sit closed and not synced before it counts as waiting. */
+/** How long an entry can sit unchanged and not in Xero before it counts as waiting. */
 export const WAITING_AFTER_HOURS = 6;
 
 /** The sync's own record: when it last ran, and what went wrong if it did. */
@@ -51,12 +51,17 @@ export const journalErrors = cache(async (): Promise<JournalEntry[]> =>
     .map(toEntry),
 );
 
-/** Closed entries with something in them, not synced and not excluded, past the grace period. */
+/**
+ * Entries with something in them, not in Xero (never synced, or changed since)
+ * and not excluded, that haven't changed for the grace period — so a day's
+ * entry still collecting payments isn't called waiting. Open or closed alike:
+ * this account's entries all read Open in ServiceTitan, months back.
+ */
 export const journalsWaiting = cache(async (now = new Date()): Promise<JournalEntry[]> => {
   const before = new Date(now.getTime() - WAITING_AFTER_HOURS * 3_600_000).toISOString();
   return (await sbSelect<Row>(
     "st_journal_entries",
-    [q.select(COLS), "sync_status=in.(NotSynced,OutOfSync,InProgress)", "is_empty=eq.false", "status=eq.Closed", `modified_on=lt.${before}`, "order=post_date.asc.nullslast", "limit=200"].join("&"),
+    [q.select(COLS), "sync_status=in.(NotSynced,OutOfSync,InProgress)", "is_empty=eq.false", `modified_on=lt.${before}`, "order=post_date.asc.nullslast", "limit=200"].join("&"),
   )).map(toEntry);
 });
 
