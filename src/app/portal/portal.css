@@ -4300,3 +4300,21 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt .tr-embed .tr-kicker { font-size: 12px; }
 .pt .tr-embed .tr-btn--sm { min-height: 40px; font-size: 14px; }
 .pt .tr-embed .tr-answer__note { font-size: 14px; }
+
+/* ---- Journal entries: the ones that didn't reach Xero, and who's told ---- */
+.pt-jrn { list-style: none; margin: 4px 0 0; padding: 0; }
+.pt-jrn__row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid var(--pt-tint); }
+.pt-jrn__what { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pt-jrn__what strong { font-weight: 700; }
+.pt-jrn__what em { font-style: normal; font-size: 13px; color: var(--pt-ink-2); }
+/* ServiceTitan's reason, in its own words: the line someone has to act on. */
+.pt-jrn__msg { margin-top: 4px; font-size: 14px; line-height: 20px; color: #8f3a0e; overflow-wrap: anywhere; }
+.pt-jrn__row > .pt-btn, .pt-jrn__row > .pt-vstat { flex: none; }
+.pt-jrn__who { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; max-width: 620px; }
+.pt-jrn__list { list-style: none; margin: 0; padding: 0; }
+.pt-jrn__list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--pt-tint); font-size: 14.5px; font-weight: 600; overflow-wrap: anywhere; }
+.pt-jrn__add { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.pt-jrn__add .pt-field { flex: 1 1 260px; }
+@media (max-width: 640px) {
+  .pt-jrn__row { flex-direction: column; align-items: flex-start; }
+}

@@ -138,6 +138,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["goal", "target", "$3m", "profit", "jobs a week", "mix", "budget", "year goal"],
     },
     { href: "/portal/finance", label: "Finance", blurb: "Live profit from Xero", band: "profit", icon: "chart", also: ["xero", "profit", "p&l", "revenue"] },
+    {
+      href: "/portal/journals", label: "Journal entries", short: "Journals", blurb: "ServiceTitan to Xero, and what didn't go",
+      band: "profit", icon: "doc", also: ["journal", "xero sync", "sync error", "accounting", "export", "manual journal"],
+    },
     { href: "/portal/website", label: "Website leads", short: "Web leads", blurb: "What the website brings in", band: "marketing", icon: "speaker", also: ["website", "lead", "enquiry", "form"] },
     { href: "/portal/marketing", label: "Campaigns", blurb: "Everything we're running", band: "marketing", icon: "grid", also: ["campaign", "ads", "facebook", "marketing", "social", "brand"] },
     { href: "/portal/website?tab=pages", label: "On the site", blurb: "What people do on each page", band: "marketing", icon: "globe", also: ["page", "views", "traffic", "seo"] },

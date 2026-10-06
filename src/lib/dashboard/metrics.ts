@@ -17,6 +17,7 @@ import { computePaceData } from "./paceData";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
 import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
+import { journalHealth, type JournalHealth } from "@/lib/journals/read";
 import {
   commissionFor,
   monthTargetsFromYearGoal,
@@ -447,6 +448,13 @@ export type Metrics = {
   paceSettings: PaceSettings | null;
   /** Profit on the jobs invoiced this month, before GST. See jobProfit.ts. */
   jobProfitMonth: ProfitSummary | null;
+  /**
+   * Journal entries ServiceTitan couldn't post to Xero. Null until journal
+   * entries have been read at least once — the board shows an alert only when
+   * it has seen one fail, never an all-clear it didn't check. Optional because
+   * snapshots from before it don't carry it.
+   */
+  journals?: JournalHealth | null;
 };
 
 export type Snapshot = {
@@ -2079,6 +2087,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     .then((c) => jobProfits(isoDateMelbourne(startOfMonthMelbourne(now)), isoDateMelbourne(now), c.costPerHr, goal?.profitPct ?? null))
     .then((r) => r.summary)
     .catch(() => previous?.metrics.jobProfitMonth ?? null);
+  const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
 
   return {
     metrics: {
@@ -2119,6 +2128,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       paceData,
       paceSettings,
       jobProfitMonth,
+      journals,
     },
     sources,
   };

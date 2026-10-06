@@ -271,6 +271,30 @@ doesn't replay every sale already on the books, and it won't cheer the same sale
 twice. Motion is suppressed under `prefers-reduced-motion`; the name and the
 number still appear, which is the part that matters.
 
+### A journal entry that didn't reach Xero
+
+ServiceTitan's own Xero integration posts each journal entry to Xero as a
+manual journal. The sync reads those entries read-only into
+`st_journal_entries` (migration 0046) — what changed since the last run, plus
+every entry ServiceTitan currently has as Error, NotSynced, InProgress or
+OutOfSync — and when any is in **Error** the footer carries a chip on every
+page: "Xero · 2 journal entries didn't sync · oldest 2 days". On Pace it drops
+the age so the dial key fits.
+
+- It shows only what ServiceTitan reports as Error. An entry that is merely
+  waiting isn't on the wall; the portal's Journal entries page lists those.
+- Until journal entries have been read once (the API app needs **Accounting ›
+  Journal Entries (read)**, scope `tn.acc.journalentries:r`), there is no chip
+  at all — not an all-clear the board never checked.
+- It goes the sync after ServiceTitan says the entry is through.
+- The same errors are on Home's "Needs someone today", on the bell, and emailed
+  once each (again only if the error changes) to the list on the Journal
+  entries page, which starts as jake@advancedgas.com.au. Email goes through
+  Resend, as the sign-in links do.
+
+Nothing here writes to ServiceTitan or Xero. Turning on real-time sync is a
+setting in ServiceTitan's Xero integration, not something the portal does.
+
 ### Theme
 
 The board is light by default — deep navy on warm off-white with the brand

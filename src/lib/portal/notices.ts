@@ -4,6 +4,7 @@ import { can, type PortalUser } from "@/lib/portal/caps";
 import { dbConfigured, getSettings, handbookBodies, listQuotes, listVanChecks, listVehicles, listVideos, saveSettings } from "@/lib/portal/db";
 import { cleanCell, kmCell, serviceCell } from "@/components/portal/fleetStatus";
 import { localToday } from "@/lib/portal/xero";
+import { journalErrors } from "@/lib/journals/read";
 
 /**
  * What's waiting for you, derived rather than stored.
@@ -106,10 +107,11 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
   const today = localToday();
   const out: Notice[] = [];
 
-  const [vehicles, quotes] = await Promise.all([
+  const [vehicles, quotes, journals] = await Promise.all([
     listVehicles().catch(() => []),
     // Quotes are money and only the people who see money get told about them.
     can(user, "overhead") ? listQuotes().catch(() => []) : Promise.resolve([]),
+    can(user, "overhead") ? journalErrors().catch(() => []) : Promise.resolve([]),
   ]);
   const onRoad = vehicles.filter((v) => v.status === "on");
 
@@ -147,6 +149,20 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
       out.push({ title: `No km reading — ${v.name}`, detail: km.detail, href: `/portal/vehicles/${v.id}`, tone: "warn", group: "doing", when: "" });
     }
   });
+
+  // A journal entry ServiceTitan couldn't post to Xero: the books are short
+  // until somebody fixes it, so it's on the bell until ServiceTitan says it's
+  // through.
+  for (const j of journals) {
+    out.push({
+      title: `Journal entry #${j.number ?? "—"} didn't sync to Xero`,
+      detail: j.message || j.name || "ServiceTitan gave no reason",
+      href: "/portal/journals#errors",
+      tone: "bad",
+      group: "doing",
+      when: ago(j.modifiedOn),
+    });
+  }
 
   const cutoff = Date.now() - QUOTE_CHASE_DAYS * 86_400_000;
   for (const q of quotes) {

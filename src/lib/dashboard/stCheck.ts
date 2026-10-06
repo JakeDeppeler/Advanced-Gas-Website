@@ -45,10 +45,11 @@ const PROBES: Array<{
   { module: "pricebook", resource: "materials", scope: "Pricebook", usedFor: "Reece price sync (Materials needs write access)" },
   { module: "telecom", resource: "calls", scope: "Telecom", usedFor: "calls per person (optional)" },
   { module: "payroll", resource: "jobs/timesheets", scope: "Payroll", usedFor: "hours on each job, for profit on every job (optional)" },
+  { module: "accounting", resource: "journal-entries", scope: "Accounting › Journal Entries (read)", usedFor: "journal entries that didn't reach Xero (optional)" },
 ];
 
 /** Resources the board can live without — a 403 here is a missing scope, not a broken link. */
-const OPTIONAL = new Set(["telecom/calls", "payroll/jobs/timesheets"]);
+const OPTIONAL = new Set(["telecom/calls", "payroll/jobs/timesheets", "accounting/journal-entries"]);
 
 function explainProbe(status: number, scope: string): string {
   if (status === 401) return "App key rejected, or the token is not valid for this tenant.";

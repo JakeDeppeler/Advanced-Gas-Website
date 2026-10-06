@@ -1360,3 +1360,34 @@ body:has(.screen) .utilbar {
   border-radius: 999px;
   background: #fff;
 }
+
+/* ------------------------------------------- a journal that missed Xero */
+/* Words first, then the colour: "Xero · 2 journal entries didn't sync" with a
+   warning mark, on the board's own behind colours so it reads as a status and
+   not decoration. Only drawn when ServiceTitan reports an entry in Error. */
+.screen__alert {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.45 * var(--u));
+  padding: calc(0.18 * var(--u)) calc(0.7 * var(--u)) calc(0.18 * var(--u)) calc(0.22 * var(--u));
+  border-radius: 999px;
+  background: var(--behind-bg);
+  color: var(--behind-ink);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.screen__alert b { font-weight: 900; }
+.screen__alerticon {
+  display: inline-grid;
+  place-items: center;
+  width: calc(1.05 * var(--u));
+  height: calc(1.05 * var(--u));
+  border-radius: 50%;
+  background: var(--behind-ink);
+  color: #fff;
+  font-size: calc(0.75 * var(--u));
+  line-height: 1;
+}
+/* With the alert in the footer, the Pace page's key stops centring itself
+   over the left-hand side and takes its place in the row. */
+.screen__foot.has-alert .screen__legend { position: static; transform: none; margin-left: auto; }
