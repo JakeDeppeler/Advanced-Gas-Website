@@ -1,6 +1,8 @@
 import { q, sbRpc, sbSelectOne, sbUpsert, type Row } from "./db";
 import { isoDateMelbourne } from "./dates";
 import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
+import { JOURNAL_RESOURCE, syncJournalEntries } from "@/lib/journals/sync";
+import { sendJournalAlerts } from "@/lib/journals/alerts";
 
 // Pulls ServiceTitan exports into the local replica.
 //
@@ -463,6 +465,22 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
       );
       report.push({ resource: spec.resource, status: "error", error: message });
     }
+  }
+
+  // Journal entries, read-only, then an email for any that newly failed to
+  // reach Xero. A failure here is reported like any resource's and stops
+  // nothing else.
+  try {
+    const j = await syncJournalEntries();
+    report.push({ resource: JOURNAL_RESOURCE, status: "ok", records: j.records, exhausted: true });
+    try {
+      const a = await sendJournalAlerts();
+      report.push({ resource: "journal-alerts", status: a.error ? "error" : "ok", records: a.sent, ...(a.error ? { error: a.error } : {}) });
+    } catch (e) {
+      report.push({ resource: "journal-alerts", status: "error", error: (e as Error).message });
+    }
+  } catch (e) {
+    report.push({ resource: JOURNAL_RESOURCE, status: "error", error: (e as Error).message });
   }
 
   // Turn the stored jobTypeId / businessUnitId / soldById into display names and

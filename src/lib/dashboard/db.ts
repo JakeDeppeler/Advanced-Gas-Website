@@ -149,6 +149,24 @@ export async function sbUpdate(table: string, query: string, patch: Row): Promis
   }
 }
 
+/**
+ * PATCH every row matching the filter and hand back the rows it changed. A
+ * filter on the old value makes this a claim: two runs racing for the same
+ * row, only one gets it back.
+ */
+export async function sbUpdateReturning<T = Row>(table: string, query: string, patch: Row): Promise<T[]> {
+  const res = await sb(`${table}?${query}`, {
+    method: "PATCH",
+    headers: { Prefer: "return=representation" },
+    body: JSON.stringify(patch),
+  });
+  if (!res) return [];
+  if (!res.ok) {
+    throw new Error(`${table} update failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+  return (await res.json()) as T[];
+}
+
 /** DELETE every row matching the filter query. */
 export async function sbDelete(table: string, query: string): Promise<void> {
   const res = await sb(`${table}?${query}`, { method: "DELETE", headers: { Prefer: "return=minimal" } });

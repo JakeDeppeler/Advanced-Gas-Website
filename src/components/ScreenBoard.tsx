@@ -235,6 +235,7 @@ export function ScreenBoard({
   const ageMs = now.getTime() - Date.parse(snap.computedAt);
   const fresh = Number.isFinite(ageMs) && ageMs < 2 * 60_000;
   const healthy = fresh && degraded.length === 0;
+  const journalAlert = !!m.journals && m.journals.errors > 0;
 
   return (
     <div
@@ -350,18 +351,24 @@ export function ScreenBoard({
         {page === 5 && <AreasPage m={m} live={live} />}
       </div>
 
-      <div className="screen__foot">
+      <div className={`screen__foot${journalAlert ? " has-alert" : ""}`}>
         <span className="screen__feed">
           <span className={`screen__dot ${healthy ? "" : "screen__dot--stale"}`} aria-hidden />
           <b>{healthy ? "Live" : "Catching up"}</b>
         </span>
-        <span>
+        {/* A journal entry ServiceTitan couldn't post to Xero. On every page,
+            because it's the one thing on the board that needs the office
+            rather than the crew — and gone the run after it's fixed. */}
+        {journalAlert && m.journals && <JournalAlert j={m.journals} short={page === 1} />}
+        {/* With the alert up and every feed fine, the green Live dot says what
+            this line would, and the Pace page's key needs the room. */}
+        {!(journalAlert && healthy) && <span>
           {degraded.length === 0
             ? fresh
               ? "All feeds connected"
               : "Waiting on a refresh"
             : degraded.map(([n, sc]) => `${n} ${sc.state}${sc.detail ? ` — ${sc.detail}` : ""}`).join(" · ")}
-        </span>
+        </span>}
         {/* The dials' key, on the page that has dials. The words and dots are
             what let somebody who has never been told read the colours — and
             they are the reason the dials may use red and green at all. The
@@ -1673,6 +1680,20 @@ const clockLabel = (now: Date) =>
     minute: "2-digit",
     timeZone: "Australia/Melbourne",
   });
+
+function JournalAlert({ j, short }: { j: NonNullable<Metrics["journals"]>; short?: boolean }) {
+  const n = j.errors;
+  const days = j.oldestErrorDays;
+  return (
+    <span className="screen__alert" role="status">
+      <b className="screen__alerticon" aria-hidden="true">!</b>
+      <span>
+        <b>Xero</b> · {n} journal {n === 1 ? "entry" : "entries"} didn&rsquo;t sync
+        {!short && days != null && days > 0 ? ` · oldest ${days} ${days === 1 ? "day" : "days"}` : ""}
+      </span>
+    </span>
+  );
+}
 
 function NotConnected({ what }: { what: string }) {
   return (

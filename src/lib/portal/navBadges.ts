@@ -38,6 +38,8 @@ export async function navBadges(user: PortalUser): Promise<Record<string, string
   const unread = waiting.filter((n) => !seen.has(noticeKey(n))).length;
   if (unread) badges["/portal/notifications"] = `${unread} new`;
   if (low && low > 0) badges["/portal/stock"] = `${low} low`;
+  const journalErrors = waiting.filter((n) => n.href.startsWith("/portal/journals")).length;
+  if (journalErrors) badges["/portal/journals"] = `${journalErrors} ${journalErrors === 1 ? "error" : "errors"}`;
   const crewWaiting = asks.incidents.length + asks.leave.length + asks.orders.length;
   if (crewWaiting) badges["/portal/requests"] = `${crewWaiting} waiting`;
   return badges;
