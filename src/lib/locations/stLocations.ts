@@ -364,11 +364,29 @@ export function unitOf(l: { name?: string; address?: { unit?: string; street?: s
   return slash ? Number(slash[1]) : null;
 }
 
+/**
+ * Which site a location is on, so unit numbers are only compared within one:
+ * Unit 1 at 12 Example Street and Unit 1 at 14 Example Street are two units,
+ * not a double. Keyed on the street number and suburb rather than the whole
+ * street, because the same site gets written "36-40 Racecourse Road" on one
+ * record and "36 Racecourse Road" on another. A location with no address is
+ * compared with others that have none.
+ */
+export function siteOf(l: { address?: { street?: string; city?: string } }): string {
+  const street = l.address?.street ?? "";
+  const num = street.match(/^\s*(?:\d+\s*\/\s*)?(\d+)/)?.[1] ?? norm(street);
+  return `${num}|${norm(l.address?.city)}`;
+}
+
+export const sameSpot = (a: StLocation | ImportLocation, b: StLocation | ImportLocation) =>
+  unitOf(a) != null && unitOf(a) === unitOf(b) && siteOf(a) === siteOf(b);
+
 export type LiveLocation = {
   id: number;
   name: string;
   address: string;
   unit: number | null;
+  site: string;
   active: boolean;
   tags: string[];
   status: string | null;
@@ -387,6 +405,7 @@ export async function liveView(customerId: number, spec: ImportSpec | null) {
       name: l.name,
       address: [l.address?.unit && `Unit ${l.address.unit}`, l.address?.street, l.address?.city].filter(Boolean).join(", "),
       unit: unitOf(l),
+      site: siteOf(l),
       active: l.active !== false,
       tags,
       status,
@@ -397,15 +416,16 @@ export async function liveView(customerId: number, spec: ImportSpec | null) {
 
 /**
  * Active locations that look like the same unit twice: groups sharing a unit
- * number. The oldest record (lowest id) is offered as the one to keep, because
+ * number on the same site. The oldest record (lowest id) is offered as the one to keep, because
  * that is where the unit's job, invoice and equipment history hangs. Only a
  * suggestion — a person decides, one at a time.
  */
 export function findDoubles(locations: LiveLocation[]) {
-  const byUnit = new Map<number, LiveLocation[]>();
+  const byUnit = new Map<string, LiveLocation[]>();
   for (const l of locations) {
     if (!l.active || l.unit == null) continue;
-    byUnit.set(l.unit, [...(byUnit.get(l.unit) ?? []), l]);
+    const k = `${l.site}#${l.unit}`;
+    byUnit.set(k, [...(byUnit.get(k) ?? []), l]);
   }
   return [...byUnit.values()]
     .filter((g) => g.length > 1)
@@ -428,10 +448,9 @@ export async function mergeDouble(customerId: number, spec: ImportSpec | null, k
   const retire = await Promise.all(retireIds.map((id) => stFetch<StLocation>(stTenantPath("crm", `locations/${id}`))));
   if (retire.some((r) => r.customerId !== customerId)) throw new Error("A duplicate is on another customer.");
 
-  const unit = unitOf(keep) ?? retire.map(unitOf).find((u) => u != null) ?? null;
   const listed =
     spec?.locations.find((l) => [keep, ...retire].some((r) => norm(r.name) === norm(l.name))) ??
-    (unit != null ? spec?.locations.find((l) => unitOf(l) === unit) : undefined);
+    spec?.locations.find((l) => [keep, ...retire].some((r) => sameSpot(r, l)));
 
   if (listed) {
     if (norm(keep.name) !== norm(listed.name) || norm(keep.address?.unit) !== norm(listed.address.unit)) {

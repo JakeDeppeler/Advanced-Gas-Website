@@ -1,0 +1,4 @@
+Unit,Location name,Street,Suburb,State,Postcode,Contact name,Email,Phone,Status,Notes,Tags
+1,,12 Example Street,Pakenham,VIC,3810,Site office,office@example.com,03 9000 0000,Due,,
+2,,14 Example Street,Officer,VIC,3809,,,,Serviced,Filter hatch cracked,Repairs Flagged
+,Clubhouse,1 Example Road,Pakenham,VIC,3810,,,,,Ducted system in roof,

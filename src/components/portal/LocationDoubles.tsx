@@ -18,7 +18,7 @@ export function LocationDoubles({ customerId, doubles }: { customerId: number; d
   const [done, setDone] = useState<Record<number, { ok: boolean; text: string }>>({});
 
   async function merge(d: Double) {
-    setBusy(d.unit);
+    setBusy(d.keep.id);
     try {
       const res = await fetch("/api/portal/locations", {
         method: "POST",
@@ -27,10 +27,10 @@ export function LocationDoubles({ customerId, doubles }: { customerId: number; d
       });
       const r = (await res.json().catch(() => ({}))) as { ok?: boolean; done?: string[]; error?: string };
       if (!res.ok || !r.ok) throw new Error(r.error || "Couldn’t merge.");
-      setDone((x) => ({ ...x, [d.unit]: { ok: true, text: (r.done ?? []).join(" · ") } }));
+      setDone((x) => ({ ...x, [d.keep.id]: { ok: true, text: (r.done ?? []).join(" · ") } }));
       setTimeout(() => router.refresh(), 4000);
     } catch (e) {
-      setDone((x) => ({ ...x, [d.unit]: { ok: false, text: (e as Error).message } }));
+      setDone((x) => ({ ...x, [d.keep.id]: { ok: false, text: (e as Error).message } }));
     } finally {
       setBusy(null);
     }
@@ -45,8 +45,8 @@ export function LocationDoubles({ customerId, doubles }: { customerId: number; d
       </p>
       <ul className="pt-loc__dbl">
         {doubles.map((d) => (
-          <li key={d.unit} className="pt-loc__dblrow">
-            <strong className="pt-loc__dblunit">Unit {d.unit}</strong>
+          <li key={d.keep.id} className="pt-loc__dblrow">
+            <strong className="pt-loc__dblunit">Unit {d.unit}{d.keep.address ? <span className="pt-fleet__sub">{d.keep.address}</span> : null}</strong>
             <div>
               <span className="pt-loc__muted">Keep</span> {d.keep.name}
               <span className="pt-fleet__sub">#{d.keep.id}{d.keep.tags.length ? ` · ${d.keep.tags.join(", ")}` : ""}</span>
@@ -58,11 +58,11 @@ export function LocationDoubles({ customerId, doubles }: { customerId: number; d
               </span>
             </div>
             <div className="pt-loc__dblgo">
-              {done[d.unit] ? (
-                <span className={`pt-inline pt-inline--sm ${done[d.unit].ok ? "is-ok" : "is-err"}`}>{done[d.unit].text}</span>
+              {done[d.keep.id] ? (
+                <span className={`pt-inline pt-inline--sm ${done[d.keep.id].ok ? "is-ok" : "is-err"}`}>{done[d.keep.id].text}</span>
               ) : (
                 <button type="button" className="pt-btn pt-btn--sm pt-btn--ghost" disabled={busy != null} onClick={() => void merge(d)}>
-                  {busy === d.unit ? "Merging…" : "Merge"}
+                  {busy === d.keep.id ? "Merging…" : "Merge"}
                 </button>
               )}
             </div>
