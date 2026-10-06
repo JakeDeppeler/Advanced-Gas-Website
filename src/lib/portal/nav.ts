@@ -175,6 +175,12 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/sops", label: "Processes", blurb: `${SOP_COUNT} procedures, one standard`, band: "how-we-work", icon: "list", also: ["sop", "procedure", "checklist"] },
   );
   add(admin,
+    {
+      href: "/portal/locations", label: "Site locations", short: "Sites", blurb: "Villages: units in ServiceTitan, serviced or due",
+      band: "customers", icon: "list", also: ["location", "village", "unit", "strata", "serviced", "service due", "import", "servicetitan"],
+    },
+  );
+  add(admin,
     { href: "/portal/sops/edit", label: "Edit processes", short: "Edit SOPs", blurb: "Change what the crew sees", band: "how-we-work", icon: "pen", also: ["edit", "procedure", "publish"] },
   );
   items.push(
