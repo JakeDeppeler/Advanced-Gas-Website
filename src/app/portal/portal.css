@@ -4367,16 +4367,23 @@ a.pt-fig:hover { transform: translateY(-2px); }
 
 /* ---- Reports: what went, to whom; one opened as the email had it ---- */
 .pt-rpt__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
-.pt-rpt__head .pt-seg a { text-decoration: none; display: inline-flex; align-items: center; }
+.pt-seg a.pt-seg__b { text-decoration: none; display: inline-flex; align-items: center; }
 .pt-rpt__now { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .pt-rpt__again { display: inline-flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-.pt-rpt__sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; align-items: start; }
-.pt-rpt__sec { margin: 0; }
-.pt-rpt__lines { margin: 8px 0 0; }
-.pt-rpt__line { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--pt-tint); }
-.pt-rpt__line dt { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 14px; color: var(--pt-ink-2); }
-.pt-rpt__line dt span { font-size: 12.5px; color: var(--pt-ink-3, #8b8a86); }
-.pt-rpt__line dd { margin: 0; font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--pt-ink); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.pt-rpt__line dd.is-bad { color: #b3261e; }
-.pt-rpt__line dd.is-good { color: var(--pt-good); }
-@media (max-width: 520px) { .pt-rpt__sections { grid-template-columns: minmax(0, 1fr); } }
+
+/* ------------------------------------------------ an email, as it arrives */
+.pt-mail { display: flex; flex-direction: column; gap: 12px; }
+.pt-mail__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pt-mail__stage { border-radius: 18px; background: var(--pt-tint); padding: 18px; display: flex; justify-content: center; overflow: hidden; }
+.pt-mail__frame { display: block; width: 100%; max-width: 680px; border: 0; border-radius: 12px; background: #f9f8f3; }
+.pt-mail__stage.is-phone .pt-mail__frame { max-width: 390px; box-shadow: 0 0 0 10px #050a30; border-radius: 22px; }
+.pt-mail__subject { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-surface); }
+.pt-mail__subject span { font-size: 12px; color: var(--pt-ink-3); text-transform: uppercase; letter-spacing: .08em; }
+.pt-mail__subject strong { font-size: 15px; color: var(--pt-ink); line-height: 1.4; overflow-wrap: anywhere; }
+.pt-rpt__kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 10px; }
+.pt-rpt__kind { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; text-decoration: none; color: var(--pt-ink); background: var(--pt-surface); }
+.pt-rpt__kind:hover { border-color: var(--pt-ink-3); }
+.pt-rpt__kind strong { font-size: 15px; }
+.pt-rpt__kind span { font-size: 13px; color: var(--pt-ink-2); }
+.pt-rpt__kind em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--pt-accent); margin-top: 4px; }
+@media (max-width: 720px) { .pt-rpt__kinds { grid-template-columns: minmax(0, 1fr); } .pt-mail__stage { padding: 8px; } }

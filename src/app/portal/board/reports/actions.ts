@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { isEmail, reportRecipients, saveReportRecipients } from "@/lib/reports/store";
-import { resendReport, sendReportNow } from "@/lib/reports/run";
+import { resendReport, sendReportNow, sendTestReport } from "@/lib/reports/run";
 import type { ReportKind } from "@/lib/reports/types";
 
 export type ReportActionResult = { ok: boolean; error?: string; emails?: string[]; note?: string };
@@ -48,4 +48,18 @@ export async function sendAgain(key: string): Promise<ReportActionResult> {
   if (!r) return { ok: false, error: "No such report." };
   revalidatePath("/portal/board/reports");
   return r.status === "sent" ? { ok: true, note: "Sent again." } : { ok: false, error: r.error ?? "Couldn't send." };
+}
+
+/** A copy of this period's report to whoever pressed the button, and nobody else. Not kept. */
+export async function sendToMe(kind: ReportKind): Promise<ReportActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!["daily", "weekly", "monthly"].includes(kind)) return { ok: false, error: "No such report." };
+  if (!me.email || !isEmail(me.email)) return { ok: false, error: "Your portal login has no email address to send to." };
+  try {
+    const r = await sendTestReport(kind, me.email);
+    return r.ok ? { ok: true, note: `Sent to ${me.email}.` } : { ok: false, error: r.error ?? "Couldn't send." };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }

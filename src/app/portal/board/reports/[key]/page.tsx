@@ -4,9 +4,10 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
-import { ReportView } from "@/components/portal/ReportView";
+import { EmailFrame } from "@/components/portal/EmailFrame";
 import { SendAgainButton } from "@/components/portal/ReportButtons";
 import { getReport } from "@/lib/reports/store";
+import { reportEmail } from "@/lib/reports/send";
 import { KIND_LABEL } from "@/lib/reports/types";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export const metadata = { title: "Report — Team portal" };
 const when = (iso: string) =>
   new Date(iso).toLocaleString("en-AU", { timeZone: "Australia/Melbourne", weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
 
-/** One report, as it was sent. */
+/** One kept report, as the email showed it. */
 export default async function ReportPage({ params }: { params: { key: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
@@ -38,7 +39,7 @@ export default async function ReportPage({ params }: { params: { key: string } }
         </div>
         <SendAgainButton reportKey={r.key} />
       </div>
-      <ReportView r={r} />
+      <EmailFrame html={reportEmail(r).html} title={r.title} />
     </PortalShell>
   );
 }

@@ -6,7 +6,7 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { EmailListEditor } from "@/components/portal/EmailListEditor";
-import { SendNowButtons, SendAgainButton } from "@/components/portal/ReportButtons";
+import { SendAgainButton } from "@/components/portal/ReportButtons";
 import { dbConfigured } from "@/lib/portal/db";
 import { listReports, reportRecipients } from "@/lib/reports/store";
 import { KIND_LABEL, type Report, type ReportKind } from "@/lib/reports/types";
@@ -43,6 +43,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
             The board&rsquo;s figures, put together and emailed at half past five: the day on every working day, the week on its
             last working day, and the month on its last. Each one is kept here as it was sent.
           </p>
+        </div>
+        <div className="pt-vhead__acts">
+          <Link href="/portal/board/reports/preview" className="pt-btn pt-btn--orange">Preview the reports</Link>
         </div>
       </div>
 
@@ -91,9 +94,20 @@ export default async function ReportsPage({ searchParams }: { searchParams: { k?
       </section>
 
       <section className="pt-panel">
-        <h2 className="pt-panel__h">Send one now</h2>
-        <p className="pt-panel__sub">This period&rsquo;s report from the figures as they are right now — to check what it says, or to send it early.</p>
-        <SendNowButtons />
+        <h2 className="pt-panel__h">Preview, or send one now</h2>
+        <p className="pt-panel__sub">
+          Each one as it will land in the inbox, from the figures as they are right now. From there you can send a copy to
+          yourself, or send it to everyone early.
+        </p>
+        <div className="pt-rpt__kinds">
+          {(["daily", "weekly", "monthly"] as ReportKind[]).map((k) => (
+            <Link key={k} href={`/portal/board/reports/preview?k=${k}`} className="pt-rpt__kind">
+              <strong>{KIND_LABEL[k]}</strong>
+              <span>{k === "daily" ? "Every working day, half past five" : k === "weekly" ? "Last working day of the week" : "Last working day of the month"}</span>
+              <em>Preview →</em>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="pt-panel" id="emails">
