@@ -1468,22 +1468,35 @@ Widening the window costs nothing in honesty, because there was nothing to lose:
 only started carrying a materials cost and clocked hours recently, so the windows
 go:
 
-| Window | Jobs priced | Of those, costable | Share of revenue |
-|---|---|---|---|
-| Month to date | 8 | 7 | 99% |
-| Last 90 days | 266 | 30 | 17% |
-| Financial year to date | 287 | 30 | 16% |
-| Last 12 months | 1,449 | 30 | 3% |
+| Window | Jobs priced | Of those, costable | Costed revenue | Share of revenue |
+|---|---|---|---|---|
+| Month to date | 8 | 7 | $18,575 | 99% |
+| Last 90 days | 266 | 52 | $66,706 | 18% |
+| Financial year to date | 287 | 52 | $66,706 | 17.5% |
+| Last 12 months | 1,449 | 52 | $66,706 | 3.5% |
 
-So the year picks up all thirty rather than the handful invoiced since the first,
-and going back further than the year would only add jobs that cannot be costed.
-It reads about 22% against a 20% goal, where the month alone read 28%.
+So the year picks up all fifty-two rather than the seven invoiced since the
+first, and going back further than the year would only add jobs that cannot be
+costed. It reads 21.8% against a 20% goal, where the month alone read 27.5%.
 
-Sixteen percent of revenue is not a year's margin and the cell does not claim it
-is: the key line says **"Job margin · 30 jobs"**, because a margin over thirty
+A seventeenth of a per cent either way is not the point; what matters is that
+**the costable set does not grow with the window.** Every one of the fifty-two
+falls inside the last ninety days, because ServiceTitan only began carrying a
+materials cost and clocked hours recently.
+
+Seventeen per cent of revenue is not a year's margin and the cell does not claim
+it is: the key line says **"Job margin · 52 jobs"**, because a margin over fifty-two
 jobs is a different statement from a margin over the year and the strip has no
 room to say it twice. If ServiceTitan's costing coverage improves, this figure
 gets better on its own and the job count says so.
+
+A note on counting them, because the first count of this was wrong by twenty-two.
+`jobClass` calls everything that is not a quotation and not an install a
+*service* job, which includes repairs, diagnostics, maintenance and warranty —
+and a service job is costable without a materials line, since there may genuinely
+be no parts in it. Counting only the job types whose name begins "Service" found
+thirty where the board finds fifty-two. Check a coverage figure against
+`jobClass`, not against what the job type looks like it says.
 
 ## Invoiced means the work was done
 
