@@ -107,6 +107,18 @@ export async function syncJournalEntries(): Promise<{ records: number }> {
     for (const j of [...changed, ...problems]) if (j.id) seen.set(String(j.id), j);
     await upsert([...seen.values()].map((j) => toRow(j, now)));
 
+    // Bills never sync as a journal entry here: Vendor Bills go to Xero as
+    // bills (export type Document – General Ledger), so ServiceTitan's own list
+    // shows their entry as N/A. The API still says NotSynced, which would have
+    // put "Bills – 2 Oct" on the waiting list for good. An unsynced entry
+    // holding bills is marked NotApplicable; one that syncs or fails as a
+    // journal entry keeps ServiceTitan's word.
+    const billIds = (await stList<StJournal>("accounting", "journal-entries", { transactionTypes: "Bill", syncStatuses: "NotSynced", postedFrom: windowFrom }, 5))
+      .map((j) => String(j.id)).filter((id) => id && id !== "null");
+    for (let i = 0; i < billIds.length; i += 50) {
+      await sbUpdate("st_journal_entries", `id=in.(${billIds.slice(i, i + 50).join(",")})`, { sync_status: "NotApplicable" });
+    }
+
     // 3. Problems we hold that ServiceTitan no longer lists as problems.
     const held = await sbSelect<{ id: string }>(
       "st_journal_entries",
