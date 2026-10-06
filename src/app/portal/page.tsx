@@ -14,13 +14,13 @@ export const metadata = { title: "Team portal" };
 
 /** Each section's icon: the same as its tab in the side bar. */
 const TAB_ICONS: Record<NavBand, string> = {
-  run: ICON.trend, customers: ICON.chat, profit: ICON.chart, marketing: ICON.speaker,
+  run: ICON.trend, board: ICON.screen, customers: ICON.chat, profit: ICON.chart, marketing: ICON.speaker,
   crew: ICON.truck, "how-we-work": ICON.book, settings: ICON.user, hidden: ICON.grid,
 };
 
 /**
  * Home, to the mock: the day, what needs someone today, then the portal's
- * seven sections as cards — each with how many of today's lines are its, and
+ * eight sections as cards — each with how many of today's lines are its, and
  * how many pages it holds. The pages themselves are a tap away in the side
  * bar or on each section's page; listing all forty here as well made Home a
  * second copy of the side bar.

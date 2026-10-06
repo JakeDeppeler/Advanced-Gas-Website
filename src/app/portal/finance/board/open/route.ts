@@ -31,7 +31,9 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL("/portal/finance/board?board=no-token", req.url));
   }
 
-  const to = new URL("/screen", req.url);
-  to.searchParams.set("k", token);
-  return NextResponse.redirect(to);
+  // A relative Location, so the browser resolves it against the address it
+  // asked for. Built from req.url it named the server's own host, which a
+  // framed board — the Remote page shows it live — counts as another site and
+  // refuses to draw.
+  return new NextResponse(null, { status: 307, headers: { Location: `/screen?k=${encodeURIComponent(token)}` } });
 }

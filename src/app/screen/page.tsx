@@ -5,6 +5,7 @@ import { latestSnapshot } from "@/lib/dashboard/metrics";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import "./screen.css";
+import { readRemote } from "@/lib/board/remote";
 
 // Server-rendered so the panel paints real numbers on first load rather than a
 // spinner; the client component takes over polling from there.
@@ -30,7 +31,7 @@ export default async function ScreenPage({
     return <Message text="Supabase is not configured for this deployment." />;
   }
 
-  const snapshot = await latestSnapshot();
+  const [snapshot, remote] = await Promise.all([latestSnapshot(), readRemote().catch(() => null)]);
   if (!snapshot) {
     return <Message text="No snapshot yet. Run the sync job once to populate the board." />;
   }
@@ -39,6 +40,7 @@ export default async function ScreenPage({
     <ScreenBoard
       initial={snapshot}
       token={searchParams.k as string}
+      remote={remote}
       theme={searchParams.theme === "dark" ? "dark" : "light"}
       // Clamped, because this comes off a URL anybody with the token can edit
       // and a board inset by 40% is a support call, not a setting.

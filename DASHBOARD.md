@@ -40,6 +40,28 @@ buttons open the live board, the Year goal and the commission/calendar page. **I
 (`/portal/integrations`) carries the same source states beside Xero, Reece,
 Google reviews, Instagram and the quote email.
 
+### The remote
+
+The board has its own tab in the portal's side bar, **Wall board**. Its first
+page, **Remote** (`/portal/board/remote`), shows the board live — the real
+thing, scaled, following the remote as the TV does — beside the buttons that
+drive the TV:
+
+- **Show a page** puts one up now and holds it there; **Turn the pages again**
+  lets it rotate. A TV switched on while a page is held opens on that page.
+- **Put a demo up** plays one of the board's alerts (SOLD!, New quote, Time to
+  bill) on sample figures, on a loop for two minutes or until taken down. It
+  is the same preview `?alert=` gives, so it says it's a sample on screen.
+- **Light or dark**, or as the TV's own address says.
+- **Reload** reloads the board on the TV.
+
+The remote is one row in `portal_settings` ("board-remote"). It rides along
+with the figures every thirty seconds at no extra cost; while somebody has
+the Remote page open, boards also check it every four seconds, so a press
+lands in a few seconds. Each press carries an id and is acted on once, so the
+TV's own Skip and Hold still work after it. The tab's other pages are the
+explainer above and the targets and commission page.
+
 ## The pages
 
 The board cycles every 20 seconds through six pages. Past about eight tiles

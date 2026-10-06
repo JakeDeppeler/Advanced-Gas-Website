@@ -9,6 +9,8 @@ import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, ve
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
 import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
+import { useBoardRemote } from "./screen/useBoardRemote";
+import { BOARD_PAGES, type BoardRemote } from "@/lib/board/remoteTypes";
 
 type Snapshot = {
   computedAt: string;
@@ -27,7 +29,8 @@ const REFRESH_MS = 30_000;
 // want an export request every thirty seconds all day.
 const RESYNC_MS = 30_000;
 const PAGE_MS = 30_000;
-const PAGES = ["Today", "Pace", "Quotes", "Invoices", "Team", "Performance", "Areas"] as const;
+// The page list lives with the remote, so the portal can name a page to show.
+const PAGES = BOARD_PAGES;
 
 /**
  * The line beside each page name: what the figures below it are measuring.
@@ -138,6 +141,7 @@ export function ScreenBoard({
   theme = "light",
   safe = 0,
   preview,
+  remote: initialRemote = null,
 }: {
   initial: Snapshot;
   token: string;
@@ -146,6 +150,8 @@ export function ScreenBoard({
   safe?: number;
   /** `?alert=…` — show one alert on a loop, on sample figures. */
   preview?: AlertKind;
+  /** The portal's remote as it stood when the page loaded; see useBoardRemote. */
+  remote?: BoardRemote | null;
 }) {
   const [snap, setSnap] = useState(initial);
   const [now, setNow] = useState(() => new Date());
@@ -155,6 +161,17 @@ export function ScreenBoard({
   // Bumped each time a previewed alert finishes, so it replays rather than
   // showing once and leaving the board behind it.
   const [previewRun, setPreviewRun] = useState(0);
+
+  // The portal's remote: a page to show or hold, a demo alert, the theme.
+  const remote = useBoardRemote(token, (snap as Snapshot & { remote?: BoardRemote | null }).remote ?? initialRemote, {
+    show: (name, hold) => {
+      const i = name ? PAGES.indexOf(name) : -1;
+      if (i >= 0) setPage(i);
+      setPaused(hold);
+    },
+  });
+  const shownTheme = remote.theme ?? theme;
+  const shownPreview = preview ?? remote.demo ?? undefined;
 
   // Seeded from the first snapshot so the board doesn't open by cheering every
   // sale already on the books.
@@ -291,11 +308,11 @@ export function ScreenBoard({
 
   return (
     <div
-      className={`screen ${theme === "dark" ? "screen--dark" : ""}`}
+      className={`screen ${shownTheme === "dark" ? "screen--dark" : ""}`}
       style={{ "--page-ms": `${PAGE_MS}ms`, "--safe": safe } as CSSProperties}
     >
-      {preview ? (
-        <Alert key={`${preview}-${previewRun}`} alert={previewAlert(preview)} onDone={() => setPreviewRun((n) => n + 1)} />
+      {shownPreview ? (
+        <Alert key={`${shownPreview}-${previewRun}`} alert={previewAlert(shownPreview)} onDone={() => setPreviewRun((n) => n + 1)} />
       ) : (
         celebrating && (
           <Alert
