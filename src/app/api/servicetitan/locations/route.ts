@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { dashboardDbConfigured, sbUpsert } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { serviceTitanConfigured } from "@/lib/dashboard/servicetitan";
-import { addNotes, applyImport, checkContacts, loadImportSpec, mergePairs, otherLocations, planImport } from "@/lib/locations/stLocations";
+import { addNotes, applyImport, checkContacts, loadImportSpec, mergePairs, otherLocations, planImport, syncTags } from "@/lib/locations/stLocations";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +22,9 @@ export const maxDuration = 60;
 //                                                listed unit each one seems to duplicate
 //   GET /api/servicetitan/locations?merge=1      fold the approved duplicate pairs in
 //                                                portal_settings.st_location_import_merge
+//   GET /api/servicetitan/locations?tags=1&from=N
+//                                                set the managed tags on list positions
+//                                                N..N+limit
 //
 // The list is read from portal_settings.st_location_import. Safe to repeat: the
 // plan is recomputed from the customer's live locations, so anything already
@@ -51,6 +54,12 @@ export async function GET(req: Request) {
       alreadyThere: plan.alreadyThere.length,
       toCreate: plan.toCreate.length,
     };
+
+    if (url.searchParams.get("tags") === "1") {
+      const from = Math.max(0, Math.floor(Number(url.searchParams.get("from")) || 0));
+      const result = await syncTags(spec, plan, from, limit);
+      return NextResponse.json({ ok: result.failed.length === 0, mode: "tags", summary, ...result });
+    }
 
     if (url.searchParams.get("merge") === "1") {
       const result = await mergePairs(spec);

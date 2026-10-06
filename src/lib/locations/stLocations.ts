@@ -26,9 +26,20 @@ export type ImportLocation = {
   contacts?: ImportContact[];
   /** Location notes, e.g. repairs flagged on the customer's service list. */
   notes?: string[];
+  /** ServiceTitan tag type names this location should carry. */
+  tags?: string[];
 };
 
-export type ImportSpec = { customerId: number; locations: ImportLocation[] };
+export type ImportSpec = {
+  customerId: number;
+  locations: ImportLocation[];
+  /**
+   * Tag names this import owns. A location gains its own `tags` and loses any
+   * other managed tag, so moving a unit from "due" to "serviced" is one list
+   * edit; tags outside this set (put on by the office) are never touched.
+   */
+  managedTags?: string[];
+};
 
 type StLocation = {
   id: number;
@@ -36,6 +47,7 @@ type StLocation = {
   customerId: number;
   active?: boolean;
   address?: { street?: string; unit?: string; city?: string };
+  tagTypeIds?: number[];
 };
 type StNote = { text: string };
 type StContact = { id: number; type: string; value: string; memo?: string | null };
@@ -59,7 +71,7 @@ export async function loadImportSpec(): Promise<ImportSpec> {
   const names = v.locations.map((l) => norm(l.name));
   const dupes = names.filter((n, i) => names.indexOf(n) !== i);
   if (dupes.length) throw new Error(`Duplicate names in the import list: ${[...new Set(dupes)].join(", ")}`);
-  return { customerId: Number(v.customerId), locations: v.locations };
+  return { customerId: Number(v.customerId), locations: v.locations, managedTags: v.managedTags ?? [] };
 }
 
 export type ImportPlan = {
@@ -300,15 +312,40 @@ export async function mergePairs(spec: ImportSpec) {
   );
   const pairs = row?.value?.pairs ?? [];
   const ledger = await loadLedger();
-  const results: { name: string; keep: number; retire: number; ok: boolean; done?: string[]; error?: string }[] = [];
+  const results: {
+    name: string;
+    keep: number;
+    retire: number;
+    ok: boolean;
+    before?: string;
+    done?: string[];
+    error?: string;
+  }[] = [];
 
   for (const pair of pairs) {
     const done: string[] = [];
+    let before: string | undefined;
     try {
       const loc = spec.locations.find((l) => norm(l.name) === norm(pair.name));
       if (!loc) throw new Error("not on the import list");
-      const keep = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.keep}`));
-      const retire = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.retire}`));
+      // The state each record was in before this run touched it, reported
+      // either way: after the first live attempt the customer's active count
+      // fell by eight although nothing had been deactivated, and which of each
+      // pair survived has to be read, not assumed.
+      const state = async (id: number) => {
+        try {
+          const l = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
+          return { l, text: `"${l.name}" ${l.active === false ? "inactive" : "active"}` };
+        } catch (e) {
+          return { l: null, text: /\b404\b/.test((e as Error).message) ? "not found" : "unreadable" };
+        }
+      };
+      const ks = await state(pair.keep);
+      const rs = await state(pair.retire);
+      before = `kept ${ks.text}; duplicate ${rs.text}`;
+      if (!ks.l || !rs.l) throw new Error("one of the pair could not be read");
+      const keep = ks.l;
+      const retire = rs.l;
       if (keep.customerId !== spec.customerId || retire.customerId !== spec.customerId) {
         throw new Error("one of the pair is not on this customer");
       }
@@ -321,8 +358,18 @@ export async function mergePairs(spec: ImportSpec) {
       const haveContacts = await stList<StContact>("crm", `locations/${pair.keep}/contacts`);
       for (const c of loc.contacts ?? []) {
         if (haveContacts.some((h) => h.type === c.type && norm(h.value) === norm(c.value))) continue;
-        await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/contacts`), c);
-        done.push("contact");
+        try {
+          await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/contacts`), c);
+          done.push("contact");
+        } catch (e) {
+          // On the first live merge every one of these older records answered
+          // 409 Conflict, though its contact list did not show the address —
+          // ServiceTitan already holds a matching contact it does not list
+          // here. A conflict means the contact is there; it must not stop the
+          // duplicate being retired, which would leave two "Unit NNN" records.
+          if (!/\b409\b/.test((e as Error).message)) throw e;
+          done.push("contact already on record");
+        }
       }
       const haveNotes = await stList<StNote>("crm", `locations/${pair.keep}/notes`);
       for (const text of loc.notes ?? []) {
@@ -343,11 +390,68 @@ export async function mergePairs(spec: ImportSpec) {
       if (r.active !== false) throw new Error("duplicate is still active — ServiceTitan ignored the deactivate");
 
       ledger[loc.name] = pair.keep;
-      results.push({ ...pair, ok: true, done: done.length ? done : ["already merged"] });
+      results.push({ ...pair, ok: true, before, done: done.length ? done : ["already merged"] });
     } catch (e) {
-      results.push({ ...pair, ok: false, done, error: scrub(e) });
+      results.push({ ...pair, ok: false, before, done, error: scrub(e) });
     }
   }
   await saveLedger(ledger);
   return { pairs: pairs.length, merged: results.filter((r) => r.ok).length, results };
+}
+
+/**
+ * Sets each listed location's managed tags, for list positions
+ * [from, from + limit). Tag types are matched by name and must already exist in
+ * ServiceTitan (Settings → Tag Types); a missing one stops the run before
+ * anything is written rather than tagging half the list.
+ */
+export async function syncTags(spec: ImportSpec, plan: ImportPlan, from: number, limit: number) {
+  const managed = spec.managedTags ?? [];
+  const types = await stList<{ id: number; name: string; active?: boolean }>("settings", "tag-types", { active: "Any" });
+  const byName = new Map(types.map((t) => [norm(t.name), t.id]));
+  const wanted = new Set([...managed, ...spec.locations.flatMap((l) => l.tags ?? [])]);
+  const missing = [...wanted].filter((n) => !byName.has(norm(n)));
+  if (missing.length) {
+    throw new Error(`Create these tag types in ServiceTitan first (Settings → Tag Types): ${missing.join(", ")}`);
+  }
+  const managedIds = new Set(managed.map((n) => byName.get(norm(n))!));
+
+  const slice = spec.locations.slice(from, from + limit);
+  const results: (Result & { changed?: boolean })[] = [];
+  for (let i = 0; i < slice.length; i += 5) {
+    results.push(
+      ...(await Promise.all(
+        slice.slice(i, i + 5).map(async (loc) => {
+          const id = plan.ids.get(norm(loc.name));
+          if (!id) return { name: loc.name, ok: false, error: "not created yet" };
+          try {
+            const cur = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
+            // Without the current tags, a PATCH would replace whatever the
+            // office has put on the location with only ours.
+            if (!Array.isArray(cur.tagTypeIds)) throw new Error("ServiceTitan did not return the location's current tags");
+            const want = new Set(cur.tagTypeIds.filter((t) => !managedIds.has(t)));
+            for (const n of loc.tags ?? []) want.add(byName.get(norm(n))!);
+            const same = want.size === cur.tagTypeIds.length && cur.tagTypeIds.every((t) => want.has(t));
+            if (same) return { name: loc.name, ok: true, id, changed: false };
+            await stSend("PATCH", stTenantPath("crm", `locations/${id}`), { tagTypeIds: [...want] });
+            const back = await stFetch<StLocation>(stTenantPath("crm", `locations/${id}`));
+            const got = new Set(back.tagTypeIds ?? []);
+            if (got.size !== want.size || [...want].some((t) => !got.has(t))) {
+              throw new Error("tags did not stick on read-back");
+            }
+            return { name: loc.name, ok: true, id, changed: true };
+          } catch (e) {
+            return { name: loc.name, ok: false, id, error: scrub(e) };
+          }
+        }),
+      )),
+    );
+  }
+  const next = from + slice.length;
+  return {
+    checked: results.filter((r) => r.ok).length,
+    changed: results.filter((r) => r.changed).length,
+    failed: results.filter((r) => !r.ok),
+    next: next < spec.locations.length ? next : null,
+  };
 }
