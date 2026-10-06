@@ -9,7 +9,10 @@ name: ServiceTitan locations import
 #     created. Nothing is written.
 #   - Tick "apply" with a small limit for a test batch, check it in ServiceTitan,
 #     then tick "all" to create the rest. Re-running is safe: locations that
-#     already exist on the customer (by name) are skipped.
+#     already exist on the customer (by name), or that this import has already
+#     created, are skipped.
+#   - Then run once more with "contacts" ticked. Creates do not check contacts,
+#     because ServiceTitan takes a little while to make a new location readable.
 
 on:
   workflow_dispatch:
@@ -24,6 +27,10 @@ on:
         default: "5"
       all:
         description: "Keep calling until every location is created (apply only)"
+        type: boolean
+        default: false
+      contacts:
+        description: "Check every location's contact and add any that are missing (run after the creates)"
         type: boolean
         default: false
       url:
@@ -46,6 +53,7 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           APPLY: ${{ inputs.apply && '1' || '' }}
           ALL: ${{ inputs.all && '1' || '' }}
+          CONTACTS: ${{ inputs.contacts && '1' || '' }}
           LIMIT: ${{ inputs.limit || '5' }}
           URL_OVERRIDE: ${{ inputs.url }}
         run: |
@@ -60,6 +68,38 @@ jobs:
           BASE="${BASE%/}"
           auth=(-H "Authorization: Bearer ${CRON_SECRET}")
           JQ_DEFS='def e: (if . == null then "" else . end) | tostring | gsub("\\|"; "/");'
+
+          if [ -n "$CONTACTS" ]; then
+            from=0; checked=0; added=0; failed=0
+            : > failures.ndjson
+            while :; do
+              curl -sS --max-time 90 "${auth[@]}" "${BASE}/api/servicetitan/locations?contacts=1&from=${from}&limit=${LIMIT}" > run.json || true
+              jq -c '{ok, mode, checked, added, next, failed, error}' run.json || cat run.json
+              if [ "$(jq -r '.mode // empty' run.json)" != "contacts" ]; then
+                echo "::error::$(jq -r '.error // "unexpected response"' run.json 2>/dev/null || echo unexpected response)"
+                exit 1
+              fi
+              checked=$((checked + $(jq -r .checked run.json)))
+              added=$((added + $(jq -r .added run.json)))
+              failed=$((failed + $(jq -r '.failed | length' run.json)))
+              jq -c '.failed[]' run.json >> failures.ndjson
+              from=$(jq -r '.next // empty' run.json)
+              [ -z "$from" ] && break
+            done
+            {
+              echo "## Locations import — contacts"
+              echo
+              echo "Checked **${checked}** locations, added **${added}** missing contacts, failed **${failed}**."
+              if [ "$failed" != "0" ]; then
+                echo
+                echo "| Location | Id | Error |"
+                echo "|---|---|---|"
+                jq -r "${JQ_DEFS}"'"| \(.name|e) | \(.id|e) | \(.error|e) |"' failures.ndjson
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            [ "$failed" = "0" ]
+            exit 0
+          fi
 
           if [ -z "$APPLY" ]; then
             curl --fail-with-body -sS --max-time 90 "${auth[@]}" "${BASE}/api/servicetitan/locations" > plan.json || { cat plan.json; exit 1; }
