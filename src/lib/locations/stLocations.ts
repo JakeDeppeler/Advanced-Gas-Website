@@ -106,7 +106,10 @@ export async function planImport(spec: ImportSpec): Promise<ImportPlan> {
   });
   const ids = new Map<string, number>();
   for (const [name, id] of Object.entries(await loadLedger())) ids.set(norm(name), id);
-  for (const l of existing) ids.set(norm(l.name), l.id);
+  // Inactive first, so where a merge has left an active and a retired location
+  // under the same name, the active one is the id every later pass writes to.
+  for (const l of existing.filter((l) => l.active === false)) ids.set(norm(l.name), l.id);
+  for (const l of existing.filter((l) => l.active !== false)) ids.set(norm(l.name), l.id);
   const toCreate = spec.locations.filter((l) => !ids.has(norm(l.name)));
   const alreadyThere = spec.locations.filter((l) => ids.has(norm(l.name))).map((l) => l.name);
   return { customer: { id: customer.id, name: customer.name }, existing: existing.length, toCreate, alreadyThere, ids, live: existing };
@@ -276,4 +279,75 @@ export function otherLocations(spec: ImportSpec, plan: ImportPlan) {
         sameUnitAs: match ? { name: match.name, id: plan.ids.get(norm(match.name)) ?? null } : null,
       };
     });
+}
+
+type MergePair = { name: string; keep: number; retire: number };
+
+/**
+ * Folds each approved duplicate pair into one location.
+ *
+ * The pairs (portal_settings.st_location_import_merge) were found by `others`
+ * and approved by a person; this never picks its own. The older record is the
+ * one kept, because it is where the unit's job, invoice and equipment history
+ * hangs. It takes the listed name, address, contacts and notes; the newer,
+ * empty duplicate is deactivated, not deleted, so it can be switched back on.
+ * Every change is read back. A pair already done is reported and left alone.
+ */
+export async function mergePairs(spec: ImportSpec) {
+  const row = await sbSelectOne<{ value: { pairs: MergePair[] } }>(
+    "portal_settings",
+    [q.select("value"), q.eq("key", `${IMPORT_KEY}_merge`)].join("&"),
+  );
+  const pairs = row?.value?.pairs ?? [];
+  const ledger = await loadLedger();
+  const results: { name: string; keep: number; retire: number; ok: boolean; done?: string[]; error?: string }[] = [];
+
+  for (const pair of pairs) {
+    const done: string[] = [];
+    try {
+      const loc = spec.locations.find((l) => norm(l.name) === norm(pair.name));
+      if (!loc) throw new Error("not on the import list");
+      const keep = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.keep}`));
+      const retire = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.retire}`));
+      if (keep.customerId !== spec.customerId || retire.customerId !== spec.customerId) {
+        throw new Error("one of the pair is not on this customer");
+      }
+
+      if (norm(keep.name) !== norm(loc.name) || norm(keep.address?.unit) !== norm(loc.address.unit)) {
+        await stSend("PATCH", stTenantPath("crm", `locations/${pair.keep}`), { name: loc.name, address: loc.address });
+        done.push("renamed");
+      }
+
+      const haveContacts = await stList<StContact>("crm", `locations/${pair.keep}/contacts`);
+      for (const c of loc.contacts ?? []) {
+        if (haveContacts.some((h) => h.type === c.type && norm(h.value) === norm(c.value))) continue;
+        await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/contacts`), c);
+        done.push("contact");
+      }
+      const haveNotes = await stList<StNote>("crm", `locations/${pair.keep}/notes`);
+      for (const text of loc.notes ?? []) {
+        if (haveNotes.some((h) => norm(h.text) === norm(text))) continue;
+        await stSend("POST", stTenantPath("crm", `locations/${pair.keep}/notes`), { text, pinToTop: true });
+        done.push("note");
+      }
+
+      if (retire.active !== false) {
+        await stSend("PATCH", stTenantPath("crm", `locations/${pair.retire}`), { active: false });
+        done.push("duplicate deactivated");
+      }
+
+      const k = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.keep}`));
+      const r = await stFetch<StLocation>(stTenantPath("crm", `locations/${pair.retire}`));
+      if (norm(k.name) !== norm(loc.name)) throw new Error(`kept record still named "${k.name}"`);
+      if (k.active === false) throw new Error("kept record is inactive");
+      if (r.active !== false) throw new Error("duplicate is still active — ServiceTitan ignored the deactivate");
+
+      ledger[loc.name] = pair.keep;
+      results.push({ ...pair, ok: true, done: done.length ? done : ["already merged"] });
+    } catch (e) {
+      results.push({ ...pair, ok: false, done, error: scrub(e) });
+    }
+  }
+  await saveLedger(ledger);
+  return { pairs: pairs.length, merged: results.filter((r) => r.ok).length, results };
 }
