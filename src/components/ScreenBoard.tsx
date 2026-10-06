@@ -1152,7 +1152,10 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
           <div className="quotes">
             {m.overdueList.map((o) => (
               <div className="quote inv__row" key={o.number}>
-                <span className="quote__label">Invoice {o.number}</span>
+                <span className="quote__label inv__who">
+                  <span className="inv__name">{o.name ?? "Invoice"}</span>
+                  <span className="inv__num">{o.number}</span>
+                </span>
                 <span className={`inv__age ${o.days > 30 ? "is-bad" : o.days > 14 ? "is-warn" : ""}`}>{o.days} days</span>
                 <span className="quote__value">{plain(o.amount)}</span>
               </div>

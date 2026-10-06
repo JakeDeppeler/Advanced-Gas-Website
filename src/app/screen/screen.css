@@ -1754,6 +1754,17 @@ body:has(.screen) .utilbar {
    widest first, because the job is what the office looks it up by. */
 .inv__row { grid-template-columns: minmax(0, 1fr) auto auto; gap: calc(1 * var(--u)); }
 .inv__where { color: var(--ink-2); font-weight: 600; }
+/* Who owes it, then which invoice underneath — the name can be a property
+   manager's full trading name, and truncating the number to fit it on one line
+   would lose the half the office actually types in. */
+.inv__who { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
+.inv__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv__num {
+  font-size: calc(0.86 * var(--u));
+  color: var(--muted-fig);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
 /* Not a dash: a job with no price yet is waiting on somebody, and the blank
    that a dash leaves reads as missing data rather than as work to do. */
 .inv__unpriced { color: var(--ink-muted); font-weight: 650; font-size: calc(0.95 * var(--u)); }

@@ -28,12 +28,14 @@ export type XeroAging = { notDue: number; d1to7: number; d8to14: number; d15to30
 /**
  * One overdue invoice, for the chase list.
  *
- * Deliberately no contact name. This goes on a wall in an office with a
- * reception area, and "Mrs Smith · $2,140 · 42 days" is a customer's debt
- * readable by whoever walks past. The invoice number is what the office looks
- * the thing up by anyway.
+ * It carries the customer's name. That was left off at first, on the grounds
+ * that the board hangs where people walk past and a named debt is a different
+ * thing from a figure — but it is Jake's office and his wall, and the list is
+ * useless for its one job if whoever picks up the phone has to go and look up
+ * six invoice numbers before they can ring anybody. The number stays under the
+ * name, smaller, the way the quote list carries a job number.
  */
-export type XeroOverdue = { number: string; days: number; amount: number };
+export type XeroOverdue = { number: string; name: string | null; days: number; amount: number };
 
 export type XeroResult =
   | {
@@ -89,7 +91,13 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   if (!res.ok) return { ok: false, reason: `xero ${res.status} ${res.statusText}` };
 
   const json = (await res.json()) as {
-    Invoices?: Array<{ AmountDue?: number; DueDateString?: string; DueDate?: string; InvoiceNumber?: string }>;
+    Invoices?: Array<{
+      AmountDue?: number;
+      DueDateString?: string;
+      DueDate?: string;
+      InvoiceNumber?: string;
+      Contact?: { Name?: string };
+    }>;
   };
 
   const now = Date.now();
@@ -125,7 +133,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     else if (days <= 30) aging.d15to30 += due;
     else aging.d30plus += due;
 
-    overdue.push({ number: inv.InvoiceNumber ?? "—", days, amount: due });
+    overdue.push({ number: inv.InvoiceNumber ?? "—", name: inv.Contact?.Name ?? null, days, amount: due });
   }
 
   // Oldest first: the chase list is worked from the top.

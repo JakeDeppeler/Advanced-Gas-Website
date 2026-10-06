@@ -87,7 +87,7 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       [q.select("id,job_id,customer_id,created_on,sold_on,value:total_inc,business_unit"), q.gte("sold_on", fromTs), q.lt("total", String(QUOTE_CAP))].join("&"),
     ),
     sbSelect<{ invoice_date: string | null; total: number | null; job_type: string | null }>(
-      "st_invoices",
+      "st_invoices_billed",
       [q.select("invoice_date,total,job_type"), q.gte("invoice_date", invoicesFrom)].join("&"),
     ),
     sbCount("st_calls", q.gte("received_on", midnight(window.from))).catch(() => 0),

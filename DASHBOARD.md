@@ -1337,6 +1337,43 @@ moment those disagree about what 90% means the board is arguing with itself.
 The design's per-person bonus bar is absent for the same reason it is absent
 from the Sold alert: no commission tiers are configured.
 
+## Invoiced means the work was done
+
+Every revenue figure on this board reads `st_invoices_billed` (migration
+`0047`), a view of `st_invoices` inner-joined to jobs whose status is
+`Completed`.
+
+ServiceTitan opens an invoice when a job is **created** and puts the priced
+lines on it as the quote is built, so an invoice carries a total long before
+anybody has done the work or sent a bill. Summing those totals called priced
+future work revenue. On the financial year to date it was **$172,612 of
+$559,922 — 31%** — sitting on jobs that had never been completed:
+
+| Job status | Invoices | Amount | Have a payment | Received |
+|---|---|---|---|---|
+| Completed | 289 | $387,309 | 175 | **$208,652** |
+| InProgress | 46 | $126,568 | **0** | **$0** |
+| Scheduled | 16 | $46,044 | 1 | $1,531 |
+
+The last two columns settle it. Invoices on completed jobs get paid; of the
+forty-six on jobs still in progress, not one has ever had a cent applied to it.
+They are not bills anybody sent — they are priced work on a job that has not
+finished. One of them put **$5,814 under "Invoiced today" on a morning when
+nothing had been done**, which is how this was found.
+
+It is a view rather than a column on `st_invoices` because the thing that makes
+an invoice real lives on the **job**, and a copy of it on the invoice would go
+stale the moment a job's status changed without its invoice being touched. An
+inner join loses nothing: all 5,429 invoices carry a `job_id` and every one of
+those jobs is in the replica.
+
+**One query deliberately stays on the base table.** The to-bill feed asks which
+finished jobs are still sitting at a zero invoice, and the view exists to hide
+exactly those.
+
+The year to date dropped from about $560K to about $387K when this landed. That
+is the same work it always was; the board was counting it twice as early.
+
 ## The Invoices page
 
 The fourth page in the rotation, and the only one that is a work list rather
@@ -1358,9 +1395,14 @@ honestly be valued; the rest says "not priced yet". The six jobs finished on
 6 October were all diagnostics and service, all unpriced, which is the normal
 case rather than a gap.
 
-**No customer names on the chase list.** This is a wall in a room the public
-walks through, and "Mrs Smith · $2,140 · 42 days" is a customer's debt readable
-by anyone passing. The invoice number is what the office looks it up by anyway.
+**The chase list names who owes it.** It was left off at first — the board
+hangs where people walk past, and a named debt is a different thing from a
+figure — but it is their office and their wall, and the list is useless for its
+one job if whoever picks up the phone has to look up six invoice numbers before
+they can ring anybody. The number sits under the name, quieter, and on its own
+line: a property manager's full trading name and an invoice number do not fit
+on one line in that column, and the number is the half you cannot afford to
+truncate.
 
 **A cancelled job is not work waiting to be billed.** ServiceTitan stamps a
 `completed_on` on cancelled jobs too — seven of the last fortnight's — so the

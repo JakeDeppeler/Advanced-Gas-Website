@@ -374,8 +374,8 @@ export type Metrics = {
   receivablesTotal: number | null;
   /** What is owed, split by how long it has been owed. Null until Xero answers. */
   receivablesAging: { notDue: number; d1to7: number; d8to14: number; d15to30: number; d30plus: number } | null;
-  /** The oldest overdue invoices, to work from the top. No customer names: see dashboard/xero.ts. */
-  overdueList: Array<{ number: string; days: number; amount: number }>;
+  /** The oldest overdue invoices, to work from the top: who owes it, and which invoice. */
+  overdueList: Array<{ number: string; name?: string | null; days: number; amount: number }>;
 
   /**
    * Jobs finished and not yet billed — the office's own to-do list.
@@ -725,7 +725,7 @@ async function serviceTitanMetrics(now: Date) {
    * existing: ServiceTitan opens one with every job.
    */
   const billedToday = await sbSelect<{ id: number; job_id: number | null; total: number | null; invoice_date: string | null }>(
-    "st_invoices",
+    "st_invoices_billed",
     [q.select("id,job_id,total,invoice_date"), q.eq("invoiced_on", today)].join("&"),
   );
   const pricedToday = billedToday.filter((i) => Number(i.total ?? 0) > 0);
@@ -1090,6 +1090,9 @@ async function serviceTitanMetrics(now: Date) {
   if (doneIds.length) {
     const ids = doneIds.slice(0, 400).join(",");
     const [invs, sold] = await Promise.all([
+      // The base table, not st_invoices_billed, and that is the point: this
+      // asks which finished jobs are still sitting at a zero invoice, and the
+      // view exists to hide exactly those.
       sbSelect<{ job_id: number | null; total: number | null }>(
         "st_invoices",
         [q.select("job_id,total"), `job_id=in.(${ids})`].join("&"),
@@ -1151,7 +1154,7 @@ async function serviceTitanMetrics(now: Date) {
   if (restBooked > 0) bookingsTodayTypes.push({ jobType: "Everything else", count: restBooked });
 
   const invoices = await sbSelect<{ total: number | null; cost: number | null; invoice_date: string | null }>(
-    "st_invoices",
+    "st_invoices_billed",
     [q.select("total,cost,invoice_date"), q.gte("invoice_date", isoDateMelbourne(monthStart))].join("&"),
   );
 
@@ -1189,7 +1192,7 @@ async function serviceTitanMetrics(now: Date) {
   // the wrong answer to it. Ranked by gross profit where ServiceTitan gave us
   // cost on a meaningful share of invoices, otherwise by revenue.
   const profitRows = await sbSelect<{ job_type: string | null; total: number | null; cost: number | null }>(
-    "st_invoices",
+    "st_invoices_billed",
     [q.select("job_type,total,cost"), q.gte("invoice_date", isoDateMelbourne(monthStart)), q.notNull("job_type")].join("&"),
   );
 
@@ -2173,7 +2176,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   let jobsPerWeek: number | null = null;
   if (yFrom) {
     const yearInvoices = await sbSelect<{ total: number | null }>(
-      "st_invoices",
+      "st_invoices_billed",
       [q.select("total"), q.gte("invoice_date", yFrom)].join("&"),
     ).catch(() => null);
     // A failed read keeps the last good figure rather than blanking the

@@ -88,7 +88,7 @@ export async function jobProfits(
     sold_hours: number | null;
     job_type: string | null;
   }>(
-    "st_invoices",
+    "st_invoices_billed",
     [
       q.select("id,job_id,invoice_date,total,subtotal,items_cost,sold_hours,job_type"),
       q.gte("invoice_date", from),
