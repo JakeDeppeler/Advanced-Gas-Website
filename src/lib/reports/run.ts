@@ -142,6 +142,23 @@ export async function sendReportNow(kind: ReportKind, now = new Date()): Promise
   return deliver(await build(kind, now, snap, at));
 }
 
+/**
+ * This period's report from the figures as they are now — built, not kept and
+ * not sent. What the preview shows, and what "send it to me" sends.
+ */
+export async function previewReport(kind: ReportKind, now = new Date()): Promise<Report> {
+  const { snap, at } = await freshSnapshot();
+  return build(kind, now, snap, at);
+}
+
+/**
+ * A test copy to one address. Not kept and not counted as the period's
+ * report, so it can't stop the real one going at half past five.
+ */
+export async function sendTestReport(kind: ReportKind, to: string): Promise<{ ok: boolean; error?: string }> {
+  return sendReportEmail(await previewReport(kind), [to]);
+}
+
 /** Send a kept report again, as it was. */
 export async function resendReport(key: string): Promise<Report | null> {
   const r = await getReport(key);

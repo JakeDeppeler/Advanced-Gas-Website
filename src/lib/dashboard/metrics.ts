@@ -190,6 +190,14 @@ export type Metrics = {
   /** Of those, the jobs that were finished on an earlier day: the office catching up. */
   jobsInvoicedTodayEarlier: number;
   /**
+   * Of the money billed today, what was for jobs finished on an earlier day.
+   * Today is counted by the day it was billed and the week and month by the
+   * job's invoice date, so this is the part of today that sits in an earlier
+   * week or month — without it, a day billing last week's work reads bigger
+   * than the week it's in. Optional: snapshots before it was added lack it.
+   */
+  revenueTodayEarlier?: number;
+  /**
    * Null, not zero, when nothing in the replica carries an appointment time.
    * Every job row has `scheduled_on` null — ServiceTitan's jobs export doesn't
    * return appointment times, they live on the separate appointments resource —
@@ -732,6 +740,7 @@ async function serviceTitanMetrics(now: Date) {
   const jobOf = (i: { id: number; job_id: number | null }) => (i.job_id != null ? `j${i.job_id}` : `i${i.id}`);
   const jobsInvoicedToday = new Set(pricedToday.map(jobOf)).size;
   const jobsInvoicedTodayEarlier = new Set(pricedToday.filter((i) => i.invoice_date != null && i.invoice_date < today).map(jobOf)).size;
+  const revenueTodayEarlier = billedToday.filter((i) => i.invoice_date != null && i.invoice_date < today).reduce((t, i) => t + Number(i.total ?? 0), 0);
 
   /**
    * How far behind the billing is, on what went out today.
@@ -1810,6 +1819,7 @@ async function serviceTitanMetrics(now: Date) {
     bookingsTodayTypes,
     jobsInvoicedTodayAge,
     jobsInvoicedTodayEarlier,
+    revenueTodayEarlier,
     jobsScheduledNext7,
     topJobSuburbs,
     highestTicket,
@@ -2061,6 +2071,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       toBillValue: prev?.toBillValue ?? 0,
       paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
+      revenueTodayEarlier: prev?.revenueTodayEarlier ?? 0,
       // Null carries forward as null: a failed read has nothing to say about
       // next week's bookings, and zero would claim it does.
       jobsScheduledNext7: prev?.jobsScheduledNext7 ?? null,
