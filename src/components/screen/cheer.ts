@@ -1,3 +1,5 @@
+import { DEFAULT_PLAN, type SoundKind, type SoundPlan } from "@/lib/board/soundTypes";
+
 /**
  * The noise good news makes, and whether this screen is allowed to make it.
  *
@@ -29,7 +31,7 @@
  */
 const V = "6";
 
-export type CheerKind = "quote" | "done" | "sold";
+export type CheerKind = SoundKind;
 
 /**
  * Each clip, and what measuring it showed.
@@ -58,11 +60,47 @@ export type CheerKind = "quote" | "done" | "sold";
  * and that goes away — the cache below is keyed by source, so two kinds sharing
  * one still only fetch and decode it once.
  */
-const CLIPS: Record<CheerKind, { src: string; volume: number }> = {
-  quote: { src: `/sounds/quote.mp3?v=${V}`, volume: 1 },
-  done: { src: `/sounds/quote.mp3?v=${V}`, volume: 1 },
-  sold: { src: `/sounds/sold.mp3?v=${V}`, volume: 0.85 },
+const BUILTIN_SRC: Record<string, string> = {
+  "builtin:quote": `/sounds/quote.mp3?v=${V}`,
+  "builtin:sold": `/sounds/sold.mp3?v=${V}`,
 };
+
+/**
+ * What each pop-up plays, as chosen on the portal's Sounds page and sent to
+ * the board with its remote. Until one arrives — or if none ever has — the
+ * board plays what is above, at those volumes: DEFAULT_PLAN is that table.
+ */
+let plan: SoundPlan = DEFAULT_PLAN;
+let screenToken: string | null = null;
+
+type Voice = { mode: "clip"; src: string; volume: number } | { mode: "notes"; volume: number } | { mode: "off" };
+
+function voiceFor(ref: string, volume: number): Voice {
+  if (ref === "off" || volume <= 0) return { mode: "off" };
+  if (ref === "notes") return { mode: "notes", volume };
+  if (BUILTIN_SRC[ref]) return { mode: "clip", src: BUILTIN_SRC[ref], volume };
+  if (ref.startsWith("file:")) {
+    // Uploaded sounds come from our own route: the television with its screen
+    // token, the portal's Sounds page with its session.
+    const id = encodeURIComponent(ref.slice(5));
+    return { mode: "clip", src: `/api/screen/sound/${id}${screenToken ? `?k=${encodeURIComponent(screenToken)}` : ""}`, volume };
+  }
+  return { mode: "notes", volume };
+}
+const voice = (kind: CheerKind): Voice => voiceFor(plan[kind].sound, plan[kind].volume);
+
+/**
+ * Take the portal's choices. Called with every read of the remote, so it does
+ * nothing unless something changed; when it has, the new clips are fetched
+ * and decoded straight away rather than at the next sale.
+ */
+export function setSoundPlan(next: SoundPlan | null | undefined, token: string | null): void {
+  const p = next ?? DEFAULT_PLAN;
+  if (token === screenToken && JSON.stringify(p) === JSON.stringify(plan)) return;
+  plan = p;
+  screenToken = token;
+  if (ctx) checkAudio();
+}
 
 /**
  * What each kind sounds like with no file behind it.
@@ -167,10 +205,9 @@ function context(): AudioContext | null {
 const buffers = new Map<string, AudioBuffer>();
 const pending = new Map<string, Promise<AudioBuffer | null>>();
 
-function load(kind: CheerKind, c: AudioContext): Promise<AudioBuffer | null> {
+function load(src: string, c: AudioContext): Promise<AudioBuffer | null> {
   // Keyed by source rather than kind: a quote and a finished job play the same
   // file, and fetching it twice to hold two copies of it would be silly.
-  const src = CLIPS[kind].src;
   const have = buffers.get(src);
   if (have) return Promise.resolve(have);
   let p = pending.get(src);
@@ -228,7 +265,10 @@ export function checkAudio(): void {
   void c
     .resume()
     .catch(() => {})
-    .then(() => Promise.all([load("quote", c), load("sold", c)]))
+    .then(() => {
+      const srcs = [...new Set((["quote", "done", "sold"] as CheerKind[]).map(voice).flatMap((v) => (v.mode === "clip" ? [v.src] : [])))];
+      return Promise.all(srcs.map((src) => load(src, c)));
+    })
     .then((loaded) => {
       if (state === "clip" || state === "notes") return;
       if (c.state !== "running") return announce("off");
@@ -252,7 +292,7 @@ export function primeAudio(): void {
 }
 
 /** Each note a step up from the last, fading as the next starts. */
-function fanfare(c: AudioContext, kind: CheerKind) {
+function fanfare(c: AudioContext, kind: CheerKind, volume = 1) {
   NOTES[kind].forEach((hz, i) => {
     const at = c.currentTime + i * 0.12;
     const osc = c.createOscillator();
@@ -260,7 +300,7 @@ function fanfare(c: AudioContext, kind: CheerKind) {
     osc.type = "triangle";
     osc.frequency.value = hz;
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(0.35, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.35 * volume), at + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.45);
     osc.connect(gain).connect(c.destination);
     osc.start(at);
@@ -278,14 +318,30 @@ function fanfare(c: AudioContext, kind: CheerKind) {
  * short.
  */
 export function cheer(kind: CheerKind): () => void {
+  return play(kind, voice(kind));
+}
+
+/**
+ * The Sounds page's "play it here": the same pipe and the same gain the wall
+ * uses, so what the office hears at a desk is what the room will hear.
+ */
+export function previewSound(kind: CheerKind, ref: string, volume: number): () => void {
+  return play(kind, voiceFor(ref, volume));
+}
+
+function play(kind: CheerKind, v: Voice): () => void {
+  // Chosen silence is not a fault: the footer's "sound off" is for a board
+  // that couldn't make a noise, not one told not to.
+  if (v.mode === "off") return () => {};
   const c = context();
   let source: AudioBufferSourceNode | null = null;
   let stopped = false;
+  const volume = v.volume;
 
   const fallback = (why: string) => {
     if (stopped || !c) return announce("off", "no audio");
     try {
-      fanfare(c, kind);
+      fanfare(c, kind, volume);
       announce("notes", why);
     } catch {
       announce("off", why);
@@ -295,6 +351,20 @@ export function cheer(kind: CheerKind): () => void {
   if (!c) {
     announce("off", "no audio");
     return () => {};
+  }
+
+  if (v.mode === "notes") {
+    void c.resume().catch(() => {}).then(() => {
+      if (stopped) return;
+      try {
+        fanfare(c, kind, volume);
+        // Beeps by choice are the sound working, not a clip that failed.
+        announce(c.state === "running" ? "clip" : "off");
+      } catch {
+        announce("off", "playback failed");
+      }
+    });
+    return () => { stopped = true; };
   }
 
   /*
@@ -307,7 +377,7 @@ export function cheer(kind: CheerKind): () => void {
   void c
     .resume()
     .catch(() => {})
-    .then(() => load(kind, c))
+    .then(() => load(v.src, c))
     .then((buf) => {
       if (stopped) return;
       if (!buf) return fallback(failure);
@@ -315,7 +385,7 @@ export function cheer(kind: CheerKind): () => void {
         const src = c.createBufferSource();
         src.buffer = buf;
         const gain = c.createGain();
-        gain.gain.value = CLIPS[kind].volume;
+        gain.gain.value = volume;
         src.connect(gain).connect(c.destination);
         src.start();
         source = src;

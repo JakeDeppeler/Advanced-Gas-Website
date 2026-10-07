@@ -1,5 +1,13 @@
 # The noises the board makes
 
+**Change them in the portal now: Wall board → Sounds** (`/portal/board/sounds`).
+Upload an MP3, pick it for any of the three pop-ups, and set each pop-up's
+volume from silent to 150%; the TV picks the change up with its remote within
+about ten seconds, no reload. Uploads live in storage under `board-sounds/` and
+reach the TV through `/api/screen/sound/<id>` with its screen token. The two
+files below are the built-in choices, and what the board plays until somebody
+picks something else (`DEFAULT_PLAN` in `src/lib/board/soundTypes.ts`).
+
 Two files, both optional:
 
 | File | Plays when |

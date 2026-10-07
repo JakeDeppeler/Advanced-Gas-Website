@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { normaliseRemote, type BoardPageName, type BoardRemote, type DemoKind } from "@/lib/board/remoteTypes";
+import { normalisePlan } from "@/lib/board/soundTypes";
+import { setSoundPlan } from "./cheer";
+import { HOLD_MS } from "./Alert";
 
 /** How often the board checks for presses while somebody has the Remote open. */
 const FAST_MS = 4_000;
@@ -71,6 +74,13 @@ export function useBoardRemote(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromPoll]);
 
+  // The Sounds page's choices come with the remote. A read that brings none
+  // (the row couldn't be read) keeps whatever the board last had.
+  const sounds = remote?.sounds ? JSON.stringify(remote.sounds) : null;
+  useEffect(() => {
+    if (sounds) setSoundPlan(normalisePlan(JSON.parse(sounds)), token);
+  }, [sounds, token]);
+
   const liveUntil = remote?.liveUntil ? Date.parse(remote.liveUntil) : 0;
   const live = liveUntil > Date.now();
   useEffect(() => {
@@ -117,8 +127,19 @@ export function useBoardRemote(
     if (r && r !== seenReload.current) window.location.reload();
   }, [remote]);
 
+  /*
+   * A demo pressed to hear a sound plays once: one run of the pop-up from when
+   * this board first sees it, ended a moment before the pop-up would loop.
+   * Looping, a sound check is the same clip every seven seconds for two
+   * minutes. Its `until` is only a deadline for a board to pick it up by.
+   */
+  const onceSeen = useRef<{ id: string; at: number } | null>(null);
+  const once = remote?.demo?.once ? remote.demo : null;
+  if (once && onceSeen.current?.id !== once.id) onceSeen.current = { id: once.id, at: Date.now() };
+  const onceEnds = once && onceSeen.current ? onceSeen.current.at + HOLD_MS[once.kind] - 300 : 0;
+
   // The demo runs until its time is up, then the board goes back to itself.
-  const demoUntil = remote?.demo ? Date.parse(remote.demo.until) : 0;
+  const demoUntil = remote?.demo ? (once ? Math.min(Date.parse(remote.demo.until), onceEnds) : Date.parse(remote.demo.until)) : 0;
   const demoOn = !!remote?.demo && demoUntil > Date.now();
   useEffect(() => {
     if (!demoOn) return;
