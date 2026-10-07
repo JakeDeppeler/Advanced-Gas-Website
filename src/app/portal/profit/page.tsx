@@ -10,7 +10,10 @@ import { Figs } from "@/components/portal/Figs";
 import { money } from "@/lib/portal/format";
 import { readYearGoal } from "@/lib/portal/yearGoal";
 import { crewFigures } from "@/lib/portal/crewRates";
-import { jobProfits, type JobProfit } from "@/lib/dashboard/jobProfit";
+import { jobProfits } from "@/lib/dashboard/jobProfit";
+import { JobProfitTable } from "@/components/portal/JobProfitTable";
+import { PeriodPicker } from "@/components/portal/PeriodPicker";
+import { periodChoices, monthSpan } from "@/lib/finance/review";
 import { addDays, isoDateMelbourne, startOfMonthMelbourne } from "@/lib/dashboard/dates";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +37,6 @@ function range(win: Win, now: Date): { from: string; to: string; name: string } 
 }
 
 const pc = (n: number | null) => (n == null ? "—" : `${Math.round(n * 100)}%`);
-const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
 
 /**
  * Margin, job by job: what each job charged before GST, what its equipment,
@@ -42,21 +44,25 @@ const day = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en
  * src/lib/dashboard/jobProfit.ts; this page lists it, worst first, and says
  * plainly why any job couldn't be costed rather than leaving it out.
  */
-export default async function ProfitPage({ searchParams }: { searchParams: { w?: string } }) {
+export default async function ProfitPage({ searchParams }: { searchParams: { w?: string; m?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Profit on every job" forWhom="managers" />;
 
-  const win: Win = WINDOWS.some((w) => w.k === searchParams.w) ? (searchParams.w as Win) : "month";
+  const months = periodChoices().months;
+  // A month further back than the three quick windows, picked from the list.
+  const picked = searchParams.m && months.some((x) => x.key === searchParams.m) ? searchParams.m : null;
+  const win: Win | null = picked ? null : WINDOWS.some((w) => w.k === searchParams.w) ? (searchParams.w as Win) : "month";
   const now = new Date();
-  const r = range(win, now);
+  const r = picked
+    ? (() => { const sp = monthSpan(picked); return { from: sp.from, to: sp.to, name: sp.label }; })()
+    : range(win as Win, now);
   const ready = dbConfigured();
   const [row, crew] = ready ? await Promise.all([getSettings<unknown>("yeargoal").catch(() => null), crewFigures().catch(() => null)]) : [null, null];
   const goal = readYearGoal(row, now);
   const target = goal.profitPct;
   const res = ready ? await jobProfits(r.from, r.to, crew?.costPerHr ?? null, target).catch(() => null) : null;
   const s = res?.summary ?? null;
-  const under = (j: JobProfit) => j.margin != null && target != null && j.margin < target / 100;
 
   return (
     <PortalShell user={user} variant="wide">
@@ -69,13 +75,16 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
             what an hour of the crew costs. {target ? `Anything under the goal's ${target}% is marked.` : "Set a profit % on the Pace page to mark the jobs under it."}
           </p>
         </div>
-        <nav className="pt-win" aria-label="Time window">
-          {WINDOWS.map((w) => (
-            <Link key={w.k} href={`/portal/profit?w=${w.k}`} aria-current={w.k === win ? "page" : undefined} className={`pt-win__opt${w.k === win ? " is-on" : ""}`}>
-              {w.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="pt-jp__when">
+          <nav className="pt-win" aria-label="Time window">
+            {WINDOWS.map((w) => (
+              <Link key={w.k} href={`/portal/profit?w=${w.k}`} aria-current={w.k === win ? "page" : undefined} className={`pt-win__opt${w.k === win ? " is-on" : ""}`}>
+                {w.label}
+              </Link>
+            ))}
+          </nav>
+          <PeriodPicker label="Or pick a month" value={picked ?? ""} options={months} hrefPrefix="/portal/profit?m=" />
+        </div>
       </div>
 
       <Figs
@@ -99,42 +108,7 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
       />
 
       {res && res.rows.length > 0 ? (
-        <section className="pt-panel">
-          <div className="pt-pace__tablewrap">
-            <table className="pt-pace__table pt-pace__table--jobs pt-profit__table">
-              <thead>
-                <tr>
-                  <th scope="col">Job · worst margin first</th>
-                  <th scope="col">Price</th>
-                  <th scope="col">Equipment &amp; materials</th>
-                  <th scope="col">Hours</th>
-                  <th scope="col">Labour</th>
-                  <th scope="col">Profit</th>
-                  <th scope="col">Margin</th>
-                </tr>
-              </thead>
-              <tbody>
-                {res.rows.map((j) => (
-                  <tr key={`${j.jobId ?? "x"}-${j.date}-${j.price}`} className={j.profit == null ? "is-uncosted" : undefined}>
-                    <th scope="row">
-                      <span className="pt-pace__rk">{j.jobType ?? "Job"}</span>
-                      <span className="pt-pace__rn">
-                        {[j.jobNumber ? `#${j.jobNumber}` : null, j.customer, day(j.date)].filter(Boolean).join(" · ")}
-                        {j.missing ? ` — ${j.missing}` : ""}
-                      </span>
-                    </th>
-                    <td>{money(j.price)}</td>
-                    <td>{j.materials ? money(j.materials) : "—"}</td>
-                    <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " clocked"}`}</td>
-                    <td>{j.labour == null ? "—" : money(j.labour)}</td>
-                    <td className={j.profit != null && j.profit < 0 ? "is-low" : ""}>{j.profit == null ? "—" : money(j.profit)}</td>
-                    <td className={under(j) ? "is-low" : ""}>{pc(j.margin)}{under(j) ? " ▼" : ""}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <JobProfitTable rows={res.rows} target={target} />
       ) : (
         <div className="pt-note">No priced invoices in {r.name}.</div>
       )}

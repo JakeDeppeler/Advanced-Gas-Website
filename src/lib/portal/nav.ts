@@ -141,6 +141,14 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     },
     { href: "/portal/finance", label: "Finance", blurb: "Live profit from Xero", band: "profit", icon: "chart", also: ["xero", "profit", "p&l", "revenue"] },
     {
+      href: "/portal/finance/review", label: "How we went", short: "How we went", blurb: "A month or week, and why it went that way", band: "profit", icon: "chart",
+      also: ["review", "month", "week", "why", "loss", "not in profit", "overheads high", "owed", "waiting on payment", "big job", "how did we go"],
+    },
+    {
+      href: "/portal/finance/hourly", label: "Our hourly rate", short: "Hourly rate", blurb: "What makes up an hour, and what we charge", band: "profit", icon: "clock",
+      also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
+    },
+    {
       href: "/portal/journals", label: "Journal entries", short: "Journals", blurb: "ServiceTitan to Xero, and what didn't go",
       band: "profit", icon: "doc", also: ["journal", "xero sync", "sync error", "accounting", "export", "manual journal"],
     },

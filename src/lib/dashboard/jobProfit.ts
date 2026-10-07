@@ -49,6 +49,8 @@ export type JobProfit = {
   margin: number | null;
   /** Why it couldn't be costed. */
   missing: string | null;
+  /** Who clocked on to it, from the timesheets. Empty when nobody did. */
+  techs: string[];
 };
 
 export type ProfitSummary = {
@@ -131,6 +133,7 @@ export async function jobProfits(
   const ids = priced.map((j) => j.jobId).filter((v): v is number => v != null);
   const jobs = new Map<number, { job_number: string | null; customer_name: string | null; job_type: string | null }>();
   const hours = new Map<number, number>();
+  const crewOn = new Map<number, Set<number>>();
   for (let i = 0; i < ids.length; i += 150) {
     const chunk = ids.slice(i, i + 150).join(",");
     const [js, ts] = await Promise.all([
@@ -138,9 +141,9 @@ export async function jobProfits(
         "st_jobs",
         [q.select("id,job_number,customer_name,job_type"), `id=in.(${chunk})`].join("&"),
       ).catch(() => []),
-      sbSelect<{ job_id: number; arrived_on: string | null; done_on: string | null; canceled_on: string | null; active: boolean | null }>(
+      sbSelect<{ job_id: number; technician_id: number | null; arrived_on: string | null; done_on: string | null; canceled_on: string | null; active: boolean | null }>(
         "st_timesheets",
-        [q.select("job_id,arrived_on,done_on,canceled_on,active"), `job_id=in.(${chunk})`].join("&"),
+        [q.select("job_id,technician_id,arrived_on,done_on,canceled_on,active"), `job_id=in.(${chunk})`].join("&"),
       ).catch(() => []),
     ]);
     for (const j of js) jobs.set(Number(j.id), j);
@@ -149,7 +152,19 @@ export async function jobProfits(
       const h = (Date.parse(t.done_on) - Date.parse(t.arrived_on)) / 3_600_000;
       if (!(h > 0)) continue;
       hours.set(Number(t.job_id), (hours.get(Number(t.job_id)) ?? 0) + Math.min(MAX_SHIFT_HOURS, h));
+      if (t.technician_id != null) {
+        const set = crewOn.get(Number(t.job_id)) ?? new Set<number>();
+        set.add(Number(t.technician_id));
+        crewOn.set(Number(t.job_id), set);
+      }
     }
+  }
+  // Names for whoever clocked on, so the page can be cut by who did the work.
+  const techIds = [...new Set([...crewOn.values()].flatMap((x) => [...x]))];
+  const techName = new Map<number, string>();
+  if (techIds.length) {
+    const ts = await sbSelect<{ id: number; name: string | null }>("st_technicians", [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&")).catch(() => []);
+    for (const t of ts) if (t.name) techName.set(Number(t.id), t.name);
   }
 
   const rows: JobProfit[] = priced.map((j) => {
@@ -190,6 +205,7 @@ export async function jobProfits(
       profit,
       margin: profit != null && j.price > 0 ? profit / j.price : null,
       missing,
+      techs: j.jobId != null ? [...(crewOn.get(j.jobId) ?? [])].map((id) => techName.get(id)).filter((n): n is string => !!n).sort() : [],
     };
   });
 
