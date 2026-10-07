@@ -1034,6 +1034,28 @@ body:has(.screen) .utilbar {
 .screen--dark .screen__foot { background: #17171a; border-top: 1px solid var(--hairline); }
 .screen--dark .screen__tab.is-on { background: var(--ink); color: #0d0d0d; }
 .screen--dark .gauge__fill { stroke: #6f8fd6; }
+
+/*
+ * The dial's own paint, written out rather than inherited.
+ *
+ * `.gauge__fig` is `fill: var(--navy)`, and dark mode redefines --navy from
+ * #050a30 to near-white because almost every use of it is text. On this machine
+ * that works. On the television it does not: the figure in the middle of every
+ * dial came out #050a30 — navy, on a near-black card — while every word around
+ * it was correctly pale. The variable set on .screen--dark is not reaching
+ * inside the SVG there; the one on :root is, which is why it lands on the light
+ * value rather than on nothing.
+ *
+ * So these three carry their colours literally. A declaration with a real
+ * colour in it needs no inheritance to work, whatever the browser does with
+ * custom properties inside SVG. check:theme keeps it that way.
+ *
+ * Reported twice before it was found — "the number in the middle is blue" — and
+ * missed both times because it cannot be reproduced here.
+ */
+.screen--dark .gauge__fig { fill: #f2f1ec; }
+.screen--dark .gauge__knob { stroke: #f2f1ec; }
+.screen--dark .gauge__of { fill: #8d8b85; }
 .screen--dark .heat__ramp { background: linear-gradient(90deg, #3a2a20, #ff9a62); }
 
 

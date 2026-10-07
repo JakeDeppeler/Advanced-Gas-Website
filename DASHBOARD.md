@@ -1898,6 +1898,38 @@ Performance layout, Performance the Areas layout, and the new page Team's — al
 of which typechecked, built, and showed up only as three pages spilling in a
 render. Both are keyed by name now.
 
+## SVG paint never takes a themed variable
+
+`.gauge__fig` is `fill: var(--navy)`, and dark mode redefines `--navy` from
+`#050a30` to near-white because nearly every use of it is text. In Chromium that
+override reaches inside the SVG and the figure comes out pale. **On the
+television it does not.** Every dial's figure rendered `#050a30` — navy, on a
+near-black card — while every word around it was correctly pale. The `:root`
+value reaches the SVG there; the `.screen--dark` one does not.
+
+It was reported twice as "the number in the middle is blue" and missed twice,
+because looking at it on any machine here shows nothing wrong. The second miss
+cost a whole round: the Pace page's year band *was* also broken in dark mode, so
+there was a real fault to find at the same time, and finding it felt like the
+answer.
+
+The fix is to write the colour out — `.screen--dark .gauge__fig { fill: #f2f1ec }`
+and the same for the knob's stroke and the sub-figure's fill. A declaration
+carrying a real colour needs no inheritance to work, whatever a browser does
+with custom properties inside SVG. **That is the point: unlike a guess at the
+cause, this cannot fail even if the cause is something else**, because it
+removes the dependency rather than working around it.
+
+`npm run check:theme` keeps it that way: it reads the stylesheet, finds every
+`fill`/`stroke` that takes a variable, and fails if that variable is one the
+dark theme redefines without an explicit `.screen--dark` rule giving the same
+selector a literal colour. The status palette (`--vd-behind` and friends) is
+deliberately the same in both themes, so those pass untouched.
+
+A rendering check cannot catch this — the render is correct here. The contrast
+scanner missed it for a second reason worth noting: it read `color`, which means
+nothing for SVG text. It reads `fill` now.
+
 ## The full-screen alerts
 
 Three events take the whole wall for a few seconds: a quote written, a job

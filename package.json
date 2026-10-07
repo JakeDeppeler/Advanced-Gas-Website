@@ -16,7 +16,8 @@
     "check:paging": "npx tsx scripts/check-paging.ts",
     "check:pairing": "npx tsx scripts/check-pairing.ts",
     "check:shape": "npx tsx scripts/check-shape.ts",
-    "check:daily": "npx tsx scripts/check-daily.ts"
+    "check:daily": "npx tsx scripts/check-daily.ts",
+    "check:theme": "npx tsx scripts/check-theme.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",
