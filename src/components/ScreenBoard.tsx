@@ -705,13 +705,19 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
             verdict: headVerdictOf(live.st ? m.jobsCompletedToday : null, today?.completed.byNow),
           },
         ]}
+        /* Each type and its count held together, because this line wraps and a
+           type name is long enough to push its own number onto the next row —
+           "Service - Gas Ducted Heater" over a line with a lone "3" under it,
+           which reads as a figure belonging to nothing. */
         foot={
           !live.st || m.bookingsTodayTypes.length === 0
             ? undefined
-            : m.bookingsTodayTypes
-                .slice(0, 3)
-                .map((t) => `${t.jobType} ${count(t.count)}`)
-                .join(" · ")
+            : m.bookingsTodayTypes.slice(0, 3).map((t, i) => (
+                <span key={t.jobType} style={{ whiteSpace: "nowrap" }}>
+                  {i > 0 ? " · " : ""}
+                  {t.jobType} {count(t.count)}
+                </span>
+              ))
         }
       />
 
@@ -1871,12 +1877,21 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
           the two differ — 29 invoices against 20 jobs booked and 11 completed in
           the same month, because ServiceTitan bills a job when it is billed and
           one job can carry more than one invoice. The page was read as job
-          counts twice; now it says. */}
+          counts twice; now it says.
+
+          The foot names the work rather than the date, because the date was
+          never the interesting half. This counted every job created, installs
+          among them, and an install is not a booking — it exists because
+          something was already sold, so it was counted on the way in and again
+          at Sold and Completed. It was also judged against a target built from
+          quote visits and service calls, which made 78 look ahead of a plan
+          that had asked for 62. Same definition as the Pace funnel now, so one
+          word means one thing across the board. */}
       <HeadCard
         label="Jobs booked"
         value={st.count(m.bookingsMonth, live)}
         verdict={headVerdictOf(m.bookingsMonth, m.pace?.standing.month.booked.byNow)}
-        foot="jobs created this month"
+        foot="quote, repair and service jobs"
       />
       <HeadCard
         label="Invoiced"
@@ -1966,7 +1981,7 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
               return (
                 <div className="jt__row" key={t.jobType}>
                   <span className="jt__name">{t.jobType}</span>
-                  <span className="jt__n">{count(t.booked)}</span>
+                  <span className="jt__n">{t.booked == null ? NA : count(t.booked)}</span>
                   <span className="jt__n">{count(t.jobs)}</span>
                   <span className="jt__n">{money(t.revenue)}</span>
                   <span className="jt__bar">
@@ -2341,7 +2356,7 @@ function SplitRateCard({
   note?: string;
   /** Each half may carry its own verdict: the two are measured separately. */
   halves: Array<{ name: string; value: string; sub: string; verdict?: { verdict: Verdict; text: string } | null }>;
-  foot?: string;
+  foot?: React.ReactNode;
 }) {
   return (
     <div className="tile c4">

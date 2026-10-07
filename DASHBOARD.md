@@ -967,6 +967,30 @@ labelled "Jobs booked" rather than "Jobs", because it counts jobs created this
 month while the totals row counts invoices, and two different job counts under
 the same word is how a board gets argued with.
 
+**Booked means new work: a quote visit, a repair, a breakdown, a service.** An
+install job is not a booking. It exists because something was already sold, so
+counting it on the way in counts the same job three times over — booked, then
+sold, then completed — and inflates every conversion rate built on it.
+
+This was wrong in two ways at once and both were visible on the wall. The
+Performance card counted every job created (78 in October) while the Pace
+funnel counted quote visits plus service calls (62), so one word carried two
+numbers on one board. Worse, the 78 was being judged against a target modelled
+the funnel's way, so the card read 45% behind a plan that had never asked for
+those sixteen installs. Both now count the 62, by the same `jobClass` the
+funnel uses.
+
+Nothing is excluded for wanting a technician or a slot on the dispatch board.
+ServiceTitan's job export carries neither field, so the board could not filter
+on them if it wanted to, and a job booked with no appointment at all is still a
+booking — 229 of them in the last ninety days.
+
+An install row in the job types table shows `—` under Booked, not `0`. A zero
+claims none were booked; the dash says booking is counted elsewhere for that
+kind of work, which is what is true. One case is worth watching: "Commission
+System" classes as service and so counts as booked, though commissioning is
+arguably install-side. One job in October.
+
 **Quote figures say when they are an average.** A quote priced three ways shows
 the average of its options, not their sum, and the row says `avg of 3` under the
 figure. An unlabelled average of three prices reads as a total and understates

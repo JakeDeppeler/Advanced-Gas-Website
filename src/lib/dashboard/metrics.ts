@@ -439,7 +439,8 @@ export type Metrics = {
     /** Invoices raised for this kind of work this month. */
     jobs: number;
     /** Jobs of this kind created this month, billed or not. */
-    booked: number;
+    /** Null on an install type: booking does not apply to it, which is not zero. */
+    booked: number | null;
   }>;
   jobTypeBasis: "profit" | "revenue";
   /** Invoices left out of the ranking because they carry no real job type. */
@@ -1085,10 +1086,34 @@ async function serviceTitanMetrics(now: Date) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
 
-  // Jobs booked this month — when the job was created, not when it is scheduled,
-  // because booking is the act being measured.
-  const bookingsMonth = await sbCount("st_jobs", q.gte("created_on", monthStart.toISOString()));
-  const bookingsToday = await sbCount("st_jobs", q.gte("created_on", startOfDayMelbourne(now).toISOString()));
+  /**
+   * Jobs booked — dated by when the job was created, not when it is scheduled,
+   * because booking is the act being measured.
+   *
+   * **Installs are not bookings.** An install job only exists because something
+   * was already sold, so counting it here counts the same work twice: once on
+   * the way in and again at Sold and Completed. That matters beyond tidiness —
+   * this figure is judged against a target built from quote visits plus service
+   * calls, so counting installs into it made the board read ahead of a plan it
+   * was not being measured against. It was 78 against a 62-shaped target.
+   *
+   * What is left is the work that is genuinely new: a quote visit, a repair, a
+   * breakdown, a service. The same definition the Pace funnel's Booked uses, so
+   * the two pages stop showing different numbers under one word.
+   *
+   * Nothing is excluded for wanting a technician or a slot on the dispatch
+   * board. ServiceTitan's job export carries neither, and a job booked with no
+   * appointment at all is still a booking — 229 of them in the last 90 days.
+   */
+  const bookedMonthRows = await sbSelect<{ job_type: string | null; created_on: string | null }>(
+    "st_jobs",
+    [q.select("job_type,created_on"), q.gte("created_on", monthStart.toISOString())].join("&"),
+  ).catch(() => []);
+  const newWork = bookedMonthRows.filter((r) => jobClass(r.job_type) !== "install");
+  const todayFrom = startOfDayMelbourne(now).toISOString();
+  const bookedTodayRows = newWork.filter((r) => (r.created_on ?? "") >= todayFrom);
+  const bookingsMonth = newWork.length;
+  const bookingsToday = bookedTodayRows.length;
 
   /**
    * Jobs finished and not billed — what the Invoices page works from.
@@ -1204,10 +1229,6 @@ async function serviceTitanMetrics(now: Date) {
    * gathered into one line rather than dropped, because a card that quietly
    * shows three of eleven is a card that doesn't add up.
    */
-  const bookedTodayRows = await sbSelect<{ job_type: string | null }>(
-    "st_jobs",
-    [q.select("job_type"), q.gte("created_on", startOfDayMelbourne(now).toISOString())].join("&"),
-  ).catch(() => []);
   const byBookedType = new Map<string, number>();
   for (const r of bookedTodayRows) {
     const t = r.job_type;
@@ -1294,15 +1315,15 @@ async function serviceTitanMetrics(now: Date) {
    * trails what has been taken on, and in a month where a lot gets booked and
    * little gets billed the page reads as a quiet month when it was anything
    * but. Booked is the leading half of the same question.
+   *
+   * Counted off the same rows as the headline, so the column adds up to it. An
+   * install type therefore books nothing, which is not a gap: that work was won
+   * when it was sold and is counted there.
    */
-  const bookedRows = await sbSelect<{ job_type: string | null }>(
-    "st_jobs",
-    [q.select("job_type"), q.gte("created_on", monthStart.toISOString()), q.notNull("job_type")].join("&"),
-  ).catch(() => []);
   const bookedByType = new Map<string, number>();
-  for (const r of bookedRows) {
-    const t = String(r.job_type);
-    if (UNCLASSIFIED.test(t)) continue;
+  for (const r of newWork) {
+    const t = r.job_type;
+    if (!t || UNCLASSIFIED.test(t)) continue;
     bookedByType.set(t, (bookedByType.get(t) ?? 0) + 1);
   }
 
@@ -1312,7 +1333,11 @@ async function serviceTitanMetrics(now: Date) {
       revenue: v.revenue,
       profit: v.hasCost ? v.revenue - v.cost : null,
       jobs: v.jobs,
-      booked: bookedByType.get(jobType) ?? 0,
+      // A dash, not a zero. An install type books nothing by definition, and a
+      // column of noughts beside real revenue reads as a broken feed rather
+      // than as "counted elsewhere" — which is what it is: that work was won
+      // when it was sold.
+      booked: jobClass(jobType) === "install" ? null : (bookedByType.get(jobType) ?? 0),
     }))
     .sort((a, b) => (jobTypeBasis === "profit" ? (b.profit ?? 0) - (a.profit ?? 0) : b.revenue - a.revenue))
     .slice(0, 5);
