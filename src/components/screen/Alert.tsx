@@ -53,7 +53,7 @@ export type BoardAlert = {
 };
 
 /** How long each one holds the wall. The countdown bar is drawn from this. */
-const HOLD_MS: Record<AlertKind, number> = { quote: 7000, done: 9000, sold: 11000 };
+export const HOLD_MS: Record<AlertKind, number> = { quote: 7000, done: 9000, sold: 11000 };
 
 const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
 

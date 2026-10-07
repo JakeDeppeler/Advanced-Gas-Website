@@ -1,6 +1,7 @@
 import "server-only";
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { normaliseRemote, type BoardRemote } from "@/lib/board/remoteTypes";
+import { soundPlan } from "@/lib/board/sounds";
 
 const KEY = "board-remote";
 
@@ -21,13 +22,16 @@ const KEY = "board-remote";
 const LIVE_KEY = "board-remote-live";
 
 export async function readRemote(): Promise<BoardRemote> {
-  const [stored, live] = await Promise.all([
+  const [stored, live, sounds] = await Promise.all([
     getSettings<unknown>(KEY).catch(() => null),
     getSettings<{ until?: string }>(LIVE_KEY).catch(() => null),
+    soundPlan().catch(() => null),
   ]);
   const remote = normaliseRemote(stored);
   // The heartbeat's row wins on liveUntil: it is the only thing that writes it.
-  return { ...remote, liveUntil: typeof live?.until === "string" ? live.until : null };
+  // The sounds have a row of their own and the Sounds page writes it; they are
+  // read here so every way the board hears its remote also hears them.
+  return { ...remote, liveUntil: typeof live?.until === "string" ? live.until : null, sounds };
 }
 
 /**
@@ -44,7 +48,9 @@ export async function updateRemote(
 ): Promise<{ ok: boolean; remote: BoardRemote }> {
   const cur = await readRemote();
   const next = { ...cur, ...patch, ...(by ? { by, at: new Date().toISOString() } : {}) };
-  const res = await saveSettings(KEY, next);
+  // The sounds are the Sounds page's row; a press doesn't write a copy of them here.
+  const { sounds: _sounds, ...stored } = next;
+  const res = await saveSettings(KEY, stored);
   return { ok: res.ok, remote: next };
 }
 

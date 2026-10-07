@@ -207,6 +207,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["wall board", "dashboard", "tv", "screen", "remote", "demo", "hold", "show a page", "dark mode", "reload"],
     },
     {
+      href: "/portal/board/sounds", label: "Sounds", blurb: "What each pop-up plays, and how loud", band: "board", icon: "speaker",
+      also: ["sound", "mp3", "audio", "volume", "loud", "quiet", "pop-up", "alert", "homer", "music", "noise"],
+    },
+    {
       href: "/portal/board/reports", label: "Reports", blurb: "The day, the week and the month, kept and emailed", band: "board", icon: "doc",
       also: ["report", "daily report", "weekly report", "monthly report", "email", "summary"],
     },

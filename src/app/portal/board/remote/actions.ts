@@ -37,9 +37,12 @@ export async function rotate(): Promise<RemoteResult> {
 }
 
 /** Put a sample alert up on the wall, or take it down. */
-export async function showDemo(kind: DemoKind | null): Promise<RemoteResult> {
+export async function showDemo(kind: DemoKind | null, opts: { once?: boolean } = {}): Promise<RemoteResult> {
   if (kind && !["sold", "quote", "done"].includes(kind)) return { ok: false, error: "No such alert." };
-  return press({ demo: kind ? { id: randomUUID(), kind, until: new Date(Date.now() + DEMO_MS).toISOString() } : null });
+  // Once: the Sounds page's "play it on the TV" — one run, picked up within the
+  // minute or not at all, rather than two minutes of the same clip.
+  const until = new Date(Date.now() + (opts.once ? 60_000 : DEMO_MS)).toISOString();
+  return press({ demo: kind ? { id: randomUUID(), kind, until, ...(opts.once ? { once: true } : {}) } : null });
 }
 
 export async function setTheme(theme: "light" | "dark" | null): Promise<RemoteResult> {
