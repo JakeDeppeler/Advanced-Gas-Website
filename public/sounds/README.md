@@ -47,13 +47,31 @@ to find out whether anybody minds. Three ways to get these honestly:
 - Record your own. Somebody in the office shouting lands harder than a clip
   everyone has already heard, and costs nothing at all.
 
-## It will not be heard without this
+## Why these play through Web Audio and not an `<audio>` element
 
-**The kiosk browser has to be allowed to autoplay.** Browsers refuse to play
-audio on a page nobody has clicked, and nobody ever clicks a wall display. The
-promise rejects, the board falls back to its synthesised notes, and the footer
-says `Sound off · press any button` — which is the stopgap, not the fix.
-Pressing any button on the remote unlocks it until the page reloads.
+Because an `<audio>` element did not work on the television, and the way it
+failed is worth writing down. The board's synthesised notes were audible on the
+wall while the recording was not — same page, same speakers, same moment. So the
+television's volume was fine and its AudioContext was running; the only thing
+failing was `HTMLMediaElement.play()`, which an autoplay policy gates separately
+from Web Audio.
+
+So the recording now goes out the same pipe as the notes: fetched, decoded once
+at load, played through an `AudioBufferSourceNode`. Nothing on the television has
+to be configured for that to work, which matters — the board is a panel on a
+wall, and every fix beginning "open the browser settings" is a fix somebody has
+to climb up to apply.
+
+The setting below is still worth having, since a suspended AudioContext stops
+everything, notes included. It is no longer what stands between the wall and the
+sound of a sale.
+
+## If the sound is still blocked outright
+
+Browsers refuse to play audio on a page nobody has clicked, and nobody ever
+clicks a wall display. Then the footer says `Sound off · press any button` —
+pressing any button on the remote unlocks it until the page reloads, which is
+the stopgap, not the fix.
 
 ## What the footer is telling you
 
@@ -64,8 +82,9 @@ has a different fix. Nothing in the footer means the real clip played.
 | Footer says | What happened | What to do |
 |---|---|---|
 | nothing | the recording played | — |
-| `♪ Beeps only · clip did not load` | the file 404'd or would not decode; the synthesised notes covered it | check the file is deployed at `/sounds/…` and that `V` was bumped |
-| `♪ Sound off · press any button` | the browser refused outright | press a button on the remote, then fix the autoplay setting below |
+| `♪ Beeps only · HTTP 404` | the file is not where the board looked | check it deployed to `/sounds/…` and that `V` was bumped |
+| `♪ Beeps only · decode failed` | the file is there but is not audio this browser reads | re-export it as a plain MP3 |
+| `♪ Sound off · press any button` | nothing came out at all | press a button on the remote, then the autoplay setting below |
 
 Chromium and anything built on it:
 

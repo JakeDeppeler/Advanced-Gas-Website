@@ -12,11 +12,11 @@
  * the sound — a way to unlock audio from any keypress the television's remote
  * sends, and a state the footer reads so the board can say what happened.
  *
- * It says *which* of three things happened, not merely whether it was allowed.
- * Four rounds of this were shipped blind to a television nobody here can hear,
- * and every one of them was a guess about which of "wrong file", "file didn't
+ * It says *which* of several things happened, not merely whether it was
+ * allowed. Four rounds of this were shipped blind to a television nobody here
+ * can hear, and every one was a guess about which of "wrong file", "file didn't
  * load" and "browser said no" was the actual fault. The board now distinguishes
- * them itself, in words, on the screen. That is worth more than the next guess.
+ * them itself, in words, on the screen — and that is what found the real one.
  */
 
 /**
@@ -29,7 +29,7 @@
  * every device. A new query string is a new URL, and a new URL has nothing
  * cached against it.
  */
-const V = "5";
+const V = "6";
 
 export type CheerKind = "quote" | "sold";
 
@@ -87,22 +87,26 @@ let ctx: AudioContext | null = null;
  * What the last attempt at a noise actually did.
  *
  * - `unknown` — nothing has been tried yet. The footer says nothing.
- * - `clip`    — the real recording played. The footer says nothing.
- * - `notes`   — the file would not play, so the synthesised notes covered it.
- *               **This is the one worth putting on the wall**: the board made a
- *               noise, just not the one anybody chose, and without saying so
- *               that reads from the room as "the sound is still wrong" with no
- *               way to tell whether the file or the browser is at fault.
+ * - `clip`    — the real recording played, or is loaded and the speakers work.
+ *               The footer says nothing.
+ * - `notes`   — the recording was not available, so the synthesised notes
+ *               covered it. **This is the one worth putting on the wall**: the
+ *               board made a noise, just not the one anybody chose, and without
+ *               saying so that reads from the room as "the sound is still
+ *               wrong" with no way to tell whether the file or the browser is
+ *               at fault. `soundReason` says which.
  * - `off`     — nothing at all came out. Press a button.
  */
 export type SoundState = "unknown" | "clip" | "notes" | "off";
 
 let state: SoundState = "unknown";
+let reason = "";
 const listeners = new Set<() => void>();
 
-function announce(next: SoundState) {
-  if (next === state) return;
+function announce(next: SoundState, why = "") {
+  if (next === state && why === reason) return;
   state = next;
+  reason = why;
   for (const l of listeners) l();
 }
 
@@ -112,6 +116,8 @@ export function subscribeAudio(fn: () => void): () => void {
   return () => listeners.delete(fn);
 }
 export const soundState = () => state;
+/** Short enough to read from four metres: "404", "decode failed", "no audio". */
+export const soundReason = () => reason;
 /** The server renders no marker: it cannot know, and a flash of "sound off" is worse than none. */
 export const soundStateOnServer = (): SoundState => "unknown";
 
@@ -129,6 +135,68 @@ function context(): AudioContext | null {
 }
 
 /**
+ * The clips, fetched once and decoded into memory.
+ *
+ * **Why not an `<audio>` element.** That was the first implementation and it
+ * worked on every machine here and on none of the televisions. The symptom was
+ * exact and it is what gave the game away: the board's synthesised notes were
+ * audible on the wall while the recording was not. Those notes come out of an
+ * AudioContext. So the television's speakers worked, its AudioContext was
+ * running, and the only thing failing was `HTMLMediaElement.play()` — which is
+ * gated by an autoplay policy that Web Audio, already unlocked, is past.
+ *
+ * So the recording goes out the same pipe the notes do. Nothing about the
+ * television has to be configured for that to work, which matters: the board is
+ * a panel on a wall and every fix that begins "open the browser settings" is a
+ * fix somebody has to climb up to apply.
+ *
+ * Decoded up front rather than at the alert, because a sale is exactly the
+ * moment not to be waiting on a network round trip, and a fetch that fails is
+ * better known about before the wall needs it. Roughly 2MB resident for the
+ * pair, which is nothing against the board's images.
+ */
+const buffers = new Map<CheerKind, AudioBuffer>();
+const pending = new Map<CheerKind, Promise<AudioBuffer | null>>();
+
+function load(kind: CheerKind, c: AudioContext): Promise<AudioBuffer | null> {
+  const have = buffers.get(kind);
+  if (have) return Promise.resolve(have);
+  let p = pending.get(kind);
+  if (!p) {
+    p = fetch(CLIPS[kind].src)
+      .then((r) => {
+        if (!r.ok) throw new Error(String(r.status));
+        return r.arrayBuffer();
+      })
+      // The callback form as well as the promise: older WebKit only has the
+      // former, and a television browser is exactly where that still bites.
+      .then(
+        (bytes) =>
+          new Promise<AudioBuffer>((res, rej) => {
+            const out = c.decodeAudioData(bytes, res, rej);
+            if (out && typeof out.then === "function") out.then(res, rej);
+          }),
+      )
+      .then((buf) => {
+        buffers.set(kind, buf);
+        return buf;
+      })
+      .catch((e: unknown) => {
+        // Kept for the footer. A bare status code is the most useful thing that
+        // fits: "404" says deploy, "decode failed" says file.
+        const m = e instanceof Error ? e.message : String(e);
+        pending.delete(kind); // a later attempt may succeed; don't cache failure
+        failure = /^\d{3}$/.test(m) ? `HTTP ${m}` : "decode failed";
+        return null;
+      });
+    pending.set(kind, p);
+  }
+  return p;
+}
+
+let failure = "";
+
+/**
  * Ask the browser whether it would let us make a noise, by trying.
  *
  * This used to read `AudioContext.state === "suspended"` and call that blocked,
@@ -138,31 +206,24 @@ function context(): AudioContext | null {
  * and stopped trying. The symptom was the one thing worse than the bug it was
  * meant to warn about: no sound at all, where there had been a fallback.
  *
- * So it plays the real file at zero volume and pauses it. Volume is not the
- * `muted` attribute, which is the one autoplay policies treat specially, so
- * this is subject to exactly the rules a real alert will meet. Nothing is
- * audible and the file is in cache afterwards, ready for the first sale.
- *
- * A probe that succeeds is reported as `clip` even though nobody heard it: it
- * means the next real alert will be heard, which is what the footer is for. It
- * never downgrades a verdict a real alert has already earned.
+ * So it does the two things that can be known in advance without making a
+ * sound: fetch and decode the clips, and ask the context whether it is running.
+ * Neither is a guess. It never downgrades a verdict a real alert has earned.
  */
 export function checkAudio(): void {
-  try {
-    const probe = new Audio(CLIPS.sold.src);
-    probe.volume = 0;
-    void probe
-      .play()
-      .then(() => {
-        probe.pause();
-        if (state === "unknown" || state === "off") announce("clip");
-      })
-      .catch(() => {
-        if (state === "unknown") announce("off");
-      });
-  } catch {
-    if (state === "unknown") announce("off");
-  }
+  const c = context();
+  if (!c) return announce("off", "no audio");
+  void c
+    .resume()
+    .catch(() => {})
+    .then(() => Promise.all([load("quote", c), load("sold", c)]))
+    .then((loaded) => {
+      if (state === "clip" || state === "notes") return;
+      if (c.state !== "running") return announce("off");
+      if (loaded.some((b) => b == null)) return announce("notes", failure);
+      announce("clip");
+    })
+    .catch(() => announce("off"));
 }
 
 /**
@@ -175,10 +236,6 @@ export function checkAudio(): void {
  * but the difference between "no sound" and "press any key".
  */
 export function primeAudio(): void {
-  const c = context();
-  // Resume the synth context, which a gesture does allow, and then ask the
-  // question the way checkAudio asks it — by trying to play the real thing.
-  if (c) void c.resume().catch(() => {});
   checkAudio();
 }
 
@@ -210,50 +267,61 @@ function fanfare(c: AudioContext, kind: CheerKind) {
  */
 export function cheer(kind: CheerKind): () => void {
   const c = context();
-  /*
-   * Always try. There is no reliable way to ask a browser in advance whether it
-   * will play a sound — the thing that looks like one, a suspended
-   * AudioContext, is suspended at page load either way — and guessing wrong in
-   * the cautious direction means the board goes quiet on a real sale for a
-   * policy that was not actually stopping it.
-   */
-  const fallback = () => {
-    if (!c) return announce("off");
+  let source: AudioBufferSourceNode | null = null;
+  let stopped = false;
+
+  const fallback = (why: string) => {
+    if (stopped || !c) return announce("off", "no audio");
     try {
-      // A suspended context plays nothing, so ask for it back first; a gesture
-      // may have arrived since the page loaded. `resume` is a promise, so the
-      // verdict cannot be known here — `notes` is the honest answer either way,
-      // since it names the thing that was attempted.
-      void c.resume().catch(() => {});
       fanfare(c, kind);
-      announce("notes");
+      announce("notes", why);
     } catch {
-      announce("off");
+      announce("off", why);
     }
   };
-  let audio: HTMLAudioElement | null = null;
-  try {
-    const clip = CLIPS[kind];
-    audio = new Audio(clip.src);
-    audio.volume = clip.volume;
 
-    void audio
-      .play()
-      .then(() => announce("clip"))
-      // A missing file rejects the same way a blocked autoplay does, so the
-      // notes cover both and the board is never silent for want of an asset.
-      .catch(fallback);
-  } catch {
-    audio = null;
-    fallback();
+  if (!c) {
+    announce("off", "no audio");
+    return () => {};
   }
+
+  /*
+   * Always try. There is no reliable way to ask a browser in advance whether it
+   * will play a sound, and guessing wrong in the cautious direction means the
+   * board goes quiet on a real sale for a policy that was not actually stopping
+   * it. The decode is usually already done, in which case this resolves on the
+   * next tick and the sound lands with the alert.
+   */
+  void c
+    .resume()
+    .catch(() => {})
+    .then(() => load(kind, c))
+    .then((buf) => {
+      if (stopped) return;
+      if (!buf) return fallback(failure);
+      try {
+        const src = c.createBufferSource();
+        src.buffer = buf;
+        const gain = c.createGain();
+        gain.gain.value = CLIPS[kind].volume;
+        src.connect(gain).connect(c.destination);
+        src.start();
+        source = src;
+        // A suspended context accepts all of the above and emits nothing, so
+        // the verdict is the context's state, not the absence of a throw.
+        announce(c.state === "running" ? "clip" : "off");
+      } catch {
+        fallback("playback failed");
+      }
+    })
+    .catch(() => fallback(failure || "playback failed"));
+
   return () => {
-    if (!audio) return;
+    stopped = true;
     try {
-      audio.pause();
-      audio.src = "";
+      source?.stop();
     } catch {
-      /* A player that will not stop is not worth throwing over. */
+      /* Already finished. A player that will not stop is not worth throwing over. */
     }
   };
 }

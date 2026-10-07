@@ -7,7 +7,7 @@ import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
-import { checkAudio, primeAudio, soundState, soundStateOnServer, subscribeAudio } from "./screen/cheer";
+import { checkAudio, primeAudio, soundReason, soundState, soundStateOnServer, subscribeAudio } from "./screen/cheer";
 import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 import { useBoardRemote } from "./screen/useBoardRemote";
@@ -218,6 +218,10 @@ export function ScreenBoard({
    * browser to unblock. Four rounds of fixes went out blind for want of this.
    */
   const sound = useSyncExternalStore(subscribeAudio, soundState, soundStateOnServer);
+  // Why, when there is a why. "404" sends somebody to the deploy; "no audio"
+  // sends them to the television. Without it the marker says only that
+  // something is wrong, which is where the last four rounds started.
+  const soundWhy = useSyncExternalStore(subscribeAudio, soundReason, () => "");
 
   /**
    * The rotation, which stops while the board is held.
@@ -542,7 +546,7 @@ export function ScreenBoard({
         )}
         {sound === "notes" && (
           <span className="screen__mute" title="The alert sound file would not play, so the board used its built-in notes">
-            <i aria-hidden>♪</i> Beeps only · clip did not load
+            <i aria-hidden>♪</i> Beeps only · {soundWhy || "clip did not load"}
           </span>
         )}
         <span className="screen__right">
