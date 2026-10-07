@@ -71,7 +71,7 @@ export function ProfitChart({ points, spanLabel }: { points: ProfitPoint[]; span
             const yy = padT + g * plotH;
             return (
               <g key={g}>
-                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="#e4e8f0" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="var(--pt-line)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
                 <text x={padL - 10} y={yy + 3.5} textAnchor="end" className="pt-mc__ytick">{short(top - g * (top - bottom))}</text>
               </g>
             );

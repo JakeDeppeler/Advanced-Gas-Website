@@ -8,12 +8,14 @@ import { PortalSearch } from "@/components/portal/PortalSearch";
 import { buildSearchIndex } from "@/lib/portal/searchIndex";
 import { BAND_LABEL, BANDS, byBand, ICON, portalNav, type NavBand, type NavItem } from "@/lib/portal/nav";
 import { Bell } from "@/components/portal/Bell";
-import { SideNav, SideNavButton, type SideTab } from "@/components/portal/SideNav";
+import { ThemeToggle } from "@/components/portal/ThemeToggle";
+import { SideNav, SideNavButton, TODO_ICON, type SideTab } from "@/components/portal/SideNav";
 import { navBadges } from "@/lib/portal/navBadges";
 import { needsByBand, needsToday } from "@/lib/portal/needs";
-import { myCounts } from "@/lib/todos/store";
-import { myDueContacts } from "@/lib/contacts/store";
-import { touchState } from "@/lib/contacts/types";
+import { myCounts, seesAll } from "@/lib/todos/store";
+import { listContacts } from "@/lib/contacts/store";
+import { isDue, touchState } from "@/lib/contacts/types";
+import { can } from "@/lib/portal/caps";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 
 /** Each tab's icon in the side bar, from the same stroke set as the home cards. */
@@ -40,6 +42,31 @@ function tabsOf(items: NavItem[], badges: Record<string, string> = {}, need: Par
     .filter((t) => t.pages.length > 0);
 }
 
+/**
+ * To-do, as a tab of the side bar, under Home: Today for everyone, and for the
+ * office Keep in touch and Future planning beside it. Its number is the
+ * to-dos due today plus the calls due — red once anything is late.
+ */
+function todoTab(office: boolean, n: { todosDue: number; callsDue: number; late: boolean } = { todosDue: 0, callsDue: 0, late: false }): SideTab {
+  return {
+    key: "todo",
+    label: "To-do",
+    icon: TODO_ICON,
+    href: "/portal/todo",
+    need: n.todosDue + n.callsDue,
+    late: n.late,
+    pages: [
+      { href: "/portal/todo", label: "Today", badge: n.todosDue ? `${n.todosDue} due` : undefined },
+      ...(office
+        ? [
+            { href: "/portal/keep-in-touch", label: "Keep in touch", badge: n.callsDue ? `${n.callsDue} due` : undefined },
+            { href: "/portal/plans", label: "Future planning" },
+          ]
+        : []),
+    ],
+  };
+}
+
 type NavProps = { user: PortalUser; items: NavItem[]; small: boolean; search: React.ReactNode; foot: React.ReactNode };
 
 /**
@@ -49,18 +76,21 @@ type NavProps = { user: PortalUser; items: NavItem[]; small: boolean; search: Re
  * the bar is drawn the same with no numbers on it.
  */
 async function CountedNav({ user, items, ...p }: NavProps) {
-  const [badges, lines, todos, calls] = await Promise.all([
+  const [badges, lines, todos, office, contacts] = await Promise.all([
     navBadges(user).catch(() => ({})),
     needsToday(user).catch(() => []),
     myCounts(user).catch(() => ({ due: 0, overdue: 0 })),
-    myDueContacts(user).catch(() => []),
+    seesAll(user).catch(() => false),
+    listContacts().catch(() => []),
   ]);
   const today = isoDateMelbourne(new Date());
-  const todo = {
-    due: todos.due + calls.length,
-    overdue: todos.overdue + calls.filter((c) => touchState(c, today) === "overdue").length,
-  };
-  return <SideNav tabs={tabsOf(items, badges, needsByBand(lines))} todo={todo} {...p} />;
+  const callsDue = office ? contacts.filter((c) => isDue(touchState(c, today))) : [];
+  const tab = todoTab(office, {
+    todosDue: todos.due,
+    callsDue: callsDue.length,
+    late: todos.overdue > 0 || callsDue.some((c) => touchState(c, today) === "overdue"),
+  });
+  return <SideNav tabs={[tab, ...tabsOf(items, badges, needsByBand(lines))]} {...p} />;
 }
 
 /**
@@ -79,6 +109,7 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
   const items = portalNav(user);
   const rows = buildSearchIndex(items);
   const small = cookies().get("pt_nav")?.value === "small";
+  const theme = cookies().get("pt_theme")?.value === "dark" ? "dark" : "light";
   const first = user.name.split(" ")[0];
 
   const search = <PortalSearch rows={rows} placeholder="Search" />;
@@ -87,6 +118,7 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
       {/* Counted from the same source the notifications page lists, so the
           badge and the page can never disagree about how many there are. */}
       <Bell user={user} href="/portal/notifications" cls="pt-side__bell" />
+      <ThemeToggle initial={theme} />
       <Link href="/portal/me" className="pt-side__me" title="My file">
         <span className="pt__avatar" aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
         <span className="pt-side__metxt">
@@ -111,8 +143,8 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
     // The portal is a tool — a panel that fades in when you scroll to it is an
     // animation in the way of work, and it left every below-the-fold panel at
     // opacity 0 in screenshots and in print.
-    <div className={`pt${variant ? ` pt--${variant}` : ""}${small ? " pt--navsmall" : ""}`} data-no-reveal>
-      <Suspense fallback={<SideNav tabs={tabsOf(items)} small={small} search={search} foot={foot} />}>
+    <div className={`pt${variant ? ` pt--${variant}` : ""}${small ? " pt--navsmall" : ""}`} data-no-reveal data-theme={theme === "dark" ? "dark" : undefined}>
+      <Suspense fallback={<SideNav tabs={[todoTab(can(user, "manage_users") || can(user, "overhead")), ...tabsOf(items)]} small={small} search={search} foot={foot} />}>
         <CountedNav {...nav} />
       </Suspense>
 
