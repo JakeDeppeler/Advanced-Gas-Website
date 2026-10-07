@@ -14,9 +14,21 @@
  * feature that fails invisibly is a feature nobody can fix.
  */
 
+/**
+ * Bumped whenever the clip behind a name changes.
+ *
+ * The board asked for these files for about an hour before they existed, and a
+ * browser is entitled to remember a 404 — so a screen that tried once and was
+ * told "no such file" can keep believing it long after the file is in place.
+ * That is not something a deploy can undo and not something a reload clears on
+ * every device. A new query string is a new URL, and a new URL has nothing
+ * cached against it.
+ */
+const V = "2";
+
 const FILES = {
-  quote: "/sounds/quote.mp3",
-  sold: "/sounds/sold.mp3",
+  quote: `/sounds/quote.mp3?v=${V}`,
+  sold: `/sounds/sold.mp3?v=${V}`,
 } as const;
 
 export type CheerKind = keyof typeof FILES;
