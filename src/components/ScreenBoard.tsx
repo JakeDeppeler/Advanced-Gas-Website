@@ -1667,6 +1667,10 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * over-run is a different statement from the month's and the room has to be
  * able to see which it is being shown.
  *
+ * Over the year rather than the month, alone among this page's cards: October
+ * carries six such jobs and the year carries thirty-seven. Six jobs is a
+ * fortnight's weather, so the card's sub line says which period it means.
+ *
  * Quoted margin against achieved margin, the other half of what was asked for,
  * is not here: the estimate line items do carry a cost, but only seven jobs in
  * the year have both a quoted cost and a billed one, and seven is an anecdote.
@@ -1688,7 +1692,13 @@ function TimeCard({ jp, live }: { jp: Metrics["jobProfitMonth"]; live: Live }) {
     <div className="tile c3">
       <div className="tile__head">
         <span className="tile__title">Time on the tools</span>
-        <span className="tile__sub">allowed vs taken</span>
+        {/* The one card on a month page that isn't the month, and it says so.
+            October holds six jobs with both a quoted time and a timesheet; the
+            year holds thirty-seven. Six is not an over-run, it is a fortnight.
+            Just the period: "allowed vs taken" alongside it wrapped the title
+            onto two lines in a quarter-width card, and the two rows below
+            already name both halves. */}
+        <span className="tile__sub">this year</span>
       </div>
       {!live.st || n === 0 ? (
         <span className="tile__sub tile__sub--body">
@@ -1825,7 +1835,7 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
         }
       />
 
-      <TimeCard jp={jp} live={live} />
+      <TimeCard jp={m.jobProfitYear ?? jp} live={live} />
 
       <div className="tile c9">
         <div className="tile__head">
