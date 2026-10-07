@@ -40,6 +40,9 @@ export type JobProfit = {
   materials: number;
   hours: number | null;
   hoursFrom: "timesheets" | "sold" | null;
+  /** What the quote allowed, and what the crew actually clocked. */
+  allowedHours: number | null;
+  actualHours: number | null;
   labour: number | null;
   profit: number | null;
   /** 0–1 of price. Null when the job couldn't be costed. */
@@ -67,6 +70,19 @@ export type ProfitSummary = {
   uncostedRevenue: number;
   /** Where the hours came from on the costed jobs. */
   fromTimesheets: number;
+  /**
+   * Time allowed against time taken, over the jobs that carry both.
+   *
+   * A separate population from the costed one, and deliberately so: a job needs
+   * sold hours *and* a timesheet to be in it, where costing needs hours from
+   * either. `timeJobs` is the count, and it is small — it goes on the wall with
+   * the count beside it or not at all.
+   */
+  timeJobs: number;
+  timeAllowed: number;
+  timeActual: number;
+  /** Of those, how many took longer than the quote allowed. */
+  timeOver: number;
 };
 
 /** A day on site, at most. Anything longer is a timesheet nobody clocked off. */
@@ -168,12 +184,19 @@ export async function jobProfits(
       materials: j.materials,
       hours: h,
       hoursFrom,
+      allowedHours: j.sold > 0 ? j.sold : null,
+      actualHours: clocked ?? null,
       labour,
       profit,
       margin: profit != null && j.price > 0 ? profit / j.price : null,
       missing,
     };
   });
+
+  // Both numbers, on the jobs that have both. A job quoted at four hours with no
+  // timesheet says nothing about over-running, and nor does one with a timesheet
+  // that was never quoted by the hour.
+  const timed = rows.filter((r) => r.allowedHours != null && r.allowedHours > 0 && r.actualHours != null && r.actualHours > 0);
 
   const costed = rows.filter((r) => r.profit != null);
   const revenue = costed.reduce((t, r) => t + r.price, 0);
@@ -195,6 +218,10 @@ export async function jobProfits(
       losing: costed.filter((r) => (r.profit ?? 0) < 0).length,
       uncostedRevenue: rows.filter((r) => r.profit == null).reduce((t, r) => t + r.price, 0),
       fromTimesheets: costed.filter((r) => r.hoursFrom === "timesheets").length,
+      timeJobs: timed.length,
+      timeAllowed: timed.reduce((t, r) => t + (r.allowedHours ?? 0), 0),
+      timeActual: timed.reduce((t, r) => t + (r.actualHours ?? 0), 0),
+      timeOver: timed.filter((r) => (r.actualHours ?? 0) > (r.allowedHours ?? 0)).length,
     },
   };
 }
