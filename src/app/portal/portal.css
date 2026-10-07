@@ -4708,12 +4708,15 @@ a.pt-fig:hover { transform: translateY(-2px); }
   text-align: right;
   font: inherit;
   font-variant-numeric: tabular-nums;
-  border: 1px solid var(--pt-line, #d9d3c3);
+  /* The portal's own tokens, so this turns over with the rest of it in dark
+     mode. A hardcoded white field would be a white box on a dark page. */
+  border: 1px solid var(--pt-field);
   border-radius: 0.4rem;
-  background: #fff;
+  background: var(--pt-surface);
+  color: var(--pt-ink);
 }
 .pt-times__field em { font-style: normal; opacity: 0.6; }
 /* Said in a word, not a tick: the row has to say what happened to somebody who
    tabbed past it without looking. */
-.pt-times__ok { font-size: 0.78rem; font-weight: 700; color: #0f6a31; }
-.pt-times__err { font-size: 0.78rem; font-weight: 700; color: #c2521a; }
+.pt-times__ok { font-size: 0.78rem; font-weight: 700; color: var(--pt-good); }
+.pt-times__err { font-size: 0.78rem; font-weight: 700; color: var(--pt-bad); }
