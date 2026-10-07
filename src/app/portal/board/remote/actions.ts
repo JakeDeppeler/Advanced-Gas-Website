@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { updateRemote } from "@/lib/board/remote";
+import { touchRemoteLive, updateRemote } from "@/lib/board/remote";
 import { BOARD_PAGES, type BoardPageName, type BoardRemote, type DemoKind } from "@/lib/board/remoteTypes";
 
 export type RemoteResult = { ok: boolean; error?: string; remote?: BoardRemote };
@@ -51,7 +51,19 @@ export async function reloadBoard(): Promise<RemoteResult> {
   return press({ reload: randomUUID() });
 }
 
-/** Keep the boards checking every few seconds while this page is open. Not signed: it isn't a press. */
+/**
+ * Keep the boards checking every few seconds while this page is open.
+ *
+ * Writes its own row rather than patching the remote. Patching meant reading
+ * the whole remote and writing it back, once a minute and on every visibility
+ * change — so a heartbeat already in flight when somebody pressed a button
+ * would put its stale copy back over the press. Looking up at the television
+ * after pressing is a visibility change, which made the one habit that triggers
+ * this the one habit everybody has.
+ */
 export async function keepLive(): Promise<RemoteResult> {
-  return press({ liveUntil: new Date(Date.now() + LIVE_MS).toISOString() }, false);
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const res = await touchRemoteLive(new Date(Date.now() + LIVE_MS).toISOString());
+  return res.ok ? { ok: true, remote: res.remote } : { ok: false, error: "Couldn't reach the board's settings." };
 }
