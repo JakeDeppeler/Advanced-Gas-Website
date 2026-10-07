@@ -8,6 +8,7 @@ import { money } from "@/lib/portal/format";
 import { portalNav, type NavBand } from "@/lib/portal/nav";
 import { journalErrors } from "@/lib/journals/read";
 import { overdueByPerson } from "@/lib/todos/store";
+import { dueByPerson } from "@/lib/contacts/store";
 
 /** One thing waiting on somebody, with the side-bar tab it belongs to. */
 export type NeedLine = { n: number; text: string; href: string; band: NavBand | null };
@@ -26,13 +27,14 @@ const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : ma
  */
 export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> => {
   if (!can(user, "overhead")) return [];
-  const [board, issues, shelf, asks, journals, lateTodos] = await Promise.all([
+  const [board, issues, shelf, asks, journals, lateTodos, callsDue] = await Promise.all([
     latestBoard(),
     vanIssues().catch(() => []),
     listStock().catch(() => null),
     crewRequests().catch(() => ({ orders: [], leave: [], incidents: [] })),
     journalErrors().catch(() => []),
     overdueByPerson().catch(() => []),
+    dueByPerson().catch(() => []),
   ]);
   const m = board?.metrics;
   const lines: Array<Omit<NeedLine, "band">> = [];
@@ -51,6 +53,11 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
   const lateN = lateTodos.reduce((t, p) => t + p.n, 0);
   if (lateN) {
     lines.push({ n: lateN, text: `${plural(lateN, "to-do")} overdue · ${lateTodos.map((p) => `${p.name.split(" ")[0]} ${p.n}`).join(", ")}`, href: "/portal/todo" });
+  }
+  // The keep-in-touch list: people past their month, or never rung.
+  const callsN = callsDue.reduce((t, p) => t + p.n, 0);
+  if (callsN) {
+    lines.push({ n: callsN, text: `${plural(callsN, "person", "people")} to get in touch with · ${callsDue.map((p) => `${p.name.split(" ")[0]} ${p.n}`).join(", ")}`, href: "/portal/keep-in-touch" });
   }
   if (m && (m.quotesQuietCount ?? 0) > 0) {
     lines.push({ n: m.quotesQuietCount, text: `${plural(m.quotesQuietCount, "quote")} gone quiet 7+ days`, href: "/portal/quotes#quiet" });

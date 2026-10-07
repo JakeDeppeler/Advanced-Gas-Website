@@ -70,7 +70,8 @@ whoever in the team list is called Dean or Kellie, until somebody changes it:
 
 - **Daily**, every working day — sold and invoiced in the two big tiles, then
   paid, booked, quoted and leads; the week so far against the goal; what needs
-  someone, including to-dos past their day (`/portal/todo`, by person); who sold.
+  someone, including to-dos past their day (`/portal/todo`) and people due a
+  call on the keep-in-touch list (`/portal/keep-in-touch`), by person; who sold.
 - **Weekly**, on the week's last working day — the week's six figures beside
   last week's, each against what the goal needed of the week, the week's job
   profit, who sold, what needs someone.
