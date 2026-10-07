@@ -1848,6 +1848,56 @@ appointments resource, which is not synced, so the "scheduled next 7 days" tile
 stays blank rather than showing a measured-looking zero. `campaign` would need a
 campaigns lookup that does not exist yet; nothing on the board reads it.
 
+## Daily pace — each tech's day on the tools
+
+Fifth in the rotation, between Invoices and Team. Five cards across, one per
+technician, worst first: the point is the person who needs a hand, not a
+leaderboard, so the card the room should look at is the leftmost one.
+
+**Where the data comes from.** `st_jobs` carries no technician and no
+appointment — ServiceTitan's job export sends neither — so every figure is built
+from `st_timesheets`, which has one row per technician per appointment with
+`arrived_on` and `done_on`, joined out to the job.
+
+**The first dial is quoted ÷ taken, not taken ÷ quoted.** Running over is the
+bad outcome, and the board's zones run low-is-behind, so a day quoted at 4h and
+taken in 6 reads 67% and lands in the red band the rest of the board uses for
+trouble; 6h quoted and 5.5h taken reads 109% and sits on track. One palette, no
+inverted dial.
+
+**Both halves of that dial cover the same jobs.** This is the trap and it was
+shipped wrong once before being caught in a render: summing a tech's whole day
+against the quoted hours of the two jobs that had quotes gave Ray "4.2h taken,
+3h quoted, 1.2h over" — 72%, in the red — when his third job was never quoted at
+all. Over the same two jobs it is 3.5h against 3h, 86%, close. `hoursTakenQuoted`
+exists for exactly this and `npm run check:daily` asserts it.
+
+**A job with no quoted time is not scored.** Quoted hours come from the labour
+lines on an invoice, and most service work is billed without one: over thirty
+days only **76 of 268** timesheet spans had them. Those cards show hours taken,
+draw the dial flat, and say "nothing quoted to measure" — never 0%, which would
+be blaming somebody for a missing setting. The card foot says how many of the
+day's jobs had nothing to measure against, and so does the page header.
+
+**Standard times fill the gap.** `/portal/board/times` sets an expected time per
+job type, busiest first, and any job whose invoice carries no hours falls back
+to it. A real quote still wins where there is one — it is the figure the
+customer was given. A type left unset stays unset; zero means "not set", not
+"takes no time". As the list is filled in, more of the page becomes measurable
+without another build.
+
+**Not built, for want of a rule:** the mockup's "plumbing cert + VEU form first"
+on the to-bill line. The paperwork rule has never been defined, so the cards say
+how many jobs are waiting to bill and leave the reason off.
+
+### The page list is keyed by name
+
+Both the page switch and the grid-proportions class used to be arrays indexed by
+page number. Inserting Daily pace at position five silently gave Team the
+Performance layout, Performance the Areas layout, and the new page Team's — all
+of which typechecked, built, and showed up only as three pages spilling in a
+render. Both are keyed by name now.
+
 ## The full-screen alerts
 
 Three events take the whole wall for a few seconds: a quote written, a job

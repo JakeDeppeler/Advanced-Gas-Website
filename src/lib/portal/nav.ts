@@ -212,6 +212,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["sound", "mp3", "audio", "volume", "loud", "quiet", "pop-up", "alert", "homer", "music", "noise"],
     },
     {
+      href: "/portal/board/times", label: "Standard times", blurb: "How long each kind of job should take", band: "board", icon: "clock",
+      also: ["hours", "time", "how long", "job type", "quoted time", "daily pace", "standard", "allowed", "on the tools"],
+    },
+    {
       href: "/portal/board/reports", label: "Reports", blurb: "The day, the week and the month, kept and emailed", band: "board", icon: "doc",
       also: ["report", "daily report", "weekly report", "monthly report", "email", "summary"],
     },

@@ -4684,3 +4684,26 @@ a.pt-fig:hover { transform: translateY(-2px); }
 @container (max-width: 1050px) { .pt-plan__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @container (max-width: 560px) { .pt-plan__cols { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .pt-plan__add { grid-template-columns: minmax(0, 1fr); } .pt-plan__add > * { grid-column: 1 / -1; } }
+
+/* ---------------------------------------------- standard times per job type */
+/* Numbers right-aligned so the hours column reads as a column, and the quiet
+   rows — types with no jobs in ninety days — dimmed rather than hidden: a type
+   that has not come up lately may still be one somebody wants to set. */
+.pt-times__n { text-align: right; white-space: nowrap; }
+.pt-times tr.is-quiet td { opacity: 0.55; }
+.pt-times__field { display: inline-flex; align-items: baseline; gap: 0.35rem; justify-content: flex-end; }
+.pt-times__field input {
+  width: 4.4rem;
+  padding: 0.3rem 0.45rem;
+  text-align: right;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--pt-line, #d9d3c3);
+  border-radius: 0.4rem;
+  background: #fff;
+}
+.pt-times__field em { font-style: normal; opacity: 0.6; }
+/* Said in a word, not a tick: the row has to say what happened to somebody who
+   tabbed past it without looking. */
+.pt-times__ok { font-size: 0.78rem; font-weight: 700; color: #0f6a31; }
+.pt-times__err { font-size: 0.78rem; font-weight: 700; color: #c2521a; }

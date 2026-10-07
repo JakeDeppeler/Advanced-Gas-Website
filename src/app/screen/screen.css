@@ -301,6 +301,8 @@ body:has(.screen) .utilbar {
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--invoices { grid-template-rows: 0.62fr 1.6fr; }
 .screen__grid--team { grid-template-rows: 1fr auto; }
+/* Five cards of equal height, then the day's one-line summary. */
+.screen__grid--daily { grid-template-rows: 1fr auto; }
 .screen__grid--perf { grid-template-rows: 0.52fr 2fr; }
 .screen__grid--areas { grid-template-rows: 0.85fr 0.85fr 1.6fr; }
 
@@ -2140,3 +2142,168 @@ body:has(.screen) .utilbar {
    `display`, so the grid keeps its size and the tiles do not re-run their
    entrance animation when the alert clears. */
 .screen--alerting .screen__grid { visibility: hidden; }
+
+/* ------------------------------------------------ /08 the crew's day
+
+   Five cards across, each a person's day: time against what the job was quoted
+   to take, how much of the list is done, how much of it is billed.
+
+   Sized off --u like everything else, so the five columns hold their shape on a
+   panel that isn't 1920. The row is a grid rather than flex because the cards
+   must be the same width whatever is in them — a tech with a long job name must
+   not get a wider card than one with a short one, or the dials stop lining up
+   across the row and the page reads as five unrelated things. */
+.dp__row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: calc(1.1 * var(--u));
+  min-height: 0;
+}
+.dp__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-radius: calc(1 * var(--u));
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+/* The verdict, in words, across the top of the card. The status colours are the
+   board's own and are never used decoratively, so the band is the one place on
+   the page a colour carries meaning — and it carries the word beside it. */
+.dp__band {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(0.6 * var(--u));
+  padding: calc(0.5 * var(--u)) calc(0.8 * var(--u));
+  font-size: calc(0.82 * var(--u));
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.dp__band b,
+.dp__band em { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.dp__band b { font-weight: 900; }
+.dp__band em { font-style: normal; font-weight: 800; opacity: 0.92; }
+/* No quoted time is not a verdict. Grey, and it says so in words. */
+.dp__band--none { background: var(--track); color: var(--ink-muted); }
+
+.dp__who {
+  display: flex;
+  align-items: center;
+  gap: calc(0.6 * var(--u));
+  padding: calc(0.7 * var(--u)) calc(0.9 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+  font-size: calc(1.45 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dp__who i {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: calc(1.7 * var(--u));
+  height: calc(1.7 * var(--u));
+  border-radius: 999px;
+  background: var(--track);
+  font-size: calc(0.9 * var(--u));
+  font-style: normal;
+  font-weight: 800;
+  color: var(--ink-2);
+}
+
+.dp__cell {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: calc(0.45 * var(--u)) calc(0.6 * var(--u));
+  border-bottom: 1px solid var(--hairline);
+  overflow: hidden;
+}
+/* Says which of the three dials this is. Quiet, because the figure inside the
+   dial is the thing being read from across the room and this only has to be
+   there when somebody asks "what is that one?". */
+.dp__glabel {
+  font-size: calc(0.82 * var(--u));
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/*
+ * Three dials stacked in one card, so each gets a third of the height and the
+ * dial has to give way rather than the words under it.
+ *
+ * The bare gauge is built for the Pace page, where a card holds two of them
+ * across a full row. Here there are three down a fifth of the width, and at its
+ * own size the SVG alone was taller than the cell — the status line and the
+ * foot ran out of the bottom and over the dial below. Capped, with the type
+ * stepped down to match, the whole cell fits and nothing overlaps.
+ */
+.dp__cell .gauge--bare {
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  padding: 0;
+  gap: calc(0.1 * var(--u));
+  justify-content: center;
+}
+.dp__cell .gauge__svg { max-height: calc(5.1 * var(--u)); margin-top: 0; }
+.dp__cell .gauge .status { font-size: calc(0.95 * var(--u)); }
+.dp__cell .gauge__foot { font-size: calc(0.78 * var(--u)); line-height: 1.15; }
+
+.dp__foot {
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.15 * var(--u));
+  padding: calc(0.7 * var(--u)) calc(0.9 * var(--u));
+  font-size: calc(0.95 * var(--u));
+  color: var(--ink-2);
+}
+.dp__foot b { font-weight: 800; color: var(--ink); }
+
+/* The team band reuses .year, so it inherits the navy surface and its dark-mode
+   behaviour rather than growing a second copy of both. */
+.dp__team {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.dp__teamstats {
+  display: flex;
+  align-items: center;
+  gap: calc(2.4 * var(--u));
+}
+.dp__teamstats span { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); }
+.dp__teamstats em {
+  font-style: normal;
+  font-size: calc(1 * var(--u));
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}
+.dp__teamstats b {
+  font-size: calc(1.7 * var(--u));
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.dp__teamstats i {
+  font-style: normal;
+  font-size: calc(1 * var(--u));
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.dp__empty { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: calc(0.5 * var(--u)); }
+.dp__emptysub { font-size: calc(1.2 * var(--u)); color: var(--ink-muted); }

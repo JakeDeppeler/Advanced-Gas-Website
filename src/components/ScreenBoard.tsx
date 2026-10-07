@@ -33,6 +33,18 @@ const PAGE_MS = 30_000;
 // The page list lives with the remote, so the portal can name a page to show.
 const PAGES = BOARD_PAGES;
 
+/** Each page's vertical proportions. Keyed by name; see the note where it is used. */
+const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
+  Today: "screen__grid--today",
+  Pace: "screen__grid--pace",
+  Quotes: "screen__grid--quotes",
+  Invoices: "screen__grid--invoices",
+  "Daily pace": "screen__grid--daily",
+  Team: "screen__grid--team",
+  Performance: "screen__grid--perf",
+  Areas: "screen__grid--areas",
+};
+
 /**
  * The line beside each page name: what the figures below it are measuring.
  *
@@ -89,6 +101,17 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
   // and it is invoices — a job can carry more than one.
   Performance: () => `${monthName(new Date())} so far · booked and invoiced, by job type`,
   Areas: () => "Where the work is · last 60 days",
+  // Says whose day it is and what the dials measure, because the first dial is
+  // time against a quote and the room has to know that is what it is seeing.
+  "Daily pace": (m) => {
+    const d = m.daily;
+    if (!d) return "Each tech's day on the tools";
+    const cover = d.team.quotedCover;
+    const gap = cover.of - cover.with;
+    return `each tech's day on the tools: on time vs quoted, jobs done, billed${
+      gap > 0 ? ` · ${gap} of ${cover.of} jobs have no quoted time` : ""
+    }`;
+  },
 };
 
 const money = (n: number | null | undefined) => {
@@ -483,20 +506,29 @@ export function ScreenBoard({
           only replays on a fresh mount. */}
       <div
         key={page}
-        className={`screen__grid ${["screen__grid--today", "screen__grid--pace", "screen__grid--quotes", "screen__grid--invoices", "screen__grid--team", "screen__grid--perf", "screen__grid--areas"][page]}`}
+        /* By name, for the reason the page switch below is: this was an array
+           indexed by page number, so inserting a page silently gave every page
+           after it the wrong row proportions — and gave the new one somebody
+           else's. Nothing typechecks that. */
+        className={`screen__grid ${GRID_CLASS[name]}`}
         /* Team is the one page whose column count is the data: one card a
            person, however many that is. The twelve-column grid the other pages
            share gave each card a twelfth of the width. */
         style={name === "Team" ? ({ "--team-n": Math.min(6, m.salesLeaderboard.length) || 1 } as CSSProperties) : undefined}
       >
         <TickerScope.Provider value={name}>
-        {page === 0 && <TodayPage m={m} live={live} />}
-        {page === 1 && <PacePage m={m} live={live} now={now} />}
-        {page === 2 && <QuotesPage m={m} live={live} />}
-        {page === 3 && <InvoicesPage m={m} live={live} />}
-        {page === 4 && <TeamPage m={m} live={live} />}
-        {page === 5 && <PerformancePage m={m} live={live} />}
-        {page === 6 && <AreasPage m={m} live={live} />}
+        {/* Keyed by name, not by index. It was `page === 4 && <TeamPage/>`, which
+            means inserting a page silently renders the wrong one under the
+            right heading — the sort of thing that typechecks, builds, and is
+            only caught by somebody looking at the wall. */}
+        {name === "Today" && <TodayPage m={m} live={live} />}
+        {name === "Pace" && <PacePage m={m} live={live} now={now} />}
+        {name === "Quotes" && <QuotesPage m={m} live={live} />}
+        {name === "Invoices" && <InvoicesPage m={m} live={live} />}
+        {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
+        {name === "Team" && <TeamPage m={m} live={live} />}
+        {name === "Performance" && <PerformancePage m={m} live={live} />}
+        {name === "Areas" && <AreasPage m={m} live={live} />}
         </TickerScope.Provider>
       </div>
 
@@ -1499,6 +1531,201 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
  * because an equal share is not true of an apprentice and a lead hand and the
  * room should be able to see the denominator it is being judged against.
  */
+/**
+ * Each tech's day on the tools.
+ *
+ * The only page the crew are the subject of, which sets how it behaves: worst
+ * first, so the card the room should look at is the leftmost one, and nobody is
+ * scored against a number that was never set.
+ *
+ * **The first dial is quoted ÷ taken, not the other way round.** Taking longer
+ * than the job was priced for is the bad outcome, and the board's zones run
+ * low-is-behind — so a day quoted at 4h and taken in 6 reads 67%, in the red
+ * band, where 6h quoted and 5.5h taken reads 109% and sits on track. One
+ * palette, no inverted dial, and "over time" lands in the colour the rest of
+ * the board uses for trouble.
+ *
+ * **A job with no quoted time is not scored.** Most service work is billed
+ * without a labour line, so only 76 of 268 timesheet spans over thirty days
+ * carried quoted hours; a standard time per job type, set in the portal, fills
+ * the rest in as it gets filled in. Until then those jobs show their hours
+ * taken, the dial is drawn flat, and the card says how many of the day's jobs
+ * had nothing to measure against. That is the whole reason the header carries
+ * the caveat too: a figure the room cannot check is one it stops trusting.
+ */
+function DailyPacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
+  const d = m.daily;
+  const hrs = (n: number) => `${Math.round(n * 10) / 10}h`;
+  /** "0.5h under" / "1.2h over" — the gap in the unit the crew talk in. */
+  const gap = (quoted: number, taken: number) => {
+    const diff = Math.round(Math.abs(quoted - taken) * 10) / 10;
+    if (diff < 0.1) return "on the quote";
+    return `${diff}h ${taken > quoted ? "over" : "under"}`;
+  };
+  /** The band's word. The four verdicts, said the way a day is said. */
+  const BAND: Record<Verdict, string> = {
+    ahead: "Under time",
+    track: "On time",
+    close: "Running over",
+    behind: "Over time",
+  };
+
+  if (!live.st || !d || d.techs.length === 0) {
+    return (
+      <div className="tile c12 dp__empty">
+          <span className="tile__label">Nobody on the tools yet</span>
+        <span className="dp__emptysub">
+          {live.st ? "The first job of the day fills this page." : "Waiting on ServiceTitan."}
+        </span>
+      </div>
+    );
+  }
+
+  const t = d.team;
+  const teamIndex = t.hoursQuoted != null && t.hoursTakenQuoted > 0 ? t.hoursQuoted / t.hoursTakenQuoted : null;
+
+  return (
+    <>
+      <div className="dp__row">
+        {d.techs.slice(0, 5).map((p, i) => {
+          // Over the quoted jobs only, both halves. See hoursTakenQuoted.
+          const index = p.hoursQuoted != null && p.hoursTakenQuoted > 0 ? p.hoursQuoted / p.hoursTakenQuoted : null;
+          const v = verdictOf(index);
+          const jobsIdx = paceIndex(p.jobsDone, p.jobsTotal);
+          const billIdx = paceIndex(p.billedCount, Math.max(1, p.jobsDone));
+          const noQuote = p.quotedCover.of - p.quotedCover.with;
+          return (
+            <div className="dp__card" key={p.tech}>
+              <span className={`dp__band ${v ? `status--${v}` : "dp__band--none"}`}>
+                <b>{v ? BAND[v] : "No quoted time"}</b>
+                <em>
+                  {index != null && p.hoursQuoted != null
+                    ? `${Math.round(index * 100)}% · ${gap(p.hoursQuoted, p.hoursTakenQuoted)}`
+                    : `${hrs(p.hoursTaken)} taken`}
+                </em>
+              </span>
+
+              <span className="dp__who">
+                <i aria-hidden>{i + 1}</i>
+                {p.tech}
+              </span>
+
+              {/* The label belongs to the cell, not the dial: `bare` drops the
+                  Gauge's own heading so it can sit inside a card that already
+                  has one, and three unlabelled dials in a column are three
+                  numbers nobody can name. */}
+              <div className="dp__cell">
+                <span className="dp__glabel">On time · hours vs quoted</span>
+                <Gauge
+                  bare
+                  index={index}
+                  verdict={v}
+                  figure={hrs(index != null ? p.hoursTakenQuoted : p.hoursTaken)}
+                  of={p.hoursQuoted != null ? `of ${hrs(p.hoursQuoted)} quoted` : "taken"}
+                  status={
+                    index != null
+                      ? verdictText(index, v)
+                      : /* Never "0%". Nothing was quoted, so there is nothing to be
+                           behind, and a red dial here would blame somebody for a
+                           missing setting. */
+                        "nothing quoted to measure"
+                  }
+                  foot={
+                    noQuote > 0
+                      ? `${noQuote} of ${p.quotedCover.of} not quoted · ${hrs(p.hoursTaken)} all up`
+                      : undefined
+                  }
+                />
+              </div>
+
+              <div className="dp__cell">
+                <span className="dp__glabel">Jobs done off the list</span>
+                <Gauge
+                  bare
+                  index={jobsIdx}
+                  verdict={verdictOf(jobsIdx)}
+                  figure={`${p.jobsDone} of ${p.jobsTotal}`}
+                  status={verdictText(jobsIdx, verdictOf(jobsIdx))}
+                  foot={p.jobsDone >= p.jobsTotal ? "list done" : `${p.jobsTotal - p.jobsDone} still to go`}
+                />
+              </div>
+
+              <div className="dp__cell">
+                <span className="dp__glabel">Billed</span>
+                <Gauge
+                  bare
+                  index={p.jobsDone > 0 ? billIdx : null}
+                  verdict={p.jobsDone > 0 ? verdictOf(billIdx) : null}
+                  figure={`${p.billedCount} of ${p.jobsDone}`}
+                  status={p.jobsDone > 0 ? verdictText(billIdx, verdictOf(billIdx)) : "nothing finished yet"}
+                  foot={p.billedValue > 0 ? `${money(p.billedValue)} billed today` : "nothing billed yet"}
+                />
+              </div>
+
+              <span className="dp__foot">
+                {p.onNow ? (
+                  <b>
+                    Now · {p.onNow.what}
+                    {p.onNow.where ? `, ${p.onNow.where}` : ""} · {hrs(p.onNow.taken)}
+                    {p.onNow.quoted != null ? ` of ${hrs(p.onNow.quoted)}` : ""}
+                  </b>
+                ) : (
+                  <b>{p.jobsDone >= p.jobsTotal ? "List done" : "Between jobs"}</b>
+                )}
+                <span>
+                  {p.toBillCount > 0
+                    ? `${p.toBillCount} ${p.toBillCount === 1 ? "job" : "jobs"} waiting to bill`
+                    : "Nothing waiting to bill"}
+                </span>
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* The day in one line, in the same navy the Pace page's year band uses. */}
+      <div className="year dp__team">
+        <div className="year__main">
+          <span className="year__nums">
+            <b className="year__gap">{hrs(t.hoursTaken)} taken</b>
+            <em className={`year__vs ${teamIndex != null && teamIndex < 1 ? "is-behind" : "is-ahead"}`}>
+              {/* Named as the subset it is. "16.2h taken, 6h quoted, 10.2h over"
+                  was the whole day's hours against four jobs' quotes, which is
+                  not a comparison — it is two different days put next to each
+                  other with a minus sign between them. */}
+              {t.hoursQuoted != null
+                ? `${hrs(t.hoursTakenQuoted)} of that on ${t.quotedCover.with} quoted ${
+                    t.quotedCover.with === 1 ? "job" : "jobs"
+                  } · ${gap(t.hoursQuoted, t.hoursTakenQuoted)}`
+                : "no quoted time on today's jobs"}
+            </em>
+          </span>
+        </div>
+        <div className="dp__teamstats">
+          <span>
+            <em>Jobs done</em>
+            <b>
+              {t.jobsDone} <i>of {t.jobsTotal}</i>
+            </b>
+          </span>
+          <span>
+            <em>Billed</em>
+            <b>
+              {t.billedCount} <i>of {t.billableCount} done</i>
+            </b>
+          </span>
+          <span>
+            <em>On the tools</em>
+            <b>
+              {d.techs.length} <i>{d.techs.length === 1 ? "tech" : "techs"}</i>
+            </b>
+          </span>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="who has sold what" />;
 

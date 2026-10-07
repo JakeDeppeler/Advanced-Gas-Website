@@ -7,7 +7,7 @@
  */
 
 /** The board's pages, in the order it turns them. The board reads its list from here. */
-export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Team", "Performance", "Areas"] as const;
+export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Daily pace", "Team", "Performance", "Areas"] as const;
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's three alerts, as the demo shows them: a sale, a quote, a job to bill. */
