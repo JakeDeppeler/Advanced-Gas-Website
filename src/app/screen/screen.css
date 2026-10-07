@@ -286,6 +286,25 @@ body:has(.screen) .utilbar {
   z-index: 0;
 }
 
+/**
+ * This page paints its own colours, both ways. Browser, leave them alone.
+ *
+ * Without a declared colour scheme a browser is entitled to treat a page as
+ * light-only and apply its own automatic dark theme — Chrome on Android and the
+ * television browsers built on it do exactly that, algorithmically darkening
+ * backgrounds it believes are too bright. The board in *light* mode came out
+ * dark grey on the wall where it is white on a laptop, which is that feature
+ * working as designed on a page that never told it otherwise.
+ *
+ * Declaring the scheme is the documented way to say "this page handles its own
+ * theming", and it is declared per theme rather than as `light dark` so the
+ * browser's own furniture — scrollbars, form controls, the canvas before the
+ * stylesheet lands — matches the theme the board is actually showing rather
+ * than whatever the television is set to.
+ */
+.screen { color-scheme: light; }
+.screen--dark { color-scheme: dark; }
+
 /* Each page wants its own vertical proportions. */
 .screen__grid--today { grid-template-rows: 1.25fr 1fr; }
 .screen__grid--pace {

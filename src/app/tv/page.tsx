@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
 import { BOARD_COOKIE } from "@/lib/dashboard/boardCookie";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
@@ -13,6 +13,18 @@ export const metadata: Metadata = {
   title: "Live board",
   robots: { index: false, follow: false, nocache: true },
 };
+
+/**
+ * Both schemes, declared at the document.
+ *
+ * The board switches itself between light and dark and paints every surface it
+ * uses. Saying so here stops a browser applying an automatic dark theme of its
+ * own on top — which is what turned the board's light mode dark grey on the
+ * television while it stayed white on a laptop. The stylesheet narrows this to
+ * the exact theme in play; this is the document-level statement that the page
+ * is not light-only and needs no help.
+ */
+export const viewport: Viewport = { colorScheme: "light dark" };
 
 /**
  * The short route: advancedgas.com.au/tv.

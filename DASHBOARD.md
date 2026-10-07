@@ -1898,6 +1898,30 @@ Performance layout, Performance the Areas layout, and the new page Team's — al
 of which typechecked, built, and showed up only as three pages spilling in a
 render. Both are keyed by name now.
 
+## The board says it paints its own colours
+
+`/tv` and `/screen` declare `color-scheme: light dark` at the document, and the
+stylesheet narrows it per theme — `.screen { color-scheme: light }`,
+`.screen--dark { color-scheme: dark }`.
+
+Without that declaration a browser may treat a page as light-only and apply an
+automatic dark theme of its own. Chrome on Android and the television browsers
+built on it do: **the board's light mode came out dark grey on the wall where it
+is white on a laptop.** That is the feature working as designed on a page that
+never told it otherwise.
+
+Declared per theme rather than only as `light dark` so the browser's own
+furniture — scrollbars, form controls, the canvas before the stylesheet
+lands — matches the theme the board is showing rather than whatever the
+television is set to.
+
+Verified against the served build rather than the API docs, because the first
+check found no meta at all: it was there in the source and missing from the
+response, since the build predated it. `<meta name="color-scheme" content="light
+dark">` is in the head and `.screen{color-scheme:light}` is in a stylesheet the
+page loads. `npm run check:theme` asserts both, since neither can be seen from
+here.
+
 ## SVG paint never takes a themed variable
 
 `.gauge__fig` is `fill: var(--navy)`, and dark mode redefines `--navy` from

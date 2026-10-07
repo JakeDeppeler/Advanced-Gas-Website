@@ -67,5 +67,22 @@ for (const p of paints) {
   );
 }
 
+/*
+ * The board must say that it paints its own colours, both ways.
+ *
+ * Without a declared colour scheme a browser may treat the page as light-only
+ * and apply an automatic dark theme of its own. Chrome on Android and the
+ * television browsers built on it do: the board's light mode came out dark grey
+ * on the wall where it is white on a laptop. Another fault invisible from here,
+ * so it is asserted rather than looked at.
+ */
+console.log("\n-- the board declares its colour scheme --");
+ok("the stylesheet sets it for the light theme", /\.screen\s*\{[^}]*color-scheme\s*:\s*light/.test(css));
+ok("and for the dark one", /\.screen--dark\s*\{[^}]*color-scheme\s*:\s*dark/.test(css));
+for (const page of ["src/app/tv/page.tsx", "src/app/screen/page.tsx"]) {
+  const src = readFileSync(page, "utf8");
+  ok(`${page} declares both at the document`, /colorScheme:\s*["']light dark["']/.test(src));
+}
+
 console.log(bad === 0 ? "\nall good" : `\n${bad} failed`);
 process.exit(bad === 0 ? 0 : 1);
