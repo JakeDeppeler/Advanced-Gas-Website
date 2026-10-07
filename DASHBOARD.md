@@ -1833,6 +1833,33 @@ supports; nothing overflows.
 | Figure | 96px | 96px | 150px |
 | Holds for | 7s | 9s | 11s |
 
+**The hold runs once, and must not depend on the board's render rate.** It used
+to, and that is what left "Time to bill" sitting on the wall. The board hands
+`Alert` an inline `onDone`, so every render is a new function; while it was in
+the effect's dependency list, every render tore down the dismissal timer and
+started a fresh one. The board re-rendered every eight seconds because the
+remote poll called `setState` with a new object whether anything had changed or
+not, and every four while somebody had the Remote page open. Against those:
+
+| | hold | 8s repaint | 4s repaint |
+|---|---|---|---|
+| Quote | 7s | clears | **stuck** |
+| Time to bill | 9s | **stuck** | **stuck** |
+| Sold | 11s | **stuck** | **stuck** |
+
+Which is how it was reported — the quote alert behaving while "Time to bill"
+hung about — and why it was *sometimes*: it only ever cleared when a poll failed
+and left a gap wider than the hold. Reproduced in a browser by mounting the real
+`Alert` under a parent repainting on those cadences, five of six cases stuck,
+then zero after the fix.
+
+Two things now hold it shut. `Alert` keeps `onDone` in a ref so the timer is
+started once per alert id, and `useBoardRemote` only sets state when the remote
+has genuinely changed, so the board stops repainting several times a minute for
+news that is always the same. **The dependency list is deliberate**: ESLint's
+`exhaustive-deps` rule wants `onDone` back in it, and putting it back
+reintroduces this exactly.
+
 **Motion is decorative in all three.** Every word and figure is in the DOM from
 the first frame, so `prefers-reduced-motion` drops the animation and loses
 nothing. The one thing that needs handling is the digit roll: its strip has to

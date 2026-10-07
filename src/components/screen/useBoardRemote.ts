@@ -43,8 +43,32 @@ export function useBoardRemote(
   const actRef = useRef(act);
   actRef.current = act;
 
+  /**
+   * Only set state when the remote has actually changed.
+   *
+   * It used to set it on every poll, which meant a fresh object every eight
+   * seconds and a re-render of the whole board with it — four seconds while
+   * somebody had the Remote page open. Nothing on screen changed, so nothing
+   * looked wrong, but it kept restarting the alert dismissal timer and left
+   * "Time to bill" and SOLD stuck on the wall until a poll happened to fail.
+   * The timer no longer depends on that (see Alert.tsx), and this means the
+   * board stops repainting several times a minute for news that is always the
+   * same. `normaliseRemote` builds its keys in a fixed order, so comparing the
+   * serialised form is sound.
+   */
+  const last = useRef<string | null>(fromPoll ? JSON.stringify(fromPoll) : null);
+  const apply = (next: BoardRemote) => {
+    const key = JSON.stringify(next);
+    if (key === last.current) return;
+    last.current = key;
+    setRemote(next);
+  };
+
   useEffect(() => {
-    if (fromPoll) setRemote(fromPoll);
+    if (fromPoll) apply(fromPoll);
+    // `apply` closes over refs only; re-running it on a new identity would undo
+    // the point of it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fromPoll]);
 
   const liveUntil = remote?.liveUntil ? Date.parse(remote.liveUntil) : 0;
@@ -54,7 +78,7 @@ export function useBoardRemote(
     const check = async () => {
       try {
         const res = await fetch(`/api/screen/remote?k=${encodeURIComponent(token)}`, { cache: "no-store" });
-        if (res.ok && !cancelled) setRemote(normaliseRemote(await res.json()));
+        if (res.ok && !cancelled) apply(normaliseRemote(await res.json()));
       } catch {
         // The thirty-second read carries on regardless.
       }
@@ -66,6 +90,7 @@ export function useBoardRemote(
       ? setTimeout(() => tick((n) => n + 1), Math.max(0, liveUntil - Date.now()) + 50)
       : undefined;
     return () => { cancelled = true; clearInterval(t); if (stop) clearTimeout(stop); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, liveUntil, token]);
 
   // A page to show, once per press — or straight away on load if it's held.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cheer } from "./cheer";
 
 /**
@@ -153,10 +153,36 @@ function Burst({ at, ink, delay }: { at: { left: string; top: string }; ink: str
 export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void }) {
   const hold = HOLD_MS[alert.kind];
 
+  /*
+   * The alert clears itself after its hold — and the timer must not be tied to
+   * the identity of `onDone`.
+   *
+   * It was, and that left alerts stuck on the wall. The board passes an inline
+   * arrow, so every render of ScreenBoard is a new `onDone`; with it in the
+   * dependency list, every render tore the timer down and started a fresh one.
+   * The board re-renders every 8 seconds, because the remote poll calls
+   * setState with a new object whether or not anything changed — 4 seconds
+   * while somebody has the Remote page open. Against those cadences:
+   *
+   *   quote  7s  survives an 8s repaint, sticks at 4s
+   *   done   9s  stuck at both
+   *   sold  11s  stuck at both
+   *
+   * Which is exactly how it was reported: "Time to bill" hanging about while
+   * the quote alert behaved. It cleared only when a poll happened to fail and
+   * left a wide enough gap, hence "sometimes".
+   *
+   * The ref keeps the callback current without making it a dependency, so the
+   * timer is started once per alert and runs to its end. Keyed on the alert's
+   * id and its hold, which are the only two things that should restart it.
+   */
+  const done = useRef(onDone);
+  done.current = onDone;
+
   useEffect(() => {
-    const t = setTimeout(onDone, hold);
+    const t = setTimeout(() => done.current(), hold);
     return () => clearTimeout(t);
-  }, [alert.id, hold, onDone]);
+  }, [alert.id, hold]);
 
   /*
    * All three alerts make a noise. A finished job used to be the silent one, on
