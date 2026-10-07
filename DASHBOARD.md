@@ -1456,6 +1456,32 @@ thousand of at a time, so they go through `sbSelect` like everything else. Page
 views are one row per path per day and the site has sixty-one paths being read:
 that read would have quietly stopped growing about seven weeks in.
 
+## Time on the tools, and the margin that isn't there
+
+The Performance page carries **Time on the tools**: hours the quote allowed
+against hours the crew clocked, over the jobs that carry both. It is the one
+figure on that page about doing the work rather than selling it, and it is
+blunt — 91.5 allowed against 141.7 taken this financial year, 55% over, 17 of 37
+jobs past their quoted time. A job priced at four hours that takes nine was sold
+at a margin it never had.
+
+Its population is narrower than the costed one and deliberately so: a job needs
+sold hours on the invoice **and** a timesheet, where costing takes hours from
+either. The job count is on the card for the same reason the margin's is.
+
+**Quoted margin against achieved margin is not on the board, and this is why.**
+The estimate line items do carry a cost — `totalCost` and `unitCost` on each item
+of `st_estimates.raw`, which nothing had ever read. So a quoted margin is
+computable: over the 29 of 132 sold quotes this year whose lines carry a cost, it
+is 33.9%. The comparison is what fails. Putting quoted next to achieved means
+jobs that have both a quoted cost and a billed one, and there are **seven**.
+Seven jobs is an anecdote, and a wall that says "quoted 24%, achieved 50%" off
+seven jobs is a number somebody will act on.
+
+It becomes real on its own as ServiceTitan's costing coverage fills in. The
+extraction is written down here rather than in a branch so the next person does
+not have to rediscover that the cost was in `raw` all along.
+
 ## The year's margin is the year's, not the month's
 
 The Pace strip's margin cell used to carry `jobProfitMonth` — a seven-job figure

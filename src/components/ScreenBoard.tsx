@@ -1468,6 +1468,16 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
   const teamSoldJobs = people.reduce((a, r) => a + r.soldJobs, 0);
   const teamQuotedJobs = people.reduce((a, r) => a + r.quotedJobs, 0);
   const teamMonthTarget = m.pace?.month.sold.value ?? null;
+  /*
+   * Where the team as a whole stands, on the same scale as the cards above it.
+   *
+   * The team's by-now is the team's target times the month gone — not the sum
+   * of the per-person by-nows, which is the same number by a longer route only
+   * while every head is counted, and silently is not once the board shows the
+   * top six of a larger team.
+   */
+  const teamByNow = byNow(teamMonthTarget, monthGone);
+  const teamVerdict = headVerdictOf(teamSold, teamByNow);
 
   return (
     <>
@@ -1490,6 +1500,11 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
             {teamMonthTarget ? `of ${money(teamMonthTarget)} this month` : "this month"} ·{" "}
             {count(teamSoldJobs)} {teamSoldJobs === 1 ? "job" : "jobs"}
           </span>
+          {/* The same verdict scale the cards above use, so "behind" on the
+              foot and "behind" on a card mean the same distance. */}
+          {teamVerdict ? (
+            <span className={`teamfoot__verdict status status--${teamVerdict.verdict}`}>{teamVerdict.text}</span>
+          ) : null}
         </span>
         <span className="teamfoot__stats">
           <span className="teamfoot__stat">
@@ -1639,6 +1654,82 @@ function tierProgress(r: Metrics["salesLeaderboard"][number]): number {
  * The goal line on each margin bar is the year goal's profit percentage. No
  * percentage set means no line, rather than a line at a number nobody chose.
  */
+/**
+ * What the quote allowed against what the crew actually clocked.
+ *
+ * The one comparison on this page that is about doing the work rather than
+ * selling it, and the one the office asked for: a job priced at four hours that
+ * takes nine was sold at a margin it never had.
+ *
+ * It counts only jobs carrying *both* numbers — sold hours on the invoice and a
+ * timesheet against the job — which is a narrower set than the costed one and a
+ * small one either way. The count goes on the card, because thirty-seven jobs'
+ * over-run is a different statement from the month's and the room has to be
+ * able to see which it is being shown.
+ *
+ * Quoted margin against achieved margin, the other half of what was asked for,
+ * is not here: the estimate line items do carry a cost, but only seven jobs in
+ * the year have both a quoted cost and a billed one, and seven is an anecdote.
+ * See DASHBOARD.md.
+ */
+function TimeCard({ jp, live }: { jp: Metrics["jobProfitMonth"]; live: Live }) {
+  const n = jp?.timeJobs ?? 0;
+  const allowed = jp?.timeAllowed ?? 0;
+  const actual = jp?.timeActual ?? 0;
+  // Over-run as a share of what was allowed: 91.5 allowed and 141.7 taken is
+  // 55% over, not 155%.
+  const over = n > 0 && allowed > 0 ? actual / allowed - 1 : null;
+  const hrs = (h: number) => `${h >= 100 ? Math.round(h) : h.toFixed(1)} hrs`;
+  // Under the quote is good, over is not. The same four-step palette as
+  // everything else, read in the direction that matters here.
+  const verdict = over == null ? null : over <= 0 ? "ahead" : over <= 0.1 ? "track" : over <= 0.3 ? "close" : "behind";
+
+  return (
+    <div className="tile c3">
+      <div className="tile__head">
+        <span className="tile__title">Time on the tools</span>
+        <span className="tile__sub">allowed vs taken</span>
+      </div>
+      {!live.st || n === 0 ? (
+        <span className="tile__sub tile__sub--body">
+          {st.sub("No job this month carries both a quoted time and a timesheet", live)}
+        </span>
+      ) : (
+        <div className="timecard">
+          <span className={`timecard__fig status--${verdict}`}>
+            {over == null ? NA : `${over > 0 ? "+" : ""}${Math.round(over * 100)}%`}
+          </span>
+          <span className="timecard__say">{over != null && over > 0 ? "over the quote" : "inside the quote"}</span>
+          {/* Both bars scaled against the longer of the two, so the overhang is
+              the over-run drawn to scale rather than a percentage read twice. */}
+          <div className="timecard__bars">
+            <span className="timecard__row">
+              <span className="timecard__k">Allowed</span>
+              <b>{hrs(allowed)}</b>
+            </span>
+            <span className="timecard__bar">
+              <i className="is-allowed" style={{ width: `${(allowed / Math.max(allowed, actual)) * 100}%` }} />
+            </span>
+            <span className="timecard__row">
+              <span className="timecard__k">Taken</span>
+              <b>{hrs(actual)}</b>
+            </span>
+            <span className="timecard__bar">
+              <i
+                className={`is-actual status--${verdict}`}
+                style={{ width: `${(actual / Math.max(allowed, actual)) * 100}%` }}
+              />
+            </span>
+          </div>
+          <span className="tile__sub">
+            {count(jp?.timeOver ?? 0)} of {count(n)} {n === 1 ? "job" : "jobs"} ran over
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
   const goal = m.marginGoal;
 
@@ -1734,7 +1825,9 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
         }
       />
 
-      <div className="tile c12">
+      <TimeCard jp={jp} live={live} />
+
+      <div className="tile c9">
         <div className="tile__head">
           <span className="tile__title">Job types</span>
           {/* The set-aside count is on the wall, not buried: a ranking that
