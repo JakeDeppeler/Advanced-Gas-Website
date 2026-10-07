@@ -13,7 +13,7 @@ import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbou
 import { daysFrom, dueState, firstName, type Todo } from "@/lib/todos/types";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "To-do — Team portal" };
+export const metadata = { title: "Today — Team portal" };
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
@@ -72,11 +72,11 @@ export default async function TodoPage() {
       <div className={`pt-head${all ? " pt-head--split" : ""}`}>
         <div>
           <PortalBack href="/portal" label="Home" />
-          <h1>To-do</h1>
+          <h1>Today</h1>
           <p>
             {all
-              ? `Give anyone a job with the day it has to be done by. ${together} see each other's lists side by side. Anything past its day is flagged until it's ticked off.`
-              : "What's been given to you, with the day each one is due. Anything past its day is flagged until it's ticked off."}
+              ? `What needs doing today, given to each other. ${together} see each other's lists side by side — today's first, then what's coming up. Anything past its day is flagged until it's ticked off.`
+              : "What's been given to you for today, then what's coming up. Anything past its day is flagged until it's ticked off."}
           </p>
         </div>
         {all && <TodoTabs on="todo" contactsDue={contactsDue} />}
