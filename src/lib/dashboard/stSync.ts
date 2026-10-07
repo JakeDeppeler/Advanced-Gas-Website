@@ -1,4 +1,5 @@
-import { q, sbRpc, sbSelectOne, sbUpsert, type Row } from "./db";
+import { q, sbRpc, sbRpcRows, sbSelectOne, sbUpsert, type Row } from "./db";
+import { checkFields, summarise, type FieldRow } from "./syncShape";
 import { isoDateMelbourne } from "./dates";
 import { serviceTitanConfigured, stExportAll, stList } from "./servicetitan";
 import { JOURNAL_RESOURCE, syncJournalEntries } from "@/lib/journals/sync";
@@ -76,7 +77,11 @@ const RESOURCES: ResourceSpec[] = [
       business_unit: str(pick(r, "businessUnitName", "businessUnit")),
       business_unit_id: num(r.businessUnitId),
       customer_id: num(r.customerId),
-      customer_name: str(pick(r, "customerName")),
+      // No customer_name here on purpose. The job export has no name in it —
+      // the key was mapped and came back null on all 5,445 rows — so writing it
+      // would do nothing but blank what the resolver stamps on from the
+      // location a moment later.
+
       // The job payload carries a locationId and no address; the suburb and
       // postcode are stamped on by the resolver from st_locations.
       location_id: num(r.locationId),
@@ -223,6 +228,11 @@ const RESOURCES: ResourceSpec[] = [
       return {
         id: Number(r.id),
         customer_id: num(r.customerId),
+        // ServiceTitan's location name is the customer's name — "Joel Shannon",
+        // "Aman Sharma & Rimpy Bala" — and it is the only place the sync can get
+        // one: the job export carries customerId and no name. The resolver
+        // stamps it onto st_jobs.customer_name the way it does suburb.
+        name: str(pick(r, "name")),
         suburb: str(pick(addr, "city", "suburb")),
         postcode: str(pick(addr, "zip", "postalCode", "postcode")),
         state: str(pick(addr, "state")),
@@ -490,6 +500,31 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
     report.push({ resource: "resolve-names", status: "ok" });
   } catch (e) {
     report.push({ resource: "resolve-names", status: "error", error: (e as Error).message });
+  }
+
+  /*
+   * Does the replica look the way it is supposed to?
+   *
+   * A column mapped from a field ServiceTitan never sends stays null forever
+   * and nothing complains — three of them did, for months, and the only way
+   * anybody found out was querying the database on a hunch. The expectation for
+   * each field is written down in syncShape.ts and checked here, against recent
+   * rows rather than the whole table, so the pre-go-live import does not drag
+   * every judgement down with it.
+   *
+   * Reported, never fatal: a shape finding is something to read on Monday, not
+   * a reason to fail a sync that otherwise pulled everything it should.
+   */
+  try {
+    const rows = await sbRpcRows<FieldRow>("dashboard_field_health", { days: 30 });
+    const findings = checkFields(rows);
+    report.push(
+      findings.length === 0
+        ? { resource: "field-shape", status: "ok", records: rows.length }
+        : { resource: "field-shape", status: "error", records: rows.length, error: summarise(findings) },
+    );
+  } catch (e) {
+    report.push({ resource: "field-shape", status: "error", error: (e as Error).message });
   }
 
   return report;

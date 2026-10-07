@@ -14,7 +14,8 @@
     "check:alerts": "npx tsx scripts/check-alerts.ts",
     "check:ticker": "npx tsx scripts/check-ticker.ts",
     "check:paging": "npx tsx scripts/check-paging.ts",
-    "check:pairing": "npx tsx scripts/check-pairing.ts"
+    "check:pairing": "npx tsx scripts/check-pairing.ts",
+    "check:shape": "npx tsx scripts/check-shape.ts"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.12",

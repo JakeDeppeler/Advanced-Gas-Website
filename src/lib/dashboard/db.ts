@@ -245,6 +245,22 @@ export async function sbDelete(table: string, query: string): Promise<void> {
   }
 }
 
+/**
+ * A function that returns rows, rather than one called for its effect.
+ *
+ * `sbRpc` throws away the body, which is right for the resolvers but not for
+ * the shape report — that one's whole purpose is what it hands back.
+ */
+export async function sbRpcRows<T = Row>(fn: string, args: Row = {}): Promise<T[]> {
+  const res = await sb(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
+  if (!res) return [];
+  if (!res.ok) {
+    throw new Error(`${fn}() failed (${res.status}): ${await res.text().catch(() => "")}`);
+  }
+  const body = await res.json().catch(() => null);
+  return Array.isArray(body) ? (body as T[]) : [];
+}
+
 export async function sbRpc(fn: string, args: Row = {}): Promise<void> {
   const res = await sb(`rpc/${fn}`, { method: "POST", body: JSON.stringify(args) });
   if (!res) return;

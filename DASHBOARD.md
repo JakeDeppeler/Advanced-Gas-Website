@@ -1809,6 +1809,45 @@ makes the rate nonsense: `st_calls` holds 21 rows and `portal_leads` 33, against
 rate at 718%. It needs the ServiceTitan Telecom sync actually returning calls,
 which it is not.
 
+## The sync checks its own shape
+
+`dashboard_field_health()` reports how full each column the board depends on is,
+and `src/lib/dashboard/syncShape.ts` says what each one is supposed to be. Every
+sync compares the two and reports a `field-shape` line. Findings are reported,
+never fatal — something to read on Monday, not a reason to fail a sync that
+otherwise pulled everything it should. `npm run check:shape` tests the rules
+offline against the live numbers and against each way they could go wrong.
+
+It exists because three mapped columns were null on all 5,445 job rows and
+nothing said so. `scheduled_on` had been found and handled; `customer_name` and
+`campaign` had not. The portal's job-profit list had been silently dropping the
+customer's name for months — `.filter(Boolean)` turns "#20233 · Joel Shannon ·
+7 Oct" into "#20233 · 7 Oct", so there was nothing to notice.
+
+Each field is declared **filled**, **partial** or **absent**, and the check runs
+in both directions. A field that should be full going empty is a sync that
+broke. A field declared absent that *starts* arriving is ServiceTitan sending
+something new — worth being told, because otherwise the tile it blanks stays
+switched off forever on the strength of a comment somebody wrote once.
+
+**Measured on recent rows, not the whole table.** `st_jobs.job_type` is 5% full
+across the table and 100% over the last month: the 5,150 rows imported before
+go-live carry a `job_type_id` with no row in `st_job_types`, so the resolver
+cannot name them. Everything that counts jobs already excludes them (`ST_LIVE`),
+and an assertion made on the whole table would cry wolf hourly.
+
+**Customer names are stamped from the location.** ServiceTitan's job export
+carries `customerId` and no name; the location's `name` *is* the customer's name
+and is filled on all 2,741 of them. `dashboard_resolve_names()` stamps it on the
+way it already does suburb and postcode. The jobs sync no longer maps
+`customer_name` at all — mapping it from a key that never arrives did nothing
+but blank what the resolver had just filled.
+
+Two fields stay declared absent. `scheduled_on` lives on ServiceTitan's
+appointments resource, which is not synced, so the "scheduled next 7 days" tile
+stays blank rather than showing a measured-looking zero. `campaign` would need a
+campaigns lookup that does not exist yet; nothing on the board reads it.
+
 ## The full-screen alerts
 
 Three events take the whole wall for a few seconds: a quote written, a job
