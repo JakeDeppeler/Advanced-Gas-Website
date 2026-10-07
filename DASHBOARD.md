@@ -613,11 +613,38 @@ the last stopped. Re-run until every resource reports `exhausted: true`.
 
 ### 6. Point the TV at it
 
+Once, on the panel itself:
+
 ```
-https://www.advancedgas.com.au/screen?k=<SCREEN_TOKEN>
+https://www.advancedgas.com.au/tv?k=<SCREEN_TOKEN>
 ```
 
-A Fire Stick or Raspberry Pi in kiosk Chromium is enough. Reboot it nightly.
+The middleware checks the token, moves it into an httpOnly cookie and redirects
+to the clean URL. From then on the board is **`advancedgas.com.au/tv`** — an
+address somebody can read out over the phone, and the secret is no longer in the
+address bar of a screen the whole office walks past.
+
+`/screen?k=<SCREEN_TOKEN>` still works and is unchanged; it is bookmarked, and
+/tv is an addition rather than a replacement.
+
+**The token itself is not shortened.** It is 64 characters because it is the
+only thing between the public internet and the company's revenue, and a shorter
+one is a weaker one. What got shorter is the URL the panel sits on.
+
+A Raspberry Pi in kiosk Chromium is the setup to beat: it boots into the board,
+survives a power cut, and shows nobody an advertisement. Three things that are
+easy to get wrong:
+
+- **Not incognito, and not guest mode.** The cookie is the sign-in. A private
+  window throws it away on every restart and the panel is back to the long URL.
+- **Screen blanking off** (`xset s off -dpms`, or raspi-config), or the Pi
+  blanks after ten minutes and the television reports no signal.
+- **Restart the browser from systemd with `Restart=always`**, not from an
+  autostart line. A Chromium that dies at 3am otherwise stays dead until
+  somebody notices at nine.
+
+Reboot the box nightly. Set the TV's picture size to "Just scan" / "Screen fit"
+/ "Full"; where the set has no such option, `?safe=3` insets the board instead.
 
 ## What the lead data supports
 

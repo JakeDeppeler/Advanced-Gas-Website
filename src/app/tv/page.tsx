@@ -1,0 +1,34 @@
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { BOARD_COOKIE } from "@/lib/dashboard/boardCookie";
+import { screenTokenValid } from "@/lib/dashboard/screenAuth";
+import { Board, type BoardParams } from "../screen/board";
+import "../screen/screen.css";
+
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Live board",
+  robots: { index: false, follow: false, nocache: true },
+};
+
+/**
+ * The short route: advancedgas.com.au/tv.
+ *
+ * The panel is handed the token once — open /tv?k=<token> on it — and the
+ * middleware moves that token into an httpOnly cookie and redirects here
+ * without it. From then on the board is a URL somebody can read out over the
+ * phone, and the secret is not sitting in the address bar of a screen the whole
+ * office walks past.
+ *
+ * The cookie is checked here rather than trusted: the middleware sets it, but a
+ * cookie is just a string a browser sends, and the token it has to match is the
+ * same `SCREEN_TOKEN` /screen checks. `?k=` still works for the first visit, in
+ * case a browser is refusing cookies — then the token stays in the URL, which
+ * is exactly where it is today.
+ */
+export default async function TvPage({ searchParams }: { searchParams: BoardParams & { k?: string } }) {
+  const fromCookie = cookies().get(BOARD_COOKIE)?.value;
+  const supplied = screenTokenValid(fromCookie) ? fromCookie : searchParams.k;
+  return <Board token={screenTokenValid(supplied) ? (supplied as string) : null} params={searchParams} />;
+}
