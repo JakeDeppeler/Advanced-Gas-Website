@@ -3,7 +3,9 @@ import { cookies } from "next/headers";
 import { BOARD_COOKIE } from "@/lib/dashboard/boardCookie";
 import { screenTokenValid } from "@/lib/dashboard/screenAuth";
 import { Board, type BoardParams } from "../screen/board";
+import { PairScreen } from "./pair";
 import "../screen/screen.css";
+import "./pair.css";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +29,18 @@ export const metadata: Metadata = {
  * case a browser is refusing cookies — then the token stays in the URL, which
  * is exactly where it is today.
  */
-export default async function TvPage({ searchParams }: { searchParams: BoardParams & { k?: string } }) {
+export default async function TvPage({
+  searchParams,
+}: {
+  searchParams: BoardParams & { k?: string; sent?: string; bad?: string };
+}) {
   const fromCookie = cookies().get(BOARD_COOKIE)?.value;
   const supplied = screenTokenValid(fromCookie) ? fromCookie : searchParams.k;
-  return <Board token={screenTokenValid(supplied) ? (supplied as string) : null} params={searchParams} />;
+  // Unpaired, so ask — rather than the 404 this used to answer with. A screen
+  // that cannot be set up without somebody bringing a laptop to it is a screen
+  // that stays blank, and the form gives away nothing the sign-in page doesn't.
+  if (!screenTokenValid(supplied)) {
+    return <PairScreen sent={searchParams.sent === "1"} bad={searchParams.bad === "1"} />;
+  }
+  return <Board token={supplied as string} params={searchParams} />;
 }

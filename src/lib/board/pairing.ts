@@ -12,15 +12,13 @@ export { PAIRING_TTL_MS, prettyCode } from "./pairCode";
  * secret and the wrong length for a television remote, which is how you end up
  * with somebody reading hex out loud across an office.
  *
- * So the portal shows a short code instead. Type `advancedgas.com.au/tv/<code>`
- * on the panel once; the route redeems it, sets the board cookie and sends the
- * browser to `/tv`. The long token never leaves the server.
+ * So the panel asks for a code instead: it is emailed to whoever asked, and
+ * typed into the box on /tv. The long token never leaves the server.
  *
  * A short code is only safe because of what bounds it: eight characters from an
- * alphabet of 32 is 2^40, it dies fifteen minutes after it is made, and it
- * works exactly once. Guessing it means finding one value in a trillion inside
- * a quarter of an hour, against a code that stops existing the moment it is
- * used.
+ * alphabet of 32 is 2^40, it dies fifteen minutes after it is made, it works
+ * exactly once, and it is burnt after a handful of wrong guesses. Take away any
+ * one of those four and this is a weak password.
  *
  * Kept in `portal_settings` rather than a table of its own: one office, one
  * pending code, and a migration here would be a file waiting for somebody to
@@ -29,13 +27,40 @@ export { PAIRING_TTL_MS, prettyCode } from "./pairCode";
 
 const KEY = "board-pairing";
 
-export type Pairing = { code: string; expiresAt: string; usedAt: string | null };
-
-const live = (p: Pairing | null): p is Pairing =>
-  !!p && !p.usedAt && Date.parse(p.expiresAt) > Date.now();
+/** One email a minute. The code is the same one either way, so a second press changes nothing but the postage. */
+const RESEND_AFTER_MS = 60_000;
 
 /**
- * The code to show, making one only when there isn't a usable one already.
+ * Eight wrong guesses and the code is gone.
+ *
+ * 2^40 does not need this to be safe, but the entry box is on a public page
+ * now, and a code that cannot be ground at is one less thing to reason about.
+ */
+const MAX_ATTEMPTS = 8;
+
+export type Pairing = {
+  code: string;
+  expiresAt: string;
+  usedAt: string | null;
+  /** When the code was last emailed, for the throttle. */
+  sentAt?: string | null;
+  /** Wrong guesses against this code. */
+  attempts?: number;
+};
+
+const live = (p: Pairing | null): p is Pairing =>
+  !!p && !p.usedAt && (p.attempts ?? 0) < MAX_ATTEMPTS && Date.parse(p.expiresAt) > Date.now();
+
+async function store(p: Pairing): Promise<Pairing> {
+  const res = await saveSettings(KEY, p);
+  // A code the redeem side will never recognise is worse than no code: the
+  // screen would take the typing and refuse it with nothing to explain why.
+  if (!res.ok) throw new Error(res.error || "could not store a pairing code");
+  return p;
+}
+
+/**
+ * The code to show or send, making one only when there isn't a usable one.
  *
  * The board page refreshes itself every 25 seconds; rotating on every render
  * would hand somebody a different code each time they glanced at the screen
@@ -44,26 +69,41 @@ const live = (p: Pairing | null): p is Pairing =>
 export async function currentPairing(): Promise<Pairing> {
   const stored = await getSettings<Pairing>(KEY).catch(() => null);
   if (live(stored)) return stored;
-  const fresh: Pairing = {
+  return store({
     code: makeCode(),
     expiresAt: new Date(Date.now() + PAIRING_TTL_MS).toISOString(),
     usedAt: null,
-  };
-  await saveSettings(KEY, fresh).catch(() => {
-    // A screen that can't be paired right now is a worse answer than a screen
-    // that can't be paired at all, so this throws rather than showing a code
-    // the redeem side will never recognise.
-    throw new Error("could not store a pairing code");
+    sentAt: null,
+    attempts: 0,
   });
-  return fresh;
+}
+
+/**
+ * The code to email, or null when one went out less than a minute ago.
+ *
+ * Throttled on the stored row rather than in memory, because the thing being
+ * protected is somebody's inbox and this runs on however many lambdas Vercel
+ * feels like.
+ */
+export async function pairingToSend(): Promise<Pairing | null> {
+  const p = await currentPairing();
+  if (p.sentAt && Date.now() - Date.parse(p.sentAt) < RESEND_AFTER_MS) return null;
+  return store({ ...p, sentAt: new Date().toISOString() });
 }
 
 /** Spend the code. True only for a live one, and only the first time. */
 export async function redeemPairing(supplied: string): Promise<boolean> {
   const code = normaliseCode(supplied);
-  if (code.length !== LENGTH) return false;
   const stored = await getSettings<Pairing>(KEY).catch(() => null);
-  if (!live(stored) || stored.code !== code) return false;
-  await saveSettings(KEY, { ...stored, usedAt: new Date().toISOString() }).catch(() => null);
+  if (!live(stored)) return false;
+
+  if (code.length !== LENGTH || stored.code !== code) {
+    // Count the miss. Nothing to tell the caller — a wrong code and a burnt one
+    // are the same answer from outside.
+    await store({ ...stored, attempts: (stored.attempts ?? 0) + 1 }).catch(() => null);
+    return false;
+  }
+
+  await store({ ...stored, usedAt: new Date().toISOString() }).catch(() => null);
   return true;
 }

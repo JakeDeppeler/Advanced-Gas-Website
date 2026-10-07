@@ -1,0 +1,72 @@
+/* The pairing screen, sized for a television across a room rather than a laptop
+   on a desk: everything a step larger than a web form would be, and centred on
+   the panel because that is where somebody standing in front of it will look. */
+.pair {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4vh 4vw;
+  background: #050a30;
+  color: #fff;
+  font-family: var(--font-sans, system-ui, sans-serif);
+}
+.pair__card {
+  width: min(620px, 100%);
+  background: #0e1b4d;
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 44px);
+}
+.pair__brand {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f5a877;
+}
+.pair__title { font-size: clamp(1.6rem, 3.4vw, 2.3rem); margin: 10px 0 8px; font-weight: 800; }
+.pair__msg { font-size: clamp(0.95rem, 1.5vw, 1.1rem); line-height: 1.5; color: #c6cdec; margin: 0 0 22px; }
+.pair__msg--ok { color: #6fdca0; }
+.pair__msg--bad { color: #ff8d80; }
+.pair__form + .pair__form { margin-top: 18px; }
+.pair__label {
+  display: block;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8b93b8;
+  margin-bottom: 6px;
+}
+.pair__row { display: flex; gap: 10px; flex-wrap: wrap; }
+.pair__input {
+  flex: 1 1 260px;
+  min-width: 0;
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid #2b3a73;
+  background: #081236;
+  color: #fff;
+}
+.pair__input::placeholder { color: #5e6a9c; }
+.pair__input:focus { outline: 3px solid #f5a877; outline-offset: 1px; }
+/* The code is read off a phone and typed by thumb, so it gets the monospace and
+   the letter spacing that make a transposed pair obvious. */
+.pair__input--code {
+  font-family: var(--font-mono, "Courier New", monospace);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.pair__btn {
+  flex: 0 0 auto;
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  font-weight: 700;
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: 0;
+  background: #c2521a;
+  color: #fff;
+  cursor: pointer;
+}
+.pair__btn--ghost { background: transparent; border: 1px solid #2b3a73; color: #c6cdec; }
+.pair__btn:focus-visible { outline: 3px solid #f5a877; outline-offset: 2px; }
+.pair__foot { font-size: 0.85rem; color: #8b93b8; margin: 22px 0 0; }

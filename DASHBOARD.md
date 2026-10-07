@@ -614,32 +614,51 @@ the last stopped. Re-run until every resource reports `exhausted: true`.
 
 ### 6. Point the TV at it
 
-Open the portal's **Wall board** page. It shows a pairing code:
+On the television, go to:
 
 ```
-advancedgas.com.au/tv/K7M2-QX8P
+advancedgas.com.au/tv
 ```
 
-Type that on the television once. The code is spent, the real token goes into an
-httpOnly cookie, and the browser lands on `/tv` — which is the address from then
-on.
+It asks for an email, posts a code to it, and takes the code back in the box
+underneath. The screen is then signed in for a year and that same short URL is
+the board. A code is only sent to somebody who is on the team **and** can see
+the board's figures — the same capability that gates the portal's board page —
+and the answer is identical either way, because saying otherwise would turn a
+public form into a way to find out who works here.
 
-**A short code is only safe because of three bounds together**: eight characters
-from an alphabet of 32 is 2^40, it dies fifteen minutes after it is made, and it
-works exactly once. Remove any one of those and it is a weak password. The
+The code goes by email rather than being shown on the panel for the obvious
+reason: the panel has no email on it. That is the whole shape of this — the
+device that needs the secret is the one device that cannot receive it.
+
+Two other ways in, for when a laptop is already to hand:
+
+```
+advancedgas.com.au/tv/K7M2-QX8P      the code as a URL, from the portal's board page
+advancedgas.com.au/tv?k=<SCREEN_TOKEN>   the token itself, for a browser you can paste into
+```
+
+Any of the three spends into the same place: the real token goes into an
+httpOnly cookie, and the browser lands on `/tv`.
+
+**A short code is only safe because of four bounds together**: eight characters
+from an alphabet of 32 is 2^40, it dies fifteen minutes after it is made, it
+works exactly once, and eight wrong guesses burn it. Remove any one of those and
+it is a weak password. The email that carries it is throttled to one a minute,
+because the thing being protected there is somebody's inbox. The
 alphabet drops I, O, 0 and 1, which cost more in mistyped codes than four extra
 letters buy in entropy, and `scripts/check-pairing.ts` holds all of it — including
 a draw test, because a generator that quietly stopped being random would pass
 every other check while emitting the same letter over and over.
 
-The long form still works for a browser you can paste into:
+**`/tv` admits it exists now**, where an unpaired visitor used to get a 404.
+That is the trade for a screen somebody can set up without carrying a laptop to
+it: it is a sign-in page, it says nothing about the business, and what is behind
+it is bounded four ways. The board itself is no easier to reach than it was.
 
-```
-https://www.advancedgas.com.au/tv?k=<SCREEN_TOKEN>
-```
-
-The middleware checks the token, moves it into an httpOnly cookie and redirects
-to the clean URL. From then on the board is **`advancedgas.com.au/tv`** — an
+The form is two plain posts and no JavaScript, deliberately — it renders on
+whatever browser is baked into a panel or a streaming stick, and those are the
+devices least likely to cope with anything clever. From then on the board is **`advancedgas.com.au/tv`** — an
 address somebody can read out over the phone, and the secret is no longer in the
 address bar of a screen the whole office walks past.
 
