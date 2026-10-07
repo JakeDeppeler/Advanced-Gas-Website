@@ -11,6 +11,7 @@ import { claimReport, getReport, reportKey, reportRecipients, saveReport } from 
 import { sendReportEmail } from "@/lib/reports/send";
 import type { Report, ReportKind } from "@/lib/reports/types";
 import { overdueByPerson } from "@/lib/todos/store";
+import { dueByPerson } from "@/lib/contacts/store";
 
 /**
  * When the reports go, and the going.
@@ -95,8 +96,8 @@ async function build(kind: ReportKind, now: Date, snap: Snapshot, at: string): P
       .then((r) => r.summary)
       .catch(() => null);
   }
-  const lateTodos = await overdueByPerson().catch(() => []);
-  return buildReport(kind, period, snap.metrics, at, { weekProfit, lateTodos });
+  const [lateTodos, callsDue] = await Promise.all([overdueByPerson().catch(() => []), dueByPerson().catch(() => [])]);
+  return buildReport(kind, period, snap.metrics, at, { weekProfit, lateTodos, callsDue });
 }
 
 async function deliver(report: Report): Promise<Report> {

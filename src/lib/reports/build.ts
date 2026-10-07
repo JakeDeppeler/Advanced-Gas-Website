@@ -113,14 +113,16 @@ function heroSection(c: PaceCounts | null | undefined, prev: PaceCounts | null |
   };
 }
 
-function needsSection(m: Metrics, lateTodos: Array<{ name: string; n: number }> = []): ReportSection {
+function needsSection(m: Metrics, lateTodos: Array<{ name: string; n: number }> = [], callsDue: Array<{ name: string; n: number }> = []): ReportSection {
   const lines: ReportLine[] = [];
+  const callsN = callsDue.reduce((t, p) => t + p.n, 0);
+  if (callsN > 0) lines.push({ label: `${callsN === 1 ? "Person" : "People"} to get in touch with`, value: n(callsN), sub: `keep in touch · ${callsDue.map((p) => `${p.name.split(" ")[0]} ${p.n}`).join(" · ")}`, status: "Due" });
   const lateN = lateTodos.reduce((t, p) => t + p.n, 0);
   if (lateN > 0) lines.push({ label: `${lateN === 1 ? "To-do" : "To-dos"} past the day ${lateN === 1 ? "it was" : "they were"} due`, value: n(lateN), sub: lateTodos.map((p) => `${p.name.split(" ")[0]} ${p.n}`).join(" · "), tone: "bad", status: "Overdue" });
   if ((m.overdueCount ?? 0) > 0) lines.push({ label: "Invoices overdue", value: m$(m.overdueTotal), sub: `${plural(m.overdueCount, "invoice")} past due in Xero`, tone: "bad", status: "Chase" });
   if ((m.quotesQuietCount ?? 0) > 0) lines.push({ label: "Quotes gone quiet 7+ days", value: n(m.quotesQuietCount), sub: `${m$(m.quotesQuietValue)} between them`, status: "Follow up" });
   if (m.journals && m.journals.errors > 0) lines.push({ label: "Journal entries that didn't reach Xero", value: n(m.journals.errors), tone: "bad", status: "Fix" });
-  if (!lines.length) lines.push({ label: "Nothing waiting", value: "✓", sub: "no overdue invoices, quiet quotes, Xero errors or overdue to-dos", tone: "good", status: "Clear" });
+  if (!lines.length) lines.push({ label: "Nothing waiting", value: "✓", sub: "no overdue invoices, quiet quotes, Xero errors, overdue to-dos or calls due", tone: "good", status: "Clear" });
   return { title: "Needs someone", layout: "alerts", lines };
 }
 
@@ -155,7 +157,7 @@ export type Period = { key: string; from: string; to: string; label: string };
 /** The report, minus who it went to: that's filled in when it's sent. */
 export function buildReport(
   kind: ReportKind, period: Period, m: Metrics, figuresAt: string | null,
-  extra: { weekProfit?: ProfitSummary | null; lateTodos?: Array<{ name: string; n: number }> } = {},
+  extra: { weekProfit?: ProfitSummary | null; lateTodos?: Array<{ name: string; n: number }>; callsDue?: Array<{ name: string; n: number }> } = {},
 ): Report {
   const pd = m.paceData ?? null;
   const pace = m.pace ?? null;
@@ -198,7 +200,7 @@ export function buildReport(
       const s = paceSection(pace.standing.week, ["invoiced", "sold", "booked", "quoted"], "week");
       if (s) sections.push(s);
     }
-    sections.push(needsSection(m, extra.lateTodos));
+    sections.push(needsSection(m, extra.lateTodos, extra.callsDue));
     const top = leaders("Who sold today", m.salesLeaderboard.map((r) => ({ name: r.name, v: r.soldToday })));
     if (top) sections.push(top);
     headline = `Sold ${m$(m.soldToday)} · invoiced ${m$(m.revenueToday)} · ${plural(m.bookingsToday, "job")} booked`;
@@ -215,7 +217,7 @@ export function buildReport(
     if (profit) sections.push(profit);
     const top = leaders("Who sold this week", m.salesLeaderboard.map((r) => ({ name: r.name, v: r.soldWeek })));
     if (top) sections.push(top);
-    sections.push(needsSection(m, extra.lateTodos));
+    sections.push(needsSection(m, extra.lateTodos, extra.callsDue));
     const st = pace?.standing.week.invoiced;
     headline = `Invoiced ${m$(w?.invoiced)} · sold ${m$(w?.soldValue)}${st?.verdict ? ` · ${st.verdict === "behind" ? "behind" : st.verdict === "on" ? "on pace" : "ahead"} on the week` : ""}`;
   } else {
@@ -258,7 +260,7 @@ export function buildReport(
     }
     const top = leaders("Who sold this month", m.salesLeaderboard.map((r) => ({ name: r.name, v: r.sold })));
     if (top) sections.push(top);
-    sections.push(needsSection(m, extra.lateTodos));
+    sections.push(needsSection(m, extra.lateTodos, extra.callsDue));
     headline = `Invoiced ${m$(mo?.invoiced)} · sold ${m$(mo?.soldValue)}${m.jobProfitMonth?.margin != null ? ` · ${pct(m.jobProfitMonth.margin, 1)} margin` : ""}`;
   }
 

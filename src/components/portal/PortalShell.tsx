@@ -12,6 +12,9 @@ import { SideNav, SideNavButton, type SideTab } from "@/components/portal/SideNa
 import { navBadges } from "@/lib/portal/navBadges";
 import { needsByBand, needsToday } from "@/lib/portal/needs";
 import { myCounts } from "@/lib/todos/store";
+import { myDueContacts } from "@/lib/contacts/store";
+import { touchState } from "@/lib/contacts/types";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
 
 /** Each tab's icon in the side bar, from the same stroke set as the home cards. */
 const TAB_ICON: Record<Exclude<NavBand, "hidden">, string> = {
@@ -46,11 +49,17 @@ type NavProps = { user: PortalUser; items: NavItem[]; small: boolean; search: Re
  * the bar is drawn the same with no numbers on it.
  */
 async function CountedNav({ user, items, ...p }: NavProps) {
-  const [badges, lines, todo] = await Promise.all([
+  const [badges, lines, todos, calls] = await Promise.all([
     navBadges(user).catch(() => ({})),
     needsToday(user).catch(() => []),
-    myCounts(user).catch(() => undefined),
+    myCounts(user).catch(() => ({ due: 0, overdue: 0 })),
+    myDueContacts(user).catch(() => []),
   ]);
+  const today = isoDateMelbourne(new Date());
+  const todo = {
+    due: todos.due + calls.length,
+    overdue: todos.overdue + calls.filter((c) => touchState(c, today) === "overdue").length,
+  };
   return <SideNav tabs={tabsOf(items, badges, needsByBand(lines))} todo={todo} {...p} />;
 }
 

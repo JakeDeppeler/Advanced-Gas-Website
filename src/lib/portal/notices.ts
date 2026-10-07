@@ -7,6 +7,8 @@ import { localToday } from "@/lib/portal/xero";
 import { journalErrors } from "@/lib/journals/read";
 import { meOf, openTodos, todayMelbourne } from "@/lib/todos/store";
 import { dueState, dueWords, firstName } from "@/lib/todos/types";
+import { myDueContacts } from "@/lib/contacts/store";
+import { lastWords, touchState, touchWords } from "@/lib/contacts/types";
 
 /**
  * What's waiting for you, derived rather than stored.
@@ -117,6 +119,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     meOf(user).catch(() => null),
     openTodos().catch(() => []),
   ]);
+  const calls = await myDueContacts(user).catch(() => []);
 
   // Your to-dos: past their day, due today, or just given to you by someone
   // else. Each clears when it's ticked off — or, for a new one, once it's seen.
@@ -137,6 +140,19 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     } else if (from && Date.now() - Date.parse(t.createdAt) < NEW_TODO_MS) {
       out.push({ title: `${from} gave you a to-do: ${t.title}`, detail: dueWords(t, day0), href: "/portal/todo", tone: "news", group: "doing", when: ago(t.createdAt) });
     }
+  }
+
+  // The people you look after who are due a call. Clears when it's logged.
+  for (const c of calls) {
+    const st = touchState(c, day0);
+    out.push({
+      title: `Get in touch: ${c.name}${c.company ? ` (${c.company})` : ""}`,
+      detail: `${touchWords(c, day0)} · ${lastWords(c, day0)}`,
+      href: "/portal/keep-in-touch",
+      tone: st === "overdue" ? "bad" : "warn",
+      group: "doing",
+      when: c.lastOn ? ago(`${c.lastOn}T00:00:00Z`) : "",
+    });
   }
   const onRoad = vehicles.filter((v) => v.status === "on");
 

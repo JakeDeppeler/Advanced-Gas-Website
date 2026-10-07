@@ -5,6 +5,9 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Heads } from "@/components/portal/marketingParts";
 import { TodoBoard } from "@/components/portal/TodoBoard";
+import { TodoTabs } from "@/components/portal/TodoTabs";
+import { listContacts } from "@/lib/contacts/store";
+import { isDue, touchState } from "@/lib/contacts/types";
 import { dbConfigured } from "@/lib/portal/db";
 import { doneSince, meOf, officeIds, openTodos, seesAll, teamPeople, todayMelbourne, visibleTo } from "@/lib/todos/store";
 import { daysFrom, dueState, firstName, type Todo } from "@/lib/todos/types";
@@ -61,16 +64,22 @@ export default async function TodoPage() {
   const together = officeNames.length > 1 ? `${officeNames.slice(0, -1).join(", ")} and ${officeNames[officeNames.length - 1]}` : officeNames[0] ?? "The office";
   const lateWho = [...lateBy.entries()].sort((a, b) => b[1] - a[1]).map(([n, c]) => `${n} ${c}`).join(" · ");
 
+  // The keep-in-touch tab's count: everyone due a call, for the office who work that list.
+  const contactsDue = all ? (await listContacts().catch(() => [])).filter((c) => isDue(touchState(c, today))).length : 0;
+
   return (
     <PortalShell user={user}>
-      <div className="pt-head">
-        <PortalBack href="/portal" label="Home" />
-        <h1>To-do</h1>
-        <p>
-          {all
-            ? `Give anyone a job with the day it has to be done by. ${together} see each other's lists side by side. Anything past its day is flagged until it's ticked off.`
-            : "What's been given to you, with the day each one is due. Anything past its day is flagged until it's ticked off."}
-        </p>
+      <div className={`pt-head${all ? " pt-head--split" : ""}`}>
+        <div>
+          <PortalBack href="/portal" label="Home" />
+          <h1>To-do</h1>
+          <p>
+            {all
+              ? `Give anyone a job with the day it has to be done by. ${together} see each other's lists side by side. Anything past its day is flagged until it's ticked off.`
+              : "What's been given to you, with the day each one is due. Anything past its day is flagged until it's ticked off."}
+          </p>
+        </div>
+        {all && <TodoTabs on="todo" contactsDue={contactsDue} />}
       </div>
 
       {!ready ? (

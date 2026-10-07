@@ -36,7 +36,7 @@ export const OPEN_EVENT = "pt-nav:open";
 const HOME_ICON = "M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10";
 const TODO_ICON = "M9 6h11M9 12h11M9 18h11M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17";
 
-/** The To-do link's count: mine overdue or due today, and how many of those are overdue. */
+/** The To-do link's count: my to-dos overdue or due today plus people I look after who are due a call, and how many of those are overdue. */
 export type TodoCount = { due: number; overdue: number };
 
 function Ic({ d, size = 20 }: { d: string; size?: number }) {
@@ -92,7 +92,7 @@ export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
   const query = useSearchParams() ?? new URLSearchParams();
   const active = activeHref(tabs, path, new URLSearchParams(query.toString()));
   const home = path === "/portal";
-  const onTodo = path === "/portal/todo";
+  const onTodo = path === "/portal/todo" || path === "/portal/keep-in-touch";
   // A tab's own page (/portal/section/run) belongs to that tab.
   const sectionKey = path.startsWith("/portal/section/") ? path.split("/")[3] ?? null : null;
   const activeTab = sectionKey ?? tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;

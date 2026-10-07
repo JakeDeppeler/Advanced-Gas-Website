@@ -4519,3 +4519,70 @@ a.pt-fig:hover { transform: translateY(-2px); }
   .pt-loc__dblgo { grid-column: 2; grid-row: 2 / span 2; }
 }
 .pt-loc__scroll td:first-child, .pt-loc__scroll td:nth-child(2) strong { white-space: nowrap; }
+
+/* ------------------------------------------------------------ keep in touch */
+/* Shares the to-do's language: red with a flag and the words when someone is
+   past their day, the warm amber for due today or never rung, plain otherwise. */
+.pt-todotabs { align-self: flex-start; }
+.pt-todotabs a.pt-seg__b, .pt-kit__bar .pt-seg__b { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.pt-kit__segn { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: #b23b2e; color: #fff; font-size: 11px; font-weight: 800; }
+.pt-seg__b.is-on .pt-kit__segn { background: #ff8f80; color: var(--pt-ink); }
+
+.pt-kit { --kit-late: #b23b2e; --kit-late-bg: #fbe9e6; display: flex; flex-direction: column; }
+.pt-kit__bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.pt-kit__bar .pt-seg { flex-wrap: wrap; }
+.pt-kit__find { flex: 1 1 220px; min-width: 0; max-width: 360px; border: 1px solid var(--pt-line); border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 14px; color: var(--pt-ink); background: var(--pt-surface); box-sizing: border-box; }
+.pt-kit__find:focus { outline: none; border-color: var(--pt-sky); box-shadow: 0 0 0 3px rgba(42,167,224,0.15); }
+.pt-kit__bar > .pt-btn { margin-left: auto; }
+.pt-kit__msg { margin: -4px 0 12px; }
+
+.pt-kit__add form { display: flex; flex-direction: column; gap: 14px; margin-top: 14px; }
+.pt-kit__fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.pt-kit__wide { grid-column: 1 / -1; }
+.pt-kit__last { max-width: 420px; }
+.pt-kit__last input { max-width: 200px; }
+
+.pt-kit__list .pt-panel__h { justify-content: flex-start; }
+.pt-kit__count { font-family: inherit; font-size: 13px; font-weight: 700; color: var(--pt-ink-2); background: var(--pt-tint); border-radius: 999px; padding: 2px 10px; }
+.pt-kit__rows { list-style: none; margin: 0; padding: 0; }
+.pt-kit__list > .pt-kit__rows { margin-top: 8px; }
+.pt-kit__row { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: 8px 20px; align-items: start; padding: 16px 0; border-top: 1px solid var(--pt-tint); }
+.pt-kit__rows > .pt-kit__row:first-child { border-top: 0; }
+.pt-kit__row.is-overdue { margin-left: -14px; padding-left: 11px; border-left: 3px solid var(--kit-late); }
+.pt-kit__who { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pt-kit__name { font-size: 16px; font-weight: 700; color: var(--pt-ink); line-height: 1.3; overflow-wrap: anywhere; }
+.pt-kit__co { font-weight: 500; color: var(--pt-ink-2); }
+.pt-kit__tags { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.pt-kit__tags span { font-size: 12px; font-weight: 600; color: var(--pt-ink-2); background: var(--pt-tint); border-radius: 999px; padding: 2px 9px; }
+.pt-kit__reachby { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; }
+.pt-kit__reachby a { color: var(--pt-sky); font-weight: 600; text-decoration: none; overflow-wrap: anywhere; }
+.pt-kit__reachby a:hover { text-decoration: underline; }
+.pt-kit__notes { font-size: 13px; line-height: 1.45; color: var(--pt-ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.pt-kit__when { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.pt-kit__due { display: inline-flex; align-items: center; gap: 5px; font-size: 13.5px; font-weight: 700; color: var(--pt-ink-2); }
+.pt-kit__due.is-overdue { color: var(--kit-late); font-weight: 800; }
+.pt-kit__due.is-today, .pt-kit__due.is-new { color: var(--pt-warn-text); background: var(--pt-warn-bg); border-radius: 999px; padding: 2px 10px; }
+.pt-kit__due.is-soon { color: var(--pt-ink); }
+.pt-kit__last { font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-kit__acts { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.pt-kit__links { display: inline-flex; gap: 12px; }
+.pt-kit__links .pt-todo__editbtn { margin-left: 0; }
+.pt-kit__more { grid-column: 1 / -1; background: var(--pt-bg); border-radius: 14px; padding: 14px 16px; }
+.pt-kit__reach, .pt-kit__edit { display: flex; flex-direction: column; gap: 12px; }
+.pt-kit__hist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; color: var(--pt-ink); }
+.pt-kit__hist span { color: var(--pt-ink-2); }
+.pt-kit__hist p { margin: 2px 0 0; color: var(--pt-ink-2); font-size: 13px; white-space: pre-wrap; }
+
+@media (max-width: 820px) {
+  .pt-kit__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .pt-kit__when { grid-column: 1; grid-row: 2; }
+  .pt-kit__acts { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (max-width: 560px) {
+  .pt-kit__fields { grid-template-columns: minmax(0, 1fr); }
+  .pt-kit__row { grid-template-columns: minmax(0, 1fr); }
+  .pt-kit__when, .pt-kit__acts { grid-column: 1; grid-row: auto; }
+  .pt-kit__acts { flex-direction: row; align-items: center; justify-content: space-between; }
+  .pt-kit__row.is-overdue { margin-left: -10px; padding-left: 7px; }
+  .pt-kit__bar > .pt-btn { margin-left: 0; }
+}
