@@ -794,8 +794,8 @@ function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
           month rather than blanking the cell. */}
       <YearPace
         y={y}
-        margin={(m.jobProfitYear ?? m.jobProfitMonth)?.margin ?? null}
-        costed={(m.jobProfitYear ?? m.jobProfitMonth)?.costed ?? 0}
+        margin={(m.jobProfitRecent ?? m.jobProfitYear ?? m.jobProfitMonth)?.margin ?? null}
+        costed={(m.jobProfitRecent ?? m.jobProfitYear ?? m.jobProfitMonth)?.costed ?? 0}
         goalPct={p.profitPct}
       />
     </>
@@ -1011,7 +1011,7 @@ function YearPace({ y, margin, costed, goalPct }: {
             caveat: ServiceTitan carries a cost on about a sixth of the year's
             revenue, so this is thirty jobs' margin, not the year's. Saying how
             many is the difference between a figure and a claim. */}
-        <span className="year__k">Job margin · {costed > 0 ? `${costed} ${costed === 1 ? "job" : "jobs"}` : "year"}</span>
+        <span className="year__k">Job margin · {costed > 0 ? `${costed} ${costed === 1 ? "job" : "jobs"}, 30d` : "30 days"}</span>
         <span className={`year__v ${marginVerdict ? `is-${marginVerdict}` : ""}`}>
           {margin == null ? NA : pct(margin)}
           {margin != null && goalPct != null ? (
@@ -1086,10 +1086,12 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
             : m.toBillCount === 0
               ? "everything finished is billed"
               : `${m.toBillCount === 1 ? "job" : "jobs"} done, not billed yet` +
-                /* Most service work is priced after the visit, so the queue has
-                   no value until somebody puts one on it. Only the part that
-                   was sold before the visit can be quoted as money. */
-                (m.toBillValue > 0 ? ` · ${plain(m.toBillValue)} of it already sold` : " · not priced yet")
+                /* The age of the oldest, not the value of the lot. Most service
+                   work is priced after the visit, so the queue has no value
+                   until somebody puts one on it — and "96 days" is the thing
+                   that gets someone out of their chair, where "$13,910 of it
+                   already sold" reads as a tenth of the problem. */
+                (m.toBillOldestDays != null ? ` · oldest ${m.toBillOldestDays} days` : "")
         }
       />
       <HeroCard
@@ -1122,11 +1124,13 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
         }
       />
 
-      {/* The work list. Today's at the top, then the ones that have been
-          waiting — a job finished on Friday is still unbilled on Monday. */}
+      {/* The work list, oldest first — the order they get chased in. It used to
+          be newest first over a fortnight, which showed the tidy-up and hid the
+          backlog: 39 jobs against the year's 146, of which 51 are more than
+          sixty days old. */}
       <div className="tile inv__list">
         <div className="tile__head">
-          <span className="tile__title">To bill · finished recently</span>
+          <span className="tile__title">To bill · oldest first</span>
           <span className="tile__sub">do the paperwork, then bill it</span>
         </div>
         {!live.st || m.toBill.length === 0 ? (
@@ -1144,12 +1148,21 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
                   </span>
                   {j.jobNumber ? <span className="quote__job">#{j.jobNumber}</span> : null}
                 </span>
-                <span className="quote__at">{dayTime(j.at)}</span>
+                <span className="quote__at">{waitedFor(j.at)}</span>
                 <span className="quote__value">{j.value != null && j.value > 0 ? plain(j.value) : <span className="inv__unpriced">to price</span>}</span>
               </div>
             ))}
           </div>
         )}
+        {live.st && m.toBillAges && m.toBillCount > m.toBill.length ? (
+          /* The six on the list are the oldest six of many. Without this the
+             tile reads as six jobs to bill while the card above it says 146,
+             and the two look like they are describing different things. */
+          <span className="tile__sub inv__backlog">
+            {count(m.toBillAges.d0_14)} under a fortnight · {count(m.toBillAges.d15_30)} to a month ·{" "}
+            {count(m.toBillAges.d31_60)} to two · <b>{count(m.toBillAges.d60plus)} older</b>
+          </span>
+        ) : null}
       </div>
 
       {/* Oldest first, because that is the order they get rung in. No customer
@@ -1217,14 +1230,22 @@ function InvoicesPage({ m, live }: { m: Metrics; live: Live }) {
  */
 const xeroFig = (n: number | null | undefined) => (n == null ? NA : plain(n));
 
-/** "Today 4:55 pm" or "Fri 2:30 pm" — which day it was is half the point here. */
-function dayTime(iso: string): string {
-  const d = new Date(iso);
-  const t = d.toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
-  const today = new Date().toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" });
-  const its = d.toLocaleDateString("en-AU", { timeZone: "Australia/Melbourne" });
-  if (today === its) return `Today ${t}`;
-  return `${d.toLocaleDateString("en-AU", { weekday: "short", timeZone: "Australia/Melbourne" })} ${t}`;
+/**
+ * How long a job has been waiting — "Today", "Yesterday", "96 days".
+ *
+ * The To bill list showed a weekday and a time, which is right for work finished
+ * in the last
+ * few days and actively wrong beyond that: it renders a job completed on 2 July
+ * as "Thu 9:33 am", which reads as last Thursday. Now the list runs oldest
+ * first over the whole year, the days waited *is* the fact being presented —
+ * the same unit the overdue list beside it uses.
+ */
+function waitedFor(iso: string): string {
+  const day = (d: Date) => Date.parse(d.toLocaleDateString("en-CA", { timeZone: "Australia/Melbourne" }));
+  const days = Math.max(0, Math.round((day(new Date()) - day(new Date(iso))) / 86_400_000));
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return `${days} days`;
 }
 
 /**
@@ -1698,7 +1719,7 @@ function TimeCard({ jp, live }: { jp: Metrics["jobProfitMonth"]; live: Live }) {
             Just the period: "allowed vs taken" alongside it wrapped the title
             onto two lines in a quarter-width card, and the two rows below
             already name both halves. */}
-        <span className="tile__sub">this year</span>
+        <span className="tile__sub">last 30 days</span>
       </div>
       {!live.st || n === 0 ? (
         <span className="tile__sub tile__sub--body">
@@ -1769,7 +1790,9 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
   // The tile's margin is the job-level one, not the invoice column's: the
   // invoice column has never once been populated, so a tile built on it read
   // "—" on every single day it has been up.
-  const jp = m.jobProfitMonth;
+  // The rolling thirty days. The month and year fields are only still read so a
+  // snapshot written before jobProfitRecent existed renders rather than blanks.
+  const jp = m.jobProfitRecent ?? m.jobProfitYear ?? m.jobProfitMonth;
 
   return (
     <>
@@ -1831,11 +1854,11 @@ function PerformancePage({ m, live }: { m: Metrics; live: Live }) {
             ? undefined
             : jp == null || jp.costed === 0
               ? "no job costed this month yet"
-              : `over ${count(jp.costed)} of ${count(jp.jobs)} jobs billed`
+              : `over ${count(jp.costed)} of ${count(jp.jobs)} jobs billed · last 30 days`
         }
       />
 
-      <TimeCard jp={m.jobProfitYear ?? jp} live={live} />
+      <TimeCard jp={jp} live={live} />
 
       <div className="tile c9">
         <div className="tile__head">

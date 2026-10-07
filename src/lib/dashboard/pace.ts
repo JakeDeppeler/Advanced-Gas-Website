@@ -487,6 +487,24 @@ export function buildPace(goal: PaceGoal | null, settings: PaceSettings, d: Pace
     const spans = yearSpans(goal.basis, goal.year);
     const end = spans[spans.length - 1].to;
     const daysLeft = Math.max(0, (Date.parse(`${end}T00:00:00Z`) - Date.parse(`${d.today}T00:00:00Z`)) / 86_400_000 + (1 - frac));
+    /*
+     * The run rate is the year's own average day, not the last 28.
+     *
+     * It was the last 28 days, and that is the single worst window to measure
+     * this business on: a job is invoiced days after it is finished, and
+     * `st_invoices_billed` only counts a job once its status reads Completed,
+     * so the most recent four weeks are always the least-billed four weeks.
+     * With half of September's completed work carrying no invoice at all, the
+     * 28-day rate read $3,414 a day and landed the year at $1.30M — against
+     * $1.8M last year, on a job count that had barely moved.
+     *
+     * The year to date is $3,983 a day and lands at $1.45M. It is not immune to
+     * the same billing lag, but it dilutes one slow month across the year
+     * instead of letting it set the forecast, and it is the ordinary meaning of
+     * "at this rate".
+     */
+    const yearFrom = spans[0].from;
+    const daysSoFar = Math.max(1, (Date.parse(`${d.today}T00:00:00Z`) - Date.parse(`${yearFrom}T00:00:00Z`)) / 86_400_000 + frac);
     yearView = {
       label: periodLabel(goal),
       goal: goal.revenue,
@@ -498,7 +516,7 @@ export function buildPace(goal: PaceGoal | null, settings: PaceSettings, d: Pace
       catchUp,
       weekPlanned,
       weekNeeded: weekPlanned != null && catchUp != null ? weekPlanned * catchUp : null,
-      landing: d.year.ytd + (d.year.last28 / 28) * daysLeft,
+      landing: d.year.ytd + (d.year.ytd / daysSoFar) * daysLeft,
       lastYear: d.year.lastYearTotal,
       lastYearToDate: d.year.lastYearToDate,
       endsOn: end,
