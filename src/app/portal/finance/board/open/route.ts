@@ -8,16 +8,17 @@ export const dynamic = "force-dynamic";
 /**
  * Opening the wall board from the portal.
  *
- * The board can't complete a login — it is a TV on a bracket — so `/screen` is
- * gated by a shared token in the query string instead. That leaves the portal
- * with no way to link to it, which is why the only way to look at the board has
- * been to know the URL.
+ * The board can't complete a login — it is a TV on a bracket — so it is gated by
+ * a shared token in the query string instead. That leaves the portal with no way
+ * to link to it, which is why the only way to look at the board has been to know
+ * the URL.
  *
- * This redirects instead of printing the link. The token still ends up in the
- * address bar of the tab that opens, because that is how the board authorises and
- * there is no way around it; what it doesn't do is sit in the portal's HTML, where
- * it would be in every screenshot and every copied link. The portal session is
- * checked first, against the same capability that gates the figures themselves.
+ * This redirects instead of printing the link, so the token never sits in the
+ * portal's HTML where it would be in every screenshot and every copied link. It
+ * goes to /tv, whose middleware moves the token into a cookie and redirects
+ * again — so the tab that opens settles on the short URL with nothing secret in
+ * it. The portal session is checked first, against the same capability that
+ * gates the figures themselves.
  */
 export async function GET(req: Request) {
   const user = await getPortalUser();
@@ -35,5 +36,9 @@ export async function GET(req: Request) {
   // asked for. Built from req.url it named the server's own host, which a
   // framed board — the Remote page shows it live — counts as another site and
   // refuses to draw.
-  return new NextResponse(null, { status: 307, headers: { Location: `/screen?k=${encodeURIComponent(token)}` } });
+  //
+  // To /tv rather than /screen: the middleware there takes the token out of the
+  // address bar and into a cookie, so the tab this opens settles on the short
+  // URL and the token is not left on screen behind whoever clicked it.
+  return new NextResponse(null, { status: 307, headers: { Location: `/tv?k=${encodeURIComponent(token)}` } });
 }
