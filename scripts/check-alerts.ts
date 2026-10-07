@@ -84,17 +84,27 @@ ok(ordinal(21) === "21st" && ordinal(22) === "22nd" && ordinal(23) === "23rd", "
  */
 console.log("\n-- a quote with options --");
 const three = alertFrom(
-  ev({ kind: "quote", id: "quote-j991", amount: 7400, options: 3, jobType: "Install - Ducted Refrigerated", suburb: "Officer", who: "Jake", nth: null }),
+  ev({ kind: "quote", id: "quote-j991", amount: 7400, options: 3, optionAmounts: [5200, 7400, 9600],
+       jobType: "Install - Ducted Refrigerated", suburb: "Officer", who: "Jake", nth: null }),
   noPlan,
 );
-ok(three.where.includes("avg of 3 options"), "three options say so under the figure", three.where);
-ok(three.amount === 7400, "and the figure is the average it was handed", three.amount);
+ok(three.amount === 7400, "the figure is the average it was handed", three.amount);
+ok(JSON.stringify(three.options) === JSON.stringify([5200, 7400, 9600]),
+   "and every option is carried through for the alert to list", JSON.stringify(three.options));
+// The place and the person only. The count used to ride here as "avg of 3
+// options"; it has its own line now, with the prices on it.
+ok(!three.where.includes("option"), "the dotted line is back to where and who", three.where);
+ok(three.where === "Officer · Jake", "which is what it says", three.where);
 
-const one = alertFrom(ev({ kind: "quote", id: "quote-j992", amount: 3200, options: 1, nth: null }), noPlan);
-ok(!one.where.includes("option"), "a single-option quote says nothing about options", one.where);
+const one = alertFrom(ev({ kind: "quote", id: "quote-j992", amount: 3200, options: 1, optionAmounts: [3200], nth: null }), noPlan);
+ok(one.options === null, "a single-option quote lists nothing: no average to explain, no spread to show", one.options);
 
 const older = alertFrom(ev({ kind: "quote", id: "quote-j993", amount: 3200, nth: null }), noPlan);
-ok(!older.where.includes("option"), "nor does one from a snapshot written before options existed", older.where);
+ok(older.options === null, "nor does one from a snapshot written before the prices were carried", older.options);
+ok(!older.where.includes("option"), "and it still says nothing about options", older.where);
+
+const soldAlert = alertFrom(ev({ kind: "sold", id: "sold-1", amount: 9000, options: 3, optionAmounts: [1, 2, 3], nth: 1 }), noPlan);
+ok(soldAlert.options == null, "a sale never lists options, whatever the event carries", soldAlert.options);
 
 console.log(failed ? `\n${failed} failed\n` : "\nall good\n");
 process.exit(failed ? 1 : 0);

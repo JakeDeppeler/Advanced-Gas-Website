@@ -428,6 +428,15 @@ export type Metrics = {
     nth: number | null;
     /** Quote only: how many options were put in front of the customer. */
     options?: number | null;
+    /**
+     * Quote only: what each of those options was priced at, cheapest first.
+     *
+     * The figure above them is their average, and an average with nothing
+     * beside it is a number the room has to take on trust — "$14,800" reads as
+     * a price somebody quoted when it is the middle of three. The prices
+     * themselves are the context, and they are what gets discussed.
+     */
+    optionAmounts?: number[] | null;
   }>;
   /** The part of the unbilled queue that was sold before the visit, so can be valued. */
   toBillValue: number;
@@ -1494,6 +1503,10 @@ async function serviceTitanMetrics(now: Date) {
           at: rows.map((r) => String(r.created_on)).sort().slice(-1)[0],
           amount: total / rows.length,
           options: rows.length,
+          optionAmounts: rows
+            .map((r) => Number(r.total ?? 0))
+            .filter((n) => n > 0)
+            .sort((a, b) => a - b),
           jobType: place?.jobType ?? null,
           suburb: place?.suburb ?? null,
           who: creditFor(first),

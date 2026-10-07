@@ -1872,6 +1872,27 @@ supports; nothing overflows.
 | Figure | 96px | 96px | 150px |
 | Holds for | 7s | 9s | 11s |
 
+**The quote alert lists what its figure is the average of.** ServiceTitan writes
+an estimate row per option, so a job priced three ways is one quote with three
+prices; the alert shows the average of them, for the same reason the Quotes page
+does — good, better and best are alternatives and at most one sells.
+
+An average with nothing beside it is a number the room has to take on trust.
+"$14,800" reads as a price somebody quoted when it is the middle of three, and
+the only thing saying otherwise was "avg of 3 options" set small under a job
+name. So the alert now says **Average of 3 options** and lists every price,
+cheapest first, as a pill each. The spread is the part worth seeing anyway: how
+far apart good and best are is the sales conversation.
+
+Only when there is more than one — a single-option quote has no average to
+explain and no spread to show, and "Average of 1 option" would be noise.
+
+The list is held to the alert's own column. One quote in the last sixty days
+carried **fourteen** options; unbounded they ran to within 90px of both screen
+edges and read as a banner rather than part of the card. Wrapping a row earlier
+costs nothing, and the fourteen-option case was checked at all six viewports the
+board supports — the chip clears the bottom on every one.
+
 **The hold runs once, and must not depend on the board's render rate.** It used
 to, and that is what left "Time to bill" sitting on the wall. The board hands
 `Alert` an inline `onDone`, so every render is a new function; while it was in

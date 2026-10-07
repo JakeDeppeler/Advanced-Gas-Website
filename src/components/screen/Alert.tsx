@@ -50,6 +50,16 @@ export type BoardAlert = {
   /** Sold only: the two progress bars, and the line under them. */
   bars?: SoldBar[];
   note?: string | null;
+  /**
+   * Quote only: what each option was priced at, cheapest first.
+   *
+   * Shown in full under the figure, which is their average. An average on its
+   * own is a number the room has to take on trust — "$14,800" reads as a price
+   * somebody quoted when it is the middle of three — and the spread is the
+   * thing people actually talk about: good, better and best are alternatives,
+   * at most one sells, and how far apart they are is the sales conversation.
+   */
+  options?: number[] | null;
 };
 
 /** How long each one holds the wall. The countdown bar is drawn from this. */
@@ -295,6 +305,33 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
             </span>
           )}
         </span>
+
+        {/*
+          * What the figure above is the average of.
+          *
+          * The room reads "$14,800" as a price that was quoted; it is the
+          * middle of three, and nothing on the alert said so except four small
+          * words tucked under a job name. So the average says it is one, and
+          * the options are listed in full, cheapest first — which is also the
+          * part worth talking about, because the spread between good, better
+          * and best is the sales conversation, and only one of them sells.
+          *
+          * Only when there is more than one. A single-option quote has no
+          * average to explain and no spread to show, and a line reading
+          * "Average of 1 option" would be noise on a wall.
+          */}
+        {alert.kind === "quote" && alert.options && alert.options.length > 1 && (
+          <span className="alert__opts">
+            <span className="alert__optlabel">Average of {alert.options.length} options</span>
+            <span className="alert__optlist">
+              {alert.options.map((v, i) => (
+                <span key={i} className="alert__opt">
+                  {money(v)}
+                </span>
+              ))}
+            </span>
+          </span>
+        )}
 
         {alert.kind === "sold" && alert.bars && alert.bars.length > 0 && (
           <span className="alert__bars">

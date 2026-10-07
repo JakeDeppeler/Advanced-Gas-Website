@@ -1640,6 +1640,57 @@ body:has(.screen) .utilbar {
 
 /* ── chip and note ── */
 
+/*
+ * The options behind a quote's average.
+ *
+ * Sized against the figure above them, not against the body text: this has to
+ * be read from four metres with the rest of the alert, and a price list set at
+ * caption size is a price list nobody reads. The label is quieter than the
+ * prices because the prices are the information — the label only has to stop
+ * the figure above being mistaken for one of them.
+ *
+ * Wraps and centres, so a quote with six options stacks rather than running off
+ * the side of a 16:9 panel.
+ */
+.alert__opts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(0.5 * var(--u));
+  margin-top: calc(0.9 * var(--u));
+  animation: alert-up 0.5s 1.5s ease both;
+}
+.alert__optlabel {
+  font-size: calc(1.25 * var(--u));
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+.alert__optlist {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(0.5 * var(--u)) calc(0.9 * var(--u));
+  /* Held to the alert's own column. One quote in the last sixty days carried
+     fourteen options, and unbounded they ran to within 90px of both screen
+     edges — inside the frame, but reading as a banner rather than as part of
+     the card above them. Wrapping a row earlier costs nothing. */
+  max-width: calc(76 * var(--u));
+}
+/* A pill each, so the eye separates three prices without a separator character
+   to squint at. */
+.alert__opt {
+  padding: calc(0.3 * var(--u)) calc(1 * var(--u));
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: calc(2.1 * var(--u));
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
 .alert__chip {
   display: inline-flex;
   padding: calc(0.63 * var(--u)) calc(1.46 * var(--u));
