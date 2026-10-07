@@ -7,7 +7,7 @@ import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
-import { audioBlocked, audioBlockedOnServer, checkAudio, primeAudio, subscribeAudio } from "./screen/cheer";
+import { checkAudio, primeAudio, soundState, soundStateOnServer, subscribeAudio } from "./screen/cheer";
 import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 import { useBoardRemote } from "./screen/useBoardRemote";
@@ -209,8 +209,15 @@ export function ScreenBoard({
     };
   }, []);
 
-  // Whether this screen is allowed to make a noise, for the footer's marker.
-  const soundOff = useSyncExternalStore(subscribeAudio, audioBlocked, audioBlockedOnServer);
+  /*
+   * What the last noise actually was, for the footer's marker.
+   *
+   * Three outcomes, not two. "Silent" and "made a noise, but the synthesised
+   * one" look identical from the room if the board only admits to the first,
+   * and telling them apart is the difference between a file to replace and a
+   * browser to unblock. Four rounds of fixes went out blind for want of this.
+   */
+  const sound = useSyncExternalStore(subscribeAudio, soundState, soundStateOnServer);
 
   /**
    * The rotation, which stops while the board is held.
@@ -528,9 +535,14 @@ export function ScreenBoard({
             colour or a glyph never carries a meaning on its own, and this one
             has to be read from four metres by somebody who has never seen it
             before. Gone the moment a button is pressed. */}
-        {soundOff && (
+        {sound === "off" && (
           <span className="screen__mute" title="Press any button on the remote to allow sound">
             <i aria-hidden>♪</i> Sound off · press any button
+          </span>
+        )}
+        {sound === "notes" && (
+          <span className="screen__mute" title="The alert sound file would not play, so the board used its built-in notes">
+            <i aria-hidden>♪</i> Beeps only · clip did not load
           </span>
         )}
         <span className="screen__right">

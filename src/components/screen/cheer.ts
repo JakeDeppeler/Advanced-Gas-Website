@@ -10,8 +10,13 @@
  * ever clicks a wall display. That is the whole difficulty: the board would go
  * silent for a reason it had no way to show. So two things live here besides
  * the sound — a way to unlock audio from any keypress the television's remote
- * sends, and a flag the footer reads to say "sound off" while it is blocked. A
- * feature that fails invisibly is a feature nobody can fix.
+ * sends, and a state the footer reads so the board can say what happened.
+ *
+ * It says *which* of three things happened, not merely whether it was allowed.
+ * Four rounds of this were shipped blind to a television nobody here can hear,
+ * and every one of them was a guess about which of "wrong file", "file didn't
+ * load" and "browser said no" was the actual fault. The board now distinguishes
+ * them itself, in words, on the screen. That is worth more than the next guess.
  */
 
 /**
@@ -24,7 +29,7 @@
  * every device. A new query string is a new URL, and a new URL has nothing
  * cached against it.
  */
-const V = "4";
+const V = "5";
 
 export type CheerKind = "quote" | "sold";
 
@@ -32,24 +37,26 @@ export type CheerKind = "quote" | "sold";
  * Each clip, and what measuring it showed.
  *
  * Decoded both and read the envelope rather than trusting that "it played"
- * meant "it was heard". The sale's clip opened with **half a second of
- * silence** and peaks at less than half the loudness of the quote's, which on a
- * wall — a second after the alert wipes in — reads as a sound that did not
- * happen. It was reported as one, twice.
+ * meant "it was heard", which is how the first sale clip was caught: it was the
+ * wrong recording — 2.4 seconds, opening with half a second of silence and
+ * peaking at a fifth of the loudness of this one. On a wall, a second after the
+ * alert wipes in, that reads as a sound that did not happen, and it was
+ * reported as one three times before the right file arrived.
  *
- * The silence is now cut out of the file itself, at the frame boundary, so no
- * code has to know about it. Two routes to skipping it in the player were tried
- * first and neither held up: `#t=0.45` is ignored on an Audio built in script,
- * and a `currentTime` seek needs range requests the clip may not be served
- * with. Both were checked rather than assumed, which is the only reason this
- * isn't a fourth thing that looks right and is silent.
+ * What is here now, measured:
  *
- * `sold` still plays at full volume against the quote's 0.8: the recording is
- * quieter and there is no amplifying it past 1 without re-encoding.
+ * - `quote` — 0.69s, peak RMS 0.24, audible from 0s, voiced around 162Hz.
+ * - `sold`  — 6.48s, peak RMS 0.60, audible from 0s, sustained to the end.
+ *
+ * Hence the volumes, which are not equal and are not meant to be: the sale's
+ * recording is two and a half times the louder of the two, so 0.85 against the
+ * quote's 1.0 still leaves a sale clearly the bigger noise without it being the
+ * startling one. The sale's alert holds 11 seconds, which the 6.5s clip fits
+ * inside with room to spare — nothing has to be trimmed or faded.
  */
 const CLIPS: Record<CheerKind, { src: string; volume: number }> = {
-  quote: { src: `/sounds/quote.mp3?v=${V}`, volume: 0.8 },
-  sold: { src: `/sounds/sold.mp3?v=${V}`, volume: 1 },
+  quote: { src: `/sounds/quote.mp3?v=${V}`, volume: 1 },
+  sold: { src: `/sounds/sold.mp3?v=${V}`, volume: 0.85 },
 };
 
 /**
@@ -75,12 +82,27 @@ const ctxCtor = (): Ctor | undefined =>
 
 /** One context for the life of the page: browsers cap how many a page may open. */
 let ctx: AudioContext | null = null;
-let blocked = false;
+
+/**
+ * What the last attempt at a noise actually did.
+ *
+ * - `unknown` — nothing has been tried yet. The footer says nothing.
+ * - `clip`    — the real recording played. The footer says nothing.
+ * - `notes`   — the file would not play, so the synthesised notes covered it.
+ *               **This is the one worth putting on the wall**: the board made a
+ *               noise, just not the one anybody chose, and without saying so
+ *               that reads from the room as "the sound is still wrong" with no
+ *               way to tell whether the file or the browser is at fault.
+ * - `off`     — nothing at all came out. Press a button.
+ */
+export type SoundState = "unknown" | "clip" | "notes" | "off";
+
+let state: SoundState = "unknown";
 const listeners = new Set<() => void>();
 
-function announce(next: boolean) {
-  if (next === blocked) return;
-  blocked = next;
+function announce(next: SoundState) {
+  if (next === state) return;
+  state = next;
   for (const l of listeners) l();
 }
 
@@ -89,9 +111,9 @@ export function subscribeAudio(fn: () => void): () => void {
   listeners.add(fn);
   return () => listeners.delete(fn);
 }
-export const audioBlocked = () => blocked;
+export const soundState = () => state;
 /** The server renders no marker: it cannot know, and a flash of "sound off" is worse than none. */
-export const audioBlockedOnServer = () => false;
+export const soundStateOnServer = (): SoundState => "unknown";
 
 function context(): AudioContext | null {
   const C = ctxCtor();
@@ -120,6 +142,10 @@ function context(): AudioContext | null {
  * `muted` attribute, which is the one autoplay policies treat specially, so
  * this is subject to exactly the rules a real alert will meet. Nothing is
  * audible and the file is in cache afterwards, ready for the first sale.
+ *
+ * A probe that succeeds is reported as `clip` even though nobody heard it: it
+ * means the next real alert will be heard, which is what the footer is for. It
+ * never downgrades a verdict a real alert has already earned.
  */
 export function checkAudio(): void {
   try {
@@ -129,11 +155,13 @@ export function checkAudio(): void {
       .play()
       .then(() => {
         probe.pause();
-        announce(false);
+        if (state === "unknown" || state === "off") announce("clip");
       })
-      .catch(() => announce(true));
+      .catch(() => {
+        if (state === "unknown") announce("off");
+      });
   } catch {
-    announce(true);
+    if (state === "unknown") announce("off");
   }
 }
 
@@ -171,8 +199,16 @@ function fanfare(c: AudioContext, kind: CheerKind) {
   });
 }
 
-/** Make the noise. Never throws, and never keeps the caller waiting. */
-export function cheer(kind: CheerKind): void {
+/**
+ * Make the noise. Never throws, and never keeps the caller waiting.
+ *
+ * Returns a way to stop it, which the alert calls when it clears. The clips fit
+ * inside their holds, so this is for the case the hold ends early — a second
+ * sale landing on the first, or the board being sent to another page — where a
+ * recording still playing over a board that has moved on is worse than one cut
+ * short.
+ */
+export function cheer(kind: CheerKind): () => void {
   const c = context();
   /*
    * Always try. There is no reliable way to ask a browser in advance whether it
@@ -182,29 +218,42 @@ export function cheer(kind: CheerKind): void {
    * policy that was not actually stopping it.
    */
   const fallback = () => {
-    if (!c) return announce(true);
+    if (!c) return announce("off");
     try {
       // A suspended context plays nothing, so ask for it back first; a gesture
-      // may have arrived since the page loaded.
+      // may have arrived since the page loaded. `resume` is a promise, so the
+      // verdict cannot be known here — `notes` is the honest answer either way,
+      // since it names the thing that was attempted.
       void c.resume().catch(() => {});
       fanfare(c, kind);
-      announce(false);
+      announce("notes");
     } catch {
-      announce(true);
+      announce("off");
     }
   };
+  let audio: HTMLAudioElement | null = null;
   try {
     const clip = CLIPS[kind];
-    const audio = new Audio(clip.src);
+    audio = new Audio(clip.src);
     audio.volume = clip.volume;
 
     void audio
       .play()
-      .then(() => announce(false))
+      .then(() => announce("clip"))
       // A missing file rejects the same way a blocked autoplay does, so the
       // notes cover both and the board is never silent for want of an asset.
       .catch(fallback);
   } catch {
+    audio = null;
     fallback();
   }
+  return () => {
+    if (!audio) return;
+    try {
+      audio.pause();
+      audio.src = "";
+    } catch {
+      /* A player that will not stop is not worth throwing over. */
+    }
+  };
 }

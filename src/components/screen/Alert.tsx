@@ -168,7 +168,11 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
    */
   useEffect(() => {
     if (alert.kind !== "sold" && alert.kind !== "quote") return;
-    cheer(alert.kind);
+    // Stopped when the alert clears: the clips fit inside their holds, so this
+    // is for the hold ending early — a second sale landing on the first, or the
+    // board being sent elsewhere — where a recording still playing over a board
+    // that has moved on is worse than one cut short.
+    return cheer(alert.kind);
   }, [alert.id, alert.kind]);
 
   const head = alert.kind === "quote" ? "New quote" : alert.kind === "done" ? "Time to bill" : "SOLD!";
