@@ -1,10 +1,8 @@
 /**
  * The noise good news makes, and whether this screen is allowed to make it.
  *
- * One file per kind, so a quote and a sale can have different voices without
- * touching any of this. A finished job stays silent, and that restraint is the
- * point: a board that chimes at every event is a board somebody turns the
- * speakers off on, and then the sale makes no noise either.
+ * One file per kind, so a quote, a finished job and a sale can have different
+ * voices without touching any of this.
  *
  * **A browser will not play audio on a page nobody has clicked**, and nobody
  * ever clicks a wall display. That is the whole difficulty: the board would go
@@ -31,7 +29,7 @@
  */
 const V = "6";
 
-export type CheerKind = "quote" | "sold";
+export type CheerKind = "quote" | "done" | "sold";
 
 /**
  * Each clip, and what measuring it showed.
@@ -53,9 +51,16 @@ export type CheerKind = "quote" | "sold";
  * quote's 1.0 still leaves a sale clearly the bigger noise without it being the
  * startling one. The sale's alert holds 11 seconds, which the 6.5s clip fits
  * inside with room to spare — nothing has to be trimmed or faded.
+ *
+ * A finished job shares the quote's clip, which was asked for and is worth
+ * naming as a cost: the two are then indistinguishable by ear, so the wall is
+ * the only thing that says which just happened. Give `done` its own file here
+ * and that goes away — the cache below is keyed by source, so two kinds sharing
+ * one still only fetch and decode it once.
  */
 const CLIPS: Record<CheerKind, { src: string; volume: number }> = {
   quote: { src: `/sounds/quote.mp3?v=${V}`, volume: 1 },
+  done: { src: `/sounds/quote.mp3?v=${V}`, volume: 1 },
   sold: { src: `/sounds/sold.mp3?v=${V}`, volume: 0.85 },
 };
 
@@ -64,12 +69,16 @@ const CLIPS: Record<CheerKind, { src: string; volume: number }> = {
  *
  * Deliberately not an impression of anything: these stand in for whatever the
  * office puts in `public/sounds/`, and a synthesised arpeggio is one thing
- * nobody owns. A quote gets two notes and a sale three, so the two are told
- * apart from across a room without looking up.
+ * nobody owns. Three distinct shapes, so the three are told apart from across a
+ * room without looking up — which is more than the recordings manage while a
+ * quote and a finished job share a file.
  */
 const NOTES: Record<CheerKind, number[]> = {
   // C5, G5 — a fifth, which asks a question rather than answering one.
   quote: [523.25, 783.99],
+  // G5, E5 — the only one that falls, because a finished job is a thing closing
+  // rather than opening.
+  done: [783.99, 659.25],
   // C5, E5, G5 — a major triad, which reads as "good news" to nearly everyone.
   sold: [523.25, 659.25, 783.99],
 };
@@ -155,15 +164,18 @@ function context(): AudioContext | null {
  * better known about before the wall needs it. Roughly 2MB resident for the
  * pair, which is nothing against the board's images.
  */
-const buffers = new Map<CheerKind, AudioBuffer>();
-const pending = new Map<CheerKind, Promise<AudioBuffer | null>>();
+const buffers = new Map<string, AudioBuffer>();
+const pending = new Map<string, Promise<AudioBuffer | null>>();
 
 function load(kind: CheerKind, c: AudioContext): Promise<AudioBuffer | null> {
-  const have = buffers.get(kind);
+  // Keyed by source rather than kind: a quote and a finished job play the same
+  // file, and fetching it twice to hold two copies of it would be silly.
+  const src = CLIPS[kind].src;
+  const have = buffers.get(src);
   if (have) return Promise.resolve(have);
-  let p = pending.get(kind);
+  let p = pending.get(src);
   if (!p) {
-    p = fetch(CLIPS[kind].src)
+    p = fetch(src)
       .then((r) => {
         if (!r.ok) throw new Error(String(r.status));
         return r.arrayBuffer();
@@ -178,18 +190,18 @@ function load(kind: CheerKind, c: AudioContext): Promise<AudioBuffer | null> {
           }),
       )
       .then((buf) => {
-        buffers.set(kind, buf);
+        buffers.set(src, buf);
         return buf;
       })
       .catch((e: unknown) => {
         // Kept for the footer. A bare status code is the most useful thing that
         // fits: "404" says deploy, "decode failed" says file.
         const m = e instanceof Error ? e.message : String(e);
-        pending.delete(kind); // a later attempt may succeed; don't cache failure
+        pending.delete(src); // a later attempt may succeed; don't cache failure
         failure = /^\d{3}$/.test(m) ? `HTTP ${m}` : "decode failed";
         return null;
       });
-    pending.set(kind, p);
+    pending.set(src, p);
   }
   return p;
 }

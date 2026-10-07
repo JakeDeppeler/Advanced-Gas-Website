@@ -4,7 +4,7 @@ Two files, both optional:
 
 | File | Plays when |
 |---|---|
-| `quote.mp3` | a quote goes out |
+| `quote.mp3` | a quote goes out, **and** a job is completed |
 | `sold.mp3` | a job is sold |
 
 Both are in place: Homer on the quote and the money-button clip on the sale.
@@ -31,9 +31,15 @@ when the alert clears. One wrong file cost three rounds here: a 2.4-second take
 that opened with half a second of silence and peaked at a fifth of this clip's
 loudness, which on a wall reads as a sound that did not happen.
 
-A finished job stays silent on purpose. A board that chimes at every event is a
-board somebody turns the speakers off on, and then the sale makes no noise
-either.
+**A quote and a completed job currently sound the same**, because both play
+`quote.mp3` — asked for, and worth knowing: the wall is the only thing that says
+which of the two just happened. Drop a `done.mp3` in here and point `done` at it
+in `cheer.ts` and that goes away. The loader is keyed by filename, so two kinds
+sharing one clip still only fetch and decode it once.
+
+A finished job used to stay silent, on the argument that a board chiming at
+every event is a board somebody turns the speakers off on. If the wall does get
+muted, this is the first thing to put back.
 
 ## Use something you have the right to use
 

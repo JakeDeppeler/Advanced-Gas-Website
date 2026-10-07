@@ -159,21 +159,18 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
   }, [alert.id, hold, onDone]);
 
   /*
-   * A quote and a sale make a noise; a finished job does not.
+   * All three alerts make a noise. A finished job used to be the silent one, on
+   * the argument that a board chiming at everything is a board somebody turns
+   * the speakers off on — the office asked for it anyway, which is their call
+   * to make. If the wall does get muted, this is the first thing to put back.
    *
-   * The restraint is the point: a board that chimes at every event is a board
-   * somebody turns the speakers off on, and then the sale makes no noise
-   * either. Keyed on the alert's id so a re-render inside the hold does not
-   * play it twice.
+   * Keyed on the alert's id so a re-render inside the hold does not play it
+   * twice. Stopped when the alert clears: the clips fit inside their holds, so
+   * that is for the hold ending early — a second sale landing on the first, or
+   * the board being sent elsewhere — where a recording still playing over a
+   * board that has moved on is worse than one cut short.
    */
-  useEffect(() => {
-    if (alert.kind !== "sold" && alert.kind !== "quote") return;
-    // Stopped when the alert clears: the clips fit inside their holds, so this
-    // is for the hold ending early — a second sale landing on the first, or the
-    // board being sent elsewhere — where a recording still playing over a board
-    // that has moved on is worse than one cut short.
-    return cheer(alert.kind);
-  }, [alert.id, alert.kind]);
+  useEffect(() => cheer(alert.kind), [alert.id, alert.kind]);
 
   const head = alert.kind === "quote" ? "New quote" : alert.kind === "done" ? "Time to bill" : "SOLD!";
   const eyebrow =
