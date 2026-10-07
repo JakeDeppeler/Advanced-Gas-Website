@@ -1521,34 +1521,36 @@ thousand of at a time, so they go through `sbSelect` like everything else. Page
 views are one row per path per day and the site has sixty-one paths being read:
 that read would have quietly stopped growing about seven weeks in.
 
-## A sale makes a noise
+## A quote and a sale make a noise
 
-The Sold alert plays `public/sounds/sold.mp3`, and a short synthesised fanfare
-when that file isn't there — so the board makes a noise without waiting on an
-asset, and swapping the noise is dropping a file in.
+`public/sounds/quote.mp3` when a quote goes out, `public/sounds/sold.mp3` when a
+job is sold, and a short synthesised cue — two notes for a quote, three for a
+sale — when the file isn't there, so the wall is never silent waiting on an
+asset.
 
-Only the sale. A quote and a finished job stay silent, and that restraint is the
-point: a board that chimes at every event is a board somebody turns the speakers
-off on, and then the sale makes no noise either.
+A finished job stays silent. A board that chimes at every event is a board
+somebody turns the speakers off on, and then the sale makes no noise either.
 
 **Two things stop this being heard, and neither shows up on screen.**
 
 *The browser will refuse to play it.* Autoplay without a user gesture is blocked
-everywhere, and nobody ever clicks a wall display, so `play()` rejects and the
-board carries on in silence with nothing to explain why. The kiosk needs
-launching with `--autoplay-policy=no-user-gesture-required`. Every path in
-`cheer.ts` swallows its own failure, because a sale that cannot be heard is
-still a sale that has to be shown — which is correct, and is also why this fails
-invisibly.
+everywhere, and nobody ever clicks a wall display. The footer says `Sound off ·
+press any button` while it is blocked, and any key the remote sends unlocks it
+until the page reloads — a stopgap, not the fix. The kiosk wants
+`--autoplay-policy=no-user-gesture-required`; on a Google TV that means
+sideloading Fully Kiosk Browser, whose built-in rival has no such setting and
+does not start on boot either.
 
 *The television's own volume.* A muted HDMI input looks exactly like a feature
 that does not work.
 
-**Whatever goes in that file has to be ours to use.** A clip from a television
-show or a film is somebody's copyright however short and however familiar, and a
-public deployment is the wrong place to find out whether anybody minds. A
+**Whatever goes in those files has to be ours to use.** A clip from a show, a
+film or a record is somebody's copyright however short and however familiar, and
+a public deployment is the wrong place to find out whether anybody minds. A
 royalty-free sting works; a voice memo of somebody in the office shouting works
-better and costs nothing.
+better and costs nothing. Keep them to a second or two — the Sold alert holds
+the wall for eleven seconds and the quote for seven, and anything longer is
+still playing over the next page.
 
 ## The unbilled backlog, and the run rate that was reading it
 
