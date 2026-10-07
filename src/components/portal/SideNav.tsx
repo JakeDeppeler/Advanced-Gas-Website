@@ -28,16 +28,17 @@ import { usePathname, useSearchParams } from "next/navigation";
  */
 
 export type SidePage = { href: string; label: string; badge?: string };
-export type SideTab = { key: string; label: string; icon: string; pages: SidePage[]; need?: number };
+/**
+ * A tab of the side bar. Most open their own section page; To-do opens its
+ * first page instead (`href`), and its number is red when something's late.
+ */
+export type SideTab = { key: string; label: string; icon: string; pages: SidePage[]; need?: number; href?: string; late?: boolean };
 
 const COOKIE = "pt_nav";
 export const OPEN_EVENT = "pt-nav:open";
 
 const HOME_ICON = "M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10";
-const TODO_ICON = "M9 6h11M9 12h11M9 18h11M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17";
-
-/** The To-do link's count: my to-dos overdue or due today plus people I look after who are due a call, and how many of those are overdue. */
-export type TodoCount = { due: number; overdue: number };
+export const TODO_ICON = "M9 6h11M9 12h11M9 18h11M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11M3.5 18l1.5 1.5L7.5 17";
 
 function Ic({ d, size = 20 }: { d: string; size?: number }) {
   return (
@@ -81,18 +82,16 @@ function activeHref(tabs: SideTab[], path: string, query: URLSearchParams): stri
   return best?.href ?? null;
 }
 
-export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
+export function SideNav({ tabs, small: initialSmall, search, foot }: {
   tabs: SideTab[];
   small: boolean;
   search: ReactNode;
   foot: ReactNode;
-  todo?: TodoCount;
 }) {
   const path = usePathname() ?? "";
   const query = useSearchParams() ?? new URLSearchParams();
   const active = activeHref(tabs, path, new URLSearchParams(query.toString()));
   const home = path === "/portal";
-  const onTodo = path === "/portal/todo" || path === "/portal/keep-in-touch" || path === "/portal/plans";
   // A tab's own page (/portal/section/run) belongs to that tab.
   const sectionKey = path.startsWith("/portal/section/") ? path.split("/")[3] ?? null : null;
   const activeTab = sectionKey ?? tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;
@@ -191,27 +190,12 @@ export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
             <Ic d={HOME_ICON} />
             {!small && <span>Home</span>}
           </Link>
-          {/* Beside Home rather than in a tab: everyone has a list, and the
-              number on it is the one thing in the bar that is only yours. */}
-          <Link
-            href="/portal/todo"
-            className={`pt-side__home pt-side__todo${onTodo ? " is-on" : ""}`}
-            aria-current={onTodo ? "page" : undefined}
-            title={small ? "To-do" : undefined}
-            aria-label={small || todo?.due ? `To-do${todo?.due ? `, ${todo.due} due${todo.overdue ? `, ${todo.overdue} overdue` : ""}` : ""}` : undefined}
-          >
-            <Ic d={TODO_ICON} />
-            {!small && <span className="pt-side__label">To-do</span>}
-            {!!todo?.due && (
-              <span className={`pt-side__need${todo.overdue ? " is-late" : ""}`} title={todo.overdue ? `${todo.overdue} overdue` : `${todo.due} due today`}>{todo.due}</span>
-            )}
-          </Link>
 
           <ul className="pt-side__tabs">
             {tabs.map((t) => {
               const isOpen = small ? flyout === t.key : openTab === t.key;
               const holds = t.key === activeTab;
-              const href = `/portal/section/${t.key}`;
+              const href = t.href ?? `/portal/section/${t.key}`;
               const onPage = sectionKey === t.key;
               const need = t.need ?? 0;
               return (
@@ -233,7 +217,7 @@ export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
                     >
                       <Ic d={t.icon} />
                       {!small && <span className="pt-side__label">{t.label}</span>}
-                      {need > 0 && <span className="pt-side__need" title={`${need} need you`}>{need}</span>}
+                      {need > 0 && <span className={`pt-side__need${t.late ? " is-late" : ""}`} title={t.late ? `${need} due, some overdue` : `${need} need you`}>{need}</span>}
                     </Link>
                     {!small && (
                       <button
