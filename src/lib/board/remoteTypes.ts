@@ -11,6 +11,8 @@ export const BOARD_PAGES = ["Today", "Pace", "Quotes", "Invoices", "Team", "Perf
 export type BoardPageName = (typeof BOARD_PAGES)[number];
 
 /** The board's three alerts, as the demo shows them: a sale, a quote, a job to bill. */
+import { normalisePlan, type SoundPlan } from "@/lib/board/soundTypes";
+
 export type DemoKind = "sold" | "quote" | "done";
 
 export type BoardRemote = {
@@ -21,7 +23,7 @@ export type BoardRemote = {
    */
   view: { id: string; page: BoardPageName | null; hold: boolean } | null;
   /** A sample alert on a loop until `until`, marked as a sample on screen. */
-  demo: { id: string; kind: DemoKind; until: string } | null;
+  demo: { id: string; kind: DemoKind; until: string; once?: boolean } | null;
   /** Null: whatever the TV's own address says. */
   theme: "light" | "dark" | null;
   /** A new id reloads every board that has seen the old one. */
@@ -34,6 +36,12 @@ export type BoardRemote = {
   liveUntil: string | null;
   by: string | null;
   at: string | null;
+  /**
+   * Which sound each pop-up makes and how loud, from the Sounds page. Rides
+   * with the remote so a change reaches the wall within seconds and without a
+   * reload. Null: the board plays what it always has.
+   */
+  sounds?: SoundPlan | null;
 };
 
 export const EMPTY_REMOTE: BoardRemote = { view: null, demo: null, theme: null, reload: null, liveUntil: null, by: null, at: null };
@@ -50,11 +58,14 @@ export function normaliseRemote(v: unknown): BoardRemote {
   const demo = r.demo as Record<string, unknown> | null | undefined;
   return {
     view: view && str(view.id) ? { id: String(view.id), page: isPage(view.page) ? view.page : null, hold: view.hold === true } : null,
-    demo: demo && str(demo.id) && isDemo(demo.kind) && str(demo.until) ? { id: String(demo.id), kind: demo.kind, until: String(demo.until) } : null,
+    demo: demo && str(demo.id) && isDemo(demo.kind) && str(demo.until)
+      ? { id: String(demo.id), kind: demo.kind, until: String(demo.until), ...(demo.once === true ? { once: true } : {}) }
+      : null,
     theme: r.theme === "dark" || r.theme === "light" ? r.theme : null,
     reload: str(r.reload),
     liveUntil: str(r.liveUntil),
     by: str(r.by),
     at: str(r.at),
+    sounds: r.sounds && typeof r.sounds === "object" ? normalisePlan(r.sounds) : null,
   };
 }

@@ -69,3 +69,18 @@ export async function signedUrls(paths: string[], seconds = 3600): Promise<Map<s
   }
   return out;
 }
+
+/**
+ * One object's bytes, read on the server. For files that are served through
+ * a route of our own — the wall board's sounds, which the television fetches
+ * with its screen token rather than a portal session or a signed URL that
+ * would expire on a board left running for weeks.
+ */
+export async function readObject(path: string): Promise<{ ok: true; body: ArrayBuffer; type: string } | { ok: false; status: number }> {
+  const c = conf();
+  if (!c) return { ok: false, status: 503 };
+  const res = await fetch(`${c.url}/storage/v1/object/${BUCKET}/${encodeURI(path)}`, { headers: auth(c.key), cache: "no-store" }).catch(() => null);
+  if (!res || !res.ok) return { ok: false, status: res?.status ?? 502 };
+  return { ok: true, body: await res.arrayBuffer(), type: res.headers.get("content-type") || "application/octet-stream" };
+}
+

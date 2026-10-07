@@ -112,6 +112,9 @@ export function BoardRemoteControls({ initial }: { initial: BoardRemote }) {
             Take it down
           </button>
         )}
+        <p className="pt-panel__sub" style={{ margin: "12px 0 0" }}>
+          <a href="/portal/board/sounds">Change what each pop-up sounds like, and how loud →</a>
+        </p>
       </section>
 
       <section className="pt-wb__group pt-wb__row">
