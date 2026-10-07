@@ -22,6 +22,20 @@
   --plane: #f9f8f3;
   --surface: #ffffff;
   --navy: #050a30;
+  /*
+   * Navy as a *surface*, which is not the same thing as navy as ink.
+   *
+   * Dark mode redefines --navy to near-white, because almost every use of it is
+   * text that has to turn pale on a dark board. The handful of places it is a
+   * panel with light content on it went pale too, and took their white text
+   * with them: the Pace page's "This year" band rendered white on cream at
+   * 1.1:1, which is invisible from a metre away, let alone four. It had been
+   * found twice before and patched twice as a one-off (`.tile--navy`, the
+   * footer), which is how the third, fourth and fifth went unnoticed.
+   *
+   * One token for the surface and the class of bug cannot recur.
+   */
+  --navy-bg: #050a30;
   --ink: #050a30;
   --ink-2: #4b4a46;
   --ink-muted: #6b6a68;
@@ -393,7 +407,7 @@ body:has(.screen) .utilbar {
 .tile--hero { justify-content: space-between; }
 
 .tile--navy {
-  background: var(--navy);
+  background: var(--navy-bg);
   box-shadow: none;
 }
 .tile--navy .tile__label { color: rgba(255, 255, 255, 0.66); }
@@ -526,7 +540,7 @@ body:has(.screen) .utilbar {
 .pill--ahead { background: var(--ahead-bg); color: var(--ahead-ink); }
 .pill--behind { background: var(--behind-bg); color: var(--behind-ink); }
 .pill--quiet { background: var(--track); color: var(--ink-2); }
-.pill--solid { background: var(--navy); color: #fff; }
+.pill--solid { background: var(--navy-bg); color: #fff; }
 .pill--accent { background: var(--accent); color: #fff; }
 
 /* --------------------------------------------------------------- bar lists */
@@ -873,7 +887,7 @@ body:has(.screen) .utilbar {
 /* The busiest suburb inverts and sits above its neighbours, so where two
    labels meet the one the room looks at first is the one on top. */
 .bmap__pin.is-lead {
-  background: var(--navy);
+  background: var(--navy-bg);
   color: #fff;
   z-index: 5;
   position: relative;
@@ -996,6 +1010,8 @@ body:has(.screen) .utilbar {
   --plane: #0d0d0d;
   --surface: #17171a;
   --navy: #f2f1ec;
+  /* Dark enough for white text, blue enough to still read as the navy panel. */
+  --navy-bg: #15224f;
   --ink: #f2f1ec;
   --ink-2: #c3c2b7;
   --ink-muted: #8d8b85;
@@ -1013,8 +1029,6 @@ body:has(.screen) .utilbar {
 }
 
 .screen--dark .tile { box-shadow: none; border: 1px solid var(--hairline); }
-.screen--dark .tile--navy { background: #15224f; }
-.screen--dark .tile--navy .tile__value { color: #fff; }
 .screen--dark .screen__foot { background: #17171a; border-top: 1px solid var(--hairline); }
 .screen--dark .screen__tab.is-on { background: var(--ink); color: #0d0d0d; }
 .screen--dark .gauge__fill { stroke: #6f8fd6; }
@@ -1280,7 +1294,7 @@ body:has(.screen) .utilbar {
   gap: calc(2 * var(--u));
   padding: calc(1.1 * var(--u)) calc(1.6 * var(--u));
   border-radius: calc(1 * var(--u));
-  background: var(--navy);
+  background: var(--navy-bg);
   color: #fff;
 }
 .year__none { grid-column: 1 / -1; font-size: calc(1.1 * var(--u)); color: rgba(255, 255, 255, 0.78); }
@@ -1498,7 +1512,7 @@ body:has(.screen) .utilbar {
   width: calc(9.9 * var(--u));
   height: calc(9.9 * var(--u));
   border-radius: 999px;
-  background: radial-gradient(circle at 36% 32%, #2b3a7a, var(--navy) 62%);
+  background: radial-gradient(circle at 36% 32%, #2b3a7a, var(--navy-bg) 62%);
   box-shadow: 0 calc(0.83 * var(--u)) calc(2.6 * var(--u)) rgba(0, 0, 0, 0.3);
   font-family: var(--font-display), Archivo, system-ui, sans-serif;
   font-weight: 900;
@@ -1578,7 +1592,7 @@ body:has(.screen) .utilbar {
 /* The angled navy slab beside the Sold figure. */
 .alert__slab {
   padding: calc(0.73 * var(--u)) calc(1.77 * var(--u));
-  background: var(--navy);
+  background: var(--navy-bg);
   color: #fff;
   font-size: calc(1.77 * var(--u));
   line-height: calc(2.19 * var(--u));
@@ -1600,7 +1614,7 @@ body:has(.screen) .utilbar {
   margin-top: calc(0.8 * var(--u));
   padding: calc(1.2 * var(--u)) calc(1.6 * var(--u));
   border-radius: calc(1 * var(--u));
-  background: var(--navy);
+  background: var(--navy-bg);
   color: #fff;
   animation: alert-up 0.5s 2.4s ease both;
 }
@@ -1637,7 +1651,7 @@ body:has(.screen) .utilbar {
   animation: alert-up 0.5s 1.7s ease both;
 }
 .alert--done .alert__chip { background: #facc15; color: var(--navy); }
-.alert--sold .alert__chip { background: var(--navy); color: #facc15; }
+.alert--sold .alert__chip { background: var(--navy-bg); color: #facc15; }
 
 .alert__note {
   margin-top: calc(0.52 * var(--u));
