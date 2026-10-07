@@ -79,16 +79,34 @@ function context(): AudioContext | null {
 }
 
 /**
- * Ask the browser whether it would let us make a noise.
+ * Ask the browser whether it would let us make a noise, by trying.
  *
- * A context opened without a user gesture comes up `suspended` where autoplay
- * is blocked and `running` where it isn't, so this answers the question before
- * a sale rather than after one — which matters, because the first sale is
- * exactly the moment nobody wants to be debugging this.
+ * This used to read `AudioContext.state === "suspended"` and call that blocked,
+ * which was wrong and silenced the board: a browser opens an AudioContext
+ * suspended at page load *whatever* its autoplay policy says, so a wall display
+ * that could play perfectly well reported itself mute — and `cheer` believed it
+ * and stopped trying. The symptom was the one thing worse than the bug it was
+ * meant to warn about: no sound at all, where there had been a fallback.
+ *
+ * So it plays the real file at zero volume and pauses it. Volume is not the
+ * `muted` attribute, which is the one autoplay policies treat specially, so
+ * this is subject to exactly the rules a real alert will meet. Nothing is
+ * audible and the file is in cache afterwards, ready for the first sale.
  */
 export function checkAudio(): void {
-  const c = context();
-  announce(!!c && c.state === "suspended");
+  try {
+    const probe = new Audio(FILES.sold);
+    probe.volume = 0;
+    void probe
+      .play()
+      .then(() => {
+        probe.pause();
+        announce(false);
+      })
+      .catch(() => announce(true));
+  } catch {
+    announce(true);
+  }
 }
 
 /**
@@ -102,11 +120,10 @@ export function checkAudio(): void {
  */
 export function primeAudio(): void {
   const c = context();
-  if (!c) return;
-  void c
-    .resume()
-    .then(() => announce(c.state === "suspended"))
-    .catch(() => announce(true));
+  // Resume the synth context, which a gesture does allow, and then ask the
+  // question the way checkAudio asks it — by trying to play the real thing.
+  if (c) void c.resume().catch(() => {});
+  checkAudio();
 }
 
 /** Each note a step up from the last, fading as the next starts. */
@@ -129,14 +146,19 @@ function fanfare(c: AudioContext, kind: CheerKind) {
 /** Make the noise. Never throws, and never keeps the caller waiting. */
 export function cheer(kind: CheerKind): void {
   const c = context();
-  if (c && c.state === "suspended") {
-    // Still locked. Say so rather than failing quietly, and don't bother trying.
-    announce(true);
-    return;
-  }
+  /*
+   * Always try. There is no reliable way to ask a browser in advance whether it
+   * will play a sound — the thing that looks like one, a suspended
+   * AudioContext, is suspended at page load either way — and guessing wrong in
+   * the cautious direction means the board goes quiet on a real sale for a
+   * policy that was not actually stopping it.
+   */
   const fallback = () => {
     if (!c) return announce(true);
     try {
+      // A suspended context plays nothing, so ask for it back first; a gesture
+      // may have arrived since the page loaded.
+      void c.resume().catch(() => {});
       fanfare(c, kind);
       announce(false);
     } catch {
