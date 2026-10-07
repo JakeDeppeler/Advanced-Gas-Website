@@ -159,16 +159,16 @@ export function Alert({ alert, onDone }: { alert: BoardAlert; onDone: () => void
   }, [alert.id, hold, onDone]);
 
   /*
-   * A sale makes a noise; a quote and a finished job do not.
+   * A quote and a sale make a noise; a finished job does not.
    *
-   * The office asked for the sold one, and that restraint is the point: a board
-   * that chimes at every event is a board somebody turns the speakers off on,
-   * and then the sale makes no noise either. Keyed on the alert's id so a
-   * re-render inside the hold does not play it twice.
+   * The restraint is the point: a board that chimes at every event is a board
+   * somebody turns the speakers off on, and then the sale makes no noise
+   * either. Keyed on the alert's id so a re-render inside the hold does not
+   * play it twice.
    */
   useEffect(() => {
-    if (alert.kind !== "sold") return;
-    cheer();
+    if (alert.kind !== "sold" && alert.kind !== "quote") return;
+    cheer(alert.kind);
   }, [alert.id, alert.kind]);
 
   const head = alert.kind === "quote" ? "New quote" : alert.kind === "done" ? "Time to bill" : "SOLD!";

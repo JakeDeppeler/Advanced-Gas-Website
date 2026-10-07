@@ -1,23 +1,43 @@
 /**
- * The noise a sale makes, and whether this screen is allowed to make it.
+ * The noise good news makes, and whether this screen is allowed to make it.
  *
- * Plays `/sounds/sold.mp3` if that file is there, and a short synthesised
- * fanfare if it isn't — so the board makes a noise the day this ships, and
- * whatever clip the office would rather hear is a matter of dropping a file in
- * `public/sounds/` with no code change.
+ * One file per kind, so a quote and a sale can have different voices without
+ * touching any of this. A finished job stays silent, and that restraint is the
+ * point: a board that chimes at every event is a board somebody turns the
+ * speakers off on, and then the sale makes no noise either.
  *
  * **A browser will not play audio on a page nobody has clicked**, and nobody
  * ever clicks a wall display. That is the whole difficulty: the board would go
  * silent for a reason it had no way to show. So two things live here besides
  * the sound — a way to unlock audio from any keypress the television's remote
- * sends, and a flag the footer can read to say "sound off" when it is still
- * blocked. A feature that fails invisibly is a feature nobody can fix.
+ * sends, and a flag the footer reads to say "sound off" while it is blocked. A
+ * feature that fails invisibly is a feature nobody can fix.
  */
 
-const FILE = "/sounds/sold.mp3";
+const FILES = {
+  quote: "/sounds/quote.mp3",
+  sold: "/sounds/sold.mp3",
+} as const;
+
+export type CheerKind = keyof typeof FILES;
 
 /** Loud enough across a workshop, short of startling somebody at the next desk. */
 const VOLUME = 0.7;
+
+/**
+ * What each kind sounds like with no file behind it.
+ *
+ * Deliberately not an impression of anything: these stand in for whatever the
+ * office puts in `public/sounds/`, and a synthesised arpeggio is one thing
+ * nobody owns. A quote gets two notes and a sale three, so the two are told
+ * apart from across a room without looking up.
+ */
+const NOTES: Record<CheerKind, number[]> = {
+  // C5, G5 — a fifth, which asks a question rather than answering one.
+  quote: [523.25, 783.99],
+  // C5, E5, G5 — a major triad, which reads as "good news" to nearly everyone.
+  sold: [523.25, 659.25, 783.99],
+};
 
 type Ctor = typeof AudioContext;
 const ctxCtor = (): Ctor | undefined =>
@@ -61,10 +81,10 @@ function context(): AudioContext | null {
 /**
  * Ask the browser whether it would let us make a noise.
  *
- * A context opened without a user gesture comes up `suspended` where autoplay is
- * blocked and `running` where it isn't, so this answers the question before a
- * sale rather than after one — which matters, because the first sale is exactly
- * the moment nobody wants to be debugging this.
+ * A context opened without a user gesture comes up `suspended` where autoplay
+ * is blocked and `running` where it isn't, so this answers the question before
+ * a sale rather than after one — which matters, because the first sale is
+ * exactly the moment nobody wants to be debugging this.
  */
 export function checkAudio(): void {
   const c = context();
@@ -76,9 +96,9 @@ export function checkAudio(): void {
  *
  * One gesture is all a browser wants, and a television remote sends a keydown
  * for every button on it, so pressing anything at all while the board is up
- * turns the sound on until the page reloads. It is not a substitute for
+ * turns the sound on until the page reloads. Not a substitute for
  * `--autoplay-policy=no-user-gesture-required` on a kiosk that reloads itself,
- * but it is the difference between "no sound" and "press any key".
+ * but the difference between "no sound" and "press any key".
  */
 export function primeAudio(): void {
   const c = context();
@@ -89,16 +109,9 @@ export function primeAudio(): void {
     .catch(() => announce(true));
 }
 
-/**
- * Three notes up, a second apart, each fading as the next starts.
- *
- * Deliberately not an impression of anything: it is a placeholder for whatever
- * the office puts in `public/sounds/sold.mp3`, and a synthesised arpeggio is
- * one thing nobody owns.
- */
-function fanfare(c: AudioContext) {
-  // C5, E5, G5 — a major triad, which reads as "good news" to nearly everyone.
-  [523.25, 659.25, 783.99].forEach((hz, i) => {
+/** Each note a step up from the last, fading as the next starts. */
+function fanfare(c: AudioContext, kind: CheerKind) {
+  NOTES[kind].forEach((hz, i) => {
     const at = c.currentTime + i * 0.12;
     const osc = c.createOscillator();
     const gain = c.createGain();
@@ -114,40 +127,32 @@ function fanfare(c: AudioContext) {
 }
 
 /** Make the noise. Never throws, and never keeps the caller waiting. */
-export function cheer(): void {
+export function cheer(kind: CheerKind): void {
   const c = context();
   if (c && c.state === "suspended") {
     // Still locked. Say so rather than failing quietly, and don't bother trying.
     announce(true);
     return;
   }
+  const fallback = () => {
+    if (!c) return announce(true);
+    try {
+      fanfare(c, kind);
+      announce(false);
+    } catch {
+      announce(true);
+    }
+  };
   try {
-    const audio = new Audio(FILE);
+    const audio = new Audio(FILES[kind]);
     audio.volume = VOLUME;
     void audio
       .play()
       .then(() => announce(false))
       // A missing file rejects the same way a blocked autoplay does, so the
-      // fanfare covers both and the board is never silent for want of an asset.
-      .catch(() => {
-        if (!c) return announce(true);
-        try {
-          fanfare(c);
-          announce(false);
-        } catch {
-          announce(true);
-        }
-      });
+      // notes cover both and the board is never silent for want of an asset.
+      .catch(fallback);
   } catch {
-    if (c) {
-      try {
-        fanfare(c);
-        announce(false);
-        return;
-      } catch {
-        // fall through
-      }
-    }
-    announce(true);
+    fallback();
   }
 }
