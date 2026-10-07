@@ -92,7 +92,7 @@ export function SideNav({ tabs, small: initialSmall, search, foot, todo }: {
   const query = useSearchParams() ?? new URLSearchParams();
   const active = activeHref(tabs, path, new URLSearchParams(query.toString()));
   const home = path === "/portal";
-  const onTodo = path === "/portal/todo" || path === "/portal/keep-in-touch";
+  const onTodo = path === "/portal/todo" || path === "/portal/keep-in-touch" || path === "/portal/plans";
   // A tab's own page (/portal/section/run) belongs to that tab.
   const sectionKey = path.startsWith("/portal/section/") ? path.split("/")[3] ?? null : null;
   const activeTab = sectionKey ?? tabs.find((t) => t.pages.some((p) => p.href === active))?.key ?? null;

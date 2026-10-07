@@ -55,7 +55,6 @@ type Shared = {
   all: boolean;
   meId: string | null;
   today: string;
-  friday: string;
 };
 
 /**
@@ -144,12 +143,15 @@ function Item({ t, showWho }: { t: Todo; showWho?: boolean }) {
 
 /* --------------------------------------------------- a person's column */
 function Column({ p, wide }: { p: Person; wide?: boolean }) {
-  const { run, pending, openOf, all, meId, today, friday } = useContext(Ctx);
+  const { run, pending, openOf, all, meId, today } = useContext(Ctx);
   const list = openOf(p.id);
   const late = list.filter((t) => dueState(t, today) === "overdue").length;
   const dueToday = list.filter((t) => dueState(t, today) === "today").length;
+  // Today is what's due today and anything past its day; the rest is under it.
+  const now = list.filter((t) => ["overdue", "today"].includes(dueState(t, today)));
+  const later = list.filter((t) => !["overdue", "today"].includes(dueState(t, today)));
   const [q, setQ] = useState("");
-  const [qDue, setQDue] = useState(friday);
+  const [qDue, setQDue] = useState(today);
   const mine = p.id === meId;
   return (
     <section className={`pt-todo__col${late ? " has-late" : ""}${wide ? " is-wide" : ""}`} aria-labelledby={`col-${p.id}`}>
@@ -158,13 +160,19 @@ function Column({ p, wide }: { p: Person; wide?: boolean }) {
         <span className="pt-todo__counts">
           {late > 0 && <span className="pt-todo__late"><Flag /> {late} overdue</span>}
           {dueToday > 0 && <span className="pt-todo__today">{dueToday} today</span>}
-          <span>{list.length} open</span>
+          <span>{now.length} today{later.length ? ` · ${later.length} coming up` : ""}</span>
         </span>
       </header>
-      {list.length ? (
-        <ul className="pt-todo__list">{list.map((t) => <Item key={t.id} t={t} />)}</ul>
+      {now.length ? (
+        <ul className="pt-todo__list">{now.map((t) => <Item key={t.id} t={t} />)}</ul>
       ) : (
-        <p className="pt-todo__empty">Nothing on {mine ? "your" : `${firstName(p.name)}'s`} list.</p>
+        <p className="pt-todo__empty">Nothing for {mine ? "you" : firstName(p.name)} today.</p>
+      )}
+      {later.length > 0 && (
+        <>
+          <h4 className="pt-todo__later">Coming up · {later.length}</h4>
+          <ul className="pt-todo__list is-later">{later.map((t) => <Item key={t.id} t={t} />)}</ul>
+        </>
       )}
       {(all || mine) && (
         <form
@@ -195,7 +203,6 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const [ticked, setTicked] = useState<Record<string, boolean>>({});
 
   const name = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
-  const friday = quickDays(today)[2].iso;
 
   const run = (fn: () => Promise<TodoResult>, ok?: string, after?: () => void) =>
     start(async () => {
@@ -221,7 +228,7 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   /* ------------------------------------------------------------ add form */
   const [title, setTitle] = useState("");
   const [forId, setForId] = useState(meId ?? officePeople[0]?.id ?? "");
-  const [due, setDue] = useState(friday);
+  const [due, setDue] = useState(today);
   const [notes, setNotes] = useState("");
   const [withNotes, setWithNotes] = useState(false);
   const submit = (e: React.FormEvent) => {
@@ -237,13 +244,13 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
   const crewWith = crew.filter((p) => openOf(p.id).length > 0);
   const [officePick, setOfficePick] = useState<string[]>(office);
 
-  const shared: Shared = { run, pending, ticked, tick, name, people, openOf, all, meId, today, friday };
+  const shared: Shared = { run, pending, ticked, tick, name, people, openOf, all, meId, today };
 
   return (
     <Ctx.Provider value={shared}>
     <div className="pt-todo">
       <section className="pt-panel pt-todo__add" aria-labelledby="todo-add-h">
-        <h2 id="todo-add-h" className="pt-panel__h">{all ? "Give someone a to-do" : "Add a to-do"}</h2>
+        <h2 id="todo-add-h" className="pt-panel__h">{all ? "Give someone something to do" : "Add a to-do"}</h2>
         <form onSubmit={submit} className={`pt-todo__form${all ? "" : " is-solo"}`}>
           <label className="pt-field pt-todo__what"><span>What needs doing</span>
             <input id="todo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ring the Smiths back about the ducted quote" maxLength={300} required />
