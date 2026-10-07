@@ -741,3 +741,99 @@ export async function getOverdueInvoices(): Promise<OverdueInvoice[] | null> {
   if (!integ?.tenantId || !integ.refreshToken) return null;
   return sharedOverdue(integ.tenantId).catch(() => null);
 }
+
+/* -------- What was invoiced, and billed to us, in a period -------- */
+
+export type PeriodInvoice = { number: string; contact: string; date: string; total: number; paid: number; due: number; overdue: boolean };
+export type PeriodInvoices = {
+  count: number;
+  /** Including GST — these are the invoices, not the P&L. */
+  total: number;
+  paid: number;
+  due: number;
+  /** Of what's due, the part already past its due date. */
+  overdue: number;
+  /** Biggest first. */
+  top: PeriodInvoice[];
+  /** Totals by who it was to or from, biggest first. */
+  byContact: Array<{ contact: string; total: number; due: number; count: number }>;
+};
+
+const xeroDate = (raw: string | undefined): string => {
+  if (!raw) return "";
+  const ms = raw.startsWith("/Date(") ? Number(raw.slice(6, raw.search(/[+)]/))) : Date.parse(raw);
+  return Number.isFinite(ms) ? new Date(ms).toISOString().slice(0, 10) : "";
+};
+const dt = (iso: string) => { const [y, m, d] = iso.split("-").map(Number); return `DateTime(${y},${m},${d})`; };
+
+/**
+ * Sales invoices (ACCREC) or supplier bills (ACCPAY) dated within a span,
+ * authorised or paid — what the books say was invoiced, and how much of it
+ * has come in. The P&L says what was earned; this says whether it was paid,
+ * which is the difference between a bad month and a month still owed.
+ *
+ * Shared for five minutes like the reports. Thrown rather than cached on a
+ * failure, so one 429 can't hold a page empty.
+ */
+const sharedPeriodInvoices = unstable_cache(
+  async (tenantId: string, type: "ACCREC" | "ACCPAY", fromDate: string, toDate: string): Promise<PeriodInvoices> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const today = isoDate(localToday());
+    const all: Array<{ InvoiceNumber?: string; Contact?: { Name?: string }; Total?: number; AmountPaid?: number; AmountDue?: number; DateString?: string; Date?: string; DueDateString?: string; DueDate?: string }> = [];
+    for (let page = 1; page <= 5; page++) {
+      const url = new URL(`${API_BASE}/Invoices`);
+      url.searchParams.set("where", `Type=="${type}"&&Date>=${dt(fromDate)}&&Date<=${dt(toDate)}`);
+      url.searchParams.set("Statuses", "AUTHORISED,PAID");
+      url.searchParams.set("summaryOnly", "true");
+      url.searchParams.set("pageSize", "1000");
+      url.searchParams.set("page", String(page));
+      const res = await withSlot(() => fetch(url, {
+        headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      }));
+      if (!res.ok) throw new Error(`xero ${res.status}`);
+      const json = (await res.json()) as { Invoices?: typeof all };
+      const got = json.Invoices ?? [];
+      all.push(...got);
+      if (got.length < 1000) break;
+    }
+    const rows: PeriodInvoice[] = all.map((i) => {
+      const due = Number(i.AmountDue ?? 0);
+      const dueOn = xeroDate(i.DueDateString ?? i.DueDate);
+      return {
+        number: i.InvoiceNumber ?? "",
+        contact: i.Contact?.Name ?? "—",
+        date: xeroDate(i.DateString ?? i.Date),
+        total: Number(i.Total ?? 0),
+        paid: Number(i.AmountPaid ?? 0),
+        due,
+        overdue: due > 0 && !!dueOn && dueOn < today,
+      };
+    });
+    const byContact = new Map<string, { contact: string; total: number; due: number; count: number }>();
+    for (const r of rows) {
+      const c = byContact.get(r.contact) ?? { contact: r.contact, total: 0, due: 0, count: 0 };
+      c.total += r.total; c.due += r.due; c.count += 1;
+      byContact.set(r.contact, c);
+    }
+    return {
+      count: rows.length,
+      total: rows.reduce((a, r) => a + r.total, 0),
+      paid: rows.reduce((a, r) => a + r.paid, 0),
+      due: rows.reduce((a, r) => a + r.due, 0),
+      overdue: rows.filter((r) => r.overdue).reduce((a, r) => a + r.due, 0),
+      top: [...rows].sort((a, b) => b.total - a.total).slice(0, 8),
+      byContact: [...byContact.values()].sort((a, b) => b.total - a.total).slice(0, 8),
+    };
+  },
+  ["xero-period-invoices"],
+  { revalidate: 300, tags: ["xero-reports"] },
+);
+
+/** Null when Xero isn't connected or didn't answer — never an empty period standing in for one. */
+export async function getPeriodInvoices(type: "ACCREC" | "ACCPAY", fromDate: string, toDate: string): Promise<PeriodInvoices | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedPeriodInvoices(integ.tenantId, type, fromDate, toDate).catch(() => null);
+}
