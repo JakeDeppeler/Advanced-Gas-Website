@@ -4586,3 +4586,35 @@ a.pt-fig:hover { transform: translateY(-2px); }
   .pt-kit__row.is-overdue { margin-left: -10px; padding-left: 7px; }
   .pt-kit__bar > .pt-btn { margin-left: 0; }
 }
+
+/* ---------------------------------------------------- pairing a screen */
+/* The code gets read off this page and typed on a television remote across the
+   room, so it is set at the size of a heading rather than of a form field, and
+   the host sits in front of it so the whole thing reads as one address. */
+.pt-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  padding: 18px 20px;
+  margin: 0 0 18px;
+  border: 1px solid var(--pt-line, #e6e2d8);
+  border-radius: 14px;
+  background: var(--pt-surface, #fff);
+}
+.pt-pair__say { flex: 1 1 320px; min-width: 0; }
+.pt-pair__say strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+.pt-pair__say p { margin: 0; font-size: 0.9rem; color: var(--pt-ink-2, #5b5a55); max-width: 62ch; }
+.pt-pair__say code { font-family: var(--font-mono, monospace); font-size: 0.86em; }
+.pt-pair__code {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-mono, monospace);
+  white-space: nowrap;
+}
+.pt-pair__host { font-size: 0.95rem; color: var(--pt-ink-2, #5b5a55); }
+.pt-pair__code b { font-size: 1.6rem; font-weight: 800; letter-spacing: 0.04em; color: var(--pt-navy, #050a30); }
+.pt-pair__code--none { font-family: inherit; font-size: 0.9rem; color: #8f342a; white-space: normal; }

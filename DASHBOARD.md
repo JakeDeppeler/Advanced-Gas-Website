@@ -614,7 +614,25 @@ the last stopped. Re-run until every resource reports `exhausted: true`.
 
 ### 6. Point the TV at it
 
-Once, on the panel itself:
+Open the portal's **Wall board** page. It shows a pairing code:
+
+```
+advancedgas.com.au/tv/K7M2-QX8P
+```
+
+Type that on the television once. The code is spent, the real token goes into an
+httpOnly cookie, and the browser lands on `/tv` — which is the address from then
+on.
+
+**A short code is only safe because of three bounds together**: eight characters
+from an alphabet of 32 is 2^40, it dies fifteen minutes after it is made, and it
+works exactly once. Remove any one of those and it is a weak password. The
+alphabet drops I, O, 0 and 1, which cost more in mistyped codes than four extra
+letters buy in entropy, and `scripts/check-pairing.ts` holds all of it — including
+a draw test, because a generator that quietly stopped being random would pass
+every other check while emitting the same letter over and over.
+
+The long form still works for a browser you can paste into:
 
 ```
 https://www.advancedgas.com.au/tv?k=<SCREEN_TOKEN>

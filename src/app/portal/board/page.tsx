@@ -10,6 +10,7 @@ import { latestSnapshot, type Metrics } from "@/lib/dashboard/metrics";
 import { money, pct } from "@/lib/portal/format";
 import { LiveAge, RefreshEvery } from "@/components/portal/LiveAge";
 import { Locked } from "@/components/portal/Locked";
+import { currentPairing, prettyCode } from "@/lib/board/pairing";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Wall board — Team portal" };
@@ -116,6 +117,10 @@ export default async function BoardPage() {
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="The wall board" forWhom="managers" />;
 
+  // The code to type on the panel. Null when the settings store is unreachable,
+  // which the card says rather than showing a code that cannot be redeemed.
+  const pairing = dashboardDbConfigured() ? await currentPairing().catch(() => null) : null;
+
   const snap = dashboardDbConfigured() ? await latestSnapshot().catch(() => null) : null;
   const m = snap?.metrics ?? null;
   const st = Boolean(snap && snap.sources.servicetitan?.state !== "not-configured");
@@ -147,10 +152,29 @@ export default async function BoardPage() {
           </p>
         </div>
         <div className="pt-vhead__acts">
-          <a href="/portal/finance/board/open" target="_blank" rel="noreferrer" className="pt-btn pt-btn--orange">Open the live board ↗</a>
+          <a href="/portal/finance/board/open" target="_blank" rel="noreferrer" className="pt-btn pt-btn--ghost">Open it here ↗</a>
           <Link href="/portal/goal" className="pt-btn pt-btn--ghost">Year goal</Link>
           <Link href="/portal/finance/board" className="pt-btn pt-btn--ghost">Commission &amp; calendar</Link>
         </div>
+      </div>
+
+      <div className="pt-pair">
+        <div className="pt-pair__say">
+          <strong>Put the board on a screen</strong>
+          <p>
+            Type this on the television once. It signs that screen in for a year and the address becomes{" "}
+            <code>advancedgas.com.au/tv</code> — nothing secret left on display. The code works once and dies in fifteen
+            minutes; this page makes a new one when it does.
+          </p>
+        </div>
+        {pairing ? (
+          <div className="pt-pair__code">
+            <span className="pt-pair__host">advancedgas.com.au/tv/</span>
+            <b>{prettyCode(pairing.code)}</b>
+          </div>
+        ) : (
+          <div className="pt-pair__code pt-pair__code--none">No code — the settings store is unreachable.</div>
+        )}
       </div>
 
       {!snap ? (
