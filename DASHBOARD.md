@@ -1456,6 +1456,52 @@ thousand of at a time, so they go through `sbSelect` like everything else. Page
 views are one row per path per day and the site has sixty-one paths being read:
 that read would have quietly stopped growing about seven weeks in.
 
+## The unbilled backlog, and the run rate that was reading it
+
+The To bill tile looked back a fortnight and said **39 jobs**. The year says
+**146**, the oldest finished 96 days ago, and 51 of them are more than sixty days
+old. That gap is not a tidy-up — it is most of why the year's revenue reads low.
+
+| Work done | Jobs finished | Billed | Not billed |
+|---|---|---|---|
+| July | 156 | 123 | 33 |
+| August | 150 | 99 | 51 |
+| September | 110 | 53 | **57** |
+
+Over half of September's completed work has nothing billed against it. The job
+count has barely moved — 150 to 157 a month — and the average value of a *billed*
+job has been flat all year ($1,515 in May, $1,336 in September). The work is
+getting done and it is not getting invoiced.
+
+Two things follow.
+
+**The list is the year, oldest first.** A fortnight showed the tidy-up and hid
+the backlog. The year is the boundary rather than all time, because the replica
+holds 462 unbilled jobs going back through the import and a job from the old
+system is not work anybody is going to invoice this week. Quote visits and site
+assessments come out — 21 of the year's 167 — because finished work that was
+never going to be invoiced is not a backlog anybody can clear. The rows show
+days waited, not a weekday and a time: a job completed on 2 July rendered as
+"Thu 9:33 am", which reads as last Thursday.
+
+**The run rate is the year's own average day, not the last 28.** The last four
+weeks are always the least-billed four weeks — a job is billed days after it is
+finished and only counts once its status reads Completed — so the 28-day window
+measured the billing backlog and called it a forecast.
+
+| Basis | Per day | Lands at |
+|---|---|---|
+| Last 28 days (what it was) | $3,141 | **$1.23M** |
+| Year to date (what it is) | $4,036 | **$1.47M** |
+| Last year, for scale | — | $1.82M |
+
+It is not immune to the same lag — nothing measured off billing can be while 146
+jobs are unbilled — but it dilutes one slow month across the year instead of
+letting it set the forecast. `scripts/check-pace.ts` pins it: move the 28-day
+window from $104K to $10K and the landing must not change. Against the old
+formula those assertions fail at $1.53M and $627K, which is what made them worth
+writing.
+
 ## Time on the tools, and the margin that isn't there
 
 The Performance page carries **Time on the tools**: hours the quote allowed
@@ -1494,12 +1540,20 @@ Widening the window costs nothing in honesty, because there was nothing to lose:
 only started carrying a materials cost and clocked hours recently, so the windows
 go:
 
+**It is a rolling thirty days**, because prices changed and a margin is only
+worth reading at the prices being charged now. That costs nothing today:
+ServiceTitan began carrying a materials cost and clocked hours in **September
+2026** — before that, `items_cost > 0` and `sold_hours > 0` appear on zero
+invoices in every month back to January — so every costable job in the year
+falls inside the last thirty days. The window and the year are the same 56 jobs,
+the same $71,379, the same 21.07%. It matters from here on, not today.
+
 | Window | Jobs priced | Of those, costable | Costed revenue | Share of revenue |
 |---|---|---|---|---|
-| Month to date | 8 | 7 | $18,575 | 99% |
-| Last 90 days | 266 | 52 | $66,706 | 18% |
-| Financial year to date | 287 | 52 | $66,706 | 17.5% |
-| Last 12 months | 1,449 | 52 | $66,706 | 3.5% |
+| Month to date | 11 | 10 | $22,889 | — |
+| **Rolling 30 days** | **64** | **56** | **$71,379** | — |
+| Financial year to date | 291 | 56 | $71,379 | 18.7% |
+| Last 12 months | 1,449 | 56 | $71,379 | 3.5% |
 
 So the year picks up all fifty-two rather than the seven invoiced since the
 first, and going back further than the year would only add jobs that cannot be

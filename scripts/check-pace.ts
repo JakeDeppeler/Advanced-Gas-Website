@@ -114,6 +114,44 @@ ok(
 );
 ok(buildPace({ ...goal, year: 2026 }, none, data) === null, "last year's goal paces nothing");
 
+// ---- where the year lands at this rate
+/*
+ * The run rate is the year's own average day, not the last 28.
+ *
+ * It was the last 28 days, and that is the worst window to measure this
+ * business on: a job is billed days after it is finished and only counts once
+ * its status reads Completed, so the most recent four weeks are always the
+ * least-billed. With half of September's completed work carrying no invoice at
+ * all, the 28-day rate put the year on course for $1.23M against $1.82M last
+ * year, on a job count that had barely moved.
+ */
+// 1 Jul 2026 → 5 Oct 2026 is 96 days, and half of today has gone.
+const daysSoFar = 96 + 0.5;
+// 5 Oct 2026 → 30 Jun 2027 is 268 days, and half of today is left.
+const daysLeft = 268 + 0.5;
+ok(
+  near(v.yearView!.landing, 531636 + (531636 / daysSoFar) * daysLeft),
+  "the year lands at year-to-date plus its own average day ($2.01M)",
+  v.yearView?.landing,
+);
+/*
+ * The one that matters: move the 28-day window a long way and the forecast must
+ * not follow it. This is the regression the old formula would fail — with
+ * last28 at 104000 it landed at $1.53M, and at 10000 it would have landed at
+ * $627K, off the same year to date.
+ */
+const quiet = buildPace(goal, none, { ...data, year: { ...data.year!, last28: 10_000 } })!;
+ok(
+  quiet.yearView!.landing === v.yearView!.landing,
+  "a quiet four weeks does not move where the year lands",
+  { with104k: v.yearView?.landing, with10k: quiet.yearView?.landing },
+);
+ok(
+  near(buildPace(goal, none, { ...data, year: { ...data.year!, ytd: 265818 } })!.yearView!.landing,
+      265818 + (265818 / daysSoFar) * daysLeft),
+  "halve the year to date and the landing halves with it",
+);
+
 // ---- profit before GST, and the setting round trip
 const t = monthTargetsFromYearGoal({ ...goal, mix: [] }, "2026-10", { total: 22 }, 5);
 ok(near(t.profit, (3_200_000 / 12 / 1.1) * 0.2), "profit target is 20% of the month before GST ($48.5K)", t.profit);

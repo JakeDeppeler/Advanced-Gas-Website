@@ -14,7 +14,7 @@ import {
   workingDaysInMonth,
   type WorkingCalendar,
 } from "./dates";
-import { buildPace, shiftIso, type PaceData, type PaceSettings, type PaceView } from "./pace";
+import { buildPace, jobClass, shiftIso, type PaceData, type PaceSettings, type PaceView } from "./pace";
 import { computePaceData } from "./paceData";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
@@ -403,6 +403,10 @@ export type Metrics = {
     value: number | null;
   }>;
   toBillCount: number;
+  /** The backlog's shape, so a count of 146 can say how much of it is old. */
+  toBillAges?: { d0_14: number; d15_30: number; d31_60: number; d60plus: number };
+  /** How long the oldest unbilled job has been waiting. */
+  toBillOldestDays?: number | null;
 
   /**
    * Events worth taking the whole wall for, oldest first.
@@ -501,7 +505,19 @@ export type Metrics = {
   pace: PaceView | null;
   paceData: PaceData | null;
   paceSettings: PaceSettings | null;
-  /** Profit on the jobs invoiced this month, before GST. See jobProfit.ts. */
+  /**
+   * Profit on the jobs billed in the last 30 days, before GST. See jobProfit.ts.
+   *
+   * A rolling thirty days rather than the month or the year, because prices
+   * changed and a margin is only worth reading at the prices being charged now.
+   * It costs nothing today: ServiceTitan began recording a materials cost and
+   * clocked hours in September, so every costable job in the whole financial
+   * year — all 56 of them — falls inside the last thirty days anyway. The year
+   * and the last month are the same 56 jobs and the same 21.07%. The window
+   * matters from here on, as coverage builds up behind it.
+   */
+  jobProfitRecent?: ProfitSummary | null;
+  /** @deprecated Month-to-date; kept so an old snapshot still reads. */
   jobProfitMonth: ProfitSummary | null;
   /**
    * The same, over the year the Pace strip is about.
@@ -1085,8 +1101,22 @@ async function serviceTitanMetrics(now: Date) {
    * waiting, and a job finished on Friday afternoon is still unbilled on
    * Monday. The page shows today's at the top.
    */
-  const toBillFrom = shiftIso(today, -14);
-  const doneRecently = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; suburb: string | null; completed_on: string }>(
+  /*
+   * The whole financial year, not a fortnight.
+   *
+   * A fortnight said 39 jobs. The year says 146, the oldest finished 96 days
+   * ago, and 51 of them are more than sixty days old — which is the difference
+   * between a tidy-up and the reason the year's revenue reads low. Half of
+   * September's completed work has nothing billed against it at all, and a
+   * fourteen-day window is exactly the window that cannot show that.
+   *
+   * Oldest first, because that is the order they get chased in. The year is the
+   * boundary rather than all time: the replica holds 462 unbilled jobs going
+   * back through the import, and a job from the old system is not work the
+   * office is going to go and invoice this week.
+   */
+  const toBillFrom = yearSpans("financial", currentYear("financial", now))[0].from;
+  const doneThisYear = await sbSelect<{ id: number; job_number: string | null; job_type: string | null; suburb: string | null; completed_on: string }>(
     "st_jobs",
     [
       q.select("id,job_number,job_type,suburb,completed_on"),
@@ -1096,18 +1126,21 @@ async function serviceTitanMetrics(now: Date) {
       // billed. Without this the list sent the office chasing paperwork for
       // jobs that never happened.
       q.eq("status", "Completed"),
-      q.order("completed_on", "desc"),
-      "limit=400",
+      q.order("completed_on", "asc"),
     ].join("&"),
   ).catch(() => []);
 
-  const doneIds = doneRecently.map((j) => Number(j.id)).filter(Number.isFinite);
+  const doneIds = doneThisYear.map((j) => Number(j.id)).filter(Number.isFinite);
   // The invoice behind each, to find the ones still at zero.
   const billedTotalByJob = new Map<number, number>();
   // What the job was sold for, where it was sold before the visit at all.
   const soldValueByJob = new Map<number, number>();
-  if (doneIds.length) {
-    const ids = doneIds.slice(0, 400).join(",");
+  // Chunked rather than truncated. The year is 450-odd completed jobs where the
+  // fortnight was 40, and a `slice(0, 400)` here would have silently stopped
+  // looking for invoices partway down the list — every job past the cut would
+  // have read as unbilled.
+  for (let i = 0; i < doneIds.length; i += 200) {
+    const ids = doneIds.slice(i, i + 200).join(",");
     const [invs, sold] = await Promise.all([
       // The base table, not st_invoices_billed, and that is the point: this
       // asks which finished jobs are still sitting at a zero invoice, and the
@@ -1121,9 +1154,9 @@ async function serviceTitanMetrics(now: Date) {
         [q.select("job_id,total"), `job_id=in.(${ids})`, "sold_on=not.is.null"].join("&"),
       ).catch(() => []),
     ]);
-    for (const i of invs) {
-      if (i.job_id == null) continue;
-      billedTotalByJob.set(Number(i.job_id), (billedTotalByJob.get(Number(i.job_id)) ?? 0) + Number(i.total ?? 0));
+    for (const inv of invs) {
+      if (inv.job_id == null) continue;
+      billedTotalByJob.set(Number(inv.job_id), (billedTotalByJob.get(Number(inv.job_id)) ?? 0) + Number(inv.total ?? 0));
     }
     for (const e of sold) {
       if (e.job_id == null) continue;
@@ -1131,8 +1164,12 @@ async function serviceTitanMetrics(now: Date) {
     }
   }
 
-  const toBillAll = doneRecently
+  const toBillAll = doneThisYear
     .filter((j) => (billedTotalByJob.get(Number(j.id)) ?? 0) === 0)
+    // A quote visit and a site assessment are finished work that was never
+    // going to be invoiced. Twenty-one of the year's unbilled jobs are those,
+    // and a backlog that counts them is a backlog nobody can clear.
+    .filter((j) => jobClass(j.job_type) !== "quote")
     .map((j) => ({
       id: Number(j.id),
       jobNumber: j.job_number ? String(j.job_number) : null,
@@ -1143,7 +1180,17 @@ async function serviceTitanMetrics(now: Date) {
     }));
   const toBillCount = toBillAll.length;
   const toBillValue = toBillAll.reduce((a, r) => a + (r.value ?? 0), 0);
+  // Oldest first: the read is ordered ascending, so the head of the list is the
+  // job that has been waiting longest.
   const toBill = toBillAll.slice(0, 6);
+  const daysSince = (iso: string) => Math.floor((Date.parse(`${today}T00:00:00Z`) - Date.parse(iso)) / 86_400_000);
+  const toBillAges = {
+    d0_14: toBillAll.filter((r) => daysSince(r.at) <= 14).length,
+    d15_30: toBillAll.filter((r) => daysSince(r.at) > 14 && daysSince(r.at) <= 30).length,
+    d31_60: toBillAll.filter((r) => daysSince(r.at) > 30 && daysSince(r.at) <= 60).length,
+    d60plus: toBillAll.filter((r) => daysSince(r.at) > 60).length,
+  };
+  const toBillOldestDays = toBillAll.length ? Math.max(0, daysSince(toBillAll[0].at)) : null;
 
   /**
    * What today's bookings actually are.
@@ -1866,6 +1913,8 @@ async function serviceTitanMetrics(now: Date) {
     alertEvents,
     toBill,
     toBillCount,
+    toBillAges,
+    toBillOldestDays,
     toBillValue,
     soldMtd,
     soldToday,
@@ -2081,6 +2130,8 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       alertEvents: [],
       toBill: prev?.toBill ?? [],
       toBillCount: prev?.toBillCount ?? 0,
+      toBillAges: prev?.toBillAges ?? { d0_14: 0, d15_30: 0, d31_60: 0, d60plus: 0 },
+      toBillOldestDays: prev?.toBillOldestDays ?? null,
       toBillValue: prev?.toBillValue ?? 0,
       paymentsToday: prev?.paymentsToday ?? null,
       jobsInvoicedTodayEarlier: prev?.jobsInvoicedTodayEarlier ?? 0,
@@ -2257,12 +2308,17 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
     crew == null
       ? null
       : (await jobProfits(from, isoDateMelbourne(now), crew.costPerHr, goal?.profitPct ?? null)).summary;
-  const jobProfitMonth = await profitOver(isoDateMelbourne(startOfMonthMelbourne(now)))
-    .catch(() => previous?.metrics.jobProfitMonth ?? null);
-  // The same span the strip's revenue figure covers, so the margin beside it is
-  // a margin on that money and not on some other month's.
-  const jobProfitYear = await profitOver(paceFrom)
-    .catch(() => previous?.metrics.jobProfitYear ?? null);
+  /*
+   * One window, thirty rolling days.
+   *
+   * Three windows were three reads of the same invoices for three figures the
+   * data cannot yet tell apart: every costable job in the year falls inside the
+   * last thirty days, because ServiceTitan only began carrying a materials cost
+   * and clocked hours in September. Month-to-date was the one that differed,
+   * and only by being smaller — ten jobs against fifty-six.
+   */
+  const jobProfitRecent = await profitOver(isoDateMelbourne(new Date(now.getTime() - 30 * 86_400_000)))
+    .catch(() => previous?.metrics.jobProfitRecent ?? null);
   const journals = await journalHealth(now).catch(() => previous?.metrics.journals ?? null);
 
   return {
@@ -2309,8 +2365,11 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       pace,
       paceData,
       paceSettings,
-      jobProfitMonth,
-      jobProfitYear,
+      jobProfitRecent,
+      // Carried, not recomputed: the board reads jobProfitRecent now, and these
+      // only exist so a snapshot written before it still renders.
+      jobProfitMonth: previous?.metrics.jobProfitMonth ?? null,
+      jobProfitYear: previous?.metrics.jobProfitYear ?? null,
       journals,
     },
     sources,
