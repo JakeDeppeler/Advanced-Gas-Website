@@ -426,6 +426,8 @@ export type Metrics = {
     who: string | null;
     /** Sold only: how many this person has closed this month, including this one. */
     nth: number | null;
+    /** Quote only: how many options were put in front of the customer. */
+    options?: number | null;
   }>;
   /** The part of the unbilled queue that was sold before the visit, so can be valued. */
   toBillValue: number;
@@ -1432,21 +1434,48 @@ async function serviceTitanMetrics(now: Date) {
           nth: who ? soldCountByPerson.get(who) ?? null : null,
         };
       }),
-    ...recentQuoteRows
-      .filter((r) => r.created_on)
-      .map((r) => {
-        const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
+    /*
+     * One alert per quote, not per option.
+     *
+     * ServiceTitan writes an estimate row for every option, so a job priced
+     * three ways fired three alerts back to back — the same quote, three times,
+     * each with a different number. The board counts quotes per job everywhere
+     * else (see quoteKey); the alert now agrees with it.
+     *
+     * The figure is the average of the options, for the reason the Quotes page
+     * averages them: good, better and best are alternatives and at most one of
+     * them sells, so the middle of what was put in front of the customer is the
+     * number that needs least defending.
+     */
+    ...(() => {
+      const byQuote = new Map<string, typeof recentQuoteRows>();
+      for (const r of recentQuoteRows) {
+        if (!r.created_on) continue;
+        const k = quoteKey(r);
+        const got = byQuote.get(k);
+        if (got) got.push(r);
+        else byQuote.set(k, [r]);
+      }
+      return [...byQuote.entries()].map(([k, rows]) => {
+        const first = rows[0];
+        const place = first.job_id != null ? alertPlace.get(Number(first.job_id)) : undefined;
+        const total = rows.reduce((a, r) => a + Number(r.total ?? 0), 0);
         return {
           kind: "quote" as const,
-          id: `quote-${r.id}`,
-          at: String(r.created_on),
-          amount: Number(r.total ?? 0),
+          // Keyed on the quote rather than the option, so adding a fourth
+          // option later does not cheer the same quote again.
+          id: `quote-${k}`,
+          // The last option written: the quote was finished when it was.
+          at: rows.map((r) => String(r.created_on)).sort().slice(-1)[0],
+          amount: total / rows.length,
+          options: rows.length,
           jobType: place?.jobType ?? null,
           suburb: place?.suburb ?? null,
-          who: creditFor(r),
+          who: creditFor(first),
           nth: null,
         };
-      }),
+      });
+    })(),
     ...recentDoneRows
       .filter((r) => r.completed_on)
       .map((r) => ({

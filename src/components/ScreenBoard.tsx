@@ -1,12 +1,13 @@
 "use client";
 
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { suburbCoords } from "@/lib/suburbCoords";
 import { BoardSuburbMap } from "@/components/BoardSuburbMap";
 import type { Metrics, SourceState } from "@/lib/dashboard/metrics";
 import type { Step } from "@/lib/dashboard/pace";
 import { Gauge, MiniDial, ZONES, ZONE_BAND, ZONE_LABEL, paceIndex, verdictOf, verdictText, type Verdict } from "./screen/Gauge";
 import { Alert, previewAlert, type AlertKind } from "./screen/Alert";
+import { audioBlocked, audioBlockedOnServer, checkAudio, primeAudio, subscribeAudio } from "./screen/cheer";
 import { Ticker, TickerScope } from "./screen/Ticker";
 import { alertFrom } from "@/lib/dashboard/alertCopy";
 import { useBoardRemote } from "./screen/useBoardRemote";
@@ -182,6 +183,35 @@ export function ScreenBoard({
     return () => clearInterval(clock);
   }, []);
 
+  /*
+   * Let any button on the remote turn the sound on.
+   *
+   * A browser refuses to play audio on a page nobody has touched, and nobody
+   * ever touches a wall display — so the board asks once whether it is allowed,
+   * and takes the first keypress or tap as permission. A television remote
+   * sends a keydown for every button on it, so "press anything" is a real
+   * instruction somebody can follow from across the room.
+   *
+   * Not a substitute for --autoplay-policy on a kiosk that reloads itself. It
+   * is the difference between a board that is silent and a board that says why.
+   */
+  useEffect(() => {
+    checkAudio();
+    const unlock = () => primeAudio();
+    const opts = { passive: true } as const;
+    window.addEventListener("keydown", unlock, opts);
+    window.addEventListener("pointerdown", unlock, opts);
+    window.addEventListener("click", unlock, opts);
+    return () => {
+      window.removeEventListener("keydown", unlock);
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("click", unlock);
+    };
+  }, []);
+
+  // Whether this screen is allowed to make a noise, for the footer's marker.
+  const soundOff = useSyncExternalStore(subscribeAudio, audioBlocked, audioBlockedOnServer);
+
   /**
    * The rotation, which stops while the board is held.
    *
@@ -305,10 +335,25 @@ export function ScreenBoard({
   const fresh = Number.isFinite(ageMs) && ageMs < 2 * 60_000;
   const healthy = fresh && degraded.length === 0;
   const journalAlert = !!m.journals && m.journals.errors > 0;
+  /*
+   * An alert takes the whole wall, so the page underneath is put away rather
+   * than merely covered.
+   *
+   * It was merely covered, and on Areas the map came out on top of a sale —
+   * yellow everywhere and the suburbs drawn straight over it. Leaflet numbers
+   * its own panes from 400 and its controls at 1000, against the alert's 20, so
+   * the honest fix was a stacking context the map could not climb out of.
+   *
+   * That is in the stylesheet too, but it is not what this is. I could not
+   * reproduce the overlay outside the real page, and a fix for a cause you have
+   * not seen is a guess. Hiding the grid cannot fail whatever the cause: there
+   * is nothing left to paint over the top.
+   */
+  const alertUp = Boolean(shownPreview || celebrating);
 
   return (
     <div
-      className={`screen ${shownTheme === "dark" ? "screen--dark" : ""}`}
+      className={`screen ${shownTheme === "dark" ? "screen--dark" : ""}${alertUp ? " screen--alerting" : ""}`}
       style={{ "--page-ms": `${PAGE_MS}ms`, "--safe": safe } as CSSProperties}
     >
       {shownPreview ? (
@@ -477,6 +522,15 @@ export function ScreenBoard({
                 {ZONE_LABEL[z.k]} <em>{ZONE_BAND[z.k]}</em>
               </span>
             ))}
+          </span>
+        )}
+        {/* Said in words, not a crossed-out speaker: the board's rule is that a
+            colour or a glyph never carries a meaning on its own, and this one
+            has to be read from four metres by somebody who has never seen it
+            before. Gone the moment a button is pressed. */}
+        {soundOff && (
+          <span className="screen__mute" title="Press any button on the remote to allow sound">
+            <i aria-hidden>♪</i> Sound off · press any button
           </span>
         )}
         <span className="screen__right">

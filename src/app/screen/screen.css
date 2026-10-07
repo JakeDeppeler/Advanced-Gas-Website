@@ -261,6 +261,15 @@ body:has(.screen) .utilbar {
   padding: calc(1 * var(--u)) calc(2.2 * var(--u)) calc(1 * var(--u));
   min-height: 0;
   grid-auto-rows: minmax(0, 1fr);
+  /* A stacking context of its own, so nothing inside a tile can climb out over
+     an alert. Leaflet numbers its panes from 400 and its controls at 1000, and
+     the Areas map's own "not on the map" chip sits at 500 — none of which were
+     contained by anything, because `.heat` is positioned without a z-index and
+     so never started a context. A sale came up on the wall and the map drew
+     straight over the top of it. Position plus an explicit z-index is what
+     makes a container a container; `position: relative` alone does not. */
+  position: relative;
+  z-index: 0;
 }
 
 /* Each page wants its own vertical proportions. */
@@ -801,6 +810,9 @@ body:has(.screen) .utilbar {
 /* ---------------------------------------------------------------- heat map */
 .heat {
   position: relative;
+  /* Contains Leaflet's own stack — see .screen__grid. Belt as well as braces:
+     this one is the tile that actually holds a map. */
+  z-index: 0;
   flex: 1;
   min-height: 0;
   margin-top: calc(0.6 * var(--u));
@@ -1407,7 +1419,10 @@ body:has(.screen) .utilbar {
 .alert {
   position: absolute;
   inset: 0;
-  z-index: 20;
+  /* Above the grid, which is a stacking context at 0, and above anything a
+     tile might reasonably claim. The alert takes the whole wall or it is
+     worse than nothing. */
+  z-index: 40;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2037,3 +2052,26 @@ body:has(.screen) .utilbar {
    are plainly the same thing. The oldest bucket carries the weight. */
 .inv__backlog { margin-top: auto; padding-top: calc(0.5 * var(--u)); border-top: 1px solid var(--hairline); }
 .inv__backlog b { color: var(--behind-ink); font-weight: 800; }
+
+/* The board is not allowed to make a noise yet, said in words. A crossed-out
+   speaker alone would be a glyph carrying a meaning on its own, which this
+   board does not do — and this one has to be read from four metres by somebody
+   who has never seen it before. */
+.screen__mute {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.35 * var(--u));
+  color: var(--vd-close-ink, #a9731f);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.screen__mute i { font-style: normal; opacity: 0.8; }
+.screen--dark .screen__mute { color: #ffc46b; }
+
+/* An alert owns the wall. The page underneath is hidden rather than covered,
+   because covered is a claim about stacking order and the Areas map won that
+   argument — Leaflet's panes start at 400 against the alert's 20, and a sale
+   came up with the suburbs drawn over the top of it. `visibility` rather than
+   `display`, so the grid keeps its size and the tiles do not re-run their
+   entrance animation when the alert clears. */
+.screen--alerting .screen__grid { visibility: hidden; }
