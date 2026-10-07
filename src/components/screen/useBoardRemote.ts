@@ -7,12 +7,27 @@ import { normaliseRemote, type BoardPageName, type BoardRemote, type DemoKind } 
 const FAST_MS = 4_000;
 
 /**
+ * And how often the rest of the time.
+ *
+ * This used to be "not at all": the remote rode along with the figures every
+ * thirty seconds, and the four-second check only started once the board already
+ * knew somebody had the Remote page open — which it could only learn from the
+ * thirty-second read. So the *first* press after opening the remote took up to
+ * half a minute to reach the wall, which from the other end of an office is
+ * indistinguishable from a button that does nothing. It was reported as one.
+ *
+ * Eight seconds costs one row read, and it is the difference between a remote
+ * and a suggestion.
+ */
+const IDLE_MS = 8_000;
+
+/**
  * The portal's remote, as the board obeys it.
  *
- * The remote arrives with the figures every thirty seconds. While somebody has
- * the Remote page open (liveUntil) the board also checks it every few seconds,
- * so a press reaches the wall about as fast as it reaches the room — and the
- * rest of the day it costs nothing.
+ * The remote arrives with the figures every thirty seconds, and the board also
+ * reads it on its own — every eight seconds normally, every four while somebody
+ * has the Remote page open (liveUntil). So a press reaches the wall about as
+ * fast as it reaches the room, including the first one.
  *
  * Each press carries an id and is acted on once, so somebody at the TV can
  * still skip or hold after it. A board that loads while a page is held goes
@@ -35,7 +50,6 @@ export function useBoardRemote(
   const liveUntil = remote?.liveUntil ? Date.parse(remote.liveUntil) : 0;
   const live = liveUntil > Date.now();
   useEffect(() => {
-    if (!live) return;
     let cancelled = false;
     const check = async () => {
       try {
@@ -45,10 +59,13 @@ export function useBoardRemote(
         // The thirty-second read carries on regardless.
       }
     };
-    const t = setInterval(check, FAST_MS);
-    // Stop checking when the Remote page's window closes, without waiting for a poll to say so.
-    const stop = setTimeout(() => tick((n) => n + 1), Math.max(0, liveUntil - Date.now()) + 50);
-    return () => { cancelled = true; clearInterval(t); clearTimeout(stop); };
+    const t = setInterval(check, live ? FAST_MS : IDLE_MS);
+    // Drop back to the idle cadence when the Remote page's window closes,
+    // without waiting for a poll to say so.
+    const stop = live
+      ? setTimeout(() => tick((n) => n + 1), Math.max(0, liveUntil - Date.now()) + 50)
+      : undefined;
+    return () => { cancelled = true; clearInterval(t); if (stop) clearTimeout(stop); };
   }, [live, liveUntil, token]);
 
   // A page to show, once per press — or straight away on load if it's held.
