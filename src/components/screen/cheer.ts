@@ -24,17 +24,33 @@
  * every device. A new query string is a new URL, and a new URL has nothing
  * cached against it.
  */
-const V = "2";
+const V = "4";
 
-const FILES = {
-  quote: `/sounds/quote.mp3?v=${V}`,
-  sold: `/sounds/sold.mp3?v=${V}`,
-} as const;
+export type CheerKind = "quote" | "sold";
 
-export type CheerKind = keyof typeof FILES;
-
-/** Loud enough across a workshop, short of startling somebody at the next desk. */
-const VOLUME = 0.7;
+/**
+ * Each clip, and what measuring it showed.
+ *
+ * Decoded both and read the envelope rather than trusting that "it played"
+ * meant "it was heard". The sale's clip opened with **half a second of
+ * silence** and peaks at less than half the loudness of the quote's, which on a
+ * wall — a second after the alert wipes in — reads as a sound that did not
+ * happen. It was reported as one, twice.
+ *
+ * The silence is now cut out of the file itself, at the frame boundary, so no
+ * code has to know about it. Two routes to skipping it in the player were tried
+ * first and neither held up: `#t=0.45` is ignored on an Audio built in script,
+ * and a `currentTime` seek needs range requests the clip may not be served
+ * with. Both were checked rather than assumed, which is the only reason this
+ * isn't a fourth thing that looks right and is silent.
+ *
+ * `sold` still plays at full volume against the quote's 0.8: the recording is
+ * quieter and there is no amplifying it past 1 without re-encoding.
+ */
+const CLIPS: Record<CheerKind, { src: string; volume: number }> = {
+  quote: { src: `/sounds/quote.mp3?v=${V}`, volume: 0.8 },
+  sold: { src: `/sounds/sold.mp3?v=${V}`, volume: 1 },
+};
 
 /**
  * What each kind sounds like with no file behind it.
@@ -107,7 +123,7 @@ function context(): AudioContext | null {
  */
 export function checkAudio(): void {
   try {
-    const probe = new Audio(FILES.sold);
+    const probe = new Audio(CLIPS.sold.src);
     probe.volume = 0;
     void probe
       .play()
@@ -147,7 +163,7 @@ function fanfare(c: AudioContext, kind: CheerKind) {
     osc.type = "triangle";
     osc.frequency.value = hz;
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(VOLUME * 0.5, at + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.35, at + 0.02);
     gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.45);
     osc.connect(gain).connect(c.destination);
     osc.start(at);
@@ -178,8 +194,10 @@ export function cheer(kind: CheerKind): void {
     }
   };
   try {
-    const audio = new Audio(FILES[kind]);
-    audio.volume = VOLUME;
+    const clip = CLIPS[kind];
+    const audio = new Audio(clip.src);
+    audio.volume = clip.volume;
+
     void audio
       .play()
       .then(() => announce(false))
