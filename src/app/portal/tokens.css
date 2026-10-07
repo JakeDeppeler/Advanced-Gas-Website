@@ -42,7 +42,103 @@
   --pt-info: #0c6f96;
   --pt-info-bg: #e3f1f6;
   --pt-field: #d8d2c1;
+  /* Status, as a set of three — the words' colour, a soft fill behind them,
+     and a line round it — so each can turn over for dark mode in one place
+     rather than as forty hand-written colours. */
+  --pt-bad: #b23b2e;
+  --pt-bad-bg: #fbe9e6;
+  --pt-bad-line: #f0c3bd;
+  --pt-amber: #8a5a12;
+  --pt-amber-bg: #fbf1de;
+  --pt-amber-line: #f0e0c0;
+  --pt-good-soft: #e6f3ec;
+  --pt-good-line: #bfe2cd;
+  /* Green as a fill with white on it — a ticked box, a "done" chip. */
+  --pt-good-fill: #15803d;
+  --pt-info-soft: #e3f4fb;
   --pt-r: 22px;
   --pt-r-sm: 14px;
   --pt-shadow: 0 1px 2px rgba(11, 20, 80, 0.04), 0 8px 24px rgba(11, 20, 80, 0.05);
+}
+
+/* ==================================================================
+   Dark, for the office portal: the switch in the side bar's foot puts
+   data-theme="dark" on .pt and keeps it in a cookie, so the first paint is
+   already dark.
+
+   Navy plays two parts and they part company here. As ink (--pt-ink) it
+   turns pale, because it is text on what is now a dark page. As a surface
+   (--pt-navy, --pt-navy-2: the selected chip, the lead tile, the side bar's
+   current page) it stays a deep blue with white on it — a navy that turned
+   pale would take its white text with it, which the wall board learnt the
+   hard way. Everything that is a panel uses --pt-navy-2 for that reason,
+   never --pt-ink.
+   ================================================================== */
+.pt[data-theme="dark"] {
+  color-scheme: dark;
+  --pt-navy: #3b4bb0;
+  --pt-navy-2: #1d2766;
+  --pt-bg: #0f1218;
+  --pt-surface: #181c25;
+  --pt-line: #2b3141;
+  --pt-ink: #eceef6;
+  --pt-ink-2: #b5bacb;
+  --pt-ink-3: #b5bacb;
+  --pt-accent: #ff9a62;
+  --pt-accent-fill: #c2521a;
+  --pt-accent-deep: #7a300b;
+  --pt-accent-mark: #f36722;
+  --pt-accent-dark-bg: #ff9a62;
+  --pt-tint: #222838;
+  --pt-sky: #63c4ec;
+  --pt-good: #5fd08a;
+  --pt-good-bg: #15301f;
+  --pt-warn-bg: #3a2516;
+  --pt-warn-text: #ffb27a;
+  --pt-info: #6cc6ec;
+  --pt-info-bg: #12303d;
+  --pt-field: #3c4357;
+  --pt-bad: #ff8a7a;
+  --pt-bad-bg: #3a1d1a;
+  --pt-bad-line: #6b2f28;
+  --pt-amber: #f2c06b;
+  --pt-amber-bg: #33280f;
+  --pt-amber-line: #5c4a22;
+  --pt-good-soft: #15301f;
+  --pt-good-line: #2d5a3f;
+  --pt-good-fill: #23794a;
+  --pt-info-soft: #12303d;
+  --pt-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+/* The page behind the portal, so an overscroll doesn't flash cream. */
+html:has(.pt[data-theme="dark"]),
+html:has(.pt[data-theme="dark"]) body { background: #0f1218; }
+
+
+/* The van pieces the office portal borrows (.tr-embed on the requests, stock
+   and van pages), in the same dark: their own palette, turned over the same
+   way. The trade portal itself is untouched — --tr-surface only exists here,
+   and everywhere else falls back to white. */
+.pt[data-theme="dark"] .tr-embed {
+  --tr-navy: #1d2766;
+  --tr-navy-2: #3b4bb0;
+  --tr-ink: #eceef6;
+  --tr-ink-2: #b5bacb;
+  --tr-ink-3: #9aa0b4;
+  --tr-surface: #181c25;
+  --tr-cream: #0f1218;
+  --tr-line: #2b3141;
+  --tr-line-2: #343b4e;
+  --tr-orange-ink: #ff9a62;
+  --tr-orange-tint: #3a2516;
+  --tr-green: #5fd08a;
+  --tr-green-tint: #15301f;
+  --tr-blue: #6cc6ec;
+  --tr-blue-tint: #12303d;
+  --tr-red: #ff8a7a;
+  --tr-red-tint: #3a1d1a;
+  --tr-grey-tint: #222838;
+  --tr-sand-tint: #2a2618;
+  --tr-sand: #d9c79a;
+  --tr-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.28);
 }

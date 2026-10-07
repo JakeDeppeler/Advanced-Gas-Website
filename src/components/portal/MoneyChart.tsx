@@ -79,7 +79,7 @@ export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLa
             const val = yMax * (1 - g);
             return (
               <g key={g}>
-                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="#e4e8f0" strokeWidth="1" vectorEffect="non-scaling-stroke" />
+                <line x1={padL} y1={yy} x2={W - padR} y2={yy} stroke="var(--pt-line)" strokeWidth="1" vectorEffect="non-scaling-stroke" />
                 <text x={padL - 10} y={yy + 3.5} textAnchor="end" className="pt-mc__ytick">{short(val)}</text>
               </g>
             );
@@ -99,8 +99,8 @@ export function MoneyChart({ points, spanLabel }: { points: MonthPoint[]; spanLa
           {hover !== null && (
             <g>
               <line x1={x(hover)} y1={padT} x2={x(hover)} y2={padT + plotH} stroke="#8992ab" strokeWidth="1" strokeDasharray="3 3" vectorEffect="non-scaling-stroke" />
-              <circle cx={x(hover)} cy={y(points[hover].expenses)} r="3.5" fill="#e0912a" stroke="#fff" strokeWidth="1.5" />
-              <circle cx={x(hover)} cy={y(points[hover].income)} r="3.5" fill="#2aa7e0" stroke="#fff" strokeWidth="1.5" />
+              <circle cx={x(hover)} cy={y(points[hover].expenses)} r="3.5" fill="#e0912a" stroke="var(--pt-surface)" strokeWidth="1.5" />
+              <circle cx={x(hover)} cy={y(points[hover].income)} r="3.5" fill="#2aa7e0" stroke="var(--pt-surface)" strokeWidth="1.5" />
             </g>
           )}
 
