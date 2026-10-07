@@ -7,9 +7,16 @@ Two files, both optional:
 | `quote.mp3` | a quote goes out |
 | `sold.mp3` | a job is sold |
 
-Drop either in and the board uses it. With no file there it plays a short
-synthesised cue instead — two notes for a quote, three for a sale — so the wall
-is never silent waiting on an asset. See `src/components/screen/cheer.ts`.
+Both are in place: Homer on the quote (1.5s) and the money clip on the sale
+(4.9s). Replace either by overwriting the file — nothing else to change. With no
+file there the board plays a short synthesised cue instead, two notes for a
+quote and three for a sale, so the wall is never silent waiting on an asset. See
+`src/components/screen/cheer.ts`.
+
+**Keep them shorter than the alert they belong to.** The Sold alert holds the
+wall for 11 seconds and the quote for 7, and a clip longer than that is still
+playing over the next page. The `money-button` take that came with these was
+13 seconds, which is why the shorter one is the one in `sold.mp3`.
 
 A finished job stays silent on purpose. A board that chimes at every event is a
 board somebody turns the speakers off on, and then the sale makes no noise
