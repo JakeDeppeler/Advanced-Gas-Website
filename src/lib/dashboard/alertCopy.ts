@@ -74,7 +74,10 @@ export function alertFrom(e: Metrics["alertEvents"][number], m: Metrics): BoardA
     time,
     amount: e.amount,
     name: work,
-    where: join(e.suburb, e.who) || "Advanced Gas",
+    // The options count rides on the same dotted line as the place and the
+    // person: it is the thing that explains the figure above it, which is an
+    // average and would otherwise look like a price somebody quoted.
+    where: join(e.suburb, e.who, e.options && e.options > 1 ? `avg of ${e.options} options` : null) || "Advanced Gas",
     chip:
       e.kind === "quote"
         ? "Follow up in 2 days if it hasn't closed"

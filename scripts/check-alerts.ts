@@ -75,5 +75,26 @@ ok(["1st", "2nd", "3rd", "4th"].every((x, i) => ordinal(i + 1) === x), "1st 2nd 
 ok(ordinal(11) === "11th" && ordinal(12) === "12th" && ordinal(13) === "13th", "the teens are all th");
 ok(ordinal(21) === "21st" && ordinal(22) === "22nd" && ordinal(23) === "23rd", "and 21st 22nd 23rd are not");
 
+/* ── one alert per quote, not per option ───────────────────────────────────── */
+/*
+ * ServiceTitan writes an estimate row for every option, so a job priced three
+ * ways used to fire three alerts back to back — the same quote, three times,
+ * each with a different number. Reported from the floor as "it does a double
+ * pop up".
+ */
+console.log("\n-- a quote with options --");
+const three = alertFrom(
+  ev({ kind: "quote", id: "quote-j991", amount: 7400, options: 3, jobType: "Install - Ducted Refrigerated", suburb: "Officer", who: "Jake", nth: null }),
+  noPlan,
+);
+ok(three.where.includes("avg of 3 options"), "three options say so under the figure", three.where);
+ok(three.amount === 7400, "and the figure is the average it was handed", three.amount);
+
+const one = alertFrom(ev({ kind: "quote", id: "quote-j992", amount: 3200, options: 1, nth: null }), noPlan);
+ok(!one.where.includes("option"), "a single-option quote says nothing about options", one.where);
+
+const older = alertFrom(ev({ kind: "quote", id: "quote-j993", amount: 3200, nth: null }), noPlan);
+ok(!older.where.includes("option"), "nor does one from a snapshot written before options existed", older.where);
+
 console.log(failed ? `\n${failed} failed\n` : "\nall good\n");
 process.exit(failed ? 1 : 0);
