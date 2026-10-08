@@ -30,7 +30,11 @@ export async function removeCrewPerson(input: { userId: string; email?: string |
 export async function saveCapSettings(s: CapSettings): Promise<ActionResult> {
   const me = await requireOverhead();
   if (!me) return { ok: false, error: "Not allowed." };
-  const res = await saveSettings("capacity", s);
+  // The depreciation is read from the Vehicles tab every time; saving it would
+  // freeze today's fleet into the settings.
+  const { fleetDep: _dep, ...keep } = s;
+  void _dep;
+  const res = await saveSettings("capacity", keep);
   if (!res.ok) return { ok: false, error: res.error === "not-configured" ? "Database not connected." : "Couldn't save." };
   revalidatePath("/portal/finance/capacity");
   revalidatePath("/portal/finance");

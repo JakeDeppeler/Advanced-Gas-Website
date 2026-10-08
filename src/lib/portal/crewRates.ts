@@ -1,6 +1,7 @@
 import "server-only";
-import { listUsers, getCapSettings, dbConfigured } from "./db";
-import { computeCapacity, DEFAULT_SETTINGS, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
+import { listUsers, dbConfigured } from "./db";
+import { getCostSettings } from "./costSettings";
+import { computeCapacity, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
 import type { CrewRate } from "@/components/portal/JobCalculator";
 
 export type RateFigure = { label: string; sub: string; mobile: number | null; onsite: number | null };
@@ -34,12 +35,11 @@ const EMPTY: CrewFigures = { crew: [], costPerHr: null, costPerHrOnsite: null, f
 export async function crewFigures(): Promise<CrewFigures> {
   if (!dbConfigured()) return EMPTY;
 
-  const [users, settings] = await Promise.all([listUsers(), getCapSettings()]);
+  const [users, base] = await Promise.all([listUsers(), getCostSettings()]);
   const people = users
     .filter((u) => u.active && u.id && u.level && LEVEL_BILLABLE[u.level as CrewLevel])
     .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
 
-  const base = settings ?? DEFAULT_SETTINGS;
   const capMobile = computeCapacity(people, { ...base, mode: "mobile" });
   const capOnsite = computeCapacity(people, { ...base, mode: "onsite" });
   const mob = new Map(capMobile.rates.map((r) => [r.id, r.rate]));
@@ -88,7 +88,7 @@ export async function crewFigures(): Promise<CrewFigures> {
       .map((lv) => ({
         label: LEVEL_LABEL[lv],
         sub: rides(lv)
-          ? "Their whole cost, over the hours of the van they ride in"
+          ? "Their whole cost, school days included, over the hours they're out on jobs"
           : "Their pay, on-costs and their hour's share of overhead",
         mobile: levelCost(capMobile, lv),
         onsite: levelCost(capOnsite, lv),

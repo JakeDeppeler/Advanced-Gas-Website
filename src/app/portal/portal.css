@@ -4800,6 +4800,9 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-hr__frow.is-out .pt-hr__ftrack i { background: var(--pt-amber); }
 .pt-hr__frow.is-end .pt-hr__ftrack i { background: var(--pt-good-fill); }
 .pt-hr__foot { margin: 12px 0 0; font-size: 13.5px; color: var(--pt-ink-2); line-height: 1.5; }
+.pt-rev__pl thead th:not(:first-child) { white-space: nowrap; }
+.pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
+.pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }
 .pt-hr__seg { display: block; height: 100%; }
 /* Eight shades for the layers, the margin in the accent. Each row says its
