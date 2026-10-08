@@ -226,12 +226,48 @@ export type CapSettings = {
    * by hand. Reading it fresh means a van bought or sold moves the rate.
    */
   fleetDep?: number;
+  /**
+   * What employing someone costs on top of their hourly wage, as percentages
+   * of it. Replaces `oncosts`, which was one unexplained number: Costs &
+   * capacity forced it to 0 on the grounds that super and WorkCover were in
+   * the overhead, while the Xero filing kept both out of the overhead because
+   * they were "on the crew tab" — so neither screen counted them, and the
+   * hourly page and Job calculator read a stale 25 instead.
+   */
+  onCosts?: Partial<OnCosts>;
 };
+
+export type OnCosts = {
+  /** The super guarantee: 12% of ordinary-time pay since 1 July 2025. */
+  superPct: number;
+  /** WorkCover premium as a share of wages — what Xero shows it costs. */
+  workcoverPct: number;
+  /** Long service leave accrued, as a share of wages. */
+  lslPct: number;
+};
+
+export const SUPER_GUARANTEE = 12;
+
+export function onCostsOf(s: CapSettings): OnCosts {
+  const o = s.onCosts ?? {};
+  const n = (v: unknown, d: number) => (typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : d);
+  return { superPct: n(o.superPct, SUPER_GUARANTEE), workcoverPct: n(o.workcoverPct, 0), lslPct: n(o.lslPct, 0) };
+}
+
+export const onCostPct = (s: CapSettings): number => {
+  const o = onCostsOf(s);
+  return o.superPct + o.workcoverPct + o.lslPct;
+};
+
+/** An hour of someone's pay as it actually costs: the wage plus super, WorkCover and long service leave. */
+export const loadedWage = (wage: number, s: CapSettings): number => wage * (1 + onCostPct(s) / 100);
 
 /**
  * The fallback every costing screen uses when nothing has been saved yet.
  *
- * `oncosts` is 0 on purpose, and it matters. Super, workers comp and payroll
+ * `oncosts` is no longer read — super, WorkCover and long service leave are
+ * `onCosts`, explicit and measured against Xero. The history, kept because it
+ * explains the field: `oncosts` was 0 on purpose, and it mattered. Super, workers comp and payroll
  * tax sit in the business overhead alongside the rent and the fuel, so they
  * are already counted once there; adding them to the wage as well counts them
  * twice. CapacityEditor has always enforced that by forcing `oncosts: 0` when
@@ -372,7 +408,7 @@ export function alwaysSupervised(level: CrewLevel): boolean {
 export const daysOff = (c: Costing): number => c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays;
 
 export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): PersonCosted {
-  const rate = c.wage * (1 + s.oncosts / 100);
+  const rate = loadedWage(c.wage, s);
   const paidHrs = c.hrsWeek * s.weeksYear;
   const wageCost = paidHrs * rate;
   if (!LEVEL_BILLABLE[level]) {
@@ -399,7 +435,9 @@ export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): Person
   const billHrs = Math.max(0, beforeCallbacks - callbackHrs);
   return {
     paidHrs, billHrs, wageCost, fieldWages: billHrs * rate,
-    labourOh: (daysOffHrs + travelAdminHrs) * rate, officeOh: officeHrs * rate, ridesCost: 0,
+    // Callbacks are paid and never billed, so they're downtime like the rest;
+    // left out, their wages fell through every bucket.
+    labourOh: (daysOffHrs + travelAdminHrs + callbackHrs) * rate, officeOh: officeHrs * rate, ridesCost: 0,
     legalHrs: daysOffHrs, flexHrs: travelAdminHrs + officeHrs + callbackHrs,
     billable: true, chargeable: true,
   };
@@ -422,6 +460,8 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const otherOverhead = overheadTotal(s);
   const sharedOverhead = labourOh + officeOh + otherOverhead;
   const sharedPerHr = sharedOverhead / denom;
+  /** The office and the business overhead on an hour, without anyone's downtime. */
+  const businessPerHr = (officeOh + otherOverhead) / denom;
   // A ride-along's cost is deliberately kept out of the shared pool. If it went
   // in, a tech working on his own would carry an apprentice who wasn't there —
   // and the pair would charge no more than the tech alone, which is the thing
@@ -455,18 +495,22 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
       const crewHrs = hrsPerVan * share;
       const costPerHr = crewHrs > 0 ? c.ridesCost / crewHrs : null;
       const uplift = costPerHr != null ? costPerHr * (1 + s.margin / 100) : null;
-      return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs };
+      return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs, ownDownPerHr: null as number | null };
     }
     if (!c.billable || c.billHrs <= 0) {
-      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null, uplift: null as number | null, crewHrs: null as number | null };
+      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null, uplift: null as number | null, crewHrs: null as number | null, ownDownPerHr: null as number | null };
     }
-    const labourPerHr = p.costing.wage * (1 + s.oncosts / 100); // just their pay rate; downtime is overhead
-    // What an hour of theirs actually costs the business: their pay plus the
-    // share of everything else that hour has to carry.
-    const costPerHr = labourPerHr + sharedPerHr;
+    const labourPerHr = loadedWage(p.costing.wage, s);
+    // What an hour of theirs actually costs the business: their pay, their own
+    // paid time off the tools spread over their own billable hours, and the
+    // business's share. Their own, because pooling everyone's downtime had an
+    // apprentice running a van carry nobody's school days but a tradesman's
+    // share of them — the blended rate comes out the same either way.
+    const ownDownPerHr = c.labourOh / c.billHrs;
+    const costPerHr = labourPerHr + ownDownPerHr + businessPerHr;
     const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
-    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null, crewHrs: null as number | null };
+    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null, crewHrs: null as number | null, ownDownPerHr };
   });
 
   // Two utilisations, because they mean different things. Leave, sick days,
@@ -492,7 +536,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, businessPerHr, otherOverhead, totalCost, costPerHr, layers, rates, per, util };
 }
 
 

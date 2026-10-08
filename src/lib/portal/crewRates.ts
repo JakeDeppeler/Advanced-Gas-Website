@@ -1,7 +1,7 @@
 import "server-only";
 import { listUsers, dbConfigured } from "./db";
 import { getCostSettings } from "./costSettings";
-import { computeCapacity, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
+import { computeCapacity, loadedWage, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
 import type { CrewRate } from "@/components/portal/JobCalculator";
 
 export type RateFigure = { label: string; sub: string; mobile: number | null; onsite: number | null };
@@ -61,8 +61,8 @@ export async function crewFigures(): Promise<CrewFigures> {
     // the same whether the van drove five jobs or parked on one. The charge is
     // that wage with the margin on it, because the margin goes on what the crew
     // costs, both bodies in it.
-    wage: Math.round(p.costing.wage * (1 + base.oncosts / 100) * 100) / 100,
-    wageCharge: Math.round(p.costing.wage * (1 + base.oncosts / 100) * (1 + base.margin / 100) * 100) / 100,
+    wage: Math.round(loadedWage(p.costing.wage, base) * 100) / 100,
+    wageCharge: Math.round(loadedWage(p.costing.wage, base) * (1 + base.margin / 100) * 100) / 100,
   }));
 
   // An average across everyone on that level. Two tradesmen on different wages
@@ -74,7 +74,7 @@ export async function crewFigures(): Promise<CrewFigures> {
     if (!rows.length) return null;
     return rows.reduce((a, r) => a + (r.costPerHr as number), 0) / rows.length;
   };
-  const oh = (cap: typeof capMobile) => (cap.totalBillHrs > 0 ? cap.sharedPerHr : null);
+  const oh = (cap: typeof capMobile) => (cap.totalBillHrs > 0 ? cap.businessPerHr : null);
   // Two different figures wear the same "$/hr" label, and saying so matters.
   // Someone with their own van carries a share of the overhead in their hour.
   // Someone riding along does not: their cost is deliberately kept out of the
@@ -93,7 +93,7 @@ export async function crewFigures(): Promise<CrewFigures> {
         mobile: levelCost(capMobile, lv),
         onsite: levelCost(capOnsite, lv),
       })),
-    { label: "Overhead", sub: "The share sitting inside both figures above", mobile: oh(capMobile), onsite: oh(capOnsite) },
+    { label: "Overhead", sub: "The business's share inside the figures above, before anyone's own leave and travel", mobile: oh(capMobile), onsite: oh(capOnsite) },
   ].filter((f) => f.mobile !== null || f.onsite !== null);
 
   const byLevel: Partial<Record<CrewLevel, number>> = {};

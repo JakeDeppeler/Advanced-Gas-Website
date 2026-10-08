@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
-  computeCapacity, countedElsewhere, crewCombos, defaultsFor, fleetDepOf, officeCost, overheadsOf, overheadSplit, overheadTotal,
+  computeCapacity, loadedWage, onCostsOf, SUPER_GUARANTEE, countedElsewhere, crewCombos, defaultsFor, fleetDepOf, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleOf, suggestOverhead, alwaysSupervised,
   type CapSettings, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
@@ -214,6 +214,15 @@ export function CapacityEditor({
   // rate is priced from; it's taken back out here only to be shown on its own
   // line as coming from the Vehicles tab.
   const ohTyped = overheadTotal(s) - fleetDepOf(s);
+  const oc = onCostsOf(s);
+  // What Xero says super, WorkCover and long service leave actually cost, as a
+  // share of every wage it paid over the same twelve months.
+  const xeroOn = useMemo(() => {
+    const sum = (re: RegExp) => xeroExpenses.filter((e) => re.test(e.label)).reduce((a, e) => a + e.amount, 0);
+    const wages = sum(/wages|salar/i);
+    const pct = (v: number) => (wages > 0 && v > 0 ? (v / wages) * 100 : null);
+    return { super: pct(sum(/superannuation/i)), workcover: pct(sum(/workcover|work cover|workers comp/i)), lsl: pct(sum(/long service/i)) };
+  }, [xeroExpenses]);
   const ohFromCrew = cap.labourOh + cap.officeOh;
   const ohTotal = ohTyped + ohFromCrew + fleetDep;
   const hasHrs = cap.totalBillHrs > 0;
@@ -291,7 +300,7 @@ export function CapacityEditor({
         // possible to bill. The gap between the two is the whole answer to
         // "how is an apprentice sixty dollars an hour".
         const wagePerHr =
-          mine.reduce((a, p) => a + p.costing.wage * (1 + s.oncosts / 100), 0) / mine.length;
+          mine.reduce((a, p) => a + loadedWage(p.costing.wage, s), 0) / mine.length;
         const paidHrs = mine.reduce((a, p) => a + (perById.get(p.id)?.paidHrs ?? 0), 0);
         const billHrs = mine.reduce((a, p) => a + (perById.get(p.id)?.billHrs ?? 0), 0);
         return {
@@ -316,7 +325,7 @@ export function CapacityEditor({
         };
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
-  }, [costed, rateById, perById, s.oncosts]);
+  }, [costed, rateById, perById, s]);
 
   // The strip is six numbers and no more. It had grown a tile per crew level
   // on top of two blended figures, which meant nine tiles, two of them showing
@@ -510,9 +519,32 @@ export function CapacityEditor({
               <CapField label="Margin" value={s.margin} onChange={(v) => setS({ ...s, margin: v })} post="%" />
             </div>
 
+            <h3 className="pt-cap__subh">On top of every wage</h3>
+            <div className="pt-cap__row3">
+              {([
+                { k: "superPct", label: "Super", xero: xeroOn.super },
+                { k: "workcoverPct", label: "WorkCover", xero: xeroOn.workcover },
+                { k: "lslPct", label: "Long service leave", xero: xeroOn.lsl },
+              ] as const).map((f) => (
+                <div key={f.k} className="pt-cap__oncost">
+                  <CapField label={f.label} value={oc[f.k]} onChange={(v) => setS({ ...s, onCosts: { ...oc, [f.k]: v } })} post="%" />
+                  {f.xero != null && (
+                    <span className="pt-cap__xeroref">
+                      Xero: {f.xero.toFixed(1)}% of wages, last 12 months
+                      {f.k !== "superPct" && Math.abs(f.xero - oc[f.k]) >= 0.05 && (
+                        <button type="button" onClick={() => setS({ ...s, onCosts: { ...oc, [f.k]: Math.round(f.xero! * 100) / 100 } })}>Use it</button>
+                      )}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
             <p className="pt-oh__hint" style={{ marginTop: 10 }}>
-              Wages here are the wage itself. Super, workers comp and payroll tax sit in the business overhead alongside the rent
-              and the fuel, so they are counted once there rather than added on top of every wage as well.{" "}
+              Every hour someone is paid for — on the tools, on leave or at school — costs their wage plus these, so they go on
+              the wage rather than in the overhead, and Xero&rsquo;s super and WorkCover accounts are left out of the overhead so
+              they aren&rsquo;t counted twice. Super is the {SUPER_GUARANTEE}% guarantee on ordinary hours; Xero&rsquo;s share runs
+              lower because overtime and bonuses are in the wages it divides by.{" "}
               <strong>Call-backs</strong> are the hours that go back out to fix our own work — paid for, never billed, so they
               come off what can be billed. At {s.callbackPct ?? 0}% that is{" "}
               {hrs(cap.util.paidHrs * ((s.callbackPct ?? 0) / 100))} a year the vans are out and earning nothing.
@@ -656,7 +688,7 @@ export function CapacityEditor({
                           {isOffice ? (
                             <span>Non-billable — counted in office overhead</span>
                           ) : ridesAlong ? (
-                            <span>Rides along — {money(r.costing.wage * (1 + s.oncosts / 100) * r.costing.hrsWeek * s.weeksYear)} a year, carried as overhead</span>
+                            <span>Rides along — {money(loadedWage(r.costing.wage, s) * r.costing.hrsWeek * s.weeksYear)} a year, carried as overhead</span>
                           ) : (
                             <>
                               <span>Billable <strong>{hrs(rt?.billHrs ?? 0)}</strong></span>
