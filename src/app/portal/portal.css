@@ -4801,6 +4801,45 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-hr__frow.is-end .pt-hr__ftrack i { background: var(--pt-good-fill); }
 .pt-hr__foot { margin: 12px 0 0; font-size: 13.5px; color: var(--pt-ink-2); line-height: 1.5; }
 .pt-rev__pl thead th:not(:first-child) { white-space: nowrap; }
+.pt-cap__subh { margin: 18px 0 8px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
+.pt-cap__oncost { display: flex; flex-direction: column; gap: 6px; }
+.pt-cap__xeroref { font-size: 12.5px; color: var(--pt-ink-2); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pt-cap__xeroref button { font: inherit; font-weight: 700; color: var(--pt-link, var(--pt-ink)); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+/* Each person's hour as a bill. Five families in the validated categorical
+   order (blue, orange, aqua, yellow, magenta) with violet for the margin;
+   the table under the bars carries every figure, so colour never carries one alone. */
+.pt-bill__legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 14px; padding: 0; list-style: none; font-size: 13px; color: var(--pt-ink-2); }
+.pt-bill__legend li { display: inline-flex; align-items: center; gap: 6px; }
+.pt-bill__sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.pt-bill__legend .pt-bill__sw { margin-right: 0; }
+.pt-bill__rows { display: grid; gap: 10px; margin-bottom: 18px; }
+.pt-bill__row { display: grid; grid-template-columns: minmax(130px, 180px) 1fr auto; gap: 14px; align-items: center; }
+.pt-bill__who { font-weight: 700; color: var(--pt-ink); font-size: 14px; display: flex; flex-direction: column; }
+.pt-bill__who em, .pt-bill__fig em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
+.pt-bill__track { display: flex; gap: 2px; height: 22px; min-width: 0; }
+.pt-bill__seg { display: block; height: 100%; min-width: 2px; }
+.pt-bill__seg:first-child { border-radius: 4px 0 0 4px; }
+.pt-bill__seg:last-child { border-radius: 0 4px 4px 0; }
+.pt-bill__fig { text-align: right; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+.pt-bill__fig strong { font-size: 16px; color: var(--pt-ink); }
+.pt-bill__table tr.pt-bill__fam th { text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); padding-top: 14px; }
+.pt-bill__seg.f0, .pt-bill__sw.f0 { background: #2a78d6; }
+.pt-bill__seg.f1, .pt-bill__sw.f1 { background: #eb6834; }
+.pt-bill__seg.f2, .pt-bill__sw.f2 { background: #1baf7a; }
+.pt-bill__seg.f3, .pt-bill__sw.f3 { background: #eda100; }
+.pt-bill__seg.f4, .pt-bill__sw.f4 { background: #e87ba4; }
+.pt-bill__seg.is-margin, .pt-bill__sw.is-margin { background: #4a3aa7; }
+.pt[data-theme="dark"] .pt-bill__seg.f0, .pt[data-theme="dark"] .pt-bill__sw.f0 { background: #3987e5; }
+.pt[data-theme="dark"] .pt-bill__seg.f1, .pt[data-theme="dark"] .pt-bill__sw.f1 { background: #d95926; }
+.pt[data-theme="dark"] .pt-bill__seg.f2, .pt[data-theme="dark"] .pt-bill__sw.f2 { background: #199e70; }
+.pt[data-theme="dark"] .pt-bill__seg.f3, .pt[data-theme="dark"] .pt-bill__sw.f3 { background: #c98500; }
+.pt[data-theme="dark"] .pt-bill__seg.f4, .pt[data-theme="dark"] .pt-bill__sw.f4 { background: #d55181; }
+.pt[data-theme="dark"] .pt-bill__seg.is-margin, .pt[data-theme="dark"] .pt-bill__sw.is-margin { background: #9085e9; }
+@media (max-width: 640px) {
+  .pt-bill__row { grid-template-columns: 1fr auto; }
+  .pt-bill__track { grid-column: 1 / -1; order: 3; }
+}
+@media (forced-colors: active) { .pt-bill__seg, .pt-bill__sw { forced-color-adjust: none; } }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }
