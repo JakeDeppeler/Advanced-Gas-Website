@@ -242,7 +242,7 @@ export function CapacityEditor({
       const who = trade ? trade.label.toLowerCase() : "tradesman";
       const app = mate ? mate.label.toLowerCase() : "apprentice";
       const bodies = key.startsWith("pair")
-        ? `A ${who} and ${/^[aeiou]/.test(app) ? "an" : "a"} ${app} on the one job. The ${app} adds their wage with on-costs and nothing else: no second van and no second share of the overhead, because the ${who} standing next to them is already carrying those. They are never quoted on their own.`
+        ? `A ${who} and ${/^[aeiou]/.test(app) ? "an" : "a"} ${app} on the one job. The ${app} adds their whole cost: their pay, plus the leave, holidays, sick days and trade school they are paid for but never on a job, and their school fees less the government incentive, spread over the hours they are out on jobs. No second van and no second share of the overhead, because the ${who} standing next to them is already carrying those. They are never quoted on their own.`
         : `One ${who} on the job: the wage for that hour, plus that hour's share of every overhead the business carries.`;
       return {
         label: row.label,
@@ -348,14 +348,21 @@ export function CapacityEditor({
       { key: "trade-charge", label: `${trade.label} + overhead + ${s.margin}%`, value: trade.perHr * m, sub: "What we charge" },
     ];
     if (mate) {
-      const pair = trade.perHr + mate.wagePerHr;
+      // What an apprentice riding along adds, the same figure the Job
+      // calculator charges: their whole year — leave, school and its fees, less
+      // the incentive — over the hours they're out on jobs. Only the ones who
+      // ride along; one running their own van is a van of their own.
+      const riders = costed.filter((p) => alwaysSupervised(p.level) && !p.costing.ownVan)
+        .map((p) => rateById.get(p.id)?.costPerHr).filter((v): v is number => v != null);
+      const add = riders.length ? riders.reduce((a, v) => a + v, 0) / riders.length : mate.wagePerHr;
+      const pair = trade.perHr + add;
       rows.push(
         { key: "pair-cost", label: `${trade.label} + ${mate.label.toLowerCase()} + overhead`, value: pair, sub: "Costs us" },
         { key: "pair-charge", label: `${trade.label} + ${mate.label.toLowerCase()} + overhead + ${s.margin}%`, value: pair * m, sub: "What we charge" },
       );
     }
     return rows;
-  }, [levelHours, s.margin]);
+  }, [levelHours, s.margin, costed, rateById]);
 
   /** Office, admin and operations — a cost to carry, not a crew to schedule. */
   const officeRows = useMemo(
@@ -637,6 +644,10 @@ export function CapacityEditor({
                           {r.level === "apprentice" && (
                             <CapField label="School fees ($ a year)" value={s.schoolFees?.[r.id] ?? 0}
                               onChange={(v) => setS({ ...s, schoolFees: { ...(s.schoolFees ?? {}), [r.id]: v } })} />
+                          )}
+                          {r.level === "apprentice" && (
+                            <CapField label="Gov't incentive ($ a year)" value={s.apprenticeScheme?.[r.id] ?? 0}
+                              onChange={(v) => setS({ ...s, apprenticeScheme: { ...(s.apprenticeScheme ?? {}), [r.id]: v } })} />
                           )}
                           {/* On site these two are the fields the mode is
                               already answering, and a driving figure on a card

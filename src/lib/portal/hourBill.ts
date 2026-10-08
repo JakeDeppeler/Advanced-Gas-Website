@@ -43,6 +43,7 @@ export const BILL_LINES: Array<{ key: string; label: string; family: BillFamily;
   { key: "super", label: "Super", family: "pay" },
   { key: "workcover", label: "WorkCover", family: "pay" },
   { key: "lsl", label: "Long service leave", family: "pay", note: "put aside as they earn it" },
+  { key: "scheme", label: "Less the government apprentice incentive", family: "pay", note: "Xero's Apprentice Scheme income, over their own billable hours" },
   { key: "annual", label: "Annual leave", family: "off" },
   { key: "ph", label: "Public holidays", family: "off" },
   { key: "sick", label: "Sick days", family: "off" },
@@ -118,6 +119,7 @@ export function personBills(people: CrewMember[], s: CapSettings, cap = computeC
         ...Object.fromEntries(Object.entries(hrs).map(([k, h]) => [k, (h * rate) / r.billHrs])),
         ...shared,
         schoolFees: (Math.max(0, Number(s.schoolFees?.[p.id]) || 0)) / r.billHrs,
+        scheme: -(Math.max(0, Number(s.apprenticeScheme?.[p.id]) || 0)) / r.billHrs,
       };
       const lines = BILL_LINES.map((l) => ({ key: l.key, label: l.label, family: l.family, perHr: v[l.key] ?? 0, hrs: hrs[l.key], days: days[l.key] }));
       return {

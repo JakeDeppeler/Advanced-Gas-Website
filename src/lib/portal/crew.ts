@@ -242,6 +242,12 @@ export type CapSettings = {
    * and the same amount comes off the training line so nothing counts twice.
    */
   schoolFees?: Record<string, number>;
+  /**
+   * The government's apprentice incentive a year, by person — Xero books it
+   * as "Apprentice Scheme" income. It comes off the cost of the apprentice it
+   * is paid for, the same way their school fees go on.
+   */
+  apprenticeScheme?: Record<string, number>;
 };
 
 export type OnCosts = {
@@ -469,8 +475,10 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   // person: into their own hour if they run a van, into their crew uplift if
   // they ride along.
   const feeOf = (id: string) => Math.max(0, Number(s.schoolFees?.[id]) || 0);
+  const schemeOf = (id: string) => Math.max(0, Number(s.apprenticeScheme?.[id]) || 0);
   const feesAll = per.reduce((a, x) => a + (LEVEL_BILLABLE[x.p.level] ? feeOf(x.p.id) : 0), 0);
-  const ownFees = per.reduce((a, x) => a + (x.c.chargeable ? feeOf(x.p.id) : 0), 0);
+  // What goes on a van driver's own hour: their fees, less their incentive.
+  const ownFees = per.reduce((a, x) => a + (x.c.chargeable ? feeOf(x.p.id) - schemeOf(x.p.id) : 0), 0);
   const trainingLine = s.ohSource === "internal" ? Number(s.internalOverhead) || 0 : Number(overheadLines(s).admTraining) || 0;
   const feesMoved = Math.min(feesAll, trainingLine);
   const otherOverhead = overheadTotal(s) - feesMoved;
@@ -509,7 +517,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
       // it isn't recovered at all.
       const share = vanDays > 0 ? Math.min(1, Math.max(0, yearDays - daysOff(p.costing)) / vanDays) : 1;
       const crewHrs = hrsPerVan * share;
-      const costPerHr = crewHrs > 0 ? (c.ridesCost + feeOf(p.id)) / crewHrs : null;
+      const costPerHr = crewHrs > 0 ? Math.max(0, c.ridesCost + feeOf(p.id) - schemeOf(p.id)) / crewHrs : null;
       const uplift = costPerHr != null ? costPerHr * (1 + s.margin / 100) : null;
       return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs, ownDownPerHr: null as number | null };
     }
@@ -523,7 +531,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     // apprentice running a van carry nobody's school days but a tradesman's
     // share of them — the blended rate comes out the same either way.
     const ownDownPerHr = c.labourOh / c.billHrs;
-    const feePerHr = feeOf(p.id) / c.billHrs;
+    const feePerHr = (feeOf(p.id) - schemeOf(p.id)) / c.billHrs;
     const costPerHr = labourPerHr + ownDownPerHr + feePerHr + businessPerHr;
     const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;

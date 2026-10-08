@@ -4866,6 +4866,20 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-bill__about { margin: 0 0 12px; max-width: 72ch; font-size: 14px; line-height: 1.55; color: var(--pt-ink-2); }
 .pt-bill__open { font: inherit; font-weight: 600; color: var(--pt-ink); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; display: inline-flex; align-items: center; text-decoration: underline; text-decoration-color: var(--pt-line); text-underline-offset: 3px; }
 .pt-bill__open:hover { text-decoration-color: currentColor; }
+/* The email list. */
+.pt-el__checks { display: flex; flex-wrap: wrap; gap: 0 22px; }
+.pt-el__checks .pt-wi__check { margin: 4px 0 8px; }
+.pt-el__bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.pt-el__bar .pt-jp__sum { margin: 0; }
+.pt-el__acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.pt-el__table th[scope="row"] { display: flex; flex-direction: column; gap: 2px; }
+.pt-el__email { overflow-wrap: anywhere; }
+.pt-el__table tr.is-off th, .pt-el__table tr.is-off td { color: var(--pt-ink-2); }
+.pt-el__table tr.is-off .pt-el__email { text-decoration: line-through; }
+.pt-el__src { text-align: left !important; }
+.pt-el__chip { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px; border-radius: 999px; background: var(--pt-tint); color: var(--pt-ink); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pt-el__more { margin-top: 12px; }
+.pt-el__bulk { display: grid; gap: 10px; max-width: 640px; }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }

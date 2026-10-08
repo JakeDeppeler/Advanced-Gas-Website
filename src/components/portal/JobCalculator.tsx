@@ -19,6 +19,11 @@ export type CrewRate = {
    */
   uplift: number | null;
   upliftOnsite: number | null;
+  /** What an hour of theirs costs us — for a ride-along, their whole year over
+   *  the hours they're out on jobs — so a job's profit is costed person by
+   *  person rather than every hour at the van rate. */
+  cost: number | null;
+  costOnsite: number | null;
   /**
    * Their wage with on-costs. For a level that never works unsupervised this
    * is what they add to a job and the whole of what they add: the tradesman
@@ -75,20 +80,21 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
     const uplift = onsite ? c.upliftOnsite : c.uplift;
     return {
       ...c, rate, uplift,
-      // Everybody on the job has an hour worth something, and it is not the
-      // same kind of figure for everybody. An apprentice adds their wage,
-      // because whoever they are with is carrying the overhead. Somebody
-      // riding along adds their uplift. Everyone else adds their rate. This
-      // used to charge nothing at all for the first two, which priced a
-      // two-hander at the tech on his own.
-      charge: alwaysSupervised(c.level) ? c.wageCharge : (rate ?? uplift ?? null),
-      wageOnly: alwaysSupervised(c.level),
+      cost: onsite ? c.costOnsite : c.cost,
+      // Somebody riding along adds their uplift: their whole cost — leave,
+      // public holidays, trade school and its fees, less the government
+      // incentive — over the hours they're actually out on jobs, with the
+      // margin on it. Everyone else adds their rate. An apprentice used to go
+      // on at their wage plus margin, which left school, leave and sick pay
+      // out of every quote.
+      charge: rate ?? uplift ?? null,
       rides: rate === null,
+      learner: alwaysSupervised(c.level),
     };
   });
   const modeCost = onsite ? costPerHrOnsite : costPerHr;
   const chargeable = priced.filter((c) => c.charge !== null);
-  const ridealong = priced.filter((c) => (c.rides || c.wageOnly) && c.charge !== null);
+  const ridealong = priced.filter((c) => c.rides && c.charge !== null);
 
   function pickJob(k: JobKey) {
     setJob(k);
@@ -113,8 +119,8 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
   const billedTravel = chargeTravel ? travelHrs : 0;
   // Travel is charged at the dearest rate on the job, and a ride-along's uplift
   // is not a rate anybody drives at.
-  const topRate = lines.some((l) => !l.rides && !l.wageOnly)
-    ? Math.max(...lines.filter((l) => !l.rides && !l.wageOnly).map((l) => l.charge as number))
+  const topRate = lines.some((l) => !l.rides)
+    ? Math.max(...lines.filter((l) => !l.rides).map((l) => l.charge as number))
     : manualRate;
 
   const crewLabour = lines.reduce((a, l) => a + l.total, 0);
@@ -134,7 +140,11 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
   // What the job costs us: every hour anyone spends on it — travel included,
   // charged or not — at the true cost of an hour, plus materials at cost.
   const jobHours = onSiteHrs + travelHrs;
-  const ourCost = modeCost !== null ? jobHours * modeCost + matCost : null;
+  // Each person's hours at what their hour costs; travel and hours typed by
+  // hand at the van rate.
+  const ourCost = modeCost !== null
+    ? lines.reduce((a, l) => a + l.hrs * (l.cost ?? modeCost), 0) + (travelHrs + manualHrs) * modeCost + matCost
+    : null;
   const profit = ourCost !== null ? discounted - ourCost : null;
   const marginPct = profit !== null && discounted > 0 ? (profit / discounted) * 100 : null;
 
@@ -230,8 +240,8 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
                             <span>
                               {noPrice
                                 ? "No figure yet, set their numbers in Costs & capacity"
-                                : c.wageOnly
-                                  ? `${money2(c.charge as number)}/hr on top of the tradesman · wage ${money2(c.wage as number)} plus margin`
+                                : rides && c.learner
+                                  ? `${money2(c.charge as number)}/hr on top of the tradesman · their whole cost, school included, plus margin`
                                   : rides
                                     ? `${money(c.charge as number)}/hr on top of the tech`
                                     : `${money(c.charge as number)}/hr`}
@@ -254,10 +264,10 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
           )}
           {ridealong.length > 0 && (
             <p className="pt-calc__hint pt-job__ridenote">
-              {ridealong.map((r) => r.name).join(" and ")} adds a wage to the job and nothing else: no second van and
-              no second share of the overhead, because the tradesman on the job is already carrying those. The margin
-              goes on it the same as it does on the tradesman&rsquo;s hour, since it is the crew being quoted, not two
-              separate people. Leaving them off a job they were on prices it as the tradesman on his own.
+              {ridealong.map((r) => r.name).join(" and ")} adds their whole cost to the job: their pay, plus the leave,
+              holidays, sick days and trade school they&rsquo;re paid for but never on a job, spread over the hours they
+              are. No second van and no second share of the overhead, because the tradesman on the job is already
+              carrying those. Leaving them off a job they were on prices it as the tradesman on his own.
             </p>
           )}
         </div>
@@ -327,7 +337,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
         {ourCost !== null ? (
           <div className={`pt-job__worth${profit !== null && profit < 0 ? " is-bad" : marginPct !== null && marginPct < 15 ? " is-thin" : ""}`}>
             <div className="pt-job__worth-h">Is it worth doing</div>
-            <div className="pt-job__worthrow"><span>{jobHours} hrs at {money2(modeCost as number)} + materials</span><strong>{money(ourCost)}</strong></div>
+            <div className="pt-job__worthrow"><span>{jobHours} hrs, each at what that person costs an hour, + materials</span><strong>{money(ourCost)}</strong></div>
             <div className="pt-job__worthrow"><span>You keep (ex GST)</span><strong>{money(profit as number)}</strong></div>
             <div className="pt-job__worthrow pt-job__worthrow--total">
               <span>Margin</span>

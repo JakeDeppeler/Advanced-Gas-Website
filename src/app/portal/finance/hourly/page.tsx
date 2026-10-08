@@ -135,16 +135,14 @@ export default async function HourlyPage() {
       const schoolPer = crewHrs > 0 ? (school * rate) / crewHrs : 0;
       const awayPer = crewHrs > 0 ? (away * rate) / crewHrs : 0;
       const feePer = crewHrs > 0 ? (Math.max(0, Number(s.schoolFees?.[p.id]) || 0)) / crewHrs : 0;
+      const schemePer = crewHrs > 0 ? (Math.max(0, Number(s.apprenticeScheme?.[p.id]) || 0)) / crewHrs : 0;
       return {
-        p, c, rate, crewHrs, full, schoolPer, awayPer, feePer,
+        p, c, rate, crewHrs, full, schoolPer, awayPer, feePer, schemePer,
         // Whatever's left is their time in the van that isn't billed: the drive
         // and the pack-up between jobs, the same as the tradesman's.
-        vanPer: Math.max(0, full - rate - schoolPer - awayPer - feePer),
+        vanPer: Math.max(0, full - rate - schoolPer - awayPer - feePer + schemePer),
         paid: c.hrsWeek * s.weeksYear, hpd,
         days: Math.max(0, yearDays - daysOff(c)),
-        // The Job calculator adds an apprentice at their wage plus margin, which
-        // recovers none of the above.
-        calc: rate * (1 + s.margin / 100),
       };
     });
 
@@ -279,7 +277,6 @@ export default async function HourlyPage() {
           {riders.length > 0 && (() => {
             const mk = 1 + s.margin / 100;
             const lead = leadCost ?? 0;
-            const short = riders.filter((x) => x.calc != null && x.full * mk - x.calc > 0.5);
             const row = (label: string, note: string | null, cell: (x: (typeof riders)[number]) => string, cls?: string) => (
               <tr className={cls}>
                 <th scope="row">{label}{note && <em> {note}</em>}</th>
@@ -323,6 +320,7 @@ export default async function HourlyPage() {
                           {row("Their trade-school pay", "spread over their hours on jobs", (x) => `+${m2(x.schoolPer)}`)}
                           {row("Their leave, holidays, sick days and RDOs", null, (x) => `+${m2(x.awayPer)}`)}
                           {riders.some((x) => x.feePer > 0.005) && row("Their trade-school fees", "from their card on Costs & capacity", (x) => `+${m2(x.feePer)}`)}
+                          {riders.some((x) => x.schemePer > 0.005) && row("Less the government apprentice incentive", null, (x) => `−${m2(x.schemePer)}`)}
                           {riders.some((x) => x.vanPer > 0.005) && row("In the van between jobs", "the drive and pack-up, paid but not billed", (x) => `+${m2(x.vanPer)}`)}
                           {row(leadCost != null ? "What the crew hour costs" : "What they add to an hour", null, (x) => m2(lead + x.full), "is-total")}
                           {row(`Margin, ${s.margin}%`, null, (x) => `+${m2((lead + x.full) * (mk - 1))}`)}
@@ -333,16 +331,9 @@ export default async function HourlyPage() {
                     </div>
                   </div>
                 </div>
-                {short.length > 0 && (
-                  <p className="pt-note" style={{ marginTop: 14, marginBottom: 0 }}>
-                    <strong>The <Link href="/portal/job-calculator">Job calculator</Link> still adds an apprentice at their wage plus margin</strong>, and so does the tradesman + apprentice figure on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>. That leaves their school, leave and sick pay out of every quote.{" "}
-                    {short.map((x, i) => (
-                      <span key={x.p.id}>
-                        {i > 0 ? " " : ""}{x.p.name} goes on a job at {m2(x.calc as number)} an hour; covering all of their pay takes {m2(x.full * mk)}. The difference is about {m0((x.full - x.rate) * x.crewHrs)} a year.
-                      </span>
-                    ))}
-                  </p>
-                )}
+                <p className="pt-hr__foot">
+                  This is what an apprentice adds to a job on the <Link href="/portal/job-calculator">Job calculator</Link> and on the tradesman + apprentice figures on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, so school, leave and sick pay are in every quote they&rsquo;re on.
+                </p>
               </section>
             );
           })()}

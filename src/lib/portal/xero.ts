@@ -837,3 +837,52 @@ export async function getPeriodInvoices(type: "ACCREC" | "ACCPAY", fromDate: str
   if (!integ?.tenantId || !integ.refreshToken) return null;
   return sharedPeriodInvoices(integ.tenantId, type, fromDate, toDate).catch(() => null);
 }
+
+export type XeroContactEmail = { name: string; email: string; customer: boolean; supplier: boolean; updated: string | null };
+
+/**
+ * Every active Xero contact with an email address, for the email list.
+ *
+ * Read-only and shared for an hour: the list doesn't change by the minute and
+ * a full walk is a few pages. Thrown rather than cached on failure, the same as
+ * the reports, so one bad answer can't hold the list empty.
+ */
+const sharedContactEmails = unstable_cache(
+  async (tenantId: string): Promise<XeroContactEmail[] | "no-scope"> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const out: XeroContactEmail[] = [];
+    for (let page = 1; page <= 20; page++) {
+      const url = new URL(`${API_BASE}/Contacts`);
+      url.searchParams.set("where", `ContactStatus=="ACTIVE"&&EmailAddress!=null&&EmailAddress!=""`);
+      url.searchParams.set("summaryOnly", "true");
+      url.searchParams.set("pageSize", "1000");
+      url.searchParams.set("page", String(page));
+      const res = await withSlot(() => fetch(url, {
+        headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      }));
+      // The connection is granted reports and invoices only; contacts need
+      // accounting.contacts.read, which means reconnecting Xero to add it.
+      if (res.status === 401 || res.status === 403) return "no-scope";
+      if (!res.ok) throw new Error(`xero ${res.status}`);
+      const json = (await res.json()) as { Contacts?: Array<{ Name?: string; EmailAddress?: string; IsCustomer?: boolean; IsSupplier?: boolean; UpdatedDateUTC?: string }> };
+      const got = json.Contacts ?? [];
+      for (const c of got) {
+        if (!c.EmailAddress) continue;
+        out.push({ name: c.Name ?? "", email: c.EmailAddress, customer: !!c.IsCustomer, supplier: !!c.IsSupplier, updated: xeroDate(c.UpdatedDateUTC) || null });
+      }
+      if (got.length < 1000) break;
+    }
+    return out;
+  },
+  ["xero-contact-emails"],
+  { revalidate: 3600, tags: ["xero-contacts"] },
+);
+
+/** Null when Xero isn't connected or didn't answer; "no-scope" when the connection can't read contacts. */
+export async function getXeroContactEmails(): Promise<XeroContactEmail[] | "no-scope" | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedContactEmails(integ.tenantId).catch(() => null);
+}
