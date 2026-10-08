@@ -8,6 +8,8 @@ import {
   createBrandAsset, deleteBrandAsset,
 } from "@/lib/portal/db";
 import { uploadPhoto, deletePhoto } from "@/lib/portal/storage";
+import { sbDelete, sbUpsert } from "@/lib/dashboard/db";
+import { cleanEmail } from "@/lib/emailList/types";
 
 export type MarketingResult = { ok: boolean; error?: string };
 
@@ -94,6 +96,40 @@ export async function removeBrandAsset(input: { id: string; path: string }): Pro
   await deletePhoto(input.path);
   const res = await deleteBrandAsset(input.id);
   if (!res.ok) return { ok: false, error: "Couldn't remove it." };
+  revalidatePath("/portal/marketing");
+  return { ok: true };
+}
+
+/**
+ * Leave addresses off the email list — someone who unsubscribed, asked not to
+ * be emailed, or bounced. Kept by address, so they stay off whichever source
+ * they turn up in next.
+ */
+export async function optOutEmails(raw: string, reason?: string): Promise<MarketingResult & { added?: number }> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can change the email list." };
+  const emails = [...new Set(raw.split(/[\s,;]+/).map((e) => cleanEmail(e)).filter((e): e is string => !!e))];
+  if (!emails.length) return { ok: false, error: "No email addresses in that." };
+  try {
+    await sbUpsert("portal_email_optouts", emails.map((email) => ({ email, reason: reason?.slice(0, 200) || null, created_by: me.name })), "email");
+  } catch {
+    return { ok: false, error: "Couldn't save that. Try again." };
+  }
+  revalidatePath("/portal/marketing");
+  return { ok: true, added: emails.length };
+}
+
+/** Put an address back on the list. */
+export async function optInEmail(raw: string): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can change the email list." };
+  const email = cleanEmail(raw);
+  if (!email) return { ok: false, error: "That isn't an email address." };
+  try {
+    await sbDelete("portal_email_optouts", `email=eq.${encodeURIComponent(email)}`);
+  } catch {
+    return { ok: false, error: "Couldn't save that. Try again." };
+  }
   revalidatePath("/portal/marketing");
   return { ok: true };
 }

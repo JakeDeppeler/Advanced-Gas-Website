@@ -16,6 +16,8 @@ import { CampaignBoard } from "@/components/portal/CampaignBoard";
 import { BrandAssets } from "@/components/portal/BrandAssets";
 import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 import { Locked } from "@/components/portal/Locked";
+import { EmailListBoard } from "@/components/portal/EmailListBoard";
+import { buildEmailList } from "@/lib/emailList/build";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Marketing — Team portal" };
@@ -90,6 +92,7 @@ export default async function MarketingPage({
           picker={<WindowPicker win={win} hrefFor={(w) => marketingHref("campaigns", w)} />}
         />
       )}
+      {tab === "emails" && <EmailList />}
       {tab === "reviews" && <Reviews />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
@@ -118,6 +121,13 @@ async function Campaigns({
       picker={picker}
     />
   );
+}
+
+/* ------------------------------------------------------------ Email list */
+async function EmailList() {
+  const { rows, sources } = await buildEmailList();
+  const yearAgo = new Date(Date.now() - 365 * 86_400_000).toISOString().slice(0, 10);
+  return <EmailListBoard rows={rows} sources={sources} yearAgo={yearAgo} />;
 }
 
 /* --------------------------------------------------------------- Reviews */

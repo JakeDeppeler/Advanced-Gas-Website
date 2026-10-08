@@ -156,6 +156,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/marketing", label: "Campaigns", blurb: "Everything we're running", band: "marketing", icon: "grid", also: ["campaign", "ads", "facebook", "marketing", "social", "brand"] },
     { href: "/portal/website?tab=pages", label: "On the site", blurb: "What people do on each page", band: "marketing", icon: "globe", also: ["page", "views", "traffic", "seo"] },
     { href: "/portal/website?tab=dropoff", label: "Drop-off", blurb: "Where people stop", band: "marketing", icon: "funnel", also: ["drop off", "abandon", "form"] },
+    { href: "/portal/marketing?tab=emails", label: "Email list", blurb: "Everyone we can email, to export", band: "marketing", icon: "list", also: ["email", "mailing list", "newsletter", "export", "csv", "unsubscribe", "edm"] },
     { href: "/portal/marketing?tab=reviews", label: "Reviews", blurb: "Google reviews to answer", band: "marketing", icon: "star", also: ["google", "review", "rating"] },
     { href: "/portal/blog", label: "Blog", blurb: "Posts on the website", band: "marketing", icon: "doc", also: ["article", "post", "write", "publish"] },
   );

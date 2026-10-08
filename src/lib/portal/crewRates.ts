@@ -51,8 +51,12 @@ export async function crewFigures(): Promise<CrewFigures> {
   const onsUp = new Map(capOnsite.rates.map((r) => [r.id, r.uplift]));
   const round = (v: number | null | undefined) => (v != null ? Math.round(v) : null);
 
+  const mobCost = new Map(capMobile.rates.map((r) => [r.id, r.costPerHr]));
+  const onsCost = new Map(capOnsite.rates.map((r) => [r.id, r.costPerHr]));
   const crew: CrewRate[] = people.map((p) => ({
     id: p.id, name: p.name, level: p.level,
+    cost: mobCost.get(p.id) ?? null,
+    costOnsite: onsCost.get(p.id) ?? null,
     rate: round(mob.get(p.id)),
     rateOnsite: round(ons.get(p.id)),
     uplift: round(mobUp.get(p.id)),
