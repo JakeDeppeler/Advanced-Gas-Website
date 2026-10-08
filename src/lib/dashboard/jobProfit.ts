@@ -95,6 +95,15 @@ export async function jobProfits(
   to: string,
   costPerHr: number | null,
   targetPct: number | null,
+  /**
+   * What an hour of each person costs, by name, from Costs & capacity. A tech
+   * and an apprentice on one job are one van-hour, not two: the tradesman's
+   * hour carries the van and the overhead, and the apprentice riding along
+   * adds their own cost and no more. Costing every clocked hour at the van
+   * rate charged a two-hander's job for two vans. Anyone not on Costs &
+   * capacity is costed at the van rate, the cautious figure.
+   */
+  crew: Array<{ name: string; cost: number | null }> = [],
 ): Promise<{ rows: JobProfit[]; summary: ProfitSummary }> {
   const invoices = await sbSelect<{
     id: number;
@@ -133,6 +142,7 @@ export async function jobProfits(
   const ids = priced.map((j) => j.jobId).filter((v): v is number => v != null);
   const jobs = new Map<number, { job_number: string | null; customer_name: string | null; job_type: string | null }>();
   const hours = new Map<number, number>();
+  const byTech = new Map<number, Map<number | null, number>>();
   const crewOn = new Map<number, Set<number>>();
   for (let i = 0; i < ids.length; i += 150) {
     const chunk = ids.slice(i, i + 150).join(",");
@@ -152,6 +162,10 @@ export async function jobProfits(
       const h = (Date.parse(t.done_on) - Date.parse(t.arrived_on)) / 3_600_000;
       if (!(h > 0)) continue;
       hours.set(Number(t.job_id), (hours.get(Number(t.job_id)) ?? 0) + Math.min(MAX_SHIFT_HOURS, h));
+      const per = byTech.get(Number(t.job_id)) ?? new Map<number | null, number>();
+      const tid = t.technician_id != null ? Number(t.technician_id) : null;
+      per.set(tid, (per.get(tid) ?? 0) + Math.min(MAX_SHIFT_HOURS, h));
+      byTech.set(Number(t.job_id), per);
       if (t.technician_id != null) {
         const set = crewOn.get(Number(t.job_id)) ?? new Set<number>();
         set.add(Number(t.technician_id));
@@ -166,6 +180,23 @@ export async function jobProfits(
     const ts = await sbSelect<{ id: number; name: string | null }>("st_technicians", [q.select("id,name"), `id=in.(${techIds.join(",")})`].join("&")).catch(() => []);
     for (const t of ts) if (t.name) techName.set(Number(t.id), t.name);
   }
+
+  // ServiceTitan's names and the portal's don't always match letter for
+  // letter ("Winbanks" and "Winbank"), so a first name plus the start of the
+  // surname is enough.
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z ]/g, "").trim().split(/\s+/);
+  const costFor = (name: string | undefined): number | null => {
+    if (!name) return null;
+    const [f, ...rest] = norm(name);
+    const l = rest.join("");
+    for (const c of crew) {
+      if (c.cost == null) continue;
+      const [cf, ...cr] = norm(c.name);
+      const cl = cr.join("");
+      if (cf === f && (cl === l || (l.length >= 4 && cl.length >= 4 && (cl.startsWith(l.slice(0, 5)) || l.startsWith(cl.slice(0, 5)))))) return c.cost;
+    }
+    return null;
+  };
 
   const rows: JobProfit[] = priced.map((j) => {
     const meta = j.jobId != null ? jobs.get(j.jobId) : undefined;
@@ -186,7 +217,14 @@ export async function jobProfits(
             ? "No hours recorded"
             : null;
 
-    const labour = h != null && costPerHr != null ? h * costPerHr : null;
+    // Clocked hours at what each person's hour costs; sold hours, with nobody
+    // to cost them against, at the van rate.
+    const per = clocked != null && j.jobId != null ? byTech.get(j.jobId) : undefined;
+    const labour = costPerHr == null || h == null
+      ? null
+      : per
+        ? [...per].reduce((a, [tid, hh]) => a + hh * (costFor(tid != null ? techName.get(tid) : undefined) ?? costPerHr), 0)
+        : h * costPerHr;
     const profit = missing == null && labour != null ? j.price - j.materials - labour : null;
     return {
       jobId: j.jobId,

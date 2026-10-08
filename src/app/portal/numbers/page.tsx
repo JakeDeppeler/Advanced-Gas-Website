@@ -64,7 +64,7 @@ export default async function NumbersPage() {
   // that could be costed. Read live, because it isn't on the snapshot.
   const yearFrom = goal ? yearSpans(goal.basis, goal.year)[0]?.from ?? null : null;
   const yearProfit = ready && yearFrom
-    ? await jobProfits(yearFrom, today, crew?.costPerHr ?? null, goal?.profitPct ?? null).then((r) => r.summary).catch(() => null)
+    ? await jobProfits(yearFrom, today, crew?.costPerHr ?? null, goal?.profitPct ?? null, crew?.crew ?? []).then((r) => r.summary).catch(() => null)
     : null;
   const jp = m?.jobProfitMonth ?? null;
 

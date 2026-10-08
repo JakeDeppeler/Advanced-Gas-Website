@@ -7,7 +7,7 @@ import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { personBills } from "@/lib/portal/hourBill";
+import { personBills, yearSpend } from "@/lib/portal/hourBill";
 import { HourBill } from "@/components/portal/HourBill";
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import {
@@ -164,6 +164,12 @@ export default async function HourlyPage() {
     if (xero > 0 && cards > 0) wageCheck = { cards, xero };
   } catch { /* Xero not connected: the check is left off rather than guessed */ }
 
+  const spend = yearSpend(s, cap);
+  const spendTop = Math.max(1, ...spend.map((x) => x.annual));
+  const pairCharge = leadCost != null && riders.length
+    ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * (1 + s.margin / 100)
+    : null;
+
   const crew = cap.rates
     .map((r) => ({ r, p: people.find((x) => x.id === r.id)! }))
     .filter(({ r, p }) => p && LEVEL_BILLABLE[p.level] && (r.rate != null || r.uplift != null))
@@ -171,7 +177,7 @@ export default async function HourlyPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Our hourly rate" lede="One billable hour, taken apart: where the hours come from, every dollar that has to come back out of each one, and the margin on top." />
+      <FinanceHead title="Our hourly rate" lede="What the business spends in a year, what that makes an hour on the tools cost, and what we charge for it." />
 
       {!has ? (
         <div className="pt-note pt-note--warn">
@@ -179,6 +185,62 @@ export default async function HourlyPage() {
         </div>
       ) : (
         <>
+          <section className="pt-panel pt-hs" aria-labelledby="hs-h">
+            <h2 id="hs-h" className="pt-sr">The short version</h2>
+            <div className="pt-hs__nums">
+              <div><span>We spend a year</span><strong>{m0(cap.totalCost)}</strong><em>every wage and every bill</em></div>
+              <div><span>Hours we can bill</span><strong>{h0(cap.totalBillHrs)}</strong><em>across {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"}</em></div>
+              <div><span>So an hour costs us</span><strong>{m2(cap.costPerHr)}</strong><em>{m0(cap.totalCost)} ÷ {h0(cap.totalBillHrs)}</em></div>
+              <div className="is-charge"><span>We charge</span><strong>{m2(charge)}</strong><em>with our {s.margin}% margin</em></div>
+            </div>
+          </section>
+
+          <section className="pt-panel" aria-labelledby="hs-spend">
+            <h2 id="hs-spend" className="pt-panel__h">Where the money goes each year</h2>
+            <div className="pt-hs__spend">
+              {spend.map((x) => (
+                <div key={x.key} className="pt-hs__row">
+                  <span className="pt-hs__lbl">{x.label}<em>{x.note}</em></span>
+                  <span className="pt-hs__bar" aria-hidden="true"><i style={{ width: `${Math.max(0, (x.annual / spendTop) * 100)}%` }} /></span>
+                  <strong className="pt-hs__yr">{m0(x.annual)}<em>a year</em></strong>
+                  <span className="pt-hs__ph">{m2(per(x.annual))}<em>an hour</em></span>
+                </div>
+              ))}
+              <div className="pt-hs__row is-total">
+                <span className="pt-hs__lbl">All of it</span><span />
+                <strong className="pt-hs__yr">{m0(cap.totalCost)}<em>a year</em></strong>
+                <span className="pt-hs__ph">{m2(cap.costPerHr)}<em>an hour</em></span>
+              </div>
+            </div>
+          </section>
+
+          <section className="pt-panel" aria-labelledby="hs-people">
+            <h2 id="hs-people" className="pt-panel__h">What each person costs, and what we charge</h2>
+            <div className="pt-fleet__wrap">
+              <table className="pt-rev__pl">
+                <thead><tr><th scope="col">Who</th><th scope="col">Costs us an hour</th><th scope="col">We charge an hour</th></tr></thead>
+                <tbody>
+                  {crew.map(({ r, p }) => (
+                    <tr key={r.id}>
+                      <th scope="row">{p.name}<em> {LEVEL_LABEL[p.level]}{r.uplift != null ? ", rides with a tech" : ""}</em></th>
+                      {r.uplift != null
+                        ? <><td>+{m2(r.costPerHr ?? 0)}</td><td>+{m2(r.uplift)} <em>on top of the tradesman</em></td></>
+                        : <><td>{r.costPerHr != null ? m2(r.costPerHr) : "—"}</td><td>{r.rate != null ? m2(r.rate) : "—"}</td></>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {pairCharge != null && leadCost != null && (
+              <p className="pt-hs__pair">
+                One hour of a {leadLabel.toLowerCase()} on their own: <strong>{m2(leadCost * (1 + s.margin / 100))}</strong>. With an apprentice on the job: <strong>{m2(pairCharge)}</strong>.
+                That&rsquo;s still one hour of the van, not two.
+              </p>
+            )}
+          </section>
+
+          <details className="pt-hr__more">
+            <summary>Show the full breakdown</summary>
           <div className="pt-rev__tiles">
             <div className="pt-rev__tile is-feature">
               <span className="pt-rev__k">What an hour costs us</span>
@@ -388,6 +450,7 @@ export default async function HourlyPage() {
               Change any of it — wages, hours, days off, overheads, the margin — on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, and this page follows.
             </p>
           </section>
+          </details>
         </>
       )}
     </PortalShell>

@@ -61,7 +61,7 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
   const [row, crew] = ready ? await Promise.all([getSettings<unknown>("yeargoal").catch(() => null), crewFigures().catch(() => null)]) : [null, null];
   const goal = readYearGoal(row, now);
   const target = goal.profitPct;
-  const res = ready ? await jobProfits(r.from, r.to, crew?.costPerHr ?? null, target).catch(() => null) : null;
+  const res = ready ? await jobProfits(r.from, r.to, crew?.costPerHr ?? null, target, crew?.crew ?? []).catch(() => null) : null;
   const s = res?.summary ?? null;
 
   return (
