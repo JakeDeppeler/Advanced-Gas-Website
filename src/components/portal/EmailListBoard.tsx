@@ -101,6 +101,7 @@ export function EmailListBoard({ rows, sources, yearAgo }: { rows: EmailRow[]; s
             <span className="pt-rev__k">{SOURCE_PLURAL[s.source]}</span>
             <strong>{s.count.toLocaleString("en-AU")}</strong>
             <span className="pt-rev__sub">{s.note ?? "addresses"}</span>
+            {s.fix && <a className="pt-el__fix" href={s.fix.href}>{s.fix.label} →</a>}
           </div>
         ))}
       </div>

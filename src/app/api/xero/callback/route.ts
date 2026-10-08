@@ -11,6 +11,15 @@ export async function GET(req: NextRequest) {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return NextResponse.redirect(new URL("/portal?denied=1", req.url));
 
+  // Xero refused a scope — the contacts one is the only newcomer. Try again
+  // without it rather than leave the books disconnected over an email list.
+  // The cookie says whether this was already the retry, so a second refusal
+  // stops instead of going round again.
+  if (req.nextUrl.searchParams.get("error") === "invalid_scope") {
+    const retried = req.cookies.get("xero_oauth_basic")?.value === "1";
+    return NextResponse.redirect(new URL(retried ? "/portal/finance?error=scope" : "/api/xero/connect?basic=1", req.url));
+  }
+
   const code = req.nextUrl.searchParams.get("code");
   const state = req.nextUrl.searchParams.get("state");
   const saved = req.cookies.get("xero_oauth_state")?.value;
@@ -36,5 +45,6 @@ export async function GET(req: NextRequest) {
 
   const res = NextResponse.redirect(new URL("/portal/finance?connected=1", req.url));
   res.cookies.delete("xero_oauth_state");
+  res.cookies.delete("xero_oauth_basic");
   return res;
 }

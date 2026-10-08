@@ -29,7 +29,7 @@ export type EmailRow = {
   optedOut: boolean;
 };
 
-export type SourceState = { source: EmailSource; count: number; note: string | null };
+export type SourceState = { source: EmailSource; count: number; note: string | null; fix?: { href: string; label: string } };
 
 const RE = /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[a-z]{2,}$/i;
 /** Lower-cased and trimmed, or null when it isn't an address anyone could send to. */
