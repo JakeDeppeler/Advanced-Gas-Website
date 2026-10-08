@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { readStandardTimes, saveStandardTimes, type StandardHours } from "@/lib/board/standardTimes";
+import { readStandardTimes, saveStandardTimes, saveVeuRebate, type StandardHours } from "@/lib/board/standardTimes";
 
 export type TimesResult = { ok: boolean; error?: string };
 
@@ -37,6 +37,17 @@ export async function setStandardTime(jobType: string, hours: number | null): Pr
   else map[name] = hours;
 
   await saveStandardTimes(map);
+  revalidatePath("/portal/board/times");
+  return { ok: true };
+}
+
+/** Dollars a VEU job brings back in rebate. Blank clears it. */
+export async function setVeuRebate(amount: number | null): Promise<TimesResult> {
+  if (!(await office())) return { ok: false, error: "Not allowed." };
+  if (amount != null && (!Number.isFinite(amount) || amount <= 0 || amount > 20_000)) {
+    return { ok: false, error: "Give it between 0 and 20,000." };
+  }
+  await saveVeuRebate(amount);
   revalidatePath("/portal/board/times");
   return { ok: true };
 }

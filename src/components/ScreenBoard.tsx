@@ -1802,6 +1802,7 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
    */
   const teamByNow = byNow(teamMonthTarget, monthGone);
   const teamVerdict = headVerdictOf(teamSold, teamByNow);
+  const sm = m.soldMargin ?? null;
 
   return (
     <>
@@ -1848,10 +1849,44 @@ function TeamPage({ m, live }: { m: Metrics; live: Live }) {
             <span className="teamfoot__k">Avg quote</span>
             <b>{teamQuotedJobs > 0 ? plain(teamQuoted / teamQuotedJobs) : NA}</b>
           </span>
+          {/*
+            * What the month's sales were sold at, from the estimates themselves.
+            *
+            * Deliberately not the Job margin from the Performance page and
+            * labelled so: that one is what finished work actually made, weeks
+            * later, after labour. This is the margin the quote was written at,
+            * known the day it closed. It will read higher, and the sub line says
+            * which jobs it covers so the difference is never a mystery.
+            */}
+          <span className="teamfoot__stat">
+            <span className="teamfoot__k">Margin · sold</span>
+            <b>{sm?.marginPct != null ? `${Math.round(sm.marginPct)}%` : NA}</b>
+            <span className="teamfoot__sub">{soldMarginNote(sm)}</span>
+          </span>
         </span>
       </div>
     </>
   );
+}
+
+/**
+ * What the sold margin covers, in the few words a wall can carry.
+ *
+ * Three things can be true at once and only the most important is said: that
+ * some of the month's sales had no costed lines, and that VEU jobs are in there
+ * without their rebate. A VEU job is sold cheap because the rebate pays the
+ * rest, so counting it without the rebate drags the figure down for work that
+ * is fine — that is the caveat worth the space, and it disappears the moment
+ * somebody sets the rebate in the portal.
+ */
+function soldMarginNote(sm: Metrics["soldMargin"]): string {
+  if (!sm || sm.marginPct == null) return "nothing costed yet";
+  const jobs = `${sm.jobs} ${sm.jobs === 1 ? "job" : "jobs"}`;
+  if (sm.veuJobs > 0 && sm.rebatePerJob == null) {
+    return `${jobs} · ${sm.veuJobs} VEU, rebate not counted`;
+  }
+  if (sm.uncosted > 0) return `${jobs} · ${sm.uncosted} not costed`;
+  return `${jobs} sold this month`;
 }
 
 type Against = { target: number | null; byNow: number | null };

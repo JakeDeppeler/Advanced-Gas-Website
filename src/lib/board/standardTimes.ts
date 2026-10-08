@@ -16,8 +16,26 @@
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { STANDARD_HOURS_KEY, normaliseStandardHours, type StandardHours } from "@/lib/dashboard/dailyPace";
+import { VEU_REBATE_KEY, normaliseRebate } from "@/lib/dashboard/soldMarginTypes";
 
 export { STANDARD_HOURS_KEY, normaliseStandardHours, type StandardHours };
+
+/**
+ * What a VEU rebate is worth per job.
+ *
+ * A VEU job is sold at a reduced price because the rebate covers the rest, so
+ * on the estimate alone it reads thin and sometimes below cost — the accounting,
+ * not the selling. The rebate is real income and nothing in ServiceTitan
+ * records it, so it is set here. Unset means not counted: the board says the
+ * rebate is missing rather than assuming a figure nobody chose.
+ */
+export async function readVeuRebate(): Promise<number | null> {
+  return normaliseRebate(await getSettings<unknown>(VEU_REBATE_KEY).catch(() => null));
+}
+
+export async function saveVeuRebate(amount: number | null): Promise<void> {
+  await saveSettings(VEU_REBATE_KEY, amount == null ? null : normaliseRebate(amount));
+}
 
 export type JobTypeRow = {
   name: string;

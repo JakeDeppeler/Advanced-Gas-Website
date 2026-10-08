@@ -17,6 +17,7 @@ import {
 import { buildPace, jobClass, shiftIso, type PaceData, type PaceSettings, type PaceView } from "./pace";
 import { computePaceData } from "./paceData";
 import { dailyPace, type DailyPace } from "./dailyPace";
+import { soldMargin, type SoldMargin } from "./soldMargin";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
 import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
@@ -523,6 +524,12 @@ export type Metrics = {
    * zeroes claiming nobody did anything.
    */
   daily: DailyPace | null;
+  /**
+   * Margin on what was sold this month, from the estimates themselves. Null
+   * before anything with costed lines has sold. Not the same measure as the
+   * Job margin tile — see soldMargin.ts.
+   */
+  soldMargin: SoldMargin | null;
   paceSettings: PaceSettings | null;
   /**
    * Profit on the jobs billed in the last 30 days, before GST. See jobProfit.ts.
@@ -2376,6 +2383,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   // Carried forward on failure like every other source: a board that blanks the
   // crew's day because one read timed out is worse than one a minute behind.
   const daily = await dailyPace(now).catch(() => previous?.metrics.daily ?? null);
+  const sold = await soldMargin(now).catch(() => previous?.metrics.soldMargin ?? null);
   const pace = paceData ? buildPace(goal, paceSettings, paceData) : null;
   // One crew figure, two windows: the Performance page asks about the month and
   // the Pace strip about the year, and they must not disagree on what an hour
@@ -2442,6 +2450,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       pace,
       paceData,
       daily,
+      soldMargin: sold,
       paceSettings,
       jobProfitRecent,
       // Carried, not recomputed: the board reads jobProfitRecent now, and these

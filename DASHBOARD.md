@@ -1848,6 +1848,53 @@ appointments resource, which is not synced, so the "scheduled next 7 days" tile
 stays blank rather than showing a measured-looking zero. `campaign` would need a
 campaigns lookup that does not exist yet; nothing on the board reads it.
 
+## Margin on what was sold — Team page
+
+The Team band carries **Margin · sold**: what the month's sales were sold at,
+price against cost, ex-GST.
+
+**It is not the Job margin from the Performance page and must not be read as the
+same number moving.** Job margin is what finished work actually made — invoice
+revenue less materials and the crew's hours — and it arrives weeks late, because
+a job sold in October is often installed and billed in December. Margin · sold
+is the *quoted* margin, known the day the job closes. It knows nothing about
+labour running over or a part costing more than the book said, so it reads
+higher, and it should.
+
+**It comes from the estimate, not the invoice**, and that was the whole
+investigation. Taking jobs sold this month and looking up their invoices covers
+**18% of the month's sold value**, because most sold work is not billed yet —
+and the 18% is not a random sample but the quick service jobs that sell and bill
+the same day, which made it report 54% for a business running at 21%. A 90-day
+window is *worse*, at 4%, because it fills with installs still waiting. Every
+ServiceTitan estimate line carries `totalCost`, so the estimate knows its own
+margin the moment it is signed: **23 of 24 sold estimates this month, 97% of the
+value.**
+
+Two populations are excluded and both matter. Estimates stamped `Imported
+Default Businessunit` are the pre-go-live import, carry no line costs at all and
+compute as 99.3% margin — 140 of them would drown any window past a month. A
+sold job with no costed lines is counted in the coverage and left out of the
+margin, never booked at 100%.
+
+**VEU jobs are the reason this needed asking.** A VEU job is sold at a reduced
+price because the rebate covers the rest, so on the estimate alone it reads thin
+and one of October's computes as sold below cost. That is the accounting, not
+the selling, and the person who sells rebate work would have worn it. Nothing in
+ServiceTitan records the rebate, so the office sets it at
+`/portal/board/times` — Jake puts it at $500–$800 on a ducted — and it is added
+as income per VEU job. Unset, it is not counted and the band says `2 VEU, rebate
+not counted` rather than assuming a figure nobody gave it.
+
+A VEU job is recognised by the words in the estimate's name; the business unit
+does not carry it (three of six Real Estate installs were VEU and three were
+not) and no field marks them. A miss costs that job its rebate; it never invents
+one.
+
+**One team figure, not per person.** Per-person margin was considered and left
+out: with one to nine sales each per month, a single job moves somebody's number
+by twenty points on a wall the whole office reads.
+
 ## Daily pace — each tech's day on the tools
 
 Fifth in the rotation, between Invoices and Team. Five cards across, one per

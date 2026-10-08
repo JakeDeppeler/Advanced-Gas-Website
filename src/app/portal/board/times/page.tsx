@@ -6,7 +6,7 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { StandardTimes } from "@/components/portal/StandardTimes";
 import { dbConfigured } from "@/lib/portal/db";
-import { readStandardTimes } from "@/lib/board/standardTimes";
+import { readStandardTimes, readVeuRebate } from "@/lib/board/standardTimes";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Standard times — Team portal" };
@@ -22,6 +22,7 @@ export default async function StandardTimesPage() {
 
   const ready = dbConfigured();
   const { rows, set } = ready ? await readStandardTimes().catch(() => ({ rows: [], set: 0 })) : { rows: [], set: 0 };
+  const rebate = ready ? await readVeuRebate().catch(() => null) : null;
 
   return (
     <PortalShell user={user}>
@@ -40,7 +41,7 @@ export default async function StandardTimesPage() {
           <strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.
         </div>
       )}
-      <StandardTimes rows={rows} set={set} />
+      <StandardTimes rows={rows} set={set} rebate={rebate} />
     </PortalShell>
   );
 }
