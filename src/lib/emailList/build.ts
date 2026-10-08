@@ -92,7 +92,11 @@ export async function buildEmailList(): Promise<{ rows: EmailRow[]; sources: Sou
   const sources: SourceState[] = [
     { source: "servicetitan", count: n("servicetitan"), note: stNote },
     { source: "website", count: n("website"), note: null },
-    { source: "xero", count: n("xero"), note: xero === "no-scope" ? "Xero's connection can't read contacts yet." : xero == null ? "Xero isn't connected or didn't answer." : null },
+    {
+      source: "xero", count: n("xero"),
+      note: xero === "no-scope" ? "Xero's connection can't read contacts yet." : xero == null ? "Xero isn't connected or didn't answer." : null,
+      fix: xero === "no-scope" ? { href: "/api/xero/connect", label: "Reconnect Xero to add them" } : undefined,
+    },
     { source: "keepintouch", count: n("keepintouch"), note: null },
   ];
   return { rows, sources };

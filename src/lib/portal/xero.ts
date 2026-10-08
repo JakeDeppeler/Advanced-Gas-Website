@@ -34,8 +34,16 @@ const API_BASE = "https://api.xero.com/api.xro/2.0";
 // just losing the one permission. This app already uses the granular
 // accounting.reports.profitandloss.read, so it is on the new side of that line.
 //
-// Both are read-only. Nothing in this codebase can write to Xero.
-const SCOPES = "offline_access accounting.reports.profitandloss.read accounting.invoices.read";
+// accounting.contacts.read is for the Marketing email list, which reads the
+// email address on each Xero contact. Contacts weren't part of the March 2026
+// split, so the scope keeps its name — but if Xero ever refuses it, the whole
+// scope string is rejected, and losing the P&L to gain an email list would be
+// the wrong trade. So a refusal is caught in the callback and the connect is
+// retried without it (authorizeUrl's `basic`).
+//
+// All read-only. Nothing in this codebase can write to Xero.
+const SCOPES_BASIC = "offline_access accounting.reports.profitandloss.read accounting.invoices.read";
+const SCOPES = `${SCOPES_BASIC} accounting.contacts.read`;
 
 export function xeroConfigured(): boolean {
   return !!(process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET);
@@ -46,7 +54,7 @@ export function redirectUri(): string {
   return `${base}/api/xero/callback`;
 }
 
-export function authorizeUrl(state: string): string {
+export function authorizeUrl(state: string, basic = false): string {
   const p = new URLSearchParams({
     response_type: "code",
     client_id: process.env.XERO_CLIENT_ID || "",
@@ -55,7 +63,7 @@ export function authorizeUrl(state: string): string {
   });
   // scope must be space-delimited; encode the spaces as %20 rather than the
   // '+' URLSearchParams would produce, which some servers reject.
-  return `${AUTH_URL}?${p.toString()}&scope=${encodeURIComponent(SCOPES)}`;
+  return `${AUTH_URL}?${p.toString()}&scope=${encodeURIComponent(basic ? SCOPES_BASIC : SCOPES)}`;
 }
 
 function basicAuth(): string {

@@ -36,12 +36,18 @@ export async function crewFigures(): Promise<CrewFigures> {
   if (!dbConfigured()) return EMPTY;
 
   const [users, base] = await Promise.all([listUsers(), getCostSettings()]);
-  const people = users
-    .filter((u) => u.active && u.id && u.level && LEVEL_BILLABLE[u.level as CrewLevel])
+  // Everyone goes into the costing — the office included, because their
+  // wages are what every billable hour has to pay for. Costed on the crew
+  // alone, the office's wages vanished and the calculator quoted about $44 an
+  // hour under what Costs & capacity said the hour cost. Only the people on
+  // the tools are offered on the calculator.
+  const everyone = users
+    .filter((u) => u.active && u.id && u.level)
     .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
+  const people = everyone.filter((p) => LEVEL_BILLABLE[p.level]);
 
-  const capMobile = computeCapacity(people, { ...base, mode: "mobile" });
-  const capOnsite = computeCapacity(people, { ...base, mode: "onsite" });
+  const capMobile = computeCapacity(everyone, { ...base, mode: "mobile" });
+  const capOnsite = computeCapacity(everyone, { ...base, mode: "onsite" });
   const mob = new Map(capMobile.rates.map((r) => [r.id, r.rate]));
   const ons = new Map(capOnsite.rates.map((r) => [r.id, r.rate]));
   // What someone riding with a tech adds to the crew for every hour they are on

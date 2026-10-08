@@ -4878,6 +4878,7 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-el__table tr.is-off .pt-el__email { text-decoration: line-through; }
 .pt-el__src { text-align: left !important; }
 .pt-el__chip { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 8px; border-radius: 999px; background: var(--pt-tint); color: var(--pt-ink); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pt-el__fix { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--pt-ink); text-decoration: underline; text-underline-offset: 3px; }
 .pt-el__more { margin-top: 12px; }
 .pt-el__bulk { display: grid; gap: 10px; max-width: 640px; }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }

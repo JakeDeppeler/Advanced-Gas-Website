@@ -12,8 +12,16 @@ export async function GET(req: NextRequest) {
   if (!xeroConfigured()) return NextResponse.redirect(new URL("/portal/finance?error=notconfigured", req.url));
 
   const state = crypto.randomUUID();
-  const res = NextResponse.redirect(authorizeUrl(state));
+  const basic = req.nextUrl.searchParams.get("basic") === "1";
+  const res = NextResponse.redirect(authorizeUrl(state, basic));
   res.cookies.set("xero_oauth_state", state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 600,
+  });
+  res.cookies.set("xero_oauth_basic", basic ? "1" : "0", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
