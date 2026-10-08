@@ -224,7 +224,10 @@ export function CapacityEditor({
     return { super: pct(sum(/superannuation/i)), workcover: pct(sum(/workcover|work cover|workers comp/i)), lsl: pct(sum(/long service/i)) };
   }, [xeroExpenses]);
   const ohFromCrew = cap.labourOh + cap.officeOh;
-  const ohTotal = ohTyped + ohFromCrew + fleetDep;
+  // School fees entered on an apprentice's card move out of the training line
+  // and onto them; the ones on a van driver stay in this total, the ones riding
+  // along go into their crew's uplift instead, as computeCapacity has it.
+  const ohTotal = cap.sharedOverhead;
   const hasHrs = cap.totalBillHrs > 0;
   const show = (n: number) => (hasHrs ? money2(n) : "—");
   const blended = hasHrs ? cap.costPerHr * (1 + s.margin / 100) : null;
@@ -631,6 +634,10 @@ export function CapacityEditor({
                           <CapField label="Sick (days)" value={r.costing.sickDays} onChange={(v) => setCosting(r.id, { sickDays: v })} />
                           <CapField label="RDOs (days)" value={r.costing.rdoDays} onChange={(v) => setCosting(r.id, { rdoDays: v })} />
                           {r.level === "apprentice" && <CapField label="School (days)" value={r.costing.schoolDays} onChange={(v) => setCosting(r.id, { schoolDays: v })} />}
+                          {r.level === "apprentice" && (
+                            <CapField label="School fees ($ a year)" value={s.schoolFees?.[r.id] ?? 0}
+                              onChange={(v) => setS({ ...s, schoolFees: { ...(s.schoolFees ?? {}), [r.id]: v } })} />
+                          )}
                           {/* On site these two are the fields the mode is
                               already answering, and a driving figure on a card
                               for a day nobody drives is just something else to
