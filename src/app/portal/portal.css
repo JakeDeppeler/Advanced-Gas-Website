@@ -4881,6 +4881,71 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-el__fix { margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--pt-ink); text-decoration: underline; text-underline-offset: 3px; }
 .pt-el__more { margin-top: 12px; }
 .pt-el__bulk { display: grid; gap: 10px; max-width: 640px; }
+/* Our hourly rate, the short version. */
+.pt-hs__nums { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+.pt-hs__nums > div { display: flex; flex-direction: column; gap: 4px; padding: 4px 20px; border-left: 1px solid var(--pt-tint); min-width: 0; }
+.pt-hs__nums > div:first-child { border-left: 0; padding-left: 0; }
+.pt-hs__nums span { font-size: 13px; font-weight: 700; color: var(--pt-ink-2); }
+.pt-hs__nums strong { font-size: clamp(24px, 2.6vw, 34px); line-height: 1.1; font-weight: 900; color: var(--pt-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pt-hs__nums em { font-style: normal; font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-hs__nums .is-charge strong { color: var(--pt-accent); }
+.pt-hs__spend { display: grid; }
+.pt-hs__row { display: grid; grid-template-columns: minmax(180px, 1.3fr) minmax(80px, 1fr) 120px 90px; gap: 14px; align-items: center; padding: 11px 0; border-top: 1px solid var(--pt-tint); }
+.pt-hs__row:first-child { border-top: 0; }
+.pt-hs__lbl { display: flex; flex-direction: column; gap: 2px; font-weight: 600; color: var(--pt-ink); min-width: 0; }
+.pt-hs__lbl em, .pt-hs__yr em, .pt-hs__ph em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
+.pt-hs__bar { height: 10px; background: var(--pt-tint); border-radius: 999px; overflow: hidden; }
+.pt-hs__bar i { display: block; height: 100%; background: var(--pt-navy-2, var(--pt-ink)); border-radius: 999px; }
+.pt-hs__yr, .pt-hs__ph { display: flex; flex-direction: column; text-align: right; font-variant-numeric: tabular-nums; color: var(--pt-ink); }
+.pt-hs__yr { font-weight: 800; }
+.pt-hs__row.is-total { border-top: 1px solid var(--pt-line); }
+.pt-hs__row.is-total .pt-hs__lbl, .pt-hs__row.is-total .pt-hs__ph { font-weight: 800; }
+.pt-hs__pair { margin: 14px 0 0; font-size: 14.5px; color: var(--pt-ink); }
+.pt-hr__more { margin-top: 4px; }
+.pt-hr__more > summary { cursor: pointer; font-weight: 700; color: var(--pt-ink); padding: 12px 0; list-style-position: inside; }
+.pt-hr__more[open] > summary { margin-bottom: 12px; }
+@media (max-width: 760px) {
+  .pt-hs__nums { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .pt-hs__nums > div:nth-child(3) { border-left: 0; padding-left: 0; }
+  .pt-hs__row { grid-template-columns: 1fr auto auto; }
+  .pt-hs__bar { grid-column: 1 / -1; order: 4; }
+}
+/* The to-do list, plain. */
+.pt-td { display: grid; gap: 14px; max-width: 920px; }
+.pt-td__add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pt-td__add > input { flex: 1 1 280px; min-width: 0; font: inherit; font-size: 16px; padding: 12px 14px; border: 1px solid var(--pt-line); border-radius: 10px; background: var(--pt-surface); color: var(--pt-ink); }
+.pt-td select, .pt-td input[type="date"], .pt-td__editform input { font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--pt-line); border-radius: 10px; background: var(--pt-surface); color: var(--pt-ink); }
+.pt-td__when { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.pt-td__people { display: flex; flex-wrap: wrap; gap: 6px; }
+.pt-td__pill { font: inherit; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.pt-td__pill.is-on { background: var(--pt-navy); color: #fff; border-color: var(--pt-navy); }
+.pt-td__late { font-size: 12px; font-weight: 800; color: var(--pt-bad); background: var(--pt-bad-soft, transparent); border-radius: 999px; padding: 1px 7px; }
+.pt-td__pill.is-on .pt-td__late { color: #fff; background: rgba(255, 255, 255, .18); }
+.pt-td__list { margin: 0; }
+.pt-td__group + .pt-td__group { margin-top: 16px; }
+.pt-td__gh { margin: 0 0 4px; font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
+.pt-td__gh span { font-weight: 600; margin-left: 4px; }
+.pt-td__group.is-late .pt-td__gh { color: var(--pt-bad); }
+.pt-td ul { list-style: none; margin: 0; padding: 0; }
+.pt-td__item { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-top: 1px solid var(--pt-tint); }
+.pt-td__group li:first-child { border-top: 0; }
+.pt-td__title { font-size: 15.5px; color: var(--pt-ink); min-width: 0; overflow-wrap: anywhere; }
+.pt-td__item.is-done .pt-td__title { color: var(--pt-ink-2); text-decoration: line-through; }
+.pt-td__meta { display: flex; gap: 10px; align-items: center; font-size: 13px; color: var(--pt-ink-2); white-space: nowrap; }
+.pt-td__who { font-weight: 700; color: var(--pt-ink); }
+.pt-td__due.is-overdue { color: var(--pt-bad); font-weight: 800; }
+.pt-td__due.is-today { color: var(--pt-ink); font-weight: 700; }
+.pt-td__item.is-editing { display: block; }
+.pt-td__editform { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pt-td__editform > input { flex: 1 1 240px; }
+.pt-td__editacts { display: inline-flex; gap: 8px; align-items: center; }
+.pt-td__empty { margin: 0; color: var(--pt-ink-2); }
+.pt-td__more > summary { cursor: pointer; font-weight: 700; color: var(--pt-ink); padding: 8px 0; }
+.pt-td__donelist { margin-top: 6px !important; }
+@media (max-width: 640px) {
+  .pt-td__item { grid-template-columns: auto 1fr; }
+  .pt-td__meta { grid-column: 2; white-space: normal; flex-wrap: wrap; }
+}
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }

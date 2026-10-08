@@ -2384,7 +2384,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
   const profitOver = async (from: string) =>
     crew == null
       ? null
-      : (await jobProfits(from, isoDateMelbourne(now), crew.costPerHr, goal?.profitPct ?? null)).summary;
+      : (await jobProfits(from, isoDateMelbourne(now), crew.costPerHr, goal?.profitPct ?? null, crew.crew)).summary;
   /*
    * One window, thirty rolling days.
    *

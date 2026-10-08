@@ -48,7 +48,7 @@ export default async function PacePage() {
 
   const from = isoDateMelbourne(startOfMonthMelbourne(now));
   const profit = ready
-    ? await jobProfits(from, isoDateMelbourne(now), crew?.costPerHr ?? null, shown.profitPct)
+    ? await jobProfits(from, isoDateMelbourne(now), crew?.costPerHr ?? null, shown.profitPct, crew?.crew ?? [])
       .then((r) => ({
         summary: r.summary,
         // The jobs worth a look: costed ones under the goal, worst first.
