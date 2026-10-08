@@ -8,7 +8,7 @@
  * always add back to the rate quoted everywhere else. Pure.
  */
 import {
-  computeCapacity, daysOff, loadedWage, onCostsOf, overheadLines,
+  assumptionsFor, computeCapacity, loadedWage, onCostsOf, overheadLines,
   type CapSettings, type CrewMember,
 } from "./crew";
 
@@ -22,7 +22,11 @@ export const BILL_FAMILIES: Array<{ key: BillFamily; label: string }> = [
   { key: "office", label: "The office behind them" },
 ];
 
-export type BillLine = { key: string; label: string; family: BillFamily; perHr: number };
+export type BillLine = {
+  key: string; label: string; family: BillFamily; perHr: number;
+  /** For paid time off the tools: the hours a year it is, and as days where it's counted in days. */
+  hrs?: number; days?: number;
+};
 
 /** Which overhead line goes on which line of the bill. Anything not named is office & admin. */
 const LINE_OF: Record<string, string> = {
@@ -37,14 +41,22 @@ const LINE_OF: Record<string, string> = {
 export const BILL_LINES: Array<{ key: string; label: string; family: BillFamily; note?: string }> = [
   { key: "wage", label: "Wage", family: "pay" },
   { key: "super", label: "Super", family: "pay" },
-  { key: "workcover", label: "WorkCover & long service leave", family: "pay" },
-  { key: "leave", label: "Leave, holidays, sick days, RDOs & school", family: "off", note: "their own, over their own billable hours" },
-  { key: "driving", label: "Driving, paperwork & call-backs", family: "off", note: "their own" },
+  { key: "workcover", label: "WorkCover", family: "pay" },
+  { key: "lsl", label: "Long service leave", family: "pay", note: "put aside as they earn it" },
+  { key: "annual", label: "Annual leave", family: "off" },
+  { key: "ph", label: "Public holidays", family: "off" },
+  { key: "sick", label: "Sick days", family: "off" },
+  { key: "rdo", label: "RDOs", family: "off" },
+  { key: "school", label: "Trade school", family: "off", note: "apprentices" },
+  { key: "travel", label: "Driving between jobs", family: "off" },
+  { key: "paperwork", label: "Paperwork between jobs", family: "off" },
+  { key: "callbacks", label: "Going back to fix our own work", family: "off", note: "call-backs" },
   { key: "vanRun", label: "Van running costs", family: "van", note: "fuel, servicing, rego, insurance, tolls" },
   { key: "vehicle", label: "The vehicle", family: "van", note: "depreciation and finance" },
   { key: "tools", label: "Tools", family: "kit" },
   { key: "uniform", label: "Uniform & PPE", family: "kit" },
-  { key: "training", label: "Training & licences", family: "kit" },
+  { key: "training", label: "Training & licences", family: "kit", note: "the business's courses and tickets" },
+  { key: "schoolFees", label: "Their trade-school fees", family: "kit", note: "from their card, over their own billable hours" },
   { key: "marketing", label: "Marketing", family: "kit", note: "what keeps them busy" },
   { key: "officeStaff", label: "Office support", family: "office", note: "the wages of the people not on the tools" },
   { key: "admin", label: "Rent, insurance & admin", family: "office", note: "the yard, software, phones, accountant, bank" },
@@ -62,18 +74,21 @@ export function personBills(people: CrewMember[], s: CapSettings, cap = computeC
   const H = cap.totalBillHrs;
   if (H <= 0) return [];
   const oc = onCostsOf(s);
+  const m = assumptionsFor(s);
 
   // The business's share of an hour, line by line. With the overhead kept as one
   // figure there is nothing to split, so it all sits under rent & admin.
   const shared: Record<string, number> = { officeStaff: cap.officeOh / H };
   if (s.ohSource === "internal") {
     shared.vehicle = (s.fleetDep ?? 0) / H;
-    shared.admin = (Number(s.internalOverhead) || 0) / H;
+    shared.admin = ((Number(s.internalOverhead) || 0) - cap.feesMoved) / H;
   } else {
     for (const [k, v] of Object.entries(overheadLines(s))) {
       const to = LINE_OF[k] ?? "admin";
       shared[to] = (shared[to] ?? 0) + (Number(v) || 0) / H;
     }
+    // The school fees that moved onto the apprentices came off this line.
+    shared.training = (shared.training ?? 0) - cap.feesMoved / H;
   }
 
   return cap.rates
@@ -83,19 +98,28 @@ export function personBills(people: CrewMember[], s: CapSettings, cap = computeC
       const c = p.costing;
       const rate = loadedWage(c.wage, s);
       const hpd = c.hrsWeek / 5;
-      // Their own downtime, split the way calcPerson counts it.
-      const offHrs = daysOff(c) * hpd;
-      const down = (r.ownDownPerHr ?? 0) * r.billHrs;
-      const leave = Math.min(down, offHrs * rate);
+      // Their own paid hours off the tools, worked out exactly as calcPerson
+      // does, so the lines add back to the rate.
+      const paid = c.hrsWeek * s.weeksYear;
+      const off = { annual: c.leaveDays * hpd, ph: c.phDays * hpd, sick: c.sickDays * hpd, rdo: c.rdoDays * hpd, school: c.schoolDays * hpd };
+      const offTotal = Object.values(off).reduce((a, v) => a + v, 0);
+      const travel = c.travelHrsWeek * (m.travelPct / 100) * s.weeksYear;
+      const paperwork = c.adminHrsWeek * (m.adminPct / 100) * s.weeksYear;
+      const officeHrs = Math.min(c.officeHrsWeek * s.weeksYear, Math.max(0, paid - offTotal));
+      const beforeCb = Math.max(0, paid - offTotal - travel - paperwork - officeHrs);
+      const callbacks = beforeCb * ((c.callbackPct ?? m.callbackPct ?? s.callbackPct ?? 0) / 100);
+      const hrs: Record<string, number> = { ...off, travel, paperwork, callbacks };
+      const days: Record<string, number> = { annual: c.leaveDays, ph: c.phDays, sick: c.sickDays, rdo: c.rdoDays, school: c.schoolDays };
       const v: Record<string, number> = {
         wage: c.wage,
         super: (c.wage * oc.superPct) / 100,
-        workcover: (c.wage * (oc.workcoverPct + oc.lslPct)) / 100,
-        leave: leave / r.billHrs,
-        driving: (down - leave) / r.billHrs,
+        workcover: (c.wage * oc.workcoverPct) / 100,
+        lsl: (c.wage * oc.lslPct) / 100,
+        ...Object.fromEntries(Object.entries(hrs).map(([k, h]) => [k, (h * rate) / r.billHrs])),
         ...shared,
+        schoolFees: (Math.max(0, Number(s.schoolFees?.[p.id]) || 0)) / r.billHrs,
       };
-      const lines = BILL_LINES.map((l) => ({ key: l.key, label: l.label, family: l.family, perHr: v[l.key] ?? 0 }));
+      const lines = BILL_LINES.map((l) => ({ key: l.key, label: l.label, family: l.family, perHr: v[l.key] ?? 0, hrs: hrs[l.key], days: days[l.key] }));
       return {
         id: p.id, name: p.name, lines,
         cost: r.costPerHr as number,

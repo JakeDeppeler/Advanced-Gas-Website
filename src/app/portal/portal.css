@@ -4860,6 +4860,12 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-wi__check { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; color: var(--pt-ink); margin: 4px 0 16px; }
 .pt-wi__check input { width: 18px; height: 18px; accent-color: var(--pt-ink); }
 .pt-cm__side .pt-rev__list li.is-total { font-weight: 800; border-top: 1px solid var(--pt-line); }
+.pt-bill__tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 16px; }
+.pt-bill__tabs .pt-seg__b { display: inline-flex; align-items: center; gap: 7px; }
+.pt-bill__tabs .pt-bill__sw { margin-right: 0; }
+.pt-bill__about { margin: 0 0 12px; max-width: 72ch; font-size: 14px; line-height: 1.55; color: var(--pt-ink-2); }
+.pt-bill__open { font: inherit; font-weight: 600; color: var(--pt-ink); background: none; border: 0; padding: 0; cursor: pointer; text-align: left; display: inline-flex; align-items: center; text-decoration: underline; text-decoration-color: var(--pt-line); text-underline-offset: 3px; }
+.pt-bill__open:hover { text-decoration-color: currentColor; }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }

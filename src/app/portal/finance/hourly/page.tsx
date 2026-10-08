@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Fragment } from "react";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
@@ -8,10 +7,11 @@ import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
-import { BILL_FAMILIES, BILL_LINES, personBills } from "@/lib/portal/hourBill";
+import { personBills } from "@/lib/portal/hourBill";
+import { HourBill } from "@/components/portal/HourBill";
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import {
-  alwaysSupervised, assumptionsFor, loadedWage, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadLines,
+  alwaysSupervised, assumptionsFor, loadedWage, onCostsOf, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadLines,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
 
@@ -134,11 +134,12 @@ export default async function HourlyPage() {
       const school = c.schoolDays * hpd, away = (c.leaveDays + c.phDays + c.sickDays + c.rdoDays) * hpd;
       const schoolPer = crewHrs > 0 ? (school * rate) / crewHrs : 0;
       const awayPer = crewHrs > 0 ? (away * rate) / crewHrs : 0;
+      const feePer = crewHrs > 0 ? (Math.max(0, Number(s.schoolFees?.[p.id]) || 0)) / crewHrs : 0;
       return {
-        p, c, rate, crewHrs, full, schoolPer, awayPer,
+        p, c, rate, crewHrs, full, schoolPer, awayPer, feePer,
         // Whatever's left is their time in the van that isn't billed: the drive
         // and the pack-up between jobs, the same as the tradesman's.
-        vanPer: Math.max(0, full - rate - schoolPer - awayPer),
+        vanPer: Math.max(0, full - rate - schoolPer - awayPer - feePer),
         paid: c.hrsWeek * s.weeksYear, hpd,
         days: Math.max(0, yearDays - daysOff(c)),
         // The Job calculator adds an apprentice at their wage plus margin, which
@@ -321,6 +322,7 @@ export default async function HourlyPage() {
                           {row("Apprentice's pay for the hour", null, (x) => `+${m2(x.rate)}`)}
                           {row("Their trade-school pay", "spread over their hours on jobs", (x) => `+${m2(x.schoolPer)}`)}
                           {row("Their leave, holidays, sick days and RDOs", null, (x) => `+${m2(x.awayPer)}`)}
+                          {riders.some((x) => x.feePer > 0.005) && row("Their trade-school fees", "from their card on Costs & capacity", (x) => `+${m2(x.feePer)}`)}
                           {riders.some((x) => x.vanPer > 0.005) && row("In the van between jobs", "the drive and pack-up, paid but not billed", (x) => `+${m2(x.vanPer)}`)}
                           {row(leadCost != null ? "What the crew hour costs" : "What they add to an hour", null, (x) => m2(lead + x.full), "is-total")}
                           {row(`Margin, ${s.margin}%`, null, (x) => `+${m2((lead + x.full) * (mk - 1))}`)}
@@ -345,53 +347,8 @@ export default async function HourlyPage() {
             );
           })()}
 
-          {bills.length > 0 && (() => {
-            const top = Math.max(...bills.map((b) => Math.max(b.charge, b.cost)));
-            const fam = (b: (typeof bills)[number], f: string) => b.lines.filter((l) => l.family === f).reduce((a, l) => a + l.perHr, 0);
-            return (
-              <section className="pt-panel" aria-labelledby="hr-bill">
-                <h2 id="hr-bill" className="pt-panel__h">Each person&rsquo;s hour, as a bill</h2>
-                <p className="pt-panel__sub">Everything one billable hour of theirs has to pay for, then the margin. The lines add up to what they cost us, the same figure the Job calculator prices from.</p>
-                <ul className="pt-bill__legend" aria-label="Key">
-                  {BILL_FAMILIES.map((f, i) => <li key={f.key}><i className={`pt-bill__sw f${i}`} aria-hidden="true" />{f.label}</li>)}
-                  <li><i className="pt-bill__sw is-margin" aria-hidden="true" />Margin</li>
-                </ul>
-                <div className="pt-bill__rows">
-                  {bills.map((b) => (
-                    <div key={b.id} className="pt-bill__row">
-                      <span className="pt-bill__who">{b.name}<em>{h0(b.billHrs)} billable a year</em></span>
-                      <span className="pt-bill__track" role="img" aria-label={`${b.name}: ${BILL_FAMILIES.map((f) => `${f.label} ${m2(fam(b, f.key))}`).join(", ")}, margin ${m2(b.charge - b.cost)}, charged at ${m2(b.charge)}`}>
-                        {BILL_FAMILIES.map((f, i) => {
-                          const v = fam(b, f.key);
-                          return v > 0 ? <i key={f.key} className={`pt-bill__seg f${i}`} style={{ width: `${(v / top) * 100}%` }} title={`${f.label}: ${m2(v)}`} /> : null;
-                        })}
-                        {b.charge > b.cost && <i className="pt-bill__seg is-margin" style={{ width: `${((b.charge - b.cost) / top) * 100}%` }} title={`Margin: ${m2(b.charge - b.cost)}`} />}
-                      </span>
-                      <span className="pt-bill__fig"><strong>{m2(b.charge)}</strong><em>costs us {m2(b.cost)}{b.override ? " · set by hand" : ""}</em></span>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-fleet__wrap">
-                  <table className="pt-rev__pl pt-bill__table">
-                    <thead><tr><th scope="col">An hour of…</th>{bills.map((b) => <th key={b.id} scope="col">{b.name.split(" ")[0]}</th>)}</tr></thead>
-                    <tbody>
-                      {BILL_FAMILIES.map((f, i) => (
-                        <Fragment key={f.key}>
-                          <tr className="pt-bill__fam"><th scope="rowgroup" colSpan={bills.length + 1}><i className={`pt-bill__sw f${i}`} aria-hidden="true" />{f.label}</th></tr>
-                          {BILL_LINES.filter((l) => l.family === f.key && bills.some((b) => (b.lines.find((x) => x.key === l.key)?.perHr ?? 0) > 0.005)).map((l) => (
-                            <tr key={l.key}>
-                              <th scope="row">{l.label}{l.note && <em> {l.note}</em>}</th>
-                              {bills.map((b) => <td key={b.id}>{m2(b.lines.find((x) => x.key === l.key)?.perHr ?? 0)}</td>)}
-                            </tr>
-                          ))}
-                        </Fragment>
-                      ))}
-                      <tr className="is-total"><th scope="row">What an hour costs us</th>{bills.map((b) => <td key={b.id}>{m2(b.cost)}</td>)}</tr>
-                      <tr><th scope="row">Margin</th>{bills.map((b) => <td key={b.id}>+{m2(b.charge - b.cost)}</td>)}</tr>
-                      <tr className="is-total"><th scope="row">What we charge</th>{bills.map((b) => <td key={b.id}>{m2(b.charge)}</td>)}</tr>
-                    </tbody>
-                  </table>
-                </div>
+          {bills.length > 0 && (
+            <HourBill bills={bills} superPct={onCostsOf(s).superPct}>
                 {wageCheck && (
                   <p className="pt-hr__foot">
                     Checked against Xero: the cards add up to {m0(wageCheck.cards)} a year in wages; Xero paid {m0(wageCheck.xero)} over the last twelve months
@@ -402,9 +359,8 @@ export default async function HourlyPage() {
                       : ", close enough that the cards are right."}
                   </p>
                 )}
-              </section>
-            );
-          })()}
+            </HourBill>
+          )}
 
           <section className="pt-panel" aria-labelledby="hr-crew">
             <h2 id="hr-crew" className="pt-panel__h">Each person&rsquo;s hour</h2>

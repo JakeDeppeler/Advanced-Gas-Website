@@ -235,6 +235,13 @@ export type CapSettings = {
    * hourly page and Job calculator read a stale 25 instead.
    */
   onCosts?: Partial<OnCosts>;
+  /**
+   * Trade-school fees a year, by person. In Xero they're billed by Chisholm
+   * and TAFE Gippsland to the staff training account, which is spread over
+   * everyone's hour; entered here they move onto the apprentice they're for,
+   * and the same amount comes off the training line so nothing counts twice.
+   */
+  schoolFees?: Record<string, number>;
 };
 
 export type OnCosts = {
@@ -457,8 +464,17 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   // Overhead is everything except the crew's billable-time wages — that
   // includes their non-billable time (sick, school, travel, admin), office
   // staff, vehicles and standard — spread evenly across the billable hours.
-  const otherOverhead = overheadTotal(s);
-  const sharedOverhead = labourOh + officeOh + otherOverhead;
+  // School fees belong to the apprentice they're for. They come out of the
+  // training line they were filed under (as far as it goes) and onto the
+  // person: into their own hour if they run a van, into their crew uplift if
+  // they ride along.
+  const feeOf = (id: string) => Math.max(0, Number(s.schoolFees?.[id]) || 0);
+  const feesAll = per.reduce((a, x) => a + (LEVEL_BILLABLE[x.p.level] ? feeOf(x.p.id) : 0), 0);
+  const ownFees = per.reduce((a, x) => a + (x.c.chargeable ? feeOf(x.p.id) : 0), 0);
+  const trainingLine = s.ohSource === "internal" ? Number(s.internalOverhead) || 0 : Number(overheadLines(s).admTraining) || 0;
+  const feesMoved = Math.min(feesAll, trainingLine);
+  const otherOverhead = overheadTotal(s) - feesMoved;
+  const sharedOverhead = labourOh + officeOh + otherOverhead + ownFees;
   const sharedPerHr = sharedOverhead / denom;
   /** The office and the business overhead on an hour, without anyone's downtime. */
   const businessPerHr = (officeOh + otherOverhead) / denom;
@@ -493,7 +509,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
       // it isn't recovered at all.
       const share = vanDays > 0 ? Math.min(1, Math.max(0, yearDays - daysOff(p.costing)) / vanDays) : 1;
       const crewHrs = hrsPerVan * share;
-      const costPerHr = crewHrs > 0 ? c.ridesCost / crewHrs : null;
+      const costPerHr = crewHrs > 0 ? (c.ridesCost + feeOf(p.id)) / crewHrs : null;
       const uplift = costPerHr != null ? costPerHr * (1 + s.margin / 100) : null;
       return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs, ownDownPerHr: null as number | null };
     }
@@ -507,7 +523,8 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     // apprentice running a van carry nobody's school days but a tradesman's
     // share of them — the blended rate comes out the same either way.
     const ownDownPerHr = c.labourOh / c.billHrs;
-    const costPerHr = labourPerHr + ownDownPerHr + businessPerHr;
+    const feePerHr = feeOf(p.id) / c.billHrs;
+    const costPerHr = labourPerHr + ownDownPerHr + feePerHr + businessPerHr;
     const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
     return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null, crewHrs: null as number | null, ownDownPerHr };
@@ -536,7 +553,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, businessPerHr, otherOverhead, totalCost, costPerHr, layers, rates, per, util };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, businessPerHr, otherOverhead, feesMoved, totalCost, costPerHr, layers, rates, per, util };
 }
 
 
