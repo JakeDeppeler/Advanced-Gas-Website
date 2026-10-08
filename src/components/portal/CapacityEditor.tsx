@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   CREW_LEVELS, LEVEL_BILLABLE, LEVEL_LABEL, LEVEL_PLURAL, OVERHEAD_FIELDS, OVERHEAD_GROUPS,
-  computeCapacity, countedElsewhere, crewCombos, defaultsFor, officeCost, overheadsOf, overheadSplit, overheadTotal,
+  computeCapacity, countedElsewhere, crewCombos, defaultsFor, fleetDepOf, officeCost, overheadsOf, overheadSplit, overheadTotal,
   scaleOf, suggestOverhead, alwaysSupervised,
   type CapSettings, type Costing, type CrewLevel,
   WORK_MODES, MODE_DEFAULTS, assumptionsFor, modeOf, type WorkMode,
@@ -139,7 +139,7 @@ export function CapacityEditor({
 
   /** What a yearly figure works out to on each hour you can actually bill. */
   const perHour = (annual: number) => (hasHrs && annual ? money2(annual / cap.totalBillHrs) : "—");
-  const emptyCount = OVERHEAD_FIELDS.filter((f) => (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
+  const emptyCount = OVERHEAD_FIELDS.filter((f) => !(f.key === "vehDep" && fleetDep > 0) && (Number(overheadsOf(s)[f.key]) || 0) === 0).length;
 
   /** File every account whose name we can place, in one go. */
   function applyAllSuggestions() {
@@ -210,7 +210,10 @@ export function CapacityEditor({
   const setScale = (key: string, v: "fixed" | "perVan") =>
     setS((prev) => ({ ...prev, scales: { ...(prev.scales ?? {}), [key]: v } }));
 
-  const ohTyped = overheadTotal(s);
+  // The vans' depreciation is inside overheadTotal now, because that's what the
+  // rate is priced from; it's taken back out here only to be shown on its own
+  // line as coming from the Vehicles tab.
+  const ohTyped = overheadTotal(s) - fleetDepOf(s);
   const ohFromCrew = cap.labourOh + cap.officeOh;
   const ohTotal = ohTyped + ohFromCrew + fleetDep;
   const hasHrs = cap.totalBillHrs > 0;
@@ -242,7 +245,7 @@ export function CapacityEditor({
     return {
       label: `${lv.label}'s hour`,
       body: lv.wageOnly || lv.ridesAlong
-        ? `A cost, not a rate. A ${who} is never quoted on their own, so this figure never goes on a job by itself: it goes into a crew, and the margin goes on the crew. Just the wage, and no overhead: there is no second van and no second set of overheads, and the tech's hour is already carrying them for that job. Charging it again on the ${who} would be charging it twice. The reason it is not simply their hourly rate is the year: you pay them ${money2(lv.wagePerHr)} an hour with on-costs, for ${hrs(lv.paidHrs)} of the year, and they bill none of those hours themselves because the van does. So the ${hrs(cap.hrsPerVan)} that van can bill has to recover the lot, and that is this figure. It comes back as an uplift on the crew rate over on What we charge, not as overhead.`
+        ? `A cost, not a rate. A ${who} is never quoted on their own, so this figure never goes on a job by itself: it goes into a crew, and the margin goes on the crew. Just the wage, and no overhead: there is no second van and no second set of overheads, and the tech's hour is already carrying them for that job. Charging it again on the ${who} would be charging it twice. The reason it is not simply their hourly rate is the year: you pay them ${money2(lv.wagePerHr)} an hour with on-costs, for ${hrs(lv.paidHrs)} of the year, and they bill none of those hours themselves because the van does. So the ${hrs(lv.crewHrs ?? cap.hrsPerVan)} they are out on jobs in that van, which leaves out the days they are at school, has to recover the lot, and that is this figure. It comes back as an uplift on the crew rate over on What we charge, not as overhead.`
         : `${money2(lv.wagePerHr)} an hour is what you pay a ${who} with on-costs, and that is the wage half of this tile. The other ${money2(Math.max(0, lv.perHr - lv.wagePerHr))} is that hour's share of the overhead, which they carry because they take a van out. The hours you pay for but cannot bill are in there too: of the ${hrs(lv.paidHrs)} a year, ${hrs(lv.billHrs)} are billable, and the leave, public holidays, sick days, RDOs, travel and admin that make up the difference are carried as overhead rather than loaded back onto the wage.`,
     };
   };
@@ -308,6 +311,7 @@ export function CapacityEditor({
           // own; what they add to the crew is the uplift.
           charge: mean((r) => r.rate),
           uplift: mean((r) => r.uplift),
+          crewHrs: mean((r) => r.crewHrs),
           ridesAlong: mine.every((p) => !p.costing.ownVan),
         };
       })
@@ -1008,8 +1012,8 @@ export function CapacityEditor({
               </div>
               <div>
                 <span>Travels with each van</span>
-                <strong>{money(split.perVan + fleetDep)}</strong>
-                <em>{money((split.perVan + fleetDep) / Math.max(1, cap.vanCount))} a van, across {cap.vanCount}</em>
+                <strong>{money(split.perVan)}</strong>
+                <em>{money(split.perVan / Math.max(1, cap.vanCount))} a van, across {cap.vanCount}</em>
               </div>
               <label className="pt-oh__vans">
                 <span>Model it at</span>
@@ -1085,7 +1089,9 @@ export function CapacityEditor({
 
               {OVERHEAD_GROUPS.map((g) => {
                 const oh = overheadsOf(s);
-                const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key);
+                // With the vans costed on the Vehicles tab, their depreciation is
+                // the locked line above; a typed figure here would be ignored.
+                const fields = OVERHEAD_FIELDS.filter((f) => f.group === g.key && !(f.key === "vehDep" && fleetDep > 0));
                 const shown = showEmpty ? fields : fields.filter((f) => (Number(oh[f.key]) || 0) !== 0);
                 if (shown.length === 0) return null;
                 const groupTotal = fields.reduce((a, f) => a + (Number(oh[f.key]) || 0), 0);

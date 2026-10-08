@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { listUsers, getCapSettings, getSettings, dbConfigured } from "@/lib/portal/db";
-import { computeCapacity, overheadSplit, overheadTotal, scaleModel, DEFAULT_SETTINGS, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
+import { listUsers, getSettings, dbConfigured } from "@/lib/portal/db";
+import { getCostSettings } from "@/lib/portal/costSettings";
+import { computeCapacity, overheadSplit, overheadTotal, scaleModel, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { PortalBack } from "@/components/portal/PortalBack";
@@ -49,8 +50,7 @@ export default async function PlanningPage() {
   let split = { fixed: 0, perVan: 0 };
   let officeOh = 0, ohTotal = 0;
   if (dbConfigured()) {
-    const [users, settings] = await Promise.all([listUsers(), getCapSettings()]);
-    const s = settings ?? DEFAULT_SETTINGS;
+    const [users, s] = await Promise.all([listUsers(), getCostSettings()]);
     const people = users.filter((u) => u.active && u.id && u.level).map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
     const cap = computeCapacity(people, s);
     // The people who bill their own hours: the starting point for "techs on

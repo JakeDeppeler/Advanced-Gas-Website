@@ -218,6 +218,14 @@ export type CapSettings = {
    * of numbers and never has to know Xero exists.
    */
   xeroMap?: Record<string, string>;
+  /**
+   * What the vans lose in value a year, worked out from the Vehicles tab each
+   * time the settings are read (getCostSettings) and never saved. It used to be
+   * shown in the overhead total on Costs & capacity while the hourly rate went
+   * without it, unless someone typed the same figure into the Depreciation line
+   * by hand. Reading it fresh means a van bought or sold moves the rate.
+   */
+  fleetDep?: number;
 };
 
 /**
@@ -251,13 +259,29 @@ export function overheadsOf(s: CapSettings): Record<string, number> {
   return { vehOther: s.vehicles || 0, admOther: s.standard || 0 };
 }
 
+export const fleetDepOf = (s: CapSettings): number => Math.max(0, Number(s.fleetDep) || 0);
+
+/**
+ * The overhead lines as they're priced: what was typed or filed from Xero, with
+ * the Depreciation line taken from the vans when the Vehicles tab has a figure.
+ * Replaced rather than added to, so a figure typed in by hand before this
+ * existed isn't counted a second time.
+ */
+export function overheadLines(s: CapSettings): Record<string, number> {
+  const oh = overheadsOf(s);
+  const dep = fleetDepOf(s);
+  return dep > 0 ? { ...oh, vehDep: dep } : oh;
+}
+
 export function overheadTotal(s: CapSettings): number {
-  if (s.ohSource === "internal") return Number(s.internalOverhead) || 0;
-  return Object.values(overheadsOf(s)).reduce((a, v) => a + (Number(v) || 0), 0);
+  // Our own figure is the business overhead; the vans' depreciation comes from
+  // the portal either way, as the source switch has always said.
+  if (s.ohSource === "internal") return (Number(s.internalOverhead) || 0) + fleetDepOf(s);
+  return Object.values(overheadLines(s)).reduce((a, v) => a + (Number(v) || 0), 0);
 }
 
 export function overheadByGroup(s: CapSettings): { key: OverheadGroup; label: string; annual: number }[] {
-  const oh = overheadsOf(s);
+  const oh = overheadLines(s);
   return OVERHEAD_GROUPS.map((g) => ({
     key: g.key,
     label: g.label,
@@ -344,6 +368,9 @@ export function alwaysSupervised(level: CrewLevel): boolean {
   return level === "apprentice";
 }
 
+/** Paid days away from work: leave, public holidays, sick days, trade school and RDOs. */
+export const daysOff = (c: Costing): number => c.leaveDays + c.phDays + c.sickDays + c.schoolDays + c.rdoDays;
+
 export function calcPerson(level: CrewLevel, c: Costing, s: CapSettings): PersonCosted {
   const rate = c.wage * (1 + s.oncosts / 100);
   const paidHrs = c.hrsWeek * s.weeksYear;
@@ -407,15 +434,31 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
   const vanCount = s.vansOverride && s.vansOverride > 0 ? s.vansOverride : realVans;
   const hrsPerVan = vanCount > 0 ? totalBillHrs / vanCount : 0;
 
+  // The days a van is out: the working year less its driver's days off. A
+  // tradesman doesn't go to trade school, so his van goes out on the days his
+  // apprentice is at school — with him on his own, quoted at his rate.
+  const yearDays = s.weeksYear * 5;
+  const drivers = per.filter((x) => x.c.chargeable);
+  const vanDays = drivers.length
+    ? drivers.reduce((a, x) => a + Math.max(0, yearDays - daysOff(x.p.costing)), 0) / drivers.length
+    : yearDays;
+
   const rates = per.map(({ p, c }) => {
     if (c.ridesCost > 0) {
       // What adding them to a crew has to be worth an hour for the year to add
-      // up: their whole cost, spread over the hours of the one van they're in.
-      const uplift = hrsPerVan > 0 ? (c.ridesCost / hrsPerVan) * (1 + s.margin / 100) : null;
-      return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr: hrsPerVan > 0 ? c.ridesCost / hrsPerVan : null, uplift };
+      // up: their whole cost, spread over the hours they're actually on a job
+      // in the van. Not the van's every hour — on the forty-odd days an
+      // apprentice is at school the job is quoted without them, so if their
+      // school, leave and sick pay isn't recovered on the days they are there,
+      // it isn't recovered at all.
+      const share = vanDays > 0 ? Math.min(1, Math.max(0, yearDays - daysOff(p.costing)) / vanDays) : 1;
+      const crewHrs = hrsPerVan * share;
+      const costPerHr = crewHrs > 0 ? c.ridesCost / crewHrs : null;
+      const uplift = costPerHr != null ? costPerHr * (1 + s.margin / 100) : null;
+      return { id: p.id, billHrs: 0, autoRate: null as number | null, rate: null as number | null, costPerHr, uplift, crewHrs };
     }
     if (!c.billable || c.billHrs <= 0) {
-      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null, uplift: null as number | null };
+      return { id: p.id, billHrs: c.billHrs, autoRate: null as number | null, rate: null as number | null, costPerHr: null as number | null, uplift: null as number | null, crewHrs: null as number | null };
     }
     const labourPerHr = p.costing.wage * (1 + s.oncosts / 100); // just their pay rate; downtime is overhead
     // What an hour of theirs actually costs the business: their pay plus the
@@ -423,7 +466,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     const costPerHr = labourPerHr + sharedPerHr;
     const autoRate = costPerHr * (1 + s.margin / 100);
     const rate = p.costing.rateOverride != null ? p.costing.rateOverride : autoRate;
-    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null };
+    return { id: p.id, billHrs: c.billHrs, autoRate, rate, costPerHr, uplift: null as number | null, crewHrs: null as number | null };
   });
 
   // Two utilisations, because they mean different things. Leave, sick days,
@@ -449,7 +492,7 @@ export function computeCapacity(people: CrewMember[], s: CapSettings) {
     ...overheadByGroup(s).map((g) => ({ key: g.key, label: `Overhead — ${g.label.toLowerCase()}`, annual: g.annual })),
   ].filter((l) => l.annual > 0).map((l) => ({ ...l, perHr: l.annual / denom }));
 
-  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
+  return { totalBillHrs, paidBillHrs, fieldWages, labourOh, officeOh, ridesCost, vanCount, realVans, hrsPerVan, vanDays, sharedOverhead, sharedPerHr, totalCost, costPerHr, layers, rates, per, util };
 }
 
 
@@ -605,9 +648,9 @@ export function overheadSplit(s: CapSettings): { fixed: number; perVan: number }
   if (s.ohSource === "internal") {
     const total = Number(s.internalOverhead) || 0;
     const fixedPct = s.internalFixedPct ?? 55;
-    return { fixed: (total * fixedPct) / 100, perVan: (total * (100 - fixedPct)) / 100 };
+    return { fixed: (total * fixedPct) / 100, perVan: (total * (100 - fixedPct)) / 100 + fleetDepOf(s) };
   }
-  const oh = overheadsOf(s);
+  const oh = overheadLines(s);
   let fixedTotal = 0, perVanTotal = 0;
   for (const f of OVERHEAD_FIELDS) {
     const v = Number(oh[f.key]) || 0;
