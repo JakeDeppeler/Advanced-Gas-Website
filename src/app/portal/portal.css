@@ -4840,6 +4840,26 @@ a.pt-fig:hover { transform: translateY(-2px); }
   .pt-bill__track { grid-column: 1 / -1; order: 3; }
 }
 @media (forced-colors: active) { .pt-bill__seg, .pt-bill__sw { forced-color-adjust: none; } }
+/* Crew & rate what-ifs, and the commission model. */
+.pt-wi { display: grid; gap: 16px; }
+.pt-wi > .pt-panel { margin: 0; }
+.pt-wi__crew tr.is-off th, .pt-wi__crew tr.is-off td { color: var(--pt-ink-2); }
+.pt-wi__crew tr.is-off th { text-decoration: line-through; }
+.pt-wi__crew td input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--pt-ink); }
+.pt-wi__wage { display: inline-flex; align-items: center; gap: 4px; max-width: 110px; margin-left: auto; }
+.pt-wi__wage input { width: 72px; text-align: right; }
+.pt-wi__add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-top: 14px; }
+.pt-wi__hint { font-size: 13px; color: var(--pt-ink-2); flex: 1 1 260px; }
+.pt-wi__knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 24px; }
+.pt-wi__knob { padding: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+.pt-wi__knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-weight: 700; color: var(--pt-ink); }
+.pt-wi__knob label b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.pt-wi__knob input[type="range"] { width: 100%; accent-color: var(--pt-ink); }
+.pt-wi__knob em { font-style: normal; font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-wi__outhead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.pt-wi__check { display: inline-flex; gap: 8px; align-items: center; font-size: 14px; color: var(--pt-ink); margin: 4px 0 16px; }
+.pt-wi__check input { width: 18px; height: 18px; accent-color: var(--pt-ink); }
+.pt-cm__side .pt-rev__list li.is-total { font-weight: 800; border-top: 1px solid var(--pt-line); }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
 .pt-hr__stack { display: flex; height: 22px; border-radius: 999px; overflow: hidden; margin: 6px 0 16px; background: var(--pt-tint); }

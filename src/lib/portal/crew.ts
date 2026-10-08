@@ -759,3 +759,23 @@ export function officeCost(cap: ReturnType<typeof computeCapacity>) {
   const total = rows.reduce((a, r) => a + r.cost, 0);
   return { rows, total, perHr: cap.totalBillHrs > 0 ? total / cap.totalBillHrs : 0 };
 }
+
+/**
+ * The same business with a different number of vans on the road: the lines
+ * that arrive with a van (its fuel, its insurance, its tools, its share of the
+ * depreciation) grow or shrink with the fleet, and the factory and the office
+ * stay put. Returned as one figure plus the depreciation, because a what-if
+ * only needs the total and the split it was made from.
+ */
+export function withVans(s: CapSettings, from: number, to: number): CapSettings {
+  if (from <= 0 || from === to) return s;
+  const ratio = Math.max(0, to) / from;
+  const split = overheadSplit(s);
+  const dep = fleetDepOf(s);
+  return {
+    ...s,
+    ohSource: "internal",
+    internalOverhead: split.fixed + Math.max(0, split.perVan - dep) * ratio,
+    fleetDep: dep * ratio,
+  };
+}
