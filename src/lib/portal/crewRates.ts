@@ -1,6 +1,7 @@
 import "server-only";
-import { listUsers, getCapSettings, dbConfigured } from "./db";
-import { computeCapacity, DEFAULT_SETTINGS, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
+import { listUsers, dbConfigured } from "./db";
+import { getCostSettings } from "./costSettings";
+import { computeCapacity, loadedWage, LEVEL_BILLABLE, LEVEL_LABEL, type CrewLevel } from "./crew";
 import type { CrewRate } from "@/components/portal/JobCalculator";
 
 export type RateFigure = { label: string; sub: string; mobile: number | null; onsite: number | null };
@@ -34,14 +35,19 @@ const EMPTY: CrewFigures = { crew: [], costPerHr: null, costPerHrOnsite: null, f
 export async function crewFigures(): Promise<CrewFigures> {
   if (!dbConfigured()) return EMPTY;
 
-  const [users, settings] = await Promise.all([listUsers(), getCapSettings()]);
-  const people = users
-    .filter((u) => u.active && u.id && u.level && LEVEL_BILLABLE[u.level as CrewLevel])
+  const [users, base] = await Promise.all([listUsers(), getCostSettings()]);
+  // Everyone goes into the costing — the office included, because their
+  // wages are what every billable hour has to pay for. Costed on the crew
+  // alone, the office's wages vanished and the calculator quoted about $44 an
+  // hour under what Costs & capacity said the hour cost. Only the people on
+  // the tools are offered on the calculator.
+  const everyone = users
+    .filter((u) => u.active && u.id && u.level)
     .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
+  const people = everyone.filter((p) => LEVEL_BILLABLE[p.level]);
 
-  const base = settings ?? DEFAULT_SETTINGS;
-  const capMobile = computeCapacity(people, { ...base, mode: "mobile" });
-  const capOnsite = computeCapacity(people, { ...base, mode: "onsite" });
+  const capMobile = computeCapacity(everyone, { ...base, mode: "mobile" });
+  const capOnsite = computeCapacity(everyone, { ...base, mode: "onsite" });
   const mob = new Map(capMobile.rates.map((r) => [r.id, r.rate]));
   const ons = new Map(capOnsite.rates.map((r) => [r.id, r.rate]));
   // What someone riding with a tech adds to the crew for every hour they are on
@@ -51,8 +57,12 @@ export async function crewFigures(): Promise<CrewFigures> {
   const onsUp = new Map(capOnsite.rates.map((r) => [r.id, r.uplift]));
   const round = (v: number | null | undefined) => (v != null ? Math.round(v) : null);
 
+  const mobCost = new Map(capMobile.rates.map((r) => [r.id, r.costPerHr]));
+  const onsCost = new Map(capOnsite.rates.map((r) => [r.id, r.costPerHr]));
   const crew: CrewRate[] = people.map((p) => ({
     id: p.id, name: p.name, level: p.level,
+    cost: mobCost.get(p.id) ?? null,
+    costOnsite: onsCost.get(p.id) ?? null,
     rate: round(mob.get(p.id)),
     rateOnsite: round(ons.get(p.id)),
     uplift: round(mobUp.get(p.id)),
@@ -61,8 +71,8 @@ export async function crewFigures(): Promise<CrewFigures> {
     // the same whether the van drove five jobs or parked on one. The charge is
     // that wage with the margin on it, because the margin goes on what the crew
     // costs, both bodies in it.
-    wage: Math.round(p.costing.wage * (1 + base.oncosts / 100) * 100) / 100,
-    wageCharge: Math.round(p.costing.wage * (1 + base.oncosts / 100) * (1 + base.margin / 100) * 100) / 100,
+    wage: Math.round(loadedWage(p.costing.wage, base) * 100) / 100,
+    wageCharge: Math.round(loadedWage(p.costing.wage, base) * (1 + base.margin / 100) * 100) / 100,
   }));
 
   // An average across everyone on that level. Two tradesmen on different wages
@@ -74,7 +84,7 @@ export async function crewFigures(): Promise<CrewFigures> {
     if (!rows.length) return null;
     return rows.reduce((a, r) => a + (r.costPerHr as number), 0) / rows.length;
   };
-  const oh = (cap: typeof capMobile) => (cap.totalBillHrs > 0 ? cap.sharedPerHr : null);
+  const oh = (cap: typeof capMobile) => (cap.totalBillHrs > 0 ? cap.businessPerHr : null);
   // Two different figures wear the same "$/hr" label, and saying so matters.
   // Someone with their own van carries a share of the overhead in their hour.
   // Someone riding along does not: their cost is deliberately kept out of the
@@ -88,12 +98,12 @@ export async function crewFigures(): Promise<CrewFigures> {
       .map((lv) => ({
         label: LEVEL_LABEL[lv],
         sub: rides(lv)
-          ? "Their whole cost, over the hours of the van they ride in"
+          ? "Their whole cost, school days included, over the hours they're out on jobs"
           : "Their pay, on-costs and their hour's share of overhead",
         mobile: levelCost(capMobile, lv),
         onsite: levelCost(capOnsite, lv),
       })),
-    { label: "Overhead", sub: "The share sitting inside both figures above", mobile: oh(capMobile), onsite: oh(capOnsite) },
+    { label: "Overhead", sub: "The business's share inside the figures above, before anyone's own leave and travel", mobile: oh(capMobile), onsite: oh(capOnsite) },
   ].filter((f) => f.mobile !== null || f.onsite !== null);
 
   const byLevel: Partial<Record<CrewLevel, number>> = {};

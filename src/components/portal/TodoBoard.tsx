@@ -18,29 +18,22 @@ type Props = {
   today: string;
 };
 
-const FLAG = "M5 21V4M5 4h11l-2.5 4L16 12H5";
-
-function Flag() {
+/** A day: today, tomorrow, Friday, next Monday, or one picked off a calendar. */
+function When({ id, value, onChange, today }: { id: string; value: string; onChange: (v: string) => void; today: string }) {
+  const quick = quickDays(today);
+  const picked = !quick.some((d) => d.iso === value);
+  const [custom, setCustom] = useState(picked);
   return (
-    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d={FLAG} />
-    </svg>
-  );
-}
-
-/** The day, with the four quick picks under it. */
-function DuePick({ id, value, onChange, today, compact }: { id: string; value: string; onChange: (v: string) => void; today: string; compact?: boolean }) {
-  return (
-    <div className={`pt-todo__due-pick${compact ? " is-compact" : ""}`}>
-      <input id={id} type="date" value={value} onChange={(e) => onChange(e.target.value)} required aria-label="Due by" />
-      <div className="pt-todo__chips" role="group" aria-label="Quick dates">
-        {quickDays(today).map((d) => (
-          <button key={d.label} type="button" className={`pt-todo__chip${value === d.iso ? " is-on" : ""}`} aria-pressed={value === d.iso} onClick={() => onChange(d.iso)}>
-            {d.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    <span className="pt-td__when">
+      <select id={id} aria-label="When" value={custom ? "pick" : value} onChange={(e) => {
+        if (e.target.value === "pick") setCustom(true);
+        else { setCustom(false); onChange(e.target.value); }
+      }}>
+        {quick.map((d) => <option key={d.label} value={d.iso}>{d.label}</option>)}
+        <option value="pick">Pick a day…</option>
+      </select>
+      {custom && <input type="date" value={value} onChange={(e) => onChange(e.target.value)} required aria-label="Day" />}
+    </span>
   );
 }
 
@@ -51,157 +44,74 @@ type Shared = {
   tick: (t: Todo, done: boolean) => void;
   name: Map<string, string>;
   people: Person[];
-  openOf: (pid: string) => Todo[];
   all: boolean;
   meId: string | null;
   today: string;
 };
-
-/**
- * What every item and column needs from the board. Through context rather
- * than props so Item and Column can live at the top level — declared inside
- * the board, React would treat each render's as a new component and throw
- * away a half-typed to-do every time the board redrew.
- */
+/** Through context so Item lives at the top level: declared inside the board it would remount, and lose a half-typed edit, on every redraw. */
 const Ctx = createContext<Shared>(null as unknown as Shared);
 
-/* ------------------------------------------------------------- one item */
-function Item({ t, showWho }: { t: Todo; showWho?: boolean }) {
-  const { run, pending, ticked, tick, name, people, all, today } = useContext(Ctx);
+function Item({ t, showWho }: { t: Todo; showWho: boolean }) {
+  const { run, pending, ticked, tick, name, people, all, meId, today } = useContext(Ctx);
   const [editing, setEditing] = useState(false);
-  const [eTitle, setETitle] = useState(t.title);
-  const [eDue, setEDue] = useState(t.dueOn);
-  const [eFor, setEFor] = useState(t.assigneeId ?? "");
-  const [eNotes, setENotes] = useState(t.notes ?? "");
+  const [title, setTitle] = useState(t.title);
+  const [due, setDue] = useState(t.dueOn);
+  const [who, setWho] = useState(t.assigneeId ?? "");
   const isDone = ticked[t.id] ?? !!t.doneAt;
   const state = isDone ? "done" : dueState(t, today);
   const from = t.createdById && t.createdById !== t.assigneeId ? firstName(t.createdBy ?? name.get(t.createdById) ?? "") : null;
+  const whoName = t.assigneeId === meId ? "you" : firstName(name.get(t.assigneeId ?? "") ?? "—");
 
   if (editing) {
     return (
-      <li className="pt-todo__item is-editing">
-        <form
-          className="pt-todo__edit"
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(() => editTodo(t.id, { title: eTitle, dueOn: eDue, notes: eNotes, ...(all && eFor ? { assigneeId: eFor } : {}) }), "Saved.", () => setEditing(false));
-          }}
-        >
-          <label className="pt-field"><span>What needs doing</span><input value={eTitle} onChange={(e) => setETitle(e.target.value)} maxLength={300} required /></label>
-          <div className="pt-field"><span>Due by</span><DuePick id={`due-${t.id}`} value={eDue} onChange={setEDue} today={today} compact /></div>
+      <li className="pt-td__item is-editing">
+        <form className="pt-td__editform" onSubmit={(e) => { e.preventDefault(); run(() => editTodo(t.id, { title, dueOn: due, ...(all && who ? { assigneeId: who } : {}) }), "Saved.", () => setEditing(false)); }}>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={300} required aria-label="What needs doing" />
           {all && (
-            <label className="pt-field"><span>Whose list</span>
-              <select value={eFor} onChange={(e) => setEFor(e.target.value)}>
-                {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-              </select>
-            </label>
+            <select value={who} onChange={(e) => setWho(e.target.value)} aria-label="Whose list">
+              {people.map((p) => <option key={p.id} value={p.id}>{p.id === meId ? "Me" : p.name}</option>)}
+            </select>
           )}
-          <label className="pt-field"><span>Notes <em>(optional)</em></span><textarea rows={2} value={eNotes} onChange={(e) => setENotes(e.target.value)} maxLength={2000} /></label>
-          <div className="pt-todo__editacts">
+          <When id={`w-${t.id}`} value={due} onChange={setDue} today={today} />
+          <span className="pt-td__editacts">
             <button type="submit" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending}>Save</button>
             <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setEditing(false)}>Cancel</button>
-            <button
-              type="button" className="pt-todo__remove" disabled={pending}
-              onClick={() => { if (confirm(`Take "${t.title}" off the list?`)) run(() => deleteTodo(t.id), "Taken off the list."); }}
-            >
-              Remove
-            </button>
-          </div>
+            <button type="button" className="pt-todo__remove" disabled={pending} onClick={() => { if (confirm(`Delete "${t.title}"?`)) run(() => deleteTodo(t.id), "Deleted."); }}>Delete</button>
+          </span>
         </form>
       </li>
     );
   }
 
   return (
-    <li className={`pt-todo__item is-${state}`}>
+    <li className={`pt-td__item is-${state}`}>
       <button
         type="button" role="checkbox" aria-checked={isDone} className="pt-todo__tick" disabled={pending}
-        aria-label={`${isDone ? "Not done" : "Done"}: ${t.title}`}
-        onClick={() => tick(t, !isDone)}
+        aria-label={`${isDone ? "Not done" : "Done"}: ${t.title}`} onClick={() => tick(t, !isDone)}
       >
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
       </button>
-      <div className="pt-todo__body">
-        <span className="pt-todo__title">{t.title}</span>
-        <span className="pt-todo__meta">
-          <span className={`pt-todo__due is-${state}`}>
-            {state === "overdue" && <Flag />}
-            {isDone && t.doneAt ? `Done ${new Date(t.doneAt).toLocaleDateString("en-AU", { weekday: "short", day: "numeric", month: "short", timeZone: "Australia/Melbourne" })}${t.doneBy ? ` by ${firstName(t.doneBy)}` : ""}` : dueWords(t, today)}
-          </span>
-          {showWho && t.assigneeId && <span>for {firstName(name.get(t.assigneeId) ?? "—")}</span>}
-          {from && <span>from {from}</span>}
-          {/* Under the title rather than beside it, so three lists fit side by side on an iPad. */}
-          {!isDone && (
-            <button type="button" className="pt-todo__editbtn" onClick={() => setEditing(true)} aria-label={`Change: ${t.title}`}>Change</button>
-          )}
-        </span>
-        {t.notes && <span className="pt-todo__notes">{t.notes}</span>}
-      </div>
+      <span className="pt-td__title">{t.title}</span>
+      <span className="pt-td__meta">
+        {showWho && <span className="pt-td__who">{whoName}</span>}
+        {from && <span>from {from}</span>}
+        <span className={`pt-td__due is-${state}`}>{state === "overdue" ? "⚑ " : ""}{isDone ? "Done" : dueWords(t, today).replace(/^Due /, "").replace(/^./, (c) => c.toUpperCase())}</span>
+        {!isDone && <button type="button" className="pt-todo__editbtn" onClick={() => setEditing(true)} aria-label={`Edit: ${t.title}`}>Edit</button>}
+      </span>
     </li>
   );
 }
 
-/* --------------------------------------------------- a person's column */
-function Column({ p, wide }: { p: Person; wide?: boolean }) {
-  const { run, pending, openOf, all, meId, today } = useContext(Ctx);
-  const list = openOf(p.id);
-  const late = list.filter((t) => dueState(t, today) === "overdue").length;
-  const dueToday = list.filter((t) => dueState(t, today) === "today").length;
-  // Today is what's due today and anything past its day; the rest is under it.
-  const now = list.filter((t) => ["overdue", "today"].includes(dueState(t, today)));
-  const later = list.filter((t) => !["overdue", "today"].includes(dueState(t, today)));
-  const [q, setQ] = useState("");
-  const [qDue, setQDue] = useState(today);
-  const mine = p.id === meId;
-  return (
-    <section className={`pt-todo__col${late ? " has-late" : ""}${wide ? " is-wide" : ""}`} aria-labelledby={`col-${p.id}`}>
-      <header className="pt-todo__colhead">
-        <h3 id={`col-${p.id}`}>{mine ? (wide ? "Your list" : `${firstName(p.name)} · you`) : p.name}</h3>
-        <span className="pt-todo__counts">
-          {late > 0 && <span className="pt-todo__late"><Flag /> {late} overdue</span>}
-          {dueToday > 0 && <span className="pt-todo__today">{dueToday} today</span>}
-          <span>{now.length} today{later.length ? ` · ${later.length} coming up` : ""}</span>
-        </span>
-      </header>
-      {now.length ? (
-        <ul className="pt-todo__list">{now.map((t) => <Item key={t.id} t={t} />)}</ul>
-      ) : (
-        <p className="pt-todo__empty">Nothing for {mine ? "you" : firstName(p.name)} today.</p>
-      )}
-      {later.length > 0 && (
-        <>
-          <h4 className="pt-todo__later">Coming up · {later.length}</h4>
-          <ul className="pt-todo__list is-later">{later.map((t) => <Item key={t.id} t={t} />)}</ul>
-        </>
-      )}
-      {(all || mine) && (
-        <form
-          className="pt-todo__quick"
-          onSubmit={(e) => {
-            e.preventDefault();
-            run(() => addTodo({ title: q, assigneeId: p.id, dueOn: qDue }), `Added to ${mine ? "your" : `${firstName(p.name)}'s`} list.`, () => setQ(""));
-          }}
-        >
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Add to ${mine ? "your" : `${firstName(p.name)}'s`} list…`} aria-label={`Add to ${p.name}'s list`} maxLength={300} required />
-          {q.trim() && (
-            <>
-              <DuePick id={`qd-${p.id}`} value={qDue} onChange={setQDue} today={today} compact />
-              <button type="submit" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending}>Add</button>
-            </>
-          )}
-        </form>
-      )}
-    </section>
-  );
-}
-
+/**
+ * The to-do list, as plain as it can be: one line to add something, one list
+ * to work through. Late things at the top with a flag, then today, then
+ * later. The office can switch to anyone's list, or everyone's at once.
+ */
 export function TodoBoard({ todos, done, people, office, meId, all, admin, today }: Props) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  // Ticked here, not yet back from the server: drawn done straight away.
   const [ticked, setTicked] = useState<Record<string, boolean>>({});
-
   const name = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
 
   const run = (fn: () => Promise<TodoResult>, ok?: string, after?: () => void) =>
@@ -211,153 +121,108 @@ export function TodoBoard({ todos, done, people, office, meId, all, admin, today
       if (r.ok) after?.();
       router.refresh();
     });
-
   const tick = (t: Todo, d: boolean) => {
     setTicked((s) => ({ ...s, [t.id]: d }));
-    run(() => tickTodo(t.id, d), d ? `Done: ${t.title}` : `Back on the list: ${t.title}`, undefined);
+    run(() => tickTodo(t.id, d), d ? "Done." : "Back on the list.");
   };
 
-  // The columns: me first, then the rest of the office; the crew below.
-  const officePeople = people
-    .filter((p) => office.includes(p.id))
-    .sort((a, b) => (a.id === meId ? -1 : b.id === meId ? 1 : a.name.localeCompare(b.name)));
-  const crew = people.filter((p) => !office.includes(p.id));
-  const openOf = (pid: string) => todos.filter((t) => t.assigneeId === pid).sort(byUrgency);
-  const orphans = todos.filter((t) => !t.assigneeId || !name.has(t.assigneeId));
+  // Whose list is showing. The office can look at anyone's; everyone else sees their own.
+  const officePeople = people.filter((p) => office.includes(p.id)).sort((a, b) => (a.id === meId ? -1 : b.id === meId ? 1 : a.name.localeCompare(b.name)));
+  const others = people.filter((p) => !office.includes(p.id) && todos.some((t) => t.assigneeId === p.id));
+  const [view, setView] = useState<string>(meId ?? "all");
+  const lateOf = (pid: string | "all") => todos.filter((t) => (pid === "all" || t.assigneeId === pid) && dueState(t, today) === "overdue").length;
 
-  /* ------------------------------------------------------------ add form */
+  const shownTodos = (all ? (view === "all" ? todos : todos.filter((t) => t.assigneeId === view)) : todos.filter((t) => t.assigneeId === meId)).sort(byUrgency);
+  const gave = !all ? todos.filter((t) => t.assigneeId !== meId).sort(byUrgency) : [];
+  const groups = [
+    { k: "late", label: "Overdue", items: shownTodos.filter((t) => dueState(t, today) === "overdue") },
+    { k: "today", label: "Today", items: shownTodos.filter((t) => dueState(t, today) === "today") },
+    { k: "later", label: "Later", items: shownTodos.filter((t) => ["soon", "later"].includes(dueState(t, today))) },
+  ];
+
+  // Adding: what, for whom, when.
   const [title, setTitle] = useState("");
   const [forId, setForId] = useState(meId ?? officePeople[0]?.id ?? "");
   const [due, setDue] = useState(today);
-  const [notes, setNotes] = useState("");
-  const [withNotes, setWithNotes] = useState(false);
-  const submit = (e: React.FormEvent) => {
+  const add = (e: React.FormEvent) => {
     e.preventDefault();
-    const who = forId;
-    run(
-      () => addTodo({ title, assigneeId: who, dueOn: due, notes: withNotes ? notes : undefined }),
-      `Added to ${who === meId ? "your" : `${firstName(name.get(who) ?? "their")}'s`} list.`,
-      () => { setTitle(""); setNotes(""); setWithNotes(false); },
-    );
+    const who = all ? forId : meId ?? "";
+    run(() => addTodo({ title, assigneeId: who, dueOn: due }), who === meId ? "Added." : `Added to ${firstName(name.get(who) ?? "their")}'s list.`, () => setTitle(""));
   };
 
-  const crewWith = crew.filter((p) => openOf(p.id).length > 0);
   const [officePick, setOfficePick] = useState<string[]>(office);
-
-  const shared: Shared = { run, pending, ticked, tick, name, people, openOf, all, meId, today };
+  const shared: Shared = { run, pending, ticked, tick, name, people, all, meId, today };
+  const showWho = all && view === "all";
+  const doneShown = all && view !== "all" ? done.filter((t) => t.assigneeId === view) : all ? done : done.filter((t) => t.assigneeId === meId);
 
   return (
     <Ctx.Provider value={shared}>
-    <div className="pt-todo">
-      <section className="pt-panel pt-todo__add" aria-labelledby="todo-add-h">
-        <h2 id="todo-add-h" className="pt-panel__h">{all ? "Give someone something to do" : "Add a to-do"}</h2>
-        <form onSubmit={submit} className={`pt-todo__form${all ? "" : " is-solo"}`}>
-          <label className="pt-field pt-todo__what"><span>What needs doing</span>
-            <input id="todo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ring the Smiths back about the ducted quote" maxLength={300} required />
-          </label>
-          {all ? (
-            <label className="pt-field pt-todo__for"><span>Whose list</span>
-              <select id="todo-for" value={forId} onChange={(e) => setForId(e.target.value)}>
-                <optgroup label="The office">
-                  {officePeople.map((p) => <option key={p.id} value={p.id}>{p.id === meId ? `${p.name} (me)` : p.name}</option>)}
-                </optgroup>
-                {crew.length > 0 && (
-                  <optgroup label="The crew">
-                    {crew.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </optgroup>
-                )}
-              </select>
-            </label>
-          ) : null}
-          <div className="pt-field pt-todo__when"><span>Due by</span><DuePick id="todo-due" value={due} onChange={setDue} today={today} /></div>
-          {withNotes ? (
-            <label className="pt-field pt-todo__notesfield"><span>Notes <em>(optional)</em></span>
-              <textarea id="todo-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={2000} placeholder="Anything they'll need: the job number, who to ring, where it's up to." />
-            </label>
-          ) : (
-            <button type="button" className="pt-todo__addnote" onClick={() => setWithNotes(true)}>+ Add a note</button>
+      <div className="pt-td">
+        <form className="pt-td__add" onSubmit={add}>
+          <input id="todo-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Add a to-do…" maxLength={300} required aria-label="What needs doing" />
+          {all && (
+            <select id="todo-for" value={forId} onChange={(e) => setForId(e.target.value)} aria-label="Whose list">
+              {officePeople.map((p) => <option key={p.id} value={p.id}>{p.id === meId ? "Me" : firstName(p.name)}</option>)}
+              {people.filter((p) => !office.includes(p.id)).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
           )}
-          <div className="pt-todo__submit">
-            <button type="submit" className="pt-btn pt-btn--orange" disabled={pending || !title.trim() || !forId}>Add to-do</button>
-            {msg && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} role="status">{msg.text}</p>}
-          </div>
+          <When id="todo-due" value={due} onChange={setDue} today={today} />
+          <button type="submit" className="pt-btn pt-btn--orange" disabled={pending || !title.trim()}>Add</button>
         </form>
-      </section>
+        {msg && <p className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`} role="status">{msg.text}</p>}
 
-      {all ? (
-        <>
-          <h2 className="pt-sech">The office</h2>
-          {/* One column each, side by side however narrow, until a phone. */}
-          <div className="pt-todo__cols is-office" style={{ gridTemplateColumns: `repeat(${Math.min(3, Math.max(1, officePeople.length))}, minmax(0, 1fr))` }}>
-            {officePeople.map((p) => <Column key={p.id} p={p} />)}
-          </div>
-
-          <h2 className="pt-sech">The crew</h2>
-          {crewWith.length ? (
-            <div className="pt-todo__cols is-crew">
-              {crewWith.map((p) => <Column key={p.id} p={p} />)}
-            </div>
-          ) : (
-            <p className="pt-todo__none">Nothing given to the crew. Pick someone under &ldquo;Whose list&rdquo; above to give them one.</p>
-          )}
-          {orphans.length > 0 && (
-            <section className="pt-panel">
-              <h2 className="pt-panel__h">On nobody&rsquo;s list</h2>
-              <p className="pt-panel__sub">Given to someone who has since left the team. Change each one to give it to somebody else.</p>
-              <ul className="pt-todo__list">{orphans.sort(byUrgency).map((t) => <Item key={t.id} t={t} />)}</ul>
-            </section>
-          )}
-        </>
-      ) : meId ? (
-        <div className="pt-todo__cols is-one">
-          <Column p={{ id: meId, name: name.get(meId) ?? "You" }} wide />
-          {todos.some((t) => t.assigneeId !== meId) && (
-            <section className="pt-todo__col">
-              <header className="pt-todo__colhead"><h3>You gave to others</h3></header>
-              <ul className="pt-todo__list">{todos.filter((t) => t.assigneeId !== meId).sort(byUrgency).map((t) => <Item key={t.id} t={t} showWho />)}</ul>
-            </section>
-          )}
-        </div>
-      ) : (
-        <p className="pt-todo__none">You&rsquo;re not on the team list yet, so there&rsquo;s no list to show. Ask an admin to add you.</p>
-      )}
-
-      <details className="pt-panel pt-todo__done">
-        <summary>
-          <span className="pt-panel__h">Done in the last week</span>
-          <span className="pt-todo__counts"><span>{done.length}</span></span>
-        </summary>
-        {done.length ? (
-          <ul className="pt-todo__list">{done.map((t) => <Item key={t.id} t={t} showWho={all} />)}</ul>
-        ) : (
-          <p className="pt-todo__empty">Nothing ticked off in the last seven days.</p>
+        {all && (
+          <nav className="pt-td__people" aria-label="Whose list">
+            {[...(meId ? [{ id: meId, label: "Mine" }] : []), ...officePeople.filter((p) => p.id !== meId).map((p) => ({ id: p.id, label: firstName(p.name) })), ...others.map((p) => ({ id: p.id, label: firstName(p.name) })), { id: "all", label: "Everyone" }]
+              .map((o) => {
+                const late = lateOf(o.id);
+                return (
+                  <button key={o.id} type="button" className={`pt-td__pill${view === o.id ? " is-on" : ""}`} aria-pressed={view === o.id} onClick={() => setView(o.id)}>
+                    {o.label}{late > 0 && <span className="pt-td__late" aria-label={`${late} overdue`}>⚑ {late}</span>}
+                  </button>
+                );
+              })}
+          </nav>
         )}
-      </details>
 
-      {admin && (
-        <details className="pt-panel pt-todo__office">
-          <summary><span className="pt-panel__h">Who&rsquo;s in the office</span></summary>
-          <p className="pt-panel__sub">
-            They each get a column at the top, see every list and can add to anyone&rsquo;s. Everyone else sees their own list
-            and what they&rsquo;ve given to others.
-          </p>
-          <div className="pt-todo__pick">
-            {people.map((p) => (
-              <label key={p.id} className="pt-todo__pickrow">
-                <input
-                  type="checkbox" checked={officePick.includes(p.id)}
-                  onChange={(e) => setOfficePick((s) => (e.target.checked ? [...s, p.id] : s.filter((x) => x !== p.id)))}
-                />
-                {p.name}
-              </label>
-            ))}
-          </div>
-          <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending} onClick={() => run(() => setOffice(officePick), "Saved who's in the office.")}>
-            Save
-          </button>
+        <section className="pt-panel pt-td__list" aria-label="To-dos">
+          {shownTodos.length === 0 ? (
+            <p className="pt-td__empty">Nothing to do{all && view !== meId && view !== "all" ? ` for ${firstName(name.get(view) ?? "them")}` : ""}. </p>
+          ) : groups.filter((g) => g.items.length).map((g) => (
+            <div key={g.k} className={`pt-td__group is-${g.k}`}>
+              <h2 className="pt-td__gh">{g.label} <span>{g.items.length}</span></h2>
+              <ul>{g.items.map((t) => <Item key={t.id} t={t} showWho={showWho} />)}</ul>
+            </div>
+          ))}
+          {gave.length > 0 && (
+            <div className="pt-td__group">
+              <h2 className="pt-td__gh">You gave to others <span>{gave.length}</span></h2>
+              <ul>{gave.map((t) => <Item key={t.id} t={t} showWho />)}</ul>
+            </div>
+          )}
+        </section>
+
+        <details className="pt-td__more">
+          <summary>Done this week · {doneShown.length}</summary>
+          {doneShown.length ? <ul className="pt-td__donelist">{doneShown.map((t) => <Item key={t.id} t={t} showWho={all} />)}</ul> : <p className="pt-td__empty">Nothing ticked off this week.</p>}
         </details>
-      )}
-    </div>
+
+        {admin && (
+          <details className="pt-td__more">
+            <summary>Who&rsquo;s in the office</summary>
+            <p className="pt-panel__sub">The office can see and add to everyone&rsquo;s list. Everyone else sees their own.</p>
+            <div className="pt-todo__pick">
+              {people.map((p) => (
+                <label key={p.id} className="pt-todo__pickrow">
+                  <input type="checkbox" checked={officePick.includes(p.id)} onChange={(e) => setOfficePick((s) => (e.target.checked ? [...s, p.id] : s.filter((x) => x !== p.id)))} />
+                  {p.name}
+                </label>
+              ))}
+            </div>
+            <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending} onClick={() => run(() => setOffice(officePick), "Saved.")}>Save</button>
+          </details>
+        )}
+      </div>
     </Ctx.Provider>
   );
 }

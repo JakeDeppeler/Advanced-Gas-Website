@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
-import { vehicleFinance } from "@/components/portal/vehicleMath";
-import { DEFAULT_SETTINGS } from "@/lib/portal/crew";
+import { fleetDepreciation, withFleet } from "@/lib/portal/costSettings";
 import { xeroStatus, getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
@@ -59,9 +58,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
 
   // Depreciation belongs in the overhead and belongs to the vans, so it comes
   // from the fleet rather than being typed in twice.
-  const fleetDep = vehicles
-    .filter((v) => v.status !== "off")
-    .reduce((a, v) => a + (vehicleFinance(v).annualDep ?? 0), 0);
+  const fleetDep = fleetDepreciation(vehicles);
   const people = users
     .filter((u) => u.active && u.id)
     .sort((a, b) => (a.sortOrder ?? 1e9) - (b.sortOrder ?? 1e9) || a.name.localeCompare(b.name))
@@ -72,7 +69,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
       <FinanceHead title="Costs & capacity" lede="The crew, every overhead the business carries, and the charge-out rates that fall out of the two." xero={{ state: status, org: tenantName }} />
       <CapacityEditor
         people={people}
-        settings={settings ?? DEFAULT_SETTINGS}
+        settings={withFleet(settings, vehicles)}
         dbReady={ready}
         canManage={can(user, "manage_users")}
         initialTab={TABS.includes(searchParams?.t as typeof TABS[number]) ? (searchParams!.t as typeof TABS[number]) : undefined}

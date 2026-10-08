@@ -92,7 +92,7 @@ async function build(kind: ReportKind, now: Date, snap: Snapshot, at: string): P
   let weekProfit = null;
   if (kind === "weekly") {
     weekProfit = await crewFigures()
-      .then((c) => jobProfits(period.from, period.to, c.costPerHr, snap.metrics.pace?.profitPct ?? null))
+      .then((c) => jobProfits(period.from, period.to, c.costPerHr, snap.metrics.pace?.profitPct ?? null, c.crew))
       .then((r) => r.summary)
       .catch(() => null);
   }

@@ -279,6 +279,40 @@ const RESOURCES: ResourceSpec[] = [
       raw: r,
     }),
   },
+  // A customer's email lives on their contacts, not on the job. Exported for
+  // the email list; phones come along in the same rows.
+  {
+    resource: "customer-contacts",
+    module: "crm",
+    path: "customers/contacts",
+    table: "st_customer_contacts",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      customer_id: num(pick(r, "customerId", "customer_id")),
+      type: str(r.type),
+      value: str(r.value),
+      memo: str(r.memo),
+      active: r.active == null ? null : Boolean(r.active),
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
+    resource: "location-contacts",
+    module: "crm",
+    path: "locations/contacts",
+    table: "st_location_contacts",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      location_id: num(pick(r, "locationId", "location_id")),
+      type: str(r.type),
+      value: str(r.value),
+      memo: str(r.memo),
+      active: r.active == null ? null : Boolean(r.active),
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
 ];
 
 /**

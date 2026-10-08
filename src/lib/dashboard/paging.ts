@@ -33,6 +33,7 @@ export const hasOrder = (query: string) => /(?:^|&)order=/.test(query);
 const KEY: Record<string, string[]> = {
   allowed_users: ["email"],
   portal_integrations: ["provider"],
+  portal_email_optouts: ["email"],
   portal_page_views: ["path", "day"],
   portal_settings: ["key"],
   portal_sync_state: ["provider", "resource"],

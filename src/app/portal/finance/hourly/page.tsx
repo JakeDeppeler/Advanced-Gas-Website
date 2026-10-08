@@ -6,9 +6,12 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
 import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
-import { vehicleFinance } from "@/components/portal/vehicleMath";
+import { withFleet } from "@/lib/portal/costSettings";
+import { personBills, yearSpend } from "@/lib/portal/hourBill";
+import { HourBill } from "@/components/portal/HourBill";
+import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import {
-  assumptionsFor, computeCapacity, DEFAULT_SETTINGS, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadsOf,
+  alwaysSupervised, assumptionsFor, loadedWage, onCostsOf, computeCapacity, daysOff, fleetDepOf, LEVEL_BILLABLE, LEVEL_LABEL, OVERHEAD_FIELDS, OVERHEAD_GROUPS, overheadLines,
   type CapSettings, type CrewLevel, type CrewMember,
 } from "@/lib/portal/crew";
 
@@ -37,7 +40,7 @@ export default async function HourlyPage() {
 
   const ready = dbConfigured();
   const [users, stored, vehicles] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles()]) : [[], null, []];
-  const s: CapSettings = stored ?? DEFAULT_SETTINGS;
+  const s: CapSettings = withFleet(stored, vehicles);
   const people: CrewMember[] = users
     .filter((u) => u.active && u.id && u.level)
     .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
@@ -80,10 +83,13 @@ export default async function HourlyPage() {
 
   // Every dollar in an hour. The overhead groups when the lines are filled in;
   // one figure when the overhead is kept as a single number.
-  const oh = overheadsOf(s);
+  const oh = overheadLines(s);
   const internal = s.ohSource === "internal";
+  const fleetDep = fleetDepOf(s);
   const groups = OVERHEAD_GROUPS.map((g) => {
-    const lines = OVERHEAD_FIELDS.filter((f) => f.group === g.key).map((f) => ({ label: f.label, annual: Number(oh[f.key]) || 0 })).filter((l) => l.annual > 0);
+    const lines = OVERHEAD_FIELDS.filter((f) => f.group === g.key)
+      .map((f) => ({ label: f.key === "vehDep" && fleetDep > 0 ? "Van depreciation, from the Vehicles tab" : f.label, annual: Number(oh[f.key]) || 0 }))
+      .filter((l) => l.annual > 0);
     return { key: g.key, label: g.label, blurb: g.blurb, annual: lines.reduce((a, l) => a + l.annual, 0), lines };
   }).filter((g) => g.annual > 0);
   const per = (annual: number) => (has ? annual / cap.totalBillHrs : 0);
@@ -92,20 +98,77 @@ export default async function HourlyPage() {
     { key: "labour", label: "Paid hours off the tools", note: "Leave, holidays, sick days, school, travel, admin — paid, never billed", annual: cap.labourOh },
     { key: "office", label: "Office & admin staff", note: "Wages for the people who don't go out on jobs", annual: cap.officeOh },
     ...(internal
-      ? [{ key: "oh", label: "Overheads", note: "Kept as one figure on Costs & capacity", annual: Number(s.internalOverhead) || 0 }]
+      ? [
+          { key: "oh", label: "Overheads", note: "Kept as one figure on Costs & capacity", annual: Number(s.internalOverhead) || 0 },
+          { key: "dep", label: "Van depreciation", note: "What the vans lose in value a year, from the Vehicles tab", annual: fleetDep },
+        ]
       : groups.map((g) => ({ key: g.key, label: g.label, note: g.blurb, annual: g.annual, lines: g.lines }))),
   ].filter((l) => l.annual > 0);
   const marginPerHr = charge - cap.costPerHr;
   const maxLayer = Math.max(1, ...layers.map((l) => per(l.annual)), marginPerHr);
 
-  // Depreciation lives on the Vehicles tab; the hour only carries it once it's on the overhead line.
-  const fleetDep = vehicles.filter((v) => v.status !== "off").reduce((a, v) => a + (vehicleFinance(v).annualDep ?? 0), 0);
-  const depMissing = !internal && fleetDep > 0 && !(Number(oh.vehDep) > 0);
+  // A job with an apprentice on it. The tradesman's hour is the one above; the
+  // apprentice adds their whole year's pay, recovered over the hours they're
+  // actually on a job in the van. The tradesman doesn't go to trade school, so
+  // on school days the van goes out with him alone, at his rate, and nothing
+  // the apprentice is paid for those days comes back unless it's on the days
+  // they are there.
+  const yearDays = s.weeksYear * 5;
+  const leadPeople = people.filter((p) => p.costing.ownVan && LEVEL_BILLABLE[p.level] && !alwaysSupervised(p.level));
+  const leadPick = leadPeople.some((p) => p.level === "tradesman") ? leadPeople.filter((p) => p.level === "tradesman") : leadPeople;
+  const leadCosts = leadPick.map((p) => cap.rates.find((r) => r.id === p.id)?.costPerHr).filter((v): v is number => v != null);
+  const leadCost = leadCosts.length ? leadCosts.reduce((a, v) => a + v, 0) / leadCosts.length : null;
+  const leadLabel = leadPick.length ? LEVEL_LABEL[leadPick[0].level] : "Tradesman";
+  const riders = cap.rates
+    .filter((r) => r.crewHrs != null && r.costPerHr != null)
+    .map((r) => ({ r, p: people.find((x) => x.id === r.id)! }))
+    // A tradesman without a van of his own rides along too, but he doesn't go
+    // to school; this is about the people who do.
+    .filter(({ p }) => p && alwaysSupervised(p.level))
+    .map(({ r, p }) => {
+      const c = p.costing;
+      const rate = loadedWage(c.wage, s);
+      const hpd = c.hrsWeek / 5;
+      const crewHrs = r.crewHrs as number;
+      const full = r.costPerHr as number;
+      const school = c.schoolDays * hpd, away = (c.leaveDays + c.phDays + c.sickDays + c.rdoDays) * hpd;
+      const schoolPer = crewHrs > 0 ? (school * rate) / crewHrs : 0;
+      const awayPer = crewHrs > 0 ? (away * rate) / crewHrs : 0;
+      const feePer = crewHrs > 0 ? (Math.max(0, Number(s.schoolFees?.[p.id]) || 0)) / crewHrs : 0;
+      const schemePer = crewHrs > 0 ? (Math.max(0, Number(s.apprenticeScheme?.[p.id]) || 0)) / crewHrs : 0;
+      return {
+        p, c, rate, crewHrs, full, schoolPer, awayPer, feePer, schemePer,
+        // Whatever's left is their time in the van that isn't billed: the drive
+        // and the pack-up between jobs, the same as the tradesman's.
+        vanPer: Math.max(0, full - rate - schoolPer - awayPer - feePer + schemePer),
+        paid: c.hrsWeek * s.weeksYear, hpd,
+        days: Math.max(0, yearDays - daysOff(c)),
+      };
+    });
 
   // What moves it.
   const raise = has ? computeCapacity(people.map((p) => ({ ...p, costing: { ...p.costing, wage: p.costing.wage + 1 } })), s).costPerHr - cap.costPerHr : 0;
   const busier = has ? cap.totalCost / (cap.totalBillHrs * 1.05) : 0;
   const tenK = has ? 10_000 / cap.totalBillHrs : 0;
+
+  const bills = personBills(people, s, cap);
+
+  // The wages on the cards against what Xero actually paid, so a wage left at
+  // last year's rate shows up here rather than quietly under-pricing an hour.
+  let wageCheck: { cards: number; xero: number } | null = null;
+  try {
+    const { from, to } = lastTwelveMonths();
+    const pl = await getPLDetail(from, to);
+    const xero = pl?.sections.flatMap((x) => x.lines).filter((l) => /wages|salar/i.test(l.label)).reduce((a, l) => a + l.amount, 0) ?? 0;
+    const cards = people.reduce((a, p) => a + p.costing.wage * p.costing.hrsWeek * s.weeksYear, 0);
+    if (xero > 0 && cards > 0) wageCheck = { cards, xero };
+  } catch { /* Xero not connected: the check is left off rather than guessed */ }
+
+  const spend = yearSpend(s, cap);
+  const spendTop = Math.max(1, ...spend.map((x) => x.annual));
+  const pairCharge = leadCost != null && riders.length
+    ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * (1 + s.margin / 100)
+    : null;
 
   const crew = cap.rates
     .map((r) => ({ r, p: people.find((x) => x.id === r.id)! }))
@@ -114,7 +177,7 @@ export default async function HourlyPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Our hourly rate" lede="One billable hour, taken apart: where the hours come from, every dollar that has to come back out of each one, and the margin on top." />
+      <FinanceHead title="Our hourly rate" lede="What the business spends in a year, what that makes an hour on the tools cost, and what we charge for it." />
 
       {!has ? (
         <div className="pt-note pt-note--warn">
@@ -122,6 +185,62 @@ export default async function HourlyPage() {
         </div>
       ) : (
         <>
+          <section className="pt-panel pt-hs" aria-labelledby="hs-h">
+            <h2 id="hs-h" className="pt-sr">The short version</h2>
+            <div className="pt-hs__nums">
+              <div><span>We spend a year</span><strong>{m0(cap.totalCost)}</strong><em>every wage and every bill</em></div>
+              <div><span>Hours we can bill</span><strong>{h0(cap.totalBillHrs)}</strong><em>across {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"}</em></div>
+              <div><span>So an hour costs us</span><strong>{m2(cap.costPerHr)}</strong><em>{m0(cap.totalCost)} ÷ {h0(cap.totalBillHrs)}</em></div>
+              <div className="is-charge"><span>We charge</span><strong>{m2(charge)}</strong><em>with our {s.margin}% margin</em></div>
+            </div>
+          </section>
+
+          <section className="pt-panel" aria-labelledby="hs-spend">
+            <h2 id="hs-spend" className="pt-panel__h">Where the money goes each year</h2>
+            <div className="pt-hs__spend">
+              {spend.map((x) => (
+                <div key={x.key} className="pt-hs__row">
+                  <span className="pt-hs__lbl">{x.label}<em>{x.note}</em></span>
+                  <span className="pt-hs__bar" aria-hidden="true"><i style={{ width: `${Math.max(0, (x.annual / spendTop) * 100)}%` }} /></span>
+                  <strong className="pt-hs__yr">{m0(x.annual)}<em>a year</em></strong>
+                  <span className="pt-hs__ph">{m2(per(x.annual))}<em>an hour</em></span>
+                </div>
+              ))}
+              <div className="pt-hs__row is-total">
+                <span className="pt-hs__lbl">All of it</span><span />
+                <strong className="pt-hs__yr">{m0(cap.totalCost)}<em>a year</em></strong>
+                <span className="pt-hs__ph">{m2(cap.costPerHr)}<em>an hour</em></span>
+              </div>
+            </div>
+          </section>
+
+          <section className="pt-panel" aria-labelledby="hs-people">
+            <h2 id="hs-people" className="pt-panel__h">What each person costs, and what we charge</h2>
+            <div className="pt-fleet__wrap">
+              <table className="pt-rev__pl">
+                <thead><tr><th scope="col">Who</th><th scope="col">Costs us an hour</th><th scope="col">We charge an hour</th></tr></thead>
+                <tbody>
+                  {crew.map(({ r, p }) => (
+                    <tr key={r.id}>
+                      <th scope="row">{p.name}<em> {LEVEL_LABEL[p.level]}{r.uplift != null ? ", rides with a tech" : ""}</em></th>
+                      {r.uplift != null
+                        ? <><td>+{m2(r.costPerHr ?? 0)}</td><td>+{m2(r.uplift)} <em>on top of the tradesman</em></td></>
+                        : <><td>{r.costPerHr != null ? m2(r.costPerHr) : "—"}</td><td>{r.rate != null ? m2(r.rate) : "—"}</td></>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {pairCharge != null && leadCost != null && (
+              <p className="pt-hs__pair">
+                One hour of a {leadLabel.toLowerCase()} on their own: <strong>{m2(leadCost * (1 + s.margin / 100))}</strong>. With an apprentice on the job: <strong>{m2(pairCharge)}</strong>.
+                That&rsquo;s still one hour of the van, not two.
+              </p>
+            )}
+          </section>
+
+          <details className="pt-hr__more">
+            <summary>Show the full breakdown</summary>
           <div className="pt-rev__tiles">
             <div className="pt-rev__tile is-feature">
               <span className="pt-rev__k">What an hour costs us</span>
@@ -162,6 +281,7 @@ export default async function HourlyPage() {
               </div>
               <p className="pt-hr__foot">
                 {pc(hrs.paid ? hrs.billable / hrs.paid : 0)} of paid time is billable. Every hour that isn&rsquo;t still has to be paid for — so it goes on the price of the ones that are.
+                {riders.length > 0 && " Apprentices riding in someone else's van aren't counted here: the van bills one hour whether one or two are on site. Their year is further down."}
               </p>
             </section>
 
@@ -214,16 +334,90 @@ export default async function HourlyPage() {
               </div>
               <div className="pt-hr__line is-total is-charge"><span /><span className="pt-hr__lbl">What we charge an hour</span><span /><span /><strong className="pt-hr__ph">{m2(charge)}</strong></div>
             </div>
-            {depMissing && (
-              <p className="pt-note" style={{ marginTop: 14, marginBottom: 0 }}>
-                <strong>The vans&rsquo; depreciation isn&rsquo;t in this.</strong> The Vehicles tab puts it at {m0(fleetDep)} a year — {m2(per(fleetDep))} an hour — but it isn&rsquo;t on the Depreciation overhead line yet, so the rate doesn&rsquo;t carry it. Add it under <Link href="/portal/finance/capacity?t=overheads">Overheads → Vehicles</Link>.
-              </p>
-            )}
           </section>
+
+          {riders.length > 0 && (() => {
+            const mk = 1 + s.margin / 100;
+            const lead = leadCost ?? 0;
+            const row = (label: string, note: string | null, cell: (x: (typeof riders)[number]) => string, cls?: string) => (
+              <tr className={cls}>
+                <th scope="row">{label}{note && <em> {note}</em>}</th>
+                {riders.map((x) => <td key={x.p.id}>{cell(x)}</td>)}
+              </tr>
+            );
+            const days = (n: number) => `${Math.round(n)} ${Math.round(n) === 1 ? "day" : "days"}`;
+            return (
+              <section className="pt-panel" aria-labelledby="hr-app">
+                <h2 id="hr-app" className="pt-panel__h">A job with an apprentice on it</h2>
+                <p className="pt-panel__sub">
+                  The {leadLabel.toLowerCase()} doesn&rsquo;t go to trade school; the apprentice does. On school days the van goes out with the {leadLabel.toLowerCase()} on their own, quoted at their rate. So everything an apprentice is paid for in a year, school included, has to come back on the days they&rsquo;re on a job.
+                </p>
+                <div className="pt-two">
+                  <div>
+                    <h3 className="pt-hr__h3">Their year</h3>
+                    <div className="pt-fleet__wrap">
+                      <table className="pt-rev__pl">
+                        <thead><tr><th scope="col"><span className="pt-sr">Item</span></th>{riders.map((x) => <th key={x.p.id} scope="col">{x.p.name}</th>)}</tr></thead>
+                        <tbody>
+                          {row("Weekdays paid for", null, () => days(yearDays))}
+                          {row("Trade school", null, (x) => (x.c.schoolDays ? `−${days(x.c.schoolDays)}` : "none"))}
+                          {row("Annual leave", null, (x) => `−${days(x.c.leaveDays)}`)}
+                          {row("Public holidays", null, (x) => `−${days(x.c.phDays)}`)}
+                          {row("Sick days", null, (x) => `−${days(x.c.sickDays)}`)}
+                          {row("RDOs", null, (x) => `−${days(x.c.rdoDays)}`)}
+                          {row("Days out in the van", null, (x) => days(x.days), "is-total")}
+                          {row("Hours on jobs", "what the van bills on those days", (x) => h0(x.crewHrs))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="pt-hr__h3">One hour on a job, with them on it</h3>
+                    <div className="pt-fleet__wrap">
+                      <table className="pt-rev__pl">
+                        <thead><tr><th scope="col"><span className="pt-sr">Item</span></th>{riders.map((x) => <th key={x.p.id} scope="col">{x.p.name}</th>)}</tr></thead>
+                        <tbody>
+                          {leadCost != null && row(`${leadLabel}'s hour`, "pay, and the overhead every hour carries", () => m2(lead))}
+                          {row("Apprentice's pay for the hour", null, (x) => `+${m2(x.rate)}`)}
+                          {row("Their trade-school pay", "spread over their hours on jobs", (x) => `+${m2(x.schoolPer)}`)}
+                          {row("Their leave, holidays, sick days and RDOs", null, (x) => `+${m2(x.awayPer)}`)}
+                          {riders.some((x) => x.feePer > 0.005) && row("Their trade-school fees", "from their card on Costs & capacity", (x) => `+${m2(x.feePer)}`)}
+                          {riders.some((x) => x.schemePer > 0.005) && row("Less the government apprentice incentive", null, (x) => `−${m2(x.schemePer)}`)}
+                          {riders.some((x) => x.vanPer > 0.005) && row("In the van between jobs", "the drive and pack-up, paid but not billed", (x) => `+${m2(x.vanPer)}`)}
+                          {row(leadCost != null ? "What the crew hour costs" : "What they add to an hour", null, (x) => m2(lead + x.full), "is-total")}
+                          {row(`Margin, ${s.margin}%`, null, (x) => `+${m2((lead + x.full) * (mk - 1))}`)}
+                          {row(leadCost != null ? "What we charge for the crew hour" : "What they add, charged", null, (x) => m2((lead + x.full) * mk), "is-total")}
+                          {leadCost != null && row(`${leadLabel} on their own`, null, () => m2(lead * mk))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <p className="pt-hr__foot">
+                  This is what an apprentice adds to a job on the <Link href="/portal/job-calculator">Job calculator</Link> and on the tradesman + apprentice figures on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, so school, leave and sick pay are in every quote they&rsquo;re on.
+                </p>
+              </section>
+            );
+          })()}
+
+          {bills.length > 0 && (
+            <HourBill bills={bills} superPct={onCostsOf(s).superPct}>
+                {wageCheck && (
+                  <p className="pt-hr__foot">
+                    Checked against Xero: the cards add up to {m0(wageCheck.cards)} a year in wages; Xero paid {m0(wageCheck.xero)} over the last twelve months
+                    {Math.abs(wageCheck.xero - wageCheck.cards) / Math.max(1, wageCheck.xero) > 0.08
+                      ? wageCheck.xero > wageCheck.cards
+                        ? `, ${m0(wageCheck.xero - wageCheck.cards)} more than the cards. Overtime, bonuses and anyone who has left are in Xero's figure and not on a card; if the gap is bigger than those, a wage on Costs & capacity is out of date and every rate here is low.`
+                        : `, ${m0(wageCheck.cards - wageCheck.xero)} less than the cards. Someone who started part way through the year would do that; otherwise a wage on a card is higher than what's being paid.`
+                      : ", close enough that the cards are right."}
+                  </p>
+                )}
+            </HourBill>
+          )}
 
           <section className="pt-panel" aria-labelledby="hr-crew">
             <h2 id="hr-crew" className="pt-panel__h">Each person&rsquo;s hour</h2>
-            <p className="pt-panel__sub">Their pay rate, plus the {m2(cap.sharedPerHr)} every billable hour carries for everything else, then the margin.</p>
+            <p className="pt-panel__sub">Their pay with super, WorkCover and long service leave; their own time off the tools; the {m2(cap.businessPerHr)} of office and overhead every billable hour carries; then the margin.</p>
             <div className="pt-fleet__wrap">
               <table className="pt-rev__pl">
                 <thead><tr><th scope="col">Who</th><th scope="col">Pay an hour</th><th scope="col">+ the rest</th><th scope="col">Costs us</th><th scope="col">We charge</th><th scope="col">Billable a year</th></tr></thead>
@@ -233,18 +427,18 @@ export default async function HourlyPage() {
                       <th scope="row">{p.name}<em> {LEVEL_LABEL[p.level]}</em></th>
                       {r.uplift != null ? (
                         <>
-                          <td>{m2(p.costing.wage)}</td>
+                          <td>{m2(loadedWage(p.costing.wage, s))}</td>
                           <td colSpan={2}>rides with a tech</td>
                           <td>+{m2(r.uplift)} on the crew&rsquo;s rate</td>
                           <td>—</td>
                         </>
                       ) : (
                         <>
-                          <td>{m2(p.costing.wage * (1 + s.oncosts / 100))}</td>
-                          <td>{m2(cap.sharedPerHr)}</td>
+                          <td>{m2(loadedWage(p.costing.wage, s))}</td>
+                          <td>{r.costPerHr != null ? m2(r.costPerHr - loadedWage(p.costing.wage, s)) : "—"}</td>
                           <td>{r.costPerHr != null ? m2(r.costPerHr) : "—"}</td>
                           <td>{r.rate != null ? m2(r.rate) : "—"}{p.costing.rateOverride != null ? <em> set by hand</em> : null}</td>
-                          <td>{h0(r.billHrs)}</td>
+                          <td>{h0(r.billHrs)}{p.costing.schoolDays > 0 && <em> after {p.costing.schoolDays} school days</em>}</td>
                         </>
                       )}
                     </tr>
@@ -256,6 +450,7 @@ export default async function HourlyPage() {
               Change any of it — wages, hours, days off, overheads, the margin — on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, and this page follows.
             </p>
           </section>
+          </details>
         </>
       )}
     </PortalShell>
