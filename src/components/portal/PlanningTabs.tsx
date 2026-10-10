@@ -16,7 +16,7 @@ import Link from "next/link";
 const TABS = [
   { href: "/portal/finance/planning", label: "Where we're headed", sub: "Profit target, what-ifs" },
   { href: "/portal/finance/planning/crew", label: "Crew & rate", sub: "Add or take off people, pay, your cut" },
-  { href: "/portal/finance/planning/commission", label: "Commission", sub: "Pace pay: a base wage plus a share" },
+  { href: "/portal/finance/planning/commission", label: "Pay plan", sub: "$45 + commission, from January" },
   { href: "/portal/finance/quotes", label: "Quotes & win rate", sub: "What's out, what comes back" },
 ];
 

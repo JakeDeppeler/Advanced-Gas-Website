@@ -39,11 +39,19 @@ const API_BASE = "https://api.xero.com/api.xro/2.0";
 // split, so the scope keeps its name — but if Xero ever refuses it, the whole
 // scope string is rejected, and losing the P&L to gain an email list would be
 // the wrong trade. So a refusal is caught in the callback and the connect is
-// retried without it (authorizeUrl's `basic`).
+// retried with less (authorizeUrl's `stage`).
+//
+// accounting.reports.banksummary.read is for Money in & out: what actually
+// went through the bank each month, which the P&L can't say. It's the newest
+// and least certain of the four, so it's the first dropped: full → contacts →
+// basic, one step per refusal.
 //
 // All read-only. Nothing in this codebase can write to Xero.
 const SCOPES_BASIC = "offline_access accounting.reports.profitandloss.read accounting.invoices.read";
-const SCOPES = `${SCOPES_BASIC} accounting.contacts.read`;
+const SCOPES_CONTACTS = `${SCOPES_BASIC} accounting.contacts.read`;
+const SCOPES_FULL = `${SCOPES_CONTACTS} accounting.reports.banksummary.read`;
+export type ScopeStage = "full" | "contacts" | "basic";
+export const nextStage = (s: ScopeStage): ScopeStage | null => (s === "full" ? "contacts" : s === "contacts" ? "basic" : null);
 
 export function xeroConfigured(): boolean {
   return !!(process.env.XERO_CLIENT_ID && process.env.XERO_CLIENT_SECRET);
@@ -54,7 +62,7 @@ export function redirectUri(): string {
   return `${base}/api/xero/callback`;
 }
 
-export function authorizeUrl(state: string, basic = false): string {
+export function authorizeUrl(state: string, stage: ScopeStage = "full"): string {
   const p = new URLSearchParams({
     response_type: "code",
     client_id: process.env.XERO_CLIENT_ID || "",
@@ -63,7 +71,7 @@ export function authorizeUrl(state: string, basic = false): string {
   });
   // scope must be space-delimited; encode the spaces as %20 rather than the
   // '+' URLSearchParams would produce, which some servers reject.
-  return `${AUTH_URL}?${p.toString()}&scope=${encodeURIComponent(basic ? SCOPES_BASIC : SCOPES)}`;
+  return `${AUTH_URL}?${p.toString()}&scope=${encodeURIComponent(stage === "basic" ? SCOPES_BASIC : stage === "contacts" ? SCOPES_CONTACTS : SCOPES_FULL)}`;
 }
 
 function basicAuth(): string {
@@ -893,4 +901,110 @@ export async function getXeroContactEmails(): Promise<XeroContactEmail[] | "no-s
   const integ = await getIntegration("xero").catch(() => null);
   if (!integ?.tenantId || !integ.refreshToken) return null;
   return sharedContactEmails(integ.tenantId).catch(() => null);
+}
+
+export type OwedBill = { id: string; supplier: string; number: string | null; reference: string | null; date: string; due: string; total: number; amountDue: number };
+
+/**
+ * Every supplier bill still owing — authorised, not fully paid — for What we
+ * owe. Read under the invoices scope the connection already has. Shared for
+ * five minutes, like the reports.
+ */
+const sharedOwedBills = unstable_cache(
+  async (tenantId: string): Promise<OwedBill[]> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const out: OwedBill[] = [];
+    for (let page = 1; page <= 5; page++) {
+      const url = new URL(`${API_BASE}/Invoices`);
+      url.searchParams.set("where", `Type=="ACCPAY"&&Status=="AUTHORISED"`);
+      url.searchParams.set("summaryOnly", "true");
+      url.searchParams.set("pageSize", "1000");
+      url.searchParams.set("page", String(page));
+      const res = await withSlot(() => fetch(url, {
+        headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+        cache: "no-store",
+      }));
+      if (!res.ok) throw new Error(`xero ${res.status}`);
+      const json = (await res.json()) as { Invoices?: Array<{ InvoiceID?: string; InvoiceNumber?: string; Reference?: string; Contact?: { Name?: string }; Total?: number; AmountDue?: number; DateString?: string; Date?: string; DueDateString?: string; DueDate?: string }> };
+      const got = json.Invoices ?? [];
+      for (const i of got) {
+        const due = Number(i.AmountDue ?? 0);
+        if (!(due > 0.004)) continue;
+        out.push({
+          id: i.InvoiceID ?? `${i.InvoiceNumber}-${i.Contact?.Name}`,
+          supplier: (i.Contact?.Name ?? "—").trim(),
+          number: i.InvoiceNumber?.trim() || null,
+          reference: i.Reference?.trim() || null,
+          date: xeroDate(i.DateString ?? i.Date),
+          due: xeroDate(i.DueDateString ?? i.DueDate) || xeroDate(i.DateString ?? i.Date),
+          total: Number(i.Total ?? 0),
+          amountDue: due,
+        });
+      }
+      if (got.length < 1000) break;
+    }
+    return out;
+  },
+  ["xero-owed-bills"],
+  { revalidate: 300, tags: ["xero-reports"] },
+);
+
+/** Null when Xero isn't connected or didn't answer. */
+export async function getOwedBills(): Promise<OwedBill[] | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedOwedBills(integ.tenantId).catch(() => null);
+}
+
+export type BankSummary = {
+  opening: number; received: number; spent: number; closing: number;
+  accounts: Array<{ name: string; opening: number; received: number; spent: number; closing: number }>;
+};
+
+/**
+ * What went through the bank between two dates: received, spent, and the
+ * balance either side, per account and in total. The P&L says what was
+ * earned and owed; this says what actually moved. Needs
+ * accounting.reports.banksummary.read — "no-scope" until Xero is reconnected
+ * with it.
+ */
+const sharedBankSummary = unstable_cache(
+  async (tenantId: string, fromDate: string, toDate: string): Promise<BankSummary | "no-scope"> => {
+    const tok = await validToken();
+    if (!tok || tok.tenantId !== tenantId) throw new Error("xero: no token");
+    const res = await withSlot(() => fetch(`${API_BASE}/Reports/BankSummary?fromDate=${fromDate}&toDate=${toDate}`, {
+      headers: { Authorization: `Bearer ${tok.accessToken}`, "Xero-tenant-id": tenantId, Accept: "application/json" },
+      cache: "no-store",
+    }));
+    if (res.status === 401 || res.status === 403) return "no-scope";
+    if (!res.ok) throw new Error(`xero ${res.status}`);
+    type Cell = { Value?: string };
+    type Row = { RowType?: string; Cells?: Cell[]; Rows?: Row[] };
+    const json = (await res.json()) as { Reports?: Array<{ Rows?: Row[] }> };
+    const rows = json.Reports?.[0]?.Rows ?? [];
+    const head = rows.find((r) => r.RowType === "Header")?.Cells?.map((c) => (c.Value ?? "").toLowerCase()) ?? [];
+    const col = (word: string) => head.findIndex((h) => h.includes(word));
+    const ci = { opening: col("opening"), received: col("received"), spent: col("spent"), closing: col("closing") };
+    const num = (r: Row, i: number) => (i >= 0 ? Number((r.Cells?.[i]?.Value ?? "0").replace(/[^0-9.-]/g, "")) || 0 : 0);
+    const accounts: BankSummary["accounts"] = [];
+    let total: Row | null = null;
+    for (const sec of rows.filter((r) => r.RowType === "Section")) {
+      for (const r of sec.Rows ?? []) {
+        if (r.RowType === "SummaryRow") { total = r; continue; }
+        if (r.RowType !== "Row") continue;
+        accounts.push({ name: r.Cells?.[0]?.Value ?? "", opening: num(r, ci.opening), received: num(r, ci.received), spent: num(r, ci.spent), closing: num(r, ci.closing) });
+      }
+    }
+    const sum = (k: "opening" | "received" | "spent" | "closing") => (total ? num(total, ci[k]) : accounts.reduce((a, x) => a + x[k], 0));
+    return { opening: sum("opening"), received: sum("received"), spent: sum("spent"), closing: sum("closing"), accounts };
+  },
+  ["xero-bank-summary"],
+  { revalidate: 300, tags: ["xero-reports"] },
+);
+
+export async function getBankSummary(fromDate: string, toDate: string): Promise<BankSummary | "no-scope" | null> {
+  const integ = await getIntegration("xero").catch(() => null);
+  if (!integ?.tenantId || !integ.refreshToken) return null;
+  return sharedBankSummary(integ.tenantId, fromDate, toDate).catch(() => null);
 }

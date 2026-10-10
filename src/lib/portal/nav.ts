@@ -144,6 +144,8 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       href: "/portal/finance/review", label: "How we went", short: "How we went", blurb: "A month or week, and why it went that way", band: "profit", icon: "chart",
       also: ["review", "month", "week", "why", "loss", "not in profit", "overheads high", "owed", "waiting on payment", "big job", "how did we go"],
     },
+    { href: "/portal/finance/owe", label: "What we owe", short: "We owe", blurb: "Bills to pay, in the order to pay them", band: "profit", icon: "list", also: ["bills", "payables", "creditors", "owe", "suppliers", "reece", "ato", "due"] },
+    { href: "/portal/finance/cash", label: "Money in & out", short: "Cash", blurb: "The bank each month, beside profit", band: "profit", icon: "trend", also: ["cash", "cash flow", "bank", "spending", "money out", "money in"] },
     {
       href: "/portal/finance/hourly", label: "Our hourly rate", short: "Hourly rate", blurb: "What makes up an hour, and what we charge", band: "profit", icon: "clock",
       also: ["hourly", "charge out", "charge-out", "rate", "cost per hour", "break down", "overhead per hour", "utilisation", "billable hours"],
