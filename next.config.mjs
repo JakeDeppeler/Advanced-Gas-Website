@@ -50,6 +50,8 @@ const nextConfig = {
       // pipeline, which reads every quote from ServiceTitan.
       { source: "/portal/quotes", destination: "/portal/pipeline", permanent: false },
       { source: "/portal/finance/quotes", destination: "/portal/pipeline", permanent: false },
+      // The numbers was folded into the Scoreboard: the same figures, once.
+      { source: "/portal/numbers", destination: "/portal/scoreboard", permanent: false },
       // ---- WEB-002: apex host → www, 308 ----
       // Both advancedgas.com.au and www.advancedgas.com.au were indexed
       // as separate URLs, splitting authority down the middle (the apex

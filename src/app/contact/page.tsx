@@ -49,7 +49,7 @@ export default function ContactPage() {
             <div className="ct-card">
               <h3>Hours</h3>
               <div className="ct-hours">
-                <div className="ct-hours__row"><strong>Mon – Fri</strong><span>8:00 am – 4:00 pm</span></div>
+                <div className="ct-hours__row"><strong>Mon – Fri</strong><span>{openingHoursShort()}</span></div>
                 <div className="ct-hours__row"><strong>Sat &amp; Sun</strong><span>Emergencies only</span></div>
                 <div className="ct-hours__row"><strong>Public hols</strong><span>Closed (except emergency)</span></div>
               </div>

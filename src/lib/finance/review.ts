@@ -127,7 +127,7 @@ export type Review = {
   daysTotal: number;
   now: PL | null;
   normal: PL | null;
-  /** The month's (or week's share of the month's) revenue goal, pro-rated when partial. */
+  /** The month's (or week's share of the month's) revenue goal before GST, pro-rated when partial. */
   goal: number | null;
   factors: Factor[];
   /** Expense lines that moved most against normal, biggest first. */
@@ -176,7 +176,11 @@ export async function buildReview(kind: Kind, key: string | null): Promise<Revie
     const row = slot >= 0 ? year.months[slot] : null;
     if (row && row.goal > 0) {
       const monthDays = Number(monthEnd(y, m - 1).slice(8));
-      goal = kind === "month" ? row.goal * scale : row.goal * (daysGone / monthDays);
+      // The goal is what ServiceTitan invoices, which is with GST; Xero's
+      // income here is before it. Brought onto Xero's footing so the month
+      // isn't read as 9% further behind than it is.
+      const exGst = row.goal / 1.1;
+      goal = kind === "month" ? exGst * scale : exGst * (daysGone / monthDays);
     }
   }
 
@@ -196,7 +200,7 @@ export async function buildReview(kind: Kind, key: string | null): Promise<Revie
     factors.push(
       {
         key: "work", title: "The work", impact: work,
-        detail: `${m$(now.income)} earned against a usual ${m$(normal.income)}${goal ? ` and ${m$(goal)} the goal needed` : ""}.`,
+        detail: `${m$(now.income)} earned against a usual ${m$(normal.income)}${goal ? ` and ${m$(goal)} the goal needed, before GST` : ""}.`,
       },
       {
         key: "materials", title: "Materials & subbies", impact: materials,

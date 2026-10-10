@@ -182,7 +182,7 @@ export function RevenuePlanner({ initial, cap, actual, ytd = null, canSave, goal
             <b style={{ left: `${Math.min(100, yearGone * 100)}%` }} title="Where the year is up to" />
           </div>
           <p>
-            <strong>{money(ytd)}</strong> invoiced so far, which is{" "}
+            <strong>{money(ytd)}</strong> invoiced so far this calendar year, before GST (Xero), which is{" "}
             <strong>{Math.round((pace ?? 0) * 100)}%</strong> of the target with{" "}
             <strong>{Math.round((1 - yearGone) * 100)}%</strong> of the year left.{" "}
             {behind != null && neededWeek != null && (

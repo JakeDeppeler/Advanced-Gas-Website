@@ -28,7 +28,8 @@ function ranges() {
     week: { label: "This week", from: iso(new Date(Date.UTC(y, m, d - dow))), to: today },
     month: { label: "This month", from: iso(new Date(Date.UTC(y, m, 1))), to: today },
     lastMonth: { from: iso(new Date(Date.UTC(y, m - 1, 1))), to: iso(new Date(Date.UTC(y, m, 0))) },
-    year: { label: "This year", from: iso(new Date(Date.UTC(y, 0, 1))), to: today },
+    // Calendar year, and said so: the Scoreboard's year is the goal's.
+    year: { label: "Since 1 January", from: iso(new Date(Date.UTC(y, 0, 1))), to: today },
   };
 }
 

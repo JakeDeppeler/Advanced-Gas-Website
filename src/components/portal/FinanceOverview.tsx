@@ -53,7 +53,7 @@ export function FinanceOverview({
     { label: "Today", pl: today },
     { label: "This week", pl: week },
     { label: "This month", pl: month },
-    { label: "This year", pl: year },
+    { label: "Since 1 January", pl: year },
   ];
 
 

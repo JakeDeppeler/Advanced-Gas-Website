@@ -6,85 +6,88 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
-import { Needs } from "@/components/portal/marketingParts";
-import { submittedSheets } from "@/lib/portal/people";
-import { hrs, weekTotals } from "@/lib/portal/peopleParts";
-import { mondayOf } from "@/components/portal/fleetStatus";
-import { localToday } from "@/lib/portal/xero";
+import { MAX_VISIT_HRS, onTheTools } from "@/lib/portal/onTheTools";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Hours — Team portal" };
 
+const h1 = (n: number) => `${n.toFixed(1)} hrs`;
+const pc = (n: number) => `${Math.round(n * 100)}%`;
+
 /**
- * Paid hours against billed hours, by person.
+ * Time on the tools, by person, from ServiceTitan's own clock-ins: the moment
+ * a tech marks themselves arrived to the moment they mark the job done. Travel
+ * is dispatched to arrived. Against the week their card on Our numbers says
+ * they're rostered for, that's how much of the paid week went on customers.
  *
- * Paid hours are the timesheets the crew send from the trade portal — real,
- * sent weeks only, never a roster. Billed hours aren't in the replica:
- * invoices come across as totals without their labour lines. So the billed
- * half says what it needs rather than drawing the design's 70% from hours
- * people are rostered for, which would be a plan dressed as a measurement.
+ * It replaced three tiles that waited on the crew's portal timesheets, which
+ * nobody sends, while ServiceTitan had the real hours all along.
  */
 export default async function HoursPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Hours" forWhom="managers" />;
 
-  const thisMonday = mondayOf(localToday());
-  const fourBack = new Date(thisMonday.getTime() - 3 * 7 * 86_400_000).toISOString().slice(0, 10);
-  const weekOf = thisMonday.toISOString().slice(0, 10);
-  const sheets = await submittedSheets(fourBack);
-  const thisWeek = sheets.filter((s) => s.weekOf === weekOf);
-  const paidWeek = thisWeek.reduce((n, s) => n + weekTotals(s.days).total, 0);
-  const byPerson = new Map<string, { name: string; weeks: number; total: number; overtime: number }>();
-  for (const s of sheets) {
-    const t = weekTotals(s.days);
-    const p = byPerson.get(s.userId) ?? { name: s.userName ?? "Someone", weeks: 0, total: 0, overtime: 0 };
-    p.weeks += 1; p.total += t.total; p.overtime += t.overtime;
-    byPerson.set(s.userId, p);
-  }
+  const { rows, lastOn, lastTravel, lastRoster, lastVisits, lastMonday } = await onTheTools();
+  const weekLabel = lastMonday.toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
 
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
         <h1>Hours</h1>
-        <p>Paid hours against billed hours, by person — how much of the week the crew is paid for actually ends up on an invoice.</p>
+        <p>How much of the crew&rsquo;s paid week goes on customers&rsquo; jobs, from ServiceTitan&rsquo;s clock-ins.</p>
       </div>
 
       <Figs
-        cols={4}
+        cols={3}
         items={[
-          { label: "Billed", feature: true, value: null, needs: "of paid hours · target 75%" },
-          { label: "Paid hours", value: thisWeek.length ? hrs(paidWeek) : null, sub: thisWeek.length ? `this week · ${thisWeek.length} ${thisWeek.length === 1 ? "timesheet" : "timesheets"} sent` : undefined, needs: "no timesheets sent this week yet" },
-          { label: "Billed hours", value: null, needs: "labour on invoices" },
-          { label: "Not billed", value: null, needs: "and what those hours cost" },
+          {
+            label: "On the tools last week", feature: true,
+            value: lastRoster > 0 ? pc(lastOn / lastRoster) : null,
+            sub: `${h1(lastOn)} on site, of ${h1(lastRoster)} rostered`,
+            from: `ServiceTitan clock-ins · week of ${weekLabel}`,
+            needs: "No clock-ins last week",
+            parts: rows.filter((r) => r.field && r.lastVisits > 0).map((r) => ({ label: r.name, value: r.roster ? `${h1(r.lastOn)} of ${r.roster} · ${pc(r.lastOn / r.roster)}` : h1(r.lastOn) })),
+          },
+          {
+            label: "Driving between jobs", value: lastVisits ? h1(lastTravel) : null,
+            sub: lastOn > 0 ? `${pc(lastTravel / (lastOn + lastTravel))} of the time out on jobs` : undefined,
+            from: "ServiceTitan · dispatched to arrived", needs: "No clock-ins last week",
+          },
+          {
+            label: "Visits last week", value: lastVisits ? String(lastVisits) : null,
+            sub: lastVisits ? `${h1(lastOn / lastVisits)} on site each, on average` : undefined,
+            from: "ServiceTitan clock-ins", needs: "No clock-ins last week",
+          },
         ]}
       />
 
-      <section className="pt-panel">
-        <h2 className="pt-panel__h">Timesheets sent · last four weeks</h2>
-        <p className="pt-panel__sub">From the trade portal, as each person sends their week. A half-hour lunch comes off any day over five hours; overtime is past 7.6 hours a day.</p>
-        {byPerson.size ? (
-          <table className="pt-table">
-            <thead><tr><th>Who</th><th>Weeks sent</th><th>Paid hours</th><th>Of it overtime</th></tr></thead>
-            <tbody>
-              {[...byPerson.values()].sort((a, b) => b.total - a.total).map((p) => (
-                <tr key={p.name}><td>{p.name}</td><td>{p.weeks}</td><td>{hrs(p.total)}</td><td>{hrs(p.overtime)}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        ) : <div className="pf-empty">No timesheets sent in the last four weeks.</div>}
+      <section className="pt-panel" aria-labelledby="hrs-h">
+        <h2 id="hrs-h" className="pt-panel__h">By person</h2>
+        <p className="pt-panel__sub">
+          On site is arrived to done on each visit; driving is dispatched to arrived. Rostered is the week on their card on <Link href="/portal/finance/capacity">Our numbers</Link>. A visit clocked over {MAX_VISIT_HRS} hours is left out as a clock left running. The office&rsquo;s visits are listed but kept out of the totals above.
+        </p>
+        {rows.length ? (
+          <div className="pt-fleet__wrap">
+            <table className="pt-rev__pl">
+              <thead><tr><th scope="col">Who</th><th scope="col">Last week on site</th><th scope="col">Rostered</th><th scope="col">On the tools</th><th scope="col">4-week average on site</th><th scope="col">Visits, 4 weeks</th></tr></thead>
+              <tbody>
+                {rows.map((r) => (
+                  <tr key={r.name}>
+                    <th scope="row">{r.name}{!r.field && <em> office</em>}</th>
+                    <td>{r.lastVisits ? h1(r.lastOn) : "—"}</td>
+                    <td>{r.roster ? `${r.roster} hrs` : "—"}</td>
+                    <td>{r.roster && r.lastVisits ? pc(r.lastOn / r.roster) : "—"}</td>
+                    <td>{h1(r.fourOn / 4)}</td>
+                    <td>{r.fourVisits}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p className="pt-rep__empty">No clock-ins in the last four weeks.</p>}
       </section>
-
-      <Needs
-        title="What the billed half needs"
-        body="Paid hours now come from the crew's timesheets. Billed hours don't: the sync reads each invoice as a total."
-        bullets={[
-          "Billed hours: the labour lines on each invoice, which the sync currently reads as a total only",
-          "The labour cost per hour is already worked out on Our numbers, so the cost of the unbilled hours follows",
-        ]}
-      />
-      <p className="pt-panel__sub">What each person is rostered for, and their real cost per hour, is on <Link href="/portal/finance/capacity">Our numbers</Link>.</p>
     </PortalShell>
   );
 }

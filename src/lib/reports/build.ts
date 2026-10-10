@@ -229,7 +229,7 @@ export function buildReport(
       const s = paceSection(pace.standing.month, ["invoiced", "sold", "booked", "quoted", "completed"], "month");
       if (s) sections.push(s);
     }
-    const profit = profitSection("Profit on the month's jobs", m.jobProfitMonth, goalPct);
+    const profit = profitSection("Profit on the last 30 days' jobs", m.jobProfitRecent ?? null, goalPct);
     if (profit) sections.push(profit);
     const y = pace?.yearView;
     if (y) {
@@ -261,7 +261,7 @@ export function buildReport(
     const top = leaders("Who sold this month", m.salesLeaderboard.map((r) => ({ name: r.name, v: r.sold })));
     if (top) sections.push(top);
     sections.push(needsSection(m, extra.lateTodos, extra.callsDue));
-    headline = `Invoiced ${m$(mo?.invoiced)} · sold ${m$(mo?.soldValue)}${m.jobProfitMonth?.margin != null ? ` · ${pct(m.jobProfitMonth.margin, 1)} margin` : ""}`;
+    headline = `Invoiced ${m$(mo?.invoiced)} · sold ${m$(mo?.soldValue)}${m.jobProfitRecent?.margin != null ? ` · ${pct(m.jobProfitRecent.margin, 1)} margin over 30 days` : ""}`;
   }
 
   return {
