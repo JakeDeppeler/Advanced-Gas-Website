@@ -84,7 +84,7 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
       : "";
     if (!m.pace) return "No goal set for this year";
     const goal = m.pace.profitPct ? `${money(m.pace.goal)} at ${m.pace.profitPct}%` : money(m.pace.goal);
-    return `What the ${goal} goal needs of every step${day ? ` · ${day}` : ""}`;
+    return `What the ${goal} goal needs of every step${rateNote(m)}${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
   // Names whose job it is, because the page is a work list rather than a score:
@@ -540,10 +540,10 @@ export function ScreenBoard({
         {/* A journal entry ServiceTitan couldn't post to Xero. On every page,
             because it's the one thing on the board that needs the office
             rather than the crew — and gone the run after it's fixed. */}
-        {journalAlert && m.journals && <JournalAlert j={m.journals} short={page === 1} />}
+        {journalAlert && m.journals && <JournalAlert j={m.journals} short={name === "Pace"} />}
         {/* With the alert up and every feed fine, the green Live dot says what
             this line would, and the Pace page's key needs the room. */}
-        {!(journalAlert && healthy) && <span>
+        {!(journalAlert && healthy) && !ratesSetByHand(m) && <span>
           {degraded.length === 0
             ? fresh
               ? "All feeds connected"
@@ -556,8 +556,14 @@ export function ScreenBoard({
             bands beside them are what says how close Close is: the two rows
             quote their shortfall in different units, so neither of those
             numbers answers it. */}
-        {page === 1 && (
+        {name === "Pace" && (
           <span className="screen__legend">
+            {/* A rate somebody typed, said where it cannot be missed.
+                The plan stops following the business the moment one is set and
+                nothing on the wall used to say so — `set` was carried on every
+                rate and never shown. In the status palette's warning colour and
+                written out, because a colour never carries a meaning alone. */}
+            {ratesSetByHand(m) && <b className="lg__set">⚠ {ratesSetByHand(m)} set by hand</b>}
             <b className="lg__head">Done of what the goal needs by now</b>
             {ZONES.map((z) => (
               <span key={z.k} className="lg">
@@ -850,6 +856,64 @@ const STEP_KEYS: Array<{ k: Step; label: string }> = [
   { k: "completed", label: "Completed" },
   { k: "invoiced", label: "Invoiced" },
 ];
+
+/** Which of the plan's two settable rates have been overridden, in words. */
+function ratesSetByHand(m: Metrics): string {
+  const r = m.pace?.rates;
+  if (!r) return "";
+  // Short: this shares the footer with the feed state, the zone key and the
+  // brand, and the wording that named both rates ran straight under its
+  // neighbours. Which rate it is matters less than that one was typed at all —
+  // the subtitle above carries the figures.
+  if (r.closeRate.set && r.avgSale.set) return "Rates";
+  if (r.closeRate.set) return "Close rate";
+  if (r.avgSale.set) return "Average sale";
+  return "";
+}
+
+/**
+ * The rates the plan was worked back through, said on the page.
+ *
+ * Every figure on Pace is the year's goal divided by what this business
+ * actually does — the close rate and the average sale it is measuring, not an
+ * assumption. That was asked about, which is reason enough to put it on the
+ * page: a target nobody can trace the arithmetic of is one they argue with
+ * instead of working to.
+ *
+ * **The override marker is the part that matters.** The portal can force a
+ * close rate or an average sale, and until now the board gave no sign — the
+ * plan would quietly stop following the business and nothing on the wall would
+ * say so. `set` has always been carried on each rate and never shown. A rate
+ * somebody typed is named as typed.
+ */
+function rateNote(m: Metrics): string {
+  const r = m.pace?.rates;
+  if (!r) return "";
+  const bits: string[] = [];
+  if (r.closeRate.value != null) bits.push(`${pct(r.closeRate.value)} close rate`);
+  // `money`, not `plain`: it abbreviates past $10K, which bounds how long this
+  // sentence can get. With full digits a $120,500 average sale pushed the
+  // header 11px past its width — measured, not guessed. The goal in the same
+  // line is written the same way.
+  if (r.avgSale.value != null) bits.push(`${money(r.avgSale.value)} sale`);
+  if (bits.length === 0) return "";
+  /*
+   * Short on purpose, and the override marker is deliberately not in here.
+   *
+   * The first draft read "worked back through our own 21% close rate and
+   * $4,510 a sale" and overflowed the header by 160px. Measured, the subtitle
+   * has 1160px and this phrase can have about 46 characters of it — enough for
+   * the rates, not enough to also carry "set by hand", which spilled every
+   * variant including the short ones.
+   *
+   * That is the right answer anyway. A rate somebody typed is an exceptional
+   * state and the thing most worth noticing, so it gets a marker of its own in
+   * the legend rather than four words trailing a sentence nobody reads to the
+   * end. "our" drops when any of it is not ours.
+   */
+  const typed = r.closeRate.set || r.avgSale.set;
+  return ` · at ${typed ? "" : "our "}${bits.join(" and ")}`;
+}
 
 function PacePage({ m, live, now }: { m: Metrics; live: Live; now: Date }) {
   const p = m.pace;

@@ -2348,3 +2348,22 @@ body:has(.screen) .utilbar {
 
 .dp__empty { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: calc(0.5 * var(--u)); }
 .dp__emptysub { font-size: calc(1.2 * var(--u)); color: var(--ink-muted); }
+
+/* A plan rate somebody typed, called out in the Pace legend. The status
+   palette's warning colour, and the words say it too — a colour never carries
+   a meaning on its own here. */
+.lg__set {
+  /*
+   * The light amber in both themes, not the themed token.
+   *
+   * The footer is navy in light mode and near-black in dark — a dark surface
+   * either way — so the warning ink must be light either way. Taking
+   * --vd-close-ink gave the dark amber on navy at 3.71:1, measured, which is
+   * under the readable floor for text this size and exactly the wrong thing to
+   * lose: this line is the one that says the plan has stopped following the
+   * business. 11.4:1 now, the same in both themes.
+   */
+  color: #ffc46b;
+  font-weight: 800;
+  white-space: nowrap;
+}

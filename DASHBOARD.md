@@ -1848,6 +1848,56 @@ appointments resource, which is not synced, so the "scheduled next 7 days" tile
 stays blank rather than showing a measured-looking zero. `campaign` would need a
 campaigns lookup that does not exist yet; nothing on the board reads it.
 
+## Pace says which rates it worked the goal back through
+
+The header reads **"at our 21% close rate and $4,510 sale"**. Every figure on
+the page is the year's goal divided by what this business actually does — the
+close rate and average sale it is measuring over a rolling 84-day window,
+clamped so it never reaches past go-live into the Field Plus import. Nothing on
+Pace is a projection; the only typed numbers are the goal itself ($3.2M at 20%,
+48 weeks).
+
+It says so because it was asked, which is reason enough: a target nobody can
+trace the arithmetic of is one they argue with instead of working to.
+
+**The override marker is the half that matters.** The portal can force a close
+rate (`winRatePct`) or an average sale, and the plan then stops following the
+business — silently. `set` has always been carried on every rate and was never
+shown. A forced rate now drops "our" from the header and puts
+`⚠ Rates set by hand` in the Pace legend. All three overrides are currently
+null, which is why the board is live.
+
+Three measured things about getting it on the page, all of which took a
+measurement rather than a guess:
+
+- The subtitle has **1160px**, and the phrase can have about 46 characters of
+  it. The first draft overflowed by 160px. "set by hand" would not fit in any
+  variant, which is why it is a legend marker instead — better design anyway,
+  since a typed rate is an exceptional state and deserves more than four words
+  trailing a sentence.
+- The average sale uses `money`, not `plain`. Abbreviating past $10K bounds how
+  long the sentence can get; with full digits a $120,500 average pushed the
+  header 11px over.
+- The marker is `#ffc46b` in **both** themes rather than `--vd-close-ink`. The
+  footer is navy in light mode and near-black in dark — dark either way — and
+  the themed token gave 3.71:1 on navy, under the floor for text that size.
+  12.2:1 now.
+
+**The footer's feed line gives way to it**, as it already does to a journal
+alert: with the marker up, the green dot and "Live" still say the feeds are
+fine, and without that the warning printed straight over "All feeds connected".
+
+### The clip checker still cannot see an overlap
+
+That footer collision passed every rule in `clip.mjs` and so did three attempts
+to teach it: comparing every pair of text leaves gave a hundred false positives
+(inline and SVG boxes legitimately share rows); comparing sibling boxes found
+nothing; summing children's `scrollWidth` found nothing either, because
+`scrollWidth` under-reports on a flex container whose children overflow it. The
+attempts were reverted rather than shipped — a check that cries wolf is worse
+than none, because people learn to skip the line. **Anything that renders still
+has to be looked at.**
+
 ## Margin on what was sold — Team page
 
 The Team band carries **Margin · sold**: what the month's sales were sold at,
