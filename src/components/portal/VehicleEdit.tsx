@@ -26,9 +26,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
     name: vehicle.name, rego: vehicle.rego ?? "", details: vehicle.details ?? "",
     odometer: vehicle.odometer?.toString() ?? "", interval: vehicle.serviceIntervalKm?.toString() ?? "",
     nextKm: vehicle.nextServiceKm?.toString() ?? "", nextDate: vehicle.nextServiceDate ?? "", status: vehicle.status,
-    purchase: vehicle.purchasePrice?.toString() ?? "", resale: vehicle.resaleValue?.toString() ?? "",
-    lifespan: vehicle.lifespanYears?.toString() ?? "", fuel: vehicle.fuelPer100?.toString() ?? "",
-    owing: vehicle.amountOwing?.toString() ?? "",
+    fuel: vehicle.fuelPer100?.toString() ?? "",
     bought: vehicle.purchasedOn ?? "", condition: vehicle.condition,
     serviceCost: vehicle.serviceCost?.toString() ?? "", kmYear: vehicle.kmYear?.toString() ?? "",
     assignedTo: vehicle.assignedTo ?? "", regoDue: vehicle.regoDue ?? "",
@@ -53,8 +51,6 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
               <NumField label="Next service at" value={f.nextKm} onChange={(v) => setF({ ...f, nextKm: v })} suffix="km" />
               <label className="pt-field"><span>Next service date</span><input type="date" value={f.nextDate} onChange={(e) => setF({ ...f, nextDate: e.target.value })} /></label>
               <label className="pt-field"><span>Rego due</span><input type="date" value={f.regoDue} onChange={(e) => setF({ ...f, regoDue: e.target.value })} /></label>
-              <NumField label="Purchase price" value={f.purchase} onChange={(v) => setF({ ...f, purchase: v })} prefix="$" />
-              <NumField label="Still owing" hint="(finance left to pay)" value={f.owing} onChange={(v) => setF({ ...f, owing: v })} prefix="$" />
               <label className="pt-field"><span>When we got it</span><input type="date" value={f.bought} onChange={(e) => setF({ ...f, bought: e.target.value })} /></label>
               <label className="pt-field">
                 <span>Signed to</span>
@@ -77,8 +73,6 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
                   ))}
                 </div>
               </div>
-              <NumField label="Resale value" hint="(at end of life)" value={f.resale} onChange={(v) => setF({ ...f, resale: v })} prefix="$" />
-              <NumField label="Lifespan" value={f.lifespan} onChange={(v) => setF({ ...f, lifespan: v })} suffix="years" decimal />
               <NumField label="Fuel use" value={f.fuel} onChange={(v) => setF({ ...f, fuel: v })} suffix="L/100km" decimal />
               <div className="pt-field pt-field--wide">
                 <span>Road status</span>
@@ -95,6 +89,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
                 </div>
               </div>
             </div>
+            <p className="pt-panel__sub">What it cost, what&rsquo;s still owing, the repayment, resale and life are set on <a href="/portal/finance/capacity?part=vans">Finance → Our numbers → Vans &amp; loans</a>.</p>
             <div className="pf-row-end" style={{ justifyContent: "space-between" }}>
               <button type="button" className="pt-btn pt-btn--danger pt-btn--sm" disabled={pending} onClick={() => start(async () => { const r = await removeVehicle({ id: vehicle.id }); if (r.ok) router.push("/portal/vehicles"); })}>Remove vehicle</button>
               <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={pending} onClick={() => start(async () => {
@@ -102,9 +97,7 @@ export function VehicleEdit({ vehicle, crew }: { vehicle: VehicleView; crew: Cre
                   id: vehicle.id, name: f.name, rego: f.rego, details: f.details,
                   odometer: f.odometer ? toInt(f.odometer) : null, serviceIntervalKm: f.interval ? toInt(f.interval) : null,
                   nextServiceKm: f.nextKm ? toInt(f.nextKm) : null, nextServiceDate: f.nextDate, status: f.status,
-                  purchasePrice: f.purchase ? toNum(f.purchase) : null, resaleValue: f.resale ? toNum(f.resale) : null,
-                  lifespanYears: f.lifespan ? toNum(f.lifespan) : null, fuelPer100: f.fuel ? toNum(f.fuel) : null,
-                  amountOwing: f.owing ? toNum(f.owing) : null,
+                  fuelPer100: f.fuel ? toNum(f.fuel) : null,
                   purchasedOn: f.bought, condition: f.condition,
                   serviceCost: f.serviceCost ? toNum(f.serviceCost) : null, kmYear: f.kmYear ? toInt(f.kmYear) : null,
                   assignedTo: f.assignedTo, regoDue: f.regoDue,

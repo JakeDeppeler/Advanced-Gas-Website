@@ -61,18 +61,19 @@ export async function saveVehicle(input: {
   id: string; name: string; rego: string; details: string;
   odometer: number | null; serviceIntervalKm: number | null;
   nextServiceKm: number | null; nextServiceDate: string; status: VehicleStatus;
-  purchasePrice: number | null; resaleValue: number | null; lifespanYears: number | null; fuelPer100: number | null;
-  amountOwing: number | null; purchasedOn: string; condition: VehicleCondition | null;
+  fuelPer100: number | null; purchasedOn: string; condition: VehicleCondition | null;
   serviceCost: number | null; kmYear: number | null; assignedTo: string; regoDue?: string;
 }): Promise<ActionResult> {
+  // What the van cost, what's owed, the repayment, resale and life are set on
+  // Finance → Our numbers (saveVanMoney) and nowhere else, so they're left out
+  // here rather than written back from a form that no longer shows them.
   const me = await requireFleet();
   if (!me) return { ok: false, error: "Only a manager can edit a vehicle." };
   const res = await updateVehicle(input.id, {
     name: input.name, rego: input.rego, details: input.details,
     odometer: input.odometer, serviceIntervalKm: input.serviceIntervalKm,
     nextServiceKm: input.nextServiceKm, nextServiceDate: input.nextServiceDate, status: input.status,
-    purchasePrice: input.purchasePrice, resaleValue: input.resaleValue, lifespanYears: input.lifespanYears, fuelPer100: input.fuelPer100,
-    amountOwing: input.amountOwing, purchasedOn: input.purchasedOn, condition: input.condition,
+    fuelPer100: input.fuelPer100, purchasedOn: input.purchasedOn, condition: input.condition,
     serviceCost: input.serviceCost, kmYear: input.kmYear, assignedTo: input.assignedTo,
     ...(input.regoDue !== undefined ? { regoDue: /^\d{4}-\d{2}-\d{2}$/.test(input.regoDue) ? input.regoDue : null } : {}),
   });

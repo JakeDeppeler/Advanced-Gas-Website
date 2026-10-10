@@ -81,10 +81,10 @@ export default async function HoursPage() {
         body="Paid hours now come from the crew's timesheets. Billed hours don't: the sync reads each invoice as a total."
         bullets={[
           "Billed hours: the labour lines on each invoice, which the sync currently reads as a total only",
-          "The labour cost per hour is already worked out on Costs & capacity, so the cost of the unbilled hours follows",
+          "The labour cost per hour is already worked out on Our numbers, so the cost of the unbilled hours follows",
         ]}
       />
-      <p className="pt-panel__sub">What each person is rostered for, and their real cost per hour, is on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>.</p>
+      <p className="pt-panel__sub">What each person is rostered for, and their real cost per hour, is on <Link href="/portal/finance/capacity">Our numbers</Link>.</p>
     </PortalShell>
   );
 }

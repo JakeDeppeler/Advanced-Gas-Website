@@ -109,7 +109,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
     { key: "office", label: "Office & admin staff", note: "Wages for the people who don't go out on jobs", annual: cap.officeOh },
     ...(internal
       ? [
-          { key: "oh", label: "Overheads", note: "Kept as one figure on Costs & capacity", annual: Number(s.internalOverhead) || 0 },
+          { key: "oh", label: "Overheads", note: "Kept as one figure on Our numbers", annual: Number(s.internalOverhead) || 0 },
           { key: "dep", label: "Van depreciation", note: "What the vans lose in value a year, from the Vehicles tab", annual: fleetDep },
         ]
       : groups.map((g) => ({ key: g.key, label: g.label, note: g.blurb, annual: g.annual, lines: g.lines }))),
@@ -209,7 +209,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
 
       {!has ? (
         <div className="pt-note pt-note--warn">
-          <strong>There&rsquo;s no crew with billable hours yet,</strong> so there&rsquo;s no hour to take apart. Add the crew&rsquo;s levels and hours on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>.
+          <strong>There&rsquo;s no crew with billable hours yet,</strong> so there&rsquo;s no hour to take apart. Add the crew&rsquo;s levels and hours on <Link href="/portal/finance/capacity">Our numbers</Link>.
         </div>
       ) : (
         <>
@@ -434,7 +434,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
                           {row("Apprentice's pay for the hour", null, (x) => `+${m2(x.rate)}`)}
                           {row("Their trade-school pay", "spread over their hours on jobs", (x) => `+${m2(x.schoolPer)}`)}
                           {row("Their leave, holidays, sick days and RDOs", null, (x) => `+${m2(x.awayPer)}`)}
-                          {riders.some((x) => x.feePer > 0.005) && row("Their trade-school fees", "from their card on Costs & capacity", (x) => `+${m2(x.feePer)}`)}
+                          {riders.some((x) => x.feePer > 0.005) && row("Their trade-school fees", "from their card on Our numbers", (x) => `+${m2(x.feePer)}`)}
                           {riders.some((x) => x.schemePer > 0.005) && row("Less the government apprentice incentive", null, (x) => `−${m2(x.schemePer)}`)}
                           {riders.some((x) => x.vanPer > 0.005) && row("In the van between jobs", "the drive and pack-up, paid but not billed", (x) => `+${m2(x.vanPer)}`)}
                           {row(leadCost != null ? "What the crew hour costs" : "What they add to an hour", null, (x) => m2(lead + x.full), "is-total")}
@@ -447,7 +447,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
                   </div>
                 </div>
                 <p className="pt-hr__foot">
-                  This is what an apprentice adds to a job on the <Link href="/portal/job-calculator">Job calculator</Link> and on the tradesman + apprentice figures on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, so school, leave and sick pay are in every quote they&rsquo;re on.
+                  This is what an apprentice adds to a job on the <Link href="/portal/job-calculator">Job calculator</Link> and on the tradesman + apprentice figures on <Link href="/portal/finance/capacity">Our numbers</Link>, so school, leave and sick pay are in every quote they&rsquo;re on.
                 </p>
               </section>
             );
@@ -460,7 +460,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
                     Checked against Xero: the cards add up to {m0(wageCheck.cards)} a year in wages; Xero paid {m0(wageCheck.xero)} over the last twelve months
                     {Math.abs(wageCheck.xero - wageCheck.cards) / Math.max(1, wageCheck.xero) > 0.08
                       ? wageCheck.xero > wageCheck.cards
-                        ? `, ${m0(wageCheck.xero - wageCheck.cards)} more than the cards. Overtime, bonuses and anyone who has left are in Xero's figure and not on a card; if the gap is bigger than those, a wage on Costs & capacity is out of date and every rate here is low.`
+                        ? `, ${m0(wageCheck.xero - wageCheck.cards)} more than the cards. Overtime, bonuses and anyone who has left are in Xero's figure and not on a card; if the gap is bigger than those, a wage on Our numbers is out of date and every rate here is low.`
                         : `, ${m0(wageCheck.cards - wageCheck.xero)} less than the cards. Someone who started part way through the year would do that; otherwise a wage on a card is higher than what's being paid.`
                       : ", close enough that the cards are right."}
                   </p>
@@ -500,7 +500,7 @@ export default async function HourlyPage({ searchParams }: { searchParams?: { pl
               </table>
             </div>
             <p className="pt-panel__sub" style={{ margin: "14px 0 0" }}>
-              Change any of it — wages, hours, days off, overheads, the margin — on <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>, and this page follows.
+              Change any of it — wages, hours, days off, overheads, the margin — on <Link href="/portal/finance/capacity">Our numbers</Link>, and this page follows.
             </p>
           </section>
           </details>

@@ -437,7 +437,7 @@ export function PacePlanner({
                 <p className="pt-pace__foot">
                   Price before GST, less the equipment and materials cost on the invoice, less the hours at{" "}
                   {profit.summary.costPerHr != null ? `${money(profit.summary.costPerHr)} an hour` : "the crew's cost an hour"} — wages plus each hour&rsquo;s share of
-                  the overheads, from Costs &amp; capacity. {profit.summary.fromTimesheets ? `${profit.summary.fromTimesheets} jobs use clocked hours; the rest use the hours sold.` : "Hours are the hours each job was sold with until ServiceTitan's timesheets come through."}
+                  the overheads, from Our numbers. {profit.summary.fromTimesheets ? `${profit.summary.fromTimesheets} jobs use clocked hours; the rest use the hours sold.` : "Hours are the hours each job was sold with until ServiceTitan's timesheets come through."}
                 </p>
               </>
             )}

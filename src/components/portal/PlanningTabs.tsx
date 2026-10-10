@@ -7,7 +7,7 @@ import Link from "next/link";
  * tab is adding a row to TABS.
  */
 const TABS = [
-  { href: "/portal/finance/planning", label: "Where we're headed", sub: "Profit target, what-ifs" },
+  { href: "/portal/finance/planning", label: "Hire someone", sub: "What it takes, and what it makes" },
   { href: "/portal/finance/planning/crew", label: "Crew & rate", sub: "Add or take off people, pay, your cut" },
   { href: "/portal/finance/planning/commission", label: "Pay plan", sub: "$45 + commission, from January" },
 ];

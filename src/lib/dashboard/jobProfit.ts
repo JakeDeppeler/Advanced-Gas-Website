@@ -210,7 +210,7 @@ export async function jobProfits(
     // means the cost wasn't recorded, not that the system was free.
     const missing =
       costPerHr == null
-        ? "Crew costs aren't set on Costs & capacity"
+        ? "Crew costs aren't set on Our numbers"
         : cls !== "service" && !(j.materials > 0)
           ? "No equipment or materials cost on the invoice"
           : h == null
