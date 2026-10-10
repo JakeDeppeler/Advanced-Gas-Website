@@ -20,7 +20,7 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
     { href: "/portal/finance/targets", label: "Targets" },
     // Quotes is a tab inside planning rather than a sibling: both ask about
     // work that has not happened yet.
-    { href: "/portal/finance/planning", label: "Planning", also: ["/portal/finance/quotes"] },
+    { href: "/portal/finance/planning", label: "Planning" },
   ],
   website: [
     { href: "/portal/website", label: "Enquiries" },

@@ -14,12 +14,12 @@
 
 export type Role = "admin" | "lead" | "member";
 
-export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles";
+export type Cap = "overhead" | "manage_users" | "reports_read" | "reports_write" | "vehicles" | "quotes";
 
 /** Per-person overrides. Only keys that differ from the role default are stored. */
 export type CapMap = Partial<Record<Cap, boolean>>;
 
-export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles"];
+export const CAPS_LIST: Cap[] = ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes"];
 
 export type PortalUser = {
   id?: string;
@@ -56,12 +56,13 @@ export const CAPS: { key: Cap; label: string; desc: string }[] = [
   { key: "reports_read", label: "Read team reports", desc: "Read coaching, performance and handover notes." },
   { key: "reports_write", label: "Write team reports", desc: "Write notes about team members." },
   { key: "vehicles", label: "Manage vehicles", desc: "Add and edit vehicles and the service schedule (everyone can log fuel, km and damage)." },
+  { key: "quotes", label: "Quote pipeline", desc: "See every open quote and log the follow-up calls. No costs or wages." },
 ];
 
 const ROLE_DEFAULTS: Record<Role, Record<Cap, boolean>> = {
-  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true },
-  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true },
-  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false },
+  admin: { overhead: true, manage_users: true, reports_read: true, reports_write: true, vehicles: true, quotes: true },
+  lead: { overhead: false, manage_users: false, reports_read: true, reports_write: true, vehicles: true, quotes: false },
+  member: { overhead: false, manage_users: false, reports_read: false, reports_write: false, vehicles: false, quotes: false },
 };
 
 export function roleDefault(role: Role, cap: Cap): boolean {
@@ -83,6 +84,7 @@ export function effectiveCaps(user: Pick<PortalUser, "role" | "caps">): Record<C
     reports_read: can(user, "reports_read"),
     reports_write: can(user, "reports_write"),
     vehicles: can(user, "vehicles"),
+    quotes: can(user, "quotes"),
   };
 }
 

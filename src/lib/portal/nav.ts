@@ -117,11 +117,17 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   const items: NavItem[] = [];
   const add = (ok: boolean, ...xs: NavItem[]) => { if (ok) items.push(...xs); };
 
+  // First, because it's what the office works from all day — and open to
+  // anyone with the pipeline switch, not only those who see the money.
+  add(office || can(user, "quotes"), {
+    href: "/portal/pipeline", label: "Quote pipeline", short: "Pipeline", blurb: "Every quote out, and who's chasing it", band: "run", icon: "funnel",
+    also: ["quotes", "quote", "estimate", "quoted", "sold", "won", "lost", "close rate", "follow up", "gone quiet", "chase", "call back", "pipeline"],
+  });
+
   add(office,
     { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The month and the year in numbers", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "target"] },
     { href: "/portal/numbers", label: "The numbers", blurb: "Leads to paid, all in one place", band: "run", icon: "trend", also: ["funnel", "conversion", "leads to paid", "average job"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
-    { href: "/portal/quotes", label: "Quotes", blurb: "What's out, what's sold", band: "run", icon: "tag", also: ["estimate", "quoted", "sold", "close rate", "follow up", "gone quiet"] },
     { href: "/portal/hours", label: "Hours", blurb: "Paid vs billed, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation"] },
     { href: "/portal/money", label: "Money in", short: "Money", blurb: "Invoices, overdue, plans, VEU", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "veu", "payment plan"] },
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },

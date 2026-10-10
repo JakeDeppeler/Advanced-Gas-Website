@@ -214,7 +214,7 @@ export const waitingNotices = cache(async function waitingNotices(user: PortalUs
     out.push({
       title: `Quote still out after ${days} days`,
       detail: [q.customer, `$${Math.round(q.amount).toLocaleString("en-AU")}`].filter(Boolean).join(" · "),
-      href: "/portal/finance/quotes",
+      href: "/portal/pipeline",
       tone: days >= 21 ? "bad" : "warn",
       group: "doing",
       when: ago(`${q.quotedOn}T00:00:00Z`),

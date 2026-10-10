@@ -26,6 +26,11 @@ const TAB_ICONS: Record<NavBand, string> = {
  * second copy of the side bar.
  *
  * The list only carries lines it can count (needs.ts), and hides at zero.
+ *
+ * Kept short on purpose: the first five lines, the rest folded away, and on a
+ * desk — where the side bar already lists the sections with their counts — no
+ * second copy of them as cards. They come back on a phone, where the side bar
+ * is behind the menu button.
  */
 export default async function PortalHome({ searchParams }: { searchParams: { denied?: string } }) {
   const user = await getPortalUser();
@@ -65,7 +70,7 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
           Search the portal
         </Link>
 
-        {office && <NeedsList lines={lines} empty={board ? undefined : "The board hasn’t made its first snapshot yet, so quotes and overdue invoices aren’t counted."} />}
+        {(office || can(user, "quotes")) && <NeedsList lines={lines} limit={5} empty={board ? undefined : "The board hasn’t made its first snapshot yet, so quotes and overdue invoices aren’t counted."} />}
 
         <div className="pt-secs">
           {BANDS.map((band) => {
