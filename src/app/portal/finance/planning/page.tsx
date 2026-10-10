@@ -1,79 +1,42 @@
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { listUsers, getSettings, dbConfigured } from "@/lib/portal/db";
+import { listUsers, dbConfigured } from "@/lib/portal/db";
 import { getCostSettings } from "@/lib/portal/costSettings";
-import { computeCapacity, overheadSplit, overheadTotal, scaleModel, type CrewLevel, type ScaleRow } from "@/lib/portal/crew";
+import { getGrowth } from "@/lib/portal/growth";
+import { EMPTY_GROWTH } from "@/lib/portal/growthTypes";
+import { DEFAULT_SETTINGS, type CrewLevel, type CrewMember } from "@/lib/portal/crew";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
-import { PortalBack } from "@/components/portal/PortalBack";
 import { PlanningTabs } from "@/components/portal/PlanningTabs";
-import { ScenarioPlanner } from "@/components/portal/ScenarioPlanner";
-import { FinancePlanner } from "@/components/portal/FinancePlanner";
-import { VanScaling } from "@/components/portal/VanScaling";
-import { WhatIf } from "@/components/portal/WhatIf";
-import { xeroStatus, getProfitAndLoss, localToday } from "@/lib/portal/xero";
-import { DEFAULT_TARGETS, type Targets } from "@/lib/portal/targets";
-import { PortalTabs } from "@/components/portal/PortalTabs";
-import { XeroLine } from "@/components/portal/XeroLine";
+import { HireCalc } from "@/components/portal/HireCalc";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Planning — Team portal" };
+export const metadata = { title: "Hire someone — Team portal" };
 
+/**
+ * Planning, cut down to the question it gets asked: what does hiring one more
+ * person take, and what does it make? Every figure comes from Our numbers —
+ * the crew, the costs, the next van, the markups — so nothing is typed twice
+ * and nothing here can drift from the hourly rate.
+ */
 export default async function PlanningPage() {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
-  // The year's profit so far, so the target has something to measure against.
-  const { status, tenantName } = await xeroStatus();
-  const t = localToday();
-  const yearProfit = status === "connected"
-    ? (await getProfitAndLoss(
-        new Date(Date.UTC(t.getUTCFullYear(), 0, 1)).toISOString().slice(0, 10),
-        t.toISOString().slice(0, 10),
-      ))?.netProfit ?? null
-    : null;
-
-  // The same days-a-week the Targets page works to, so "per day" means the
-  // same thing on both screens.
-  const targets = dbConfigured() ? await getSettings<Targets>("targets") : null;
-  const daysWeek = targets?.daysWeek ?? DEFAULT_TARGETS.daysWeek;
-
-  let charge = 0, cost = 0, techs = 0;
-
-  // What another van does to the numbers. It used to be a tab on the costing
-  // page, beside four tabs about the business as it stands; it is a question
-  // about next year, so it lives here.
-  let scale: ScaleRow[] = [];
-  let split = { fixed: 0, perVan: 0 };
-  let officeOh = 0, ohTotal = 0;
-  if (dbConfigured()) {
-    const [users, s] = await Promise.all([listUsers(), getCostSettings()]);
-    const people = users.filter((u) => u.active && u.id && u.level).map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
-    const cap = computeCapacity(people, s);
-    // The people who bill their own hours: the starting point for "techs on
-    // the road".
-    techs = people.filter((p) => p.level === "tradesman" || p.level === "lead" || p.level === "hybrid").length;
-    cost = Math.round(cap.costPerHr);
-    charge = Math.round(cap.costPerHr * (1 + s.margin / 100));
-    scale = scaleModel(cap, s);
-    split = overheadSplit(s);
-    officeOh = cap.officeOh;
-    ohTotal = overheadTotal(s) + cap.labourOh + cap.officeOh;
-  }
+  const ready = dbConfigured();
+  const [users, s, growth] = ready ? await Promise.all([listUsers(), getCostSettings(), getGrowth()]) : [[], DEFAULT_SETTINGS, EMPTY_GROWTH];
+  const people: CrewMember[] = users
+    .filter((u) => u.active && u.id && u.level)
+    .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Future planning" lede="The profit you’re aiming at, then the what-ifs. Nothing here changes your live numbers." xero={{ state: status, org: tenantName }} />
+      <FinanceHead title="Future planning" lede="What another person takes, and what they make. Every figure comes from Our numbers; nothing here changes them." />
       <PlanningTabs current="/portal/finance/planning" />
-      <WhatIf techs={techs} rate={charge} />
-      <FinancePlanner yearProfit={yearProfit} daysWeek={daysWeek} />
-      <ScenarioPlanner defaultCharge={charge} defaultCost={cost} />
-      {scale.length > 0 && (
-        <VanScaling scale={scale} split={split} officeOh={officeOh} ohTotal={ohTotal} />
-      )}
+      <HireCalc people={people} settings={s} growth={growth} />
     </PortalShell>
   );
 }

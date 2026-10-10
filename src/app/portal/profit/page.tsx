@@ -124,7 +124,7 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
           </li>
           <li>
             <strong>Labour</strong> is those hours at {crew?.costPerHr != null ? `${money(crew.costPerHr)} an hour` : "the crew's cost an hour"}: wages and on-costs plus each billable
-            hour&rsquo;s share of every overhead, from <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
+            hour&rsquo;s share of every overhead, from <Link href="/portal/finance/capacity">Our numbers</Link>. What&rsquo;s left is profit after overheads — the same thing the goal&rsquo;s percentage means.
           </li>
         </ul>
       </section>

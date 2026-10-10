@@ -103,7 +103,7 @@ export default async function TeamMemberFile({
       {tab === "pay" && person.costing && (
         <section className="pt-panel">
           <h2 className="pt-panel__h">Their year, and what they&rsquo;re paid outside normal hours</h2>
-          <p className="pt-panel__sub">Set in Costs &amp; capacity. Shown here so a manager doesn&rsquo;t have to go looking.</p>
+          <p className="pt-panel__sub">Set in Our numbers. Shown here so a manager doesn&rsquo;t have to go looking.</p>
           <div className="pt-pl__heads">
             <div className="pt-pl__head"><span className="pt-pl__headlabel">Annual leave</span><strong className="pt-pl__headval">{person.costing.leaveDays} days</strong></div>
             <div className="pt-pl__head"><span className="pt-pl__headlabel">RDOs</span><strong className="pt-pl__headval">{person.costing.rdoDays} days</strong></div>

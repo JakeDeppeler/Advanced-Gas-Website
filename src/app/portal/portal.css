@@ -5192,3 +5192,57 @@ a.pt-td__pill { text-decoration: none; }
    note's own tint read as more text, and "reconnect Xero" went unclicked. */
 .pt-note a:not(.pt-btn) { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
 .pt-note__act { margin-top: 10px; }
+
+/* ------------------------------------------------------------ our numbers */
+.pt-nums__parts { margin: 0 0 18px; flex-wrap: wrap; }
+.pt-nums { display: flex; flex-direction: column; gap: 18px; }
+.pt-nums > .pt-panel { margin-bottom: 0; }
+.pt-nums__sum { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 6px 0 14px; font-size: 14px; color: var(--pt-ink-2); }
+.pt-nums__sum strong { color: var(--pt-ink); font-size: 16px; font-variant-numeric: tabular-nums; }
+.pt-nums__sum em { font-style: normal; color: var(--pt-ink-3); }
+.pt-nums__sum .is-warn { color: var(--pt-amber); font-weight: 600; }
+.pt-nums__vans td { white-space: nowrap; }
+.pt-nums__vans .pt-calc__field input { width: 78px; }
+.pt-nums__vans tr.is-off th { color: var(--pt-ink-3); }
+.pt-nums__msg { margin-left: 8px; font-size: 12.5px; font-weight: 600; }
+.pt-nums__msg.is-ok { color: var(--pt-good); }
+.pt-nums__msg.is-err { color: var(--pt-bad); }
+.pt-nums__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px 18px; margin: 4px 0 12px; }
+.pt-nums__f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--pt-ink); }
+.pt-nums__f > span:first-child em { display: block; font-style: normal; font-weight: 500; color: var(--pt-ink-3); font-size: 12px; }
+.pt-nums__f .pt-calc__field { align-self: flex-start; }
+.pt-nums__f .pt-calc__field input { width: 120px; }
+.pt-nums__acts { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.pt-nums__hint { margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; background: var(--pt-info-bg); color: var(--pt-ink); font-size: 13.5px; }
+
+/* ---------------------------------------------------------- hire someone */
+.pt-hire { display: flex; flex-direction: column; gap: 18px; }
+.pt-hire > .pt-panel { margin-bottom: 0; }
+.pt-hire__inputs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 24px; }
+.pt-hire__inputs .pt-seg { flex-wrap: wrap; }
+.pt-hire__field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--pt-ink); }
+.pt-hire__field b { color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-hire__busy { min-width: 220px; flex: 1 1 220px; max-width: 340px; }
+.pt-hire__busy input { width: 100%; accent-color: var(--pt-navy); }
+.pt-hire__check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--pt-ink); padding-bottom: 8px; }
+.pt-hire__check input { width: 18px; height: 18px; accent-color: var(--pt-navy); }
+.pt-hire__answers { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.pt-hire__card { background: var(--pt-surface); border: 1px solid var(--pt-line); border-radius: var(--pt-r-sm); padding: 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pt-hire__card h3 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pt-ink-3); }
+.pt-hire__card strong { font-family: var(--f-display); font-size: 24px; line-height: 1.15; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-hire__card p { margin: 0; font-size: 13.5px; color: var(--pt-ink-2); }
+.pt-hire__card p a { color: var(--pt-accent); font-weight: 700; }
+.pt-hire__card.is-good { border-color: var(--pt-good-line); background: var(--pt-good-soft); }
+.pt-hire__card.is-good strong { color: var(--pt-good); }
+.pt-hire__card.is-bad { border-color: var(--pt-bad-line); background: var(--pt-bad-bg); }
+.pt-hire__card.is-bad strong { color: var(--pt-bad); }
+.pt-hire__table th em { display: block; font-style: normal; font-weight: 500; font-size: 12.5px; color: var(--pt-ink-3); }
+.pt-hire__table td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pt-hire__table td.is-good { color: var(--pt-good); font-weight: 700; }
+.pt-hire__table td.is-bad { color: var(--pt-bad); font-weight: 700; }
+.pt-hire__table td a { color: var(--pt-accent); font-weight: 700; }
+@media (max-width: 1100px) { .pt-hire__answers { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .pt-hire__answers { grid-template-columns: minmax(0, 1fr); } }
+/* Materials beside their markup, units beside theirs. */
+.pt-nums__grid--two { grid-template-columns: repeat(2, minmax(0, 260px)); }
+@media (max-width: 520px) { .pt-nums__grid--two { grid-template-columns: minmax(0, 1fr); } }

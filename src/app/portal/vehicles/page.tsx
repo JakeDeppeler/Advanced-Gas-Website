@@ -269,7 +269,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
               week where no figure has been entered. Depreciation counts only on vans still being paid off — one that&rsquo;s
               bought and paid for still loses value, but that isn&rsquo;t cash going out. &ldquo;Not set&rdquo; means a van is missing
               the figure: purchase price and lifespan for depreciation, service cost and km a year for servicing, fuel use for
-              fuel. The total is the Vehicles line in <Link href="/portal/finance/capacity">Costs &amp; capacity</Link>.
+              fuel. The total is the Vehicles line in <Link href="/portal/finance/capacity">Our numbers</Link>.
             </p>
           </details>
         </section>
