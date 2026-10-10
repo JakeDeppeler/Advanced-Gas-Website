@@ -9,6 +9,7 @@ import { portalNav, type NavBand } from "@/lib/portal/nav";
 import { journalErrors } from "@/lib/journals/read";
 import { overdueByPerson } from "@/lib/todos/store";
 import { dueByPerson } from "@/lib/contacts/store";
+import { pipelineDue } from "@/lib/pipeline/store";
 
 /** One thing waiting on somebody, with the side-bar tab it belongs to. */
 export type NeedLine = { n: number; text: string; href: string; band: NavBand | null };
@@ -26,8 +27,15 @@ const plural = (n: number, one: string, many = `${one}s`) => (n === 1 ? one : ma
  * at zero.
  */
 export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> => {
-  if (!can(user, "overhead")) return [];
-  const [board, issues, shelf, asks, journals, lateTodos, callsDue] = await Promise.all([
+  if (!can(user, "overhead")) {
+    // The office without the finance side still has quotes to ring.
+    if (!can(user, "quotes")) return [];
+    const pipe = await pipelineDue().catch(() => null);
+    return pipe && pipe.due > 0
+      ? [{ n: pipe.due, text: `${plural(pipe.due, "quote")} to follow up${pipe.late ? ` · ${pipe.late} late` : ""}`, href: "/portal/pipeline", band: "run" }]
+      : [];
+  }
+  const [board, issues, shelf, asks, journals, lateTodos, callsDue, pipe] = await Promise.all([
     latestBoard(),
     vanIssues().catch(() => []),
     listStock().catch(() => null),
@@ -35,6 +43,7 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
     journalErrors().catch(() => []),
     overdueByPerson().catch(() => []),
     dueByPerson().catch(() => []),
+    pipelineDue().catch(() => null),
   ]);
   const m = board?.metrics;
   const lines: Array<Omit<NeedLine, "band">> = [];
@@ -49,6 +58,11 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
     const f = journals[0];
     lines.push({ n: journals.length, text: `journal ${plural(journals.length, "entry", "entries")} didn't sync to Xero · #${f.number ?? "—"}${journals.length > 1 ? ` and ${journals.length - 1} more` : ""}`, href: "/portal/journals#errors" });
   }
+  // The pipeline's own "follow up today" column, so the count here is the
+  // number of cards the office will find there.
+  if (pipe && pipe.due > 0) {
+    lines.push({ n: pipe.due, text: `${plural(pipe.due, "quote")} to follow up${pipe.late ? ` · ${pipe.late} late` : ""}`, href: "/portal/pipeline" });
+  }
   // To-dos past their day, and whose they are.
   const lateN = lateTodos.reduce((t, p) => t + p.n, 0);
   if (lateN) {
@@ -58,9 +72,6 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
   const callsN = callsDue.reduce((t, p) => t + p.n, 0);
   if (callsN) {
     lines.push({ n: callsN, text: `${plural(callsN, "person", "people")} to get in touch with · ${callsDue.map((p) => `${p.name.split(" ")[0]} ${p.n}`).join(", ")}`, href: "/portal/keep-in-touch" });
-  }
-  if (m && (m.quotesQuietCount ?? 0) > 0) {
-    lines.push({ n: m.quotesQuietCount, text: `${plural(m.quotesQuietCount, "quote")} gone quiet 7+ days`, href: "/portal/quotes#quiet" });
   }
   if (m && (m.overdueCount ?? 0) > 0 && m.overdueTotal != null) {
     lines.push({ n: m.overdueCount as number, text: `${plural(m.overdueCount as number, "invoice")} overdue · ${money(m.overdueTotal)}`, href: "/portal/money" });

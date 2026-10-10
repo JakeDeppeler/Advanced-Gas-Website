@@ -3,6 +3,7 @@ import { can, type PortalUser } from "@/lib/portal/caps";
 import { crewRequests, latestBoard, leadsThisMonth, vanIssues } from "@/lib/portal/office";
 import { noticeKey, seenSet, waitingNotices } from "@/lib/portal/notices";
 import { lowStockCount } from "@/lib/portal/stock";
+import { pipelineDue } from "@/lib/pipeline/store";
 
 /**
  * The counts on the cards — "13", "100 out", "7 overdue" — keyed by the card's
@@ -15,7 +16,8 @@ import { lowStockCount } from "@/lib/portal/stock";
  */
 export async function navBadges(user: PortalUser): Promise<Record<string, string>> {
   const office = can(user, "overhead");
-  const [board, leads, issues, waiting, seen, low, asks] = await Promise.all([
+  const pipeOk = office || can(user, "quotes");
+  const [board, leads, issues, waiting, seen, low, asks, pipe] = await Promise.all([
     office ? latestBoard() : Promise.resolve(null),
     office ? leadsThisMonth() : Promise.resolve(null),
     office ? vanIssues() : Promise.resolve([]),
@@ -23,12 +25,13 @@ export async function navBadges(user: PortalUser): Promise<Record<string, string
     seenSet(user).catch(() => new Set<string>()),
     office ? lowStockCount() : Promise.resolve(null),
     office ? crewRequests() : Promise.resolve({ orders: [], leave: [], incidents: [] }),
+    pipeOk ? pipelineDue().catch(() => null) : Promise.resolve(null),
   ]);
   const m = board?.metrics;
 
   const badges: Record<string, string> = {};
   if (leads && leads.total > 0) badges["/portal/leads"] = leads.total.toLocaleString("en-AU");
-  if (m && m.estimatesOpenCount > 0) badges["/portal/quotes"] = `${m.estimatesOpenCount} out`;
+  if (pipe && pipe.due > 0) badges["/portal/pipeline"] = `${pipe.due} to ring`;
   if (m && (m.overdueCount ?? 0) > 0) badges["/portal/money"] = `${m.overdueCount} overdue`;
   const vans = new Set([
     ...waiting.filter((n) => n.href.startsWith("/portal/vehicles/")).map((n) => n.href),

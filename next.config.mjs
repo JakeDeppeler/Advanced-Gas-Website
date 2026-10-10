@@ -46,6 +46,10 @@ const nextConfig = {
       // cached by the browser for good.
       { source: "/portal/marketing/blog", destination: "/portal/blog", permanent: false },
       { source: "/portal/marketing/blog/:slug", destination: "/portal/blog/:slug", permanent: false },
+      // Quotes, and the hand-typed quote log under Finance, became the quote
+      // pipeline, which reads every quote from ServiceTitan.
+      { source: "/portal/quotes", destination: "/portal/pipeline", permanent: false },
+      { source: "/portal/finance/quotes", destination: "/portal/pipeline", permanent: false },
       // ---- WEB-002: apex host → www, 308 ----
       // Both advancedgas.com.au and www.advancedgas.com.au were indexed
       // as separate URLs, splitting authority down the middle (the apex

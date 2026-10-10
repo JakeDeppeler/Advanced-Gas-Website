@@ -83,8 +83,8 @@ export default async function NumbersPage() {
   // alone rather than a word standing in for a figure.
   const steps: Array<{ n: string; k: string; v: string; sub: string; href: string; rate?: string }> = [
     { n: "1", k: "Leads", v: count(mo?.leads), sub: mo?.booked != null ? `${count(mo.booked)} booked a visit or call` : "", href: "/portal/leads" },
-    { n: "2", k: "Quotes sent", v: count(mo?.quoted), sub: mo?.quotedValue != null ? `${money(mo.quotedValue)} quoted` : "", href: "/portal/quotes", rate: m?.closeRate30d != null ? `${pc(m.closeRate30d)} close` : undefined },
-    { n: "3", k: "Sold", v: mo?.soldValue != null ? money(mo.soldValue) : "—", sub: mo?.sold != null ? `${count(mo.sold)} ${mo.sold === 1 ? "job" : "jobs"}` : "", href: "/portal/quotes" },
+    { n: "2", k: "Quotes sent", v: count(mo?.quoted), sub: mo?.quotedValue != null ? `${money(mo.quotedValue)} quoted` : "", href: "/portal/pipeline", rate: m?.closeRate30d != null ? `${pc(m.closeRate30d)} close` : undefined },
+    { n: "3", k: "Sold", v: mo?.soldValue != null ? money(mo.soldValue) : "—", sub: mo?.sold != null ? `${count(mo.sold)} ${mo.sold === 1 ? "job" : "jobs"}` : "", href: "/portal/pipeline" },
     { n: "4", k: "Jobs done", v: count(mo?.completed), sub: "installs and service", href: "/portal/hours" },
     {
       n: "5", k: "Invoiced", v: invoiced != null ? money(invoiced) : "—",
@@ -179,7 +179,7 @@ export default async function NumbersPage() {
             <strong>{invoiced != null && mo?.completed ? money(invoiced / mo.completed) : "—"}</strong>
             <span className="pt-nbr__sub">{mo?.completed != null && invoiced != null ? `${count(mo.completed)} jobs, ${money(invoiced)} invoiced` : ""}</span>
           </Link>
-          <Link href="/portal/quotes" className="pt-nbr__stat">
+          <Link href="/portal/pipeline" className="pt-nbr__stat">
             <span className="pt-nbr__k">Quotes out <Arrow /></span>
             <strong>{m ? money(m.estimatesOpenValue) : "—"}</strong>
             <span className="pt-nbr__sub">{m ? `${count(m.estimatesOpenCount)} waiting on a yes · last ${m.outstandingDays} days` : ""}</span>

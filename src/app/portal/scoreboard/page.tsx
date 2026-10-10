@@ -30,7 +30,7 @@ export default async function ScoreboardPage() {
 
   const month: Fig[] = [
     {
-      label: "Sold", feature: true, href: "/portal/quotes",
+      label: "Sold", feature: true, href: "/portal/pipeline",
       value: m ? money(m.soldMtd) : null,
       sub: m ? `${m.soldCountMonth} ${m.soldCountMonth === 1 ? "job" : "jobs"}${m.closeRate30d != null ? ` · ${pct(m.closeRate30d)} close rate over 30 days` : ""}` : undefined,
       bar: m && m.salesTargetMonthly ? m.soldMtd / m.salesTargetMonthly : null,
@@ -44,7 +44,7 @@ export default async function ScoreboardPage() {
       needs: "Waiting on the board's first snapshot",
     },
     {
-      label: "Quotes out", href: "/portal/quotes",
+      label: "Quotes out", href: "/portal/pipeline",
       value: m ? money(m.estimatesOpenValue) : null,
       sub: m ? `${m.estimatesOpenCount} waiting on a yes` : undefined,
       needs: "Waiting on the board's first snapshot",

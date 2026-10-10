@@ -375,14 +375,17 @@ export function isCrewLevel(v: unknown): v is CrewLevel {
 export type AccessMap = Record<CrewLevel, Cap[]>;
 
 export const DEFAULT_ACCESS: AccessMap = {
-  operations: ["overhead", "manage_users", "reports_read", "reports_write", "vehicles"],
+  operations: ["overhead", "manage_users", "reports_read", "reports_write", "vehicles", "quotes"],
   // An outside adviser reads the money and nothing else — no team files, no
   // reports on people, no fleet.
   adviser: ["overhead"],
-  admin: ["overhead", "reports_read", "reports_write", "vehicles"],
+  admin: ["overhead", "reports_read", "reports_write", "vehicles", "quotes"],
   lead: ["reports_read", "reports_write", "vehicles"],
-  hybrid: ["vehicles"],
-  office: ["vehicles"],
+  // Anyone who works in the office chases quotes. The pipeline is the quotes
+  // and the calls, not what a job costs, so it's its own switch rather than
+  // handing the office the whole finance side to see it.
+  hybrid: ["vehicles", "quotes"],
+  office: ["vehicles", "quotes"],
   tradesman: [],
   apprentice: [],
 };

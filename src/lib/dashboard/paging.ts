@@ -35,6 +35,7 @@ const KEY: Record<string, string[]> = {
   portal_integrations: ["provider"],
   portal_email_optouts: ["email"],
   portal_page_views: ["path", "day"],
+  portal_quote_follow: ["quote_key"],
   portal_settings: ["key"],
   portal_supplier_priority: ["supplier"],
   portal_sync_state: ["provider", "resource"],
