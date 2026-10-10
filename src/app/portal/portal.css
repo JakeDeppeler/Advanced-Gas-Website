@@ -5187,3 +5187,8 @@ a.pt-td__pill { text-decoration: none; }
 .pt-wait__more > summary::after { content: " ↓"; }
 .pt-wait__more[open] > summary::after { content: " ↑"; }
 @media (min-width: 861px) { .pt-home .pt-secs { display: none; } }
+
+/* A link inside a note has to look like one: the note's own colour on the
+   note's own tint read as more text, and "reconnect Xero" went unclicked. */
+.pt-note a:not(.pt-btn) { color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.pt-note__act { margin-top: 10px; }
