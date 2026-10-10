@@ -34,7 +34,7 @@ export default async function PlanningPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Future planning" lede="What another person takes, and what they make. Every figure comes from Our numbers; nothing here changes them." />
+      <FinanceHead title="What if" lede="What another person takes, and what they make. Every figure comes from Our numbers; nothing here changes them." />
       <PlanningTabs current="/portal/finance/planning" />
       <HireCalc people={people} settings={s} growth={growth} />
     </PortalShell>

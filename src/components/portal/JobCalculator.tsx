@@ -56,8 +56,10 @@ type JobKey = (typeof JOBS)[number]["k"];
 
 type MatLine = { id: number; what: string; cost: number; qty: number };
 
-export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: {
+export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee, materialsMarkup = 20 }: {
   crew: CrewRate[]; costPerHr: number | null; costPerHrOnsite: number | null; calloutFee: number;
+  /** The markup on materials saved on Our numbers; 20% until one is. */
+  materialsMarkup?: number;
 }) {
   const [job, setJob] = useState<JobKey>("custom");
   // Per job, not per portal. Most jobs are mobile, so that is the default.
@@ -70,7 +72,7 @@ export function JobCalculator({ crew, costPerHr, costPerHrOnsite, calloutFee }: 
   const [manualRate, setManualRate] = useState(0);
   const [manualHrs, setManualHrs] = useState(0);
   const [mats, setMats] = useState<MatLine[]>([{ id: 1, what: "", cost: 0, qty: 1 }]);
-  const [markup, setMarkup] = useState(20);
+  const [markup, setMarkup] = useState(materialsMarkup);
   const [discount, setDiscount] = useState(0);
 
   // Resolve once, at the top: below this point nothing needs to know which mode

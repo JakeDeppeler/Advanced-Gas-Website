@@ -145,7 +145,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: { k?:
                           );
                         })}
                         {r.goal != null && (
-                          <tr><th scope="row">Goal for the {unit}</th><td>{m$(r.goal)}</td><td /><td className={r.now.income >= r.goal ? "is-good" : "is-bad"}>{signed(r.now.income - r.goal)}</td></tr>
+                          <tr><th scope="row">Goal for the {unit}<em> before GST</em></th><td>{m$(r.goal)}</td><td /><td className={r.now.income >= r.goal ? "is-good" : "is-bad"}>{signed(r.now.income - r.goal)}</td></tr>
                         )}
                       </tbody>
                     </table>

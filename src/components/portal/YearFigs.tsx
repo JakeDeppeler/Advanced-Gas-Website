@@ -10,7 +10,8 @@ import type { YearGoal } from "@/lib/portal/yearGoal";
  * two can't drift — and read from the wall board's own figures, so the board
  * can't disagree with either.
  */
-export function YearFigs({ m, goal, profit, endLabel }: { m: Metrics | null; goal: YearGoal | null; profit: ProfitLoss | null; endLabel: string }) {
+export function YearFigs({ m, goal, profit, endLabel, yearFrom }: { m: Metrics | null; goal: YearGoal | null; profit: ProfitLoss | null; endLabel: string; yearFrom?: string }) {
+  const since = yearFrom ? new Date(`${yearFrom}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }) : null;
   const ytd = m?.revenueInvoicedYtd ?? null;
   const target = m?.revenueTargetYear ?? null;
   const byNow = m?.revenueYearByNow ?? null;
@@ -24,6 +25,7 @@ export function YearFigs({ m, goal, profit, endLabel }: { m: Metrics | null; goa
       sub: target ? `goal ${money(target)}` : undefined,
       bar: ytd != null && target ? ytd / target : null,
       mark: byNow != null && target ? byNow / target : null,
+      from: `ServiceTitan invoices · inc GST${since ? ` · since ${since}` : ""}`,
       needs: noGoal,
     },
     {
@@ -39,9 +41,10 @@ export function YearFigs({ m, goal, profit, endLabel }: { m: Metrics | null; goa
       needs: noGoal,
     },
     {
-      label: "Profit this year", href: "/portal/finance",
+      label: "Net profit this year", href: "/portal/finance",
       value: margin == null ? null : pct(margin),
-      sub: profit ? `${money(profit.netProfit)} from Xero${goal?.profitPct ? ` · goal ${goal.profitPct}%` : ""}` : undefined,
+      sub: profit ? `${money(profit.netProfit)} of ${money(profit.income)} income${goal?.profitPct ? ` · goal ${goal.profitPct}%` : ""}` : undefined,
+      from: `Xero · before GST · after every cost${since ? ` · since ${since}` : ""}`,
       needs: "Needs Xero connected",
     },
   ];

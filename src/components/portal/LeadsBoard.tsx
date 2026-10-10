@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { site } from "@/lib/site";
+import { site, openingHoursShort } from "@/lib/site";
 import { Heads } from "@/components/portal/marketingParts";
 import type { WebLead } from "@/lib/portal/db";
 import { classifyLead, CHANNEL_ORDER, type Channel } from "@/lib/portal/leadSource";
@@ -165,7 +165,7 @@ export function LeadsBoard({ leads, days, area, pages: pageReport, dbReady }: {
               { label: "Enquiries", value: String(leads.length), sub: `over ${days} days · ${perWeek.toFixed(1)} a week`, feature: true },
               { label: "Quote requests", value: String(quotes.length), sub: "filled in the form" },
               { label: "Phone taps", value: String(calls.length), sub: "tapped the number" },
-              { label: "Outside 7–4", value: String(afterHours), sub: `${Math.round((afterHours / leads.length) * 100)}% came in when nobody is on the tools` },
+              { label: `Outside ${openingHoursShort().replace(/\s/g, "")}`, value: String(afterHours), sub: `${Math.round((afterHours / leads.length) * 100)}% came in when nobody is on the tools` },
             ]}
           />
           <Heads

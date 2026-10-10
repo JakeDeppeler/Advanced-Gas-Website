@@ -123,7 +123,10 @@ export async function runDueReports(now = new Date(), snapshot?: Snapshot & { co
     if (existing) {
       // Made but not delivered — the mail service was down, say: the next
       // runs try again, as it was built, up to three times in all.
-      if (existing.status === "failed" && (existing.tries ?? 1) < MAX_TRIES) {
+      // A run that claimed the report and then died mid-send leaves it
+      // "building" for good; after a quarter of an hour it's treated as failed.
+      const stuck = existing.status === "building" && Date.now() - Date.parse(existing.createdAt) > 15 * 60_000;
+      if ((existing.status === "failed" || stuck) && (existing.tries ?? 1) < MAX_TRIES) {
         const again = await deliver(existing);
         out.push({ key, status: again.status, ...(again.error ? { error: again.error } : {}) });
       }

@@ -10,7 +10,7 @@ export const STAGES: Array<{ k: Stage; label: string; blurb: string }> = [
   { k: "new", label: "Just quoted", blurb: "Out less than 2 days" },
   { k: "due", label: "Follow up today", blurb: "Ring these" },
   { k: "waiting", label: "Waiting on them", blurb: "Followed up, next call booked" },
-  { k: "won", label: "Won", blurb: "Sold in the last 30 days" },
+  { k: "won", label: "Sold", blurb: "Sold in the last 30 days" },
 ];
 
 export type TouchHow = "call" | "no_answer" | "text" | "email" | "visit" | "note";

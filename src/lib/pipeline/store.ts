@@ -68,7 +68,9 @@ export async function loadPipeline(opts: { detail?: boolean } = {}): Promise<Pip
 
   const [estRaw, follows, touchRows] = await Promise.all([
     sbSelect<EstRow>("st_estimates", [
-      q.select("id,job_id,customer_id,status,total,created_on,sold_on,modified_on,created_by,sold_by,business_unit,name:raw->>name"),
+      // total_inc, not total: every other quote figure in the portal and on the
+      // wall is with GST, and the Scoreboard tile that opens this page is one.
+      q.select("id,job_id,customer_id,status,total:total_inc,created_on,sold_on,modified_on,created_by,sold_by,business_unit,name:raw->>name"),
       `or=(created_on.gte.${since},sold_on.gte.${recent})`,
       "limit=5000",
     ].join("&")),
@@ -186,10 +188,16 @@ export async function loadPipeline(opts: { detail?: boolean } = {}): Promise<Pip
  * bar show, worked out the same way as the pipeline's own column so the two
  * can never disagree. Once per request, however many places ask.
  */
-export const pipelineDue = cache(async (): Promise<{ due: number; late: number }> => {
+export const pipelineDue = cache(async (): Promise<{ due: number; late: number; openCount: number; openValue: number }> => {
   const p = await loadPipeline({ detail: false });
   const due = p.quotes.filter((x) => x.stage === "due");
-  return { due: due.length, late: due.filter((x) => x.nextOn && x.nextOn < p.today).length };
+  const open = p.quotes.filter((x) => x.stage === "new" || x.stage === "due" || x.stage === "waiting");
+  return {
+    due: due.length,
+    late: due.filter((x) => x.nextOn && x.nextOn < p.today).length,
+    openCount: open.length,
+    openValue: open.reduce((n, x) => n + x.value, 0),
+  };
 });
 
 /* ------------------------------------------------------------------ writes */

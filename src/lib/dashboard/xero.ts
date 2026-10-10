@@ -1,3 +1,4 @@
+import { isoDateMelbourne } from "./dates";
 import { q, sbSelectOne } from "./db";
 
 // Read-only Xero access for the dashboard.
@@ -100,7 +101,7 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
     }>;
   };
 
-  const now = Date.now();
+  const todayMel = isoDateMelbourne(new Date());
   const DAY = 24 * 60 * 60 * 1000;
   let overdueTotal = 0;
   let overdueCount = 0;
@@ -120,12 +121,16 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
 
     // A due date we cannot read is not yet overdue: calling it 30+ days late
     // would put money in the worst bucket on the strength of a parse failure.
-    if (!Number.isFinite(ms) || ms >= now) {
+    // Overdue from the day after it's due, in Melbourne — the same line the
+    // Money page's list draws, so the count above it agrees with the rows.
+    // Read as an instant, "due 10 Oct" turned overdue at 11am that day.
+    const dueDay = !Number.isFinite(ms) ? null : raw.startsWith("/Date(") ? isoDateMelbourne(new Date(ms)) : raw.slice(0, 10);
+    if (!dueDay || dueDay >= todayMel) {
       aging.notDue += due;
       continue;
     }
 
-    const days = Math.floor((now - ms) / DAY);
+    const days = Math.round((Date.parse(`${todayMel}T00:00:00Z`) - Date.parse(`${dueDay}T00:00:00Z`)) / DAY);
     overdueTotal += due;
     overdueCount += 1;
     if (days <= 7) aging.d1to7 += due;

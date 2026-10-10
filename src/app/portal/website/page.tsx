@@ -6,6 +6,11 @@ import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { dbConfigured, listWebLeads, pageViews, type PageViews } from "@/lib/portal/db";
 import { classifyLead } from "@/lib/portal/leadSource";
+import { site, openingHoursShort } from "@/lib/site";
+
+const toMins = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
+const OPEN_MIN = toMins(site.hours[0].open);
+const CLOSE_MIN = toMins(site.hours[0].close);
 import { groupByArea, BANDS } from "@/lib/portal/leadArea";
 import { pageReport, titleFor } from "@/lib/portal/leadPages";
 import { WEBSITE_TABS, websiteHref, websiteTabDef, windowDays, windowKey, type WebsiteTab } from "@/lib/portal/marketingTabs";
@@ -93,7 +98,9 @@ async function WebsiteLeads({
   // morning unless somebody picks them up.
   const outside = leads.filter((l) => {
     const h = Number(new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", hour: "numeric", hour12: false }).format(new Date(l.createdAt)));
-    return h < 7 || h >= 16;
+    // The business's own hours (site.ts), so this agrees with Leads.
+    const mins = h * 60 + Number(new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Melbourne", minute: "numeric" }).format(new Date(l.createdAt)));
+    return mins < OPEN_MIN || mins >= CLOSE_MIN;
   }).length;
 
   const bySource = new Map<string, number>();
@@ -113,7 +120,7 @@ async function WebsiteLeads({
           { label: "Quote requests", value: String(quotes), sub: "filled in the form" },
           { label: "Phone taps", value: String(calls), sub: "tapped the number" },
           {
-            label: "Outside 7am–4pm", value: String(outside),
+            label: `Outside ${openingHoursShort().replace(/\s/g, "")}`, value: String(outside),
             sub: leads.length ? `${Math.round((outside / leads.length) * 100)}% — nobody on the tools` : "none yet",
           },
         ]}
@@ -129,7 +136,7 @@ async function WebsiteLeads({
           title="When and how far"
           rows={[
             ...BANDS.filter((b) => area.byBand[b.key] > 0).map((b) => ({ label: b.label, n: area.byBand[b.key] })),
-            { label: "Outside 7am–4pm", n: outside },
+            { label: `Outside ${openingHoursShort().replace(/\s/g, "")}`, n: outside },
           ]}
           empty="No enquiries in this window."
         />

@@ -51,7 +51,7 @@ export default async function PipelinePage() {
       <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
         <h1>Quote pipeline</h1>
-        <p>Every quote that&rsquo;s out, and who&rsquo;s chasing it. Quotes come in from ServiceTitan; the calls are logged here.</p>
+        <p>Every quote that&rsquo;s out, and who&rsquo;s chasing it. Quotes come in from ServiceTitan; the calls are logged here. Open means priced in the last 60 days and not yet sold or lost; values include GST, and a quote with several options counts at their average.</p>
       </div>
 
       {!pipe ? (
@@ -61,7 +61,7 @@ export default async function PipelinePage() {
           <p className="pt-pipe__line" role="status">
             <span><strong>{open.length}</strong> out · {k0(open.reduce((n, q) => n + q.value, 0))}</span>
             <span className={due.length ? "is-due" : undefined}><strong>{due.length}</strong> to ring today</span>
-            {month.length > 0 && <span><strong>{Math.round((wonMonth.length / month.length) * 100)}%</strong> won of the last 30 days&rsquo; quotes</span>}
+            {month.length > 0 && <span><strong>{Math.round((wonMonth.length / month.length) * 100)}%</strong> of the last 30 days&rsquo; quotes sold</span>}
           </p>
           <PipelineBoard quotes={p.quotes} stale={p.stale} today={p.today} office={officeNames} me={user.name} canCustomer={can(user, "overhead")} />
         </>

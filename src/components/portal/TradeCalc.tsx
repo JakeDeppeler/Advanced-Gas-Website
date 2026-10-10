@@ -73,7 +73,7 @@ export function TradeCalc({ tradesman, apprentice, apprenticeRidesAlong }: {
         {left == null ? (
           <div className="tr-note tr-note--grey">
             <strong style={{ display: "block", fontSize: 17 }}>Not costed yet</strong>
-            The office sets the crew&rsquo;s hours and wages on the costs &amp; capacity page. Until that&rsquo;s done
+            The office sets the crew&rsquo;s hours and wages on Our numbers. Until that&rsquo;s done
             there is no hourly figure to measure a job against.
           </div>
         ) : (

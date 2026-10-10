@@ -76,10 +76,13 @@ export const needsToday = cache(async (user: PortalUser): Promise<NeedLine[]> =>
   if (m && (m.overdueCount ?? 0) > 0 && m.overdueTotal != null) {
     lines.push({ n: m.overdueCount as number, text: `${plural(m.overdueCount as number, "invoice")} overdue · ${money(m.overdueTotal)}`, href: "/portal/money" });
   }
-  // Jobs this month that lost money once their parts and hours are costed.
-  const jp = m?.jobProfitMonth;
+  // Jobs in the last 30 days that lost money once their parts and hours are
+  // costed. The 30-day figure, because it's the one the snapshot recomputes —
+  // the month one stopped being worked out and would have said "this month"
+  // about October's jobs all of November.
+  const jp = m?.jobProfitRecent;
   if (jp && jp.losing > 0) {
-    lines.push({ n: jp.losing, text: `${plural(jp.losing, "job")} lost money this month${jp.under > jp.losing ? ` · ${jp.under} under the goal's margin` : ""}`, href: "/portal/profit" });
+    lines.push({ n: jp.losing, text: `${plural(jp.losing, "job")} lost money in the last 30 days${jp.under > jp.losing ? ` · ${jp.under} under the goal's margin` : ""}`, href: "/portal/profit" });
   }
   const service = issues.filter((i) => i.kind === "service");
   if (service.length) {

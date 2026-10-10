@@ -28,7 +28,7 @@ export default async function CrewWhatIfPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Future planning" lede="The profit you’re aiming at, then the what-ifs. Nothing here changes your live numbers." />
+      <FinanceHead title="What if" lede="Add or take off people, change pay, take a cut. Every figure comes from Our numbers; nothing here changes them." />
       <PlanningTabs current="/portal/finance/planning/crew" />
       <CrewWhatIf people={people} settings={s} meId={me?.id ?? null} />
     </PortalShell>

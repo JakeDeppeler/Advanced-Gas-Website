@@ -125,10 +125,9 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   });
 
   add(office,
-    { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The month and the year in numbers", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "target"] },
-    { href: "/portal/numbers", label: "The numbers", blurb: "Leads to paid, all in one place", band: "run", icon: "trend", also: ["funnel", "conversion", "leads to paid", "average job"] },
+    { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The year, the month, and is it paying", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "the numbers", "target", "funnel", "conversion", "leads to paid", "profit"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
-    { href: "/portal/hours", label: "Hours", blurb: "Paid vs billed, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation"] },
+    { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
     { href: "/portal/money", label: "Money in", short: "Money", blurb: "Invoices, overdue, plans, VEU", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "veu", "payment plan"] },
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
     { href: "/portal/customers", label: "One customer", short: "Customer", blurb: "A job from lead to paid", band: "customers", icon: "user", also: ["customer", "job number", "invoice number", "history"] },
