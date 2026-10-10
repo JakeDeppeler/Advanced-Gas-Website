@@ -68,8 +68,9 @@ export default async function CashPage({ searchParams }: { searchParams: { m?: s
 
       {noScope && (
         <div className="pt-note pt-note--warn">
-          <strong>Xero needs one more permission to show the bank.</strong> Profit is below already; for money in and out,{" "}
-          <a href="/api/xero/connect">reconnect Xero</a> and approve. Nothing in Xero changes, and the books stay read-only.
+          <strong>Xero needs one more permission to show the bank.</strong> Profit is below already; for money in and out,
+          reconnect Xero and approve. Nothing in Xero changes, and the books stay read-only.
+          <div className="pt-note__act"><a href="/api/xero/connect" className="pt-btn pt-btn--navy pt-btn--sm">Reconnect Xero →</a></div>
         </div>
       )}
 
