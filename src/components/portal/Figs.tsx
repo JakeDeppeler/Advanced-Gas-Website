@@ -18,6 +18,14 @@ export type Fig = {
   feature?: boolean;
   /** Shown instead of the value when it's null: what this needs to be measured. */
   needs?: string;
+  /**
+   * Where the figure comes from and the period it covers, in a few words:
+   * "ServiceTitan · this month · ex GST". So nobody has to guess whether two
+   * figures on two pages are the same thing.
+   */
+  from?: string;
+  /** What adds up to it, shown under "What makes this up" for whoever wants to check it. */
+  parts?: Array<{ label: string; value: string }>;
 };
 
 export function Figs({ items, cols = 3 }: { items: Fig[]; cols?: 2 | 3 | 4 }) {
@@ -35,9 +43,24 @@ export function Figs({ items, cols = 3 }: { items: Fig[]; cols?: 2 | 3 | 4 }) {
               </span>
             )}
             <span className="pt-fig__sub">{f.value == null ? (f.needs ?? f.sub) : f.sub}</span>
+            {f.from && f.value != null && <span className="pt-fig__from">{f.from}</span>}
           </>
         );
         const cls = `pt-fig${f.feature ? " is-feature" : ""}${f.value == null ? " is-unset" : ""}`;
+        // A breakdown can't sit inside a link, so a figure with one keeps its
+        // link as a line of its own at the foot.
+        if (f.parts?.length && f.value != null) {
+          return (
+            <div key={f.label} className={`${cls} has-parts`}>
+              {body}
+              <details className="pt-fig__parts">
+                <summary>What makes this up</summary>
+                <dl>{f.parts.map((x) => <div key={x.label}><dt>{x.label}</dt><dd>{x.value}</dd></div>)}</dl>
+              </details>
+              {f.href && <Link href={f.href} className="pt-fig__more">Open →</Link>}
+            </div>
+          );
+        }
         return f.href ? (
           <Link key={f.label} href={f.href} className={cls}>{body}<span className="pt-fig__go" aria-hidden="true">→</span></Link>
         ) : (
