@@ -5,9 +5,11 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
-import { listUsers, getCapSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
+import { listUsers, getCapSettings, getSettings, listVehicles, dbConfigured } from "@/lib/portal/db";
 import { withFleet } from "@/lib/portal/costSettings";
 import { personBills, yearSpend } from "@/lib/portal/hourBill";
+import { onPlan, readPayPlan, withPlanWages } from "@/lib/portal/payPlan";
+import { firstName } from "@/lib/todos/types";
 import { HourBill } from "@/components/portal/HourBill";
 import { getPLDetail, lastTwelveMonths } from "@/lib/portal/xero";
 import {
@@ -33,17 +35,25 @@ const pc = (n: number) => `${Math.round(n * 100)}%`;
  * here, so the two pages can't disagree; change an input there and this
  * follows.
  */
-export default async function HourlyPage() {
+export default async function HourlyPage({ searchParams }: { searchParams?: { plan?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
 
   const ready = dbConfigured();
-  const [users, stored, vehicles] = ready ? await Promise.all([listUsers(), getCapSettings(), listVehicles()]) : [[], null, []];
+  const [users, stored, vehicles, planRaw] = ready
+    ? await Promise.all([listUsers(), getCapSettings(), listVehicles(), getSettings<unknown>("payplan").catch(() => null)])
+    : [[], null, [], null];
   const s: CapSettings = withFleet(stored, vehicles);
-  const people: CrewMember[] = users
+  const today: CrewMember[] = users
     .filter((u) => u.active && u.id && u.level)
     .map((u) => ({ id: u.id as string, name: u.name, level: u.level as CrewLevel, costing: u.costing }));
+  // Two ways: what everyone is paid today, or the pay plan being trained up for
+  // — the qualified tradesmen on its wage, plus its commission on their sales.
+  const plan = readPayPlan(planRaw);
+  const planMode = searchParams?.plan === "1";
+  const people = planMode ? withPlanWages(today, plan) : today;
+  const capToday = computeCapacity(today, s);
   const cap = computeCapacity(people, s);
   const has = cap.totalBillHrs > 0;
   const charge = cap.costPerHr * (1 + s.margin / 100);
@@ -156,15 +166,33 @@ export default async function HourlyPage() {
   // The wages on the cards against what Xero actually paid, so a wage left at
   // last year's rate shows up here rather than quietly under-pricing an hour.
   let wageCheck: { cards: number; xero: number } | null = null;
+  let salesPerVan: number | null = null;
   try {
     const { from, to } = lastTwelveMonths();
     const pl = await getPLDetail(from, to);
+    if (pl && pl.income > 0 && capToday.realVans > 0) salesPerVan = pl.income / capToday.realVans;
     const xero = pl?.sections.flatMap((x) => x.lines).filter((l) => /wages|salar/i.test(l.label)).reduce((a, l) => a + l.amount, 0) ?? 0;
     const cards = people.reduce((a, p) => a + p.costing.wage * p.costing.hrsWeek * s.weeksYear, 0);
     if (xero > 0 && cards > 0) wageCheck = { cards, xero };
   } catch { /* Xero not connected: the check is left off rather than guessed */ }
 
-  const spend = yearSpend(s, cap);
+  // The commission: the plan's percentage of a van's sales — the business's
+  // average over the last twelve months in Xero — for each person on the plan
+  // who runs a van.
+  const planVans = planMode ? people.filter((p) => onPlan(p, plan) && p.costing.ownVan && LEVEL_BILLABLE[p.level]) : [];
+  const commEach = salesPerVan != null ? (salesPerVan * plan.pct) / 100 : 0;
+  const commission = commEach * planVans.length;
+  const commOf = (id: string) => (planVans.some((p) => p.id === id) ? commEach : 0);
+  const yearCost = cap.totalCost + commission;
+  const hourCost = has ? yearCost / cap.totalBillHrs : 0;
+  const hourCharge = hourCost * (1 + s.margin / 100);
+  const todayHour = capToday.totalBillHrs > 0 ? capToday.costPerHr : 0;
+  const startLabel = new Date(`${plan.startOn}T12:00:00Z`).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+  const spend = [
+    ...yearSpend(s, cap),
+    ...(commission > 0 ? [{ key: "commission", label: `Commission, ${plan.pct}% of their sales`, note: planVans.map((p) => firstName(p.name)).join(" & "), annual: commission }] : []),
+  ];
   const spendTop = Math.max(1, ...spend.map((x) => x.annual));
   const pairCharge = leadCost != null && riders.length
     ? (leadCost + riders.reduce((a, x) => a + x.full, 0) / riders.length) * (1 + s.margin / 100)
@@ -185,13 +213,32 @@ export default async function HourlyPage() {
         </div>
       ) : (
         <>
+          <nav className="pt-td__people pt-hs__mode" aria-label="Which pay">
+            <Link href="/portal/finance/hourly" className={`pt-td__pill${planMode ? "" : " is-on"}`} aria-current={planMode ? undefined : "page"}>Today&rsquo;s pay</Link>
+            <Link href="/portal/finance/hourly?plan=1" className={`pt-td__pill${planMode ? " is-on" : ""}`} aria-current={planMode ? "page" : undefined}>
+              From {startLabel}: ${plan.wage} + {plan.pct}% commission
+            </Link>
+          </nav>
+          {planMode && (
+            <p className="pt-note" style={{ margin: 0 }}>
+              <strong>The plan from {startLabel}.</strong>{" "}
+              {planVans.length
+                ? `${planVans.map((p) => firstName(p.name)).join(" and ")} on $${plan.wage} an hour plus ${plan.pct}% of their sales; everyone else as they are today. `
+                : `Nobody on the plan runs a van, so there's no commission to show. `}
+              {salesPerVan != null
+                ? `Commission is worked on a van's average sales, ${m0(salesPerVan)} a year from Xero — about ${m0(commEach)} each.`
+                : "Xero isn't answering, so the commission can't be worked out."}{" "}
+              An hour costs {m2(hourCost)} against {m2(todayHour)} today ({hourCost >= todayHour ? "+" : "−"}{m2(Math.abs(hourCost - todayHour))}). Change the plan on <Link href="/portal/finance/planning/commission">Planning → Pay plan</Link>.
+            </p>
+          )}
+
           <section className="pt-panel pt-hs" aria-labelledby="hs-h">
             <h2 id="hs-h" className="pt-sr">The short version</h2>
             <div className="pt-hs__nums">
-              <div><span>We spend a year</span><strong>{m0(cap.totalCost)}</strong><em>every wage and every bill</em></div>
+              <div><span>We spend a year</span><strong>{m0(yearCost)}</strong><em>every wage and every bill{commission > 0 ? ", and commission" : ""}</em></div>
               <div><span>Hours we can bill</span><strong>{h0(cap.totalBillHrs)}</strong><em>across {cap.vanCount} {cap.vanCount === 1 ? "van" : "vans"}</em></div>
-              <div><span>So an hour costs us</span><strong>{m2(cap.costPerHr)}</strong><em>{m0(cap.totalCost)} ÷ {h0(cap.totalBillHrs)}</em></div>
-              <div className="is-charge"><span>We charge</span><strong>{m2(charge)}</strong><em>with our {s.margin}% margin</em></div>
+              <div><span>So an hour costs us</span><strong>{m2(hourCost)}</strong><em>{m0(yearCost)} ÷ {h0(cap.totalBillHrs)}</em></div>
+              <div className="is-charge"><span>We charge</span><strong>{m2(hourCharge)}</strong><em>with our {s.margin}% margin</em></div>
             </div>
           </section>
 
@@ -208,8 +255,8 @@ export default async function HourlyPage() {
               ))}
               <div className="pt-hs__row is-total">
                 <span className="pt-hs__lbl">All of it</span><span />
-                <strong className="pt-hs__yr">{m0(cap.totalCost)}<em>a year</em></strong>
-                <span className="pt-hs__ph">{m2(cap.costPerHr)}<em>an hour</em></span>
+                <strong className="pt-hs__yr">{m0(yearCost)}<em>a year</em></strong>
+                <span className="pt-hs__ph">{m2(hourCost)}<em>an hour</em></span>
               </div>
             </div>
           </section>
@@ -225,7 +272,13 @@ export default async function HourlyPage() {
                       <th scope="row">{p.name}<em> {LEVEL_LABEL[p.level]}{r.uplift != null ? ", rides with a tech" : ""}</em></th>
                       {r.uplift != null
                         ? <><td>+{m2(r.costPerHr ?? 0)}</td><td>+{m2(r.uplift)} <em>on top of the tradesman</em></td></>
-                        : <><td>{r.costPerHr != null ? m2(r.costPerHr) : "—"}</td><td>{r.rate != null ? m2(r.rate) : "—"}</td></>}
+                        : (() => {
+                            // On the plan, a commission earner's hour carries their commission too.
+                            const add = r.billHrs > 0 ? commOf(r.id) / r.billHrs : 0;
+                            const cost = r.costPerHr != null ? r.costPerHr + add : null;
+                            const rate = p.costing.rateOverride != null ? r.rate : cost != null ? cost * (1 + s.margin / 100) : null;
+                            return <><td>{cost != null ? m2(cost) : "—"}{add > 0 && <em>{m2(add)} of it commission</em>}</td><td>{rate != null ? m2(rate) : "—"}</td></>;
+                          })()}
                     </tr>
                   ))}
                 </tbody>
@@ -240,7 +293,7 @@ export default async function HourlyPage() {
           </section>
 
           <details className="pt-hr__more">
-            <summary>Show the full breakdown</summary>
+            <summary>Show the full breakdown{planMode ? " (the plan's wages; commission left out)" : ""}</summary>
           <div className="pt-rev__tiles">
             <div className="pt-rev__tile is-feature">
               <span className="pt-rev__k">What an hour costs us</span>

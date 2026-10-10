@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { xeroConfigured, authorizeUrl } from "@/lib/portal/xero";
+import { xeroConfigured, authorizeUrl, type ScopeStage } from "@/lib/portal/xero";
 
 export const runtime = "nodejs";
 
@@ -12,8 +12,9 @@ export async function GET(req: NextRequest) {
   if (!xeroConfigured()) return NextResponse.redirect(new URL("/portal/finance?error=notconfigured", req.url));
 
   const state = crypto.randomUUID();
-  const basic = req.nextUrl.searchParams.get("basic") === "1";
-  const res = NextResponse.redirect(authorizeUrl(state, basic));
+  const asked = req.nextUrl.searchParams.get("stage");
+  const stage: ScopeStage = asked === "contacts" || asked === "basic" ? asked : req.nextUrl.searchParams.get("basic") === "1" ? "basic" : "full";
+  const res = NextResponse.redirect(authorizeUrl(state, stage));
   res.cookies.set("xero_oauth_state", state, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
     path: "/",
     maxAge: 600,
   });
-  res.cookies.set("xero_oauth_basic", basic ? "1" : "0", {
+  res.cookies.set("xero_oauth_stage", stage, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

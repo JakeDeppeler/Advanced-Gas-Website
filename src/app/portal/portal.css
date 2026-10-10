@@ -4919,7 +4919,7 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-td__people { display: flex; flex-wrap: wrap; gap: 6px; }
 .pt-td__pill { font: inherit; font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
 .pt-td__pill.is-on { background: var(--pt-navy); color: #fff; border-color: var(--pt-navy); }
-.pt-td__late { font-size: 12px; font-weight: 800; color: var(--pt-bad); background: var(--pt-bad-soft, transparent); border-radius: 999px; padding: 1px 7px; }
+.pt-td__late { font-size: 12px; font-weight: 800; color: var(--pt-bad); background: var(--pt-bad-bg); border-radius: 999px; padding: 1px 7px; }
 .pt-td__pill.is-on .pt-td__late { color: #fff; background: rgba(255, 255, 255, .18); }
 .pt-td__list { margin: 0; }
 .pt-td__group + .pt-td__group { margin-top: 16px; }
@@ -4945,6 +4945,89 @@ a.pt-fig:hover { transform: translateY(-2px); }
 @media (max-width: 640px) {
   .pt-td__item { grid-template-columns: auto 1fr; }
   .pt-td__meta { grid-column: 2; white-space: normal; flex-wrap: wrap; }
+}
+/* What we owe. */
+.pt-owe__list { list-style: none; margin: 0; padding: 0; }
+.pt-owe__sup { border-top: 1px solid var(--pt-tint); }
+.pt-owe__sup:first-child { border-top: 0; }
+.pt-owe__sup.is-must { box-shadow: inset 3px 0 0 var(--pt-bad); padding-left: 10px; }
+.pt-owe__row { display: grid; grid-template-columns: minmax(0, 1fr) auto 150px 130px; gap: 14px; align-items: center; padding: 12px 0; }
+.pt-owe__name { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; color: var(--pt-ink); min-width: 0; }
+.pt-owe__name strong { font-size: 15.5px; }
+.pt-owe__name em { flex-basis: 100%; padding-left: 20px; font-style: normal; font-size: 12.5px; color: var(--pt-ink-2); }
+.pt-owe__caret { width: 12px; color: var(--pt-ink-2); }
+.pt-owe__due { font-size: 13.5px; color: var(--pt-ink-2); text-align: right; }
+.pt-owe__due.is-late, .pt-owe__bills .is-late { color: var(--pt-bad); font-weight: 800; }
+.pt-owe__amt { text-align: right; font-variant-numeric: tabular-nums; color: var(--pt-ink); display: flex; flex-direction: column; }
+.pt-owe__amt em { font-style: normal; font-size: 12px; font-weight: 600; color: var(--pt-bad); }
+.pt-owe__chip { font: inherit; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--pt-line); background: var(--pt-surface); color: var(--pt-ink); cursor: pointer; white-space: nowrap; }
+.pt-owe__chip.is-must { background: var(--pt-bad); border-color: var(--pt-bad); color: #fff; }
+.pt-owe__chip.is-high { border-color: var(--pt-amber); color: var(--pt-amber); }
+.pt-owe__chip.is-wait { color: var(--pt-ink-2); border-style: dashed; }
+.pt-owe__pick { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; grid-column: 1 / -1; }
+.pt-owe__pick select, .pt-owe__pick input { font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--pt-line); border-radius: 8px; background: var(--pt-surface); color: var(--pt-ink); }
+.pt-owe__pick input { flex: 1 1 220px; }
+.pt-owe__bills { list-style: none; margin: 0 0 10px; padding: 0 0 0 20px; }
+.pt-owe__bills li { display: grid; grid-template-columns: minmax(0, 1fr) 150px 120px 130px; gap: 14px; align-items: center; padding: 7px 0; border-top: 1px dashed var(--pt-tint); font-size: 14px; color: var(--pt-ink); }
+.pt-owe__bills li > span:nth-child(2), .pt-owe__bills li > strong { text-align: right; font-variant-numeric: tabular-nums; }
+.pt-owe__bills em { font-style: normal; font-size: 12px; color: var(--pt-ink-2); }
+.pt-owe__acts { display: inline-flex; gap: 10px; justify-content: flex-end; }
+.pt-owe__add { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: end; }
+.pt-owe__addacts { display: inline-flex; gap: 8px; }
+.pt-hs__ph.is-up { color: var(--pt-bad); font-weight: 700; }
+.pt-hs__ph.is-down { color: var(--pt-good); font-weight: 700; }
+.pt-rev__tile strong.is-bad { color: var(--pt-bad); }
+@media (max-width: 760px) {
+  .pt-owe__row { grid-template-columns: minmax(0, 1fr) auto; }
+  .pt-owe__due { text-align: left; }
+  .pt-owe__bills li { grid-template-columns: 1fr auto; }
+}
+/* The pay plan. */
+.pt-hs__mode { margin: 0; }
+a.pt-td__pill { text-decoration: none; }
+.pt-pp__hint { font-style: normal; font-size: 12px; color: var(--pt-ink-2); }
+.pt-pp__who { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; }
+.pt-pp__who input { width: 18px; height: 18px; accent-color: var(--pt-ink); }
+.pt-pp__save { display: flex; gap: 12px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+.pt-rev__pl tr.is-off th, .pt-rev__pl tr.is-off td { color: var(--pt-ink-2); }
+/* The company's KPIs. */
+.pt-kpi__spans { margin: 0 0 12px; }
+.pt-kpi__spans a { text-decoration: none; }
+.pt-kpi__head, .pt-kpi__row > summary, .pt-kpi__row.is-flat { display: grid; grid-template-columns: minmax(170px, 1.4fr) minmax(80px, 1fr) 120px 80px 110px; gap: 14px; align-items: center; }
+.pt-kpi__head { font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); padding-bottom: 6px; }
+.pt-kpi__head span:nth-child(n+3) { text-align: right; }
+.pt-kpi__row { border-top: 1px solid var(--pt-tint); }
+.pt-kpi__row > summary, .pt-kpi__row.is-flat { padding: 12px 0; list-style: none; cursor: pointer; }
+.pt-kpi__row.is-flat { cursor: default; }
+.pt-kpi__row > summary::-webkit-details-marker { display: none; }
+.pt-kpi__name { position: relative; padding-left: 18px; }
+.pt-kpi__row > summary .pt-kpi__name::before { content: "▸"; position: absolute; left: 0; top: 0; color: var(--pt-ink-2); }
+.pt-kpi__row[open] > summary .pt-kpi__name::before { content: "▾"; }
+.pt-kpi__row.is-total { border-top: 1px solid var(--pt-line); }
+.pt-kpi__row.is-total .pt-kpi__name, .pt-kpi__row.is-total .pt-kpi__amt { font-weight: 900; }
+.pt-kpi__name { display: flex; flex-direction: column; font-weight: 700; color: var(--pt-ink); min-width: 0; }
+.pt-kpi__name em { font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }
+.pt-kpi__bar { height: 10px; background: var(--pt-tint); border-radius: 999px; overflow: hidden; }
+.pt-kpi__bar i { display: block; height: 100%; background: var(--pt-navy-2, var(--pt-ink)); border-radius: 999px; }
+.pt-kpi__bar i.is-neg { background: var(--pt-bad); }
+.pt[data-theme="dark"] .pt-kpi__bar i:not(.is-neg), .pt[data-theme="dark"] .pt-hs__bar i { background: #8b98e6; }
+.pt-kpi__amt, .pt-kpi__pc { text-align: right; font-variant-numeric: tabular-nums; color: var(--pt-ink); }
+.pt-kpi__pc { font-weight: 800; }
+.pt-kpi__health { justify-self: end; font-size: 12.5px; font-weight: 800; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.pt-kpi__health b { font-weight: 900; }
+.pt-kpi__health.is-good { color: var(--pt-good); background: var(--pt-good-soft, transparent); }
+.pt-kpi__health.is-watch { color: var(--pt-amber); background: var(--pt-amber-bg); }
+.pt-kpi__health.is-low { color: var(--pt-bad); background: var(--pt-bad-bg); }
+.pt-kpi__lines { list-style: none; margin: 0 0 12px; padding: 0 0 0 18px; }
+.pt-kpi__lines li { display: grid; grid-template-columns: minmax(0, 1fr) 120px 80px 110px; gap: 14px; padding: 6px 0; border-top: 1px dashed var(--pt-tint); font-size: 14px; color: var(--pt-ink); }
+.pt-kpi__lines li strong, .pt-kpi__lines li span:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.pt-kpi__note { margin: 0 0 12px 18px; font-size: 13px; color: var(--pt-ink-2); max-width: 70ch; }
+@media (max-width: 760px) {
+  .pt-kpi__head { display: none; }
+  .pt-kpi__row > summary, .pt-kpi__row.is-flat { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .pt-kpi__bar { grid-column: 1 / -1; order: 5; }
+  .pt-kpi__health { grid-column: 1 / -1; justify-self: start; }
+  .pt-kpi__lines li { grid-template-columns: minmax(0, 1fr) auto auto; }
 }
 .pt-hr__h3 { margin: 0 0 6px; font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--pt-ink-2); }
 .pt-rev__pl td em { display: block; font-style: normal; font-weight: 500; font-size: 12px; color: var(--pt-ink-2); }

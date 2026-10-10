@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { exchangeCode, getConnections } from "@/lib/portal/xero";
+import { exchangeCode, getConnections, nextStage, type ScopeStage } from "@/lib/portal/xero";
 import { saveIntegration } from "@/lib/portal/db";
 
 export const runtime = "nodejs";
@@ -16,8 +16,9 @@ export async function GET(req: NextRequest) {
   // The cookie says whether this was already the retry, so a second refusal
   // stops instead of going round again.
   if (req.nextUrl.searchParams.get("error") === "invalid_scope") {
-    const retried = req.cookies.get("xero_oauth_basic")?.value === "1";
-    return NextResponse.redirect(new URL(retried ? "/portal/finance?error=scope" : "/api/xero/connect?basic=1", req.url));
+    const was = req.cookies.get("xero_oauth_stage")?.value as ScopeStage | undefined;
+    const next = nextStage(was === "contacts" || was === "basic" ? was : "full");
+    return NextResponse.redirect(new URL(next ? `/api/xero/connect?stage=${next}` : "/portal/finance?error=scope", req.url));
   }
 
   const code = req.nextUrl.searchParams.get("code");
@@ -45,6 +46,6 @@ export async function GET(req: NextRequest) {
 
   const res = NextResponse.redirect(new URL("/portal/finance?connected=1", req.url));
   res.cookies.delete("xero_oauth_state");
-  res.cookies.delete("xero_oauth_basic");
+  res.cookies.delete("xero_oauth_stage");
   return res;
 }

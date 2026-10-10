@@ -4,7 +4,8 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { FinanceHead } from "@/components/portal/FinanceHead";
 import { FinanceOverview } from "@/components/portal/FinanceOverview";
-import { xeroStatus, getProfitAndLoss, getMoneySeries, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import { xeroStatus, getProfitAndLoss, getPLDetail, getMoneySeries, lastTwelveMonths, localToday, MONEY_RANGES, type MoneyRange, redirectUri } from "@/lib/portal/xero";
+import { KpiStack } from "@/components/portal/KpiStack";
 import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { XeroLine } from "@/components/portal/XeroLine";
@@ -31,7 +32,7 @@ function ranges() {
   };
 }
 
-export default async function FinancePage({ searchParams }: { searchParams: { tf?: string } }) {
+export default async function FinancePage({ searchParams }: { searchParams: { tf?: string; kpi?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
@@ -64,13 +65,29 @@ export default async function FinancePage({ searchParams }: { searchParams: { tf
         </section>
       )}
 
-      {status === "connected" && <ConnectedView tf={tf} />}
+      {status === "connected" && <ConnectedView tf={tf} kpi={searchParams?.kpi} />}
     </PortalShell>
   );
 }
 
-async function ConnectedView({ tf }: { tf: MoneyRange }) {
+const KPI_SPANS = [
+  { k: "12m", label: "Last 12 months" },
+  { k: "fy", label: "This financial year" },
+  { k: "month", label: "This month" },
+  { k: "lastmonth", label: "Last month" },
+] as const;
+
+async function ConnectedView({ tf, kpi }: { tf: MoneyRange; kpi?: string }) {
   const r = ranges();
+  // The KPI stack's span: twelve months unless another is picked.
+  const kSpan = KPI_SPANS.find((x) => x.k === kpi) ?? KPI_SPANS[0];
+  const now = localToday();
+  const fyStart = new Date(Date.UTC(now.getUTCMonth() >= 6 ? now.getUTCFullYear() : now.getUTCFullYear() - 1, 6, 1)).toISOString().slice(0, 10);
+  const kRange = kSpan.k === "fy" ? { from: fyStart, to: r.month.to }
+    : kSpan.k === "month" ? r.month
+      : kSpan.k === "lastmonth" ? r.lastMonth
+        : lastTwelveMonths();
+  const kDetail = await getPLDetail(kRange.from, kRange.to).catch(() => null);
   const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
@@ -87,6 +104,13 @@ async function ConnectedView({ tf }: { tf: MoneyRange }) {
       {!anyData && (
         <div className="pt-note pt-note--warn"><strong>Couldn&rsquo;t read the reports.</strong> The connection may have expired — try Disconnect below and connect again.</div>
       )}
+
+      <nav className="pt-seg pt-kpi__spans" aria-label="KPI period">
+        {KPI_SPANS.map((x) => (
+          <a key={x.k} href={`/portal/finance?kpi=${x.k}${tf !== "12m" ? `&tf=${tf}` : ""}`} className={`pt-seg__b${x.k === kSpan.k ? " is-on" : ""}`} aria-current={x.k === kSpan.k ? "page" : undefined}>{x.label}</a>
+        ))}
+      </nav>
+      {kDetail ? <KpiStack detail={kDetail} label={kSpan.label.toLowerCase()} /> : <p className="pt-note">Xero didn&rsquo;t return the profit and loss for {kSpan.label.toLowerCase()}.</p>}
 
       <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
 
