@@ -9,6 +9,8 @@ import { buildSearchIndex } from "@/lib/portal/searchIndex";
 import { BAND_LABEL, BANDS, byBand, ICON, portalNav, type NavBand, type NavItem } from "@/lib/portal/nav";
 import { Bell } from "@/components/portal/Bell";
 import { ThemeToggle } from "@/components/portal/ThemeToggle";
+import { LookToggle } from "@/components/portal/LookToggle";
+import { canTryLook, currentLook } from "@/lib/portal/look";
 import { SideNav, SideNavButton, TODO_ICON, type SideTab } from "@/components/portal/SideNav";
 import { navBadges } from "@/lib/portal/navBadges";
 import { needsByBand, needsToday } from "@/lib/portal/needs";
@@ -110,6 +112,7 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
   const rows = buildSearchIndex(items);
   const small = cookies().get("pt_nav")?.value === "small";
   const theme = cookies().get("pt_theme")?.value === "dark" ? "dark" : "light";
+  const look = currentLook(user);
   const first = user.name.split(" ")[0];
 
   const search = <PortalSearch rows={rows} placeholder="Search" />;
@@ -119,6 +122,7 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
           badge and the page can never disagree about how many there are. */}
       <Bell user={user} href="/portal/notifications" cls="pt-side__bell" />
       <ThemeToggle initial={theme} />
+      {canTryLook(user) && <LookToggle initial={look} />}
       <Link href="/portal/me" className="pt-side__me" title="My file">
         <span className="pt__avatar" aria-hidden="true">{user.name.slice(0, 1).toUpperCase()}</span>
         <span className="pt-side__metxt">
@@ -143,7 +147,7 @@ export function PortalShell({ user, children, variant }: { user: PortalUser; chi
     // The portal is a tool — a panel that fades in when you scroll to it is an
     // animation in the way of work, and it left every below-the-fold panel at
     // opacity 0 in screenshots and in print.
-    <div className={`pt${variant ? ` pt--${variant}` : ""}${small ? " pt--navsmall" : ""}`} data-no-reveal data-theme={theme === "dark" ? "dark" : undefined}>
+    <div className={`pt${variant ? ` pt--${variant}` : ""}${small ? " pt--navsmall" : ""}`} data-no-reveal data-theme={theme === "dark" ? "dark" : undefined} data-look={look === "neutral" ? "neutral" : undefined}>
       <Suspense fallback={<SideNav tabs={[todoTab(can(user, "manage_users") || can(user, "overhead")), ...tabsOf(items)]} small={small} search={search} foot={foot} />}>
         <CountedNav {...nav} />
       </Suspense>
