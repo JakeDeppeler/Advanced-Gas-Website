@@ -1,3 +1,4 @@
+import { TITLE_SUFFIX } from "@/lib/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -57,7 +58,9 @@ function HeroQuoteFormSkeleton() {
 }
 
 export const metadata: Metadata = {
-  title: "Heat Pump, Split & Ducted Aircon, Pakenham",
+  // The root page sits beside the layout, so the layout's title
+  // template never applies to it; the suffix has to be written here.
+  title: { absolute: `Heating & Cooling Pakenham & SE Melbourne${TITLE_SUFFIX}` },
   description:
     "Heat pump hot water, split and ducted aircon, gas heating and servicing across Melbourne's south-east. Own crews, VEU rebate handled, free written quote.",
   alternates: { canonical: "/" },
@@ -184,7 +187,11 @@ export default async function HomePage() {
         <div className="wrap hero__grid">
           <div className="hero__copy">
 
+            {/* The slogan is the line people see; the kicker is what Google
+                reads as the page's subject. A slogan-only H1 told search
+                nothing about what we do or where. */}
             <h1 className="hero__h1">
+              <span className="hero__h1-kicker">Heating, cooling &amp; hot water in Pakenham &amp; SE Melbourne</span>{" "}
               One standard. Every job.
             </h1>
             <p className="hero__sub">

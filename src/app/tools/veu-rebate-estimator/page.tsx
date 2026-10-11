@@ -6,7 +6,7 @@ import "../../detail.css";
 import "../tools.css";
 
 export const metadata: Metadata = {
-  title: "VEU Rebate Estimator, What Can I Claim?",
+  title: "VEU Rebate Calculator 2026: What Can I Claim?",
   description:
     "Pick your postcode, current system and planned upgrade to get the Victorian Energy Upgrades rebate range, net install cost and payback in seconds.",
   alternates: { canonical: "/tools/veu-rebate-estimator" },
@@ -22,11 +22,11 @@ export default function VeuRebateEstimatorPage() {
             <span className="sep">/</span>
             <Link href="/tools">Tools</Link>
             <span className="sep">/</span>
-            <span className="cur">VEU rebate estimator</span>
+            <span className="cur">VEU rebate calculator</span>
           </nav>
           <div className="dp-hero__eyebrow"><span className="ds-dot" /> Free tool</div>
           <h1>
-            VEU <span className="accent">rebate estimator</span>.
+            VEU <span className="accent">rebate calculator</span>.
           </h1>
           <p className="dp-hero__sub">
             The Victorian Energy Upgrades (VEU) scheme knocks up to $2,700 off a heat pump
