@@ -303,7 +303,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     // Drop the files into /public, add the lines, and a navy photo band
     // appears on this page. Nothing else needs changing.
     // ------------------------------------------------------------------
-    metaTitle: "Air Conditioning Installation Pakenham & Berwick",
+    metaTitle: "Air Conditioning Installation Pakenham",
     metaDescription:
       "Licensed split, multi-head and ducted aircon installation across Melbourne's south-east. Mitsubishi Electric, Kaden. Written quotes in 12 hrs, 6-year workmanship warranty.",
     heroFacts: [
@@ -314,7 +314,7 @@ export const serviceContent: Record<string, ServiceContent> = {
     ],
     heroPhoto: "/ducted-condenser.webp",
     heroPhotoAlt: "A Kaden ducted condenser we installed on a stand against a brick wall",
-    h1: "Air conditioning, installed properly",
+    h1: "Air conditioning installation, Pakenham & SE Melbourne",
     intro:
       "Licensed refrigeration technicians installing split-system, multi-head and ducted air conditioning across every postcode within 75 km of Pakenham. Written quotes back in 12 business hours, most single-split installs done the same visit, and a 6-year workmanship warranty on every job. We spec Mitsubishi Electric first. It runs under a 1% failure rate across the range, which is the number that matters when you're the one who has to come back, and Kaden where the job calls for it. Same install team, same warranty, same finish either way.",
     whyThese: {

@@ -361,7 +361,7 @@ const WATER_SERVICE_ITEMS: ServiceMegaItem[] = TIERS.map((t) => ({
  * — a hardcoded number there goes stale the first time a tool is added.
  */
 const TOOLS_MEGA: { href: string; label: string; sub: string; icon: string; lead?: boolean; tool?: boolean }[] = [
-  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate estimator",  sub: "Postcode → rebate range",              icon: "$", tool: true },
+  { href: "/tools/veu-rebate-estimator",     label: "VEU rebate calculator",  sub: "Postcode → rebate range",              icon: "$", tool: true },
   { href: "/tools/sizing-calculator",        label: "Aircon sizing",         sub: "Room dims → kW recommended",           icon: "⌂", tool: true },
   { href: "/tools/heat-pump-sizing",         label: "Heat pump sizing",      sub: "Showers → tank size + reheat time",    icon: "◑", tool: true },
   { href: "/tools/running-cost-calculator",  label: "Running cost",          sub: "$/day, week, year",                    icon: "⚡", tool: true },

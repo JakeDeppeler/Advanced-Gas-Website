@@ -39,7 +39,7 @@ const PAGES: Hit[] = [
   { title: "Running cost calculator", path: "/tools/running-cost-calculator", kind: "Tool", blurb: "What a system costs to run, on your tariff.", terms: "running cost electricity bill calculator" },
   { title: "Sizing calculator", path: "/tools/sizing-calculator", kind: "Tool", blurb: "What size aircon a room actually needs.", terms: "size kw capacity room calculator how big" },
   { title: "Heat pump sizing", path: "/tools/heat-pump-sizing", kind: "Tool", blurb: "What tank size suits your household.", terms: "tank size litres household sizing" },
-  { title: "VEU rebate estimator", path: "/tools/veu-rebate-estimator", kind: "Tool", blurb: "Roughly what the rebate is worth on your job.", terms: "rebate estimator calculator veu" },
+  { title: "VEU rebate calculator", path: "/tools/veu-rebate-estimator", kind: "Tool", blurb: "Roughly what the rebate is worth on your job.", terms: "rebate estimator calculator veu" },
   { title: "Heat pump compare", path: "/tools/heat-pump-compare", kind: "Tool", blurb: "Reclaim, iStore and Thermann side by side.", terms: "compare brands heat pump which" },
   { title: "Upgrade or repair", path: "/upgrade-or-repair", kind: "Tool", blurb: "Whether it is worth fixing or worth replacing.", terms: "repair replace worth fixing old unit" },
   { title: "Water filtration", path: "/water-filtration", kind: "Filtration", blurb: "Whole house, under sink, hot water and rainwater UV.", terms: "water filter filtration puretec bwt rainwater uv" },
