@@ -7,7 +7,10 @@ import { BANDS, BAND_BLURB, BAND_LABEL, ICON, byBand, portalNav, type NavBand } 
 import { needsByBand, needsToday } from "@/lib/portal/needs";
 import { NeedsList } from "@/components/portal/NeedsList";
 import { localToday } from "@/lib/portal/xero";
-import { latestBoard, savedGoal, shortMoney } from "@/lib/portal/office";
+import { latestBoard, savedGoal, shortMoney, xeroProfit } from "@/lib/portal/office";
+import { currentLook } from "@/lib/portal/look";
+import { NeutralHome } from "@/components/portal/NeutralHome";
+import { pipelineDue } from "@/lib/pipeline/store";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Team portal" };
@@ -44,6 +47,22 @@ export default async function PortalHome({ searchParams }: { searchParams: { den
   ]);
 
   const first = user.name.split(" ")[0];
+
+  // The neutral look's Home: how the month's going and the way in. Admins
+  // trying the new look only, until it's signed off.
+  if (office && currentLook(user) === "neutral") {
+    const [profit, pipe] = await Promise.all([xeroProfit().catch(() => ({ month: null, year: null, yearFrom: "" })), pipelineDue().catch(() => null)]);
+    const day = localToday().toLocaleDateString("en-AU", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" });
+    const time = new Date().toLocaleTimeString("en-AU", { hour: "numeric", minute: "2-digit", timeZone: "Australia/Melbourne" });
+    return (
+      <PortalShell user={user} variant="home">
+        <NeutralHome
+          first={first} today={`${day} · ${time}`} m={board?.metrics ?? null} profitMonth={profit.month} goal={goal}
+          pipe={pipe} lines={lines} items={portalNav(user, { goalLabel: goal ? shortMoney(goal.revenue) : null })} computedAt={board?.computedAt ?? null}
+        />
+      </PortalShell>
+    );
+  }
   const items = portalNav(user, { goalLabel: goal ? shortMoney(goal.revenue) : null });
   const need = needsByBand(lines);
 

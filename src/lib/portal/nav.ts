@@ -127,6 +127,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   add(office,
     { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The year, the month, and is it paying", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "the numbers", "target", "funnel", "conversion", "leads to paid", "profit"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
+    { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
     { href: "/portal/money", label: "Money in", short: "Money", blurb: "Invoices, overdue, plans, VEU", band: "run", icon: "chart", also: ["invoice", "overdue", "debtors", "owing", "paid", "veu", "payment plan"] },
     { href: "/portal/chats", label: "Customer chats", short: "Chats", blurb: "Every quote conversation", band: "customers", icon: "chat", also: ["message", "sms", "customer"] },
