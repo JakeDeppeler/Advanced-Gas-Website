@@ -11,6 +11,7 @@ import { brands } from "@/lib/brands";
 import { TIERS } from "@/lib/waterFiltration";
 import { SafeImg } from "@/components/SafeImg";
 import { HeaderSearch } from "@/components/HeaderSearch";
+import { RATING_TEXT } from "@/lib/reviews";
 
 /* --------------------------------------------------------------
  * Mega-menu nav data. Simple nav items are links; mega items
@@ -858,7 +859,7 @@ const COMPANY_GROUPS: RailGroup[] = [
     label: "Who we are",
     items: [
       { href: "/about", label: "About us", sub: "The family, the team, how we work", icon: "\u25c8" },
-      { href: "/reviews", label: "Reviews", sub: "4.9/5 on Google", icon: "\u2605" },
+      { href: "/reviews", label: "Reviews", sub: `${RATING_TEXT}/5 on Google`, icon: "\u2605" },
       { href: "/gallery", label: "Gallery", sub: "Real installs \u00b7 before and after", icon: "\u25c9" },
     ],
   },

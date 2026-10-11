@@ -35,18 +35,25 @@ export type Review = {
 };
 
 /**
- * The rating is real and stays. `count` is an ESTIMATE and is never
- * printed or marked up on its own — consumers check `verifiedCount` on
- * the payload from googleReviews.ts and only show a total when it came
- * back from Google's own userRatingCount. The "280 reviews" claim was
- * deliberately dropped from the site once; don't let it back in by
- * rendering this number directly.
+ * What Google actually shows, read off both of our Google listings on
+ * 11 Oct 2026: "Advanced Gas & Air Conditioning Services Pty Ltd"
+ * 4.6 from 11 and "Advanced Gas and Air Con Services" 5.0 from 15,
+ * which is 26 reviews averaging 4.8. The site said "4.9" and
+ * "280+ Google reviews" before this, and neither was true.
+ *
+ * Every rating on the site reads from here, so when the review count
+ * moves, change these two numbers and nothing else. Never round up.
  */
 export const RATING_SUMMARY = {
-  value: 4.9,
-  count: 280,
+  value: 4.8,
+  count: 26,
   best: 5,
+  /** True while `count` is a total read off Google, not an estimate. */
+  countIsGoogles: true,
 } as const;
+
+/** "4.8", the way every badge prints it. */
+export const RATING_TEXT = RATING_SUMMARY.value.toFixed(1);
 
 const REVIEWS_RAW: Review[] = [
   { title: "Quoted Mon, installed Fri", txt: "Took the old gas Rinnai out, dropped in a Reclaim heat pump, sorted the VEU rebate so it came straight off the price. Bloke on the phone is the bloke on the tools, refreshing.", who: "Jess M.", what: "Pakenham · heat pump install", a: "JM" , rating: 5 },
