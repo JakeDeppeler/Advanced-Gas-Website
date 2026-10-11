@@ -232,6 +232,17 @@ export const suburbs: Suburb[] = [
         "Answered the phone myself, quoted the job, showed up to install the job. That trail of trust doesn't exist with most of the bigger mobs anymore.",
     },
     nearby: ["berwick", "hampton-park", "hallam", "cranbourne", "endeavour-hills"],
+    // The 68 is from our own job records (ServiceTitan, invoices since 2022,
+    // distinct Narre Warren addresses), not an estimate. Re-count it before
+    // changing it; don't round it up.
+    whyLocal:
+      "Narre Warren is one of the suburbs we work in most. Our job records show work at 68 different Narre Warren properties since 2022, from a single split service to whole-home changeovers. It is twenty minutes up the Princes Highway from the Pakenham workshop, closer to half an hour when the Fountain Gate traffic is moving, so we book the suburb in runs rather than one-off trips, which is how a same-week install stays a same-week install this far west.",
+    commonProblems: [
+      "The original gas ducted heaters from the 80s and 90s builds are now twenty-five to thirty-plus years old. Past that age a repair usually buys a season rather than a decade, and anything over ten years old gets a carbon monoxide test from us whether or not it is being replaced, because a cracked heat exchanger gives no smell and no warning.",
+      "A lot of these homes still have a rooftop evaporative cooler. It is cheap to run and fine on a dry 35, but it struggles on a humid day and it adds no heating. Sometimes a service (pads, pump, a proper drain-down) is all it needs; sometimes the better answer is refrigerated or reverse-cycle cooling. Whether any of the existing ductwork can be reused is something we check on site, not something to assume.",
+      "Ducted heating in the hallway and nothing in the bedrooms is the usual setup, so summer nights are the complaint. A two or three-head Mitsubishi Electric multi-head runs every bedroom off one outdoor unit, which matters on a block where there is only one sensible place to put it.",
+      "Gas storage hot water that went in with the house is reaching the end of its life. Like-for-like is still an option, but this is exactly the swap the VEU scheme was written for, so we price a heat pump alongside it and let the rebate make the case.",
+    ],
   },
   {
     slug: "endeavour-hills",
