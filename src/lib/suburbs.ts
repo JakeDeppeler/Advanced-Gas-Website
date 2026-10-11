@@ -333,6 +333,17 @@ export const suburbs: Suburb[] = [
         "Quote number matched the invoice exactly. No 'we hit unexpected wiring' story at the end. Nice change.",
     },
     nearby: ["cranbourne-east", "cranbourne-north", "clyde-north", "hampton-park", "botanic-ridge"],
+    // Counts are from our own job records (ServiceTitan invoices, distinct
+    // job locations): 41 Cranbourne, and 27 + 15 + 8 + 4 = 54 across
+    // Cranbourne North, East, West and South. Re-count before changing.
+    whyLocal:
+      "Our job records show work at 41 Cranbourne properties since 2021, and another 54 across Cranbourne North, East, West and South. It is around twenty-five minutes from the Pakenham workshop, a bit over half an hour in business-hours traffic, and we quote the old township and the newer estates differently because the houses are different jobs.",
+    commonProblems: [
+      "The older weatherboards around the township and the station are often still on their original gas heating, ducted or a wall furnace. Anything over ten years old gets a carbon monoxide test from us whether or not it is being replaced, because a cracked heat exchanger gives no smell and no warning.",
+      "The Cranbourne North and East estates built through the 2010s are reaching the age where the hot water that came with the house gives out. That is the swap the VEU scheme was written for, so we price a heat pump alongside like-for-like and let the rebate make the case.",
+      "One split in the living room and nothing in the bedrooms is the usual setup in the estate homes. A two or three-head Mitsubishi Electric multi-head runs every bedroom off one outdoor unit, which matters on a narrow block.",
+      "Estate side setbacks are tight, so where an outdoor unit can sensibly go, away from the neighbour's bedroom window and clear of the easement, decides more installs than capacity does. We measure it at the quote rather than on the day.",
+    ],
   },
   {
     slug: "clyde-north",
@@ -354,6 +365,16 @@ export const suburbs: Suburb[] = [
       "the Casey Fields sports precinct",
     ],
     nearby: ["cranbourne", "cranbourne-east", "clyde", "botanic-ridge", "hampton-park"],
+    // 42 is distinct Clyde North job locations in our records since
+    // Dec 2023, almost all one job each. Re-count before changing.
+    whyLocal:
+      "Clyde North is the newest part of our patch and it has filled up fast. Our job records show work at 42 different Clyde North properties since late 2023, nearly every one a different household. It is about twenty-five minutes from the Pakenham workshop, closer to thirty-five at school pick-up, so we group Clyde North jobs into the same days to keep install dates close to the quote.",
+    commonProblems: [
+      "Most homes here came with ducted heating and cooling already in, set up the way the builder left it. Zones that were wired but never properly commissioned are common, so the house runs as one big zone, costs more to run and never gets the bedrooms right. Zonemate zoning usually fixes it for less than people expect.",
+      "Upstairs bedrooms in the double-storeys run hot when one system is sized and balanced for the ground floor. Rebalancing and zoning sorts most of them; a few need a split upstairs.",
+      "Systems that have run since handover without a single service are the norm. Filters, coils and condensate drains are most of what we find on a first service, and it is an afternoon rather than a replacement.",
+      "The hot water that came with the build is reaching its first replacement in the older stages. We price a VEU-rebated heat pump alongside like-for-like, and on narrow blocks we check where the heat pump can actually sit before we quote it.",
+    ],
   },
   {
     slug: "drouin",
