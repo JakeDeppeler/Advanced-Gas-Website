@@ -103,7 +103,7 @@ export async function getReviews(limit = 12): Promise<ReviewsPayload> {
 
   const fallback: ReviewsPayload = {
     reviews: CURATED.slice(0, limit),
-    summary: { ...CURATED_SUMMARY, verifiedCount: false },
+    summary: { ...CURATED_SUMMARY, verifiedCount: CURATED_SUMMARY.countIsGoogles },
     source: "curated",
   };
 

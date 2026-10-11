@@ -1,4 +1,5 @@
 import { getReviews } from "@/lib/googleReviews";
+import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 
 /**
  * The home page's scrolling review columns, extracted so other pages can
@@ -38,7 +39,7 @@ export async function ReviewMarquee({
           </div>
           <div className="reviews__badge">
             <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-            <div><strong>4.9 / 5</strong> on Google</div>
+            <div><strong>{RATING_TEXT} / 5</strong> from {RATING_SUMMARY.count} Google reviews</div>
           </div>
         </div>
 

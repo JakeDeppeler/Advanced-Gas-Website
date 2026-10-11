@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getReviews } from "@/lib/googleReviews";
+import { RATING_TEXT } from "@/lib/reviews";
 
 /**
  * Compact social-proof row for detail pages (brands, services).
@@ -16,7 +17,7 @@ import { getReviews } from "@/lib/googleReviews";
  */
 export async function ProofStrip({
   eyebrow = "What locals say",
-  heading = "Rated 4.9 by households across the south-east.",
+  heading = `Rated ${RATING_TEXT} on Google by households across the south-east.`,
   subject,
 }: {
   eyebrow?: string;
@@ -44,7 +45,7 @@ export async function ProofStrip({
             <strong>{summary.value.toFixed(1)}</strong>
             <span className="proof__stars" aria-hidden="true">★★★★★</span>
             <span className="proof__count">
-              {summary.verifiedCount ? `from ${summary.count}+ Google reviews` : "on Google"}
+              {summary.verifiedCount ? `from ${summary.count} Google reviews` : "on Google"}
             </span>
           </div>
         </div>

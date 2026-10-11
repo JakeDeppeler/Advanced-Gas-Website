@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import "./preview.css";
+import { RATING_TEXT } from "@/lib/reviews";
 
 export const metadata: Metadata = {
   title: "Preview, phone-first home page mock",
@@ -82,7 +83,7 @@ export default function PreviewPage() {
         <div className="pv-trust">
           <span className="pv-trust__stars">★★★★★</span>
           <div className="pv-trust__col">
-            <strong>4.9 / 5</strong>
+            <strong>{RATING_TEXT} / 5</strong>
             <span>Google reviews</span>
           </div>
           <div className="pv-trust__divider" />
@@ -151,8 +152,8 @@ export default function PreviewPage() {
           <h2 className="pv-h">Reviews from real households.</h2>
           <div className="pv-rev-rating">
             <span className="pv-rev-rating__stars">★★★★★</span>
-            <strong>4.9 / 5</strong>
-            <span>· 4.9 on Google</span>
+            <strong>{RATING_TEXT} / 5</strong>
+            <span>· {RATING_TEXT} on Google</span>
           </div>
           <div className="pv-rev-rail">
             {REVIEWS.map((r, i) => (

@@ -7,7 +7,7 @@ import { HomeJourney } from "@/components/HomeJourney";
 import Script from "next/script";
 import ReactDOM from "react-dom";
 import dynamic from "next/dynamic";
-import { RATING_SUMMARY } from "@/lib/reviews";
+import { RATING_SUMMARY, RATING_TEXT } from "@/lib/reviews";
 import { getReviews } from "@/lib/googleReviews";
 import { site } from "@/lib/site";
 import { faqSchema } from "@/lib/schema";
@@ -217,7 +217,7 @@ export default async function HomePage() {
               <div className="trust-rating">
                 <div className="trust-stars" aria-label="Five star Google rating">★★★★★</div>
                 <div className="trust-rating__txt">
-                  <strong><CountUp value="4.9 / 5" /></strong>
+                  <strong><CountUp value={`${RATING_TEXT} / 5`} /></strong>
                   <span>Google reviews</span>
                 </div>
               </div>
@@ -648,7 +648,7 @@ export default async function HomePage() {
             </div>
             <div className="reviews__badge">
               <div className="reviews__badge-stars" aria-hidden="true">★ ★ ★ ★ ★</div>
-              <div><strong>4.9 / 5</strong> on Google</div>
+              <div><strong>{RATING_TEXT} / 5</strong> from {RATING_SUMMARY.count} Google reviews</div>
             </div>
           </div>
 
