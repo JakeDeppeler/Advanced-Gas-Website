@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Script from "next/script";
 import { services, site } from "@/lib/site";
+import { suburbs } from "@/lib/suburbs";
 import { serviceContent } from "@/lib/serviceContent";
 import { breadcrumbSchema, faqSchema } from "@/lib/schema";
 import { QuoteForm } from "@/components/QuoteForm";
@@ -64,8 +65,8 @@ export function generateMetadata({
   if (!found) notFound();
   const { system } = found;
   return seoMeta({
-    title: `${system.label}, Melbourne South-East`,
-    description: system.blurb,
+    title: system.seoTitle ?? `${system.label}, Melbourne South-East`,
+    description: system.seoDescription ?? system.blurb,
     canonical: `/services/${params.slug}/${params.system}`,
   });
 }
@@ -145,8 +146,16 @@ export default function SystemPage({
                 does it, "Split system air CONDITIONING". Breaks a long
                 flat headline into something with a shape to it. */}
             <h1>
-              {system.label.split(" ").slice(0, -1).join(" ")}{" "}
-              <em>{system.label.split(" ").slice(-1)}</em>
+              {system.h1 ? (
+                <>
+                  {system.h1.lead} <em>{system.h1.accent}</em>
+                </>
+              ) : (
+                <>
+                  {system.label.split(" ").slice(0, -1).join(" ")}{" "}
+                  <em>{system.label.split(" ").slice(-1)}</em>
+                </>
+              )}
             </h1>
             <p className="dp-hero__sub">{system.intro}</p>
             <div className="pg-ctas">
@@ -326,6 +335,34 @@ export default function SystemPage({
                 {system.servicing.facts.map((f) => (
                   <li key={f.k}><strong>{f.v}</strong><span>{f.k}</span></li>
                 ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* WHERE WE DO IT — links into the suburb pages, which carry the
+          local detail. Same layout as the suburb page's own local section
+          so the two read as one thing. */}
+      {system.localAreas && (
+        <section className="suburb-local">
+          <div className="wrap suburb-local__grid">
+            <div className="suburb-local__why">
+              <span className="ds-eyebrow"><span className="ds-dot" /> Where we do it</span>
+              <h2>{system.localAreas.heading}</h2>
+              <p>{system.localAreas.note}</p>
+            </div>
+            <div className="suburb-local__problems">
+              <span className="ds-eyebrow"><span className="ds-dot" /> By suburb</span>
+              <ul>
+                {system.localAreas.suburbs.map((s) => {
+                  const sub = suburbs.find((x) => x.slug === s.slug && x.published);
+                  return sub ? (
+                    <li key={s.slug}>
+                      <Link href={`/areas/${sub.slug}`}><strong>{sub.name}</strong></Link>: {s.line}
+                    </li>
+                  ) : null;
+                })}
               </ul>
             </div>
           </div>
