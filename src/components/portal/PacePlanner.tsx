@@ -91,6 +91,7 @@ export function PacePlanner({
   data,
   profit,
   canSave,
+  tabs,
 }: {
   goal: PaceGoal;
   /** No goal is saved: these are the figures asked for, not yet on the wall. */
@@ -99,6 +100,8 @@ export function PacePlanner({
   data: PaceData | null;
   profit: { summary: ProfitSummary; worst: JobProfit[] } | null;
   canSave: boolean;
+  /** The page's own sub-tabs, under the title. */
+  tabs?: React.ReactNode;
 }) {
   const router = useRouter();
   const [busy, start] = useTransition();
@@ -146,8 +149,9 @@ export function PacePlanner({
     <div className="pt-pace">
       <div className="pt-head pt-head--split">
         <div>
-          <h1>{goal.revenue > 0 ? `${short(goal.revenue)}${goal.profitPct ? ` at ${goal.profitPct}%` : ""}` : "Pace"}</h1>
+          <h1>Pace</h1>
           <p>
+            {goal.revenue > 0 ? <><b>{short(goal.revenue)}{goal.profitPct ? ` at ${goal.profitPct}%` : ""}</b> · </> : null}
             What the goal takes at every step — leads, bookings, quotes, sales, jobs done and invoices — and whether
             each one is keeping up. {label}{asOf ? `, as of ${asOf}` : ""}. Money includes GST.
           </p>
@@ -156,6 +160,7 @@ export function PacePlanner({
           {editing ? "Done" : "Change the goal"}
         </button>
       </div>
+      {tabs && <div className="pk-tabrow">{tabs}</div>}
 
       {sample && (
         <div className="pt-note pt-pace__note">

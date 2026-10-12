@@ -125,7 +125,6 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   });
 
   add(office,
-    { href: "/portal/scoreboard", label: "Scoreboard", blurb: "The year, the month, and is it paying", band: "run", icon: "target", also: ["month", "year", "kpi", "numbers", "the numbers", "target", "funnel", "conversion", "leads to paid", "profit"] },
     { href: "/portal/leads", label: "Leads", blurb: "Who's asking, and from where", band: "run", icon: "speaker", also: ["enquiry", "enquiries", "calls", "source"] },
     { href: "/portal/not-billed", label: "Not billed", blurb: "Jobs done with no invoice yet", band: "run", icon: "doc", also: ["unbilled", "invoice", "to bill", "billing", "not invoiced", "jobs done"] },
     { href: "/portal/hours", label: "Hours", blurb: "Time on the tools, by person", band: "run", icon: "clock", also: ["timesheet", "billable", "utilisation", "on the tools", "clock in"] },
@@ -239,11 +238,22 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/board", label: "What it shows", short: "Pages", blurb: "Each page's figures, and where they come from", band: "board", icon: "chart", also: ["dashboard", "screen", "tv", "live", "feeds"] },
     { href: "/portal/finance/board", label: "Targets & commission", short: "Targets", blurb: "What it aims at, the bonus bands, the working days", band: "board", icon: "target", also: ["commission", "bonus", "working days", "holidays", "board targets"] },
   );
+  // The rebuilt Run the company pages (PR 2 of the new design).
+  add(office,
+    { href: "/portal/today", label: "Today", blurb: "How today is going, who's on what, the calls", band: "hidden", icon: "clock", also: ["today", "sold today", "team now", "call booking", "calls"] },
+    { href: "/portal/kpis", label: "Our KPIs", short: "KPIs", blurb: "Every number we're measured by, against its goal", band: "hidden", icon: "target", also: ["kpi", "kpis", "scoreboard", "benchmarks", "gross margin", "overheads", "net profit", "win rate"] },
+    { href: "/portal/sales", label: "Sales", blurb: "The month, the quotes out, the weeks", band: "hidden", icon: "trend", also: ["sales", "sold", "quotes out", "job types", "sold each week"] },
+    { href: "/portal/rates", label: "Team", short: "Labour rates", blurb: "Labour rates and the leaderboard", band: "hidden", icon: "people", also: ["labour rate", "leaderboard", "cost an hour", "break even"] },
+  );
+  add(office || can(user, "quotes"),
+    { href: "/portal/jobs", label: "Jobs", blurb: "Today's jobs, job profit, not billed, compliance certificates", band: "hidden", icon: "wrench", also: ["jobs", "not billed", "compliance certificate", "vba", "cert", "running over"] },
+  );
+
   // Pages the side bar lists that the old home grid reached through a page's
   // own tabs. Here so the search finds them and the side bar's gate is this list.
   add(office,
     { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
-    { href: "/portal/finance/goals", label: "The year", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
+    { href: "/portal/finance/goals", label: "Year goal", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
     { href: "/portal/finance/capacity", label: "Costs", short: "Our numbers", blurb: "Our numbers: wages, overheads and what an hour costs", band: "hidden", icon: "list", also: ["our numbers", "costs", "overheads", "wages", "capacity"] },
     { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },

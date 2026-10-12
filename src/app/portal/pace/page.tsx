@@ -3,7 +3,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { PaceTabs } from "@/components/portal/run/RunTabs";
 import { Locked } from "@/components/portal/Locked";
 import { PacePlanner } from "@/components/portal/PacePlanner";
 import { readYearGoal } from "@/lib/portal/yearGoal";
@@ -59,7 +59,7 @@ export default async function PacePage() {
 
   return (
     <PortalShell user={user} variant="wide">
-      <PortalBack href="/portal" label="Home" />
+
       {!ready && (
         <div className="pt-note pt-note--warn">
           <strong>The database isn&rsquo;t connected.</strong> The goal can be explored but not saved until it is.
@@ -72,6 +72,7 @@ export default async function PacePage() {
         data={snap?.metrics.paceData ?? null}
         profit={profit}
         canSave={ready}
+        tabs={<PaceTabs on="funnel" />}
       />
     </PortalShell>
   );

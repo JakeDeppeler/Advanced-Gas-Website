@@ -16,7 +16,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
-import { buildSections, sectionOff, sectionOfPath, type Count, type Section } from "@/lib/portal/sections";
+import { ALIAS, buildSections, sectionOff, sectionOfPath, type Count, type Section } from "@/lib/portal/sections";
 import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 
@@ -42,6 +42,8 @@ async function sideCounts(user: PortalUser, sections: Section[]): Promise<Record
   const callsLate = calls.some((c) => touchState(c, today) === "overdue");
   if (todos.due) out["/portal/todo"] = { n: todos.due, red: todos.overdue > 0 };
   if (calls.length) out["/portal/keep-in-touch"] = { n: calls.length, red: callsLate };
+  // A page that became a tab of another carries its count to that page.
+  for (const [from, to] of ALIAS) if (out[from] && !out[to]) out[to] = out[from];
   for (const s of sections) {
     if (s.id === "todo") {
       const n = todos.due + calls.length;

@@ -10,6 +10,8 @@ import { PortalTabs } from "@/components/portal/PortalTabs";
 import { PortalBack } from "@/components/portal/PortalBack";
 import { XeroLine } from "@/components/portal/XeroLine";
 import { Locked } from "@/components/portal/Locked";
+import { getGoals } from "@/lib/portal/goals";
+import { savedGoal } from "@/lib/portal/office";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Finance — Team portal" };
@@ -88,7 +90,7 @@ async function ConnectedView({ tf, kpi }: { tf: MoneyRange; kpi?: string }) {
     : kSpan.k === "month" ? r.month
       : kSpan.k === "lastmonth" ? r.lastMonth
         : lastTwelveMonths();
-  const kDetail = await getPLDetail(kRange.from, kRange.to).catch(() => null);
+  const [kDetail, goals, yearGoal] = await Promise.all([getPLDetail(kRange.from, kRange.to).catch(() => null), getGoals(), savedGoal()]);
   const [today, week, month, lastMonth, year, series] = await Promise.all([
     getProfitAndLoss(r.today.from, r.today.to),
     getProfitAndLoss(r.week.from, r.week.to),
@@ -111,7 +113,7 @@ async function ConnectedView({ tf, kpi }: { tf: MoneyRange; kpi?: string }) {
           <a key={x.k} href={`/portal/finance?kpi=${x.k}${tf !== "12m" ? `&tf=${tf}` : ""}`} className={`pt-seg__b${x.k === kSpan.k ? " is-on" : ""}`} aria-current={x.k === kSpan.k ? "page" : undefined}>{x.label}</a>
         ))}
       </nav>
-      {kDetail ? <KpiStack detail={kDetail} label={kSpan.label.toLowerCase()} /> : <p className="pt-note">Xero didn&rsquo;t return the profit and loss for {kSpan.label.toLowerCase()}.</p>}
+      {kDetail ? <KpiStack detail={kDetail} label={kSpan.label.toLowerCase()} aims={{ gm: goals.gm, ovh: goals.ovh, np: yearGoal?.profitPct ?? null }} /> : <p className="pt-note">Xero didn&rsquo;t return the profit and loss for {kSpan.label.toLowerCase()}.</p>}
 
       <FinanceOverview today={today} week={week} month={month} lastMonth={lastMonth} year={year} series={series} tf={tf} />
 

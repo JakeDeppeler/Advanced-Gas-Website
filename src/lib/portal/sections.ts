@@ -36,9 +36,12 @@ export const SECTION_ICON: Record<string, string> = {
   grow: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+  jobs: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+  team: '<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 13.5a7 7 0 0 1 4 6.5"/>',
 };
 
-type PageDef = { label: string; href: string; office?: boolean };
+/** `unless`: shown only to someone who can't open that page — a stand-in for it. */
+type PageDef = { label: string; href: string; office?: boolean; unless?: string };
 type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: PageDef[]; group: 0 | 1 | 2 };
 
 /**
@@ -59,12 +62,14 @@ export const SECTION_DEFS: SectionDef[] = [
   {
     id: "run", label: "Run the company", icon: "run", group: 1, blurb: "How we're tracking, from lead to paid",
     pages: [
-      { label: "Scoreboard", href: "/portal/scoreboard" },
-      { label: "Quote pipeline", href: "/portal/pipeline" },
-      { label: "Leads", href: "/portal/leads" },
-      { label: "Not billed", href: "/portal/not-billed" },
-      { label: "Hours", href: "/portal/hours" },
-      { label: "Pace", href: "/portal/pace" },
+      { label: "Today", href: "/portal/today" },
+      { label: "Our KPIs", href: "/portal/kpis" },
+      { label: "Sales", href: "/portal/sales" },
+      // Office staff without the money see the pipeline itself, in Sales' place.
+      { label: "Quote pipeline", href: "/portal/pipeline", unless: "/portal/sales" },
+      { label: "Jobs", href: "/portal/jobs" },
+      { label: "Team", href: "/portal/rates" },
+      { label: "Pace", href: "/portal/goal" },
     ],
   },
   {
@@ -77,8 +82,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Money in", href: "/portal/money" },
       { label: "What we owe", href: "/portal/finance/owe" },
       { label: "Profit on every job", href: "/portal/profit" },
-      { label: "Year goal", href: "/portal/goal" },
-      { label: "The year", href: "/portal/finance/goals" },
+      { label: "Year goal", href: "/portal/finance/goals" },
       { label: "Journal entries", href: "/portal/journals" },
     ],
   },
@@ -203,7 +207,7 @@ export function buildSections(items: NavItem[], biz: Business, office: boolean, 
   for (const s of SECTION_DEFS) {
     if (sectionOff(s.id, biz)) continue;
     const pages = s.pages
-      .filter((p) => s.id === "home" || (allowed.has(p.href) && !off.has(p.href) && (!p.office || office)))
+      .filter((p) => s.id === "home" || (allowed.has(p.href) && !off.has(p.href) && (!p.office || office) && !(p.unless && allowed.has(p.unless))))
       .map((p) => ({ href: p.href, label: p.label, count: counts[p.href] }));
     if (!pages.length) continue;
     out.push({ id: s.id, label: s.label, icon: s.icon, blurb: s.blurb, group: s.group, href: pages[0].href, pages, count: counts[`section:${s.id}`] });
@@ -243,16 +247,25 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
  * page they belong to: every tool under Tools, and Every enquiry (which sits
  * under /portal/finance only by history) under Website leads.
  */
-const ALIAS: [string, string][] = [
+export const ALIAS: [string, string][] = [
   ["/portal/tools", "/portal/tools/fault-codes"],
   ["/portal/finance/leads", "/portal/website"],
+  // The pages that became tabs of the rebuilt Run the company pages.
+  ["/portal/pipeline", "/portal/sales"],
+  ["/portal/leads", "/portal/sales"],
+  ["/portal/not-billed", "/portal/jobs"],
+  ["/portal/hours", "/portal/rates"],
+  ["/portal/pace", "/portal/goal"],
 ];
 const unalias = (path: string) => ALIAS.find(([from]) => path === from || path.startsWith(`${from}/`))?.[1] ?? path;
 
 /** The section and page an address belongs to, for the side bar and the breadcrumb. */
 export function whereAmI(sections: Section[], path: string, query: URLSearchParams): { section: Section | null; page: SidePage | null } {
   const all = sections.flatMap((s) => s.pages);
-  const href = activePage(all, unalias(path), query);
+  // The page it's filed under when that's in this person's side bar; the
+  // page itself otherwise (the pipeline is in its own right, for some).
+  const aliased = unalias(path);
+  const href = (aliased !== path ? activePage(all, aliased, query) : null) ?? activePage(all, path, query);
   if (!href) return { section: null, page: null };
   const section = sections.find((s) => s.pages.some((p) => p.href === href)) ?? null;
   return { section, page: section?.pages.find((p) => p.href === href) ?? null };
