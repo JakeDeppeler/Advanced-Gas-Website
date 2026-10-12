@@ -448,6 +448,26 @@ const LOOKUPS: LookupSpec[] = [
     }),
   },
   {
+    // The Model on each equipment item. A quote line carries only the item's
+    // code, which for most units is a name; suppliers order by model
+    // (Supply › Next week, migration 0064).
+    resource: "pricebook-equipment",
+    module: "pricebook",
+    path: "equipment",
+    table: "st_pricebook_equipment",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      code: str(pick(r, "code")),
+      name: str(pick(r, "displayName", "name")),
+      model: str(pick(r, "model", "modelNumber")),
+      manufacturer: str(pick(r, "manufacturer")),
+      vendor: str((r.primaryVendor as Row | undefined)?.vendorName ?? null),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
     resource: "business-units",
     module: "settings",
     path: "business-units",

@@ -229,7 +229,7 @@ export function planWeek(input: {
     if (!(qty > 0)) continue;
     if (s.method === "email_form" && modelLooksLikeName(l.supplier_model)) {
       problem({ job_number: l.job_number, customer_name: l.customer_name, install_date: l.install_date,
-        what: `${s.name} needs a model code, not "${l.supplier_model ?? l.sku_name}" — set the code in the ServiceTitan pricebook` });
+        what: `${s.name} needs a model code, not "${l.supplier_model ?? l.sku_name}" — fill in Model on that item in the ServiceTitan pricebook` });
     }
     const list = orders.get(s.id) ?? [];
     list.push({
