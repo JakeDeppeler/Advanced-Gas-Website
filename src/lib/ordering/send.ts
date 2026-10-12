@@ -8,17 +8,24 @@ import { supplierOrderEmail, workOrderEmail, type EmailParts, type OrderingSetti
 export type SendResult = { ok: boolean; error?: string; note?: string };
 
 /**
- * Who the orders come from. Suppliers and Geoff reply to it, and a supplier
- * order from onboarding@resend.dev — the fallback the portal's own emails use
- * — reads as spam and can't be replied to. So orders refuse to go unless the
- * sending address is on advancedgas.com.au, and always carry the business's
- * name rather than whatever the portal's own emails are labelled.
+ * Who the orders come from: orders@ on the same domain the portal already
+ * sends from (RESEND_FROM_EMAIL, today noreply@advancedgas.com.au).
+ *
+ * Resend lets any address on a verified domain send, so taking the domain
+ * from the working sender and swapping the name in front of the @ means
+ * suppliers see orders@ without a second setting in Vercel — and without
+ * changing who the portal's sign-in emails come from. Replies go to admin@
+ * either way (reply_to, below).
+ *
+ * Refuses unless that domain is advancedgas.com.au: a supplier order from
+ * onboarding@resend.dev, the portal's fallback, reads as spam.
  */
 function fromAddress(): string | null {
   const raw = (process.env.RESEND_FROM_EMAIL ?? "").trim();
   const addr = (raw.match(/<([^>]+)>/)?.[1] ?? raw).trim();
-  if (!/@(?:[a-z0-9-]+\.)*advancedgas\.com\.au$/i.test(addr)) return null;
-  return `Advanced Gas & Aircon <${addr}>`;
+  const domain = addr.split("@")[1]?.toLowerCase() ?? "";
+  if (!/^(?:[a-z0-9-]+\.)*advancedgas\.com\.au$/.test(domain)) return null;
+  return `Advanced Gas & Aircon <orders@${domain}>`;
 }
 
 async function resend(body: Record<string, unknown>): Promise<string | null> {
