@@ -9,6 +9,7 @@ import { VehicleDetail } from "@/components/portal/VehicleDetail";
 import { VehicleCosts, VehicleChecks } from "@/components/portal/VehicleCosts";
 import { VehicleEdit } from "@/components/portal/VehicleEdit";
 import { VanFacts, VanOverview } from "@/components/portal/fleet/VanParts";
+import { VanMoney } from "@/components/portal/fleet/VanMoney";
 import { kmCell } from "@/components/portal/fleetStatus";
 import { Btn, Head, Tabs } from "@/components/portal/kit/Kit";
 import { VanWeekly, type WeeklyRow } from "@/components/portal/VanWeekly";
@@ -114,7 +115,9 @@ export default async function VehiclePage({ params, searchParams }: { params: { 
       {tab === "km" && <KmTab view={view} crew={crew} canManage={canManage} />}
       {tab === "costs" && (
         <>
-          <VehicleCosts vehicle={view} />
+          {/* What it cost and how it's paid for is the office's; the crew see the
+              running side as before. */}
+          {can(user, "overhead") ? <VanMoney van={vehicle} canEdit={canManage} /> : <VehicleCosts vehicle={view} />}
           {canManage && <VehicleEdit vehicle={view} crew={crew} />}
         </>
       )}
