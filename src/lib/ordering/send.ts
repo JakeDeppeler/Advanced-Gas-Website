@@ -4,7 +4,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
 import {
-  ccList, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  ccList, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
 
@@ -84,7 +84,7 @@ async function build(id: number): Promise<Built | { error: string }> {
       poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings,
     });
     if ("error" in form) return { error: form.error };
-    const attachments = [{ filename: `${po.po_number} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+    const attachments = [{ filename: mitsubishiFormFilename(po.po_number), content: Buffer.from(form.pdf).toString("base64") }];
     const email = mitsubishiOrderEmail({
       supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: true,
     });
@@ -228,7 +228,7 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
         const orderDate = todayDmy();
         const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings });
         if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
-        attachments = [{ filename: `${po} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+        attachments = [{ filename: mitsubishiFormFilename(po), content: Buffer.from(form.pdf).toString("base64") }];
         email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: true });
       } else if (s.method === "reece_cart") {
         email = reeceListEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, settings });

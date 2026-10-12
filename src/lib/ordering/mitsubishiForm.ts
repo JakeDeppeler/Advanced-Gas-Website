@@ -31,13 +31,14 @@ export async function fillMitsubishiForm(o: {
   // state in their own boxes, so take them off the end when they're there.
   const m = o.delivery.match(/^(.*?)[,\s]+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)\s+(\d{4})\s*$/i);
 
+  // The template already carries the account details; settings only override
+  // them, so a blank setting can never wipe the account number off an order.
+  const account: Record<string, string | undefined> = {
+    "Account Name": acct.accountName, "Account Number": acct.accountNumber, "Customer ABN": acct.abn,
+    "ME Sales Representative": acct.salesRep, "Contact Name": acct.contactName, "Contact Number": acct.contactNumber,
+  };
   const values: Record<string, string> = {
-    "Account Name": acct.accountName ?? "",
-    "Account Number": acct.accountNumber ?? "",
-    "Customer ABN": acct.abn ?? "",
-    "ME Sales Representative": acct.salesRep ?? "",
-    "Contact Name": acct.contactName ?? "",
-    "Contact Number": acct.contactNumber ?? "",
+    ...Object.fromEntries(Object.entries(account).filter((e): e is [string, string] => !!e[1]?.trim())),
     "Order Date": o.orderDate,
     "Order Number": o.poNumber,
     "Ordered By": o.settings.orderedBy.toUpperCase(),

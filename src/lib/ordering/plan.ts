@@ -564,7 +564,7 @@ ${g.lines.map((l) => `<tr><td style="${cell}">${qtyStr(l.qty)}</td><td style="${
   return { subject, html: shell(`Reece list ${o.poNumber}`, intro, groups.map(table).join(""), footer), text };
 }
 
-/* ---------------------------------------------------------------- Mitsubishi: the email laid out as their form */
+/* ---------------------------------------------------------------- Mitsubishi: the attached form is the order */
 
 /** "1 Sierra Circuit, Pakenham VIC 3810" → street, state, postcode, as the form's boxes want them. */
 export function splitAddress(a: string): { street: string; state: string; postcode: string } {
@@ -572,11 +572,14 @@ export function splitAddress(a: string): { street: string; state: string; postco
   return m ? { street: m[1], state: m[2].toUpperCase(), postcode: m[3] } : { street: a, state: "", postcode: "" };
 }
 
+/** What the order form is called as an attachment — named so it is found in an inbox. */
+export const mitsubishiFormFilename = (poNumber: string) => `${poNumber} Mitsubishi Electric order form.pdf`;
+
 /**
- * Mitsubishi want orders on their form. The filled-in PDF is attached, and
- * the email body is laid out the same way — billing, customer details, the
- * order table and totals — so it can be read and keyed straight from the
- * email without opening the attachment.
+ * Mitsubishi only accept an order on their own order form, so the filled-in
+ * PDF is the order and the email is a covering note. It deliberately does not
+ * repeat the order lines: a second copy in the body is a second version for
+ * their customer service to reconcile, and they process the form.
  */
 export function mitsubishiOrderEmail(o: {
   supplier: Supplier; poNumber: string; orderDate: string; lines: PlannedLine[]; delivery: string;
@@ -584,51 +587,38 @@ export function mitsubishiOrderEmail(o: {
 }): EmailParts {
   const rows = supplierRows(o.lines);
   const acct = o.settings.mitsubishi ?? {};
-  const addr = splitAddress(o.delivery);
-  const subtotal = rows.reduce((t, r) => t + (r.unit_cost ?? 0) * r.qty, 0);
-  const gst = Math.round(subtotal * 10) / 100;
+  const units = rows.reduce((t, r) => t + r.qty, 0);
   const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon (account ${acct.accountNumber ?? ""})${firstNeeded ? ` — needed by ${dayLabel(neededBy(firstNeeded))}` : ""}`;
+  const needed = firstNeeded ? dayLabel(neededBy(firstNeeded)) : null;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — needed by ${needed}` : ""}`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
   const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
+  const file = mitsubishiFormFilename(o.poNumber);
 
-  const lbl = `padding:5px 10px 5px 0;font:13px/18px ${SANS};color:#6b6a68;white-space:nowrap;vertical-align:top;`;
+  const facts: [string, string][] = [
+    ["Order number", o.poNumber],
+    ["Account", [acct.accountName, acct.accountNumber].filter(Boolean).join(" — ")],
+    ["Units", `${units} (${rows.length} model${rows.length === 1 ? "" : "s"})`],
+    ...(needed ? [["First needed by", needed] as [string, string]] : []),
+    ["Deliver to", o.delivery],
+    ...(o.deliveryInstructions ? [["Delivery instructions", o.deliveryInstructions] as [string, string]] : []),
+  ];
+  const lbl = `padding:5px 14px 5px 0;font:13px/18px ${SANS};color:#6b6a68;white-space:nowrap;vertical-align:top;`;
   const val = `padding:5px 0;font:600 13px/18px ${SANS};color:#050a30;vertical-align:top;`;
-  const kv = (pairs: [string, string][]) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0">${pairs.map(([k, v]) =>
+  const attachedNote = o.attached
+    ? `<p style="margin:0 0 14px;padding:12px 14px;border:1px solid #d9d4c7;border-radius:8px;font:600 14px/20px ${SANS};color:#050a30;">Our order is on your order form, attached: <span style="font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:400;">${esc(file)}</span></p>`
+    : "";
+  const body = attachedNote + `<table role="presentation" cellpadding="0" cellspacing="0" border="0">${facts.map(([k, v]) =>
     `<tr><td style="${lbl}">${esc(k)}</td><td style="${val}">${esc(v || "—")}</td></tr>`).join("")}</table>`;
-  const section = (t: string) => `<p style="margin:0 0 8px;font:800 14px/20px ${SANS};color:#050a30;">${esc(t)}</p>`;
-  const billing = section("Billing information") + kv([
-    ["Account name", acct.accountName ?? ""], ["Account number", acct.accountNumber ?? ""], ["Customer ABN", acct.abn ?? ""],
-    ["ME sales representative", acct.salesRep ?? ""], ["Contact name", acct.contactName ?? ""], ["Contact number", acct.contactNumber ?? ""],
-  ]);
-  const customer = section("Customer details") + kv([
-    ["Order date", o.orderDate], ["Order number", o.poNumber], ["Ordered by", o.settings.orderedBy.toUpperCase()],
-    ["Delivery address", addr.street], ["Postcode", addr.postcode], ["State", addr.state],
-  ]);
-  const gh = `padding:8px 10px;background:#7f7f7f;color:#ffffff;font:700 12px/16px ${SANS};text-align:left;`;
-  const order = section("Order details") + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #d9d4c7;">
-<tr><th style="${gh}width:44px;">QTY</th><th style="${gh}">Model number</th><th style="${gh}">Delivery date</th><th style="${gh}text-align:right;">Price ex GST</th><th style="${gh}">Comments</th></tr>
-${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong></td><td style="${cell}white-space:nowrap;">${r.first_install ? esc(dayLabel(neededBy(r.first_install))) : ""}</td><td style="${cell}text-align:right;">${esc(money(r.unit_cost))}</td><td style="${cell}">${r.jobs.length ? `Job ${esc(r.jobs.join(", "))}` : ""}</td></tr>`).join("\n")}
-<tr><td colspan="3" rowspan="3" style="${cell}color:#6b6a68;vertical-align:top;">Delivery instructions: ${esc(o.deliveryInstructions ?? "—")}</td><td style="${cell}text-align:right;font-weight:700;">Sub total</td><td style="${cell}">${esc(money(subtotal))}</td></tr>
-<tr><td style="${cell}text-align:right;font-weight:700;">GST</td><td style="${cell}">${esc(money(gst))}</td></tr>
-<tr><td style="${cell}text-align:right;font-weight:700;">Total</td><td style="${cell}font-weight:700;">${esc(money(subtotal + gst))}</td></tr>
-</table>`;
-  const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;"><tr>
-<td valign="top" width="50%" style="padding:0 12px 12px 0;vertical-align:top;">${billing}</td>
-<td valign="top" width="50%" style="padding:0 0 12px 12px;vertical-align:top;">${customer}</td></tr></table>${order}`;
-  const intro = paras(opening) + (o.attached ? "<br><br>Our order is on your order form, attached, and set out below." : "");
   const footer = `${paras(closing)}<br><br>Replies go to ${esc(o.settings.replyTo)}.<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
-    opening, ...(o.attached ? ["Our order is on your order form, attached."] : []), "",
-    `Account: ${acct.accountName ?? ""} (${acct.accountNumber ?? ""}), ABN ${acct.abn ?? ""}, rep ${acct.salesRep ?? ""}`,
-    `Order ${o.poNumber}, ${o.orderDate}, ordered by ${o.settings.orderedBy}`,
-    `Deliver to: ${o.delivery}`, "",
-    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.first_install ? ` — by ${dayLabel(neededBy(r.first_install))}` : ""}${r.unit_cost != null ? ` — ${money(r.unit_cost)} ex GST` : ""}${r.jobs.length ? ` — job ${r.jobs.join(", ")}` : ""}`),
-    `Sub total ${money(subtotal)} · GST ${money(gst)} · Total ${money(subtotal + gst)}`, "",
+    opening, "",
+    ...(o.attached ? [`Our order is on your order form, attached: ${file}`, ""] : []),
+    ...facts.map(([k, v]) => `${k}: ${v || "—"}`), "",
     closing, `Replies go to ${o.settings.replyTo}.`, `${o.settings.orderedBy} · Advanced Gas & Aircon · 03 5947 8000`,
   ].join("\n");
-  return { subject, html: shell(`Mitsubishi Electric order form — ${o.poNumber}`, intro, body, footer), text };
+  return { subject, html: shell(`Order ${o.poNumber}`, paras(opening), body, footer), text };
 }
 
 export function readyEmail(o: { week: Week; orders: { name: string; lines: number; total: number }[]; workOrders: number; problems: Problem[]; link: string }): EmailParts {
