@@ -142,6 +142,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Team", href: "/portal/team" },
       { label: "Vehicles", href: "/portal/vehicles" },
       { label: "Supply", href: "/portal/supply" },
+      { label: "Next week's orders", href: "/portal/supply/next-week" },
       { label: "Factory stock", href: "/portal/stock" },
       { label: "Tools", href: "/portal/vehicles/tools" },
       { label: "From the crew", href: "/portal/requests" },

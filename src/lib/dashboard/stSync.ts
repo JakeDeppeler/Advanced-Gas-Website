@@ -293,6 +293,29 @@ const RESOURCES: ResourceSpec[] = [
     }),
   },
   {
+    // When each visit is booked for. The job export has no time on it, so this
+    // is the only source of "which installs are next week" (Supply › Next week)
+    // and of the date and time on the electrician's work order. Kept in its own
+    // table — see migration 0062 for why st_jobs.scheduled_on stays empty.
+    resource: "appointments",
+    module: "jpm",
+    table: "st_appointments",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      job_id: num(r.jobId),
+      appointment_number: str(pick(r, "appointmentNumber", "number")),
+      start_at: ts(pick(r, "start", "startOn")),
+      end_at: ts(pick(r, "end", "endOn")),
+      arrival_window_start: ts(r.arrivalWindowStart),
+      arrival_window_end: ts(r.arrivalWindowEnd),
+      status: str(r.status),
+      special_instructions: str(r.specialInstructions),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
     resource: "leads",
     module: "crm",
     table: "st_leads",

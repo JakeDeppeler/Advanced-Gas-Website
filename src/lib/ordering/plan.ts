@@ -1,0 +1,455 @@
+// Supply › Next week: what to order and whom to book, worked out from what is
+// already synced. Pure — no database, no network — so scripts/check-ordering.ts
+// can run it against fixtures taken from live rows.
+//
+// The inputs are the two views from migration 0063: upcoming_order_lines (every
+// unit, material and electrical line on the sold quote of each open install,
+// with the supplier it routes to) and electrician_work_orders (one row per
+// install with electrical on its quote).
+
+import { TZ, addDays, isoDateMelbourne, startOfWeekMelbourne } from "../dashboard/dates";
+
+export type OrderMethod = "reece_cart" | "email" | "email_form" | "work_order";
+
+export type Supplier = {
+  id: string;
+  name: string;
+  method: OrderMethod;
+  email: string | null;
+  notes: string | null;
+  work_order_note: string | null;
+  active: boolean;
+};
+
+export type OrderLine = {
+  job_id: number;
+  job_number: string | null;
+  job_type: string | null;
+  customer_name: string | null;
+  suburb: string | null;
+  install_date: string | null;
+  estimate_id: number | null;
+  sku_id: number | null;
+  sku_name: string | null;
+  description: string | null;
+  sku_type: string | null;
+  qty: number | null;
+  unit_cost: number | null;
+  supplier_id: string | null;
+  issue: string | null;
+  supplier_model: string | null;
+  appointment_start: string | null;
+};
+
+export type WorkOrderRow = {
+  job_id: number;
+  job_number: string | null;
+  job_type: string | null;
+  customer_name: string | null;
+  site_address: string | null;
+  crew: string | null;
+  electrical_items: string | null;
+  send_to: string | null;
+  issue: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
+  system_installed: string | null;
+  work_order_note: string | null;
+  appointment_start_at: string | null;
+  appointment_end_at: string | null;
+  all_visits: string | null;
+  install_date: string | null;
+};
+
+export type Week = { start: string; end: string };
+
+export type PlannedLine = {
+  job_id: number;
+  job_number: string | null;
+  customer_name: string | null;
+  suburb: string | null;
+  install_date: string | null;
+  appointment_start: string | null;
+  sku_id: number | null;
+  sku_name: string | null;
+  sku_type: string | null;
+  description: string | null;
+  supplier_model: string | null;
+  qty: number;
+  unit_cost: number | null;
+};
+
+export type PlannedOrder = { supplier_id: string; lines: PlannedLine[] };
+
+export type WorkOrderJob = {
+  job_id: number;
+  job_number: string | null;
+  job_type: string | null;
+  customer_name: string | null;
+  system_installed: string | null;
+  electrical_items: string | null;
+};
+
+export type WorkOrderDetails = {
+  date: string;
+  start_at: string | null;
+  end_at: string | null;
+  all_visits: string | null;
+  site_address: string;
+  crew: string[];
+  customer_name: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
+  jobs: WorkOrderJob[];
+  note: string | null;
+};
+
+export type PlannedWorkOrder = { supplier_id: string; group_key: string; details: WorkOrderDetails; lines: PlannedLine[] };
+
+export type Problem = { job_number: string | null; customer_name: string | null; install_date: string | null; what: string };
+
+export type WeekPlan = { week: Week; orders: PlannedOrder[]; workOrders: PlannedWorkOrder[]; problems: Problem[] };
+
+/* ---------------------------------------------------------------- dates */
+
+/** A YYYY-MM-DD date moved by whole days, without going near a timezone. */
+export function isoAddDays(iso: string, n: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
+}
+
+/**
+ * Monday to Sunday of the week after the one `now` falls in, in Melbourne.
+ * Run on a Wednesday, that is five to eleven days out: enough for a supplier
+ * to deliver, close enough that the bookings have settled.
+ */
+export function nextWeek(now: Date): Week {
+  // Midday on next week's Monday, read back as a Melbourne date, so a
+  // daylight-saving change between now and then can't tip it a day.
+  const start = isoDateMelbourne(new Date(addDays(startOfWeekMelbourne(now), 7).getTime() + 12 * 3600000));
+  return { start, end: isoAddDays(start, 6) };
+}
+
+export function thisWeek(now: Date): Week {
+  const start = isoDateMelbourne(new Date(startOfWeekMelbourne(now).getTime() + 12 * 3600000));
+  return { start, end: isoAddDays(start, 6) };
+}
+
+export const inWeek = (date: string | null | undefined, w: Week) => !!date && date >= w.start && date <= w.end;
+
+const dayFmt = new Intl.DateTimeFormat("en-AU", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" });
+const timeFmt = new Intl.DateTimeFormat("en-AU", { timeZone: TZ, hour: "numeric", minute: "2-digit", hour12: true });
+const dayTimeFmt = new Intl.DateTimeFormat("en-AU", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
+
+// en-AU writes "Wed, 21 Oct"; the comma reads as a list on an order line.
+const noComma = (s: string) => s.replace(/^(\w{3}),/, "$1");
+
+/** "Mon 20 Oct" for a YYYY-MM-DD date. */
+export function dayLabel(iso: string): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  return noComma(dayFmt.format(new Date(Date.UTC(y, m - 1, d))));
+}
+
+/** "Mon 20 Oct, 7:30 am" for an instant, in Melbourne. */
+export function dayTimeLabel(isoInstant: string): string {
+  const d = new Date(isoInstant);
+  return `${noComma(dayTimeFmt.format(d))}, ${timeFmt.format(d).replace(/\s?([ap])\.?m\.?/i, " $1m")}`;
+}
+
+/**
+ * The working day before an install — when its gear has to be in. A Monday
+ * install needs it by Friday; a supplier can't deliver on the Sunday.
+ */
+export function neededBy(installIso: string): string {
+  let d = isoAddDays(installIso, -1);
+  const dow = () => { const [y, m, dd] = d.split("-").map(Number); return new Date(Date.UTC(y, m - 1, dd)).getUTCDay(); };
+  while (dow() === 0 || dow() === 6) d = isoAddDays(d, -1);
+  return d;
+}
+
+export function weekLabel(w: Week): string {
+  return `${dayLabel(w.start)} – ${dayLabel(w.end)}`;
+}
+
+/* ---------------------------------------------------------------- checks */
+
+/**
+ * A supplier model code has no spaces in it ("PEA-M160HAA/PUZ-ZM160YKA"); a
+ * pricebook name does ("Mitsubishi Electric 16kw Ducted"). The order form goes
+ * to a supplier who looks the code up, so a name in that box means a phone
+ * call at best and the wrong unit at worst. Flagged, not blocked: the office
+ * can still send if they know better.
+ */
+export function modelLooksLikeName(model: string | null | undefined): boolean {
+  return !model || /\s/.test(model.trim());
+}
+
+/* ---------------------------------------------------------------- the plan */
+
+const lineKey = (jobId: number, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
+
+/**
+ * What to draft for a week.
+ *
+ * `alreadyOrdered` holds `job:sku` for every line on an order that has been
+ * approved or sent, and `job:work` for every work order sent — so a redraft
+ * after something has gone out only picks up what is new, and a job moved
+ * into next week after its gear was ordered isn't ordered twice.
+ */
+export function planWeek(input: {
+  week: Week;
+  lines: OrderLine[];
+  workOrders: WorkOrderRow[];
+  suppliers: Supplier[];
+  alreadyOrdered: Set<string>;
+}): WeekPlan {
+  const { week, lines, workOrders, suppliers, alreadyOrdered } = input;
+  const byId = new Map(suppliers.filter((s) => s.active).map((s) => [s.id, s]));
+  const problems: Problem[] = [];
+  const seenProblem = new Set<string>();
+  const problem = (p: Problem) => {
+    const k = `${p.job_number}|${p.what}`;
+    if (!seenProblem.has(k)) { seenProblem.add(k); problems.push(p); }
+  };
+
+  const weekLines = lines.filter((l) => inWeek(l.install_date, week));
+
+  // ---- supplier orders
+  const orders = new Map<string, PlannedLine[]>();
+  for (const l of weekLines) {
+    if (l.issue) {
+      problem({ job_number: l.job_number, customer_name: l.customer_name, install_date: l.install_date,
+        what: l.issue === "No supplier set for this item" ? `No supplier for ${l.sku_name ?? "an item"}` : l.issue });
+      continue;
+    }
+    const s = l.supplier_id ? byId.get(l.supplier_id) : undefined;
+    if (!s || s.method === "work_order") continue;
+    if (alreadyOrdered.has(lineKey(l.job_id, l.sku_id))) continue;
+    const qty = Number(l.qty ?? 1);
+    if (!(qty > 0)) continue;
+    if (s.method === "email_form" && modelLooksLikeName(l.supplier_model)) {
+      problem({ job_number: l.job_number, customer_name: l.customer_name, install_date: l.install_date,
+        what: `${s.name} needs a model code, not "${l.supplier_model ?? l.sku_name}" — set the code in the ServiceTitan pricebook` });
+    }
+    const list = orders.get(s.id) ?? [];
+    list.push({
+      job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
+      install_date: l.install_date, appointment_start: l.appointment_start,
+      sku_id: l.sku_id, sku_name: l.sku_name, sku_type: l.sku_type, description: l.description,
+      supplier_model: l.supplier_model, qty, unit_cost: l.unit_cost == null ? null : Number(l.unit_cost),
+    });
+    orders.set(s.id, list);
+  }
+
+  // ---- electrician work orders: one per site per day, so two jobs at one
+  // address on one day are one visit for him, not two emails.
+  const groups = new Map<string, { supplier_id: string; rows: WorkOrderRow[] }>();
+  for (const w of workOrders) {
+    if (!inWeek(w.install_date, week)) continue;
+    if (alreadyOrdered.has(`${w.job_id}:work`)) continue;
+    if (w.issue && w.issue !== "No customer contact on file") {
+      problem({ job_number: w.job_number, customer_name: w.customer_name, install_date: w.install_date, what: `Electrician: ${w.issue.toLowerCase()}` });
+    } else if (w.issue) {
+      problem({ job_number: w.job_number, customer_name: w.customer_name, install_date: w.install_date, what: "Electrician: no customer phone or email in ServiceTitan" });
+    }
+    const supplier = suppliers.find((s) => s.method === "work_order" && s.active);
+    if (!supplier || !w.install_date) continue;
+    const key = `${w.install_date}|${(w.site_address ?? `job ${w.job_number}`).toLowerCase()}`;
+    const g = groups.get(key) ?? { supplier_id: supplier.id, rows: [] };
+    g.rows.push(w);
+    groups.set(key, g);
+  }
+
+  const workPlans: PlannedWorkOrder[] = [...groups.entries()].map(([key, g]) => {
+    const rows = [...g.rows].sort((a, b) => (a.appointment_start_at ?? "").localeCompare(b.appointment_start_at ?? ""));
+    const first = rows[0];
+    const crew = [...new Set(rows.flatMap((r) => (r.crew ?? "").split(",").map((s) => s.trim()).filter(Boolean)))];
+    const withContact = rows.find((r) => r.customer_phone || r.customer_email) ?? first;
+    const details: WorkOrderDetails = {
+      date: first.install_date!,
+      start_at: first.appointment_start_at,
+      end_at: rows.map((r) => r.appointment_end_at).filter(Boolean).sort().pop() ?? null,
+      all_visits: first.all_visits,
+      site_address: first.site_address ?? "",
+      crew,
+      customer_name: withContact.customer_name,
+      customer_phone: withContact.customer_phone,
+      customer_email: withContact.customer_email,
+      jobs: rows.map((r) => ({
+        job_id: r.job_id, job_number: r.job_number, job_type: r.job_type, customer_name: r.customer_name,
+        system_installed: r.system_installed, electrical_items: r.electrical_items,
+      })),
+      note: first.work_order_note,
+    };
+    // One line per job, so "has this job's electrician been booked" is
+    // answered the same way as "has this job's gear been ordered".
+    const lines: PlannedLine[] = rows.map((r) => ({
+      job_id: r.job_id, job_number: r.job_number, customer_name: r.customer_name, suburb: null,
+      install_date: r.install_date, appointment_start: r.appointment_start_at,
+      sku_id: null, sku_name: "ELECTRICAL", sku_type: "Service", description: r.electrical_items,
+      supplier_model: null, qty: 1, unit_cost: null,
+    }));
+    return { supplier_id: g.supplier_id, group_key: key, details, lines };
+  });
+
+  const orderPlans = [...orders.entries()]
+    .map(([supplier_id, ls]) => ({
+      supplier_id,
+      lines: ls.sort((a, b) => (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? "")),
+    }))
+    .sort((a, b) => (byId.get(a.supplier_id)?.name ?? "").localeCompare(byId.get(b.supplier_id)?.name ?? ""));
+
+  problems.sort((a, b) => (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
+  return {
+    week,
+    orders: orderPlans,
+    workOrders: workPlans.sort((a, b) => (a.details.start_at ?? a.details.date).localeCompare(b.details.start_at ?? b.details.date)),
+    problems,
+  };
+}
+
+/* ---------------------------------------------------------------- order lines as the supplier reads them */
+
+export type SupplierRow = { model: string; description: string | null; qty: number; unit_cost: number | null; jobs: string[]; first_install: string | null };
+
+/**
+ * The same unit for three jobs is one line of three on the order, with the
+ * jobs it is for alongside — the supplier picks by model, we unpack by job.
+ */
+export function supplierRows(lines: PlannedLine[]): SupplierRow[] {
+  const m = new Map<string, SupplierRow>();
+  for (const l of lines) {
+    const model = (l.supplier_model ?? l.sku_name ?? "").trim();
+    const key = model.toLowerCase();
+    const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date };
+    r.qty += l.qty;
+    if (l.job_number && !r.jobs.includes(l.job_number)) r.jobs.push(l.job_number);
+    if (l.install_date && (!r.first_install || l.install_date < r.first_install)) r.first_install = l.install_date;
+    m.set(key, r);
+  }
+  return [...m.values()].sort((a, b) => (a.first_install ?? "").localeCompare(b.first_install ?? "") || a.model.localeCompare(b.model));
+}
+
+export const linesTotal = (lines: PlannedLine[]) =>
+  lines.reduce((t, l) => t + (l.unit_cost == null ? 0 : l.unit_cost * l.qty), 0);
+
+export function poNumber(week: Week, supplierId: string, n: number): string {
+  const code = supplierId.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase();
+  return `AGA-${week.start.replace(/-/g, "").slice(2)}-${code}${n > 1 ? `-${n}` : ""}`;
+}
+
+/* ---------------------------------------------------------------- emails */
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const money = (n: number | null) => (n == null ? "" : `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const qtyStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""));
+
+const SANS = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+const cell = "padding:8px 10px;border-bottom:1px solid #eae7dd;font:14px/20px " + SANS + ";color:#050a30;vertical-align:top;";
+const head = "padding:8px 10px;border-bottom:2px solid #050a30;font:600 12px/16px " + SANS + ";color:#6b6a68;text-align:left;text-transform:uppercase;letter-spacing:.06em;";
+
+function shell(title: string, intro: string, body: string, footer: string): string {
+  return `<!doctype html><html><body style="margin:0;background:#f9f8f3;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f8f3;"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;background:#ffffff;border-radius:14px;">
+<tr><td style="padding:24px 24px 8px;font:800 20px/26px ${SANS};color:#050a30;">${esc(title)}</td></tr>
+<tr><td style="padding:0 24px 16px;font:15px/22px ${SANS};color:#050a30;">${intro}</td></tr>
+<tr><td style="padding:0 24px 16px;">${body}</td></tr>
+<tr><td style="padding:8px 24px 24px;font:13px/19px ${SANS};color:#6b6a68;">${footer}</td></tr>
+</table></td></tr></table></body></html>`;
+}
+
+export type EmailParts = { subject: string; html: string; text: string };
+
+export type OrderingSettings = {
+  replyTo: string;
+  deliveryAddress: string;
+  orderedBy: string;
+  mitsubishi?: {
+    accountName?: string; accountNumber?: string; abn?: string; salesRep?: string; contactName?: string; contactNumber?: string;
+  };
+};
+
+export function supplierOrderEmail(o: {
+  supplier: Supplier;
+  poNumber: string;
+  lines: PlannedLine[];
+  delivery: string;
+  deliveryInstructions: string | null;
+  settings: OrderingSettings;
+  attached: boolean;
+}): EmailParts {
+  const rows = supplierRows(o.lines);
+  const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${firstNeeded ? ` — needed by ${dayLabel(neededBy(firstNeeded))}` : ""}`;
+  const table = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+<tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job</th><th style="${head}">Install</th></tr>
+${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${esc(r.jobs.join(", "))}</td><td style="${cell}">${r.first_install ? esc(dayLabel(r.first_install)) : ""}</td></tr>`).join("\n")}
+</table>`;
+  const intro = `Hi ${esc(o.supplier.name)},<br><br>Please supply the following for Advanced Gas &amp; Aircon, order <strong>${esc(o.poNumber)}</strong>.`
+    + (o.attached ? " Your order form is attached, filled in." : "")
+    + `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`
+    + (o.deliveryInstructions ? `<br><strong>Instructions:</strong> ${esc(o.deliveryInstructions)}` : "")
+    + (firstNeeded ? `<br><strong>Needed by:</strong> ${esc(dayLabel(neededBy(firstNeeded)))} (first install ${esc(dayLabel(firstNeeded))})` : "");
+  const footer = `Please confirm the order and expected delivery by replying to this email (${esc(o.settings.replyTo)}).<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const text = [
+    `Hi ${o.supplier.name},`, "",
+    `Please supply the following for Advanced Gas & Aircon, order ${o.poNumber}.${o.attached ? " Your order form is attached." : ""}`,
+    `Deliver to: ${o.delivery}`,
+    ...(o.deliveryInstructions ? [`Instructions: ${o.deliveryInstructions}`] : []),
+    ...(firstNeeded ? [`Needed by: ${dayLabel(neededBy(firstNeeded))} (first install ${dayLabel(firstNeeded)})`] : []),
+    "",
+    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} — job ${r.jobs.join(", ")}${r.first_install ? `, install ${dayLabel(r.first_install)}` : ""}`),
+    "",
+    `Please confirm the order and delivery by replying to ${o.settings.replyTo}.`,
+    `${o.settings.orderedBy} · Advanced Gas & Aircon · 03 5947 8000`,
+  ].join("\n");
+  return { subject, html: shell(`Order ${o.poNumber}`, intro, table, footer), text };
+}
+
+export function workOrderEmail(o: { supplier: Supplier; poNumber: string; details: WorkOrderDetails; settings: OrderingSettings }): EmailParts {
+  const d = o.details;
+  const when = d.start_at ? dayTimeLabel(d.start_at) : dayLabel(d.date);
+  const subject = `Work order ${o.poNumber} — ${when} — ${d.site_address}`;
+  const row = (k: string, v: string | null | undefined) =>
+    v ? `<tr><td style="${cell}width:150px;color:#6b6a68;">${esc(k)}</td><td style="${cell}">${v}</td></tr>` : "";
+  const contact = [d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).map((s) => esc(String(s))).join(" · ");
+  const jobs = d.jobs.map((j) =>
+    `<strong>Job ${esc(j.job_number ?? "")}</strong> · ${esc(j.job_type ?? "")}`
+    + (j.system_installed ? `<br>System: ${esc(j.system_installed)}` : "")
+    + (j.electrical_items ? `<br><span style="color:#6b6a68;">Electrical on the quote: ${esc(j.electrical_items)}</span>` : "")).join("<br><br>");
+  const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+${row("When", esc(when) + (d.all_visits && d.all_visits.includes(",") ? `<br><span style="color:#6b6a68;">Our crew is on site: ${esc(d.all_visits)}</span>` : ""))}
+${row("Site", esc(d.site_address))}
+${row("The job", jobs)}
+${row("Our crew on site", esc(d.crew.join(", ") || "To be confirmed"))}
+${row("Customer", contact || "No contact on file — call us")}
+</table>`;
+  const intro = `Hi Geoff,<br><br>Please book in the electrical for the install below.`;
+  const footer = `${d.note ? `<strong style="color:#050a30;">${esc(d.note)}</strong><br><br>` : ""}Email us at ${esc(o.settings.replyTo)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const text = [
+    "Hi Geoff,", "", "Please book in the electrical for the install below.", "",
+    `When: ${when}${d.all_visits && d.all_visits.includes(",") ? ` (our crew on site: ${d.all_visits})` : ""}`,
+    `Site: ${d.site_address}`,
+    ...d.jobs.map((j) => `Job ${j.job_number} · ${j.job_type}${j.system_installed ? ` · System: ${j.system_installed}` : ""}${j.electrical_items ? ` · Electrical: ${j.electrical_items}` : ""}`),
+    `Our crew on site: ${d.crew.join(", ") || "To be confirmed"}`,
+    `Customer: ${[d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).join(" · ") || "No contact on file — call us"}`,
+    "",
+    ...(d.note ? [d.note, ""] : []),
+    `Email us at ${o.settings.replyTo} · Advanced Gas & Aircon · 03 5947 8000`,
+  ].join("\n");
+  return { subject, html: shell(`Work order ${o.poNumber}`, intro, body, footer), text };
+}
+
+export function readyEmail(o: { week: Week; orders: { name: string; lines: number; total: number }[]; workOrders: number; problems: Problem[]; link: string }): EmailParts {
+  const subject = `Next week's orders are ready to approve — ${weekLabel(o.week)}`;
+  const items = o.orders.map((x) => `<li>${esc(x.name)}: ${x.lines} line${x.lines === 1 ? "" : "s"}${x.total ? `, ${money(x.total)}` : ""}</li>`).join("");
+  const body = `<ul style="margin:0;padding-left:20px;font:15px/24px ${SANS};color:#050a30;">${items}${o.workOrders ? `<li>Electrician: ${o.workOrders} work order${o.workOrders === 1 ? "" : "s"}</li>` : ""}</ul>`
+    + (o.problems.length ? `<p style="font:14px/20px ${SANS};color:#c2410c;">${o.problems.length} thing${o.problems.length === 1 ? "" : "s"} couldn't be ordered — see the page.</p>` : "");
+  const intro = `Drafted from next week's bookings and their sold quotes. Nothing has gone to anyone yet.`;
+  const footer = `<a href="${esc(o.link)}" style="color:#f46722;font-weight:700;">Review and approve →</a>`;
+  const text = [intro, "", ...o.orders.map((x) => `${x.name}: ${x.lines} lines${x.total ? `, ${money(x.total)}` : ""}`),
+    ...(o.workOrders ? [`Electrician: ${o.workOrders} work orders`] : []),
+    ...(o.problems.length ? [`${o.problems.length} things couldn't be ordered — see the page.`] : []), "", o.link].join("\n");
+  return { subject, html: shell(`Next week · ${weekLabel(o.week)}`, intro, body, footer), text };
+}
