@@ -32,6 +32,7 @@ export const TAB_SETS: Record<TabSetName, Tab[]> = {
   supply: [
     { href: "/portal/supply", label: "Overview" },
     { href: "/portal/supply/next-week", label: "Next week" },
+    { href: "/portal/supply/emails", label: "Supplier emails" },
     { href: "/portal/supply/orders", label: "Orders" },
     { href: "/portal/supply/search", label: "Item search" },
     { href: "/portal/supply/syncs", label: "Sync history" },

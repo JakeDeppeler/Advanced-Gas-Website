@@ -19,7 +19,26 @@ export type Supplier = {
   notes: string | null;
   work_order_note: string | null;
   active: boolean;
+  /** The office's own opening and closing for this supplier's emails (0065); blank uses the defaults below. */
+  email_intro?: string | null;
+  email_signoff?: string | null;
 };
+
+/*
+ * The wording each email opens and closes with, unless the office has written
+ * its own on Supply › Supplier emails. {supplier} and {po} are filled in when
+ * the email is built. Everything between — the order lines, delivery, needed
+ * by, the booking details — is always generated, so the wording can be changed
+ * without any risk of losing what the supplier needs to act on.
+ */
+export const DEFAULT_ORDER_INTRO = "Hi team,\n\nPlease supply the following for Advanced Gas & Aircon, order {po}.";
+export const DEFAULT_ORDER_SIGNOFF = "Please confirm the order and expected delivery by replying to this email.";
+export const DEFAULT_WORK_INTRO = "Hi Geoff,\n\nPlease book in the electrical for the install below.";
+
+export function fillWording(template: string, vars: { supplier: string; po: string }): string {
+  return template.replace(/\{supplier\}/gi, vars.supplier).replace(/\{po\}/gi, vars.po).trim();
+}
+const blank = (v: string | null | undefined) => !v || !v.trim();
 
 export type OrderLine = {
   job_id: number;
@@ -341,6 +360,8 @@ export function poNumber(week: Week, supplierId: string, n: number): string {
 /* ---------------------------------------------------------------- emails */
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+/** The office's wording into email HTML: escaped, line breaks kept. */
+const paras = (t: string) => esc(t).replace(/\r?\n/g, "<br>");
 const money = (n: number | null) => (n == null ? "" : `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 const qtyStr = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""));
 
@@ -386,22 +407,27 @@ export function supplierOrderEmail(o: {
 <tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job</th><th style="${head}">Install</th></tr>
 ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${esc(r.jobs.join(", "))}</td><td style="${cell}">${r.first_install ? esc(dayLabel(r.first_install)) : ""}</td></tr>`).join("\n")}
 </table>`;
-  const intro = `Hi ${esc(o.supplier.name)},<br><br>Please supply the following for Advanced Gas &amp; Aircon, order <strong>${esc(o.poNumber)}</strong>.`
-    + (o.attached ? " Your order form is attached, filled in." : "")
+  const vars = { supplier: o.supplier.name, po: o.poNumber };
+  const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
+  const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
+  const intro = paras(opening)
+    + (o.attached ? "<br><br>Your order form is attached, filled in." : "")
     + `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`
     + (o.deliveryInstructions ? `<br><strong>Instructions:</strong> ${esc(o.deliveryInstructions)}` : "")
     + (firstNeeded ? `<br><strong>Needed by:</strong> ${esc(dayLabel(neededBy(firstNeeded)))} (first install ${esc(dayLabel(firstNeeded))})` : "");
-  const footer = `Please confirm the order and expected delivery by replying to this email (${esc(o.settings.replyTo)}).<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const footer = `${paras(closing)}<br><br>Replies go to ${esc(o.settings.replyTo)}.<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
-    `Hi ${o.supplier.name},`, "",
-    `Please supply the following for Advanced Gas & Aircon, order ${o.poNumber}.${o.attached ? " Your order form is attached." : ""}`,
+    opening,
+    ...(o.attached ? ["Your order form is attached, filled in."] : []),
+    "",
     `Deliver to: ${o.delivery}`,
     ...(o.deliveryInstructions ? [`Instructions: ${o.deliveryInstructions}`] : []),
     ...(firstNeeded ? [`Needed by: ${dayLabel(neededBy(firstNeeded))} (first install ${dayLabel(firstNeeded)})`] : []),
     "",
     ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} — job ${r.jobs.join(", ")}${r.first_install ? `, install ${dayLabel(r.first_install)}` : ""}`),
     "",
-    `Please confirm the order and delivery by replying to ${o.settings.replyTo}.`,
+    closing,
+    `Replies go to ${o.settings.replyTo}.`,
     `${o.settings.orderedBy} · Advanced Gas & Aircon · 03 5947 8000`,
   ].join("\n");
   return { subject, html: shell(`Order ${o.poNumber}`, intro, table, footer), text };
@@ -425,17 +451,22 @@ ${row("The job", jobs)}
 ${row("Our crew on site", esc(d.crew.join(", ") || "To be confirmed"))}
 ${row("Customer", contact || "No contact on file — call us")}
 </table>`;
-  const intro = `Hi Geoff,<br><br>Please book in the electrical for the install below.`;
-  const footer = `${d.note ? `<strong style="color:#050a30;">${esc(d.note)}</strong><br><br>` : ""}Email us at ${esc(o.settings.replyTo)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const vars = { supplier: o.supplier.name, po: o.poNumber };
+  const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_WORK_INTRO : o.supplier.email_intro!, vars);
+  // The note to the electrician: the office's current wording, else the one
+  // stored with the work order when it was drafted.
+  const note = !blank(o.supplier.email_signoff) ? fillWording(o.supplier.email_signoff!, vars) : d.note;
+  const intro = paras(opening);
+  const footer = `${note ? `<strong style="color:#050a30;">${paras(note)}</strong><br><br>` : ""}Email us at ${esc(o.settings.replyTo)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
-    "Hi Geoff,", "", "Please book in the electrical for the install below.", "",
+    opening, "",
     `When: ${when}${d.all_visits && d.all_visits.includes(",") ? ` (our crew on site: ${d.all_visits})` : ""}`,
     `Site: ${d.site_address}`,
     ...d.jobs.map((j) => `Job ${j.job_number} · ${j.job_type}${j.system_installed ? ` · System: ${j.system_installed}` : ""}${j.electrical_items ? ` · Electrical: ${j.electrical_items}` : ""}`),
     `Our crew on site: ${d.crew.join(", ") || "To be confirmed"}`,
     `Customer: ${[d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).join(" · ") || "No contact on file — call us"}`,
     "",
-    ...(d.note ? [d.note, ""] : []),
+    ...(note ? [note, ""] : []),
     `Email us at ${o.settings.replyTo} · Advanced Gas & Aircon · 03 5947 8000`,
   ].join("\n");
   return { subject, html: shell(`Work order ${o.poNumber}`, intro, body, footer), text };

@@ -123,6 +123,20 @@ ok("needed by skips the weekend", neededBy("2026-10-19") === "2026-10-16" && nee
 ok("supplier email asks for it the working day before install", /needed by Thu 22 Oct/.test(se.subject), se.subject);
 ok("and escapes what it prints", !/<script/.test(supplierOrderEmail({ supplier: suppliers[2], poNumber: "X", lines: [{ ...bySup.reclaim![0], supplier_model: "<script>" }], delivery: "a", deliveryInstructions: null, settings, attached: false }).html));
 
+console.log("\n-- the office's own wording --");
+const custom = supplierOrderEmail({
+  supplier: { ...suppliers[2], email_intro: "G'day Reclaim crew,\nOrder {po} below please.", email_signoff: "Cheers — Kellie <ring 5947 8000>" },
+  poNumber: "AGA-261019-REC", lines: bySup.reclaim!, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: false,
+});
+ok("a custom opening is used, with {po} filled in", custom.text.startsWith("G'day Reclaim crew,\nOrder AGA-261019-REC below please."), custom.text.slice(0, 60));
+ok("a custom closing is used", custom.text.includes("Cheers — Kellie <ring 5947 8000>"));
+ok("and escaped in the HTML, line breaks kept", custom.html.includes("Cheers — Kellie &lt;ring 5947 8000&gt;") && custom.html.includes("G&#39;day") === false && custom.html.includes("crew,<br>Order"));
+ok("the order lines are still there", custom.text.includes("— job 20410, install Fri 23 Oct"));
+const plain = supplierOrderEmail({ supplier: { ...suppliers[2], email_intro: "   ", email_signoff: null }, poNumber: "X1", lines: bySup.reclaim!, delivery: "a", deliveryInstructions: null, settings, attached: false });
+ok("a blank box falls back to the standard wording", plain.text.startsWith("Hi team,") && plain.text.includes("Please confirm the order"));
+const geoffCustom = workOrderEmail({ supplier: { ...suppliers[3], email_intro: "Morning Geoff,", email_signoff: "Call Jake if stuck." }, poNumber: "W1", details: fremont!.details, settings });
+ok("Geoff's opening and note can be changed too", geoffCustom.text.startsWith("Morning Geoff,") && geoffCustom.text.includes("Call Jake if stuck.") && !geoffCustom.text.includes("Email us if you can't make it"));
+
 console.log("\n-- the Mitsubishi form --");
 (async () => {
   const filled = await fillMitsubishiForm({

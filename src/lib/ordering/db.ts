@@ -2,7 +2,7 @@ import "server-only";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import {
-  planWeek, poNumber, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
+  isoAddDays, planWeek, poNumber, thisWeek, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
   type WorkOrderDetails, type WorkOrderRow,
 } from "./plan";
 
@@ -47,7 +47,7 @@ export async function loadOrderingSettings(): Promise<OrderingSettings> {
 }
 
 export async function loadSuppliers(): Promise<Supplier[]> {
-  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active&order=name.asc");
+  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active,email_intro,email_signoff&order=name.asc");
 }
 
 const weekFilter = (w: Week) => `install_date=gte.${w.start}&install_date=lte.${w.end}`;
@@ -233,4 +233,58 @@ export async function setDelivery(id: number, patch: { toSite: boolean; address:
     updated_at: new Date().toISOString(),
   });
   return true;
+}
+
+/* ---------------------------------------------------------------- supplier emails page */
+
+export async function saveSupplierEmail(id: string, patch: { email: string | null; intro: string | null; signoff: string | null }): Promise<boolean> {
+  const rows = await sbSelect<{ id: string }>("order_suppliers", `select=id&id=eq.${encodeURIComponent(id)}`);
+  if (!rows.length) return false;
+  await sbUpdate("order_suppliers", `id=eq.${encodeURIComponent(id)}`, {
+    email: patch.email, email_intro: patch.intro, email_signoff: patch.signoff, updated_at: new Date().toISOString(),
+  });
+  return true;
+}
+
+export type Sample = { lines: PlannedLine[]; details: WorkOrderDetails | null; real: boolean };
+
+/**
+ * Something real to show in each supplier's sample: that supplier's lines
+ * from installs booked over the next four weeks, or the next electrician
+ * visit. A supplier with nothing booked gets one obviously made-up line, so
+ * every sample still shows how its email reads.
+ */
+export async function loadSamples(): Promise<Map<string, Sample>> {
+  const start = thisWeek(new Date()).start;
+  const range: Week = { start, end: isoAddDays(start, 27) };
+  const [suppliers, inputs] = await Promise.all([loadSuppliers(), loadWeekInputs(range)]);
+  const plan = planWeek({ week: range, ...inputs, suppliers, alreadyOrdered: new Set() });
+  const nextMonday = isoAddDays(start, 7);
+  const out = new Map<string, Sample>();
+  for (const s of suppliers) {
+    if (s.method === "work_order") {
+      const wo = plan.workOrders.find((w) => w.supplier_id === s.id);
+      out.set(s.id, wo ? { lines: wo.lines, details: wo.details, real: true } : {
+        lines: [], real: false,
+        details: {
+          date: nextMonday, start_at: null, end_at: null, all_visits: null, site_address: "1 Example Street, Pakenham VIC 3810",
+          crew: ["Example tech"], customer_name: "Example customer", customer_phone: "0400 000 000", customer_email: null,
+          jobs: [{ job_id: 0, job_number: "EXAMPLE", job_type: "Install - Split System", customer_name: "Example customer",
+            system_installed: "Example split system", electrical_items: "AC-SPLIT-ELEC x1" }],
+          note: s.work_order_note,
+        },
+      });
+      continue;
+    }
+    const o = plan.orders.find((x) => x.supplier_id === s.id);
+    out.set(s.id, o ? { lines: o.lines.slice(0, 14), details: null, real: true } : {
+      details: null, real: false,
+      lines: [{
+        job_id: 0, job_number: "EXAMPLE", customer_name: "Example customer", suburb: "Pakenham", install_date: nextMonday,
+        appointment_start: null, sku_id: null, sku_name: "EXAMPLE-MODEL", sku_type: "Equipment",
+        description: "Example line — nothing from this supplier is booked in the next four weeks", supplier_model: "EXAMPLE-MODEL", qty: 1, unit_cost: null,
+      }],
+    });
+  }
+  return out;
 }

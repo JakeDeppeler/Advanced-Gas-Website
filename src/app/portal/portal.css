@@ -5317,3 +5317,13 @@ a.pt-td__pill { text-decoration: none; }
   .pt-nw__wo dd { margin-bottom: 10px; }
   .pt-nw__po { margin-left: 0; }
 }
+
+/* Supply › Supplier emails (SupplierEmails.tsx). */
+.pt-supem__field { display: grid; gap: 6px; margin-top: 14px; max-width: 720px; font-size: 14px; }
+.pt-supem__field > span { font-weight: 700; color: var(--pt-ink); }
+.pt-supem__text { min-height: 64px; padding: 10px 12px; border: 1px solid var(--pt-field); border-radius: 10px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; line-height: 1.5; resize: vertical; box-sizing: border-box; width: 100%; }
+.pt-supem__field .pt-nw__input { width: 100%; max-width: 420px; box-sizing: border-box; }
+.pt-supem__hint { margin: 10px 0 0; max-width: 720px; }
+.pt-supem__allrow { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.pt-supem__allrow .pt-nw__input { flex: 1 1 260px; max-width: 420px; box-sizing: border-box; }
+.pt-supem__all .pt-inline { display: block; margin-top: 10px; }

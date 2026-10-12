@@ -179,6 +179,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       href: "/portal/supply/next-week", label: "Next week's orders", short: "Next week", blurb: "Gear for next week's installs, and the electrician",
       band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
     },
+    {
+      href: "/portal/supply/emails", label: "Supplier emails", blurb: "Who orders go to, and the wording",
+      band: "crew", icon: "box", also: ["supplier", "email", "wording", "sample", "test email", "vendor", "order email"],
+    },
   );
   items.push(
     { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
