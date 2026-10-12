@@ -4,7 +4,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
 import {
-  ccList, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  ccList, deliveryInstructionsFor, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
 } from "./plan";
 
@@ -71,6 +71,7 @@ async function build(id: number): Promise<Built | { error: string }> {
   if (!supplier) return { error: "Unknown supplier." };
   const settings = await loadOrderingSettings();
   const delivery = po.delivery_address || settings.deliveryAddress;
+  const instructions = deliveryInstructionsFor(po, settings);
 
   if (supplier.method === "work_order") {
     if (!po.details) return { error: "This work order has no booking details — redraft the week." };
@@ -81,17 +82,17 @@ async function build(id: number): Promise<Built | { error: string }> {
   if (supplier.method === "email_form") {
     const orderDate = todayDmy();
     const form = await fillMitsubishiForm({
-      poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings,
+      poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings,
     });
     if ("error" in form) return { error: form.error };
     const attachments = [{ filename: mitsubishiFormFilename(po.po_number), content: Buffer.from(form.pdf).toString("base64") }];
     const email = mitsubishiOrderEmail({
-      supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: true,
+      supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: true,
     });
     return { po, supplier, settings, email, attachments };
   }
   const email = supplierOrderEmail({
-    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: false,
+    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: false,
   });
   return { po, supplier, settings, email };
 }
@@ -226,14 +227,14 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
       const lines: PlannedLine[] = sample.lines;
       if (s.method === "email_form") {
         const orderDate = todayDmy();
-        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings });
+        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings });
         if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
         attachments = [{ filename: mitsubishiFormFilename(po), content: Buffer.from(form.pdf).toString("base64") }];
-        email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: true });
+        email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings, attached: true });
       } else if (s.method === "reece_cart") {
         email = reeceListEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, settings });
       } else {
-        email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: false });
+        email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings, attached: false });
       }
     }
     const err = await sendMarked("SAMPLE", s, email, to, settings, attachments);

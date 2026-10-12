@@ -19,7 +19,7 @@ const isId = (s: string) => /^[a-z0-9_]{1,40}$/.test(s);
 // Blank means "use the standard wording", so an emptied box goes back to it.
 const text = (s: string, n: number) => (s.trim() ? s.trim().slice(0, n) : null);
 
-export async function saveWording(input: { id: string; email: string; intro: string; signoff: string; cc: string; needsEmail: boolean }): Promise<ActionResult> {
+export async function saveWording(input: { id: string; email: string; intro: string; signoff: string; cc: string; combine: boolean; needsEmail: boolean }): Promise<ActionResult> {
   const me = await office();
   if (!me) return { ok: false, error: "Not allowed." };
   if (!isId(input.id)) return { ok: false, error: "Which supplier?" };
@@ -29,7 +29,7 @@ export async function saveWording(input: { id: string; email: string; intro: str
   const cc = parseEmails(input.cc.slice(0, 1000));
   if (cc.bad.length) return { ok: false, error: `Not an email address: ${cc.bad.join(", ")}` };
   if (cc.ok.length > 10) return { ok: false, error: "That's a lot of people — ten at most." };
-  const ok = await saveSupplierEmail(input.id, { email: email || null, intro: text(input.intro, 1500), signoff: text(input.signoff, 1500), cc: cc.ok });
+  const ok = await saveSupplierEmail(input.id, { email: email || null, intro: text(input.intro, 1500), signoff: text(input.signoff, 1500), cc: cc.ok, combine: !!input.combine });
   revalidatePath("/portal/supply/emails");
   return ok ? { ok: true, note: "Saved." } : { ok: false, error: "That supplier isn't there any more." };
 }
