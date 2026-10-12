@@ -46,10 +46,20 @@ const PROBES: Array<{
   { module: "telecom", resource: "calls", scope: "Telecom", usedFor: "calls per person (optional)" },
   { module: "payroll", resource: "jobs/timesheets", scope: "Payroll", usedFor: "hours on each job, for profit on every job (optional)" },
   { module: "accounting", resource: "journal-entries", scope: "Accounting › Journal Entries (read)", usedFor: "journal entries that didn't reach Xero (optional)" },
+  // Supply › Next week will put each sent order on its job in ServiceTitan as a
+  // purchase order. Needs Inventory: purchase orders (read + write), and the
+  // types, vendors and warehouses a PO has to name. Optional until that ships.
+  { module: "inventory", resource: "purchase-orders", scope: "Inventory › Purchase Orders", usedFor: "orders on the job in ServiceTitan (optional)" },
+  { module: "inventory", resource: "purchase-order-types", scope: "Inventory › Purchase Order Types", usedFor: "orders on the job in ServiceTitan (optional)" },
+  { module: "inventory", resource: "vendors", scope: "Inventory › Vendors", usedFor: "orders on the job in ServiceTitan (optional)" },
+  { module: "inventory", resource: "warehouses", scope: "Inventory › Warehouses", usedFor: "orders on the job in ServiceTitan (optional)" },
 ];
 
 /** Resources the board can live without — a 403 here is a missing scope, not a broken link. */
-const OPTIONAL = new Set(["telecom/calls", "payroll/jobs/timesheets", "accounting/journal-entries"]);
+const OPTIONAL = new Set([
+  "telecom/calls", "payroll/jobs/timesheets", "accounting/journal-entries",
+  "inventory/purchase-orders", "inventory/purchase-order-types", "inventory/vendors", "inventory/warehouses",
+]);
 
 function explainProbe(status: number, scope: string): string {
   if (status === 401) return "App key rejected, or the token is not valid for this tenant.";
