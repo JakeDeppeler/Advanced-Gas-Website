@@ -272,6 +272,27 @@ const RESOURCES: ResourceSpec[] = [
     }),
   },
   {
+    // Who was sent to each appointment. Made for every dispatched visit,
+    // clocked in or not, so it ties far more invoiced jobs to a tech than
+    // timesheets do (Crew & vans › Per van, per day). Dispatch is its own
+    // scope; without it this records an error against itself and the page
+    // says it can't attribute the work.
+    resource: "appointment-assignments",
+    module: "dispatch",
+    table: "st_appointment_assignments",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      job_id: num(r.jobId),
+      appointment_id: num(r.appointmentId),
+      technician_id: num(r.technicianId),
+      technician_name: str(r.technicianName),
+      assigned_on: ts(r.assignedOn),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
     resource: "leads",
     module: "crm",
     table: "st_leads",
