@@ -7,6 +7,7 @@
  * be opened and looked at.
  */
 import { writeFileSync } from "node:fs";
+import { PDFDocument } from "pdf-lib";
 import {
   byJob, ccList, dayTimeLabel, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
   splitAddress, supplierOrderEmail, supplierRows, workOrderEmail, workRef,
@@ -157,10 +158,9 @@ ok("…and says how many are missing one", /1 line\(s\) have no Reece product nu
 ok("splitAddress", JSON.stringify(splitAddress("1 Sierra Circuit, Pakenham VIC 3810")) === JSON.stringify({ street: "1 Sierra Circuit, Pakenham", state: "VIC", postcode: "3810" }));
 const me = mitsubishiOrderEmail({ supplier: suppliers[1], poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!,
   delivery: settings.deliveryAddress, deliveryInstructions: "Ring Kellie", settings, attached: true });
-ok("Mitsubishi email is laid out as their form", ["Billing information", "Customer details", "Order details", "Account number", "116360", "ALEX BETTIN",
-  "Delivery date", "Price ex GST", "Sub total", "GST", "Total", "Ring Kellie", "3810"].every((t) => me.html.includes(t)));
-ok("…one row per model, quantities added up", me.text.includes("2 x MSZ-AP71VGKIT"), me.text);
-ok("…says the form is attached", me.text.includes("order form, attached"));
+ok("Mitsubishi email names the attached form as the order", me.html.includes("AGA-261019-MIT Mitsubishi Electric order form.pdf") && me.text.includes("on your order form, attached"));
+ok("…and doesn't repeat the lines, so there's one version of the order", !me.text.includes("MSZ-AP71VGKIT") && !me.html.includes("MSZ-AP71VGKIT"), me.text);
+ok("…but says how many units, when, and where", me.text.includes("Units: 3 (2 models)") && me.text.includes("First needed by: Mon 19 Oct") && me.text.includes("Deliver to: 1 Sierra Circuit") && me.text.includes("Ring Kellie"), me.text);
 
 console.log("\n-- the Mitsubishi form --");
 (async () => {
@@ -168,6 +168,12 @@ console.log("\n-- the Mitsubishi form --");
     poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!, delivery: settings.deliveryAddress, deliveryInstructions: null, settings,
   });
   ok("fills without a missing field", "pdf" in filled, "error" in filled ? filled.error : "");
+  const blankAcct = await fillMitsubishiForm({ poNumber: "X", orderDate: "x", delivery: "x", deliveryInstructions: null, lines: bySup.mitsubishi!,
+    settings: { ...settings, mitsubishi: undefined } });
+  if ("pdf" in blankAcct) {
+    const f = (await PDFDocument.load(blankAcct.pdf)).getForm();
+    ok("an empty account setting leaves the account number typed on the form", f.getTextField("Account Number").getText() === "116360");
+  } else ok("an empty account setting still fills", false, blankAcct.error);
   if ("pdf" in filled) {
     ok("one form row per unit model", filled.rows === 2, String(filled.rows));
     if (process.env.ORDERING_PDF_OUT) writeFileSync(process.env.ORDERING_PDF_OUT, filled.pdf);
