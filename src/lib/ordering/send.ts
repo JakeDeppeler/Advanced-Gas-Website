@@ -1,9 +1,9 @@
 import "server-only";
 import { sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { getOrder, loadOrderingSettings, type PoWithLines, type PurchaseOrder } from "./db";
+import { getOrder, loadOrderingSettings, loadSamples, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
-import { supplierOrderEmail, workOrderEmail, type EmailParts, type OrderingSettings, type Supplier } from "./plan";
+import { nextWeek, poNumber, supplierOrderEmail, workOrderEmail, type EmailParts, type OrderingSettings, type PlannedLine, type Supplier } from "./plan";
 
 export type SendResult = { ok: boolean; error?: string; note?: string };
 
@@ -162,19 +162,79 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
     supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress,
     deliveryInstructions: po.delivery_instructions, settings, attached: false,
   });
+  const err = await sendMarked("TEST", supplier, email, to, settings, attachments);
+  return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
+}
+
+/** One email, marked as not the real thing, to one address. Nothing is recorded against any order. */
+async function sendMarked(
+  mark: "TEST" | "SAMPLE", supplier: Supplier, email: EmailParts, to: string, settings: OrderingSettings,
+  attachments?: { filename: string; content: string }[],
+): Promise<string | null> {
   const from = fromAddress();
-  if (!from) return { ok: false, error: NO_FROM };
-  const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">TEST — this is what ${supplier.name}${supplier.email ? ` (${supplier.email})` : ""} would receive. Nothing has been sent to them.</div>`;
-  const err = await resend({
+  if (!from) return NO_FROM;
+  const who = supplier.method === "reece_cart"
+    ? "the list Kellie would enter in Reece maX (Reece isn't emailed)"
+    : `what ${supplier.name}${supplier.email ? ` (${supplier.email})` : ""} would receive`;
+  const line = `${mark} — this is ${who}. Nothing has been sent to them.`;
+  const banner = `<div style="background:#fbf1de;color:#8a5a12;padding:12px 16px;font:600 14px/20px -apple-system,Segoe UI,Arial,sans-serif;">${line.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</div>`;
+  return resend({
     from,
     to: [to],
     reply_to: settings.replyTo,
-    subject: `[TEST] ${email.subject}`,
+    subject: `[${mark}] ${email.subject}`,
     html: email.html.replace("<body style=\"margin:0;background:#f9f8f3;\">", `<body style="margin:0;background:#f9f8f3;">${banner}`),
-    text: `TEST — this is what ${supplier.name} would receive. Nothing has been sent to them.\n\n${email.text}`,
+    text: `${line}\n\n${email.text}`,
     ...(attachments ? { attachments } : {}),
   });
-  return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
+}
+
+/**
+ * Supply › Supplier emails: what each supplier's email looks like with the
+ * wording as it's saved now, sent to one address. Built from that supplier's
+ * real upcoming lines where there are any (loadSamples), and from the very
+ * same functions a real send uses — the Mitsubishi form included.
+ */
+export async function sendSamples(to: string, onlySupplierId?: string): Promise<SendResult> {
+  const [suppliers, settings, samples] = await Promise.all([loadSuppliers(), loadOrderingSettings(), loadSamples()]);
+  const list = suppliers.filter((s) => s.active && (!onlySupplierId || s.id === onlySupplierId));
+  if (!list.length) return { ok: false, error: "No such supplier." };
+  const week = nextWeek(new Date());
+  const sent: string[] = [];
+  const failed: string[] = [];
+  for (const s of list) {
+    const sample = samples.get(s.id);
+    if (!sample) continue;
+    const po = `${poNumber(week, s.id, 1)}-SAMPLE`;
+    let email: EmailParts;
+    let attachments: { filename: string; content: string }[] | undefined;
+    if (s.method === "work_order") {
+      if (!sample.details) continue;
+      email = workOrderEmail({ supplier: s, poNumber: po, details: sample.details, settings });
+    } else {
+      const lines: PlannedLine[] = sample.lines;
+      if (s.method === "email_form") {
+        const [y, m, d] = isoDateMelbourne().split("-");
+        const form = await fillMitsubishiForm({ poNumber: po, orderDate: `${d}/${m}/${y}`, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings });
+        if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
+        attachments = [{ filename: `${po} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+      }
+      email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: !!attachments });
+    }
+    const err = await sendMarked("SAMPLE", s, email, to, settings, attachments);
+    if (err) {
+      failed.push(`${s.name}: ${err}`);
+      // The sender isn't set up: every other one would fail the same way.
+      if (err === NO_FROM) break;
+    } else {
+      sent.push(s.name);
+    }
+  }
+  if (!sent.length) return { ok: false, error: failed[0] ?? "Nothing to send." };
+  return {
+    ok: true,
+    note: `${sent.length === 1 ? `Sample sent to ${to}` : `${sent.length} samples sent to ${to}`}.${failed.length ? ` Didn't send: ${failed.join("; ")}` : ""}`,
+  };
 }
 
 /** "Next week's orders are ready" to the office, after the Wednesday draft. */
