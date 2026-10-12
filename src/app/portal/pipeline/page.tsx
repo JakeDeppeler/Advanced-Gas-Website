@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { SalesTabs } from "@/components/portal/run/RunTabs";
+import { can as canDo } from "@/lib/portal/caps";
 import { Locked } from "@/components/portal/Locked";
 import { PipelineBoard } from "@/components/portal/PipelineBoard";
 import { dbConfigured, listUsers } from "@/lib/portal/db";
@@ -48,11 +49,12 @@ export default async function PipelinePage() {
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
       <div className="pt-head">
-        <h1>Quote pipeline</h1>
+        <h1>{canDo(user, "overhead") ? "Sales" : "Quote pipeline"}</h1>
         <p>Every quote that&rsquo;s out, and who&rsquo;s chasing it. Quotes come in from ServiceTitan; the calls are logged here. Open means priced in the last 60 days and not yet sold or lost; values include GST, and a quote with several options counts at their average.</p>
       </div>
+
+      {canDo(user, "overhead") && <div className="pk-tabrow"><SalesTabs on="quotes" /></div>}
 
       {!pipe ? (
         <p className="pt-note pt-note--warn">ServiceTitan&rsquo;s quotes couldn&rsquo;t be read just now. Try again in a minute.</p>

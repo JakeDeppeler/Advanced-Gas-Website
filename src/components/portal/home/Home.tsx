@@ -89,13 +89,13 @@ export function Home(d: HomeData) {
   // or average sale yet): say that, rather than ask for a goal that's there.
   const noPace: Status = { k: "none", w: d.goal ? "No pace yet" : "No goal" };
   const sell: Stat = mo?.soldValue != null && soldByNow
-    ? { key: "sold", name: "Sold", st: status(mo.soldValue, soldByNow), fig: money(mo.soldValue), bar: mo.soldValue / soldByNow, sub: `of ${money(soldByNow)} by now · ${money(monthGoal as number)} for ${month}`, href: "/portal/scoreboard" }
-    : { key: "sold", name: "Sold", st: mo?.soldValue != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.soldValue != null ? money(mo.soldValue) : "—", bar: 0, sub: mo?.soldValue != null ? (d.goal ? "sold this month" : "set a year goal for a pace") : "waiting on the first sync", href: "/portal/scoreboard" };
+    ? { key: "sold", name: "Sold", st: status(mo.soldValue, soldByNow), fig: money(mo.soldValue), bar: mo.soldValue / soldByNow, sub: `of ${money(soldByNow)} by now · ${money(monthGoal as number)} for ${month}`, href: "/portal/sales" }
+    : { key: "sold", name: "Sold", st: mo?.soldValue != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.soldValue != null ? money(mo.soldValue) : "—", bar: 0, sub: mo?.soldValue != null ? (d.goal ? "sold this month" : "set a year goal for a pace") : "waiting on the first sync", href: "/portal/sales" };
 
   const done = st?.completed ?? null;
   const jobs: Stat = done?.done != null && done.byNow
-    ? { key: "jobs", name: "Jobs done", st: status(done.done, done.byNow), fig: n0(done.done), bar: done.done / done.byNow, sub: `of ${n0(done.byNow)} by now`, href: "/portal/scoreboard" }
-    : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "—", bar: 0, sub: "this month", href: "/portal/scoreboard" };
+    ? { key: "jobs", name: "Jobs done", st: status(done.done, done.byNow), fig: n0(done.done), bar: done.done / done.byNow, sub: `of ${n0(done.byNow)} by now`, href: "/portal/jobs" }
+    : { key: "jobs", name: "Jobs done", st: mo?.completed != null ? noPace : { k: "none", w: "No figures" }, fig: mo?.completed != null ? n0(mo.completed) : "—", bar: 0, sub: "this month", href: "/portal/jobs" };
 
   // Net profit: Xero's, for the year so far, against the goal's margin.
   const py = d.profitYear;

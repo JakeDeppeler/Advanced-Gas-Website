@@ -72,7 +72,8 @@ export const START_COOKIE = "pt_start";
 export const START_PAGES: { key: string; label: string; href: string; needs?: "office" | "wall" }[] = [
   { key: "home", label: "Home", href: "/portal" },
   { key: "todo", label: "To-do", href: "/portal/todo" },
-  { key: "pipeline", label: "Run the company › Quote pipeline", href: "/portal/pipeline", needs: "office" },
-  { key: "scoreboard", label: "Run the company › Scoreboard", href: "/portal/scoreboard", needs: "office" },
+  { key: "today", label: "Run the company › Today", href: "/portal/today", needs: "office" },
+  { key: "kpis", label: "Run the company › Our KPIs", href: "/portal/kpis", needs: "office" },
+  { key: "pipeline", label: "Run the company › Sales › Quotes", href: "/portal/pipeline", needs: "office" },
   { key: "wall", label: "Wall board › Remote", href: "/portal/board/remote", needs: "wall" },
 ];

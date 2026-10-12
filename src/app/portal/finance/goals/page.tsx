@@ -15,7 +15,7 @@ import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-export const metadata = { title: "The year — Team portal" };
+export const metadata = { title: "Year goal — Team portal" };
 
 export default async function YearGoalPage() {
   const user = await getPortalUser();
@@ -49,7 +49,7 @@ export default async function YearGoalPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="The year" lede="The year’s goal across the months, against what Xero says was actually invoiced and what the overheads are running at." xero={{ state: status, org: tenantName }} />
+      <FinanceHead title="Year goal" lede="The year’s goal across the months, against what Xero says was actually invoiced and what the overheads are running at." xero={{ state: status, org: tenantName }} />
 
       <InOutBars points={rolling} months={last12} />
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />

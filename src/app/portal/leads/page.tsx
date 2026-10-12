@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { SalesTabs } from "@/components/portal/run/RunTabs";
 import { Locked } from "@/components/portal/Locked";
 import { Bars } from "@/components/portal/marketingParts";
 import { Figs } from "@/components/portal/Figs";
@@ -78,10 +78,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
 
   return (
     <PortalShell user={user}>
-      <PortalBack href="/portal" label="Home" />
       <div className="pt-head pt-head--split">
         <div>
-          <h1>Leads</h1>
+          <h1>Sales</h1>
           <p>Who&rsquo;s asking, and from where — every enquiry in {monthLabel}, from the website and ServiceTitan.</p>
         </div>
         <nav className="pt-win" aria-label="Month">
@@ -89,6 +88,8 @@ export default async function LeadsPage({ searchParams }: { searchParams: { m?: 
           <Link href="/portal/leads?m=last" className={`pt-win__opt${last ? " is-on" : ""}`} aria-current={last ? "page" : undefined}>Last month</Link>
         </nav>
       </div>
+
+      <div className="pk-tabrow"><SalesTabs on="leads" /></div>
 
       <Figs
         cols={4}

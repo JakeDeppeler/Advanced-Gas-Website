@@ -885,6 +885,20 @@ Changes made after the board was read back to us and the numbers were not
 believed. Each is here because a figure that gets argued with once stops being
 looked at afterwards.
 
+**Call booking stays blank until there are calls to measure.** Run the
+company › Today › Call booking is calls that became a booked job. ServiceTitan's
+phone log held 26 calls in total when it was built (10 in the last month), far
+fewer than the office takes, so the rate stays off below 30 inbound calls a
+week and the tab says why rather than showing a swinging percentage.
+
+**Compliance certificates are picked from the job, and can be overruled.**
+Run the company › Jobs › Not billed lists jobs finished in the last fortnight
+that look like they need a VBA certificate: a gas, hot water or drain job of
+any value, or anything over $750, never a quote visit, diagnostic or site
+assessment. ServiceTitan doesn't say which jobs are plumbing work, so the
+office marks any it gets wrong as "No cert needed" (migration 0059,
+`portal_certs`), and Lodged records the certificate number.
+
 **A sale is counted once, on the day it first sold.** ServiceTitan lets a
 quote be un-sold and sold again, and when it is, it moves the quote's sold
 date. Read straight off the quote, that moved the whole sale to the new day,
