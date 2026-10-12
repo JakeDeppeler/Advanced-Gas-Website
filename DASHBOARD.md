@@ -2231,6 +2231,17 @@ Two things follow:
   Xero light, rather than a total with half its source missing.
 - The "Paid today" line says "in ServiceTitan" for that reason.
 
+## Our KPIs take their selling goals from the year goal
+
+Where Our numbers › Goals leaves a selling goal empty, Our KPIs uses what the
+year goal needs this month at the rates we're running at: the Pace plan
+(`m.pace.standing.month`), so the goals move with the year goal and the real
+win rate rather than being typed in five places. Quoted and quotes sent are
+then counted the plan's way, each job once — counted per option they read
+$1.6M against a goal set in jobs. On the Team tab the month's sales goal is
+shared evenly across everyone who has quoted; the team line decides the
+sentence, so one person ahead covering another behind is the team on track.
+
 ## Things worth knowing
 
 **Do not add a *second* Xero token refresh.** Xero rotates the refresh token on
