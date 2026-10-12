@@ -118,7 +118,11 @@ export default async function VehiclePage({ params, searchParams }: { params: { 
           {/* What it cost and how it's paid for is the office's; the crew see the
               running side as before. */}
           {can(user, "overhead") ? <VanMoney van={vehicle} canEdit={canManage} /> : <VehicleCosts vehicle={view} />}
-          {canManage && <VehicleEdit vehicle={view} crew={crew} />}
+          {/* Read by anyone who can open the van; changed by a manager, after pressing Edit.
+              The date bought sits with the money when that card is on the page. */}
+          <div className="pk" style={{ marginTop: 18 }}>
+            <VehicleEdit vehicle={view} crew={crew} canEdit={canManage} showBought={!can(user, "overhead")} />
+          </div>
         </>
       )}
     </PortalShell>

@@ -139,13 +139,13 @@ export async function VanMoney({ van, canEdit }: { van: Vehicle; canEdit: boolea
         )}
       </Card>
 
-      {canEdit && <LoanForm id={van.id} name={van.name} initial={{
+      <LoanForm id={van.id} name={van.name} canEdit={canEdit} initial={{
         loan: loan ?? EMPTY_LOAN, purchasePrice: van.purchasePrice, purchasedOn: van.purchasedOn,
         // Only a repayment someone typed goes back in the box; one worked out
         // from the rate stays worked out until a contract figure replaces it.
         monthlyRepayment: (van.typedRepayment !== undefined ? van.typedRepayment : van.monthlyRepayment),
         lifespanYears: van.lifespanYears, resaleValue: van.resaleValue,
-      }} />}
+      }} />
     </div>
   );
 }

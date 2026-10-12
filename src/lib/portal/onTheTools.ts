@@ -20,7 +20,9 @@ export const MAX_VISIT_HRS = 12;
  * tech arrives, which reads as no driving; a drive share taken over those as well
  * would come out low, so Drive time divides by these.
  */
-export type ToolsRow = { name: string; roster: number | null; field: boolean; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number; fourDays: number; fourTimedOn: number; fourTimed: number };
+export type ToolsRow = { name: string; roster: number | null; field: boolean;
+  /** Runs a van of their own. Someone riding along drives when their van does, so their drive is the same trip counted twice. */
+  ownVan: boolean; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number; fourDays: number; fourTimedOn: number; fourTimed: number };
 export type OnTheTools = { rows: ToolsRow[]; lastOn: number; lastTravel: number; lastRoster: number; lastVisits: number; lastMonday: Date };
 
 /**
@@ -50,7 +52,7 @@ export const onTheTools = cache(async (): Promise<OnTheTools> => {
     const first = name.trim().split(/\s+/)[0].toLowerCase();
     const u = users.find((x) => x.active && x.name.trim().toLowerCase() === name.trim().toLowerCase())
       ?? users.find((x) => x.active && x.name.trim().split(/\s+/)[0].toLowerCase() === first);
-    return { hrs: u?.costing?.hrsWeek ?? null, field: u?.level ? LEVEL_BILLABLE[u.level] : true };
+    return { hrs: u?.costing?.hrsWeek ?? null, field: u?.level ? LEVEL_BILLABLE[u.level] : true, ownVan: u?.costing?.ownVan ?? true };
   };
 
   type P = { name: string; lastOn: number; lastTravel: number; lastVisits: number; fourOn: number; fourTravel: number; fourVisits: number; days: Set<string>; fourTimedOn: number; fourTimed: number };
@@ -69,7 +71,7 @@ export const onTheTools = cache(async (): Promise<OnTheTools> => {
     if (at >= lastMonday.getTime() && at < thisMonday.getTime()) { p.lastOn += on; p.lastTravel += travel; p.lastVisits += 1; }
     people.set(s.technician_id, p);
   }
-  const rows: ToolsRow[] = [...people.values()].map(({ days, ...p }) => { const r = rostered(p.name); return { ...p, fourDays: days.size, roster: r.hrs, field: r.field }; }).sort((a, b) => b.fourOn - a.fourOn);
+  const rows: ToolsRow[] = [...people.values()].map(({ days, ...p }) => { const r = rostered(p.name); return { ...p, fourDays: days.size, roster: r.hrs, field: r.field, ownVan: r.ownVan }; }).sort((a, b) => b.fourOn - a.fourOn);
 
   // The headline is the field crew's: the office's odd visit (an owner
   // quoting) would drag the share down for a reason that isn't the crew's.
