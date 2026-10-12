@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { cancelDraft, draftWeek, setDelivery } from "@/lib/ordering/db";
-import { nextWeek, thisWeek } from "@/lib/ordering/plan";
+import { cancelDraft, draftWeek, setDelivery, setOrderCc } from "@/lib/ordering/db";
+import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAndSend, sendTest } from "@/lib/ordering/send";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
@@ -75,4 +75,17 @@ export async function testSend(input: { id: number; to: string }): Promise<Actio
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+/** People copied in on this one order, on top of the supplier's usual copies. */
+export async function saveCc(input: { id: number; cc: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.id)) return { ok: false, error: "Which order?" };
+  const cc = parseEmails(input.cc.slice(0, 1000));
+  if (cc.bad.length) return { ok: false, error: `Not an email address: ${cc.bad.join(", ")}` };
+  if (cc.ok.length > 10) return { ok: false, error: "That's a lot of people — ten at most." };
+  const ok = await setOrderCc(input.id, cc.ok);
+  done();
+  return ok ? { ok: true } : { ok: false, error: "Only a draft order can be changed." };
 }

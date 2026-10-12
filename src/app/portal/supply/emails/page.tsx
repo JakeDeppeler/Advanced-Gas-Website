@@ -43,6 +43,7 @@ export default async function SupplierEmailsPage() {
         dbReady={dbReady}
         suppliers={suppliers}
         sampleTo={user.email}
+        alwaysCc={replyTo || "The office"}
         defaults={{ orderIntro: DEFAULT_ORDER_INTRO, orderSignoff: DEFAULT_ORDER_SIGNOFF, workIntro: DEFAULT_WORK_INTRO }}
       />
     </PortalShell>

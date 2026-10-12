@@ -468,6 +468,27 @@ const LOOKUPS: LookupSpec[] = [
     }),
   },
   {
+    // Each material's primary vendor and that vendor's part number — Reece's
+    // product number, for the Reece list and, later, a maX order (0066).
+    resource: "pricebook-materials",
+    module: "pricebook",
+    path: "materials",
+    table: "st_pricebook_materials",
+    map: (r: Row) => {
+      const pv = (r.primaryVendor ?? null) as Row | null;
+      return {
+        id: Number(r.id),
+        code: str(pick(r, "code")),
+        name: str(pick(r, "displayName", "name")),
+        vendor: str(pv?.vendorName ?? null),
+        vendor_part: str(pv ? pick(pv, "vendorPart", "supplierPartNumber") : null),
+        active: r.active !== false,
+        modified_on: ts(pick(r, "modifiedOn")),
+        raw: r,
+      };
+    },
+  },
+  {
     resource: "business-units",
     module: "settings",
     path: "business-units",
@@ -509,7 +530,11 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
       const rows = (await stList<Row>(spec.module, spec.path)).map(spec.map).filter((r) =>
         Number.isFinite(r.id),
       );
-      await sbUpsert(spec.table, rows, "id");
+      // Chunked as the exports are: the pricebook materials list runs to
+      // thousands of rows with their raw payloads.
+      for (let i = 0; i < rows.length; i += 500) {
+        await sbUpsert(spec.table, rows.slice(i, i + 500), "id");
+      }
       await recordLookup(spec.resource, startedAt, rows.length, null);
       report.push({ resource: spec.resource, status: "ok", records: rows.length, exhausted: true });
     } catch (e) {

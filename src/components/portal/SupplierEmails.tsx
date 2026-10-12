@@ -34,7 +34,7 @@ const howSent = (s: Supplier) =>
     : s.method === "work_order" ? "Emailed a work order for each site visit."
     : "Emailed.";
 
-function SupplierCard({ s, defaults, sampleTo }: { s: Supplier; defaults: Defaults; sampleTo: string }) {
+function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaults: Defaults; sampleTo: string; alwaysCc: string }) {
   const save = useAct();
   const sample = useAct();
   const isWork = s.method === "work_order";
@@ -44,7 +44,9 @@ function SupplierCard({ s, defaults, sampleTo }: { s: Supplier; defaults: Defaul
   // For Geoff the closing is the note in bold at the foot of the work order;
   // until it's edited here it is the note the work orders were set up with.
   const [signoff, setSignoff] = useState(s.email_signoff ?? (isWork ? s.work_order_note ?? "" : ""));
-  const dirty = email !== (s.email ?? "") || intro !== (s.email_intro ?? "")
+  const savedCc = (s.cc_emails ?? []).join(", ");
+  const [cc, setCc] = useState(savedCc);
+  const dirty = email !== (s.email ?? "") || intro !== (s.email_intro ?? "") || cc.trim() !== savedCc
     || signoff !== (s.email_signoff ?? (isWork ? s.work_order_note ?? "" : ""));
 
   return (
@@ -59,6 +61,18 @@ function SupplierCard({ s, defaults, sampleTo }: { s: Supplier; defaults: Defaul
         <label className="pt-supem__field">
           <span>Sends to</span>
           <input className="pt-nw__input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </label>
+      )}
+
+      {emailed && (
+        <label className="pt-supem__field">
+          <span>Copy in (CC)</span>
+          <input className="pt-nw__input" type="text" value={cc} onChange={(e) => setCc(e.target.value)}
+            placeholder="name@example.com, another@example.com" />
+          <small className="pt-nw__muted">
+            Copied on every {isWork ? "work order" : "order"} to {s.name}. {alwaysCc} is always copied in.
+            One-off copies can be added on the order itself.
+          </small>
         </label>
       )}
 
@@ -87,7 +101,7 @@ function SupplierCard({ s, defaults, sampleTo }: { s: Supplier; defaults: Defaul
         <span className="pt-nw__actions">
           {emailed && (
             <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={save.busy || !dirty}
-              onClick={() => save.run(() => saveWording({ id: s.id, email, intro, signoff, needsEmail: emailed }))}>
+              onClick={() => save.run(() => saveWording({ id: s.id, email, intro, signoff, cc, needsEmail: emailed }))}>
               {save.busy ? "Saving…" : dirty ? "Save" : "Saved"}
             </button>
           )}
@@ -105,8 +119,10 @@ function SupplierCard({ s, defaults, sampleTo }: { s: Supplier; defaults: Defaul
   );
 }
 
-export function SupplierEmails({ dbReady, suppliers, sampleTo, defaults }: {
+export function SupplierEmails({ dbReady, suppliers, sampleTo, defaults, alwaysCc }: {
   dbReady: boolean;
+  /** The office address every order is copied to (the reply-to). */
+  alwaysCc: string;
   suppliers: Supplier[];
   /** Where samples go unless changed: whoever is looking at the page. */
   sampleTo: string;
@@ -146,7 +162,7 @@ export function SupplierEmails({ dbReady, suppliers, sampleTo, defaults }: {
         {all.msg && <span className={`pt-inline ${all.msg.ok ? "is-ok" : "is-err"}`}>{all.msg.text}</span>}
       </section>
 
-      {sorted.map((s) => <SupplierCard key={s.id} s={s} defaults={defaults} sampleTo={to} />)}
+      {sorted.map((s) => <SupplierCard key={s.id} s={s} defaults={defaults} sampleTo={to} alwaysCc={alwaysCc} />)}
     </div>
   );
 }

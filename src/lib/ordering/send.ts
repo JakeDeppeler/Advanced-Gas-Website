@@ -3,7 +3,10 @@ import { sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
-import { nextWeek, poNumber, supplierOrderEmail, workOrderEmail, type EmailParts, type OrderingSettings, type PlannedLine, type Supplier } from "./plan";
+import {
+  ccList, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
+  type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
+} from "./plan";
 
 export type SendResult = { ok: boolean; error?: string; note?: string };
 
@@ -75,20 +78,31 @@ async function build(id: number): Promise<Built | { error: string }> {
   }
   if (supplier.method === "reece_cart") return { po, supplier, settings, email: null };
 
-  let attachments: Built["attachments"];
   if (supplier.method === "email_form") {
-    const [y, m, d] = isoDateMelbourne().split("-");
+    const orderDate = todayDmy();
     const form = await fillMitsubishiForm({
-      poNumber: po.po_number, orderDate: `${d}/${m}/${y}`, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings,
+      poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings,
     });
     if ("error" in form) return { error: form.error };
-    attachments = [{ filename: `${po.po_number} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+    const attachments = [{ filename: `${po.po_number} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+    const email = mitsubishiOrderEmail({
+      supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: true,
+    });
+    return { po, supplier, settings, email, attachments };
   }
   const email = supplierOrderEmail({
-    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: !!attachments,
+    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: po.delivery_instructions, settings, attached: false,
   });
-  return { po, supplier, settings, email, attachments };
+  return { po, supplier, settings, email };
 }
+
+const todayDmy = () => { const [y, m, d] = isoDateMelbourne().split("-"); return `${d}/${m}/${y}`; };
+
+/**
+ * Everyone copied on an order: the office (always), the people set on the
+ * supplier, and any added to this one order. Deduplicated, and never the
+ * address it is going to.
+ */
 
 const NO_FROM = "Orders have to come from an advancedgas.com.au address. Set RESEND_FROM_EMAIL in Vercel to one (e.g. orders@advancedgas.com.au).";
 
@@ -129,7 +143,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
     to: [supplier.email],
     // The office keeps a copy of everything that goes out, and replies come
     // back to the office rather than to whoever pressed the button.
-    cc: [settings.replyTo],
+    cc: ccList(settings, supplier, po, supplier.email),
     reply_to: settings.replyTo,
     subject: email.subject,
     html: email.html,
@@ -143,7 +157,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
     return { ok: false, error: err };
   }
   await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: supplier.email, updated_at: new Date().toISOString() });
-  return { ok: true, note: `Sent to ${supplier.email}, copy to ${settings.replyTo}.` };
+  return { ok: true, note: `Sent to ${supplier.email}, copied to ${ccList(settings, supplier, po, supplier.email).join(", ")}.` };
 }
 
 /**
@@ -158,10 +172,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   if ("error" in b) return { ok: false, error: b.error };
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
-  const email = b.email ?? supplierOrderEmail({
-    supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress,
-    deliveryInstructions: po.delivery_instructions, settings, attached: false,
-  });
+  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings });
   const err = await sendMarked("TEST", supplier, email, to, settings, attachments);
   return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
 }
@@ -214,12 +225,16 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
     } else {
       const lines: PlannedLine[] = sample.lines;
       if (s.method === "email_form") {
-        const [y, m, d] = isoDateMelbourne().split("-");
-        const form = await fillMitsubishiForm({ poNumber: po, orderDate: `${d}/${m}/${y}`, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings });
+        const orderDate = todayDmy();
+        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings });
         if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
         attachments = [{ filename: `${po} Mitsubishi order form.pdf`, content: Buffer.from(form.pdf).toString("base64") }];
+        email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: true });
+      } else if (s.method === "reece_cart") {
+        email = reeceListEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, settings });
+      } else {
+        email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: false });
       }
-      email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: !!attachments });
     }
     const err = await sendMarked("SAMPLE", s, email, to, settings, attachments);
     if (err) {
