@@ -5,7 +5,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { cancelDraft, draftWeek, setDelivery } from "@/lib/ordering/db";
 import { nextWeek, thisWeek } from "@/lib/ordering/plan";
-import { approveAndSend } from "@/lib/ordering/send";
+import { approveAndSend, sendTest } from "@/lib/ordering/send";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -62,4 +62,17 @@ export async function saveDelivery(input: { id: number; toSite: boolean; address
   const ok = await setDelivery(input.id, { toSite: !!input.toSite, address, instructions: input.instructions.trim().slice(0, 300) });
   done();
   return ok ? { ok: true } : { ok: false, error: "Only a draft order can be changed." };
+}
+
+export async function testSend(input: { id: number; to: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.id)) return { ok: false, error: "Which order?" };
+  const to = input.to.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return { ok: false, error: "That isn't an email address." };
+  try {
+    return await sendTest(input.id, to);
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }

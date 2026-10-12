@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { approve, cancel, redraft, saveDelivery, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { approve, cancel, redraft, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { dayLabel, dayTimeLabel, linesTotal, modelLooksLikeName, type Problem, type Supplier } from "@/lib/ordering/plan";
 
@@ -91,9 +91,42 @@ function Delivery({ po }: { po: PoWithLines }) {
   );
 }
 
-function Buttons({ po, supplier }: { po: PoWithLines; supplier: Supplier | undefined }) {
+/**
+ * Send this order's email — the same one, form and all — to any address, to
+ * see it land. Doesn't send to the supplier or change the order.
+ */
+function TestSend({ po, testTo }: { po: PoWithLines; testTo: string }) {
   const { busy, msg, run } = useAct();
-  if (po.status !== "draft") return null;
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState(testTo);
+  if (!open) {
+    return (
+      <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>
+        Send a test
+      </button>
+    );
+  }
+  return (
+    <div className="pt-nw__test">
+      <label className="pt-nw__testlbl" htmlFor={`test-${po.id}`}>Send a test copy to</label>
+      <input id={`test-${po.id}`} className="pt-nw__input" type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="you@advancedgas.com.au" />
+      <span className="pt-nw__actions">
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy || !to.trim()} onClick={() => run(() => testSend({ id: po.id, to }))}>
+          {busy ? "Sending…" : "Send test"}
+        </button>
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(false)}>Close</button>
+      </span>
+      <span className="pt-nw__muted">Marked TEST. The supplier gets nothing and the order stays as it is.</span>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
+function Buttons({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
+  const { busy, msg, run } = useAct();
+  if (po.status !== "draft") {
+    return po.status === "cancelled" ? null : <div className="pt-nw__foot"><span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span></div>;
+  }
   return (
     <div className="pt-nw__foot">
       {po.send_error && <p className="pt-note pt-note--warn" style={{ margin: 0 }}><strong>Last try didn&rsquo;t send:</strong> {po.send_error}</p>}
@@ -105,13 +138,14 @@ function Buttons({ po, supplier }: { po: PoWithLines; supplier: Supplier | undef
           onClick={() => { if (confirm(`Cancel ${po.po_number}? Nothing has been sent.`)) run(() => cancel(po.id)); }}>
           Cancel
         </button>
+        <TestSend po={po} testTo={testTo} />
       </span>
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
     </div>
   );
 }
 
-function OrderCard({ po, supplier }: { po: PoWithLines; supplier: Supplier | undefined }) {
+function OrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
   return (
@@ -154,12 +188,12 @@ function OrderCard({ po, supplier }: { po: PoWithLines; supplier: Supplier | und
         </table>
       </div>
       <Delivery po={po} />
-      <Buttons po={po} supplier={supplier} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} />
     </section>
   );
 }
 
-function WorkOrderCard({ po, supplier }: { po: PoWithLines; supplier: Supplier | undefined }) {
+function WorkOrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
   const d = po.details;
   return (
     <section className={`pt-panel pt-nw__card${po.status === "cancelled" ? " is-muted" : ""}`}>
@@ -194,7 +228,7 @@ function WorkOrderCard({ po, supplier }: { po: PoWithLines; supplier: Supplier |
           {d.note && (<><dt>Note to Geoff</dt><dd className="pt-nw__muted">{d.note}</dd></>)}
         </dl>
       )}
-      <Buttons po={po} supplier={supplier} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} />
     </section>
   );
 }
@@ -206,8 +240,10 @@ export function NextWeekOrders(props: {
   orders: PoWithLines[];
   suppliers: Supplier[];
   problems: Problem[];
+  /** Where a test copy goes unless changed: whoever is looking at the page. */
+  testTo: string;
 }) {
-  const { which, dbReady, appointmentsSynced, orders, suppliers, problems } = props;
+  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo } = props;
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
 
@@ -271,10 +307,10 @@ export function NextWeekOrders(props: {
       )}
 
       {goods.length > 0 && <h2 className="pt-nw__section">Supplier orders</h2>}
-      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} />)}
+      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} />)}
 
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
-      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} />)}
+      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} />)}
 
       {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>

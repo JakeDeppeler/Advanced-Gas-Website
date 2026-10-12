@@ -5298,6 +5298,11 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__input { min-height: 40px; padding: 0 12px; border: 1px solid var(--pt-field); border-radius: 10px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; }
 .pt-nw__check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pt-nw__actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* A row of its own under the buttons, so opening it doesn't shove Approve sideways. */
+.pt-nw__test { flex: 0 0 100%; display: grid; gap: 8px; justify-items: start; padding: 14px 16px; border-radius: 12px; background: var(--pt-tint); box-sizing: border-box; }
+.pt-nw__test .pt-nw__input { width: 100%; max-width: 420px; box-sizing: border-box; }
+.pt-nw__testlbl { font-weight: 700; font-size: 14px; }
+.pt-nw__foot .pt-nw__actions { display: flex; flex-wrap: wrap; align-items: center; }
 .pt-nw__foot { display: grid; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--pt-line); }
 .pt-nw__wo { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px 16px; margin: 0; font-size: 14.5px; }
 .pt-nw__wo dt { color: var(--pt-ink-3); font-weight: 600; }

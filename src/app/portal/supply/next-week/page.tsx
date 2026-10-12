@@ -102,6 +102,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         orders={orders}
         suppliers={suppliers}
         problems={problems}
+        testTo={user.email}
       />
     </PortalShell>
   );
