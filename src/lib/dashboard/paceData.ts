@@ -82,9 +82,11 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
     ),
-    sbSelect<{ id: number; job_id: number | null; customer_id: number | null; created_on: string | null; sold_on: string | null; value: number | null; business_unit: string | null }>(
-      "st_estimates",
-      [q.select("id,job_id,customer_id,created_on,sold_on,value:total_inc,business_unit"), q.gte("sold_on", fromTs), q.lt("total", String(QUOTE_CAP))].join("&"),
+    // The sales ledger (migration 0058): a re-sold quote stays on the day it
+    // first sold, and only a change in its value lands on the re-sell day.
+    sbSelect<{ id: number; job_id: number | null; customer_id: number | null; created_on: string | null; sold_on: string | null; value: number | null; business_unit: string | null; first: boolean }>(
+      "st_sales",
+      [q.select("id,job_id,customer_id,created_on,sold_on,value:total_inc,business_unit,first"), q.gte("sold_on", fromTs), q.lt("est_total", String(QUOTE_CAP))].join("&"),
     ),
     sbSelect<{ invoice_date: string | null; total: number | null; job_type: string | null }>(
       "st_invoices_billed",
@@ -138,15 +140,23 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
     v: j.n > 0 ? j.sum / j.n : 0,
   }));
   // Sold once per job, on the day it was sold, at what the chosen option was worth.
+  // A later change to what it sold for is its own entry, on its own day: it
+  // moves the value of that day and never the count.
   const soldJobs = new Map<string, { d: string; v: number }>();
+  const soldChanges: { d: string; v: number }[] = [];
   for (const r of quotes(soldRows)) {
     const d = day(r.sold_on);
     if (!d) continue;
+    if (!r.first) {
+      soldChanges.push({ d, v: Number(r.value ?? 0) });
+      continue;
+    }
     const k = quoteKey(r);
     const was = soldJobs.get(k);
     if (was) was.v += Number(r.value ?? 0);
     else soldJobs.set(k, { d, v: Number(r.value ?? 0) });
   }
+  const changedIn = (r: Range) => soldChanges.filter((c) => within(c.d, r)).reduce((t, c) => t + c.v, 0);
   const inv = invoices.map((r) => ({ d: r.invoice_date, v: Number(r.total ?? 0), c: jobClass(r.job_type) }));
 
   const count = (r: Range): PaceCounts => {
@@ -160,7 +170,7 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       quoted: live ? quoted.length : null,
       quotedValue: live ? quoted.reduce((t, x) => t + x.v, 0) : null,
       sold: live ? sold.length : null,
-      soldValue: live ? sold.reduce((t, s) => t + s.v, 0) : null,
+      soldValue: live ? sold.reduce((t, s) => t + s.v, 0) + changedIn(r) : null,
       completed: doneRows.filter((x) => within(x.d, r)).length,
       invoiced: inv.filter((x) => within(x.d, r)).reduce((t, x) => t + x.v, 0),
     };
@@ -184,7 +194,7 @@ export async function computePaceData(now: Date, calendar: WorkingCalendar, year
       // and the rate is per job. The period counts above are per day.
       quoted: new Set(quotedJobs.filter((x) => within(x.d, window)).map((x) => x.job)).size,
       sold: sold.length,
-      soldValue: sold.reduce((t, s) => t + s.v, 0),
+      soldValue: sold.reduce((t, s) => t + s.v, 0) + changedIn(window),
       invoiced: inWin.reduce((t, x) => t + x.v, 0),
       soldWorkInvoiced: inWin.filter((x) => x.c !== "service").reduce((t, x) => t + x.v, 0),
       serviceInvoiced: inWin.filter((x) => x.c === "service").reduce((t, x) => t + x.v, 0),

@@ -166,11 +166,13 @@ const RESOURCES: ResourceSpec[] = [
     resource: "estimates",
     module: "sales",
     table: "st_estimates",
-    map: (r: Row) => ({
+    map: (r: Row) => {
+      const status = str(pick(r, "statusName", "status"));
+      return {
       id: Number(r.id),
       job_id: num(r.jobId),
       customer_id: num(r.customerId),
-      status: str(pick(r, "statusName", "status")),
+      status,
       // Which side of the business wrote it. The board is a residential wall:
       // a commercial project at $119K is real work and real money, and it is
       // not what anybody standing in front of this screen is chasing.
@@ -186,10 +188,14 @@ const RESOURCES: ResourceSpec[] = [
       // reads, so a quote and an invoice are counted the same way.
       tax: num(r.tax),
       created_on: ts(pick(r, "createdOn")),
-      sold_on: ts(pick(r, "soldOn", "soldDate")),
+      // Only a quote that is sold now has a sold date. One that was sold and
+      // then un-sold keeps soldOn in ServiceTitan, and every figure that asked
+      // "has it a sold date?" went on counting it as a sale. raw keeps the date.
+      sold_on: status === "Sold" ? ts(pick(r, "soldOn", "soldDate")) : null,
       modified_on: ts(pick(r, "modifiedOn")),
       raw: r,
-    }),
+      };
+    },
   },
   {
     // Telecom sits behind its own scope. If it isn't granted the export 403s,
@@ -525,6 +531,15 @@ export async function syncServiceTitan(reset = false): Promise<SyncReport> {
     }
   } catch (e) {
     report.push({ resource: JOURNAL_RESOURCE, status: "error", error: (e as Error).message });
+  }
+
+  // Book any new sale, or the difference on a re-sold one, into the sales
+  // ledger the sold figures read (migration 0058, st_sales).
+  try {
+    await sbRpc("book_estimate_sales");
+    report.push({ resource: "book-sales", status: "ok" });
+  } catch (e) {
+    report.push({ resource: "book-sales", status: "error", error: (e as Error).message });
   }
 
   // Turn the stored jobTypeId / businessUnitId / soldById into display names and
