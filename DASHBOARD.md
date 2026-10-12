@@ -885,6 +885,28 @@ Changes made after the board was read back to us and the numbers were not
 believed. Each is here because a figure that gets argued with once stops being
 looked at afterwards.
 
+**A sale is counted once, on the day it first sold.** ServiceTitan lets a
+quote be un-sold and sold again, and when it is, it moves the quote's sold
+date. Read straight off the quote, that moved the whole sale to the new day,
+and the day it first sold quietly lost it. Separately, a quote un-sold and
+left that way kept its sold date, so some figures went on counting it: 19
+quotes, $61K, January to July. Since migration 0058 every sold figure (Sold
+today and this month, the leaderboard, Pace, the month's sold margin, the
+Sold pop-up) reads the sales ledger, `st_sales`, which the sync books after
+each run (`book_estimate_sales()`), following Jake's rule of 12 October 2026:
+
+- re-sold for the same amount: it stays on the day it first sold and nothing
+  new counts, and the Sold pop-up doesn't play again;
+- re-sold for a different amount: the first day keeps what it sold for, and
+  the difference (up or down) goes on the day it was re-sold. It moves that
+  day's dollars, never the number of sales;
+- un-sold and not re-sold: it comes off, including the day it first sold.
+
+An un-sold quote has no sold date in `st_estimates` any more (the sync clears
+it; ServiceTitan's date stays in `raw`). The ledger starts from 12 October
+2026, so a re-sale before that can't be pulled apart: those quotes count on
+the date ServiceTitan holds now.
+
 **The close rate counts jobs, not options.** ServiceTitan writes one estimate
 per *option* — good, better and best on the same job are three rows — and over
 the last thirty days that is 4.1 options for every job actually quoted. Counted

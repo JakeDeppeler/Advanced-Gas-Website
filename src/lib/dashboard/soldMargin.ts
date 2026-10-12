@@ -35,13 +35,21 @@ export * from "./soldMarginTypes";
 
 export async function soldMargin(now: Date = new Date()): Promise<SoldMargin | null> {
   const from = startOfMonthMelbourne(now).toISOString();
-  const [rows, rebateRaw] = await Promise.all([
-    sbSelect<SoldRow>(
-      "st_estimates",
-      [q.select("id,status,sold_on,subtotal,total,business_unit,raw"), q.eq("status", "Sold"), q.gte("sold_on", from)].join("&"),
-    ).catch(() => []),
+  // The month's sales are the quotes that first sold this month, from the
+  // sales ledger (migration 0058): one un-sold and sold again keeps the month
+  // it first sold, rather than moving with ServiceTitan's sold date.
+  const [firsts, rebateRaw] = await Promise.all([
+    sbSelect<{ id: number }>("st_sales", [q.select("id"), "first=is.true", q.gte("sold_on", from)].join("&")).catch(() => []),
     getSettings<unknown>(VEU_REBATE_KEY).catch(() => null),
   ]);
+  const ids = [...new Set(firsts.map((r) => Number(r.id)))];
+  const rows: SoldRow[] = [];
+  for (let i = 0; i < ids.length; i += 150) {
+    rows.push(...(await sbSelect<SoldRow>(
+      "st_estimates",
+      [q.select("id,status,sold_on,subtotal,total,business_unit,raw"), q.eq("status", "Sold"), `id=in.(${ids.slice(i, i + 150).join(",")})`].join("&"),
+    ).catch(() => [])));
+  }
 
   const rebate = normaliseRebate(rebateRaw);
   return summariseSold(rows, rebate);

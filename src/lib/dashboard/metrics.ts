@@ -1369,6 +1369,11 @@ async function serviceTitanMetrics(now: Date) {
   // One query rather than three, and deliberately not filtered to rows that
   // carry a seller — an estimate closed without one still sold, and excluding it
   // would make the leaderboard rows sum to less than the headline figure.
+  //
+  // Read from the sales ledger (st_sales, migration 0058), not the quotes: a
+  // quote un-sold and sold again stays on the day it first sold, and only a
+  // change in what it sold for lands on the day it was re-sold. A row is an
+  // entry, so values sum every row and counts take `first` rows only.
   const soldRows = quotes(
     await sbSelect<{
       id: number;
@@ -1380,15 +1385,18 @@ async function serviceTitanMetrics(now: Date) {
       job_id: number | null;
       customer_id: number | null;
       created_on: string | null;
+      first: boolean;
     }>(
-      "st_estimates",
+      "st_sales",
       [
-        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on"),
+        q.select("id,sold_by,created_by,total:total_inc,sold_on,business_unit,job_id,customer_id,created_on,first"),
         q.gte("sold_on", monthStart.toISOString()),
-        q.lt("total", String(QUOTE_CAP)),
+        q.lt("est_total", String(QUOTE_CAP)),
       ].join("&"),
     ),
   );
+  /** The sales themselves, one per quote, for counts and the Sold pop-up. */
+  const firstSales = soldRows.filter((r) => r.first);
 
   /**
    * Credit goes to whoever wrote the quote, not whoever happened to close it.
@@ -1420,7 +1428,7 @@ async function serviceTitanMetrics(now: Date) {
   const alertJobIds = [
     ...new Set(
       [
-        ...soldRows.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
+        ...firstSales.filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo).map((r) => r.job_id),
       ].filter((v): v is number => v != null),
     ),
   ];
@@ -1460,13 +1468,13 @@ async function serviceTitanMetrics(now: Date) {
 
   /** How many this person has sold this month, for the line under a Sold alert. */
   const soldCountByPerson = new Map<string, number>();
-  for (const r of soldRows) {
+  for (const r of firstSales) {
     const who = creditFor(r);
     if (who) soldCountByPerson.set(who, (soldCountByPerson.get(who) ?? 0) + 1);
   }
 
   const alertEvents: Metrics["alertEvents"] = [
-    ...soldRows
+    ...firstSales
       .filter((r) => r.sold_on && Date.parse(r.sold_on) >= twoHoursAgo)
       .map((r) => {
         const place = r.job_id != null ? alertPlace.get(Number(r.job_id)) : undefined;
@@ -1776,8 +1784,8 @@ async function serviceTitanMetrics(now: Date) {
   const quotesQuietValue = quiet.reduce((n, j) => n + j.value, 0);
   const quotesQuiet = quiet.slice(0, 200);
 
-  const soldCountMonth = soldRows.length;
-  const soldCountToday = soldRows.filter(
+  const soldCountMonth = firstSales.length;
+  const soldCountToday = firstSales.filter(
     (r) => r.sold_on && isoDateMelbourne(new Date(r.sold_on)) === today,
   ).length;
   const avgSoldValue = soldCountMonth ? soldMtd / soldCountMonth : null;
@@ -1865,7 +1873,7 @@ async function serviceTitanMetrics(now: Date) {
     const acc = bySeller.get(key) ?? blank();
     const v = Number(r.total ?? 0);
     acc.sold += v;
-    acc.jobs += 1;
+    if (r.first) acc.jobs += 1;
     if (r.sold_on) {
       const at = new Date(r.sold_on);
       if (at.getTime() >= weekStartMs) acc.soldWeek += v;
