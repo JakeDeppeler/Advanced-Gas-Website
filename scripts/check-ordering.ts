@@ -114,7 +114,7 @@ ok("time reads in Melbourne", dayTimeLabel("2026-10-20T20:30:00Z") === "Wed 21 O
 const settings = {
   replyTo: "admin@advancedgas.com.au", deliveryAddress: "1 Sierra Circuit, Pakenham VIC 3810", orderedBy: "Kellie Winbanks",
   mitsubishi: { accountName: "ADVANCED GAS & AIRCONDITIONING SERVICES PTY LTD", accountNumber: "116360", abn: "35607575280", salesRep: "ALEX BETTIN", contactName: "KELLIE WINBANKS", contactNumber: "0359478000" },
-  signName: "Kellie Winbanks", signPosition: "Owner", factoryInstructions: "Deliver to our factory",
+  signName: "Kellie Winbanks", signPosition: "Owner", factoryInstructions: "Deliver to our factory", deliveryNote: "We do not have a forklift.",
 };
 const wo = workOrderEmail({ supplier: suppliers[3], poNumber: poNumber(w, "gt_electrics", 1), details: fremont!.details, settings });
 ok("work order email says when, where, the system, crew and customer",
@@ -128,10 +128,14 @@ ok("…moved back to the Friday when that's a weekend", neededBy("2026-10-21") =
 ok("supplier email asks for one delivery three days before the first install", /deliver by Tue 20 Oct/.test(se.subject) && se.text.includes("all in one delivery"), se.subject);
 ok("a delivery date already gone reads ASAP", orderDelivery([{ install_date: "2026-10-16" }], "2026-10-14")?.label === "ASAP"
   && orderDelivery([{ install_date: "2026-10-23" }, { install_date: "2026-10-30" }], "2026-10-14")?.label === "Tue 20 Oct");
-ok("factory orders say deliver to the factory; site orders and their own instructions win",
-  deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, { ...settings, factoryInstructions: "Deliver to our factory" }) === "Deliver to our factory"
-  && deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: true }, { ...settings, factoryInstructions: "Deliver to our factory" }) === null
-  && deliveryInstructionsFor({ delivery_instructions: "Side gate", delivery_to_site: false }, { ...settings, factoryInstructions: "Deliver to our factory" }) === "Side gate");
+{
+  const ds = { factoryInstructions: "Deliver to our factory", deliveryNote: "We do not have a forklift." };
+  const said = (instr: string | null, toSite: boolean) => deliveryInstructionsFor({ delivery_instructions: instr, delivery_to_site: toSite }, ds);
+  ok("a factory order: deliver to the factory, and no forklift", said(null, false) === "Deliver to our factory. We do not have a forklift.", String(said(null, false)));
+  ok("a site order still says no forklift", said(null, true) === "We do not have a forklift.", String(said(null, true)));
+  ok("an order's own instructions come first, the note still added", said("Leave at side gate", true) === "Leave at side gate. We do not have a forklift.", String(said("Leave at side gate", true)));
+  ok("…and not twice when the instructions already say it", said("Call Kellie, we do not have a forklift", false) === "Call Kellie, we do not have a forklift.", String(said("Call Kellie, we do not have a forklift", false)));
+}
 
 console.log("\n-- one order across this week and next, for suppliers that charge per delivery --");
 {
@@ -181,7 +185,9 @@ ok("CC: the office, the supplier's standing copies and this order's, once each, 
   cc.join() === "admin@advancedgas.com.au,jake@trusttrade.au,kellie@x.com", cc.join());
 const groups = byJob(bySup.reece!);
 ok("Reece lines group per job, earliest install first", groups.map((g) => g.job_number).join() === "20264,20300", groups.map((g) => g.job_number).join());
-const rl = reeceListEmail({ supplier: suppliers[0], poNumber: "AGA-261019-REE", lines: bySup.reece!, delivery: settings.deliveryAddress, settings });
+const rl = reeceListEmail({ supplier: suppliers[0], poNumber: "AGA-261019-REE", lines: bySup.reece!, delivery: settings.deliveryAddress, settings,
+  instructions: deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, settings) });
+ok("the Reece list carries the delivery instructions for maX", rl.text.includes("Delivery instructions for maX: Deliver to our factory. We do not have a forklift."));
 ok("the Reece list has a table per job", (rl.html.match(/<table role="presentation" width="100%"/g) ?? []).length >= 2 && rl.text.indexOf("Job 20264") < rl.text.indexOf("Job 20300"));
 ok("…with the Reece product number where the pricebook has one", rl.text.includes("2 x 1234567  Kembla") && rl.text.includes("(no Reece #)"), rl.text);
 ok("…and says how many are missing one", /1 line\(s\) have no Reece product number/.test(rl.text));
@@ -213,7 +219,7 @@ console.log("\n-- the Mitsubishi form --");
       `${f.getTextField("Print Name").getText()} / ${f.getTextField("Position").getText()}`);
     ok("every row has the one delivery date", f.getTextField("Delivery Date").getText() === "Fri 16 Oct" && f.getTextField("Delivery Date 2").getText() === "Fri 16 Oct",
       `${f.getTextField("Delivery Date").getText()} / ${f.getTextField("Delivery Date 2").getText()}`);
-    ok("delivery instructions on the form", f.getTextField("Delivery Instructions").getText() === "Deliver to our factory");
+    ok("delivery instructions on the form, forklift note included", f.getTextField("Delivery Instructions").getText() === "Deliver to our factory. We do not have a forklift.", f.getTextField("Delivery Instructions").getText());
     if (process.env.ORDERING_PDF_OUT) writeFileSync(process.env.ORDERING_PDF_OUT, filled.pdf);
   }
   const tooMany = await fillMitsubishiForm({

@@ -43,6 +43,7 @@ export const DEFAULT_SETTINGS: OrderingSettings = {
   signName: "Kellie Winbanks",
   signPosition: "Owner",
   factoryInstructions: "Deliver to our factory",
+  deliveryNote: "We do not have a forklift.",
 };
 
 export async function loadOrderingSettings(): Promise<OrderingSettings> {

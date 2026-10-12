@@ -429,11 +429,27 @@ export type OrderingSettings = {
   signPosition?: string;
   /** The delivery instruction on an order coming to the factory, unless the order has its own. */
   factoryInstructions?: string;
+  /** Said on every delivery, wherever it's going ("We do not have a forklift."). */
+  deliveryNote?: string;
 };
 
-/** What an order says about delivery: its own instructions, or the factory's when it is coming to the factory. */
-export const deliveryInstructionsFor = (po: { delivery_instructions: string | null; delivery_to_site: boolean }, settings: OrderingSettings) =>
-  po.delivery_instructions?.trim() || (po.delivery_to_site ? null : settings.factoryInstructions?.trim() || null);
+const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
+
+/**
+ * What an order says about delivery: its own instructions, or the factory's
+ * when it is coming to the factory — then the note every delivery carries.
+ * The note is added rather than being part of the instructions, so typing
+ * instructions for one order can't drop it.
+ */
+export function deliveryInstructionsFor(
+  po: { delivery_instructions: string | null; delivery_to_site: boolean },
+  settings: Pick<OrderingSettings, "factoryInstructions" | "deliveryNote">,
+): string | null {
+  const own = po.delivery_instructions?.trim() || (po.delivery_to_site ? "" : settings.factoryInstructions?.trim() ?? "");
+  const note = settings.deliveryNote?.trim() ?? "";
+  const parts = [own, note].filter(Boolean).filter((p, i, all) => i === 0 || !all[0].toLowerCase().includes(p.toLowerCase().replace(/\.$/, "")));
+  return parts.length ? parts.map(sentence).join(" ") : null;
+}
 
 export function supplierOrderEmail(o: {
   supplier: Supplier;
@@ -585,7 +601,7 @@ const jobHeading = (g: JobGroup) =>
  * Not emailed to Reece — it's what the office works from (and what a test or
  * sample shows).
  */
-export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines: PlannedLine[]; delivery: string; settings: OrderingSettings }): EmailParts {
+export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines: PlannedLine[]; delivery: string; settings: OrderingSettings; instructions?: string | null }): EmailParts {
   const groups = byJob(o.lines);
   const missing = o.lines.filter((l) => !l.supplier_part).length;
   const subject = `Reece list ${o.poNumber} — ${groups.length} job${groups.length === 1 ? "" : "s"}, ${o.lines.length} line${o.lines.length === 1 ? "" : "s"}`;
@@ -595,10 +611,12 @@ export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines:
 ${g.lines.map((l) => `<tr><td style="${cell}">${qtyStr(l.qty)}</td><td style="${cell}font-family:ui-monospace,Menlo,Consolas,monospace;">${l.supplier_part ? esc(l.supplier_part) : `<span style="color:#b04711;">not set</span>`}</td><td style="${cell}"><strong>${esc(l.sku_name ?? "")}</strong>${l.description && l.description !== l.sku_name ? `<br><span style="color:#6b6a68;">${esc(l.description)}</span>` : ""}</td></tr>`).join("\n")}
 </table>`;
   const intro = `One list per job — enter each as its own cart in Reece maX, delivered to ${esc(o.delivery)}.`
+    + (o.instructions ? `<br><strong>Delivery instructions for maX:</strong> ${esc(o.instructions)}` : "")
     + (missing ? `<br><span style="color:#b04711;">${missing} line${missing === 1 ? " has" : "s have"} no Reece product number in the ServiceTitan pricebook yet.</span>` : "");
   const footer = `${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon`;
   const text = [
     `One list per job — enter each as its own cart in Reece maX, delivered to ${o.delivery}.`,
+    ...(o.instructions ? [`Delivery instructions for maX: ${o.instructions}`] : []),
     ...(missing ? [`${missing} line(s) have no Reece product number in the pricebook yet.`] : []),
     "",
     ...groups.flatMap((g) => [jobHeading(g), ...g.lines.map((l) => `  ${qtyStr(l.qty)} x ${l.supplier_part ?? "(no Reece #)"}  ${l.sku_name ?? ""}`), ""]),
