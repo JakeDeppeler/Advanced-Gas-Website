@@ -6,6 +6,8 @@ import { Locked } from "@/components/portal/Locked";
 import { getSettings } from "@/lib/portal/db";
 import { readYearGoal } from "@/lib/portal/yearGoal";
 import { getGoals } from "@/lib/portal/goals";
+import { latestBoard, shortMoney } from "@/lib/portal/office";
+import { BENCH } from "@/lib/portal/benchmarks";
 import { Head, Say } from "@/components/portal/kit/Kit";
 import { GoalsForm } from "@/components/portal/numbers/GoalsForm";
 
@@ -26,7 +28,7 @@ export default async function GoalsPage() {
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Goals" forWhom="the office" />;
 
-  const [row, goals] = await Promise.all([getSettings<unknown>("yeargoal").catch(() => null), getGoals()]);
+  const [row, goals, board] = await Promise.all([getSettings<unknown>("yeargoal").catch(() => null), getGoals(), latestBoard()]);
   const now = new Date();
   const g = readYearGoal(row, now);
   const labels = g.basis === "calendar" ? CAL : FY;
@@ -35,6 +37,17 @@ export default async function GoalsPage() {
   const months = shape.map((w: number) => (g.revenue * w) / sum);
   const m = Number(now.toLocaleDateString("en-AU", { month: "numeric", timeZone: "Australia/Melbourne" })) - 1;
   const current = g.basis === "calendar" ? m : (m + 6) % 12;
+  // Every empty goal filled in at what the year goal needs: the Pace plan's
+  // year, a month at a time, at the rates we really run at; the benchmark where
+  // the plan has nothing to say. Shown, not saved, until somebody saves them.
+  const pace = board?.metrics.pace ?? null;
+  const goalWords = `to hit ${shortMoney(g.revenue)}`;
+  const suggest: Record<string, { v: number; why: string }> = {};
+  if (pace?.year.quoted.count) suggest.quotesMonth = { v: Math.round(pace.year.quoted.count / 12), why: goalWords };
+  if (pace?.year.completed.count) suggest.jobsMonth = { v: Math.round(pace.year.completed.count / 12), why: goalWords };
+  if (pace?.rates.avgSale.value) suggest.avgJob = { v: Math.round(pace.rates.avgSale.value / 10) * 10, why: "at the average the plan runs on" };
+  suggest.wagesPct = { v: BENCH.wages.hi, why: "at the top of the healthy band" };
+  suggest.profitPct = { v: BENCH.np.lo, why: "at the bottom of the healthy band" };
 
   return (
     <PortalShell user={user}>
@@ -46,7 +59,7 @@ export default async function GoalsPage() {
           ["Benchmarks", "What a healthy service trade looks like. They’re fixed and shown beside these on Our KPIs."],
         ]} />
         <Say>These are the numbers every page is measured against. Change one and Home, Our KPIs, Sales, Pace and the wall board all update.</Say>
-        <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} />
+        <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} suggest={suggest} />
       </div>
     </PortalShell>
   );

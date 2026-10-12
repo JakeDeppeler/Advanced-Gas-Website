@@ -85,12 +85,14 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     // read as far ahead of a goal set in jobs.
     ...(() => {
       const planV = !m.quotedTargetMonthly && pm?.quotedValue.done != null;
-      const planN = !goals.quotesMonth && pm?.quoted.done != null;
+      // Quotes are counted per job whenever the plan can count them, whoever
+      // set the goal: a goal saved from the plan's suggestion is in jobs too.
+      const planN = pm?.quoted.done != null;
       const qv = planV ? pm!.quotedValue.done! : m.quotesCreatedMonthValue;
       const qn = planN ? pm!.quoted.done! : m.quotesCreatedMonthCount;
       return [
         { name: "Quoted", means: planV ? `Value of jobs quoted this month, each job once · goal ${fromPlan}` : "Value of quotes sent this month", value: money(qv), goal: quotedByNow != null ? `${money(quotedByNow)} by now` : "—", st: quotedByNow ? status(qv, quotedByNow) : ng(), href: "/portal/pipeline" },
-        { pl: true, name: "Quotes sent", means: planN ? `Jobs quoted this month, each once · goal ${fromPlan}` : "How many quotes went out this month", value: String(Math.round(qn)), goal: quotesByNow != null ? `${Math.round(quotesByNow)} by now` : "—", st: quotesByNow ? status(qn, quotesByNow) : ng(), href: "/portal/pipeline" },
+        { pl: true, name: "Quotes sent", means: planN ? `Jobs quoted this month, each once${goals.quotesMonth ? "" : ` · goal ${fromPlan}`}` : "How many quotes went out this month", value: String(Math.round(qn)), goal: quotesByNow != null ? `${Math.round(quotesByNow)} by now` : "—", st: quotesByNow ? status(qn, quotesByNow) : ng(), href: "/portal/pipeline" },
       ];
     })(),
     { name: "Win rate", means: `Of every 100 quotes this month, how many said yes${goals.winRate != null ? "" : " · goal is the rate the plan runs on"}`, value: winNow != null ? pc(winNow) : "—", goal: winGoal != null ? pc(winGoal) : "—", st: winNow != null && winGoal != null ? status(winNow, winGoal, { pts: true }) : ng(winNow == null ? "Not enough quotes" : undefined), href: "/portal/sales" },

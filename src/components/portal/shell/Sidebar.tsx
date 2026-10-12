@@ -138,7 +138,8 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
         <nav className="pn-navs">
           {sections.map((s, i) => {
             const on = here.section?.id === s.id;
-            const many = s.pages.length > 1;
+            // A flat section's pages are its tab bar, not a list here.
+            const many = s.pages.length > 1 && !s.flat;
             const shut = on && many && folded;
             return (
               <div key={s.id} className="pn-group">
@@ -227,5 +228,30 @@ export function Crumb({ sections }: { sections: Section[] }) {
     <div className="pn-crumb">
       {section.pages.length > 1 ? <>{section.label} › <b>{page.label}</b></> : <b>{section.label}</b>}
     </div>
+  );
+}
+
+/**
+ * A flat section's pages, as the tab bar across the top of each of them. The
+ * shell draws it, so every page in the section carries the same bar and no
+ * page has to remember to.
+ */
+export function SectionBar({ sections }: { sections: Section[] }) {
+  const path = usePathname() ?? "";
+  const query = useSearchParams();
+  const here = whereAmI(sections, path, new URLSearchParams(query?.toString() ?? ""));
+  if (!here.section?.flat || here.section.pages.length < 2) return null;
+  return (
+    <nav className="pk-seg pn-secbar" aria-label={here.section.label}>
+      {here.section.pages.map((p) => {
+        const on = p.href === here.page?.href;
+        return (
+          <Link key={p.href} href={p.href} className={on ? "on" : undefined} aria-current={on ? "page" : undefined}>
+            {p.label}
+            {p.count?.n ? <span className={`c${p.count.red ? " r" : ""}`}>{p.count.n}</span> : null}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

@@ -9,8 +9,8 @@ import { localToday, plSpans, rangeSpans, type PLSpan } from "@/lib/portal/xero"
 export const PERIODS = [
   { k: "12m", label: "Last 12 months" },
   { k: "fy", label: "This financial year" },
-  { k: "month", label: "This month" },
   { k: "lastmonth", label: "Last month" },
+  { k: "month", label: "This month" },
 ] as const;
 export type PeriodKey = (typeof PERIODS)[number]["k"];
 

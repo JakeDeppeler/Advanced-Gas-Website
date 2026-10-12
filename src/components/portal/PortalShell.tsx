@@ -17,7 +17,7 @@ import { latestBoard } from "@/lib/portal/office";
 import { getBusiness } from "@/lib/portal/business";
 import { NAV_COOKIE, readTheme, THEME_COOKIE, type Business } from "@/lib/portal/businessTypes";
 import { ALIAS, buildSections, sectionOff, sectionOfPath, type Count, type Section } from "@/lib/portal/sections";
-import { Crumb, MenuButton, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
+import { Crumb, MenuButton, SectionBar, Sidebar, type LiveState } from "@/components/portal/shell/Sidebar";
 import { ThemeButton } from "@/components/portal/shell/ThemeButton";
 
 const office = (user: PortalUser) => can(user, "overhead") || can(user, "manage_users");
@@ -139,6 +139,7 @@ export async function PortalShell({ user, children, variant }: { user: PortalUse
         </header>
         <main className="pt__content pn-content">
           {user.viewingAs && <ViewAsBanner level={user.viewingAs} />}
+          <Suspense fallback={null}><SectionBar sections={sections} /></Suspense>
           {children}
         </main>
       </div>
