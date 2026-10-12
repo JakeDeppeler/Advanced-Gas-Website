@@ -58,7 +58,7 @@ export default async function SupplyPage() {
     <PortalShell user={user}>
       <div className="pt-head">
         <PortalBack href="/portal" label="Home" />
-        <h1>Reece maX, into ServiceTitan</h1>
+        <h1>Supply</h1>
         <p>Our contractor pricing from Reece, the pricebook it feeds, and every order that&rsquo;s gone out through it.</p>
       </div>
 

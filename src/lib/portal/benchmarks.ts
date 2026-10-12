@@ -28,5 +28,6 @@ export function benchStatus(key: BenchKey, v: number, lower = false): { k: "good
   const b = BENCH[key];
   if (lower) return v <= b.hi ? { k: "good", w: "In the band" } : v <= b.hi * 1.3 ? { k: "mid", w: "Above the band" } : { k: "bad", w: "Well above" };
   if (key === "win" && v > b.hi) return { k: "mid", w: "Too cheap?" };
+  if (v > b.hi) return { k: "good", w: "Above the band" };
   return v >= b.lo ? { k: "good", w: "In the band" } : v >= b.lo * 0.8 ? { k: "mid", w: "Under the band" } : { k: "bad", w: "Well under" };
 }

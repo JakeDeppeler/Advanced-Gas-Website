@@ -3,6 +3,7 @@ import { q, sbSelectOne } from "@/lib/dashboard/db";
 import { computeSnapshot, latestSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
 import { ensureXeroToken } from "@/lib/portal/xero";
+import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 
 /**
  * Bring the board's snapshot up to date, if it's due.
@@ -67,7 +68,12 @@ async function run(pull: boolean) {
   // when a leg failed, because carry-forward inside computeSnapshot keeps the
   // last known figures on the wall rather than blanking them.
   if (pull) await syncServiceTitan(false);
-  await storeSnapshot(await computeSnapshot());
+  const snapshot = await computeSnapshot();
+  await storeSnapshot(snapshot);
+  // This month's commission line on each file, as /api/sync writes it. Only
+  // after a pull: the board recomputes every half-minute and the figure only
+  // moves when the sales do. A failed write never fails the board's refresh.
+  if (pull) await saveCommissionMonth(snapshot.metrics).catch(() => undefined);
 }
 
 export async function refreshBoard(): Promise<{ refreshed: boolean; ageMs?: number; synced?: boolean; error?: string }> {

@@ -177,10 +177,17 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/supply", label: "Supply", blurb: "Reece pricing and orders", band: "crew", icon: "box", also: ["reece", "max", "order", "pricebook", "material"] },
   );
   items.push(
-    { href: "/portal/tools/fault-codes", label: "Tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
+    { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
     // The same portal, built for the iPad in the van. Everyone gets it — it
     // shows a person their own work and nothing gated.
     { href: "/trade", label: "See the trade iPad", short: "Trade iPad", blurb: "The portal as a tradie sees it", band: "crew", icon: "tablet", also: ["ipad", "van", "monday", "tradesman", "trade portal", "field"] },
+  );
+  add(can(user, "vehicles"),
+    { href: "/portal/vehicles/tools", label: "Tools", blurb: "Every tool on every van, and when it's next tested", band: "crew", icon: "wrench", also: ["test and tag", "tag", "calibration", "tool register", "tools due"] },
+  );
+  add(office,
+    { href: "/portal/per-van", label: "Per van, per day", short: "Per van", blurb: "What each van brings in a day it's out", band: "crew", icon: "truck", also: ["revenue per van", "per day", "van a day", "per tech"] },
+    { href: "/portal/drive", label: "Drive time", blurb: "How much of the day is on the road", band: "crew", icon: "clock", also: ["driving", "travel", "routing", "on the road"] },
   );
   add(office,
     { href: "/portal/stock", label: "Factory stock", short: "Stock", blurb: "What's on the shelf, who took what", band: "crew", icon: "box", also: ["stock", "factory", "shelf", "inventory"] },
