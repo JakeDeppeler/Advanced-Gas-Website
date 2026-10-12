@@ -67,7 +67,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  // The path, for the portal's shell: a section the business has switched off
+  // in Settings sends its pages home, and a server component can't otherwise
+  // see which page it is drawing.
+  const forward = new Headers(req.headers);
+  forward.set("x-pt-path", pathname);
+  return NextResponse.next({ request: { headers: forward } });
 }
 
 export const config = {

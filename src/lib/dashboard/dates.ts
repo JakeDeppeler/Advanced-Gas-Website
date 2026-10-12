@@ -121,7 +121,7 @@ export const DEFAULT_WORKING_CALENDAR: WorkingCalendar = {
   holidays: [],
 };
 
-function isWorkingDay(d: Date, cal: WorkingCalendar): boolean {
+export function isWorkingDay(d: Date, cal: WorkingCalendar): boolean {
   if (cal.holidays.includes(isoDateMelbourne(d))) return false;
   return cal.days.includes(weekdayMelbourne(d));
 }

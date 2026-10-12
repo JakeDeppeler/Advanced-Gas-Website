@@ -239,6 +239,21 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/board", label: "What it shows", short: "Pages", blurb: "Each page's figures, and where they come from", band: "board", icon: "chart", also: ["dashboard", "screen", "tv", "live", "feeds"] },
     { href: "/portal/finance/board", label: "Targets & commission", short: "Targets", blurb: "What it aims at, the bonus bands, the working days", band: "board", icon: "target", also: ["commission", "bonus", "working days", "holidays", "board targets"] },
   );
+  // Pages the side bar lists that the old home grid reached through a page's
+  // own tabs. Here so the search finds them and the side bar's gate is this list.
+  add(office,
+    { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
+    { href: "/portal/finance/goals", label: "The year", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
+    { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
+    { href: "/portal/finance/capacity", label: "Costs", short: "Our numbers", blurb: "Our numbers: wages, overheads and what an hour costs", band: "hidden", icon: "list", also: ["our numbers", "costs", "overheads", "wages", "capacity"] },
+    { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },
+    { href: "/portal/finance/capacity?part=markup", label: "Markup", blurb: "Markup on materials and units", band: "hidden", icon: "tag", also: ["markup", "margin", "materials", "units"] },
+    { href: "/portal/finance/planning", label: "Future", blurb: "Hire someone, and other what-ifs", band: "hidden", icon: "trend", also: ["what if", "hire", "planning", "add a person", "future"] },
+    { href: "/portal/marketing?tab=ads", label: "Ads", blurb: "What the ads cost and bring in", band: "hidden", icon: "speaker", also: ["ads", "google ads", "facebook ads"] },
+    { href: "/portal/marketing?tab=social", label: "Social", blurb: "Posts on social media", band: "hidden", icon: "chat", also: ["social", "instagram", "facebook"] },
+    { href: "/portal/marketing?tab=assets", label: "Brand assets", blurb: "Logos, colours and photos", band: "hidden", icon: "grid", also: ["brand", "logo", "colours", "photos"] },
+  );
+  items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });
   add(office,
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece — is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
   );
