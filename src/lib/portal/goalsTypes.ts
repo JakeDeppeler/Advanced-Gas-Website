@@ -24,6 +24,13 @@ export type Goals = {
   avgJob: number | null;
   /** Quotes followed up within two days, %. */
   followup: number | null;
+  /**
+   * The win rate to aim for, %. Only a goal: the plan works out how many
+   * quotes the year needs from the rate we're really winning at (or the one
+   * set on Pace), so aiming at 60% doesn't cut the quotes it asks for to a
+   * third of what we'd actually need.
+   */
+  winRate: number | null;
   /** Jobs done a month. */
   jobsMonth: number | null;
   /** Overdue, $ or less. */
@@ -32,10 +39,10 @@ export type Goals = {
   billable: number | null;
 };
 
-export const GOAL_KEYS: (keyof Goals)[] = ["gm", "ovh", "wagesPct", "quotesMonth", "avgJob", "followup", "jobsMonth", "overdue", "billable"];
+export const GOAL_KEYS: (keyof Goals)[] = ["gm", "ovh", "wagesPct", "quotesMonth", "avgJob", "followup", "winRate", "jobsMonth", "overdue", "billable"];
 
 export const DEFAULT_GOALS: Goals = {
-  gm: 40, ovh: 25, wagesPct: null, quotesMonth: null, avgJob: null, followup: null, jobsMonth: null, overdue: null, billable: null,
+  gm: 40, ovh: 25, wagesPct: null, quotesMonth: null, avgJob: null, followup: null, winRate: null, jobsMonth: null, overdue: null, billable: null,
 };
 
 export function normaliseGoals(raw: unknown): Goals {
