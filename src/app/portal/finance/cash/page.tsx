@@ -9,7 +9,7 @@ import { cashCover, owedInvoices } from "@/lib/portal/run/money";
 import { money } from "@/lib/portal/run/month";
 import { BENCH } from "@/lib/portal/benchmarks";
 import { Bad, Card, Empty, Grid, Head, Hero, Kv, Note, Pair, Say, Tabs, Tile, Two, none, type Status } from "@/components/portal/kit/Kit";
-import { InOutLines } from "@/components/portal/kit/Charts";
+import { InOutChart } from "@/components/portal/kit/HoverCharts";
 import { XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
@@ -95,7 +95,7 @@ async function Flow() {
   const dueSoon = dueWithin(bills, 7, today);
   const owedTotal = owed?.reduce((a, i) => a + i.amountDue, 0) ?? null;
   const overdue = owed?.filter((i) => i.daysOver > 0).reduce((a, i) => a + i.amountDue, 0) ?? null;
-  const pts = known.filter((r) => r.b).map((r) => ({ label: r.mo.short, in: r.b!.received, out: r.b!.spent }));
+  const pts = known.filter((r) => r.b).map((r) => ({ label: r.mo.short, full: r.mo.to === today ? `${r.mo.label} so far` : r.mo.label, in: r.b!.received, out: r.b!.spent }));
 
   return (
     <>
@@ -110,8 +110,8 @@ async function Flow() {
         <Hero label="Coming in" right="owed to us" fig={owedTotal != null ? money(owedTotal) : "—"} frac={owedTotal && overdue != null ? overdue / owedTotal : null}
           sub={overdue != null ? `${money(overdue)} of it is overdue` : "Xero didn’t return the invoices"} href="/portal/money" />
       </Pair>
-      <Card title="Money in and money out" aside="solid = in · dashed = out · last 6 months">
-        {pts.length >= 2 ? <InOutLines points={pts} /> : <Empty>Xero didn’t return enough months of the bank to draw.</Empty>}
+      <Card title="Money in and money out" aside="solid = in · dashed = out · green where more came in · point at a month">
+        {pts.length >= 2 ? <InOutChart points={pts} /> : <Empty>Xero didn’t return enough months of the bank to draw.</Empty>}
       </Card>
       <Card title="Month by month" aside="the bank beside the P&L">
         <div className="pk-tbl-wrap">
