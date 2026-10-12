@@ -629,3 +629,19 @@ a.pk-row:hover { background: var(--sunken); }
 .pn .pt-seg__b.is-on.pt-seg__b--off { background: var(--bad-f); color: #fff; }
 /* A flat section's page bar, drawn by the shell above the page. */
 .pn-secbar { margin-bottom: 18px; }
+/* Charts you can point at: the tooltip sits beside the month, inside the card. */
+.pk-hchart { position: relative; }
+.pk-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16); border-radius: 12px; padding: 10px 12px; font-size: 13px; display: grid; gap: 3px; min-width: 190px; white-space: nowrap; }
+.pk-tip b { font-weight: 800; margin-bottom: 2px; }
+.pk-tip span { display: flex; justify-content: space-between; gap: 16px; color: var(--ink2); }
+.pk-tip em { font-style: normal; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.pk-tip .g, .pk-tip .g em { color: var(--good); font-weight: 800; }
+.pk-tip .b, .pk-tip .b em { color: var(--bad); font-weight: 800; }
+/* Section overview cards: same edges and baselines card to card, the way in pinned to the foot. */
+.pk-sum { padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; color: var(--ink); }
+.pk-sum dl { margin: 10px 0 0; display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; }
+.pk-sum dl > div { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; }
+.pk-sum dt { color: var(--ink2); min-width: 0; }
+.pk-sum dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pk-sum .go { margin-top: auto; padding-top: 10px; font-size: 13px; font-weight: 700; color: var(--ink3); }
+.pk-sum:hover .go { color: var(--ink); }

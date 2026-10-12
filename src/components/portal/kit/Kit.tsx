@@ -172,3 +172,22 @@ export const Btn = ({ href, children, quiet }: { href: string; children: ReactNo
 export function PeriodTabs({ on, href, items }: { on: string; href: (k: string) => string; items: readonly { k: string; label: string }[] }) {
   return <Tabs on={on} label="Period" items={items.map((p) => ({ key: p.k, label: p.label, href: href(p.k) }))} />;
 }
+
+/**
+ * One page of a section, summed up on the section's overview: its name and
+ * how it's going, the one figure that matters, a line or two under it, and
+ * the way in. Every card the same shape, so a row of them reads as a set.
+ */
+export function Sum({ title, st, fig, figSub, lines, href }: {
+  title: string; st: Status; fig: string; figSub?: ReactNode; lines?: [ReactNode, ReactNode][]; href: string;
+}) {
+  return (
+    <Link href={href} className="pk-card pk-sum pk-link">
+      <div className="pk-tl"><span>{title}</span><Pill st={st} /></div>
+      <div className="pk-fig">{fig}</div>
+      {figSub && <div className="pk-ks">{figSub}</div>}
+      {lines && lines.length > 0 && <dl>{lines.map(([k, v], i) => <div key={i}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>}
+      <span className="go">Open ›</span>
+    </Link>
+  );
+}
