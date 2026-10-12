@@ -83,7 +83,7 @@ export type XeroExpense = { label: string; section: string; amount: number };
 export type XeroState = { state: "off" | "failed" | "empty" | "ok"; sections: string[]; span: string };
 
 export function CapacityEditor({
-  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0,
+  people, settings, dbReady, canManage, initialTab, xeroExpenses = [], xero, fleetDep = 0, vanCount = 0, fixedTab = false,
 }: {
   people: { id: string; name: string; email: string | null; level: CrewLevel | null; costing: Costing }[];
   settings: CapSettings; dbReady: boolean; canManage: boolean; initialTab?: Tab;
@@ -92,6 +92,8 @@ export function CapacityEditor({
   /** Straight-line depreciation across the fleet, from the Vehicles tab. */
   fleetDep?: number;
   vanCount?: number;
+  /** The side bar picks the part (Team & wages, Costs), so the editor's own tab row is hidden. */
+  fixedTab?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -486,8 +488,8 @@ export function CapacityEditor({
       )}
       </div>
 
-      <div className="pt-cap__tabrow">
-        <div className="pt-cap__tabs" role="tablist">
+      <div className="pt-cap__tabrow" style={fixedTab ? { justifyContent: "flex-end" } : undefined}>
+        <div className="pt-cap__tabs" role="tablist" style={fixedTab ? { display: "none" } : undefined}>
           {TABS.map((t) => (
             <button key={t.k} type="button" role="tab" aria-selected={tab === t.k} className={`pt-cap__tab${tab === t.k ? " is-on" : ""}`} onClick={() => setTab(t.k)}>{t.label}</button>
           ))}

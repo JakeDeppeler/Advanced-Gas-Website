@@ -562,3 +562,26 @@ a.pk-row:hover { background: var(--sunken); }
 @media (max-width: 760px) { .pk-certf { flex-basis: 100%; justify-content: flex-start; } }
 /* A rebuilt page's tab row on a page that hasn't been rebuilt yet. */
 .pk-tabrow { margin: 0 0 18px; }
+/* Our numbers: grouped inputs. */
+.pk-glh { font-size: 12px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: 0.05em; margin: 18px 0 2px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.pk-glh + .pk-kv { border-top: 0; }
+.pk-big { font-family: var(--f-display, "Archivo", sans-serif); font-size: 20px; font-weight: 800; }
+.pk-in.num { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pk-in.wide { width: 220px; text-align: left; }
+.pk-unit { min-width: 150px; font-size: 12px; font-weight: 700; color: var(--ink2); }
+.pk-said { font-size: 13px; color: var(--ink2); }
+.pk-said.bad { color: var(--bad); }
+.pk-months { background: var(--sunken); border-radius: 14px; padding: 14px; margin: 6px 0 4px; }
+.pk-mrow { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
+.pk-mon { display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 0; }
+.pk-mon .bar { height: 56px; display: flex; align-items: flex-end; }
+.pk-mon .bar i { display: block; width: 100%; border-radius: 6px 6px 2px 2px; background: var(--ink4); min-height: 2px; }
+.pk-mon.on .bar i { background: var(--mark); }
+.pk-mon input { width: 100%; min-width: 0; padding: 5px 4px; border-radius: 8px; border: 0; box-shadow: inset 0 0 0 1px var(--line); background: var(--surface); font: inherit; font-size: 13px; font-weight: 700; text-align: center; color: var(--ink); }
+.pk-mon input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accent); }
+.pk-mon .lab { font-size: 11px; color: var(--ink3); text-align: center; }
+.pk-mon.on .lab { color: var(--ink); font-weight: 700; }
+@media (max-width: 760px) {
+  .pk-mrow { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .pk-unit { min-width: 0; flex-basis: 100%; }
+}
