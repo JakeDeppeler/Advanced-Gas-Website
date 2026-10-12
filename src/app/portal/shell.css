@@ -187,7 +187,10 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
   font-size: 13px; color: var(--ink2); text-decoration: none;
 }
 .pn-sub:hover { background: var(--quiet); }
-.pn-sub.on { color: var(--accent); font-weight: 700; }
+/* The page you're on sits in a box, as the open section does, as well as
+   turning blue: the box is what reads at a glance down a long list. */
+.pn-sub.on { color: var(--accent); font-weight: 700; background: var(--accent-bg); }
+.pn-sub.on:hover { background: var(--accent-bg); }
 .pn-sep { height: 1px; background: var(--line); margin: 8px 10px; }
 
 .pn-fly {
