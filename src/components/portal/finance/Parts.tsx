@@ -17,7 +17,7 @@ export function Diff({ d, lowerIsBetter }: { d: number; lowerIsBetter?: boolean 
   if (Math.abs(d) < 0.5) return <span style={{ color: "var(--ink3)" }}>same</span>;
   const worse = lowerIsBetter ? d > 0 : d < 0;
   return (
-    <span style={{ color: worse ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>
+    <span style={{ color: worse ? "var(--bad)" : "var(--good)", fontWeight: 700, whiteSpace: "nowrap" }}>
       {d > 0 ? "▲ +" : "▼ −"}${Math.round(Math.abs(d)).toLocaleString("en-AU")}
     </span>
   );
