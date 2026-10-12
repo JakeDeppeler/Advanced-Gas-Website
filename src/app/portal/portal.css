@@ -5293,8 +5293,22 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__table tfoot td { border-bottom: 0; color: var(--pt-ink-2); }
 .pt-nw__table td .pt-nw__flag, .pt-nw__flag { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 8px; background: var(--pt-amber-bg); color: var(--pt-amber); font-size: 12.5px; font-weight: 700; }
 .pt-nw__tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--pt-info-soft); color: var(--pt-info); font-size: 12px; font-weight: 700; }
+.pt-nw__jobgroup { margin-top: 14px; }
+.pt-nw__jobgroup:first-of-type { margin-top: 8px; }
+/* Fixed columns so each job's table lines up with the one above it. */
+.pt-nw__table--reece { table-layout: fixed; }
+.pt-nw__table--reece th:nth-child(1) { width: 64px; }
+.pt-nw__table--reece th:nth-child(2) { width: 132px; }
+.pt-nw__table--reece th:nth-child(4) { width: 128px; }
+@media (max-width: 640px) { .pt-nw__table--reece { table-layout: auto; } }
+.pt-nw__jobhead { margin: 0 0 4px; font-size: 14.5px; font-weight: 400; color: var(--pt-ink-2); }
+.pt-nw__jobhead strong { color: var(--pt-ink); }
+.pt-nw__part { font-family: var(--f-mono, ui-monospace, monospace); font-size: 13.5px; white-space: nowrap; }
+.pt-nw__reecenote { margin: 0 0 6px; font-size: 13px; }
+.pt-nw__total { margin: 10px 0 0; font-size: 14px; color: var(--pt-ink-2); text-align: right; font-variant-numeric: tabular-nums; }
+.pt-nw__deliver + .pt-nw__deliver { margin-top: 8px; }
 .pt-nw__deliver { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 16px; font-size: 14px; }
-.pt-nw__deliveredit { flex-basis: 100%; display: grid; gap: 8px; max-width: 560px; }
+.pt-nw__deliveredit { flex: 0 0 100%; display: grid; grid-template-columns: minmax(0, 560px); gap: 8px; }
 .pt-nw__input { min-height: 40px; padding: 0 12px; border: 1px solid var(--pt-field); border-radius: 10px; background: var(--pt-surface); color: var(--pt-ink); font: inherit; }
 .pt-nw__check { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .pt-nw__actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }

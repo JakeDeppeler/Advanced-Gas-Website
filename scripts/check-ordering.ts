@@ -8,10 +8,12 @@
  */
 import { writeFileSync } from "node:fs";
 import {
-  dayTimeLabel, modelLooksLikeName, neededBy, nextWeek, planWeek, poNumber, supplierOrderEmail, supplierRows, workOrderEmail,
+  byJob, ccList, dayTimeLabel, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
+  splitAddress, supplierOrderEmail, supplierRows, workOrderEmail, workRef,
   type OrderLine, type Supplier, type WorkOrderRow,
 } from "../src/lib/ordering/plan";
 import { fillMitsubishiForm } from "../src/lib/ordering/mitsubishiForm";
+
 
 let bad = 0;
 const ok = (name: string, pass: boolean, extra = "") => {
@@ -51,7 +53,7 @@ const lines: OrderLine[] = [
       sku_type: "Equipment", unit_cost: 1820, supplier_id: "mitsubishi", supplier_model: "MSZ-AP71VGKIT" }),
   L({ job_id: 265, job_number: "20265", customer_name: "Second split", install_date: "2026-10-22", sku_id: 148184332, sku_name: "PEA-M71/PUZ-M71",
       sku_type: "Equipment", unit_cost: 1820, supplier_id: "mitsubishi", supplier_model: "MSZ-AP71VGKIT" }),
-  L({ job_id: 300, job_number: "20300", install_date: "2026-10-21", sku_id: 11, sku_name: "Kembla Hard Drawn Copper 15mm", qty: 2, unit_cost: 59.33 }),
+  L({ job_id: 300, job_number: "20300", install_date: "2026-10-21", sku_id: 11, sku_name: "Kembla Hard Drawn Copper 15mm", qty: 2, unit_cost: 59.33, supplier_part: "1234567" }),
   L({ job_id: 264, job_number: "20264", install_date: "2026-10-20", sku_id: 11, sku_name: "Kembla Hard Drawn Copper 15mm", qty: 3, unit_cost: 59.33 }),
   L({ job_id: 410, job_number: "20410", install_date: "2026-10-23", sku_id: 21, sku_name: "Reclaim Heat Pump 300L", sku_type: "Equipment", unit_cost: 3030, supplier_id: "reclaim" }),
   // Not next week: must not be ordered yet.
@@ -136,6 +138,29 @@ const plain = supplierOrderEmail({ supplier: { ...suppliers[2], email_intro: "  
 ok("a blank box falls back to the standard wording", plain.text.startsWith("Hi team,") && plain.text.includes("Please confirm the order"));
 const geoffCustom = workOrderEmail({ supplier: { ...suppliers[3], email_intro: "Morning Geoff,", email_signoff: "Call Jake if stuck." }, poNumber: "W1", details: fremont!.details, settings });
 ok("Geoff's opening and note can be changed too", geoffCustom.text.startsWith("Morning Geoff,") && geoffCustom.text.includes("Call Jake if stuck.") && !geoffCustom.text.includes("Email us if you can't make it"));
+
+console.log("\n-- work order name, CC, Reece per job, Mitsubishi form-style --");
+ok("a work order is called by its job numbers and address", workRef(fremont!.details).startsWith("Job ") && workRef(fremont!.details).includes(" & ")
+  && workRef(fremont!.details).endsWith(fremont!.details.site_address), workRef(fremont!.details));
+ok("…and that is what Geoff's email is titled", wo.subject.includes(workRef(fremont!.details)) && !wo.subject.includes("AGA-"), wo.subject);
+const pe = parseEmails("a@x.com; B@x.com,  a@x.com\nnot-an-email");
+ok("CC box: splits, drops repeats, keeps typos to point out", pe.ok.join() === "a@x.com,B@x.com" && pe.bad.join() === "not-an-email", JSON.stringify(pe));
+const cc = ccList(settings, { ...suppliers[2], cc_emails: ["jake@trusttrade.au", "ADMIN@advancedgas.com.au"] }, { cc_emails: ["kellie@x.com", "orders@reclaim.com.au"] }, "orders@reclaim.com.au");
+ok("CC: the office, the supplier's standing copies and this order's, once each, never the recipient",
+  cc.join() === "admin@advancedgas.com.au,jake@trusttrade.au,kellie@x.com", cc.join());
+const groups = byJob(bySup.reece!);
+ok("Reece lines group per job, earliest install first", groups.map((g) => g.job_number).join() === "20264,20300", groups.map((g) => g.job_number).join());
+const rl = reeceListEmail({ supplier: suppliers[0], poNumber: "AGA-261019-REE", lines: bySup.reece!, delivery: settings.deliveryAddress, settings });
+ok("the Reece list has a table per job", (rl.html.match(/<table role="presentation" width="100%"/g) ?? []).length >= 2 && rl.text.indexOf("Job 20264") < rl.text.indexOf("Job 20300"));
+ok("…with the Reece product number where the pricebook has one", rl.text.includes("2 x 1234567  Kembla") && rl.text.includes("(no Reece #)"), rl.text);
+ok("…and says how many are missing one", /1 line\(s\) have no Reece product number/.test(rl.text));
+ok("splitAddress", JSON.stringify(splitAddress("1 Sierra Circuit, Pakenham VIC 3810")) === JSON.stringify({ street: "1 Sierra Circuit, Pakenham", state: "VIC", postcode: "3810" }));
+const me = mitsubishiOrderEmail({ supplier: suppliers[1], poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!,
+  delivery: settings.deliveryAddress, deliveryInstructions: "Ring Kellie", settings, attached: true });
+ok("Mitsubishi email is laid out as their form", ["Billing information", "Customer details", "Order details", "Account number", "116360", "ALEX BETTIN",
+  "Delivery date", "Price ex GST", "Sub total", "GST", "Total", "Ring Kellie", "3810"].every((t) => me.html.includes(t)));
+ok("…one row per model, quantities added up", me.text.includes("2 x MSZ-AP71VGKIT"), me.text);
+ok("…says the form is attached", me.text.includes("order form, attached"));
 
 console.log("\n-- the Mitsubishi form --");
 (async () => {

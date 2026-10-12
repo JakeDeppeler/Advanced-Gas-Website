@@ -103,6 +103,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         suppliers={suppliers}
         problems={problems}
         testTo={user.email}
+        alwaysCc={replyTo}
       />
     </PortalShell>
   );

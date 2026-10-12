@@ -22,6 +22,8 @@ export type Supplier = {
   /** The office's own opening and closing for this supplier's emails (0065); blank uses the defaults below. */
   email_intro?: string | null;
   email_signoff?: string | null;
+  /** Copied on every order to this supplier, as well as the office (0066). */
+  cc_emails?: string[] | null;
 };
 
 /*
@@ -58,6 +60,8 @@ export type OrderLine = {
   issue: string | null;
   supplier_model: string | null;
   appointment_start: string | null;
+  /** The supplier's own product number, from the pricebook item's vendor part (0066). */
+  supplier_part?: string | null;
 };
 
 export type WorkOrderRow = {
@@ -94,6 +98,7 @@ export type PlannedLine = {
   sku_type: string | null;
   description: string | null;
   supplier_model: string | null;
+  supplier_part?: string | null;
   qty: number;
   unit_cost: number | null;
 };
@@ -255,7 +260,7 @@ export function planWeek(input: {
       job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
       install_date: l.install_date, appointment_start: l.appointment_start,
       sku_id: l.sku_id, sku_name: l.sku_name, sku_type: l.sku_type, description: l.description,
-      supplier_model: l.supplier_model, qty, unit_cost: l.unit_cost == null ? null : Number(l.unit_cost),
+      supplier_model: l.supplier_model, supplier_part: l.supplier_part ?? null, qty, unit_cost: l.unit_cost == null ? null : Number(l.unit_cost),
     });
     orders.set(s.id, list);
   }
@@ -436,7 +441,11 @@ ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cel
 export function workOrderEmail(o: { supplier: Supplier; poNumber: string; details: WorkOrderDetails; settings: OrderingSettings }): EmailParts {
   const d = o.details;
   const when = d.start_at ? dayTimeLabel(d.start_at) : dayLabel(d.date);
-  const subject = `Work order ${o.poNumber} — ${when} — ${d.site_address}`;
+  // Geoff knows a visit by the job number and the address, not by our order
+  // number, so that is what the work order is called (o.poNumber stays the
+  // portal's own record of it).
+  const ref = workRef(d);
+  const subject = `Work order — ${ref} — ${when}`;
   const row = (k: string, v: string | null | undefined) =>
     v ? `<tr><td style="${cell}width:150px;color:#6b6a68;">${esc(k)}</td><td style="${cell}">${v}</td></tr>` : "";
   const contact = [d.customer_name, d.customer_phone, d.customer_email].filter(Boolean).map((s) => esc(String(s))).join(" · ");
@@ -451,7 +460,7 @@ ${row("The job", jobs)}
 ${row("Our crew on site", esc(d.crew.join(", ") || "To be confirmed"))}
 ${row("Customer", contact || "No contact on file — call us")}
 </table>`;
-  const vars = { supplier: o.supplier.name, po: o.poNumber };
+  const vars = { supplier: o.supplier.name, po: ref };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_WORK_INTRO : o.supplier.email_intro!, vars);
   // The note to the electrician: the office's current wording, else the one
   // stored with the work order when it was drafted.
@@ -469,7 +478,157 @@ ${row("Customer", contact || "No contact on file — call us")}
     ...(note ? [note, ""] : []),
     `Email us at ${o.settings.replyTo} · Advanced Gas & Aircon · 03 5947 8000`,
   ].join("\n");
-  return { subject, html: shell(`Work order ${o.poNumber}`, intro, body, footer), text };
+  return { subject, html: shell(`Work order — ${workJobs(d)}`, intro, body, footer), text };
+}
+
+/** "Job 20309" or "Job 20309 & 20311" — the jobs one electrician visit covers. */
+export const workJobs = (d: WorkOrderDetails) =>
+  `Job ${d.jobs.map((j) => j.job_number).filter(Boolean).join(" & ")}`;
+
+/** What a work order is called: the job number and the address. */
+export const workRef = (d: WorkOrderDetails) => `${workJobs(d)} — ${d.site_address}`;
+
+/**
+ * A typed CC box: addresses split on commas, semicolons or spaces. Anything
+ * that isn't an address is handed back rather than dropped, so a typo is
+ * pointed out instead of someone quietly not being copied in.
+ */
+export function parseEmails(s: string): { ok: string[]; bad: string[] } {
+  const ok: string[] = [];
+  const bad: string[] = [];
+  const seen = new Set<string>();
+  for (const part of s.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(part)) bad.push(part);
+    else if (!seen.has(part.toLowerCase())) { seen.add(part.toLowerCase()); ok.push(part); }
+  }
+  return { ok, bad };
+}
+
+/**
+ * Who an order email copies: the office (so replies and the sent order land
+ * in the shared inbox), the supplier's standing copies, and anyone added to
+ * this one order — each once, and never the person it is addressed to.
+ */
+export function ccList(settings: Pick<OrderingSettings, "replyTo">, supplier: Supplier, po: { cc_emails?: string[] | null } | null, to: string | null): string[] {
+  const all = [settings.replyTo, ...(supplier.cc_emails ?? []), ...(po?.cc_emails ?? [])]
+    .map((e) => e.trim()).filter((e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  const seen = new Set<string>(to ? [to.toLowerCase()] : []);
+  return all.filter((e) => (seen.has(e.toLowerCase()) ? false : (seen.add(e.toLowerCase()), true)));
+}
+
+/* ---------------------------------------------------------------- Reece: one list per job */
+
+export type JobGroup<L extends PlannedLine = PlannedLine> = { job_id: number; job_number: string | null; customer_name: string | null; suburb: string | null;
+  install_date: string | null; appointment_start: string | null; lines: L[] };
+
+/** Lines grouped by job, earliest install first — one maX cart per job. */
+export function byJob<L extends PlannedLine>(lines: L[]): JobGroup<L>[] {
+  const m = new Map<number, JobGroup<L>>();
+  for (const l of lines) {
+    const g = m.get(l.job_id) ?? { job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
+      install_date: l.install_date, appointment_start: l.appointment_start, lines: [] };
+    g.lines.push(l);
+    m.set(l.job_id, g);
+  }
+  return [...m.values()].sort((a, b) => (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
+}
+
+const jobHeading = (g: JobGroup) =>
+  [`Job ${g.job_number ?? ""}`, g.customer_name, g.suburb].filter(Boolean).join(" · ")
+  + (g.appointment_start ? ` — install ${dayTimeLabel(g.appointment_start)}` : g.install_date ? ` — install ${dayLabel(g.install_date)}` : "");
+
+/**
+ * The Reece list: one table per job, each line with Reece's product number
+ * where the pricebook has it, so each job can go into maX as its own cart.
+ * Not emailed to Reece — it's what the office works from (and what a test or
+ * sample shows).
+ */
+export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines: PlannedLine[]; delivery: string; settings: OrderingSettings }): EmailParts {
+  const groups = byJob(o.lines);
+  const missing = o.lines.filter((l) => !l.supplier_part).length;
+  const subject = `Reece list ${o.poNumber} — ${groups.length} job${groups.length === 1 ? "" : "s"}, ${o.lines.length} line${o.lines.length === 1 ? "" : "s"}`;
+  const table = (g: JobGroup) => `<p style="margin:18px 0 6px;font:700 15px/21px ${SANS};color:#050a30;">${esc(jobHeading(g))}</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+<tr><th style="${head}width:48px;">Qty</th><th style="${head}width:120px;">Reece #</th><th style="${head}">Item</th></tr>
+${g.lines.map((l) => `<tr><td style="${cell}">${qtyStr(l.qty)}</td><td style="${cell}font-family:ui-monospace,Menlo,Consolas,monospace;">${l.supplier_part ? esc(l.supplier_part) : `<span style="color:#b04711;">not set</span>`}</td><td style="${cell}"><strong>${esc(l.sku_name ?? "")}</strong>${l.description && l.description !== l.sku_name ? `<br><span style="color:#6b6a68;">${esc(l.description)}</span>` : ""}</td></tr>`).join("\n")}
+</table>`;
+  const intro = `One list per job — enter each as its own cart in Reece maX, delivered to ${esc(o.delivery)}.`
+    + (missing ? `<br><span style="color:#b04711;">${missing} line${missing === 1 ? " has" : "s have"} no Reece product number in the ServiceTitan pricebook yet.</span>` : "");
+  const footer = `${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon`;
+  const text = [
+    `One list per job — enter each as its own cart in Reece maX, delivered to ${o.delivery}.`,
+    ...(missing ? [`${missing} line(s) have no Reece product number in the pricebook yet.`] : []),
+    "",
+    ...groups.flatMap((g) => [jobHeading(g), ...g.lines.map((l) => `  ${qtyStr(l.qty)} x ${l.supplier_part ?? "(no Reece #)"}  ${l.sku_name ?? ""}`), ""]),
+  ].join("\n");
+  return { subject, html: shell(`Reece list ${o.poNumber}`, intro, groups.map(table).join(""), footer), text };
+}
+
+/* ---------------------------------------------------------------- Mitsubishi: the email laid out as their form */
+
+/** "1 Sierra Circuit, Pakenham VIC 3810" → street, state, postcode, as the form's boxes want them. */
+export function splitAddress(a: string): { street: string; state: string; postcode: string } {
+  const m = a.match(/^(.*?)[,\s]+(VIC|NSW|QLD|SA|WA|TAS|NT|ACT)\s+(\d{4})\s*$/i);
+  return m ? { street: m[1], state: m[2].toUpperCase(), postcode: m[3] } : { street: a, state: "", postcode: "" };
+}
+
+/**
+ * Mitsubishi want orders on their form. The filled-in PDF is attached, and
+ * the email body is laid out the same way — billing, customer details, the
+ * order table and totals — so it can be read and keyed straight from the
+ * email without opening the attachment.
+ */
+export function mitsubishiOrderEmail(o: {
+  supplier: Supplier; poNumber: string; orderDate: string; lines: PlannedLine[]; delivery: string;
+  deliveryInstructions: string | null; settings: OrderingSettings; attached: boolean;
+}): EmailParts {
+  const rows = supplierRows(o.lines);
+  const acct = o.settings.mitsubishi ?? {};
+  const addr = splitAddress(o.delivery);
+  const subtotal = rows.reduce((t, r) => t + (r.unit_cost ?? 0) * r.qty, 0);
+  const gst = Math.round(subtotal * 10) / 100;
+  const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon (account ${acct.accountNumber ?? ""})${firstNeeded ? ` — needed by ${dayLabel(neededBy(firstNeeded))}` : ""}`;
+  const vars = { supplier: o.supplier.name, po: o.poNumber };
+  const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
+  const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
+
+  const lbl = `padding:5px 10px 5px 0;font:13px/18px ${SANS};color:#6b6a68;white-space:nowrap;vertical-align:top;`;
+  const val = `padding:5px 0;font:600 13px/18px ${SANS};color:#050a30;vertical-align:top;`;
+  const kv = (pairs: [string, string][]) => `<table role="presentation" cellpadding="0" cellspacing="0" border="0">${pairs.map(([k, v]) =>
+    `<tr><td style="${lbl}">${esc(k)}</td><td style="${val}">${esc(v || "—")}</td></tr>`).join("")}</table>`;
+  const section = (t: string) => `<p style="margin:0 0 8px;font:800 14px/20px ${SANS};color:#050a30;">${esc(t)}</p>`;
+  const billing = section("Billing information") + kv([
+    ["Account name", acct.accountName ?? ""], ["Account number", acct.accountNumber ?? ""], ["Customer ABN", acct.abn ?? ""],
+    ["ME sales representative", acct.salesRep ?? ""], ["Contact name", acct.contactName ?? ""], ["Contact number", acct.contactNumber ?? ""],
+  ]);
+  const customer = section("Customer details") + kv([
+    ["Order date", o.orderDate], ["Order number", o.poNumber], ["Ordered by", o.settings.orderedBy.toUpperCase()],
+    ["Delivery address", addr.street], ["Postcode", addr.postcode], ["State", addr.state],
+  ]);
+  const gh = `padding:8px 10px;background:#7f7f7f;color:#ffffff;font:700 12px/16px ${SANS};text-align:left;`;
+  const order = section("Order details") + `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border:1px solid #d9d4c7;">
+<tr><th style="${gh}width:44px;">QTY</th><th style="${gh}">Model number</th><th style="${gh}">Delivery date</th><th style="${gh}text-align:right;">Price ex GST</th><th style="${gh}">Comments</th></tr>
+${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong></td><td style="${cell}white-space:nowrap;">${r.first_install ? esc(dayLabel(neededBy(r.first_install))) : ""}</td><td style="${cell}text-align:right;">${esc(money(r.unit_cost))}</td><td style="${cell}">${r.jobs.length ? `Job ${esc(r.jobs.join(", "))}` : ""}</td></tr>`).join("\n")}
+<tr><td colspan="3" rowspan="3" style="${cell}color:#6b6a68;vertical-align:top;">Delivery instructions: ${esc(o.deliveryInstructions ?? "—")}</td><td style="${cell}text-align:right;font-weight:700;">Sub total</td><td style="${cell}">${esc(money(subtotal))}</td></tr>
+<tr><td style="${cell}text-align:right;font-weight:700;">GST</td><td style="${cell}">${esc(money(gst))}</td></tr>
+<tr><td style="${cell}text-align:right;font-weight:700;">Total</td><td style="${cell}font-weight:700;">${esc(money(subtotal + gst))}</td></tr>
+</table>`;
+  const body = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;"><tr>
+<td valign="top" width="50%" style="padding:0 12px 12px 0;vertical-align:top;">${billing}</td>
+<td valign="top" width="50%" style="padding:0 0 12px 12px;vertical-align:top;">${customer}</td></tr></table>${order}`;
+  const intro = paras(opening) + (o.attached ? "<br><br>Our order is on your order form, attached, and set out below." : "");
+  const footer = `${paras(closing)}<br><br>Replies go to ${esc(o.settings.replyTo)}.<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
+  const text = [
+    opening, ...(o.attached ? ["Our order is on your order form, attached."] : []), "",
+    `Account: ${acct.accountName ?? ""} (${acct.accountNumber ?? ""}), ABN ${acct.abn ?? ""}, rep ${acct.salesRep ?? ""}`,
+    `Order ${o.poNumber}, ${o.orderDate}, ordered by ${o.settings.orderedBy}`,
+    `Deliver to: ${o.delivery}`, "",
+    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.first_install ? ` — by ${dayLabel(neededBy(r.first_install))}` : ""}${r.unit_cost != null ? ` — ${money(r.unit_cost)} ex GST` : ""}${r.jobs.length ? ` — job ${r.jobs.join(", ")}` : ""}`),
+    `Sub total ${money(subtotal)} · GST ${money(gst)} · Total ${money(subtotal + gst)}`, "",
+    closing, `Replies go to ${o.settings.replyTo}.`, `${o.settings.orderedBy} · Advanced Gas & Aircon · 03 5947 8000`,
+  ].join("\n");
+  return { subject, html: shell(`Mitsubishi Electric order form — ${o.poNumber}`, intro, body, footer), text };
 }
 
 export function readyEmail(o: { week: Week; orders: { name: string; lines: number; total: number }[]; workOrders: number; problems: Problem[]; link: string }): EmailParts {

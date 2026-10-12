@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { approve, cancel, redraft, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { approve, cancel, redraft, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { PoWithLines } from "@/lib/ordering/db";
-import { dayLabel, dayTimeLabel, linesTotal, modelLooksLikeName, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { byJob, dayLabel, dayTimeLabel, linesTotal, modelLooksLikeName, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
  * Supply › Next week: each supplier's draft order and each electrician visit,
@@ -92,6 +92,48 @@ function Delivery({ po }: { po: PoWithLines }) {
 }
 
 /**
+ * Who else gets a copy. The office address and the supplier's standing copies
+ * (set on Supplier emails) always go; anyone added here is for this order only.
+ */
+function Cc({ po, supplier, alwaysCc }: { po: PoWithLines; supplier: Supplier | undefined; alwaysCc: string }) {
+  const { busy, msg, run } = useAct();
+  const [open, setOpen] = useState(false);
+  const saved = (po.cc_emails ?? []).join(", ");
+  const [cc, setCc] = useState(saved);
+  if (!supplier || supplier.method === "reece_cart") return null;
+  const fixed = [alwaysCc, ...(supplier.cc_emails ?? [])].filter(Boolean);
+  const extra = po.cc_emails ?? [];
+  const editable = po.status === "draft";
+  return (
+    <div className="pt-nw__deliver">
+      <span>
+        <strong>Copied to</strong> {[...fixed, ...extra].join(", ") || "nobody"}
+      </span>
+      {editable && !open && (
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>
+          {extra.length ? "Change CC" : "Add CC"}
+        </button>
+      )}
+      {editable && open && (
+        <div className="pt-nw__deliveredit">
+          <input className="pt-nw__input" value={cc} onChange={(e) => setCc(e.target.value)}
+            placeholder="name@example.com, another@example.com" aria-label="Also copy in" />
+          <span className="pt-nw__actions">
+            <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy}
+              onClick={() => run(async () => { const r = await saveCc({ id: po.id, cc }); if (r.ok) setOpen(false); return r; })}>
+              Save
+            </button>
+            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => { setCc(saved); setOpen(false); }}>Close</button>
+          </span>
+          <span className="pt-nw__muted">Just this {supplier.method === "work_order" ? "work order" : "order"}. {fixed.join(" and ")} {fixed.length === 1 ? "is" : "are"} always copied in.</span>
+        </div>
+      )}
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
+/**
  * Send this order's email — the same one, form and all — to any address, to
  * see it land. Doesn't send to the supplier or change the order.
  */
@@ -122,7 +164,7 @@ function TestSend({ po, testTo }: { po: PoWithLines; testTo: string }) {
   );
 }
 
-function Buttons({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
+function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string; label: string }) {
   const { busy, msg, run } = useAct();
   if (po.status !== "draft") {
     return po.status === "cancelled" ? null : <div className="pt-nw__foot"><span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span></div>;
@@ -135,7 +177,7 @@ function Buttons({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier
           {busy ? "Working…" : sendLabel(supplier)}
         </button>
         <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy}
-          onClick={() => { if (confirm(`Cancel ${po.po_number}? Nothing has been sent.`)) run(() => cancel(po.id)); }}>
+          onClick={() => { if (confirm(`Cancel ${label}? Nothing has been sent.`)) run(() => cancel(po.id)); }}>
           Cancel
         </button>
         <TestSend po={po} testTo={testTo} />
@@ -145,7 +187,62 @@ function Buttons({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier
   );
 }
 
-function OrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
+type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string };
+
+const installWhen = (l: { appointment_start: string | null; install_date: string | null }) =>
+  l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—";
+
+/**
+ * Reece goes into maX one job at a time, so its lines are shown the same way:
+ * a list per job, each line with Reece's product number to search maX by.
+ */
+function ReeceLines({ po }: { po: PoWithLines }) {
+  const groups = byJob(po.lines);
+  const missing = po.lines.filter((l) => !l.supplier_part).length;
+  return (
+    <>
+      {missing > 0 && (
+        <p className="pt-nw__muted pt-nw__reecenote">
+          {missing} of {po.lines.length} line{po.lines.length === 1 ? " has" : "s have"} no Reece product number yet — it comes from the
+          vendor part number on the item&rsquo;s Reece vendor in the ServiceTitan pricebook.
+        </p>
+      )}
+      {groups.map((g) => (
+        <div key={g.job_id} className="pt-nw__jobgroup">
+          <h3 className="pt-nw__jobhead">
+            <strong>Job {g.job_number}</strong>
+            {g.customer_name && <span> · {g.customer_name}</span>}
+            {g.suburb && <span> · {g.suburb}</span>}
+            <span className="pt-nw__muted"> — install {installWhen(g)}</span>
+          </h3>
+          <div className="pt-tgt__tablewrap">
+            <table className="pt-nw__table pt-nw__table--reece">
+              <thead>
+                <tr><th className="is-num">Qty</th><th>Reece #</th><th>Item</th><th className="is-num">Cost ex GST</th></tr>
+              </thead>
+              <tbody>
+                {g.lines.map((l) => (
+                  <tr key={l.id}>
+                    <td className="is-num">{qty(l.qty)}</td>
+                    <td className="pt-nw__part">{l.supplier_part ?? <span className="pt-nw__flag">not set</span>}</td>
+                    <td>
+                      <strong>{l.sku_name}</strong>
+                      {l.description && l.description !== l.sku_name && <span>{l.description}</span>}
+                    </td>
+                    <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      <p className="pt-nw__total">{po.lines.length} line{po.lines.length === 1 ? "" : "s"} across {groups.length} job{groups.length === 1 ? "" : "s"} · <strong>{money(linesTotal(po.lines))}</strong></p>
+    </>
+  );
+}
+
+function OrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
   return (
@@ -158,52 +255,58 @@ function OrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Suppli
       <p className="pt-panel__sub">
         {po.status === "sent" ? `Sent to ${po.sent_to}${po.approved_by ? ` by ${po.approved_by}` : ""}.` : howItGoes(supplier)}
       </p>
-      <div className="pt-tgt__tablewrap">
-        <table className="pt-nw__table">
-          <thead>
-            <tr><th>Qty</th><th>{needsModel ? "Model code" : "Item"}</th><th>Job</th><th>Install</th><th className="is-num">Cost ex GST</th></tr>
-          </thead>
-          <tbody>
-            {po.lines.map((l) => {
-              const model = l.supplier_model ?? l.sku_name ?? "";
-              const flag = needsModel && modelLooksLikeName(model);
-              return (
-                <tr key={l.id}>
-                  <td className="is-num">{qty(l.qty)}</td>
-                  <td>
-                    <strong>{model}</strong>
-                    {l.description && l.description !== model && <span>{l.description}</span>}
-                    {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
-                  </td>
-                  <td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td>
-                  <td>{l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—"}</td>
-                  <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr><td colSpan={4}>{po.lines.length} line{po.lines.length === 1 ? "" : "s"}</td><td className="is-num"><strong>{money(total)}</strong></td></tr>
-          </tfoot>
-        </table>
-      </div>
+      {supplier?.method === "reece_cart" ? <ReeceLines po={po} /> : (
+        <div className="pt-tgt__tablewrap">
+          <table className="pt-nw__table">
+            <thead>
+              <tr><th>Qty</th><th>{needsModel ? "Model code" : "Item"}</th><th>Job</th><th>Install</th><th className="is-num">Cost ex GST</th></tr>
+            </thead>
+            <tbody>
+              {po.lines.map((l) => {
+                const model = l.supplier_model ?? l.sku_name ?? "";
+                const flag = needsModel && modelLooksLikeName(model);
+                return (
+                  <tr key={l.id}>
+                    <td className="is-num">{qty(l.qty)}</td>
+                    <td>
+                      <strong>{model}</strong>
+                      {l.description && l.description !== model && <span>{l.description}</span>}
+                      {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
+                    </td>
+                    <td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td>
+                    <td>{installWhen(l)}</td>
+                    <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            <tfoot>
+              <tr><td colSpan={4}>{po.lines.length} line{po.lines.length === 1 ? "" : "s"}</td><td className="is-num"><strong>{money(total)}</strong></td></tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
       <Delivery po={po} />
-      <Buttons po={po} supplier={supplier} testTo={testTo} />
+      <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} />
     </section>
   );
 }
 
-function WorkOrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string }) {
+function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
   const d = po.details;
+  // A work order is known by its job and address — that's what Geoff files it
+  // under — so that is its heading, not the internal order number.
+  const ref = d ? workRef(d) : po.po_number;
   return (
     <section className={`pt-panel pt-nw__card${po.status === "cancelled" ? " is-muted" : ""}`}>
       <header className="pt-nw__cardhead">
-        <h2 className="pt-panel__h">{d?.start_at ? dayTimeLabel(d.start_at) : d ? dayLabel(d.date) : "Work order"}</h2>
+        <h2 className="pt-panel__h">{ref}</h2>
         <Status po={po} />
-        <span className="pt-nw__po">{po.po_number}</span>
       </header>
       <p className="pt-panel__sub">
-        {supplier?.name ?? "Electrician"} · {po.status === "sent" ? `sent to ${po.sent_to}` : howItGoes(supplier)}
+        <strong>{d?.start_at ? dayTimeLabel(d.start_at) : d ? dayLabel(d.date) : ""}</strong>
+        {" · "}{supplier?.name ?? "Electrician"} · {po.status === "sent" ? `sent to ${po.sent_to}` : howItGoes(supplier)}
       </p>
       {d && (
         <dl className="pt-nw__wo">
@@ -228,7 +331,8 @@ function WorkOrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Su
           {d.note && (<><dt>Note to Geoff</dt><dd className="pt-nw__muted">{d.note}</dd></>)}
         </dl>
       )}
-      <Buttons po={po} supplier={supplier} testTo={testTo} />
+      <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} label={ref} />
     </section>
   );
 }
@@ -242,8 +346,10 @@ export function NextWeekOrders(props: {
   problems: Problem[];
   /** Where a test copy goes unless changed: whoever is looking at the page. */
   testTo: string;
+  /** The office address every emailed order is copied to. */
+  alwaysCc: string;
 }) {
-  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo } = props;
+  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc } = props;
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
 
@@ -308,10 +414,10 @@ export function NextWeekOrders(props: {
       )}
 
       {goods.length > 0 && <h2 className="pt-nw__section">Supplier orders</h2>}
-      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} />)}
+      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} />)}
 
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
-      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} />)}
+      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} />)}
 
       {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>

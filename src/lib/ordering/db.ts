@@ -28,6 +28,7 @@ export type PurchaseOrder = {
   sent_at: string | null;
   sent_to: string | null;
   send_error: string | null;
+  cc_emails: string[] | null;
   updated_at: string;
 };
 
@@ -47,7 +48,7 @@ export async function loadOrderingSettings(): Promise<OrderingSettings> {
 }
 
 export async function loadSuppliers(): Promise<Supplier[]> {
-  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active,email_intro,email_signoff&order=name.asc");
+  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active,email_intro,email_signoff,cc_emails&order=name.asc");
 }
 
 const weekFilter = (w: Week) => `install_date=gte.${w.start}&install_date=lte.${w.end}`;
@@ -118,7 +119,8 @@ export async function appointmentsSynced(): Promise<boolean> {
 const lineRow = (poId: number, l: PlannedLine): Row => ({
   po_id: poId, job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
   install_date: l.install_date, appointment_start: l.appointment_start, sku_id: l.sku_id, sku_name: l.sku_name,
-  sku_type: l.sku_type, description: l.description, supplier_model: l.supplier_model, qty: l.qty, unit_cost: l.unit_cost,
+  sku_type: l.sku_type, description: l.description, supplier_model: l.supplier_model, supplier_part: l.supplier_part ?? null,
+  qty: l.qty, unit_cost: l.unit_cost,
 });
 
 async function replaceLines(poId: number, lines: PlannedLine[]) {
@@ -237,11 +239,11 @@ export async function setDelivery(id: number, patch: { toSite: boolean; address:
 
 /* ---------------------------------------------------------------- supplier emails page */
 
-export async function saveSupplierEmail(id: string, patch: { email: string | null; intro: string | null; signoff: string | null }): Promise<boolean> {
+export async function saveSupplierEmail(id: string, patch: { email: string | null; intro: string | null; signoff: string | null; cc: string[] }): Promise<boolean> {
   const rows = await sbSelect<{ id: string }>("order_suppliers", `select=id&id=eq.${encodeURIComponent(id)}`);
   if (!rows.length) return false;
   await sbUpdate("order_suppliers", `id=eq.${encodeURIComponent(id)}`, {
-    email: patch.email, email_intro: patch.intro, email_signoff: patch.signoff, updated_at: new Date().toISOString(),
+    email: patch.email, email_intro: patch.intro, email_signoff: patch.signoff, cc_emails: patch.cc, updated_at: new Date().toISOString(),
   });
   return true;
 }
@@ -277,7 +279,8 @@ export async function loadSamples(): Promise<Map<string, Sample>> {
       continue;
     }
     const o = plan.orders.find((x) => x.supplier_id === s.id);
-    out.set(s.id, o ? { lines: o.lines.slice(0, 14), details: null, real: true } : {
+    // Mitsubishi's form holds 14 rows; the Reece list shows every job.
+    out.set(s.id, o ? { lines: s.method === "email_form" ? o.lines.slice(0, 14) : o.lines, details: null, real: true } : {
       details: null, real: false,
       lines: [{
         job_id: 0, job_number: "EXAMPLE", customer_name: "Example customer", suburb: "Pakenham", install_date: nextMonday,
@@ -287,4 +290,12 @@ export async function loadSamples(): Promise<Map<string, Sample>> {
     });
   }
   return out;
+}
+
+/** Extra people copied on one draft order (on top of the office and the supplier's usual list). */
+export async function setOrderCc(id: number, cc: string[]): Promise<boolean> {
+  const po = await sbSelectOne<{ status: string }>("purchase_orders", `select=status&id=eq.${id}`);
+  if (po?.status !== "draft") return false;
+  await sbUpdate("purchase_orders", `id=eq.${id}&status=eq.draft`, { cc_emails: cc, updated_at: new Date().toISOString() });
+  return true;
 }
