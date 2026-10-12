@@ -67,6 +67,7 @@ export async function saveCrew(input: { userId: string; level: string; costing: 
   const res = await updateCrew(input.userId, input.level, input.costing);
   if (!res.ok) return { ok: false, error: "Couldn't save." };
   revalidatePath("/portal/finance/capacity");
+  revalidatePath(`/portal/team/${input.userId}`);
   return { ok: true };
 }
 

@@ -19,6 +19,8 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { Locked } from "@/components/portal/Locked";
 import { Card, Empty, Kv, Pill, Tabs, Two, type Status } from "@/components/portal/kit/Kit";
 import { Licences } from "@/components/portal/crew/Licences";
+import { CrewPay } from "@/components/portal/crew/CrewPay";
+import { isCrewLevel } from "@/lib/portal/crew";
 import { listLicences, licenceState } from "@/lib/portal/crewFile/licences";
 import { commissionHistory, commissionRule, monthNow, soldThisMonth } from "@/lib/portal/crewFile/commission";
 import { bonusFor } from "@/lib/portal/commissionTypes";
@@ -79,7 +81,7 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
     ...(money$ ? [{ key: "comm", label: b?.hit ? "Commission ✓" : "Commission", href: href("comm") }] : []),
     { key: "reviews", label: "Reviews", href: href("reviews") },
     { key: "notes", label: "Private notes", href: href("notes") },
-    { key: "pay", label: "Leave & pay", href: href("pay") },
+    { key: "pay", label: money$ ? "Pay, hours & leave" : "Leave & pay", href: href("pay") },
     { key: "lic", label: "Licences & tickets", href: href("lic"), count: lic.filter((l) => l.st.k === "bad").length || undefined, red: licBad },
   ];
 
@@ -189,8 +191,12 @@ export default async function TeamMemberFile({ params, searchParams }: { params:
                     v={<Pill st={l.status === "approved" ? { k: "good", w: "Approved" } : l.status === "declined" ? { k: "bad", w: "Declined" } : { k: "mid", w: "Asked" }} />} />
                 ))}
               </Card>
-              {person.costing && (
-                <Card title="Their year" aside="set in Our numbers › Team & wages">
+              {/* The admin edits pay and hours here, on the person; Our numbers ›
+                  Team & wages is the same record laid side by side. */}
+              {person.costing && money$ && can(me, "overhead") ? (
+                <CrewPay userId={person.id} first={first} level={isCrewLevel(person.level) ? person.level : "tradesman"} costing={person.costing} rate={rate} />
+              ) : person.costing && (
+                <Card title="Their year" aside="set by the office">
                   {money$ && <Kv t="Wage" sub="an hour, before super" v={money2(person.costing.wage)} />}
                   <Kv t="Annual leave" v={`${person.costing.leaveDays} days`} />
                   <Kv t="RDOs" v={`${person.costing.rdoDays} days`} />

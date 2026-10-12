@@ -689,3 +689,18 @@ a.pk-row:hover { background: var(--sunken); }
 .pn .tr-embed .tr-note { color: var(--ink2); }
 .pn .tr-embed .tr-note--warn { color: var(--ink); }
 .pn .tr-embed .tr-note--good { color: var(--good); }
+.pk-kv select.pk-in { width: 160px; }
+.pk-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: var(--ink); }
+/* Costs › Where it goes: one row a kind of cost, the bar to one scale. */
+.pk-where { display: grid; gap: 2px; }
+.pk-where-r { display: grid; grid-template-columns: minmax(150px, 1.3fr) minmax(80px, 2fr) 92px 44px 72px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.pk-where-r:first-child { border-top: 0; }
+.pk-where-r .b { height: 8px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.pk-where-r .b i { display: block; height: 100%; border-radius: 99px; background: var(--mark); }
+.pk-where-r .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.pk-where-r .p, .pk-where-r .h { text-align: right; color: var(--ink2); font-size: 13px; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  .pk-where-r { grid-template-columns: 1fr auto auto; row-gap: 6px; }
+  .pk-where-r .b { grid-column: 1 / -1; grid-row: 2; }
+  .pk-where-r .h { display: none; }
+}
