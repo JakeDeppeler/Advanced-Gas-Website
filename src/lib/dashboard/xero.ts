@@ -45,7 +45,10 @@ export type XeroResult =
       overdueCount: number;
       receivablesTotal: number;
       aging: XeroAging;
+      /** Every overdue invoice, oldest first; the wall shows the top six. */
       overdue: XeroOverdue[];
+      /** Every unpaid invoice's number, so another source's copy isn't counted twice. */
+      numbers: string[];
     }
   | { ok: false; reason: string };
 
@@ -108,11 +111,13 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   let receivablesTotal = 0;
   const aging: XeroAging = { notDue: 0, d1to7: 0, d8to14: 0, d15to30: 0, d30plus: 0 };
   const overdue: XeroOverdue[] = [];
+  const numbers: string[] = [];
 
   for (const inv of json.Invoices ?? []) {
     const due = Number(inv.AmountDue ?? 0);
     if (due <= 0) continue;
     receivablesTotal += due;
+    if (inv.InvoiceNumber) numbers.push(inv.InvoiceNumber);
 
     // Xero serialises dates as "/Date(1234567890000+0000)/" unless the string
     // variant is present; prefer the string form and fall back to parsing.
@@ -144,5 +149,5 @@ export async function fetchXeroReceivables(): Promise<XeroResult> {
   // Oldest first: the chase list is worked from the top.
   overdue.sort((a, b) => b.days - a.days);
 
-  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, overdue: overdue.slice(0, 6) };
+  return { ok: true, overdueTotal, overdueCount, receivablesTotal, aging, overdue, numbers };
 }
