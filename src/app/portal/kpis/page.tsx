@@ -73,7 +73,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const leaders = m?.salesLeaderboard ?? [];
   const quotedJobs = leaders.reduce((a, p) => a + p.quotedJobs, 0), soldJobs = leaders.reduce((a, p) => a + p.soldJobs, 0);
   const winNow = quotedJobs >= 8 ? (soldJobs / quotedJobs) * 100 : null;
-  const winGoal = year?.winRatePct ?? (rates?.closeRate.value != null ? rates.closeRate.value * 100 : null);
+  const winGoal = goals.winRate ?? (rates?.closeRate.value != null ? rates.closeRate.value * 100 : null);
   const avgGoal = goals.avgJob ?? rates?.avgSale.value ?? null;
   const quotesByNow = goals.quotesMonth && f != null ? goals.quotesMonth * f : pm?.quoted.byNow ?? null;
   const quotedByNow = m?.quotedTargetMonthly && f != null ? m.quotedTargetMonthly * f : pm?.quotedValue.byNow ?? null;
@@ -93,7 +93,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
         { pl: true, name: "Quotes sent", means: planN ? `Jobs quoted this month, each once · goal ${fromPlan}` : "How many quotes went out this month", value: String(Math.round(qn)), goal: quotesByNow != null ? `${Math.round(quotesByNow)} by now` : "—", st: quotesByNow ? status(qn, quotesByNow) : ng(), href: "/portal/pipeline" },
       ];
     })(),
-    { name: "Win rate", means: `Of every 100 quotes this month, how many said yes${year?.winRatePct != null ? "" : " · goal is the rate the plan runs on"}`, value: winNow != null ? pc(winNow) : "—", goal: winGoal != null ? pc(winGoal) : "—", st: winNow != null && winGoal != null ? status(winNow, winGoal, { pts: true }) : ng(winNow == null ? "Not enough quotes" : undefined), href: "/portal/sales" },
+    { name: "Win rate", means: `Of every 100 quotes this month, how many said yes${goals.winRate != null ? "" : " · goal is the rate the plan runs on"}`, value: winNow != null ? pc(winNow) : "—", goal: winGoal != null ? pc(winGoal) : "—", st: winNow != null && winGoal != null ? status(winNow, winGoal, { pts: true }) : ng(winNow == null ? "Not enough quotes" : undefined), href: "/portal/sales" },
     { name: "Average job", means: `What a sold job is worth, on average${goals.avgJob ? "" : " · goal is the average the plan runs on"}`, value: m.avgSoldValue != null ? money(m.avgSoldValue) : "—", goal: avgGoal ? money(avgGoal) : "—", st: m.avgSoldValue != null && avgGoal ? status(m.avgSoldValue, avgGoal) : ng(), href: "/portal/sales" },
     { name: "Followed up in 2 days", means: "Quotes rung, texted or sold within two days", value: follow ? pc(follow.pct) : "—", goal: goals.followup ? pc(goals.followup) : "—", st: follow && goals.followup ? status(follow.pct, goals.followup, { pts: true }) : ng(follow ? undefined : "Too few quotes"), href: "/portal/pipeline" },
     // Leads are counted from the web form and ServiceTitan only, not phone
@@ -254,7 +254,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
           {teamRow.st.k === "bad" ? <Bad>The team is behind</Bad> : <Good>The team is {teamRow.st.k === "good" ? (teamRow.st.w === "Ahead" ? "ahead" : "on track") : "close"}</Good>}
           {`: ${teamRow.value} sold against ${teamRow.goal}`}
           {behind.length ? <>{teamRow.st.k === "bad" ? ". " : ", even with "}<Bad>{firstNames(behind)} behind {behind.length === 1 ? "their" : "their"} share</Bad></> : null}
-          {lowRate.length ? <>{". "}{firstNames(lowRate)}{lowRate.length === 1 ? " is" : " are"} selling enough but closing under the plan’s rate</> : null}.
+          {lowRate.length ? <>{". "}{firstNames(lowRate)}{lowRate.length === 1 ? " is" : " are"} selling enough but closing under the {winGoal != null ? `${Math.round(winGoal)}% aim` : "aim"}</> : null}.
         </Say>
         {list(ks, title, "this month")}
       </>

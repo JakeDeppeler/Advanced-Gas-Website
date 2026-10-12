@@ -11,11 +11,13 @@ import { saveYearGoal } from "@/app/portal/finance/goals/actions";
 
 /**
  * Our numbers › Goals saves two records: the parts of the year goal it shows
- * (the months, so the year's sales; the profit %; the win rate) and every
- * other KPI goal. The year goal is read fresh and only those fields changed,
- * so the mix and the pace settings saved on Pace are left as they were.
+ * (the months, so the year's sales; the profit %) and every other KPI goal,
+ * the win rate to aim for among them. The year goal is read fresh and only
+ * those fields changed, so the mix and the pace settings saved on Pace —
+ * including a close rate to plan on, the year goal's winRatePct — are left
+ * as they were. That one is a planning rate, not a target, and lives on Pace.
  */
-export async function saveGoalsPage(input: { months: number[]; profitPct: number | null; winRatePct: number | null; goals: Goals }): Promise<{ ok: boolean; error?: string }> {
+export async function saveGoalsPage(input: { months: number[]; profitPct: number | null; goals: Goals }): Promise<{ ok: boolean; error?: string }> {
   const me = await getPortalUser();
   if (!me || !can(me, "overhead")) return { ok: false, error: "Not allowed." };
   if (!Array.isArray(input.months) || input.months.length !== 12) return { ok: false, error: "Twelve months, please." };
@@ -24,13 +26,11 @@ export async function saveGoalsPage(input: { months: number[]; profitPct: number
   const months = input.months.map((v) => Math.max(0, Number(v) || 0));
   const revenue = Math.round(months.reduce((a, b) => a + b, 0));
   const current = readYearGoal(await getSettings<unknown>("yeargoal").catch(() => null), new Date());
-  const win = input.winRatePct == null ? null : Number(input.winRatePct);
   const res = await saveYearGoal({
     ...current,
     revenue,
     shape: revenue > 0 ? months : null,
     profitPct: input.profitPct == null ? null : Number(input.profitPct),
-    winRatePct: win == null || !Number.isFinite(win) ? null : win,
   });
   if (!res.ok) return res;
   const g = await saveGoals(normaliseGoals(input.goals));

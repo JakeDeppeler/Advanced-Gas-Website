@@ -88,7 +88,7 @@ export default async function SalesPage({ searchParams }: { searchParams: { tab?
   const f = monthElapsed(m);
   const weekGoal = m.pace?.week.sold.value ?? (g.month ? (g.month * 12) / 52 : null);
   const close = m.pace?.rates.closeRate.measured;
-  const winGoal = year?.winRatePct ?? null;
+  const winGoal = goals.winRate ?? null;
   const fresh = Math.max(0, (m.estimatesOpenCount ?? 0) - cold);
   const open = (pipe?.quotes ?? []).filter((x) => !x.soldOn && !x.lostReason && !x.dismissed).sort((a, b) => b.value - a.value).slice(0, 5);
 

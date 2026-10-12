@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Goals } from "@/lib/portal/goalsTypes";
 import { saveGoalsPage } from "@/app/portal/numbers/actions";
 
-type Row = { key: keyof Goals | "profitPct" | "winRatePct"; label: string; used: string; unit: string };
+type Row = { key: keyof Goals | "profitPct"; label: string; used: string; unit: string };
 const GROUPS: { title: string; rows: Row[] }[] = [
   {
     title: "Money",
@@ -20,7 +20,7 @@ const GROUPS: { title: string; rows: Row[] }[] = [
     title: "Selling",
     rows: [
       { key: "quotesMonth", label: "Quotes a month", used: "Our KPIs, Sales", unit: "quotes" },
-      { key: "winRatePct", label: "Win rate", used: "Our KPIs, Sales, Pace, the wall board", unit: "%" },
+      { key: "winRate", label: "Win rate to aim for", used: "Our KPIs, Sales, each person on Team · the plan still runs on the real rate", unit: "%" },
       { key: "avgJob", label: "Average job", used: "Our KPIs, Sales", unit: "$ with GST" },
       { key: "followup", label: "Quotes followed up in 2 days", used: "Our KPIs, Sales", unit: "%" },
     ],
@@ -42,13 +42,12 @@ const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
  * sales are the twelve months added up, so they can't disagree. A blank box is
  * "no goal", and the pages that use it say so.
  */
-export function GoalsForm({ months: initialMonths, labels, current, profitPct, winRatePct, goals, canSave }: {
+export function GoalsForm({ months: initialMonths, labels, current, profitPct, goals, canSave }: {
   months: number[];
   labels: string[];
   /** Index of this month in `labels`. */
   current: number;
   profitPct: number | null;
-  winRatePct: number | null;
   goals: Goals;
   canSave: boolean;
 }) {
@@ -62,7 +61,7 @@ export function GoalsForm({ months: initialMonths, labels, current, profitPct, w
   const [vals, setVals] = useState<Record<string, string>>(() => {
     const o: Record<string, string> = {};
     for (const g of GROUPS) for (const r of g.rows) {
-      const v = r.key === "profitPct" ? profitPct : r.key === "winRatePct" ? winRatePct : goals[r.key as keyof Goals];
+      const v = r.key === "profitPct" ? profitPct : goals[r.key as keyof Goals];
       o[r.key] = v == null ? "" : String(v);
     }
     return o;
@@ -76,8 +75,8 @@ export function GoalsForm({ months: initialMonths, labels, current, profitPct, w
   const save = () =>
     start(async () => {
       const g = {} as Goals;
-      for (const grp of GROUPS) for (const r of grp.rows) if (r.key !== "profitPct" && r.key !== "winRatePct") (g as Record<string, number | null>)[r.key] = num(r.key);
-      const res = await saveGoalsPage({ months, profitPct: num("profitPct"), winRatePct: num("winRatePct"), goals: g });
+      for (const grp of GROUPS) for (const r of grp.rows) if (r.key !== "profitPct") (g as Record<string, number | null>)[r.key] = num(r.key);
+      const res = await saveGoalsPage({ months, profitPct: num("profitPct"), goals: g });
       setMsg(res.ok ? { ok: true, text: "Saved. Every page that uses these has moved with them." } : { ok: false, text: res.error ?? "Couldn’t save." });
       if (res.ok) router.refresh();
     });

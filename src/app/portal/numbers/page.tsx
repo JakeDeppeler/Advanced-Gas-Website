@@ -41,11 +41,12 @@ export default async function GoalsPage() {
       <div className="pk">
         <Head title="Goals" sub="The numbers the whole portal is built on · change one here and every page updates" info={[
           ["Goal", "What we aim for this year. Home, Our KPIs, Sales, Pace and the wall board measure against these."],
+          ["Win rate", "The rate to aim for. How many quotes the year needs is still worked out from the rate we’re really winning at, so a high aim doesn’t shrink the work the plan asks for."],
           ["No goal", "Leave a box empty and the pages that use it say “No goal yet” instead of marking it good or bad."],
           ["Benchmarks", "What a healthy service trade looks like. They’re fixed and shown beside these on Our KPIs."],
         ]} />
         <Say>These are the numbers every page is measured against. Change one and Home, Our KPIs, Sales, Pace and the wall board all update.</Say>
-        <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} winRatePct={g.winRatePct} goals={goals} canSave={can(user, "overhead")} />
+        <GoalsForm months={months} labels={labels} current={current} profitPct={g.profitPct} goals={goals} canSave={can(user, "overhead")} />
       </div>
     </PortalShell>
   );
