@@ -16,7 +16,7 @@ import { cleanEmail, type EmailRow, type EmailSource, type SourceState } from ".
 export async function buildEmailList(): Promise<{ rows: EmailRow[]; sources: SourceState[] }> {
   const [leads, contacts, custContacts, locContacts, locations, jobs, optouts, xero] = await Promise.all([
     sbSelect<{ name: string | null; email: string | null; suburb: string | null; created_at: string }>(
-      "portal_leads", [q.select("name,email,suburb,created_at"), "email=not.is.null"].join("&")).catch(() => []),
+      "portal_leads", [q.select("name,email,suburb,created_at"), q.eq("kind", "quote"), "email=not.is.null"].join("&")).catch(() => []),
     sbSelect<{ name: string; company: string | null; email: string | null; updated_at: string }>(
       "portal_contacts", [q.select("name,company,email,updated_at"), "email=not.is.null", "removed_at=is.null"].join("&")).catch(() => []),
     sbSelect<{ customer_id: number | null; value: string | null; modified_on: string | null; active: boolean | null }>(

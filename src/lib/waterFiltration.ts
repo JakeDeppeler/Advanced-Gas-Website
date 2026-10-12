@@ -1163,7 +1163,7 @@ export const PROCESS = [
   },
   {
     t: "A quote with the honest recommendation in it",
-    when: "within 12 hrs",
+    when: "after the visit",
     d: "Including when the answer is a cheaper unit than you asked about, or nothing at all. If your complaint is drinking water and you were about to buy whole-home filtration, we'd rather tell you that than take the bigger job.",
   },
   {

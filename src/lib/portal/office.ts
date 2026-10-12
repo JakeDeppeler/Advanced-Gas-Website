@@ -51,7 +51,7 @@ export const leadsThisMonth = cache(async (): Promise<{ web: number; st: number;
   const from = startOfMonthMelbourne(new Date()).toISOString();
   try {
     const [web, st, calls] = await Promise.all([
-      sbCount("portal_leads", q.gte("created_at", from)),
+      sbCount("portal_leads", [q.eq("kind", "quote"), q.gte("created_at", from)].join("&")),
       sbCount("st_leads", q.gte("created_on", from)),
       sbCount("st_calls", [q.gte("received_on", from), q.eq("direction", "Inbound")].join("&")),
     ]);

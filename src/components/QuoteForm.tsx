@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { trackLead } from "@/components/Analytics";
+import { trackLead } from "@/lib/track";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -223,7 +223,7 @@ export function QuoteForm({ presetService }: { presetService?: string }) {
         {step === 4 && (
           <fieldset>
             <legend className="qf-legend">Where do we send your quote?</legend>
-            <p className="qf-sub">We&apos;ll text or call within 12 business hours.</p>
+            <p className="qf-sub">We&apos;ll call or text in business hours to book your quote visit.</p>
             <label className="qf-field">
               <span>Full name</span>
               <input

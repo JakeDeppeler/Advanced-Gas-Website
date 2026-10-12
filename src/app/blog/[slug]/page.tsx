@@ -116,7 +116,7 @@ export default async function BlogPostPage({ params }: { params: Promise<Params>
             <div>
               <span className="bl-post__cta-eye">Ready for a quote?</span>
               <h3>In writing, no obligation, VEU rebate applied at the quote.</h3>
-              <p>We usually reply within 12 hours. Free 20-minute site check for bigger jobs.</p>
+              <p>We call back in business hours. Free 20-minute site check for bigger jobs.</p>
             </div>
             <div className="bl-post__cta-btns">
               <Link href="/quote" className="ds-btn ds-btn--orange ds-btn--lg">Get a free quote →</Link>

@@ -36,7 +36,7 @@ Replaces the previous Framer site at `advancedgas.framer.website`.
 | `/service-areas` | Index of all suburbs |
 | `/about` | About + licences |
 | `/contact` | Contact + inline quote form |
-| `/thanks` | Post-submit page (add conversion pixels here) |
+| `/thanks` | Post-submit page (conversions fire from the form, see `src/lib/track.ts`) |
 
 ## Run locally
 
@@ -71,7 +71,7 @@ All business data is centralised in `src/lib/site.ts`. Edit one file:
 Other manual replacements:
 - `src/lib/serviceContent.ts` — fact-check pricing tiers before going live (current numbers are realistic Melbourne ranges but adjust to your real prices)
 - `public/logo.png`, `public/og.jpg`, `public/favicon.ico` — add real brand assets
-- `src/app/thanks/page.tsx` — drop in Google Ads / Meta / GA4 conversion pixels
+- `src/components/Analytics.tsx` — GA4, Google Ads tag and Meta pixel, each on only when its env var is set; `src/lib/track.ts` fires the lead / phone-tap conversions
 
 ## Lead delivery
 
@@ -95,4 +95,4 @@ Without these, leads still come through — they print to the Vercel function lo
 - **Google reviews widget** — pull live 5-star reviews onto the homepage.
 - **Google Business Profile** — once live, set up GBP and link from the footer's `social.google`.
 - **Privacy/Terms pages** — required for Australian Privacy Act compliance if collecting form data.
-- **Conversion tracking** — Google Ads, Meta, GA4 pixels on `/thanks`.
+- **Conversion tracking** — set `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_GOOGLE_ADS_ID` (+ the two labels) and `NEXT_PUBLIC_META_PIXEL_ID` on Vercel; see `.env.example`.
