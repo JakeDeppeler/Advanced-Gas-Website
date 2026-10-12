@@ -53,6 +53,17 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
   const [drawer, setDrawer] = useState(false);
   const [fly, setFly] = useState<{ id: string; top: number } | null>(null);
   const ref = useRef<HTMLElement>(null);
+  // Hover opens a small bar's section and leaving closes it a moment later,
+  // so the pointer can cross the gap from the icon to the list.
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showFly = (id: string, el: HTMLElement) => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    setFly({ id, top: flyTop(el) });
+  };
+  const hideFlySoon = () => {
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => { setFly(null); forgetFly(); }, 250);
+  };
 
   // Each page draws its own shell, so the bar is new after every move — and
   // drawn twice on the way in, once without its counts and once with. A small
@@ -131,11 +142,14 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
                   href={s.href}
                   className={`pn-btn${on ? " on" : ""}`}
                   aria-current={on && !many ? "page" : undefined}
-                  title={small ? s.label : undefined}
+                  aria-label={small ? s.label : undefined}
                   data-sec={s.id}
+                  onMouseEnter={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
+                  onMouseLeave={small ? hideFlySoon : undefined}
+                  onFocus={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
                   onClick={(e) => {
                     if (!small || !many) { setFly(null); forgetFly(); return; }
-                    setFly({ id: s.id, top: flyTop(e.currentTarget) });
+                    showFly(s.id, e.currentTarget);
                     try { sessionStorage.setItem(FLY_KEY, JSON.stringify({ id: s.id, at: Date.now() })); } catch { /* opens without the list */ }
                   }}
                 >
@@ -160,9 +174,14 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
         </nav>
 
         {flying && fly && (
-          <div className="pn-fly" style={{ top: fly.top }} role="region" aria-label={flying.label}>
-            <b>{flying.label}</b>
-            {flying.pages.map((p) => (
+          <div
+            className="pn-fly" style={{ top: fly.top }} role="region" aria-label={flying.label}
+            onMouseEnter={() => { if (hideTimer.current) clearTimeout(hideTimer.current); }}
+            onMouseLeave={hideFlySoon}
+          >
+            {/* A one-page section's flyout is its name, to go to it; the rest list their pages. */}
+            {flying.pages.length > 1 ? <b>{flying.label}</b> : <Link href={flying.href} className="pn-flyh" onClick={() => { setFly(null); forgetFly(); }}>{flying.label}</Link>}
+            {flying.pages.length > 1 && flying.pages.map((p) => (
               <Link key={p.href} href={p.href} className={`pn-sub${p.href === here.page?.href ? " on" : ""}`} onClick={() => { setFly(null); forgetFly(); }}>
                 <span>{p.label}</span>
                 <N c={p.count} />
