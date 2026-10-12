@@ -126,6 +126,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
           vans={vehicles.map((v) => ({
             id: v.id, name: v.name, onRoad: v.status !== "off", purchasePrice: v.purchasePrice, amountOwing: v.amountOwing,
             monthlyRepayment: v.monthlyRepayment, resaleValue: v.resaleValue, lifespanYears: v.lifespanYears,
+            fromLoan: v.owingFromLoan, typedRepayment: v.typedRepayment,
           }))}
         />
       )}

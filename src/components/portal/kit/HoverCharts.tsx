@@ -146,3 +146,67 @@ export function GoalBars({ months, what = "Invoiced" }: { months: GoalBar[]; wha
     </div>
   );
 }
+
+export type LoanPoint = { label: string; full: string; balance: number; payment: number; interest: number; principal: number; paid: boolean };
+
+/**
+ * What's owing on a loan after each repayment: solid up to today, dashed for
+ * what's still to come. Point at a month for that repayment split into
+ * interest and what it took off the balance.
+ */
+export function LoanChart({ points, financed }: { points: LoanPoint[]; financed: number }) {
+  const [on, setOn] = useState<number | null>(null);
+  const W = 1080, H = 260, L = 64, R = 16, T = 16, B = 30;
+  const n = points.length;
+  if (n < 2) return null;
+  const hi = niceTop(financed * 1.05);
+  const X = (i: number) => L + ((W - L - R) * i) / n;
+  const Y = (v: number) => T + (H - T - B) * (1 - v / hi);
+  // Point 0 is the day the money was lent; point i is after repayment i.
+  const at = (i: number) => (i === 0 ? financed : points[i - 1].balance);
+  const lastPaid = points.reduce((k, p, i) => (p.paid ? i + 1 : k), 0);
+  const line = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, j) => a + j).map((i, j) => `${j ? "L" : "M"}${X(i).toFixed(1)} ${Y(at(i)).toFixed(1)}`).join(" ");
+  const area = `${line(0, lastPaid)} L${X(lastPaid)} ${Y(0)} L${X(0)} ${Y(0)} Z`;
+  const step = Math.max(1, Math.ceil(n / 8));
+  const p = on != null ? points[on] : null;
+  return (
+    <div className="pk-hchart" onMouseLeave={() => setOn(null)}>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" className="pk-chart" role="img" aria-label={`What's owing after each of ${n} repayments`}>
+        {[0, hi / 2, hi].map((v) => (
+          <g key={v}>
+            <line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} stroke="var(--line)" />
+            <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ax">{kd(v)}</text>
+          </g>
+        ))}
+        {lastPaid > 0 && <path d={area} fill="var(--good-f)" fillOpacity=".14" />}
+        {lastPaid > 0 && <path d={line(0, lastPaid)} fill="none" stroke="var(--ink)" strokeWidth="2.6" strokeLinejoin="round" />}
+        {lastPaid < n && <path d={line(lastPaid, n)} fill="none" stroke="var(--ink3)" strokeWidth="2.2" strokeDasharray="6 5" />}
+        {lastPaid > 0 && lastPaid < n && (
+          <g>
+            <line x1={X(lastPaid)} x2={X(lastPaid)} y1={T} y2={H - B} stroke="var(--ink3)" strokeDasharray="3 3" />
+            <circle cx={X(lastPaid)} cy={Y(at(lastPaid))} r="5" fill="var(--surface)" stroke="var(--ink)" strokeWidth="2.4" />
+            <text x={X(lastPaid) + 8} y={T + 12} className="ax strong">today</text>
+          </g>
+        )}
+        {points.map((pt, i) => ((i % step === 0 && n - 1 - i >= step / 2) || i === n - 1) && (
+          <text key={pt.full} x={X(i + 1)} y={H - 8} textAnchor={i === n - 1 ? "end" : "middle"} className={`ax${on === i ? " strong" : ""}`}>{pt.label}</text>
+        ))}
+        {on != null && <circle cx={X(on + 1)} cy={Y(at(on + 1))} r="4.5" fill="var(--ink)" />}
+        {points.map((pt, i) => (
+          <rect key={`h-${pt.full}`} x={X(i + 0.5)} y={T} width={(W - L - R) / n} height={H - T - B} fill="transparent" tabIndex={0}
+            aria-label={`${pt.full}: repayment ${money(pt.payment)}, ${money(pt.interest)} interest, owing ${money(pt.balance)} after`}
+            onMouseEnter={() => setOn(i)} onFocus={() => setOn(i)} onClick={() => setOn(i)} style={{ cursor: "pointer", outline: "none" }} />
+        ))}
+      </svg>
+      {p && on != null && (
+        <Tip x={X(on + 1)} y={Y(at(on + 1))} w={W}>
+          <b>{p.full}{p.paid ? " · paid" : " · to come"}</b>
+          <span>Repayment <em>{money(p.payment)}</em></span>
+          <span>Interest <em>{money(p.interest)}</em></span>
+          <span className="g">▼ Off the loan <em>{money(p.principal)}</em></span>
+          <span>Owing after <em>{money(p.balance)}</em></span>
+        </Tip>
+      )}
+    </div>
+  );
+}

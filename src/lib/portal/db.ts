@@ -18,6 +18,8 @@ import { DEFAULT_ACCESS } from "./crew";
 import { baseMember } from "./team";
 import { sbSelect } from "@/lib/dashboard/db";
 import type { CheckItems, CheckKind } from "./vanChecks";
+import { loanState, readLoans, type VanLoan } from "./fleet/loan";
+import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import type { Campaign } from "./campaigns";
 import type { Video as StoredVideo } from "./videos";
 import type { StoredSop } from "./sopEdits";
@@ -588,6 +590,12 @@ export type Vehicle = {
   regoDue: string | null;
   /** Finance repayment a month (migration 0055), set on Our numbers. */
   monthlyRepayment: number | null;
+  /** The finance contract, when one has been entered (settings key "vehicle_loans"). */
+  loan?: VanLoan | null;
+  /** True when amountOwing was worked out from the contract rather than typed. */
+  owingFromLoan?: boolean;
+  /** The repayment as typed on the van, before one worked out from the contract fills the gap. */
+  typedRepayment?: number | null;
 };
 
 type VehicleRow = {
@@ -640,17 +648,36 @@ const toLog = (r: VehicleLogRow): VehicleLog => ({
   createdBy: r.created_by, createdAt: r.created_at,
 });
 
+/**
+ * Each van's finance contract, laid over the row: where one is entered, what's
+ * still owing is worked out from it as of today, so it comes down by itself as
+ * repayments fall due and every page that reads a van reads the same balance.
+ * Kept in settings rather than columns — a handful of vans, read with them.
+ */
+async function withLoans(vs: Vehicle[]): Promise<Vehicle[]> {
+  if (!vs.length) return vs;
+  const loans = readLoans(await getSettings<unknown>("vehicle_loans").catch(() => null));
+  const today = isoDateMelbourne(new Date());
+  return vs.map((v) => {
+    const loan = loans[v.id] ?? null;
+    const st = loanState(loan, v, today);
+    return st
+      ? { ...v, loan, amountOwing: Math.round(st.owingNow * 100) / 100, monthlyRepayment: Math.round(st.repayment * 100) / 100, owingFromLoan: true, typedRepayment: v.monthlyRepayment }
+      : { ...v, loan, owingFromLoan: false, typedRepayment: v.monthlyRepayment };
+  });
+}
+
 export async function listVehicles(): Promise<Vehicle[]> {
   const res = await sb(`portal_vehicles?select=*&order=active.desc,name.asc`);
   if (!res || !res.ok) return [];
-  return ((await res.json()) as VehicleRow[]).map(toVehicle);
+  return withLoans(((await res.json()) as VehicleRow[]).map(toVehicle));
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | null> {
   const res = await sb(`portal_vehicles?id=eq.${encodeURIComponent(id)}&select=*`);
   if (!res || !res.ok) return null;
   const rows = (await res.json()) as VehicleRow[];
-  return rows[0] ? toVehicle(rows[0]) : null;
+  return rows[0] ? (await withLoans([toVehicle(rows[0])]))[0] : null;
 }
 
 export async function createVehicle(input: {

@@ -711,3 +711,6 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-where-r.pk-rev-end { font-weight: 800; }
 .pk-where-r .b.up i { background: var(--good-f); }
 .pk-where-r .b.dn i { background: var(--bad-f); }
+.pt-nums__loan { font-weight: 700; color: var(--ink); text-decoration: none; white-space: nowrap; }
+.pt-nums__loan em { font-style: normal; font-weight: 600; color: var(--ink2); margin-left: 6px; }
+.pt-nums__loan:hover em { color: var(--ink); text-decoration: underline; }
