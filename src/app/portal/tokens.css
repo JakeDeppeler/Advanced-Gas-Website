@@ -114,31 +114,3 @@
 html:has(.pt[data-theme="dark"]),
 html:has(.pt[data-theme="dark"]) body { background: #0f1218; }
 
-
-/* The van pieces the office portal borrows (.tr-embed on the requests, stock
-   and van pages), in the same dark: their own palette, turned over the same
-   way. The trade portal itself is untouched — --tr-surface only exists here,
-   and everywhere else falls back to white. */
-.pt[data-theme="dark"] .tr-embed {
-  --tr-navy: #1d2766;
-  --tr-navy-2: #3b4bb0;
-  --tr-ink: #eceef6;
-  --tr-ink-2: #b5bacb;
-  --tr-ink-3: #9aa0b4;
-  --tr-surface: #181c25;
-  --tr-cream: #0f1218;
-  --tr-line: #2b3141;
-  --tr-line-2: #343b4e;
-  --tr-orange-ink: #ff9a62;
-  --tr-orange-tint: #3a2516;
-  --tr-green: #5fd08a;
-  --tr-green-tint: #15301f;
-  --tr-blue: #6cc6ec;
-  --tr-blue-tint: #12303d;
-  --tr-red: #ff8a7a;
-  --tr-red-tint: #3a1d1a;
-  --tr-grey-tint: #222838;
-  --tr-sand-tint: #2a2618;
-  --tr-sand: #d9c79a;
-  --tr-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.28);
-}

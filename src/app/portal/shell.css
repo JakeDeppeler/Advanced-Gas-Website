@@ -645,3 +645,47 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-sum dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pk-sum .go { margin-top: auto; padding-top: 10px; font-size: 13px; font-weight: 700; color: var(--ink3); }
 .pk-sum:hover .go { color: var(--ink); }
+.pk-fleet td { vertical-align: top; }
+.pk-fleet td:not(:first-child) { text-align: left; }
+.pk-fleet th:not(:first-child) { text-align: left; }
+.pk-fleet th:last-child, .pk-fleet td:last-child { text-align: right; }
+.pk-fleet-van { display: flex; flex-direction: column; color: var(--ink); text-decoration: none; }
+.pk-fleet-van span, .pk-fleet-d { font-size: 13px; color: var(--ink2); }
+.pk-fleet-d { display: block; margin-top: 4px; }
+.pk-fleet-go { font-weight: 700; color: var(--ink2); text-decoration: none; white-space: nowrap; }
+.pk-fleet-go:hover, .pk-fleet-van:hover b { color: var(--ink); text-decoration: underline; }
+/* The van page's inner tabs are the iPad's own components (.tr-embed), so a
+   fix to one is a fix to both. Inside the portal they take the portal's
+   palette instead of the trade navy and orange, and follow its dark mode.
+   Navy and orange are fills behind hard-coded white text, so they can't be
+   --mark, which turns white in dark mode: a little ink in near-black stays
+   near-black in light and lifts to a grey white text still reads on in dark. */
+.pn .tr-embed {
+  --tr-fill: color-mix(in srgb, var(--ink) 30%, #1d1d1f);
+  --tr-navy: var(--tr-fill); --tr-navy-2: var(--tr-fill); --tr-orange: var(--tr-fill); --tr-orange-dk: var(--tr-fill);
+  --tr-ink: var(--ink); --tr-ink-2: var(--ink2); --tr-ink-3: var(--ink3);
+  --tr-surface: var(--surface); --tr-cream: var(--sunken); --tr-line: var(--line); --tr-line-2: var(--line);
+  --tr-orange-ink: var(--ink2); --tr-orange-tint: var(--quiet);
+  --tr-green: var(--good); --tr-green-tint: var(--good-bg); --tr-red: var(--bad); --tr-red-tint: var(--bad-bg);
+  --tr-blue: var(--ink2); --tr-blue-tint: var(--quiet); --tr-grey-tint: var(--sunken); --tr-sand: var(--ink2); --tr-sand-tint: var(--sunken);
+  --tr-shadow: var(--shadow);
+  font-size: 14.5px; margin-top: 14px;
+}
+.pn .tr-embed h2 { font-size: 18px; line-height: 24px; }
+.pn .tr-embed .tr-btn--go { box-shadow: none; }
+/* On a phone each van stacks, and each pill says which column it was in. */
+@media (max-width: 640px) {
+  .pk-fleet thead { display: none; }
+  .pk-fleet, .pk-fleet tbody, .pk-fleet tr, .pk-fleet td { display: block; width: auto; }
+  .pk-fleet tr { border-top: 1px solid var(--line); padding: 10px 0; }
+  .pk-fleet tr:first-child { border-top: 0; }
+  .pk-fleet td { border: 0; padding: 4px 0; }
+  .pk-fleet td[data-l] { display: grid; grid-template-columns: 96px auto; align-items: center; column-gap: 8px; }
+  .pk-fleet td[data-l]::before { content: attr(data-l); font-size: 12px; font-weight: 700; color: var(--ink3); grid-row: span 2; }
+  .pk-fleet td[data-l] .pk-st { justify-self: start; }
+  .pk-fleet td:last-child { text-align: left; }
+}
+/* Notes carry hard-coded dark text for their tint; on the portal's tints it follows the theme. */
+.pn .tr-embed .tr-note { color: var(--ink2); }
+.pn .tr-embed .tr-note--warn { color: var(--ink); }
+.pn .tr-embed .tr-note--good { color: var(--good); }

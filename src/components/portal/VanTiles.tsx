@@ -1,21 +1,15 @@
 import Link from "next/link";
 import { Ic } from "@/components/portal/TradeShell";
 import type { Vehicle } from "@/lib/portal/db";
-import { dbConfigured, listVanChecks } from "@/lib/portal/db";
-import { weekFor } from "@/lib/portal/monday";
-import { listOrders, listReports, listTools } from "@/lib/portal/van";
-import { lowStockCount } from "@/lib/portal/stock";
-import { VEHICLE_ITEMS, shortfalls, vehicleKey } from "@/lib/portal/vanChecks";
-import { isOpenOrder, isOpenReport, partChip, shortDate, toolState } from "@/lib/portal/vanParts";
-import { localToday } from "@/lib/portal/xero";
+import { partChip, shortDate } from "@/lib/portal/vanParts";
+import { vanState } from "@/lib/portal/fleet/vanState";
 
 const list = (xs: string[]) => (xs.length <= 2 ? xs.join(" and ") : `${xs.slice(0, 2).join(", ")} and ${xs.length - 2} more`);
 
 /**
  * The van's four tiles — weekly check, damage & service, parts, tools — and
- * the factory stock row under them. One component for the tech's My van and
- * the office's van page, so the two can't tell a different story about the
- * same van.
+ * the factory stock row under them, as the tech sees them on My van. The
+ * office's van page draws the same `vanState` on the portal's kit.
  */
 export async function VanTiles({ van, hrefs, you }: {
   van: Vehicle;
@@ -23,25 +17,7 @@ export async function VanTiles({ van, hrefs, you }: {
   /** "you" on the tech's screen, the driver's first name on the office's. */
   you: boolean;
 }) {
-  const today = localToday();
-  const [week, reports, orders, tools, stockSheets, factoryLow] = await Promise.all([
-    weekFor(van),
-    listReports(van.id, 20),
-    listOrders({ vehicleId: van.id, limit: 10 }),
-    listTools(van.id),
-    listVanChecks(van.id, "stock", 1).catch(() => []),
-    dbConfigured() ? lowStockCount().catch(() => null) : null,
-  ]);
-
-  const open = reports.filter(isOpenReport);
-  const low = stockSheets[0] ? shortfalls("stock", stockSheets[0].items) : [];
-  const openOrders = orders.filter(isOpenOrder);
-  const states = (tools ?? []).map((t) => ({ t, s: toolState(t, today) }));
-  const broken = states.filter(({ t }) => t.request === "broken");
-  const due = states.filter(({ s }) => s.due);
-  const asked = states.filter(({ t }) => t.request);
-  const lookAt = VEHICLE_ITEMS.filter((i) => week.weekly?.items[vehicleKey(i)]?.state === "action").length;
-  const weekDone = week.done === week.steps.length;
+  const { week, weekDone, lookAt, open, stockSheet, low, openOrders, tools, broken, due, asked, factoryLow } = await vanState(van);
 
   return (
     <>
@@ -84,7 +60,7 @@ export async function VanTiles({ van, hrefs, you }: {
                 ? list(low.map((l) => l.item))
                 : openOrders.length
                   ? `${openOrders.length} ${openOrders.length === 1 ? "order" : "orders"} with the office`
-                  : stockSheets[0] ? "Nothing low on the last count" : "No stock count yet"}
+                  : stockSheet ? "Nothing low on the last count" : "No stock count yet"}
             </span>
           </span>
         </Link>
