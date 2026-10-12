@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { approve, cancel, redraft, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { PoWithLines } from "@/lib/ordering/db";
-import { byJob, dayLabel, dayTimeLabel, linesTotal, modelLooksLikeName, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { byJob, dayLabel, dayTimeLabel, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
  * Supply › Next week: each supplier's draft order and each electrician visit,
@@ -50,12 +50,13 @@ const howItGoes = (s: Supplier | undefined) => {
   // Nothing can put lines into a maX cart from outside — carts only come back
   // from Reece's site — so this one is entered by hand and ticked off here.
   if (s.method === "reece_cart") return "Enter these in Reece maX, then mark it ordered here.";
-  if (s.method === "email_form") return `Emailed to ${s.email} with Mitsubishi's order form filled in and attached.`;
+  const one = s.combine_orders ? " Every job from today to the end of next week is on this one order, so it comes in one delivery." : "";
+  if (s.method === "email_form") return `Emailed to ${s.email} with Mitsubishi's order form filled in and attached.${one}`;
   if (s.method === "work_order") return `Emailed to ${s.email}.`;
-  return `Emailed to ${s.email}.`;
+  return `Emailed to ${s.email}.${one}`;
 };
 
-function Delivery({ po }: { po: PoWithLines }) {
+function Delivery({ po, factoryInstructions }: { po: PoWithLines; factoryInstructions: string }) {
   const { busy, msg, run } = useAct();
   const [open, setOpen] = useState(false);
   const [toSite, setToSite] = useState(po.delivery_to_site);
@@ -67,7 +68,13 @@ function Delivery({ po }: { po: PoWithLines }) {
       <span>
         <strong>Deliver to</strong> {po.delivery_address}
         {po.delivery_to_site && <span className="pt-nw__tag">Site delivery</span>}
-        {po.delivery_instructions && <span className="pt-nw__muted"> · {po.delivery_instructions}</span>}
+        {(po.delivery_instructions || (!po.delivery_to_site && factoryInstructions)) && (
+          <span className="pt-nw__muted"> · {po.delivery_instructions || factoryInstructions}</span>
+        )}
+        {po.kind === "order" && (() => {
+          const d = orderDelivery(po.lines, todayMelbourne());
+          return d ? <span> · <strong>by {d.label}</strong></span> : null;
+        })()}
       </span>
       {editable && !open && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Change</button>}
       {editable && open && (
@@ -76,7 +83,7 @@ function Delivery({ po }: { po: PoWithLines }) {
             <input type="checkbox" checked={toSite} onChange={(e) => setToSite(e.target.checked)} /> Deliver straight to site
           </label>
           <input className="pt-nw__input" value={address} onChange={(e) => setAddress(e.target.value)} aria-label="Delivery address" />
-          <input className="pt-nw__input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder="Instructions, e.g. leave at side gate" aria-label="Delivery instructions" />
+          <input className="pt-nw__input" value={instructions} onChange={(e) => setInstructions(e.target.value)} placeholder={toSite ? "Instructions, e.g. leave at side gate" : factoryInstructions || "Instructions"} aria-label="Delivery instructions" />
           <span className="pt-nw__actions">
             <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy}
               onClick={() => run(async () => { const r = await saveDelivery({ id: po.id, toSite, address, instructions }); if (r.ok) setOpen(false); return r; })}>
@@ -187,7 +194,7 @@ function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: S
   );
 }
 
-type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string };
+type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; factoryInstructions: string };
 
 const installWhen = (l: { appointment_start: string | null; install_date: string | null }) =>
   l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—";
@@ -242,7 +249,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
   );
 }
 
-function OrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
+function OrderCard({ po, supplier, testTo, alwaysCc, factoryInstructions }: CardProps) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
   return (
@@ -286,7 +293,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
           </table>
         </div>
       )}
-      <Delivery po={po} />
+      <Delivery po={po} factoryInstructions={factoryInstructions} />
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
       <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} />
     </section>
@@ -348,8 +355,10 @@ export function NextWeekOrders(props: {
   testTo: string;
   /** The office address every emailed order is copied to. */
   alwaysCc: string;
+  /** What an order coming to the factory says about delivery, unless it has its own instructions. */
+  factoryInstructions: string;
 }) {
-  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc } = props;
+  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, factoryInstructions } = props;
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
 
@@ -414,10 +423,10 @@ export function NextWeekOrders(props: {
       )}
 
       {goods.length > 0 && <h2 className="pt-nw__section">Supplier orders</h2>}
-      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} />)}
+      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} factoryInstructions={factoryInstructions} />)}
 
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
-      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} />)}
+      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} factoryInstructions={factoryInstructions} />)}
 
       {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>

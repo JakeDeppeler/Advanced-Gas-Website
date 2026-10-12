@@ -46,7 +46,8 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
   const [signoff, setSignoff] = useState(s.email_signoff ?? (isWork ? s.work_order_note ?? "" : ""));
   const savedCc = (s.cc_emails ?? []).join(", ");
   const [cc, setCc] = useState(savedCc);
-  const dirty = email !== (s.email ?? "") || intro !== (s.email_intro ?? "") || cc.trim() !== savedCc
+  const [combine, setCombine] = useState(!!s.combine_orders);
+  const dirty = email !== (s.email ?? "") || intro !== (s.email_intro ?? "") || cc.trim() !== savedCc || combine !== !!s.combine_orders
     || signoff !== (s.email_signoff ?? (isWork ? s.work_order_note ?? "" : ""));
 
   return (
@@ -76,6 +77,13 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
         </label>
       )}
 
+      {emailed && !isWork && (
+        <label className="pt-nw__check pt-supem__combine">
+          <input type="checkbox" checked={combine} onChange={(e) => setCombine(e.target.checked)} />
+          One order for this week and next week — every job not yet ordered, in one delivery (for suppliers that charge a fee per delivery)
+        </label>
+      )}
+
       {emailed && (
         <>
           <label className="pt-supem__field">
@@ -101,7 +109,7 @@ function SupplierCard({ s, defaults, sampleTo, alwaysCc }: { s: Supplier; defaul
         <span className="pt-nw__actions">
           {emailed && (
             <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={save.busy || !dirty}
-              onClick={() => save.run(() => saveWording({ id: s.id, email, intro, signoff, cc, needsEmail: emailed }))}>
+              onClick={() => save.run(() => saveWording({ id: s.id, email, intro, signoff, cc, combine, needsEmail: emailed }))}>
               {save.busy ? "Saving…" : dirty ? "Save" : "Saved"}
             </button>
           )}

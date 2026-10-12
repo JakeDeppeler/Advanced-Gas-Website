@@ -4,7 +4,7 @@
 
 import { PDFDocument } from "pdf-lib";
 import { MITSUBISHI_ORDER_FORM_B64 } from "./mitsubishiTemplate";
-import { dayLabel, neededBy, supplierRows, type OrderingSettings, type PlannedLine } from "./plan";
+import { orderDelivery, supplierRows, todayMelbourne, type OrderingSettings, type PlannedLine } from "./plan";
 
 /** The form has fourteen order rows and no second page. */
 export const MITSUBISHI_FORM_ROWS = 14;
@@ -21,6 +21,8 @@ export async function fillMitsubishiForm(o: {
   delivery: string;
   deliveryInstructions: string | null;
   settings: OrderingSettings;
+  /** Melbourne date the order goes out; defaults to now. */
+  today?: string;
 }): Promise<{ pdf: Uint8Array; rows: number } | { error: string }> {
   const rows = supplierRows(o.lines);
   if (rows.length > MITSUBISHI_FORM_ROWS) {
@@ -46,17 +48,22 @@ export async function fillMitsubishiForm(o: {
     "State": m ? m[2].toUpperCase() : "",
     "Postcode": m ? m[3] : "",
     "Delivery Instructions": o.deliveryInstructions ?? "",
-    // "Print Name" is left alone on purpose: in Mitsubishi's PDF it is the
-    // same field as "Position", so filling one fills both with the same words.
+    // Mitsubishi's own PDF had Print Name and Position as one field, so one
+    // filled both; the template has them split (see mitsubishiTemplate.ts).
+    "Print Name": o.settings.signName ?? "",
+    "Position": o.settings.signPosition ?? "",
   };
 
+  // Every row gets the order's one delivery date, the earliest any line is
+  // needed: a date per row would let them split it into several deliveries,
+  // each with its own fee — the thing combined orders exist to avoid.
+  const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne());
   let subtotal = 0;
   rows.forEach((r, idx) => {
     const i = idx + 1;
     values[rowField("Qty", i)] = String(r.qty);
     values[rowField("Model Number", i)] = r.model;
-    // Wanted the working day before the first install it's for.
-    values[rowField("Delivery Date", i)] = r.first_install ? dayLabel(neededBy(r.first_install)) : "";
+    values[rowField("Delivery Date", i)] = deliver?.label ?? "";
     values[rowField("Price Ex GST", i)] = r.unit_cost == null ? "" : money(r.unit_cost);
     values[rowField("Comments", i)] = r.jobs.length ? `Job ${r.jobs.join(", ")}` : "";
     if (r.unit_cost != null) subtotal += r.unit_cost * r.qty;
@@ -79,6 +86,12 @@ export async function fillMitsubishiForm(o: {
   // A field the form no longer has means Mitsubishi changed their form; an
   // order with half its boxes silently empty is worse than no order.
   if (missing.length) return { error: `Mitsubishi's form is missing ${missing.join(", ")} — the template needs updating.` };
+  // Every box inherits the form-wide auto font size, which blows one short
+  // line up to the full height of the instructions box; give that box its own
+  // fixed size, in the same Helvetica the form uses.
+  const instr = form.getTextField("Delivery Instructions");
+  instr.enableMultiline();
+  instr.acroField.setDefaultAppearance("/Helv 9 Tf 0 g");
   form.updateFieldAppearances();
   return { pdf: await doc.save(), rows: rows.length };
 }

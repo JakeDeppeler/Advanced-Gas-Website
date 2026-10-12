@@ -9,7 +9,7 @@
 import { writeFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import {
-  byJob, ccList, dayTimeLabel, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
+  byJob, ccList, dayTimeLabel, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
   splitAddress, supplierOrderEmail, supplierRows, workOrderEmail, workRef,
   type OrderLine, type Supplier, type WorkOrderRow,
 } from "../src/lib/ordering/plan";
@@ -114,6 +114,7 @@ ok("time reads in Melbourne", dayTimeLabel("2026-10-20T20:30:00Z") === "Wed 21 O
 const settings = {
   replyTo: "admin@advancedgas.com.au", deliveryAddress: "1 Sierra Circuit, Pakenham VIC 3810", orderedBy: "Kellie Winbanks",
   mitsubishi: { accountName: "ADVANCED GAS & AIRCONDITIONING SERVICES PTY LTD", accountNumber: "116360", abn: "35607575280", salesRep: "ALEX BETTIN", contactName: "KELLIE WINBANKS", contactNumber: "0359478000" },
+  signName: "Kellie Winbanks", signPosition: "Owner", factoryInstructions: "Deliver to our factory",
 };
 const wo = workOrderEmail({ supplier: suppliers[3], poNumber: poNumber(w, "gt_electrics", 1), details: fremont!.details, settings });
 ok("work order email says when, where, the system, crew and customer",
@@ -121,9 +122,38 @@ ok("work order email says when, where, the system, crew and customer",
 ok("and tells him to email us if he can't make it", /Email us if you can't make it/.test(wo.text));
 ok("the po number", poNumber(w, "gt_electrics", 1) === "AGA-261019-GTE" && poNumber(w, "mitsubishi", 2) === "AGA-261019-MIT-2");
 
-const se = supplierOrderEmail({ supplier: suppliers[2], poNumber: "AGA-261019-REC", lines: bySup.reclaim!, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: false });
-ok("needed by skips the weekend", neededBy("2026-10-19") === "2026-10-16" && neededBy("2026-10-23") === "2026-10-22");
-ok("supplier email asks for it the working day before install", /needed by Thu 22 Oct/.test(se.subject), se.subject);
+const se = supplierOrderEmail({ supplier: suppliers[2], poNumber: "AGA-261019-REC", lines: bySup.reclaim!, delivery: settings.deliveryAddress, deliveryInstructions: null, settings, attached: false, today: "2026-10-14" });
+ok("delivered three days before the install", neededBy("2026-10-23") === "2026-10-20" && neededBy("2026-10-19") === "2026-10-16");
+ok("…moved back to the Friday when that's a weekend", neededBy("2026-10-21") === "2026-10-16" && neededBy("2026-10-20") === "2026-10-16");
+ok("supplier email asks for one delivery three days before the first install", /deliver by Tue 20 Oct/.test(se.subject) && se.text.includes("all in one delivery"), se.subject);
+ok("a delivery date already gone reads ASAP", orderDelivery([{ install_date: "2026-10-16" }], "2026-10-14")?.label === "ASAP"
+  && orderDelivery([{ install_date: "2026-10-23" }, { install_date: "2026-10-30" }], "2026-10-14")?.label === "Tue 20 Oct");
+ok("factory orders say deliver to the factory; site orders and their own instructions win",
+  deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, { ...settings, factoryInstructions: "Deliver to our factory" }) === "Deliver to our factory"
+  && deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: true }, { ...settings, factoryInstructions: "Deliver to our factory" }) === null
+  && deliveryInstructionsFor({ delivery_instructions: "Side gate", delivery_to_site: false }, { ...settings, factoryInstructions: "Deliver to our factory" }) === "Side gate");
+
+console.log("\n-- one order across this week and next, for suppliers that charge per delivery --");
+{
+  const rin = S("rinnai", "Rinnai (Brivis)", "email", "SalesOrders@rinnai.com.au");
+  const rinnaiLines: OrderLine[] = [
+    L({ job_id: 700, job_number: "20700", install_date: "2026-10-16", sku_id: 71, sku_name: "Brivis P46CHAR", supplier_id: "rinnai", sku_type: "Equipment" }),
+    L({ job_id: 701, job_number: "20701", install_date: "2026-10-21", sku_id: 71, sku_name: "Brivis P46CHAR", supplier_id: "rinnai", sku_type: "Equipment" }),
+    L({ job_id: 702, job_number: "20702", install_date: "2026-10-13", sku_id: 71, sku_name: "Brivis P46CHAR", supplier_id: "rinnai", sku_type: "Equipment" }),
+    L({ job_id: 703, job_number: "20703", install_date: "2026-10-16", sku_id: 21, sku_name: "Reclaim Heat Pump 300L", supplier_id: "reclaim", sku_type: "Equipment" }),
+  ];
+  const win = { start: "2026-10-14", end: "2026-10-25" };
+  const separate = planWeek({ week: w, lines: rinnaiLines, workOrders: [], suppliers: [...suppliers, rin], alreadyOrdered: new Set(), combineWindow: win });
+  const rinOrder = separate.orders.find((o) => o.supplier_id === "rinnai");
+  ok("without the switch, only next week's job", rinOrder?.lines.map((l) => l.job_number).join() === "20701", rinOrder?.lines.map((l) => l.job_number).join());
+  const combined = planWeek({ week: w, lines: rinnaiLines, workOrders: [], suppliers: [...suppliers, { ...rin, combine_orders: true }], alreadyOrdered: new Set(), combineWindow: win });
+  const c = combined.orders.find((o) => o.supplier_id === "rinnai");
+  ok("with it, this week's job joins next week's on one order", c?.lines.map((l) => l.job_number).join() === "20700,20701", c?.lines.map((l) => l.job_number).join());
+  ok("…but not a job from before today", !c?.lines.some((l) => l.job_number === "20702"));
+  ok("…and other suppliers keep to the week", !combined.orders.some((o) => o.supplier_id === "reclaim"));
+  ok("…and anything already ordered stays out", !planWeek({ week: w, lines: rinnaiLines, workOrders: [], suppliers: [...suppliers, { ...rin, combine_orders: true }],
+    alreadyOrdered: new Set(["700:71"]), combineWindow: win }).orders.find((o) => o.supplier_id === "rinnai")?.lines.some((l) => l.job_number === "20700"));
+}
 ok("and escapes what it prints", !/<script/.test(supplierOrderEmail({ supplier: suppliers[2], poNumber: "X", lines: [{ ...bySup.reclaim![0], supplier_model: "<script>" }], delivery: "a", deliveryInstructions: null, settings, attached: false }).html));
 
 console.log("\n-- the office's own wording --");
@@ -157,15 +187,16 @@ ok("…with the Reece product number where the pricebook has one", rl.text.inclu
 ok("…and says how many are missing one", /1 line\(s\) have no Reece product number/.test(rl.text));
 ok("splitAddress", JSON.stringify(splitAddress("1 Sierra Circuit, Pakenham VIC 3810")) === JSON.stringify({ street: "1 Sierra Circuit, Pakenham", state: "VIC", postcode: "3810" }));
 const me = mitsubishiOrderEmail({ supplier: suppliers[1], poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!,
-  delivery: settings.deliveryAddress, deliveryInstructions: "Ring Kellie", settings, attached: true });
+  delivery: settings.deliveryAddress, deliveryInstructions: "Ring Kellie", settings, attached: true, today: "2026-10-14" });
 ok("Mitsubishi email names the attached form as the order", me.html.includes("AGA-261019-MIT Mitsubishi Electric order form.pdf") && me.text.includes("on your order form, attached"));
 ok("…and doesn't repeat the lines, so there's one version of the order", !me.text.includes("MSZ-AP71VGKIT") && !me.html.includes("MSZ-AP71VGKIT"), me.text);
-ok("…but says how many units, when, and where", me.text.includes("Units: 3 (2 models)") && me.text.includes("First needed by: Mon 19 Oct") && me.text.includes("Deliver to: 1 Sierra Circuit") && me.text.includes("Ring Kellie"), me.text);
+ok("…but says how many units, when, and where", me.text.includes("Units: 3 (2 models)") && me.text.includes("Deliver by: Fri 16 Oct — all in one delivery") && me.text.includes("Deliver to: 1 Sierra Circuit") && me.text.includes("Ring Kellie"), me.text);
 
 console.log("\n-- the Mitsubishi form --");
 (async () => {
   const filled = await fillMitsubishiForm({
-    poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!, delivery: settings.deliveryAddress, deliveryInstructions: null, settings,
+    poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!, delivery: settings.deliveryAddress,
+    deliveryInstructions: deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, settings), settings, today: "2026-10-14",
   });
   ok("fills without a missing field", "pdf" in filled, "error" in filled ? filled.error : "");
   const blankAcct = await fillMitsubishiForm({ poNumber: "X", orderDate: "x", delivery: "x", deliveryInstructions: null, lines: bySup.mitsubishi!,
@@ -176,6 +207,13 @@ console.log("\n-- the Mitsubishi form --");
   } else ok("an empty account setting still fills", false, blankAcct.error);
   if ("pdf" in filled) {
     ok("one form row per unit model", filled.rows === 2, String(filled.rows));
+    const f = (await PDFDocument.load(filled.pdf)).getForm();
+    ok("signed off by Kellie Winbanks, Owner — in separate boxes",
+      f.getTextField("Print Name").getText() === "Kellie Winbanks" && f.getTextField("Position").getText() === "Owner",
+      `${f.getTextField("Print Name").getText()} / ${f.getTextField("Position").getText()}`);
+    ok("every row has the one delivery date", f.getTextField("Delivery Date").getText() === "Fri 16 Oct" && f.getTextField("Delivery Date 2").getText() === "Fri 16 Oct",
+      `${f.getTextField("Delivery Date").getText()} / ${f.getTextField("Delivery Date 2").getText()}`);
+    ok("delivery instructions on the form", f.getTextField("Delivery Instructions").getText() === "Deliver to our factory");
     if (process.env.ORDERING_PDF_OUT) writeFileSync(process.env.ORDERING_PDF_OUT, filled.pdf);
   }
   const tooMany = await fillMitsubishiForm({

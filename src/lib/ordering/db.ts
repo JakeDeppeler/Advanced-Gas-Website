@@ -2,7 +2,7 @@ import "server-only";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import {
-  isoAddDays, planWeek, poNumber, thisWeek, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
+  isoAddDays, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
   type WorkOrderDetails, type WorkOrderRow,
 } from "./plan";
 
@@ -40,6 +40,9 @@ export const DEFAULT_SETTINGS: OrderingSettings = {
   replyTo: "admin@advancedgas.com.au",
   deliveryAddress: "1 Sierra Circuit, Pakenham VIC 3810",
   orderedBy: "Kellie Winbanks",
+  signName: "Kellie Winbanks",
+  signPosition: "Owner",
+  factoryInstructions: "Deliver to our factory",
 };
 
 export async function loadOrderingSettings(): Promise<OrderingSettings> {
@@ -48,7 +51,7 @@ export async function loadOrderingSettings(): Promise<OrderingSettings> {
 }
 
 export async function loadSuppliers(): Promise<Supplier[]> {
-  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active,email_intro,email_signoff,cc_emails&order=name.asc");
+  return sbSelect<Supplier>("order_suppliers", "select=id,name,method,email,notes,work_order_note,active,email_intro,email_signoff,cc_emails,combine_orders&order=name.asc");
 }
 
 const weekFilter = (w: Week) => `install_date=gte.${w.start}&install_date=lte.${w.end}`;
@@ -148,14 +151,39 @@ export type DraftResult = { plan: WeekPlan; created: number; updated: number; re
  * because the plan already leaves out whatever was ordered.
  */
 export async function draftWeek(week: Week): Promise<DraftResult> {
+  const now = new Date();
+  // Suppliers that charge per delivery get one order for every job not yet
+  // ordered from today to the end of next week — the same window whichever
+  // week is being drafted, so drafting either tab gives the same order.
+  const combineWindow: Week = { start: todayMelbourne(), end: nextWeek(now).end };
+  const loadRange: Week = {
+    start: combineWindow.start < week.start ? combineWindow.start : week.start,
+    end: combineWindow.end > week.end ? combineWindow.end : week.end,
+  };
   const settings = await loadOrderingSettings();
   const [suppliers, inputs, alreadyOrdered, existing] = await Promise.all([
-    loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), listWeekOrders(week),
+    loadSuppliers(), loadWeekInputs(loadRange), loadAlreadyOrdered(), listWeekOrders(week),
   ]);
-  const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered });
+  const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered, combineWindow });
   let created = 0, updated = 0, removed = 0;
   const kept = new Set<number>();
-  const now = new Date().toISOString();
+  const stamp = now.toISOString();
+
+  // A combined supplier's draft on the other tab's week holds the same lines
+  // this plan has just taken, so it goes: two drafts of one order would be two
+  // deliveries — or the same gear ordered twice.
+  const combined = new Set(suppliers.filter((s) => s.combine_orders && s.active).map((s) => s.id));
+  if (combined.size) {
+    const tw = thisWeek(now), nw = nextWeek(now);
+    for (const other of [tw, nw].filter((w) => w.start !== week.start)) {
+      for (const p of await listWeekOrders(other)) {
+        if (p.kind === "order" && p.status === "draft" && combined.has(p.supplier_id)) {
+          await sbDelete("purchase_orders", `id=eq.${p.id}&status=eq.draft`);
+          removed++;
+        }
+      }
+    }
+  }
   // Order numbers run per supplier per week: AGA-261019-MIT, then -MIT-2 for
   // a top-up. Counted from every order that week, cancelled ones included,
   // so a number is never reused.
@@ -172,7 +200,7 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
     const draft = mine.find((p) => p.status === "draft");
     if (draft) {
       await replaceLines(draft.id, o.lines);
-      await sbUpdate("purchase_orders", `id=eq.${draft.id}`, { updated_at: now, send_error: null });
+      await sbUpdate("purchase_orders", `id=eq.${draft.id}`, { updated_at: stamp, send_error: null });
       kept.add(draft.id);
       updated++;
     } else {
@@ -192,7 +220,7 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
     const draft = mine.find((p) => p.status === "draft");
     if (draft) {
       await replaceLines(draft.id, wo.lines);
-      await sbUpdate("purchase_orders", `id=eq.${draft.id}`, { details: wo.details, updated_at: now, send_error: null });
+      await sbUpdate("purchase_orders", `id=eq.${draft.id}`, { details: wo.details, updated_at: stamp, send_error: null });
       kept.add(draft.id);
       updated++;
     } else {
@@ -239,11 +267,11 @@ export async function setDelivery(id: number, patch: { toSite: boolean; address:
 
 /* ---------------------------------------------------------------- supplier emails page */
 
-export async function saveSupplierEmail(id: string, patch: { email: string | null; intro: string | null; signoff: string | null; cc: string[] }): Promise<boolean> {
+export async function saveSupplierEmail(id: string, patch: { email: string | null; intro: string | null; signoff: string | null; cc: string[]; combine: boolean }): Promise<boolean> {
   const rows = await sbSelect<{ id: string }>("order_suppliers", `select=id&id=eq.${encodeURIComponent(id)}`);
   if (!rows.length) return false;
   await sbUpdate("order_suppliers", `id=eq.${encodeURIComponent(id)}`, {
-    email: patch.email, email_intro: patch.intro, email_signoff: patch.signoff, cc_emails: patch.cc, updated_at: new Date().toISOString(),
+    email: patch.email, email_intro: patch.intro, email_signoff: patch.signoff, cc_emails: patch.cc, combine_orders: patch.combine, updated_at: new Date().toISOString(),
   });
   return true;
 }

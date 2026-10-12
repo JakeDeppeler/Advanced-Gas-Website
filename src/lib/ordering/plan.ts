@@ -24,6 +24,11 @@ export type Supplier = {
   email_signoff?: string | null;
   /** Copied on every order to this supplier, as well as the office (0066). */
   cc_emails?: string[] | null;
+  /**
+   * Each delivery from this supplier carries a fee, so every job not yet
+   * ordered from today to the end of next week goes on one order (0067).
+   */
+  combine_orders?: boolean | null;
 };
 
 /*
@@ -180,15 +185,34 @@ export function dayTimeLabel(isoInstant: string): string {
   return `${noComma(dayTimeFmt.format(d))}, ${timeFmt.format(d).replace(/\s?([ap])\.?m\.?/i, " $1m")}`;
 }
 
+/** Days before an install its gear should be at the factory, so there's time to check it and load the van. */
+export const DELIVERY_LEAD_DAYS = 3;
+
 /**
- * The working day before an install — when its gear has to be in. A Monday
- * install needs it by Friday; a supplier can't deliver on the Sunday.
+ * When an install's gear has to be delivered: three days before, moved back to
+ * the Friday when that lands on a weekend — no supplier delivers on a Sunday.
  */
 export function neededBy(installIso: string): string {
-  let d = isoAddDays(installIso, -1);
+  let d = isoAddDays(installIso, -DELIVERY_LEAD_DAYS);
   const dow = () => { const [y, m, dd] = d.split("-").map(Number); return new Date(Date.UTC(y, m - 1, dd)).getUTCDay(); };
   while (dow() === 0 || dow() === 6) d = isoAddDays(d, -1);
   return d;
+}
+
+/** Today in Melbourne, YYYY-MM-DD. */
+export const todayMelbourne = () => isoDateMelbourne(new Date());
+
+/**
+ * The one delivery date for an order: the earliest any of its lines is needed
+ * by. An order is one delivery — a date per line would invite one per line, and
+ * a fee each. When that date is today or already gone, it says ASAP rather than
+ * asking a supplier for a day that has passed.
+ */
+export function orderDelivery(lines: { install_date: string | null }[], today: string): { date: string | null; label: string } | null {
+  const first = lines.map((l) => l.install_date).filter((d): d is string => !!d).sort()[0];
+  if (!first) return null;
+  const d = neededBy(first);
+  return d <= today ? { date: null, label: "ASAP" } : { date: d, label: dayLabel(d) };
 }
 
 export function weekLabel(w: Week): string {
@@ -226,8 +250,13 @@ export function planWeek(input: {
   workOrders: WorkOrderRow[];
   suppliers: Supplier[];
   alreadyOrdered: Set<string>;
+  /**
+   * The dates a combine_orders supplier's order covers (today to the end of
+   * next week), in place of `week`. Without it every supplier gets `week`.
+   */
+  combineWindow?: Week;
 }): WeekPlan {
-  const { week, lines, workOrders, suppliers, alreadyOrdered } = input;
+  const { week, lines, workOrders, suppliers, alreadyOrdered, combineWindow } = input;
   const byId = new Map(suppliers.filter((s) => s.active).map((s) => [s.id, s]));
   const problems: Problem[] = [];
   const seenProblem = new Set<string>();
@@ -236,7 +265,8 @@ export function planWeek(input: {
     if (!seenProblem.has(k)) { seenProblem.add(k); problems.push(p); }
   };
 
-  const weekLines = lines.filter((l) => inWeek(l.install_date, week));
+  const combines = (id: string | null) => !!combineWindow && !!id && !!byId.get(id)?.combine_orders;
+  const weekLines = lines.filter((l) => inWeek(l.install_date, combines(l.supplier_id) ? combineWindow! : week));
 
   // ---- supplier orders
   const orders = new Map<string, PlannedLine[]>();
@@ -394,7 +424,16 @@ export type OrderingSettings = {
   mitsubishi?: {
     accountName?: string; accountNumber?: string; abn?: string; salesRep?: string; contactName?: string; contactNumber?: string;
   };
+  /** Who signs Mitsubishi's form: Print Name and Position. */
+  signName?: string;
+  signPosition?: string;
+  /** The delivery instruction on an order coming to the factory, unless the order has its own. */
+  factoryInstructions?: string;
 };
+
+/** What an order says about delivery: its own instructions, or the factory's when it is coming to the factory. */
+export const deliveryInstructionsFor = (po: { delivery_instructions: string | null; delivery_to_site: boolean }, settings: OrderingSettings) =>
+  po.delivery_instructions?.trim() || (po.delivery_to_site ? null : settings.factoryInstructions?.trim() || null);
 
 export function supplierOrderEmail(o: {
   supplier: Supplier;
@@ -404,10 +443,13 @@ export function supplierOrderEmail(o: {
   deliveryInstructions: string | null;
   settings: OrderingSettings;
   attached: boolean;
+  /** Melbourne date the email goes out; defaults to now. */
+  today?: string;
 }): EmailParts {
   const rows = supplierRows(o.lines);
   const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${firstNeeded ? ` — needed by ${dayLabel(neededBy(firstNeeded))}` : ""}`;
+  const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne());
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${deliver ? ` — deliver by ${deliver.label}` : ""}`;
   const table = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
 <tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job</th><th style="${head}">Install</th></tr>
 ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${esc(r.jobs.join(", "))}</td><td style="${cell}">${r.first_install ? esc(dayLabel(r.first_install)) : ""}</td></tr>`).join("\n")}
@@ -419,7 +461,7 @@ ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cel
     + (o.attached ? "<br><br>Your order form is attached, filled in." : "")
     + `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`
     + (o.deliveryInstructions ? `<br><strong>Instructions:</strong> ${esc(o.deliveryInstructions)}` : "")
-    + (firstNeeded ? `<br><strong>Needed by:</strong> ${esc(dayLabel(neededBy(firstNeeded)))} (first install ${esc(dayLabel(firstNeeded))})` : "");
+    + (deliver && firstNeeded ? `<br><strong>Deliver by:</strong> ${esc(deliver.label)} (first install ${esc(dayLabel(firstNeeded))}) — all in one delivery, please` : "");
   const footer = `${paras(closing)}<br><br>Replies go to ${esc(o.settings.replyTo)}.<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
     opening,
@@ -427,7 +469,7 @@ ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cel
     "",
     `Deliver to: ${o.delivery}`,
     ...(o.deliveryInstructions ? [`Instructions: ${o.deliveryInstructions}`] : []),
-    ...(firstNeeded ? [`Needed by: ${dayLabel(neededBy(firstNeeded))} (first install ${dayLabel(firstNeeded)})`] : []),
+    ...(deliver && firstNeeded ? [`Deliver by: ${deliver.label} (first install ${dayLabel(firstNeeded)}) — all in one delivery, please`] : []),
     "",
     ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} — job ${r.jobs.join(", ")}${r.first_install ? `, install ${dayLabel(r.first_install)}` : ""}`),
     "",
@@ -584,13 +626,14 @@ export const mitsubishiFormFilename = (poNumber: string) => `${poNumber} Mitsubi
 export function mitsubishiOrderEmail(o: {
   supplier: Supplier; poNumber: string; orderDate: string; lines: PlannedLine[]; delivery: string;
   deliveryInstructions: string | null; settings: OrderingSettings; attached: boolean;
+  /** Melbourne date the email goes out; defaults to now. */
+  today?: string;
 }): EmailParts {
   const rows = supplierRows(o.lines);
   const acct = o.settings.mitsubishi ?? {};
   const units = rows.reduce((t, r) => t + r.qty, 0);
-  const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
-  const needed = firstNeeded ? dayLabel(neededBy(firstNeeded)) : null;
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — needed by ${needed}` : ""}`;
+  const needed = orderDelivery(o.lines, o.today ?? todayMelbourne())?.label ?? null;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — deliver by ${needed}` : ""}`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
   const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
@@ -600,7 +643,7 @@ export function mitsubishiOrderEmail(o: {
     ["Order number", o.poNumber],
     ["Account", [acct.accountName, acct.accountNumber].filter(Boolean).join(" — ")],
     ["Units", `${units} (${rows.length} model${rows.length === 1 ? "" : "s"})`],
-    ...(needed ? [["First needed by", needed] as [string, string]] : []),
+    ...(needed ? [["Deliver by", `${needed} — all in one delivery`] as [string, string]] : []),
     ["Deliver to", o.delivery],
     ...(o.deliveryInstructions ? [["Delivery instructions", o.deliveryInstructions] as [string, string]] : []),
   ];
