@@ -499,6 +499,7 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-row .t { flex: 1; min-width: 0; line-height: 1.3; }
 .pk-row .t b { font-weight: 700; display: block; }
 .pk-row .t span { display: block; font-size: 13px; color: var(--ink2); }
+.pk-row .t span span { display: inline; font-size: inherit; }
 .pk-row .v { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .pk-chev { color: var(--ink4); font-size: 20px; line-height: 1; }
 .pk-ico { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--mid-f); color: #fff; flex: none; }
@@ -586,3 +587,10 @@ a.pk-row:hover { background: var(--sunken); }
   .pk-mrow { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .pk-unit { min-width: 0; flex-basis: 100%; }
 }
+
+/* Crew & vans › Team: a person per row, with reorder, level and open on the end. */
+.pk-crew { flex-wrap: wrap; }
+.pk-mv { display: inline-flex; gap: 4px; }
+.pk-mv button { width: 30px; height: 30px; border-radius: 8px; border: 0; background: var(--quiet); color: var(--ink); font: inherit; cursor: pointer; }
+.pk-mv button:disabled { opacity: 0.35; cursor: default; }
+@media (max-width: 640px) { .pk-crew .t { flex-basis: calc(100% - 60px); } }

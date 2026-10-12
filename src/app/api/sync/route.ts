@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { computeSnapshot, storeSnapshot } from "@/lib/dashboard/metrics";
+import { saveCommissionMonth } from "@/lib/portal/crewFile/commission";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
 import { syncServiceTitan } from "@/lib/dashboard/stSync";
 import { runDueReports } from "@/lib/reports/run";
@@ -62,6 +63,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: (e as Error).message, sync }, { status: 500 });
   }
 
+  // This month's line on each person's file under Commission. Its own
+  // failure: a commission write that fails must not fail the sync.
+  const commission = await saveCommissionMonth(snapshot.metrics)
+    .then((n) => ({ ok: true, people: n }))
+    .catch((e) => ({ ok: false, error: (e as Error).message }));
+
   // The evening reports' backstop: anything due and not yet sent goes now,
   // from the snapshot just taken. A failure here is the reports', not the sync's.
   const reports = await runDueReports(new Date(), { ...snapshot, computedAt: new Date().toISOString() })
@@ -72,6 +79,7 @@ export async function GET(req: Request) {
     durationMs: Date.now() - startedAt,
     sync,
     xeroToken,
+    commission,
     reports,
     sources: snapshot.sources,
   });
