@@ -100,7 +100,7 @@ export default async function CapacityPage({ searchParams }: { searchParams: { t
       : part === "markup" ? ["Markup", "What we put on materials and units, which is where the profit is."]
         : tab === "overheads" ? ["Costs", "What the business costs to run a year, shared over every billable hour. Vans sit with each person instead."]
           : tab === "rates" ? ["What each crew charges", "The rate a tech, or a tech and an apprentice, has to charge to cover what they cost and the profit we want."]
-            : ["Team & wages", "Everyone on the team, what they’re paid and how many hours they bill. Change one here and every rate updates."];
+            : ["Team & wages", "Everyone side by side: what they’re paid and how many hours they bill. Change it here or on their own file — it’s the same record, and every rate updates."];
 
   return (
     <PortalShell user={user}>
