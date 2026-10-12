@@ -143,8 +143,10 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Vehicles", href: "/portal/vehicles" },
       { label: "Supply", href: "/portal/supply" },
       { label: "Factory stock", href: "/portal/stock" },
-      { label: "Tools", href: "/portal/tools/fault-codes" },
+      { label: "Tools", href: "/portal/vehicles/tools" },
       { label: "From the crew", href: "/portal/requests" },
+      { label: "Per van, per day", href: "/portal/per-van" },
+      { label: "Drive time", href: "/portal/drive" },
       { label: "See the trade iPad", href: "/trade" },
     ],
   },
@@ -155,6 +157,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Handbook", href: "/portal/handbook" },
       { label: "Learning", href: "/portal/learning" },
       { label: "Information", href: "/portal/information" },
+      { label: "Trade tools", href: "/portal/tools/fault-codes" },
       { label: "Edit processes", href: "/portal/sops/edit" },
     ],
   },
@@ -191,7 +194,8 @@ export type Section = {
 /** Pages a business switches off in Settings, by what it doesn't have. */
 function offFor(biz: Business): Set<string> {
   const off = new Set<string>();
-  if (!biz.has.vans) off.add("/portal/vehicles");
+  // No vans: the fleet, its tools, and the two pages measured per van go.
+  if (!biz.has.vans) for (const h of ["/portal/vehicles", "/portal/vehicles/tools", "/portal/per-van", "/portal/drive"]) off.add(h);
   if (!biz.has.ipad) off.add("/trade");
   return off;
 }

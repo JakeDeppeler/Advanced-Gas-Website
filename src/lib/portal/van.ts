@@ -156,6 +156,17 @@ export async function listTools(vehicleId: string): Promise<VanTool[] | null> {
   }
 }
 
+/** Every tool on every van, soonest test or service due first. Null when it can't be read. */
+export async function allTools(): Promise<VanTool[] | null> {
+  if (!dbConfigured()) return null;
+  try {
+    const rows = await sbSelect<ToolRow>("portal_van_tools", ["select=*", "order=next_due_on.asc.nullslast,name.asc"].join("&"));
+    return rows.map(toTool);
+  } catch {
+    return null;
+  }
+}
+
 /** Tools across the fleet that somebody has asked about and the office hasn't closed. */
 export async function toolRequests(): Promise<VanTool[]> {
   if (!dbConfigured()) return [];

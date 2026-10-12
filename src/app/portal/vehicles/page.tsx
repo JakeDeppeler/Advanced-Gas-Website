@@ -183,7 +183,7 @@ export default async function VehiclesPage({ searchParams }: { searchParams: { v
       <div className="pt-head pt-head--split">
         <div>
           <PortalBack href="/portal" label="Home" />
-          <h1>The fleet</h1>
+          <h1>Vehicles</h1>
           <p>{vehicles.length} {vehicles.length === 1 ? "van" : "vans"}. Weekly clean and photos are due every Monday morning.</p>
         </div>
         {rows.length > 0 && (

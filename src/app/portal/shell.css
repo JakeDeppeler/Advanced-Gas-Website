@@ -594,3 +594,8 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-mv button { width: 30px; height: 30px; border-radius: 8px; border: 0; background: var(--quiet); color: var(--ink); font: inherit; cursor: pointer; }
 .pk-mv button:disabled { opacity: 0.35; cursor: default; }
 @media (max-width: 640px) { .pk-crew .t { flex-basis: calc(100% - 60px); } }
+/* Drive time: the coloured part is the drive, the track behind it the time on site. */
+.pk-drive { flex: 0 1 220px; height: 8px; border-radius: 99px; background: var(--track); overflow: hidden; display: block; }
+.pk-drive i { display: block; height: 100%; border-radius: 99px; background: var(--good-f); }
+.pk-drive i.mid { background: var(--mid-f); } .pk-drive i.bad { background: var(--bad-f); }
+@media (max-width: 640px) { .pk-drive { display: none; } }
