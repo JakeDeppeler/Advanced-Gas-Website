@@ -5,7 +5,7 @@ import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { Locked } from "@/components/portal/Locked";
 import { KpiStack } from "@/components/portal/KpiStack";
-import { latestBoard, savedGoal } from "@/lib/portal/office";
+import { latestBoard, savedGoal, shortMoney } from "@/lib/portal/office";
 import { getGoals } from "@/lib/portal/goals";
 import { getPLDetail, localToday, xeroStatus } from "@/lib/portal/xero";
 import { fyStart, summarisePL, type PLSummary } from "@/lib/portal/run/pl";
@@ -59,19 +59,46 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const ng = (w = "No goal yet") => none(w);
   const g = m ? salesGoal(m) : { month: null, byNow: null };
   const f = m ? monthElapsed(m) : null;
+  /*
+   * Goals worked back from the year goal. Where Our numbers doesn't set one,
+   * each selling goal is what the year's sales goal needs this month at the
+   * rates we're running at — the Pace page's plan, at this month's share of
+   * the year. So a goal moves when the year goal or our real win rate does,
+   * and nobody has to keep five numbers in step by hand.
+   */
+  const pm = m?.pace?.standing.month ?? null;
+  const rates = m?.pace?.rates ?? null;
+  const yearLabel = year?.revenue ? shortMoney(year.revenue) : "year";
+  const fromPlan = `from the ${yearLabel} goal`;
+  const leaders = m?.salesLeaderboard ?? [];
+  const quotedJobs = leaders.reduce((a, p) => a + p.quotedJobs, 0), soldJobs = leaders.reduce((a, p) => a + p.soldJobs, 0);
+  const winNow = quotedJobs >= 8 ? (soldJobs / quotedJobs) * 100 : null;
+  const winGoal = year?.winRatePct ?? (rates?.closeRate.value != null ? rates.closeRate.value * 100 : null);
+  const avgGoal = goals.avgJob ?? rates?.avgSale.value ?? null;
+  const quotesByNow = goals.quotesMonth && f != null ? goals.quotesMonth * f : pm?.quoted.byNow ?? null;
+  const quotedByNow = m?.quotedTargetMonthly && f != null ? m.quotedTargetMonthly * f : pm?.quotedValue.byNow ?? null;
+  const leadsByNow = pm?.leads.byNow ?? null;
   const sell: Kpi[] = m ? [
     { name: "Sold", means: "Work customers said yes to this month", value: money(m.soldMtd), goal: g.byNow != null ? `${money(g.byNow)} by now` : "—", st: g.byNow ? status(m.soldMtd, g.byNow) : ng(), href: "/portal/sales" },
-    { name: "Quoted", means: "Value of quotes sent this month", value: money(m.quotesCreatedMonthValue), goal: m.quotedTargetMonthly && f != null ? `${money(m.quotedTargetMonthly * f)} by now` : "—", st: m.quotedTargetMonthly && f ? status(m.quotesCreatedMonthValue, m.quotedTargetMonthly * f) : ng(), href: "/portal/pipeline" },
-    { pl: true, name: "Quotes sent", means: "How many quotes went out this month", value: String(m.quotesCreatedMonthCount), goal: goals.quotesMonth && f != null ? `${Math.round(goals.quotesMonth * f)} by now` : "—", st: goals.quotesMonth && f ? status(m.quotesCreatedMonthCount, goals.quotesMonth * f) : ng(), href: "/portal/pipeline" },
+    // Against the plan, quoting is counted the plan's way — each job once,
+    // however many options it was priced with — or $1.6M of options would
+    // read as far ahead of a goal set in jobs.
     ...(() => {
-      const r = m.pace?.rates.closeRate;
-      const v = r?.measured != null ? r.measured * 100 : null;
-      const goal = year?.winRatePct ?? null;
-      return [{ name: "Win rate", means: "Of every 100 quotes, how many said yes", value: v != null ? pc(v) : "—", goal: goal != null ? pc(goal) : "—", st: v != null && goal != null ? status(v, goal, { pts: true }) : ng(v == null ? "Not enough quotes" : undefined), href: "/portal/sales" }];
+      const planV = !m.quotedTargetMonthly && pm?.quotedValue.done != null;
+      const planN = !goals.quotesMonth && pm?.quoted.done != null;
+      const qv = planV ? pm!.quotedValue.done! : m.quotesCreatedMonthValue;
+      const qn = planN ? pm!.quoted.done! : m.quotesCreatedMonthCount;
+      return [
+        { name: "Quoted", means: planV ? `Value of jobs quoted this month, each job once · goal ${fromPlan}` : "Value of quotes sent this month", value: money(qv), goal: quotedByNow != null ? `${money(quotedByNow)} by now` : "—", st: quotedByNow ? status(qv, quotedByNow) : ng(), href: "/portal/pipeline" },
+        { pl: true, name: "Quotes sent", means: planN ? `Jobs quoted this month, each once · goal ${fromPlan}` : "How many quotes went out this month", value: String(Math.round(qn)), goal: quotesByNow != null ? `${Math.round(quotesByNow)} by now` : "—", st: quotesByNow ? status(qn, quotesByNow) : ng(), href: "/portal/pipeline" },
+      ];
     })(),
-    { name: "Average job", means: "What a sold job is worth, on average", value: m.avgSoldValue != null ? money(m.avgSoldValue) : "—", goal: goals.avgJob ? money(goals.avgJob) : "—", st: m.avgSoldValue != null && goals.avgJob ? status(m.avgSoldValue, goals.avgJob) : ng(), href: "/portal/sales" },
+    { name: "Win rate", means: `Of every 100 quotes this month, how many said yes${year?.winRatePct != null ? "" : " · goal is the rate the plan runs on"}`, value: winNow != null ? pc(winNow) : "—", goal: winGoal != null ? pc(winGoal) : "—", st: winNow != null && winGoal != null ? status(winNow, winGoal, { pts: true }) : ng(winNow == null ? "Not enough quotes" : undefined), href: "/portal/sales" },
+    { name: "Average job", means: `What a sold job is worth, on average${goals.avgJob ? "" : " · goal is the average the plan runs on"}`, value: m.avgSoldValue != null ? money(m.avgSoldValue) : "—", goal: avgGoal ? money(avgGoal) : "—", st: m.avgSoldValue != null && avgGoal ? status(m.avgSoldValue, avgGoal) : ng(), href: "/portal/sales" },
     { name: "Followed up in 2 days", means: "Quotes rung, texted or sold within two days", value: follow ? pc(follow.pct) : "—", goal: goals.followup ? pc(goals.followup) : "—", st: follow && goals.followup ? status(follow.pct, goals.followup, { pts: true }) : ng(follow ? undefined : "Too few quotes"), href: "/portal/pipeline" },
-    { pl: true, name: "Leads", means: "Enquiries in this month", value: String(m.leadsMonth), goal: "—", st: ng(""), href: "/portal/leads" },
+    // Leads are counted from the web form and ServiceTitan only, not phone
+    // calls, so the plan's number is shown but never marked good or bad.
+    { pl: true, name: "Leads", means: `Enquiries in this month${leadsByNow != null ? ` · goal ${fromPlan}` : " · needs a booking rate on Pace for a goal"}`, value: String(m.leadsMonth), goal: leadsByNow != null ? `${Math.round(leadsByNow)} by now` : "—", st: ng(leadsByNow != null ? "Calls not counted" : ""), href: "/portal/leads" },
   ] : [];
   const done = m?.pace?.standing.month.completed;
   const work: Kpi[] = m ? [
@@ -95,11 +122,39 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     { pl: true, name: "Wages", means: "Wages, super and WorkCover, as a share of sales", value: pc(share(pl.wages), 1), goal: goals.wagesPct != null ? `${goals.wagesPct}% or less` : "—", st: goals.wagesPct != null ? status(share(pl.wages), goals.wagesPct, { pts: true, lower: true }) : ng(), href: "/portal/finance/pl" },
   ] : [];
   const onPct = tools && tools.lastRoster > 0 ? (tools.lastOn / tools.lastRoster) * 100 : null;
+  /*
+   * The team's month: the month's sales goal shared across everyone who has
+   * quoted, with the plan's close rate as each person's rate to aim for. The
+   * team line is the one that matters — one person ahead covers another
+   * behind — so it leads, and each person is marked against their share.
+   */
+  const sellers = leaders.filter((p) => p.quotedJobs > 0 || p.sold > 0);
+  const each = g.month != null && sellers.length ? g.month / sellers.length : null;
+  const eachByNow = g.byNow != null && sellers.length ? g.byNow / sellers.length : null;
+  const teamSold = sellers.reduce((a, p) => a + p.sold, 0);
   const team: Kpi[] = [
+    ...(sellers.length ? [{
+      name: "The team", means: `${sellers.length} people selling · ${money(teamSold)} of ${g.month != null ? money(g.month) : "—"} this month`,
+      value: money(teamSold), goal: g.byNow != null ? `${money(g.byNow)} by now` : "—",
+      st: g.byNow ? status(teamSold, g.byNow) : ng(), href: "/portal/rates?tab=leaders",
+    }] : []),
+    ...sellers.map((p) => {
+      const rate = p.closeRate != null ? p.closeRate * 100 : null;
+      const amount = eachByNow ? status(p.sold, eachByNow) : null;
+      const close = rate != null && winGoal != null && p.quotedJobs >= 5 ? status(rate, winGoal, { pts: true }) : null;
+      // The amount decides; a close rate under the plan's only shows when the
+      // money is on track, so it doesn't drown out a bigger problem.
+      const st: Status = amount ?? close ?? ng();
+      return {
+        name: p.name,
+        means: `${p.soldJobs} sold of ${p.quotedJobs} quoted · ${rate != null ? `${Math.round(rate)}% close rate` : "close rate —"}${winGoal != null ? ` (aim ${Math.round(winGoal)}%)` : ""}`,
+        value: money(p.sold),
+        goal: eachByNow != null ? `${money(eachByNow)} by now · ${money(each!)} month` : "—",
+        st: amount && amount.k === "good" && close && close.k !== "good" ? { k: "mid" as const, w: "Close rate low" } : st,
+        href: "/portal/rates?tab=leaders",
+      };
+    }),
     { name: "On the tools", means: "Hours on jobs last week, of the hours rostered", value: onPct != null ? pc(onPct) : "—", goal: goals.billable != null ? pc(goals.billable) : "—", st: onPct != null && goals.billable != null ? status(onPct, goals.billable, { pts: true }) : ng(onPct == null ? "No clock-ins" : undefined), href: "/portal/hours" },
-    ...(m?.salesLeaderboard ?? []).slice(0, 6).map((p) => ({
-      name: p.name, means: `${p.soldJobs} sold of ${p.quotedJobs} quoted this month`, value: money(p.sold), goal: p.closeRate != null ? `${Math.round(p.closeRate * 100)}% close rate` : "—", st: ng(""), href: "/portal/rates?tab=leaders",
-    })),
   ];
 
   const red = (ks: Kpi[]) => ks.filter((k) => k.st.k === "bad").length;
@@ -185,7 +240,25 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
     const ks = { sell, work, paid, money: money2, team }[tab];
     const bad = ks.filter((k) => k.st.k === "bad"), good = ks.filter((k) => k.st.k === "good");
     const title = { sell: "Selling", work: "Doing the work", paid: "Getting paid", money: "Making money", team: "Team" }[tab];
-    body = (
+    // The team tab leads with the team: one person ahead covers another behind.
+    const teamRow = tab === "team" ? team.find((k) => k.name === "The team") : null;
+    const firstNames = (ks: Kpi[]) => {
+      const n = ks.map((k) => k.name.split(" ")[0]);
+      return n.length < 2 ? n.join("") : `${n.slice(0, -1).join(", ")} and ${n[n.length - 1]}`;
+    };
+    const behind = tab === "team" ? team.filter((k) => k !== teamRow && k.name !== "On the tools" && k.st.k === "bad") : [];
+    const lowRate = tab === "team" ? team.filter((k) => k.st.w === "Close rate low") : [];
+    body = tab === "team" && teamRow && teamRow.st.k !== "none" ? (
+      <>
+        <Say>
+          {teamRow.st.k === "bad" ? <Bad>The team is behind</Bad> : <Good>The team is {teamRow.st.k === "good" ? (teamRow.st.w === "Ahead" ? "ahead" : "on track") : "close"}</Good>}
+          {`: ${teamRow.value} sold against ${teamRow.goal}`}
+          {behind.length ? <>{teamRow.st.k === "bad" ? ". " : ", even with "}<Bad>{firstNames(behind)} behind {behind.length === 1 ? "their" : "their"} share</Bad></> : null}
+          {lowRate.length ? <>{". "}{firstNames(lowRate)}{lowRate.length === 1 ? " is" : " are"} selling enough but closing under the plan’s rate</> : null}.
+        </Say>
+        {list(ks, title, "this month")}
+      </>
+    ) : (
       <>
         <Say>
           {good.length > 0 && <Good>{good.length} on track</Good>}
