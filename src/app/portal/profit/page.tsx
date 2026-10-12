@@ -4,7 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { dbConfigured, getSettings } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { Head, Tabs } from "@/components/portal/kit/Kit";
 import { Locked } from "@/components/portal/Locked";
 import { Figs } from "@/components/portal/Figs";
 import { money } from "@/lib/portal/format";
@@ -66,23 +66,14 @@ export default async function ProfitPage({ searchParams }: { searchParams: { w?:
 
   return (
     <PortalShell user={user} variant="wide">
-      <PortalBack href="/portal" label="Home" />
-      <div className="pt-head pt-head--split">
-        <div>
-          <h1>Profit on every job</h1>
-          <p>
-            What each job charged before GST, less the equipment and materials on its invoice and the hours it took at
-            what an hour of the crew costs. {target ? `Anything under the goal's ${target}% is marked.` : "Set a profit % on the Pace page to mark the jobs under it."}
-          </p>
-        </div>
-        <div className="pt-jp__when">
-          <nav className="pt-win" aria-label="Time window">
-            {WINDOWS.map((w) => (
-              <Link key={w.k} href={`/portal/profit?w=${w.k}`} aria-current={w.k === win ? "page" : undefined} className={`pt-win__opt${w.k === win ? " is-on" : ""}`}>
-                {w.label}
-              </Link>
-            ))}
-          </nav>
+      <div className="pk" style={{ marginBottom: 20 }}>
+        <Head title="Profit on every job" sub={`${r.name.replace(/^./, (c) => c.toUpperCase())} · ServiceTitan and Labour rates`} info={[
+          ["Price", "The invoice before GST."],
+          ["Costs", "The equipment and materials on the invoice, plus the hours the job took at what an hour of the crew costs."],
+          ["Marked", target ? `Anything under the goal’s ${target}% profit.` : "Set a profit % on the year goal to mark the jobs under it."],
+        ]} />
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <Tabs on={win ?? ""} label="Time window" items={WINDOWS.map((w) => ({ key: w.k, label: w.label, href: `/portal/profit?w=${w.k}` }))} />
           <PeriodPicker label="Or pick a month" value={picked ?? ""} options={months} hrefPrefix="/portal/profit?m=" />
         </div>
       </div>

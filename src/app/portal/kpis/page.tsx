@@ -13,7 +13,8 @@ import { followupRate } from "@/lib/portal/run/data";
 import { monthElapsed, money, pc, salesGoal } from "@/lib/portal/run/month";
 import { onTheTools } from "@/lib/portal/onTheTools";
 import { BENCH, benchStatus, type BenchKey } from "@/lib/portal/benchmarks";
-import { Bad, Card, Empty, Good, Head, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
+import { Bad, Card, Empty, Good, Head, PeriodTabs, Pill, Say, Tabs, none, status, type Status } from "@/components/portal/kit/Kit";
+import { PERIODS, periodSpans, periodWords, readPeriod } from "@/lib/portal/run/period";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Our KPIs — Team portal" };
@@ -31,14 +32,17 @@ type TabKey = "overview" | "sell" | "work" | "paid" | "money" | "team";
  * healthy service trade (fixed in code). Overview is the money top to bottom
  * from Xero for the financial year; each tab is one part of the business.
  */
-export default async function KpisPage({ searchParams }: { searchParams: { tab?: string } }) {
+export default async function KpisPage({ searchParams }: { searchParams: { tab?: string; p?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="Our KPIs" forWhom="the office" />;
   const tab = (["sell", "work", "paid", "money", "team"].includes(searchParams.tab ?? "") ? searchParams.tab : "overview") as TabKey;
 
-  const today = localToday();
-  const from = fyStart(today), to = today.toISOString().slice(0, 10);
+  // The money tabs read Xero for the period picked; the rest are this month.
+  const period = readPeriod(searchParams.p);
+  const span = periodSpans(period).now;
+  const from = span.from, to = span.to;
+  const q = (t?: string) => `/portal/kpis${t ? `?tab=${t}` : ""}${period !== "fy" ? `${t ? "&" : "?"}p=${period}` : ""}`;
   const [board, goals, year, xero, follow, tools] = await Promise.all([
     latestBoard(),
     getGoals(),
@@ -101,16 +105,16 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
   const red = (ks: Kpi[]) => ks.filter((k) => k.st.k === "bad").length;
   const tabs = (
     <Tabs on={tab} items={[
-      { key: "overview", label: "Overview", href: "/portal/kpis" },
-      { key: "sell", label: "Selling", href: "/portal/kpis?tab=sell", count: red(sell) || undefined, red: true },
-      { key: "work", label: "Doing the work", href: "/portal/kpis?tab=work", count: red(work) || undefined, red: true },
-      { key: "paid", label: "Getting paid", href: "/portal/kpis?tab=paid", count: red(paid) || undefined, red: true },
-      { key: "money", label: "Making money", href: "/portal/kpis?tab=money", count: red(money2) || undefined, red: true },
-      { key: "team", label: "Team", href: "/portal/kpis?tab=team" },
+      { key: "overview", label: "Overview", href: q() },
+      { key: "sell", label: "Selling", href: q("sell"), count: red(sell) || undefined, red: true },
+      { key: "work", label: "Doing the work", href: q("work"), count: red(work) || undefined, red: true },
+      { key: "paid", label: "Getting paid", href: q("paid"), count: red(paid) || undefined, red: true },
+      { key: "money", label: "Making money", href: q("money"), count: red(money2) || undefined, red: true },
+      { key: "team", label: "Team", href: q("team") },
     ]} />
   );
   const head = (
-    <Head title="Our KPIs" sub={tab === "overview" || tab === "money" ? "This financial year so far · from Xero" : "This month · ServiceTitan and Xero"} info={[
+    <Head title="Our KPIs" sub={tab === "overview" || tab === "money" ? `${periodWords(period).charAt(0).toUpperCase()}${periodWords(period).slice(1)} · from Xero` : "This month · ServiceTitan and Xero"} info={[
       ["Goal", "What we aim for this year, set in Our numbers. Change it there and every page moves with it."],
       ["Benchmark", "What a healthy service trade looks like. Fixed, so it can’t be moved to suit a month."],
       ["No goal yet", "Nobody has set a goal for it, so it isn’t marked good or bad."],
@@ -154,14 +158,14 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
         <Say>
           {pl ? (
             <>
-              This year we’ve kept {kept} cents of every dollar after everything’s paid.{" "}
+              {period === "fy" ? "This year" : periodWords(period).charAt(0).toUpperCase() + periodWords(period).slice(1)} we’ve kept {kept} cents of every dollar after everything’s paid.{" "}
               {money2[0]?.st.k === "good" && <>Margin is on track{worst ? ", but " : "."}</>}
               {worst && <Bad>{worst.name.toLowerCase()} {worst.pl ? "are" : "is"} {worst.st.k === "bad" ? "off" : "close"} at {worst.value}</Bad>}
               {worst && "."}
             </>
           ) : xero.status === "connected" ? <>Xero didn’t send this year’s profit and loss, so there’s nothing to measure yet.</> : <>Connect Xero to see the money top to bottom.</>}
         </Say>
-        {detail ? <KpiStack detail={detail} label="this financial year" aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
+        {detail ? <KpiStack detail={detail} label={periodWords(period)} aims={{ gm: goals.gm, ovh: goals.ovh, np: npGoal }} /> : <Empty>{xero.status === "connected" ? "No profit and loss from Xero for this year yet." : <>Xero isn’t connected. <Link href="/portal/integrations">Connect it ›</Link></>}</Empty>}
         {pl && (
           <Card title="Against the benchmarks" aside="fixed for a service trade · not ours to change">
             {bench.map(([n, k, v, lower]) => (
@@ -190,7 +194,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
           {!good.length && !bad.length && <>Nothing here is set against a goal yet; set them in Our numbers.</>}
           {(good.length > 0 || bad.length > 0) && "."}
         </Say>
-        {list(ks, title, tab === "money" ? "this financial year · Xero" : "this month")}
+        {list(ks, title, tab === "money" ? `${periodWords(period)} · Xero` : "this month")}
       </>
     );
   }
@@ -200,6 +204,7 @@ export default async function KpisPage({ searchParams }: { searchParams: { tab?:
       <div className="pk">
         {head}
         {tabs}
+        {(tab === "overview" || tab === "money") && <PeriodTabs on={period} items={PERIODS} href={(k) => `/portal/kpis${tab === "money" ? "?tab=money" : ""}${k !== "fy" ? `${tab === "money" ? "&" : "?"}p=${k}` : ""}`} />}
         {body}
       </div>
     </PortalShell>

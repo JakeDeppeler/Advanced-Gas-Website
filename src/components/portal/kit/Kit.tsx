@@ -11,7 +11,8 @@ import type { ReactNode } from "react";
  */
 
 export type Tone = "good" | "mid" | "bad" | "none";
-export type Status = { k: Tone; w: string };
+/** `s` replaces the tone's sign where the word is a direction: "▲ Up" is bad news for a cost. */
+export type Status = { k: Tone; w: string; s?: string };
 const SIGN: Record<Tone, string> = { good: "✓", mid: "!", bad: "▼", none: "" };
 
 /**
@@ -37,7 +38,7 @@ export const none = (w = "No goal yet"): Status => ({ k: "none", w });
 export function Pill({ st }: { st: Status }) {
   return (
     <span className={`pk-st ${st.k}`}>
-      {SIGN[st.k] ? <span aria-hidden="true">{SIGN[st.k]}</span> : <i aria-hidden="true" />}
+      {st.s ?? SIGN[st.k] ? <span aria-hidden="true">{st.s ?? SIGN[st.k]}</span> : <i aria-hidden="true" />}
       {st.w}
     </span>
   );
@@ -162,3 +163,12 @@ export const Note = ({ children }: { children: ReactNode }) => <p className="pk-
 export const Btn = ({ href, children, quiet }: { href: string; children: ReactNode; quiet?: boolean }) => (
   <Link href={href} className={`pk-btn${quiet ? " g" : ""}`}>{children}</Link>
 );
+
+/**
+ * The period filter on the money pages. `href` builds the link for a period,
+ * so a page keeps its own other filters (its tab, a category) when the period
+ * changes.
+ */
+export function PeriodTabs({ on, href, items }: { on: string; href: (k: string) => string; items: readonly { k: string; label: string }[] }) {
+  return <Tabs on={on} label="Period" items={items.map((p) => ({ key: p.k, label: p.label, href: href(p.k) }))} />;
+}

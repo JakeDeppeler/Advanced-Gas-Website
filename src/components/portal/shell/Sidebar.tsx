@@ -52,6 +52,10 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
   const [small, setSmall] = useState(initialSmall);
   const [drawer, setDrawer] = useState(false);
   const [fly, setFly] = useState<{ id: string; top: number } | null>(null);
+  // The open section's pages fold away when its tab is clicked again, and
+  // open again on the next click. Moving to another page opens them again:
+  // the list is where you are, and a page shouldn't arrive with it hidden.
+  const [folded, setFolded] = useState(false);
   const ref = useRef<HTMLElement>(null);
   // Hover opens a small bar's section and leaving closes it a moment later,
   // so the pointer can cross the gap from the icon to the list.
@@ -84,7 +88,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
   }, [initialSmall]);
 
   // A tab within the same page doesn't redraw the shell, so close the drawer here too.
-  useEffect(() => setDrawer(false), [path, query]);
+  useEffect(() => { setDrawer(false); setFolded(false); }, [path, query]);
 
   useEffect(() => {
     const open = () => setDrawer(true);
@@ -135,19 +139,23 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
           {sections.map((s, i) => {
             const on = here.section?.id === s.id;
             const many = s.pages.length > 1;
+            const shut = on && many && folded;
             return (
               <div key={s.id} className="pn-group">
                 {i > 0 && sections[i - 1].group !== s.group && <div className="pn-sep" role="separator" />}
                 <Link
                   href={s.href}
-                  className={`pn-btn${on ? " on" : ""}`}
+                  className={`pn-btn${on ? " on" : ""}${shut ? " shut" : ""}`}
                   aria-current={on && !many ? "page" : undefined}
+                  aria-expanded={on && many && (!small || drawer) ? !folded : undefined}
                   aria-label={small ? s.label : undefined}
                   data-sec={s.id}
                   onMouseEnter={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
                   onMouseLeave={small ? hideFlySoon : undefined}
                   onFocus={small ? (e) => showFly(s.id, e.currentTarget) : undefined}
                   onClick={(e) => {
+                    // Already in this section: the tab opens and closes its list rather than reloading the first page.
+                    if (on && many && (!small || drawer)) { e.preventDefault(); setFolded((f) => !f); return; }
                     if (!small || !many) { setFly(null); forgetFly(); return; }
                     showFly(s.id, e.currentTarget);
                     try { sessionStorage.setItem(FLY_KEY, JSON.stringify({ id: s.id, at: Date.now() })); } catch { /* opens without the list */ }
@@ -158,7 +166,7 @@ export function Sidebar({ sections, biz, small: initialSmall, foot, live }: {
                   <N c={s.count} />
                   {many && <span className="pn-chev" aria-hidden="true">›</span>}
                 </Link>
-                {on && many && (
+                {on && many && !folded && (
                   <div className="pn-subs">
                     {s.pages.map((p) => (
                       <Link key={p.href} href={p.href} className={`pn-sub${p.href === here.page?.href ? " on" : ""}`} aria-current={p.href === here.page?.href ? "page" : undefined}>

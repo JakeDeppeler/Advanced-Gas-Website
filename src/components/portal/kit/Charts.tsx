@@ -104,3 +104,78 @@ export function WeekBars({ weeks, goal }: { weeks: { label: string; value: numbe
     </svg>
   );
 }
+
+/**
+ * Net profit, a bar a month, with each month's goal as a short dashed line
+ * across its bar. A loss hangs below the zero line, so a bad month reads by
+ * its shape and not only its colour. The last month is still going, so it's
+ * drawn open.
+ */
+export function ProfitBars({ months }: { months: { label: string; value: number; goal: number | null }[] }) {
+  const W = 760, H = 240, L = 56, R = 12, T = 18, B = 28;
+  const vals = months.flatMap((m) => [m.value, m.goal ?? 0]);
+  const hi = niceTop(Math.max(1, ...vals) * 1.12);
+  const lo = Math.min(0, ...vals) < 0 ? -niceTop(-Math.min(...vals) * 1.12) : 0;
+  const n = Math.max(1, months.length);
+  const slot = (W - L - R) / n, bw = Math.min(40, slot * 0.6);
+  const Y = (v: number) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const ticks = lo < 0 ? [lo, 0, hi] : [0, hi / 2, hi];
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Net profit each month for the last ${n} months`} className="pk-chart">
+      {ticks.map((v) => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} stroke={v === 0 ? "var(--ink3)" : "var(--line)"} />
+          <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ax">{v < 0 ? `−${kd(-v)}` : kd(v)}</text>
+        </g>
+      ))}
+      {months.map((m, i) => {
+        const x = L + slot * i + (slot - bw) / 2;
+        const current = i === months.length - 1;
+        const top = Math.min(Y(m.value), Y(0)), h = Math.abs(Y(m.value) - Y(0));
+        const fill = m.value < 0 ? "var(--bad-f)" : m.goal != null && m.value >= m.goal ? "var(--good-f)" : "var(--ink4)";
+        return (
+          <g key={`${m.label}-${i}`}>
+            <rect x={x} y={top} width={bw} height={Math.max(1, h)} rx="4" fill={current ? "var(--quiet)" : fill}
+              stroke={current ? "var(--ink3)" : "none"} strokeDasharray={current ? "3 3" : undefined}>
+              <title>{`${m.label}: ${money(m.value)}${m.goal != null ? ` · goal ${money(m.goal)}` : ""}`}</title>
+            </rect>
+            {m.goal != null && <line x1={x - bw * 0.15} x2={x + bw * 1.15} y1={Y(m.goal)} y2={Y(m.goal)} stroke="var(--ink)" strokeWidth="1.5" strokeDasharray="4 3" />}
+            <text x={x + bw / 2} y={H - 8} textAnchor="middle" className="ax">{m.label}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
+ * Money in and money out through the bank, month by month: in solid, out
+ * dashed. Drawn wider than the others because it runs the full page width,
+ * where a 760 box would scale its labels up half as big again.
+ */
+export function InOutLines({ points }: { points: { label: string; in: number; out: number }[] }) {
+  const W = 1080, H = 260, L = 56, R = 18, T = 20, B = 28;
+  const n = points.length;
+  if (n < 2) return null;
+  const hi = niceTop(Math.max(...points.flatMap((p) => [p.in, p.out])) * 1.12);
+  const X = (i: number) => L + ((W - L - R) * i) / (n - 1);
+  const Y = (v: number) => T + (H - T - B) * (1 - v / hi);
+  const d = (k: "in" | "out") => points.map((p, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join(" ");
+  const last = points[n - 1];
+  const inAbove = last.in >= last.out;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Money in against money out for the last ${n} months`} className="pk-chart">
+      {[0, hi / 2, hi].map((v) => (
+        <g key={v}>
+          <line x1={L} x2={W - R} y1={Y(v)} y2={Y(v)} stroke="var(--line)" />
+          <text x={L - 8} y={Y(v) + 4} textAnchor="end" className="ax">{kd(v)}</text>
+        </g>
+      ))}
+      {points.map((p, i) => <text key={p.label} x={X(i)} y={H - 8} textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} className="ax">{p.label}</text>)}
+      <path d={d("out")} fill="none" stroke="var(--mid-f)" strokeWidth="2.2" strokeDasharray="5 4" />
+      <path d={d("in")} fill="none" stroke="var(--mark)" strokeWidth="2.6" strokeLinejoin="round" />
+      <text x={X(n - 1) - 10} y={Y(last.in) + (inAbove ? -10 : 18)} textAnchor="end" className="ax strong">in {kd(last.in)}</text>
+      <text x={X(n - 1) - 10} y={Y(last.out) + (inAbove ? 18 : -10)} textAnchor="end" className="ax">out {kd(last.out)}</text>
+    </svg>
+  );
+}

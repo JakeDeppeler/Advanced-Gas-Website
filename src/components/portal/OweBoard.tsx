@@ -29,8 +29,10 @@ type Supplier = { key: string; name: string; items: Owed[]; total: number; overd
  * business if they aren't — then by the earliest bill falling due. Each
  * supplier's priority, and the reason for it, is set here once and kept.
  */
-export function OweBoard({ owed, priorities, today, xero }: {
+export function OweBoard({ owed, priorities, today, xero, tiles = true }: {
   owed: Owed[]; priorities: SupplierPriority[]; today: string; xero: "ok" | "off";
+  /** Off where the page leads with its own figures instead. */
+  tiles?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -76,12 +78,12 @@ export function OweBoard({ owed, priorities, today, xero }: {
 
   return (
     <div className="pt-wi">
-      <div className="pt-rev__tiles">
+      {tiles && <div className="pt-rev__tiles">
         <div className="pt-rev__tile is-feature"><span className="pt-rev__k">We owe</span><strong>{m0(total)}</strong><span className="pt-rev__sub">{owed.length} {owed.length === 1 ? "bill" : "bills"} to {suppliers.length} {suppliers.length === 1 ? "supplier" : "suppliers"}</span></div>
         <div className="pt-rev__tile"><span className="pt-rev__k">Overdue</span><strong className={overdue > 0 ? "is-bad" : undefined}>{m0(overdue)}</strong><span className="pt-rev__sub">past its due date</span></div>
         <div className="pt-rev__tile"><span className="pt-rev__k">Due in the next 7 days</span><strong>{m0(week)}</strong><span className="pt-rev__sub">on top of what&rsquo;s overdue</span></div>
         <div className="pt-rev__tile"><span className="pt-rev__k">Must pay</span><strong>{m0(must)}</strong><span className="pt-rev__sub">owed to the suppliers we can&rsquo;t trade without</span></div>
-      </div>
+      </div>}
 
       {xero === "off" && <p className="pt-note pt-note--warn">Xero isn&rsquo;t answering, so only what&rsquo;s been added here is showing.</p>}
 
