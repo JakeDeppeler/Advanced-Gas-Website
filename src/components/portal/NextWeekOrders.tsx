@@ -173,7 +173,7 @@ function OrderCard({ po, supplier, testTo }: { po: PoWithLines; supplier: Suppli
                   <td>
                     <strong>{model}</strong>
                     {l.description && l.description !== model && <span>{l.description}</span>}
-                    {flag && <span className="pt-nw__flag">Not a model code — set it in the ServiceTitan pricebook</span>}
+                    {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
                   </td>
                   <td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td>
                   <td>{l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—"}</td>
