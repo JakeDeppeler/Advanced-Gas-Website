@@ -51,7 +51,6 @@ const nextConfig = {
       { source: "/portal/quotes", destination: "/portal/pipeline", permanent: false },
       { source: "/portal/finance/quotes", destination: "/portal/pipeline", permanent: false },
       // The numbers was folded into the Scoreboard: the same figures, once.
-      { source: "/portal/numbers", destination: "/portal/kpis", permanent: false },
       // Rebuilt into Run the company: the Scoreboard is Our KPIs, Not billed a tab of Jobs.
       { source: "/portal/scoreboard", destination: "/portal/kpis", permanent: false },
       { source: "/portal/not-billed", destination: "/portal/jobs?tab=notbilled", permanent: false },

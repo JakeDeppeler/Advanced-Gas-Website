@@ -99,13 +99,15 @@ export const SECTION_DEFS: SectionDef[] = [
   },
   { id: "future", label: "Future", icon: "grow", group: 1, blurb: "Hire someone, and other what-ifs", pages: [{ label: "Future", href: "/portal/finance/planning" }] },
   {
-    id: "numbers", label: "Our numbers", icon: "numbers", group: 1, blurb: "Every goal, cost and rate in one place",
+    id: "numbers", label: "Our numbers", icon: "numbers", group: 1, blurb: "Every goal, wage, cost and rate in one place",
     pages: [
-      { label: "Targets", href: "/portal/finance/targets" },
-      { label: "Costs", href: "/portal/finance/capacity" },
+      { label: "Goals", href: "/portal/numbers" },
+      { label: "Team & wages", href: "/portal/finance/capacity" },
+      { label: "Costs", href: "/portal/finance/capacity?t=overheads" },
       { label: "Vans & loans", href: "/portal/finance/capacity?part=vans" },
       { label: "Markup", href: "/portal/finance/capacity?part=markup" },
-      { label: "Our hourly rate", href: "/portal/finance/hourly" },
+      { label: "Rates & pricing", href: "/portal/pricing" },
+      { label: "Commission", href: "/portal/commission" },
     ],
   },
   {
@@ -234,7 +236,7 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
       if (![...want.entries()].every(([k, v]) => query.get(k) === v)) continue;
       score += 5;
     } else {
-      const named = ["tab", "part"].find((k) => query.get(k) && pages.some((o) => o.href.startsWith(`${base}?`) && new URLSearchParams(o.href.split("?")[1]).get(k) === query.get(k)));
+      const named = ["tab", "part", "t"].find((k) => query.get(k) && pages.some((o) => o.href.startsWith(`${base}?`) && new URLSearchParams(o.href.split("?")[1]).get(k) === query.get(k)));
       if (named) continue;
     }
     if (!best || score > best.score) best = { href: p.href, score };
@@ -256,6 +258,8 @@ export const ALIAS: [string, string][] = [
   ["/portal/not-billed", "/portal/jobs"],
   ["/portal/hours", "/portal/rates"],
   ["/portal/pace", "/portal/goal"],
+  // Team › Build our rate.
+  ["/portal/finance/hourly", "/portal/rates"],
 ];
 const unalias = (path: string) => ALIAS.find(([from]) => path === from || path.startsWith(`${from}/`))?.[1] ?? path;
 

@@ -255,7 +255,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/finance/pl", label: "Profit & loss", short: "P&L", blurb: "Xero's profit and loss, month by month", band: "hidden", icon: "chart", also: ["p&l", "profit and loss", "income", "expenses", "xero"] },
     { href: "/portal/finance/goals", label: "Year goal", blurb: "The goal across the months, against what was invoiced", band: "hidden", icon: "target", also: ["year", "months", "invoiced", "overheads"] },
     { href: "/portal/finance/targets", label: "Targets", blurb: "The year's revenue, worked back to the work it takes", band: "hidden", icon: "target", also: ["targets", "revenue", "goal", "work back"] },
-    { href: "/portal/finance/capacity", label: "Costs", short: "Our numbers", blurb: "Our numbers: wages, overheads and what an hour costs", band: "hidden", icon: "list", also: ["our numbers", "costs", "overheads", "wages", "capacity"] },
+    { href: "/portal/numbers", label: "Goals", blurb: "Every goal the portal measures against", band: "hidden", icon: "target", also: ["goals", "our numbers", "year goal", "sales goal", "months", "gross margin goal", "win rate goal"] },
+    { href: "/portal/finance/capacity", label: "Team & wages", short: "Our numbers", blurb: "Everyone on the team, their pay and billable hours", band: "hidden", icon: "people", also: ["our numbers", "wages", "crew", "capacity", "pay", "billable hours"] },
+    { href: "/portal/finance/capacity?t=overheads", label: "Costs", blurb: "What the business costs to run a year", band: "hidden", icon: "list", also: ["costs", "overheads", "rent", "insurance", "software"] },
+    { href: "/portal/pricing", label: "Rates & pricing", blurb: "Our hourly rate, call-out and after-hours", band: "hidden", icon: "tag", also: ["hourly rate", "call out", "callout", "after hours", "pricing", "charge out", "profit we want"] },
     { href: "/portal/finance/capacity?part=vans", label: "Vans & loans", blurb: "What each van owes, and the repayments", band: "hidden", icon: "truck", also: ["van loan", "repayment", "finance", "new van"] },
     { href: "/portal/finance/capacity?part=markup", label: "Markup", blurb: "Markup on materials and units", band: "hidden", icon: "tag", also: ["markup", "margin", "materials", "units"] },
     { href: "/portal/finance/planning", label: "Future", blurb: "Hire someone, and other what-ifs", band: "hidden", icon: "trend", also: ["what if", "hire", "planning", "add a person", "future"] },
@@ -263,6 +266,7 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
     { href: "/portal/marketing?tab=social", label: "Social", blurb: "Posts on social media", band: "hidden", icon: "chat", also: ["social", "instagram", "facebook"] },
     { href: "/portal/marketing?tab=assets", label: "Brand assets", blurb: "Logos, colours and photos", band: "hidden", icon: "grid", also: ["brand", "logo", "colours", "photos"] },
   );
+  add(admin, { href: "/portal/commission", label: "Commission", blurb: "The month target and the bonus", band: "hidden", icon: "target", also: ["commission", "bonus", "month target", "incentive"] });
   items.push({ href: "/portal/settings", label: "Settings", blurb: "How the portal looks, and what the business has", band: "hidden", icon: "user", also: ["settings", "theme", "dark mode", "business name", "start page"] });
   add(office,
     { href: "/portal/integrations", label: "Integrations", blurb: "ServiceTitan, Xero, Reece — is each one working", band: "hidden", icon: "plug", also: ["servicetitan", "xero", "reece", "sync", "connection"] },
