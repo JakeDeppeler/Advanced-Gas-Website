@@ -15,6 +15,19 @@ import { pipelineDue } from "@/lib/pipeline/store";
  * nothing waiting carries no badge rather than a zero.
  */
 export async function navBadges(user: PortalUser): Promise<Record<string, string>> {
+  const counts = await navCounts(user);
+  return Object.fromEntries(Object.entries(counts).map(([href, c]) => [href, c.text]));
+}
+
+/** A page's count, as a number, the words for it, and whether it means something's wrong. */
+export type NavCount = { n: number; text: string; red: boolean };
+
+/**
+ * The same counts as numbers: the side bar shows the number alone, red where
+ * it means something is wrong (overdue, a van to look at) and grey where it's
+ * only how many (leads this month, new notices).
+ */
+export async function navCounts(user: PortalUser): Promise<Record<string, NavCount>> {
   const office = can(user, "overhead");
   const pipeOk = office || can(user, "quotes");
   const [board, leads, issues, waiting, seen, low, asks, pipe] = await Promise.all([
@@ -29,21 +42,24 @@ export async function navBadges(user: PortalUser): Promise<Record<string, string
   ]);
   const m = board?.metrics;
 
-  const badges: Record<string, string> = {};
-  if (leads && leads.total > 0) badges["/portal/leads"] = leads.total.toLocaleString("en-AU");
-  if (pipe && pipe.due > 0) badges["/portal/pipeline"] = `${pipe.due} to ring`;
-  if (m && (m.overdueCount ?? 0) > 0) badges["/portal/money"] = `${m.overdueCount} overdue`;
+  const badges: Record<string, NavCount> = {};
+  const put = (href: string, n: number, text: string, red: boolean) => { badges[href] = { n, text, red }; };
+  if (leads && leads.total > 0) put("/portal/leads", leads.total, leads.total.toLocaleString("en-AU"), false);
+  if (pipe && pipe.due > 0) put("/portal/pipeline", pipe.due, `${pipe.due} to ring`, pipe.late > 0);
+  if (m && (m.overdueCount ?? 0) > 0) put("/portal/money", m.overdueCount as number, `${m.overdueCount} overdue`, true);
   const vans = new Set([
     ...waiting.filter((n) => n.href.startsWith("/portal/vehicles/")).map((n) => n.href),
     ...issues.map((i) => `/portal/vehicles/${i.vehicleId}`),
   ]);
-  if (vans.size) badges["/portal/vehicles"] = `${vans.size} to look at`;
+  if (vans.size) put("/portal/vehicles", vans.size, `${vans.size} to look at`, true);
   const unread = waiting.filter((n) => !seen.has(noticeKey(n))).length;
-  if (unread) badges["/portal/notifications"] = `${unread} new`;
-  if (low && low > 0) badges["/portal/stock"] = `${low} low`;
+  if (unread) put("/portal/notifications", unread, `${unread} new`, false);
+  if (low && low > 0) put("/portal/stock", low, `${low} low`, true);
   const journalErrors = waiting.filter((n) => n.href.startsWith("/portal/journals")).length;
-  if (journalErrors) badges["/portal/journals"] = `${journalErrors} ${journalErrors === 1 ? "error" : "errors"}`;
+  if (journalErrors) put("/portal/journals", journalErrors, `${journalErrors} ${journalErrors === 1 ? "error" : "errors"}`, true);
   const crewWaiting = asks.incidents.length + asks.leave.length + asks.orders.length;
-  if (crewWaiting) badges["/portal/requests"] = `${crewWaiting} waiting`;
+  // An incident is the one thing here that's wrong rather than only waiting.
+  if (crewWaiting) put("/portal/requests", crewWaiting, `${crewWaiting} waiting`, asks.incidents.length > 0);
+  if (m && (m.toBillCount ?? 0) > 0) put("/portal/not-billed", m.toBillCount as number, `${m.toBillCount} to bill`, false);
   return badges;
 }
