@@ -42,7 +42,12 @@ const money = (n: number) => `$${Math.round(n).toLocaleString("en-AU")}`;
  * sales are the twelve months added up, so they can't disagree. A blank box is
  * "no goal", and the pages that use it say so.
  */
-export function GoalsForm({ months: initialMonths, labels, current, profitPct, goals, canSave }: {
+export function GoalsForm({ months: initialMonths, labels, current, profitPct, goals, canSave, suggest = {} }: {
+  /**
+   * What each empty goal would be to hit the year goal, from the Pace plan or
+   * the benchmark: filled into the empty boxes, and kept only when saved.
+   */
+  suggest?: Partial<Record<string, { v: number; why: string }>>;
   months: number[];
   labels: string[];
   /** Index of this month in `labels`. */
@@ -62,7 +67,7 @@ export function GoalsForm({ months: initialMonths, labels, current, profitPct, g
     const o: Record<string, string> = {};
     for (const g of GROUPS) for (const r of g.rows) {
       const v = r.key === "profitPct" ? profitPct : goals[r.key as keyof Goals];
-      o[r.key] = v == null ? "" : String(v);
+      o[r.key] = v == null ? (suggest[r.key] ? String(suggest[r.key]!.v) : "") : String(v);
     }
     return o;
   });
@@ -111,7 +116,7 @@ export function GoalsForm({ months: initialMonths, labels, current, profitPct, g
           <div className="pk-glh">{g.title}</div>
           {g.rows.map((r) => (
             <div className="pk-kv" key={r.key}>
-              <span className="t"><b>{r.label}</b><span>used on {r.used}</span></span>
+              <span className="t"><b>{r.label}</b><span>used on {r.used}{(r.key === "profitPct" ? profitPct : goals[r.key as keyof Goals]) == null && suggest[r.key] ? <> · <b style={{ color: "var(--ink2)", display: "inline", fontWeight: 600 }}>filled in {suggest[r.key]!.why}</b>, save to keep it</> : null}</span></span>
               <input id={`goal-${r.key}`} className="pk-in num" inputMode="decimal" value={vals[r.key]} placeholder="no goal" disabled={!canSave}
                 aria-label={r.label} onChange={(e) => setVals((v) => ({ ...v, [r.key]: e.target.value.replace(/[^0-9.]/g, "") }))} />
               <span className="pk-unit">{r.unit}</span>

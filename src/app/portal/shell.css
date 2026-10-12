@@ -599,3 +599,33 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-drive i { display: block; height: 100%; border-radius: 99px; background: var(--good-f); }
 .pk-drive i.mid { background: var(--mid-f); } .pk-drive i.bad { background: var(--bad-f); }
 @media (max-width: 640px) { .pk-drive { display: none; } }
+
+/*
+ * The older pages' tab bars, drawn as the new design's pill bar.
+ *
+ * Four generations of sub-tabs were still on screen inside the new shell —
+ * outlined pills (.pt-tabs), the van page's underlined row (.tr-tabs, borrowed
+ * from the trade iPad), the window picker (.pt-win) and the segmented control
+ * (.pt-seg). Restyled here, scoped to the new shell, so every page's tabs look
+ * like the kit's .pk-seg without editing thirty pages. Coloured states on a
+ * segmented control (a van marked off the road) keep their colour.
+ */
+.pn .pt-tabs, .pn .tr-tabs, .pn .pt-win, .pn .pt-seg {
+  display: inline-flex; flex-wrap: nowrap; align-self: flex-start; gap: 0; padding: 3px; margin: 0 0 18px;
+  border: 0; border-radius: 999px; background: var(--quiet); max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.pn .pt-tabs::-webkit-scrollbar, .pn .tr-tabs::-webkit-scrollbar, .pn .pt-win::-webkit-scrollbar, .pn .pt-seg::-webkit-scrollbar { display: none; }
+.pn .pt-win, .pn .pt-seg { margin: 0; }
+.pn .pt-tabs a, .pn .pt-tabs .pt-tab, .pn .tr-tabs a, .pn .pt-win__opt, .pn .pt-seg__b {
+  border: 0; border-bottom: 0; background: none; padding: 7px 16px; margin: 0; border-radius: 999px;
+  font-size: 13.5px; font-weight: 600; white-space: nowrap; color: var(--ink); text-decoration: none; box-shadow: none;
+}
+.pn .pt-tabs a:hover, .pn .pt-tabs .pt-tab:hover, .pn .tr-tabs a:hover, .pn .pt-win__opt:hover, .pn .pt-seg__b:hover { color: var(--ink); background: color-mix(in srgb, var(--surface) 45%, transparent); }
+.pn .pt-tabs a.is-on, .pn .pt-tabs .pt-tab.is-on, .pn .tr-tabs a.is-on, .pn .pt-win__opt.is-on, .pn .pt-seg__b.is-on {
+  background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow); font-weight: 800; border-color: transparent;
+}
+.pn .pt-seg__b.is-on.pt-seg__b--good, .pn .pt-seg__b.is-on.pt-seg__b--on { background: var(--good-f); color: #fff; }
+.pn .pt-seg__b.is-on.pt-seg__b--repair { background: var(--mid-f); color: #fff; }
+.pn .pt-seg__b.is-on.pt-seg__b--off { background: var(--bad-f); color: #fff; }
+/* A flat section's page bar, drawn by the shell above the page. */
+.pn-secbar { margin-bottom: 18px; }

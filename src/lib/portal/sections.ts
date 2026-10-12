@@ -42,7 +42,12 @@ export const SECTION_ICON: Record<string, string> = {
 
 /** `unless`: shown only to someone who can't open that page — a stand-in for it. */
 type PageDef = { label: string; href: string; office?: boolean; unless?: string };
-type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: PageDef[]; group: 0 | 1 | 2 };
+/**
+ * `flat`: the section is one entry in the side bar, and its pages are a tab
+ * bar across the top of each of them instead of a list under it — for a
+ * section with more pages than a side bar list reads well at (Marketing).
+ */
+type SectionDef = { id: SectionId; label: string; icon: string; blurb: string; pages: PageDef[]; group: 0 | 1 | 2; flat?: boolean };
 
 /**
  * Every section and page, in the prototype's order. `group` is which block of
@@ -122,13 +127,14 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Where the work comes from",
+    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Where the work comes from", flat: true,
     pages: [
       { label: "Campaigns", href: "/portal/marketing" },
       { label: "Blog", href: "/portal/blog" },
       { label: "Website leads", href: "/portal/website" },
       { label: "On the site", href: "/portal/website?tab=pages" },
       { label: "Drop-off", href: "/portal/website?tab=dropoff" },
+      { label: "Every enquiry", href: "/portal/finance/leads" },
       { label: "Reviews", href: "/portal/marketing?tab=reviews" },
       { label: "Ads", href: "/portal/marketing?tab=ads" },
       { label: "Social", href: "/portal/marketing?tab=social" },
@@ -181,6 +187,7 @@ export type Count = { n: number; red?: boolean };
 export type SidePage = { href: string; label: string; count?: Count };
 export type Section = {
   id: SectionId;
+  flat?: boolean;
   label: string;
   icon: string;
   blurb: string;
@@ -218,7 +225,7 @@ export function buildSections(items: NavItem[], biz: Business, office: boolean, 
       .filter((p) => s.id === "home" || (allowed.has(p.href) && !off.has(p.href) && (!p.office || office) && !(p.unless && allowed.has(p.unless))))
       .map((p) => ({ href: p.href, label: p.label, count: counts[p.href] }));
     if (!pages.length) continue;
-    out.push({ id: s.id, label: s.label, icon: s.icon, blurb: s.blurb, group: s.group, href: pages[0].href, pages, count: counts[`section:${s.id}`] });
+    out.push({ id: s.id, flat: s.flat, label: s.label, icon: s.icon, blurb: s.blurb, group: s.group, href: pages[0].href, pages, count: counts[`section:${s.id}`] });
   }
   return out;
 }
@@ -252,12 +259,10 @@ export function activePage(pages: { href: string }[], path: string, query: URLSe
 
 /**
  * Pages reached from another page rather than the side bar, filed under the
- * page they belong to: every tool under Tools, and Every enquiry (which sits
- * under /portal/finance only by history) under Website leads.
+ * page they belong to: every tool under Tools.
  */
 export const ALIAS: [string, string][] = [
   ["/portal/tools", "/portal/tools/fault-codes"],
-  ["/portal/finance/leads", "/portal/website"],
   // The pages that became tabs of the rebuilt Run the company pages.
   ["/portal/pipeline", "/portal/sales"],
   ["/portal/leads", "/portal/sales"],

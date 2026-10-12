@@ -1,3 +1,4 @@
+import { Pill } from "@/components/portal/kit/Kit";
 import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
@@ -29,9 +30,12 @@ const STATUS: Record<string, { label: string; tone: "ok" | "bad" | "warn" | "non
   NotApplicable: { label: "Goes to Xero as bills", tone: "none" },
 };
 
+const TONE = { ok: "good", bad: "bad", warn: "mid", none: "none" } as const;
+
+/** The kit's pill: green with a tick when it's in Xero, red when it didn't sync. */
 function Status({ s }: { s: string | null }) {
   const st = (s && STATUS[s]) || { label: s ?? "Unknown", tone: "none" as const };
-  return <span className={`pt-vstat pt-vstat--${st.tone}`}>{st.label}</span>;
+  return <Pill st={{ k: TONE[st.tone], w: st.label }} />;
 }
 
 function EntryRow({ e, waiting }: { e: JournalEntry; waiting?: boolean }) {

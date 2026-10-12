@@ -1,3 +1,4 @@
+import { Empty, Tabs } from "@/components/portal/kit/Kit";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -29,7 +30,7 @@ const when = (iso: string) =>
  * of the portal that writes to the public site, and it had grown its own
  * editor, its own figures and its own list.
  */
-export default async function BlogPage() {
+export default async function BlogPage({ searchParams }: { searchParams: { t?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="The blog" forWhom="managers" />;
@@ -40,8 +41,15 @@ export default async function BlogPage() {
     ready ? listStoredPosts().catch(() => []) : Promise.resolve([]),
     ready ? pageViews(daysAgo(WINDOW_DAYS - 1)).catch(() => null) : Promise.resolve(null),
   ]);
-  const posts = mergePosts(stored, true);
+  const all = mergePosts(stored, true);
   const rowOf = new Map(stored.map((r) => [r.slug, r]));
+  // Active is everything a reader can see or soon will (published and
+  // scheduled); Drafts is what's being written and isn't on the site. A
+  // built-in article with unpublished edits is live, so it's Active.
+  const isDraft = (slug: string) => { const r = rowOf.get(slug); return !!r && r.status === "draft" && !isBuiltIn(slug); };
+  const tab = searchParams.t === "draft" ? "draft" : "active";
+  const drafts = all.filter((p) => isDraft(p.slug));
+  const posts = tab === "draft" ? drafts : all.filter((p) => !isDraft(p.slug));
 
   // Nothing has been counted yet: every column of views would read 0, which
   // claims nobody read anything rather than that nobody was counting.
@@ -65,6 +73,12 @@ export default async function BlogPage() {
         <div className="pt-note pt-note--warn"><strong>Database not connected.</strong> The list below is the articles in the code; nothing can be edited until it is.</div>
       )}
 
+      <Tabs on={tab} label="Which posts" items={[
+        { key: "active", label: "Active", href: "/portal/blog", count: all.length - drafts.length },
+        { key: "draft", label: "Drafts", href: "/portal/blog?t=draft", count: drafts.length },
+      ]} />
+
+      {posts.length === 0 ? <Empty>{tab === "draft" ? "No drafts. Start a new post and it waits here until it’s published." : "Nothing published yet."}</Empty> : (
       <section className="pt-panel">
         <div className="pt-fleet__wrap">
           <table className="pt-fleet pt-blogl">
@@ -132,6 +146,7 @@ export default async function BlogPage() {
           </table>
         </div>
       </section>
+      )}
 
       {!counting && ready && (
         <div className="pt-note">

@@ -135,8 +135,12 @@ export function JobProfitTable({ rows, target }: { rows: JobProfit[]; target: nu
                   <td>{j.materials ? money(j.materials) : "—"}</td>
                   <td>{j.hours == null ? "—" : `${j.hours.toLocaleString("en-AU", { maximumFractionDigits: 1 })}${j.hoursFrom === "sold" ? " sold" : " clocked"}`}</td>
                   <td>{j.labour == null ? "—" : money(j.labour)}</td>
-                  <td className={j.profit != null && j.profit < 0 ? "is-low" : ""}>{j.profit == null ? "—" : money(j.profit)}</td>
-                  <td className={under(j) ? "is-low" : ""}>{pc(j.margin)}{under(j) ? " ▼" : ""}</td>
+                  <td style={{ color: j.profit == null ? undefined : j.profit < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{j.profit == null ? "—" : money(j.profit)}</td>
+                  {/* Red and down under the goal (or under nothing, with no goal set),
+                      green and up at or over it: the arrow says it as well as the colour. */}
+                  <td style={{ color: j.margin == null ? undefined : (goal != null ? j.margin < goal : j.margin < 0) ? "var(--bad)" : "var(--good)", fontWeight: 700, whiteSpace: "nowrap" }}>
+                    {pc(j.margin)}{j.margin == null ? "" : (goal != null ? j.margin < goal : j.margin < 0) ? " ▼" : " ▲"}
+                  </td>
                 </tr>
               ))}
             </tbody>
