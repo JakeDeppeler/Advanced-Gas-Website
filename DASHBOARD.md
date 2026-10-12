@@ -2221,12 +2221,15 @@ Two things follow:
 - **"Paid today" is ServiceTitan's payments, not Xero's bank.** On 12 October it
   read $23,837 from seven payments entered that morning; Xero showed none of it,
   because the money reaches Xero through the bank feed when it clears.
-- **What's owed is two sources.** Portal › Owed to us (`owedInvoices` in
-  `src/lib/portal/run/money.ts`) adds ServiceTitan's open balances from 17
-  September to Xero's unpaid invoices from before. On 12 October that was $122.5K
-  in ServiceTitan against $30K in Xero. **The board's own owed and overdue
-  figures (`receivablesTotal`, `overdueTotal`) still read Xero only** and so
-  undercount; they move to the same two sources with the wall board rebuild.
+- **What's owed is two sources.** ServiceTitan's open balances from 17
+  September plus Xero's unpaid invoices from before, read by
+  `src/lib/dashboard/stOwed.ts` for both the board (`receivablesTotal`,
+  `overdueTotal`, the ageing and the chase list) and Portal › Owed to us. On 12
+  October that was $122.5K in ServiceTitan against $30K in Xero, which the board
+  had been showing alone. The two are combined only when both answer; if
+  ServiceTitan's read fails the whole last reading carries forward behind the
+  Xero light, rather than a total with half its source missing.
+- The "Paid today" line says "in ServiceTitan" for that reason.
 
 ## Things worth knowing
 

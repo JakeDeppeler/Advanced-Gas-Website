@@ -1,6 +1,7 @@
 import { q, sbCount, sbInsert, sbSelect, sbSelectOne } from "./db";
 import { serviceTitanConfigured } from "./servicetitan";
 import { fetchXeroReceivables, type XeroResult } from "./xero";
+import { stOpenInvoices, withStOpen } from "./stOwed";
 import { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState } from "./xeroFreshness";
 export { XERO_GOOD_FOR_MS, xeroReadDue, xeroSourceState };
 import { suburbs } from "../suburbs";
@@ -2311,9 +2312,20 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
    * minutes within five minutes and is retried on the next recompute.
    */
   const lastXeroRead = previous?.sources?.xero?.at;
-  const xero: XeroResult = xeroReadDue(lastXeroRead, now)
+  const xeroRead: XeroResult = xeroReadDue(lastXeroRead, now)
     ? await fetchXeroReceivables()
     : { ok: false, reason: "not due" };
+  /*
+   * What's owed is two ledgers since ServiceTitan took over on 17 September
+   * (see stOwed.ts): Xero alone read $30K against $152K actually owing. Read
+   * together with Xero and combined only when both answer — a total with half
+   * its source missing is a confidently wrong figure, so a failed ServiceTitan
+   * read carries the whole last reading forward the way a failed Xero one does.
+   */
+  const xero: XeroResult = xeroRead.ok
+    ? await stOpenInvoices().then((st) => withStOpen(xeroRead, st, isoDateMelbourne(now)))
+      .catch((e: Error): XeroResult => ({ ok: false, reason: `servicetitan invoices: ${e.message}` }))
+    : xeroRead;
   sources.xero = xeroSourceState(xero.ok, lastXeroRead, now, xero.ok ? "" : xero.reason);
 
   // A settings read that fails must not blank every target on the wall, so it
@@ -2453,7 +2465,7 @@ export async function computeSnapshot(now = new Date()): Promise<Snapshot> {
       // Carried forward like the totals: a skipped or failed Xero read leaves
       // the chase list standing rather than emptying it, which would read as
       // "nothing overdue".
-      overdueList: xero.ok ? xero.overdue : prev?.overdueList ?? [],
+      overdueList: xero.ok ? xero.overdue.slice(0, 6) : prev?.overdueList ?? [],
 
       pace,
       paceData,
