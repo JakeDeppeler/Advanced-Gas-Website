@@ -1,0 +1,55 @@
+name: Next week's orders
+
+# Wednesday morning: draft next week's supplier orders and electrician work
+# orders (Supply › Next week) and email the office that they're ready. Nothing
+# is sent to a supplier or the electrician by this — the office approves each
+# one on the page.
+#
+# Uses the same two repository secrets as the dashboard sync
+# (DASHBOARD_SYNC_URL and CRON_SECRET).
+
+on:
+  schedule:
+    # Two slots so one is 7am Melbourne whatever daylight saving is doing:
+    # 20:00 UTC Tuesday = 7am AEDT Wednesday, 21:00 UTC = 7am AEST.
+    # The route is safe to run twice; the second finds nothing new.
+    - cron: "0 20 * * 2"
+    - cron: "0 21 * * 2"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Site to run against (default: the DASHBOARD_SYNC_URL host). Set to a Vercel preview URL to test a branch."
+        type: string
+        required: false
+
+concurrency:
+  group: order-drafts
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Draft next week's orders
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          URL_OVERRIDE: ${{ inputs.url }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SYNC_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::Set the DASHBOARD_SYNC_URL and CRON_SECRET repository secrets first."
+            exit 1
+          fi
+          SYNC_URL="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          BASE="${URL_OVERRIDE:-${SYNC_URL%/api/sync}}"
+          BASE="${BASE%/}"
+          out="$(curl -sS --fail-with-body --max-time 90 -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/ordering/draft")"
+          echo "$out"
+          {
+            echo "### Next week's orders"
+            echo '```json'
+            echo "$out"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

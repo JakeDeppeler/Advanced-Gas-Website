@@ -175,6 +175,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
   items.push({ href: "/portal/vehicles", label: "Vehicles", blurb: "Weekly checks, service, damage", band: "crew", icon: "truck", also: ["van", "fleet", "rego", "service", "clean"] });
   add(office,
     { href: "/portal/supply", label: "Supply", blurb: "Reece pricing and orders", band: "crew", icon: "box", also: ["reece", "max", "order", "pricebook", "material"] },
+    {
+      href: "/portal/supply/next-week", label: "Next week's orders", short: "Next week", blurb: "Gear for next week's installs, and the electrician",
+      band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
+    },
   );
   items.push(
     { href: "/portal/tools/fault-codes", label: "Trade tools", blurb: "Sizing, rebates, fault codes", band: "crew", icon: "wrench", also: ["calculator", "sizing", "rebate", "fault code"] },
