@@ -2,158 +2,187 @@ import { redirect } from "next/navigation";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { FinanceHead } from "@/components/portal/FinanceHead";
 import { Locked } from "@/components/portal/Locked";
-import { PeriodPicker } from "@/components/portal/PeriodPicker";
-import { getBankSummary, getPeriodInvoices, getPLDetail, getProfitAndLoss, type BankSummary } from "@/lib/portal/xero";
+import { getBankSummary, getOwedBills, getProfitAndLoss, xeroStatus, type BankSummary, type OwedBill } from "@/lib/portal/xero";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
+import { cashCover, owedInvoices } from "@/lib/portal/run/money";
+import { money } from "@/lib/portal/run/month";
+import { BENCH } from "@/lib/portal/benchmarks";
+import { Bad, Card, Empty, Grid, Head, Hero, Kv, Note, Pair, Say, Tabs, Tile, Two, none, type Status } from "@/components/portal/kit/Kit";
+import { InOutLines } from "@/components/portal/kit/Charts";
+import { XeroOff } from "@/components/portal/finance/Parts";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Money in & out — Team portal" };
+export const metadata = { title: "Cash flow — Team portal" };
 
-const m0 = (n: number) => `${n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
-const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
-
-type Month = { key: string; label: string; from: string; to: string };
+type Month = { key: string; short: string; label: string; from: string; to: string };
 function months(today: string, n: number): Month[] {
   const [y, m] = today.split("-").map(Number);
-  const out: Month[] = [];
-  for (let i = 0; i < n; i++) {
-    const d = new Date(Date.UTC(y, m - 1 - i, 1));
+  return Array.from({ length: n }, (_, i) => {
+    const d = new Date(Date.UTC(y, m - 1 - (n - 1 - i), 1));
     const from = d.toISOString().slice(0, 10);
     const end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
-    out.push({ key: from.slice(0, 7), label: d.toLocaleDateString("en-AU", { month: "long", year: "numeric", timeZone: "UTC" }), from, to: end < today ? end : today });
-  }
-  return out;
+    return {
+      key: from.slice(0, 7), from, to: end < today ? end : today,
+      short: d.toLocaleDateString("en-AU", { month: "short", timeZone: "UTC" }),
+      label: d.toLocaleDateString("en-AU", { month: "long", year: "numeric", timeZone: "UTC" }),
+    };
+  });
 }
+const signed = (n: number) => `${n > 0 ? "+" : n < 0 ? "−" : ""}$${Math.round(Math.abs(n)).toLocaleString("en-AU")}`;
+const daysTo = (iso: string, today: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 86_400_000);
+const dueWithin = (bills: OwedBill[] | null, days: number, today: string) => (bills ?? []).filter((b) => daysTo(b.due, today) <= days).reduce((a, b) => a + b.amountDue, 0);
 
 /**
- * Money in & out, beside profit.
- *
- * Two different questions. Profit is what a month earned less what it cost,
- * paid or not — the P&L. Money in & out is what actually went through the
- * bank. A month can be profitable and still leave the bank lower (customers
- * yet to pay, stock bought ahead), and the other way round, which is why they
- * sit side by side.
+ * Profit & finance › Cash flow. Money in & out is what actually went through
+ * the bank, which isn't profit: a month can earn well and still leave the bank
+ * lower while customers are slow to pay. Cash to operate is how long the bank
+ * would keep everyone paid if the work stopped.
  */
-export default async function CashPage({ searchParams }: { searchParams: { m?: string } }) {
+export default async function CashPage({ searchParams }: { searchParams: { tab?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
-  if (!can(user, "overhead")) return <Locked user={user} what="Finance" forWhom="managers" />;
+  if (!can(user, "overhead")) return <Locked user={user} what="Cash flow" forWhom="managers" />;
 
-  const today = isoDateMelbourne(new Date());
-  const list = months(today, 6);
-  const pick = list.find((x) => x.key === searchParams.m) ?? list[0];
-  const prev = months(pick.from, 2)[1];
-
-  const rows = await Promise.all(list.map(async (mo) => {
-    const [bank, pl] = await Promise.all([getBankSummary(mo.from, mo.to), getProfitAndLoss(mo.from, mo.to)]);
-    return { mo, bank, pl };
-  }));
-  const noScope = rows.some((r) => r.bank === "no-scope");
-  const bankOf = (b: BankSummary | "no-scope" | null) => (b && b !== "no-scope" ? b : null);
-
-  const [detail, detailPrev, bills] = await Promise.all([getPLDetail(pick.from, pick.to), getPLDetail(prev.from, prev.to), getPeriodInvoices("ACCPAY", pick.from, pick.to)]);
-  const outLines = (d: typeof detail) => new Map((d?.sections ?? []).filter((s) => s.kind === "out").flatMap((s) => s.lines).map((l) => [l.label, l.amount]));
-  const nowLines = outLines(detail);
-  const prevLines = outLines(detailPrev);
-  const spent = [...nowLines.entries()].filter(([, v]) => Math.abs(v) > 0.5).sort((a, b) => b[1] - a[1]);
-  const spentTotal = spent.reduce((a, [, v]) => a + v, 0);
-  const top = Math.max(1, ...spent.map(([, v]) => v));
-  const pickBank = bankOf(rows.find((r) => r.mo.key === pick.key)?.bank ?? null);
+  const tab = searchParams.tab === "operate" ? "operate" : "flow";
+  const { status: xs } = await xeroStatus();
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Money in & out" lede="What went through the bank each month, beside what each month earned. Profit and cash aren't the same thing; this shows both." />
+      <div className="pk">
+        <Head title="Cash flow" sub="Xero bank feeds" info={tab === "flow" ? [
+          ["Money in", "Cash that hit the bank: paid invoices, deposits."],
+          ["Money out", "Everything paid: wages, suppliers, BAS, super, leases."],
+          ["Kept", "In less out. Profit isn’t cash until the invoice is paid."],
+        ] : [
+          ["Running costs", "What goes out every month just to exist: wages, rent, insurance, software, vans. Parts and subbies aren’t in here because they only happen when there’s a job."],
+          ["Weeks it covers", "Cash in the bank divided by a week of running costs. If the phone stopped tomorrow, this is how long we could keep paying everyone."],
+          ["The buffer", `${BENCH.cash.words} — ${BENCH.cash.why}. It’s what gets you through a slow January or a big customer paying late.`],
+        ]} />
+        <Tabs on={tab} label="Cash flow" items={[
+          { key: "flow", label: "Money in & out", href: "/portal/finance/cash" },
+          { key: "operate", label: "Cash to operate", href: "/portal/finance/cash?tab=operate" },
+        ]} />
+        {xs !== "connected" ? <XeroOff state={xs} what="bank" /> : tab === "flow" ? <Flow /> : <Operate />}
+      </div>
+    </PortalShell>
+  );
+}
 
-      {noScope && (
-        <div className="pt-note pt-note--warn">
-          <strong>Xero needs one more permission to show the bank.</strong> Profit is below already; for money in and out,
-          reconnect Xero and approve. Nothing in Xero changes, and the books stay read-only.
-          <div className="pt-note__act"><a href="/api/xero/connect" className="pt-btn pt-btn--navy pt-btn--sm">Reconnect Xero →</a></div>
-        </div>
-      )}
+async function Flow() {
+  const today = isoDateMelbourne(new Date());
+  const list = months(today, 6);
+  const [rows, cover, owed, bills] = await Promise.all([
+    Promise.all(list.map(async (mo) => {
+      const [bank, pl] = await Promise.all([getBankSummary(mo.from, mo.to).catch(() => null), getProfitAndLoss(mo.from, mo.to).catch(() => null)]);
+      return { mo, bank, pl };
+    })),
+    cashCover(),
+    owedInvoices().then((o) => o?.list ?? null).catch(() => null),
+    getOwedBills().catch(() => null),
+  ]);
+  const bankOf = (b: BankSummary | "no-scope" | null) => (b && b !== "no-scope" ? b : null);
+  if (rows.some((r) => r.bank === "no-scope")) {
+    return (
+      <Card title="Xero needs one more permission to show the bank">
+        <p className="pk-note" style={{ marginBottom: 12 }}>Reconnect Xero and approve the bank permission. Nothing in Xero changes, and the books stay read-only.</p>
+        <a href="/api/xero/connect" className="pk-btn">Reconnect Xero ›</a>
+      </Card>
+    );
+  }
+  const known = rows.map((r) => ({ ...r, b: bankOf(r.bank) }));
+  const kept = known.reduce((a, r) => a + (r.b ? r.b.received - r.b.spent : 0), 0);
+  const dueSoon = dueWithin(bills, 7, today);
+  const owedTotal = owed?.reduce((a, i) => a + i.amountDue, 0) ?? null;
+  const overdue = owed?.filter((i) => i.daysOver > 0).reduce((a, i) => a + i.amountDue, 0) ?? null;
+  const pts = known.filter((r) => r.b).map((r) => ({ label: r.mo.short, in: r.b!.received, out: r.b!.spent }));
 
-      <section className="pt-panel" aria-labelledby="cash-months">
-        <h2 id="cash-months" className="pt-panel__h">The last six months</h2>
-        <div className="pt-fleet__wrap">
-          <table className="pt-rev__pl">
-            <thead>
-              <tr>
-                <th scope="col">Month</th>
-                <th scope="col">Money in</th><th scope="col">Money out</th><th scope="col">Bank went</th>
-                <th scope="col">Sales</th><th scope="col">Profit</th>
-              </tr>
-            </thead>
+  return (
+    <>
+      <Say>
+        Over the last six months the bank {kept >= 0 ? "kept" : "lost"} <b>{money(Math.abs(kept))}</b>.{" "}
+        {bills == null ? null : dueSoon > 0 ? <><Bad>{money(dueSoon)} of bills are due in the next 7 days</Bad>{cover.bank != null ? <>, with {money(cover.bank)} in the bank.</> : "."}</> : "No bills are due in the next 7 days."}
+      </Say>
+      <Pair>
+        <Hero dark label="In the bank" right={cover.accounts ? `${cover.accounts} account${cover.accounts === 1 ? "" : "s"}` : undefined}
+          fig={cover.bank != null ? money(cover.bank) : "—"} frac={cover.bank != null && dueSoon > 0 ? Math.min(1, cover.bank / dueSoon) : cover.bank != null ? 1 : null}
+          sub={bills == null ? "Xero didn’t return the bills" : `${money(dueSoon)} of bills due this week`} href="/portal/finance/owe" />
+        <Hero label="Coming in" right="owed to us" fig={owedTotal != null ? money(owedTotal) : "—"} frac={owedTotal && overdue != null ? overdue / owedTotal : null}
+          sub={overdue != null ? `${money(overdue)} of it is overdue` : "Xero didn’t return the invoices"} href="/portal/money" />
+      </Pair>
+      <Card title="Money in and money out" aside="solid = in · dashed = out · last 6 months">
+        {pts.length >= 2 ? <InOutLines points={pts} /> : <Empty>Xero didn’t return enough months of the bank to draw.</Empty>}
+      </Card>
+      <Card title="Month by month" aside="the bank beside the P&L">
+        <div className="pk-tbl-wrap">
+          <table className="pk-tbl">
+            <thead><tr><th>Month</th><th>Money in</th><th>Money out</th><th>Bank went</th><th>Sales</th><th>Profit</th></tr></thead>
             <tbody>
-              {rows.map(({ mo, bank, pl }) => {
-                const b = bankOf(bank);
+              {[...known].reverse().map(({ mo, b, pl }) => {
                 const net = b ? b.received - b.spent : null;
                 return (
-                  <tr key={mo.key} className={mo.key === pick.key ? "is-total" : undefined}>
-                    <th scope="row"><a href={`/portal/finance/cash?m=${mo.key}`}>{mo.label}</a>{mo.to === today && <em> so far</em>}</th>
-                    <td>{b ? m0(b.received) : "—"}</td>
-                    <td>{b ? m0(b.spent) : "—"}</td>
-                    <td className={net == null ? undefined : net < 0 ? "is-bad" : "is-good"}>{net == null ? "—" : `${net < 0 ? "▼ " : "▲ "}${signed(net)}`}</td>
-                    <td>{pl ? m0(pl.income) : "—"}</td>
-                    <td className={pl ? (pl.netProfit < 0 ? "is-bad" : "is-good") : undefined}>{pl ? `${pl.netProfit < 0 ? "▼ " : "▲ "}${signed(pl.netProfit)}` : "—"}</td>
+                  <tr key={mo.key}>
+                    <td><b>{mo.label}</b>{mo.to === today && <span className="ks"> so far</span>}</td>
+                    <td>{b ? money(b.received) : "—"}</td>
+                    <td>{b ? money(b.spent) : "—"}</td>
+                    <td style={{ color: net == null ? undefined : net < 0 ? "var(--bad)" : "var(--good)", fontWeight: 700 }}>{net == null ? "—" : `${net < 0 ? "▼" : "▲"} ${signed(net)}`}</td>
+                    <td>{pl ? money(pl.income) : "—"}</td>
+                    <td style={{ color: pl ? (pl.netProfit < 0 ? "var(--bad)" : undefined) : undefined }}>{pl ? `${pl.netProfit < 0 ? "▼ " : ""}${signed(pl.netProfit)}` : "—"}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
-        <p className="pt-hr__foot">
-          Money in and out are everything through the bank accounts — customers paying, suppliers, wages, tax, loans. Sales and profit are the P&amp;L: what was invoiced, and what&rsquo;s left after every cost, paid or not.
-        </p>
-      </section>
+        <div style={{ marginTop: 12 }}><Note>Money in and out are everything through the bank accounts — customers paying, suppliers, wages, tax, loans. Sales and profit are the P&amp;L: what was invoiced, and what’s left after every cost, paid or not.</Note></div>
+      </Card>
+    </>
+  );
+}
 
-      <section className="pt-panel" aria-labelledby="cash-went">
-        <div className="pt-wi__outhead">
-          <h2 id="cash-went" className="pt-panel__h">Where the money went in {pick.label}</h2>
-          <PeriodPicker label="Month" value={pick.key} options={list.map((x) => ({ key: x.key, label: x.label }))} hrefPrefix="/portal/finance/cash?m=" />
-        </div>
-        {pickBank && (
-          <p className="pt-panel__sub">
-            {m0(pickBank.received)} came into the bank and {m0(pickBank.spent)} went out, so the bank {pickBank.received >= pickBank.spent ? "grew" : "fell"} by {m0(Math.abs(pickBank.received - pickBank.spent))}.
-            {pickBank.accounts.length > 1 && ` Across ${pickBank.accounts.length} accounts.`}
-          </p>
-        )}
-        <p className="pt-panel__sub">Every cost the month carried, biggest first, from the P&amp;L — {m0(spentTotal)} in all. The arrow is against {prev.label.split(" ")[0]}.</p>
-        {spent.length ? (
-          <div className="pt-hs__spend">
-            {spent.map(([label, v]) => {
-              const was = prevLines.get(label) ?? 0;
-              const d = v - was;
-              return (
-                <div key={label} className="pt-hs__row">
-                  <span className="pt-hs__lbl">{label}</span>
-                  <span className="pt-hs__bar" aria-hidden="true"><i style={{ width: `${Math.max(0, (v / top) * 100)}%` }} /></span>
-                  <strong className="pt-hs__yr">{m0(v)}</strong>
-                  <span className={`pt-hs__ph${Math.abs(d) < 1 ? "" : d > 0 ? " is-up" : " is-down"}`}>{Math.abs(d) < 1 ? "same" : `${d > 0 ? "▲" : "▼"} ${m0(Math.abs(d))}`}</span>
-                </div>
-              );
-            })}
-          </div>
-        ) : <p className="pt-todo__empty">Xero didn&rsquo;t return the month&rsquo;s costs.</p>}
-      </section>
+async function Operate() {
+  const today = isoDateMelbourne(new Date());
+  const [cover, owed, bills] = await Promise.all([cashCover(), owedInvoices().then((o) => o?.list ?? null).catch(() => null), getOwedBills().catch(() => null)]);
+  const target = BENCH.cash.lo;
+  const { bank, month, weekly, weeks } = cover;
+  if (month == null || weekly == null) return <XeroOff state="no-answer" what="the last three months’ costs" />;
 
-      {bills && bills.byContact.length > 0 && (
-        <section className="pt-panel" aria-labelledby="cash-sup">
-          <h2 id="cash-sup" className="pt-panel__h">Billed by suppliers in {pick.label}</h2>
-          <div className="pt-fleet__wrap">
-            <table className="pt-rev__pl">
-              <thead><tr><th scope="col">Supplier</th><th scope="col">Bills</th><th scope="col">Billed</th><th scope="col">Still owing</th></tr></thead>
-              <tbody>
-                {bills.byContact.map((c) => (
-                  <tr key={c.contact}><th scope="row">{c.contact}</th><td>{c.count}</td><td>{m0(c.total)}</td><td className={c.due > 0 ? "is-warn" : undefined}>{c.due > 0 ? m0(c.due) : "paid"}</td></tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="pt-hr__foot">The {bills.byContact.length} biggest; {bills.count} supplier bills came in this month, {m0(bills.total)} in all.</p>
-        </section>
-      )}
-    </PortalShell>
+  const st: Status = weeks == null ? none("No figure") : weeks >= target ? { k: "good", w: "Enough" } : weeks >= target / 2 ? { k: "mid", w: "Getting low" } : { k: "bad", w: "Too low" };
+  const need = bank != null ? Math.max(0, target * weekly - bank) : null;
+  const owedTotal = owed?.reduce((a, i) => a + i.amountDue, 0) ?? null;
+  const bills30 = bills ? dueWithin(bills, 30, today) : null;
+  const worst = bank != null && owedTotal != null && bills30 != null ? bank + owedTotal - bills30 - month : null;
+
+  return (
+    <>
+      <Say>
+        It costs about <b>{money(month)} a month</b> to keep the doors open, whether or not a job is on.{" "}
+        {bank == null || weeks == null ? "Xero didn’t return the bank, so there’s no weeks figure." : weeks >= target
+          ? <>{money(bank)} in the bank covers {weeks.toFixed(1)} weeks, more than the {target} weeks we aim to keep.</>
+          : <>{money(bank)} in the bank covers <Bad>{weeks.toFixed(1)} weeks</Bad>, short of the {target} weeks we aim to keep.</>}
+      </Say>
+      <Grid cols={4}>
+        <Tile label="Running costs a month" st={{ k: "none", w: "" }} fig={money(month)} frac={1} sub={`${money(weekly)} a week`} />
+        <Tile label="In the bank" st={st} fig={bank != null ? money(bank) : "—"} frac={weeks != null ? weeks / target : null} sub="Xero bank feeds" />
+        <Tile label="Weeks it covers" st={st.k === "good" ? { k: "good", w: "On track" } : st} fig={weeks != null ? weeks.toFixed(1) : "—"} frac={weeks != null ? weeks / target : null} sub={`aim for ${target} weeks or more`} />
+        <Tile label="To reach the buffer" st={need == null ? none("No figure") : need > 0 ? { k: st.k === "none" ? "mid" : st.k, w: "Short" } : { k: "good", w: "Done" }}
+          fig={need == null ? "—" : need > 0 ? money(need) : "Nothing"} frac={need == null ? null : 1 - need / (target * weekly)} sub={need ? "more cash to put aside" : "the buffer is there"} />
+      </Grid>
+      <Two>
+        <Card title="What it costs to run, a month" aside="the last three full months from Xero, averaged">
+          <Kv t="Wages, super and WorkCover" sub="the team and the office, every pay run" v={money(cover.wagesMonth ?? 0)} />
+          <Kv t="Everything else to keep the doors open" sub="rent, vans, insurance, software, marketing and the rest" v={money(cover.otherMonth ?? 0)} />
+          <Kv t={<b>Total</b>} sub={`${money(month * 12)} a year`} v={money(month)} />
+          <Note>Parts, materials and subbies are left out: they only happen when there’s a job to pay for them.</Note>
+        </Card>
+        <Card title="Next 30 days, worst case" aside="if nothing new gets billed">
+          <Kv t="In the bank now" v={bank != null ? money(bank) : "—"} />
+          <Kv t="Coming in" sub="everything owed to us gets paid" v={owedTotal != null ? `+${money(owedTotal)}` : "—"} />
+          <Kv t="Bills due" sub="every unpaid bill in Xero due by then, or late" v={bills30 != null ? `−${money(bills30)}` : "—"} />
+          <Kv t="A month of running costs" v={`−${money(month)}`} />
+          <Kv t={<b>Left at the end</b>} v={worst == null ? "—" : <span style={{ color: worst < 0 ? "var(--bad)" : "var(--good)" }}>{worst < 0 ? "▼ " : ""}{money(worst)}</span>} />
+        </Card>
+      </Two>
+    </>
   );
 }

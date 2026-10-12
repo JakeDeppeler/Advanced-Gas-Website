@@ -3,14 +3,11 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { getSettings, dbConfigured } from "@/lib/portal/db";
 import { PortalShell } from "@/components/portal/PortalShell";
-import { FinanceHead } from "@/components/portal/FinanceHead";
-import { PortalBack } from "@/components/portal/PortalBack";
+import { Head } from "@/components/portal/kit/Kit";
 import { YearGoalBoard } from "@/components/portal/YearGoalBoard";
 import { getMoneySeries, getMonthlyActuals, localToday, xeroStatus } from "@/lib/portal/xero";
 import { InOutBars } from "@/components/portal/InOutBars";
 import { readYearGoal, yearSpans, type MonthActual, type YearGoal } from "@/lib/portal/yearGoal";
-import { PortalTabs } from "@/components/portal/PortalTabs";
-import { XeroLine } from "@/components/portal/XeroLine";
 import { Locked } from "@/components/portal/Locked";
 
 export const dynamic = "force-dynamic";
@@ -49,7 +46,13 @@ export default async function YearGoalPage() {
 
   return (
     <PortalShell user={user}>
-      <FinanceHead title="Year goal" lede="The year’s goal across the months, against what Xero says was actually invoiced and what the overheads are running at." xero={{ state: status, org: tenantName }} />
+      <div className="pk" style={{ marginBottom: 20 }}>
+        <Head title="Year goal" sub={`${goal.basis === "calendar" ? "This calendar year" : "This financial year"} · goal from Our numbers · actuals from Xero${tenantName ? ` · ${tenantName}` : ""}`} info={[
+          ["Goal by now", "Each month’s goal from Our numbers, added up to today. Busy months carry more of the year."],
+          ["Actual", "What Xero says was invoiced each month, before GST."],
+          ["Change the goal", "Our numbers › Goals. Pace and the wall board read the same goal."],
+        ]} />
+      </div>
 
       <InOutBars points={rolling} months={last12} />
       <YearGoalBoard goal={goal} actuals={actuals} today={today.toISOString().slice(0, 10)} xero={status} />

@@ -2208,6 +2208,26 @@ month"; the board knows who closed the job and nothing else about them.
 to miss from across the room. Two celebration systems would have left the next
 reader guessing which one fires.
 
+## ServiceTitan became the ledger on 17 September 2026
+
+From that day ServiceTitan keeps the invoices (20xxx) and the payments, and
+sends Xero one journal a day. Xero's P&L is still complete — the journals carry
+the revenue — but Xero holds no invoice after INV-03654 of 17 September, and
+none of ServiceTitan's payments: every one since is `syncStatus: Pending`
+because payments don't travel, only the journal does.
+
+Two things follow:
+
+- **"Paid today" is ServiceTitan's payments, not Xero's bank.** On 12 October it
+  read $23,837 from seven payments entered that morning; Xero showed none of it,
+  because the money reaches Xero through the bank feed when it clears.
+- **What's owed is two sources.** Portal › Owed to us (`owedInvoices` in
+  `src/lib/portal/run/money.ts`) adds ServiceTitan's open balances from 17
+  September to Xero's unpaid invoices from before. On 12 October that was $122.5K
+  in ServiceTitan against $30K in Xero. **The board's own owed and overdue
+  figures (`receivablesTotal`, `overdueTotal`) still read Xero only** and so
+  undercount; they move to the same two sources with the wall board rebuild.
+
 ## Things worth knowing
 
 **Do not add a *second* Xero token refresh.** Xero rotates the refresh token on

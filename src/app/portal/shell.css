@@ -181,6 +181,7 @@ html:has(.pn[data-theme="dark"]), html:has(.pn[data-theme="dark"]) body { backgr
 .pn-chev { margin-left: auto; color: var(--ink4); font-size: 15px; line-height: 1; transition: transform 0.15s; display: inline-block; width: 10px; text-align: center; }
 .pn-n + .pn-chev { margin-left: 8px; }
 .pn-btn.on .pn-chev { transform: rotate(90deg); color: var(--ink3); }
+.pn-btn.on.shut .pn-chev { transform: none; }
 .pn-subs { display: flex; flex-direction: column; gap: 1px; }
 .pn-sub {
   display: flex; align-items: center; gap: 8px; width: 100%; padding: 5px 10px 5px 44px; border-radius: 8px;
@@ -478,7 +479,7 @@ a.pk-card:hover, .pk-link:hover { box-shadow: 0 0 0 2px var(--line), var(--shado
 .pk-hero.light .pk-hb { background: var(--track); }
 .pk-hero.light .pk-hb i { background: var(--mark); }
 .pk-tile { padding: 16px 18px; }
-.pk-tl { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink2); }
+.pk-tl { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 24px; font-size: 13px; font-weight: 600; color: var(--ink2); }
 .pk-fig { font-family: var(--f-display, "Archivo", sans-serif); font-weight: 800; font-size: 30px; line-height: 1.15; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pk-bar { height: 5px; border-radius: 99px; background: var(--track); margin: 10px 0 8px; overflow: hidden; }
 .pk-bar i { display: block; height: 100%; border-radius: 99px; background: var(--mark); }
