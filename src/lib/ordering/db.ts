@@ -46,6 +46,12 @@ export const DEFAULT_SETTINGS: OrderingSettings = {
   deliveryNote: "We do not have a forklift.",
 };
 
+/** The signature for Mitsubishi's form, or null if none has been stored. */
+export async function loadSignature(): Promise<Uint8Array | null> {
+  const s = await getSettings<{ png?: string }>("ordering_signature");
+  return s?.png ? new Uint8Array(Buffer.from(s.png, "base64")) : null;
+}
+
 export async function loadOrderingSettings(): Promise<OrderingSettings> {
   const s = await getSettings<Partial<OrderingSettings>>("ordering");
   return { ...DEFAULT_SETTINGS, ...(s ?? {}) };

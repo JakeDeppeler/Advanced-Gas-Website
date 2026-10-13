@@ -6,7 +6,7 @@
  * Writes the filled Mitsubishi form to $ORDERING_PDF_OUT when set, so it can
  * be opened and looked at.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import {
   byJob, ccList, dayTimeLabel, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
@@ -203,6 +203,7 @@ console.log("\n-- the Mitsubishi form --");
   const filled = await fillMitsubishiForm({
     poNumber: "AGA-261019-MIT", orderDate: "15/10/2026", lines: bySup.mitsubishi!, delivery: settings.deliveryAddress,
     deliveryInstructions: deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, settings), settings, today: "2026-10-14",
+    signaturePng: process.env.ORDERING_SIG_PNG ? new Uint8Array(readFileSync(process.env.ORDERING_SIG_PNG)) : null,
   });
   ok("fills without a missing field", "pdf" in filled, "error" in filled ? filled.error : "");
   const blankAcct = await fillMitsubishiForm({ poNumber: "X", orderDate: "x", delivery: "x", deliveryInstructions: null, lines: bySup.mitsubishi!,
@@ -219,6 +220,8 @@ console.log("\n-- the Mitsubishi form --");
       `${f.getTextField("Print Name").getText()} / ${f.getTextField("Position").getText()}`);
     ok("every row has the one delivery date", f.getTextField("Delivery Date").getText() === "Fri 16 Oct" && f.getTextField("Delivery Date 2").getText() === "Fri 16 Oct",
       `${f.getTextField("Delivery Date").getText()} / ${f.getTextField("Delivery Date 2").getText()}`);
+    ok("our job numbers in Mitsubishi's quote reference box", f.getTextField("CRM Quote Reference").getText() === "20264, 20265, 20300", f.getTextField("CRM Quote Reference").getText());
+    ok("Site says Factory", f.getTextField("Site").getText() === "Factory");
     ok("delivery instructions on the form, forklift note included", f.getTextField("Delivery Instructions").getText() === "Deliver to our factory. We do not have a forklift.", f.getTextField("Delivery Instructions").getText());
     if (process.env.ORDERING_PDF_OUT) writeFileSync(process.env.ORDERING_PDF_OUT, filled.pdf);
   }
