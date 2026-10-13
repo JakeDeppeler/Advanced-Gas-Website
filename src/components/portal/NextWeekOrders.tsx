@@ -2,10 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, orderedManually, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
-import type { StockItem } from "@/lib/ordering/db";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, orderedManually, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
-import { byJob, dayLabel, dayTimeLabel, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 /**
  * Supply › Next week: each supplier's draft order and each electrician visit,
@@ -245,6 +245,68 @@ function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: S
   );
 }
 
+/**
+ * Under a line (or a whole job on the Reece list): it was already ordered
+ * another way — it comes off the draft and counts as ordered — or leave it
+ * for next week's order. One press each; the rest of the order stays as is.
+ */
+function LineActions({ po, lines, what }: { po: PoWithLines; lines: PoLine[]; what?: string }) {
+  const { busy, msg, run } = useAct();
+  const ids = lines.map((l) => l.id);
+  const jobLines = lines.filter((l) => l.job_id != null && !l.manual);
+  // Held until next week's ordering — say so if that's too late for the install.
+  const until = nextWeek(new Date()).start;
+  const late = jobLines.some((l) => l.install_date && neededBy(l.install_date) < until);
+  return (
+    <span className="pt-nw__lineacts">
+      <button type="button" className="pt-nw__linkbtn" disabled={busy}
+        onClick={() => run(() => linesOrdered({ id: po.id, lineIds: ids }))}>
+        {what ? `${what} already ordered` : "Already ordered"}
+      </button>
+      {jobLines.length > 0 && (
+        <button type="button" className="pt-nw__linkbtn" disabled={busy}
+          title={late ? `Next week's ordering starts ${dayLabel(until)} — after this is needed` : `Drafted again on ${dayLabel(until)}`}
+          onClick={() => run(() => holdForNextWeek({ id: po.id, lineIds: jobLines.map((l) => l.id) }))}>
+          Order next week{late ? " (late)" : ""}
+        </button>
+      )}
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </span>
+  );
+}
+
+/** What's been left for next week's order, with a way to order it now after all. */
+function HeldList({ holds, which, byId }: { holds: Hold[]; which: "next" | "this"; byId: Map<string, Supplier> }) {
+  const { busy, msg, run } = useAct();
+  if (!holds.length) return null;
+  return (
+    <section className="pt-panel pt-nw__held">
+      <h2 className="pt-panel__h">Held for next week&rsquo;s order</h2>
+      <p className="pt-panel__sub">Taken off this week&rsquo;s orders on purpose. Each is drafted again when next week&rsquo;s ordering starts.</p>
+      <ul>
+        {holds.map((h) => {
+          const late = h.install_date && neededBy(h.install_date) < h.until;
+          return (
+            <li key={h.id}>
+              <span>
+                <strong>Job {h.job_number}</strong>
+                {h.customer_name && <span> · {h.customer_name}</span>}
+                <span> · {h.qty != null && `${qty(Number(h.qty))} × `}{h.sku_name}</span>
+                <span className="pt-nw__muted"> · {byId.get(h.supplier_id)?.name ?? h.supplier_id} · drafted {dayLabel(h.until)}{h.install_date && `, install ${dayLabel(h.install_date)}`}</span>
+                {late && <span className="pt-nw__flag">Needed by {dayLabel(neededBy(h.install_date!))} — order it now</span>}
+              </span>
+              <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => run(() => orderHeldNow({ holdId: h.id, which }))}>
+                Order now
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </section>
+  );
+}
+
 function RemoveStock({ lineId }: { lineId: number }) {
   const { busy, run } = useAct();
   return (
@@ -430,6 +492,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
                 <span className="pt-nw__muted"> — install {installWhen(g)}</span>
               </>
             )}
+            {g.job_id != null && po.status === "draft" && g.lines.length > 1 && <LineActions po={po} lines={g.lines} what="Whole job" />}
           </h3>
           <div className="pt-tgt__tablewrap">
             <table className="pt-nw__table pt-nw__table--reece">
@@ -445,6 +508,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
                       <strong>{l.sku_name}</strong>
                       {l.description && l.description !== l.sku_name && <span>{l.description}</span>}
                       {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
+                      {!l.manual && po.status === "draft" && <LineActions po={po} lines={[l]} />}
                     </td>
                     <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
                   </tr>
@@ -500,6 +564,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
                       {l.description && l.description !== model && <span>{l.description}</span>}
                       {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
                       {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
+                      {!l.manual && po.status === "draft" && <LineActions po={po} lines={[l]} />}
                     </td>
                     {l.job_id == null
                       ? <><td><strong>Stock</strong><span>for the factory</span></td><td>—</td></>
@@ -580,8 +645,10 @@ export function NextWeekOrders(props: {
   alwaysCc: string;
   /** What an order says about delivery: the factory's instruction and the note every order carries. */
   delivery: DeliverySettings;
+  /** Lines left for next week's order. */
+  holds: Hold[];
 }) {
-  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery } = props;
+  const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
   useLiveRefresh(120_000);
@@ -639,6 +706,8 @@ export function NextWeekOrders(props: {
           </ul>
         </section>
       )}
+
+      <HeldList holds={holds} which={which} byId={byId} />
 
       {shown.length === 0 && (
         <section className="pt-panel">

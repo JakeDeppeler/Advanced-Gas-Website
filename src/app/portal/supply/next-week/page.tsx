@@ -9,10 +9,10 @@ import { Locked } from "@/components/portal/Locked";
 import { NextWeekOrders } from "@/components/portal/NextWeekOrders";
 import { money } from "@/lib/portal/format";
 import {
-  appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadOrderingSettings, loadSuppliers, loadWeekInputs,
+  appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadWeekInputs, type Hold,
   type PoWithLines,
 } from "@/lib/ordering/db";
-import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier } from "@/lib/ordering/plan";
+import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
 // "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
@@ -29,6 +29,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
 
   // A failed read is not an empty week: dbReady carries the difference.
   let orders: PoWithLines[] = [];
+  let holds: Hold[] = [];
   let suppliers: Supplier[] = [];
   let problems: Problem[] = [];
   let synced = true;
@@ -36,17 +37,18 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let delivery: { factoryInstructions?: string; deliveryNote?: string; pickupInstructions?: string } = {};
   let dbReady = true;
   try {
-    const [o, s, inputs, already, sy, settings] = await Promise.all([
-      listWeekOrders(week), loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(),
+    const [o, s, inputs, already, sy, settings, h] = await Promise.all([
+      listWeekOrders(week), loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
     ]);
     orders = o;
+    holds = h;
     suppliers = s;
     synced = sy;
     replyTo = settings.replyTo;
     delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
     // Worked out live rather than stored with the drafts, so fixing a quote
     // or assigning a crew clears its line here straight away.
-    problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already }).problems;
+    problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already, skip: new Set(h.map((x) => lineKey(x.job_id, x.sku_id))) }).problems;
   } catch {
     dbReady = false;
   }
@@ -106,6 +108,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         orders={orders}
         suppliers={suppliers}
         problems={problems}
+        holds={holds}
         testTo={user.email}
         alwaysCc={replyTo}
         delivery={delivery}
