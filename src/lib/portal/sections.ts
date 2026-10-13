@@ -102,6 +102,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Sounds", href: "/portal/board/sounds" },
       { label: "Standard times", href: "/portal/board/times" },
       { label: "Held work", href: "/portal/board/hold" },
+      { label: "Who sold it", href: "/portal/board/credit" },
       { label: "Reports", href: "/portal/board/reports" },
     ],
   },

@@ -256,6 +256,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["on hold", "held", "waiting", "stuck", "tags", "tag", "blocked", "awaiting", "not ordered", "quotation required", "chase"],
     },
     {
+      href: "/portal/board/credit", label: "Who sold it", blurb: "Move a sold job's credit from one person to another", band: "board", icon: "target",
+      also: ["credit", "sold by", "who sold", "reassign", "leaderboard", "commission", "wrong person", "move the sale", "swap tech"],
+    },
+    {
       href: "/portal/board/reports", label: "Reports", blurb: "The day, the week and the month, kept and emailed", band: "board", icon: "doc",
       also: ["report", "daily report", "weekly report", "monthly report", "email", "summary"],
     },

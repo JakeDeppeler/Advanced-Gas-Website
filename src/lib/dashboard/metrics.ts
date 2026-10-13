@@ -20,6 +20,8 @@ import { computePaceData } from "./paceData";
 import { dailyPace, type DailyPace } from "./dailyPace";
 import { soldMargin, type SoldMargin } from "./soldMargin";
 import { onHold, type OnHold } from "./onHold";
+import { SALE_CREDIT_KEY, creditWith, normaliseSaleCredits } from "./saleCreditTypes";
+import { getSettings } from "@/lib/portal/db";
 import { jobProfits, type ProfitSummary } from "./jobProfit";
 import { crewFigures } from "../portal/crewRates";
 import { currentYear, paceSettingsOf, yearSpans } from "../portal/yearGoal";
@@ -922,11 +924,13 @@ async function serviceTitanMetrics(now: Date) {
       customer_id: number | null;
       created_on: string | null;
       created_by: string | null;
+      // Only so creditFor has the same fallback here as everywhere else.
+      sold_by: string | null;
       total: number | null;
     }>(
       "st_estimates",
       [
-        q.select("id,job_id,sold_on,business_unit,customer_id,created_on,created_by,total:total_inc"),
+        q.select("id,job_id,sold_on,business_unit,customer_id,created_on,created_by,sold_by,total:total_inc"),
         q.gte("created_on", addDays(now, -30).toISOString()),
         q.lt("total", String(QUOTE_CAP)),
       ].join("&"),
@@ -1411,8 +1415,18 @@ async function serviceTitanMetrics(now: Date) {
    * ServiceTitan only stamps soldBy once an estimate closes, so a leaderboard
    * keyed on it listed the two people who had closed something this month while
    * six had been quoting. createdById is on every estimate.
+   *
+   * Over the top of that sit the office's own moves (`saleCreditTypes.ts`): one
+   * person prices a job and another goes back and closes it, and nothing in
+   * ServiceTitan records whose sale the office decided that was. A move names
+   * the job, so every figure keyed on a person — the leaderboard, the sold
+   * total, the per-person close rate, the Sold pop-up — follows it together.
+   * Failing to read them leaves the board exactly as it was.
    */
-  const creditFor = (r: { created_by: string | null; sold_by: string | null }) => r.created_by ?? r.sold_by;
+  const creditFor = creditWith(
+    normaliseSaleCredits(await getSettings<unknown>(SALE_CREDIT_KEY).catch(() => null)),
+    quoteKey,
+  );
 
   const soldMtd = soldRows.reduce((s, r) => s + Number(r.total ?? 0), 0);
 
@@ -1441,10 +1455,13 @@ async function serviceTitanMetrics(now: Date) {
   ];
 
   const recentQuoteRows = quotes(
-    await sbSelect<{ id: number; job_id: number | null; total: number | null; created_on: string | null; created_by: string | null; sold_by: string | null; business_unit: string | null }>(
+    await sbSelect<{ id: number; job_id: number | null; customer_id: number | null; total: number | null; created_on: string | null; created_by: string | null; sold_by: string | null; business_unit: string | null }>(
       "st_estimates",
       [
-        q.select("id,job_id,total,created_on,created_by,sold_by,business_unit"),
+        // customer_id only so quoteKey identifies a quote with no job on it the
+        // same way here as it does on the leaderboard — otherwise a job moved
+        // to somebody else would still cheer under the first name.
+        q.select("id,job_id,customer_id,total,created_on,created_by,sold_by,business_unit"),
         q.gte("created_on", new Date(twoHoursAgo).toISOString()),
         q.order("created_on", "desc"),
         "limit=20",
@@ -1693,7 +1710,10 @@ async function serviceTitanMetrics(now: Date) {
         sum: v,
         n: 1,
         sold: Boolean(r.sold_on),
-        who: r.created_by ?? r.sold_by,
+        // Through creditFor, not the raw columns: a quote written today and
+        // moved to somebody else has to read as theirs here too, or the Quotes
+        // page names one person and the Team page another for the same job.
+        who: creditFor(r),
       });
     }
   }
@@ -1853,7 +1873,11 @@ async function serviceTitanMetrics(now: Date) {
    * as the one the totals row on Performance was built to close.
    */
   for (const r of recentEstimates) {
-    const key = r.created_by;
+    // Through creditFor, like the sold columns beside it. A move that took the
+    // sale but left the quote behind would give one person a sale against no
+    // quote and the other a quote that never closed, and "sold out of quoted"
+    // would read as nonsense for both of them.
+    const key = creditFor(r);
     if (key == null) continue;
     const jobs =
       quotedJobsBy.get(key) ?? new Map<string, { sum: number; n: number; won: boolean; wonValue: number }>();

@@ -1533,6 +1533,28 @@ out, the person's name and rank, three measures — quoted this week, sold this
 week, sold this month — each with a dial on the board's one shared scale, and a
 block of rates underneath.
 
+**Credit goes to whoever wrote the quote**, not whoever happened to close it.
+ServiceTitan only stamps `soldBy` once an estimate closes, so a leaderboard
+keyed on it listed the two people who had closed something this month while six
+had been quoting; `createdById` is on every estimate. Over the top of that sit
+the office's own moves, on the portal's **Who sold it** page
+(`/portal/board/credit`) — one person prices a job, somebody else goes back and
+closes it, and nothing in ServiceTitan records whose sale the office decided
+that was. Writing it into the estimate would be overwritten by the next sync, so
+the move lives in `portal_settings` under `sale-credit` and is applied on the
+way out, by `creditFor` (`src/lib/dashboard/saleCreditTypes.ts`).
+
+A move takes the **whole job** — the quote as well as the sale — and is keyed on
+`quoteKey`, the board's own job identity, so every figure keyed on a person
+follows it together: the leaderboard, the sold total, the per-person close rate
+and the Sold pop-up. Moving the sale on its own would give one person a sale
+against no quote and the other a quote that never closed, and "sold out of
+quoted" would read as nonsense for both of them. A job nobody has moved behaves
+exactly as it did before any of this existed, which is what
+`scripts/check-credit.ts` is mostly about — this is the one setting on the board
+that moves money between people, so every move is stored with who made it and
+when, and the portal page prints that on the row.
+
 **The targets are an equal share of the team's.** Nothing anywhere holds a
 per-person number: not `portal_settings`, not a column, nothing. So each
 person's week is the team's week divided by the people on the board. That is an
