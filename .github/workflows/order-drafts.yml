@@ -1,23 +1,23 @@
 name: Order drafts
 
-# Every weekday morning: draft any supplier orders and electrician work orders
-# for jobs sold and booked since the last run (Supply › Next week) — this week
-# every day, next week from Wednesday — and email the office when something
-# new needs approving. Nothing is sent to a supplier or the electrician by
-# this; the office approves each one on the page. Anything already ordered is
-# never ordered again, even if the job moves.
+# On demand: draft any supplier orders and electrician work orders for jobs
+# sold and booked since the last run (Supply › Next week) — this week, and
+# next week from Wednesday — and email the office when something new needs
+# approving. It normally runs on its own after each ServiceTitan sync.
+#
+# Nothing is sent to a supplier or the electrician by this; the office
+# approves each one on the page. Anything already ordered is never ordered
+# again, even if the job moves.
 #
 # Uses the same two repository secrets as the dashboard sync
 # (DASHBOARD_SYNC_URL and CRON_SECRET).
 
 on:
-  schedule:
-    # Two slots so one is 7am Melbourne whatever daylight saving is doing:
-    # 20:00 UTC = 7am AEDT, 21:00 UTC = 7am AEST, Sunday–Thursday UTC being
-    # Monday–Friday in Melbourne. The route is safe to run twice; the second
-    # finds nothing new and sends nothing.
-    - cron: "0 20 * * 0-4"
-    - cron: "0 21 * * 0-4"
+  # No schedule of its own any more: drafting runs after every ServiceTitan
+  # sync (dashboard-sync.yml → /api/ordering/draft?mode=refresh), so a newly
+  # booked job is drafted within minutes, and the first sync after 6am each
+  # weekday is the morning run. A second schedule here would race it. This
+  # stays as a Run button to draft on demand.
   workflow_dispatch:
     inputs:
       url:

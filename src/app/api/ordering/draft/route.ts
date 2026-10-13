@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { dashboardDbConfigured } from "@/lib/dashboard/db";
 import { cronAuthorised } from "@/lib/dashboard/screenAuth";
-import { draftWeek, loadOrderingSettings, loadSuppliers, type DraftResult } from "@/lib/ordering/db";
+import { createHash } from "node:crypto";
+import { TZ } from "@/lib/dashboard/dates";
+import { draftWeek, loadOrderingSettings, loadSuppliers, loadWeekInputs, type DraftResult } from "@/lib/ordering/db";
+import { getSettings, saveSettings } from "@/lib/portal/db";
 import { nextWeek, thisWeek, toApproveEmail, todayMelbourne, workRef, type NewToOrder, type PlannedLine, type Week } from "@/lib/ordering/plan";
 import { sendReadyNotice } from "@/lib/ordering/send";
 import { site } from "@/lib/site";
@@ -27,9 +30,17 @@ export const maxDuration = 60;
  * on a draft the office cancelled are left out. The office is emailed only
  * when something new turned up, so a quiet morning sends nothing.
  *
- * Called by .github/workflows/order-drafts.yml with the CRON_SECRET the sync
- * uses, twice an hour apart so one lands at 7am Melbourne either side of
- * daylight saving; the second finds nothing new and stays quiet.
+ * `?mode=refresh` is what runs it: called after every ServiceTitan sync
+ * (.github/workflows/dashboard-sync.yml, every ten minutes), so a job sold
+ * and booked during the day is drafted, and the office told, within minutes.
+ * It drafts only when the bookings and quotes it works from — or the date —
+ * have changed since the last draft, and only 6am–7pm on weekdays; the first
+ * refresh after 6am is the morning run. There is one caller, on purpose: two
+ * runs drafting at once could each create the same order (the database now
+ * refuses the second — migration 0069 — but better it never tries).
+ *
+ * Without `mode` it drafts unconditionally, whatever the hour — for the
+ * "Order drafts" workflow's Run button.
  */
 export async function GET(req: Request) {
   if (!cronAuthorised(req)) return new NextResponse("Unauthorized", { status: 401 });
@@ -40,10 +51,25 @@ export async function GET(req: Request) {
     const dow = new Date(`${today}T12:00:00Z`).getUTCDay(); // 0 Sun … 6 Sat, Melbourne date
     const weeks: Week[] = [thisWeek(now), ...(dow >= 3 || dow === 0 ? [nextWeek(now)] : [])];
 
+    // What the drafts are worked out from, today to the end of next week. If
+    // it hasn't changed since the last draft there is nothing to redraft.
+    const inputs = await loadWeekInputs({ start: today, end: nextWeek(now).end });
+    // The date and the weeks are in it too, so the first refresh of each
+    // weekday (and Wednesday's, when next week comes in) always drafts: that
+    // is the morning run.
+    const fingerprint = createHash("sha1").update(JSON.stringify({ today, weeks, inputs })).digest("hex");
+    if (new URL(req.url).searchParams.get("mode") === "refresh") {
+      const hour = Number(new Intl.DateTimeFormat("en-AU", { timeZone: TZ, hour: "numeric", hourCycle: "h23" }).format(now));
+      if (dow === 0 || dow === 6 || hour < 6 || hour >= 19) return NextResponse.json({ ok: true, skipped: "outside office hours" });
+      const last = await getSettings<{ fingerprint?: string }>("ordering_last_draft");
+      if (last?.fingerprint === fingerprint) return NextResponse.json({ ok: true, skipped: "no change since the last draft" });
+    }
+
     // This week first: a combined supplier's draft then settles on next week's
     // run if both are drafted, the same as pressing Draft on each tab.
     const runs: { week: Week; r: DraftResult }[] = [];
     for (const week of weeks) runs.push({ week, r: await draftWeek(week, { auto: true }) });
+    await saveSettings("ordering_last_draft", { fingerprint, at: now.toISOString() });
 
     // A line can be "added" by the first run and moved by the second; count it once.
     const seen = new Set<string>();

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { approve, cancel, redraft, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { approve, approveAll, cancel, orderedManually, redraft, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { byJob, dayLabel, dayTimeLabel, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
@@ -175,6 +175,30 @@ function TestSend({ po, testTo }: { po: PoWithLines; testTo: string }) {
   );
 }
 
+/** Already ordered by phone, online or over the counter: recorded, nothing emailed. */
+function OrderedElsewhere({ po }: { po: PoWithLines }) {
+  const { busy, msg, run } = useAct();
+  const [open, setOpen] = useState(false);
+  const [how, setHow] = useState("");
+  if (!open) {
+    return <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Ordered another way</button>;
+  }
+  return (
+    <div className="pt-nw__test">
+      <label className="pt-nw__testlbl" htmlFor={`how-${po.id}`}>How was it ordered? (optional)</label>
+      <input id={`how-${po.id}`} className="pt-nw__input" value={how} onChange={(e) => setHow(e.target.value)} placeholder="e.g. rang Rinnai, ref 44812" />
+      <span className="pt-nw__actions">
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => orderedManually({ id: po.id, how }))}>
+          {busy ? "Saving…" : "Mark as ordered"}
+        </button>
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(false)}>Close</button>
+      </span>
+      <span className="pt-nw__muted">Nothing is emailed. These lines count as ordered, so they won&rsquo;t be drafted again.</span>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
 function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string; label: string }) {
   const { busy, msg, run } = useAct();
   if (po.status !== "draft") {
@@ -192,10 +216,70 @@ function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: S
           Cancel
         </button>
         <TestSend po={po} testTo={testTo} />
+        {supplier?.method !== "reece_cart" && <OrderedElsewhere po={po} />}
       </span>
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
     </div>
   );
+}
+
+/**
+ * Send every draft on the page in one go, after saying exactly what will go
+ * where. Reece is never in it — those lines have to be keyed into maX first.
+ */
+function OrderAll({ drafts, byId }: { drafts: PoWithLines[]; byId: Map<string, Supplier> }) {
+  const { busy, msg, run } = useAct();
+  const [open, setOpen] = useState(false);
+  const sendable = drafts.filter((p) => byId.get(p.supplier_id)?.method !== "reece_cart");
+  const reece = drafts.length - sendable.length;
+  if (!sendable.length) return reece ? <span className="pt-nw__muted">Only Reece left — enter it in maX and mark it ordered.</span> : null;
+  const goods = sendable.filter((p) => p.kind === "order").map((p) => byId.get(p.supplier_id)?.name ?? p.supplier_id);
+  const work = sendable.filter((p) => p.kind === "work_order").length;
+  const flagged = sendable.filter((p) => byId.get(p.supplier_id)?.method === "email_form" && p.lines.some((l) => modelLooksLikeName(l.supplier_model ?? l.sku_name))).length;
+  return (
+    <>
+      {!open && (
+        <button type="button" className="pt-btn pt-btn--orange" onClick={() => setOpen(true)} disabled={busy}>
+          Order all ({sendable.length})
+        </button>
+      )}
+      {open && (
+        <div className="pt-nw__orderall" role="group" aria-label="Order all">
+          <p>
+            <strong>Send {sendable.length} now?</strong>{" "}
+            {goods.length > 0 && <>Email {goods.join(", ")}</>}
+            {goods.length > 0 && work > 0 && " and "}
+            {work > 0 && <>{work} work order{work === 1 ? "" : "s"} to the electrician</>}.
+            {reece > 0 && " Reece isn't included — enter it in maX, then mark it ordered."}
+            {flagged > 0 && <span className="pt-nw__flag">A Mitsubishi line has no model number</span>}
+          </p>
+          <span className="pt-nw__actions">
+            <button type="button" className="pt-btn pt-btn--orange" disabled={busy}
+              onClick={() => run(async () => { const r = await approveAll(sendable.map((p) => p.id)); setOpen(false); return r; })}>
+              {busy ? "Sending…" : `Yes, send all ${sendable.length}`}
+            </button>
+            <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy} onClick={() => setOpen(false)}>Not yet</button>
+          </span>
+        </div>
+      )}
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </>
+  );
+}
+
+/**
+ * Bookings sync every ten minutes and new jobs are drafted as they arrive, so
+ * the page re-reads itself every couple of minutes while it's on screen.
+ * A server refresh keeps whatever is typed into an open box.
+ */
+function useLiveRefresh(ms: number) {
+  const router = useRouter();
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === "visible") router.refresh(); };
+    const t = setInterval(tick, ms);
+    document.addEventListener("visibilitychange", tick);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", tick); };
+  }, [router, ms]);
 }
 
 type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings };
@@ -365,6 +449,7 @@ export function NextWeekOrders(props: {
   const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery } = props;
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
+  useLiveRefresh(120_000);
 
   if (!dbReady) {
     return (
@@ -390,6 +475,7 @@ export function NextWeekOrders(props: {
       )}
 
       <div className="pt-nw__bar">
+        <OrderAll drafts={shown.filter((o) => o.status === "draft")} byId={byId} />
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
           {busy ? "Drafting…" : shown.some((o) => o.status === "draft") ? "Redraft from the latest bookings" : "Draft now"}
         </button>
@@ -423,8 +509,8 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Nothing drafted for this week yet</h2>
           <p className="pt-panel__sub">
             {which === "next"
-              ? "Next week is drafted every weekday morning from Wednesday. Press Draft now to make it from the bookings as they stand."
-              : "This week is drafted every weekday morning. Press Draft now to catch anything booked since."}
+              ? "Next week is drafted from Wednesday, and again within minutes of any new booking. Press Draft now to make it from the bookings as they stand."
+              : "This week is drafted every weekday, within minutes of a new booking. Press Draft now to catch anything this instant."}
           </p>
         </section>
       )}

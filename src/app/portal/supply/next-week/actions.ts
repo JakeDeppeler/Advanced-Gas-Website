@@ -5,7 +5,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { cancelDraft, draftWeek, setDelivery, setOrderCc } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
-import { approveAndSend, sendTest } from "@/lib/ordering/send";
+import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -88,4 +88,28 @@ export async function saveCc(input: { id: number; cc: string }): Promise<ActionR
   const ok = await setOrderCc(input.id, cc.ok);
   done();
   return ok ? { ok: true } : { ok: false, error: "Only a draft order can be changed." };
+}
+
+export async function approveAll(ids: number[]): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const clean = Array.isArray(ids) ? ids.filter(isId).slice(0, 60) : [];
+  if (!clean.length) return { ok: false, error: "Nothing to send." };
+  try {
+    const r = await approveAllDrafts(clean, me.name || me.email);
+    done();
+    return r;
+  } catch (e) {
+    done();
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+export async function orderedManually(input: { id: number; how: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.id)) return { ok: false, error: "Which order?" };
+  const r = await markOrderedManually(input.id, me.name || me.email, (input.how ?? "").trim().slice(0, 120));
+  done();
+  return r;
 }

@@ -15,6 +15,8 @@ import {
 import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
+// "Order all" sends one email after another (Mitsubishi with its form) from this page's server action.
+export const maxDuration = 60;
 export const metadata = { title: "Next week — Team portal" };
 
 export default async function NextWeekPage({ searchParams }: { searchParams: { week?: string } }) {
@@ -60,7 +62,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
       <div className="pt-head">
         <h1>{which === "this" ? "This week" : "Next week"}: orders and the electrician</h1>
         <p>
-          {weekLabel(week)}. Drafted every weekday morning from the installs booked and their sold quotes ({which === "this" ? "this week every day" : "next week from Wednesday"}), so a job booked at short notice is on an order to approve the next morning. Nothing goes to a
+          {weekLabel(week)}. Drafted from the installs booked and their sold quotes every weekday from 6am ({which === "this" ? "this week every day" : "next week from Wednesday"}), and again within about ten minutes of a new booking — so a job booked at short notice is on an order to approve the same day. Nothing goes to a
           supplier or to Geoff until it&rsquo;s approved here; replies come back to {replyTo || "the office"}.
         </p>
         {dbReady && (
