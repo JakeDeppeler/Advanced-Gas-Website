@@ -2,7 +2,7 @@ import "server-only";
 import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import {
-  isoAddDays, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
+  isoAddDays, lineKey, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderedLine, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
   type WorkOrderDetails, type WorkOrderRow,
 } from "./plan";
 
@@ -76,27 +76,46 @@ export async function loadWeekInputs(w: Week): Promise<{ lines: OrderLine[]; wor
   };
 }
 
-/**
- * Everything already on an approved or sent order: `job:sku` for goods,
- * `job:work` for an electrician booked. Looks back four months, which covers
- * any job moved between weeks after its gear went out.
- */
-export async function loadAlreadyOrdered(): Promise<Set<string>> {
+type OrderStatus = "approved" | "sent" | "cancelled";
+
+/** `job:sku` (or `job:work`) for every line on an order in these states over the last four months. */
+async function linesOn(statuses: OrderStatus[]): Promise<Map<string, OrderedLine>> {
   const since = new Date(Date.now() - 120 * 86400000).toISOString();
-  const pos = await sbSelect<{ id: number; kind: string }>(
+  const pos = await sbSelect<{ id: number; kind: string; po_number: string; supplier_id: string }>(
     "purchase_orders",
-    `select=id,kind&status=in.(approved,sent)&created_at=gte.${encodeURIComponent(since)}&order=id.asc`,
+    `select=id,kind,po_number,supplier_id&status=in.(${statuses.join(",")})&created_at=gte.${encodeURIComponent(since)}&order=id.asc`,
   );
-  const out = new Set<string>();
-  const kind = new Map(pos.map((p) => [p.id, p.kind]));
+  const out = new Map<string, OrderedLine>();
+  const byId = new Map(pos.map((p) => [p.id, p]));
   for (let i = 0; i < pos.length; i += 100) {
     const ids = pos.slice(i, i + 100).map((p) => p.id).join(",");
-    const lines = await sbSelect<{ po_id: number; job_id: number; sku_id: number | null }>(
-      "purchase_order_lines", `select=po_id,job_id,sku_id&po_id=in.(${ids})&order=id.asc`,
+    const lines = await sbSelect<{ po_id: number; job_id: number; sku_id: number | null; install_date: string | null }>(
+      "purchase_order_lines", `select=po_id,job_id,sku_id,install_date&po_id=in.(${ids})&order=id.asc`,
     );
-    for (const l of lines) out.add(kind.get(l.po_id) === "work_order" ? `${l.job_id}:work` : `${l.job_id}:${l.sku_id ?? "-"}`);
+    for (const l of lines) {
+      const po = byId.get(l.po_id)!;
+      out.set(po.kind === "work_order" ? `${l.job_id}:work` : lineKey(l.job_id, l.sku_id),
+        { install_date: l.install_date, po_number: po.po_number, supplier_id: po.supplier_id });
+    }
   }
   return out;
+}
+
+/**
+ * Everything already on an approved or sent order: `job:sku` for goods,
+ * `job:work` for an electrician booked, with the install date it was ordered
+ * for. Looks back four months, which covers any job moved between weeks after
+ * its gear went out — it is never ordered twice, and the move is pointed out.
+ */
+export const loadAlreadyOrdered = () => linesOn(["approved", "sent"]);
+
+/**
+ * Lines on drafts the office cancelled. The automatic morning run leaves them
+ * out — cancelling usually means "ordered another way" — so they don't come
+ * back as a fresh draft every day. Pressing Redraft still includes them.
+ */
+export async function loadCancelled(): Promise<Set<string>> {
+  return new Set((await linesOn(["cancelled"])).keys());
 }
 
 export async function listWeekOrders(w: Week): Promise<PoWithLines[]> {
@@ -147,7 +166,13 @@ async function createOrder(row: Row): Promise<number> {
   return made.id;
 }
 
-export type DraftResult = { plan: WeekPlan; created: number; updated: number; removed: number };
+export type DraftResult = {
+  plan: WeekPlan; created: number; updated: number; removed: number;
+  /** Lines that weren't on any draft or order before this run — what's new for the office. */
+  added: { supplier_id: string; line: PlannedLine }[];
+  /** Work orders that weren't drafted before, by name (job and address). */
+  addedWork: WorkOrderDetails[];
+};
 
 /**
  * Draft (or redraft) a week's orders and work orders from the live bookings.
@@ -157,7 +182,7 @@ export type DraftResult = { plan: WeekPlan; created: number; updated: number; re
  * afterwards, a line added to a quote — becomes a new top-up draft beside it,
  * because the plan already leaves out whatever was ordered.
  */
-export async function draftWeek(week: Week): Promise<DraftResult> {
+export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Promise<DraftResult> {
   const now = new Date();
   // Suppliers that charge per delivery get one order for every job not yet
   // ordered from today to the end of next week — the same window whichever
@@ -168,29 +193,34 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
     end: combineWindow.end > week.end ? combineWindow.end : week.end,
   };
   const settings = await loadOrderingSettings();
-  const [suppliers, inputs, alreadyOrdered, existing] = await Promise.all([
+  const tw = thisWeek(now), nw = nextWeek(now);
+  const otherWeeks = [tw, nw].filter((w) => w.start !== week.start);
+  const [suppliers, inputs, alreadyOrdered, existing, skip, ...others] = await Promise.all([
     loadSuppliers(), loadWeekInputs(loadRange), loadAlreadyOrdered(), listWeekOrders(week),
+    opts.auto ? loadCancelled() : Promise.resolve(undefined),
+    ...otherWeeks.map((w) => listWeekOrders(w)),
   ]);
-  const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered, combineWindow });
+  const otherDrafts = others.flat().filter((p) => p.status === "draft");
+  const plan = planWeek({ week, ...inputs, suppliers, alreadyOrdered, combineWindow, skip });
   let created = 0, updated = 0, removed = 0;
   const kept = new Set<number>();
   const stamp = now.toISOString();
 
-  // A combined supplier's draft on the other tab's week holds the same lines
-  // this plan has just taken, so it goes: two drafts of one order would be two
-  // deliveries — or the same gear ordered twice.
-  const combined = new Set(suppliers.filter((s) => s.combine_orders && s.active).map((s) => s.id));
-  if (combined.size) {
-    const tw = thisWeek(now), nw = nextWeek(now);
-    for (const other of [tw, nw].filter((w) => w.start !== week.start)) {
-      for (const p of await listWeekOrders(other)) {
-        if (p.kind === "order" && p.status === "draft" && combined.has(p.supplier_id)) {
-          await sbDelete("purchase_orders", `id=eq.${p.id}&status=eq.draft`);
-          removed++;
-        }
-      }
-    }
+  // What was on a draft before this run, in this week or the other, so "new"
+  // means new to the office, not just new to this week's drafts.
+  const before = new Set<string>();
+  for (const p of [...existing, ...otherDrafts]) {
+    if (p.status !== "draft") continue;
+    for (const l of p.lines) before.add(p.kind === "work_order" ? `work:${l.job_id}` : `${p.supplier_id}:${lineKey(l.job_id, l.sku_id)}`);
   }
+  const added: DraftResult["added"] = [];
+  const addedWork: WorkOrderDetails[] = [];
+
+  // A combined supplier has one draft across this week and next. If it is
+  // already on the other week it is updated there — keeping any CC or delivery
+  // change the office made — rather than a second draft (a second delivery,
+  // or the same gear twice) being made here.
+  const combined = new Set(suppliers.filter((s) => s.combine_orders && s.active).map((s) => s.id));
   // Order numbers run per supplier per week: AGA-261019-MIT, then -MIT-2 for
   // a top-up. Counted from every order that week, cancelled ones included,
   // so a number is never reused.
@@ -203,8 +233,10 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
   };
 
   for (const o of plan.orders) {
+    for (const l of o.lines) if (!before.has(`${o.supplier_id}:${lineKey(l.job_id, l.sku_id)}`)) added.push({ supplier_id: o.supplier_id, line: l });
     const mine = existing.filter((p) => p.kind === "order" && p.supplier_id === o.supplier_id);
-    const draft = mine.find((p) => p.status === "draft");
+    const draft = mine.find((p) => p.status === "draft")
+      ?? (combined.has(o.supplier_id) ? otherDrafts.find((p) => p.kind === "order" && p.supplier_id === o.supplier_id) : undefined);
     if (draft) {
       await replaceLines(draft.id, o.lines);
       await sbUpdate("purchase_orders", `id=eq.${draft.id}`, { updated_at: stamp, send_error: null });
@@ -223,6 +255,7 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
   }
 
   for (const wo of plan.workOrders) {
+    if (wo.lines.some((l) => !before.has(`work:${l.job_id}`))) addedWork.push(wo.details);
     const mine = existing.filter((p) => p.kind === "work_order" && p.group_key.split("#")[0] === wo.group_key);
     const draft = mine.find((p) => p.status === "draft");
     if (draft) {
@@ -252,7 +285,15 @@ export async function draftWeek(week: Week): Promise<DraftResult> {
       removed++;
     }
   }
-  return { plan, created, updated, removed };
+  // And a combined supplier's draft on the other week that this run didn't
+  // reuse: its lines are on the one it did, or have been ordered since.
+  for (const p of otherDrafts) {
+    if (p.kind === "order" && combined.has(p.supplier_id) && !kept.has(p.id)) {
+      await sbDelete("purchase_orders", `id=eq.${p.id}&status=eq.draft`);
+      removed++;
+    }
+  }
+  return { plan, created, updated, removed, added, addedWork };
 }
 
 export async function cancelDraft(id: number): Promise<boolean> {

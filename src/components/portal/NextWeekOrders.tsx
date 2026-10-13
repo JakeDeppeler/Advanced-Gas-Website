@@ -400,8 +400,11 @@ export function NextWeekOrders(props: {
 
       {problems.length > 0 && (
         <section className="pt-panel pt-nw__problems">
-          <h2 className="pt-panel__h">Couldn&rsquo;t be ordered automatically</h2>
-          <p className="pt-panel__sub">Fix these in ServiceTitan and redraft, or order them by hand.</p>
+          <h2 className="pt-panel__h">Needs a look</h2>
+          <p className="pt-panel__sub">
+            Fix these in ServiceTitan and redraft, or order them by hand. A job that moved after its order went is never
+            ordered twice — the supplier just needs telling the new date.
+          </p>
           <ul>
             {problems.map((p, i) => (
               <li key={i}>
@@ -420,8 +423,8 @@ export function NextWeekOrders(props: {
           <h2 className="pt-panel__h">Nothing drafted for this week yet</h2>
           <p className="pt-panel__sub">
             {which === "next"
-              ? "Drafts are made on Wednesday morning. Press Draft now to make them from the bookings as they stand."
-              : "Press Draft now to catch anything this week that hasn't been ordered."}
+              ? "Next week is drafted every weekday morning from Wednesday. Press Draft now to make it from the bookings as they stand."
+              : "This week is drafted every weekday morning. Press Draft now to catch anything booked since."}
           </p>
         </section>
       )}

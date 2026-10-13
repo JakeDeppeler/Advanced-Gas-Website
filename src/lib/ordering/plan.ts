@@ -237,7 +237,10 @@ export function modelLooksLikeName(model: string | null | undefined): boolean {
 
 /* ---------------------------------------------------------------- the plan */
 
-const lineKey = (jobId: number, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
+export const lineKey = (jobId: number, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
+
+/** A line already on an approved or sent order: what it was ordered for, and on which order. */
+export type OrderedLine = { install_date: string | null; po_number: string; supplier_id: string };
 
 /**
  * What to draft for a week.
@@ -252,20 +255,39 @@ export function planWeek(input: {
   lines: OrderLine[];
   workOrders: WorkOrderRow[];
   suppliers: Supplier[];
-  alreadyOrdered: Set<string>;
+  /**
+   * Keyed `job:sku` (`job:work` for the electrician). A Map says what each was
+   * ordered for, so a job moved after its order went is pointed out rather
+   * than ordered a second time.
+   */
+  alreadyOrdered: Set<string> | Map<string, OrderedLine>;
+  /** Lines to leave out without comment — on a draft the office cancelled, when drafting automatically. */
+  skip?: Set<string>;
   /**
    * The dates a combine_orders supplier's order covers (today to the end of
    * next week), in place of `week`. Without it every supplier gets `week`.
    */
   combineWindow?: Week;
 }): WeekPlan {
-  const { week, lines, workOrders, suppliers, alreadyOrdered, combineWindow } = input;
+  const { week, lines, workOrders, suppliers, alreadyOrdered, combineWindow, skip } = input;
   const byId = new Map(suppliers.filter((s) => s.active).map((s) => [s.id, s]));
   const problems: Problem[] = [];
   const seenProblem = new Set<string>();
   const problem = (p: Problem) => {
     const k = `${p.job_number}|${p.what}`;
     if (!seenProblem.has(k)) { seenProblem.add(k); problems.push(p); }
+  };
+  // Already ordered is never ordered again, whatever the date now says. If the
+  // install has moved since, the order went for the wrong day: say so, once
+  // per order, so the supplier (or Geoff) can be told.
+  const ordered = (key: string, row: { job_number: string | null; customer_name: string | null; install_date: string | null }, who: string) => {
+    if (!alreadyOrdered.has(key)) return false;
+    const was = alreadyOrdered instanceof Map ? alreadyOrdered.get(key) : undefined;
+    if (was?.install_date && row.install_date && was.install_date !== row.install_date) {
+      problem({ job_number: row.job_number, customer_name: row.customer_name, install_date: row.install_date,
+        what: `Moved to ${dayLabel(row.install_date)} after ${who} for ${dayLabel(was.install_date)} (${was.po_number}) — not ordered again. Let ${byId.get(was.supplier_id)?.name ?? "the supplier"} know the new date.` });
+    }
+    return true;
   };
 
   const combines = (id: string | null) => !!combineWindow && !!id && !!byId.get(id)?.combine_orders;
@@ -281,7 +303,8 @@ export function planWeek(input: {
     }
     const s = l.supplier_id ? byId.get(l.supplier_id) : undefined;
     if (!s || s.method === "work_order") continue;
-    if (alreadyOrdered.has(lineKey(l.job_id, l.sku_id))) continue;
+    if (skip?.has(lineKey(l.job_id, l.sku_id))) continue;
+    if (ordered(lineKey(l.job_id, l.sku_id), l, "its gear was ordered")) continue;
     const qty = Number(l.qty ?? 1);
     if (!(qty > 0)) continue;
     if (s.method === "email_form" && modelLooksLikeName(l.supplier_model)) {
@@ -303,7 +326,8 @@ export function planWeek(input: {
   const groups = new Map<string, { supplier_id: string; rows: WorkOrderRow[] }>();
   for (const w of workOrders) {
     if (!inWeek(w.install_date, week)) continue;
-    if (alreadyOrdered.has(`${w.job_id}:work`)) continue;
+    if (skip?.has(`${w.job_id}:work`)) continue;
+    if (ordered(`${w.job_id}:work`, w, "the electrician was booked")) continue;
     if (w.issue && w.issue !== "No customer contact on file") {
       problem({ job_number: w.job_number, customer_name: w.customer_name, install_date: w.install_date, what: `Electrician: ${w.issue.toLowerCase()}` });
     } else if (w.issue) {
@@ -705,15 +729,34 @@ export function mitsubishiOrderEmail(o: {
   return { subject, html: shell(`Order ${o.poNumber}`, paras(opening), body, footer), text };
 }
 
-export function readyEmail(o: { week: Week; orders: { name: string; lines: number; total: number }[]; workOrders: number; problems: Problem[]; link: string }): EmailParts {
-  const subject = `Next week's orders are ready to approve — ${weekLabel(o.week)}`;
-  const items = o.orders.map((x) => `<li>${esc(x.name)}: ${x.lines} line${x.lines === 1 ? "" : "s"}${x.total ? `, ${money(x.total)}` : ""}</li>`).join("");
-  const body = `<ul style="margin:0;padding-left:20px;font:15px/24px ${SANS};color:#050a30;">${items}${o.workOrders ? `<li>Electrician: ${o.workOrders} work order${o.workOrders === 1 ? "" : "s"}</li>` : ""}</ul>`
-    + (o.problems.length ? `<p style="font:14px/20px ${SANS};color:#c2410c;">${o.problems.length} thing${o.problems.length === 1 ? "" : "s"} couldn't be ordered — see the page.</p>` : "");
-  const intro = `Drafted from next week's bookings and their sold quotes. Nothing has gone to anyone yet.`;
+export type NewToOrder = { supplier: string; lines: PlannedLine[] };
+
+/**
+ * The office's heads-up: what has just been drafted and is waiting for
+ * approval. Sent only when something new turned up, so a quiet morning sends
+ * nothing. Anything that has to go today — its delivery date is already here
+ * — is listed first.
+ */
+export function toApproveEmail(o: { orders: NewToOrder[]; workOrders: string[]; problems: Problem[]; link: string; today: string }): EmailParts {
+  const jobs = new Set(o.orders.flatMap((x) => x.lines.map((l) => l.job_id)));
+  const due = (ls: PlannedLine[]) => orderDelivery(ls, o.today);
+  const urgent = o.orders.filter((x) => due(x.lines)?.label === "ASAP" || due(x.lines)?.date === isoAddDays(o.today, 1));
+  const subject = urgent.length
+    ? `Order today: ${urgent.map((x) => x.supplier).join(", ")} — new jobs to approve`
+    : `New orders to approve — ${jobs.size} job${jobs.size === 1 ? "" : "s"}${o.workOrders.length ? `, ${o.workOrders.length} work order${o.workOrders.length === 1 ? "" : "s"}` : ""}`;
+  const sorted = [...o.orders].sort((a, b) => (urgent.includes(a) ? 0 : 1) - (urgent.includes(b) ? 0 : 1) || a.supplier.localeCompare(b.supplier));
+  const item = (x: NewToOrder) => {
+    const d = due(x.lines);
+    const jobNums = [...new Set(x.lines.map((l) => l.job_number).filter(Boolean))];
+    const jobList = `${jobNums.length === 1 ? "job" : "jobs"} ${jobNums.join(", ")}`;
+    return { html: `<li><strong>${esc(x.supplier)}</strong> — ${x.lines.length} line${x.lines.length === 1 ? "" : "s"} for ${esc(jobList)}${d ? `, ${esc(deliverPhrase(d.label))}` : ""}${urgent.includes(x) ? ` <span style="color:#b04711;font-weight:700;">· order today</span>` : ""}</li>`,
+      text: `${x.supplier}: ${x.lines.length} line(s) for ${jobList}${d ? `, ${deliverPhrase(d.label)}` : ""}${urgent.includes(x) ? " — ORDER TODAY" : ""}` };
+  };
+  const body = `<ul style="margin:0;padding-left:20px;font:15px/24px ${SANS};color:#050a30;">${sorted.map((x) => item(x).html).join("")}${o.workOrders.map((w) => `<li><strong>Electrician</strong> — ${esc(w)}</li>`).join("")}</ul>`
+    + (o.problems.length ? `<p style="font:14px/20px ${SANS};color:#c2410c;">${o.problems.length} thing${o.problems.length === 1 ? " needs" : "s need"} a look — see the page.</p>` : "");
+  const intro = "Drafted from the bookings and their sold quotes since the last check. Nothing has gone to anyone yet — each one waits for approval.";
   const footer = `<a href="${esc(o.link)}" style="color:#f46722;font-weight:700;">Review and approve →</a>`;
-  const text = [intro, "", ...o.orders.map((x) => `${x.name}: ${x.lines} lines${x.total ? `, ${money(x.total)}` : ""}`),
-    ...(o.workOrders ? [`Electrician: ${o.workOrders} work orders`] : []),
-    ...(o.problems.length ? [`${o.problems.length} things couldn't be ordered — see the page.`] : []), "", o.link].join("\n");
-  return { subject, html: shell(`Next week · ${weekLabel(o.week)}`, intro, body, footer), text };
+  const text = [intro, "", ...sorted.map((x) => item(x).text), ...o.workOrders.map((w) => `Electrician: ${w}`),
+    ...(o.problems.length ? [`${o.problems.length} thing(s) need a look — see the page.`] : []), "", o.link].join("\n");
+  return { subject, html: shell("New orders to approve", intro, body, footer), text };
 }

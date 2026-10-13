@@ -60,7 +60,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
       <div className="pt-head">
         <h1>{which === "this" ? "This week" : "Next week"}: orders and the electrician</h1>
         <p>
-          {weekLabel(week)}. Drafted every Wednesday morning from the installs booked that week and their sold quotes. Nothing goes to a
+          {weekLabel(week)}. Drafted every weekday morning from the installs booked and their sold quotes ({which === "this" ? "this week every day" : "next week from Wednesday"}), so a job booked at short notice is on an order to approve the next morning. Nothing goes to a
           supplier or to Geoff until it&rsquo;s approved here; replies come back to {replyTo || "the office"}.
         </p>
         {dbReady && (
