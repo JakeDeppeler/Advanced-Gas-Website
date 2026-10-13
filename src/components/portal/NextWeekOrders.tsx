@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, orderedManually, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, orderedManually, pushToServiceTitan, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
@@ -221,10 +221,45 @@ function OrderedElsewhere({ po }: { po: PoWithLines }) {
   );
 }
 
+/**
+ * Whether a sent order is in ServiceTitan as purchase orders on its jobs, and
+ * the button that puts it there. ServiceTitan's refusal is shown as it said
+ * it; pressing again only makes what's missing.
+ */
+function InServiceTitan({ po }: { po: PoWithLines }) {
+  const { busy, msg, run } = useAct();
+  const made = po.st_pos ?? [];
+  const jobs = po.lines.filter((l) => l.sku_id != null);
+  const groups = new Set(jobs.map((l) => l.job_id)).size;
+  const done = groups > 0 && made.length >= groups;
+  return (
+    <div className="pt-nw__st">
+      <span>
+        <strong>ServiceTitan:</strong>{" "}
+        {made.length ? made.map((m) => (m.number ? (/^po\b/i.test(m.number) ? m.number : `PO ${m.number}`) : "purchase order")).join(", ") : "not in ServiceTitan yet"}
+        {made.length > 0 && !done ? ` · ${groups - made.length} still to go` : ""}
+      </span>
+      {po.st_error && <span className="pt-nw__sterr">{po.st_error}</span>}
+      {!done && (
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => pushToServiceTitan(po.id))}>
+          {busy ? "Putting it in…" : made.length || po.st_error ? "Try ServiceTitan again" : "Put in ServiceTitan"}
+        </button>
+      )}
+      {/* A refusal is already on the order (st_error); only a success needs saying here. */}
+      {msg?.ok && <span className="pt-inline is-ok">{msg.text}</span>}
+    </div>
+  );
+}
+
 function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string; label: string }) {
   const { busy, msg, run } = useAct();
   if (po.status !== "draft") {
-    return po.status === "cancelled" ? null : <div className="pt-nw__foot"><span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span></div>;
+    return po.status === "cancelled" ? null : (
+      <div className="pt-nw__foot">
+        {po.kind === "order" && <InServiceTitan po={po} />}
+        <span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span>
+      </div>
+    );
   }
   return (
     <div className="pt-nw__foot">
