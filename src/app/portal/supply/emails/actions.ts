@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { saveStPoSettings } from "@/lib/ordering/stPurchaseOrders";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { saveSupplierEmail } from "@/lib/ordering/db";
@@ -45,4 +46,17 @@ export async function sendSample(input: { to: string; supplierId?: string }): Pr
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }
+}
+
+/** How sent orders go into ServiceTitan: the type, warehouse, stock business unit, vendors, and whether every order goes automatically. */
+export async function saveStPo(input: { auto: boolean; typeId: number | null; warehouseId: number | null; stockBusinessUnitId: number | null; vendorIds: Record<string, number> }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const id = (v: unknown) => (typeof v === "number" && Number.isInteger(v) && v > 0 ? v : null);
+  const vendorIds: Record<string, number> = {};
+  for (const [k, v] of Object.entries(input.vendorIds ?? {})) if (/^[\w-]{1,40}$/.test(k) && id(v)) vendorIds[k] = v;
+  const ok = await saveStPoSettings({ auto: input.auto === true, typeId: id(input.typeId), warehouseId: id(input.warehouseId), stockBusinessUnitId: id(input.stockBusinessUnitId), vendorIds });
+  if (!ok) return { ok: false, error: "Couldn't save." };
+  revalidatePath("/portal/supply/emails");
+  return { ok: true };
 }

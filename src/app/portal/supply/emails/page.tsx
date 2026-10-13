@@ -7,6 +7,9 @@ import { PortalTabs } from "@/components/portal/PortalTabs";
 import { Locked } from "@/components/portal/Locked";
 import { SupplierEmails } from "@/components/portal/SupplierEmails";
 import { loadOrderingSettings, loadSuppliers } from "@/lib/ordering/db";
+import { loadStPoSettings, stPoOptions, vendorsByName } from "@/lib/ordering/stPurchaseOrders";
+import { StPoForm } from "@/components/portal/ordering/StPoForm";
+import { sbSelect } from "@/lib/dashboard/db";
 import { DEFAULT_ORDER_INTRO, DEFAULT_ORDER_SIGNOFF, DEFAULT_WORK_INTRO, type Supplier } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
@@ -28,6 +31,15 @@ export default async function SupplierEmailsPage() {
     dbReady = false;
   }
 
+  // What ServiceTitan files purchase orders under, read live; the business
+  // units come from the sync, which already has them.
+  const [stPo, opts, found, bus] = await Promise.all([
+    loadStPoSettings(),
+    stPoOptions(),
+    vendorsByName().catch(() => ({} as Record<string, number | null>)),
+    sbSelect<{ id: number; name: string }>("st_business_units", "select=id,name&active=eq.true&order=name.asc").catch(() => []),
+  ]);
+
   return (
     <PortalShell user={user}>
       <PortalBack href="/portal/supply" label="Supply" />
@@ -46,6 +58,13 @@ export default async function SupplierEmailsPage() {
         alwaysCc={replyTo || "The office"}
         defaults={{ orderIntro: DEFAULT_ORDER_INTRO, orderSignoff: DEFAULT_ORDER_SIGNOFF, workIntro: DEFAULT_WORK_INTRO }}
       />
+      <div className="pk" style={{ marginTop: 18 }}>
+        <StPoForm initial={stPo}
+          types={opts.ok ? opts.types : []} warehouses={opts.ok ? opts.warehouses : []} vendors={opts.ok ? opts.vendors : []}
+          businessUnits={bus.map((b) => ({ id: b.id, name: b.name.trim() }))}
+          suppliers={suppliers.filter((x) => x.method !== "work_order").map((x) => ({ id: x.id, name: x.name }))}
+          found={found} error={opts.ok ? null : opts.error} />
+      </div>
     </PortalShell>
   );
 }

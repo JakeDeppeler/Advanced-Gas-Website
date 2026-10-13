@@ -6,6 +6,7 @@ import { can } from "@/lib/portal/caps";
 import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
+import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -216,4 +217,21 @@ export async function orderHeldNow(input: { holdId: number; which: "next" | "thi
   } catch { /* released either way; the next draft picks it up */ }
   done();
   return { ok: true, note: "Back on the order." };
+}
+
+/** Put a sent order into ServiceTitan as purchase orders on its jobs (see stPurchaseOrders). */
+export async function pushToServiceTitan(id: number): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(id)) return { ok: false, error: "Which order?" };
+  try {
+    const r = await pushOrderToServiceTitan(id);
+    done();
+    revalidatePath("/portal/stock");
+    return r.ok
+      ? { ok: true, note: `In ServiceTitan: ${r.made.map((m) => (m.number ? (/^po\b/i.test(m.number) ? m.number : `PO ${m.number}`) : "a purchase order")).join(", ")}.` }
+      : { ok: false, error: r.error };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
 }

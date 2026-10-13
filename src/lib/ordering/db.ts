@@ -32,6 +32,9 @@ export type PurchaseOrder = {
   send_error: string | null;
   cc_emails: string[] | null;
   updated_at: string;
+  /** What ServiceTitan made of it (0073): one purchase order per job, and one for stock. */
+  st_pos?: Array<{ job_id: number | null; st_id: number | null; number: string | null }> | null;
+  st_error?: string | null;
 };
 
 export type PoLine = PlannedLine & { id: number; po_id: number };

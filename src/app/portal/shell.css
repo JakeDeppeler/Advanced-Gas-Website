@@ -724,3 +724,7 @@ a.pk-row:hover { background: var(--sunken); }
 .pk-pick button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--seg-shadow, 0 1px 3px rgba(0,0,0,.12)); }
 .pk-btn.bad { background: var(--bad-f); color: #fff; }
 .pk-drive i.none { background: var(--ink4); }
+/* A sent order's place in ServiceTitan: what it became, ServiceTitan's refusal if any, and the button. */
+.pn .pt-nw__st { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; color: var(--ink2); margin-bottom: 8px; }
+.pn .pt-nw__st strong { color: var(--ink); }
+.pn .pt-nw__sterr { flex-basis: 100%; color: var(--bad); font-size: 13px; }
