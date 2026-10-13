@@ -571,6 +571,13 @@ function ReeceLines({ po }: { po: PoWithLines }) {
 function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
+  // The short version first: what, for which jobs, how much, how it gets here.
+  // The lines, delivery and copies open underneath — straight away when a
+  // line needs fixing, so a problem is never folded away.
+  const jobs = [...new Map(po.lines.filter((l) => l.job_id != null).map((l) => [l.job_id, l])).values()];
+  const stock = po.lines.filter((l) => l.job_id == null).length;
+  const flagged = needsModel && po.lines.some((l) => modelLooksLikeName(l.supplier_model ?? l.sku_name ?? ""));
+  const firstInstall = po.lines.map((l) => l.appointment_start ?? l.install_date).filter(Boolean).sort()[0];
   return (
     <section className={`pt-panel pt-nw__card${po.status === "cancelled" ? " is-muted" : ""}`}>
       <header className="pt-nw__cardhead">
@@ -578,6 +585,17 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
         <Status po={po} />
         <span className="pt-nw__po">{po.po_number}</span>
       </header>
+      <p className="pt-nw__sum">
+        <span><b>{po.lines.length}</b> line{po.lines.length === 1 ? "" : "s"}</span>
+        {jobs.length > 0 && <span>{jobs.length === 1 ? `Job ${jobs[0].job_number}${jobs[0].customer_name ? ` · ${jobs[0].customer_name}` : ""}` : `${jobs.length} jobs: ${jobs.map((j) => j.job_number).join(", ")}`}</span>}
+        {stock > 0 && <span>{stock} for the factory</span>}
+        {firstInstall && <span>first install {installWhen(po.lines.find((l) => (l.appointment_start ?? l.install_date) === firstInstall)!)}</span>}
+        <span>{po.pickup ? "We pick it up" : po.delivery_to_site ? "To the site" : "To the factory"}</span>
+        <span><b>{money(total)}</b> ex GST</span>
+      </p>
+      {flagged && <p className="pt-nw__flag" style={{ margin: "0 0 6px" }}>A line has no model number — open the lines to see which.</p>}
+      <details className="pt-nw__more" open={flagged || undefined}>
+        <summary>Show the lines{po.status === "draft" ? ", delivery and copies" : " and where it went"}</summary>
       <p className="pt-panel__sub">
         {po.status === "sent" ? `Sent to ${po.sent_to}${po.approved_by ? ` by ${po.approved_by}` : ""}.` : howItGoes(supplier)}
       </p>
@@ -618,6 +636,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
       {po.status === "draft" && <AddStock po={po} />}
       <Delivery po={po} delivery={delivery} />
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
+      </details>
       <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} />
     </section>
   );
@@ -638,6 +657,11 @@ function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
         <strong>{d?.start_at ? dayTimeLabel(d.start_at) : d ? dayLabel(d.date) : ""}</strong>
         {" · "}{supplier?.name ?? "Electrician"} · {po.status === "sent" ? `sent to ${po.sent_to}` : howItGoes(supplier)}
       </p>
+      {d && (d.crew.length === 0 || (!d.customer_phone && !d.customer_email)) && (
+        <p className="pt-nw__flag" style={{ margin: "0 0 6px" }}>{d.crew.length === 0 ? "No crew assigned in ServiceTitan." : "No customer phone or email in ServiceTitan."} Open the details to see.</p>
+      )}
+      <details className="pt-nw__more" open={!!d && (d.crew.length === 0 || (!d.customer_phone && !d.customer_email)) || undefined}>
+        <summary>Show the site, the job and the customer</summary>
       {d && (
         <dl className="pt-nw__wo">
           <dt>Site</dt><dd>{d.site_address}</dd>
@@ -662,6 +686,7 @@ function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
         </dl>
       )}
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
+      </details>
       <Buttons po={po} supplier={supplier} testTo={testTo} label={ref} />
     </section>
   );
@@ -724,7 +749,7 @@ export function NextWeekOrders(props: {
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
           {busy ? "Drafting…" : shown.some((o) => o.status === "draft") ? "Redraft from the latest bookings" : "Draft now"}
         </button>
-        <span className="pt-nw__muted">Redrafting only touches drafts. Anything already sent stays as it went; new jobs become a top-up order.</span>
+        <span className="pt-nw__muted">Redraft only touches drafts — sent orders stay as they went.</span>
         <a className="pt-btn pt-btn--ghost pt-btn--sm" href="/portal/supply/emails">Supplier emails &amp; samples</a>
         {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
       </div>}

@@ -728,3 +728,40 @@ a.pk-row:hover { background: var(--sunken); }
 .pn .pt-nw__st { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 14px; color: var(--ink2); margin-bottom: 8px; }
 .pn .pt-nw__st strong { color: var(--ink); }
 .pn .pt-nw__sterr { flex-basis: 100%; color: var(--bad); font-size: 13px; }
+/* Marketing › Files: where you are, the folders as cards, the files as rows. */
+.pk-files-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pk-crumbs { font-size: 15px; font-weight: 700; color: var(--ink2); }
+.pk-crumbs a { color: var(--ink); text-decoration: none; }
+.pk-crumbs a:hover { text-decoration: underline; }
+.pk-folders { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.pk-folder { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.pk-folder-go { display: flex; flex-direction: column; gap: 4px; color: var(--ink); text-decoration: none; }
+.pk-folder-go:hover b { text-decoration: underline; }
+.pk-folder-ic { color: var(--ink2); }
+.pk-linkbtn { border: 0; background: none; padding: 0; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink3); cursor: pointer; align-self: flex-start; }
+.pk-linkbtn:hover { color: var(--ink); text-decoration: underline; }
+.pk-filelist { display: grid; }
+.pk-file { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.pk-file:first-child { border-top: 0; }
+.pk-file .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pk-file .t b { overflow-wrap: anywhere; }
+.pk-file .t span { font-size: 13px; color: var(--ink2); }
+.pk-filetype { flex: none; width: 44px; height: 44px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: 0.02em; background: var(--quiet); color: var(--ink2); }
+/* Neutral on purpose: the good/bad colours are kept for status. */
+.pk-filetype.t-pdf { background: var(--mark); color: var(--on-mark); }
+.pk-file-acts { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+label.pk-btn { cursor: pointer; }
+@media (max-width: 640px) {
+  .pk-file { flex-wrap: wrap; }
+  .pk-file-acts { width: 100%; justify-content: flex-start; }
+}
+/* Orders, short first: a line of what it is, then the detail opens underneath. */
+.pn .pt-nw__sum { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 2px 0 8px; font-size: 14px; color: var(--ink2); }
+.pn .pt-nw__sum b { color: var(--ink); }
+.pn .pt-nw__more { margin: 0 0 10px; }
+.pn .pt-nw__more > summary { cursor: pointer; font-size: 13.5px; font-weight: 700; color: var(--ink2); padding: 6px 0; list-style: none; }
+.pn .pt-nw__more > summary::-webkit-details-marker { display: none; }
+.pn .pt-nw__more > summary::before { content: "›"; display: inline-block; margin-right: 6px; transition: transform .15s; }
+.pn .pt-nw__more[open] > summary::before { transform: rotate(90deg); }
+.pn .pt-nw__more > summary:hover { color: var(--ink); }
+.pk-file-acts .pk-linkbtn { align-self: center; }

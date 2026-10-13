@@ -26,5 +26,7 @@ export async function GET(req: Request) {
   const urls = await signedUrls([path], 300);
   const url = urls.get(path);
   if (!url) return new NextResponse("Not found", { status: 404 });
-  return NextResponse.redirect(url);
+  // ?dl=Name saves the file under that name instead of opening it in the browser.
+  const dl = new URL(req.url).searchParams.get("dl");
+  return NextResponse.redirect(dl ? `${url}${url.includes("?") ? "&" : "?"}download=${encodeURIComponent(dl.slice(0, 120))}` : url);
 }
