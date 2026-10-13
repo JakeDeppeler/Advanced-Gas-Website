@@ -248,6 +248,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       also: ["hours", "time", "how long", "job type", "quoted time", "daily pace", "standard", "allowed", "on the tools"],
     },
     {
+      href: "/portal/board/hold", label: "Held work", blurb: "Which job tags mean a job is waiting on something", band: "board", icon: "clock",
+      also: ["on hold", "held", "waiting", "stuck", "tags", "tag", "blocked", "awaiting", "not ordered", "quotation required", "chase"],
+    },
+    {
       href: "/portal/board/reports", label: "Reports", blurb: "The day, the week and the month, kept and emailed", band: "board", icon: "doc",
       also: ["report", "daily report", "weekly report", "monthly report", "email", "summary"],
     },

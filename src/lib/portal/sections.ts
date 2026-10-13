@@ -100,6 +100,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Targets & commission", href: "/portal/finance/board" },
       { label: "Sounds", href: "/portal/board/sounds" },
       { label: "Standard times", href: "/portal/board/times" },
+      { label: "Held work", href: "/portal/board/hold" },
       { label: "Reports", href: "/portal/board/reports" },
     ],
   },

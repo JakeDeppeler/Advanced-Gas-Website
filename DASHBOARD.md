@@ -123,22 +123,22 @@ invoices had their lines touched in bulk — so it can't carry the year.
 
 ## The pages
 
-The board cycles every 20 seconds through six pages. Past about eight tiles
+The board cycles every 30 seconds through nine pages. Past about eight tiles
 nothing on a 1080p panel stays readable from four metres, so it rotates rather
 than shrinks.
 
 The chrome is the portal's: cream ground, navy for the one card per page that
 matters most, Archivo for every figure, and the brand orange reserved for
-attention. Where it is up to in the cycle is six dashes top-right and the orange
-run under the header, which fills a sixth at a time — the room can see where it
-is without reading six page names, which is what the tab strip asked of it.
+attention. Where it is up to in the cycle is one dash per page top-right and the orange
+run under the header, which fills a page at a time — the room can see where it
+is without reading nine page names, which is what the tab strip asked of it.
 
 **Today** is two rows of three. Invoiced today, Sold today (navy) and jobs
 booked today across the top, with Sold today in the middle because it is the
 figure the room watches and the centre is where the eye lands first; quoted today, close rate and money in beneath, each
 with the two lines of context that stop a bare percentage being guessed at.
 
-Four of the six are cut down the middle: the figure on the left, its breakdown
+Four of the six tiles on Today are cut down the middle: the figure on the left, its breakdown
 on the right, a rule between. Invoiced today carries how long each billed job
 had waited; jobs booked carries the kinds of work booked, because "19 jobs
 booked" is a number and four split systems and a ducted heater is a day. Quoted
@@ -282,6 +282,45 @@ this dial is carried by hue alone.
 what was written today and what is still out, biggest first. Both lists are one
 row per **job**, at the average of the options put in front of that customer,
 with the option count and ServiceTitan's own job number beside it.
+
+**On hold** is open work that is waiting on something, split by whose move it
+is. Three figures — jobs on us, jobs on the customer, and how long the oldest
+has been sitting — over what is being waited on (biggest first, with the age of
+the oldest in each pile) and the jobs themselves (ours first, then oldest).
+
+The reason comes from ServiceTitan's job tags, because nothing else in it says
+why a job has stopped. `st_jobs.raw` carries `tagTypeIds` and `st_job_tags`
+(migration 0071) carries the names; the office uses tags for exactly this, and
+also for half a dozen other things. So which of its 44 tags mean "held" is a
+setting — the portal's **Held work** page (`/portal/board/hold`) — and the
+default, when nothing is set, is the office's own grammar of waiting: *awaiting*
+something, something *required* or *needed*, something *not ordered* or *not
+booked*, a *problem*, a *voicemail* left. That picks out eleven of the 44; the
+subtitle says "default tag list" until somebody sets it, so the room knows which
+it is reading. `scripts/check-hold.ts` runs the rules over all 44 names.
+
+**Ours or theirs** is the only cut the page is built on, because it is the only
+one that changes what anybody does: 44 quotes sitting with customers are a round
+of phone calls, and 16 installs with the materials never ordered are a purchase
+order. A job tagged both ways counts as ours — there is something here we can
+do, and filing it under the customer would park it behind a call that isn't ours
+to make.
+
+Two things it deliberately does not do:
+
+- **Values are a floor, not a total.** A held job has a figure only where it
+  carries a quote, at the same average-of-the-options rule the Quotes page uses,
+  under the same $50,000 cap. Twenty-five of the seventy-nine have none, which
+  the panel says in words. The big figure on each side is therefore the
+  **count**, which is complete; the money is the sub-line, which never is.
+- **It leaves out the 92 untagged `InProgress` jobs**, which average 77 days.
+  Those are jobs nobody closed out, not jobs anybody is waiting on, and putting
+  them on the wall would bury thirty-six real ones under a records problem.
+
+One tag was left out of the default on purpose: **Rebates 💰**, on 18 open jobs.
+It may well be a hold, but nothing in the name says so, and a tile that counts
+it is asserting something nobody here has confirmed. It is one click on the
+portal page if it is.
 
 **Team** is sold, out of quoted, per person. Sold is the headline and quoted is
 the line under it; it used to be the other way round, on the grounds that too

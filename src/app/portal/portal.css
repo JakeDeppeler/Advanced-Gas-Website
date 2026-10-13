@@ -4721,6 +4721,20 @@ a.pt-fig:hover { transform: translateY(-2px); }
 .pt-times__ok { font-size: 0.78rem; font-weight: 700; color: var(--pt-good); }
 .pt-times__err { font-size: 0.78rem; font-weight: 700; color: var(--pt-bad); }
 
+/* ------------------------------------------------- which tags mean held */
+/* The same shape as the standard times: a long list, the rows that matter at
+   the top, and each row saved as it is touched. Tags on no open job are dimmed
+   rather than hidden — one that has not come up this month is still one
+   somebody may want to mark. */
+.pt-hold__n { text-align: right; white-space: nowrap; }
+.pt-hold__set { text-align: right; white-space: nowrap; }
+.pt-hold__set .pt-seg { align-self: center; }
+.pt-hold tr.is-quiet td { opacity: 0.55; }
+/* Ours and theirs are not better and worse, so neither takes the good/bad
+   fills: the segment's own navy marks whichever is chosen, and the label says
+   which it is. */
+.pt-hold__reset { min-height: 34px; padding: 0 12px; font-size: 13px; }
+
 /* ------------------------------------------------------------ how we went */
 .pt-rev__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 0 0 16px; }
 .pt-seg a.pt-seg__b { text-decoration: none; }

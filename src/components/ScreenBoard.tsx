@@ -38,6 +38,7 @@ const GRID_CLASS: Record<(typeof BOARD_PAGES)[number], string> = {
   Today: "screen__grid--today",
   Pace: "screen__grid--pace",
   Quotes: "screen__grid--quotes",
+  "On hold": "screen__grid--hold",
   Invoices: "screen__grid--invoices",
   "Daily pace": "screen__grid--daily",
   Team: "screen__grid--team",
@@ -87,6 +88,18 @@ const SUBTITLES: Record<(typeof PAGES)[number], (m: Metrics) => string> = {
     return `What the ${goal} goal needs of every step${rateNote(m)}${day ? ` · ${day}` : ""}`;
   },
   Quotes: () => "Written today, and what's still out",
+  // Says whose move it is, because that is the cut the page is built on, and
+  // says when the tag list is still the default one rather than the office's.
+  "On hold": (m) => {
+    const h = m.onHold;
+    if (!h) return "Open work waiting on something";
+    const total = h.jobsOnUs + h.jobsOnThem;
+    return (
+      `${count(total)} open ${total === 1 ? "job" : "jobs"} waiting on something \u00b7 ` +
+      `${count(h.jobsOnUs)} on us, ${count(h.jobsOnThem)} on the customer` +
+      (h.configured ? "" : " \u00b7 default tag list")
+    );
+  },
   // Names whose job it is, because the page is a work list rather than a score:
   // everything on it is something one person in the office does next.
   Invoices: () => "Money to bill, money owed to us, and what's overdue · one person's job",
@@ -524,6 +537,7 @@ export function ScreenBoard({
         {name === "Today" && <TodayPage m={m} live={live} />}
         {name === "Pace" && <PacePage m={m} live={live} now={now} />}
         {name === "Quotes" && <QuotesPage m={m} live={live} />}
+        {name === "On hold" && <OnHoldPage m={m} live={live} />}
         {name === "Invoices" && <InvoicesPage m={m} live={live} />}
         {name === "Daily pace" && <DailyPacePage m={m} live={live} now={now} />}
         {name === "Team" && <TeamPage m={m} live={live} />}
@@ -1435,6 +1449,167 @@ function waitedFor(iso: string): string {
 function avgOptions(options: number, jobs: number): string {
   const a = options / jobs;
   return Number.isInteger(a) ? String(a) : a.toFixed(1);
+}
+
+/**
+ * On hold: open work that is waiting on something, and what it is waiting on.
+ *
+ * The page is built on one cut — **ours or theirs**. Forty-four quotes sitting
+ * with customers and sixteen installs with the materials never ordered are both
+ * "held", and they are not the same problem: one is a phone call somebody here
+ * makes, the other is a purchase order somebody here raises. A single total of
+ * sixty is a number nobody can act on, so the two never share a tile, and the
+ * side is written in words as well as coloured — ours reads as the serious one
+ * because it is the half the room can do something about before five o'clock.
+ *
+ * Values are a floor, not a total: a held job carries a figure only where it
+ * has been quoted, and the header says how many have none. That is the reason
+ * the big figure on each side is the **count** and the money is the sub-line —
+ * the count is complete and the money never is.
+ */
+function OnHoldPage({ m, live }: { m: Metrics; live: Live }) {
+  const h = m.onHold;
+
+  if (!live.st || !h) {
+    return (
+      <div className="tile c12 hold__empty">
+        <span className="tile__label">{live.st ? "Nothing waiting on anything" : "Waiting on ServiceTitan"}</span>
+        <span className="hold__emptysub">
+          {live.st
+            ? "No open job carries a tag that means it is held."
+            : "The held list fills from the next ServiceTitan sync."}
+        </span>
+      </div>
+    );
+  }
+
+  const oldest = h.jobs[0] ?? null;
+  // Ours first and oldest first, which sortHeld has already done. Five rows is
+  // what fits at 1080p in this row height; the header carries the rest.
+  const rows = h.jobs.slice(0, 5);
+  // Five bands, which is what the panel's height takes. Each is two lines.
+  const reasons = h.reasons.slice(0, 5);
+  const moreReasons = h.reasons.length - reasons.length;
+
+  /**
+   * Ours is the half somebody here can clear today, so it carries the weight.
+   *
+   * Its own pair of classes rather than the pace palette: good/warning/serious
+   * /critical is reserved for how a figure is tracking, and whose move a job is
+   * is not that. The word is always printed, so the colour is the second
+   * signal here as everywhere else.
+   */
+  const sideWord = (s: "us" | "them") => (s === "us" ? "ours" : "theirs");
+  const sideCls = (s: "us" | "them") => (s === "us" ? "is-us" : "is-them");
+  /** The age band. Thirty days is a job that has stopped being chased. */
+  const ageCls = (d: number) => (d >= 30 ? "is-bad" : d >= 14 ? "is-warn" : "");
+
+  return (
+    <>
+      <HeroCard
+        navy
+        label="On us"
+        value={count(h.jobsOnUs)}
+        foot={
+          h.jobsOnUs === 0
+            ? "nothing is waiting on this office"
+            : `${h.jobsOnUs === 1 ? "job" : "jobs"} we have to move · ${plain(h.valueOnUs)} quoted`
+        }
+      />
+      <HeroCard
+        label="On the customer"
+        value={count(h.jobsOnThem)}
+        foot={
+          h.jobsOnThem === 0
+            ? "nothing is waiting on a customer"
+            : `${h.jobsOnThem === 1 ? "quote" : "quotes"} out with them · ${plain(h.valueOnThem)} quoted`
+        }
+      />
+      <HeroCard
+        label="Longest held"
+        value={oldest ? `${count(oldest.ageDays)}d` : NA}
+        foot={
+          /* What it is waiting on, not what kind of job it is. The card is the
+             one place the oldest job gets named, and "Commercial – Install ·
+             Macleod" does not say why it has been sitting for ninety days. */
+          oldest ? [oldest.reasons[0], oldest.where].filter(Boolean).join(" · ") : undefined
+        }
+      />
+
+      {/* What is being waited on, ours first. The count is the figure; the
+          money beside it is only the quoted part of it. */}
+      <div className="tile hold__reasons">
+        <div className="tile__head">
+          <span className="tile__title">What we&rsquo;re waiting on</span>
+          <span className="tile__sub">
+            {h.unpriced > 0 ? `${count(h.unpriced)} of them carry no quote yet` : "every one of them is quoted"}
+          </span>
+        </div>
+        <div className="hold__bands">
+          {reasons.map((r) => (
+            <span className="hold__band" key={r.name}>
+              <span className="hold__bname">{r.name}</span>
+              <span className={`hold__side ${sideCls(r.side)}`}>{sideWord(r.side)}</span>
+              <b className="hold__bjobs">{count(r.jobs)}</b>
+              <span className={`hold__bage ${ageCls(r.oldestDays)}`}>{r.oldestDays}d</span>
+              <span className="hold__bval">{r.value > 0 ? money(r.value) : "—"}</span>
+            </span>
+          ))}
+        </div>
+        {moreReasons > 0 ? (
+          <span className="tile__sub hold__more">
+            and {count(moreReasons)} other {moreReasons === 1 ? "reason" : "reasons"}
+          </span>
+        ) : null}
+      </div>
+
+      {/* The jobs themselves, ours before theirs and oldest first — the order
+          they get picked up in. Names and suburbs, like the chase list: a job
+          nobody can identify is one nobody rings. */}
+      <div className="tile hold__list">
+        <div className="tile__head">
+          <span className="tile__title">Sitting longest</span>
+          <span className="tile__sub">ours first, then oldest</span>
+        </div>
+        <div className="quotes">
+          {rows.map((j) => (
+            <div className="quote hold__row" key={j.jobId}>
+              {/* Who, then what it is waiting on, stacked in one wide column.
+                  The reason had a column of its own and did not fit in it: the
+                  office's tag names run to "Awaiting Further Instructions ⏳",
+                  and a column sized for that left nothing for the customer.
+                  Stacked, the reason leads its line and the job type and suburb
+                  after it are what give way. One reason and a count of the
+                  rest, because a job tagged four ways is still stuck behind the
+                  first thing on the list. */}
+              <span className="quote__label hold__who">
+                <span className="hold__name">{j.who ?? j.what}</span>
+                <span className="hold__what">
+                  <b className="hold__why">
+                    {j.reasons[0] ?? ""}
+                    {j.reasons.length > 1 ? ` +${j.reasons.length - 1}` : ""}
+                  </b>
+                  {` · ${j.what}`}
+                  {j.where ? ` · ${j.where}` : ""}
+                  {j.sold ? " · sold" : ""}
+                </span>
+              </span>
+              <span className={`hold__age ${ageCls(j.ageDays)}`}>{j.ageDays} days</span>
+              <span className="quote__value">
+                {j.value != null ? plain(j.value) : <span className="hold__unpriced">no quote</span>}
+              </span>
+            </div>
+          ))}
+        </div>
+        {h.jobs.length > rows.length ? (
+          <span className="tile__sub hold__backlog">
+            the oldest {rows.length} of {count(h.jobs.length)} ·{" "}
+            <b>{count(h.jobs.filter((x) => x.ageDays >= 30).length)} over a month</b>
+          </span>
+        ) : null}
+      </div>
+    </>
+  );
 }
 
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {

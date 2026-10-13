@@ -17,6 +17,7 @@
     "check:pairing": "npx tsx scripts/check-pairing.ts",
     "check:shape": "npx tsx scripts/check-shape.ts",
     "check:daily": "npx tsx scripts/check-daily.ts",
+    "check:hold": "npx tsx scripts/check-hold.ts",
     "check:theme": "npx tsx scripts/check-theme.ts",
     "check:sold": "npx tsx scripts/check-sold-margin.ts",
     "check:ordering": "npx tsx scripts/check-ordering.ts"
