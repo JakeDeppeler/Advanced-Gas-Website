@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
-import { addStockLine, cancelDraft, draftFor, draftWeek, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
+import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrdered, releaseHold, removeStockLine, searchStock, setDelivery, setOrderCc, setPickup, type StockItem } from "@/lib/ordering/db";
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
 
@@ -170,4 +170,50 @@ export async function removeStock(lineId: number): Promise<ActionResult> {
   const ok = await removeStockLine(lineId);
   done();
   return ok ? { ok: true } : { ok: false, error: "Only stock on a draft can be taken off." };
+}
+
+const lineIds = (ids: unknown) => (Array.isArray(ids) ? ids.filter(isId).slice(0, 200) : []);
+
+/** These lines were ordered some other way: they come off the draft and count as ordered. */
+export async function linesOrdered(input: { id: number; lineIds: number[]; how?: string }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const ids = lineIds(input.lineIds);
+  if (!isId(input.id) || !ids.length) return { ok: false, error: "Which lines?" };
+  try {
+    const r = await markLinesOrdered(input.id, ids, me.name || me.email, String(input.how ?? "").trim().slice(0, 120));
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Leave these lines for next week's order. */
+export async function holdForNextWeek(input: { id: number; lineIds: number[] }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const ids = lineIds(input.lineIds);
+  if (!isId(input.id) || !ids.length) return { ok: false, error: "Which lines?" };
+  try {
+    const r = await holdLines(input.id, ids, me.name || me.email);
+    done();
+    return r;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** Changed our minds: order a held line now. It's drafted straight back onto this week's or next week's order. */
+export async function orderHeldNow(input: { holdId: number; which: "next" | "this" }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(input.holdId)) return { ok: false, error: "Which one?" };
+  const ok = await releaseHold(input.holdId);
+  if (!ok) return { ok: false, error: "That isn't held any more." };
+  try {
+    await draftWeek(input.which === "this" ? thisWeek(new Date()) : nextWeek(new Date()));
+  } catch { /* released either way; the next draft picks it up */ }
+  done();
+  return { ok: true, note: "Back on the order." };
 }
