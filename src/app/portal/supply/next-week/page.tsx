@@ -11,6 +11,7 @@ import {
   appointmentsSynced, listWeekOrders, loadAlreadyOrdered, loadHolds, loadOrderingSettings, loadSuppliers, loadWeekInputs, type Hold,
   type PoWithLines,
 } from "@/lib/ordering/db";
+import { loadJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
 import { linesTotal, nextWeek, planWeek, thisWeek, weekLabel, type Problem, type Supplier, lineKey } from "@/lib/ordering/plan";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let replyTo = "";
   let delivery: { factoryInstructions?: string; deliveryNote?: string; pickupInstructions?: string } = {};
   let dbReady = true;
+  let noted: string[] = [];
   try {
     const [o, s, inputs, already, sy, settings, h] = await Promise.all([
       listWeekOrders(week), loadSuppliers(), loadWeekInputs(week), loadAlreadyOrdered(), appointmentsSynced(), loadOrderingSettings(), loadHolds(),
@@ -47,6 +49,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     orders = o;
     holds = h;
     suppliers = s;
+    noted = await loadJobNoteSuppliers(s).catch(() => []);
     synced = sy;
     replyTo = settings.replyTo;
     delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
@@ -121,6 +124,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         suppliers={suppliers}
         problems={problems}
         holds={holds}
+        notedSuppliers={noted}
         testTo={user.email}
         alwaysCc={replyTo}
         delivery={delivery}

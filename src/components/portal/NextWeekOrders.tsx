@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, orderedManually, pushToServiceTitan, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, holdForNextWeek, linesOrdered, orderHeldNow, noteOnJobs, orderedManually, pushToServiceTitan, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
 import type { Hold, PoLine, StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { byJob, dayLabel, dayTimeLabel, neededBy, nextWeek, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
@@ -251,12 +251,46 @@ function InServiceTitan({ po }: { po: PoWithLines }) {
   );
 }
 
-function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string; label: string }) {
+/**
+ * The note and the order PDF on each job in ServiceTitan, for the suppliers
+ * that have it (Reclaim and the electrician unless changed). It happens by
+ * itself on sending; the button is for a refusal, or an order sent before.
+ */
+function OnTheJobs({ po }: { po: PoWithLines }) {
+  const { busy, msg, run } = useAct();
+  const jobs = po.kind === "work_order" ? (po.details?.jobs ?? []).map((j) => ({ id: j.job_id, n: j.job_number })) : po.lines.filter((l) => l.job_id != null).map((l) => ({ id: l.job_id as number, n: l.job_number }));
+  const uniq = [...new Map(jobs.map((j) => [j.id, j])).values()];
+  if (!uniq.length || po.status !== "sent") return null;
+  const done = po.st_notes ?? [];
+  const full = uniq.filter((j) => done.some((d) => d.job_id === j.id && d.note && d.file));
+  const all = full.length === uniq.length;
+  const what = po.kind === "work_order" ? "work order" : "order";
+  return (
+    <div className="pt-nw__st">
+      <span>
+        <strong>On the job:</strong>{" "}
+        {all ? `note and ${what} on ${full.map((j) => j.n ?? j.id).join(", ")}`
+          : full.length ? `on ${full.map((j) => j.n ?? j.id).join(", ")} · ${uniq.length - full.length} still to go`
+          : "not on the job in ServiceTitan yet"}
+      </span>
+      {po.st_note_error && <span className="pt-nw__sterr">{po.st_note_error}</span>}
+      {!all && (
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => noteOnJobs(po.id))}>
+          {busy ? "Adding…" : full.length || po.st_note_error ? "Try the job note again" : `Add note & ${what} to the job`}
+        </button>
+      )}
+      {msg?.ok && <span className="pt-inline is-ok">{msg.text}</span>}
+    </div>
+  );
+}
+
+function Buttons({ po, supplier, testTo, label, noted }: { po: PoWithLines; supplier: Supplier | undefined; testTo: string; label: string; noted?: boolean }) {
   const { busy, msg, run } = useAct();
   if (po.status !== "draft") {
     return po.status === "cancelled" ? null : (
       <div className="pt-nw__foot">
         {po.kind === "order" && <InServiceTitan po={po} />}
+        {(noted || (po.st_notes?.length ?? 0) > 0 || po.st_note_error) && <OnTheJobs po={po} />}
         <span className="pt-nw__actions"><TestSend po={po} testTo={testTo} /></span>
       </div>
     );
@@ -496,7 +530,7 @@ function useLiveRefresh(ms: number) {
   }, [router, ms]);
 }
 
-type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings };
+type CardProps = { po: PoWithLines; supplier: Supplier | undefined; testTo: string; alwaysCc: string; delivery: DeliverySettings; noted?: boolean };
 
 const installWhen = (l: { appointment_start: string | null; install_date: string | null }) =>
   l.appointment_start ? when(l.appointment_start) : l.install_date ? dayLabel(l.install_date) : "—";
@@ -568,7 +602,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
   );
 }
 
-function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
+function OrderCard({ po, supplier, testTo, alwaysCc, delivery, noted }: CardProps) {
   const total = linesTotal(po.lines);
   const needsModel = supplier?.method === "email_form";
   // The short version first: what, for which jobs, how much, how it gets here.
@@ -637,12 +671,12 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
       <Delivery po={po} delivery={delivery} />
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
       </details>
-      <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} noted={noted} />
     </section>
   );
 }
 
-function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
+function WorkOrderCard({ po, supplier, testTo, alwaysCc, noted }: CardProps) {
   const d = po.details;
   // A work order is known by its job and address — that's what Geoff files it
   // under — so that is its heading, not the internal order number.
@@ -687,7 +721,7 @@ function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
       )}
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
       </details>
-      <Buttons po={po} supplier={supplier} testTo={testTo} label={ref} />
+      <Buttons po={po} supplier={supplier} testTo={testTo} label={ref} noted={noted} />
     </section>
   );
 }
@@ -709,11 +743,14 @@ export function NextWeekOrders(props: {
   delivery: DeliverySettings;
   /** Lines left for next week's order. */
   holds: Hold[];
+  /** Suppliers whose sent orders are noted on their jobs in ServiceTitan (stJobNotes). */
+  notedSuppliers?: string[];
 }) {
   const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
   const view = props.view ?? "todo";
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
+  const noted = new Set(props.notedSuppliers ?? []);
   useLiveRefresh(120_000);
 
   if (!dbReady) {
@@ -804,10 +841,10 @@ export function NextWeekOrders(props: {
       )}
 
       {goods.length > 0 && <h2 className="pt-nw__section">Supplier orders</h2>}
-      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} />)}
+      {goods.map((po) => <OrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />)}
 
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
-      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} />)}
+      {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} noted={noted.has(po.supplier_id)} />)}
 
       {view === "todo" && cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>
