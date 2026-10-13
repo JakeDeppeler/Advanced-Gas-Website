@@ -163,6 +163,48 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
 }
 
 /**
+ * Ordered some other way — a phone call, the supplier's site, a counter
+ * pickup. Recorded as sent, with nothing emailed, so its lines count as
+ * ordered: they won't be drafted again, and if the job moves the move is
+ * flagged like any other order's.
+ */
+export async function markOrderedManually(id: number, who: string, how: string): Promise<SendResult> {
+  const now = new Date().toISOString();
+  const claimed = await sbUpdateReturning<PurchaseOrder>("purchase_orders", `id=eq.${id}&status=eq.draft`, {
+    status: "sent", approved_by: who, approved_at: now, sent_at: now, send_error: null, updated_at: now,
+    sent_to: `Ordered manually${how ? ` — ${how}` : ""}`,
+  });
+  return claimed.length ? { ok: true, note: "Marked as ordered. Nothing was emailed." } : { ok: false, error: "Only a draft can be marked — it may have just been sent." };
+}
+
+/**
+ * Every draft on the page, one after another. Reece is left out: its lines
+ * go into maX by hand, so marking it ordered is only true once someone has.
+ * One failure doesn't stop the rest; each failed draft keeps its reason, as
+ * it would from its own button.
+ */
+export async function approveAllDrafts(ids: number[], who: string): Promise<SendResult> {
+  const sent: string[] = [];
+  const failed: string[] = [];
+  let skipped = 0;
+  for (const id of ids) {
+    const po = await sbSelectOne<{ status: string; supplier_id: string; kind: string; po_number: string }>("purchase_orders", `select=status,supplier_id,kind,po_number&id=eq.${id}`);
+    if (!po || po.status !== "draft") continue;
+    const supplier = await sbSelectOne<Supplier>("order_suppliers", `id=eq.${encodeURIComponent(po.supplier_id)}`);
+    if (!supplier || supplier.method === "reece_cart") { skipped++; continue; }
+    const r = await approveAndSend(id, who);
+    const name = po.kind === "work_order" ? `${supplier.name} (${po.po_number})` : supplier.name;
+    (r.ok ? sent : failed).push(r.ok ? name : `${name}: ${r.error}`);
+  }
+  if (!sent.length && !failed.length) return { ok: false, error: skipped ? "Only Reece is left — enter it in maX and mark it ordered." : "Nothing to send." };
+  const note = [
+    sent.length ? `Sent ${sent.length}: ${sent.join(", ")}.` : "",
+    skipped ? "Reece left for maX." : "",
+  ].filter(Boolean).join(" ");
+  return failed.length ? { ok: false, error: `${note} Didn't send — ${failed.join("; ")}`.trim() } : { ok: true, note };
+}
+
+/**
  * Send the email this order would send — same body, same attachment — to one
  * address of the office's choosing, to see how it looks and that it arrives.
  * Changes nothing: the order stays a draft, the supplier gets nothing, and no

@@ -5295,6 +5295,9 @@ a.pt-td__pill { text-decoration: none; }
 .pt-nw__tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--pt-info-soft); color: var(--pt-info); font-size: 12px; font-weight: 700; }
 .pt-supem__combine { margin: 4px 0 14px; font-weight: 600; font-size: 14px; align-items: flex-start; }
 .pt-supem__combine input { margin-top: 3px; }
+.pt-nw__orderall { flex-basis: 100%; display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--pt-line); border-radius: 12px; background: var(--pt-surface); }
+.pt-nw__orderall p { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.pt-nw__orderall .pt-nw__flag { margin-left: 8px; }
 .pt-nw__jobgroup { margin-top: 14px; }
 .pt-nw__jobgroup:first-of-type { margin-top: 8px; }
 /* Fixed columns so each job's table lines up with the one above it. */

@@ -69,3 +69,21 @@ jobs:
           curl --fail-with-body --silent --show-error --max-time 120 \
             -H "Authorization: Bearer ${CRON_SECRET}" \
             "$url"
+
+      # A job sold and booked since the last sync is drafted onto an order to
+      # approve straight away (Supply › Next week), rather than at 7am. The
+      # route does nothing unless the bookings changed, and nothing out of
+      # office hours. Its failure doesn't fail the sync.
+      - name: Draft orders for anything newly booked
+        if: ${{ !inputs.reset }}
+        continue-on-error: true
+        env:
+          SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          base="$(printf '%s' "$SYNC_URL" | tr -d '[:space:]')"
+          base="${base%/api/sync}"
+          curl --fail-with-body --silent --show-error --max-time 90 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${base%/}/api/ordering/draft?mode=refresh"
