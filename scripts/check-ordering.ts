@@ -126,6 +126,8 @@ const se = supplierOrderEmail({ supplier: suppliers[2], poNumber: "AGA-261019-RE
 ok("delivered three days before the install", neededBy("2026-10-23") === "2026-10-20" && neededBy("2026-10-19") === "2026-10-16");
 ok("…moved back to the Friday when that's a weekend", neededBy("2026-10-21") === "2026-10-16" && neededBy("2026-10-20") === "2026-10-16");
 ok("supplier email asks for one delivery three days before the first install", /deliver by Tue 20 Oct/.test(se.subject) && se.text.includes("all in one delivery"), se.subject);
+ok("an order whose delivery date has gone says deliver ASAP, not 'by ASAP'",
+  supplierOrderEmail({ supplier: suppliers[2], poNumber: "X", lines: bySup.reclaim!, delivery: "a", deliveryInstructions: null, settings, attached: false, today: "2026-10-22" }).subject.endsWith("— deliver ASAP"));
 ok("a delivery date already gone reads ASAP", orderDelivery([{ install_date: "2026-10-16" }], "2026-10-14")?.label === "ASAP"
   && orderDelivery([{ install_date: "2026-10-23" }, { install_date: "2026-10-30" }], "2026-10-14")?.label === "Tue 20 Oct");
 {
@@ -168,7 +170,7 @@ const custom = supplierOrderEmail({
 ok("a custom opening is used, with {po} filled in", custom.text.startsWith("G'day Reclaim crew,\nOrder AGA-261019-REC below please."), custom.text.slice(0, 60));
 ok("a custom closing is used", custom.text.includes("Cheers — Kellie <ring 5947 8000>"));
 ok("and escaped in the HTML, line breaks kept", custom.html.includes("Cheers — Kellie &lt;ring 5947 8000&gt;") && custom.html.includes("G&#39;day") === false && custom.html.includes("crew,<br>Order"));
-ok("the order lines are still there", custom.text.includes("— job 20410, install Fri 23 Oct"));
+ok("the order lines are still there", custom.text.includes("— Job 20410 – install Fri 23 Oct"));
 const plain = supplierOrderEmail({ supplier: { ...suppliers[2], email_intro: "   ", email_signoff: null }, poNumber: "X1", lines: bySup.reclaim!, delivery: "a", deliveryInstructions: null, settings, attached: false });
 ok("a blank box falls back to the standard wording", plain.text.startsWith("Hi team,") && plain.text.includes("Please confirm the order"));
 const geoffCustom = workOrderEmail({ supplier: { ...suppliers[3], email_intro: "Morning Geoff,", email_signoff: "Call Jake if stuck." }, poNumber: "W1", details: fremont!.details, settings });
@@ -215,6 +217,8 @@ console.log("\n-- the Mitsubishi form --");
   if ("pdf" in filled) {
     ok("one form row per unit model", filled.rows === 2, String(filled.rows));
     const f = (await PDFDocument.load(filled.pdf)).getForm();
+    ok("the comments say when each job's install is booked",
+      f.getTextField("Comments").getText() === "Job 20264 – install Tue 20 Oct; Job 20265 – install Thu 22 Oct", f.getTextField("Comments").getText());
     ok("signed off by Kellie Winbanks, Owner — in separate boxes",
       f.getTextField("Print Name").getText() === "Kellie Winbanks" && f.getTextField("Position").getText() === "Owner",
       `${f.getTextField("Print Name").getText()} / ${f.getTextField("Position").getText()}`);

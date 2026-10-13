@@ -4,7 +4,7 @@
 
 import { AnnotationFlags, PDFDocument } from "pdf-lib";
 import { MITSUBISHI_ORDER_FORM_B64 } from "./mitsubishiTemplate";
-import { orderDelivery, supplierRows, todayMelbourne, type OrderingSettings, type PlannedLine } from "./plan";
+import { jobInstallNote, orderDelivery, supplierRows, todayMelbourne, type OrderingSettings, type PlannedLine } from "./plan";
 
 /** The form has fourteen order rows and no second page. */
 export const MITSUBISHI_FORM_ROWS = 14;
@@ -76,7 +76,7 @@ export async function fillMitsubishiForm(o: {
     values[rowField("Model Number", i)] = r.model;
     values[rowField("Delivery Date", i)] = deliver?.label ?? "";
     values[rowField("Price Ex GST", i)] = r.unit_cost == null ? "" : money(r.unit_cost);
-    values[rowField("Comments", i)] = r.jobs.length ? `Job ${r.jobs.join(", ")}` : "";
+    values[rowField("Comments", i)] = jobInstallNote(r);
     if (r.unit_cost != null) subtotal += r.unit_cost * r.qty;
   });
   const gst = Math.round(subtotal * 10) / 100;
