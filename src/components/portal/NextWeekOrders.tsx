@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { approve, approveAll, cancel, orderedManually, redraft, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import { addStock, approve, approveAll, cancel, choosePickup, findStock, orderedManually, redraft, removeStock, saveCc, saveDelivery, testSend, type ActionResult } from "@/app/portal/supply/next-week/actions";
+import type { StockItem } from "@/lib/ordering/db";
 import type { PoWithLines } from "@/lib/ordering/db";
 import { byJob, dayLabel, dayTimeLabel, deliveryInstructionsFor, linesTotal, modelLooksLikeName, orderDelivery, todayMelbourne, workRef, type Problem, type Supplier } from "@/lib/ordering/plan";
 
@@ -37,12 +38,13 @@ function Status({ po }: { po: PoWithLines }) {
   return <span className="pt-vstat pt-vstat--bad">Draft — not sent</span>;
 }
 
-const sendLabel = (s: Supplier | undefined) => {
+const sendLabel = (s: Supplier | undefined, pickup = false) => {
   if (!s) return "Approve";
   if (s.method === "reece_cart") return "Mark ordered in maX";
-  if (s.method === "email_form") return `Email ${s.name} with their form`;
   if (s.method === "work_order") return "Email the work order";
-  return `Email ${s.name}`;
+  const how = pickup ? " — pick up" : "";
+  if (s.method === "email_form") return `Email ${s.name} with their form${how}`;
+  return `Email ${s.name}${how}`;
 };
 
 const howItGoes = (s: Supplier | undefined) => {
@@ -56,7 +58,25 @@ const howItGoes = (s: Supplier | undefined) => {
   return `Emailed to ${s.email}.${one}`;
 };
 
-type DeliverySettings = { factoryInstructions?: string; deliveryNote?: string };
+type DeliverySettings = { factoryInstructions?: string; deliveryNote?: string; pickupInstructions?: string };
+
+/**
+ * Delivered or picked up: two buttons, so it's one press either way and plain
+ * which one an order is. Changes what the email, the form and the Reece list
+ * say about getting it here.
+ */
+function PickupChoice({ po }: { po: PoWithLines }) {
+  const { busy, msg, run } = useAct();
+  return (
+    <span className="pt-nw__seg" role="group" aria-label="Delivery or pick up">
+      <button type="button" className={!po.pickup ? "is-on" : undefined} aria-pressed={!po.pickup} disabled={busy}
+        onClick={() => po.pickup && run(() => choosePickup({ id: po.id, pickup: false }))}>Delivered</button>
+      <button type="button" className={po.pickup ? "is-on" : undefined} aria-pressed={po.pickup} disabled={busy}
+        onClick={() => !po.pickup && run(() => choosePickup({ id: po.id, pickup: true }))}>We&rsquo;ll pick up</button>
+      {msg && !msg.ok && <span className="pt-inline is-err">{msg.text}</span>}
+    </span>
+  );
+}
 
 function Delivery({ po, delivery }: { po: PoWithLines; delivery: DeliverySettings }) {
   const { busy, msg, run } = useAct();
@@ -67,19 +87,21 @@ function Delivery({ po, delivery }: { po: PoWithLines; delivery: DeliverySetting
   const editable = po.status === "draft";
   return (
     <div className="pt-nw__deliver">
+      {editable && po.kind === "order" && <PickupChoice po={po} />}
       <span>
-        <strong>Deliver to</strong> {po.delivery_address}
-        {po.delivery_to_site && <span className="pt-nw__tag">Site delivery</span>}
+        {po.pickup
+          ? <><strong>Pick up</strong> — we collect it</>
+          : <><strong>Deliver to</strong> {po.delivery_address}{po.delivery_to_site && <span className="pt-nw__tag">Site delivery</span>}</>}
         {(() => {
           const said = deliveryInstructionsFor(po, delivery);
           return said ? <span className="pt-nw__muted"> · {said}</span> : null;
         })()}
         {po.kind === "order" && (() => {
           const d = orderDelivery(po.lines, todayMelbourne());
-          return d ? <span> · <strong>by {d.label}</strong></span> : null;
+          return d ? <span> · <strong>{po.pickup ? "ready" : "by"} {d.label}</strong></span> : null;
         })()}
       </span>
-      {editable && !open && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Change</button>}
+      {editable && !open && !po.pickup && <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>Change</button>}
       {editable && open && (
         <div className="pt-nw__deliveredit">
           <label className="pt-nw__check">
@@ -209,7 +231,7 @@ function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: S
       {po.send_error && <p className="pt-note pt-note--warn" style={{ margin: 0 }}><strong>Last try didn&rsquo;t send:</strong> {po.send_error}</p>}
       <span className="pt-nw__actions">
         <button type="button" className="pt-btn pt-btn--orange" disabled={busy} onClick={() => run(() => approve(po.id))}>
-          {busy ? "Working…" : sendLabel(supplier)}
+          {busy ? "Working…" : sendLabel(supplier, po.pickup)}
         </button>
         <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" disabled={busy}
           onClick={() => { if (confirm(`Cancel ${label}? Nothing has been sent.`)) run(() => cancel(po.id)); }}>
@@ -218,6 +240,101 @@ function Buttons({ po, supplier, testTo, label }: { po: PoWithLines; supplier: S
         <TestSend po={po} testTo={testTo} />
         {supplier?.method !== "reece_cart" && <OrderedElsewhere po={po} />}
       </span>
+      {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
+function RemoveStock({ lineId }: { lineId: number }) {
+  const { busy, run } = useAct();
+  return (
+    <button type="button" className="pt-nw__linkbtn" disabled={busy} onClick={() => run(() => removeStock(lineId))}>
+      {busy ? "Taking off…" : "Take off"}
+    </button>
+  );
+}
+
+type StockPick = Pick<StockItem, "sku_id" | "name" | "model" | "part" | "cost" | "kind">;
+
+/**
+ * Stock for the factory onto an order: search the ServiceTitan pricebook (by
+ * name, code, model or Reece part number) or type the item. On a card it goes
+ * on that order; from the top of the page, on the chosen supplier's draft for
+ * the week — made if there isn't one. Stock lines stay put when the order is
+ * redrafted, and never count as ordered for a job.
+ */
+function AddStock({ po, suppliers, which }: { po?: PoWithLines; suppliers?: Supplier[]; which?: "next" | "this" }) {
+  const { busy, msg, run } = useAct();
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [found, setFound] = useState<StockItem[]>([]);
+  const [picked, setPicked] = useState<StockPick | null>(null);
+  const [n, setN] = useState("1");
+  const [supplierId, setSupplierId] = useState(suppliers?.[0]?.id ?? "");
+
+  useEffect(() => {
+    if (!open || picked || text.trim().length < 2) { setFound([]); return; }
+    let live = true;
+    const t = setTimeout(() => { findStock(text).then((r) => { if (live) setFound(r); }).catch(() => undefined); }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [text, open, picked]);
+
+  if (!open) {
+    return (
+      <div className="pt-nw__addstock">
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => setOpen(true)}>+ Add stock</button>
+      </div>
+    );
+  }
+  const item: StockPick | null = picked ?? (text.trim() ? { sku_id: null, name: text.trim(), model: null, part: null, cost: null, kind: null } : null);
+  const reset = () => { setPicked(null); setText(""); setN("1"); setFound([]); };
+  return (
+    <div className="pt-nw__addstock is-open">
+      {suppliers && (
+        <label className="pt-nw__testlbl">
+          Supplier{" "}
+          <select className="pt-nw__input" value={supplierId} onChange={(e) => setSupplierId(e.target.value)}>
+            {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </label>
+      )}
+      <div className="pt-nw__stockrow">
+        {picked ? (
+          <span className="pt-nw__picked">
+            <strong>{picked.name}</strong>
+            {(picked.model || picked.part) && <span className="pt-nw__muted"> · {[picked.model, picked.part && `Reece # ${picked.part}`].filter(Boolean).join(" · ")}</span>}
+            <button type="button" className="pt-nw__linkbtn" onClick={() => setPicked(null)}>change</button>
+          </span>
+        ) : (
+          <input className="pt-nw__input pt-nw__stocksearch" value={text} onChange={(e) => setText(e.target.value)} autoFocus
+            placeholder="Search the pricebook — name, code, model or Reece #" aria-label="Stock item" />
+        )}
+        <input className="pt-nw__input pt-nw__qty" type="number" min={1} step={1} value={n} onChange={(e) => setN(e.target.value)} aria-label="Quantity" />
+        <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy || !item || !(Number(n) > 0) || (!!suppliers && !supplierId)}
+          onClick={() => item && run(async () => {
+            const r = await addStock(po ? { id: po.id, item, qty: Number(n) } : { supplierId, which, item, qty: Number(n) });
+            if (r.ok) reset();
+            return r;
+          })}>
+          {busy ? "Adding…" : "Add"}
+        </button>
+        <button type="button" className="pt-btn pt-btn--ghost pt-btn--sm" onClick={() => { reset(); setOpen(false); }}>Close</button>
+      </div>
+      {!picked && found.length > 0 && (
+        <ul className="pt-nw__found" role="listbox" aria-label="Pricebook matches">
+          {found.map((f) => (
+            <li key={`${f.kind}-${f.sku_id}`}>
+              <button type="button" onClick={() => { setPicked(f); setFound([]); }}>
+                <strong>{f.name}</strong>
+                <span>{[f.kind, f.model, f.code, f.part && `Reece # ${f.part}`, f.vendor].filter(Boolean).join(" · ")}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!picked && text.trim().length >= 2 && found.length === 0 && (
+        <span className="pt-nw__muted">Nothing in the pricebook matches — Add puts &ldquo;{text.trim()}&rdquo; on as typed.</span>
+      )}
       {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
     </div>
   );
@@ -233,7 +350,7 @@ function OrderAll({ drafts, byId }: { drafts: PoWithLines[]; byId: Map<string, S
   const sendable = drafts.filter((p) => byId.get(p.supplier_id)?.method !== "reece_cart");
   const reece = drafts.length - sendable.length;
   if (!sendable.length) return reece ? <span className="pt-nw__muted">Only Reece left — enter it in maX and mark it ordered.</span> : null;
-  const goods = sendable.filter((p) => p.kind === "order").map((p) => byId.get(p.supplier_id)?.name ?? p.supplier_id);
+  const goods = sendable.filter((p) => p.kind === "order").map((p) => `${byId.get(p.supplier_id)?.name ?? p.supplier_id}${p.pickup ? " (pick up)" : ""}`);
   const work = sendable.filter((p) => p.kind === "work_order").length;
   const flagged = sendable.filter((p) => byId.get(p.supplier_id)?.method === "email_form" && p.lines.some((l) => modelLooksLikeName(l.supplier_model ?? l.sku_name))).length;
   return (
@@ -303,12 +420,16 @@ function ReeceLines({ po }: { po: PoWithLines }) {
         </p>
       )}
       {groups.map((g) => (
-        <div key={g.job_id} className="pt-nw__jobgroup">
+        <div key={g.job_id ?? "stock"} className="pt-nw__jobgroup">
           <h3 className="pt-nw__jobhead">
-            <strong>Job {g.job_number}</strong>
-            {g.customer_name && <span> · {g.customer_name}</span>}
-            {g.suburb && <span> · {g.suburb}</span>}
-            <span className="pt-nw__muted"> — install {installWhen(g)}</span>
+            {g.job_id == null ? <strong>Stock for the factory</strong> : (
+              <>
+                <strong>Job {g.job_number}</strong>
+                {g.customer_name && <span> · {g.customer_name}</span>}
+                {g.suburb && <span> · {g.suburb}</span>}
+                <span className="pt-nw__muted"> — install {installWhen(g)}</span>
+              </>
+            )}
           </h3>
           <div className="pt-tgt__tablewrap">
             <table className="pt-nw__table pt-nw__table--reece">
@@ -323,6 +444,7 @@ function ReeceLines({ po }: { po: PoWithLines }) {
                     <td>
                       <strong>{l.sku_name}</strong>
                       {l.description && l.description !== l.sku_name && <span>{l.description}</span>}
+                      {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
                     </td>
                     <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
                   </tr>
@@ -332,7 +454,17 @@ function ReeceLines({ po }: { po: PoWithLines }) {
           </div>
         </div>
       ))}
-      <p className="pt-nw__total">{po.lines.length} line{po.lines.length === 1 ? "" : "s"} across {groups.length} job{groups.length === 1 ? "" : "s"} · <strong>{money(linesTotal(po.lines))}</strong></p>
+      {(() => {
+        const jobs = groups.filter((g) => g.job_id != null).length;
+        const stock = groups.length - jobs;
+        return (
+          <p className="pt-nw__total">
+            {po.lines.length} line{po.lines.length === 1 ? "" : "s"}
+            {jobs > 0 && <> across {jobs} job{jobs === 1 ? "" : "s"}</>}
+            {stock > 0 && <>{jobs > 0 ? " and" : ","} stock</>} · <strong>{money(linesTotal(po.lines))}</strong>
+          </p>
+        );
+      })()}
     </>
   );
 }
@@ -367,9 +499,11 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
                       <strong>{model}</strong>
                       {l.description && l.description !== model && <span>{l.description}</span>}
                       {flag && <span className="pt-nw__flag">No model number — fill in Model on this item in the ServiceTitan pricebook</span>}
+                      {l.manual && po.status === "draft" && <RemoveStock lineId={l.id} />}
                     </td>
-                    <td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td>
-                    <td>{installWhen(l)}</td>
+                    {l.job_id == null
+                      ? <><td><strong>Stock</strong><span>for the factory</span></td><td>—</td></>
+                      : <><td><strong>{l.job_number}</strong><span>{l.customer_name}</span></td><td>{installWhen(l)}</td></>}
                     <td className="is-num">{l.unit_cost == null ? "—" : money(l.unit_cost * l.qty)}</td>
                   </tr>
                 );
@@ -381,6 +515,7 @@ function OrderCard({ po, supplier, testTo, alwaysCc, delivery }: CardProps) {
           </table>
         </div>
       )}
+      {po.status === "draft" && <AddStock po={po} />}
       <Delivery po={po} delivery={delivery} />
       <Cc po={po} supplier={supplier} alwaysCc={alwaysCc} />
       <Buttons po={po} supplier={supplier} testTo={testTo} label={po.po_number} />
@@ -476,6 +611,7 @@ export function NextWeekOrders(props: {
 
       <div className="pt-nw__bar">
         <OrderAll drafts={shown.filter((o) => o.status === "draft")} byId={byId} />
+        <AddStock which={which} suppliers={suppliers.filter((x) => x.active && x.method !== "work_order").sort((a, b) => a.name.localeCompare(b.name))} />
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
           {busy ? "Drafting…" : shown.some((o) => o.status === "draft") ? "Redraft from the latest bookings" : "Draft now"}
         </button>

@@ -9,7 +9,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import {
-  byJob, ccList, dayTimeLabel, toApproveEmail, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
+  byJob, ccList, dayTimeLabel, jobInstallNote, toApproveEmail, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
   splitAddress, supplierOrderEmail, supplierRows, workOrderEmail, workRef,
   type OrderLine, type PlannedLine, type Supplier, type WorkOrderRow,
 } from "../src/lib/ordering/plan";
@@ -164,6 +164,27 @@ console.log("\n-- booked, moved, cancelled --");
   ok("…and otherwise just what's new", calm.subject === "New orders to approve — 1 job" && calm.text.includes("deliver by Fri 23 Oct"), calm.subject + " | " + calm.text);
 }
 
+console.log("\n-- pick up, and stock --");
+{
+  const ds = { factoryInstructions: "Deliver to our factory", deliveryNote: "We do not have a forklift.", pickupInstructions: "We'll pick this up — please call 03 5947 8000 when it's ready." };
+  ok("a pick-up order says we'll collect, not where to deliver or the forklift",
+    deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false, pickup: true }, ds) === "We'll pick this up — please call 03 5947 8000 when it's ready.");
+  const pu = supplierOrderEmail({ supplier: suppliers[2], poNumber: "AGA-261019-REC", lines: bySup.reclaim!, delivery: settings.deliveryAddress,
+    deliveryInstructions: "We'll pick this up.", settings, attached: false, today: "2026-10-14", pickup: true });
+  ok("pick-up email: subject and body say pick up, with a ready-by date", pu.subject.includes("PICK UP — ready to pick up by Tue 20 Oct")
+    && pu.text.includes("Pick up: we'll collect this order") && pu.text.includes("Ready by: Tue 20 Oct") && !pu.text.includes("Deliver to:"), pu.subject);
+  const stock = { ...bySup.reclaim![0], job_id: null, job_number: null, customer_name: null, install_date: null, appointment_start: null, qty: 2, manual: true } as PlannedLine;
+  const rows = supplierRows([...bySup.reclaim!, stock]);
+  ok("stock of the same model sits beside the job on one line", rows.length === 1 && rows[0].qty === 3 && rows[0].stock === 2);
+  ok("…and the note says how many are stock", jobInstallNote(rows[0]) === "Job 20410 – install Fri 23 Oct; Stock ×2", jobInstallNote(rows[0]));
+  ok("a stock-only line just says Stock", jobInstallNote(supplierRows([stock])[0]) === "Stock");
+  const g = byJob([stock, ...bySup.reece!]);
+  ok("on the Reece list stock is its own list, last", g[g.length - 1].job_id === null && g.length === 3);
+  const rl2 = reeceListEmail({ supplier: suppliers[0], poNumber: "R", lines: [stock], delivery: "x", settings, pickup: true });
+  ok("…headed Stock for the factory, and pick up from the branch", rl2.text.includes("Stock for the factory") && rl2.text.includes("pick up from the branch"));
+  ok("a stock-only order has no deliver-by date", orderDelivery([stock], "2026-10-14") === null);
+}
+
 console.log("\n-- one order across this week and next, for suppliers that charge per delivery --");
 {
   const rin = S("rinnai", "Rinnai (Brivis)", "email", "SalesOrders@rinnai.com.au");
@@ -251,6 +272,14 @@ console.log("\n-- the Mitsubishi form --");
       `${f.getTextField("Delivery Date").getText()} / ${f.getTextField("Delivery Date 2").getText()}`);
     ok("our job numbers in Mitsubishi's quote reference box", f.getTextField("CRM Quote Reference").getText() === "20264, 20265, 20300", f.getTextField("CRM Quote Reference").getText());
     ok("Site says Factory", f.getTextField("Site").getText() === "Factory");
+    const pickForm = await fillMitsubishiForm({ poNumber: "P", orderDate: "x", lines: bySup.mitsubishi!, delivery: settings.deliveryAddress,
+      deliveryInstructions: "We'll pick this up.", settings, today: "2026-10-14", pickup: true });
+    if ("pdf" in pickForm) {
+      const pf = (await PDFDocument.load(pickForm.pdf)).getForm();
+      ok("a pick-up form says so where the address goes, and Pick up on the date",
+        pf.getTextField("Delivery Address").getText() === "PICK UP — WE WILL COLLECT" && !pf.getTextField("Site").getText()
+        && pf.getTextField("Delivery Date").getText() === "Pick up Fri 16 Oct" && !pf.getTextField("Postcode").getText());
+    } else ok("pick-up form fills", false, pickForm.error);
     ok("delivery instructions on the form, forklift note included", f.getTextField("Delivery Instructions").getText() === "Deliver to our factory. We do not have a forklift.", f.getTextField("Delivery Instructions").getText());
     if (process.env.ORDERING_PDF_OUT) writeFileSync(process.env.ORDERING_PDF_OUT, filled.pdf);
   }

@@ -83,17 +83,17 @@ async function build(id: number): Promise<Built | { error: string }> {
     const orderDate = todayDmy();
     const form = await fillMitsubishiForm({
       poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings,
-      toSite: po.delivery_to_site, signaturePng: await loadSignature(),
+      toSite: po.delivery_to_site, pickup: po.pickup, signaturePng: await loadSignature(),
     });
     if ("error" in form) return { error: form.error };
     const attachments = [{ filename: mitsubishiFormFilename(po.po_number), content: Buffer.from(form.pdf).toString("base64") }];
     const email = mitsubishiOrderEmail({
-      supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: true,
+      supplier, poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: true, pickup: po.pickup,
     });
     return { po, supplier, settings, email, attachments };
   }
   const email = supplierOrderEmail({
-    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: false,
+    supplier, poNumber: po.po_number, lines: po.lines, delivery, deliveryInstructions: instructions, settings, attached: false, pickup: po.pickup,
   });
   return { po, supplier, settings, email };
 }
@@ -216,7 +216,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   if ("error" in b) return { ok: false, error: b.error };
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
-  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings) });
+  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings), pickup: po.pickup });
   const err = await sendMarked("TEST", supplier, email, to, settings, attachments);
   return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
 }

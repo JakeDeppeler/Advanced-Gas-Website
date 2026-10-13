@@ -1,5 +1,5 @@
 import "server-only";
-import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, type Row } from "@/lib/dashboard/db";
+import { sbDelete, sbInsert, sbSelect, sbSelectOne, sbUpdate, sbUpdateReturning, type Row } from "@/lib/dashboard/db";
 import { getSettings } from "@/lib/portal/db";
 import {
   isoAddDays, lineKey, nextWeek, planWeek, poNumber, thisWeek, todayMelbourne, type OrderedLine, type OrderLine, type OrderingSettings, type PlannedLine, type Supplier, type Week, type WeekPlan,
@@ -22,6 +22,8 @@ export type PurchaseOrder = {
   delivery_address: string | null;
   delivery_to_site: boolean;
   delivery_instructions: string | null;
+  /** We collect it rather than it being delivered (0070). */
+  pickup: boolean;
   details: WorkOrderDetails | null;
   approved_by: string | null;
   approved_at: string | null;
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS: OrderingSettings = {
   signPosition: "Owner",
   factoryInstructions: "Deliver to our factory",
   deliveryNote: "We do not have a forklift.",
+  pickupInstructions: "We'll pick this up — please call 03 5947 8000 when it's ready.",
 };
 
 /** The signature for Mitsubishi's form, or null if none has been stored. */
@@ -89,10 +92,11 @@ async function linesOn(statuses: OrderStatus[]): Promise<Map<string, OrderedLine
   const byId = new Map(pos.map((p) => [p.id, p]));
   for (let i = 0; i < pos.length; i += 100) {
     const ids = pos.slice(i, i + 100).map((p) => p.id).join(",");
-    const lines = await sbSelect<{ po_id: number; job_id: number; sku_id: number | null; install_date: string | null }>(
+    const lines = await sbSelect<{ po_id: number; job_id: number | null; sku_id: number | null; install_date: string | null }>(
       "purchase_order_lines", `select=po_id,job_id,sku_id,install_date&po_id=in.(${ids})&order=id.asc`,
     );
     for (const l of lines) {
+      if (l.job_id == null) continue; // stock: ordered for the shelf, not for a job
       const po = byId.get(l.po_id)!;
       out.set(po.kind === "work_order" ? `${l.job_id}:work` : lineKey(l.job_id, l.sku_id),
         { install_date: l.install_date, po_number: po.po_number, supplier_id: po.supplier_id });
@@ -149,11 +153,15 @@ const lineRow = (poId: number, l: PlannedLine): Row => ({
   po_id: poId, job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
   install_date: l.install_date, appointment_start: l.appointment_start, sku_id: l.sku_id, sku_name: l.sku_name,
   sku_type: l.sku_type, description: l.description, supplier_model: l.supplier_model, supplier_part: l.supplier_part ?? null,
-  qty: l.qty, unit_cost: l.unit_cost,
+  qty: l.qty, unit_cost: l.unit_cost, manual: !!l.manual,
 });
 
+/**
+ * Put a draft's job lines back to what the plan says. Stock the office added
+ * by hand (manual) is not the plan's to change, so it stays.
+ */
 async function replaceLines(poId: number, lines: PlannedLine[]) {
-  await sbDelete("purchase_order_lines", `po_id=eq.${poId}`);
+  await sbDelete("purchase_order_lines", `po_id=eq.${poId}&manual=eq.false`);
   // PostgREST takes an array body as one multi-row insert; one request per
   // order rather than one per line keeps a 100-line Reece order quick.
   if (lines.length) await sbInsert("purchase_order_lines", lines.map((l) => lineRow(poId, l)) as unknown as Row);
@@ -279,19 +287,23 @@ export async function draftWeek(week: Week, opts: { auto?: boolean } = {}): Prom
 
   // A draft the plan no longer wants — the job moved weeks, the quote changed
   // — goes, so the page never offers to send something that's no longer true.
-  for (const p of existing) {
-    if (p.status === "draft" && !kept.has(p.id)) {
+  // Unless the office has put stock on it: then only its job lines go.
+  const drop = async (p: PoWithLines) => {
+    if (p.lines.some((l) => l.manual)) {
+      await replaceLines(p.id, []);
+      updated++;
+    } else {
       await sbDelete("purchase_orders", `id=eq.${p.id}&status=eq.draft`);
       removed++;
     }
+  };
+  for (const p of existing) {
+    if (p.status === "draft" && !kept.has(p.id)) await drop(p);
   }
   // And a combined supplier's draft on the other week that this run didn't
   // reuse: its lines are on the one it did, or have been ordered since.
   for (const p of otherDrafts) {
-    if (p.kind === "order" && combined.has(p.supplier_id) && !kept.has(p.id)) {
-      await sbDelete("purchase_orders", `id=eq.${p.id}&status=eq.draft`);
-      removed++;
-    }
+    if (p.kind === "order" && combined.has(p.supplier_id) && !kept.has(p.id)) await drop(p);
   }
   return { plan, created, updated, removed, added, addedWork };
 }
@@ -373,5 +385,70 @@ export async function setOrderCc(id: number, cc: string[]): Promise<boolean> {
   const po = await sbSelectOne<{ status: string }>("purchase_orders", `select=status&id=eq.${id}`);
   if (po?.status !== "draft") return false;
   await sbUpdate("purchase_orders", `id=eq.${id}&status=eq.draft`, { cc_emails: cc, updated_at: new Date().toISOString() });
+  return true;
+}
+
+/* ---------------------------------------------------------------- pick up, and stock added by hand */
+
+export async function setPickup(id: number, pickup: boolean): Promise<boolean> {
+  const got = await sbUpdateReturning("purchase_orders", `id=eq.${id}&status=eq.draft&kind=eq.order`, { pickup, updated_at: new Date().toISOString() });
+  return got.length > 0;
+}
+
+export type StockItem = { sku_id: number | null; name: string; code: string | null; model: string | null; part: string | null; cost: number | null; vendor: string | null; kind: "Material" | "Equipment" | null };
+
+/** The ServiceTitan pricebook, by name, code, model or supplier part number. */
+export async function searchStock(text: string): Promise<StockItem[]> {
+  const t = text.trim().replace(/[%,()*"\\]/g, " ").replace(/\s+/g, " ").slice(0, 60);
+  if (t.length < 2) return [];
+  // Quoted, so a dot or space in "15.88 copper" can't be read as filter syntax.
+  const like = encodeURIComponent(`"*${t}*"`);
+  const [mats, equip] = await Promise.all([
+    sbSelect<{ id: number; code: string | null; name: string | null; vendor: string | null; vendor_part: string | null; raw: { cost?: number } | null }>(
+      "st_pricebook_materials", `select=id,code,name,vendor,vendor_part,raw->cost&active=is.true&or=(name.ilike.${like},code.ilike.${like},vendor_part.ilike.${like})&order=name.asc&limit=12`),
+    sbSelect<{ id: number; code: string | null; name: string | null; model: string | null; vendor: string | null; raw: { cost?: number } | null }>(
+      "st_pricebook_equipment", `select=id,code,name,model,vendor,raw->cost&active=is.true&or=(name.ilike.${like},code.ilike.${like},model.ilike.${like})&order=name.asc&limit=8`),
+  ]);
+  const cost = (r: Record<string, unknown>) => (r.cost == null ? null : Number(r.cost));
+  return [
+    ...equip.map((e) => ({ sku_id: e.id, name: e.name ?? e.code ?? "", code: e.code, model: e.model, part: null, cost: cost(e as unknown as Record<string, unknown>), vendor: e.vendor, kind: "Equipment" as const })),
+    ...mats.map((m) => ({ sku_id: m.id, name: m.name ?? m.code ?? "", code: m.code, model: null, part: m.vendor_part, cost: cost(m as unknown as Record<string, unknown>), vendor: m.vendor, kind: "Material" as const })),
+  ];
+}
+
+/**
+ * The draft stock goes on: the supplier's draft for that week if there is
+ * one, otherwise a new one (one draft per supplier per week — 0069).
+ */
+export async function draftFor(supplierId: string, week: Week): Promise<number> {
+  const mine = (await listWeekOrders(week)).filter((p) => p.kind === "order" && p.supplier_id === supplierId);
+  const draft = mine.find((p) => p.status === "draft");
+  if (draft) return draft.id;
+  const settings = await loadOrderingSettings();
+  const n = mine.length + 1;
+  return createOrder({
+    po_number: poNumber(week, supplierId, n), supplier_id: supplierId, week_of: week.start, kind: "order",
+    group_key: mine.length ? `all-${n}` : "all", status: "draft", delivery_address: settings.deliveryAddress,
+  });
+}
+
+export async function addStockLine(poId: number, item: { sku_id: number | null; name: string; model: string | null; part: string | null; cost: number | null; kind: string | null; qty: number }): Promise<boolean> {
+  const po = await sbSelectOne<{ status: string; kind: string }>("purchase_orders", `select=status,kind&id=eq.${poId}`);
+  if (po?.status !== "draft" || po.kind !== "order") return false;
+  await sbInsert("purchase_order_lines", lineRow(poId, {
+    job_id: null, job_number: null, customer_name: null, suburb: null, install_date: null, appointment_start: null,
+    sku_id: item.sku_id, sku_name: item.name, sku_type: item.kind, description: null,
+    supplier_model: item.model || item.name, supplier_part: item.part, qty: item.qty, unit_cost: item.cost, manual: true,
+  }));
+  await sbUpdate("purchase_orders", `id=eq.${poId}`, { updated_at: new Date().toISOString() });
+  return true;
+}
+
+export async function removeStockLine(lineId: number): Promise<boolean> {
+  const line = await sbSelectOne<{ po_id: number; manual: boolean }>("purchase_order_lines", `select=po_id,manual&id=eq.${lineId}`);
+  if (!line?.manual) return false;
+  const po = await sbSelectOne<{ status: string }>("purchase_orders", `select=status&id=eq.${line.po_id}`);
+  if (po?.status !== "draft") return false;
+  await sbDelete("purchase_order_lines", `id=eq.${lineId}&manual=eq.true`);
   return true;
 }

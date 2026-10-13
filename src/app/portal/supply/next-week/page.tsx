@@ -33,7 +33,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
   let problems: Problem[] = [];
   let synced = true;
   let replyTo = "";
-  let delivery: { factoryInstructions?: string; deliveryNote?: string } = {};
+  let delivery: { factoryInstructions?: string; deliveryNote?: string; pickupInstructions?: string } = {};
   let dbReady = true;
   try {
     const [o, s, inputs, already, sy, settings] = await Promise.all([
@@ -43,7 +43,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
     suppliers = s;
     synced = sy;
     replyTo = settings.replyTo;
-    delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote };
+    delivery = { factoryInstructions: settings.factoryInstructions, deliveryNote: settings.deliveryNote, pickupInstructions: settings.pickupInstructions };
     // Worked out live rather than stored with the drafts, so fixing a quote
     // or assigning a crew clears its line here straight away.
     problems = planWeek({ week, ...inputs, suppliers: s, alreadyOrdered: already }).problems;
