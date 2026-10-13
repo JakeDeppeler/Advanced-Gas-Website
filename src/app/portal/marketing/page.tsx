@@ -4,7 +4,7 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { PortalShell } from "@/components/portal/PortalShell";
 import { PortalBack } from "@/components/portal/PortalBack";
-import { dbConfigured, listWebLeads, listCampaigns, listBrandAssets } from "@/lib/portal/db";
+import { dbConfigured, listWebLeads, listCampaigns } from "@/lib/portal/db";
 import { withLeads, tally } from "@/lib/portal/campaigns";
 import {
   MARKETING_TABS, MOVED_TABS, marketingHref, tabDef, windowDays, windowKey, windowLabel,
@@ -14,6 +14,7 @@ import { getReviews } from "@/lib/googleReviews";
 import { getInstagramFeed } from "@/lib/instagram";
 import { CampaignBoard } from "@/components/portal/CampaignBoard";
 import { BrandAssets } from "@/components/portal/BrandAssets";
+import { listFiles, listFolders } from "@/lib/portal/brandFiles";
 import { Heads, Needs, SectionTabs, WindowPicker } from "@/components/portal/marketingParts";
 import { Locked } from "@/components/portal/Locked";
 import { EmailListBoard } from "@/components/portal/EmailListBoard";
@@ -33,7 +34,7 @@ export const metadata = { title: "Marketing — Team portal" };
 export default async function MarketingPage({
   searchParams,
 }: {
-  searchParams: { tab?: string; win?: string; audience?: string; new?: string };
+  searchParams: { tab?: string; win?: string; audience?: string; new?: string; f?: string; v?: string };
 }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
@@ -96,7 +97,7 @@ export default async function MarketingPage({
       {tab === "reviews" && <Reviews />}
       {tab === "ads" && <Ads />}
       {tab === "social" && <Social />}
-      {tab === "assets" && <Assets user={user.name} />}
+      {tab === "assets" && <Assets folderId={searchParams.f} archived={searchParams.v === "archived"} />}
     </PortalShell>
   );
 }
@@ -208,10 +209,13 @@ async function Social() {
   );
 }
 
-/* --------------------------------------------------------- Brand assets */
-async function Assets({ user }: { user: string }) {
-  const assets = dbConfigured() ? await listBrandAssets().catch(() => []) : [];
-  return <BrandAssets assets={assets} who={user} />;
+/* --------------------------------------------------------- Files */
+async function Assets({ folderId, archived }: { folderId?: string; archived: boolean }) {
+  const [folders, files] = dbConfigured()
+    ? await Promise.all([listFolders().catch(() => []), listFiles().catch(() => [])])
+    : [[], []];
+  const open = folderId && folders.some((f) => f.id === folderId) ? folderId : null;
+  return <BrandAssets folders={folders} files={files} folderId={open} archived={archived} canEdit />;
 }
 
 /* ------------------------------------------------- the one with no source yet */

@@ -5,11 +5,12 @@ import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import {
   createCampaign, updateCampaign, deleteCampaign,
-  createBrandAsset, deleteBrandAsset,
+  createBrandAsset,
 } from "@/lib/portal/db";
 import { uploadPhoto, deletePhoto } from "@/lib/portal/storage";
 import { sbDelete, sbUpsert } from "@/lib/dashboard/db";
 import { cleanEmail } from "@/lib/emailList/types";
+import { createFolder, deleteFileRow, listFolders, moveFile, setFileArchived, setFolderArchived } from "@/lib/portal/brandFiles";
 
 export type MarketingResult = { ok: boolean; error?: string };
 
@@ -61,42 +62,95 @@ export async function removeCampaign(input: { id: string }): Promise<MarketingRe
   return { ok: true };
 }
 
-/** A brand asset: the logo pack, the van wrap, a finished-job photo. */
-export async function uploadBrandAsset(form: FormData): Promise<MarketingResult> {
+const isUuid = (v: unknown): v is string => typeof v === "string" && /^[0-9a-f-]{36}$/i.test(v);
+const filesDone = () => revalidatePath("/portal/marketing");
+
+/** What kind a file is, from what it is: the kit's four kinds, for filtering. */
+function kindOf(mime: string, name: string): string {
+  if (/svg|logo/i.test(name) || mime === "image/svg+xml") return "logo";
+  if (mime.startsWith("image/")) return "photo";
+  if (mime === "application/pdf" || /\.(pdf|docx?|xlsx?|pptx?)$/i.test(name)) return "document";
+  return "other";
+}
+
+/**
+ * Files into the kit, into a folder when one's open: one or many at once,
+ * each named after itself unless a name is given (only used for a single
+ * file). Up to 25MB each; nothing is public, a download is a signed link.
+ */
+export async function uploadBrandAsset(form: FormData): Promise<MarketingResult & { added?: number }> {
   const me = await requireMarketing();
-  if (!me) return { ok: false, error: "Only an admin can add brand assets." };
+  if (!me) return { ok: false, error: "Only an admin can add files." };
+  const folder = String(form.get("folder") || "");
+  const folderId = isUuid(folder) ? folder : null;
+  const files = form.getAll("file").filter((f): f is File => f instanceof File && f.size > 0);
+  if (!files.length) return { ok: false, error: "Pick a file." };
+  const big = files.find((f) => f.size > 25 * 1024 * 1024);
+  if (big) return { ok: false, error: `${big.name} is over 25MB.` };
+  const given = String(form.get("label") || "").trim();
 
-  const label = String(form.get("label") || "").trim();
-  const kind = String(form.get("kind") || "other");
-  const file = form.get("file");
-  if (!label) return { ok: false, error: "Give it a name." };
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "Pick a file." };
-  if (file.size > 25 * 1024 * 1024) return { ok: false, error: "That file is over 25MB." };
-
-  const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-  const path = `brand/${crypto.randomUUID()}.${ext}`;
-  const up = await uploadPhoto(path, await file.arrayBuffer(), file.type || "application/octet-stream");
-  if (!up.ok) return { ok: false, error: up.error === "not-configured" ? "File storage isn't set up." : "Couldn't upload it." };
-
-  const row = await createBrandAsset({
-    label, kind, path, mime: file.type || null, bytes: file.size, addedBy: me.name,
-  });
-  if (!row.ok) {
-    // Don't leave the file orphaned in the bucket if the row didn't land.
-    await deletePhoto(path);
-    return { ok: false, error: "Couldn't save it." };
+  let added = 0;
+  for (const file of files) {
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const path = `brand/${crypto.randomUUID()}.${ext}`;
+    const up = await uploadPhoto(path, await file.arrayBuffer(), file.type || "application/octet-stream");
+    if (!up.ok) return { ok: false, error: up.error === "not-configured" ? "File storage isn't set up." : `Couldn't upload ${file.name}.`, added };
+    const label = (files.length === 1 && given) ? given : file.name.replace(/\.[^.]+$/, "");
+    const row = await createBrandAsset({ label, kind: kindOf(file.type, file.name), path, mime: file.type || null, bytes: file.size, addedBy: me.name, folderId });
+    if (!row.ok) {
+      // Don't leave the file orphaned in the bucket if the row didn't land.
+      await deletePhoto(path);
+      return { ok: false, error: `Couldn't save ${file.name}.`, added };
+    }
+    added += 1;
   }
-  revalidatePath("/portal/marketing");
+  filesDone();
+  return { ok: true, added };
+}
+
+export async function newFolder(input: { name: string; parentId: string | null }): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can add folders." };
+  const name = input.name.trim().slice(0, 80);
+  if (!name) return { ok: false, error: "Give the folder a name." };
+  const parentId = isUuid(input.parentId) ? input.parentId : null;
+  const siblings = (await listFolders()).filter((f) => f.parentId === parentId && !f.archivedAt);
+  if (siblings.some((f) => f.name.toLowerCase() === name.toLowerCase())) return { ok: false, error: `There's already a ${name} folder here.` };
+  try { await createFolder(name, parentId, me.name); } catch { return { ok: false, error: "Couldn't make the folder." }; }
+  filesDone();
   return { ok: true };
 }
 
+/** Archive or restore a file or a folder (a folder takes everything in it along). */
+export async function archiveItem(input: { kind: "file" | "folder"; id: string; archived: boolean }): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can archive files." };
+  if (!isUuid(input.id)) return { ok: false, error: "Which one?" };
+  try {
+    if (input.kind === "folder") await setFolderArchived(input.id, input.archived);
+    else await setFileArchived(input.id, input.archived);
+  } catch { return { ok: false, error: "Couldn't change it." }; }
+  filesDone();
+  return { ok: true };
+}
+
+export async function moveBrandFile(input: { id: string; folderId: string | null }): Promise<MarketingResult> {
+  const me = await requireMarketing();
+  if (!me) return { ok: false, error: "Only an admin can move files." };
+  if (!isUuid(input.id)) return { ok: false, error: "Which file?" };
+  try { await moveFile(input.id, isUuid(input.folderId) ? input.folderId : null); } catch { return { ok: false, error: "Couldn't move it." }; }
+  filesDone();
+  return { ok: true };
+}
+
+/** Delete an archived file for good: the row and the file in storage. Only archived ones. */
 export async function removeBrandAsset(input: { id: string; path: string }): Promise<MarketingResult> {
   const me = await requireMarketing();
-  if (!me) return { ok: false, error: "Only an admin can remove a brand asset." };
+  if (!me) return { ok: false, error: "Only an admin can delete a file." };
+  if (!isUuid(input.id) || !input.path.startsWith("brand/")) return { ok: false, error: "Which file?" };
+  try { await deleteFileRow(input.id); } catch { return { ok: false, error: "Couldn't delete it." }; }
   await deletePhoto(input.path);
-  const res = await deleteBrandAsset(input.id);
-  if (!res.ok) return { ok: false, error: "Couldn't remove it." };
-  revalidatePath("/portal/marketing");
+  filesDone();
   return { ok: true };
 }
 

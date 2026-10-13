@@ -130,7 +130,7 @@ export const SECTION_DEFS: SectionDef[] = [
     ],
   },
   {
-    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Where the work comes from", flat: true,
+    id: "mkt", label: "Marketing", icon: "mega", group: 2, blurb: "Where the work comes from",
     pages: [
       { label: "Campaigns", href: "/portal/marketing" },
       { label: "Blog", href: "/portal/blog" },
@@ -141,7 +141,7 @@ export const SECTION_DEFS: SectionDef[] = [
       { label: "Reviews", href: "/portal/marketing?tab=reviews" },
       { label: "Ads", href: "/portal/marketing?tab=ads" },
       { label: "Social", href: "/portal/marketing?tab=social" },
-      { label: "Brand assets", href: "/portal/marketing?tab=assets" },
+      { label: "Files", href: "/portal/marketing?tab=assets" },
       { label: "Email list", href: "/portal/marketing?tab=emails" },
     ],
   },

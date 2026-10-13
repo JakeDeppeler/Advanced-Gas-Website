@@ -70,10 +70,7 @@ export default async function NextWeekPage({ searchParams }: { searchParams: { w
         {view === "sent" ? (
           <p>{weekLabel(week)}. Everything approved and sent for the week, to the suppliers and the electrician. An order lands here by itself the moment it goes; replies come back to {replyTo || "the office"}.</p>
         ) : (
-          <p>
-          {weekLabel(week)}. Drafted from the installs booked and their sold quotes every weekday from 6am ({which === "this" ? "this week every day" : "next week from Wednesday"}), and again within about ten minutes of a new booking — so a job booked at short notice is on an order to approve the same day. Nothing goes to a
-          supplier or to Geoff until it&rsquo;s approved here; replies come back to {replyTo || "the office"}.
-          </p>
+          <p>{weekLabel(week)}. Drafted from the installs booked, and kept up to date as bookings come in. Nothing goes to a supplier or the electrician until it&rsquo;s approved here.</p>
         )}
         {dbReady && (
           <div className="pt-head__figs">
