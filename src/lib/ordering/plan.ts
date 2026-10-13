@@ -215,6 +215,9 @@ export function orderDelivery(lines: { install_date: string | null }[], today: s
   return d <= today ? { date: null, label: "ASAP" } : { date: d, label: dayLabel(d) };
 }
 
+/** "deliver by Fri 16 Oct", or "deliver ASAP" — never "deliver by ASAP". */
+export const deliverPhrase = (label: string) => (label === "ASAP" ? "deliver ASAP" : `deliver by ${label}`);
+
 export function weekLabel(w: Week): string {
   return `${dayLabel(w.start)} – ${dayLabel(w.end)}`;
 }
@@ -364,7 +367,11 @@ export function planWeek(input: {
 
 /* ---------------------------------------------------------------- order lines as the supplier reads them */
 
-export type SupplierRow = { model: string; description: string | null; qty: number; unit_cost: number | null; jobs: string[]; first_install: string | null };
+export type SupplierRow = {
+  model: string; description: string | null; qty: number; unit_cost: number | null; jobs: string[]; first_install: string | null;
+  /** Each job this line is for, with the day its install is booked. */
+  installs: { job: string; date: string | null }[];
+};
 
 /**
  * The same unit for three jobs is one line of three on the order, with the
@@ -375,13 +382,29 @@ export function supplierRows(lines: PlannedLine[]): SupplierRow[] {
   for (const l of lines) {
     const model = (l.supplier_model ?? l.sku_name ?? "").trim();
     const key = model.toLowerCase();
-    const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date };
+    const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date, installs: [] };
     r.qty += l.qty;
-    if (l.job_number && !r.jobs.includes(l.job_number)) r.jobs.push(l.job_number);
+    if (l.job_number && !r.jobs.includes(l.job_number)) {
+      r.jobs.push(l.job_number);
+      r.installs.push({ job: l.job_number, date: l.install_date });
+    }
     if (l.install_date && (!r.first_install || l.install_date < r.first_install)) r.first_install = l.install_date;
     m.set(key, r);
   }
   return [...m.values()].sort((a, b) => (a.first_install ?? "").localeCompare(b.first_install ?? "") || a.model.localeCompare(b.model));
+}
+
+/**
+ * "Job 20264 – install Tue 20 Oct; Job 20265 – install Thu 22 Oct": which
+ * jobs a line is for and when each is booked, earliest first. On a combined
+ * order everything comes in one delivery, so this is how the supplier (and
+ * whoever unpacks it) can tell what's needed first.
+ */
+export function jobInstallNote(r: Pick<SupplierRow, "installs">): string {
+  return [...r.installs]
+    .sort((a, b) => (a.date ?? "9").localeCompare(b.date ?? "9") || a.job.localeCompare(b.job))
+    .map((i) => `Job ${i.job}${i.date ? ` – install ${dayLabel(i.date)}` : ""}`)
+    .join("; ");
 }
 
 export const linesTotal = (lines: PlannedLine[]) =>
@@ -465,10 +488,10 @@ export function supplierOrderEmail(o: {
   const rows = supplierRows(o.lines);
   const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
   const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne());
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${deliver ? ` — deliver by ${deliver.label}` : ""}`;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${deliver ? ` — ${deliverPhrase(deliver.label)}` : ""}`;
   const table = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
-<tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job</th><th style="${head}">Install</th></tr>
-${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${esc(r.jobs.join(", "))}</td><td style="${cell}">${r.first_install ? esc(dayLabel(r.first_install)) : ""}</td></tr>`).join("\n")}
+<tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job — install booked</th></tr>
+${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${r.installs.length ? esc(jobInstallNote(r)).replace(/; /g, "<br>") : ""}</td></tr>`).join("\n")}
 </table>`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
@@ -487,7 +510,7 @@ ${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cel
     ...(o.deliveryInstructions ? [`Instructions: ${o.deliveryInstructions}`] : []),
     ...(deliver && firstNeeded ? [`Deliver by: ${deliver.label} (first install ${dayLabel(firstNeeded)}) — all in one delivery, please`] : []),
     "",
-    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} — job ${r.jobs.join(", ")}${r.first_install ? `, install ${dayLabel(r.first_install)}` : ""}`),
+    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} ${r.installs.length ? ` — ${jobInstallNote(r)}` : ""}`),
     "",
     closing,
     `Replies go to ${o.settings.replyTo}.`,
@@ -651,7 +674,7 @@ export function mitsubishiOrderEmail(o: {
   const acct = o.settings.mitsubishi ?? {};
   const units = rows.reduce((t, r) => t + r.qty, 0);
   const needed = orderDelivery(o.lines, o.today ?? todayMelbourne())?.label ?? null;
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — deliver by ${needed}` : ""}`;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — ${deliverPhrase(needed)}` : ""}`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
   const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
