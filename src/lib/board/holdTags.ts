@@ -11,12 +11,14 @@
 
 import { getSettings, saveSettings } from "@/lib/portal/db";
 import { q, sbSelect } from "@/lib/dashboard/db";
+
 import {
   HOLD_TAGS_KEY,
   blocksByDefault,
   holdRules,
   normaliseHoldTags,
   sideByDefault,
+  tagIds,
   type HoldSide,
   type HoldTags,
 } from "@/lib/dashboard/onHoldTypes";
@@ -52,10 +54,12 @@ export async function readHoldTags(): Promise<{ rows: HoldTagRow[]; configured: 
   const open = new Map<string, number>();
   let held = 0;
   for (const j of jobs) {
-    const ids = Array.isArray(j.tags) ? j.tags : [];
+    // Through the board's own reader, so the portal counts a job held on
+    // exactly the rows the board does. See tagIds in onHoldTypes.ts.
+    const ids = tagIds(j.tags);
     let isHeld = false;
     for (const id of ids) {
-      const name = byId.get(Number(id));
+      const name = byId.get(id);
       if (!name) continue;
       open.set(name, (open.get(name) ?? 0) + 1);
       if (side.has(name)) isHeld = true;

@@ -49,6 +49,34 @@ const BLOCKING = /awaiting|required|needed|not ordered|not booked|problem|voicem
 export const blocksByDefault = (name: string): boolean => BLOCKING.test(name);
 export const sideByDefault = (name: string): HoldSide => (THEIRS.test(name) ? "them" : "us");
 
+/**
+ * The tag ids on a job, however PostgREST hands the array back.
+ *
+ * `raw->tagTypeIds` comes back as a JSON array, but the same column read
+ * through `->>` anywhere else comes back as its text, and the difference
+ * between the two is one character in a select string. Reading both costs a
+ * line and the alternative is a page that silently finds nothing held.
+ */
+export function tagIds(v: unknown): number[] {
+  const arr = Array.isArray(v)
+    ? v
+    : typeof v === "string"
+      ? (() => {
+          try {
+            const parsed = JSON.parse(v);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })()
+      : [];
+  // Number(null) and Number("") are both 0, which is finite and is not a tag.
+  return arr
+    .filter((x) => typeof x === "number" || (typeof x === "string" && x.trim() !== ""))
+    .map((x) => Number(x))
+    .filter((n) => Number.isFinite(n));
+}
+
 /** The stored setting: which tags block, split by whose move it is. */
 export type HoldTags = { us: string[]; them: string[] };
 

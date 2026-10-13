@@ -12,6 +12,7 @@ import {
   normaliseHoldTags,
   sideByDefault,
   sortHeld,
+  tagIds,
   worstSide,
   type HeldJob,
 } from "../src/lib/dashboard/onHoldTypes";
@@ -102,6 +103,18 @@ ok("an object with neither key", normaliseHoldTags({ tags: ["Problem"] }) === nu
 // quietly come back to the defaults the office just cleared.
 const empty = normaliseHoldTags({ us: [], them: [] });
 ok("an empty saved list is honoured", !!empty && holdRules(empty, TAGS).side.size === 0);
+
+console.log("\n-- the tag ids on a job, however they come back --");
+// `raw->tagTypeIds` hands back a JSON array and `raw->>tagTypeIds` its text,
+// and the difference is one character in a select string. Reading only one of
+// them is a page that silently finds nothing held.
+ok("a JSON array", tagIds([1161, 301122752]).join(",") === "1161,301122752");
+ok("the same thing as text", tagIds("[1161, 301122752]").join(",") === "1161,301122752");
+ok("ids that arrive as strings", tagIds(["1161", "301122752"]).join(",") === "1161,301122752");
+ok("no tags at all", tagIds(null).length === 0 && tagIds(undefined).length === 0);
+ok("a column that is not an array", tagIds({ a: 1 }).length === 0 && tagIds(7).length === 0);
+ok("text that is not JSON", tagIds("not json").length === 0);
+ok("and anything in it that is not a number is dropped", tagIds([1161, "x", null]).join(",") === "1161");
 
 console.log("\n-- worst first --");
 const job = (p: Partial<HeldJob> & { jobId: number }): HeldJob => ({

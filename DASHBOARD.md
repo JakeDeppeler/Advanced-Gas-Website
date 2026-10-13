@@ -317,6 +317,15 @@ Two things it deliberately does not do:
   Those are jobs nobody closed out, not jobs anybody is waiting on, and putting
   them on the wall would bury thirty-six real ones under a records problem.
 
+Neither read is caught inside `onHold()`, deliberately. A swallowed failure on
+the jobs or the tags would compute "nothing is held" from an empty list and put
+a clear board on the wall, which is the one thing the board must not do; letting
+it throw hands it to the snapshot builder, which carries the last figures
+forward behind an amber dot like every other source. `tagIds` reads the tag
+array whether PostgREST hands it back as JSON or as its text, because the
+difference between `raw->tagTypeIds` and `raw->>tagTypeIds` is one character in
+a select string and the failure mode is a page that silently finds nothing.
+
 One tag was left out of the default on purpose: **Rebates 💰**, on 18 open jobs.
 It may well be a hold, but nothing in the name says so, and a tile that counts
 it is asserting something nobody here has confirmed. It is one click on the

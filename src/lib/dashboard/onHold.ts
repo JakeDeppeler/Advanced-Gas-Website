@@ -33,6 +33,7 @@ import {
   holdRules,
   normaliseHoldTags,
   sortHeld,
+  tagIds,
   worstSide,
   type HeldJob,
   type HoldReason,
@@ -65,6 +66,16 @@ const days = (from: string | null, now: Date) =>
  * board rather than a row of zeroes.
  */
 export async function onHold(now: Date = new Date()): Promise<OnHold | null> {
+  /*
+   * Neither read is caught here, deliberately.
+   *
+   * A swallowed failure on either one computes "nothing is held" from an empty
+   * list and puts a clear board on the wall — the one thing the board is not
+   * allowed to do. Letting it throw hands it to the snapshot builder, which
+   * carries the last known figures forward behind an amber dot like every
+   * other source. The settings read is caught, because no setting is a real
+   * answer: it means the default list.
+   */
   const [jobs, tags, savedRaw] = await Promise.all([
     sbSelect<JobRow>(
       "st_jobs",
@@ -72,8 +83,8 @@ export async function onHold(now: Date = new Date()): Promise<OnHold | null> {
         q.select("id,job_number,status,job_type,suburb,customer_name,created_on,tags:raw->tagTypeIds"),
         `status=in.(${OPEN.join(",")})`,
       ].join("&"),
-    ).catch(() => []),
-    sbSelect<{ id: number; name: string | null }>("st_job_tags", q.select("id,name")).catch(() => []),
+    ),
+    sbSelect<{ id: number; name: string | null }>("st_job_tags", q.select("id,name")),
     getSettings<unknown>(HOLD_TAGS_KEY).catch(() => null),
   ]);
 
@@ -84,11 +95,11 @@ export async function onHold(now: Date = new Date()): Promise<OnHold | null> {
 
   const held = jobs
     .map((j) => {
-      const ids = Array.isArray(j.tags) ? j.tags : [];
+      const ids = tagIds(j.tags);
       const reasons: string[] = [];
       const sides: HoldSide[] = [];
       for (const id of ids) {
-        const name = tagName.get(Number(id));
+        const name = tagName.get(id);
         if (!name) continue;
         const s = side.get(name);
         if (!s) continue;
