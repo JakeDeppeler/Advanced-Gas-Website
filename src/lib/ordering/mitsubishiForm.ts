@@ -2,7 +2,7 @@
 // to every emailed order. Pure apart from pdf-lib, so the check script can
 // fill one from fixtures and the result can be looked at.
 
-import { PDFDocument } from "pdf-lib";
+import { AnnotationFlags, PDFDocument } from "pdf-lib";
 import { MITSUBISHI_ORDER_FORM_B64 } from "./mitsubishiTemplate";
 import { orderDelivery, supplierRows, todayMelbourne, type OrderingSettings, type PlannedLine } from "./plan";
 
@@ -23,6 +23,13 @@ export async function fillMitsubishiForm(o: {
   settings: OrderingSettings;
   /** Melbourne date the order goes out; defaults to now. */
   today?: string;
+  /** Going straight to a site rather than the factory. */
+  toSite?: boolean;
+  /**
+   * The signature for the Customer Signature box, as a PNG. Kept in
+   * portal_settings ("ordering_signature"), not in this repo, which is public.
+   */
+  signaturePng?: Uint8Array | null;
 }): Promise<{ pdf: Uint8Array; rows: number } | { error: string }> {
   const rows = supplierRows(o.lines);
   if (rows.length > MITSUBISHI_FORM_ROWS) {
@@ -42,6 +49,10 @@ export async function fillMitsubishiForm(o: {
   const values: Record<string, string> = {
     ...Object.fromEntries(Object.entries(account).filter((e): e is [string, string] => !!e[1]?.trim())),
     "Order Date": o.orderDate,
+    // Mitsubishi's quote box; we put our job numbers in it, which is how
+    // they're quoted back to us.
+    "CRM Quote Reference": [...new Set(o.lines.map((l) => l.job_number).filter((j): j is string => !!j))].sort().join(", "),
+    "Site": o.toSite ? "" : "Factory",
     "Order Number": o.poNumber,
     "Ordered By": o.settings.orderedBy.toUpperCase(),
     "Delivery Address": m ? m[1] : o.delivery,
@@ -93,5 +104,21 @@ export async function fillMitsubishiForm(o: {
   instr.enableMultiline();
   instr.acroField.setDefaultAppearance("/Helv 9 Tf 0 g");
   form.updateFieldAppearances();
+
+  // The signature is drawn on the page inside the signature box, scaled to fit
+  // and kept to its own proportions. The box is a form field whose white fill
+  // is painted over the page — over the signature — so once signed it is
+  // hidden. (Removing the field outright left a dangling cross-reference that
+  // PDF readers report as damage.)
+  if (o.signaturePng?.length) {
+    const sig = await doc.embedPng(o.signaturePng);
+    const widget = form.getTextField("Customer Signature").acroField.getWidgets()[0];
+    const rect = widget.getRectangle();
+    widget.setFlagTo(AnnotationFlags.Hidden, true);
+    const pad = 2;
+    const scale = Math.min((rect.width - pad * 2) / sig.width, (rect.height - pad * 2) / sig.height);
+    const w = sig.width * scale, h = sig.height * scale;
+    doc.getPages()[0].drawImage(sig, { x: rect.x + pad, y: rect.y + (rect.height - h) / 2, width: w, height: h });
+  }
   return { pdf: await doc.save(), rows: rows.length };
 }

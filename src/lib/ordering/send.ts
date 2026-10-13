@@ -1,7 +1,7 @@
 import "server-only";
 import { sbSelectOne, sbUpdate, sbUpdateReturning } from "@/lib/dashboard/db";
 import { isoDateMelbourne } from "@/lib/dashboard/dates";
-import { getOrder, loadOrderingSettings, loadSamples, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
+import { getOrder, loadOrderingSettings, loadSamples, loadSignature, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
 import {
   ccList, deliveryInstructionsFor, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
@@ -83,6 +83,7 @@ async function build(id: number): Promise<Built | { error: string }> {
     const orderDate = todayDmy();
     const form = await fillMitsubishiForm({
       poNumber: po.po_number, orderDate, lines: po.lines, delivery, deliveryInstructions: instructions, settings,
+      toSite: po.delivery_to_site, signaturePng: await loadSignature(),
     });
     if ("error" in form) return { error: form.error };
     const attachments = [{ filename: mitsubishiFormFilename(po.po_number), content: Buffer.from(form.pdf).toString("base64") }];
@@ -229,7 +230,8 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
       const lines: PlannedLine[] = sample.lines;
       if (s.method === "email_form") {
         const orderDate = todayDmy();
-        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings });
+        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings,
+          signaturePng: await loadSignature() });
         if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
         attachments = [{ filename: mitsubishiFormFilename(po), content: Buffer.from(form.pdf).toString("base64") }];
         email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings, attached: true });
