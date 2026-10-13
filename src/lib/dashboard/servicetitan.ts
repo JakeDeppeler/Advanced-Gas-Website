@@ -177,6 +177,40 @@ export async function stSend<T>(
   throw new Error(`ServiceTitan ${method} ${path} failed: ${lastError}`);
 }
 
+/**
+ * Upload a file to a ServiceTitan path as multipart form data (field "file"),
+ * e.g. an attachment on a job. Same rules as stSend: one fresh token on a 401,
+ * a retry only on 429 (a create isn't repeated on 5xx), and a validation
+ * body shown but never an auth failure's.
+ */
+export async function stUpload<T>(path: string, filename: string, bytes: Uint8Array, mime: string): Promise<T> {
+  const url = `${API_BASE}/${path.replace(/^\//, "")}`;
+  let lastError = "";
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const form = new FormData();
+    form.append("file", new Blob([bytes], { type: mime }), filename);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await getToken()}`, "ST-App-Key": process.env.ST_APP_KEY ?? "", Accept: "application/json" },
+      body: form,
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const text = await res.text();
+      return (text ? JSON.parse(text) : null) as T;
+    }
+    if (res.status === 401 && attempt === 0) { token = null; continue; }
+    let detail = "";
+    if (res.status === 400 || res.status === 404 || res.status === 409 || res.status === 413 || res.status === 422) {
+      detail = (await res.text().catch(() => "")).slice(0, 500);
+    }
+    lastError = `${res.status} ${res.statusText}${detail ? ` — ${detail}` : ""}`;
+    if (res.status !== 429 || attempt === MAX_ATTEMPTS - 1) break;
+    await sleep(2 ** attempt * 1000 + Math.random() * 250);
+  }
+  throw new Error(`ServiceTitan POST ${path} failed: ${lastError}`);
+}
+
 /** "{module}/v2/tenant/{tenant}/{resource}" — every tenant-scoped path. */
 export function stTenantPath(module: string, resource: string): string {
   return `${module}/v2/tenant/${tenantId()}/${resource}`;

@@ -7,6 +7,7 @@ import { addStockLine, cancelDraft, draftFor, draftWeek, holdLines, markLinesOrd
 import { nextWeek, parseEmails, thisWeek } from "@/lib/ordering/plan";
 import { approveAllDrafts, approveAndSend, markOrderedManually, sendTest } from "@/lib/ordering/send";
 import { pushOrderToServiceTitan } from "@/lib/ordering/stPurchaseOrders";
+import { noteOrderOnJobs } from "@/lib/ordering/stJobNotes";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -231,6 +232,20 @@ export async function pushToServiceTitan(id: number): Promise<ActionResult> {
     return r.ok
       ? { ok: true, note: `In ServiceTitan: ${r.made.map((m) => (m.number ? (/^po\b/i.test(m.number) ? m.number : `PO ${m.number}`) : "a purchase order")).join(", ")}.` }
       : { ok: false, error: r.error };
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}
+
+/** The note and the order PDF on each of the order's jobs in ServiceTitan; only what's missing is added. */
+export async function noteOnJobs(id: number): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!isId(id)) return { ok: false, error: "Which order?" };
+  try {
+    const r = await noteOrderOnJobs(id);
+    done();
+    return r.ok ? { ok: true, note: `Noted on ${r.done.length} job${r.done.length === 1 ? "" : "s"} in ServiceTitan.` } : { ok: false, error: r.error };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
   }

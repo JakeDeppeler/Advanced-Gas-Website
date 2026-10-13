@@ -4,6 +4,7 @@ import { isoDateMelbourne } from "@/lib/dashboard/dates";
 import { getOrder, loadOrderingSettings, loadSamples, loadSignature, loadSuppliers, type PoWithLines, type PurchaseOrder } from "./db";
 import { fillMitsubishiForm } from "./mitsubishiForm";
 import { pushIfAuto } from "./stPurchaseOrders";
+import { notesIfOn } from "./stJobNotes";
 import {
   ccList, deliveryInstructionsFor, mitsubishiFormFilename, mitsubishiOrderEmail, nextWeek, poNumber, reeceListEmail, supplierOrderEmail, workOrderEmail,
   type EmailParts, type OrderingSettings, type PlannedLine, type Supplier,
@@ -99,6 +100,18 @@ async function build(id: number): Promise<Built | { error: string }> {
   return { po, supplier, settings, email };
 }
 
+/**
+ * What a sent order said, for filing it on the job in ServiceTitan (stJobNotes):
+ * built the same way the email was, so the copy on the job is the one that went.
+ */
+export async function orderDocument(id: number): Promise<{ subject: string; text: string; pdf?: { filename: string; base64: string } } | { error: string }> {
+  const b = await build(id);
+  if ("error" in b) return b;
+  if (!b.email) return { error: "Reece orders are entered in maX, so there's no email to attach." };
+  const form = b.attachments?.[0];
+  return { subject: b.email.subject, text: b.email.text, ...(form ? { pdf: { filename: form.filename, base64: form.content } } : {}) };
+}
+
 const todayDmy = () => { const [y, m, d] = isoDateMelbourne().split("-"); return `${d}/${m}/${y}`; };
 
 /**
@@ -139,6 +152,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
   if (!email) {
     await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: now, sent_to: "Reece maX — entered by the office", updated_at: now });
     await pushIfAuto(id);
+    await notesIfOn(id);
     return { ok: true, note: "Marked as ordered in maX." };
   }
 
@@ -162,6 +176,7 @@ export async function approveAndSend(id: number, who: string): Promise<SendResul
   }
   await sbUpdate("purchase_orders", `id=eq.${id}`, { status: "sent", sent_at: new Date().toISOString(), sent_to: supplier.email, updated_at: new Date().toISOString() });
   await pushIfAuto(id);
+  await notesIfOn(id);
   return { ok: true, note: `Sent to ${supplier.email}, copied to ${ccList(settings, supplier, po, supplier.email).join(", ")}.` };
 }
 
@@ -177,7 +192,7 @@ export async function markOrderedManually(id: number, who: string, how: string):
     status: "sent", approved_by: who, approved_at: now, sent_at: now, send_error: null, updated_at: now,
     sent_to: `Ordered manually${how ? ` — ${how}` : ""}`,
   });
-  if (claimed.length) await pushIfAuto(id);
+  if (claimed.length) { await pushIfAuto(id); await notesIfOn(id); }
   return claimed.length ? { ok: true, note: "Marked as ordered. Nothing was emailed." } : { ok: false, error: "Only a draft can be marked — it may have just been sent." };
 }
 

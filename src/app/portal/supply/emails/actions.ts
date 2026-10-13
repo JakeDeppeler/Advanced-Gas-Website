@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { saveStPoSettings } from "@/lib/ordering/stPurchaseOrders";
+import { saveJobNoteSuppliers } from "@/lib/ordering/stJobNotes";
 import { getPortalUser } from "@/lib/portal/session";
 import { can } from "@/lib/portal/caps";
 import { saveSupplierEmail } from "@/lib/ordering/db";
@@ -59,4 +60,15 @@ export async function saveStPo(input: { auto: boolean; typeId: number | null; wa
   if (!ok) return { ok: false, error: "Couldn't save." };
   revalidatePath("/portal/supply/emails");
   return { ok: true };
+}
+
+/** Whose sent orders are noted on their jobs in ServiceTitan. */
+export async function saveJobNotes(ids: string[]): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  const clean = [...new Set((Array.isArray(ids) ? ids : []).filter((x) => typeof x === "string" && /^[\w-]{1,40}$/.test(x)))].slice(0, 40);
+  if (!(await saveJobNoteSuppliers(clean))) return { ok: false, error: "Couldn't save." };
+  revalidatePath("/portal/supply/emails");
+  revalidatePath("/portal/supply/next-week");
+  return { ok: true, note: "Saved." };
 }
