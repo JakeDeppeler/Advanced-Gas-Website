@@ -385,6 +385,28 @@ const LOOKUPS: LookupSpec[] = [
     }),
   },
   {
+    /*
+     * What the numbers in a job's `tagTypeIds` mean.
+     *
+     * The office tags a job with why it is sitting still — 105 jobs carry one
+     * tag alone, 73 of them still open — and the replica held only the ids, so
+     * none of it could be read. ServiceTitan keeps the names on settings, like
+     * technicians and employees rather than on jpm with job types.
+     */
+    resource: "tag-types",
+    module: "settings",
+    path: "tag-types",
+    table: "st_job_tags",
+    map: (r: Row) => ({
+      id: Number(r.id),
+      name: str(pick(r, "name")),
+      colour: str(pick(r, "color", "colour")),
+      active: r.active !== false,
+      modified_on: ts(pick(r, "modifiedOn")),
+      raw: r,
+    }),
+  },
+  {
     resource: "job-types",
     module: "jpm",
     path: "job-types",

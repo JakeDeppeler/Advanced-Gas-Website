@@ -39,21 +39,37 @@ const LIVE: FieldRow[] = [
   row("st_locations", "suburb", 2575, 2741, 2575, 2741),
   row("st_locations", "postcode", 2514, 2741, 2514, 2741),
   row("st_technicians", "name", 8, 8, 8, 8),
+  // Added before its first sync: empty, and it should say so.
+  row("st_job_tags", "name", 0, 0, 0, 0),
   row("st_employees", "name", 6, 6, 6, 6),
   row("st_payments", "paid_on", 4505, 4505, 4505, 4505),
   row("st_timesheets", "technician_id", 309, 309, 309, 309),
 ];
 
 console.log("-- the replica as it stands --");
+/*
+ * One finding is expected and is not a failure.
+ *
+ * st_job_tags was created and declared before its first sync ran, so it is
+ * empty on purpose for now — and the whole point of the shape report is that it
+ * says so rather than letting a new lookup sit unfilled unnoticed. This
+ * expectation comes out the moment the lookup has run once; if it has run and
+ * the table is still empty, settings/tag-types is not answering and this line
+ * is where that gets noticed.
+ */
+const PENDING = ["st_job_tags.name"];
 const live = checkFields(LIVE);
-ok("today's numbers raise nothing", live.length === 0, live.length ? summarise(live) : "");
+const unexpected = live.filter((f) => !PENDING.includes(f.field));
+ok("nothing unexpected in today's numbers", unexpected.length === 0, unexpected.length ? summarise(unexpected) : "");
+ok("and the one pending lookup is reported, not hidden",
+   live.some((f) => f.field === "st_job_tags.name" && f.kind === "empty"));
 ok("every declared field is present in the report", !live.some((f) => f.kind === "missing"));
 ok("the declaration covers every field the report returns",
    LIVE.every((r) => FIELDS.some((f) => f.table === r.tbl && f.column === r.col)));
 
 console.log("\n-- a field that should be full going empty --");
 const broke = LIVE.map((r) => (r.tbl === "st_jobs" && r.col === "job_type" ? row(r.tbl, r.col, 296, 5446, 0, 263) : r));
-const b = checkFields(broke);
+const b = checkFields(broke).filter((f) => !PENDING.includes(f.field));
 ok("caught", b.length === 1 && b[0].kind === "empty", summarise(b));
 ok("names the field", b[0]?.field === "st_jobs.job_type");
 
@@ -84,6 +100,19 @@ ok("an absent field staying absent",
 ok("a table with no recent rows at all is not judged",
    checkFields([row("st_jobs", "job_type", 296, 5446, 0, 0)],
                [{ table: "st_jobs", column: "job_type", expect: "filled" }]).length === 0);
+
+console.log("\n-- a lookup table that has never filled --");
+// The gap this closed: a lookup has no date column, so every row counts as
+// recent, and "nothing recent, no judgement" skipped an empty one in silence.
+const emptyLookup = checkFields([row("st_job_tags", "name", 0, 0, 0, 0)],
+                                [{ table: "st_job_tags", column: "name", expect: "filled" }]);
+ok("is reported, not skipped as quiet", emptyLookup.length === 1 && emptyLookup[0].kind === "empty", summarise(emptyLookup));
+ok("a table with rows but none recent is still skipped",
+   checkFields([row("st_jobs", "job_type", 296, 5446, 0, 0)],
+               [{ table: "st_jobs", column: "job_type", expect: "filled" }]).length === 0);
+ok("and an empty table nobody expects to be full stays quiet",
+   checkFields([row("st_jobs", "campaign", 0, 0, 0, 0)],
+               [{ table: "st_jobs", column: "campaign", expect: "absent" }]).length === 0);
 
 console.log("\n-- a column that disappears --");
 const gone = checkFields([], [{ table: "st_jobs", column: "customer_name", expect: "filled" }]);

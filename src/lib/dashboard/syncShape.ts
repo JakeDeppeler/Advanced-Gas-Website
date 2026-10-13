@@ -78,6 +78,11 @@ export const FIELDS: FieldSpec[] = [
   { table: "st_locations", column: "suburb", expect: "filled", floor: 0.85 },
   { table: "st_locations", column: "postcode", expect: "filled", floor: 0.85 },
   { table: "st_technicians", column: "name", expect: "filled" },
+  // Added before its first sync, so this reports empty until the lookup has
+  // run once — which is the point: it is how we learn whether ServiceTitan's
+  // settings/tag-types endpoint answers at all, without anybody remembering to
+  // go and look.
+  { table: "st_job_tags", column: "name", expect: "filled" },
   { table: "st_employees", column: "name", expect: "filled" },
   { table: "st_payments", column: "paid_on", expect: "filled" },
   { table: "st_timesheets", column: "technician_id", expect: "filled" },
@@ -110,6 +115,22 @@ export function checkFields(rows: FieldRow[], spec: FieldSpec[] = FIELDS): Findi
     const r = byKey.get(key);
     if (!r) {
       out.push({ field: key, kind: "missing", detail: "no such column in the replica" });
+      continue;
+    }
+    /*
+     * A table with no rows at all is a different thing from a quiet one.
+     *
+     * "Nothing recent, so no judgement" is right for a table that fills with
+     * the week's work and had a slow week. It is wrong for a lookup — job
+     * types, technicians, tag names — which has no date column, so *every*
+     * row is "recent" and an empty one skipped silently. st_job_tags was added
+     * before its first sync and would have sat empty and unmentioned for as
+     * long as it took somebody to wonder why a page was blank.
+     */
+    if (r.total === 0) {
+      if (f.expect === "filled") {
+        out.push({ field: key, kind: "empty", detail: "the table has no rows at all" });
+      }
       continue;
     }
     // Nothing recent to judge on — a quiet table is not a broken one.
