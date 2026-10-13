@@ -1448,6 +1448,40 @@ again, and for two different reasons: the receivables read is gated to five
 minutes because of a tenant call limit, and the token refresh is gated by a
 database claim because a lost race disconnects it. Both above.
 
+## No verdict on a fraction of one day
+
+`standingOf` pro-rates a period's need by how much of it has gone. Over a week
+or a month that is sound — enough working days accrue for the average to mean
+something. Over two hours of one day it is noise with a percentage on it.
+
+Sales land in lumps of two to fifteen thousand against a day that needs about
+twelve. At 9:22am on 14 October, one $4,054 sale against the $3,192 the clock
+said was due read **"▲ Ahead · 127%"** on a day a third covered. The arithmetic
+was right. What the room saw was a percentage with no denominator anywhere on
+the card, next to the only big number anybody had in mind — the $3.2M year goal
+— and the obvious conclusion was that the board was broken.
+
+So the day cards on **Today** and **Quotes** no longer carry a pace chip. They
+say what the day asks for instead: *$4,054 · of $11,093 today · 1 job sold*.
+That figure only goes up through the day, means the same thing at 9am and at
+5pm, and carries its own denominator. Judging is left to **Pace** and
+**Performance**, which measure the week and the month.
+
+Two things deliberately left alone:
+
+- **Jobs booked and Jobs completed lost their chips and gained no target.** The
+  plan's *count* steps come back through the measured rates rather than straight
+  off the month's share, and `booked` currently works out at about twenty-four
+  jobs a day against a business booking three or four. That is a figure to fix
+  before it is a figure to print.
+- **The month and year verdicts stay.** A month of working days has enough in
+  it to average out, which is the whole difference.
+
+`scripts/check-pace.ts` reads `ScreenBoard.tsx` and fails if `headVerdictOf` is
+ever again handed a `standing.today`, a `dayFraction` or a `dayGone` — a source
+check rather than an arithmetic one, because the arithmetic was never the
+problem.
+
 ## The Today page reads in two rows
 
 **Money across the top, counts underneath.** Sold, Invoiced and Quoted are the

@@ -664,10 +664,15 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
    * target is on the plan, and how much of the day has gone is on the
    * calendar, so the by-now for money is the two multiplied.
    */
-  const cal = m.paceData?.calendar;
-  const dayGone = cal ? (cal.todayWorking ? cal.dayFraction : 1) : null;
+  /*
+   * The day's ask, not a verdict on it. See askedOfToday: the pace chip that
+   * used to sit here divided today's figure by the fraction of the working day
+   * that had gone, which on a lumpy day is noise wearing a percentage.
+   *
+   * `sold` in `standing` counts jobs, so the money target comes off the day
+   * plan's value rather than that step's need.
+   */
   const soldTarget = m.pace?.day.sold.value ?? null;
-  const soldByNow = soldTarget != null && dayGone != null ? soldTarget * dayGone : null;
 
   return (
     <>
@@ -676,8 +681,7 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         navy
         label="Sold today"
         value={st.plain(m.soldToday, live)}
-        verdict={headVerdictOf(live.st ? m.soldToday : null, soldByNow)}
-        foot={soldFoot}
+        foot={live.st ? footWithTarget(soldTarget, soldFoot) : soldFoot}
       />
 
       {/* Everything billed today, whenever the job was done — the office
@@ -691,7 +695,6 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <SideCard
         label="Invoiced today"
         value={st.plain(m.revenueToday, live)}
-        verdict={headVerdictOf(live.st ? m.revenueToday : null, today?.invoiced.byNow)}
         rows={
           !live.st || m.jobsInvoicedToday === 0
             ? undefined
@@ -705,9 +708,12 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         foot={
           !live.st
             ? undefined
-            : m.jobsInvoicedToday === 0
-              ? "nothing billed yet today"
-              : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`
+            : footWithTarget(
+                today?.invoiced.need,
+                m.jobsInvoicedToday === 0
+                  ? "nothing billed yet today"
+                  : `${count(m.jobsInvoicedToday)} ${m.jobsInvoicedToday === 1 ? "job" : "jobs"} billed, by how long each waited`,
+              )
         }
       />
 
@@ -717,7 +723,6 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
       <SideCard
         label="Quoted today"
         value={st.plain(m.quotesCreatedTodayValue, live)}
-        verdict={headVerdictOf(live.st ? m.quotesCreatedTodayValue : null, today?.quotedValue.byNow)}
         rows={
           !live.st || m.quotesCreatedTodayCount === 0
             ? undefined
@@ -731,9 +736,12 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
         foot={
           !live.st
             ? undefined
-            : m.quotesCreatedTodayCount === 0
-              ? "nothing quoted yet today"
-              : `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"} priced today`
+            : footWithTarget(
+                today?.quotedValue.need,
+                m.quotesCreatedTodayCount === 0
+                  ? "nothing quoted yet today"
+                  : `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"} priced today`,
+              )
         }
       />
 
@@ -748,14 +756,18 @@ function TodayPage({ m, live }: { m: Metrics; live: Live }) {
           {
             name: "Booked",
             value: st.count(m.bookingsToday, live),
+            /* No day target on this one. The plan's booked count comes back
+               through the rates rather than straight off the month, and it
+               currently reads about twenty-four jobs a day against a business
+               booking three or four — so it is a figure to fix before it is a
+               figure to print. The chip it used to carry is gone for the same
+               reason as the rest: see askedOfToday. */
             sub: `from ${count(m.leadsToday)} ${m.leadsToday === 1 ? "lead" : "leads"}`,
-            verdict: headVerdictOf(live.st ? m.bookingsToday : null, today?.booked.byNow),
           },
           {
             name: "Completed",
             value: st.count(m.jobsCompletedToday, live),
             sub: `${count(m.jobsCompletedWeek)} this week`,
-            verdict: headVerdictOf(live.st ? m.jobsCompletedToday : null, today?.completed.byNow),
           },
         ]}
         /* Each type and its count held together, because this line wraps and a
@@ -1606,22 +1618,18 @@ function OnHoldPage({ m, live }: { m: Metrics; live: Live }) {
 function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
   if (!live.st) return <NotConnected what="quotes written, still out, or closed" />;
 
-  // The same two measures as the Today page's money row, against the same
-  // by-now, so the two pages cannot disagree about whether the day is going
-  // well. Sold has no money step in `standing` — that one counts jobs — so its
-  // by-now is the day's target times how much of the day has gone.
+  // The same two measures as the Today page's money row, and said the same way:
+  // what the day asks for, not a verdict on a fraction of it. See askedOfToday.
+  // `sold` in `standing` counts jobs, so its money target comes off the day
+  // plan's value rather than that step's need.
   const today = m.pace?.standing.today;
-  const cal = m.paceData?.calendar;
-  const dayGone = cal ? (cal.todayWorking ? cal.dayFraction : 1) : null;
   const soldTarget = m.pace?.day.sold.value ?? null;
-  const soldByNow = soldTarget != null && dayGone != null ? soldTarget * dayGone : null;
 
   return (
     <>
       <div className="tile tile--head" style={{ gridColumn: "1 / span 4", gridRow: 1 }}>
         <span className="tile__labelrow">
           <span className="tile__label">Quoted today</span>
-          <Verdict of={headVerdictOf(m.quotesCreatedTodayValue, today?.quotedValue.byNow)} />
         </span>
         <span className={vcls(plain(m.quotesCreatedTodayValue))}><Ticker id="Quoted today" text={plain(m.quotesCreatedTodayValue)} /></span>
         {/* How many options each job was given, not just how many were written
@@ -1629,21 +1637,26 @@ function QuotesPage({ m, live }: { m: Metrics; live: Live }) {
             answers "how well" — three options a job is a quote, one is a price,
             and it is the first thing that slips on a flat-out day. */}
         <span className="tile__foot">
-          {count(m.quotesCreatedTodayCount)} {m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}
-          {m.quotesCreatedTodayCount > 0 && m.quotesCreatedTodayOptions > 0
-            ? ` · ${count(m.quotesCreatedTodayOptions)} options · ${avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount)} each`
-            : ""}
+          {footWithTarget(
+            today?.quotedValue.need,
+            `${count(m.quotesCreatedTodayCount)} ${m.quotesCreatedTodayCount === 1 ? "job" : "jobs"}` +
+              (m.quotesCreatedTodayCount > 0 && m.quotesCreatedTodayOptions > 0
+                ? ` · ${count(m.quotesCreatedTodayOptions)} options · ${avgOptions(m.quotesCreatedTodayOptions, m.quotesCreatedTodayCount)} each`
+                : ""),
+          )}
         </span>
       </div>
 
       <div className="tile tile--navy tile--head" style={{ gridColumn: "5 / span 4", gridRow: 1 }}>
         <span className="tile__labelrow">
           <span className="tile__label">Sold today</span>
-          <Verdict of={headVerdictOf(m.soldToday, soldByNow)} />
         </span>
         <span className={vcls(plain(m.soldToday))}><Ticker id="Sold today" text={plain(m.soldToday)} /></span>
         <span className="tile__foot">
-          {count(m.quotesCreatedTodaySold)} of {count(m.quotesCreatedTodayCount)} jobs quoted today
+          {footWithTarget(
+            soldTarget,
+            `${count(m.quotesCreatedTodaySold)} of ${count(m.quotesCreatedTodayCount)} jobs quoted today`,
+          )}
         </span>
       </div>
 
@@ -2711,15 +2724,37 @@ function HeadCard({ label, value, suffix, foot, navy, verdict }: {
 }
 
 /**
- * A head card's verdict: done against what the goal says should be done by now.
+ * What today asks for, in words, for the foot of a day card.
  *
- * The same scale as the dials and the footer's key, so "On track" on this page
- * means what it means on Pace. `byNow` must be in the step's own unit — the
- * count steps are jobs and the money steps are dollars, and they share a shape.
+ * The day cards used to carry a pace chip: today's figure over the day's
+ * target times how much of the working day had gone. The arithmetic was right
+ * and the number was noise. Sales land in lumps of two to fifteen thousand
+ * against a day that needs twelve, so at twenty past nine one $4,054 sale read
+ * "▲ Ahead · 127%" — $4,054 over the $3,192 the clock said was due by then —
+ * on a day a third covered. A percentage with no denominator on the card was
+ * then read against the only big number anybody had in mind, the $3.2M year
+ * goal, and the board stopped being believed.
+ *
+ * So the day cards say what the day asks for and leave the judging to the Pace
+ * and Performance pages, where a week and a month of working days have enough
+ * in them to average out. A target is a fact; a verdict on two hours of a
+ * lumpy day is not.
  */
-function Verdict({ of }: { of: { verdict: Verdict; text: string } | null }) {
-  if (!of) return null;
-  return <span className={`tile__verdict status status--${of.verdict}`}>{of.text}</span>;
+function askedOfToday(target: number | null | undefined): string | null {
+  if (target == null || !(target > 0)) return null;
+  return `of ${plain(target)} today`;
+}
+
+/**
+ * The same, joined to whatever else the foot was going to say.
+ *
+ * Money only. The plan's *count* steps come back through the measured rates
+ * rather than straight off the month's share, and the booked count currently
+ * reads about twenty-four jobs a day against a business booking three or four.
+ * A target nobody can stand behind is worse on a wall than no target.
+ */
+function footWithTarget(target: number | null | undefined, rest?: string): string | undefined {
+  return [askedOfToday(target), rest].filter(Boolean).join(" · ") || undefined;
 }
 
 function headVerdictOf(done: number | null | undefined, byNow: number | null | undefined) {

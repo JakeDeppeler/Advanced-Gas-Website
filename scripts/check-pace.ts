@@ -8,6 +8,7 @@
 import { buildPace, expectedBy, jobClass, ratesFrom, standingOf, yearPlan, type Measured, type PaceData } from "../src/lib/dashboard/pace";
 import { monthTargetsFromYearGoal } from "../src/lib/dashboard/boardSettings";
 import { readPaceSettings, readYearGoal } from "../src/lib/portal/yearGoal";
+import { readFileSync } from "node:fs";
 
 let failed = 0;
 const near = (a: number | null | undefined, b: number, tol = 0.01) => a != null && Math.abs(a - b) <= Math.abs(b) * tol + 1e-9;
@@ -159,6 +160,28 @@ const g = readYearGoal({ revenue: 3_200_000, profitPct: 20, year: 2027, pace: { 
 ok(g.pace.bookRate === null && g.pace.avgSale === null, "a booking rate stored as 7 (meant 7%) is refused, not read as 700%", g.pace);
 const w = readYearGoal({ revenue: 3_200_000, profitPct: 20, year: 2027, winRatePct: 25, pace: { bookRate: 0.7 } }, new Date("2026-10-05"));
 ok(w.pace.closeRate === 0.25 && w.winRatePct === 25 && w.pace.bookRate === 0.7, "the planned close rate is the goal's one win rate, winRatePct", w);
+
+/*
+ * ---- no verdict on a fraction of one day
+ *
+ * standingOf pro-rates a period's need by how much of it has gone, which is
+ * sound over a week or a month and noise over two hours of one. Sales land in
+ * lumps of two to fifteen thousand against a day needing twelve, so at 9:22am
+ * one $4,054 sale read "Ahead · 127%" — right against the $3,192 the clock
+ * said was due, and read on the wall against the only big number anybody had
+ * in mind, the $3.2M year goal.
+ *
+ * The day cards now print what the day asks for and leave the judging to the
+ * week and the month. This is a source check rather than an arithmetic one
+ * because the arithmetic was never wrong — the question is what gets put in
+ * front of the room — and it is here so the chip cannot quietly come back.
+ */
+const board = readFileSync("src/components/ScreenBoard.tsx", "utf8");
+const dayVerdicts = [...board.matchAll(/headVerdictOf\([^)]*\)/g)]
+  .map((x) => x[0])
+  .filter((call) => /standing\.today|dayFraction|dayGone|soldByNow/.test(call));
+ok(dayVerdicts.length === 0, "no verdict chip is computed against a fraction of one day", dayVerdicts);
+ok(/of \$\{?.*today|askedOfToday/.test(board), "the day cards say what the day asks for instead");
 
 console.log(failed ? `\n${failed} failed` : "\nAll pace checks pass");
 process.exit(failed ? 1 : 0);
