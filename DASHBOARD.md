@@ -283,10 +283,23 @@ what was written today and what is still out, biggest first. Both lists are one
 row per **job**, at the average of the options put in front of that customer,
 with the option count and ServiceTitan's own job number beside it.
 
-**On hold** is open work that is waiting on something, split by whose move it
-is. Three figures — jobs on us, jobs on the customer, and how long the oldest
-has been sitting — over what is being waited on (biggest first, with the age of
-the oldest in each pile) and the jobs themselves (ours first, then oldest).
+**On hold** is open work that is waiting on something, and the page is the
+**reasons**. A strip across the top — jobs held, how many on us and how many on
+the customer, what each side has quoted — then two panels that are the point of
+it: every reason in play, biggest pile first, with the age of the oldest in each
+and what it is worth; and the seven jobs sitting longest, ours first, each with
+every tag it carries.
+
+**Nothing truncates a tag name and no job's tags are collapsed to a "+2".** The
+names are the only record anywhere of what has to happen next — "Rubbish Removal
+Not Booked" says exactly what to do and "Rubbish Rem…" says nothing — so each
+tag is its own chip and a job held four ways reads as four things to do. That
+costs rows: each job takes three lines, so seven fit where an eighth ran its
+tags off the bottom at every viewport. Fewer jobs, every reason on each of them
+readable, is the trade the page makes on purpose. The reason bands are one line
+each for the same reason in reverse: stacked over two lines, the eleventh ran
+past the bottom of its panel, and dropping a reason off a page about reasons
+was not an option.
 
 The reason comes from ServiceTitan's job tags, because nothing else in it says
 why a job has stopped. `st_jobs.raw` carries `tagTypeIds` and `st_job_tags`
@@ -299,12 +312,13 @@ booked*, a *problem*, a *voicemail* left. That picks out eleven of the 44; the
 subtitle says "default tag list" until somebody sets it, so the room knows which
 it is reading. `scripts/check-hold.ts` runs the rules over all 44 names.
 
-**Ours or theirs** is the only cut the page is built on, because it is the only
-one that changes what anybody does: 44 quotes sitting with customers are a round
-of phone calls, and 16 installs with the materials never ordered are a purchase
-order. A job tagged both ways counts as ours — there is something here we can
-do, and filing it under the customer would park it behind a call that isn't ours
-to make.
+**Ours or theirs** rides along on every reason and every job rather than heading
+the page. It is the cut that decides who picks a job up: 44 quotes sitting with
+customers are a round of phone calls, and 16 installs with the materials never
+ordered are a purchase order. A job tagged both ways counts as ours — there is
+something here we can do, and filing it under the customer would park it behind
+a call that isn't ours to make. It is written in words on every row, with the
+colour behind it as the second signal.
 
 Two things it deliberately does not do:
 

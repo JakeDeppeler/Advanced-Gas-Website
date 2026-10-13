@@ -319,9 +319,10 @@ body:has(.screen) .utilbar {
 }
 .screen__grid--quotes { grid-template-rows: 0.5fr repeat(2, 1fr); }
 .screen__grid--invoices { grid-template-rows: 0.62fr 1.6fr; }
-/* Three head figures, then the two lists. The same proportions as Invoices,
-   which is the page it sits beside and does the same job as. */
-.screen__grid--hold { grid-template-rows: 0.62fr 1.6fr; }
+/* A summary strip, then the two lists, which are the page. The strip is a
+   fifth rather than a third: the figures are the scale of the problem and
+   everything below them is its shape. */
+.screen__grid--hold { grid-template-rows: 0.34fr 2fr; }
 .screen__grid--team { grid-template-rows: 1fr auto; }
 /* Five cards of equal height, then the day's one-line summary. */
 .screen__grid--daily { grid-template-rows: 1fr auto; }
@@ -1956,15 +1957,14 @@ body:has(.screen) .utilbar {
 
 /* ─────────────────────────────────────────────────────────── the On hold page
 
-   Open work waiting on something, split by whose move it is. The word "ours"
-   or "theirs" is printed on every band and row: the colour behind it says the
-   same thing a second time and never says it alone.
+   Why jobs have stopped, in the office's own words. Nothing truncates a tag
+   name and no job's list of them is collapsed to a "+2": the names are the
+   only record of what has to happen next, and half of one is no record.
+   "ours" or "theirs" is printed on every reason and every job; the colour
+   behind it says the same thing a second time and never says it alone.
    ────────────────────────────────────────────────────────────────────────── */
 
-.screen__grid--hold .tile--hero { grid-column: span 4; }
-/* The Invoices size, for the same reason: these are figures the office reads
-   standing at the board, not the one number on the page. */
-.screen__grid--hold .tile__value--hero { font-size: calc(3.4 * var(--u)); }
+.hold__sum { grid-column: span 12; }
 .hold__reasons { grid-column: span 5; }
 .hold__list { grid-column: span 7; }
 
@@ -1976,92 +1976,149 @@ body:has(.screen) .utilbar {
 }
 .hold__emptysub { font-size: calc(1.3 * var(--u)); color: var(--ink-muted); font-weight: 600; }
 
-/* One band per thing being waited on. The count is the figure, so it is the
-   only bold thing in the row; the money is the quoted part of it and sits in
-   the quiet column on the right. */
-.hold__bands { display: flex; flex-direction: column; flex: 1; justify-content: space-evenly; }
+/* The strip: how many, then the two sides, then the caveat. One row, because
+   its whole job is to be read in a glance on the way to the lists.
+   .tile--navy paints only the tile classes white, so everything here names its
+   own colour — the first version came out navy on navy, which is to say blank. */
+.hold__sum {
+  flex-direction: row;
+  align-items: center;
+  gap: calc(2.4 * var(--u));
+  padding: calc(0.9 * var(--u)) calc(1.6 * var(--u));
+  color: #fff;
+}
+.hold__sumfig { display: flex; align-items: baseline; gap: calc(0.7 * var(--u)); }
+.hold__sumfig b { font-family: var(--font-display), Archivo, system-ui, sans-serif; font-size: calc(4 * var(--u)); font-weight: 800; line-height: 1; }
+.hold__sumfig em { font-style: normal; font-size: calc(1.25 * var(--u)); font-weight: 700; opacity: 0.85; }
+.hold__sumsplit { display: flex; gap: calc(2.2 * var(--u)); }
+.hold__sumside { display: flex; align-items: baseline; gap: calc(0.55 * var(--u)); }
+.hold__sumside b { font-family: var(--font-display), Archivo, system-ui, sans-serif; font-size: calc(2.1 * var(--u)); font-weight: 800; line-height: 1; }
+.hold__sumside em { font-style: normal; font-size: calc(1 * var(--u)); font-weight: 650; opacity: 0.8; }
+/* Pushed to the far end: it qualifies the money, and the money is what it sits
+   beside. */
+.hold__sumnote { margin-left: auto; font-size: calc(1 * var(--u)); font-weight: 650; opacity: 0.8; text-align: right; }
+
+/* One band per reason, all of them, spread down the panel. */
+.hold__bands { display: flex; flex-direction: column; flex: 1; justify-content: space-between; padding: calc(0.4 * var(--u)) 0; }
+/* One line each, not two. Stacked over two rows the eleven of them ran 22px
+   past the bottom of the panel — and dropping one to fit would have been the
+   one thing this page is not allowed to do. On a line the longest name this
+   office has leaves room for everything beside it. */
 .hold__band {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
   align-items: baseline;
-  gap: calc(0.15 * var(--u)) calc(0.7 * var(--u));
-  font-size: calc(1.1 * var(--u));
+  gap: calc(0.5 * var(--u));
+  font-size: calc(1.02 * var(--u));
 }
-.hold__bname {
-  grid-area: 1 / 1 / 2 / 2;
-  font-weight: 750;
-  color: var(--navy);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+/* Never ellipsed: the tag name is the instruction. The column is sized for
+   the longest one this office has ("Awaiting Further Instructions ⏳"), and
+   a longer one would wrap rather than lose its end. */
+.hold__bname { font-weight: 750; color: var(--navy); min-width: 0; }
+.hold__band .hold__side { justify-self: start; }
 .hold__bjobs {
-  grid-area: 1 / 3 / 2 / 4;
   justify-self: end;
-  font-size: calc(1.6 * var(--u));
+  font-size: calc(1.35 * var(--u));
   font-weight: 900;
   color: var(--navy);
   font-variant-numeric: tabular-nums;
 }
-.hold__bage { grid-area: 1 / 4 / 2 / 5; justify-self: end; }
-/* Second line, under the name: the side and what the quoted part is worth.
-   On one line with the rest, the longest tag name ("Rubbish Removal Not
-   Booked") left the money column about two characters wide. */
-.hold__side { grid-area: 2 / 1 / 3 / 2; justify-self: start; }
 .hold__bval {
-  grid-area: 2 / 3 / 3 / 5;
   justify-self: end;
-  font-size: calc(0.95 * var(--u));
+  min-width: calc(3.6 * var(--u));
+  text-align: right;
+  font-size: calc(0.92 * var(--u));
   font-weight: 700;
   color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
-.hold__more { margin-top: calc(0.4 * var(--u)); }
 
-/* Whose move it is, as a pill. Reads as a label, not as a verdict: the pace
-   palette is reserved for how a figure is tracking. */
+/* Whose move it is, as a pill, on a band and inside the summary strip alike.
+   Its own pair of classes rather than the pace palette: good/warning/serious/
+   critical is reserved for how a figure is tracking, and whose move a job is
+   is not that. */
 .hold__side {
-  padding: calc(0.1 * var(--u)) calc(0.55 * var(--u));
+  padding: calc(0.08 * var(--u)) calc(0.5 * var(--u));
   border-radius: 999px;
-  font-size: calc(0.82 * var(--u));
+  font-size: calc(0.78 * var(--u));
   font-weight: 800;
+  font-style: normal;
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 .hold__side.is-us { background: #e4e7f6; color: #2b3a7a; }
 .hold__side.is-them { background: var(--leader-row); color: var(--vd-close-ink); }
+/* On the navy strip both pills sit on navy, so they carry the dark paints
+   whatever the theme is doing. */
+.hold__sum .hold__side.is-us { background: #27336b; color: #cdd6fb; }
+.hold__sum .hold__side.is-them { background: #43340f; color: #f6d9a4; }
 
-/* Who and where, then why, then how long, then what it is worth. Who is
-   widest: it is what somebody looks the job up by. */
-.hold__row {
+/* One job: who it is and what it is waiting on, with its age and value held
+   out to the right. Three lines, because the tags get a line to themselves
+   rather than a share of one. */
+.hold__jobs { display: flex; flex-direction: column; flex: 1; justify-content: space-between; padding: calc(0.3 * var(--u)) 0; }
+.hold__job {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: calc(0.9 * var(--u));
-  align-items: center;
+  grid-template-rows: auto auto auto;
+  align-items: baseline;
+  gap: calc(0.12 * var(--u)) calc(0.8 * var(--u));
+  padding-bottom: calc(0.45 * var(--u));
+  border-bottom: 1px solid var(--hairline);
 }
-.hold__who { display: flex; flex-direction: column; gap: calc(0.1 * var(--u)); min-width: 0; }
-.hold__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+.hold__job:last-child { border-bottom: 0; padding-bottom: 0; }
+.hold__name {
+  grid-area: 1 / 1 / 2 / 2;
+  font-size: calc(1.08 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hold__age { grid-area: 1 / 2 / 2 / 3; }
+.hold__jval {
+  grid-area: 1 / 3 / 2 / 4;
+  justify-self: end;
+  min-width: calc(4.4 * var(--u));
+  text-align: right;
+  font-size: calc(1.05 * var(--u));
+  font-weight: 800;
+  color: var(--navy);
+  font-variant-numeric: tabular-nums;
+}
+/* Every tag, each one its own chip so a job held four ways reads as four
+   things rather than one long sentence. Wraps rather than truncates. */
+.hold__why { grid-area: 2 / 1 / 3 / 4; display: flex; flex-wrap: wrap; gap: calc(0.3 * var(--u)); }
+.hold__tag {
+  font-style: normal;
+  font-size: calc(0.88 * var(--u));
+  font-weight: 750;
+  color: var(--ink-2);
+  background: var(--track);
+  border-radius: calc(0.35 * var(--u));
+  padding: calc(0.04 * var(--u)) calc(0.42 * var(--u));
+  white-space: nowrap;
+}
 .hold__what {
-  font-size: calc(0.86 * var(--u));
+  grid-area: 3 / 1 / 4 / 4;
+  font-size: calc(0.84 * var(--u));
   color: var(--muted-fig);
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The tag name, in the office's own words, leading the second line. Darker
-   and heavier than the job type beside it: it is the only thing on the row
-   that says why the job is here. */
-.hold__why { color: var(--ink-2); font-weight: 800; }
 /* The same pill, and the same two bands, as the overdue list on Invoices: a
    fortnight and a month mean the same thing on both pages. */
 .hold__age,
 .hold__bage {
   justify-self: end;
-  padding: calc(0.15 * var(--u)) calc(0.6 * var(--u));
+  padding: calc(0.12 * var(--u)) calc(0.55 * var(--u));
   border-radius: 999px;
   background: var(--leader-row);
   color: var(--ink-2);
-  font-size: calc(0.95 * var(--u));
+  font-size: calc(0.9 * var(--u));
   font-weight: 800;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
@@ -2072,21 +2129,20 @@ body:has(.screen) .utilbar {
 .hold__bage.is-bad { background: #fbe3e0; color: #93241a; }
 /* Not a dash: a held job with no price is still a job, and a blank there reads
    as missing data rather than as work nobody has quoted yet. */
-.hold__unpriced { color: var(--ink-muted); font-weight: 650; font-size: calc(0.95 * var(--u)); }
-.hold__backlog { margin-top: calc(0.4 * var(--u)); }
+.hold__unpriced { color: var(--ink-muted); font-weight: 650; font-size: calc(0.92 * var(--u)); }
 
 /* Dark. The pills carry literal paints for the reason the gauge figures do:
    a themed var on a coloured background was not getting the override on the
    TV's browser, and a navy word on a navy pill is not a word. */
 .screen--dark .hold__side.is-us { background: #27336b; color: #cdd6fb; }
 .screen--dark .hold__side.is-them { background: #43340f; color: #f6d9a4; }
+.screen--dark .hold__tag { background: #1c2752; color: #d9d8d2; }
 .screen--dark .hold__age,
 .screen--dark .hold__bage { background: #1c2752; color: #d9d8d2; }
 .screen--dark .hold__age.is-warn,
 .screen--dark .hold__bage.is-warn { background: #4a3611; color: #ffd79a; }
 .screen--dark .hold__age.is-bad,
 .screen--dark .hold__bage.is-bad { background: #53211c; color: #ffc3bb; }
-
 
 /* ────────────────────────────────────────────────────────────── the Team page
 
