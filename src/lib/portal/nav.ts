@@ -180,6 +180,10 @@ export function portalNav(user: PortalUser, opts: { goalLabel?: string | null } 
       band: "crew", icon: "box", also: ["order", "purchase order", "mitsubishi", "reclaim", "rinnai", "brivis", "braemar", "istore", "electrician", "geoff", "work order", "next week"],
     },
     {
+      href: "/portal/supply/next-week?tab=sent", label: "Sent orders", short: "Sent", blurb: "Orders that have gone to the supplier or the electrician",
+      band: "crew", icon: "box", also: ["sent", "ordered", "purchase order", "po"],
+    },
+    {
       href: "/portal/supply/emails", label: "Supplier emails", blurb: "Who orders go to, and the wording",
       band: "crew", icon: "box", also: ["supplier", "email", "wording", "sample", "test email", "vendor", "order email"],
     },

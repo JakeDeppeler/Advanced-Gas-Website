@@ -634,6 +634,8 @@ function WorkOrderCard({ po, supplier, testTo, alwaysCc }: CardProps) {
 
 export function NextWeekOrders(props: {
   which: "next" | "this";
+  /** "todo": drafts still to approve and send. "sent": what's gone, which moves here by itself once it has. */
+  view?: "todo" | "sent";
   dbReady: boolean;
   appointmentsSynced: boolean;
   orders: PoWithLines[];
@@ -649,6 +651,7 @@ export function NextWeekOrders(props: {
   holds: Hold[];
 }) {
   const { which, dbReady, appointmentsSynced, orders, suppliers, problems, testTo, alwaysCc, delivery, holds } = props;
+  const view = props.view ?? "todo";
   const { busy, msg, run } = useAct();
   const byId = new Map(suppliers.map((s) => [s.id, s]));
   useLiveRefresh(120_000);
@@ -662,21 +665,25 @@ export function NextWeekOrders(props: {
     );
   }
 
-  const shown = orders.filter((o) => o.status !== "cancelled");
-  const cancelled = orders.length - shown.length;
+  const live = orders.filter((o) => o.status !== "cancelled");
+  const cancelled = orders.length - live.length;
+  // An order is "sent" from the moment it's approved: it's on its way, and
+  // nothing on it can change, so it leaves the list of things to do.
+  const gone = live.filter((o) => o.status === "sent" || o.status === "approved");
+  const shown = view === "sent" ? gone : live.filter((o) => o.status === "draft");
   const goods = shown.filter((o) => o.kind === "order").sort((a, b) => (byId.get(a.supplier_id)?.name ?? "").localeCompare(byId.get(b.supplier_id)?.name ?? ""));
   const work = shown.filter((o) => o.kind === "work_order").sort((a, b) => (a.details?.start_at ?? "").localeCompare(b.details?.start_at ?? ""));
 
   return (
     <div className="pt-nw">
-      {!appointmentsSynced && (
+      {view === "todo" && !appointmentsSynced && (
         <p className="pt-note">
           <strong>Booking times are still coming across from ServiceTitan.</strong> Until they have, no install has a date, so there is
           nothing to draft. The sync runs every ten minutes.
         </p>
       )}
 
-      <div className="pt-nw__bar">
+      {view === "todo" && <div className="pt-nw__bar">
         <OrderAll drafts={shown.filter((o) => o.status === "draft")} byId={byId} />
         <AddStock which={which} suppliers={suppliers.filter((x) => x.active && x.method !== "work_order").sort((a, b) => a.name.localeCompare(b.name))} />
         <button type="button" className="pt-btn pt-btn--navy pt-btn--sm" disabled={busy} onClick={() => run(() => redraft(which))}>
@@ -685,9 +692,9 @@ export function NextWeekOrders(props: {
         <span className="pt-nw__muted">Redrafting only touches drafts. Anything already sent stays as it went; new jobs become a top-up order.</span>
         <a className="pt-btn pt-btn--ghost pt-btn--sm" href="/portal/supply/emails">Supplier emails &amp; samples</a>
         {msg && <span className={`pt-inline ${msg.ok ? "is-ok" : "is-err"}`}>{msg.text}</span>}
-      </div>
+      </div>}
 
-      {problems.length > 0 && (
+      {view === "todo" && problems.length > 0 && (
         <section className="pt-panel pt-nw__problems">
           <h2 className="pt-panel__h">Needs a look</h2>
           <p className="pt-panel__sub">
@@ -707,9 +714,25 @@ export function NextWeekOrders(props: {
         </section>
       )}
 
-      <HeldList holds={holds} which={which} byId={byId} />
+      {view === "todo" && <HeldList holds={holds} which={which} byId={byId} />}
 
-      {shown.length === 0 && (
+      {view === "sent" && shown.length === 0 && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Nothing sent for {which === "this" ? "this" : "next"} week yet</h2>
+          <p className="pt-panel__sub">An order lands here the moment it&rsquo;s approved and goes to the supplier or the electrician.</p>
+        </section>
+      )}
+
+      {view === "todo" && shown.length === 0 && gone.length > 0 && (
+        <section className="pt-panel">
+          <h2 className="pt-panel__h">Nothing left to send</h2>
+          <p className="pt-panel__sub">
+            All {gone.length} {gone.length === 1 ? "order has" : "orders have"} gone — they&rsquo;re on the Sent tab. A new booking is drafted here within minutes.
+          </p>
+        </section>
+      )}
+
+      {view === "todo" && shown.length === 0 && gone.length === 0 && (
         <section className="pt-panel">
           <h2 className="pt-panel__h">Nothing drafted for this week yet</h2>
           <p className="pt-panel__sub">
@@ -726,7 +749,7 @@ export function NextWeekOrders(props: {
       {work.length > 0 && <h2 className="pt-nw__section">Electrician</h2>}
       {work.map((po) => <WorkOrderCard key={po.id} po={po} supplier={byId.get(po.supplier_id)} testTo={testTo} alwaysCc={alwaysCc} delivery={delivery} />)}
 
-      {cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
+      {view === "todo" && cancelled > 0 && <p className="pt-nw__muted">{cancelled} cancelled draft{cancelled === 1 ? "" : "s"} not shown.</p>}
     </div>
   );
 }
