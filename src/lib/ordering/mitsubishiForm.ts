@@ -25,6 +25,8 @@ export async function fillMitsubishiForm(o: {
   today?: string;
   /** Going straight to a site rather than the factory. */
   toSite?: boolean;
+  /** We collect it: the address boxes say so, and the date is when it's to be ready. */
+  pickup?: boolean;
   /**
    * The signature for the Customer Signature box, as a PNG. Kept in
    * portal_settings ("ordering_signature"), not in this repo, which is public.
@@ -52,12 +54,12 @@ export async function fillMitsubishiForm(o: {
     // Mitsubishi's quote box; we put our job numbers in it, which is how
     // they're quoted back to us.
     "CRM Quote Reference": [...new Set(o.lines.map((l) => l.job_number).filter((j): j is string => !!j))].sort().join(", "),
-    "Site": o.toSite ? "" : "Factory",
+    "Site": o.pickup || o.toSite ? "" : "Factory",
     "Order Number": o.poNumber,
     "Ordered By": o.settings.orderedBy.toUpperCase(),
-    "Delivery Address": m ? m[1] : o.delivery,
-    "State": m ? m[2].toUpperCase() : "",
-    "Postcode": m ? m[3] : "",
+    "Delivery Address": o.pickup ? "PICK UP — WE WILL COLLECT" : m ? m[1] : o.delivery,
+    "State": o.pickup ? "" : m ? m[2].toUpperCase() : "",
+    "Postcode": o.pickup ? "" : m ? m[3] : "",
     "Delivery Instructions": o.deliveryInstructions ?? "",
     // Mitsubishi's own PDF had Print Name and Position as one field, so one
     // filled both; the template has them split (see mitsubishiTemplate.ts).
@@ -74,7 +76,7 @@ export async function fillMitsubishiForm(o: {
     const i = idx + 1;
     values[rowField("Qty", i)] = String(r.qty);
     values[rowField("Model Number", i)] = r.model;
-    values[rowField("Delivery Date", i)] = deliver?.label ?? "";
+    values[rowField("Delivery Date", i)] = deliver ? (o.pickup ? `Pick up ${deliver.label}` : deliver.label) : "";
     values[rowField("Price Ex GST", i)] = r.unit_cost == null ? "" : money(r.unit_cost);
     values[rowField("Comments", i)] = jobInstallNote(r);
     if (r.unit_cost != null) subtotal += r.unit_cost * r.qty;

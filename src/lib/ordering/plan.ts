@@ -92,7 +92,8 @@ export type WorkOrderRow = {
 export type Week = { start: string; end: string };
 
 export type PlannedLine = {
-  job_id: number;
+  /** null on a stock line: added by hand for the factory, not for a job. */
+  job_id: number | null;
   job_number: string | null;
   customer_name: string | null;
   suburb: string | null;
@@ -106,6 +107,8 @@ export type PlannedLine = {
   supplier_part?: string | null;
   qty: number;
   unit_cost: number | null;
+  /** Added by the office (stock), not drafted from a job; redrafting leaves it alone. */
+  manual?: boolean;
 };
 
 export type PlannedOrder = { supplier_id: string; lines: PlannedLine[] };
@@ -216,7 +219,9 @@ export function orderDelivery(lines: { install_date: string | null }[], today: s
 }
 
 /** "deliver by Fri 16 Oct", or "deliver ASAP" — never "deliver by ASAP". */
-export const deliverPhrase = (label: string) => (label === "ASAP" ? "deliver ASAP" : `deliver by ${label}`);
+export const deliverPhrase = (label: string, pickup = false) =>
+  pickup ? (label === "ASAP" ? "ready to pick up ASAP" : `ready to pick up by ${label}`)
+    : (label === "ASAP" ? "deliver ASAP" : `deliver by ${label}`);
 
 export function weekLabel(w: Week): string {
   return `${dayLabel(w.start)} – ${dayLabel(w.end)}`;
@@ -237,7 +242,7 @@ export function modelLooksLikeName(model: string | null | undefined): boolean {
 
 /* ---------------------------------------------------------------- the plan */
 
-export const lineKey = (jobId: number, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
+export const lineKey = (jobId: number | null, skuId: number | null) => `${jobId}:${skuId ?? "-"}`;
 
 /** A line already on an approved or sent order: what it was ordered for, and on which order. */
 export type OrderedLine = { install_date: string | null; po_number: string; supplier_id: string };
@@ -395,6 +400,8 @@ export type SupplierRow = {
   model: string; description: string | null; qty: number; unit_cost: number | null; jobs: string[]; first_install: string | null;
   /** Each job this line is for, with the day its install is booked. */
   installs: { job: string; date: string | null }[];
+  /** How many of qty are stock for the factory rather than for a job. */
+  stock: number;
 };
 
 /**
@@ -406,8 +413,9 @@ export function supplierRows(lines: PlannedLine[]): SupplierRow[] {
   for (const l of lines) {
     const model = (l.supplier_model ?? l.sku_name ?? "").trim();
     const key = model.toLowerCase();
-    const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date, installs: [] };
+    const r = m.get(key) ?? { model, description: l.description, qty: 0, unit_cost: l.unit_cost, jobs: [], first_install: l.install_date, installs: [], stock: 0 };
     r.qty += l.qty;
+    if (l.job_id == null) r.stock += l.qty;
     if (l.job_number && !r.jobs.includes(l.job_number)) {
       r.jobs.push(l.job_number);
       r.installs.push({ job: l.job_number, date: l.install_date });
@@ -424,11 +432,14 @@ export function supplierRows(lines: PlannedLine[]): SupplierRow[] {
  * order everything comes in one delivery, so this is how the supplier (and
  * whoever unpacks it) can tell what's needed first.
  */
-export function jobInstallNote(r: Pick<SupplierRow, "installs">): string {
-  return [...r.installs]
-    .sort((a, b) => (a.date ?? "9").localeCompare(b.date ?? "9") || a.job.localeCompare(b.job))
-    .map((i) => `Job ${i.job}${i.date ? ` – install ${dayLabel(i.date)}` : ""}`)
-    .join("; ");
+export function jobInstallNote(r: Pick<SupplierRow, "installs"> & { stock?: number }): string {
+  return [
+    ...[...r.installs]
+      .sort((a, b) => (a.date ?? "9").localeCompare(b.date ?? "9") || a.job.localeCompare(b.job))
+      .map((i) => `Job ${i.job}${i.date ? ` – install ${dayLabel(i.date)}` : ""}`),
+    // Stock beside job lines of the same model says how many are for the shelf.
+    ...(r.stock ? [r.installs.length ? `Stock ×${qtyStr(r.stock)}` : "Stock"] : []),
+  ].join("; ");
 }
 
 export const linesTotal = (lines: PlannedLine[]) =>
@@ -478,6 +489,8 @@ export type OrderingSettings = {
   factoryInstructions?: string;
   /** Said on every delivery, wherever it's going ("We do not have a forklift."). */
   deliveryNote?: string;
+  /** What a pick-up order says instead ("We'll pick this up — please call … when it's ready."). */
+  pickupInstructions?: string;
 };
 
 const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
@@ -489,9 +502,15 @@ const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
  * instructions for one order can't drop it.
  */
 export function deliveryInstructionsFor(
-  po: { delivery_instructions: string | null; delivery_to_site: boolean },
-  settings: Pick<OrderingSettings, "factoryInstructions" | "deliveryNote">,
+  po: { delivery_instructions: string | null; delivery_to_site: boolean; pickup?: boolean },
+  settings: Pick<OrderingSettings, "factoryInstructions" | "deliveryNote" | "pickupInstructions">,
 ): string | null {
+  // Collected: nothing about where to deliver or how to unload, just that we
+  // are coming for it — and any instructions the order has of its own.
+  if (po.pickup) {
+    const parts = [po.delivery_instructions?.trim() ?? "", settings.pickupInstructions?.trim() || "We'll pick this up."].filter(Boolean);
+    return parts.map(sentence).join(" ");
+  }
   const own = po.delivery_instructions?.trim() || (po.delivery_to_site ? "" : settings.factoryInstructions?.trim() ?? "");
   const note = settings.deliveryNote?.trim() ?? "";
   const parts = [own, note].filter(Boolean).filter((p, i, all) => i === 0 || !all[0].toLowerCase().includes(p.toLowerCase().replace(/\.$/, "")));
@@ -508,33 +527,39 @@ export function supplierOrderEmail(o: {
   attached: boolean;
   /** Melbourne date the email goes out; defaults to now. */
   today?: string;
+  /** We collect it: no delivery address, a ready-by date instead of deliver-by. */
+  pickup?: boolean;
 }): EmailParts {
   const rows = supplierRows(o.lines);
   const firstNeeded = rows.map((r) => r.first_install).filter(Boolean).sort()[0] ?? null;
   const deliver = orderDelivery(o.lines, o.today ?? todayMelbourne());
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${deliver ? ` — ${deliverPhrase(deliver.label)}` : ""}`;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${o.pickup ? " — PICK UP" : ""}${deliver ? ` — ${deliverPhrase(deliver.label, o.pickup)}` : ""}`;
   const table = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
 <tr><th style="${head}">Qty</th><th style="${head}">Model / item</th><th style="${head}">For job — install booked</th></tr>
-${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${r.installs.length ? esc(jobInstallNote(r)).replace(/; /g, "<br>") : ""}</td></tr>`).join("\n")}
+${rows.map((r) => `<tr><td style="${cell}">${qtyStr(r.qty)}</td><td style="${cell}"><strong>${esc(r.model)}</strong>${r.description && r.description !== r.model ? `<br><span style="color:#6b6a68;">${esc(r.description)}</span>` : ""}</td><td style="${cell}">${esc(jobInstallNote(r)).replace(/; /g, "<br>")}</td></tr>`).join("\n")}
 </table>`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
   const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
   const intro = paras(opening)
     + (o.attached ? "<br><br>Your order form is attached, filled in." : "")
-    + `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`
+    + (o.pickup ? `<br><br><strong>Pick up:</strong> we'll collect this order — no delivery needed.` : `<br><br><strong>Deliver to:</strong> ${esc(o.delivery)}`)
     + (o.deliveryInstructions ? `<br><strong>Instructions:</strong> ${esc(o.deliveryInstructions)}` : "")
-    + (deliver && firstNeeded ? `<br><strong>Deliver by:</strong> ${esc(deliver.label)} (first install ${esc(dayLabel(firstNeeded))}) — all in one delivery, please` : "");
+    + (deliver && firstNeeded ? (o.pickup
+      ? `<br><strong>Ready by:</strong> ${esc(deliver.label)} (first install ${esc(dayLabel(firstNeeded))})`
+      : `<br><strong>Deliver by:</strong> ${esc(deliver.label)} (first install ${esc(dayLabel(firstNeeded))}) — all in one delivery, please`) : "");
   const footer = `${paras(closing)}<br><br>Replies go to ${esc(o.settings.replyTo)}.<br>${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon · 03 5947 8000`;
   const text = [
     opening,
     ...(o.attached ? ["Your order form is attached, filled in."] : []),
     "",
-    `Deliver to: ${o.delivery}`,
+    o.pickup ? "Pick up: we'll collect this order — no delivery needed." : `Deliver to: ${o.delivery}`,
     ...(o.deliveryInstructions ? [`Instructions: ${o.deliveryInstructions}`] : []),
-    ...(deliver && firstNeeded ? [`Deliver by: ${deliver.label} (first install ${dayLabel(firstNeeded)}) — all in one delivery, please`] : []),
+    ...(deliver && firstNeeded ? [o.pickup
+      ? `Ready by: ${deliver.label} (first install ${dayLabel(firstNeeded)})`
+      : `Deliver by: ${deliver.label} (first install ${dayLabel(firstNeeded)}) — all in one delivery, please`] : []),
     "",
-    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} ${r.installs.length ? ` — ${jobInstallNote(r)}` : ""}`),
+    ...rows.map((r) => `${qtyStr(r.qty)} x ${r.model}${r.description && r.description !== r.model ? ` (${r.description})` : ""} ${jobInstallNote(r) ? ` — ${jobInstallNote(r)}` : ""}`),
     "",
     closing,
     `Replies go to ${o.settings.replyTo}.`,
@@ -623,22 +648,24 @@ export function ccList(settings: Pick<OrderingSettings, "replyTo">, supplier: Su
 
 /* ---------------------------------------------------------------- Reece: one list per job */
 
-export type JobGroup<L extends PlannedLine = PlannedLine> = { job_id: number; job_number: string | null; customer_name: string | null; suburb: string | null;
+export type JobGroup<L extends PlannedLine = PlannedLine> = { job_id: number | null; job_number: string | null; customer_name: string | null; suburb: string | null;
   install_date: string | null; appointment_start: string | null; lines: L[] };
 
 /** Lines grouped by job, earliest install first — one maX cart per job. */
 export function byJob<L extends PlannedLine>(lines: L[]): JobGroup<L>[] {
-  const m = new Map<number, JobGroup<L>>();
+  const m = new Map<number | null, JobGroup<L>>();
   for (const l of lines) {
     const g = m.get(l.job_id) ?? { job_id: l.job_id, job_number: l.job_number, customer_name: l.customer_name, suburb: l.suburb,
       install_date: l.install_date, appointment_start: l.appointment_start, lines: [] };
     g.lines.push(l);
     m.set(l.job_id, g);
   }
-  return [...m.values()].sort((a, b) => (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
+  // Stock (no job) goes last: the jobs are what's urgent.
+  return [...m.values()].sort((a, b) => Number(a.job_id == null) - Number(b.job_id == null)
+    || (a.install_date ?? "").localeCompare(b.install_date ?? "") || (a.job_number ?? "").localeCompare(b.job_number ?? ""));
 }
 
-const jobHeading = (g: JobGroup) =>
+const jobHeading = (g: JobGroup) => g.job_id == null ? "Stock for the factory" :
   [`Job ${g.job_number ?? ""}`, g.customer_name, g.suburb].filter(Boolean).join(" · ")
   + (g.appointment_start ? ` — install ${dayTimeLabel(g.appointment_start)}` : g.install_date ? ` — install ${dayLabel(g.install_date)}` : "");
 
@@ -648,7 +675,7 @@ const jobHeading = (g: JobGroup) =>
  * Not emailed to Reece — it's what the office works from (and what a test or
  * sample shows).
  */
-export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines: PlannedLine[]; delivery: string; settings: OrderingSettings; instructions?: string | null }): EmailParts {
+export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines: PlannedLine[]; delivery: string; settings: OrderingSettings; instructions?: string | null; pickup?: boolean }): EmailParts {
   const groups = byJob(o.lines);
   const missing = o.lines.filter((l) => !l.supplier_part).length;
   const subject = `Reece list ${o.poNumber} — ${groups.length} job${groups.length === 1 ? "" : "s"}, ${o.lines.length} line${o.lines.length === 1 ? "" : "s"}`;
@@ -657,12 +684,13 @@ export function reeceListEmail(o: { supplier: Supplier; poNumber: string; lines:
 <tr><th style="${head}width:48px;">Qty</th><th style="${head}width:120px;">Reece #</th><th style="${head}">Item</th></tr>
 ${g.lines.map((l) => `<tr><td style="${cell}">${qtyStr(l.qty)}</td><td style="${cell}font-family:ui-monospace,Menlo,Consolas,monospace;">${l.supplier_part ? esc(l.supplier_part) : `<span style="color:#b04711;">not set</span>`}</td><td style="${cell}"><strong>${esc(l.sku_name ?? "")}</strong>${l.description && l.description !== l.sku_name ? `<br><span style="color:#6b6a68;">${esc(l.description)}</span>` : ""}</td></tr>`).join("\n")}
 </table>`;
-  const intro = `One list per job — enter each as its own cart in Reece maX, delivered to ${esc(o.delivery)}.`
+  const where = o.pickup ? "set to pick up from the branch" : `delivered to ${o.delivery}`;
+  const intro = `One list per job — enter each as its own cart in Reece maX, ${esc(where)}.`
     + (o.instructions ? `<br><strong>Delivery instructions for maX:</strong> ${esc(o.instructions)}` : "")
     + (missing ? `<br><span style="color:#b04711;">${missing} line${missing === 1 ? " has" : "s have"} no Reece product number in the ServiceTitan pricebook yet.</span>` : "");
   const footer = `${esc(o.settings.orderedBy)} · Advanced Gas &amp; Aircon`;
   const text = [
-    `One list per job — enter each as its own cart in Reece maX, delivered to ${o.delivery}.`,
+    `One list per job — enter each as its own cart in Reece maX, ${where}.`,
     ...(o.instructions ? [`Delivery instructions for maX: ${o.instructions}`] : []),
     ...(missing ? [`${missing} line(s) have no Reece product number in the pricebook yet.`] : []),
     "",
@@ -693,12 +721,14 @@ export function mitsubishiOrderEmail(o: {
   deliveryInstructions: string | null; settings: OrderingSettings; attached: boolean;
   /** Melbourne date the email goes out; defaults to now. */
   today?: string;
+  /** We collect it. */
+  pickup?: boolean;
 }): EmailParts {
   const rows = supplierRows(o.lines);
   const acct = o.settings.mitsubishi ?? {};
   const units = rows.reduce((t, r) => t + r.qty, 0);
   const needed = orderDelivery(o.lines, o.today ?? todayMelbourne())?.label ?? null;
-  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${needed ? ` — ${deliverPhrase(needed)}` : ""}`;
+  const subject = `Order ${o.poNumber} — Advanced Gas & Aircon${acct.accountNumber ? ` (account ${acct.accountNumber})` : ""}${o.pickup ? " — PICK UP" : ""}${needed ? ` — ${deliverPhrase(needed, o.pickup)}` : ""}`;
   const vars = { supplier: o.supplier.name, po: o.poNumber };
   const opening = fillWording(blank(o.supplier.email_intro) ? DEFAULT_ORDER_INTRO : o.supplier.email_intro!, vars);
   const closing = fillWording(blank(o.supplier.email_signoff) ? DEFAULT_ORDER_SIGNOFF : o.supplier.email_signoff!, vars);
@@ -708,8 +738,9 @@ export function mitsubishiOrderEmail(o: {
     ["Order number", o.poNumber],
     ["Account", [acct.accountName, acct.accountNumber].filter(Boolean).join(" — ")],
     ["Units", `${units} (${rows.length} model${rows.length === 1 ? "" : "s"})`],
-    ...(needed ? [["Deliver by", `${needed} — all in one delivery`] as [string, string]] : []),
-    ["Deliver to", o.delivery],
+    ...(o.pickup
+      ? [["Collection", "We'll pick up — no delivery"] as [string, string], ...(needed ? [["Ready by", needed] as [string, string]] : [])]
+      : [...(needed ? [["Deliver by", `${needed} — all in one delivery`] as [string, string]] : []), ["Deliver to", o.delivery] as [string, string]]),
     ...(o.deliveryInstructions ? [["Delivery instructions", o.deliveryInstructions] as [string, string]] : []),
   ];
   const lbl = `padding:5px 14px 5px 0;font:13px/18px ${SANS};color:#6b6a68;white-space:nowrap;vertical-align:top;`;
