@@ -10,7 +10,10 @@
 -- settings/v2/tenant/{tenant}/tag-types, the same shape as technicians,
 -- employees, job types and business units.
 --
--- Idempotent.
+-- Idempotent. Numbered 0071 when it was written and applied; renamed to 0073
+-- after an order-holds migration landed on 0071 from another branch. Nothing
+-- depends on the order — it creates one table of its own — so the rename is
+-- only to keep the sequence unique.
 
 create table if not exists st_job_tags (
   id bigint primary key,
