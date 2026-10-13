@@ -173,7 +173,7 @@ export async function sendTest(id: number, to: string): Promise<SendResult> {
   if ("error" in b) return { ok: false, error: b.error };
   const { po, supplier, settings, attachments } = b;
   // Reece isn't emailed for real, so show the list it would be entered from.
-  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings });
+  const email = b.email ?? reeceListEmail({ supplier, poNumber: po.po_number, lines: po.lines, delivery: po.delivery_address || settings.deliveryAddress, settings, instructions: deliveryInstructionsFor(po, settings) });
   const err = await sendMarked("TEST", supplier, email, to, settings, attachments);
   return err ? { ok: false, error: err } : { ok: true, note: `Test sent to ${to}${attachments ? " with the form attached" : ""}. The order is still a draft.` };
 }
@@ -209,6 +209,8 @@ async function sendMarked(
  */
 export async function sendSamples(to: string, onlySupplierId?: string): Promise<SendResult> {
   const [suppliers, settings, samples] = await Promise.all([loadSuppliers(), loadOrderingSettings(), loadSamples()]);
+  // Samples are shown as factory deliveries, which is how nearly every order goes.
+  const sampleInstructions = deliveryInstructionsFor({ delivery_instructions: null, delivery_to_site: false }, settings);
   const list = suppliers.filter((s) => s.active && (!onlySupplierId || s.id === onlySupplierId));
   if (!list.length) return { ok: false, error: "No such supplier." };
   const week = nextWeek(new Date());
@@ -227,14 +229,14 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
       const lines: PlannedLine[] = sample.lines;
       if (s.method === "email_form") {
         const orderDate = todayDmy();
-        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings });
+        const form = await fillMitsubishiForm({ poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings });
         if ("error" in form) { failed.push(`${s.name}: ${form.error}`); continue; }
         attachments = [{ filename: mitsubishiFormFilename(po), content: Buffer.from(form.pdf).toString("base64") }];
-        email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings, attached: true });
+        email = mitsubishiOrderEmail({ supplier: s, poNumber: po, orderDate, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings, attached: true });
       } else if (s.method === "reece_cart") {
-        email = reeceListEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, settings });
+        email = reeceListEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, settings, instructions: sampleInstructions });
       } else {
-        email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: settings.factoryInstructions ?? null, settings, attached: false });
+        email = supplierOrderEmail({ supplier: s, poNumber: po, lines, delivery: settings.deliveryAddress, deliveryInstructions: sampleInstructions, settings, attached: false });
       }
     }
     const err = await sendMarked("SAMPLE", s, email, to, settings, attachments);
