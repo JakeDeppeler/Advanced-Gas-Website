@@ -257,7 +257,7 @@ export async function sendSamples(to: string, onlySupplierId?: string): Promise<
   };
 }
 
-/** "Next week's orders are ready" to the office, after the Wednesday draft. */
+/** "New orders to approve" to the office, after a morning draft that found something new. */
 export async function sendReadyNotice(parts: EmailParts, to: string): Promise<string | null> {
   const from = fromAddress() ?? (process.env.RESEND_FROM_EMAIL || "Advanced Gas Portal <onboarding@resend.dev>");
   return resend({ from, to: [to], subject: parts.subject, html: parts.html, text: parts.text });

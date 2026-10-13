@@ -1,9 +1,11 @@
-name: Next week's orders
+name: Order drafts
 
-# Wednesday morning: draft next week's supplier orders and electrician work
-# orders (Supply › Next week) and email the office that they're ready. Nothing
-# is sent to a supplier or the electrician by this — the office approves each
-# one on the page.
+# Every weekday morning: draft any supplier orders and electrician work orders
+# for jobs sold and booked since the last run (Supply › Next week) — this week
+# every day, next week from Wednesday — and email the office when something
+# new needs approving. Nothing is sent to a supplier or the electrician by
+# this; the office approves each one on the page. Anything already ordered is
+# never ordered again, even if the job moves.
 #
 # Uses the same two repository secrets as the dashboard sync
 # (DASHBOARD_SYNC_URL and CRON_SECRET).
@@ -11,10 +13,11 @@ name: Next week's orders
 on:
   schedule:
     # Two slots so one is 7am Melbourne whatever daylight saving is doing:
-    # 20:00 UTC Tuesday = 7am AEDT Wednesday, 21:00 UTC = 7am AEST.
-    # The route is safe to run twice; the second finds nothing new.
-    - cron: "0 20 * * 2"
-    - cron: "0 21 * * 2"
+    # 20:00 UTC = 7am AEDT, 21:00 UTC = 7am AEST, Sunday–Thursday UTC being
+    # Monday–Friday in Melbourne. The route is safe to run twice; the second
+    # finds nothing new and sends nothing.
+    - cron: "0 20 * * 0-4"
+    - cron: "0 21 * * 0-4"
   workflow_dispatch:
     inputs:
       url:
@@ -31,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Draft next week's orders
+      - name: Draft new orders
         env:
           SYNC_URL: ${{ secrets.DASHBOARD_SYNC_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -48,7 +51,7 @@ jobs:
           out="$(curl -sS --fail-with-body --max-time 90 -H "Authorization: Bearer ${CRON_SECRET}" "${BASE}/api/ordering/draft")"
           echo "$out"
           {
-            echo "### Next week's orders"
+            echo "### Order drafts"
             echo '```json'
             echo "$out"
             echo '```'

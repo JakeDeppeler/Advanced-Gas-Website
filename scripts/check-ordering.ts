@@ -9,9 +9,9 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import {
-  byJob, ccList, dayTimeLabel, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
+  byJob, ccList, dayTimeLabel, toApproveEmail, deliveryInstructionsFor, orderDelivery, mitsubishiOrderEmail, modelLooksLikeName, neededBy, nextWeek, parseEmails, planWeek, poNumber, reeceListEmail,
   splitAddress, supplierOrderEmail, supplierRows, workOrderEmail, workRef,
-  type OrderLine, type Supplier, type WorkOrderRow,
+  type OrderLine, type PlannedLine, type Supplier, type WorkOrderRow,
 } from "../src/lib/ordering/plan";
 import { fillMitsubishiForm } from "../src/lib/ordering/mitsubishiForm";
 
@@ -137,6 +137,31 @@ ok("a delivery date already gone reads ASAP", orderDelivery([{ install_date: "20
   ok("a site order still says no forklift", said(null, true) === "We do not have a forklift.", String(said(null, true)));
   ok("an order's own instructions come first, the note still added", said("Leave at side gate", true) === "Leave at side gate. We do not have a forklift.", String(said("Leave at side gate", true)));
   ok("…and not twice when the instructions already say it", said("Call Kellie, we do not have a forklift", false) === "Call Kellie, we do not have a forklift.", String(said("Call Kellie, we do not have a forklift", false)));
+}
+
+console.log("\n-- booked, moved, cancelled --");
+{
+  // 20264's split was ordered for Tue 20 Oct; the job has since moved to Thu 22 Oct.
+  const movedLines = lines.map((l) => (l.job_id === 264 ? { ...l, install_date: "2026-10-22" } : l));
+  const was = new Map([["264:148184332", { install_date: "2026-10-20", po_number: "AGA-261012-MIT", supplier_id: "mitsubishi" }]]);
+  const p2 = planWeek({ week: w, lines: movedLines, workOrders: [], suppliers, alreadyOrdered: was });
+  const mit = p2.orders.find((o) => o.supplier_id === "mitsubishi");
+  ok("a job moved after its gear was ordered isn't ordered again", !mit?.lines.some((l) => l.job_id === 264 && l.sku_id === 148184332));
+  ok("…but the move is pointed out, with the order and who to tell",
+    p2.problems.some((x) => x.job_number === "20264" && x.what.includes("Moved to Thu 22 Oct after its gear was ordered for Tue 20 Oct (AGA-261012-MIT)") && x.what.includes("Let Mitsubishi Electric know")),
+    JSON.stringify(p2.problems.find((x) => x.job_number === "20264")));
+  const same = planWeek({ week: w, lines, workOrders: [], suppliers, alreadyOrdered: was });
+  ok("…and nothing is said when it hasn't moved", !same.problems.some((x) => x.what.startsWith("Moved")));
+  const sk = planWeek({ week: w, lines, workOrders: [], suppliers, alreadyOrdered: new Set(), skip: new Set(["410:21"]) });
+  ok("a line on a cancelled draft is left out of the automatic run", !sk.orders.some((o) => o.supplier_id === "reclaim"));
+
+  const urgentMail = toApproveEmail({ today: "2026-10-14", link: "https://x/portal", problems: [], workOrders: ["Job 20311 — 19 Fremont Street"],
+    orders: [{ supplier: "Reece", lines: [L({ job_id: 1, job_number: "20999", install_date: "2026-10-16" }) as PlannedLine] },
+             { supplier: "Rinnai (Brivis)", lines: [L({ job_id: 2, job_number: "20888", install_date: "2026-10-27" }) as PlannedLine] }] });
+  ok("a job booked for two days' time: the email says order today", urgentMail.subject === "Order today: Reece — new jobs to approve" && urgentMail.text.indexOf("Reece") < urgentMail.text.indexOf("Rinnai"), urgentMail.subject);
+  const calm = toApproveEmail({ today: "2026-10-14", link: "x", problems: [], workOrders: [],
+    orders: [{ supplier: "Rinnai (Brivis)", lines: [L({ job_id: 2, job_number: "20888", install_date: "2026-10-27" }) as PlannedLine] }] });
+  ok("…and otherwise just what's new", calm.subject === "New orders to approve — 1 job" && calm.text.includes("deliver by Fri 23 Oct"), calm.subject + " | " + calm.text);
 }
 
 console.log("\n-- one order across this week and next, for suppliers that charge per delivery --");
