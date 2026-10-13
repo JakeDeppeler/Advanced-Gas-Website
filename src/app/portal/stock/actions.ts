@@ -9,6 +9,7 @@ import {
   addStockItem, addUncounted, editStockItem, isSection, keptVanLines, listStock, moveStock, removeStockItem, signTool as signToolDb,
   type StockSection,
 } from "@/lib/portal/stock";
+import { receiveStockLine } from "@/lib/ordering/stockLines";
 
 export type ActionResult = { ok: boolean; error?: string; note?: string };
 
@@ -211,4 +212,16 @@ export async function startFromVanList(input: { keys: string[] }): Promise<Actio
   }
   done();
   return { ok: true, note: `Added ${lines.length} ${lines.length === 1 ? "line" : "lines"}. Count them to start the shelf.` };
+}
+
+/** A stock line on a sent order has come in: put it on the shelf (see receiveStockLine). */
+export async function receiveLine(input: { lineId: number }): Promise<ActionResult> {
+  const me = await office();
+  if (!me) return { ok: false, error: "Not allowed." };
+  if (!Number.isInteger(input.lineId) || input.lineId <= 0) return { ok: false, error: "That line couldn't be found." };
+  const r = await receiveStockLine(input.lineId, me.name);
+  if (!r.ok) return { ok: false, error: r.error };
+  done();
+  revalidatePath("/portal/supply/next-week");
+  return { ok: true, note: `${r.item} is on the shelf.` };
 }
