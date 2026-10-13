@@ -7,6 +7,10 @@
     {
       "path": "/api/reports/run",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/ordering/draft?mode=refresh",
+      "schedule": "5 20 * * 0-4"
     }
   ]
 }
