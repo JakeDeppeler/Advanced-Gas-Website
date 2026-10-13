@@ -71,3 +71,55 @@ export function creditWith(
     r: T,
   ): string | null => moves[keyOf(r)]?.to ?? r.created_by ?? r.sold_by;
 }
+
+/**
+ * The ServiceTitan integration account, which wrote 3,218 of the estimates in
+ * the replica and is not a person. It can hold credit — the office may well
+ * want to move a job off it — but it is never somewhere to move one to.
+ */
+export const IMPORT_USER = "advancedgasairconditioningservices";
+
+/** One person's share of the window, for the band at the top of the page. */
+export type CreditTotal = { who: string; jobs: number; value: number; moved: number };
+
+export type SoldJob = {
+  /** The board's own job identity, which is what a move is keyed on. */
+  key: string;
+  jobId: number | null;
+  /** Set where the sale carries no job, which is how the board identifies it. */
+  customerId: number | null;
+  jobNumber: string | null;
+  customer: string | null;
+  suburb: string | null;
+  value: number;
+  soldOn: string | null;
+  /** Who the board credits it to right now, move included. */
+  credited: string | null;
+  /** Who the board would credit with no move: whoever wrote the quote. */
+  original: string | null;
+  /**
+   * ServiceTitan's own Sold By, where it has one.
+   *
+   * Only 41 of 384 sales carry it — the office sells from the estimate without
+   * naming a seller — but where it is there and disagrees with the quote
+   * writer, it is ServiceTitan saying the exact thing this page exists to
+   * record, and the row offers it as the move rather than making somebody
+   * find the name in a list.
+   */
+  soldBy: string | null;
+  move: CreditMove | null;
+};
+
+/** The windows the page offers. `null` days is everything there is. */
+export const WINDOWS = [
+  { days: 30, label: "30 days" },
+  { days: 60, label: "60 days" },
+  { days: 90, label: "90 days" },
+  { days: null, label: "Everything" },
+] as const;
+
+export const windowDays = (v: string | null | undefined): number | null => {
+  if (v === "all") return null;
+  const n = Number(v);
+  return WINDOWS.some((w) => w.days === n) ? n : 60;
+};

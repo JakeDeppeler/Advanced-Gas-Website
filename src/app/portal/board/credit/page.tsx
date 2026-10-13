@@ -6,21 +6,27 @@ import { PortalBack } from "@/components/portal/PortalBack";
 import { Locked } from "@/components/portal/Locked";
 import { SaleCredit } from "@/components/portal/SaleCredit";
 import { dbConfigured } from "@/lib/portal/db";
-import { readSoldJobs } from "@/lib/board/saleCredit";
+import { readSoldJobs, windowDays } from "@/lib/board/saleCredit";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Who sold it — Team portal" };
 
-const EMPTY = { jobs: [], people: [], moves: 0 };
+const EMPTY = { jobs: [], people: [], moves: 0, totals: [] };
 
-/** Moving a sold job's credit from one person to another. */
-export default async function SaleCreditPage() {
+/**
+ * Every sale, who it is listed under, and how to change that.
+ *
+ * The window is a link rather than client state, so the page re-reads on the
+ * server and a window somebody is looking at can be sent to somebody else.
+ */
+export default async function SaleCreditPage({ searchParams }: { searchParams?: { d?: string } }) {
   const user = await getPortalUser();
   if (!user) redirect("/portal/login");
   if (!can(user, "overhead")) return <Locked user={user} what="The wall board" forWhom="managers" />;
 
+  const days = windowDays(searchParams?.d);
   const ready = dbConfigured();
-  const { jobs, people, moves } = ready ? await readSoldJobs().catch(() => EMPTY) : EMPTY;
+  const { jobs, people, moves, totals } = ready ? await readSoldJobs(days).catch(() => EMPTY) : EMPTY;
 
   return (
     <PortalShell user={user}>
@@ -28,10 +34,10 @@ export default async function SaleCreditPage() {
       <div className="pt-head">
         <h1>Who sold it</h1>
         <p>
-          The board credits a job to whoever wrote the quote, because ServiceTitan only stamps a seller once an estimate
-          closes — keyed on that, the leaderboard listed the two people who had closed something while six had been
-          quoting. It is right nearly always. When it isn&rsquo;t — one person priced the job and somebody else went back
-          and closed it — this is where the office says so.
+          The board credits a job to whoever <em>wrote</em> the quote, because ServiceTitan only stamps a seller once an
+          estimate is closed from the sell screen — and this office closes most of them without naming one, so keying on
+          it listed the two people who had while six had been quoting. That is right nearly always. When it
+          isn&rsquo;t — somebody starts a quote and doesn&rsquo;t do the work — this is where the office says so.
         </p>
         <p>
           A move takes the <strong>whole job</strong>, the quote as well as the sale. Moving the sale on its own would
@@ -39,7 +45,8 @@ export default async function SaleCreditPage() {
           &ldquo;sold out of quoted&rdquo; would read as nonsense for both of them.
         </p>
         <p className="pt-credit__warn">
-          This changes the leaderboard and the commission bands on it. Every move is kept with who made it and when.
+          This changes the leaderboard and the commission bands on it. Every move is kept with who made it and when. It
+          does not change anything in ServiceTitan.
         </p>
       </div>
       {!ready && (
@@ -47,7 +54,7 @@ export default async function SaleCreditPage() {
           <strong>The database isn&rsquo;t connected,</strong> so nothing can be saved yet.
         </div>
       )}
-      <SaleCredit jobs={jobs} people={people} moves={moves} />
+      <SaleCredit jobs={jobs} people={people} moves={moves} totals={totals} days={days} />
     </PortalShell>
   );
 }

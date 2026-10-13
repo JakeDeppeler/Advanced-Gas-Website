@@ -1553,6 +1553,24 @@ that was. Writing it into the estimate would be overwritten by the next sync, so
 the move lives in `portal_settings` under `sale-credit` and is applied on the
 way out, by `creditFor` (`src/lib/dashboard/saleCreditTypes.ts`).
 
+The page lists every sale over 30, 60 or 90 days or the whole history, with a
+card per person across the top saying what the window comes to under each name,
+and a filter on each card. Two things it says plainly rather than hiding.
+**Everything sold before September 2026 is under the ServiceTitan integration
+account** — 341 of the 384 sales on record, $1.18M — because that is when the
+office started writing estimates under their own names; nothing recorded who
+sold those, so moving one is a guess rather than a correction, and the account
+can be moved *off* but is never offered as somewhere to move one *to*. And
+where ServiceTitan's own `soldBy` exists and disagrees with the quote writer —
+41 sales carry one at all, 6 disagree — the row says so and offers it as the
+move in one click, because that is ServiceTitan recording the exact thing this
+page exists to record.
+
+**Nothing is written back to ServiceTitan.** Its Sold By is set on the sell
+screen, so changing it on a closed estimate means unsell and resell — which
+ServiceTitan blocks once the customer has signed, and gates behind its own
+support — and the sync is read-only in both directions by design.
+
 A move takes the **whole job** — the quote as well as the sale — and is keyed on
 `quoteKey`, the board's own job identity, so every figure keyed on a person
 follows it together: the leaderboard, the sold total, the per-person close rate

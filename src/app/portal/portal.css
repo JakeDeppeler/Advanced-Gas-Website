@@ -566,6 +566,20 @@ a.pt-card:hover { transform: translateY(-2px); box-shadow: 0 18px 38px -28px rgb
 .pt-panel__sub { margin: 6px 0 18px; font-size: 15px; color: var(--pt-ink-2); line-height: 22px; max-width: 72ch; }
 
 .pt-inline { font-size: 13px; font-weight: 600; }
+/* Used as a button in a few places (the sale-credit filters, "use that"): a
+   browser's default button chrome beside a sentence reads as a form control
+   where what is meant is a link. */
+button.pt-inline {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  color: var(--pt-navy);
+  text-decoration: underline;
+  cursor: pointer;
+}
+button.pt-inline:hover { color: var(--pt-accent); }
 .pt-inline.is-ok { color: var(--pt-good); }
 .pt-inline.is-err { color: var(--pt-bad); }
 .pt-inline--sm { font-size: 12px; }
@@ -4748,6 +4762,56 @@ a.pt-fig:hover { transform: translateY(-2px); }
 /* Said before the table, not after it: somebody who reads only the heading
    should still know this is not a display setting. */
 .pt-credit__warn { font-weight: 700; color: var(--pt-accent); }
+/* ServiceTitan's own seller, where it disagrees with the quote writer. Quiet
+   rather than alarming: it is a suggestion, not a fault. */
+.pt-credit__st { display: block; font-size: 0.78rem; font-weight: 600; color: var(--pt-ink-2); }
+
+/* The window, as links so one can be sent to somebody. Borrows the segmented
+   control's buttons rather than reinventing them. */
+.pt-credit__windows {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  margin: 0 0 18px;
+  border: 1px solid var(--pt-line);
+  border-radius: 10px;
+  background: var(--pt-bg);
+}
+.pt-credit__windows .pt-seg__b { text-decoration: none; }
+
+/* One card a person: the name, what it comes to, and how many of those are
+   there because somebody moved them. A card is a filter as well as a figure —
+   the list under it is long, and "show me Jye's" is the next thing anybody
+   asks after reading this. */
+.pt-credit__who { display: flex; flex-wrap: wrap; gap: 10px; }
+.pt-credit__card {
+  appearance: none;
+  flex: 1 1 11rem;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--pt-line);
+  border-radius: 14px;
+  background: var(--pt-surface);
+  font: inherit;
+  cursor: pointer;
+}
+.pt-credit__card:hover { border-color: var(--pt-ink-3); }
+.pt-credit__card.is-on { border-color: var(--pt-navy); box-shadow: inset 0 0 0 1px var(--pt-navy); }
+.pt-credit__card:focus-visible { outline: 2px solid var(--pt-sky); outline-offset: 1px; }
+.pt-credit__name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pt-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pt-credit__value { font-family: var(--f-display); font-size: 21px; font-weight: 800; color: var(--pt-ink); font-variant-numeric: tabular-nums; }
+.pt-credit__meta { font-size: 12px; font-weight: 600; color: var(--pt-ink-3); }
 
 /* ------------------------------------------------- which tags mean held */
 /* The same shape as the standard times: a long list, the rows that matter at

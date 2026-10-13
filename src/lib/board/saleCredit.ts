@@ -16,39 +16,24 @@ import { getSettings, saveSettings } from "@/lib/portal/db";
 import { q, sbSelect } from "@/lib/dashboard/db";
 import { quoteKey } from "@/lib/dashboard/metrics";
 import {
+  IMPORT_USER,
   SALE_CREDIT_KEY,
   creditWith,
   normaliseSaleCredits,
   type CreditMove,
+  type CreditTotal,
   type SaleCredits,
+  type SoldJob,
 } from "@/lib/dashboard/saleCreditTypes";
 
-export { SALE_CREDIT_KEY, type CreditMove, type SaleCredits };
-
-/**
- * The ServiceTitan integration account, which wrote 3,218 of the estimates in
- * the replica and is not a person. It can hold credit — the office may well
- * want to move a job off it — but it is never somewhere to move one to.
+/*
+ * Re-exported so the portal page and this module are imported from one place,
+ * while the client component takes the pure half straight from
+ * saleCreditTypes: this file reaches the database, and a client component that
+ * imported it would pull `server-only` into the browser bundle and fail the
+ * build. It did, once.
  */
-export const IMPORT_USER = "advancedgasairconditioningservices";
-
-export type SoldJob = {
-  /** The board's own job identity, which is what a move is keyed on. */
-  key: string;
-  jobId: number | null;
-  /** Set where the sale carries no job, which is how the board identifies it. */
-  customerId: number | null;
-  jobNumber: string | null;
-  customer: string | null;
-  suburb: string | null;
-  value: number;
-  soldOn: string | null;
-  /** Who the board credits it to right now, move included. */
-  credited: string | null;
-  /** Who ServiceTitan says, so the page can show what a move changed. */
-  original: string | null;
-  move: CreditMove | null;
-};
+export * from "@/lib/dashboard/saleCreditTypes";
 
 type SaleRow = {
   id: number;
@@ -63,13 +48,18 @@ type SaleRow = {
 };
 
 /**
- * What has sold lately, newest first, with who it is credited to.
+ * What has sold, newest first, with who it is credited to.
  *
- * Sixty days rather than the month: a sale closed on the 30th gets argued about
- * on the 2nd, and a page that only reaches back to the 1st cannot fix it.
+ * Sixty days by default rather than the month: a sale closed on the 30th gets
+ * argued about on the 2nd, and a page that only reaches back to the 1st cannot
+ * fix it. The whole history is 384 sales, which is a page rather than a
+ * problem — but see `IMPORT_USER`: everything before September 2026 is under
+ * the integration account and was never one person's.
  */
-export async function readSoldJobs(days = 60): Promise<{ jobs: SoldJob[]; people: string[]; moves: number }> {
-  const from = new Date(Date.now() - days * 86_400_000).toISOString();
+export async function readSoldJobs(
+  days: number | null = 60,
+): Promise<{ jobs: SoldJob[]; people: string[]; moves: number; totals: CreditTotal[] }> {
+  const from = days == null ? null : new Date(Date.now() - days * 86_400_000).toISOString();
 
   const [savedRaw, sales] = await Promise.all([
     getSettings<unknown>(SALE_CREDIT_KEY).catch(() => null),
@@ -77,7 +67,7 @@ export async function readSoldJobs(days = 60): Promise<{ jobs: SoldJob[]; people
       "st_sales",
       [
         q.select("id,job_id,customer_id,created_on,created_by,sold_by,total_inc,sold_on,first"),
-        q.gte("sold_on", from),
+        from ? q.gte("sold_on", from) : q.notNull("sold_on"),
         q.order("sold_on", "desc", "last"),
       ].join("&"),
     ).catch(() => []),
@@ -113,6 +103,7 @@ export async function readSoldJobs(days = 60): Promise<{ jobs: SoldJob[]; people
       soldOn: r.sold_on,
       credited: credit(r),
       original: r.created_by ?? r.sold_by,
+      soldBy: r.sold_by,
       move: moves[key] ?? null,
       _ids: [Number(r.id)],
     });
@@ -201,7 +192,29 @@ export async function readSoldJobs(days = 60): Promise<{ jobs: SoldJob[]; people
     .map(({ _ids, ...j }) => j)
     .sort((a, b) => String(b.soldOn ?? "").localeCompare(String(a.soldOn ?? "")));
 
-  return { jobs: list, people, moves: Object.keys(moves).length };
+  /*
+   * Who the window is under, and for how much.
+   *
+   * The question this page is opened with is "who is everything listed under",
+   * and the answer is not in a list of rows — it is four lines. Counted after
+   * the moves, because that is what the board shows.
+   */
+  const totals = new Map<string, CreditTotal>();
+  for (const j of list) {
+    const who = j.credited ?? "(nobody)";
+    const got = totals.get(who) ?? { who, jobs: 0, value: 0, moved: 0 };
+    got.jobs += 1;
+    got.value += j.value;
+    if (j.move) got.moved += 1;
+    totals.set(who, got);
+  }
+
+  return {
+    jobs: list,
+    people,
+    moves: Object.keys(moves).length,
+    totals: [...totals.values()].sort((a, b) => b.value - a.value || a.who.localeCompare(b.who)),
+  };
 }
 
 /**
